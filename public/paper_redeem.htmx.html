@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Réconciliation bulletin papier</title>
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/auth-ui.js"></script>
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+  <div class="container" data-requires-role="operator">
+    <div class="row between" style="margin-bottom:12px;">
+      <div>
+        <h1 style="margin:0;">Réconciliation bulletin papier</h1>
+        <div class="muted">Saisir/scanner le code du bulletin + enregistrer le vote (secours).</div>
+      </div>
+      <div class="row" style="gap:8px;">
+        <a class="btn" href="/operator_flow.htmx.html">Retour séance</a>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="row between" style="gap:12px; flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:700;">Scanner / saisir le code</div>
+          <div class="muted tiny">Le code est un UUID. Si la caméra n'est pas disponible, saisir manuellement.</div>
+        </div>
+        <div class="row" style="gap:8px; flex-wrap:wrap;">
+          <button class="btn" id="startScanBtn">📷 Scanner</button>
+          <button class="btn" id="stopScanBtn" style="display:none;">⏹ Stop</button>
+        </div>
+      </div>
+      <div class="hr"></div>
+
+      <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-start;">
+        <div class="grow" style="min-width:260px;">
+          <label class="tiny muted">Code bulletin</label>
+          <input class="input" id="codeInput" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+
+          <label class="tiny muted">Vote</label>
+          <select class="input" id="voteSelect">
+            <option value="pour">Pour</option>
+            <option value="contre">Contre</option>
+            <option value="abstention">Abstention</option>
+            <option value="blanc">Blanc</option>
+          </select>
+
+          <label class="tiny muted">Justification (obligatoire)</label>
+          <textarea class="input" id="justInput" placeholder="vote papier (secours)"></textarea>
+
+          <div class="row" style="gap:8px; justify-content:flex-end; margin-top:10px;">
+            <button class="btn primary" id="saveBtn">Enregistrer</button>
+          </div>
+
+          <div id="msg" class="muted tiny" style="margin-top:10px;"></div>
+        </div>
+
+        <div style="width:360px; max-width:100%;">
+          <div class="card" style="padding:10px;">
+            <div class="muted tiny" style="margin-bottom:6px;">Aperçu caméra</div>
+            <video id="video" style="width:100%; border-radius:12px; background:#000;" playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <div class="muted tiny" style="margin-top:6px;">
+              QR via <span class="kbd">BarcodeDetector</span> si dispo.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="/assets/js/paper-redeem.js"></script>
+  <script src="/assets/js/ui-states.js"></script>
+</body>
+</html>

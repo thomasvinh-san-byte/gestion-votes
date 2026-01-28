@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Console opérateur</title>
+
+  <!-- Base styles used by existing JS (badges, buttons, cards) -->
+  <!-- Layout polish (keep project CSS) -->
+  <!-- Tailwind for “Gold Standard” layout (no build step) -->
+  <style>
+    /* Keep legacy notif box readable inside Tailwind layout */
+    .notif { position: fixed; left: 50%; transform: translateX(-50%); top: 72px; z-index: 60; }
+  </style>
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+
+  <body class="app-shell">
+  <div class="app">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand">
+          <strong>Gestion des assemblées</strong>
+          <span>Interface</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="page-title">Fiche séance</div>
+        <div class="page-subtitle">Orchestration & préparation</div>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn" data-drawer="readiness" title="Readiness">✅</button>
+        <button class="icon-btn" data-drawer="infos" title="Informations">⚠️</button>
+        <button class="icon-btn" data-drawer="menu" title="Menu">☰</button>
+      </div>
+    </header>
+
+    <aside class="app-sidebar">
+      <div class="sidebar-inner">
+        <nav class="nav">
+          <a class="" href="/meetings.htmx.html"><span class="ico">🏠</span><span class="lbl">Tableau de bord</span></a>
+      <a class="active" href="/operator.htmx.html"><span class="ico">🗂️</span><span class="lbl">Séance</span></a>
+      <a class="" href="/operator_flow.htmx.html"><span class="ico">🧑‍💼</span><span class="lbl">Conduite</span></a>
+      <a class="" href="/president.htmx.html"><span class="ico">🧑‍⚖️</span><span class="lbl">Président</span></a>
+      <a class="" href="/archives.htmx.html"><span class="ico">🗄️</span><span class="lbl">Archives</span></a>
+        </nav>
+        <div class="sidebar-foot muted tiny" style="margin-top:14px;">
+          Détails et navigation séance via le panneau latéral (☰) — justification sur demande.
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="main-inner">
+<div class="toolbar" style="justify-content:space-between; align-items:flex-start; gap:14px;">
+  <div>
+    <div class="h1">Fiche séance</div>
+    <div class="muted">Orchestration & préparation — utilisez le panneau latéral (✅ / ☰ / ⚠️) pour les détails.</div>
+  </div>
+  <div class="toolbar" style="justify-content:flex-end;">
+    <a class="btn" data-meeting-link href="/attendance.htmx.html">👥 Présences</a>
+    <a class="btn" data-meeting-link href="/proxies.htmx.html">📝 Procurations</a>
+    <a class="btn" data-meeting-link href="/motions.htmx.html">📌 Résolutions</a>
+    <a class="btn primary" data-meeting-link href="/operator_flow.htmx.html">▶ Conduite</a>
+  </div>
+</div>
+
+<div id="notif_box" class="callout tiny muted" style="display:none; margin-top:12px;"></div>
+
+<div style="height:12px;"></div>
+
+<div class="card pad">
+  <div class="card-head" style="padding:0 0 12px 0; border-bottom:0;">
+    <div>
+      <div class="h2" style="margin:0;">Séance</div>
+      <div class="tiny muted">Sélectionnez une séance pour charger le contexte.</div>
+    </div>
+    <span class="badge neutral">Contexte</span>
+  </div>
+
+  <div class="toolbar" style="gap:14px; align-items:stretch;">
+    <div class="field" style="flex:1; min-width:240px;">
+      <label for="meetingSelect">Séance</label>
+      <select id="meetingSelect" class="input" data-busy style="width:100%;"></select>
+    </div>
+
+    <div class="field" style="flex:2; min-width:260px;">
+      <label>Résumé</label>
+      <div id="meetingSummary" class="callout">—</div>
+    </div>
+  </div>
+</div>
+
+<div style="height:12px;"></div>
+
+<div class="kpis">
+  <div class="card pad">
+    <div class="h2" style="margin:0 0 6px;">Présences</div>
+    <div class="muted tiny" style="margin-bottom:10px;">Synthèse + accès rapide</div>
+    <div id="attendanceDetail" class="callout">—</div>
+    <div class="toolbar" style="margin-top:10px;">
+      <span class="badge neutral" id="badgeAttendance">0</span>
+      <a class="btn" data-meeting-link href="/attendance.htmx.html">Ouvrir</a>
+    </div>
+  </div>
+
+  <div class="card pad">
+    <div class="h2" style="margin:0 0 6px;">Résolution active</div>
+    <div class="muted tiny" style="margin-bottom:10px;">Ouvrir / clôturer le vote (pilotage opérateur)</div>
+    <div id="motionDetail" class="callout">—</div>
+
+    <div class="toolbar" style="margin-top:10px;">
+      <button class="btn primary" id="btnOpenMotion" data-busy>Ouvrir le vote</button>
+      <button class="btn" id="btnCloseMotion" data-busy>Clôturer le vote</button>
+      <span class="badge neutral" id="badgeMotion">—</span>
+    </div>
+
+    <div class="tiny muted" id="degradedMotionLabel" style="margin-top:8px;"></div>
+  </div>
+
+  <div class="card pad">
+    <div class="h2" style="margin:0 0 6px;">Notifications</div>
+    <div class="muted tiny" style="margin-bottom:10px;">Derniers événements opérateur</div>
+    <div class="toolbar" style="justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <span class="badge neutral" id="badgeNotifications">0</span>
+      <span class="tiny muted">Info uniquement</span>
+    </div>
+    <div id="notificationsList" style="display:flex; flex-direction:column; gap:8px;">
+      <div class="muted tiny">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="callout tiny muted" style="margin-top:12px;">
+  Rappel : exports (CSV / PDF) <strong>après validation</strong> de la séance.
+</div>
+

@@ -1,0 +1,6 @@
+.env
+*.key
+*.pem
+config.local.php
+/vendor/
+node_modules/

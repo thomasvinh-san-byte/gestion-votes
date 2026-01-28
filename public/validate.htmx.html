@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cockpit Président</title>
+
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+
+  <body class="app-shell post">
+  <div class="app">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand">
+          <strong>Gestion des assemblées</strong>
+          <span>Post-séance</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="page-title">Validation de la séance</div>
+        <div class="page-subtitle">Étape finale : vérifier puis valider</div>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn" data-drawer="readiness" title="Readiness">✅</button>
+        <button class="icon-btn" data-drawer="infos" title="Informations">⚠️</button>
+        <button class="icon-btn" data-drawer="menu" title="Menu">☰</button>
+      </div>
+    </header>
+
+    <aside class="app-sidebar">
+      <div class="sidebar-inner">
+        <nav class="nav">
+          <a class="" href="/meetings.htmx.html"><span class="ico">🏠</span><span class="lbl">Tableau de bord</span></a>
+          <a class="active" href="/operator.htmx.html"><span class="ico">🗂️</span><span class="lbl">Séance</span></a>
+          <a class="" href="/operator_flow.htmx.html"><span class="ico">🧑‍💼</span><span class="lbl">Conduite</span></a>
+          <a class="" href="/president.htmx.html"><span class="ico">🧑‍⚖️</span><span class="lbl">Président</span></a>
+          <a class="" href="/archives.htmx.html"><span class="ico">🗄️</span><span class="lbl">Archives</span></a>
+        </nav>
+        <div class="sidebar-foot muted tiny" style="margin-top:14px;">
+          Exports disponibles après validation — détails via panneau latéral.
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="main-inner">
+
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <div class="min-w-0">
+      <div class="font-extrabold leading-tight truncate">Président</div>
+      <div class="text-xs text-slate-500 truncate">Validation finale & signature (freeze)</div>
+    </div>
+    <nav class="flex items-center gap-2 flex-wrap justify-end">
+      <a class="btn" id="btnOperator" href="/operator.htmx.html">Opérateur</a>
+      <a class="btn" id="btnProjector" href="/public.htmx.html">Projecteur</a>
+      <a class="btn" id="btnVoter" href="/vote.htmx.html">Voteur</a>
+      <a class="btn" id="btnTrustNav" href="/trust.htmx.html">Trust</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-5">
+  <section class="card p-4">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <h1 class="text-lg font-extrabold leading-tight">Validation finale</h1>
+        <div class="muted tiny">Le contrôle “prêt à signer” bloque tant qu’il reste une incohérence (motions, totaux, président).</div>
+      </div>
+      <button class="btn" id="btnRefresh">Actualiser</button>
+    </div>
+  </section>
+
+  <section class="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <div class="lg:col-span-7">
+      <div class="card p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="font-bold">Checklist “prêt à signer”</div>
+            <div class="muted tiny">Basé sur <code>/api/v1/meeting_ready_check.php</code></div>
+          </div>
+          <span id="readyBadge" class="badge">—</span>
+        </div>
+        <div id="readyBox" class="mt-3 muted">Chargement…</div>
+      </div>
+
+      <div class="card p-4 mt-4">
+        <div class="font-bold">Notes</div>
+        <ul class="muted tiny mt-2 list-disc ml-5 space-y-1">
+          <li>La validation archive la séance (freeze) : plus de modifications côté backend.</li>
+          <li>En cas de “Pas prêt”, corrige les points listés (mouvements non clos, totaux incohérents, etc.).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="lg:col-span-5">
+      <div class="card p-4">
+        <div class="font-bold">Signature</div>
+        <div class="muted tiny">Le président doit être renseigné pour valider.</div>
+
+        <div class="mt-4">
+          <label class="muted tiny" for="presidentName">Nom du président</label>
+          <input id="presidentName" class="input w-full mt-1" placeholder="Ex: Jean Dupont" autocomplete="off">
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button class="btn primary" id="btnValidate">Valider définitivement</button>
+          <a class="btn" id="btnReport" href="/report.htmx.html">Voir le PV</a>
+          <a class="btn" id="btnTrust" href="/trust.htmx.html">Voir Trust</a>
+          <a class="btn" id="btnMotions" href="/motions.htmx.html">Voir Motions</a>
+        </div>
+
+        <div id="validateMsg" class="muted tiny mt-3"></div>
+
+        <div class="mt-4 p-3 rounded-xl border border-slate-200 bg-slate-50">
+          <div class="font-bold">Raccourci</div>
+          <div class="muted tiny mt-1">Si tu es bloqué, reviens à l’opérateur pour corriger les motions/présences, puis reviens ici.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+<div class="card pad" style="margin-top:12px;">
+  <div style="font-weight:800;">Signature (Président)</div>
+  <div class="muted tiny">La validation horodate la signature et fige la séance.</div>
+  <div class="hr"></div>
+  <div class="tiny muted">Après validation : toute modification renvoie 409 <code>meeting_validated</code>.</div>
+</div>
+
+</main>
+
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script src="/assets/js/utils.js"></script>
+
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const meetingId = params.get("meeting_id");
+
+  const readyBox = document.getElementById("readyBox");
+  const readyBadge = document.getElementById("readyBadge");
+  const msg = document.getElementById("validateMsg");
+
+  function setLinks() {
+    const map = [
+      ["btnReport", "/report.htmx.html"],
+      ["btnTrust", "/trust.htmx.html"],
+      ["btnMotions", "/motions.htmx.html"],
+      ["btnOperator", "/operator.htmx.html"],
+      ["btnProjector", "/public.htmx.html"],
+      ["btnVoter", "/vote.htmx.html"],
+      ["btnTrustNav", "/trust.htmx.html"],
+    ];
+    map.forEach(([id, base]) => {
+      const a = document.getElementById(id);
+      if (!a) return;
+      if (!meetingId) { a.href = base; return; }
+      const u = new URL(base, location.origin);
+      u.searchParams.set("meeting_id", meetingId);
+      a.href = u.pathname + "?" + u.searchParams.toString();
+    });
+  }
+
+  function badge(state) {
+    readyBadge.className = "badge " + (state || "");
+  }
+
+  async function loadReady() {
+    if (!meetingId) {
+      badge("warn");
+      readyBadge.textContent = "meeting_id ?";
+      readyBox.innerHTML = "meeting_id manquant. Retourne à <a href='/meetings.htmx.html'>Séances</a>.";
+      return;
+    }
+
+    badge("neutral");
+    readyBadge.textContent = "…";
+    readyBox.textContent = "Chargement…";
+
+    let r;
+    try {
+      r = await Utils.apiGet("/api/v1/meeting_ready_check.php?meeting_id=" + encodeURIComponent(meetingId));
+    } catch (e) {
+      badge("danger");
+      readyBadge.textContent = "Erreur";
+      readyBox.textContent = "Erreur réseau: " + (e && e.message ? e.message : e);
+      return;
+    }
+
+    if (!r || r.ok === false) {
+      badge("danger");
+      readyBadge.textContent = "Erreur";
+      readyBox.textContent = "Erreur: " + (r && r.error ? r.error : "ready_check_failed");
+      return;
+    }
+
+    const can = !!(r.data && r.data.can);
+    const reasons = (r.data && r.data.reasons) ? r.data.reasons : [];
+    const bad = (r.data && r.data.bad_motions) ? r.data.bad_motions : [];
+
+    if (can) {
+      badge("ok");
+      readyBadge.textContent = "Prêt";
+    } else {
+      badge("warn");
+      readyBadge.textContent = "Bloqué";
+    }
+
+    let html = "";
+    html += can
+      ? "<div class='muted'><strong>✅ Tout est prêt à être validé.</strong></div>"
+      : "<div class='muted'><strong>⛔ Pas prêt à valider.</strong></div>";
+
+    if (reasons.length) {
+      html += "<div class='muted tiny' style='margin-top:8px;'>À corriger :</div><ul>";
+      reasons.forEach(x => html += "<li>" + Utils.escapeHtml(String(x)) + "</li>");
+      html += "</ul>";
+    }
+
+    if (bad.length) {
+      html += "<div class='muted tiny' style='margin-top:8px;'>Motions à corriger :</div><ul>";
+      bad.forEach(m => {
+        const title = m.title || m.motion_id || "motion";
+        const detail = m.detail || m.reason || "";
+        html += "<li><strong>" + Utils.escapeHtml(String(title)) + "</strong>"
+             + (detail ? " — " + Utils.escapeHtml(String(detail)) : "")
+             + "</li>";
+      });
+      html += "</ul>";
+    }
+
+    readyBox.innerHTML = html;
+  }
+
+  async function validateNow() {
+    msg.textContent = "";
+
+    if (!meetingId) {
+      msg.textContent = "meeting_id manquant.";
+      return;
+    }
+
+    const president = (document.getElementById("presidentName").value || "").trim();
+    if (!president) {
+      msg.textContent = "Nom du président requis.";
+      return;
+    }
+
+    const chk = await Utils.apiGet("/api/v1/meeting_ready_check.php?meeting_id=" + encodeURIComponent(meetingId));
+    if (!chk || chk.ok === false || !(chk.data && chk.data.can)) {
+      msg.textContent = "Pas prêt à valider. Corrige les points listés.";
+      await loadReady();
+      return;
+    }
+
+    if (!confirm("Valider définitivement ? (archivage/freeze)")) return;
+
+    const res = await Utils.apiPost("/api/v1/meeting_validate.php", {
+      meeting_id: meetingId,
+      president_name: president
+    });
+
+    if (!res || res.ok === false) {
+      msg.textContent = "Erreur validation: " + (res && res.error ? res.error : "meeting_validate_failed");
+      return;
+    }
+
+    msg.textContent = "✅ Séance archivée.";
+    await loadReady();
+  }
+
+  document.getElementById("btnRefresh")?.addEventListener("click", loadReady);
+  document.getElementById("btnValidate")?.addEventListener("click", validateNow);
+
+  setLinks();
+  loadReady().catch(() => {});
+})();
+</script>
+
+      </div>
+    </main>
+
+    <div class="drawer-overlay" data-drawer-close hidden></div>
+    <aside class="drawer" hidden>
+      <div class="drawer-header">
+        <div class="drawer-title">Panneau</div>
+        <button class="icon-btn" data-drawer-close title="Fermer">✕</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+  </div>
+
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
+  </body>
+
+</html>

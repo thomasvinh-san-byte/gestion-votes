@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PV</title>
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+  <body class="app-shell post">
+  <div class="app">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand">
+          <strong>Gestion des assemblées</strong>
+          <span>Post-séance</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="page-title">Procès-verbal</div>
+        <div class="page-subtitle">Lecture du PV (HTML) et export PDF</div>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn" id="btnResetDemo" title="Reset demo">🧹</button>
+        <button class="icon-btn" id="btnExports" title="Exports">📤</button>
+        <button class="icon-btn" data-drawer="readiness" title="Readiness">✅</button>
+        <button class="icon-btn" data-drawer="infos" title="Informations">⚠️</button>
+        <button class="icon-btn" data-drawer="menu" title="Menu">☰</button>
+      </div>
+    </header>
+
+    <aside class="app-sidebar">
+      <div class="sidebar-inner">
+        <nav class="nav">
+          <a class="" href="/meetings.htmx.html"><span class="ico">🏠</span><span class="lbl">Tableau de bord</span></a>
+          <a class="" href="/operator.htmx.html"><span class="ico">🗂️</span><span class="lbl">Séance</span></a>
+          <a class="" href="/operator_flow.htmx.html"><span class="ico">🧑‍💼</span><span class="lbl">Conduite</span></a>
+          <a class="" href="/president.htmx.html"><span class="ico">🧑‍⚖️</span><span class="lbl">Président</span></a>
+          <a class="active" href="/archives.htmx.html"><span class="ico">🗄️</span><span class="lbl">Archives</span></a>
+        </nav>
+        <div class="sidebar-foot muted tiny" style="margin-top:14px;">
+          Exports disponibles après validation — détails via panneau latéral.
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="main-inner">
+
+<div class="container">
+  <div hx-get="/partials/meeting_header.htmx.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <div class="page-header" style="margin-top:12px;">
+    <div>
+      <h1>PV / Rapport</h1>
+<div class="toolbar" style="margin:10px 0;">
+  <a class="btn primary" href="/api/v1/meeting_generate_report_pdf.php">Exporter PDF</a>
+  <span class="muted tiny" style="margin-left:8px;">Disponible après validation</span>
+</div>
+      <div class="muted">Prévisualiser le PV et l’envoyer par email.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="gap:8px; flex-wrap:wrap;">
+      <input id="email" placeholder="destinataire@exemple.com" style="min-width:280px; padding:8px; border:1px solid #ccc; border-radius:6px;">
+      <button class="btn primary" id="btnSend">Envoyer le PV</button>
+      <span id="msg" class="muted tiny"></span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px; padding:0; overflow:hidden;">
+    <iframe id="pv" style="width:100%; height:70vh; border:0;"></iframe>
+  </div>
+</div>
+
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script src="/assets/js/utils.js"></script>
+<script>
+(function(){
+  const meetingId = new URLSearchParams(location.search).get("meeting_id");
+  const pv = document.getElementById("pv");
+  const msg = document.getElementById("msg");
+
+  if (meetingId) {
+    pv.src = "/api/v1/meeting_report.php?meeting_id=" + encodeURIComponent(meetingId);
+  } else {
+    msg.textContent = "meeting_id manquant.";
+  }
+
+  document.getElementById("btnSend").addEventListener("click", async () => {
+    msg.textContent = "";
+    const email = (document.getElementById("email").value || "").trim();
+    if (!meetingId) { msg.textContent = "meeting_id manquant."; return; }
+    if (!email) { msg.textContent = "Email requis."; return; }
+
+    const res = await Utils.apiPost("/api/v1/meeting_report_send.php", { meeting_id: meetingId, email });
+    if (!res || res.ok === false) {
+      msg.textContent = "Erreur: " + (res && res.error ? res.error : "send_failed");
+      return;
+    }
+    msg.textContent = "✅ Envoyé.";
+  });
+})();
+</script>
+
+      </div>
+    </main>
+
+    <div class="drawer-overlay" data-drawer-close hidden></div>
+    <aside class="drawer" hidden>
+      <div class="drawer-header">
+        <div class="drawer-title">Panneau</div>
+        <button class="icon-btn" data-drawer-close title="Fermer">✕</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+  </div>
+
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
+  <!-- Exports modal -->
+<div id="modalExports" class="modal" style="display:none;">
+  <div id="modalExportsBackdrop" class="modal-backdrop"></div>
+  <div class="modal-card card" style="max-width:760px; margin:6vh auto; position:relative;">
+    <div class="row between" style="align-items:flex-start; gap:10px;">
+      <div>
+        <div style="font-weight:800;">Exports</div>
+        <div class="muted tiny">Disponible après validation (sinon 409 meeting_not_validated).</div>
+      </div>
+      <button class="btn" id="btnCloseExports" type="button">✕</button>
+    </div>
+    <div class="hr"></div>
+
+    <div class="grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <button class="btn" id="btnExportPV" type="button">PV (HTML)</button>
+      <button class="btn" id="btnExportAttendance" type="button">Présences (CSV)</button>
+      <button class="btn" id="btnExportVotes" type="button">Votes (CSV)</button>
+      <button class="btn" id="btnExportMotions" type="button">Résolutions + résultats (CSV)</button>
+      <button class="btn" id="btnExportMembers" type="button">Membres + statuts (CSV)</button>
+      <button class="btn" id="btnExportBallotsAudit" type="button">Ballots audit (CSV)</button>
+    </div>
+
+    <div class="muted tiny" style="margin-top:10px;">
+      Astuce : le modal récupère <code>meeting_id</code> depuis <code>?meeting_id=...</code>.
+    </div>
+  </div>
+</div>
+
+
+<script src="/assets/js/exports-modal.js"></script>
+
+<script src="/assets/js/reset-demo.js"></script>
+</body>
+
+</html>

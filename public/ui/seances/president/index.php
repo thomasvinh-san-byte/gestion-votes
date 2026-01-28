@@ -1,0 +1,1 @@
+<?php http_response_code(301); header('Location: /confiance'); echo 'Moved permanently';

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Procurations</title>
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+  <body class="app-shell">
+  <div class="app">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand">
+          <strong>Gestion des assemblées</strong>
+          <span>Interface</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="page-title">Procurations</div>
+        <div class="page-subtitle">Donneur / receveur & règles</div>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn" data-drawer="readiness" title="Readiness">✅</button>
+        <button class="icon-btn" data-drawer="infos" title="Informations">⚠️</button>
+        <button class="icon-btn" data-drawer="menu" title="Menu">☰</button>
+      </div>
+    </header>
+
+    <aside class="app-sidebar">
+      <div class="sidebar-inner">
+        <nav class="nav">
+          <a class="" href="/meetings.htmx.html"><span class="ico">🏠</span><span class="lbl">Tableau de bord</span></a>
+      <a class="active" href="/operator.htmx.html"><span class="ico">🗂️</span><span class="lbl">Séance</span></a>
+      <a class="" href="/operator_flow.htmx.html"><span class="ico">🧑‍💼</span><span class="lbl">Conduite</span></a>
+      <a class="" href="/president.htmx.html"><span class="ico">🧑‍⚖️</span><span class="lbl">Président</span></a>
+      <a class="" href="/archives.htmx.html"><span class="ico">🗄️</span><span class="lbl">Archives</span></a>
+        </nav>
+        <div class="sidebar-foot muted tiny" style="margin-top:14px;">
+          Détails et navigation séance via le panneau latéral (☰) — justification sur demande.
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="main-inner">
+
+<div id="header"
+  hx-get="/partials/meeting_header.htmx.html"
+  hx-trigger="load"
+  hx-swap="outerHTML"></div>
+<div id="guardrailsBanner"></div>
+
+
+<div class="container" id="app">
+  <div class="page-header">
+    <div>
+      <h1>Procurations</h1>
+      <div class="subline">Page contextualisée par <span class="kbd">meeting_id</span>.</div>
+    </div>
+    <div class="row">
+      <a class="btn" data-meeting-link href="/motions.htmx.html">← Motions</a>
+      <a class="btn primary" data-meeting-link href="/operator.htmx.html">Opérateur ▶</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="muted">Cette page réutilise ton script existant: <span class="kbd">proxies.js</span>.</div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/proxies.js"></script>
+<script src="/assets/js/ui-states.js"></script>
+<script src="/assets/js/guardrails-pages.js"></script>
+
+      </div>
+    </main>
+
+    <div class="drawer-overlay" data-drawer-close hidden></div>
+    <aside class="drawer" hidden>
+      <div class="drawer-header">
+        <div class="drawer-title">Panneau</div>
+        <button class="icon-btn" data-drawer-close title="Fermer">✕</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+  </div>
+
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
+  </body>
+
+</html>

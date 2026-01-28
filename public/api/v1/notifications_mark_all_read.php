@@ -1,0 +1,18 @@
+<?php
+declare(strict_types=1);
+
+require __DIR__ . '/../../../app/bootstrap.php';
+require __DIR__ . '/../../../app/auth.php';
+require __DIR__ . '/../../../app/services/NotificationsService.php';
+
+require_any_role(['operator','trust']);
+
+$in = json_input();
+$meetingId = trim((string)($in['meeting_id'] ?? ''));
+$audience = trim((string)($in['audience'] ?? 'operator'));
+if ($audience === '') $audience = 'operator';
+
+if ($meetingId === '') json_err('missing_meeting_id', 400);
+
+NotificationsService::markAllRead($meetingId, $audience);
+json_ok(['ok' => true]);

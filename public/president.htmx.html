@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Président — Pilotage</title>
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+  <body class="app-shell live">
+  <div class="app">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand">
+          <strong>Gestion des assemblées</strong>
+          <span>Live</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="page-title">Cockpit Président</div>
+        <div class="page-subtitle">Essentiel : quorum + votes + action</div>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn" data-drawer="readiness" title="Readiness">✅</button>
+        <button class="icon-btn" data-drawer="infos" title="Informations">⚠️</button>
+        <button class="icon-btn" data-drawer="menu" title="Menu">☰</button>
+      </div>
+    </header>
+
+    <aside class="app-sidebar">
+      <div class="sidebar-inner">
+        <nav class="nav">
+          <a class="" href="/meetings.htmx.html"><span class="ico">🏠</span><span class="lbl">Tableau de bord</span></a>
+          <a class="" href="/operator.htmx.html"><span class="ico">🗂️</span><span class="lbl">Séance</span></a>
+          <a class="" href="/operator_flow.htmx.html"><span class="ico">🧑‍💼</span><span class="lbl">Conduite</span></a>
+          <a class="active" href="/president.htmx.html"><span class="ico">🧑‍⚖️</span><span class="lbl">Président</span></a>
+          <a class="" href="/archives.htmx.html"><span class="ico">🗄️</span><span class="lbl">Archives</span></a>
+        </nav>
+        <div class="sidebar-foot muted tiny" style="margin-top:14px;">
+          Zéro scroll global — détails via panneau latéral.
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="main-inner">
+
+<div class="container">
+
+  <!-- Header contexte séance (nav rôles si partial existant) -->
+  <div hx-get="/partials/meeting_header.htmx.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <div class="page-header" style="margin-top:12px;">
+    <div>
+      <h1>Président — Pilotage</h1>
+      <div class="muted">Parole + clôture (prêt à signer). Format aligné TSX.</div>
+    </div>
+    <div class="row" style="gap:8px; flex-wrap:wrap;">
+      <button class="btn" id="btnRefreshPresident">Actualiser</button>
+    </div>
+  </div>
+
+  <div class="tabs" style="margin-top:10px;">
+    <button class="tab is-active" id="tabSpeech" type="button">Parole</button>
+    <button class="tab" id="tabGates" type="button">Clôture / Validation</button>
+  </div>
+
+  <!-- Panel: Parole -->
+  <section class="card" id="panelSpeech" style="margin-top:12px;">
+    <div class="row" style="justify-content:space-between; align-items:flex-start;">
+      <div>
+        <div style="font-weight:600;">Gestion de la parole</div>
+        <div class="muted tiny">File d’attente (main levée), attribution, clôture.</div>
+      </div>
+      <div class="controls" style="gap:8px; flex-wrap:wrap;">
+        <button class="btn" id="btnSpeechNext" type="button">Donner au suivant</button>
+        <button class="btn danger" id="btnSpeechEnd" type="button">Clore l’orateur</button>
+        <button class="btn" id="btnSpeechClear" type="button">Vider l’historique</button>
+      </div>
+    </div>
+
+    <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:10px;">
+      <div class="card" style="margin:0;">
+        <div style="font-weight:600;">Orateur courant</div>
+        <div id="speechCurrent" class="muted" style="margin-top:8px;">—</div>
+      </div>
+      <div class="card" style="margin:0;">
+        <div style="font-weight:600;">File d’attente</div>
+        <div id="speechQueue" class="muted" style="margin-top:8px;">—</div>
+      </div>
+    </div>
+
+    <div id="speechMsg" class="muted tiny" style="margin-top:10px;"></div>
+  </section>
+
+  <!-- Panel: Gates / Ready-to-sign -->
+  <section class="card" id="panelGates" style="margin-top:12px; display:none;">
+    <div class="row" style="justify-content:space-between; align-items:flex-start;">
+      <div>
+        <div style="font-weight:600;">Clôture — “Prêt à signer”</div>
+        <div class="muted tiny">Basé sur <code>/api/v1/meeting_ready_check.php</code> puis <code>/api/v1/meeting_validate.php</code> (freeze).</div>
+      </div>
+      <div class="controls" style="gap:8px; flex-wrap:wrap;">
+        <a class="btn" id="btnOpenTrust" href="/trust.htmx.html">Trust</a>
+        <a class="btn" id="btnOpenReport" href="/report.htmx.html">PV</a>
+        <a class="btn" id="btnOpenMotions" href="/motions.htmx.html">Motions</a>
+      </div>
+    </div>
+
+    <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:10px;">
+      <div class="card" style="margin:0;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:600;">Contrôle “prêt à signer”</div>
+            <div class="muted tiny">Points bloquants listés ci-dessous.</div>
+          </div>
+          <span id="readyBadge" class="badge">—</span>
+        </div>
+        <div id="readyBox" class="muted" style="margin-top:10px;">Chargement…</div>
+      </div>
+
+      <div class="card" style="margin:0;">
+        <div style="font-weight:600;">Signature</div>
+        <div class="muted tiny">Nom du président requis pour valider définitivement.</div>
+
+        <div style="margin-top:10px;">
+          <label class="muted tiny" for="presidentName">Nom du président</label><br>
+          <input id="presidentName" placeholder="Ex: Jean Dupont" style="min-width:280px; padding:8px; border:1px solid #ccc; border-radius:6px;">
+        </div>
+
+        <div class="row" style="margin-top:12px; gap:8px; flex-wrap:wrap;">
+          <button class="btn primary" id="btnValidate" type="button">Valider définitivement</button>
+          <button class="btn" id="btnGatesRefresh" type="button">Recontrôler</button>
+        </div>
+
+        <div id="validateMsg" class="muted tiny" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <div class="notif" style="margin-top:12px;">
+      <strong>Rappel :</strong> la validation archive la séance (freeze). En cas de “Pas prêt”, corrige les points listés (motions non closes, totaux incohérents, etc.).
+    </div>
+  </section>
+
+</div>
+
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/president-speech.js"></script>
+<script src="/assets/js/president-gates.js"></script>
+
+      </div>
+    <div class="card pad" style="margin-top:12px;" id="stateDebugPanel">
+  <div class="row between" style="gap:10px; flex-wrap:wrap;">
+    <div>
+      <div style="font-weight:800;">State debug</div>
+      <div class="muted tiny">Vue compacte pour itérer vite (meeting, motion active, ballots, tokens, anomalies).</div>
+    </div>
+    <div class="row" style="gap:8px; align-items:center;">
+      <button class="btn" id="btnDbgRefresh" type="button">Rafraîchir</button>
+    </div>
+  </div>
+  <div class="hr"></div>
+  <div class="grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+    <div class="tiny"><span class="muted">meeting_id:</span> <code id="dbgMeetingId">—</code></div>
+    <div class="tiny"><span class="muted">motion:</span> <span id="dbgCurrentMotion">—</span> <span class="muted">(<span id="dbgCurrentMotionState">—</span>)</span></div>
+
+    <div class="tiny"><span class="muted">éligibles:</span> <strong id="dbgEligible">—</strong> <span class="muted">(fallback:</span> <span id="dbgFallback">—</span><span class="muted">)</span></div>
+    <div class="tiny"><span class="muted">motions ouvertes:</span> <strong id="dbgOpenMotions">—</strong></div>
+
+    <div class="tiny"><span class="muted">ballots (motion active):</span> <strong id="dbgBallots">—</strong> <span class="muted">/ manquants:</span> <strong id="dbgMissing">—</strong></div>
+    <div class="tiny"><span class="muted">tokens actifs:</span> <strong id="dbgTokensActive">—</strong> <span class="muted">/ expirés:</span> <strong id="dbgTokensExpired">—</strong></div>
+
+    <div class="tiny"><span class="muted">votes hors statut:</span> <strong id="dbgUnexpectedBallots">—</strong></div>
+    <div class="tiny"><span class="muted">tokens expirés (global):</span> <strong id="dbgExpiredTokens">—</strong></div>
+  </div>
+</div>
+
+</main>
+
+    <div class="drawer-overlay" data-drawer-close hidden></div>
+    <aside class="drawer" hidden>
+      <div class="drawer-header">
+        <div class="drawer-title">Panneau</div>
+        <button class="icon-btn" data-drawer-close title="Fermer">✕</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+  </div>
+
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
+  
+<script src="/assets/js/state-debug.js"></script>
+</body>
+
+</html>

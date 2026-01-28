@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Membres</title>
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+  <body class="app-shell">
+  <div class="app">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand">
+          <strong>Gestion des assemblées</strong>
+          <span>Interface</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="page-title">Membres</div>
+        <div class="page-subtitle">Gestion des participants & pondération</div>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn" data-drawer="readiness" title="Readiness">✅</button>
+        <button class="icon-btn" data-drawer="infos" title="Informations">⚠️</button>
+        <button class="icon-btn" data-drawer="menu" title="Menu">☰</button>
+      </div>
+    </header>
+
+    <aside class="app-sidebar">
+      <div class="sidebar-inner">
+        <nav class="nav">
+          <a class="" href="/meetings.htmx.html"><span class="ico">🏠</span><span class="lbl">Tableau de bord</span></a>
+      <a class="active" href="/operator.htmx.html"><span class="ico">🗂️</span><span class="lbl">Séance</span></a>
+      <a class="" href="/operator_flow.htmx.html"><span class="ico">🧑‍💼</span><span class="lbl">Conduite</span></a>
+      <a class="" href="/president.htmx.html"><span class="ico">🧑‍⚖️</span><span class="lbl">Président</span></a>
+      <a class="" href="/archives.htmx.html"><span class="ico">🗄️</span><span class="lbl">Archives</span></a>
+        </nav>
+        <div class="sidebar-foot muted tiny" style="margin-top:14px;">
+          Détails et navigation séance via le panneau latéral (☰) — justification sur demande.
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="main-inner">
+
+<div class="container">
+
+  <div class="page-header" style="margin-top:12px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+    <div>
+      <h1>Membres</h1>
+      <div class="muted">Liste, import CSV, export CSV.</div>
+    </div>
+    <div class="row" style="gap:8px; flex-wrap:wrap;">
+      <a class="btn" href="/meetings.htmx.html">Séances</a>
+      <a class="btn" id="btnExport" href="/api/v1/members_export_csv.php">Exporter CSV</a>
+    </div>
+  </div>
+
+  <div id="notif" class="card" style="display:none; margin-top:12px;"></div>
+
+  <section class="card" style="margin-top:12px;">
+    <div style="font-weight:600;">Ajouter un membre</div>
+    <div class="muted tiny">Ajoute un membre pour les tests. (Nom requis.)</div>
+
+    <div class="row" style="margin-top:10px; gap:8px; flex-wrap:wrap;">
+      <input id="mName" placeholder="Nom complet" style="min-width:260px; padding:8px; border:1px solid #ccc; border-radius:6px;">
+      <input id="mEmail" placeholder="email@exemple.com" style="min-width:260px; padding:8px; border:1px solid #ccc; border-radius:6px;">
+      <input id="mPower" type="number" min="0" step="1" value="1" style="width:120px; padding:8px; border:1px solid #ccc; border-radius:6px;">
+      <label class="row muted tiny" style="gap:6px;">
+        <input id="mActive" type="checkbox" checked>
+        Actif
+      </label>
+      <button class="btn primary" id="btnCreate">➕ Ajouter</button>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:12px;">
+    <div style="font-weight:600;">Import CSV</div>
+    <div class="muted tiny">
+      Colonnes attendues (recommandé) : <code>name</code>, <code>email</code>, <code>voting_power</code>, <code>is_active</code>.
+      (Les colonnes inconnues sont ignorées.)
+    </div>
+
+    <div class="row" style="margin-top:10px; gap:8px; flex-wrap:wrap;">
+      <input id="csvFile" type="file" accept=".csv,text/csv">
+      <button class="btn" id="btnImport">Importer</button>
+      <button class="btn" id="btnSeed" title="optionnel si endpoint dev présent">🧪 Générer fictifs</button>
+    </div>
+
+    <pre id="importOut" class="muted tiny" style="margin-top:10px; white-space:pre-wrap; display:none;"></pre>
+  </section>
+
+  <section class="card" style="margin-top:12px;">
+    <div class="row space" style="justify-content:space-between; align-items:center;">
+      <div style="font-weight:600;">Liste des membres</div>
+      <input id="q" placeholder="Rechercher…" style="min-width:220px; padding:8px; border:1px solid #ccc; border-radius:6px;">
+    </div>
+
+    <div id="list" class="stack" style="margin-top:12px;">
+      <div class="muted">Chargement…</div>
+    </div>
+
+    <pre id="debug" class="muted tiny" style="margin-top:10px; white-space:pre-wrap; display:none;"></pre>
+  </section>
+
+</div>
+
+<script src="/assets/js/utils.js"></script>
+<script>
+(function(){
+  // compat: Utils.apiGet/apiPost OR simple fetch wrappers
+  const apiGet = (url) => (window.Utils && Utils.apiGet) ? Utils.apiGet(url) : fetch(url).then(r=>r.json());
+  const apiPost = (url, data) => (window.Utils && Utils.apiPost) ? Utils.apiPost(url, data) :
+    fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)}).then(r=>r.json());
+
+  const notif = document.getElementById("notif");
+  function showNotif(text, ok=true){
+    notif.style.display = "block";
+    notif.textContent = text;
+    notif.style.borderColor = ok ? "#16a34a" : "#dc2626";
+  }
+
+  function pickMembers(resp){
+    // accepte plusieurs formes: {ok,data:{members:[]}} | {members:[]} | {ok,data:[]}
+    if (!resp) return [];
+    if (Array.isArray(resp)) return resp;
+    if (Array.isArray(resp.members)) return resp.members;
+    if (resp.data) {
+      if (Array.isArray(resp.data.members)) return resp.data.members;
+      if (Array.isArray(resp.data)) return resp.data;
+    }
+    return [];
+  }
+
+  function escapeHtml(s){
+    if (window.Utils && Utils.escapeHtml) return Utils.escapeHtml(s);
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function render(members){
+    const q = (document.getElementById("q").value || "").trim().toLowerCase();
+    const list = document.getElementById("list");
+    const filtered = q ? members.filter(m => {
+      const name = String(m.full_name || m.name || "").toLowerCase();
+      const email = String(m.email || "").toLowerCase();
+      return name.includes(q) || email.includes(q);
+    }) : members;
+
+    if (!filtered.length){
+      list.innerHTML = "<div class='muted'>Aucun membre.</div>";
+      return;
+    }
+
+    list.innerHTML = filtered.map(m => {
+      const name = escapeHtml(m.full_name || m.name || "—");
+      const email = escapeHtml(m.email || "—");
+      const power = escapeHtml(String(m.voting_power ?? m.power ?? "—"));
+      const active = (m.is_active === false || m.active === false) ? "Inactif" : "Actif";
+      const badgeClass = (active === "Actif") ? "badge ok" : "badge";
+      return `
+        <div class="card">
+          <div class="row space" style="justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:600;">${name}</div>
+              <div class="muted tiny">${email}</div>
+            </div>
+            <div class="row" style="gap:8px;">
+              <span class="badge">${power} voix</span>
+              <span class="${badgeClass}">${active}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  let cache = [];
+
+  async function load(){
+    const debug = document.getElementById("debug");
+    debug.style.display = "none";
+    try {
+      const resp = await apiGet("/api/v1/members.php");
+      cache = pickMembers(resp);
+      render(cache);
+    } catch (e) {
+      document.getElementById("list").innerHTML = "<div class='muted'>Erreur chargement membres.</div>";
+      debug.style.display = "block";
+      debug.textContent = String(e && e.stack ? e.stack : e);
+    }
+  }
+
+  document.getElementById("q").addEventListener("input", () => render(cache));
+
+  document.getElementById("btnCreate").addEventListener("click", async () => {
+    const full_name = (document.getElementById("mName").value || "").trim();
+    const email = (document.getElementById("mEmail").value || "").trim();
+    const voting_power = parseInt(document.getElementById("mPower").value || "1", 10) || 1;
+    const is_active = !!document.getElementById("mActive").checked;
+
+    if (!full_name) { showNotif("Nom requis.", false); return; }
+
+    const res = await apiPost("/api/v1/members.php", { full_name, email, voting_power, is_active });
+    if (!res || res.ok === false) {
+      showNotif("Erreur: " + (res && res.error ? res.error : "create_failed"), false);
+      return;
+    }
+    showNotif("Membre ajouté.", true);
+    document.getElementById("mName").value = "";
+    document.getElementById("mEmail").value = "";
+    await load();
+  });
+
+  document.getElementById("btnImport").addEventListener("click", async () => {
+    const file = document.getElementById("csvFile").files[0];
+    if (!file) { showNotif("Choisis un fichier CSV.", false); return; }
+
+    const out = document.getElementById("importOut");
+    out.style.display = "block";
+    out.textContent = "Import…";
+
+    const fd = new FormData();
+    fd.append("file", file);
+
+    try {
+      const r = await fetch("/api/v1/members_import_csv.php", { method: "POST", body: fd });
+      const j = await r.json().catch(()=>null);
+      out.textContent = JSON.stringify(j ?? { ok:false, error:"invalid_json" }, null, 2);
+      showNotif((j && j.ok !== false) ? "Import terminé." : "Import: erreur", !!(j && j.ok !== false));
+      await load();
+    } catch (e) {
+      out.textContent = String(e);
+      showNotif("Import: erreur réseau.", false);
+    }
+  });
+
+  document.getElementById("btnSeed").addEventListener("click", async () => {
+    // Optionnel: si tu as /api/v1/dev_seed_members.php
+    try {
+      const res = await apiPost("/api/v1/dev_seed_members.php", { count: 30 });
+      if (!res || res.ok === false) {
+        showNotif("Seed non disponible: " + (res && res.error ? res.error : "no_endpoint"), false);
+        return;
+      }
+      showNotif("Membres fictifs créés.", true);
+      await load();
+    } catch (e) {
+      showNotif("Seed non disponible.", false);
+    }
+  });
+
+  load();
+})();
+</script>
+
+      </div>
+    </main>
+
+    <div class="drawer-overlay" data-drawer-close hidden></div>
+    <aside class="drawer" hidden>
+      <div class="drawer-header">
+        <div class="drawer-title">Panneau</div>
+        <button class="icon-btn" data-drawer-close title="Fermer">✕</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+  </div>
+
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
+  </body>
+
+</html>

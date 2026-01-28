@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Grand écran - Résolution en cours</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+    :root {
+        /* Couleurs principales - Thème clair professionnel */
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f9fa;
+        --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        
+        /* Cartes et surfaces */
+        --card-bg: #ffffff;
+        --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.12);
+        --border-color: #e1e5eb;
+        
+        /* Accents */
+        --accent-live: #10b981;    /* Vert émeraude */
+        --accent-idle: #3b82f6;    /* Bleu royal */
+        --accent-off: #64748b;     /* Gris neutre */
+        --accent-danger: #ef4444;  /* Rouge vif */
+        --accent-warning: #f59e0b; /* Orange ambre */
+        
+        /* Résultats de vote */
+        --vote-for: #10b981;       /* Vert pour "Pour" */
+        --vote-against: #ef4444;   /* Rouge pour "Contre" */
+        --vote-abstain: #94a3b8;   /* Gris pour "Abstention" */
+        
+        /* Texte */
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --text-light: #94a3b8;
+        
+        /* Bordures */
+        --border-radius: 16px;
+        --border-radius-sm: 8px;
+        --border-radius-lg: 24px;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: var(--bg-gradient);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        padding: 20px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    .wrapper {
+        max-width: 1400px;
+        width: 100%;
+        margin: auto;
+        padding: 2.5rem 3rem;
+        border-radius: var(--border-radius-lg);
+        background: var(--card-bg);
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        border: 1px solid var(--border-color);
+    }
+
+    /* Status bar */
+    .status-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid var(--bg-secondary);
+    }
+
+    .status-left {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        min-width: 0;
+    }
+
+    .meeting {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        padding: 0.5rem 0;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.75rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .badge::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: currentColor;
+        opacity: 0.1;
+        z-index: 0;
+    }
+
+    .badge.live {
+        color: var(--accent-live);
+        border: 2px solid rgba(16, 185, 129, 0.2);
+        animation: pulse 2s infinite;
+    }
+
+    .badge.idle {
+        color: var(--accent-idle);
+        border: 2px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .badge.off {
+        color: var(--accent-off);
+        border: 2px solid rgba(100, 116, 139, 0.2);
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .clock {
+        font-family: 'SF Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        min-width: 5.5rem;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Main content */
+    .main-content {
+        text-align: center;
+        padding: 2rem 0;
+        min-height: 280px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .motion {
+        font-size: 3.25rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin: 1.5rem 0 1rem;
+        min-height: 2.8em;
+        color: var(--text-primary);
+        max-width: 100%;
+        word-break: break-word;
+        text-wrap: pretty;
+    }
+
+    .sub {
+        font-size: 1.6rem;
+        color: var(--accent-idle);
+        font-weight: 600;
+        min-height: 1.5em;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        background: rgba(59, 130, 246, 0.08);
+        display: inline-block;
+    }
+
+    /* Vote timer */
+    .vote-timer {
+        margin-top: 2rem;
+    }
+
+    .timer-circle {
+        width: 140px;
+        height: 140px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .timer-svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .timer-bg {
+        fill: none;
+        stroke: var(--bg-secondary);
+        stroke-width: 8;
+    }
+
+    .timer-progress {
+        fill: none;
+        stroke: var(--accent-idle);
+        stroke-width: 8;
+        stroke-linecap: round;
+        stroke-dasharray: 283;
+        stroke-dashoffset: 283;
+        transition: stroke-dashoffset 0.3s linear;
+    }
+
+    .timer-text {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    /* Waiting state */
+    .waiting-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        display: none;
+    }
+
+    .waiting-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 2rem;
+    }
+
+    .waiting-svg {
+        width: 100%;
+        height: 100%;
+        animation: rotate 3s linear infinite;
+        color: var(--accent-idle);
+        opacity: 0.7;
+    }
+
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .waiting-text h3 {
+        font-size: 1.8rem;
+        margin-bottom: 0.75rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .waiting-text p {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    /* Results section */
+    .results-section {
+        margin-top: 1rem;
+        padding-top: 2rem;
+        border-top: 2px solid var(--bg-secondary);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        display: none;
+    }
+
+    .results-section.visible {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .results-header h3 {
+        font-size: 1.4rem;
+        letter-spacing: -0.01em;
+        color: var(--text-primary);
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+
+    .results-header h3::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: var(--accent-idle);
+        border-radius: 2px;
+    }
+
+    .last-update {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        font-family: ui-monospace, monospace;
+        background: var(--bg-secondary);
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--border-color);
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        margin: 0 0 2.5rem;
+    }
+
+    .result-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        border-top: 4px solid transparent;
+        transition: all 0.3s ease;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .result-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: currentColor;
+        opacity: 0.1;
+    }
+
+    .result-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .result-card.result-for {
+        color: var(--vote-for);
+        border-top-color: var(--vote-for);
+    }
+
+    .result-card.result-against {
+        color: var(--vote-against);
+        border-top-color: var(--vote-against);
+    }
+
+    .result-card.result-abstain {
+        color: var(--vote-abstain);
+        border-top-color: var(--vote-abstain);
+    }
+
+    .result-label {
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .result-numbers {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 1.5rem 0;
+    }
+
+    .result-count {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text-primary);
+    }
+
+    .result-weight {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        background: var(--bg-secondary);
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+    }
+
+    .result-bar {
+        height: 8px;
+        background: var(--bg-secondary);
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 1.5rem;
+    }
+
+    .result-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .result-for .result-bar-fill {
+        background: var(--vote-for);
+    }
+
+    .result-against .result-bar-fill {
+        background: var(--vote-against);
+    }
+
+    .result-abstain .result-bar-fill {
+        background: var(--vote-abstain);
+    }
+
+    .decision-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .decision-card,
+    .quorum-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 1.75rem;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .decision-card {
+        border-left: 4px solid var(--accent-idle);
+    }
+
+    .quorum-card {
+        border-left: 4px solid var(--accent-warning);
+    }
+
+    .decision-label,
+    .quorum-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .decision-value {
+        font-weight: 700;
+        font-size: 1.4rem;
+        color: var(--text-primary);
+    }
+
+    .decision-reason {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .quorum-value {
+        font-weight: 700;
+        font-size: 1.4rem;
+        color: var(--text-primary);
+    }
+
+    .quorum-details {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    /* Erreur */
+    .error {
+        color: var(--accent-danger);
+        font-size: 0.95rem;
+        margin-top: 1rem;
+        min-height: 1.2em;
+        padding: 1rem;
+        background: rgba(239, 68, 68, 0.08);
+        border-radius: var(--border-radius-sm);
+        border-left: 4px solid var(--accent-danger);
+    }
+
+    /* Accessibilité : texte uniquement pour lecteurs d'écran */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .wrapper {
+            padding: 2rem;
+            max-width: 100%;
+        }
+        .motion { font-size: 2.8rem; }
+        .sub { font-size: 1.5rem; }
+        .results-grid {
+            grid-template-columns: 1fr;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .decision-section {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        body {
+            padding: 12px;
+        }
+        .wrapper {
+            padding: 1.75rem;
+            gap: 2rem;
+        }
+        .status-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        .meeting {
+            font-size: 1.2rem;
+        }
+        .motion {
+            font-size: 2.2rem;
+        }
+        .clock {
+            align-self: stretch;
+            text-align: center;
+        }
+        .results-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        .result-card {
+            padding: 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .wrapper {
+            padding: 1.5rem;
+        }
+        .motion {
+            font-size: 1.8rem;
+        }
+        .sub {
+            font-size: 1.2rem;
+        }
+        .status-left {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        .clock {
+            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+        }
+    }
+</style>
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+
+<div class="wrapper" role="main" aria-live="polite" aria-relevant="additions text">
+    <!-- Barre de statut -->
+    <div class="status-bar">
+        <div class="status-left">
+            <div id="badge" class="badge off" role="status" aria-label="Statut de la séance">hors séance</div>
+            <div id="meeting_title" class="meeting">Aucune séance en cours</div>
+        </div>
+        <div class="clock" id="live-clock">--:--</div>
+    </div>
+
+    <!-- Zone principale -->
+    <div class="main-content" id="main_content">
+        <div id="motion_title" class="motion" aria-label="Titre de la résolution en cours">—</div>
+        <div id="motion_sub" class="sub"></div>
+
+        <!-- Timer de vote -->
+        <div class="vote-timer" id="vote_timer" style="display: none;">
+            <div class="timer-circle">
+                <svg class="timer-svg" viewBox="0 0 100 100">
+                    <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+                    <circle class="timer-progress" id="timer_progress" cx="50" cy="50" r="45"></circle>
+                </svg>
+                <div class="timer-text" id="timer_text">00:00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- État d'attente -->
+    <div id="waiting_state" class="waiting-state" aria-hidden="true">
+        <div class="waiting-icon">
+            <svg class="waiting-svg" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="waiting-text">
+            <h3>En attente de résolution</h3>
+            <p>La séance est en cours, aucune résolution n'est ouverte pour le moment.</p>
+        </div>
+    </div>
+
+    <!-- Section résultats -->
+    <div class="results-section" id="results_block" aria-label="Résultats du vote électronique">
+        <div class="results-header">
+            <h3>Résultats du vote électronique</h3>
+            <div class="last-update" id="last_update">Dernière mise à jour : --:--:--</div>
+        </div>
+
+        <!-- Vote secret (affichage limité pendant ACTIVE) -->
+        <div id="secret_block" style="display:none;">
+            <div class="decision-section" style="margin-top:0;">
+                <div class="decision-card" style="width:100%; justify-content:space-between;">
+                    <span class="decision-label">Vote secret</span>
+                    <span class="decision-value">Vote en cours…</span>
+                    <span class="decision-reason">Les détails seront affichés à la clôture.</span>
+                </div>
+            </div>
+
+            <div class="results-grid" style="margin-top: 1rem;">
+                <div class="result-card" style="border-left: 6px solid var(--accent-idle);">
+                    <div class="result-label">Participation (membres)</div>
+                    <div class="result-numbers">
+                        <div class="result-count" id="sec_part_members">0</div>
+                        <div class="result-weight">
+                            / <span id="sec_elig_members">0</span>
+                        </div>
+                    </div>
+                    <div class="result-bar">
+                        <div class="result-bar-fill" id="sec_part_members_bar" style="width:0%; background: var(--accent-idle);"></div>
+                    </div>
+                </div>
+
+                <div class="result-card" style="border-left: 6px solid var(--accent-idle);">
+                    <div class="result-label">Participation (poids)</div>
+                    <div class="result-numbers">
+                        <div class="result-count" id="sec_part_weight">0</div>
+                        <div class="result-weight">
+                            / <span id="sec_elig_weight">0</span>
+                        </div>
+                    </div>
+                    <div class="result-bar">
+                        <div class="result-bar-fill" id="sec_part_weight_bar" style="width:0%; background: var(--accent-idle);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="results_detail">
+        <div class="results-grid">
+            <!-- Pour -->
+            <div class="result-card result-for">
+                <div class="result-label">Pour</div>
+                <div class="result-numbers">
+                    <div class="result-count" id="res_for_count">0</div>
+                    <div class="result-weight">
+                        <span id="res_for_weight">0</span>
+                    </div>
+                </div>
+                <div class="result-bar">
+                    <div class="result-bar-fill" id="res_for_bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Contre -->
+            <div class="result-card result-against">
+                <div class="result-label">Contre</div>
+                <div class="result-numbers">
+                    <div class="result-count" id="res_against_count">0</div>
+                    <div class="result-weight">
+                        <span id="res_against_weight">0</span>
+                    </div>
+                </div>
+                <div class="result-bar">
+                    <div class="result-bar-fill" id="res_against_bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Abstention -->
+            <div class="result-card result-abstain">
+                <div class="result-label">Abstention</div>
+                <div class="result-numbers">
+                    <div class="result-count" id="res_abstain_count">0</div>
+                    <div class="result-weight">
+                        <span id="res_abstain_weight">0</span>
+                    </div>
+                </div>
+                <div class="result-bar">
+                    <div class="result-bar-fill" id="res_abstain_bar" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-section">
+            <div class="decision-card">
+                <span class="decision-label">Décision</span>
+                <span class="decision-value" id="res_decision_status">—</span>
+                <span class="decision-reason" id="res_decision_reason"></span>
+            </div>
+            <div class="quorum-card">
+                <span class="quorum-label">Quorum</span>
+                <span class="quorum-value" id="res_quorum_status">–</span>
+                <span class="quorum-details">
+                    (<span id="res_quorum_ratio">0</span> / seuil
+                    <span id="res_quorum_threshold">0</span>)
+                </span>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Zone d'erreur + annonce lecteur d'écran -->
+    <div id="error_box" class="error"></div>
+    <div class="sr-only" id="screen-reader-alert" aria-live="assertive" aria-atomic="true"></div>
+</div>
+
+<script>
+/**
+ * API Key injection for public UI (optional if your public endpoints are open).
+ * In dev, you can keep a static key. In prod, prefer server-side injection or reverse-proxy.
+ */
+window.APP_API_KEY = window.APP_API_KEY || "dev-public-key";
+
+(function() {
+  const originalFetch = window.fetch.bind(window);
+
+  window.fetch = function(input, init) {
+    const url = (typeof input === "string") ? input : (input && input.url) || "";
+    const isApiCall = url.startsWith("/api/") || url.includes("/api/");
+
+    if (!isApiCall) return originalFetch(input, init);
+
+    const headers = new Headers((init && init.headers) || (typeof input !== "string" && input.headers) || undefined);
+    if (!headers.has("X-Api-Key")) headers.set("X-Api-Key", window.APP_API_KEY);
+
+    const nextInit = Object.assign({}, init, { headers });
+    return originalFetch(input, nextInit);
+  };
+})();
+</script>
+
+<script>
+let lastUpdateTime = null;
+let updateInterval = 3000; // 3 secondes par défaut
+
+// --- Accessibilité : annoncer les changements importants ---
+function announceToScreenReader(message) {
+    const alert = document.getElementById('screen-reader-alert');
+    if (alert) {
+        alert.textContent = message;
+        setTimeout(() => {
+            alert.textContent = '';
+        }, 1000);
+    }
+}
+
+// --- Horloge en temps réel ---
+function startClock() {
+    const clockEl = document.getElementById('live-clock');
+    if (!clockEl) return;
+    const updateClock = () => {
+        const now = new Date();
+        clockEl.textContent = now.toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+    };
+    updateClock();
+    setInterval(updateClock, 1000);
+}
+
+// --- Fonction de transition douce ---
+function fadeInOut(element, show, duration = 300) {
+    if (!element) return;
+    if (show) {
+        element.classList.add('visible');
+    } else {
+        element.classList.remove('visible');
+    }
+}
+
+// --- Timer de vote ---
+let voteTimerInterval = null;
+let voteTimerRemaining = 0;
+
+function startVoteTimer(durationSeconds) {
+    const timerContainer = document.getElementById('vote_timer');
+    const timerText = document.getElementById('timer_text');
+    const timerProgress = document.getElementById('timer_progress');
+
+    if (!timerContainer || !timerText || !timerProgress) return;
+
+    clearInterval(voteTimerInterval);
+    voteTimerRemaining = durationSeconds;
+
+    const circumference = 2 * Math.PI * 45; // r=45
+    timerProgress.style.strokeDasharray = circumference;
+    timerContainer.style.display = 'block';
+
+    const update = () => {
+        if (voteTimerRemaining < 0) {
+            clearInterval(voteTimerInterval);
+            timerContainer.style.display = 'none';
+            return;
+        }
+        const minutes = String(Math.floor(voteTimerRemaining / 60)).padStart(2, '0');
+        const seconds = String(voteTimerRemaining % 60).padStart(2, '0');
+        timerText.textContent = minutes + ':' + seconds;
+
+        const ratio = voteTimerRemaining / durationSeconds;
+        timerProgress.style.strokeDashoffset = String(circumference * (1 - ratio));
+
+        voteTimerRemaining -= 1;
+    };
+
+    update();
+    voteTimerInterval = setInterval(update, 1000);
+}
+
+function stopVoteTimer() {
+    clearInterval(voteTimerInterval);
+    const timerContainer = document.getElementById('vote_timer');
+    if (timerContainer) timerContainer.style.display = 'none';
+}
+
+// --- Chargement des résultats du vote ---
+async function loadEvoteResults(motionId, options = {}) {
+    const block = document.getElementById("results_block");
+    if (!block) return;
+
+    const reveal = options.reveal === true;
+    const secretBlock = document.getElementById('secret_block');
+    const detailBlock = document.getElementById('results_detail');
+
+    if (!motionId) {
+        fadeInOut(block, false);
+        if (secretBlock) secretBlock.style.display = 'none';
+        if (detailBlock) detailBlock.style.display = '';
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/v1/ballots_result.php?motion_id=" + encodeURIComponent(motionId), {
+            headers: { "Accept": "application/json" }
+        });
+        const data = await res.json().catch(() => null);
+
+        if (!data || data.ok === false) {
+            fadeInOut(block, false);
+            return;
+        }
+
+        const d = data.data || data;
+        const isSecret = !!(d.motion && d.motion.secret);
+        const t = d.tallies || {};
+        const quorum = d.quorum || {};
+        const decision = d.decision || {};
+
+        // Vote secret : pendant ACTIVE, on masque les détails et on n'affiche que la participation.
+        if (isSecret && !reveal) {
+            if (secretBlock) secretBlock.style.display = '';
+            if (detailBlock) detailBlock.style.display = 'none';
+
+            const expM = d.expressed?.members ?? 0;
+            const eligM = d.eligible?.members ?? 0;
+            const expW = d.expressed?.weight ?? 0;
+            const eligW = d.eligible?.weight ?? 0;
+
+            const pctM = (eligM > 0) ? (expM * 100 / eligM) : 0;
+            const pctW = (eligW > 0) ? (expW * 100 / eligW) : 0;
+
+            const fmt2 = (x) => (typeof x === 'number' ? x.toFixed(2) : String(x ?? '0'));
+
+            document.getElementById('sec_part_members').textContent = String(expM);
+            document.getElementById('sec_elig_members').textContent = String(eligM);
+            document.getElementById('sec_part_members_bar').style.width = Math.min(100, Math.max(0, pctM)) + '%';
+
+            document.getElementById('sec_part_weight').textContent = fmt2(expW);
+            document.getElementById('sec_elig_weight').textContent = fmt2(eligW);
+            document.getElementById('sec_part_weight_bar').style.width = Math.min(100, Math.max(0, pctW)) + '%';
+
+            // Horodatage refresh
+            lastUpdateTime = new Date();
+            const lastUpdateEl = document.getElementById("last_update");
+            if (lastUpdateEl && lastUpdateTime) {
+                lastUpdateEl.textContent = "Dernière mise à jour : " + lastUpdateTime.toLocaleTimeString("fr-FR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                });
+            }
+
+            fadeInOut(block, true);
+            return;
+        }
+
+        if (secretBlock) secretBlock.style.display = 'none';
+        if (detailBlock) detailBlock.style.display = '';
+
+        const fmt = (x) => (typeof x === "number" ? x.toFixed(2) : (x ?? "0"));
+
+        const forCount     = t.for?.count ?? 0;
+        const againstCount = t.against?.count ?? 0;
+        const abstainCount = t.abstain?.count ?? 0;
+        const totalCount   = forCount + againstCount + abstainCount || 1;
+
+        document.getElementById("res_for_count").textContent      = forCount;
+        document.getElementById("res_for_weight").textContent     = fmt(t.for?.weight ?? 0);
+        document.getElementById("res_against_count").textContent  = againstCount;
+        document.getElementById("res_against_weight").textContent = fmt(t.against?.weight ?? 0);
+        document.getElementById("res_abstain_count").textContent  = abstainCount;
+        document.getElementById("res_abstain_weight").textContent = fmt(t.abstain?.weight ?? 0);
+
+        // Barres de progression
+        document.getElementById("res_for_bar").style.width      = (forCount     * 100 / totalCount) + "%";
+        document.getElementById("res_against_bar").style.width  = (againstCount * 100 / totalCount) + "%";
+        document.getElementById("res_abstain_bar").style.width  = (abstainCount * 100 / totalCount) + "%";
+
+        if (quorum.applied) {
+            document.getElementById("res_quorum_status").textContent    = quorum.met ? "Atteint ✓" : "Non atteint";
+            document.getElementById("res_quorum_ratio").textContent     = fmt(quorum.ratio ?? 0);
+            document.getElementById("res_quorum_threshold").textContent = fmt(quorum.threshold ?? 0);
+        } else {
+            document.getElementById("res_quorum_status").textContent    = "Non applicable";
+            document.getElementById("res_quorum_ratio").textContent     = "-";
+            document.getElementById("res_quorum_threshold").textContent = "-";
+        }
+
+        document.getElementById("res_decision_status").textContent = decision.status || "—";
+        document.getElementById("res_decision_reason").textContent = decision.reason ? " — " + decision.reason : "";
+
+        // Mise à jour de l'heure de rafraîchissement
+        lastUpdateTime = new Date();
+        const lastUpdateEl = document.getElementById("last_update");
+        if (lastUpdateEl && lastUpdateTime) {
+            lastUpdateEl.textContent = "Dernière mise à jour : " + lastUpdateTime.toLocaleTimeString("fr-FR", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            });
+        }
+
+        fadeInOut(block, true);
+    } catch (e) {
+        console.error("Erreur loadEvoteResults", e);
+        fadeInOut(block, false);
+    }
+}
+
+// --- Rafraîchissement de l'écran ---
+async function refreshScreen() {
+    const badge  = document.getElementById("badge");
+    const meet   = document.getElementById("meeting_title");
+    const motion = document.getElementById("motion_title");
+    const sub    = document.getElementById("motion_sub");
+    const err    = document.getElementById("error_box");
+    const waitingState = document.getElementById("waiting_state");
+
+    try {
+        const res  = await fetch("/api/v1/projector_state.php");
+        const data = await res.json();
+
+        if (!data.ok) {
+            if (data.error === 'no_live_meeting') {
+                badge.className = 'badge off';
+                badge.textContent = 'hors séance';
+                badge.setAttribute('aria-label', 'Aucune séance en cours');
+                meet.textContent  = 'Aucune séance en cours';
+                motion.textContent = '—';
+                sub.textContent = '';
+                err.textContent = '';
+                if (waitingState) {
+                    waitingState.style.display = 'none';
+                    waitingState.setAttribute('aria-hidden', 'true');
+                }
+                stopVoteTimer();
+                await loadEvoteResults(null);
+                return;
+            }
+            badge.className = 'badge off';
+            badge.textContent = 'erreur';
+            badge.setAttribute('aria-label', 'Erreur de statut');
+            meet.textContent  = 'Erreur de statut';
+            motion.textContent = '—';
+            sub.textContent = '';
+            err.textContent = "Erreur : " + (data.error || 'inconnue');
+            if (waitingState) {
+                waitingState.style.display = 'none';
+                waitingState.setAttribute('aria-hidden', 'true');
+            }
+            stopVoteTimer();
+            await loadEvoteResults(null);
+            announceToScreenReader("Erreur de statut de séance : " + (data.error || "inconnue"));
+            return;
+        }
+
+        const s = data.data;
+        err.textContent = '';
+
+        meet.textContent = s.meeting_title || "Séance en cours";
+        // expose meeting_id for device heartbeat
+        window.MEETING_ID = s.meeting_id || window.MEETING_ID;
+
+        if (s.phase === 'active' && s.motion && s.motion.id) {
+            // Résolution ouverte (ACTIVE)
+            const wasIdle = badge.classList.contains('idle') || badge.classList.contains('off');
+
+            badge.className = 'badge live';
+            badge.textContent = 'vote en cours';
+            badge.setAttribute('aria-label', 'Vote en cours');
+            motion.textContent = s.motion.title || 'Résolution';
+            sub.textContent = s.motion.secret ? 'Vote secret (détails masqués)' : 'Résolution ouverte';
+
+            if (waitingState) {
+                waitingState.style.display = 'none';
+                waitingState.setAttribute('aria-hidden', 'true');
+            }
+
+            // Timer : si plus tard l’API retourne une durée, on pourra appeler startVoteTimer(...)
+            // Pour l'instant, on le masque
+            stopVoteTimer();
+
+            await loadEvoteResults(s.motion.id, { reveal: !s.motion.secret });
+
+            if (wasIdle) {
+                announceToScreenReader("Une résolution vient d'être ouverte. Vote en cours.");
+            }
+
+        } else if (s.phase === 'closed' && s.motion && s.motion.id) {
+            // Afficher le dernier résultat clôturé (CLOSED)
+            const wasLive = badge.classList.contains('live');
+
+            badge.className = 'badge idle';
+            badge.textContent = 'résultat';
+            badge.setAttribute('aria-label', 'Résolution clôturée - résultats affichés');
+            motion.textContent = s.motion.title || 'Résolution clôturée';
+            sub.textContent = 'Résultat final';
+
+            if (waitingState) {
+                waitingState.style.display = 'none';
+                waitingState.setAttribute('aria-hidden', 'true');
+            }
+
+            stopVoteTimer();
+            await loadEvoteResults(s.motion.id, { reveal: true });
+
+            if (wasLive) {
+                announceToScreenReader("La résolution est close. Résultat final affiché.");
+            }
+        } else {
+            // Aucune motion active/close: écran attente
+            const wasLive = badge.classList.contains('live');
+
+            badge.className = 'badge idle';
+            badge.textContent = 'en séance';
+            badge.setAttribute('aria-label', 'Séance en cours sans résolution');
+            motion.textContent = 'En attente de résolution';
+            sub.textContent = '';
+
+            if (waitingState) {
+                waitingState.style.display = 'block';
+                waitingState.setAttribute('aria-hidden', 'false');
+            }
+
+            stopVoteTimer();
+            await loadEvoteResults(null);
+
+            if (wasLive) {
+                announceToScreenReader("La résolution est close. Plus de vote en cours.");
+            }
+        }
+
+    } catch (e) {
+        console.error("Erreur refreshScreen", e);
+        const errBox = document.getElementById("error_box");
+        if (errBox) {
+            errBox.textContent = "Erreur réseau : " + e.message;
+        }
+        stopVoteTimer();
+        await loadEvoteResults(null);
+    }
+}
+
+// --- Boucle de rafraîchissement avec ajustement dynamique de l’intervalle ---
+async function refreshLoop() {
+    const startTime = Date.now();
+    await refreshScreen();
+    const requestDuration = Date.now() - startTime;
+
+    if (requestDuration > 1000) {
+        updateInterval = Math.max(5000, updateInterval + 1000);
+    } else {
+        updateInterval = 3000;
+    }
+
+    setTimeout(refreshLoop, updateInterval);
+}
+
+// --- Gestion des toasts d'erreur ---
+document.addEventListener("DOMContentLoaded", () => {
+    const box = document.getElementById("error_box");
+    if (!box || !window.MutationObserver) return;
+
+    let lastText = box.textContent;
+    const obs = new MutationObserver(() => {
+        const txt = box.textContent.trim();
+        if (txt && txt !== lastText && window.showToast) {
+            window.showToast(txt, { type: 'error' });
+        }
+        lastText = txt;
+    });
+    obs.observe(box, { childList: true, characterData: true, subtree: true });
+
+    // Device heartbeat (Tech panel)
+    const HEARTBEAT_URL = '/api/v1/device_heartbeat.php';
+    const DEVICE_ROLE = 'projector';
+    function getDeviceId(){
+        try {
+            const k = 'device.id';
+            let v = localStorage.getItem(k);
+            if (!v) {
+                v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + '-' + Math.random().toString(16).slice(2));
+                localStorage.setItem(k, v);
+            }
+            return v;
+        } catch(e){
+            return 'anon-' + String(Date.now());
+        }
+    }
+    async function sendHeartbeat(){
+        const meetingId = String(window.MEETING_ID || '').trim();
+        if (!meetingId) return;
+        try {
+            const r = await fetch(HEARTBEAT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ meeting_id: meetingId, device_id: getDeviceId(), role: DEVICE_ROLE, user_agent: navigator.userAgent || null })
+            });
+            const out = await r.json().catch(()=>({}));
+            const data = out?.data || {};
+            if (data.command && data.command.type === 'kick') {
+                if (window.showToast) window.showToast(data.command.message || 'Reconnexion requise.', { type: 'error' });
+                setTimeout(()=>{ location.reload(); }, 800);
+            }
+        } catch(e){}
+    }
+
+    // Démarrage horloge + première boucle de rafraîchissement
+    startClock();
+    refreshLoop();
+    sendHeartbeat();
+    setInterval(()=>{ if(!document.hidden) sendHeartbeat(); }, 15000);
+});
+</script>
+
+</body>
+</html>

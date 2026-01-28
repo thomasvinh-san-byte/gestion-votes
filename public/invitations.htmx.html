@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invitations</title>
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+  <div id="guardrailsBanner"></div>
+
+  <div class="container">
+    <div hx-get="/partials/meeting_header.htmx.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <div class="page-header" style="margin-top:12px;">
+      <div>
+        <h1>Invitations</h1>
+        <div class="muted">Envoi des invitations de vote (SMTP).</div>
+      </div>
+      <div class="row" style="gap:8px;">
+        <button class="btn" id="btnDry">Test (dry-run)</button>
+        <button class="btn primary" id="btnSend">Envoyer invitations</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="out" class="muted">—</div>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div style="font-weight:600;">Options</div>
+      <div class="muted tiny">Par défaut: n’envoie qu’aux membres non “sent”.</div>
+      <label class="row" style="margin-top:10px;">
+        <input type="checkbox" id="onlyUnsent" checked>
+        <span>Envoyer seulement aux non envoyés</span>
+      </label>
+      <label class="row" style="margin-top:8px;">
+        <span class="muted tiny">Limite (0 = illimité)</span>
+        <input id="limit" type="number" min="0" value="0" style="width:120px;">
+      </label>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="/assets/js/utils.js"></script>
+  <script>
+  (function(){
+    const meetingId = new URLSearchParams(location.search).get("meeting_id");
+    const out = document.getElementById("out");
+
+    function show(obj) {
+      out.textContent = JSON.stringify(obj, null, 2);
+      out.style.whiteSpace = "pre-wrap";
+    }
+
+    async function run(dryRun){
+      if (!meetingId) { show({ok:false,error:"meeting_id_manquant"}); return; }
+      const onlyUnsent = document.getElementById("onlyUnsent").checked;
+      const limit = parseInt(document.getElementById("limit").value || "0", 10) || 0;
+
+      const res = await Utils.apiPost("/api/v1/invitations_send_bulk.php", {
+        meeting_id: meetingId,
+        dry_run: !!dryRun,
+        only_unsent: !!onlyUnsent,
+        limit: limit
+      });
+      show(res);
+    }
+
+    document.getElementById("btnDry").addEventListener("click", ()=>run(true));
+    document.getElementById("btnSend").addEventListener("click", ()=>run(false));
+  })();
+  </script>
+  <script src="/assets/js/guardrails-pages.js"></script>
+</body>
+</html>

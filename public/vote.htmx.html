@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voteur</title>
+
+  <style>
+    .notif { position: fixed; left: 50%; transform: translateX(-50%); top: 72px; z-index: 60; }
+  </style>
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+
+<body class="bg-slate-50 text-slate-900">
+
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="min-w-0">
+        <div class="font-extrabold leading-tight truncate">Vote</div>
+        <div class="text-xs text-slate-500 truncate">Interface voteur (mobile/tablette)</div>
+      </div>
+      <nav class="flex items-center gap-2 flex-wrap justify-end">
+        <a class="btn" href="/operator.htmx.html">Opérateur</a>
+        <a class="btn" href="/trust.htmx.html">Trust</a>
+        <a class="btn" href="/public.htmx.html">Projecteur</a>
+      </nav>
+    </div>
+  </header>
+
+  <div id="notif_box" class="notif" style="display:none"></div>
+
+  <main class="max-w-3xl mx-auto px-4 py-5" id="app">
+
+    <section class="card p-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="font-bold">Contexte</div>
+          <div class="muted tiny">Choisis une séance, puis ton nom. Les boutons se déverrouillent si une motion est ouverte.</div>
+        </div>
+        <button class="btn" id="btnRefresh">Actualiser</button>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="muted tiny" for="meetingSelect">Séance</label>
+          <select id="meetingSelect" class="input w-full">
+            <option value="">— Chargement —</option>
+          </select>
+        </div>
+        <div>
+          <label class="muted tiny" for="memberSelect">Membre</label>
+          <select id="memberSelect" class="input w-full">
+            <option value="">— Sélectionner un membre —</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-4 p-4 rounded-2xl border border-slate-200 bg-white" id="motionBox">
+        <span class="muted">Chargement…</span>
+      </div>
+
+      <div class="mt-3 p-4 rounded-2xl border border-slate-200 bg-white" id="speechBox">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <div class="font-semibold">Parole</div>
+            <div class="muted tiny" id="speechHint">—</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="speechStatus" class="badge">—</span>
+            <button class="btn" id="btnHand" type="button">✋ Main levée</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <button class="btn primary" id="btnFor" data-choice="FOR">POUR</button>
+        <button class="btn danger" id="btnAgainst" data-choice="AGAINST">CONTRE</button>
+        <button class="btn" id="btnAbstain" data-choice="ABSTAIN">ABSTENTION</button>
+        <button class="btn" id="btnNone" data-choice="NONE">NE VOTE PAS</button>
+      </div>
+
+      <div class="mt-3 muted tiny">Conseil : garde l’écran ouvert — il se met à jour automatiquement.</div>
+    </section>
+
+  </main>
+
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/vote.js"></script>
+</body>
+</html>

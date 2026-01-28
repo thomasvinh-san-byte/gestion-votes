@@ -1,0 +1,7 @@
+export APP_ENV=dev
+export APP_DEBUG=1
+
+export API_KEY_OPERATOR="dev-operator-key"
+export API_KEY_TRUST="dev-trust-key"
+export API_KEY_ADMIN="dev-admin-key"
+export API_KEY_PUBLIC="dev-public-key"

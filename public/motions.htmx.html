@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Motions</title>
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+  <body class="app-shell">
+  <div class="app">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand">
+          <strong>Gestion des assemblées</strong>
+          <span>Interface</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="page-title">Résolutions</div>
+        <div class="page-subtitle">Ordre du jour, votes & quorum</div>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn" data-drawer="readiness" title="Readiness">✅</button>
+        <button class="icon-btn" data-drawer="infos" title="Informations">⚠️</button>
+        <button class="icon-btn" data-drawer="menu" title="Menu">☰</button>
+      </div>
+    </header>
+
+    <aside class="app-sidebar">
+      <div class="sidebar-inner">
+        <nav class="nav">
+          <a class="" href="/meetings.htmx.html"><span class="ico">🏠</span><span class="lbl">Tableau de bord</span></a>
+      <a class="active" href="/operator.htmx.html"><span class="ico">🗂️</span><span class="lbl">Séance</span></a>
+      <a class="" href="/operator_flow.htmx.html"><span class="ico">🧑‍💼</span><span class="lbl">Conduite</span></a>
+      <a class="" href="/president.htmx.html"><span class="ico">🧑‍⚖️</span><span class="lbl">Président</span></a>
+      <a class="" href="/archives.htmx.html"><span class="ico">🗄️</span><span class="lbl">Archives</span></a>
+        </nav>
+        <div class="sidebar-foot muted tiny" style="margin-top:14px;">
+          Détails et navigation séance via le panneau latéral (☰) — justification sur demande.
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="main-inner">
+
+<div id="header"
+  hx-get="/partials/meeting_header.htmx.html"
+  hx-trigger="load"
+  hx-swap="outerHTML"></div>
+
+<div class="container" id="app">
+  <div class="page-header">
+    <div>
+      <h1>Motions</h1>
+      <div class="subline">Prépare les résolutions avant le workflow opérateur.</div>
+    </div>
+    <div class="row">
+      <button id="seedAttendBtn" class="btn">🧪 Remplir présences</button>
+      <button id="addBtn" class="btn primary">➕ Ajouter motion</button>
+    </div>
+  </div>
+
+  <div class="stack" id="list"></div>
+</div>
+
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/auth-ui.js"></script>
+<script>
+(function(){
+  const app = document.getElementById('app');
+  const meetingId = Utils.requireMeetingId(app);
+  const listEl = document.getElementById('list');
+  const addBtn = document.getElementById('addBtn');
+  const seedBtn = document.getElementById('seedAttendBtn');
+
+  let votePoliciesById = {};
+  let quorumPoliciesById = {};
+  let meetingVotePolicyId = null;
+  let meetingQuorumPolicyId = null;
+
+  function pill(label, cls='badge'){
+    return `<span class="${cls}">${Utils.escapeHtml(label)}</span>`;
+  }
+
+  async function loadPolicyMaps(){
+    const [vp, qp, mv, mq] = await Promise.all([
+      Utils.apiGet('/api/v1/vote_policies.php').catch(()=>({})),
+      Utils.apiGet('/api/v1/quorum_policies.php').catch(()=>({})),
+      Utils.apiGet('/api/v1/meeting_vote_settings.php?meeting_id='+encodeURIComponent(meetingId)).catch(()=>({})),
+      Utils.apiGet('/api/v1/meeting_quorum_settings.php?meeting_id='+encodeURIComponent(meetingId)).catch(()=>({}))
+    ]);
+    votePoliciesById = {};
+    (vp?.data?.items || vp?.items || []).forEach(p => votePoliciesById[p.id] = p);
+    quorumPoliciesById = {};
+    (qp?.data?.items || qp?.items || []).forEach(p => quorumPoliciesById[p.id] = p);
+    meetingVotePolicyId = (mv?.data?.vote_policy_id ?? mv?.vote_policy_id ?? null);
+    meetingQuorumPolicyId = (mq?.data?.quorum_policy_id ?? mq?.quorum_policy_id ?? null);
+  }
+
+  function statusBadge(m){
+    const s = (m.opened_at && !m.closed_at) ? 'Ouverte' : (m.closed_at ? 'Fermée' : 'Non ouverte');
+    const cls = (s==='Ouverte') ? 'badge ok' : (s==='Fermée' ? 'badge' : 'badge warn');
+    return `<span class="${cls}">${s}</span>`;
+  }
+
+  function policyBadges(m){
+    const badges = [];
+    const secret = !!m.secret;
+    if (secret) badges.push(pill('SECRET', 'badge danger'));
+
+    const motionVoteId = m.vote_policy_id || null;
+    const motionQuorumId = m.quorum_policy_id || null;
+
+    const effVoteId = motionVoteId || meetingVotePolicyId;
+    const effQuorumId = motionQuorumId || meetingQuorumPolicyId;
+
+    if (effVoteId) {
+      const vp = votePoliciesById[effVoteId];
+      const name = vp?.name || 'Majorité';
+      const star = motionVoteId ? '★' : '';
+      badges.push(pill(`MAJORITÉ${star}: ${name}`, motionVoteId ? 'badge warn' : 'badge'));
+    }
+    if (effQuorumId) {
+      const qp = quorumPoliciesById[effQuorumId];
+      const name = qp?.name || 'Quorum';
+      const star = motionQuorumId ? '★' : '';
+      badges.push(pill(`QUORUM${star}: ${name}`, motionQuorumId ? 'badge warn' : 'badge'));
+    }
+    return badges.length ? `<div class="row" style="gap:6px; flex-wrap:wrap; margin-top:8px;">${badges.join('')}</div>` : '';
+  }
+
+  function render(items){
+    if(!items || !items.length){
+      listEl.innerHTML = '<div class="card"><div class="muted">Aucune motion.</div></div>';
+      return;
+    }
+    listEl.innerHTML = items.map(m => `
+      <div class="card">
+        <div class="row space" style="flex-wrap:wrap;">
+          <div class="grow">
+            <div style="font-weight:700;">${Utils.escapeHtml(m.motion_title || m.title || '(sans titre)')}</div>
+            <div class="muted">${Utils.escapeHtml(m.motion_description || m.description || '')}</div>
+            ${policyBadges(m)}
+          </div>
+          ${statusBadge(m)}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function load(){
+    listEl.innerHTML = '<div class="card"><div class="muted">Chargement…</div></div>';
+    try {
+      await loadPolicyMaps();
+      const r = await Utils.apiGet('/api/v1/motions_for_meeting.php?meeting_id=' + encodeURIComponent(meetingId));
+      render(r.items || r.motions || r || []);
+    } catch (_) {
+      listEl.innerHTML = '<div class="card"><div class="muted">Erreur chargement motions.</div></div>';
+    }
+  }
+
+  addBtn.addEventListener('click', () => {
+    const title = prompt('Titre de la motion ?', 'Approbation du budget');
+    if(!title) return;
+    const description = prompt('Description (optionnel) ?', '') || '';
+    // Best-effort: some installs need agenda_id; we first try to create a default agenda,
+    // then create motion with meeting_id (backend can resolve agenda).
+    Utils.apiPost('/api/v1/agendas.php', { meeting_id: meetingId, title: 'Résolutions' })
+      .catch(()=>{})
+      .finally(() => {
+        Utils.withLoading(addBtn, Utils.apiPost('/api/v1/motions.php', { meeting_id: meetingId, title, description }))
+          .then(() => { Utils.toast('Motion ajoutée'); load(); })
+          .catch(e => Utils.toast((e.data && (e.data.error||e.data.message)) || 'Erreur ajout motion', 'danger'));
+      });
+  });
+
+  seedBtn.addEventListener('click', () => {
+    const limit = Number(prompt('Combien de présences à créer ? (0=tous)', '0') || '0');
+    Utils.withLoading(seedBtn, Utils.apiPost('/api/v1/dev_seed_attendances.php', { meeting_id: meetingId, limit }))
+      .then(() => Utils.toast('Présences générées (dev)'))
+      .then(load)
+      .catch(() => Utils.toast('Erreur seed présences', 'danger'));
+  });
+
+  load();
+})();
+</script>
+<script src="/assets/js/ui-states.js"></script>
+
+      </div>
+    </main>
+
+    <div class="drawer-overlay" data-drawer-close hidden></div>
+    <aside class="drawer" hidden>
+      <div class="drawer-header">
+        <div class="drawer-title">Panneau</div>
+        <button class="icon-btn" data-drawer-close title="Fermer">✕</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+  </div>
+
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
+  </body>
+
+</html>

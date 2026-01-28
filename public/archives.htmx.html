@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Archives</title>
+  <script src="/assets/js/utils.js"></script>
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+  <body class="app-shell post">
+  <div class="app">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand">
+          <strong>Gestion des assemblées</strong>
+          <span>Post-séance</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="page-title">Archives</div>
+        <div class="page-subtitle">Séances validées — consultation & PV</div>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn" id="btnResetDemo" title="Reset demo">🧹</button>
+        <button class="icon-btn" id="btnExports" title="Exports">📤</button>
+        <button class="icon-btn" data-drawer="readiness" title="Readiness">✅</button>
+        <button class="icon-btn" data-drawer="infos" title="Informations">⚠️</button>
+        <button class="icon-btn" data-drawer="menu" title="Menu">☰</button>
+      </div>
+    </header>
+
+    <aside class="app-sidebar">
+      <div class="sidebar-inner">
+        <nav class="nav">
+          <a class="" href="/meetings.htmx.html"><span class="ico">🏠</span><span class="lbl">Tableau de bord</span></a>
+          <a class="" href="/operator.htmx.html"><span class="ico">🗂️</span><span class="lbl">Séance</span></a>
+          <a class="" href="/operator_flow.htmx.html"><span class="ico">🧑‍💼</span><span class="lbl">Conduite</span></a>
+          <a class="" href="/president.htmx.html"><span class="ico">🧑‍⚖️</span><span class="lbl">Président</span></a>
+          <a class="active" href="/archives.htmx.html"><span class="ico">🗄️</span><span class="lbl">Archives</span></a>
+        </nav>
+        <div class="sidebar-foot muted tiny" style="margin-top:14px;">
+          Exports disponibles après validation — détails via panneau latéral.
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <div class="main-inner">
+
+<div class="container">
+  <div class="row between" style="margin-bottom:12px;">
+    <div>
+      <h1 style="margin:0;">Archives</h1>
+      <div class="muted">Séances archivées, PV figés, export audit.</div>
+    </div>
+    <div class="row" style="gap:8px;">
+      <a class="btn" href="/index.html">Accueil</a>
+    </div>
+  </div>
+
+  <section class="card">
+    <div class="row between">
+      <div>
+        <div style="font-weight:700;">Séances archivées</div>
+        <div class="muted tiny">Le PV est servi depuis le snapshot figé.</div>
+      </div>
+      <button class="btn" id="refreshBtn">↻ Rafraîchir</button>
+    </div>
+    <div class="hr"></div>
+    <div id="list" class="stack">
+      <div class="muted">Chargement…</div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  const listEl = document.getElementById('list');
+  const refreshBtn = document.getElementById('refreshBtn');
+
+  function fmtDate(s){
+    if(!s) return '—';
+    try { return new Date(s).toLocaleString(); } catch(e){ return s; }
+  }
+
+  function render(items){
+    if(!items || !items.length){
+      listEl.innerHTML = '<div class="muted">Aucune séance archivée.</div>';
+      return;
+    }
+    listEl.innerHTML = items.map(m => {
+      const id = m.id;
+      const title = Utils.escapeHtml(m.title || id);
+      const pres = Utils.escapeHtml(m.president_name || '—');
+      const archived = fmtDate(m.archived_at || m.validated_at);
+      const hasReport = !!m.has_report;
+      const sha = Utils.escapeHtml(m.report_sha256 || '');
+      const repAt = fmtDate(m.report_generated_at);
+
+      const pvUrl = '/api/v1/meeting_report.php?meeting_id=' + encodeURIComponent(id);
+      const auditUrl = '/api/v1/audit_export.php?meeting_id=' + encodeURIComponent(id);
+
+      return `
+        <div class="card">
+          <div class="row between" style="gap:12px; flex-wrap:wrap;">
+            <div class="grow">
+              <div style="font-weight:700;">${title}</div>
+              <div class="muted tiny">Président: ${pres} · Archivée: ${Utils.escapeHtml(archived)}</div>
+              <div class="muted tiny">PV: ${hasReport ? 'snapshot figé' : '—'} · SHA-256: <span class="kbd">${sha || '—'}</span> · Généré: ${Utils.escapeHtml(repAt)}</div>
+            </div>
+            <div class="row" style="gap:8px; flex-wrap:wrap;">
+              <a class="btn primary" href="${pvUrl}" target="_blank">PV</a>
+              <a class="btn" href="${auditUrl}">Export audit CSV</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function load(){
+    listEl.innerHTML = '<div class="muted">Chargement…</div>';
+    try {
+      const r = await Utils.apiGet('/api/v1/archives_list.php');
+      const d = r && (r.data || r);
+      render(d.items || []);
+    } catch(e) {
+      listEl.innerHTML = '<div class="badge danger">Erreur chargement</div>';
+    }
+  }
+
+  refreshBtn.addEventListener('click', load);
+  load();
+})();
+</script>
+<script src="/assets/js/ui-states.js"></script>
+
+      </div>
+    </main>
+
+    <div class="drawer-overlay" data-drawer-close hidden></div>
+    <aside class="drawer" hidden>
+      <div class="drawer-header">
+        <div class="drawer-title">Panneau</div>
+        <button class="icon-btn" data-drawer-close title="Fermer">✕</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+  </div>
+
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
+  <!-- Exports modal -->
+<div id="modalExports" class="modal" style="display:none;">
+  <div id="modalExportsBackdrop" class="modal-backdrop"></div>
+  <div class="modal-card card" style="max-width:760px; margin:6vh auto; position:relative;">
+    <div class="row between" style="align-items:flex-start; gap:10px;">
+      <div>
+        <div style="font-weight:800;">Exports</div>
+        <div class="muted tiny">Disponible après validation (sinon 409 meeting_not_validated).</div>
+      </div>
+      <button class="btn" id="btnCloseExports" type="button">✕</button>
+    </div>
+    <div class="hr"></div>
+
+    <div class="grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <button class="btn" id="btnExportPV" type="button">PV (HTML)</button>
+      <button class="btn" id="btnExportAttendance" type="button">Présences (CSV)</button>
+      <button class="btn" id="btnExportVotes" type="button">Votes (CSV)</button>
+      <button class="btn" id="btnExportMotions" type="button">Résolutions + résultats (CSV)</button>
+      <button class="btn" id="btnExportMembers" type="button">Membres + statuts (CSV)</button>
+      <button class="btn" id="btnExportBallotsAudit" type="button">Ballots audit (CSV)</button>
+    </div>
+
+    <div class="muted tiny" style="margin-top:10px;">
+      Astuce : le modal récupère <code>meeting_id</code> depuis <code>?meeting_id=...</code>.
+    </div>
+  </div>
+</div>
+
+
+<script src="/assets/js/exports-modal.js"></script>
+
+<script src="/assets/js/reset-demo.js"></script>
+</body>
+
+</html>
