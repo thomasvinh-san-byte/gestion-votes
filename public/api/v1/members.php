@@ -6,14 +6,69 @@ require __DIR__ . '/../../../app/api.php';
 
 api_require_role('operator');
 
-require __DIR__ . '/../../../app/services/MembersService.php';
+$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
 try {
-    api_request('GET'); // Valide la méthode
+    if ($method === 'GET') {
+        // Lister les membres actifs
+        $members = db_select_all(
+            "SELECT id, tenant_id, external_ref, full_name, email, vote_weight,
+                    voting_power, role, is_active, created_at, updated_at
+             FROM members
+             WHERE tenant_id = ? AND deleted_at IS NULL
+             ORDER BY full_name",
+            [DEFAULT_TENANT_ID]
+        );
+        api_ok(['members' => $members]);
 
-    $members = MembersService::getActiveMembers();
+    } elseif ($method === 'POST') {
+        // Créer un membre
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($input)) $input = $_POST;
 
-    api_ok(['members' => $members]);
+        $full_name = trim($input['full_name'] ?? '');
+        if ($full_name === '') {
+            api_fail('missing_full_name', 422, ['detail' => 'Le nom complet est requis.']);
+        }
+
+        $email = trim($input['email'] ?? '');
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            api_fail('invalid_email', 422, ['detail' => 'Format d\'email invalide.']);
+        }
+
+        $voting_power = (float)($input['voting_power'] ?? $input['vote_weight'] ?? 1);
+        $is_active = ($input['is_active'] ?? true) !== false;
+        $id = api_uuid4();
+
+        db_execute(
+            "INSERT INTO members (id, tenant_id, full_name, email, vote_weight, voting_power, is_active, created_at, updated_at)
+             VALUES (:id, :tid, :name, :email, :vw, :vp, :active, now(), now())",
+            [
+                ':id' => $id,
+                ':tid' => DEFAULT_TENANT_ID,
+                ':name' => $full_name,
+                ':email' => $email !== '' ? $email : null,
+                ':vw' => $voting_power,
+                ':vp' => $voting_power,
+                ':active' => $is_active ? 'true' : 'false',
+            ]
+        );
+
+        if (function_exists('audit_log')) {
+            audit_log('member_created', 'member', $id, ['full_name' => $full_name]);
+        }
+
+        api_ok(['member_id' => $id, 'full_name' => $full_name], 201);
+
+    } else {
+        api_fail('method_not_allowed', 405);
+    }
+} catch (\PDOException $e) {
+    error_log('DB error in members.php: ' . $e->getMessage());
+    if (strpos($e->getMessage(), 'unique') !== false || strpos($e->getMessage(), 'duplicate') !== false) {
+        api_fail('duplicate_member', 409, ['detail' => 'Un membre avec ce nom existe déjà.']);
+    }
+    api_fail('database_error', 500, ['detail' => 'Erreur de base de données']);
 } catch (Throwable $e) {
     error_log('Error in members.php: ' . $e->getMessage());
     api_fail('internal_error', 500, ['detail' => 'Erreur interne du serveur']);

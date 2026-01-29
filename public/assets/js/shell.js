@@ -1,9 +1,9 @@
 // public/assets/js/shell.js
 (function(){
-  const overlay = document.querySelector(".drawer-overlay");
-  const drawer = document.querySelector(".drawer");
+  const overlay = document.querySelector(".drawer-backdrop, [data-drawer-close]");
+  const drawer = document.getElementById("drawer") || document.querySelector(".drawer");
   const dbody = document.getElementById("drawerBody");
-  const titleEl = document.querySelector(".drawer-title");
+  const titleEl = document.getElementById("drawerTitle");
 
   function getMeetingId(){
     const el = document.querySelector("[data-meeting-id]");
@@ -25,12 +25,14 @@
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function openDrawer(kind){
-    if (!overlay || !drawer || !dbody) return;
+    if (!drawer || !dbody) return;
 
-    overlay.hidden = false;
-    drawer.hidden = false;
-    drawer.setAttribute("data-open", "1");
-    overlay.setAttribute("data-open", "1");
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden", "false");
+    if (overlay) {
+      overlay.classList.add("open");
+      overlay.hidden = false;
+    }
 
     const meetingId = getMeetingId();
 
@@ -151,11 +153,13 @@
   }
 
   function closeDrawer(){
-    if (!overlay || !drawer) return;
-    overlay.hidden = true;
-    drawer.hidden = true;
-    drawer.removeAttribute("data-open");
-    overlay.removeAttribute("data-open");
+    if (!drawer) return;
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden", "true");
+    if (overlay) {
+      overlay.classList.remove("open");
+      overlay.hidden = true;
+    }
   }
 
   document.addEventListener("click", function(e) {

@@ -41,11 +41,11 @@ $votesWithoutAttendance = db_all("
     FROM ballots b
     JOIN motions mo ON mo.id = b.motion_id
     JOIN members m ON m.id = b.member_id
-    LEFT JOIN attendances a ON a.meeting_id = ? AND a.member_id = b.member_id
+    LEFT JOIN attendances a ON a.meeting_id = ? AND a.member_id = b.member_id AND a.tenant_id = ?
     WHERE mo.meeting_id = ?
-      AND (a.id IS NULL OR a.status NOT IN ('present', 'remote', 'proxy'))
+      AND (a.id IS NULL OR a.mode NOT IN ('present', 'remote'))
     ORDER BY m.full_name
-", [$meetingId, $meetingId]);
+", [$meetingId, $tenantId, $meetingId]);
 
 foreach ($votesWithoutAttendance as $row) {
     $anomalies[] = [
@@ -135,11 +135,11 @@ foreach ($weightMismatches as $row) {
 $orphanProxies = db_all("
     SELECT p.id, giver.full_name AS giver_name, receiver.full_name AS receiver_name
     FROM proxies p
-    JOIN members giver ON giver.id = p.giver_id
-    JOIN members receiver ON receiver.id = p.receiver_id
-    LEFT JOIN attendances a ON a.meeting_id = ? AND a.member_id = p.receiver_id
+    JOIN members giver ON giver.id = p.giver_member_id
+    JOIN members receiver ON receiver.id = p.receiver_member_id
+    LEFT JOIN attendances a ON a.meeting_id = ? AND a.member_id = p.receiver_member_id
     WHERE p.meeting_id = ?
-      AND (a.id IS NULL OR a.status NOT IN ('present', 'remote'))
+      AND (a.id IS NULL OR a.mode NOT IN ('present', 'remote'))
 ", [$meetingId, $meetingId]);
 
 foreach ($orphanProxies as $row) {

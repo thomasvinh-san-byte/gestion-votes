@@ -33,18 +33,20 @@ try {
                 tenant_id,
                 title,
                 description,
-                status,
+                status::text AS status,
                 scheduled_at,
                 started_at,
                 ended_at,
                 location,
                 quorum_policy_id,
-                created_by,
+                vote_policy_id,
+                president_name,
+                convocation_no,
                 created_at,
                 updated_at
              FROM meetings
              WHERE tenant_id = :tenant_id
-             ORDER BY created_at DESC"
+             ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC"
         );
         $stmt->execute([':tenant_id' => DEFAULT_TENANT_ID]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
