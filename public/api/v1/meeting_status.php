@@ -2,6 +2,7 @@
 // public/api/v1/meeting_status.php
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/MeetingValidator.php';
+require __DIR__ . '/../../../app/services/NotificationsService.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     json_err('method_not_allowed', 405);

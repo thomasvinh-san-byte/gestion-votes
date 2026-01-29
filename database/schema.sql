@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS users (
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT users_role_check CHECK (role IN ('admin','operator','president','trust','viewer'))
+  CONSTRAINT users_role_check CHECK (role IN ('admin','operator','president','trust','viewer','readonly','voter'))
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_users_tenant_email ON users(tenant_id, email) WHERE email IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS ux_users_tenant_api_key_hash ON users(tenant_id, api_key_hash) WHERE api_key_hash IS NOT NULL;
@@ -374,7 +374,9 @@ CREATE TRIGGER trg_ballots_fill_context
 CREATE TABLE IF NOT EXISTS audit_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  meeting_id uuid REFERENCES meetings(id) ON DELETE SET NULL,
   actor_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  actor_role text,
   action text NOT NULL,
   resource_type text,
   resource_id uuid,

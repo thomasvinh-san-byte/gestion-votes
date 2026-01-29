@@ -1,6 +1,8 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
 
+api_require_role(['operator', 'admin']);
+
 $in = api_request('POST');
 
 $meetingId = api_require_uuid($in, 'meeting_id');

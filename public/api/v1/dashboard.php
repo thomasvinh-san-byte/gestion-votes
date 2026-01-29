@@ -118,9 +118,9 @@ if ($meetingId !== '') {
     $stmt = $pdo->prepare("
       SELECT
         COUNT(*)::int AS ballots_count,
-        COALESCE(SUM(CASE WHEN choice='for' THEN weight ELSE 0 END),0)::int AS weight_for,
-        COALESCE(SUM(CASE WHEN choice='against' THEN weight ELSE 0 END),0)::int AS weight_against,
-        COALESCE(SUM(CASE WHEN choice='abstain' THEN weight ELSE 0 END),0)::int AS weight_abstain
+        COALESCE(SUM(CASE WHEN COALESCE(value::text, choice)='for' THEN weight ELSE 0 END),0)::int AS weight_for,
+        COALESCE(SUM(CASE WHEN COALESCE(value::text, choice)='against' THEN weight ELSE 0 END),0)::int AS weight_against,
+        COALESCE(SUM(CASE WHEN COALESCE(value::text, choice)='abstain' THEN weight ELSE 0 END),0)::int AS weight_abstain
       FROM ballots
       WHERE tenant_id = :t AND meeting_id = :mid AND motion_id = :moid
     ");

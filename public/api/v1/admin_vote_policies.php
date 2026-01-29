@@ -2,6 +2,8 @@
 // ADMIN: liste + upsert vote_policies (majorité)
 require __DIR__ . '/../../../app/api.php';
 
+api_require_role('admin');
+
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
 if ($method === 'GET') {

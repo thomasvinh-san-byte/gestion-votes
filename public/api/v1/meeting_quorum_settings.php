@@ -1,6 +1,8 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
 
+api_require_role(['operator', 'admin']);
+
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
 if ($method === 'GET') {

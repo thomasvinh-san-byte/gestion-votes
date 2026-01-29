@@ -9,16 +9,14 @@ final class ProxiesService
     {
         $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
 
-$maxPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 99);
-
         return db_select_all(<<<'SQL'
             SELECT
               p.id,
               p.meeting_id,
               p.giver_member_id,
-              g.name AS giver_name,
+              g.full_name AS giver_name,
               p.receiver_member_id,
-              r.name AS receiver_name,
+              r.full_name AS receiver_name,
               p.scope,
               p.created_at,
               p.revoked_at
@@ -30,7 +28,7 @@ $maxPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 99);
               AND me.tenant_id = :tenant_id
               AND g.tenant_id = me.tenant_id
               AND r.tenant_id = me.tenant_id
-            ORDER BY g.name ASC
+            ORDER BY g.full_name ASC
         SQL, [
             ':meeting_id' => $meetingId,
             ':tenant_id'  => $tenantId,
@@ -44,6 +42,7 @@ $maxPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 99);
     public static function upsert(string $meetingId, string $giverMemberId, string $receiverMemberId, ?string $tenantId = null): void
     {
         $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
+        $maxPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 99);
 
         if ($giverMemberId === '') {
             throw new InvalidArgumentException('giver_member_id manquant');
@@ -52,7 +51,7 @@ $maxPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 99);
             throw new InvalidArgumentException('giver != receiver');
         }
 
-        // Check tenant coherence (meeting + members)
+        // Check tenant coherence (meeting + giver member)
         $ok = (int)(db_scalar(<<<'SQL'
             SELECT count(*)
             FROM meetings me
@@ -70,41 +69,7 @@ $maxPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 99);
             throw new InvalidArgumentException('meeting_id/giver_member_id invalide pour ce tenant');
         }
 
-if (trim($receiverMemberId) !== '') {
-    // Receiver must belong to tenant
-    $ok2 = (int)(db_scalar(<<<'SQL'
-        SELECT count(*)
-        FROM meetings me
-        JOIN members r ON r.tenant_id = me.tenant_id
-        WHERE me.id = :meeting_id AND me.tenant_id = :tenant_id AND r.id = :receiver
-    SQL, [
-        ':meeting_id' => $meetingId,
-        ':tenant_id'  => $tenantId,
-        ':receiver'   => $receiverMemberId,
-    ]) ?? 0);
-    if ($ok2 !== 1) {
-        throw new InvalidArgumentException('receiver_member_id invalide pour ce tenant');
-    }
-
-    // No proxy chains: receiver cannot itself delegate in this meeting (active)
-    $chain = (int)(db_scalar(
-        "SELECT count(*) FROM proxies WHERE meeting_id = :meeting_id AND giver_member_id = :receiver AND revoked_at IS NULL",
-        [':meeting_id'=>$meetingId, ':receiver'=>$receiverMemberId]
-    ) ?? 0);
-    if ($chain > 0) {
-        throw new InvalidArgumentException('Chaîne de procuration interdite (le mandataire délègue déjà).');
-    }
-
-    // Cap: max active proxies per receiver
-    $cur = (int)(db_scalar(
-        "SELECT count(*) FROM proxies WHERE meeting_id = :meeting_id AND receiver_member_id = :receiver AND revoked_at IS NULL",
-        [':meeting_id'=>$meetingId, ':receiver'=>$receiverMemberId]
-    ) ?? 0);
-    if ($cur >= $maxPerReceiver) {
-        throw new InvalidArgumentException("Plafond procurations atteint (max {$maxPerReceiver}).");
-    }
-}
-
+        // Révocation si receiver vide
         if (trim($receiverMemberId) === '') {
             db_exec(
                 "UPDATE proxies SET revoked_at = now() WHERE meeting_id = :meeting_id AND giver_member_id = :giver AND revoked_at IS NULL",
@@ -113,6 +78,7 @@ if (trim($receiverMemberId) !== '') {
             return;
         }
 
+        // Receiver must belong to tenant
         $ok2 = (int)(db_scalar(<<<'SQL'
             SELECT count(*)
             FROM meetings me
@@ -130,18 +96,58 @@ if (trim($receiverMemberId) !== '') {
             throw new InvalidArgumentException('receiver_member_id invalide pour ce tenant');
         }
 
+        // No proxy chains: receiver cannot itself delegate in this meeting (active)
+        $chain = (int)(db_scalar(
+            "SELECT count(*) FROM proxies WHERE meeting_id = :meeting_id AND giver_member_id = :receiver AND revoked_at IS NULL",
+            [':meeting_id' => $meetingId, ':receiver' => $receiverMemberId]
+        ) ?? 0);
+        if ($chain > 0) {
+            throw new InvalidArgumentException('Chaîne de procuration interdite (le mandataire délègue déjà).');
+        }
+
+        // Cap: max active proxies per receiver
+        $cur = (int)(db_scalar(
+            "SELECT count(*) FROM proxies WHERE meeting_id = :meeting_id AND receiver_member_id = :receiver AND revoked_at IS NULL",
+            [':meeting_id' => $meetingId, ':receiver' => $receiverMemberId]
+        ) ?? 0);
+        if ($cur >= $maxPerReceiver) {
+            throw new InvalidArgumentException("Plafond procurations atteint (max {$maxPerReceiver}).");
+        }
+
         db_exec(<<<'SQL'
-            INSERT INTO proxies (meeting_id, giver_member_id, receiver_member_id, scope)
-            VALUES (:meeting_id, :giver, :receiver, 'full')
-            ON CONFLICT (meeting_id, giver_member_id)
+            INSERT INTO proxies (tenant_id, meeting_id, giver_member_id, receiver_member_id, scope)
+            VALUES (:tenant_id, :meeting_id, :giver, :receiver, 'full')
+            ON CONFLICT (tenant_id, meeting_id, giver_member_id)
             DO UPDATE SET
               receiver_member_id = EXCLUDED.receiver_member_id,
               scope = 'full',
               revoked_at = NULL
         SQL, [
+            ':tenant_id'  => $tenantId,
             ':meeting_id' => $meetingId,
             ':giver'      => $giverMemberId,
             ':receiver'   => $receiverMemberId,
         ]);
+    }
+
+    /**
+     * Vérifie si une procuration active existe entre un mandant (giver) et un mandataire (receiver).
+     */
+    public static function hasActiveProxy(string $meetingId, string $giverMemberId, string $receiverMemberId): bool
+    {
+        $count = (int)(db_scalar(
+            "SELECT count(*) FROM proxies
+             WHERE meeting_id = :meeting_id
+               AND giver_member_id = :giver
+               AND receiver_member_id = :receiver
+               AND revoked_at IS NULL",
+            [
+                ':meeting_id' => $meetingId,
+                ':giver'      => $giverMemberId,
+                ':receiver'   => $receiverMemberId,
+            ]
+        ) ?? 0);
+
+        return $count > 0;
     }
 }

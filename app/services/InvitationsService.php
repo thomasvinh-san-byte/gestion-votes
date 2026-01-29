@@ -14,7 +14,7 @@ final class InvitationsService
               i.id,
               i.meeting_id,
               i.member_id,
-              m.name AS member_name,
+              m.full_name AS member_name,
               i.email,
               i.token,
               i.status,
@@ -27,7 +27,7 @@ final class InvitationsService
             JOIN members m ON m.id = i.member_id AND m.tenant_id = me.tenant_id
             WHERE me.id = :meeting_id
               AND me.tenant_id = :tenant_id
-            ORDER BY m.name ASC
+            ORDER BY m.full_name ASC
         SQL, [
             ':meeting_id' => $meetingId,
             ':tenant_id'  => $tenantId,

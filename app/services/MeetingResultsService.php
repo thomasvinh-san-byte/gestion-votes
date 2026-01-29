@@ -79,13 +79,12 @@ final class MeetingResultsService
         ) ?? 0);
 
         $eligibleWeight = (float)(db_scalar(
-            "SELECT COALESCE(SUM(voting_power), 0) FROM members WHERE tenant_id = :tenant_id AND is_active = true",
+            "SELECT COALESCE(SUM(COALESCE(voting_power, vote_weight, 1.0)), 0) FROM members WHERE tenant_id = :tenant_id AND is_active = true",
             [':tenant_id' => $tenantId]
         ) ?? 0.0);
 
         // Policies
         $quorumPolicy = null;
-        $quorumPolicyId = (string)($motion['quorum_policy_id'] ?: $motion['quorum_policy_id']);
         if (!empty($motion['quorum_policy_id'])) {
             $quorumPolicy = db_select_one(
                 "SELECT * FROM quorum_policies WHERE id = :id",
@@ -93,8 +92,13 @@ final class MeetingResultsService
             );
         }
 
+        // Résoudre la politique de vote: motion-level > meeting-level
+        $appliedVotePolicyId = !empty($motion['vote_policy_id'])
+            ? (string)$motion['vote_policy_id']
+            : (!empty($motion['meeting_vote_policy_id']) ? (string)$motion['meeting_vote_policy_id'] : '');
+
         $votePolicy = null;
-        if (!empty($appliedVotePolicyId)) {
+        if ($appliedVotePolicyId !== '') {
             $votePolicy = db_select_one(
                 "SELECT * FROM vote_policies WHERE id = :id",
                 [':id' => $appliedVotePolicyId]

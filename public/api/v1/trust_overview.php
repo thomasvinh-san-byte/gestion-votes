@@ -63,9 +63,9 @@ foreach ($motions as $m) {
 
   $counts = db_select_one(
     "SELECT
-       SUM(CASE WHEN choice='for' THEN 1 ELSE 0 END) AS c_for,
-       SUM(CASE WHEN choice='against' THEN 1 ELSE 0 END) AS c_against,
-       SUM(CASE WHEN choice='abstain' THEN 1 ELSE 0 END) AS c_abstain
+       SUM(CASE WHEN COALESCE(value::text, choice)='for' THEN 1 ELSE 0 END) AS c_for,
+       SUM(CASE WHEN COALESCE(value::text, choice)='against' THEN 1 ELSE 0 END) AS c_against,
+       SUM(CASE WHEN COALESCE(value::text, choice)='abstain' THEN 1 ELSE 0 END) AS c_abstain
      FROM ballots WHERE motion_id = ?",
     [$mid]
   ) ?: ['c_for'=>0,'c_against'=>0,'c_abstain'=>0];

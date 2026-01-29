@@ -4,6 +4,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/bootstrap.php';
 require __DIR__ . '/../../../app/auth.php';
 require __DIR__ . '/../../../app/services/MeetingValidator.php';
+require __DIR__ . '/../../../app/services/NotificationsService.php';
 
 require_role('operator');
 
@@ -24,11 +25,11 @@ if (!$meeting) json_err('meeting_not_found', 404);
 $eligibleMembers = (int)(db_scalar("SELECT COUNT(*) FROM members WHERE tenant_id = ? AND is_active = true", [$tenant]) ?? 0);
 
 $attRows = db_select_all(
-  "SELECT m.id AS member_id, m.name, m.voting_power, a.mode AS attendance_mode
+  "SELECT m.id AS member_id, m.full_name, COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power, a.mode AS attendance_mode
    FROM members m
    LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = ?
    WHERE m.tenant_id = ? AND m.is_active = true
-   ORDER BY m.name ASC",
+   ORDER BY m.full_name ASC",
   [$meetingId, $tenant]
 );
 
@@ -49,7 +50,7 @@ foreach ($attRows as $r) {
   } else {
     $mid = (string)$r['member_id'];
     $absentIds[] = $mid;
-    $absentNames[$mid] = (string)($r['name'] ?? '');
+    $absentNames[$mid] = (string)($r['full_name'] ?? '');
   }
 }
 

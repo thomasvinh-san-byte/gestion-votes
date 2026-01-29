@@ -11,7 +11,7 @@ declare(strict_types=1);
  */
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/SpeechService.php';
+require __DIR__ . '/../../../app/services/SpeechService.php';
 
 try {
     api_require_role(['operator', 'president', 'admin']);

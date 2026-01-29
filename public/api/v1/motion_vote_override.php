@@ -2,6 +2,8 @@
 // POST: définit (ou efface) motions.vote_policy_id ('' => hérite de la séance)
 require __DIR__ . '/../../../app/api.php';
 
+api_require_role(['operator', 'admin']);
+
 $in = api_request('POST');
 
 $motionId = api_require_uuid($in, 'motion_id');
