@@ -5,6 +5,9 @@
   const dbody = document.getElementById("drawerBody");
   const titleEl = document.getElementById("drawerTitle");
 
+  // Registry for page-specific drawer kinds
+  var customKinds = {};
+
   function getMeetingId(){
     const el = document.querySelector("[data-meeting-id]");
     if (el && el.getAttribute("data-meeting-id")) return el.getAttribute("data-meeting-id");
@@ -36,10 +39,17 @@
 
     const meetingId = getMeetingId();
 
-    if (kind === "readiness") { setTitle("Séance — Readiness"); renderReadiness(meetingId); }
-    else if (kind === "menu") { setTitle("Menu séance"); renderMenu(meetingId); }
-    else if (kind === "infos") { setTitle("Informations"); renderInfos(meetingId); }
+    // Built-in kinds
+    if (kind === "readiness") { setTitle("Préparation"); renderReadiness(meetingId); }
+    else if (kind === "menu") { setTitle("Navigation"); renderMenu(meetingId); }
+    else if (kind === "infos" || kind === "info") { setTitle("Informations séance"); renderInfos(meetingId); }
     else if (kind === "anomalies") { setTitle("Anomalies"); renderAnomalies(meetingId); }
+    // Page-registered kinds
+    else if (customKinds[kind]) {
+      var custom = customKinds[kind];
+      setTitle(custom.title || kind);
+      custom.render(meetingId, dbody, esc);
+    }
     else { dbody.innerHTML = ""; }
   }
 
@@ -179,6 +189,15 @@
     if (e.key === "Escape") closeDrawer();
   });
 
-  // Expose for debug
-  window.ShellDrawer = { open: openDrawer, close: closeDrawer };
+  /**
+   * Register a page-specific drawer kind.
+   * @param {string} kind - drawer kind name (used in data-drawer="kind")
+   * @param {string} title - drawer title
+   * @param {function(meetingId, bodyEl, escFn)} renderFn - render function
+   */
+  function registerKind(kind, title, renderFn) {
+    customKinds[kind] = { title: title, render: renderFn };
+  }
+
+  window.ShellDrawer = { open: openDrawer, close: closeDrawer, register: registerKind };
 })();

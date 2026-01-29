@@ -136,6 +136,9 @@
         <a class="btn btn-secondary" href="/api/v1/members_export_csv.php" target="_blank">
           📥 Exporter CSV
         </a>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="stats" title="Statistiques">
+          📊
+        </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
           ☰
         </button>
@@ -513,6 +516,48 @@
         setNotif('warning', 'Endpoint seed non disponible');
       }
     });
+
+    // Register stats drawer
+    if (window.ShellDrawer && window.ShellDrawer.register) {
+      window.ShellDrawer.register('stats', 'Statistiques membres', function(mid, body) {
+        var total = membersCache.length;
+        var active = membersCache.filter(function(m) { return m.is_active !== false && m.active !== false; }).length;
+        var inactive = total - active;
+        var totalPower = membersCache.reduce(function(s, m) { return s + (m.voting_power || m.power || 1); }, 0);
+        var avgPower = total > 0 ? (totalPower / total).toFixed(1) : '0';
+        var withEmail = membersCache.filter(function(m) { return m.email; }).length;
+
+        body.innerHTML =
+          '<div style="display:flex;flex-direction:column;gap:16px;padding:4px 0;">' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+              '<div style="background:var(--color-bg-subtle,#f5f5f5);padding:12px;border-radius:8px;text-align:center;">' +
+                '<div style="font-size:24px;font-weight:700;">' + total + '</div>' +
+                '<div class="text-sm text-muted">Total</div>' +
+              '</div>' +
+              '<div style="background:var(--color-bg-subtle,#f5f5f5);padding:12px;border-radius:8px;text-align:center;">' +
+                '<div style="font-size:24px;font-weight:700;color:var(--color-success,#22c55e);">' + active + '</div>' +
+                '<div class="text-sm text-muted">Actifs</div>' +
+              '</div>' +
+              '<div style="background:var(--color-bg-subtle,#f5f5f5);padding:12px;border-radius:8px;text-align:center;">' +
+                '<div style="font-size:24px;font-weight:700;">' + totalPower + '</div>' +
+                '<div class="text-sm text-muted">Voix totales</div>' +
+              '</div>' +
+              '<div style="background:var(--color-bg-subtle,#f5f5f5);padding:12px;border-radius:8px;text-align:center;">' +
+                '<div style="font-size:24px;font-weight:700;">' + avgPower + '</div>' +
+                '<div class="text-sm text-muted">Moy. voix</div>' +
+              '</div>' +
+            '</div>' +
+            '<div style="border-top:1px solid var(--color-border,#ddd);padding-top:12px;">' +
+              '<div style="display:flex;justify-content:space-between;padding:4px 0;" class="text-sm">' +
+                '<span class="text-muted">Inactifs</span><span>' + inactive + '</span></div>' +
+              '<div style="display:flex;justify-content:space-between;padding:4px 0;" class="text-sm">' +
+                '<span class="text-muted">Avec email</span><span>' + withEmail + '</span></div>' +
+              '<div style="display:flex;justify-content:space-between;padding:4px 0;" class="text-sm">' +
+                '<span class="text-muted">Sans email</span><span>' + (total - withEmail) + '</span></div>' +
+            '</div>' +
+          '</div>';
+      });
+    }
 
     // Initial load
     loadMembers();
