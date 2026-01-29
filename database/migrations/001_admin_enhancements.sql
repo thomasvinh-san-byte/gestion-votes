@@ -10,7 +10,7 @@ BEGIN;
 -- 1. Fix users.role constraint to include all RBAC roles
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
 ALTER TABLE users ADD CONSTRAINT users_role_check
-  CHECK (role IN ('admin','operator','president','trust','viewer','readonly','voter'));
+  CHECK (role IN ('admin','operator','president','assessor','auditor','voter','viewer'));
 
 -- 2. Ensure audit_events has the columns used by bootstrap.php
 ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS actor_role text;

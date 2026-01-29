@@ -1,0 +1,280 @@
+#!/usr/bin/env bash
+# =============================================================================
+# database/setup.sh — Initialisation complète de la base de données AG-VOTE
+# =============================================================================
+#
+# Usage:
+#   sudo bash database/setup.sh              # setup complet (user + schema + seeds)
+#   sudo bash database/setup.sh --schema     # schéma uniquement
+#   sudo bash database/setup.sh --seed       # seeds uniquement
+#   sudo bash database/setup.sh --migrate    # migrations uniquement
+#   sudo bash database/setup.sh --reset      # SUPPRIME et recrée tout
+#
+# Prérequis:
+#   - PostgreSQL 14+ installé et démarré
+#   - Exécuté en tant que root ou utilisateur pouvant sudo
+# =============================================================================
+
+set -euo pipefail
+
+# Couleurs
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Configuration (peut être surchargée par variables d'environnement)
+DB_NAME="${DB_NAME:-vote_app}"
+DB_USER="${DB_USER:-vote_app}"
+DB_PASS="${DB_PASS:-vote_app_dev_2026}"
+DB_HOST="${DB_HOST:-localhost}"
+DB_PORT="${DB_PORT:-5432}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+log()  { echo -e "${GREEN}[OK]${NC} $1"; }
+warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+err()  { echo -e "${RED}[ERR]${NC} $1" >&2; }
+info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+
+# =============================================================================
+# Vérifications
+# =============================================================================
+check_postgres() {
+    if ! command -v psql &>/dev/null; then
+        err "psql non trouvé. Installez PostgreSQL: sudo apt install postgresql"
+        exit 1
+    fi
+
+    if ! pg_isready -q 2>/dev/null; then
+        warn "PostgreSQL ne semble pas démarré. Tentative de démarrage..."
+        if command -v pg_ctlcluster &>/dev/null; then
+            local ver
+            ver=$(pg_lsclusters -h | head -1 | awk '{print $1}')
+            pg_ctlcluster "$ver" main start 2>/dev/null || true
+        fi
+        sleep 1
+        if ! pg_isready -q 2>/dev/null; then
+            err "Impossible de démarrer PostgreSQL."
+            exit 1
+        fi
+    fi
+    log "PostgreSQL est en cours d'exécution"
+}
+
+# =============================================================================
+# Création utilisateur + base
+# =============================================================================
+create_user_and_db() {
+    info "Création de l'utilisateur PostgreSQL '$DB_USER'..."
+
+    local user_exists
+    user_exists=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" 2>/dev/null || echo "")
+
+    if [ "$user_exists" = "1" ]; then
+        warn "L'utilisateur '$DB_USER' existe déjà"
+    else
+        sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS' NOSUPERUSER NOCREATEDB NOCREATEROLE;" 2>/dev/null
+        log "Utilisateur '$DB_USER' créé"
+    fi
+
+    info "Création de la base de données '$DB_NAME'..."
+
+    local db_exists
+    db_exists=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" 2>/dev/null || echo "")
+
+    if [ "$db_exists" = "1" ]; then
+        warn "La base '$DB_NAME' existe déjà"
+    else
+        sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER ENCODING 'UTF8';" 2>/dev/null
+        log "Base de données '$DB_NAME' créée"
+    fi
+
+    # Extensions et permissions
+    sudo -u postgres psql -d "$DB_NAME" -c "
+        CREATE EXTENSION IF NOT EXISTS pgcrypto;
+        CREATE EXTENSION IF NOT EXISTS citext;
+        GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
+        GRANT ALL PRIVILEGES ON SCHEMA public TO $DB_USER;
+        ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;
+        ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;
+    " 2>/dev/null
+    log "Extensions et permissions configurées"
+
+    # pg_hba.conf: vérifier/ajouter la règle pour le socket local
+    local hba
+    hba=$(sudo -u postgres psql -tAc "SHOW hba_file" 2>/dev/null)
+    if [ -n "$hba" ] && ! grep -q "^local.*$DB_NAME.*$DB_USER.*scram-sha-256" "$hba" 2>/dev/null; then
+        # Ajouter avant la première règle 'local'
+        local line_num
+        line_num=$(grep -n "^local" "$hba" | head -1 | cut -d: -f1)
+        if [ -n "$line_num" ]; then
+            sudo sed -i "${line_num}i\\local   $DB_NAME        $DB_USER                                scram-sha-256" "$hba"
+            sudo -u postgres psql -c "SELECT pg_reload_conf();" &>/dev/null
+            log "Règle pg_hba.conf ajoutée pour '$DB_USER'"
+        fi
+    fi
+}
+
+# =============================================================================
+# Schéma
+# =============================================================================
+apply_schema() {
+    info "Application du schéma..."
+    sudo -u postgres psql -d "$DB_NAME" -f "$SCRIPT_DIR/schema.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    log "Schéma appliqué"
+
+    # Accorder les permissions sur les tables créées par postgres
+    sudo -u postgres psql -d "$DB_NAME" -c "
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
+    " 2>/dev/null
+}
+
+# =============================================================================
+# Migrations
+# =============================================================================
+apply_migrations() {
+    info "Application des migrations..."
+    for f in "$SCRIPT_DIR"/migrations/*.sql; do
+        [ -f "$f" ] || continue
+        local fname
+        fname=$(basename "$f")
+        info "  → $fname"
+        sudo -u postgres psql -d "$DB_NAME" -f "$f" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    done
+
+    # Accorder les permissions sur les nouvelles tables
+    sudo -u postgres psql -d "$DB_NAME" -c "
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
+    " 2>/dev/null
+    log "Migrations appliquées"
+}
+
+# =============================================================================
+# Seeds
+# =============================================================================
+apply_seeds() {
+    info "Application des seeds..."
+
+    if [ -f "$SCRIPT_DIR/seed_minimal.sql" ]; then
+        info "  → seed_minimal.sql"
+        sudo -u postgres psql -d "$DB_NAME" -f "$SCRIPT_DIR/seed_minimal.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    fi
+
+    if [ -f "$SCRIPT_DIR/seed_demo.sql" ]; then
+        info "  → seed_demo.sql"
+        sudo -u postgres psql -d "$DB_NAME" -f "$SCRIPT_DIR/seed_demo.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    fi
+
+    log "Seeds appliquées"
+}
+
+# =============================================================================
+# Configuration .env
+# =============================================================================
+setup_env() {
+    local env_file="$PROJECT_DIR/.env"
+
+    if [ ! -f "$env_file" ]; then
+        if [ -f "$PROJECT_DIR/.env.example" ]; then
+            cp "$PROJECT_DIR/.env.example" "$env_file"
+            info "Fichier .env créé depuis .env.example"
+        fi
+    fi
+
+    if [ -f "$env_file" ]; then
+        # Mettre à jour les valeurs DB
+        sed -i "s|^DB_USER=.*|DB_USER=$DB_USER|" "$env_file"
+        sed -i "s|^DB_PASS=.*|DB_PASS=$DB_PASS|" "$env_file"
+        sed -i "s|^DB_DSN=.*|DB_DSN=pgsql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_NAME|" "$env_file"
+        log "Fichier .env mis à jour"
+    fi
+}
+
+# =============================================================================
+# Reset (destructif)
+# =============================================================================
+reset_db() {
+    warn "ATTENTION: Cette opération va SUPPRIMER la base '$DB_NAME' et la recréer."
+    read -p "Êtes-vous sûr ? (oui/non) " confirm
+    if [ "$confirm" != "oui" ]; then
+        info "Annulé."
+        exit 0
+    fi
+
+    sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>/dev/null
+    sudo -u postgres psql -c "DROP ROLE IF EXISTS $DB_USER;" 2>/dev/null
+    log "Base et utilisateur supprimés"
+
+    create_user_and_db
+    apply_schema
+    apply_migrations
+    apply_seeds
+    setup_env
+}
+
+# =============================================================================
+# Vérification finale
+# =============================================================================
+verify() {
+    info "Vérification de la connexion..."
+    local result
+    result=$(PGPASSWORD="$DB_PASS" psql -U "$DB_USER" -d "$DB_NAME" -h "$DB_HOST" -p "$DB_PORT" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'" 2>/dev/null || echo "0")
+    if [ "$result" -gt 0 ] 2>/dev/null; then
+        log "Connexion OK — $result tables trouvées"
+    else
+        err "Échec de connexion avec l'utilisateur '$DB_USER'"
+        exit 1
+    fi
+}
+
+# =============================================================================
+# Main
+# =============================================================================
+main() {
+    echo ""
+    echo "========================================="
+    echo "  AG-VOTE — Setup base de données"
+    echo "========================================="
+    echo ""
+
+    check_postgres
+
+    case "${1:-}" in
+        --schema)
+            apply_schema
+            apply_migrations
+            ;;
+        --seed)
+            apply_seeds
+            ;;
+        --migrate)
+            apply_migrations
+            ;;
+        --reset)
+            reset_db
+            ;;
+        *)
+            create_user_and_db
+            apply_schema
+            apply_migrations
+            apply_seeds
+            setup_env
+            ;;
+    esac
+
+    verify
+
+    echo ""
+    log "Setup terminé avec succès !"
+    echo ""
+    info "Connexion: PGPASSWORD=$DB_PASS psql -U $DB_USER -d $DB_NAME -h $DB_HOST"
+    info "Lancer le serveur: cd $PROJECT_DIR && php -S localhost:8000 -t public"
+    echo ""
+}
+
+main "$@"

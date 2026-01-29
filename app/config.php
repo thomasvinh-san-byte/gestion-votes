@@ -15,10 +15,10 @@ return [
     'allow_credentials'  => false,
   ],
 
-  // Database (defaults = dev local PostgreSQL)
+  // Database (defaults = dev local PostgreSQL via TCP with dedicated user)
   'db' => [
-    'dsn'  => getenv('DB_DSN')  ?: 'pgsql:host=/var/run/postgresql;dbname=vote_app',
-    'user' => getenv('DB_USER') ?: 'postgres',
+    'dsn'  => getenv('DB_DSN')  ?: 'pgsql:host=localhost;port=5432;dbname=vote_app',
+    'user' => getenv('DB_USER') ?: 'vote_app',
     'pass' => getenv('DB_PASS') ?: '',
   ],
 

@@ -13,78 +13,113 @@ declare(strict_types=1);
  */
 final class AuthMiddleware
 {
+    /**
+     * Hiérarchie des rôles (niveau numérique)
+     *
+     * admin     = Super-administrateur (plateforme, tous les droits)
+     * operator  = Opérateur (gestion opérationnelle de séance)
+     * president = Président (gouvernance : gel, ouverture, validation)
+     * assessor  = Assesseur/Scrutateur (co-contrôle, co-signature)
+     * auditor   = Auditeur (conformité, vérification intégrité)
+     * voter     = Électeur (vote uniquement)
+     * viewer    = Observateur (lecture seule)
+     * public    = Accès public (pas d'auth requise)
+     * anonymous = Non authentifié
+     */
     private const ROLE_HIERARCHY = [
         'admin' => 100,
         'operator' => 80,
         'president' => 70,
-        'trust' => 60,
-        'readonly' => 20,
+        'assessor' => 60,
+        'auditor' => 50,
         'voter' => 10,
-        'public' => 5,
+        'viewer' => 5,
+        'public' => 3,
         'anonymous' => 0,
     ];
 
     /**
      * Matrice des permissions par rôle
      * Format: 'resource:action' => [roles autorisés]
+     *
+     * Séparation des pouvoirs :
+     *   - L'opérateur prépare et exécute
+     *   - Le président autorise et valide (gouvernance)
+     *   - L'assesseur observe et co-signe
+     *   - L'auditeur vérifie la conformité
+     *   - L'admin supervise tout
      */
     private const PERMISSIONS = [
-        // Meetings
-        'meeting:create' => ['admin', 'operator'],
-        'meeting:read' => ['admin', 'operator', 'president', 'trust', 'readonly'],
-        'meeting:update' => ['admin', 'operator'],
-        'meeting:delete' => ['admin'],
+        // Meetings - cycle de vie
+        'meeting:create'   => ['admin', 'operator'],
+        'meeting:read'     => ['admin', 'operator', 'president', 'assessor', 'auditor', 'voter', 'viewer'],
+        'meeting:update'   => ['admin', 'operator'],
+        'meeting:delete'   => ['admin'],
+        'meeting:freeze'   => ['admin', 'president'],
+        'meeting:unfreeze' => ['admin'],
+        'meeting:open'     => ['admin', 'president'],
+        'meeting:close'    => ['admin', 'president'],
         'meeting:validate' => ['admin', 'president'],
-        'meeting:archive' => ['admin', 'operator'],
-        
+        'meeting:archive'  => ['admin', 'operator'],
+
         // Motions
         'motion:create' => ['admin', 'operator'],
-        'motion:read' => ['admin', 'operator', 'president', 'trust', 'readonly', 'voter'],
+        'motion:read'   => ['admin', 'operator', 'president', 'assessor', 'auditor', 'voter', 'viewer'],
         'motion:update' => ['admin', 'operator'],
         'motion:delete' => ['admin', 'operator'],
-        'motion:open' => ['admin', 'operator'],
-        'motion:close' => ['admin', 'operator', 'president'],
-        
+        'motion:open'   => ['admin', 'operator'],
+        'motion:close'  => ['admin', 'operator', 'president'],
+
         // Votes
-        'vote:cast' => ['admin', 'operator', 'voter'],
-        'vote:read' => ['admin', 'operator', 'president', 'trust'],
+        'vote:cast'   => ['admin', 'operator', 'voter'],
+        'vote:read'   => ['admin', 'operator', 'president', 'assessor', 'auditor'],
         'vote:manual' => ['admin', 'operator'],
-        
+
         // Members
         'member:create' => ['admin', 'operator'],
-        'member:read' => ['admin', 'operator', 'president', 'trust', 'readonly'],
+        'member:read'   => ['admin', 'operator', 'president', 'assessor', 'auditor', 'viewer'],
         'member:update' => ['admin', 'operator'],
         'member:delete' => ['admin'],
         'member:import' => ['admin', 'operator'],
-        
+
         // Attendance
         'attendance:create' => ['admin', 'operator'],
-        'attendance:read' => ['admin', 'operator', 'president', 'trust', 'readonly'],
+        'attendance:read'   => ['admin', 'operator', 'president', 'assessor', 'auditor', 'viewer'],
         'attendance:update' => ['admin', 'operator'],
-        
+
         // Proxies
         'proxy:create' => ['admin', 'operator'],
-        'proxy:read' => ['admin', 'operator', 'president', 'trust', 'readonly'],
+        'proxy:read'   => ['admin', 'operator', 'president', 'assessor', 'auditor', 'viewer'],
         'proxy:delete' => ['admin', 'operator'],
-        
+
         // Speech
         'speech:request' => ['admin', 'operator', 'president', 'voter'],
-        'speech:grant' => ['admin', 'operator', 'president'],
-        'speech:end' => ['admin', 'operator', 'president'],
-        
+        'speech:grant'   => ['admin', 'operator', 'president'],
+        'speech:end'     => ['admin', 'operator', 'president'],
+
         // Audit
-        'audit:read' => ['admin', 'trust'],
-        'audit:export' => ['admin', 'trust', 'president'],
-        
+        'audit:read'   => ['admin', 'president', 'assessor', 'auditor'],
+        'audit:export' => ['admin', 'president', 'auditor'],
+
         // Admin
-        'admin:users' => ['admin'],
+        'admin:users'    => ['admin'],
         'admin:policies' => ['admin'],
-        'admin:system' => ['admin'],
-        
+        'admin:system'   => ['admin'],
+        'admin:roles'    => ['admin'],
+
         // Reports
         'report:generate' => ['admin', 'operator', 'president'],
-        'report:read' => ['admin', 'operator', 'president', 'trust', 'readonly'],
-        'report:export' => ['admin', 'operator', 'president', 'trust'],
+        'report:read'     => ['admin', 'operator', 'president', 'assessor', 'auditor', 'viewer'],
+        'report:export'   => ['admin', 'operator', 'president', 'auditor'],
+    ];
+
+    /**
+     * Alias de rôles pour compatibilité avec l'ancien système.
+     * Les anciens noms de rôles sont mappés vers les nouveaux.
+     */
+    private const ROLE_ALIASES = [
+        'trust'    => 'assessor',
+        'readonly' => 'viewer',
     ];
 
     private static ?array $currentUser = null;
@@ -103,7 +138,18 @@ final class AuthMiddleware
     }
 
     /**
-     * Exige un rôle minimum pour accéder à la ressource
+     * Normalise un nom de rôle (minuscule + alias).
+     */
+    private static function normalizeRole(string $role): string
+    {
+        $role = strtolower(trim($role));
+        return self::ROLE_ALIASES[$role] ?? $role;
+    }
+
+    /**
+     * Exige un rôle minimum pour accéder à la ressource.
+     * Gère les alias de rôles (trust→assessor, readonly→viewer)
+     * et la comparaison insensible à la casse.
      */
     public static function requireRole(string|array $roles, bool $strict = true): bool
     {
@@ -119,7 +165,9 @@ final class AuthMiddleware
         }
 
         $roles = is_array($roles) ? $roles : [$roles];
-        
+        // Normaliser tous les rôles demandés (alias + minuscule)
+        $roles = array_map([self::class, 'normalizeRole'], $roles);
+
         // Rôle 'public' = pas d'auth requise
         if (in_array('public', $roles, true)) {
             return true;
@@ -134,7 +182,7 @@ final class AuthMiddleware
             return false;
         }
 
-        $userRole = (string)($user['role'] ?? 'anonymous');
+        $userRole = self::normalizeRole((string)($user['role'] ?? 'anonymous'));
 
         // Admin a tous les droits
         if ($userRole === 'admin') {
@@ -211,7 +259,7 @@ final class AuthMiddleware
     public static function getCurrentRole(): string
     {
         $user = self::getCurrentUser();
-        return (string)($user['role'] ?? 'anonymous');
+        return self::normalizeRole((string)($user['role'] ?? 'anonymous'));
     }
 
     public static function getCurrentTenantId(): string
@@ -346,8 +394,8 @@ final class AuthMiddleware
             return false;
         }
 
-        $userRole = (string)($user['role'] ?? 'anonymous');
-        
+        $userRole = self::normalizeRole((string)($user['role'] ?? 'anonymous'));
+
         // Admin a toutes les permissions
         if ($userRole === 'admin') {
             return true;
@@ -355,7 +403,7 @@ final class AuthMiddleware
 
         // Vérifier dans la matrice des permissions
         $allowedRoles = self::PERMISSIONS[$permission] ?? [];
-        
+
         if (in_array($userRole, $allowedRoles, true)) {
             return true;
         }
@@ -531,6 +579,143 @@ final class AuthMiddleware
     {
         return self::getRoleLevel($role) >= self::getRoleLevel($minimumRole);
     }
+
+    // =========================================================================
+    // MEETING STATE MACHINE
+    // =========================================================================
+
+    /**
+     * Transitions autorisées de la machine à états séance.
+     * Miroir de la table meeting_state_transitions en DB.
+     * Format: from_status => [to_status => required_role]
+     */
+    private const STATE_TRANSITIONS = [
+        'draft'     => ['scheduled' => 'operator', 'frozen' => 'president'],
+        'scheduled' => ['frozen' => 'president', 'draft' => 'admin'],
+        'frozen'    => ['live' => 'president', 'scheduled' => 'admin'],
+        'live'      => ['closed' => 'president'],
+        'closed'    => ['validated' => 'president'],
+        'validated' => ['archived' => 'admin'],
+    ];
+
+    /**
+     * Vérifie si la transition d'état est autorisée pour le rôle courant.
+     *
+     * @param string $fromStatus État actuel de la séance
+     * @param string $toStatus   État cible
+     * @return bool
+     */
+    public static function canTransition(string $fromStatus, string $toStatus): bool
+    {
+        $allowed = self::STATE_TRANSITIONS[$fromStatus] ?? [];
+        if (!isset($allowed[$toStatus])) {
+            return false;
+        }
+
+        $requiredRole = $allowed[$toStatus];
+        $userRole = self::getCurrentRole();
+
+        // Admin peut tout faire
+        if ($userRole === 'admin') {
+            return true;
+        }
+
+        return $userRole === $requiredRole;
+    }
+
+    /**
+     * Exige que la transition d'état soit autorisée.
+     * Renvoie une erreur 403 si la transition est refusée.
+     *
+     * @param string $fromStatus État actuel
+     * @param string $toStatus   État cible
+     */
+    public static function requireTransition(string $fromStatus, string $toStatus): void
+    {
+        $allowed = self::STATE_TRANSITIONS[$fromStatus] ?? [];
+        if (!isset($allowed[$toStatus])) {
+            self::deny('invalid_transition', 422, [
+                'from' => $fromStatus,
+                'to' => $toStatus,
+                'allowed' => array_keys($allowed),
+            ]);
+        }
+
+        if (!self::canTransition($fromStatus, $toStatus)) {
+            $requiredRole = $allowed[$toStatus];
+            self::deny('transition_forbidden', 403, [
+                'from' => $fromStatus,
+                'to' => $toStatus,
+                'required_role' => $requiredRole,
+                'user_role' => self::getCurrentRole(),
+            ]);
+        }
+    }
+
+    /**
+     * Retourne les transitions possibles depuis un état donné, pour le rôle courant.
+     *
+     * @param string $currentStatus
+     * @return array [['to' => string, 'required_role' => string], ...]
+     */
+    public static function availableTransitions(string $currentStatus): array
+    {
+        $all = self::STATE_TRANSITIONS[$currentStatus] ?? [];
+        $userRole = self::getCurrentRole();
+        $result = [];
+
+        foreach ($all as $to => $requiredRole) {
+            if ($userRole === 'admin' || $userRole === $requiredRole) {
+                $result[] = ['to' => $to, 'required_role' => $requiredRole];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Retourne la liste complète des rôles du système.
+     */
+    public static function getAllRoles(): array
+    {
+        return array_keys(self::ROLE_HIERARCHY);
+    }
+
+    /**
+     * Retourne les libellés humains des rôles (français).
+     */
+    public static function getRoleLabels(): array
+    {
+        return [
+            'admin'     => 'Administrateur',
+            'operator'  => 'Opérateur',
+            'president' => 'Président',
+            'assessor'  => 'Assesseur',
+            'auditor'   => 'Auditeur',
+            'voter'     => 'Électeur',
+            'viewer'    => 'Observateur',
+        ];
+    }
+
+    /**
+     * Retourne les libellés humains des états séance (français).
+     */
+    public static function getMeetingStatusLabels(): array
+    {
+        return [
+            'draft'     => 'Brouillon',
+            'scheduled' => 'Planifiée',
+            'frozen'    => 'Verrouillée',
+            'live'      => 'En cours',
+            'closed'    => 'Clôturée',
+            'validated' => 'Validée',
+            'archived'  => 'Archivée',
+        ];
+    }
+
+    // =========================================================================
+    // STATE / TEST HELPERS
+    // =========================================================================
 
     /**
      * Définit l'utilisateur courant (pour tests ou impersonation)
