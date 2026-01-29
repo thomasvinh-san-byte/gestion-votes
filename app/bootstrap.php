@@ -58,7 +58,7 @@ if (!defined('APP_SECRET')) {
 
 // Tenant par défaut
 if (!defined('DEFAULT_TENANT_ID')) {
-    $tid = getenv('TENANT_ID') ?: ($config['default_tenant_id'] ?? 'aaaaaaaa-1111-2222-3333-444444444444');
+    $tid = getenv('DEFAULT_TENANT_ID') ?: (getenv('TENANT_ID') ?: ($config['default_tenant_id'] ?? 'aaaaaaaa-1111-2222-3333-444444444444'));
     define('DEFAULT_TENANT_ID', $tid);
 }
 

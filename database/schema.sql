@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS members (
   CONSTRAINT members_vote_weight_positive CHECK (vote_weight >= 0)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_members_tenant_full_name ON members(tenant_id, full_name);
-CREATE UNIQUE INDEX IF NOT EXISTS ux_members_tenant_external_ref ON members(tenant_id, external_ref) WHERE external_ref IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS ux_members_tenant_external_ref ON members(tenant_id, external_ref);
 CREATE INDEX IF NOT EXISTS idx_members_tenant_active ON members(tenant_id, is_active) WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_members_name ON members(tenant_id, lower(full_name));
 
@@ -603,7 +603,7 @@ CREATE INDEX IF NOT EXISTS idx_emergency_procedures_audience ON emergency_proced
 ALTER TABLE meetings
   ADD COLUMN IF NOT EXISTS late_rule_quorum boolean NOT NULL DEFAULT true,
   ADD COLUMN IF NOT EXISTS late_rule_vote   boolean NOT NULL DEFAULT true,
-  ADD COLUMN IF NOT EXISTS convocation_no   integer NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS convocation_no   text,
   ADD COLUMN IF NOT EXISTS vote_policy_id   uuid REFERENCES vote_policies(id) ON DELETE SET NULL;
 
 -- 3) attendances: présent à partir de...

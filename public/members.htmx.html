@@ -393,19 +393,27 @@
       const email = document.getElementById('mEmail').value.trim();
       const voting_power = parseInt(document.getElementById('mPower').value) || 1;
       const is_active = document.getElementById('mActive').checked;
-      
+
       if (!full_name) {
         setNotif('error', 'Le nom est requis');
+        document.getElementById('mName').focus();
         return;
       }
-      
+
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setNotif('error', 'Format d\'email invalide');
+        document.getElementById('mEmail').focus();
+        return;
+      }
+
       try {
-        const { body } = await api('/api/v1/members.php', { full_name, email, voting_power, is_active });
-        
+        const { body } = await api('/api/v1/members.php', { full_name, email: email || null, voting_power, is_active });
+
         if (body && body.ok !== false) {
-          setNotif('success', '✅ Membre ajouté');
+          setNotif('success', 'Membre ajouté');
           document.getElementById('mName').value = '';
           document.getElementById('mEmail').value = '';
+          document.getElementById('mPower').value = '1';
           loadMembers();
         } else {
           setNotif('error', body?.error || 'Erreur création');

@@ -101,8 +101,8 @@ VALUES
   ('55555555-5555-5555-5555-555555555010','aaaaaaaa-1111-2222-3333-444444444444','LOT-010','M. Fournier','fournier@example.test',85.0000,'member',true,now(),now()),
   ('55555555-5555-5555-5555-555555555011','aaaaaaaa-1111-2222-3333-444444444444','LOT-011','Mme Thomas','thomas@example.test',65.0000,'member',true,now(),now()),
   ('55555555-5555-5555-5555-555555555012','aaaaaaaa-1111-2222-3333-444444444444','LOT-012','M. Lambert','lambert@example.test',35.0000,'member',true,now(),now())
-ON CONFLICT (tenant_id, external_ref) DO UPDATE
-SET full_name = EXCLUDED.full_name,
+ON CONFLICT (tenant_id, full_name) DO UPDATE
+SET external_ref = EXCLUDED.external_ref,
     email = EXCLUDED.email,
     vote_weight = EXCLUDED.vote_weight,
     role = EXCLUDED.role,

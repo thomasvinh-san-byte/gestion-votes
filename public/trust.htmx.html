@@ -113,22 +113,24 @@
           <span class="nav-item-icon">🗂️</span>
           <span>Fiche séance</span>
         </a>
-        <a class="nav-item" href="/operator_flow.htmx.html">
-          <span class="nav-item-icon">🧑‍💼</span>
-          <span>Conduite live</span>
-        </a>
-        <a class="nav-item" href="/president.htmx.html">
-          <span class="nav-item-icon">🧑‍⚖️</span>
-          <span>Président</span>
+        <a class="nav-item" href="/members.htmx.html">
+          <span class="nav-item-icon">👥</span>
+          <span>Membres</span>
         </a>
         <a class="nav-item active" href="/trust.htmx.html">
           <span class="nav-item-icon">🛡️</span>
-          <span>Contrôle</span>
+          <span>Contrôle & Audit</span>
         </a>
         <a class="nav-item" href="/archives.htmx.html">
           <span class="nav-item-icon">📚</span>
           <span>Archives</span>
         </a>
+        <div class="border-t mt-4 pt-4">
+          <a class="nav-item" href="/admin.htmx.html">
+            <span class="nav-item-icon">⚙️</span>
+            <span>Administration</span>
+          </a>
+        </div>
       </nav>
     </aside>
 
@@ -159,7 +161,7 @@
         <!-- Context Selection -->
         <div class="card mb-6">
           <div class="card-body">
-            <div class="grid grid-cols-3 gap-6">
+            <div class="grid grid-cols-2 gap-6">
               <div class="form-group">
                 <label class="form-label" for="meetingSelect">Séance</label>
                 <select class="form-input" id="meetingSelect">
@@ -167,12 +169,7 @@
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label" for="trustApiKey">Clé API Trust</label>
-                <input class="form-input" type="password" id="trustApiKey" 
-                       placeholder="Clé d'accès Trust" autocomplete="off">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Statut séance</label>
+                <label class="form-label">Statut</label>
                 <div id="statusBox" class="p-3 bg-surface rounded-md border">
                   <span class="text-muted">—</span>
                 </div>
@@ -320,47 +317,39 @@
 
     let currentMeetingId = null;
     const meetingSelect = document.getElementById('meetingSelect');
-    const apiKeyInput = document.getElementById('trustApiKey');
 
-    // Get meeting_id from URL
     function getMeetingIdFromUrl() {
       const params = new URLSearchParams(window.location.search);
       return params.get('meeting_id');
     }
 
-    // Load saved API key and sync with Utils
-    function loadApiKey() {
-      const saved = localStorage.getItem('trust.api_key');
-      if (saved) {
-        apiKeyInput.value = saved;
-        Utils.setStoredApiKey(saved);
-      }
-    }
-
-    // Save API key and sync with Utils
-    apiKeyInput.addEventListener('change', () => {
-      localStorage.setItem('trust.api_key', apiKeyInput.value);
-      Utils.setStoredApiKey(apiKeyInput.value);
-    });
-
-    // Load meetings list
+    // Load meetings list and auto-select active one
     async function loadMeetings() {
       try {
-        const { body } = await api('/api/v1/meetings_index.php');
+        const { body } = await api('/api/v1/meetings.php');
 
-        if (body && body.ok && body.data && Array.isArray(body.data.meetings)) {
-          meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
-          body.data.meetings.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m.id;
-            opt.textContent = `${m.title} (${m.status || 'draft'})`;
-            meetingSelect.appendChild(opt);
-          });
+        const meetings = (body && body.ok && body.data) ? (body.data.meetings || []) : [];
+        meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
 
-          const urlMeetingId = getMeetingIdFromUrl();
-          if (urlMeetingId) {
-            meetingSelect.value = urlMeetingId;
-            loadMeetingData(urlMeetingId);
+        meetings.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.id;
+          const statusLabels = { draft: 'Brouillon', scheduled: 'Programmée', live: 'En cours', closed: 'Terminée', archived: 'Archivée' };
+          opt.textContent = `${m.title} (${statusLabels[m.status] || m.status})`;
+          meetingSelect.appendChild(opt);
+        });
+
+        // Priority: URL param > first live meeting > first meeting
+        const urlMeetingId = getMeetingIdFromUrl();
+        if (urlMeetingId) {
+          meetingSelect.value = urlMeetingId;
+          loadMeetingData(urlMeetingId);
+        } else {
+          const live = meetings.find(m => m.status === 'live');
+          const first = live || meetings[0];
+          if (first) {
+            meetingSelect.value = first.id;
+            loadMeetingData(first.id);
           }
         }
       } catch (err) {
@@ -619,7 +608,6 @@
     });
 
     // Initialize
-    loadApiKey();
     loadMeetings();
   })();
   </script>

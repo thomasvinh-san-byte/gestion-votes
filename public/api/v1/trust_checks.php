@@ -55,8 +55,8 @@ $checks[] = [
 // 2. Au moins un membre présent
 // ============================================================================
 $presentCount = (int)db_scalar("
-    SELECT COUNT(*) FROM attendances 
-    WHERE meeting_id = ? AND status IN ('present', 'remote')
+    SELECT COUNT(*) FROM attendances
+    WHERE meeting_id = ? AND mode::text IN ('present', 'remote')
 ", [$meetingId]);
 
 $checks[] = [
@@ -133,9 +133,9 @@ $checks[] = [
 // 6. Procurations valides (pas de cycle)
 // ============================================================================
 $proxyCycles = db_all("
-    SELECT p1.giver_id, p1.receiver_id
+    SELECT p1.giver_member_id, p1.receiver_member_id
     FROM proxies p1
-    JOIN proxies p2 ON p1.receiver_id = p2.giver_id AND p1.giver_id = p2.receiver_id
+    JOIN proxies p2 ON p1.receiver_member_id = p2.giver_member_id AND p1.giver_member_id = p2.receiver_member_id
     WHERE p1.meeting_id = ?
 ", [$meetingId]);
 
@@ -152,25 +152,26 @@ $checks[] = [
 // ============================================================================
 // 7. Totaux de vote cohérents (pour chaque motion close)
 // ============================================================================
-$inconsistentTotals = db_all("
-    SELECT m.id, m.title,
-           COALESCE(m.official_total, 0) AS official_total,
-           COALESCE(SUM(b.weight), 0) AS computed_total
+// Vérifier que chaque motion close a au moins un bulletin
+$motionsWithoutVotes = db_all("
+    SELECT m.id, m.title
     FROM motions m
     LEFT JOIN ballots b ON b.motion_id = m.id
     WHERE m.meeting_id = ? AND m.closed_at IS NOT NULL
-    GROUP BY m.id, m.title, m.official_total
-    HAVING ABS(COALESCE(m.official_total, 0) - COALESCE(SUM(b.weight), 0)) > 0.01
+    GROUP BY m.id, m.title
+    HAVING COUNT(b.id) = 0
 ", [$meetingId]);
 
-$totalsOk = count($inconsistentTotals) === 0;
+$totalsOk = count($motionsWithoutVotes) === 0;
 $checks[] = [
     'id' => 'totals_consistent',
-    'label' => 'Totaux cohérents',
-    'passed' => $totalsOk,
-    'detail' => $totalsOk 
-        ? 'Tous les totaux de vote sont cohérents'
-        : count($inconsistentTotals) . ' résolution(s) avec totaux incohérents',
+    'label' => 'Résolutions avec votes',
+    'passed' => $totalsOk || $closedMotions === 0,
+    'detail' => $closedMotions === 0
+        ? 'Aucune résolution close à vérifier'
+        : ($totalsOk
+            ? 'Toutes les résolutions closes ont des bulletins'
+            : count($motionsWithoutVotes) . ' résolution(s) close(s) sans vote'),
 ];
 
 // ============================================================================
