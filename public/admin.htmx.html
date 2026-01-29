@@ -398,11 +398,12 @@
             <div class="policy-card">
               <div class="policy-info">
                 <div class="policy-name">${escapeHtml(p.name)}</div>
-                <div class="policy-desc">${escapeHtml(p.description || p.type)}</div>
+                <div class="policy-desc">${escapeHtml(p.description || p.mode || '')}: seuil ${Math.round((p.threshold || 0) * 100)}%</div>
               </div>
-              ${p.is_default 
-                ? '<span class="badge badge-success">Par défaut</span>'
-                : '<button class="btn btn-ghost btn-sm">Modifier</button>'}
+              <button class="btn btn-ghost btn-sm btn-edit-quorum"
+                data-name="${escapeHtml(p.name)}"
+                data-mode="${p.mode || 'single'}"
+                data-threshold="${Math.round((p.threshold || 0.5) * 100)}">Modifier</button>
             </div>
           `).join('');
         }
@@ -415,7 +416,7 @@
     async function loadVotePolicies() {
       try {
         const { body } = await api('/api/v1/vote_policies.php');
-        
+
         if (body && body.ok && body.data && Array.isArray(body.data.items)) {
           const container = document.getElementById('voteList');
 
@@ -428,15 +429,18 @@
             return;
           }
 
+          const baseLabel = { expressed: 'voters', total_eligible: 'present' };
           container.innerHTML = body.data.items.map(p => `
             <div class="policy-card">
               <div class="policy-info">
                 <div class="policy-name">${escapeHtml(p.name)}</div>
-                <div class="policy-desc">${escapeHtml(p.description || p.type)}</div>
+                <div class="policy-desc">${escapeHtml(p.description || p.base || '')}: seuil ${Math.round((p.threshold || 0) * 100)}%</div>
               </div>
-              ${p.is_default 
-                ? '<span class="badge badge-success">Par défaut</span>'
-                : '<button class="btn btn-ghost btn-sm">Modifier</button>'}
+              <button class="btn btn-ghost btn-sm btn-edit-vote"
+                data-name="${escapeHtml(p.name)}"
+                data-base="${baseLabel[p.base] || 'voters'}"
+                data-threshold="${Math.round((p.threshold || 0.5) * 100)}"
+                data-abstention="${p.abstention_as_against ? '1' : '0'}">Modifier</button>
             </div>
           `).join('');
         }
@@ -567,6 +571,63 @@
       } catch (err) {
         setNotif('error', err.message);
       }
+    });
+
+    // Edit quorum policy (delegated click)
+    document.getElementById('quorumList').addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-edit-quorum');
+      if (!btn) return;
+      _modalType = 'quorum';
+      const modeMap = { single: 'simple', evolving: 'evolving', double: 'double' };
+      openModal('Modifier politique de quorum', `
+        <div class="form-group mb-4">
+          <label class="form-label">Nom</label>
+          <input class="form-input" type="text" id="policyName" value="${btn.dataset.name || ''}">
+        </div>
+        <div class="form-group mb-4">
+          <label class="form-label">Type</label>
+          <select class="form-input" id="policyType">
+            <option value="simple" ${btn.dataset.mode === 'single' ? 'selected' : ''}>Simple (seuil fixe)</option>
+            <option value="evolving" ${btn.dataset.mode === 'evolving' ? 'selected' : ''}>Évolutif (2 appels)</option>
+            <option value="double" ${btn.dataset.mode === 'double' ? 'selected' : ''}>Double (présents + voix)</option>
+          </select>
+        </div>
+        <div class="form-group mb-4">
+          <label class="form-label">Seuil (%)</label>
+          <input class="form-input" type="number" id="policyThreshold" value="${btn.dataset.threshold || '50'}" min="1" max="100">
+        </div>
+      `);
+    });
+
+    // Edit vote policy (delegated click)
+    document.getElementById('voteList').addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-edit-vote');
+      if (!btn) return;
+      _modalType = 'vote';
+      openModal('Modifier politique de vote', `
+        <div class="form-group mb-4">
+          <label class="form-label">Nom</label>
+          <input class="form-input" type="text" id="policyName" value="${btn.dataset.name || ''}">
+        </div>
+        <div class="form-group mb-4">
+          <label class="form-label">Base de calcul</label>
+          <select class="form-input" id="policyBase">
+            <option value="voters" ${btn.dataset.base === 'voters' ? 'selected' : ''}>Votants (exprimés)</option>
+            <option value="present" ${btn.dataset.base === 'present' ? 'selected' : ''}>Présents</option>
+            <option value="members" ${btn.dataset.base === 'members' ? 'selected' : ''}>Tous les membres</option>
+          </select>
+        </div>
+        <div class="form-group mb-4">
+          <label class="form-label">Seuil (%)</label>
+          <input class="form-input" type="number" id="policyThreshold" value="${btn.dataset.threshold || '50'}" min="1" max="100">
+        </div>
+        <div class="form-group">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" id="policyCountAbstain" ${btn.dataset.abstention === '1' ? 'checked' : ''}>
+            <span>Compter les abstentions</span>
+          </label>
+        </div>
+      `);
     });
 
     // Reset demo
