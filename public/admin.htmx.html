@@ -17,24 +17,24 @@
       justify-content: space-between;
       gap: var(--space-4);
     }
-    
+
     .policy-card:hover {
       border-color: var(--color-primary);
     }
-    
+
     .policy-info {
       flex: 1;
     }
-    
+
     .policy-name {
       font-weight: var(--font-semibold);
     }
-    
+
     .policy-desc {
       font-size: var(--text-sm);
       color: var(--color-text-muted);
     }
-    
+
     .system-stat {
       display: flex;
       align-items: center;
@@ -42,55 +42,42 @@
       padding: var(--space-3);
       border-bottom: 1px solid var(--color-border-subtle);
     }
-    
+
     .system-stat:last-child {
       border-bottom: none;
     }
-    
+
     .system-stat-label {
       font-size: var(--text-sm);
       color: var(--color-text-secondary);
     }
-    
+
     .system-stat-value {
       font-weight: var(--font-semibold);
       font-family: var(--font-mono);
     }
-    
-    .api-link {
+
+    .alert-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: var(--space-3);
-      padding: var(--space-3) var(--space-4);
-      background: var(--color-bg-subtle);
+      padding: var(--space-3);
       border-radius: var(--radius-md);
-      font-size: var(--text-sm);
-      color: var(--color-text);
-      text-decoration: none;
-      transition: background var(--duration-fast);
+      background: var(--color-bg-subtle);
+      border-left: 3px solid var(--color-border);
     }
-    
-    .api-link:hover {
-      background: var(--color-primary-subtle);
-      color: var(--color-primary);
-    }
-    
-    .api-link code {
-      font-size: var(--text-xs);
-      background: var(--color-surface);
-      padding: var(--space-1) var(--space-2);
-      border-radius: var(--radius-sm);
-    }
+    .alert-item.alert-warn { border-left-color: var(--color-warning, #e8a73e); }
+    .alert-item.alert-critical { border-left-color: var(--color-danger, #c53030); }
+    .alert-item.alert-info { border-left-color: var(--color-primary, #3b82f6); }
   </style>
 </head>
 <body>
   <div class="app-shell">
-    <!-- Sidebar -->
+        <!-- Sidebar -->
     <aside class="app-sidebar">
       <div class="p-4 border-b">
         <a href="/" class="brand">
           <span class="brand-logo">AG-VOTE</span>
-          <span class="brand-version">v2.0</span>
         </a>
       </div>
       <nav class="nav">
@@ -98,9 +85,17 @@
           <span class="nav-item-icon">🏛️</span>
           <span>Tableau de bord</span>
         </a>
+        <a class="nav-item" href="/operator.htmx.html">
+          <span class="nav-item-icon">🗂️</span>
+          <span>Fiche séance</span>
+        </a>
         <a class="nav-item" href="/members.htmx.html">
           <span class="nav-item-icon">👥</span>
           <span>Membres</span>
+        </a>
+        <a class="nav-item" href="/trust.htmx.html">
+          <span class="nav-item-icon">🛡️</span>
+          <span>Contrôle</span>
         </a>
         <a class="nav-item" href="/archives.htmx.html">
           <span class="nav-item-icon">📚</span>
@@ -141,7 +136,7 @@
           <div class="card-header">
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="card-title">🖥️ Statut système</h3>
+                <h3 class="card-title">Statut système</h3>
                 <p class="card-description">Connexions, latence, compteurs</p>
               </div>
               <span class="badge badge-success badge-dot" id="systemStatus">En ligne</span>
@@ -151,29 +146,51 @@
             <div id="systemStats">
               <div class="system-stat">
                 <span class="system-stat-label">Base de données</span>
-                <span class="system-stat-value text-success">Connectée</span>
+                <span class="system-stat-value" id="statDbStatus">Chargement...</span>
               </div>
               <div class="system-stat">
                 <span class="system-stat-label">Latence DB</span>
                 <span class="system-stat-value" id="statDbLatency">—</span>
               </div>
               <div class="system-stat">
-                <span class="system-stat-label">Séances actives</span>
+                <span class="system-stat-label">Connexions actives</span>
+                <span class="system-stat-value" id="statDbConnections">—</span>
+              </div>
+              <div class="system-stat">
+                <span class="system-stat-label">Séances en cours</span>
                 <span class="system-stat-value" id="statActiveMeetings">—</span>
               </div>
               <div class="system-stat">
-                <span class="system-stat-label">Membres total</span>
+                <span class="system-stat-label">Total séances</span>
+                <span class="system-stat-value" id="statTotalMeetings">—</span>
+              </div>
+              <div class="system-stat">
+                <span class="system-stat-label">Membres actifs</span>
                 <span class="system-stat-value" id="statTotalMembers">—</span>
+              </div>
+              <div class="system-stat">
+                <span class="system-stat-label">Résolutions</span>
+                <span class="system-stat-value" id="statTotalMotions">—</span>
               </div>
               <div class="system-stat">
                 <span class="system-stat-label">Version PHP</span>
                 <span class="system-stat-value" id="statPhpVersion">—</span>
               </div>
               <div class="system-stat">
-                <span class="system-stat-label">Mémoire utilisée</span>
+                <span class="system-stat-label">Mémoire</span>
                 <span class="system-stat-value" id="statMemory">—</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="card mb-6" id="alertsCard" style="display:none;">
+          <div class="card-header">
+            <h3 class="card-title">Alertes récentes</h3>
+          </div>
+          <div class="card-body">
+            <div class="flex flex-col gap-3" id="alertsList"></div>
           </div>
         </div>
 
@@ -194,27 +211,7 @@
             </div>
             <div class="card-body">
               <div class="flex flex-col gap-3" id="quorumList">
-                <div class="policy-card">
-                  <div class="policy-info">
-                    <div class="policy-name">Simple (50%)</div>
-                    <div class="policy-desc">Quorum standard à 50% des membres</div>
-                  </div>
-                  <span class="badge badge-success">Par défaut</span>
-                </div>
-                <div class="policy-card">
-                  <div class="policy-info">
-                    <div class="policy-name">Renforcé (66%)</div>
-                    <div class="policy-desc">Quorum à 2/3 des membres</div>
-                  </div>
-                  <button class="btn btn-ghost btn-sm">Modifier</button>
-                </div>
-                <div class="policy-card">
-                  <div class="policy-info">
-                    <div class="policy-name">Évolutif</div>
-                    <div class="policy-desc">50% 1er appel, 33% 2ème appel</div>
-                  </div>
-                  <button class="btn btn-ghost btn-sm">Modifier</button>
-                </div>
+                <div class="text-center p-4 text-muted">Chargement...</div>
               </div>
             </div>
           </div>
@@ -234,70 +231,8 @@
             </div>
             <div class="card-body">
               <div class="flex flex-col gap-3" id="voteList">
-                <div class="policy-card">
-                  <div class="policy-info">
-                    <div class="policy-name">Majorité simple</div>
-                    <div class="policy-desc">50% + 1 des votants</div>
-                  </div>
-                  <span class="badge badge-success">Par défaut</span>
-                </div>
-                <div class="policy-card">
-                  <div class="policy-info">
-                    <div class="policy-name">Majorité absolue</div>
-                    <div class="policy-desc">50% + 1 des membres présents</div>
-                  </div>
-                  <button class="btn btn-ghost btn-sm">Modifier</button>
-                </div>
-                <div class="policy-card">
-                  <div class="policy-info">
-                    <div class="policy-name">Majorité qualifiée</div>
-                    <div class="policy-desc">2/3 des votants</div>
-                  </div>
-                  <button class="btn btn-ghost btn-sm">Modifier</button>
-                </div>
+                <div class="text-center p-4 text-muted">Chargement...</div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- API Shortcuts -->
-        <div class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">🔗 Raccourcis API</h3>
-            <p class="card-description">Accès direct aux endpoints</p>
-          </div>
-          <div class="card-body">
-            <div class="grid grid-cols-3 gap-3">
-              <a class="api-link" href="/api/v1/admin_system_status.php" target="_blank">
-                <span>🖥️</span>
-                <span>Système</span>
-                <code>GET</code>
-              </a>
-              <a class="api-link" href="/api/v1/archives_list.php" target="_blank">
-                <span>📚</span>
-                <span>Archives</span>
-                <code>GET</code>
-              </a>
-              <a class="api-link" href="/api/v1/meetings_index.php" target="_blank">
-                <span>🏛️</span>
-                <span>Séances</span>
-                <code>GET</code>
-              </a>
-              <a class="api-link" href="/api/v1/members.php" target="_blank">
-                <span>👥</span>
-                <span>Membres</span>
-                <code>GET</code>
-              </a>
-              <a class="api-link" href="/api/v1/quorum_policies.php" target="_blank">
-                <span>📊</span>
-                <span>Quorum</span>
-                <code>GET</code>
-              </a>
-              <a class="api-link" href="/api/v1/vote_policies.php" target="_blank">
-                <span>🗳️</span>
-                <span>Vote</span>
-                <code>GET</code>
-              </a>
             </div>
           </div>
         </div>
@@ -350,27 +285,60 @@
     async function loadSystemStatus() {
       try {
         const { body } = await api('/api/v1/admin_system_status.php');
-        
+
         if (body && body.ok && body.data) {
-          const d = body.data;
-          
-          document.getElementById('statDbLatency').textContent = 
-            d.db_latency_ms ? `${d.db_latency_ms}ms` : '—';
-          document.getElementById('statActiveMeetings').textContent = 
-            d.active_meetings ?? '—';
-          document.getElementById('statTotalMembers').textContent = 
-            d.total_members ?? '—';
-          document.getElementById('statPhpVersion').textContent = 
-            d.php_version || '—';
-          document.getElementById('statMemory').textContent = 
-            d.memory_usage || '—';
-          
+          const s = body.data.system || body.data;
+
+          document.getElementById('statDbStatus').textContent = 'Connectée';
+          document.getElementById('statDbStatus').className = 'system-stat-value text-success';
+          document.getElementById('statDbLatency').textContent =
+            s.db_latency_ms != null ? s.db_latency_ms + ' ms' : '—';
+          document.getElementById('statDbConnections').textContent =
+            s.db_active_connections ?? '—';
+          document.getElementById('statActiveMeetings').textContent =
+            s.active_meetings ?? '—';
+          document.getElementById('statTotalMeetings').textContent =
+            s.count_meetings ?? '—';
+          document.getElementById('statTotalMembers').textContent =
+            s.total_members ?? '—';
+          document.getElementById('statTotalMotions').textContent =
+            s.count_motions ?? '—';
+          document.getElementById('statPhpVersion').textContent =
+            s.php_version || '—';
+          document.getElementById('statMemory').textContent =
+            s.memory_usage || '—';
+
           const status = document.getElementById('systemStatus');
           status.className = 'badge badge-success badge-dot';
           status.textContent = 'En ligne';
+
+          // Alerts
+          const alerts = body.data.alerts || [];
+          const alertsCard = document.getElementById('alertsCard');
+          const alertsList = document.getElementById('alertsList');
+          if (alerts.length > 0) {
+            alertsCard.style.display = '';
+            alertsList.innerHTML = alerts.map(function(a) {
+              var cls = a.severity === 'critical' ? 'alert-critical' : (a.severity === 'warn' ? 'alert-warn' : 'alert-info');
+              return '<div class="alert-item ' + cls + '">' +
+                '<div><strong>' + escapeHtml(a.code || '') + '</strong>' +
+                '<div class="text-sm text-muted">' + escapeHtml(a.message || '') + '</div>' +
+                '<div class="text-xs text-muted">' + formatDate(a.created_at) + '</div></div></div>';
+            }).join('');
+          } else {
+            alertsCard.style.display = 'none';
+          }
+        } else {
+          document.getElementById('statDbStatus').textContent = 'Erreur';
+          document.getElementById('statDbStatus').className = 'system-stat-value text-danger';
+          var status = document.getElementById('systemStatus');
+          status.className = 'badge badge-danger';
+          status.textContent = 'Erreur';
         }
       } catch (err) {
-        const status = document.getElementById('systemStatus');
+        document.getElementById('statDbStatus').textContent = 'Hors ligne';
+        document.getElementById('statDbStatus').className = 'system-stat-value text-danger';
+        var status = document.getElementById('systemStatus');
         status.className = 'badge badge-danger';
         status.textContent = 'Erreur';
         console.error('System status error:', err);

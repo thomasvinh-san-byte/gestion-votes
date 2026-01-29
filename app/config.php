@@ -17,7 +17,7 @@ return [
 
   // Database (defaults = dev local PostgreSQL)
   'db' => [
-    'dsn'  => getenv('DB_DSN')  ?: 'pgsql:host=localhost;port=5432;dbname=vote_app',
+    'dsn'  => getenv('DB_DSN')  ?: 'pgsql:host=/var/run/postgresql;dbname=vote_app',
     'user' => getenv('DB_USER') ?: 'postgres',
     'pass' => getenv('DB_PASS') ?: '',
   ],
