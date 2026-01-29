@@ -55,6 +55,12 @@
     </div>
     <div class="flex items-center gap-2">
       <a href="/operator.htmx.html" class="btn btn-secondary">← Retour opérateur</a>
+      <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance">
+        ℹ️
+      </button>
+      <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+        ☰
+      </button>
     </div>
   </header>
 
@@ -249,7 +255,17 @@
 }
 </style>
 
+<div class="drawer-backdrop" data-drawer-close></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div id="drawerTitle" class="font-semibold">Menu</div>
+    <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close title="Fermer">✕</button>
+  </div>
+  <div id="drawerBody" class="drawer-body"></div>
+</aside>
+
 <script src="/assets/js/utils.js"></script>
+<script src="/assets/js/shell.js"></script>
 <script>
 (function() {
   'use strict';

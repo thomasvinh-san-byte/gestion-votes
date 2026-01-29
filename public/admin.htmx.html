@@ -122,6 +122,12 @@
         <button class="btn btn-secondary" id="btnRefresh">
           🔄 Actualiser
         </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="guide" title="Guide de configuration">
+          📖
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+          ☰
+        </button>
       </div>
     </header>
 
@@ -625,11 +631,62 @@
       loadVotePolicies();
     });
 
+    // Register guide drawer
+    if (window.ShellDrawer && window.ShellDrawer.register) {
+      window.ShellDrawer.register('guide', 'Guide', function(meetingId, body, esc) {
+        body.innerHTML =
+          '<div style="display:flex;flex-direction:column;gap:16px;padding:4px 0;">' +
+            '<div>' +
+              '<div style="font-weight:600;margin-bottom:8px;">1. Base de données</div>' +
+              '<div class="text-sm">Créer la base et charger le schéma :</div>' +
+              '<pre class="text-xs" style="background:var(--color-bg-subtle,#f5f5f5);padding:8px;border-radius:6px;margin-top:4px;overflow-x:auto;">' +
+                'sudo -u postgres createdb vote_app\n' +
+                'sudo -u postgres psql vote_app &lt; database/schema.sql\n' +
+                'sudo -u postgres psql vote_app &lt; database/seed_demo.sql' +
+              '</pre>' +
+            '</div>' +
+            '<div>' +
+              '<div style="font-weight:600;margin-bottom:8px;">2. Configuration</div>' +
+              '<div class="text-sm">Copier le fichier d\'environnement :</div>' +
+              '<pre class="text-xs" style="background:var(--color-bg-subtle,#f5f5f5);padding:8px;border-radius:6px;margin-top:4px;overflow-x:auto;">' +
+                'cp .env.example .env\n' +
+                '# Éditer DB_DSN, DB_USER, DB_PASS' +
+              '</pre>' +
+            '</div>' +
+            '<div>' +
+              '<div style="font-weight:600;margin-bottom:8px;">3. Serveur PHP</div>' +
+              '<div class="text-sm">Démarrer le serveur de dev :</div>' +
+              '<pre class="text-xs" style="background:var(--color-bg-subtle,#f5f5f5);padding:8px;border-radius:6px;margin-top:4px;overflow-x:auto;">' +
+                'php -S localhost:8080 -t public/' +
+              '</pre>' +
+            '</div>' +
+            '<div>' +
+              '<div style="font-weight:600;margin-bottom:8px;">4. Politiques</div>' +
+              '<div class="text-sm">Configurez les politiques de quorum et de vote sur cette page pour définir les règles de vos assemblées.</div>' +
+            '</div>' +
+            '<div>' +
+              '<div style="font-weight:600;margin-bottom:8px;">5. Membres</div>' +
+              '<div class="text-sm">Ajoutez vos membres via la page Membres, avec leur nom, email et poids de vote.</div>' +
+            '</div>' +
+          '</div>';
+      });
+    }
+
     // Initial load
     loadSystemStatus();
     loadQuorumPolicies();
     loadVotePolicies();
   })();
   </script>
+
+  <!-- Drawer -->
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close title="Fermer">✕</button>
+    </div>
+    <div id="drawerBody" class="drawer-body"></div>
+  </aside>
 </body>
 </html>
