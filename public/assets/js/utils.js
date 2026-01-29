@@ -236,6 +236,48 @@ window.Utils = window.Utils || {};
     Utils.initCsrfForms();
   });
 
+  // ==========================================================================
+  // MISSING UTILITY FUNCTIONS
+  // ==========================================================================
+
+  /**
+   * Show toast notification (aliased as Utils.toast for callers)
+   */
+  Utils.toast = function(type, message, duration) {
+    if (typeof setNotif === 'function') {
+      setNotif(type, message, duration);
+    } else {
+      console[type === 'error' ? 'error' : 'log']('[toast]', message);
+    }
+  };
+
+  /**
+   * Get meeting ID from URL or data attributes
+   */
+  Utils.getMeetingId = function() {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get('meeting_id');
+    if (fromUrl) return fromUrl;
+
+    const el = document.querySelector('[data-meeting-id]');
+    if (el) return el.dataset.meetingId;
+
+    try {
+      return localStorage.getItem('operator.meeting_id') || localStorage.getItem('public.meeting_id') || '';
+    } catch(e) {
+      return '';
+    }
+  };
+
+  /**
+   * Humanize error messages from API
+   */
+  Utils.humanizeError = function(err) {
+    if (!err) return 'Erreur inconnue';
+    if (typeof err === 'string') return err;
+    return err.message || err.error || err.detail || JSON.stringify(err);
+  };
+
   // Init au chargement
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', Utils.initCsrfForms);
@@ -415,6 +457,30 @@ function formatDate(dateStr) {
   } catch (e) {
     return dateStr;
   }
+}
+
+/**
+ * Global loading state toggle
+ */
+function setLoading(on) {
+  const el = document.getElementById('loading') || document.getElementById('spinner');
+  if (el) el.style.display = on ? 'block' : 'none';
+  document.body.classList.toggle('loading', !!on);
+}
+
+/**
+ * Global log helper (debug console)
+ */
+function log(...args) {
+  const box = document.getElementById('log_box');
+  if (box) {
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.textContent = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+    box.prepend(line);
+    while (box.children.length > 50) box.removeChild(box.lastElementChild);
+  }
+  console.log('[AG-VOTE]', ...args);
 }
 
 // Add slide-out animation

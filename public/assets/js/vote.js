@@ -118,6 +118,8 @@
   // -----------------------------
   // Policy labels (visual proof of overrides)
   // -----------------------------
+  let _currentMotionId = null;
+
   let _policiesForMeeting = null;
   let _votePoliciesById = {};
   let _quorumPoliciesById = {};
@@ -220,13 +222,13 @@
     let filled = 0;
     try {
       const r = await apiGet(`/api/v1/attendances.php?meeting_id=${encodeURIComponent(meetingId)}`);
-      const rows = r?.data?.rows || [];
+      const rows = r?.data?.attendances || [];
       for (const x of rows){
-        const mode = (x.attendance_mode || "");
+        const mode = (x.mode || "");
         if (!["present","remote","proxy"].includes(mode)) continue;
         const opt = document.createElement("option");
         opt.value = x.member_id;
-        opt.textContent = `${x.name} (${mode})`;
+        opt.textContent = `${x.full_name || x.name || "Membre"} (${mode})`;
         sel.appendChild(opt);
         filled++;
       }
@@ -267,10 +269,12 @@
       const r = await apiGet(`/api/v1/current_motion.php?meeting_id=${encodeURIComponent(meetingId)}`);
       const m = r?.data?.motion;
       if (!m){
+        _currentMotionId = null;
         $("#motionBox").innerHTML = "<span class='muted'>Aucune motion ouverte.</span>";
         setVoteButtonsEnabled(false);
         return;
       }
+      _currentMotionId = m.id || m.motion_id || null;
       $("#motionBox").innerHTML = `
         <div><strong>${escapeHtml(m.title || "Motion")}</strong></div>
         <div class='muted tiny'>${escapeHtml(m.description || "")}</div>
@@ -291,13 +295,12 @@
   }
 
   async function cast(choice){
-    const meetingId = selectedMeetingId();
     const memberId = selectedMemberId();
-    if (!meetingId || !memberId) return;
+    if (!_currentMotionId || !memberId) return;
 
     try{
-      await apiPost("/api/v1/ballots_cast.php", { meeting_id: meetingId, member_id: memberId, choice });
-      notify("success", "Vote enregistré.");
+      await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
+      notify("success", "Vote enregistre.");
     } catch(e){
       notify("error", e?.message || String(e));
     }
@@ -332,6 +335,9 @@
     setInterval(()=>{ if(!document.hidden) refresh().catch(()=>{}); }, 3000);
     setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
   }
+
+  // Expose cast as global submitVote for vote.htmx.html confirmation overlay
+  window.submitVote = cast;
 
   document.addEventListener("DOMContentLoaded", wire);
 })();

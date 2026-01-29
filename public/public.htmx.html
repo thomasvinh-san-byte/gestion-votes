@@ -14,40 +14,47 @@
        DESIGN TOKENS - Cohérent avec design-system.css
        ============================================ */
     :root {
+      /* Brand palette — cohérent avec design-system.css */
+      --brand-ebony: #4e5340;
+      --brand-ebony-2: #697268;
+      --brand-cool-steel: #95a3a4;
+      --brand-pale-sky: #b7d1da;
+      --brand-soft-linen: #e2e8dd;
+
       /* Couleurs */
-      --color-primary: #2563eb;
-      --color-success: #10b981;
-      --color-danger: #ef4444;
-      --color-warning: #f59e0b;
-      --color-info: #3b82f6;
-      --color-neutral: #64748b;
-      
+      --color-primary: #4e5340;
+      --color-success: #5a7a5b;
+      --color-danger: #a05252;
+      --color-warning: #b8915a;
+      --color-info: #5a8a9a;
+      --color-neutral: var(--brand-cool-steel);
+
       /* Surfaces */
-      --color-bg: #f8fafc;
-      --color-bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      --color-bg: #f4f6f2;
+      --color-bg-gradient: linear-gradient(135deg, #f4f6f2 0%, var(--brand-soft-linen) 100%);
       --color-surface: #ffffff;
-      --color-border: #e2e8f0;
-      
+      --color-border: #d5dbd2;
+
       /* Texte */
-      --color-text: #0f172a;
-      --color-text-secondary: #475569;
-      --color-text-muted: #94a3b8;
-      
-      /* Vote */
-      --vote-for: #10b981;
-      --vote-against: #ef4444;
-      --vote-abstain: #94a3b8;
-      
+      --color-text: var(--brand-ebony);
+      --color-text-secondary: var(--brand-ebony-2);
+      --color-text-muted: var(--brand-cool-steel);
+
+      /* Vote — keep distinct for readability on projector */
+      --vote-for: #5a7a5b;
+      --vote-against: #a05252;
+      --vote-abstain: var(--brand-cool-steel);
+
       /* Rayons */
       --radius-md: 12px;
       --radius-lg: 16px;
       --radius-xl: 24px;
       --radius-full: 9999px;
-      
+
       /* Ombres */
-      --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.1);
-      --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15);
-      
+      --shadow-lg: 0 10px 40px rgb(78 83 64 / 0.10);
+      --shadow-xl: 0 20px 60px rgb(78 83 64 / 0.15);
+
       /* Transitions */
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }

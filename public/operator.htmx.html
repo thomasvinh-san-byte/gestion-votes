@@ -327,10 +327,10 @@
       try {
         const { status, body } = await api('/api/v1/meetings_index.php');
         
-        if (body && body.ok && Array.isArray(body.data)) {
+        if (body && body.ok && body.data && Array.isArray(body.data.meetings)) {
           meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
-          
-          body.data.forEach(m => {
+
+          body.data.meetings.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
             opt.textContent = `${m.title} (${m.status || 'draft'})`;
@@ -411,8 +411,8 @@
       try {
         const { body } = await api(`/api/v1/attendances.php?meeting_id=${meetingId}`);
         
-        if (body && body.ok) {
-          const stats = body.stats || {};
+        if (body && body.ok && body.data) {
+          const stats = body.data.summary || {};
           document.getElementById('statPresent').textContent = stats.present || 0;
           document.getElementById('statRemote').textContent = stats.remote || 0;
           document.getElementById('statProxy').textContent = stats.proxy || 0;
@@ -477,8 +477,8 @@
         const badge = document.getElementById('badgeMotion');
         const detail = document.getElementById('motionDetail');
         
-        if (body && body.ok && body.data && body.data.length > 0) {
-          const m = body.data[0];
+        if (body && body.ok && body.data && body.data.motions && body.data.motions.length > 0) {
+          const m = body.data.motions[0];
           
           badge.className = 'badge badge-warning badge-dot';
           badge.textContent = 'Vote ouvert';

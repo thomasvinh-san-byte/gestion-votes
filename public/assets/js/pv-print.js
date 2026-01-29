@@ -34,55 +34,49 @@
     const mid = q('meeting_id');
 
     let meeting = null;
-    const meetingCandidates = [
-      `/api/v1/meeting.php?id=${encodeURIComponent(mid)}`,
-      `/api/v1/meeting_state.php?meeting_id=${encodeURIComponent(mid)}`,
-      `/api/v1/operator_workflow_state.php?meeting_id=${encodeURIComponent(mid)}`
-    ];
-    for (const u of meetingCandidates) {
-      try { meeting = await fetchJson(u); break; } catch (_) {}
-    }
+    try {
+      const raw = await fetchJson(`/api/v1/operator_workflow_state.php?meeting_id=${encodeURIComponent(mid)}`);
+      meeting = raw?.data || raw;
+    } catch (_) {}
 
     let att = null;
-    const attCandidates = [
-      `/api/v1/attendances.php?meeting_id=${encodeURIComponent(mid)}`,
-      `/api/v1/members.php?meeting_id=${encodeURIComponent(mid)}`
-    ];
-    for (const u of attCandidates) {
-      try { att = await fetchJson(u); break; } catch (_) {}
-    }
-    const members = att?.members || att?.items || att || [];
+    try {
+      const raw = await fetchJson(`/api/v1/attendances.php?meeting_id=${encodeURIComponent(mid)}`);
+      att = raw?.data || raw;
+    } catch (_) {}
+    const members = att?.attendances || att?.members || [];
 
     let mot = null;
-    const motCandidates = [
-      `/api/v1/motions_list.php?meeting_id=${encodeURIComponent(mid)}`,
-      `/api/v1/motions.php?meeting_id=${encodeURIComponent(mid)}`
-    ];
-    for (const u of motCandidates) {
-      try { mot = await fetchJson(u); break; } catch (_) {}
-    }
-    const motions = mot?.motions || mot?.items || mot || [];
+    try {
+      const raw = await fetchJson(`/api/v1/motions_for_meeting.php?meeting_id=${encodeURIComponent(mid)}`);
+      mot = raw?.data || raw;
+    } catch (_) {}
+    const motions = (mot?.motions || []).map(m => ({
+      ...m,
+      id: m.motion_id || m.id,
+      title: m.motion_title || m.title || '',
+      description: m.motion_description || m.description || '',
+    }));
 
-    const title = meeting?.title || meeting?.meeting?.title || 'Séance';
-    const status = meeting?.status || meeting?.meeting?.status || meeting?.meeting_status || '—';
+    const title = meeting?.meeting?.title || 'Séance';
+    const status = meeting?.meeting?.status || '—';
 
     $('#pvMeta').textContent = `${title} · Séance ${mid}`;
     $('#pvStatus').innerHTML = pill(status);
 
     const present = members.filter(m => {
-      const st = String(m.status || '').toUpperCase();
-      return st === 'PRESENT' || st === 'REMOTE' || m.is_present === true;
+      const mode = String(m.mode || '').toLowerCase();
+      return mode === 'present' || mode === 'remote';
     }).length;
     $('#pvPresent').textContent = String(present);
-    $('#pvQuorum').textContent = (att?.stats?.quorum_pct !== undefined) ? `${att.stats.quorum_pct}%` : '—';
+    $('#pvQuorum').textContent = (att?.summary?.quorum_pct !== undefined) ? `${att.summary.quorum_pct}%` : '—';
 
     const tbody = $('#pvAttendanceBody');
     tbody.innerHTML = members.map(m => {
-      const ln = m.last_name || m.lastName || '';
-      const fn = m.first_name || m.firstName || '';
-      const st = m.status || (m.is_present ? 'PRESENT' : 'ABSENT');
-      const w = (m.weight ?? m.tantiemes ?? '');
-      return `<tr>${td(ln)}${td(fn)}${td(pill(st))}${td(`<span style="font-variant-numeric:tabular-nums;">${w}</span>`, true)}</tr>`;
+      const name = m.full_name || m.name || '';
+      const st = (m.mode || 'absent').toUpperCase();
+      const w = (m.voting_power ?? m.vote_weight ?? '');
+      return `<tr>${td(name)}${td('')}${td(pill(st))}${td(`<span style="font-variant-numeric:tabular-nums;">${w}</span>`, true)}</tr>`;
     }).join('');
 
     const wrap = $('#pvMotions');

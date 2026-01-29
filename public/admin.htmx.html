@@ -382,10 +382,10 @@
       try {
         const { body } = await api('/api/v1/quorum_policies.php');
         
-        if (body && body.ok && Array.isArray(body.data)) {
+        if (body && body.ok && body.data && Array.isArray(body.data.items)) {
           const container = document.getElementById('quorumList');
-          
-          if (body.data.length === 0) {
+
+          if (body.data.items.length === 0) {
             container.innerHTML = `
               <div class="text-center p-4 text-muted">
                 Aucune politique configurée
@@ -393,8 +393,8 @@
             `;
             return;
           }
-          
-          container.innerHTML = body.data.map(p => `
+
+          container.innerHTML = body.data.items.map(p => `
             <div class="policy-card">
               <div class="policy-info">
                 <div class="policy-name">${escapeHtml(p.name)}</div>
@@ -416,10 +416,10 @@
       try {
         const { body } = await api('/api/v1/vote_policies.php');
         
-        if (body && body.ok && Array.isArray(body.data)) {
+        if (body && body.ok && body.data && Array.isArray(body.data.items)) {
           const container = document.getElementById('voteList');
-          
-          if (body.data.length === 0) {
+
+          if (body.data.items.length === 0) {
             container.innerHTML = `
               <div class="text-center p-4 text-muted">
                 Aucune politique configurée
@@ -427,8 +427,8 @@
             `;
             return;
           }
-          
-          container.innerHTML = body.data.map(p => `
+
+          container.innerHTML = body.data.items.map(p => `
             <div class="policy-card">
               <div class="policy-info">
                 <div class="policy-name">${escapeHtml(p.name)}</div>
@@ -467,8 +467,11 @@
     document.getElementById('btnCancelModal').addEventListener('click', closeModal);
     backdrop.addEventListener('click', closeModal);
 
+    let _modalType = null; // 'quorum' or 'vote'
+
     // New quorum policy
     document.getElementById('btnNewQuorum').addEventListener('click', () => {
+      _modalType = 'quorum';
       openModal('Nouvelle politique de quorum', `
         <div class="form-group mb-4">
           <label class="form-label">Nom</label>
@@ -491,6 +494,7 @@
 
     // New vote policy
     document.getElementById('btnNewVote').addEventListener('click', () => {
+      _modalType = 'vote';
       openModal('Nouvelle politique de vote', `
         <div class="form-group mb-4">
           <label class="form-label">Nom</label>
@@ -515,6 +519,54 @@
           </label>
         </div>
       `);
+    });
+
+    // Save policy from modal
+    document.getElementById('btnSaveModal').addEventListener('click', async () => {
+      const name = (document.getElementById('policyName')?.value || '').trim();
+      if (!name) { setNotif('error', 'Le nom est requis'); return; }
+
+      const threshold = parseInt(document.getElementById('policyThreshold')?.value || '50', 10);
+      if (threshold < 1 || threshold > 100) { setNotif('error', 'Seuil entre 1 et 100'); return; }
+
+      try {
+        let endpoint, payload;
+
+        if (_modalType === 'quorum') {
+          const typeMap = { simple: 'single', evolving: 'evolving', double: 'double' };
+          const rawType = document.getElementById('policyType')?.value || 'simple';
+          endpoint = '/api/v1/admin_quorum_policies.php';
+          payload = {
+            name,
+            mode: typeMap[rawType] || 'single',
+            threshold: threshold / 100,
+            denominator: 'eligible_members',
+          };
+        } else {
+          const baseMap = { voters: 'expressed', present: 'total_eligible', members: 'total_eligible' };
+          const rawBase = document.getElementById('policyBase')?.value || 'voters';
+          const countAbstain = document.getElementById('policyCountAbstain')?.checked || false;
+          endpoint = '/api/v1/admin_vote_policies.php';
+          payload = {
+            name,
+            base: baseMap[rawBase] || 'expressed',
+            threshold: threshold / 100,
+            abstention_as_against: countAbstain ? '1' : '0',
+          };
+        }
+
+        const { body } = await api(endpoint, payload);
+        if (body && body.ok) {
+          setNotif('success', 'Politique enregistrée');
+          closeModal();
+          loadQuorumPolicies();
+          loadVotePolicies();
+        } else {
+          setNotif('error', body?.error || 'Erreur sauvegarde');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
     });
 
     // Reset demo
