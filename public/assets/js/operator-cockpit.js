@@ -26,7 +26,7 @@
     }
 
     try {
-      const r = await Utils.apiGet('/public/api/v1/meeting_status_for_meeting.php?meeting_id=' + encodeURIComponent(meetingId));
+      const r = await Utils.apiGet('/api/v1/meeting_status_for_meeting.php?meeting_id=' + encodeURIComponent(meetingId));
       const d = r && (r.data || r);
       // Best-effort fields
       const status = d.status || d.meeting_status || d.meeting?.status || '—';
@@ -67,7 +67,7 @@
   async function loadNotifications(){
     if(!meetingId) return;
     try{
-      const r = await Utils.apiGet('/public/api/v1/notifications_list.php?meeting_id=' + encodeURIComponent(meetingId) + '&audience=operator');
+      const r = await Utils.apiGet('/api/v1/notifications_list.php?meeting_id=' + encodeURIComponent(meetingId) + '&audience=operator');
       const d = r && (r.data || r);
       const items = d.items || d.notifications || [];
       const box = el('mini-log');

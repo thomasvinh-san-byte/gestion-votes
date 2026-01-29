@@ -49,8 +49,10 @@ async function ensurePolicies(meetingId){
       apiGet('/api/v1/vote_policies.php'),
       apiGet('/api/v1/quorum_policies.php')
     ]);
-    (vp || []).forEach(p => { if (p && p.id) __cache.votePolicies.set(String(p.id), p.name || p.label || p.code || String(p.id)); });
-    (qp || []).forEach(p => { if (p && p.id) __cache.quorumPolicies.set(String(p.id), p.name || p.label || p.code || String(p.id)); });
+    const vpItems = vp?.data?.items || vp?.items || [];
+    const qpItems = qp?.data?.items || qp?.items || [];
+    vpItems.forEach(p => { if (p && p.id) __cache.votePolicies.set(String(p.id), p.name || p.label || p.code || String(p.id)); });
+    qpItems.forEach(p => { if (p && p.id) __cache.quorumPolicies.set(String(p.id), p.name || p.label || p.code || String(p.id)); });
     __cache.policiesLoaded = true;
   }catch(e){
     // non-bloquant
@@ -64,8 +66,8 @@ async function ensureMeetingDefaults(meetingId){
       apiGet('/api/v1/meeting_vote_settings.php?meeting_id=' + encodeURIComponent(meetingId)),
       apiGet('/api/v1/meeting_quorum_settings.php?meeting_id=' + encodeURIComponent(meetingId)),
     ]);
-    __cache.meetingVotePolicyId = mv?.vote_policy_id ?? mv?.votePolicyId ?? mv?.default_vote_policy_id ?? null;
-    __cache.meetingQuorumPolicyId = mq?.quorum_policy_id ?? mq?.quorumPolicyId ?? mq?.default_quorum_policy_id ?? null;
+    __cache.meetingVotePolicyId = mv?.data?.vote_policy_id ?? mv?.vote_policy_id ?? null;
+    __cache.meetingQuorumPolicyId = mq?.data?.quorum_policy_id ?? mq?.quorum_policy_id ?? null;
   }catch(e){
     // non-bloquant
   }
@@ -76,12 +78,10 @@ async function ensureMotions(meetingId){
   if (__cache.motionsById.size > 0) return;
   try{
     const data = await apiGet('/api/v1/motions_for_meeting.php?meeting_id=' + encodeURIComponent(meetingId));
-    const agendas = data?.agendas || data?.items || [];
-    for (const ag of agendas){
-      const motions = ag?.motions || [];
-      for (const mo of motions){
-        if (mo?.id) __cache.motionsById.set(String(mo.id), mo);
-      }
+    const motions = data?.data?.motions || [];
+    for (const mo of motions){
+      const id = mo?.motion_id || mo?.id;
+      if (id) __cache.motionsById.set(String(id), mo);
     }
   }catch(e){
     // non-bloquant

@@ -382,10 +382,10 @@
       try {
         const { body } = await api('/api/v1/quorum_policies.php');
         
-        if (body && body.ok && Array.isArray(body.data)) {
+        if (body && body.ok && body.data && Array.isArray(body.data.items)) {
           const container = document.getElementById('quorumList');
-          
-          if (body.data.length === 0) {
+
+          if (body.data.items.length === 0) {
             container.innerHTML = `
               <div class="text-center p-4 text-muted">
                 Aucune politique configurée
@@ -393,8 +393,8 @@
             `;
             return;
           }
-          
-          container.innerHTML = body.data.map(p => `
+
+          container.innerHTML = body.data.items.map(p => `
             <div class="policy-card">
               <div class="policy-info">
                 <div class="policy-name">${escapeHtml(p.name)}</div>
@@ -416,10 +416,10 @@
       try {
         const { body } = await api('/api/v1/vote_policies.php');
         
-        if (body && body.ok && Array.isArray(body.data)) {
+        if (body && body.ok && body.data && Array.isArray(body.data.items)) {
           const container = document.getElementById('voteList');
-          
-          if (body.data.length === 0) {
+
+          if (body.data.items.length === 0) {
             container.innerHTML = `
               <div class="text-center p-4 text-muted">
                 Aucune politique configurée
@@ -427,8 +427,8 @@
             `;
             return;
           }
-          
-          container.innerHTML = body.data.map(p => `
+
+          container.innerHTML = body.data.items.map(p => `
             <div class="policy-card">
               <div class="policy-info">
                 <div class="policy-name">${escapeHtml(p.name)}</div>

@@ -17,7 +17,7 @@
   async function load(){
     if(!meetingId) return;
     try{
-      const r = await Utils.apiGet('/public/api/v1/meeting_status_for_meeting.php?meeting_id=' + encodeURIComponent(meetingId));
+      const r = await Utils.apiGet('/api/v1/meeting_status_for_meeting.php?meeting_id=' + encodeURIComponent(meetingId));
       const d = r && (r.data || r);
       const status = d.status || d.meeting_status || (d.meeting && d.meeting.status) || '—';
       setPill('sc-status', status === 'archived' ? 'success' : 'warn', status);

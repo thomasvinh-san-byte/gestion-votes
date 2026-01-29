@@ -17,7 +17,7 @@ require __DIR__ . '/bootstrap.php';
 function json_ok(array $data = [], int $code = 200): never {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['ok' => true] + $data, JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => true, 'data' => $data], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

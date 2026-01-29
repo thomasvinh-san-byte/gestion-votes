@@ -356,9 +356,9 @@
         });
         const body = await response.json();
         
-        if (body && body.ok && Array.isArray(body.data)) {
+        if (body && body.ok && body.data && Array.isArray(body.data.meetings)) {
           meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
-          body.data.forEach(m => {
+          body.data.meetings.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
             opt.textContent = `${m.title} (${m.status || 'draft'})`;
@@ -438,8 +438,8 @@
         const badge = document.getElementById('badgeAnomalies');
         const kpi = document.getElementById('kpiAnomalies');
         
-        if (body && body.ok && Array.isArray(body.data) && body.data.length > 0) {
-          const anomalies = body.data;
+        if (body && body.ok && body.data && Array.isArray(body.data.anomalies) && body.data.anomalies.length > 0) {
+          const anomalies = body.data.anomalies;
           badge.textContent = anomalies.length;
           kpi.textContent = anomalies.length;
           kpi.className = 'kpi-value danger';
@@ -487,8 +487,8 @@
         const container = document.getElementById('checksList');
         const kpi = document.getElementById('kpiChecks');
         
-        if (body && body.ok && Array.isArray(body.data)) {
-          const checks = body.data;
+        if (body && body.ok && body.data && Array.isArray(body.data.checks)) {
+          const checks = body.data.checks;
           const passed = checks.filter(c => c.passed).length;
           kpi.textContent = `${passed}/${checks.length}`;
           
@@ -518,8 +518,8 @@
         const tbody = document.getElementById('motionsTbody');
         const kpi = document.getElementById('kpiMotions');
         
-        if (body && body.ok && Array.isArray(body.data)) {
-          const motions = body.data;
+        if (body && body.ok && body.data && Array.isArray(body.data.motions)) {
+          const motions = body.data.motions;
           kpi.textContent = motions.length;
           
           if (motions.length === 0) {
@@ -587,8 +587,8 @@
         
         const container = document.getElementById('auditLog');
         
-        if (body && body.ok && Array.isArray(body.data) && body.data.length > 0) {
-          container.innerHTML = body.data.map(entry => `
+        if (body && body.ok && body.data && Array.isArray(body.data.events) && body.data.events.length > 0) {
+          container.innerHTML = body.data.events.map(entry => `
             <div class="audit-entry">
               <div class="audit-time">${formatDate(entry.created_at)}</div>
               <div class="audit-content">

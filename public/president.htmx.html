@@ -462,8 +462,8 @@
         const badge = document.getElementById('motionBadge');
         const btnClose = document.getElementById('btnCloseVote');
         
-        if (body && body.ok && body.data && body.data.length > 0) {
-          const motion = body.data[0];
+        if (body && body.ok && body.data && (body.data.motion || body.data.motions?.length > 0)) {
+          const motion = body.data.motion || body.data.motions[0];
           badge.className = 'badge badge-warning badge-dot';
           badge.textContent = 'Vote ouvert';
           

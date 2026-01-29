@@ -327,10 +327,10 @@
       try {
         const { status, body } = await api('/api/v1/meetings_index.php');
         
-        if (body && body.ok && Array.isArray(body.data)) {
+        if (body && body.ok && body.data && Array.isArray(body.data.meetings)) {
           meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
-          
-          body.data.forEach(m => {
+
+          body.data.meetings.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
             opt.textContent = `${m.title} (${m.status || 'draft'})`;
@@ -477,8 +477,8 @@
         const badge = document.getElementById('badgeMotion');
         const detail = document.getElementById('motionDetail');
         
-        if (body && body.ok && body.data && body.data.length > 0) {
-          const m = body.data[0];
+        if (body && body.ok && body.data && body.data.motions && body.data.motions.length > 0) {
+          const m = body.data.motions[0];
           
           badge.className = 'badge badge-warning badge-dot';
           badge.textContent = 'Vote ouvert';

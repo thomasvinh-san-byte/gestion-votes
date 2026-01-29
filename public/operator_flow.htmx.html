@@ -413,8 +413,8 @@
         const { body } = await api(`/api/v1/motions.php?meeting_id=${meetingId}`);
         const container = document.getElementById('motionsList');
         
-        if (body && body.ok && Array.isArray(body.data)) {
-          const motions = body.data;
+        if (body && body.ok && body.data) {
+          const motions = body.data.motions || [];
           document.getElementById('motionsCount').textContent = motions.length;
           
           if (motions.length === 0) {

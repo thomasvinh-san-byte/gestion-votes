@@ -175,8 +175,8 @@
       apiGet('/api/v1/vote_policies.php'),
       apiGet('/api/v1/quorum_policies.php'),
     ]);
-    state.votePolicies = vp.body?.vote_policies || vp.body?.items || [];
-    state.quorumPolicies = qp.body?.quorum_policies || qp.body?.items || [];
+    state.votePolicies = vp.body?.data?.items || [];
+    state.quorumPolicies = qp.body?.data?.items || [];
     fillSelect($('#votePolicyId'), state.votePolicies, '— Hériter séance —');
     fillSelect($('#quorumPolicyId'), state.quorumPolicies, '— Hériter séance —');
   }
@@ -189,8 +189,22 @@
     await loadPolicies();
 
     const { body } = await apiGet('/api/v1/motions_for_meeting.php?meeting_id=' + encodeURIComponent(mid));
-    state.agendas = body?.agendas || [];
-    state.motions = body?.motions || [];
+    const rawMotions = body?.data?.motions || [];
+    // Normalize prefixed field names from API (motion_id → id, motion_title → title, etc.)
+    state.motions = rawMotions.map(m => ({
+      ...m,
+      id: m.motion_id || m.id,
+      title: m.motion_title || m.title || '',
+      description: m.motion_description || m.description || '',
+    }));
+    // Extract unique agendas from motions
+    const agendaMap = new Map();
+    for (const m of state.motions) {
+      if (m.agenda_id && !agendaMap.has(m.agenda_id)) {
+        agendaMap.set(m.agenda_id, { id: m.agenda_id, title: m.agenda_title || m.agenda_id, idx: m.agenda_idx });
+      }
+    }
+    state.agendas = [...agendaMap.values()].sort((a,b) => (a.idx||0) - (b.idx||0));
 
     // Agenda select for create
     const agSel = $('#agendaId');
@@ -282,9 +296,8 @@
   }
 
   async function loadMeetings() {
-    // This project usually has /api/v1/meetings_list.php
-    const { body } = await apiGet('/api/v1/meetings_list.php');
-    const items = body?.meetings || body?.items || [];
+    const { body } = await apiGet('/api/v1/meetings_index.php');
+    const items = body?.data?.meetings || [];
     const sel = $('#meetingId');
     sel.innerHTML = '<option value="">Sélectionner une séance…</option>';
     for (const m of items) {
