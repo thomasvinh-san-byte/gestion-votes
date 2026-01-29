@@ -411,8 +411,8 @@
       try {
         const { body } = await api(`/api/v1/attendances.php?meeting_id=${meetingId}`);
         
-        if (body && body.ok) {
-          const stats = body.stats || {};
+        if (body && body.ok && body.data) {
+          const stats = body.data.summary || {};
           document.getElementById('statPresent').textContent = stats.present || 0;
           document.getElementById('statRemote').textContent = stats.remote || 0;
           document.getElementById('statProxy').textContent = stats.proxy || 0;

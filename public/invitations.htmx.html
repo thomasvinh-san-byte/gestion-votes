@@ -382,15 +382,12 @@
 
     try {
       const { body } = await api('/api/v1/invitations_send_bulk.php', {
-        method: 'POST',
-        body: JSON.stringify({
-          meeting_id: meetingId,
-          dry_run: dryRun,
-          only_unsent: onlyUnsent,
-          include_proxy: includeProxy,
-          limit: limit || 0,
-          subject: subject || undefined
-        })
+        meeting_id: meetingId,
+        dry_run: dryRun,
+        only_unsent: onlyUnsent,
+        include_proxy: includeProxy,
+        limit: limit || 0,
+        subject: subject || undefined
       });
 
       if (body?.ok) {

@@ -328,34 +328,26 @@
       return params.get('meeting_id');
     }
 
-    // Load saved API key
+    // Load saved API key and sync with Utils
     function loadApiKey() {
       const saved = localStorage.getItem('trust.api_key');
-      if (saved) apiKeyInput.value = saved;
+      if (saved) {
+        apiKeyInput.value = saved;
+        Utils.setStoredApiKey(saved);
+      }
     }
 
-    // Save API key
+    // Save API key and sync with Utils
     apiKeyInput.addEventListener('change', () => {
       localStorage.setItem('trust.api_key', apiKeyInput.value);
+      Utils.setStoredApiKey(apiKeyInput.value);
     });
-
-    // Get headers with API key
-    function getHeaders() {
-      const headers = {};
-      if (apiKeyInput.value) {
-        headers['X-Api-Key'] = apiKeyInput.value;
-      }
-      return headers;
-    }
 
     // Load meetings list
     async function loadMeetings() {
       try {
-        const response = await fetch('/api/v1/meetings_index.php', {
-          headers: getHeaders()
-        });
-        const body = await response.json();
-        
+        const { body } = await api('/api/v1/meetings_index.php');
+
         if (body && body.ok && body.data && Array.isArray(body.data.meetings)) {
           meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
           body.data.meetings.forEach(m => {
@@ -399,11 +391,8 @@
     // Load meeting status
     async function loadMeetingStatus(meetingId) {
       try {
-        const response = await fetch(`/api/v1/meetings.php?id=${meetingId}`, {
-          headers: getHeaders()
-        });
-        const body = await response.json();
-        
+        const { body } = await api(`/api/v1/meetings.php?id=${meetingId}`);
+
         if (body && body.ok && body.data) {
           const m = body.data;
           document.getElementById('meetingTitle').textContent = m.title;
@@ -429,10 +418,7 @@
     // Load anomalies
     async function loadAnomalies(meetingId) {
       try {
-        const response = await fetch(`/api/v1/trust_anomalies.php?meeting_id=${meetingId}`, {
-          headers: getHeaders()
-        });
-        const body = await response.json();
+        const { body } = await api(`/api/v1/trust_anomalies.php?meeting_id=${meetingId}`);
         
         const container = document.getElementById('anomaliesList');
         const badge = document.getElementById('badgeAnomalies');
@@ -479,10 +465,7 @@
     // Load coherence checks
     async function loadChecks(meetingId) {
       try {
-        const response = await fetch(`/api/v1/trust_checks.php?meeting_id=${meetingId}`, {
-          headers: getHeaders()
-        });
-        const body = await response.json();
+        const { body } = await api(`/api/v1/trust_checks.php?meeting_id=${meetingId}`);
         
         const container = document.getElementById('checksList');
         const kpi = document.getElementById('kpiChecks');
@@ -510,10 +493,7 @@
     // Load motions
     async function loadMotions(meetingId) {
       try {
-        const response = await fetch(`/api/v1/motions.php?meeting_id=${meetingId}`, {
-          headers: getHeaders()
-        });
-        const body = await response.json();
+        const { body } = await api(`/api/v1/motions.php?meeting_id=${meetingId}`);
         
         const tbody = document.getElementById('motionsTbody');
         const kpi = document.getElementById('kpiMotions');
@@ -580,10 +560,7 @@
     // Load audit log
     async function loadAuditLog(meetingId) {
       try {
-        const response = await fetch(`/api/v1/audit_log.php?meeting_id=${meetingId}&limit=50`, {
-          headers: getHeaders()
-        });
-        const body = await response.json();
+        const { body } = await api(`/api/v1/audit_log.php?meeting_id=${meetingId}&limit=50`);
         
         const container = document.getElementById('auditLog');
         

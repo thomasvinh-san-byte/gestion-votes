@@ -336,5 +336,8 @@
     setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
   }
 
+  // Expose cast as global submitVote for vote.htmx.html confirmation overlay
+  window.submitVote = cast;
+
   document.addEventListener("DOMContentLoaded", wire);
 })();
