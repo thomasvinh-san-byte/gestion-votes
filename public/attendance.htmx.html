@@ -136,12 +136,11 @@
 </head>
 <body>
   <div class="app-shell">
-    <!-- Sidebar -->
+        <!-- Sidebar -->
     <aside class="app-sidebar">
       <div class="p-4 border-b">
         <a href="/" class="brand">
           <span class="brand-logo">AG-VOTE</span>
-          <span class="brand-version">v2.0</span>
         </a>
       </div>
       <nav class="nav">
@@ -149,22 +148,28 @@
           <span class="nav-item-icon">🏛️</span>
           <span>Tableau de bord</span>
         </a>
-        <a class="nav-item" href="/operator.htmx.html">
+        <a class="nav-item active" href="/operator.htmx.html">
           <span class="nav-item-icon">🗂️</span>
           <span>Fiche séance</span>
         </a>
-        <a class="nav-item active" href="/attendance.htmx.html">
+        <a class="nav-item" href="/members.htmx.html">
           <span class="nav-item-icon">👥</span>
-          <span>Présences</span>
+          <span>Membres</span>
         </a>
-        <a class="nav-item" href="/proxies.htmx.html">
-          <span class="nav-item-icon">📝</span>
-          <span>Procurations</span>
+        <a class="nav-item" href="/trust.htmx.html">
+          <span class="nav-item-icon">🛡️</span>
+          <span>Contrôle</span>
         </a>
-        <a class="nav-item" href="/operator_flow.htmx.html">
-          <span class="nav-item-icon">🧑‍💼</span>
-          <span>Conduite live</span>
+        <a class="nav-item" href="/archives.htmx.html">
+          <span class="nav-item-icon">📚</span>
+          <span>Archives</span>
         </a>
+        <div class="border-t mt-4 pt-4">
+          <a class="nav-item" href="/admin.htmx.html">
+            <span class="nav-item-icon">⚙️</span>
+            <span>Administration</span>
+          </a>
+        </div>
       </nav>
     </aside>
 
