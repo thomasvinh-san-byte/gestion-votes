@@ -14,7 +14,7 @@ CREATE EXTENSION IF NOT EXISTS citext;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'meeting_status') THEN
-    CREATE TYPE meeting_status AS ENUM ('draft','scheduled','live','closed','archived');
+    CREATE TYPE meeting_status AS ENUM ('draft','scheduled','frozen','live','closed','validated','archived');
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'attendance_mode') THEN
     CREATE TYPE attendance_mode AS ENUM ('present','remote','proxy');
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS users (
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT users_role_check CHECK (role IN ('admin','operator','president','trust','viewer','readonly','voter'))
+  CONSTRAINT users_role_check CHECK (role IN ('admin','operator','president','assessor','auditor','voter','viewer'))
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_users_tenant_email ON users(tenant_id, email) WHERE email IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS ux_users_tenant_api_key_hash ON users(tenant_id, api_key_hash) WHERE api_key_hash IS NOT NULL;
@@ -579,6 +579,35 @@ CREATE TABLE IF NOT EXISTS paper_ballots (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_paper_ballots_code_hash ON paper_ballots(code_hash);
 CREATE INDEX IF NOT EXISTS idx_paper_ballots_unused ON paper_ballots(code_hash) WHERE used_at IS NULL;
+
+-- ============================================================
+-- Governance columns
+-- ============================================================
+ALTER TABLE meetings ADD COLUMN IF NOT EXISTS frozen_at timestamptz;
+ALTER TABLE meetings ADD COLUMN IF NOT EXISTS frozen_by uuid REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE meetings ADD COLUMN IF NOT EXISTS opened_by uuid REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE meetings ADD COLUMN IF NOT EXISTS closed_by uuid REFERENCES users(id) ON DELETE SET NULL;
+
+-- ============================================================
+-- Meeting state transitions (reference table)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS meeting_state_transitions (
+  from_status  text NOT NULL,
+  to_status    text NOT NULL,
+  required_role text NOT NULL,
+  description  text,
+  PRIMARY KEY (from_status, to_status)
+);
+
+-- ============================================================
+-- Role permissions (reference table)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS role_permissions (
+  role        text NOT NULL,
+  permission  text NOT NULL,
+  description text,
+  PRIMARY KEY (role, permission)
+);
 
 COMMIT;
 
