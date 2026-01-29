@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AG-VOTE - Solution complète pour la gestion des assemblées délibératives">
+  <title>AG-VOTE — Gestion des assemblées délibératives</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    /* Landing page specific styles */
+    .landing {
+      min-height: 100vh;
+      background: var(--color-bg);
+    }
+    
+    .landing-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: var(--z-sticky);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-6);
+      background: var(--color-surface-overlay);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
+    }
+    
+    .landing-nav {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: calc(var(--header-height) + var(--space-8)) var(--space-6) var(--space-12);
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79, 70, 229, 0.15) 0%, transparent 50%),
+        var(--color-bg);
+    }
+    
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-1) var(--space-3);
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+      border-radius: var(--radius-full);
+      font-size: var(--text-sm);
+      font-weight: var(--font-medium);
+      margin-bottom: var(--space-6);
+    }
+    
+    .hero-title {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: var(--font-extrabold);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      max-width: 800px;
+      margin-bottom: var(--space-6);
+      background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero-subtitle {
+      font-size: var(--text-xl);
+      color: var(--color-text-secondary);
+      max-width: 600px;
+      margin-bottom: var(--space-8);
+      line-height: var(--leading-relaxed);
+    }
+    
+    .hero-actions {
+      display: flex;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .hero-actions .btn {
+      padding: var(--space-3) var(--space-6);
+      font-size: var(--text-base);
+    }
+    
+    /* Roles Section */
+    .roles-section {
+      padding: var(--space-16) var(--space-6);
+      background: var(--color-surface);
+    }
+    
+    .section-header {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto var(--space-12);
+    }
+    
+    .section-title {
+      font-size: var(--text-3xl);
+      font-weight: var(--font-bold);
+      margin-bottom: var(--space-4);
+    }
+    
+    .section-subtitle {
+      font-size: var(--text-lg);
+      color: var(--color-text-secondary);
+    }
+    
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-6);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .role-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      transition: transform var(--duration-normal) var(--ease-out), 
+                  box-shadow var(--duration-normal) var(--ease-out);
+    }
+    
+    .role-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .role-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: var(--color-primary-subtle);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-4);
+    }
+    
+    .role-title {
+      font-size: var(--text-xl);
+      font-weight: var(--font-bold);
+      margin-bottom: var(--space-2);
+    }
+    
+    .role-desc {
+      color: var(--color-text-secondary);
+      font-size: var(--text-sm);
+      margin-bottom: var(--space-5);
+      line-height: var(--leading-relaxed);
+    }
+    
+    .role-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--color-primary);
+      font-weight: var(--font-medium);
+      font-size: var(--text-sm);
+    }
+    
+    .role-link:hover {
+      text-decoration: underline;
+    }
+    
+    /* Features Section */
+    .features-section {
+      padding: var(--space-16) var(--space-6);
+      background: var(--color-bg-subtle);
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-8);
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .feature-item {
+      display: flex;
+      gap: var(--space-4);
+    }
+    
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      flex-shrink: 0;
+    }
+    
+    .feature-content h4 {
+      font-weight: var(--font-semibold);
+      margin-bottom: var(--space-1);
+    }
+    
+    .feature-content p {
+      color: var(--color-text-secondary);
+      font-size: var(--text-sm);
+      line-height: var(--leading-relaxed);
+    }
+    
+    /* Footer */
+    .landing-footer {
+      padding: var(--space-8) var(--space-6);
+      border-top: 1px solid var(--color-border);
+      text-align: center;
+    }
+    
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-6);
+      margin-top: var(--space-4);
+    }
+    
+    .footer-links a {
+      color: var(--color-text-secondary);
+      font-size: var(--text-sm);
+    }
+    
+    .footer-links a:hover {
+      color: var(--color-primary);
+    }
+    
+    @media (max-width: 768px) {
+      .hero {
+        padding: calc(var(--header-height) + var(--space-6)) var(--space-4) var(--space-8);
+      }
+      
+      .hero-actions {
+        flex-direction: column;
+        width: 100%;
+        max-width: 300px;
+      }
+      
+      .hero-actions .btn {
+        width: 100%;
+      }
+      
+      .landing-nav {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="landing">
+    <!-- Header -->
+    <header class="landing-header">
+      <div class="brand">
+        <span class="brand-logo">AG-VOTE</span>
+        <span class="brand-version">v2.0</span>
+      </div>
+      <nav class="landing-nav">
+        <a href="/meetings.htmx.html" class="btn btn-ghost">Tableau de bord</a>
+        <a href="/admin.htmx.html" class="btn btn-secondary">Administration</a>
+      </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <span class="hero-badge">
+        <span>✨</span>
+        <span>Nouvelle version disponible</span>
+      </span>
+      <h1 class="hero-title">Gestion des assemblées délibératives</h1>
+      <p class="hero-subtitle">
+        Solution complète pour piloter, sécuriser et archiver vos séances de vote. 
+        Quorum paramétrable, traçabilité juridique, interface moderne.
+      </p>
+      <div class="hero-actions">
+        <a href="/meetings.htmx.html" class="btn btn-primary btn-lg">
+          <span>🚀</span>
+          <span>Commencer une séance</span>
+        </a>
+        <a href="/docs/UTILISATION_LIVE.md" class="btn btn-secondary btn-lg">
+          <span>📖</span>
+          <span>Documentation</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Roles Section -->
+    <section class="roles-section">
+      <div class="section-header">
+        <h2 class="section-title">Choisissez votre interface</h2>
+        <p class="section-subtitle">
+          Chaque rôle dispose d'une interface dédiée optimisée pour ses besoins spécifiques
+        </p>
+      </div>
+      <div class="roles-grid">
+        <article class="role-card">
+          <div class="role-icon">🧑‍💼</div>
+          <h3 class="role-title">Opérateur</h3>
+          <p class="role-desc">
+            Préparez et pilotez la séance. Gérez présences, procurations et résolutions. 
+            Contrôlez le flux des votes en temps réel.
+          </p>
+          <a href="/operator.htmx.html" class="role-link">
+            <span>Accéder à l'interface</span>
+            <span>→</span>
+          </a>
+        </article>
+        
+        <article class="role-card">
+          <div class="role-icon">🧑‍⚖️</div>
+          <h3 class="role-title">Président</h3>
+          <p class="role-desc">
+            Validez les votes, gérez la parole et signez le procès-verbal final. 
+            Engagez la responsabilité juridique de la séance.
+          </p>
+          <a href="/president.htmx.html" class="role-link">
+            <span>Accéder à l'interface</span>
+            <span>→</span>
+          </a>
+        </article>
+        
+        <article class="role-card">
+          <div class="role-icon">🛡️</div>
+          <h3 class="role-title">Contrôle (Trust)</h3>
+          <p class="role-desc">
+            Surveillez les anomalies, vérifiez la cohérence des données en temps réel. 
+            Documentez les incidents pour l'audit.
+          </p>
+          <a href="/trust.htmx.html" class="role-link">
+            <span>Accéder à l'interface</span>
+            <span>→</span>
+          </a>
+        </article>
+        
+        <article class="role-card">
+          <div class="role-icon">🗳️</div>
+          <h3 class="role-title">Votant (Tablette)</h3>
+          <p class="role-desc">
+            Interface simplifiée pour tablette tactile. Exprimez votre vote en toute sécurité 
+            avec confirmation visuelle immédiate.
+          </p>
+          <a href="/vote.htmx.html" class="role-link">
+            <span>Accéder à l'interface</span>
+            <span>→</span>
+          </a>
+        </article>
+        
+        <article class="role-card">
+          <div class="role-icon">📺</div>
+          <h3 class="role-title">Écran public</h3>
+          <p class="role-desc">
+            Affichage grand format pour projection. Visualisez en temps réel : 
+            résolution active, quorum, résultats.
+          </p>
+          <a href="/public.htmx.html" class="role-link">
+            <span>Accéder à l'interface</span>
+            <span>→</span>
+          </a>
+        </article>
+        
+        <article class="role-card">
+          <div class="role-icon">🗄️</div>
+          <h3 class="role-title">Archives</h3>
+          <p class="role-desc">
+            Consultez les séances passées, exportez les PV et audits en CSV/PDF. 
+            Retrouvez l'historique complet des décisions.
+          </p>
+          <a href="/archives.htmx.html" class="role-link">
+            <span>Accéder aux archives</span>
+            <span>→</span>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="section-header">
+        <h2 class="section-title">Fonctionnalités clés</h2>
+        <p class="section-subtitle">
+          Tout ce dont vous avez besoin pour des assemblées conformes et traçables
+        </p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-icon">✅</div>
+          <div class="feature-content">
+            <h4>Quorum paramétrable</h4>
+            <p>Simple, pondéré, double ou évolutif. Justification automatique pour chaque résolution.</p>
+          </div>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-content">
+            <h4>Vote sécurisé</h4>
+            <p>Token unique par votant, protection CSRF, validation serveur. Anti-replay intégré.</p>
+          </div>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">📊</div>
+          <div class="feature-content">
+            <h4>Pondération (tantièmes)</h4>
+            <p>Chaque votant peut avoir un poids différent. Calculs automatiques en temps réel.</p>
+          </div>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">📝</div>
+          <div class="feature-content">
+            <h4>Procurations</h4>
+            <p>Globales ou limitées. Plafond configurable par mandataire, traçabilité complète.</p>
+          </div>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-content">
+            <h4>Temps réel (HTMX)</h4>
+            <p>Rafraîchissement automatique sans rechargement. Interface réactive et fluide.</p>
+          </div>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">📋</div>
+          <div class="feature-content">
+            <h4>PV figé et signé</h4>
+            <p>Procès-verbal verrouillé après validation. Export PDF/HTML avec hash d'intégrité.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+      <p class="text-muted">
+        AG-VOTE — Gestion des assemblées délibératives &copy; 2026
+      </p>
+      <nav class="footer-links">
+        <a href="/docs/CONFORMITE_CDC.md">Conformité</a>
+        <a href="/docs/SECURITY.md">Sécurité</a>
+        <a href="/docs/INSTALLATION.md">Installation</a>
+        <a href="/docs/UTILISATION_LIVE.md">Guide d'utilisation</a>
+      </nav>
+    </footer>
+  </div>
+</body>
+</html>

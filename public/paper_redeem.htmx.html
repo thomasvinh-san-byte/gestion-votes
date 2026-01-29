@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rachat bulletin papier — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- Sidebar -->
+  <aside class="app-sidebar">
+    <div class="p-4 border-b">
+      <a href="/" class="brand">
+        <span class="brand-logo">AG-VOTE</span>
+        <span class="brand-version">v2.0</span>
+      </a>
+    </div>
+    <nav class="nav">
+      <a class="nav-item" href="/meetings.htmx.html">
+        <span class="nav-item-icon">📋</span>
+        <span>Séances</span>
+      </a>
+      <a class="nav-item" href="/operator_flow.htmx.html">
+        <span class="nav-item-icon">🎬</span>
+        <span>Conduite</span>
+      </a>
+      <a class="nav-item active" href="/paper_redeem.htmx.html">
+        <span class="nav-item-icon">📄</span>
+        <span>Bulletins papier</span>
+      </a>
+      <a class="nav-item" href="/trust.htmx.html">
+        <span class="nav-item-icon">🛡️</span>
+        <span>Contrôle</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="flex items-center gap-4">
+      <h1 class="text-xl font-bold">📄 Rachat bulletin papier</h1>
+      <p class="text-sm text-secondary">Mode dégradé — Saisie manuelle des votes papier</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="/operator_flow.htmx.html" class="btn btn-secondary">← Retour conduite</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="app-main">
+    <div class="container">
+      
+      <!-- Alert mode dégradé -->
+      <div class="alert alert-warning mb-6">
+        <strong>⚠️ Mode dégradé actif</strong>
+        <p class="text-sm mt-1">Les bulletins papier sont utilisés en cas de problème technique. Chaque saisie sera tracée.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Formulaire de saisie -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Saisie du bulletin</h2>
+          </div>
+          <div class="card-body">
+            
+            <div class="form-group">
+              <label class="form-label">Code du bulletin (UUID)</label>
+              <div class="flex gap-2">
+                <input type="text" class="form-control flex-1" id="codeInput" 
+                       placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                <button class="btn btn-secondary" id="btnScan">📷</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Vote exprimé</label>
+              <div class="vote-btns-grid">
+                <button type="button" class="vote-btn" data-choice="for">✅ Pour</button>
+                <button type="button" class="vote-btn" data-choice="against">❌ Contre</button>
+                <button type="button" class="vote-btn" data-choice="abstain">⚪ Abstention</button>
+                <button type="button" class="vote-btn" data-choice="blank">📄 Blanc</button>
+              </div>
+              <input type="hidden" id="voteChoice" value="">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Justification *</label>
+              <textarea class="form-control" id="justInput" rows="3" 
+                        placeholder="Raison du vote papier..."></textarea>
+            </div>
+
+            <div class="flex gap-2 justify-end mt-4">
+              <button class="btn btn-secondary" id="btnReset">Effacer</button>
+              <button class="btn btn-primary" id="btnSave" disabled>✓ Enregistrer</button>
+            </div>
+
+            <div id="resultMsg" class="mt-4" style="display:none;"></div>
+          </div>
+        </div>
+
+        <!-- Zone scanner -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📷 Scanner QR Code</h2>
+          </div>
+          <div class="card-body">
+            <div class="scanner-box">
+              <video id="videoPreview" playsinline></video>
+              <div class="scanner-overlay" id="overlay">
+                <div class="scanner-frame"></div>
+                <p>Caméra inactive</p>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button class="btn btn-primary flex-1" id="btnStart">📷 Démarrer</button>
+              <button class="btn btn-secondary flex-1" id="btnStop" style="display:none;">⏹ Stop</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historique -->
+      <div class="card mt-6">
+        <div class="card-header">
+          <h2 class="card-title">📜 Saisies récentes</h2>
+        </div>
+        <div class="card-body" id="recentList">
+          <div class="empty-state">
+            <div class="empty-state-icon">📄</div>
+            <h3 class="empty-state-title">Aucune saisie</h3>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<style>
+.scanner-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #1a1a2e;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.scanner-box video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.scanner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  color: white;
+}
+.scanner-overlay.active { background: transparent; }
+.scanner-overlay.active p { display: none; }
+.scanner-frame {
+  width: 180px;
+  height: 180px;
+  border: 3px solid var(--color-primary);
+  border-radius: 12px;
+}
+.vote-btns-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.vote-btn {
+  padding: 12px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.vote-btn:hover {
+  border-color: var(--color-primary);
+}
+.vote-btn.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: white;
+}
+</style>
+
+<script src="/assets/js/utils.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  const codeInput = document.getElementById('codeInput');
+  const voteChoice = document.getElementById('voteChoice');
+  const justInput = document.getElementById('justInput');
+  const btnSave = document.getElementById('btnSave');
+  const btnReset = document.getElementById('btnReset');
+  const resultMsg = document.getElementById('resultMsg');
+  const recentList = document.getElementById('recentList');
+  const voteButtons = document.querySelectorAll('.vote-btn');
+  const videoPreview = document.getElementById('videoPreview');
+  const overlay = document.getElementById('overlay');
+  const btnStart = document.getElementById('btnStart');
+  const btnStop = document.getElementById('btnStop');
+  const btnScan = document.getElementById('btnScan');
+
+  let stream = null;
+  let detector = null;
+  let scanInterval = null;
+  let recent = [];
+
+  // Vote selection
+  voteButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      voteButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      voteChoice.value = btn.dataset.choice;
+      validate();
+    });
+  });
+
+  function validate() {
+    const ok = codeInput.value.length > 30 && voteChoice.value && justInput.value.length >= 3;
+    btnSave.disabled = !ok;
+  }
+
+  codeInput.addEventListener('input', validate);
+  justInput.addEventListener('input', validate);
+
+  btnReset.addEventListener('click', () => {
+    codeInput.value = '';
+    voteChoice.value = '';
+    justInput.value = '';
+    voteButtons.forEach(b => b.classList.remove('active'));
+    resultMsg.style.display = 'none';
+    validate();
+  });
+
+  btnSave.addEventListener('click', async () => {
+    btnSave.disabled = true;
+    try {
+      const { body } = await api('/api/v1/paper_ballot_redeem.php', {
+        method: 'POST',
+        body: JSON.stringify({
+          code: codeInput.value.trim(),
+          choice: voteChoice.value,
+          justification: justInput.value.trim()
+        })
+      });
+      if (body?.ok) {
+        showMsg('success', '✅ Vote enregistré');
+        addRecent(codeInput.value, voteChoice.value, justInput.value);
+        btnReset.click();
+      } else {
+        showMsg('error', body?.error || 'Erreur');
+      }
+    } catch (e) {
+      showMsg('error', e.message);
+    }
+    validate();
+  });
+
+  function showMsg(type, text) {
+    resultMsg.style.display = 'block';
+    resultMsg.className = `alert alert-${type === 'success' ? 'success' : 'danger'} mt-4`;
+    resultMsg.textContent = text;
+  }
+
+  function addRecent(code, choice, just) {
+    const labels = { for: 'Pour', against: 'Contre', abstain: 'Abstention', blank: 'Blanc' };
+    recent.unshift({ code: code.slice(0,8)+'...', choice: labels[choice], just, time: new Date().toLocaleTimeString('fr-FR') });
+    if (recent.length > 10) recent.pop();
+    renderRecent();
+  }
+
+  function renderRecent() {
+    if (!recent.length) {
+      recentList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📄</div><h3 class="empty-state-title">Aucune saisie</h3></div>';
+      return;
+    }
+    recentList.innerHTML = `<table class="table"><thead><tr><th>Heure</th><th>Code</th><th>Vote</th><th>Justification</th></tr></thead><tbody>${recent.map(r => `<tr><td>${r.time}</td><td><code>${r.code}</code></td><td><span class="badge">${r.choice}</span></td><td class="text-sm">${r.just}</td></tr>`).join('')}</tbody></table>`;
+  }
+
+  // Scanner
+  async function startScan() {
+    if (!('BarcodeDetector' in window)) { showMsg('error', 'BarcodeDetector non disponible'); return; }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      videoPreview.srcObject = stream;
+      videoPreview.play();
+      overlay.classList.add('active');
+      btnStart.style.display = 'none';
+      btnStop.style.display = 'block';
+      detector = new BarcodeDetector({ formats: ['qr_code'] });
+      scanInterval = setInterval(async () => {
+        try {
+          const codes = await detector.detect(videoPreview);
+          if (codes.length && codes[0].rawValue.match(/^[0-9a-f-]{36}$/i)) {
+            codeInput.value = codes[0].rawValue;
+            validate();
+            stopScan();
+            showMsg('success', 'QR détecté !');
+          }
+        } catch {}
+      }, 400);
+    } catch (e) { showMsg('error', 'Caméra: ' + e.message); }
+  }
+
+  function stopScan() {
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+    videoPreview.srcObject = null;
+    overlay.classList.remove('active');
+    btnStart.style.display = 'block';
+    btnStop.style.display = 'none';
+  }
+
+  btnStart.addEventListener('click', startScan);
+  btnStop.addEventListener('click', stopScan);
+  btnScan.addEventListener('click', startScan);
+
+  renderRecent();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Procès-verbal de séance - AG-VOTE">
+  <title>Procès-verbal — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    .pv-preview {
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .pv-preview iframe {
+      width: 100%;
+      height: 70vh;
+      border: none;
+      display: block;
+    }
+    
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: var(--space-3);
+    }
+    
+    .export-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all var(--duration-fast);
+      text-decoration: none;
+      color: var(--color-text);
+    }
+    
+    .export-btn:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-subtle);
+    }
+    
+    .export-btn-icon {
+      font-size: var(--text-2xl);
+    }
+    
+    .export-btn-label {
+      font-weight: var(--font-medium);
+      font-size: var(--text-sm);
+    }
+    
+    .email-form {
+      display: flex;
+      gap: var(--space-3);
+      align-items: flex-end;
+    }
+    
+    @media (max-width: 768px) {
+      .email-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="p-4 border-b">
+        <a href="/" class="brand">
+          <span class="brand-logo">AG-VOTE</span>
+          <span class="brand-version">v2.0</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="/meetings.htmx.html">
+          <span class="nav-item-icon">🏛️</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a class="nav-item" href="/operator.htmx.html">
+          <span class="nav-item-icon">🗂️</span>
+          <span>Fiche séance</span>
+        </a>
+        <a class="nav-item" href="/validate.htmx.html">
+          <span class="nav-item-icon">✅</span>
+          <span>Validation</span>
+        </a>
+        <a class="nav-item active" href="/report.htmx.html">
+          <span class="nav-item-icon">📋</span>
+          <span>Procès-verbal</span>
+        </a>
+        <a class="nav-item" href="/archives.htmx.html">
+          <span class="nav-item-icon">📚</span>
+          <span>Archives</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">📋 Procès-verbal</h1>
+          <p class="text-sm text-secondary" id="meetingTitle">Prévisualisation et export</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a class="btn btn-primary" id="btnExportPDF" href="#" target="_blank">
+          📄 Exporter PDF
+        </a>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- Meeting context -->
+        <div class="alert alert-info mb-6" id="meetingContext" style="display: none;">
+          <span>📌</span>
+          <span>Séance: <strong id="meetingName">—</strong></span>
+        </div>
+
+        <!-- Warning if not validated -->
+        <div class="alert alert-warning mb-6" id="notValidatedWarning" style="display: none;">
+          <span>⚠️</span>
+          <span>Cette séance n'est pas encore validée. Le PV définitif sera disponible après validation.</span>
+        </div>
+
+        <!-- Email sending -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">📧 Envoyer le PV par email</h3>
+          </div>
+          <div class="card-body">
+            <div class="email-form">
+              <div class="form-group flex-1 mb-0">
+                <label class="form-label" for="email">Adresse email</label>
+                <input class="form-input" type="email" id="email" 
+                       placeholder="destinataire@exemple.com">
+              </div>
+              <button class="btn btn-primary" id="btnSendEmail">
+                📤 Envoyer
+              </button>
+            </div>
+            <div id="emailMsg" class="mt-3" style="display: none;"></div>
+          </div>
+        </div>
+
+        <!-- PV Preview -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <h3 class="card-title">👁️ Prévisualisation du PV</h3>
+              <a class="btn btn-secondary btn-sm" id="btnOpenNewTab" href="#" target="_blank">
+                🔗 Ouvrir dans un nouvel onglet
+              </a>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="pv-preview">
+              <iframe id="pvFrame" src="about:blank"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export buttons -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">📥 Autres exports</h3>
+            <p class="card-description">Disponibles après validation de la séance</p>
+          </div>
+          <div class="card-body">
+            <div class="export-grid">
+              <a class="export-btn" id="exportPV" href="#" target="_blank">
+                <span class="export-btn-icon">📋</span>
+                <span class="export-btn-label">PV (HTML)</span>
+              </a>
+              <a class="export-btn" id="exportAttendance" href="#" target="_blank">
+                <span class="export-btn-icon">👥</span>
+                <span class="export-btn-label">Présences (CSV)</span>
+              </a>
+              <a class="export-btn" id="exportVotes" href="#" target="_blank">
+                <span class="export-btn-icon">🗳️</span>
+                <span class="export-btn-label">Votes (CSV)</span>
+              </a>
+              <a class="export-btn" id="exportMotions" href="#" target="_blank">
+                <span class="export-btn-icon">📌</span>
+                <span class="export-btn-label">Résolutions (CSV)</span>
+              </a>
+              <a class="export-btn" id="exportMembers" href="#" target="_blank">
+                <span class="export-btn-icon">👤</span>
+                <span class="export-btn-label">Membres (CSV)</span>
+              </a>
+              <a class="export-btn" id="exportAudit" href="#" target="_blank">
+                <span class="export-btn-icon">📜</span>
+                <span class="export-btn-label">Audit (CSV)</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Drawer -->
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close>✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    let currentMeetingId = null;
+
+    // Get meeting_id from URL
+    function getMeetingIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('meeting_id');
+    }
+
+    // Check meeting ID
+    currentMeetingId = getMeetingIdFromUrl();
+    if (!currentMeetingId) {
+      setNotif('error', 'Aucune séance sélectionnée');
+      setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
+    }
+
+    // Setup URLs
+    function setupUrls() {
+      const reportUrl = `/api/v1/meeting_report.php?meeting_id=${currentMeetingId}`;
+      const pdfUrl = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${currentMeetingId}`;
+      
+      // Set iframe src
+      document.getElementById('pvFrame').src = reportUrl;
+      
+      // Set links
+      document.getElementById('btnExportPDF').href = pdfUrl;
+      document.getElementById('btnOpenNewTab').href = reportUrl;
+      document.getElementById('exportPV').href = reportUrl;
+      document.getElementById('exportAttendance').href = `/api/v1/attendance_export.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportVotes').href = `/api/v1/votes_export.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportMotions').href = `/api/v1/motions_export.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportMembers').href = `/api/v1/members_export.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportAudit').href = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}`;
+    }
+
+    // Load meeting info
+    async function loadMeetingInfo() {
+      try {
+        const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
+        if (body && body.ok && body.data) {
+          document.getElementById('meetingTitle').textContent = body.data.title;
+          document.getElementById('meetingName').textContent = body.data.title;
+          document.getElementById('meetingContext').style.display = 'flex';
+          
+          // Check validation status
+          if (body.data.status !== 'archived' && !body.data.validated_at) {
+            document.getElementById('notValidatedWarning').style.display = 'flex';
+          }
+        }
+      } catch (err) {
+        console.error('Meeting info error:', err);
+      }
+    }
+
+    // Send email
+    document.getElementById('btnSendEmail').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const msgDiv = document.getElementById('emailMsg');
+      
+      if (!email) {
+        msgDiv.style.display = 'block';
+        msgDiv.className = 'alert alert-danger';
+        msgDiv.textContent = 'Veuillez saisir une adresse email';
+        return;
+      }
+      
+      try {
+        const { body } = await api('/api/v1/meeting_report_send.php', {
+          meeting_id: currentMeetingId,
+          email
+        });
+        
+        if (body && body.ok) {
+          msgDiv.style.display = 'block';
+          msgDiv.className = 'alert alert-success';
+          msgDiv.textContent = '✅ PV envoyé avec succès !';
+          setNotif('success', '📧 Email envoyé');
+        } else {
+          msgDiv.style.display = 'block';
+          msgDiv.className = 'alert alert-danger';
+          msgDiv.textContent = `❌ Erreur: ${body?.error || 'Envoi impossible'}`;
+        }
+      } catch (err) {
+        msgDiv.style.display = 'block';
+        msgDiv.className = 'alert alert-danger';
+        msgDiv.textContent = `❌ Erreur: ${err.message}`;
+      }
+    });
+
+    // Initialize
+    if (currentMeetingId) {
+      setupUrls();
+      loadMeetingInfo();
+    }
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+/**
+ * AG-VOTE Application Styles
+ * Single CSS entrypoint - all pages should include only this file.
+ */
+
+/* Import Design System (foundation) */
+@import url("/assets/css/design-system.css");
+
+/* Legacy UI compatibility (will be phased out) */
+@import url("/assets/css/ui.css");
+
+/* Google Fonts - Inter for better readability */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* =============================================================================
+   Application-specific overrides and additions
+   ============================================================================= */
+
+/* ─── Brand Header ─── */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand-logo {
+  font-size: var(--text-xl);
+  font-weight: var(--font-extrabold);
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+}
+
+.brand-version {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-full);
+}
+
+/* ─── Page Header ─── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.page-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+}
+
+.page-subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+}
+
+/* ─── Meeting Status Badge ─── */
+.meeting-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.meeting-status-draft {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+}
+
+.meeting-status-scheduled {
+  background: var(--color-info-subtle);
+  color: var(--color-info-text);
+}
+
+.meeting-status-live {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+
+.meeting-status-closed {
+  background: var(--color-success-subtle);
+  color: var(--color-success-text);
+}
+
+.meeting-status-archived {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+}
+
+/* ─── Readiness Checklist ─── */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.checklist-item.passed {
+  background: var(--color-success-subtle);
+  border-color: var(--color-success);
+  color: var(--color-success-text);
+}
+
+.checklist-item.failed {
+  background: var(--color-danger-subtle);
+  border-color: var(--color-danger);
+  color: var(--color-danger-text);
+}
+
+/* ─── Motion Card ─── */
+.motion-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: box-shadow var(--duration-fast);
+}
+
+.motion-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.motion-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.motion-number {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-muted);
+}
+
+.motion-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  margin-top: var(--space-1);
+}
+
+.motion-card-body {
+  padding: var(--space-4);
+}
+
+.motion-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-subtle);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Motion status */
+.motion-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+}
+
+.motion-status-pending { color: var(--color-text-muted); }
+.motion-status-open { color: var(--color-warning); }
+.motion-status-closed { color: var(--color-info); }
+.motion-status-adopted { color: var(--color-success); }
+.motion-status-rejected { color: var(--color-danger); }
+
+/* ─── Vote Results ─── */
+.vote-results {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
+.vote-result-item {
+  text-align: center;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.vote-result-value {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-extrabold);
+  line-height: 1;
+}
+
+.vote-result-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+
+.vote-result-for .vote-result-value { color: var(--color-success); }
+.vote-result-against .vote-result-value { color: var(--color-danger); }
+.vote-result-abstain .vote-result-value { color: var(--color-text-muted); }
+
+/* ─── Anomaly Alert ─── */
+.anomaly-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-warning-subtle);
+  border: 1px solid var(--color-warning);
+  border-left: 4px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+}
+
+/* ─── Vote Tablet Interface ─── */
+.vote-tablet {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.vote-tablet-header {
+  padding: var(--space-4);
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.vote-tablet-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+/* ─── Stats Grid ─── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-4);
+}
+
+.stat-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.stat-value {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+}
+
+.stat-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* ─── Quick Actions Bar ─── */
+.quick-actions {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-6);
+}
+
+.quick-action {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.quick-action:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+/* ─── Workflow State Indicator ─── */
+.workflow-state {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-6);
+}
+
+.workflow-state-step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.workflow-state-step::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: var(--color-border);
+}
+
+.workflow-state-step:last-child::after {
+  display: none;
+}
+
+.workflow-state-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-border);
+  flex-shrink: 0;
+}
+
+.workflow-state-step.active .workflow-state-dot {
+  background: var(--color-primary);
+}
+
+.workflow-state-step.done .workflow-state-dot {
+  background: var(--color-success);
+}
+
+.workflow-state-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-muted);
+}

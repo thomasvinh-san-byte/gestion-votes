@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Écran de projection - Résultats en direct">
+  <title>Écran public — AG-VOTE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ============================================
+       DESIGN TOKENS - Cohérent avec design-system.css
+       ============================================ */
+    :root {
+      /* Couleurs */
+      --color-primary: #2563eb;
+      --color-success: #10b981;
+      --color-danger: #ef4444;
+      --color-warning: #f59e0b;
+      --color-info: #3b82f6;
+      --color-neutral: #64748b;
+      
+      /* Surfaces */
+      --color-bg: #f8fafc;
+      --color-bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      --color-surface: #ffffff;
+      --color-border: #e2e8f0;
+      
+      /* Texte */
+      --color-text: #0f172a;
+      --color-text-secondary: #475569;
+      --color-text-muted: #94a3b8;
+      
+      /* Vote */
+      --vote-for: #10b981;
+      --vote-against: #ef4444;
+      --vote-abstain: #94a3b8;
+      
+      /* Rayons */
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      
+      /* Ombres */
+      --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15);
+      
+      /* Transitions */
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background: var(--color-bg-gradient);
+      color: var(--color-text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================================
+       LAYOUT PRINCIPAL
+       ============================================ */
+    .projector-wrapper {
+      max-width: 1400px;
+      width: 100%;
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      border: 1px solid var(--color-border);
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    /* ============================================
+       HEADER - Statut et horloge
+       ============================================ */
+    .projector-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--color-border);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .meeting-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: var(--transition);
+    }
+
+    .status-badge.live {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--color-success);
+      border: 2px solid var(--color-success);
+      animation: pulse-live 2s infinite;
+    }
+
+    .status-badge.idle {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--color-info);
+      border: 2px solid var(--color-info);
+    }
+
+    .status-badge.off {
+      background: rgba(100, 116, 139, 0.15);
+      color: var(--color-neutral);
+      border: 2px solid var(--color-neutral);
+    }
+
+    @keyframes pulse-live {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.02); }
+    }
+
+    .live-clock {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--color-text);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+
+    /* ============================================
+       ZONE PRINCIPALE - Motion
+       ============================================ */
+    .main-content {
+      text-align: center;
+      padding: 24px 0;
+    }
+
+    .motion-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: var(--color-text);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .motion-subtitle {
+      font-size: 1.5rem;
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+
+    /* ============================================
+       ÉTAT D'ATTENTE
+       ============================================ */
+    .waiting-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      background: var(--color-bg);
+      border-radius: var(--radius-lg);
+      border: 2px dashed var(--color-border);
+    }
+
+    .waiting-state.visible {
+      display: flex;
+    }
+
+    .waiting-icon {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 24px;
+      color: var(--color-text-muted);
+      animation: spin 4s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .waiting-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 8px;
+    }
+
+    .waiting-text {
+      font-size: 1.125rem;
+      color: var(--color-text-muted);
+    }
+
+    /* ============================================
+       TIMER DE VOTE
+       ============================================ */
+    .vote-timer {
+      display: none;
+      justify-content: center;
+      margin: 32px 0;
+    }
+
+    .vote-timer.visible {
+      display: flex;
+    }
+
+    .timer-circle {
+      position: relative;
+      width: 160px;
+      height: 160px;
+    }
+
+    .timer-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .timer-bg {
+      fill: none;
+      stroke: var(--color-border);
+      stroke-width: 8;
+    }
+
+    .timer-progress {
+      fill: none;
+      stroke: var(--color-primary);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    .timer-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.5rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ============================================
+       RÉSULTATS
+       ============================================ */
+    .results-section {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: var(--transition);
+    }
+
+    .results-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .results-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .last-update {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    /* Grille des résultats */
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .result-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      border: 1px solid var(--color-border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+    }
+
+    .result-card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .result-card.for {
+      border-left: 6px solid var(--vote-for);
+    }
+
+    .result-card.against {
+      border-left: 6px solid var(--vote-against);
+    }
+
+    .result-card.abstain {
+      border-left: 6px solid var(--vote-abstain);
+    }
+
+    .result-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      margin-bottom: 12px;
+    }
+
+    .result-numbers {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .result-count {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .result-card.for .result-count { color: var(--vote-for); }
+    .result-card.against .result-count { color: var(--vote-against); }
+    .result-card.abstain .result-count { color: var(--vote-abstain); }
+
+    .result-weight {
+      font-size: 1rem;
+      color: var(--color-text-muted);
+      background: var(--color-bg);
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+    }
+
+    .result-bar {
+      height: 8px;
+      background: var(--color-bg);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .result-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .result-card.for .result-bar-fill { background: var(--vote-for); }
+    .result-card.against .result-bar-fill { background: var(--vote-against); }
+    .result-card.abstain .result-bar-fill { background: var(--vote-abstain); }
+
+    /* Décision & Quorum */
+    .decision-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .decision-card,
+    .quorum-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      border: 1px solid var(--color-border);
+    }
+
+    .decision-card {
+      border-left: 6px solid var(--color-primary);
+    }
+
+    .quorum-card {
+      border-left: 6px solid var(--color-warning);
+    }
+
+    .decision-label,
+    .quorum-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+    }
+
+    .decision-value,
+    .quorum-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+
+    .decision-reason,
+    .quorum-details {
+      font-size: 0.9375rem;
+      color: var(--color-text-muted);
+    }
+
+    /* Vote secret */
+    .secret-block {
+      display: none;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+      border: 2px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .secret-block.visible {
+      display: block;
+    }
+
+    .secret-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .secret-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 8px;
+    }
+
+    .secret-text {
+      color: var(--color-text-muted);
+    }
+
+    .secret-participation {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    /* ============================================
+       ERREUR
+       ============================================ */
+    .error-box {
+      display: none;
+      padding: 16px 24px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--color-danger);
+      border-left: 4px solid var(--color-danger);
+      border-radius: var(--radius-md);
+      color: var(--color-danger);
+      font-weight: 500;
+    }
+
+    .error-box.visible {
+      display: block;
+    }
+
+    /* ============================================
+       FOOTER - Navigation
+       ============================================ */
+    .projector-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 24px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer-logo {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--color-primary);
+    }
+
+    .footer-version {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      background: var(--color-bg);
+      padding: 4px 8px;
+      border-radius: var(--radius-md);
+    }
+
+    .footer-nav {
+      display: flex;
+      gap: 12px;
+    }
+
+    .footer-link {
+      padding: 8px 16px;
+      background: var(--color-bg);
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .footer-link:hover {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    /* ============================================
+       ACCESSIBILITÉ
+       ============================================ */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 1200px) {
+      .projector-wrapper {
+        padding: 32px;
+      }
+      
+      .motion-title {
+        font-size: 2.5rem;
+      }
+      
+      .results-grid {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      
+      .decision-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 12px;
+      }
+      
+      .projector-wrapper {
+        padding: 24px;
+        gap: 24px;
+      }
+      
+      .projector-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+      
+      .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .live-clock {
+        font-size: 1.75rem;
+      }
+      
+      .motion-title {
+        font-size: 1.75rem;
+      }
+      
+      .motion-subtitle {
+        font-size: 1.125rem;
+      }
+      
+      .result-count {
+        font-size: 2.5rem;
+      }
+      
+      .secret-participation {
+        grid-template-columns: 1fr;
+      }
+      
+      .footer-nav {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="projector-wrapper">
+  <!-- Header -->
+  <header class="projector-header">
+    <div class="header-left">
+      <span class="status-badge off" id="badge" aria-label="Statut">hors séance</span>
+      <h1 class="meeting-title" id="meeting_title">Aucune séance</h1>
+    </div>
+    <div class="live-clock" id="live_clock">--:--</div>
+  </header>
+
+  <!-- Zone principale -->
+  <main class="main-content" id="main_content">
+    <h2 class="motion-title" id="motion_title">—</h2>
+    <p class="motion-subtitle" id="motion_sub"></p>
+
+    <!-- Timer de vote -->
+    <div class="vote-timer" id="vote_timer">
+      <div class="timer-circle">
+        <svg class="timer-svg" viewBox="0 0 100 100">
+          <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+          <circle class="timer-progress" id="timer_progress" cx="50" cy="50" r="45"></circle>
+        </svg>
+        <div class="timer-text" id="timer_text">00:00</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- État d'attente -->
+  <div class="waiting-state" id="waiting_state" aria-hidden="true">
+    <svg class="waiting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </svg>
+    <h3 class="waiting-title">En attente de résolution</h3>
+    <p class="waiting-text">La séance est en cours, aucune résolution n'est ouverte pour le moment.</p>
+  </div>
+
+  <!-- Section résultats -->
+  <section class="results-section" id="results_block" aria-label="Résultats du vote">
+    <div class="results-header">
+      <h3 class="results-title">📊 Résultats du vote électronique</h3>
+      <span class="last-update" id="last_update">Dernière mise à jour : --:--:--</span>
+    </div>
+
+    <!-- Vote secret -->
+    <div class="secret-block" id="secret_block">
+      <div class="secret-icon">🔒</div>
+      <h4 class="secret-title">Vote secret en cours</h4>
+      <p class="secret-text">Les détails seront affichés à la clôture du vote.</p>
+      
+      <div class="secret-participation">
+        <div class="result-card">
+          <div class="result-label">Participation (membres)</div>
+          <div class="result-numbers">
+            <div class="result-count" id="sec_part_members" style="color: var(--color-info)">0</div>
+            <div class="result-weight">/ <span id="sec_elig_members">0</span></div>
+          </div>
+          <div class="result-bar">
+            <div class="result-bar-fill" id="sec_part_members_bar" style="width:0%; background: var(--color-info);"></div>
+          </div>
+        </div>
+        
+        <div class="result-card">
+          <div class="result-label">Participation (poids)</div>
+          <div class="result-numbers">
+            <div class="result-count" id="sec_part_weight" style="color: var(--color-info)">0</div>
+            <div class="result-weight">/ <span id="sec_elig_weight">0</span></div>
+          </div>
+          <div class="result-bar">
+            <div class="result-bar-fill" id="sec_part_weight_bar" style="width:0%; background: var(--color-info);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Détails des résultats -->
+    <div id="results_detail">
+      <div class="results-grid">
+        <!-- Pour -->
+        <div class="result-card for">
+          <div class="result-label">✅ Pour</div>
+          <div class="result-numbers">
+            <div class="result-count" id="res_for_count">0</div>
+            <div class="result-weight"><span id="res_for_weight">0</span> voix</div>
+          </div>
+          <div class="result-bar">
+            <div class="result-bar-fill" id="res_for_bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Contre -->
+        <div class="result-card against">
+          <div class="result-label">❌ Contre</div>
+          <div class="result-numbers">
+            <div class="result-count" id="res_against_count">0</div>
+            <div class="result-weight"><span id="res_against_weight">0</span> voix</div>
+          </div>
+          <div class="result-bar">
+            <div class="result-bar-fill" id="res_against_bar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Abstention -->
+        <div class="result-card abstain">
+          <div class="result-label">⚪ Abstention</div>
+          <div class="result-numbers">
+            <div class="result-count" id="res_abstain_count">0</div>
+            <div class="result-weight"><span id="res_abstain_weight">0</span> voix</div>
+          </div>
+          <div class="result-bar">
+            <div class="result-bar-fill" id="res_abstain_bar" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision-grid">
+        <div class="decision-card">
+          <div class="decision-label">📋 Décision</div>
+          <div class="decision-value" id="res_decision_status">—</div>
+          <div class="decision-reason" id="res_decision_reason"></div>
+        </div>
+        <div class="quorum-card">
+          <div class="quorum-label">📊 Quorum</div>
+          <div class="quorum-value" id="res_quorum_status">—</div>
+          <div class="quorum-details">
+            (<span id="res_quorum_ratio">0</span> / seuil <span id="res_quorum_threshold">0</span>)
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Erreur -->
+  <div class="error-box" id="error_box"></div>
+
+  <!-- Footer -->
+  <footer class="projector-footer">
+    <div class="footer-brand">
+      <span class="footer-logo">AG-VOTE</span>
+      <span class="footer-version">v2.0</span>
+    </div>
+    <nav class="footer-nav">
+      <a class="footer-link" href="/operator.htmx.html">🗂️ Opérateur</a>
+      <a class="footer-link" href="/vote.htmx.html">🗳️ Vote</a>
+      <a class="footer-link" href="/trust.htmx.html">🛡️ Contrôle</a>
+    </nav>
+  </footer>
+</div>
+
+<!-- Accessibilité -->
+<div class="sr-only" id="screen_reader_alert" aria-live="assertive" aria-atomic="true"></div>
+
+<script>
+/**
+ * AG-VOTE - Écran de projection
+ * Affiche en temps réel les résultats des votes
+ */
+
+// Configuration
+window.APP_API_KEY = window.APP_API_KEY || "dev-public-key";
+let lastUpdateTime = null;
+let updateInterval = 3000;
+let voteTimerInterval = null;
+let voteTimerRemaining = 0;
+
+// Injection API Key
+(function() {
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = function(input, init) {
+    const url = (typeof input === "string") ? input : (input?.url || "");
+    if (!url.includes("/api/")) return originalFetch(input, init);
+    
+    const headers = new Headers(init?.headers || {});
+    if (!headers.has("X-Api-Key")) headers.set("X-Api-Key", window.APP_API_KEY);
+    return originalFetch(input, { ...init, headers });
+  };
+})();
+
+// Accessibilité
+function announceToScreenReader(message) {
+  const alert = document.getElementById('screen_reader_alert');
+  if (alert) {
+    alert.textContent = message;
+    setTimeout(() => alert.textContent = '', 1000);
+  }
+}
+
+// Horloge
+function startClock() {
+  const clockEl = document.getElementById('live_clock');
+  if (!clockEl) return;
+  
+  const update = () => {
+    clockEl.textContent = new Date().toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  };
+  
+  update();
+  setInterval(update, 1000);
+}
+
+// Fade in/out
+function fadeInOut(element, show) {
+  if (!element) return;
+  element.classList.toggle('visible', show);
+}
+
+// Timer de vote
+function startVoteTimer(durationSeconds) {
+  const container = document.getElementById('vote_timer');
+  const text = document.getElementById('timer_text');
+  const progress = document.getElementById('timer_progress');
+  
+  if (!container || !text || !progress) return;
+  
+  clearInterval(voteTimerInterval);
+  voteTimerRemaining = durationSeconds;
+  
+  const circumference = 2 * Math.PI * 45;
+  progress.style.strokeDasharray = circumference;
+  container.classList.add('visible');
+  
+  const update = () => {
+    if (voteTimerRemaining < 0) {
+      clearInterval(voteTimerInterval);
+      container.classList.remove('visible');
+      return;
+    }
+    
+    const minutes = String(Math.floor(voteTimerRemaining / 60)).padStart(2, '0');
+    const seconds = String(voteTimerRemaining % 60).padStart(2, '0');
+    text.textContent = `${minutes}:${seconds}`;
+    
+    const ratio = voteTimerRemaining / durationSeconds;
+    progress.style.strokeDashoffset = String(circumference * (1 - ratio));
+    voteTimerRemaining--;
+  };
+  
+  update();
+  voteTimerInterval = setInterval(update, 1000);
+}
+
+function stopVoteTimer() {
+  clearInterval(voteTimerInterval);
+  const container = document.getElementById('vote_timer');
+  if (container) container.classList.remove('visible');
+}
+
+// Charger résultats
+async function loadEvoteResults(motionId, options = {}) {
+  const block = document.getElementById("results_block");
+  if (!block) return;
+  
+  const reveal = options.reveal === true;
+  const secretBlock = document.getElementById('secret_block');
+  const detailBlock = document.getElementById('results_detail');
+  
+  if (!motionId) {
+    fadeInOut(block, false);
+    if (secretBlock) secretBlock.classList.remove('visible');
+    if (detailBlock) detailBlock.style.display = '';
+    return;
+  }
+  
+  try {
+    const res = await fetch(`/api/v1/ballots_result.php?motion_id=${encodeURIComponent(motionId)}`);
+    const data = await res.json().catch(() => null);
+    
+    if (!data || data.ok === false) {
+      fadeInOut(block, false);
+      return;
+    }
+    
+    const d = data.data || data;
+    const isSecret = !!(d.motion?.secret);
+    const t = d.tallies || {};
+    const quorum = d.quorum || {};
+    const decision = d.decision || {};
+    
+    // Vote secret
+    if (isSecret && !reveal) {
+      if (secretBlock) secretBlock.classList.add('visible');
+      if (detailBlock) detailBlock.style.display = 'none';
+      
+      const expM = d.expressed?.members ?? 0;
+      const eligM = d.eligible?.members ?? 0;
+      const expW = d.expressed?.weight ?? 0;
+      const eligW = d.eligible?.weight ?? 0;
+      
+      const pctM = eligM > 0 ? (expM * 100 / eligM) : 0;
+      const pctW = eligW > 0 ? (expW * 100 / eligW) : 0;
+      
+      document.getElementById('sec_part_members').textContent = expM;
+      document.getElementById('sec_elig_members').textContent = eligM;
+      document.getElementById('sec_part_members_bar').style.width = Math.min(100, pctM) + '%';
+      
+      document.getElementById('sec_part_weight').textContent = expW.toFixed(2);
+      document.getElementById('sec_elig_weight').textContent = eligW.toFixed(2);
+      document.getElementById('sec_part_weight_bar').style.width = Math.min(100, pctW) + '%';
+      
+      updateTimestamp();
+      fadeInOut(block, true);
+      return;
+    }
+    
+    // Résultats normaux
+    if (secretBlock) secretBlock.classList.remove('visible');
+    if (detailBlock) detailBlock.style.display = '';
+    
+    const fmt = x => typeof x === "number" ? x.toFixed(2) : (x ?? "0");
+    
+    const forCount = t.for?.count ?? 0;
+    const againstCount = t.against?.count ?? 0;
+    const abstainCount = t.abstain?.count ?? 0;
+    const totalCount = forCount + againstCount + abstainCount || 1;
+    
+    document.getElementById("res_for_count").textContent = forCount;
+    document.getElementById("res_for_weight").textContent = fmt(t.for?.weight ?? 0);
+    document.getElementById("res_against_count").textContent = againstCount;
+    document.getElementById("res_against_weight").textContent = fmt(t.against?.weight ?? 0);
+    document.getElementById("res_abstain_count").textContent = abstainCount;
+    document.getElementById("res_abstain_weight").textContent = fmt(t.abstain?.weight ?? 0);
+    
+    document.getElementById("res_for_bar").style.width = (forCount * 100 / totalCount) + "%";
+    document.getElementById("res_against_bar").style.width = (againstCount * 100 / totalCount) + "%";
+    document.getElementById("res_abstain_bar").style.width = (abstainCount * 100 / totalCount) + "%";
+    
+    if (quorum.applied) {
+      document.getElementById("res_quorum_status").textContent = quorum.met ? "Atteint ✓" : "Non atteint";
+      document.getElementById("res_quorum_ratio").textContent = fmt(quorum.ratio ?? 0);
+      document.getElementById("res_quorum_threshold").textContent = fmt(quorum.threshold ?? 0);
+    } else {
+      document.getElementById("res_quorum_status").textContent = "Non applicable";
+      document.getElementById("res_quorum_ratio").textContent = "-";
+      document.getElementById("res_quorum_threshold").textContent = "-";
+    }
+    
+    document.getElementById("res_decision_status").textContent = decision.status || "—";
+    document.getElementById("res_decision_reason").textContent = decision.reason ? ` — ${decision.reason}` : "";
+    
+    updateTimestamp();
+    fadeInOut(block, true);
+  } catch (e) {
+    console.error("Erreur loadEvoteResults", e);
+    fadeInOut(block, false);
+  }
+}
+
+function updateTimestamp() {
+  lastUpdateTime = new Date();
+  const el = document.getElementById("last_update");
+  if (el) {
+    el.textContent = `Dernière mise à jour : ${lastUpdateTime.toLocaleTimeString("fr-FR")}`;
+  }
+}
+
+// Refresh écran
+async function refreshScreen() {
+  const badge = document.getElementById("badge");
+  const meet = document.getElementById("meeting_title");
+  const motion = document.getElementById("motion_title");
+  const sub = document.getElementById("motion_sub");
+  const err = document.getElementById("error_box");
+  const waitingState = document.getElementById("waiting_state");
+  
+  try {
+    const res = await fetch("/api/v1/projector_state.php");
+    const data = await res.json();
+    
+    if (!data.ok) {
+      if (data.error === 'no_live_meeting') {
+        badge.className = 'status-badge off';
+        badge.textContent = 'hors séance';
+        meet.textContent = 'Aucune séance en cours';
+        motion.textContent = '—';
+        sub.textContent = '';
+        err.classList.remove('visible');
+        waitingState?.classList.remove('visible');
+        stopVoteTimer();
+        await loadEvoteResults(null);
+        return;
+      }
+      
+      badge.className = 'status-badge off';
+      badge.textContent = 'erreur';
+      meet.textContent = 'Erreur de statut';
+      err.textContent = `Erreur : ${data.error || 'inconnue'}`;
+      err.classList.add('visible');
+      stopVoteTimer();
+      await loadEvoteResults(null);
+      announceToScreenReader(`Erreur: ${data.error || 'inconnue'}`);
+      return;
+    }
+    
+    const s = data.data;
+    err.textContent = '';
+    err.classList.remove('visible');
+    meet.textContent = s.meeting_title || "Séance en cours";
+    window.MEETING_ID = s.meeting_id || window.MEETING_ID;
+    
+    if (s.phase === 'active' && s.motion?.id) {
+      // Vote en cours
+      const wasIdle = !badge.classList.contains('live');
+      
+      badge.className = 'status-badge live';
+      badge.textContent = 'vote en cours';
+      motion.textContent = s.motion.title || 'Résolution';
+      sub.textContent = s.motion.secret ? '🔒 Vote secret' : 'Résolution ouverte';
+      waitingState?.classList.remove('visible');
+      stopVoteTimer();
+      
+      await loadEvoteResults(s.motion.id, { reveal: !s.motion.secret });
+      
+      if (wasIdle) {
+        announceToScreenReader("Une résolution vient d'être ouverte. Vote en cours.");
+      }
+      
+    } else if (s.phase === 'closed' && s.motion?.id) {
+      // Résultat final
+      const wasLive = badge.classList.contains('live');
+      
+      badge.className = 'status-badge idle';
+      badge.textContent = 'résultat';
+      motion.textContent = s.motion.title || 'Résolution clôturée';
+      sub.textContent = '✅ Résultat final';
+      waitingState?.classList.remove('visible');
+      stopVoteTimer();
+      
+      await loadEvoteResults(s.motion.id, { reveal: true });
+      
+      if (wasLive) {
+        announceToScreenReader("La résolution est close. Résultat final affiché.");
+      }
+      
+    } else {
+      // En attente
+      const wasLive = badge.classList.contains('live');
+      
+      badge.className = 'status-badge idle';
+      badge.textContent = 'en séance';
+      motion.textContent = 'En attente de résolution';
+      sub.textContent = '';
+      waitingState?.classList.add('visible');
+      stopVoteTimer();
+      
+      await loadEvoteResults(null);
+      
+      if (wasLive) {
+        announceToScreenReader("La résolution est close. Plus de vote en cours.");
+      }
+    }
+    
+  } catch (e) {
+    console.error("Erreur refreshScreen", e);
+    err.textContent = `Erreur réseau : ${e.message}`;
+    err.classList.add('visible');
+    stopVoteTimer();
+    await loadEvoteResults(null);
+  }
+}
+
+// Boucle de refresh
+async function refreshLoop() {
+  const start = Date.now();
+  await refreshScreen();
+  const duration = Date.now() - start;
+  
+  updateInterval = duration > 1000 ? Math.max(5000, updateInterval + 1000) : 3000;
+  setTimeout(refreshLoop, updateInterval);
+}
+
+// Device heartbeat
+function getDeviceId() {
+  try {
+    const key = 'device.id';
+    let id = localStorage.getItem(key);
+    if (!id) {
+      id = crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      localStorage.setItem(key, id);
+    }
+    return id;
+  } catch {
+    return `anon-${Date.now()}`;
+  }
+}
+
+async function sendHeartbeat() {
+  const meetingId = String(window.MEETING_ID || '').trim();
+  if (!meetingId) return;
+  
+  try {
+    const res = await fetch('/api/v1/device_heartbeat.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        meeting_id: meetingId,
+        device_id: getDeviceId(),
+        role: 'projector',
+        user_agent: navigator.userAgent
+      })
+    });
+    
+    const data = await res.json().catch(() => ({}));
+    if (data?.data?.command?.type === 'kick') {
+      setTimeout(() => location.reload(), 800);
+    }
+  } catch {}
+}
+
+// Init
+document.addEventListener("DOMContentLoaded", () => {
+  startClock();
+  refreshLoop();
+  sendHeartbeat();
+  setInterval(() => { if (!document.hidden) sendHeartbeat(); }, 15000);
+});
+</script>
+
+</body>
+</html>

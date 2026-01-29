@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Conduite de séance - Interface opérateur live AG-VOTE">
+  <title>Conduite live — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    /* Live-specific styles */
+    .live-header {
+      background: linear-gradient(135deg, var(--color-danger-subtle) 0%, var(--color-surface) 100%);
+    }
+    
+    .live-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: var(--space-6);
+    }
+    
+    @media (max-width: 1024px) {
+      .live-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .motion-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    
+    .motion-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      transition: all var(--duration-fast);
+    }
+    
+    .motion-item:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .motion-item.active {
+      border-color: var(--color-warning);
+      background: var(--color-warning-subtle);
+    }
+    
+    .motion-item.done {
+      border-color: var(--color-success);
+      background: var(--color-success-subtle);
+    }
+    
+    .motion-number {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-md);
+      font-weight: var(--font-bold);
+      flex-shrink: 0;
+    }
+    
+    .motion-item.active .motion-number {
+      background: var(--color-warning);
+      color: white;
+    }
+    
+    .motion-item.done .motion-number {
+      background: var(--color-success);
+      color: white;
+    }
+    
+    .motion-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .motion-title {
+      font-weight: var(--font-semibold);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .motion-meta {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+    
+    .action-bar {
+      position: sticky;
+      bottom: 0;
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      padding: var(--space-4) var(--space-6);
+      margin: var(--space-6) calc(-1 * var(--space-6)) calc(-1 * var(--space-6));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+    
+    .vote-progress {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+      padding: var(--space-4);
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-lg);
+    }
+    
+    .vote-count {
+      text-align: center;
+    }
+    
+    .vote-count-value {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-bold);
+    }
+    
+    .vote-count-label {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+    
+    .vote-count.for .vote-count-value { color: var(--color-success); }
+    .vote-count.against .vote-count-value { color: var(--color-danger); }
+    .vote-count.abstain .vote-count-value { color: var(--color-text-muted); }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="p-4 border-b">
+        <a href="/" class="brand">
+          <span class="brand-logo">AG-VOTE</span>
+          <span class="live-indicator">LIVE</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="/meetings.htmx.html">
+          <span class="nav-item-icon">🏛️</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a class="nav-item" href="/operator.htmx.html">
+          <span class="nav-item-icon">🗂️</span>
+          <span>Fiche séance</span>
+        </a>
+        <a class="nav-item active" href="/operator_flow.htmx.html">
+          <span class="nav-item-icon">🧑‍💼</span>
+          <span>Conduite live</span>
+        </a>
+        <a class="nav-item" href="/president.htmx.html">
+          <span class="nav-item-icon">🧑‍⚖️</span>
+          <span>Président</span>
+        </a>
+        <a class="nav-item" href="/trust.htmx.html">
+          <span class="nav-item-icon">🛡️</span>
+          <span>Contrôle</span>
+        </a>
+        <a class="nav-item" href="/public.htmx.html">
+          <span class="nav-item-icon">📺</span>
+          <span>Écran public</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header live-header">
+      <div class="flex items-center gap-4">
+        <div class="live-indicator">
+          <span>EN DIRECT</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold">Conduite de séance</h1>
+          <p class="text-sm text-secondary" id="meetingTitle">—</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="readiness" title="Readiness">
+          ✅
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="anomalies" title="Anomalies">
+          🚨
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- Stepper -->
+        <div class="stepper mb-6">
+          <div class="stepper-item done" id="step1">
+            <span class="stepper-number">1</span>
+            <span>Présences</span>
+          </div>
+          <div class="stepper-item done" id="step2">
+            <span class="stepper-number">2</span>
+            <span>Procurations</span>
+          </div>
+          <div class="stepper-item active" id="step3">
+            <span class="stepper-number">3</span>
+            <span>Résolutions</span>
+          </div>
+          <div class="stepper-item" id="step4">
+            <span class="stepper-number">4</span>
+            <span>Votes</span>
+          </div>
+          <div class="stepper-item" id="step5">
+            <span class="stepper-number">5</span>
+            <span>Validation</span>
+          </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="live-grid">
+          <!-- Left: Motions list -->
+          <div class="card">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="card-title">📋 Résolutions</h3>
+                  <p class="card-description">Ordre du jour - cliquez pour ouvrir le vote</p>
+                </div>
+                <span class="badge badge-primary" id="motionsCount">0</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="motion-list" id="motionsList">
+                <div class="empty-state p-6">
+                  <div class="spinner"></div>
+                  <div class="mt-4 text-muted">Chargement des résolutions...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Live summary -->
+          <div class="flex flex-col gap-6">
+            <!-- Quorum card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="flex items-center justify-between">
+                  <h3 class="card-title">📊 Quorum</h3>
+                  <span class="badge" id="quorumBadge">—</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="quorum-indicator">
+                  <div class="quorum-bar">
+                    <div class="quorum-fill" id="quorumBar" style="width: 0%"></div>
+                    <div class="quorum-threshold" id="quorumMarker" style="left: 50%"></div>
+                  </div>
+                  <div class="quorum-stats">
+                    <span id="quorumPresent">0 présents</span>
+                    <span id="quorumThresholdText">Seuil: 50%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vote in progress -->
+            <div class="card" id="voteProgressCard">
+              <div class="card-header">
+                <div class="flex items-center justify-between">
+                  <h3 class="card-title">🗳️ Vote en cours</h3>
+                  <span class="badge badge-warning badge-dot" id="voteStatusBadge">Ouvert</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="activeVoteInfo">
+                  <div class="text-center p-4 text-muted">
+                    Aucun vote ouvert
+                  </div>
+                </div>
+                <div class="vote-progress mt-4" id="voteProgress" style="display: none;">
+                  <div class="vote-count for">
+                    <div class="vote-count-value" id="countFor">0</div>
+                    <div class="vote-count-label">Pour</div>
+                  </div>
+                  <div class="vote-count against">
+                    <div class="vote-count-value" id="countAgainst">0</div>
+                    <div class="vote-count-label">Contre</div>
+                  </div>
+                  <div class="vote-count abstain">
+                    <div class="vote-count-value" id="countAbstain">0</div>
+                    <div class="vote-count-label">Abstention</div>
+                  </div>
+                  <div class="vote-count">
+                    <div class="vote-count-value" id="countPending">0</div>
+                    <div class="vote-count-label">En attente</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick actions -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">⚡ Actions rapides</h3>
+              </div>
+              <div class="card-body">
+                <div class="flex flex-col gap-2">
+                  <a class="btn btn-secondary w-full" data-meeting-link href="/attendance.htmx.html">
+                    👥 Modifier présences
+                  </a>
+                  <a class="btn btn-secondary w-full" data-meeting-link href="/proxies.htmx.html">
+                    📝 Gérer procurations
+                  </a>
+                  <button class="btn btn-ghost w-full" data-drawer="incidents">
+                    🚨 Déclarer un incident
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden inputs for HTMX -->
+        <input type="hidden" id="currentMeetingId" value="">
+        <input type="hidden" id="currentMotionId" value="">
+
+        <!-- Action bar (sticky bottom) -->
+        <div class="action-bar">
+          <div class="text-sm text-muted">
+            <span id="actionHint">Sélectionnez une résolution pour ouvrir le vote</span>
+          </div>
+          <div class="flex gap-3">
+            <button class="btn btn-lg btn-primary" id="btnOpenVote" disabled>
+              ▶️ Ouvrir le vote
+            </button>
+            <button class="btn btn-lg btn-secondary" id="btnCloseVote" disabled>
+              ⏹️ Clôturer le vote
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Drawer Overlay -->
+  <div class="drawer-backdrop" data-drawer-close></div>
+  
+  <!-- Drawer -->
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close>✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    let currentMeetingId = null;
+    let currentMotionId = null;
+    let selectedMotionId = null;
+    let pollingInterval = null;
+
+    // Get meeting_id from URL
+    function getMeetingIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('meeting_id');
+    }
+
+    // Update meeting links
+    function updateMeetingLinks(meetingId) {
+      document.querySelectorAll('[data-meeting-link]').forEach(link => {
+        const baseUrl = link.getAttribute('href').split('?')[0];
+        link.href = meetingId ? `${baseUrl}?meeting_id=${meetingId}` : baseUrl;
+      });
+    }
+
+    // Load meeting info
+    async function loadMeetingInfo(meetingId) {
+      try {
+        const { body } = await api(`/api/v1/meetings.php?id=${meetingId}`);
+        if (body && body.ok && body.data) {
+          document.getElementById('meetingTitle').textContent = body.data.title;
+        }
+      } catch (err) {
+        console.error('Meeting info error:', err);
+      }
+    }
+
+    // Load motions list
+    async function loadMotions(meetingId) {
+      try {
+        const { body } = await api(`/api/v1/motions.php?meeting_id=${meetingId}`);
+        const container = document.getElementById('motionsList');
+        
+        if (body && body.ok && Array.isArray(body.data)) {
+          const motions = body.data;
+          document.getElementById('motionsCount').textContent = motions.length;
+          
+          if (motions.length === 0) {
+            container.innerHTML = `
+              <div class="empty-state p-6">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-title">Aucune résolution</div>
+                <div class="empty-state-description">
+                  Créez des résolutions depuis la fiche séance
+                </div>
+                <a class="btn btn-primary mt-4" data-meeting-link href="/motions.htmx.html">
+                  Créer des résolutions
+                </a>
+              </div>
+            `;
+            updateMeetingLinks(meetingId);
+            return;
+          }
+          
+          container.innerHTML = motions.map((m, i) => {
+            const isOpen = m.status === 'open';
+            const isClosed = m.status === 'closed';
+            const statusClass = isOpen ? 'active' : (isClosed ? 'done' : '');
+            const statusIcon = isOpen ? '🔴' : (isClosed ? '✅' : '⚪');
+            
+            if (isOpen) {
+              currentMotionId = m.id;
+              document.getElementById('currentMotionId').value = m.id;
+            }
+            
+            return `
+              <div class="motion-item ${statusClass}" data-motion-id="${m.id}" data-status="${m.status}">
+                <div class="motion-number">${i + 1}</div>
+                <div class="motion-info">
+                  <div class="motion-title">${escapeHtml(m.title)}</div>
+                  <div class="motion-meta">
+                    ${statusIcon} ${isOpen ? 'Vote en cours' : (isClosed ? 'Terminé' : 'En attente')}
+                    ${m.result ? ` — ${m.result}` : ''}
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  ${!isOpen && !isClosed ? `
+                    <button class="btn btn-sm btn-primary btn-open-motion" data-motion-id="${m.id}">
+                      Ouvrir
+                    </button>
+                  ` : ''}
+                  ${isOpen ? `
+                    <button class="btn btn-sm btn-secondary btn-close-motion" data-motion-id="${m.id}">
+                      Clôturer
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+          // Bind motion buttons
+          container.querySelectorAll('.btn-open-motion').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              openVote(btn.dataset.motionId);
+            });
+          });
+          
+          container.querySelectorAll('.btn-close-motion').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              closeVote(btn.dataset.motionId);
+            });
+          });
+          
+          // Update active vote display
+          updateActiveVote(motions.find(m => m.status === 'open'));
+        }
+      } catch (err) {
+        console.error('Motions error:', err);
+      }
+    }
+
+    // Load quorum status
+    async function loadQuorum(meetingId) {
+      try {
+        const { body } = await api(`/api/v1/quorum_status.php?meeting_id=${meetingId}`);
+        
+        if (body && body.ok && body.data) {
+          const q = body.data;
+          const ratio = Math.round((q.ratio || 0) * 100);
+          const threshold = Math.round((q.threshold || 0.5) * 100);
+          
+          const bar = document.getElementById('quorumBar');
+          bar.style.width = Math.min(100, ratio) + '%';
+          bar.className = `quorum-fill ${q.met ? 'reached' : ratio > 30 ? 'partial' : 'critical'}`;
+          
+          document.getElementById('quorumMarker').style.left = threshold + '%';
+          document.getElementById('quorumPresent').textContent = `${q.present || 0} présents (${ratio}%)`;
+          document.getElementById('quorumThresholdText').textContent = `Seuil: ${threshold}%`;
+          
+          const badge = document.getElementById('quorumBadge');
+          badge.className = `badge ${q.met ? 'badge-success' : 'badge-warning'}`;
+          badge.textContent = q.met ? 'Atteint' : 'Non atteint';
+        }
+      } catch (err) {
+        console.error('Quorum error:', err);
+      }
+    }
+
+    // Update active vote display
+    function updateActiveVote(motion) {
+      const card = document.getElementById('voteProgressCard');
+      const info = document.getElementById('activeVoteInfo');
+      const progress = document.getElementById('voteProgress');
+      const badge = document.getElementById('voteStatusBadge');
+      const btnOpen = document.getElementById('btnOpenVote');
+      const btnClose = document.getElementById('btnCloseVote');
+      const hint = document.getElementById('actionHint');
+      
+      if (motion && motion.status === 'open') {
+        info.innerHTML = `
+          <div class="font-semibold">${escapeHtml(motion.title)}</div>
+          <div class="text-sm text-muted mt-1">${motion.description || ''}</div>
+        `;
+        
+        progress.style.display = 'flex';
+        badge.style.display = 'inline-flex';
+        
+        document.getElementById('countFor').textContent = motion.votes_for || 0;
+        document.getElementById('countAgainst').textContent = motion.votes_against || 0;
+        document.getElementById('countAbstain').textContent = motion.votes_abstain || 0;
+        document.getElementById('countPending').textContent = motion.votes_pending || 0;
+        
+        btnOpen.disabled = true;
+        btnClose.disabled = false;
+        hint.textContent = 'Vote en cours - Clôturez quand tous ont voté';
+        
+        currentMotionId = motion.id;
+      } else {
+        info.innerHTML = `
+          <div class="text-center p-4 text-muted">
+            Aucun vote ouvert — Sélectionnez une résolution
+          </div>
+        `;
+        
+        progress.style.display = 'none';
+        badge.style.display = 'none';
+        
+        btnOpen.disabled = true;
+        btnClose.disabled = true;
+        hint.textContent = 'Cliquez sur "Ouvrir" sur une résolution pour démarrer le vote';
+        
+        currentMotionId = null;
+      }
+    }
+
+    // Open vote
+    async function openVote(motionId) {
+      try {
+        const { body } = await api('/api/v1/motions_open.php', {
+          meeting_id: currentMeetingId,
+          motion_id: motionId
+        });
+        
+        if (body && body.ok) {
+          setNotif('success', '🗳️ Vote ouvert');
+          loadMotions(currentMeetingId);
+        } else {
+          setNotif('error', body?.error || 'Erreur ouverture vote');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    }
+
+    // Close vote
+    async function closeVote(motionId) {
+      if (!confirm('Êtes-vous sûr de vouloir clôturer ce vote ?')) return;
+      
+      try {
+        const { body } = await api('/api/v1/motions_close.php', {
+          meeting_id: currentMeetingId,
+          motion_id: motionId || currentMotionId
+        });
+        
+        if (body && body.ok) {
+          setNotif('success', '✅ Vote clôturé');
+          loadMotions(currentMeetingId);
+        } else {
+          setNotif('error', body?.error || 'Erreur clôture vote');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    }
+
+    // Initialize
+    function init() {
+      currentMeetingId = getMeetingIdFromUrl();
+      
+      if (!currentMeetingId) {
+        setNotif('error', 'Aucune séance sélectionnée');
+        setTimeout(() => {
+          window.location.href = '/meetings.htmx.html';
+        }, 2000);
+        return;
+      }
+      
+      document.getElementById('currentMeetingId').value = currentMeetingId;
+      updateMeetingLinks(currentMeetingId);
+      
+      loadMeetingInfo(currentMeetingId);
+      loadMotions(currentMeetingId);
+      loadQuorum(currentMeetingId);
+      
+      // Polling every 3s
+      pollingInterval = setInterval(() => {
+        loadMotions(currentMeetingId);
+        loadQuorum(currentMeetingId);
+      }, 3000);
+    }
+
+    // Button handlers
+    document.getElementById('btnCloseVote').addEventListener('click', () => {
+      if (currentMotionId) {
+        closeVote(currentMotionId);
+      }
+    });
+
+    // Cleanup on leave
+    window.addEventListener('beforeunload', () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+    });
+
+    // Start
+    init();
+
+  })();
+  </script>
+</body>
+</html>

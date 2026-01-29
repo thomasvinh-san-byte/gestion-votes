@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Administration système - AG-VOTE">
+  <title>Administration — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    .policy-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+    
+    .policy-card:hover {
+      border-color: var(--color-primary);
+    }
+    
+    .policy-info {
+      flex: 1;
+    }
+    
+    .policy-name {
+      font-weight: var(--font-semibold);
+    }
+    
+    .policy-desc {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+    
+    .system-stat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+    
+    .system-stat:last-child {
+      border-bottom: none;
+    }
+    
+    .system-stat-label {
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+    }
+    
+    .system-stat-value {
+      font-weight: var(--font-semibold);
+      font-family: var(--font-mono);
+    }
+    
+    .api-link {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      color: var(--color-text);
+      text-decoration: none;
+      transition: background var(--duration-fast);
+    }
+    
+    .api-link:hover {
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+    }
+    
+    .api-link code {
+      font-size: var(--text-xs);
+      background: var(--color-surface);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-sm);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="p-4 border-b">
+        <a href="/" class="brand">
+          <span class="brand-logo">AG-VOTE</span>
+          <span class="brand-version">v2.0</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="/meetings.htmx.html">
+          <span class="nav-item-icon">🏛️</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a class="nav-item" href="/members.htmx.html">
+          <span class="nav-item-icon">👥</span>
+          <span>Membres</span>
+        </a>
+        <a class="nav-item" href="/archives.htmx.html">
+          <span class="nav-item-icon">📚</span>
+          <span>Archives</span>
+        </a>
+        <div class="border-t mt-4 pt-4">
+          <a class="nav-item active" href="/admin.htmx.html">
+            <span class="nav-item-icon">⚙️</span>
+            <span>Administration</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">⚙️ Administration</h1>
+          <p class="text-sm text-secondary">Paramétrage système et politiques</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-secondary" id="btnRefresh">
+          🔄 Actualiser
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- System Status -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="card-title">🖥️ Statut système</h3>
+                <p class="card-description">Connexions, latence, compteurs</p>
+              </div>
+              <span class="badge badge-success badge-dot" id="systemStatus">En ligne</span>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div id="systemStats">
+              <div class="system-stat">
+                <span class="system-stat-label">Base de données</span>
+                <span class="system-stat-value text-success">Connectée</span>
+              </div>
+              <div class="system-stat">
+                <span class="system-stat-label">Latence DB</span>
+                <span class="system-stat-value" id="statDbLatency">—</span>
+              </div>
+              <div class="system-stat">
+                <span class="system-stat-label">Séances actives</span>
+                <span class="system-stat-value" id="statActiveMeetings">—</span>
+              </div>
+              <div class="system-stat">
+                <span class="system-stat-label">Membres total</span>
+                <span class="system-stat-value" id="statTotalMembers">—</span>
+              </div>
+              <div class="system-stat">
+                <span class="system-stat-label">Version PHP</span>
+                <span class="system-stat-value" id="statPhpVersion">—</span>
+              </div>
+              <div class="system-stat">
+                <span class="system-stat-label">Mémoire utilisée</span>
+                <span class="system-stat-value" id="statMemory">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Policies Grid -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+          <!-- Quorum Policies -->
+          <div class="card">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="card-title">📊 Politiques de quorum</h3>
+                  <p class="card-description">Modèles réutilisables</p>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btnNewQuorum">
+                  + Nouveau
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="flex flex-col gap-3" id="quorumList">
+                <div class="policy-card">
+                  <div class="policy-info">
+                    <div class="policy-name">Simple (50%)</div>
+                    <div class="policy-desc">Quorum standard à 50% des membres</div>
+                  </div>
+                  <span class="badge badge-success">Par défaut</span>
+                </div>
+                <div class="policy-card">
+                  <div class="policy-info">
+                    <div class="policy-name">Renforcé (66%)</div>
+                    <div class="policy-desc">Quorum à 2/3 des membres</div>
+                  </div>
+                  <button class="btn btn-ghost btn-sm">Modifier</button>
+                </div>
+                <div class="policy-card">
+                  <div class="policy-info">
+                    <div class="policy-name">Évolutif</div>
+                    <div class="policy-desc">50% 1er appel, 33% 2ème appel</div>
+                  </div>
+                  <button class="btn btn-ghost btn-sm">Modifier</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vote Policies -->
+          <div class="card">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="card-title">🗳️ Politiques de vote</h3>
+                  <p class="card-description">Règles de majorité</p>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btnNewVote">
+                  + Nouveau
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="flex flex-col gap-3" id="voteList">
+                <div class="policy-card">
+                  <div class="policy-info">
+                    <div class="policy-name">Majorité simple</div>
+                    <div class="policy-desc">50% + 1 des votants</div>
+                  </div>
+                  <span class="badge badge-success">Par défaut</span>
+                </div>
+                <div class="policy-card">
+                  <div class="policy-info">
+                    <div class="policy-name">Majorité absolue</div>
+                    <div class="policy-desc">50% + 1 des membres présents</div>
+                  </div>
+                  <button class="btn btn-ghost btn-sm">Modifier</button>
+                </div>
+                <div class="policy-card">
+                  <div class="policy-info">
+                    <div class="policy-name">Majorité qualifiée</div>
+                    <div class="policy-desc">2/3 des votants</div>
+                  </div>
+                  <button class="btn btn-ghost btn-sm">Modifier</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- API Shortcuts -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">🔗 Raccourcis API</h3>
+            <p class="card-description">Accès direct aux endpoints</p>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-3 gap-3">
+              <a class="api-link" href="/api/v1/admin_system_status.php" target="_blank">
+                <span>🖥️</span>
+                <span>Système</span>
+                <code>GET</code>
+              </a>
+              <a class="api-link" href="/api/v1/archives_list.php" target="_blank">
+                <span>📚</span>
+                <span>Archives</span>
+                <code>GET</code>
+              </a>
+              <a class="api-link" href="/api/v1/meetings_index.php" target="_blank">
+                <span>🏛️</span>
+                <span>Séances</span>
+                <code>GET</code>
+              </a>
+              <a class="api-link" href="/api/v1/members.php" target="_blank">
+                <span>👥</span>
+                <span>Membres</span>
+                <code>GET</code>
+              </a>
+              <a class="api-link" href="/api/v1/quorum_policies.php" target="_blank">
+                <span>📊</span>
+                <span>Quorum</span>
+                <code>GET</code>
+              </a>
+              <a class="api-link" href="/api/v1/vote_policies.php" target="_blank">
+                <span>🗳️</span>
+                <span>Vote</span>
+                <code>GET</code>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card" style="border-color: var(--color-danger);">
+          <div class="card-header" style="background: var(--color-danger-subtle);">
+            <h3 class="card-title text-danger">⚠️ Zone dangereuse</h3>
+            <p class="card-description">Actions irréversibles</p>
+          </div>
+          <div class="card-body">
+            <div class="flex items-center justify-between gap-4 p-4 bg-surface rounded-lg border">
+              <div>
+                <div class="font-semibold">Réinitialiser les données de démo</div>
+                <div class="text-sm text-muted">Supprime toutes les séances et recharge les données de test</div>
+              </div>
+              <button class="btn btn-danger" id="btnResetDemo">
+                🗑️ Réinitialiser
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modalBackdrop" style="display: none;"></div>
+  <div class="modal" id="modal" style="display: none;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitle">Nouvelle politique</h3>
+      <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseModal">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btnCancelModal">Annuler</button>
+      <button class="btn btn-primary" id="btnSaveModal">Enregistrer</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // Load system status
+    async function loadSystemStatus() {
+      try {
+        const { body } = await api('/api/v1/admin_system_status.php');
+        
+        if (body && body.ok && body.data) {
+          const d = body.data;
+          
+          document.getElementById('statDbLatency').textContent = 
+            d.db_latency_ms ? `${d.db_latency_ms}ms` : '—';
+          document.getElementById('statActiveMeetings').textContent = 
+            d.active_meetings ?? '—';
+          document.getElementById('statTotalMembers').textContent = 
+            d.total_members ?? '—';
+          document.getElementById('statPhpVersion').textContent = 
+            d.php_version || '—';
+          document.getElementById('statMemory').textContent = 
+            d.memory_usage || '—';
+          
+          const status = document.getElementById('systemStatus');
+          status.className = 'badge badge-success badge-dot';
+          status.textContent = 'En ligne';
+        }
+      } catch (err) {
+        const status = document.getElementById('systemStatus');
+        status.className = 'badge badge-danger';
+        status.textContent = 'Erreur';
+        console.error('System status error:', err);
+      }
+    }
+
+    // Load quorum policies
+    async function loadQuorumPolicies() {
+      try {
+        const { body } = await api('/api/v1/quorum_policies.php');
+        
+        if (body && body.ok && Array.isArray(body.data)) {
+          const container = document.getElementById('quorumList');
+          
+          if (body.data.length === 0) {
+            container.innerHTML = `
+              <div class="text-center p-4 text-muted">
+                Aucune politique configurée
+              </div>
+            `;
+            return;
+          }
+          
+          container.innerHTML = body.data.map(p => `
+            <div class="policy-card">
+              <div class="policy-info">
+                <div class="policy-name">${escapeHtml(p.name)}</div>
+                <div class="policy-desc">${escapeHtml(p.description || p.type)}</div>
+              </div>
+              ${p.is_default 
+                ? '<span class="badge badge-success">Par défaut</span>'
+                : '<button class="btn btn-ghost btn-sm">Modifier</button>'}
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Quorum policies error:', err);
+      }
+    }
+
+    // Load vote policies
+    async function loadVotePolicies() {
+      try {
+        const { body } = await api('/api/v1/vote_policies.php');
+        
+        if (body && body.ok && Array.isArray(body.data)) {
+          const container = document.getElementById('voteList');
+          
+          if (body.data.length === 0) {
+            container.innerHTML = `
+              <div class="text-center p-4 text-muted">
+                Aucune politique configurée
+              </div>
+            `;
+            return;
+          }
+          
+          container.innerHTML = body.data.map(p => `
+            <div class="policy-card">
+              <div class="policy-info">
+                <div class="policy-name">${escapeHtml(p.name)}</div>
+                <div class="policy-desc">${escapeHtml(p.description || p.type)}</div>
+              </div>
+              ${p.is_default 
+                ? '<span class="badge badge-success">Par défaut</span>'
+                : '<button class="btn btn-ghost btn-sm">Modifier</button>'}
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Vote policies error:', err);
+      }
+    }
+
+    // Modal functions
+    const modal = document.getElementById('modal');
+    const backdrop = document.getElementById('modalBackdrop');
+    
+    function openModal(title, content) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = content;
+      modal.style.display = 'block';
+      backdrop.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal() {
+      modal.style.display = 'none';
+      backdrop.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    
+    document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+    document.getElementById('btnCancelModal').addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    // New quorum policy
+    document.getElementById('btnNewQuorum').addEventListener('click', () => {
+      openModal('Nouvelle politique de quorum', `
+        <div class="form-group mb-4">
+          <label class="form-label">Nom</label>
+          <input class="form-input" type="text" id="policyName" placeholder="Ex: Quorum renforcé">
+        </div>
+        <div class="form-group mb-4">
+          <label class="form-label">Type</label>
+          <select class="form-input" id="policyType">
+            <option value="simple">Simple (seuil fixe)</option>
+            <option value="evolving">Évolutif (2 appels)</option>
+            <option value="double">Double (présents + voix)</option>
+          </select>
+        </div>
+        <div class="form-group mb-4">
+          <label class="form-label">Seuil (%)</label>
+          <input class="form-input" type="number" id="policyThreshold" value="50" min="1" max="100">
+        </div>
+      `);
+    });
+
+    // New vote policy
+    document.getElementById('btnNewVote').addEventListener('click', () => {
+      openModal('Nouvelle politique de vote', `
+        <div class="form-group mb-4">
+          <label class="form-label">Nom</label>
+          <input class="form-input" type="text" id="policyName" placeholder="Ex: Majorité qualifiée">
+        </div>
+        <div class="form-group mb-4">
+          <label class="form-label">Base de calcul</label>
+          <select class="form-input" id="policyBase">
+            <option value="voters">Votants (exprimés)</option>
+            <option value="present">Présents</option>
+            <option value="members">Tous les membres</option>
+          </select>
+        </div>
+        <div class="form-group mb-4">
+          <label class="form-label">Seuil (%)</label>
+          <input class="form-input" type="number" id="policyThreshold" value="50" min="1" max="100">
+        </div>
+        <div class="form-group">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" id="policyCountAbstain">
+            <span>Compter les abstentions</span>
+          </label>
+        </div>
+      `);
+    });
+
+    // Reset demo
+    document.getElementById('btnResetDemo').addEventListener('click', async () => {
+      if (!confirm('⚠️ ATTENTION: Cette action va supprimer TOUTES les données et réinitialiser la démo.\n\nContinuer ?')) {
+        return;
+      }
+      
+      try {
+        const { body } = await api('/api/v1/admin_reset_demo.php', {});
+        
+        if (body && body.ok) {
+          setNotif('success', '✅ Données de démo réinitialisées');
+          loadSystemStatus();
+        } else {
+          setNotif('error', body?.error || 'Erreur réinitialisation');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    });
+
+    // Refresh
+    document.getElementById('btnRefresh').addEventListener('click', () => {
+      loadSystemStatus();
+      loadQuorumPolicies();
+      loadVotePolicies();
+    });
+
+    // Initial load
+    loadSystemStatus();
+    loadQuorumPolicies();
+    loadVotePolicies();
+  })();
+  </script>
+</body>
+</html>

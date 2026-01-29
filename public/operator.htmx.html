@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Console opérateur - Fiche séance AG-VOTE">
+  <title>Fiche séance — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="p-4 border-b">
+        <a href="/" class="brand">
+          <span class="brand-logo">AG-VOTE</span>
+          <span class="brand-version">v2.0</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="/meetings.htmx.html">
+          <span class="nav-item-icon">🏛️</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a class="nav-item active" href="/operator.htmx.html">
+          <span class="nav-item-icon">🗂️</span>
+          <span>Fiche séance</span>
+        </a>
+        <a class="nav-item" href="/operator_flow.htmx.html">
+          <span class="nav-item-icon">🧑‍💼</span>
+          <span>Conduite live</span>
+        </a>
+        <a class="nav-item" href="/president.htmx.html">
+          <span class="nav-item-icon">🧑‍⚖️</span>
+          <span>Président</span>
+        </a>
+        <a class="nav-item" href="/trust.htmx.html">
+          <span class="nav-item-icon">🛡️</span>
+          <span>Contrôle</span>
+        </a>
+        <a class="nav-item" href="/archives.htmx.html">
+          <span class="nav-item-icon">📚</span>
+          <span>Archives</span>
+        </a>
+        <div class="border-t mt-4 pt-4">
+          <a class="nav-item" href="/admin.htmx.html">
+            <span class="nav-item-icon">⚙️</span>
+            <span>Administration</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">Fiche séance</h1>
+          <p class="text-sm text-secondary">Orchestration & préparation</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="readiness" title="État de préparation">
+          ✅
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="quorum" title="Quorum">
+          📊
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- Quick Actions Bar -->
+        <div class="quick-actions mb-6">
+          <a class="quick-action" data-meeting-link href="/attendance.htmx.html">
+            <span class="quick-action-icon">👥</span>
+            <span>Présences</span>
+          </a>
+          <a class="quick-action" data-meeting-link href="/proxies.htmx.html">
+            <span class="quick-action-icon">📝</span>
+            <span>Procurations</span>
+          </a>
+          <a class="quick-action" data-meeting-link href="/motions.htmx.html">
+            <span class="quick-action-icon">📋</span>
+            <span>Résolutions</span>
+          </a>
+          <a class="quick-action" data-meeting-link href="/members.htmx.html">
+            <span class="quick-action-icon">👤</span>
+            <span>Membres</span>
+          </a>
+          <a class="quick-action" data-meeting-link href="/operator_flow.htmx.html" style="background: var(--color-primary-subtle); color: var(--color-primary);">
+            <span class="quick-action-icon">▶️</span>
+            <span>Conduire</span>
+          </a>
+        </div>
+
+        <!-- Context Selection -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="card-title">📌 Contexte de séance</h3>
+                <p class="card-description">Sélectionnez une séance pour charger les données</p>
+              </div>
+              <span class="badge badge-primary" id="meetingStatusBadge">—</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-2 gap-6">
+              <div class="form-group">
+                <label class="form-label" for="meetingSelect">Séance active</label>
+                <select class="form-input" id="meetingSelect">
+                  <option value="">— Chargement des séances —</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Résumé</label>
+                <div id="meetingSummary" class="p-3 bg-surface rounded-md border text-sm">
+                  Sélectionnez une séance pour afficher le résumé
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid mb-6">
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpiPresent">—</div>
+            <div class="kpi-label">Présents</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value primary" id="kpiQuorum">—</div>
+            <div class="kpi-label">Quorum</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value success" id="kpiVoted">—</div>
+            <div class="kpi-label">Ont voté</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value warning" id="kpiPending">—</div>
+            <div class="kpi-label">En attente</div>
+          </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+          <!-- Attendance Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <h3 class="card-title">👥 Présences</h3>
+                <span class="badge badge-success badge-dot" id="badgeAttendance">0</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="attendanceDetail" class="mb-4">
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <div class="stat-value" id="statPresent">—</div>
+                    <div class="stat-label">Présents</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value" id="statRemote">—</div>
+                    <div class="stat-label">Distants</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value" id="statProxy">—</div>
+                    <div class="stat-label">Représentés</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value" id="statAbsent">—</div>
+                    <div class="stat-label">Absents</div>
+                  </div>
+                </div>
+              </div>
+              <a class="btn btn-secondary w-full" data-meeting-link href="/attendance.htmx.html">
+                Gérer les présences →
+              </a>
+            </div>
+          </div>
+
+          <!-- Active Motion Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <h3 class="card-title">🗳️ Résolution active</h3>
+                <span class="badge badge-neutral" id="badgeMotion">Aucune</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="motionDetail" class="mb-4">
+                <div class="p-4 bg-surface rounded-lg border text-center">
+                  <div class="text-muted mb-2">Aucune résolution ouverte</div>
+                  <div class="text-sm text-secondary">
+                    Ouvrez une résolution depuis la page Résolutions ou Conduite
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-primary flex-1" id="btnOpenMotion" disabled>
+                  ▶️ Ouvrir le vote
+                </button>
+                <button class="btn btn-secondary flex-1" id="btnCloseMotion" disabled>
+                  ⏹️ Clôturer
+                </button>
+              </div>
+              <div class="text-xs text-muted mt-2" id="degradedMotionLabel"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quorum Indicator -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <h3 class="card-title">📊 État du quorum</h3>
+              <span class="badge" id="quorumStatusBadge">—</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="quorum-indicator" id="quorumIndicator">
+              <div class="quorum-header">
+                <span class="text-sm font-medium">Progression vers le quorum</span>
+                <span class="text-sm text-muted" id="quorumRatio">— / —</span>
+              </div>
+              <div class="quorum-bar">
+                <div class="quorum-fill partial" id="quorumFill" style="width: 0%"></div>
+                <div class="quorum-threshold" id="quorumThreshold" style="left: 50%"></div>
+              </div>
+              <div class="quorum-stats">
+                <span id="quorumCurrent">0 présents</span>
+                <span id="quorumRequired">Seuil: 50%</span>
+              </div>
+            </div>
+            <div class="mt-4 p-3 bg-surface rounded-md" id="quorumJustification">
+              <div class="text-sm text-muted">
+                La justification du quorum apparaîtra ici une fois la séance chargée.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications Card -->
+        <div class="card">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <h3 class="card-title">🔔 Notifications</h3>
+              <span class="badge badge-info" id="badgeNotifications">0</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="notificationsList">
+              <div class="empty-state p-6">
+                <div class="empty-state-icon text-3xl">📭</div>
+                <div class="empty-state-title">Aucune notification</div>
+                <div class="empty-state-description">
+                  Les événements importants apparaîtront ici
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer note -->
+        <div class="alert alert-info mt-6">
+          <span>💡</span>
+          <span>Rappel : les exports (CSV / PDF) sont disponibles <strong>après validation</strong> de la séance par le président.</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Drawer Overlay -->
+  <div class="drawer-backdrop" data-drawer-close></div>
+  
+  <!-- Drawer -->
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close>✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    const meetingSelect = document.getElementById('meetingSelect');
+    let currentMeetingId = null;
+
+    // Get meeting_id from URL
+    function getMeetingIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('meeting_id');
+    }
+
+    // Update all meeting links with current meeting_id
+    function updateMeetingLinks(meetingId) {
+      document.querySelectorAll('[data-meeting-link]').forEach(link => {
+        const baseUrl = link.getAttribute('href').split('?')[0];
+        if (meetingId) {
+          link.href = `${baseUrl}?meeting_id=${meetingId}`;
+        } else {
+          link.href = baseUrl;
+        }
+      });
+    }
+
+    // Load meetings list
+    async function loadMeetings() {
+      try {
+        const { status, body } = await api('/api/v1/meetings_index.php');
+        
+        if (body && body.ok && Array.isArray(body.data)) {
+          meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
+          
+          body.data.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = `${m.title} (${m.status || 'draft'})`;
+            meetingSelect.appendChild(opt);
+          });
+
+          // Pre-select if meeting_id in URL
+          const urlMeetingId = getMeetingIdFromUrl();
+          if (urlMeetingId) {
+            meetingSelect.value = urlMeetingId;
+            loadMeetingContext(urlMeetingId);
+          }
+        }
+      } catch (err) {
+        setNotif('error', 'Erreur chargement séances: ' + err.message);
+      }
+    }
+
+    // Load meeting context
+    async function loadMeetingContext(meetingId) {
+      if (!meetingId) {
+        resetContext();
+        return;
+      }
+
+      currentMeetingId = meetingId;
+      updateMeetingLinks(meetingId);
+
+      // Update URL
+      const url = new URL(window.location);
+      url.searchParams.set('meeting_id', meetingId);
+      window.history.replaceState({}, '', url);
+
+      try {
+        // Load meeting details
+        const { body } = await api(`/api/v1/meetings.php?id=${meetingId}`);
+        
+        if (body && body.ok && body.data) {
+          const m = body.data;
+          
+          // Update summary
+          document.getElementById('meetingSummary').innerHTML = `
+            <div class="font-medium">${escapeHtml(m.title)}</div>
+            <div class="text-muted text-sm mt-1">${m.description || 'Pas de description'}</div>
+            <div class="text-xs text-secondary mt-2">Créée le ${formatDate(m.created_at)}</div>
+          `;
+
+          // Update status badge
+          const statusBadge = document.getElementById('meetingStatusBadge');
+          const statusMap = {
+            'draft': { class: 'badge-neutral', text: 'Brouillon' },
+            'scheduled': { class: 'badge-info', text: 'Programmée' },
+            'live': { class: 'badge-danger badge-dot', text: 'En cours' },
+            'closed': { class: 'badge-success', text: 'Terminée' },
+            'archived': { class: 'badge-neutral', text: 'Archivée' }
+          };
+          const status = statusMap[m.status] || statusMap['draft'];
+          statusBadge.className = `badge ${status.class}`;
+          statusBadge.textContent = status.text;
+        }
+
+        // Load attendance stats
+        await loadAttendanceStats(meetingId);
+        
+        // Load quorum status
+        await loadQuorumStatus(meetingId);
+        
+        // Load active motion
+        await loadActiveMotion(meetingId);
+
+      } catch (err) {
+        setNotif('error', 'Erreur: ' + err.message);
+      }
+    }
+
+    // Load attendance stats
+    async function loadAttendanceStats(meetingId) {
+      try {
+        const { body } = await api(`/api/v1/attendances.php?meeting_id=${meetingId}`);
+        
+        if (body && body.ok) {
+          const stats = body.stats || {};
+          document.getElementById('statPresent').textContent = stats.present || 0;
+          document.getElementById('statRemote').textContent = stats.remote || 0;
+          document.getElementById('statProxy').textContent = stats.proxy || 0;
+          document.getElementById('statAbsent').textContent = stats.absent || 0;
+          document.getElementById('badgeAttendance').textContent = stats.total || 0;
+          document.getElementById('kpiPresent').textContent = (stats.present || 0) + (stats.remote || 0);
+        }
+      } catch (err) {
+        console.error('Attendance error:', err);
+      }
+    }
+
+    // Load quorum status
+    async function loadQuorumStatus(meetingId) {
+      try {
+        const { body } = await api(`/api/v1/quorum_status.php?meeting_id=${meetingId}`);
+        
+        if (body && body.ok && body.data) {
+          const q = body.data;
+          
+          // Update KPI
+          document.getElementById('kpiQuorum').textContent = q.met ? '✓' : '✗';
+          document.getElementById('kpiQuorum').className = `kpi-value ${q.met ? 'success' : 'danger'}`;
+          
+          // Update bar
+          const fill = document.getElementById('quorumFill');
+          const ratio = Math.min(100, Math.round((q.ratio || 0) * 100));
+          fill.style.width = ratio + '%';
+          fill.className = `quorum-fill ${q.met ? 'reached' : ratio > 30 ? 'partial' : 'critical'}`;
+          
+          // Update threshold marker
+          const threshold = document.getElementById('quorumThreshold');
+          threshold.style.left = Math.round((q.threshold || 0.5) * 100) + '%';
+          
+          // Update text
+          document.getElementById('quorumRatio').textContent = `${ratio}% / ${Math.round((q.threshold || 0.5) * 100)}%`;
+          document.getElementById('quorumCurrent').textContent = `${q.present || 0} présents`;
+          document.getElementById('quorumRequired').textContent = `Seuil: ${Math.round((q.threshold || 0.5) * 100)}%`;
+          
+          // Update badge
+          const badge = document.getElementById('quorumStatusBadge');
+          badge.className = `badge ${q.met ? 'badge-success' : 'badge-warning'}`;
+          badge.textContent = q.met ? 'Atteint' : 'Non atteint';
+          
+          // Update justification
+          document.getElementById('quorumJustification').innerHTML = `
+            <div class="text-sm">${q.justification || 'Aucune justification disponible'}</div>
+          `;
+        }
+      } catch (err) {
+        console.error('Quorum error:', err);
+      }
+    }
+
+    // Load active motion
+    async function loadActiveMotion(meetingId) {
+      try {
+        const { body } = await api(`/api/v1/motions.php?meeting_id=${meetingId}&status=open`);
+        
+        const btnOpen = document.getElementById('btnOpenMotion');
+        const btnClose = document.getElementById('btnCloseMotion');
+        const badge = document.getElementById('badgeMotion');
+        const detail = document.getElementById('motionDetail');
+        
+        if (body && body.ok && body.data && body.data.length > 0) {
+          const m = body.data[0];
+          
+          badge.className = 'badge badge-warning badge-dot';
+          badge.textContent = 'Vote ouvert';
+          
+          detail.innerHTML = `
+            <div class="p-4 bg-warning-subtle rounded-lg border border-warning">
+              <div class="font-semibold text-warning-text">${escapeHtml(m.title)}</div>
+              <div class="text-sm text-muted mt-1">${m.description || ''}</div>
+              <div class="flex items-center gap-4 mt-3 text-sm">
+                <span>✅ Pour: <strong id="voteFor">—</strong></span>
+                <span>❌ Contre: <strong id="voteAgainst">—</strong></span>
+                <span>⚪ Abstention: <strong id="voteAbstain">—</strong></span>
+              </div>
+            </div>
+          `;
+          
+          btnOpen.disabled = true;
+          btnClose.disabled = false;
+          
+          // Update vote counts
+          document.getElementById('kpiVoted').textContent = m.votes_count || 0;
+          document.getElementById('kpiPending').textContent = m.pending_count || 0;
+        } else {
+          badge.className = 'badge badge-neutral';
+          badge.textContent = 'Aucune';
+          
+          detail.innerHTML = `
+            <div class="p-4 bg-surface rounded-lg border text-center">
+              <div class="text-muted mb-2">Aucune résolution ouverte</div>
+              <div class="text-sm text-secondary">
+                Ouvrez une résolution depuis la page Résolutions
+              </div>
+            </div>
+          `;
+          
+          btnOpen.disabled = false;
+          btnClose.disabled = true;
+          
+          document.getElementById('kpiVoted').textContent = '—';
+          document.getElementById('kpiPending').textContent = '—';
+        }
+      } catch (err) {
+        console.error('Motion error:', err);
+      }
+    }
+
+    // Reset context
+    function resetContext() {
+      currentMeetingId = null;
+      document.getElementById('meetingSummary').innerHTML = 'Sélectionnez une séance';
+      document.getElementById('meetingStatusBadge').textContent = '—';
+      updateMeetingLinks(null);
+    }
+
+    // Event listeners
+    meetingSelect.addEventListener('change', () => {
+      loadMeetingContext(meetingSelect.value);
+    });
+
+    document.getElementById('btnOpenMotion').addEventListener('click', async () => {
+      if (!currentMeetingId) return;
+      // Redirect to motions page to select which motion to open
+      window.location.href = `/motions.htmx.html?meeting_id=${currentMeetingId}`;
+    });
+
+    document.getElementById('btnCloseMotion').addEventListener('click', async () => {
+      if (!currentMeetingId) return;
+      
+      if (!confirm('Êtes-vous sûr de vouloir clôturer le vote en cours ?')) return;
+      
+      try {
+        const { body } = await api('/api/v1/motions_close.php', { meeting_id: currentMeetingId });
+        
+        if (body && body.ok) {
+          setNotif('success', 'Vote clôturé');
+          loadActiveMotion(currentMeetingId);
+        } else {
+          setNotif('error', body?.error || 'Erreur');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    });
+
+    // Initial load
+    loadMeetings();
+
+    // Auto-refresh every 5s if meeting selected
+    setInterval(() => {
+      if (currentMeetingId) {
+        loadAttendanceStats(currentMeetingId);
+        loadQuorumStatus(currentMeetingId);
+        loadActiveMotion(currentMeetingId);
+      }
+    }, 5000);
+
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gestion des membres - AG-VOTE">
+  <title>Membres — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    .member-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      transition: all var(--duration-fast);
+    }
+    
+    .member-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .member-info {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    
+    .member-avatar {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+      border-radius: 50%;
+      font-weight: var(--font-bold);
+      font-size: var(--text-sm);
+    }
+    
+    .member-details {
+      min-width: 0;
+    }
+    
+    .member-name {
+      font-weight: var(--font-semibold);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .member-email {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+    
+    .member-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    
+    .upload-zone {
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      text-align: center;
+      transition: all var(--duration-fast);
+      cursor: pointer;
+    }
+    
+    .upload-zone:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-subtle);
+    }
+    
+    .upload-zone.dragover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-subtle);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="p-4 border-b">
+        <a href="/" class="brand">
+          <span class="brand-logo">AG-VOTE</span>
+          <span class="brand-version">v2.0</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="/meetings.htmx.html">
+          <span class="nav-item-icon">🏛️</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a class="nav-item" href="/operator.htmx.html">
+          <span class="nav-item-icon">🗂️</span>
+          <span>Fiche séance</span>
+        </a>
+        <a class="nav-item active" href="/members.htmx.html">
+          <span class="nav-item-icon">👥</span>
+          <span>Membres</span>
+        </a>
+        <a class="nav-item" href="/archives.htmx.html">
+          <span class="nav-item-icon">📚</span>
+          <span>Archives</span>
+        </a>
+        <div class="border-t mt-4 pt-4">
+          <a class="nav-item" href="/admin.htmx.html">
+            <span class="nav-item-icon">⚙️</span>
+            <span>Administration</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">👥 Membres</h1>
+          <p class="text-sm text-secondary">Gestion des participants et pondération</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a class="btn btn-secondary" href="/api/v1/members_export_csv.php" target="_blank">
+          📥 Exporter CSV
+        </a>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid mb-6">
+          <div class="kpi-card">
+            <div class="kpi-value primary" id="kpiTotal">—</div>
+            <div class="kpi-label">Total membres</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value success" id="kpiActive">—</div>
+            <div class="kpi-label">Actifs</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpiPower">—</div>
+            <div class="kpi-label">Voix totales</div>
+          </div>
+        </div>
+
+        <!-- Add Member -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">➕ Ajouter un membre</h3>
+            <p class="card-description">Créer un nouveau participant</p>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-4 gap-4">
+              <div class="form-group">
+                <label class="form-label form-label-required" for="mName">Nom complet</label>
+                <input class="form-input" type="text" id="mName" placeholder="Jean Dupont">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="mEmail">Email</label>
+                <input class="form-input" type="email" id="mEmail" placeholder="jean@exemple.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="mPower">Poids (voix)</label>
+                <input class="form-input" type="number" id="mPower" value="1" min="0" step="1">
+              </div>
+              <div class="form-group">
+                <label class="form-label">&nbsp;</label>
+                <div class="flex items-center gap-4">
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" id="mActive" checked>
+                    <span>Actif</span>
+                  </label>
+                  <button class="btn btn-primary" id="btnCreate">
+                    ➕ Ajouter
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Import CSV -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="card-title">📄 Import CSV</h3>
+                <p class="card-description">
+                  Colonnes: <code>name</code>, <code>email</code>, <code>voting_power</code>, <code>is_active</code>
+                </p>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btnSeed">
+                🧪 Générer fictifs
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="upload-zone" id="uploadZone">
+              <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;">
+              <div class="text-3xl mb-2">📁</div>
+              <div class="font-medium">Glisser un fichier CSV ici</div>
+              <div class="text-sm text-muted mt-1">ou cliquer pour sélectionner</div>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button class="btn btn-primary" id="btnImport" disabled>
+                📥 Importer
+              </button>
+              <span class="text-sm text-muted" id="fileName">Aucun fichier sélectionné</span>
+            </div>
+            <pre id="importOut" class="mt-4 p-3 bg-surface rounded-md text-sm font-mono" style="display: none;"></pre>
+          </div>
+        </div>
+
+        <!-- Members List -->
+        <div class="card">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="card-title">📋 Liste des membres</h3>
+                <p class="card-description" id="membersCount">— membres</p>
+              </div>
+              <input type="text" class="form-input" id="searchInput" 
+                     placeholder="🔍 Rechercher..." style="width: 250px;">
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="flex flex-col gap-3" id="membersList">
+              <div class="text-center p-6">
+                <div class="spinner"></div>
+                <div class="mt-4 text-muted">Chargement des membres...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Drawer -->
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close>✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    let membersCache = [];
+    const membersList = document.getElementById('membersList');
+    const searchInput = document.getElementById('searchInput');
+
+    // Get initials
+    function getInitials(name) {
+      return (name || '?')
+        .split(' ')
+        .map(w => w[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase();
+    }
+
+    // Parse members from response
+    function parseMembers(resp) {
+      if (!resp) return [];
+      if (Array.isArray(resp)) return resp;
+      if (Array.isArray(resp.members)) return resp.members;
+      if (resp.data) {
+        if (Array.isArray(resp.data.members)) return resp.data.members;
+        if (Array.isArray(resp.data)) return resp.data;
+      }
+      return [];
+    }
+
+    // Render members
+    function render(members) {
+      const query = searchInput.value.toLowerCase().trim();
+      
+      const filtered = query
+        ? members.filter(m => {
+            const name = (m.full_name || m.name || '').toLowerCase();
+            const email = (m.email || '').toLowerCase();
+            return name.includes(query) || email.includes(query);
+          })
+        : members;
+      
+      document.getElementById('membersCount').textContent = `${filtered.length} membre${filtered.length > 1 ? 's' : ''}`;
+      
+      if (filtered.length === 0) {
+        membersList.innerHTML = `
+          <div class="empty-state p-6">
+            <div class="empty-state-icon">👥</div>
+            <div class="empty-state-title">Aucun membre</div>
+            <div class="empty-state-description">
+              ${query ? 'Aucun résultat pour cette recherche' : 'Ajoutez des membres ou importez un CSV'}
+            </div>
+          </div>
+        `;
+        return;
+      }
+      
+      membersList.innerHTML = filtered.map(m => {
+        const name = escapeHtml(m.full_name || m.name || '—');
+        const email = escapeHtml(m.email || '—');
+        const power = m.voting_power ?? m.power ?? 1;
+        const isActive = m.is_active !== false && m.active !== false;
+        const initials = getInitials(m.full_name || m.name);
+        
+        return `
+          <div class="member-card">
+            <div class="member-info">
+              <div class="member-avatar">${initials}</div>
+              <div class="member-details">
+                <div class="member-name">${name}</div>
+                <div class="member-email">${email}</div>
+              </div>
+            </div>
+            <div class="member-actions">
+              <span class="badge badge-primary">${power} voix</span>
+              <span class="badge ${isActive ? 'badge-success' : 'badge-neutral'}">
+                ${isActive ? 'Actif' : 'Inactif'}
+              </span>
+              <button class="btn btn-ghost btn-sm btn-edit" data-id="${m.id}">✏️</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Load members
+    async function loadMembers() {
+      membersList.innerHTML = `
+        <div class="text-center p-6">
+          <div class="spinner"></div>
+          <div class="mt-4 text-muted">Chargement des membres...</div>
+        </div>
+      `;
+      
+      try {
+        const { body } = await api('/api/v1/members.php');
+        membersCache = parseMembers(body);
+        render(membersCache);
+        
+        // Update KPIs
+        const active = membersCache.filter(m => m.is_active !== false && m.active !== false);
+        const totalPower = membersCache.reduce((sum, m) => sum + (m.voting_power ?? m.power ?? 1), 0);
+        
+        document.getElementById('kpiTotal').textContent = membersCache.length;
+        document.getElementById('kpiActive').textContent = active.length;
+        document.getElementById('kpiPower').textContent = totalPower;
+      } catch (err) {
+        membersList.innerHTML = `
+          <div class="alert alert-danger">
+            <span>❌</span>
+            <span>Erreur de chargement: ${escapeHtml(err.message)}</span>
+          </div>
+        `;
+      }
+    }
+
+    // Search filter
+    searchInput.addEventListener('input', () => render(membersCache));
+
+    // Create member
+    document.getElementById('btnCreate').addEventListener('click', async () => {
+      const full_name = document.getElementById('mName').value.trim();
+      const email = document.getElementById('mEmail').value.trim();
+      const voting_power = parseInt(document.getElementById('mPower').value) || 1;
+      const is_active = document.getElementById('mActive').checked;
+      
+      if (!full_name) {
+        setNotif('error', 'Le nom est requis');
+        return;
+      }
+      
+      try {
+        const { body } = await api('/api/v1/members.php', { full_name, email, voting_power, is_active });
+        
+        if (body && body.ok !== false) {
+          setNotif('success', '✅ Membre ajouté');
+          document.getElementById('mName').value = '';
+          document.getElementById('mEmail').value = '';
+          loadMembers();
+        } else {
+          setNotif('error', body?.error || 'Erreur création');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    });
+
+    // Upload zone
+    const uploadZone = document.getElementById('uploadZone');
+    const csvFile = document.getElementById('csvFile');
+    const btnImport = document.getElementById('btnImport');
+    const fileName = document.getElementById('fileName');
+    
+    uploadZone.addEventListener('click', () => csvFile.click());
+    
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      
+      const files = e.dataTransfer.files;
+      if (files.length && files[0].name.endsWith('.csv')) {
+        csvFile.files = files;
+        updateFileName(files[0].name);
+      }
+    });
+    
+    csvFile.addEventListener('change', () => {
+      if (csvFile.files.length) {
+        updateFileName(csvFile.files[0].name);
+      }
+    });
+    
+    function updateFileName(name) {
+      fileName.textContent = name;
+      btnImport.disabled = false;
+    }
+
+    // Import CSV
+    btnImport.addEventListener('click', async () => {
+      const file = csvFile.files[0];
+      if (!file) return;
+      
+      const out = document.getElementById('importOut');
+      out.style.display = 'block';
+      out.textContent = 'Import en cours...';
+      
+      const fd = new FormData();
+      fd.append('file', file);
+      
+      try {
+        const response = await fetch('/api/v1/members_import_csv.php', {
+          method: 'POST',
+          body: fd
+        });
+        const result = await response.json();
+        
+        out.textContent = JSON.stringify(result, null, 2);
+        
+        if (result && result.ok !== false) {
+          setNotif('success', `✅ Import terminé: ${result.imported || 0} membres`);
+          loadMembers();
+        } else {
+          setNotif('error', result?.error || 'Erreur import');
+        }
+      } catch (err) {
+        out.textContent = err.message;
+        setNotif('error', 'Erreur import: ' + err.message);
+      }
+    });
+
+    // Seed members
+    document.getElementById('btnSeed').addEventListener('click', async () => {
+      try {
+        const { body } = await api('/api/v1/dev_seed_members.php', { count: 30 });
+        
+        if (body && body.ok !== false) {
+          setNotif('success', '🧪 Membres fictifs générés');
+          loadMembers();
+        } else {
+          setNotif('warning', 'Seed non disponible');
+        }
+      } catch (err) {
+        setNotif('warning', 'Endpoint seed non disponible');
+      }
+    });
+
+    // Initial load
+    loadMembers();
+  })();
+  </script>
+</body>
+</html>

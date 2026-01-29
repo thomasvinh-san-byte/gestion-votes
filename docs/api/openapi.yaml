@@ -1,0 +1,949 @@
+openapi: 3.0.3
+info:
+  title: AG-VOTE API
+  description: |
+    API REST pour la gestion d'assemblées délibératives et de votes.
+    
+    ## Authentification
+    
+    L'API utilise une authentification par API Key via le header `X-Api-Key`.
+    
+    ```
+    X-Api-Key: votre-cle-api
+    ```
+    
+    ## Rôles disponibles
+    
+    | Rôle | Niveau | Description |
+    |------|--------|-------------|
+    | `admin` | 100 | Accès complet |
+    | `operator` | 80 | Gestion séances, membres, votes |
+    | `president` | 70 | Validation, signature |
+    | `trust` | 60 | Contrôle, audit |
+    | `readonly` | 20 | Lecture seule |
+    | `voter` | 10 | Vote uniquement |
+    
+    ## Protection CSRF
+    
+    Les requêtes POST/PUT/DELETE doivent inclure le header `X-CSRF-Token`.
+    
+  version: 2.0.0
+  contact:
+    name: AG-VOTE Support
+    email: support@ag-vote.example.com
+  license:
+    name: Proprietary
+    
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Serveur de développement
+  - url: https://api.ag-vote.example.com/v1
+    description: Serveur de production
+
+tags:
+  - name: Meetings
+    description: Gestion des séances
+  - name: Motions
+    description: Gestion des résolutions
+  - name: Members
+    description: Gestion des membres
+  - name: Attendances
+    description: Gestion des présences
+  - name: Proxies
+    description: Gestion des procurations
+  - name: Votes
+    description: Opérations de vote
+  - name: Speech
+    description: Gestion de la parole
+  - name: Trust
+    description: Contrôle et audit
+  - name: Admin
+    description: Administration
+  - name: Reports
+    description: Génération de rapports
+
+paths:
+  /ping.php:
+    get:
+      summary: Health check
+      tags: [Admin]
+      security: []
+      responses:
+        '200':
+          description: API opérationnelle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /whoami.php:
+    get:
+      summary: Informations utilisateur courant
+      tags: [Admin]
+      responses:
+        '200':
+          description: Informations utilisateur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /meetings.php:
+    get:
+      summary: Liste des séances
+      tags: [Meetings]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, preparation, live, closed, validated, archived]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Liste des séances
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Meeting'
+    post:
+      summary: Créer une séance
+      tags: [Meetings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeetingCreate'
+      responses:
+        '201':
+          description: Séance créée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Meeting'
+
+  /meeting_validate.php:
+    post:
+      summary: Valider une séance
+      tags: [Meetings]
+      description: Valide et verrouille définitivement la séance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meeting_id]
+              properties:
+                meeting_id:
+                  type: string
+                  format: uuid
+                president_name:
+                  type: string
+      responses:
+        '200':
+          description: Séance validée
+        '409':
+          description: Séance déjà validée ou non prête
+
+  /meeting_summary.php:
+    get:
+      summary: Résumé statistique d'une séance
+      tags: [Meetings]
+      parameters:
+        - name: meeting_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Résumé de la séance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeetingSummary'
+
+  /meeting_ready_check.php:
+    get:
+      summary: Checklist de validation
+      tags: [Meetings]
+      parameters:
+        - name: meeting_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: État de préparation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadyCheck'
+
+  /motions.php:
+    get:
+      summary: Liste des résolutions
+      tags: [Motions]
+      parameters:
+        - name: meeting_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste des résolutions
+    post:
+      summary: Créer une résolution
+      tags: [Motions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MotionCreate'
+      responses:
+        '201':
+          description: Résolution créée
+
+  /motions_open.php:
+    post:
+      summary: Ouvrir le vote sur une résolution
+      tags: [Motions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meeting_id, motion_id]
+              properties:
+                meeting_id:
+                  type: string
+                  format: uuid
+                motion_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Vote ouvert
+        '409':
+          description: Une résolution est déjà ouverte
+
+  /motions_close.php:
+    post:
+      summary: Clôturer le vote sur une résolution
+      tags: [Motions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meeting_id, motion_id]
+              properties:
+                meeting_id:
+                  type: string
+                  format: uuid
+                motion_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Vote clôturé
+
+  /members.php:
+    get:
+      summary: Liste des membres
+      tags: [Members]
+      responses:
+        '200':
+          description: Liste des membres
+    post:
+      summary: Créer un membre
+      tags: [Members]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberCreate'
+      responses:
+        '201':
+          description: Membre créé
+
+  /members_import_csv.php:
+    post:
+      summary: Importer des membres depuis CSV
+      tags: [Members]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Import terminé
+
+  /attendances.php:
+    get:
+      summary: Liste des présences
+      tags: [Attendances]
+      parameters:
+        - name: meeting_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste des présences
+    post:
+      summary: Modifier une présence
+      tags: [Attendances]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceUpdate'
+      responses:
+        '200':
+          description: Présence modifiée
+
+  /attendances_bulk.php:
+    post:
+      summary: Modifier plusieurs présences
+      tags: [Attendances]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meeting_id, status]
+              properties:
+                meeting_id:
+                  type: string
+                  format: uuid
+                status:
+                  type: string
+                  enum: [present, absent, remote, proxy, excused]
+                member_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Présences modifiées
+
+  /proxies.php:
+    get:
+      summary: Liste des procurations
+      tags: [Proxies]
+      parameters:
+        - name: meeting_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste des procurations
+    post:
+      summary: Créer une procuration
+      tags: [Proxies]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyCreate'
+      responses:
+        '201':
+          description: Procuration créée
+
+  /proxies_delete.php:
+    post:
+      summary: Supprimer une procuration
+      tags: [Proxies]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meeting_id, proxy_id]
+              properties:
+                meeting_id:
+                  type: string
+                  format: uuid
+                proxy_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Procuration supprimée
+
+  /ballots_cast.php:
+    post:
+      summary: Voter sur une résolution
+      tags: [Votes]
+      security:
+        - VoteToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, choice]
+              properties:
+                token:
+                  type: string
+                choice:
+                  type: string
+                  enum: [for, against, abstain]
+      responses:
+        '200':
+          description: Vote enregistré
+        '409':
+          description: Token déjà utilisé
+
+  /ballots_result.php:
+    get:
+      summary: Résultats d'une résolution
+      tags: [Votes]
+      parameters:
+        - name: motion_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Résultats du vote
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoteResult'
+
+  /speech_queue.php:
+    get:
+      summary: File d'attente des demandes de parole
+      tags: [Speech]
+      parameters:
+        - name: meeting_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: File d'attente
+
+  /speech_grant.php:
+    post:
+      summary: Accorder la parole
+      tags: [Speech]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meeting_id]
+              properties:
+                meeting_id:
+                  type: string
+                  format: uuid
+                member_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Parole accordée
+
+  /speech_end.php:
+    post:
+      summary: Terminer la parole en cours
+      tags: [Speech]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meeting_id]
+              properties:
+                meeting_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Parole terminée
+
+  /trust_checks.php:
+    get:
+      summary: Contrôles de cohérence
+      tags: [Trust]
+      parameters:
+        - name: meeting_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Résultats des contrôles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustChecks'
+
+  /trust_anomalies.php:
+    get:
+      summary: Détection des anomalies
+      tags: [Trust]
+      parameters:
+        - name: meeting_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Liste des anomalies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustAnomalies'
+
+  /audit_log.php:
+    get:
+      summary: Journal d'audit
+      tags: [Trust]
+      parameters:
+        - name: meeting_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Événements d'audit
+
+  /meeting_generate_report_pdf.php:
+    get:
+      summary: Générer le PV en PDF
+      tags: [Reports]
+      parameters:
+        - name: meeting_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: PDF du procès-verbal
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '409':
+          description: Séance non validée
+
+  /admin_system_status.php:
+    get:
+      summary: Statut du système
+      tags: [Admin]
+      responses:
+        '200':
+          description: Statut système
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+    VoteToken:
+      type: apiKey
+      in: query
+      name: token
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: false
+        error:
+          type: string
+        detail:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, operator, president, trust, readonly, voter]
+
+    Meeting:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        meeting_type:
+          type: string
+          enum: [ag_ordinaire, ag_extraordinaire, conseil, bureau, autre]
+        status:
+          type: string
+          enum: [draft, preparation, live, closed, validated, archived]
+        scheduled_at:
+          type: string
+          format: date-time
+        location:
+          type: string
+        president_name:
+          type: string
+        validated_at:
+          type: string
+          format: date-time
+
+    MeetingCreate:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 255
+        meeting_type:
+          type: string
+          enum: [ag_ordinaire, ag_extraordinaire, conseil, bureau, autre]
+        scheduled_at:
+          type: string
+          format: date-time
+        location:
+          type: string
+        description:
+          type: string
+        president_name:
+          type: string
+
+    MeetingSummary:
+      type: object
+      properties:
+        meeting_id:
+          type: string
+          format: uuid
+        data:
+          type: object
+          properties:
+            total_members:
+              type: integer
+            present_count:
+              type: integer
+            motions_count:
+              type: integer
+            adopted_count:
+              type: integer
+            rejected_count:
+              type: integer
+            ballots_count:
+              type: integer
+
+    ReadyCheck:
+      type: object
+      properties:
+        ready:
+          type: boolean
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              label:
+                type: string
+              passed:
+                type: boolean
+              detail:
+                type: string
+
+    MotionCreate:
+      type: object
+      required: [meeting_id, title]
+      properties:
+        meeting_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        secret:
+          type: boolean
+          default: false
+        position:
+          type: integer
+
+    MemberCreate:
+      type: object
+      required: [full_name]
+      properties:
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        voting_power:
+          type: number
+          default: 1
+        is_active:
+          type: boolean
+          default: true
+
+    AttendanceUpdate:
+      type: object
+      required: [meeting_id, member_id, status]
+      properties:
+        meeting_id:
+          type: string
+          format: uuid
+        member_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [present, absent, remote, proxy, excused]
+
+    ProxyCreate:
+      type: object
+      required: [meeting_id, giver_id, receiver_id]
+      properties:
+        meeting_id:
+          type: string
+          format: uuid
+        giver_id:
+          type: string
+          format: uuid
+        receiver_id:
+          type: string
+          format: uuid
+
+    VoteResult:
+      type: object
+      properties:
+        motion_id:
+          type: string
+          format: uuid
+        tallies:
+          type: object
+          properties:
+            for:
+              type: object
+              properties:
+                count:
+                  type: integer
+                weight:
+                  type: number
+            against:
+              type: object
+              properties:
+                count:
+                  type: integer
+                weight:
+                  type: number
+            abstain:
+              type: object
+              properties:
+                count:
+                  type: integer
+                weight:
+                  type: number
+        decision:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [adopted, rejected, invalid]
+            reason:
+              type: string
+        quorum:
+          type: object
+          properties:
+            applied:
+              type: boolean
+            met:
+              type: boolean
+            ratio:
+              type: number
+            threshold:
+              type: number
+
+    TrustChecks:
+      type: object
+      properties:
+        all_passed:
+          type: boolean
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+            passed:
+              type: integer
+            failed:
+              type: integer
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              label:
+                type: string
+              passed:
+                type: boolean
+              detail:
+                type: string
+
+    TrustAnomalies:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+            danger:
+              type: integer
+            warning:
+              type: integer
+            info:
+              type: integer
+        anomalies:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              severity:
+                type: string
+                enum: [danger, warning, info]
+              title:
+                type: string
+              description:
+                type: string
+
+    SystemStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, down]
+        database:
+          type: object
+          properties:
+            connected:
+              type: boolean
+            latency_ms:
+              type: number
+        disk:
+          type: object
+          properties:
+            free_percent:
+              type: number
+        uptime_seconds:
+          type: integer
+
+security:
+  - ApiKey: []

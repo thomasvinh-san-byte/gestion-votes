@@ -1,0 +1,444 @@
+/**
+ * utils.js - Utilitaires JS avec support CSRF intégré
+ * 
+ * REMPLACE ou AUGMENTE le utils.js existant.
+ * Ajoute le support CSRF automatique aux appels API.
+ */
+
+window.Utils = window.Utils || {};
+
+(function(Utils) {
+  'use strict';
+
+  // ==========================================================================
+  // CSRF SUPPORT
+  // ==========================================================================
+
+  function getCsrfToken() {
+    // 1. Meta tag
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) return meta.getAttribute('content');
+    
+    // 2. window.CSRF
+    if (window.CSRF && window.CSRF.token) return window.CSRF.token;
+    
+    return null;
+  }
+
+  function getCsrfHeaders() {
+    const token = getCsrfToken();
+    return token ? { 'X-CSRF-Token': token } : {};
+  }
+
+  // ==========================================================================
+  // API KEY STORAGE (existant, conservé)
+  // ==========================================================================
+
+  const STORAGE_KEY = 'ag_vote_api_key';
+
+  Utils.getStoredApiKey = function() {
+    try {
+      return localStorage.getItem(STORAGE_KEY) || '';
+    } catch (e) {
+      return '';
+    }
+  };
+
+  Utils.setStoredApiKey = function(key) {
+    try {
+      if (key) {
+        localStorage.setItem(STORAGE_KEY, key);
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch (e) {
+      console.warn('localStorage unavailable');
+    }
+  };
+
+  Utils.bindApiKeyInput = function(role, inputEl, onChange) {
+    const storageKey = role + '.api_key';
+    const saved = localStorage.getItem(storageKey) || '';
+    if (inputEl && saved) inputEl.value = saved;
+    
+    if (inputEl) {
+      inputEl.addEventListener('change', () => {
+        localStorage.setItem(storageKey, inputEl.value || '');
+        if (onChange) onChange();
+      });
+    }
+  };
+
+  // ==========================================================================
+  // HTTP HELPERS (MIS À JOUR AVEC CSRF)
+  // ==========================================================================
+
+  function buildHeaders(extra = {}) {
+    const headers = {
+      ...getCsrfHeaders(),
+      ...extra,
+    };
+    
+    const apiKey = Utils.getStoredApiKey();
+    if (apiKey) {
+      headers['X-Api-Key'] = apiKey;
+    }
+    
+    return headers;
+  }
+
+  Utils.apiGet = async function(url, options = {}) {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: buildHeaders(options.headers || {}),
+      credentials: 'same-origin',
+      ...options,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'network_error' }));
+      throw new Error(error.error || 'request_failed');
+    }
+    
+    return response.json();
+  };
+
+  Utils.apiPost = async function(url, data = {}, options = {}) {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: buildHeaders({
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      }),
+      credentials: 'same-origin',
+      body: JSON.stringify(data),
+      ...options,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'network_error' }));
+      throw new Error(error.error || 'request_failed');
+    }
+    
+    return response.json();
+  };
+
+  Utils.apiDelete = async function(url, options = {}) {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: buildHeaders(options.headers || {}),
+      credentials: 'same-origin',
+      ...options,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'network_error' }));
+      throw new Error(error.error || 'request_failed');
+    }
+    
+    return response.json();
+  };
+
+  // ==========================================================================
+  // HELPERS EXISTANTS (conservés)
+  // ==========================================================================
+
+  Utils.escapeHtml = function(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  Utils.formatDate = function(dateStr) {
+    if (!dateStr) return '—';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleString('fr-FR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  Utils.debounce = function(fn, delay = 300) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn.apply(this, args), delay);
+    };
+  };
+
+  Utils.throttle = function(fn, limit = 100) {
+    let inThrottle;
+    return function(...args) {
+      if (!inThrottle) {
+        fn.apply(this, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  };
+
+  // ==========================================================================
+  // CSRF HELPERS
+  // ==========================================================================
+
+  Utils.getCsrfToken = getCsrfToken;
+
+  Utils.addCsrfToForm = function(form) {
+    const token = getCsrfToken();
+    if (!token) return;
+    
+    let input = form.querySelector('input[name="csrf_token"]');
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'csrf_token';
+      form.appendChild(input);
+    }
+    input.value = token;
+  };
+
+  Utils.initCsrfForms = function() {
+    document.querySelectorAll('form[method="post"], form[method="POST"]').forEach(form => {
+      Utils.addCsrfToForm(form);
+    });
+  };
+
+  // ==========================================================================
+  // HTMX INTEGRATION
+  // ==========================================================================
+
+  // Auto-configure HTMX pour envoyer le CSRF token
+  document.body.addEventListener('htmx:configRequest', function(e) {
+    const token = getCsrfToken();
+    if (token) {
+      e.detail.headers['X-CSRF-Token'] = token;
+    }
+    
+    const apiKey = Utils.getStoredApiKey();
+    if (apiKey) {
+      e.detail.headers['X-Api-Key'] = apiKey;
+    }
+  });
+
+  // Re-init CSRF après HTMX swap
+  document.body.addEventListener('htmx:afterSwap', function() {
+    Utils.initCsrfForms();
+  });
+
+  // Init au chargement
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', Utils.initCsrfForms);
+  } else {
+    Utils.initCsrfForms();
+  }
+
+})(window.Utils);
+
+// ==========================================================================
+// GLOBAL CONVENIENCE FUNCTIONS
+// ==========================================================================
+
+/**
+ * Global API function - simplified wrapper
+ * @param {string} url - API endpoint
+ * @param {object} data - Data to POST (null for GET)
+ * @returns {Promise<{status: number, body: object}>}
+ */
+async function api(url, data = null) {
+  const isPost = data !== null;
+  
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  // Add CSRF token
+  if (window.Utils && window.Utils.getCsrfToken) {
+    const token = window.Utils.getCsrfToken();
+    if (token) headers['X-CSRF-Token'] = token;
+  }
+  
+  // Add API key
+  if (window.Utils && window.Utils.getStoredApiKey) {
+    const apiKey = window.Utils.getStoredApiKey();
+    if (apiKey) headers['X-Api-Key'] = apiKey;
+  }
+  
+  try {
+    const response = await fetch(url, {
+      method: isPost ? 'POST' : 'GET',
+      headers,
+      credentials: 'same-origin',
+      body: isPost ? JSON.stringify(data) : undefined,
+    });
+    
+    const body = await response.json().catch(() => ({}));
+    return { status: response.status, body };
+  } catch (err) {
+    console.error('API Error:', err);
+    return { status: 0, body: { ok: false, error: 'network_error', message: err.message } };
+  }
+}
+
+/**
+ * Display notification toast
+ * @param {string} type - 'success', 'error', 'warning', 'info'
+ * @param {string} message - Message to display
+ * @param {number} duration - Auto-dismiss duration in ms (0 = no auto-dismiss)
+ */
+function setNotif(type, message, duration = 5000) {
+  const container = document.getElementById('notif_box') || createNotifContainer();
+  
+  // Map types to CSS classes
+  const typeMap = {
+    success: 'toast-success',
+    error: 'toast-danger',
+    danger: 'toast-danger',
+    warning: 'toast-warning',
+    info: 'toast-info',
+  };
+  
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.className = `toast ${typeMap[type] || 'toast-info'}`;
+  toast.setAttribute('role', 'alert');
+  
+  // Icon based on type
+  const icons = {
+    success: '✅',
+    error: '❌',
+    danger: '❌',
+    warning: '⚠️',
+    info: 'ℹ️',
+  };
+  
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || icons.info}</span>
+    <span class="toast-message">${escapeHtml(message)}</span>
+    <button class="toast-close btn btn-ghost btn-icon btn-sm" aria-label="Fermer">✕</button>
+  `;
+  
+  // Close button handler
+  const closeBtn = toast.querySelector('.toast-close');
+  closeBtn.addEventListener('click', () => {
+    toast.style.animation = 'slideOutRight 0.3s ease-out forwards';
+    setTimeout(() => toast.remove(), 300);
+  });
+  
+  // Show container if hidden
+  container.classList.remove('hidden');
+  container.style.display = 'flex';
+  
+  // Add to container
+  container.appendChild(toast);
+  
+  // Auto-dismiss
+  if (duration > 0) {
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.style.animation = 'slideOutRight 0.3s ease-out forwards';
+        setTimeout(() => toast.remove(), 300);
+      }
+    }, duration);
+  }
+}
+
+/**
+ * Create notification container if not exists
+ */
+function createNotifContainer() {
+  let container = document.getElementById('notif_box');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'notif_box';
+    container.className = 'toast-container';
+    container.style.cssText = `
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      pointer-events: none;
+    `;
+    document.body.appendChild(container);
+  }
+  return container;
+}
+
+/**
+ * Escape HTML entities
+ */
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
+ * Get URL parameter
+ */
+function getParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+/**
+ * Format date to French locale
+ */
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch (e) {
+    return dateStr;
+  }
+}
+
+// Add slide-out animation
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+  .toast {
+    pointer-events: auto;
+  }
+  .toast-icon {
+    flex-shrink: 0;
+  }
+  .toast-message {
+    flex: 1;
+  }
+  .toast-close {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+  .toast-close:hover {
+    opacity: 1;
+  }
+`;
+document.head.appendChild(style);

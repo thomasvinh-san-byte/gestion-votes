@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gestion des procurations - AG-VOTE">
+  <title>Procurations — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    .proxy-card {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-3);
+    }
+    
+    .proxy-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .proxy-member {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      flex: 1;
+    }
+    
+    .proxy-avatar {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-bg-subtle);
+      border-radius: 50%;
+      font-weight: var(--font-bold);
+      font-size: var(--text-sm);
+    }
+    
+    .proxy-avatar.giver {
+      background: var(--color-warning-subtle);
+      color: var(--color-warning-text);
+    }
+    
+    .proxy-avatar.receiver {
+      background: var(--color-success-subtle);
+      color: var(--color-success-text);
+    }
+    
+    .proxy-arrow {
+      font-size: var(--text-xl);
+      color: var(--color-text-muted);
+    }
+    
+    .proxy-name {
+      font-weight: var(--font-medium);
+    }
+    
+    .proxy-meta {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+    
+    .proxy-rule {
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-info-subtle);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="p-4 border-b">
+        <a href="/" class="brand">
+          <span class="brand-logo">AG-VOTE</span>
+          <span class="brand-version">v2.0</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="/meetings.htmx.html">
+          <span class="nav-item-icon">🏛️</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a class="nav-item" href="/operator.htmx.html">
+          <span class="nav-item-icon">🗂️</span>
+          <span>Fiche séance</span>
+        </a>
+        <a class="nav-item" href="/attendance.htmx.html">
+          <span class="nav-item-icon">👥</span>
+          <span>Présences</span>
+        </a>
+        <a class="nav-item active" href="/proxies.htmx.html">
+          <span class="nav-item-icon">📝</span>
+          <span>Procurations</span>
+        </a>
+        <a class="nav-item" href="/operator_flow.htmx.html">
+          <span class="nav-item-icon">🧑‍💼</span>
+          <span>Conduite live</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">📝 Procurations</h1>
+          <p class="text-sm text-secondary" id="meetingTitle">Gestion des pouvoirs</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-primary" id="btnAddProxy">
+          ➕ Nouvelle procuration
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- Meeting context -->
+        <div class="alert alert-info mb-6" id="meetingContext" style="display: none;">
+          <span>📌</span>
+          <span>Séance: <strong id="meetingName">—</strong></span>
+        </div>
+
+        <!-- Rule reminder -->
+        <div class="proxy-rule mb-6">
+          <strong>📋 Règle:</strong> Un mandataire ne peut détenir plus de <strong id="maxProxies">3</strong> procurations en plus de sa propre voix.
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid mb-6">
+          <div class="kpi-card">
+            <div class="kpi-value primary" id="kpiTotal">—</div>
+            <div class="kpi-label">Procurations</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpiGivers">—</div>
+            <div class="kpi-label">Mandants</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpiReceivers">—</div>
+            <div class="kpi-label">Mandataires</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value success" id="kpiVoicesDelegated">—</div>
+            <div class="kpi-label">Voix déléguées</div>
+          </div>
+        </div>
+
+        <!-- Proxies List -->
+        <div class="card">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="card-title">Liste des procurations</h3>
+                <p class="card-description" id="proxiesCount">— procurations actives</p>
+              </div>
+              <input type="text" class="form-input" id="searchInput" 
+                     placeholder="🔍 Rechercher..." style="width: 200px;">
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="proxiesList">
+              <div class="text-center p-6">
+                <div class="spinner"></div>
+                <div class="mt-4 text-muted">Chargement des procurations...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Proxy Modal -->
+  <div class="modal-backdrop" id="modalBackdrop" style="display: none;"></div>
+  <div class="modal" id="addProxyModal" style="display: none;">
+    <div class="modal-header">
+      <h3 class="modal-title">➕ Nouvelle procuration</h3>
+      <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group mb-4">
+        <label class="form-label form-label-required" for="giverSelect">Mandant (donne sa voix)</label>
+        <select class="form-input" id="giverSelect">
+          <option value="">— Sélectionner un membre —</option>
+        </select>
+        <p class="form-helper">Le membre qui délègue son droit de vote</p>
+      </div>
+      <div class="form-group mb-4">
+        <label class="form-label form-label-required" for="receiverSelect">Mandataire (reçoit la voix)</label>
+        <select class="form-input" id="receiverSelect">
+          <option value="">— Sélectionner un membre —</option>
+        </select>
+        <p class="form-helper">Le membre qui votera pour le mandant</p>
+      </div>
+      <div class="alert alert-warning" id="proxyWarning" style="display: none;">
+        <span>⚠️</span>
+        <span id="proxyWarningText">—</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btnCancelModal">Annuler</button>
+      <button class="btn btn-primary" id="btnSaveProxy">Créer la procuration</button>
+    </div>
+  </div>
+
+  <!-- Drawer -->
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close>✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    let currentMeetingId = null;
+    let proxiesCache = [];
+    let membersCache = [];
+    const proxiesList = document.getElementById('proxiesList');
+    const searchInput = document.getElementById('searchInput');
+
+    // Get meeting_id from URL
+    function getMeetingIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('meeting_id');
+    }
+
+    // Check meeting ID
+    currentMeetingId = getMeetingIdFromUrl();
+    if (!currentMeetingId) {
+      setNotif('error', 'Aucune séance sélectionnée');
+      setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
+    }
+
+    // Get initials
+    function getInitials(name) {
+      return (name || '?')
+        .split(' ')
+        .map(w => w[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase();
+    }
+
+    // Load meeting info
+    async function loadMeetingInfo() {
+      try {
+        const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
+        if (body && body.ok && body.data) {
+          document.getElementById('meetingTitle').textContent = body.data.title;
+          document.getElementById('meetingName').textContent = body.data.title;
+          document.getElementById('meetingContext').style.display = 'flex';
+          
+          if (body.data.max_proxies_per_member) {
+            document.getElementById('maxProxies').textContent = body.data.max_proxies_per_member;
+          }
+        }
+      } catch (err) {
+        console.error('Meeting info error:', err);
+      }
+    }
+
+    // Load members for selects
+    async function loadMembers() {
+      try {
+        const { body } = await api('/api/v1/members.php');
+        membersCache = body?.data || body?.members || [];
+        
+        const giverSelect = document.getElementById('giverSelect');
+        const receiverSelect = document.getElementById('receiverSelect');
+        
+        const options = membersCache.map(m => 
+          `<option value="${m.id}">${escapeHtml(m.full_name || m.name)}</option>`
+        ).join('');
+        
+        giverSelect.innerHTML = '<option value="">— Sélectionner un membre —</option>' + options;
+        receiverSelect.innerHTML = '<option value="">— Sélectionner un membre —</option>' + options;
+      } catch (err) {
+        console.error('Members error:', err);
+      }
+    }
+
+    // Render proxies
+    function render(proxies) {
+      const query = searchInput.value.toLowerCase().trim();
+      
+      let filtered = proxies;
+      if (query) {
+        filtered = proxies.filter(p => {
+          const giver = (p.giver_name || '').toLowerCase();
+          const receiver = (p.receiver_name || '').toLowerCase();
+          return giver.includes(query) || receiver.includes(query);
+        });
+      }
+      
+      document.getElementById('proxiesCount').textContent = `${filtered.length} procuration${filtered.length > 1 ? 's' : ''} active${filtered.length > 1 ? 's' : ''}`;
+      
+      if (filtered.length === 0) {
+        proxiesList.innerHTML = `
+          <div class="empty-state p-6">
+            <div class="empty-state-icon">📝</div>
+            <div class="empty-state-title">Aucune procuration</div>
+            <div class="empty-state-description">
+              ${query ? 'Aucun résultat pour cette recherche' : 'Créez une procuration pour déléguer un vote'}
+            </div>
+          </div>
+        `;
+        return;
+      }
+      
+      proxiesList.innerHTML = filtered.map(p => {
+        const giverName = escapeHtml(p.giver_name || '—');
+        const receiverName = escapeHtml(p.receiver_name || '—');
+        const giverInitials = getInitials(p.giver_name);
+        const receiverInitials = getInitials(p.receiver_name);
+        const power = p.voting_power ?? 1;
+        
+        return `
+          <div class="proxy-card">
+            <div class="proxy-member">
+              <div class="proxy-avatar giver">${giverInitials}</div>
+              <div>
+                <div class="proxy-name">${giverName}</div>
+                <div class="proxy-meta">Mandant · ${power} voix</div>
+              </div>
+            </div>
+            
+            <div class="proxy-arrow">→</div>
+            
+            <div class="proxy-member">
+              <div class="proxy-avatar receiver">${receiverInitials}</div>
+              <div>
+                <div class="proxy-name">${receiverName}</div>
+                <div class="proxy-meta">Mandataire</div>
+              </div>
+            </div>
+            
+            <button class="btn btn-ghost btn-sm btn-delete" data-proxy-id="${p.id}">
+              🗑️
+            </button>
+          </div>
+        `;
+      }).join('');
+      
+      // Bind delete buttons
+      proxiesList.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => deleteProxy(btn.dataset.proxyId));
+      });
+    }
+
+    // Update KPIs
+    function updateKPIs(proxies) {
+      const total = proxies.length;
+      const givers = new Set(proxies.map(p => p.giver_id)).size;
+      const receivers = new Set(proxies.map(p => p.receiver_id)).size;
+      const voices = proxies.reduce((sum, p) => sum + (p.voting_power || 1), 0);
+      
+      document.getElementById('kpiTotal').textContent = total;
+      document.getElementById('kpiGivers').textContent = givers;
+      document.getElementById('kpiReceivers').textContent = receivers;
+      document.getElementById('kpiVoicesDelegated').textContent = voices;
+    }
+
+    // Load proxies
+    async function loadProxies() {
+      proxiesList.innerHTML = `
+        <div class="text-center p-6">
+          <div class="spinner"></div>
+          <div class="mt-4 text-muted">Chargement des procurations...</div>
+        </div>
+      `;
+
+      try {
+        const { body } = await api(`/api/v1/proxies.php?meeting_id=${currentMeetingId}`);
+        proxiesCache = body?.data || body?.proxies || [];
+        render(proxiesCache);
+        updateKPIs(proxiesCache);
+      } catch (err) {
+        proxiesList.innerHTML = `
+          <div class="alert alert-danger">
+            <span>❌</span>
+            <span>Erreur de chargement: ${escapeHtml(err.message)}</span>
+          </div>
+        `;
+      }
+    }
+
+    // Delete proxy
+    async function deleteProxy(proxyId) {
+      if (!confirm('Supprimer cette procuration ?')) return;
+      
+      try {
+        const { body } = await api('/api/v1/proxies_delete.php', {
+          meeting_id: currentMeetingId,
+          proxy_id: proxyId
+        });
+        
+        if (body && body.ok) {
+          setNotif('success', '✅ Procuration supprimée');
+          loadProxies();
+        } else {
+          setNotif('error', body?.error || 'Erreur suppression');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    }
+
+    // Modal
+    const modal = document.getElementById('addProxyModal');
+    const backdrop = document.getElementById('modalBackdrop');
+    
+    function openModal() {
+      modal.style.display = 'block';
+      backdrop.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal() {
+      modal.style.display = 'none';
+      backdrop.style.display = 'none';
+      document.body.style.overflow = '';
+      document.getElementById('giverSelect').value = '';
+      document.getElementById('receiverSelect').value = '';
+      document.getElementById('proxyWarning').style.display = 'none';
+    }
+    
+    document.getElementById('btnAddProxy').addEventListener('click', openModal);
+    document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+    document.getElementById('btnCancelModal').addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    // Check proxy validity
+    function checkProxyValidity() {
+      const giverId = document.getElementById('giverSelect').value;
+      const receiverId = document.getElementById('receiverSelect').value;
+      const warning = document.getElementById('proxyWarning');
+      
+      if (!giverId || !receiverId) {
+        warning.style.display = 'none';
+        return true;
+      }
+      
+      if (giverId === receiverId) {
+        warning.style.display = 'flex';
+        document.getElementById('proxyWarningText').textContent = 
+          'Un membre ne peut pas se donner procuration à lui-même';
+        return false;
+      }
+      
+      // Check if giver already gave proxy
+      const existing = proxiesCache.find(p => p.giver_id == giverId);
+      if (existing) {
+        warning.style.display = 'flex';
+        document.getElementById('proxyWarningText').textContent = 
+          'Ce membre a déjà donné procuration';
+        return false;
+      }
+      
+      // Check max proxies
+      const receiverProxies = proxiesCache.filter(p => p.receiver_id == receiverId).length;
+      const maxProxies = parseInt(document.getElementById('maxProxies').textContent) || 3;
+      if (receiverProxies >= maxProxies) {
+        warning.style.display = 'flex';
+        document.getElementById('proxyWarningText').textContent = 
+          `Ce mandataire a déjà ${receiverProxies} procurations (max: ${maxProxies})`;
+        return false;
+      }
+      
+      warning.style.display = 'none';
+      return true;
+    }
+
+    document.getElementById('giverSelect').addEventListener('change', checkProxyValidity);
+    document.getElementById('receiverSelect').addEventListener('change', checkProxyValidity);
+
+    // Save proxy
+    document.getElementById('btnSaveProxy').addEventListener('click', async () => {
+      const giverId = document.getElementById('giverSelect').value;
+      const receiverId = document.getElementById('receiverSelect').value;
+      
+      if (!giverId || !receiverId) {
+        setNotif('error', 'Sélectionnez un mandant et un mandataire');
+        return;
+      }
+      
+      if (!checkProxyValidity()) {
+        setNotif('error', 'Procuration invalide');
+        return;
+      }
+      
+      try {
+        const { body } = await api('/api/v1/proxies.php', {
+          meeting_id: currentMeetingId,
+          giver_id: giverId,
+          receiver_id: receiverId
+        });
+        
+        if (body && body.ok !== false) {
+          setNotif('success', '✅ Procuration créée');
+          closeModal();
+          loadProxies();
+        } else {
+          setNotif('error', body?.error || 'Erreur création');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    });
+
+    // Search
+    searchInput.addEventListener('input', () => render(proxiesCache));
+
+    // Initialize
+    if (currentMeetingId) {
+      loadMeetingInfo();
+      loadMembers();
+      loadProxies();
+    }
+  })();
+  </script>
+</body>
+</html>

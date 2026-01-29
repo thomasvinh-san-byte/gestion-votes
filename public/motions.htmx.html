@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gestion des résolutions - AG-VOTE">
+  <title>Résolutions — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    .motion-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      margin-bottom: var(--space-4);
+      transition: all var(--duration-fast);
+    }
+    
+    .motion-card:hover {
+      box-shadow: var(--shadow-md);
+    }
+    
+    .motion-card.open {
+      border-color: var(--color-warning);
+      background: var(--color-warning-subtle);
+    }
+    
+    .motion-card.closed {
+      border-color: var(--color-success);
+    }
+    
+    .motion-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+    
+    .motion-number {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-md);
+      font-weight: var(--font-bold);
+      font-size: var(--text-sm);
+      flex-shrink: 0;
+    }
+    
+    .motion-card.open .motion-number {
+      background: var(--color-warning);
+      color: white;
+    }
+    
+    .motion-card.closed .motion-number {
+      background: var(--color-success);
+      color: white;
+    }
+    
+    .motion-title {
+      font-weight: var(--font-semibold);
+      font-size: var(--text-lg);
+    }
+    
+    .motion-desc {
+      color: var(--color-text-secondary);
+      margin-top: var(--space-2);
+    }
+    
+    .motion-policies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+    }
+    
+    .motion-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding-top: var(--space-4);
+      margin-top: var(--space-4);
+      border-top: 1px solid var(--color-border-subtle);
+    }
+    
+    .motion-results {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    
+    .motion-result-item {
+      text-align: center;
+    }
+    
+    .motion-result-value {
+      font-size: var(--text-xl);
+      font-weight: var(--font-bold);
+    }
+    
+    .motion-result-label {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="p-4 border-b">
+        <a href="/" class="brand">
+          <span class="brand-logo">AG-VOTE</span>
+          <span class="brand-version">v2.0</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="/meetings.htmx.html">
+          <span class="nav-item-icon">🏛️</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a class="nav-item" href="/operator.htmx.html">
+          <span class="nav-item-icon">🗂️</span>
+          <span>Fiche séance</span>
+        </a>
+        <a class="nav-item active" href="/motions.htmx.html">
+          <span class="nav-item-icon">📋</span>
+          <span>Résolutions</span>
+        </a>
+        <a class="nav-item" href="/operator_flow.htmx.html">
+          <span class="nav-item-icon">🧑‍💼</span>
+          <span>Conduite live</span>
+        </a>
+        <a class="nav-item" href="/president.htmx.html">
+          <span class="nav-item-icon">🧑‍⚖️</span>
+          <span>Président</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">📋 Résolutions</h1>
+          <p class="text-sm text-secondary" id="meetingTitle">Ordre du jour</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-secondary" id="btnSeedAttend">
+          🧪 Remplir présences
+        </button>
+        <button class="btn btn-primary" id="btnAddMotion">
+          ➕ Ajouter
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- Meeting context -->
+        <div class="alert alert-info mb-6" id="meetingContext" style="display: none;">
+          <span>📌</span>
+          <span>Séance: <strong id="meetingName">—</strong></span>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid mb-6">
+          <div class="kpi-card">
+            <div class="kpi-value primary" id="kpiTotal">—</div>
+            <div class="kpi-label">Résolutions</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value warning" id="kpiOpen">—</div>
+            <div class="kpi-label">Vote ouvert</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value success" id="kpiClosed">—</div>
+            <div class="kpi-label">Terminées</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpiPending">—</div>
+            <div class="kpi-label">En attente</div>
+          </div>
+        </div>
+
+        <!-- Motions List -->
+        <div id="motionsList">
+          <div class="text-center p-6">
+            <div class="spinner"></div>
+            <div class="mt-4 text-muted">Chargement des résolutions...</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Motion Modal -->
+  <div class="modal-backdrop" id="modalBackdrop" style="display: none;"></div>
+  <div class="modal" id="addMotionModal" style="display: none;">
+    <div class="modal-header">
+      <h3 class="modal-title">➕ Nouvelle résolution</h3>
+      <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group mb-4">
+        <label class="form-label form-label-required" for="motionTitle">Titre</label>
+        <input class="form-input" type="text" id="motionTitle" 
+               placeholder="Ex: Approbation du budget 2024">
+      </div>
+      <div class="form-group mb-4">
+        <label class="form-label" for="motionDesc">Description</label>
+        <textarea class="form-input" id="motionDesc" rows="3"
+                  placeholder="Détails de la résolution..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="flex items-center gap-2">
+          <input type="checkbox" id="motionSecret">
+          <span>Vote secret</span>
+        </label>
+        <p class="form-helper">Les votes individuels ne seront pas affichés</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btnCancelModal">Annuler</button>
+      <button class="btn btn-primary" id="btnSaveMotion">Créer la résolution</button>
+    </div>
+  </div>
+
+  <!-- Drawer -->
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close>✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    let currentMeetingId = null;
+    let motionsCache = [];
+    const motionsList = document.getElementById('motionsList');
+
+    // Get meeting_id from URL
+    function getMeetingIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('meeting_id');
+    }
+
+    // Check meeting ID
+    currentMeetingId = getMeetingIdFromUrl();
+    if (!currentMeetingId) {
+      setNotif('error', 'Aucune séance sélectionnée');
+      setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
+    }
+
+    // Load meeting info
+    async function loadMeetingInfo() {
+      try {
+        const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
+        if (body && body.ok && body.data) {
+          document.getElementById('meetingTitle').textContent = body.data.title;
+          document.getElementById('meetingName').textContent = body.data.title;
+          document.getElementById('meetingContext').style.display = 'flex';
+        }
+      } catch (err) {
+        console.error('Meeting info error:', err);
+      }
+    }
+
+    // Render motions
+    function render(motions) {
+      if (!motions || motions.length === 0) {
+        motionsList.innerHTML = `
+          <div class="card">
+            <div class="empty-state p-8">
+              <div class="empty-state-icon">📋</div>
+              <div class="empty-state-title">Aucune résolution</div>
+              <div class="empty-state-description">
+                Ajoutez des résolutions à l'ordre du jour
+              </div>
+              <button class="btn btn-primary mt-4" id="btnAddEmpty">
+                ➕ Ajouter une résolution
+              </button>
+            </div>
+          </div>
+        `;
+        document.getElementById('btnAddEmpty')?.addEventListener('click', openModal);
+        return;
+      }
+
+      // Update KPIs
+      const open = motions.filter(m => m.opened_at && !m.closed_at).length;
+      const closed = motions.filter(m => m.closed_at).length;
+      const pending = motions.filter(m => !m.opened_at).length;
+      
+      document.getElementById('kpiTotal').textContent = motions.length;
+      document.getElementById('kpiOpen').textContent = open;
+      document.getElementById('kpiClosed').textContent = closed;
+      document.getElementById('kpiPending').textContent = pending;
+
+      motionsList.innerHTML = motions.map((m, i) => {
+        const title = escapeHtml(m.motion_title || m.title || '(sans titre)');
+        const desc = escapeHtml(m.motion_description || m.description || '');
+        const isOpen = m.opened_at && !m.closed_at;
+        const isClosed = !!m.closed_at;
+        const isPending = !m.opened_at;
+        
+        const statusClass = isOpen ? 'open' : (isClosed ? 'closed' : '');
+        const statusBadge = isOpen 
+          ? '<span class="badge badge-warning badge-dot">Vote ouvert</span>'
+          : (isClosed 
+            ? '<span class="badge badge-success">Terminé</span>'
+            : '<span class="badge badge-neutral">En attente</span>');
+        
+        const policies = [];
+        if (m.secret) policies.push('<span class="badge badge-danger">🔒 Secret</span>');
+        if (m.vote_policy_name) policies.push(`<span class="badge">Majorité: ${escapeHtml(m.vote_policy_name)}</span>`);
+        if (m.quorum_policy_name) policies.push(`<span class="badge">Quorum: ${escapeHtml(m.quorum_policy_name)}</span>`);
+        
+        const results = isClosed ? `
+          <div class="motion-results">
+            <div class="motion-result-item">
+              <div class="motion-result-value text-success">${m.votes_for || 0}</div>
+              <div class="motion-result-label">Pour</div>
+            </div>
+            <div class="motion-result-item">
+              <div class="motion-result-value text-danger">${m.votes_against || 0}</div>
+              <div class="motion-result-label">Contre</div>
+            </div>
+            <div class="motion-result-item">
+              <div class="motion-result-value">${m.votes_abstain || 0}</div>
+              <div class="motion-result-label">Abstention</div>
+            </div>
+            <div class="motion-result-item">
+              ${m.result === 'adopted' 
+                ? '<span class="badge badge-success badge-lg">✓ Adopté</span>'
+                : (m.result === 'rejected'
+                  ? '<span class="badge badge-danger badge-lg">✗ Rejeté</span>'
+                  : '<span class="badge badge-neutral">—</span>')}
+            </div>
+          </div>
+        ` : '';
+        
+        const actions = isPending ? `
+          <button class="btn btn-primary btn-open-vote" data-motion-id="${m.id}">
+            ▶️ Ouvrir le vote
+          </button>
+        ` : (isOpen ? `
+          <button class="btn btn-secondary btn-close-vote" data-motion-id="${m.id}">
+            ⏹️ Clôturer
+          </button>
+        ` : '');
+
+        return `
+          <div class="motion-card ${statusClass}">
+            <div class="motion-header">
+              <div class="flex items-start gap-4">
+                <div class="motion-number">${i + 1}</div>
+                <div>
+                  <div class="motion-title">${title}</div>
+                  ${desc ? `<div class="motion-desc">${desc}</div>` : ''}
+                  ${policies.length ? `<div class="motion-policies">${policies.join('')}</div>` : ''}
+                </div>
+              </div>
+              ${statusBadge}
+            </div>
+            ${results || actions ? `
+              <div class="motion-footer">
+                ${results}
+                <div class="flex gap-2">
+                  ${actions}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      // Bind action buttons
+      motionsList.querySelectorAll('.btn-open-vote').forEach(btn => {
+        btn.addEventListener('click', () => openVote(btn.dataset.motionId));
+      });
+      
+      motionsList.querySelectorAll('.btn-close-vote').forEach(btn => {
+        btn.addEventListener('click', () => closeVote(btn.dataset.motionId));
+      });
+    }
+
+    // Load motions
+    async function loadMotions() {
+      motionsList.innerHTML = `
+        <div class="text-center p-6">
+          <div class="spinner"></div>
+          <div class="mt-4 text-muted">Chargement des résolutions...</div>
+        </div>
+      `;
+
+      try {
+        const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${currentMeetingId}`);
+        motionsCache = body?.items || body?.motions || body?.data || [];
+        render(motionsCache);
+      } catch (err) {
+        motionsList.innerHTML = `
+          <div class="alert alert-danger">
+            <span>❌</span>
+            <span>Erreur de chargement: ${escapeHtml(err.message)}</span>
+          </div>
+        `;
+      }
+    }
+
+    // Open vote
+    async function openVote(motionId) {
+      try {
+        const { body } = await api('/api/v1/motions_open.php', {
+          meeting_id: currentMeetingId,
+          motion_id: motionId
+        });
+        
+        if (body && body.ok) {
+          setNotif('success', '🗳️ Vote ouvert');
+          loadMotions();
+        } else {
+          setNotif('error', body?.error || 'Erreur ouverture vote');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    }
+
+    // Close vote
+    async function closeVote(motionId) {
+      if (!confirm('Clôturer ce vote ? Cette action calculera le résultat définitif.')) return;
+      
+      try {
+        const { body } = await api('/api/v1/motions_close.php', {
+          meeting_id: currentMeetingId,
+          motion_id: motionId
+        });
+        
+        if (body && body.ok) {
+          setNotif('success', '✅ Vote clôturé');
+          loadMotions();
+        } else {
+          setNotif('error', body?.error || 'Erreur clôture vote');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    }
+
+    // Modal
+    const modal = document.getElementById('addMotionModal');
+    const backdrop = document.getElementById('modalBackdrop');
+    
+    function openModal() {
+      modal.style.display = 'block';
+      backdrop.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+      document.getElementById('motionTitle').focus();
+    }
+    
+    function closeModal() {
+      modal.style.display = 'none';
+      backdrop.style.display = 'none';
+      document.body.style.overflow = '';
+      document.getElementById('motionTitle').value = '';
+      document.getElementById('motionDesc').value = '';
+      document.getElementById('motionSecret').checked = false;
+    }
+    
+    document.getElementById('btnAddMotion').addEventListener('click', openModal);
+    document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+    document.getElementById('btnCancelModal').addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    // Save motion
+    document.getElementById('btnSaveMotion').addEventListener('click', async () => {
+      const title = document.getElementById('motionTitle').value.trim();
+      const description = document.getElementById('motionDesc').value.trim();
+      const secret = document.getElementById('motionSecret').checked;
+      
+      if (!title) {
+        setNotif('error', 'Le titre est requis');
+        return;
+      }
+      
+      try {
+        // Create agenda if needed
+        await api('/api/v1/agendas.php', { meeting_id: currentMeetingId, title: 'Résolutions' }).catch(() => {});
+        
+        const { body } = await api('/api/v1/motions.php', {
+          meeting_id: currentMeetingId,
+          title,
+          description,
+          secret
+        });
+        
+        if (body && body.ok !== false) {
+          setNotif('success', '✅ Résolution créée');
+          closeModal();
+          loadMotions();
+        } else {
+          setNotif('error', body?.error || 'Erreur création');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    });
+
+    // Seed attendances
+    document.getElementById('btnSeedAttend').addEventListener('click', async () => {
+      const limit = prompt('Combien de présences à créer ? (0 = tous)', '0');
+      if (limit === null) return;
+      
+      try {
+        const { body } = await api('/api/v1/dev_seed_attendances.php', {
+          meeting_id: currentMeetingId,
+          limit: parseInt(limit) || 0
+        });
+        
+        if (body && body.ok) {
+          setNotif('success', '🧪 Présences générées');
+        } else {
+          setNotif('warning', 'Seed non disponible');
+        }
+      } catch (err) {
+        setNotif('warning', 'Endpoint seed non disponible');
+      }
+    });
+
+    // Initialize
+    if (currentMeetingId) {
+      loadMeetingInfo();
+      loadMotions();
+    }
+  })();
+  </script>
+</body>
+</html>

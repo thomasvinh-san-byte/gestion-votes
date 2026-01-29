@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Vote — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    /* Vote tablet-specific styles */
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    .vote-app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: var(--color-bg);
+    }
+    
+    .vote-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-5);
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    
+    .vote-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-5);
+      overflow-y: auto;
+    }
+    
+    .vote-context {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+    
+    .vote-motion {
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      text-align: center;
+      margin-bottom: var(--space-5);
+    }
+    
+    .vote-motion.active {
+      border-color: var(--color-primary);
+      background: var(--color-primary-subtle);
+    }
+    
+    .vote-motion.waiting {
+      border-color: var(--color-warning);
+      background: var(--color-warning-subtle);
+    }
+    
+    .vote-motion-number {
+      font-size: var(--text-lg);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-2);
+    }
+    
+    .vote-motion-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-bold);
+      color: var(--color-text);
+      margin-bottom: var(--space-3);
+    }
+    
+    .vote-motion-status {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-full);
+      font-size: var(--text-sm);
+      font-weight: var(--font-semibold);
+    }
+    
+    .vote-motion-status.open {
+      background: var(--color-success);
+      color: white;
+    }
+    
+    .vote-motion-status.closed {
+      background: var(--color-text-muted);
+      color: white;
+    }
+    
+    .vote-motion-status.waiting {
+      background: var(--color-warning);
+      color: white;
+    }
+    
+    .vote-buttons-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .vote-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-5);
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    .vote-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-3);
+      padding: var(--space-10) var(--space-6);
+      font-size: var(--text-2xl);
+      font-weight: var(--font-extrabold);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: none;
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .vote-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+    
+    .vote-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .vote-btn-icon {
+      font-size: 3rem;
+    }
+    
+    .vote-btn-for {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.5);
+    }
+    
+    .vote-btn-for:hover:not(:disabled) {
+      box-shadow: 0 15px 50px rgba(16, 185, 129, 0.6);
+    }
+    
+    .vote-btn-against {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      box-shadow: 0 10px 40px rgba(239, 68, 68, 0.5);
+    }
+    
+    .vote-btn-against:hover:not(:disabled) {
+      box-shadow: 0 15px 50px rgba(239, 68, 68, 0.6);
+    }
+    
+    .vote-btn-abstain {
+      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+      color: white;
+      box-shadow: 0 10px 40px rgba(107, 114, 128, 0.5);
+    }
+    
+    .vote-btn-abstain:hover:not(:disabled) {
+      box-shadow: 0 15px 50px rgba(107, 114, 128, 0.6);
+    }
+    
+    .vote-btn.selected::after {
+      content: '✓';
+      position: absolute;
+      top: var(--space-3);
+      right: var(--space-3);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      color: currentColor;
+      border-radius: 50%;
+      font-size: var(--text-lg);
+    }
+    
+    .vote-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-5);
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    
+    .vote-member-info {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    
+    .vote-member-avatar {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+      border-radius: 50%;
+      font-weight: var(--font-bold);
+      font-size: var(--text-lg);
+    }
+    
+    .vote-member-name {
+      font-weight: var(--font-semibold);
+    }
+    
+    .vote-member-weight {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+    
+    .vote-connection {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    
+    .connection-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-success);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .connection-dot.offline {
+      background: var(--color-danger);
+      animation: none;
+    }
+    
+    /* Confirmation overlay */
+    .vote-confirmation {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-6);
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity var(--duration-normal), visibility var(--duration-normal);
+    }
+    
+    .vote-confirmation.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .vote-confirmation-content {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+      transform: scale(0.9);
+      transition: transform var(--duration-normal) var(--ease-out);
+    }
+    
+    .vote-confirmation.show .vote-confirmation-content {
+      transform: scale(1);
+    }
+    
+    .vote-confirmation-icon {
+      font-size: 5rem;
+      margin-bottom: var(--space-4);
+    }
+    
+    .vote-confirmation-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-bold);
+      margin-bottom: var(--space-2);
+    }
+    
+    .vote-confirmation-message {
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-6);
+    }
+    
+    .vote-confirmation-buttons {
+      display: flex;
+      gap: var(--space-4);
+      justify-content: center;
+    }
+    
+    .vote-confirmation-buttons .btn {
+      min-width: 150px;
+      padding: var(--space-4) var(--space-6);
+      font-size: var(--text-lg);
+    }
+    
+    /* Speech request */
+    .speech-panel {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+    
+    .speech-panel.speaking {
+      border-color: var(--color-success);
+      background: var(--color-success-subtle);
+    }
+    
+    @media (max-width: 768px) {
+      .vote-buttons {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+      }
+      
+      .vote-btn {
+        padding: var(--space-6) var(--space-4);
+        flex-direction: row;
+        justify-content: center;
+      }
+      
+      .vote-btn-icon {
+        font-size: 2rem;
+      }
+      
+      .vote-context {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (min-height: 800px) {
+      .vote-btn {
+        padding: var(--space-12) var(--space-8);
+      }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="vote-app">
+    <!-- Header -->
+    <header class="vote-header">
+      <div>
+        <div class="text-lg font-bold">🗳️ Vote</div>
+        <div class="text-sm text-secondary">Interface tablette</div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-secondary btn-sm" id="btnRefresh">
+          🔄 Actualiser
+        </button>
+        <a href="/public.htmx.html" class="btn btn-ghost btn-sm">📺 Écran</a>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="vote-main">
+      <!-- Context selection -->
+      <div class="vote-context">
+        <div class="form-group">
+          <label class="form-label" for="meetingSelect">Séance</label>
+          <select class="form-input" id="meetingSelect">
+            <option value="">— Chargement —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="memberSelect">Votant</label>
+          <select class="form-input" id="memberSelect">
+            <option value="">— Sélectionner votre nom —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Speech panel -->
+      <div class="speech-panel" id="speechBox">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <div class="font-semibold">✋ Demande de parole</div>
+            <div class="text-sm text-muted" id="speechHint">Vous pouvez demander la parole</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-neutral" id="speechStatus">En attente</span>
+            <button class="btn btn-secondary" id="btnHand" type="button">
+              ✋ Lever la main
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motion info -->
+      <div class="vote-motion" id="motionBox">
+        <div class="vote-motion-number">—</div>
+        <div class="vote-motion-title">En attente d'une résolution</div>
+        <span class="vote-motion-status waiting">
+          <span>⏳</span>
+          <span>Aucun vote en cours</span>
+        </span>
+      </div>
+
+      <!-- Vote buttons -->
+      <div class="vote-buttons-container">
+        <div class="vote-buttons">
+          <button class="vote-btn vote-btn-for" id="btnFor" data-choice="FOR" disabled>
+            <span class="vote-btn-icon">👍</span>
+            <span>Pour</span>
+          </button>
+          <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="AGAINST" disabled>
+            <span class="vote-btn-icon">👎</span>
+            <span>Contre</span>
+          </button>
+          <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="ABSTAIN" disabled>
+            <span class="vote-btn-icon">✋</span>
+            <span>Abstention</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="vote-footer">
+      <div class="vote-member-info" id="memberInfo">
+        <div class="vote-member-avatar" id="memberAvatar">?</div>
+        <div>
+          <div class="vote-member-name" id="memberName">Non connecté</div>
+          <div class="vote-member-weight" id="memberWeight">—</div>
+        </div>
+      </div>
+      <div class="vote-connection">
+        <div class="connection-dot" id="connectionDot"></div>
+        <span class="text-sm text-muted" id="connectionStatus">Connecté</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Confirmation overlay -->
+  <div class="vote-confirmation" id="confirmationOverlay">
+    <div class="vote-confirmation-content">
+      <div class="vote-confirmation-icon" id="confirmIcon">🗳️</div>
+      <div class="vote-confirmation-title" id="confirmTitle">Confirmer votre vote</div>
+      <div class="vote-confirmation-message" id="confirmMessage">
+        Vous êtes sur le point de voter <strong id="confirmChoice">POUR</strong>
+      </div>
+      <div class="vote-confirmation-buttons">
+        <button class="btn btn-secondary" id="btnCancel">Annuler</button>
+        <button class="btn btn-primary" id="btnConfirm">✓ Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification -->
+  <div id="notif_box" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/vote.js"></script>
+  
+  <script>
+  (function() {
+    'use strict';
+    
+    const voteButtons = document.querySelectorAll('.vote-btn');
+    const confirmOverlay = document.getElementById('confirmationOverlay');
+    const confirmChoice = document.getElementById('confirmChoice');
+    const confirmIcon = document.getElementById('confirmIcon');
+    const btnCancel = document.getElementById('btnCancel');
+    const btnConfirm = document.getElementById('btnConfirm');
+    let pendingVote = null;
+    
+    // Choice labels and icons
+    const choiceInfo = {
+      'FOR': { label: 'POUR', icon: '👍', color: 'var(--color-success)' },
+      'AGAINST': { label: 'CONTRE', icon: '👎', color: 'var(--color-danger)' },
+      'ABSTAIN': { label: 'ABSTENTION', icon: '✋', color: 'var(--color-text-muted)' }
+    };
+    
+    // Vote button click -> show confirmation
+    voteButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        
+        pendingVote = btn.dataset.choice;
+        const info = choiceInfo[pendingVote];
+        
+        confirmChoice.textContent = info.label;
+        confirmChoice.style.color = info.color;
+        confirmIcon.textContent = info.icon;
+        
+        confirmOverlay.classList.add('show');
+      });
+    });
+    
+    // Cancel
+    btnCancel.addEventListener('click', () => {
+      confirmOverlay.classList.remove('show');
+      pendingVote = null;
+    });
+    
+    // Click outside to cancel
+    confirmOverlay.addEventListener('click', (e) => {
+      if (e.target === confirmOverlay) {
+        confirmOverlay.classList.remove('show');
+        pendingVote = null;
+      }
+    });
+    
+    // Confirm vote
+    btnConfirm.addEventListener('click', async () => {
+      if (!pendingVote) return;
+      
+      btnConfirm.disabled = true;
+      btnConfirm.innerHTML = '<span class="spinner spinner-sm"></span> Envoi...';
+      
+      try {
+        // The actual vote submission is handled by vote.js
+        // This triggers the standard vote flow
+        if (typeof submitVote === 'function') {
+          await submitVote(pendingVote);
+        }
+        
+        // Mark selected button
+        voteButtons.forEach(b => b.classList.remove('selected'));
+        document.querySelector(`[data-choice="${pendingVote}"]`)?.classList.add('selected');
+        
+        confirmOverlay.classList.remove('show');
+        setNotif('success', `✅ Vote ${choiceInfo[pendingVote].label} enregistré`);
+        
+        // Disable buttons after vote
+        voteButtons.forEach(b => b.disabled = true);
+      } catch (err) {
+        setNotif('error', 'Erreur: ' + err.message);
+      } finally {
+        btnConfirm.disabled = false;
+        btnConfirm.innerHTML = '✓ Confirmer';
+        pendingVote = null;
+      }
+    });
+    
+    // Connection status
+    function updateConnectionStatus(online) {
+      const dot = document.getElementById('connectionDot');
+      const status = document.getElementById('connectionStatus');
+      
+      if (online) {
+        dot.classList.remove('offline');
+        status.textContent = 'Connecté';
+      } else {
+        dot.classList.add('offline');
+        status.textContent = 'Hors ligne';
+      }
+    }
+    
+    // Monitor connection
+    window.addEventListener('online', () => updateConnectionStatus(true));
+    window.addEventListener('offline', () => updateConnectionStatus(false));
+    updateConnectionStatus(navigator.onLine);
+    
+    // Update member info display
+    window.updateMemberDisplay = function(member) {
+      if (!member) {
+        document.getElementById('memberName').textContent = 'Non connecté';
+        document.getElementById('memberWeight').textContent = '—';
+        document.getElementById('memberAvatar').textContent = '?';
+        return;
+      }
+      
+      document.getElementById('memberName').textContent = member.name || 'Membre';
+      document.getElementById('memberWeight').textContent = 
+        member.weight ? `Poids: ${member.weight}` : '—';
+      document.getElementById('memberAvatar').textContent = 
+        (member.name || '?').charAt(0).toUpperCase();
+    };
+  })();
+  </script>
+</body>
+</html>

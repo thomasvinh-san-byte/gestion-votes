@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tableau de bord des séances - AG-VOTE">
+  <title>Séances — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="p-4 border-b">
+        <a href="/" class="brand">
+          <span class="brand-logo">AG-VOTE</span>
+          <span class="brand-version">v2.0</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item active" href="/meetings.htmx.html">
+          <span class="nav-item-icon">🏛️</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a class="nav-item" href="/members.htmx.html">
+          <span class="nav-item-icon">👥</span>
+          <span>Membres</span>
+        </a>
+        <a class="nav-item" href="/operator_flow.htmx.html">
+          <span class="nav-item-icon">🧑‍💼</span>
+          <span>Conduite séance</span>
+        </a>
+        <a class="nav-item" href="/president.htmx.html">
+          <span class="nav-item-icon">🧑‍⚖️</span>
+          <span>Président</span>
+        </a>
+        <a class="nav-item" href="/trust.htmx.html">
+          <span class="nav-item-icon">🛡️</span>
+          <span>Contrôle (Trust)</span>
+        </a>
+        <a class="nav-item" href="/archives.htmx.html">
+          <span class="nav-item-icon">📚</span>
+          <span>Archives</span>
+        </a>
+        <div class="border-t mt-4 pt-4">
+          <a class="nav-item" href="/admin.htmx.html">
+            <span class="nav-item-icon">⚙️</span>
+            <span>Administration</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">Séances</h1>
+          <p class="text-sm text-secondary">Créer, ouvrir et gérer une séance</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="readiness" title="État de préparation">
+          ✅
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="info" title="Informations">
+          ℹ️
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="alert hidden mb-4"></div>
+
+        <!-- Quick Actions -->
+        <div class="kpi-grid mb-6">
+          <div class="kpi-card">
+            <div class="kpi-value primary" id="kpi_active">-</div>
+            <div class="kpi-label">Séances actives</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value success" id="kpi_closed">-</div>
+            <div class="kpi-label">Séances terminées</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpi_draft">-</div>
+            <div class="kpi-label">Brouillons</div>
+          </div>
+        </div>
+
+        <!-- Actions Cards Grid -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+          <!-- Create Meeting Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">➕ Créer une séance</h3>
+              <p class="card-description">Nouvelle assemblée générale ou réunion</p>
+            </div>
+            <div class="card-body">
+              <div class="form-group mb-4">
+                <label class="form-label form-label-required" for="meeting_title">Titre</label>
+                <input class="form-input" type="text" id="meeting_title" 
+                       placeholder="Ex: Assemblée Générale 2026">
+              </div>
+              <div class="form-group mb-4">
+                <label class="form-label" for="meeting_desc">Description</label>
+                <input class="form-input" type="text" id="meeting_desc" 
+                       placeholder="Description optionnelle">
+              </div>
+              <button class="btn btn-primary w-full" id="create_meeting_btn">
+                <span class="htmx-indicator spinner spinner-sm"></span>
+                <span>Créer la séance</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Open Meeting Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📂 Ouvrir une séance</h3>
+              <p class="card-description">Accéder à une séance existante</p>
+            </div>
+            <div class="card-body">
+              <div class="form-group mb-4">
+                <label class="form-label" for="meeting_select">Séance active</label>
+                <select class="form-input" id="meeting_select">
+                  <option value="">— Sélectionner une séance —</option>
+                </select>
+              </div>
+              <div class="flex gap-2">
+                <a class="btn btn-secondary flex-1" id="btnOpenMotions" href="/motions.htmx.html">
+                  📋 Résolutions
+                </a>
+                <a class="btn btn-primary flex-1" id="btnOpenOperator" href="/operator.htmx.html">
+                  ▶️ Conduire
+                </a>
+              </div>
+              <p class="form-helper mt-3">
+                💡 Les liens conservent automatiquement l'ID de séance
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meetings Lists -->
+        <div class="grid grid-cols-2 gap-6">
+          <!-- Active Meetings -->
+          <div class="card">
+            <div class="card-header flex justify-between items-center">
+              <h3 class="card-title">🟢 Séances actives</h3>
+              <span class="badge badge-success badge-dot" id="badge_active">0</span>
+            </div>
+            <div class="card-body">
+              <div id="active_meetings_list">
+                <div class="empty-state">
+                  <div class="empty-state-icon">📭</div>
+                  <div class="empty-state-title">Aucune séance active</div>
+                  <div class="empty-state-description">
+                    Créez une nouvelle séance pour commencer
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- History -->
+          <div class="card">
+            <div class="card-header flex justify-between items-center">
+              <h3 class="card-title">📚 Historique</h3>
+              <span class="badge badge-neutral" id="badge_history">0</span>
+            </div>
+            <div class="card-body">
+              <div id="history_meetings_list">
+                <div class="empty-state">
+                  <div class="empty-state-icon">📭</div>
+                  <div class="empty-state-title">Aucune séance archivée</div>
+                  <div class="empty-state-description">
+                    Les séances validées apparaîtront ici
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Debug log (hidden by default) -->
+        <pre id="log_box" class="hidden mt-4 p-4 bg-surface rounded-lg text-sm font-mono overflow-auto"></pre>
+      </div>
+    </main>
+  </div>
+
+  <!-- Drawer Overlay -->
+  <div id="drawerOverlay" class="drawer-backdrop" data-drawer-close></div>
+  
+  <!-- Drawer -->
+  <aside id="drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close title="Fermer">✕</button>
+    </div>
+    <div id="drawerBody" class="drawer-body"></div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/auth-ui.js"></script>
+  <script src="/assets/js/meetings.js"></script>
+  <script src="/assets/js/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // DOM elements
+    const sel = document.getElementById('meeting_select');
+    const createBtn = document.getElementById('create_meeting_btn');
+    const titleInput = document.getElementById('meeting_title');
+    const descInput = document.getElementById('meeting_desc');
+
+    // Update meeting links with current selection
+    function setMeetingLinks(meetingId) {
+      const links = [
+        ['btnOpenMotions', '/motions.htmx.html'],
+        ['btnOpenOperator', '/operator.htmx.html'],
+      ];
+      
+      links.forEach(([id, base]) => {
+        const a = document.getElementById(id);
+        if (!a) return;
+        
+        if (!meetingId) {
+          a.href = base;
+          a.classList.add('btn-secondary');
+          a.classList.remove('btn-primary');
+        } else {
+          const url = new URL(base, location.origin);
+          url.searchParams.set('meeting_id', meetingId);
+          a.href = url.pathname + '?' + url.searchParams.toString();
+        }
+      });
+    }
+
+    // Update KPIs
+    function updateKPIs(active, closed, draft) {
+      const kpiActive = document.getElementById('kpi_active');
+      const kpiClosed = document.getElementById('kpi_closed');
+      const kpiDraft = document.getElementById('kpi_draft');
+      const badgeActive = document.getElementById('badge_active');
+      const badgeHistory = document.getElementById('badge_history');
+      
+      if (kpiActive) kpiActive.textContent = active || 0;
+      if (kpiClosed) kpiClosed.textContent = closed || 0;
+      if (kpiDraft) kpiDraft.textContent = draft || 0;
+      if (badgeActive) badgeActive.textContent = active || 0;
+      if (badgeHistory) badgeHistory.textContent = closed || 0;
+    }
+
+    // Handle selection change
+    if (sel) {
+      sel.addEventListener('change', () => setMeetingLinks(sel.value));
+    }
+
+    // Handle create button
+    if (createBtn) {
+      createBtn.addEventListener('click', async () => {
+        const title = (titleInput?.value || '').trim();
+        const description = (descInput?.value || '').trim();
+        
+        if (!title) {
+          setNotif('error', 'Le titre est requis');
+          titleInput?.focus();
+          return;
+        }
+
+        createBtn.classList.add('loading');
+        createBtn.disabled = true;
+
+        try {
+          const { status, body } = await api('/api/v1/meetings.php', { title, description });
+          
+          if (!body || !body.ok) {
+            setNotif('error', 'Erreur création: ' + (body?.error || status));
+            return;
+          }
+          
+          setNotif('success', '✅ Séance créée avec succès');
+          titleInput.value = '';
+          descInput.value = '';
+
+          // Reload lists and auto-select
+          await loadMeetings();
+          const mid = body.data?.meeting_id;
+          if (mid && sel) {
+            sel.value = mid;
+            setMeetingLinks(mid);
+          }
+        } catch (err) {
+          setNotif('error', 'Erreur réseau: ' + err.message);
+        } finally {
+          createBtn.classList.remove('loading');
+          createBtn.disabled = false;
+        }
+      });
+    }
+
+    // Handle Enter key on title input
+    if (titleInput) {
+      titleInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          createBtn?.click();
+        }
+      });
+    }
+
+    // Initial load
+    if (typeof loadMeetings === 'function') {
+      loadMeetings().then(() => {
+        if (sel && sel.value) {
+          setMeetingLinks(sel.value);
+        }
+      });
+    } else {
+      setNotif('error', 'Erreur: meetings.js non chargé');
+    }
+
+    // Expose updateKPIs for meetings.js
+    window.updateKPIs = updateKPIs;
+  })();
+  </script>
+</body>
+</html>

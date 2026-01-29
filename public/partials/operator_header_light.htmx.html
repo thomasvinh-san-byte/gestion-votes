@@ -1,0 +1,35 @@
+<!-- public/partials/operator_header_light.htmx.html -->
+<div class="meeting-header card">
+  <div class="row space" style="flex-wrap:wrap;">
+    <div>
+      <div style="font-weight:700;">Opérateur</div>
+      <div class="muted">Séance : <span id="opMhTitle">—</span> <span class="kbd" id="opMhId">—</span></div>
+    </div>
+    <div class="meeting-nav">
+      <a class="btn" data-meeting-link href="/motions.htmx.html">← Motions</a>
+      <a class="btn" href="/meetings.htmx.html">Séances</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  const meetingId = params.get("meeting_id") || "";
+  const idEl = document.getElementById("opMhId");
+  const titleEl = document.getElementById("opMhTitle");
+  if (idEl) idEl.textContent = meetingId || "—";
+  if (titleEl) titleEl.textContent = meetingId || "—";
+
+  document.querySelectorAll("[data-meeting-link]").forEach(a => {
+    const u = new URL(a.getAttribute("href"), location.origin);
+    if (meetingId) u.searchParams.set("meeting_id", meetingId);
+    a.setAttribute("href", u.pathname + "?" + u.searchParams.toString());
+  });
+
+  if (!meetingId || !window.Utils || !Utils.apiGet) return;
+  Utils.apiGet("/api/v1/meetings.php?meeting_id=" + encodeURIComponent(meetingId))
+    .then(r => { if (r && r.title && titleEl) titleEl.textContent = r.title; })
+    .catch(()=>{});
+})();
+</script>

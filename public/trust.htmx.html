@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interface de contrôle et audit - AG-VOTE">
+  <title>Contrôle (Trust) — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    .anomaly-card {
+      background: var(--color-danger-subtle);
+      border: 1px solid var(--color-danger);
+      border-left: 4px solid var(--color-danger);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+    }
+    
+    .anomaly-card.warning {
+      background: var(--color-warning-subtle);
+      border-color: var(--color-warning);
+    }
+    
+    .anomaly-card.info {
+      background: var(--color-info-subtle);
+      border-color: var(--color-info);
+    }
+    
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-2);
+    }
+    
+    .check-row.pass {
+      background: var(--color-success-subtle);
+    }
+    
+    .check-row.fail {
+      background: var(--color-danger-subtle);
+    }
+    
+    .check-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: var(--text-sm);
+    }
+    
+    .check-row.pass .check-icon {
+      background: var(--color-success);
+      color: white;
+    }
+    
+    .check-row.fail .check-icon {
+      background: var(--color-danger);
+      color: white;
+    }
+    
+    .audit-entry {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+    
+    .audit-entry:last-child {
+      border-bottom: none;
+    }
+    
+    .audit-time {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+    
+    .audit-content {
+      flex: 1;
+    }
+    
+    .audit-action {
+      font-weight: var(--font-medium);
+    }
+    
+    .audit-detail {
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="p-4 border-b">
+        <a href="/" class="brand">
+          <span class="brand-logo">AG-VOTE</span>
+          <span class="brand-version">v2.0</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="/meetings.htmx.html">
+          <span class="nav-item-icon">🏛️</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a class="nav-item" href="/operator.htmx.html">
+          <span class="nav-item-icon">🗂️</span>
+          <span>Fiche séance</span>
+        </a>
+        <a class="nav-item" href="/operator_flow.htmx.html">
+          <span class="nav-item-icon">🧑‍💼</span>
+          <span>Conduite live</span>
+        </a>
+        <a class="nav-item" href="/president.htmx.html">
+          <span class="nav-item-icon">🧑‍⚖️</span>
+          <span>Président</span>
+        </a>
+        <a class="nav-item active" href="/trust.htmx.html">
+          <span class="nav-item-icon">🛡️</span>
+          <span>Contrôle</span>
+        </a>
+        <a class="nav-item" href="/archives.htmx.html">
+          <span class="nav-item-icon">📚</span>
+          <span>Archives</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">🛡️ Contrôle & Audit</h1>
+          <p class="text-sm text-secondary" id="meetingTitle">Vérification de cohérence</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-secondary" id="btnRefresh">
+          🔄 Actualiser
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- Context Selection -->
+        <div class="card mb-6">
+          <div class="card-body">
+            <div class="grid grid-cols-3 gap-6">
+              <div class="form-group">
+                <label class="form-label" for="meetingSelect">Séance</label>
+                <select class="form-input" id="meetingSelect">
+                  <option value="">— Sélectionner une séance —</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="trustApiKey">Clé API Trust</label>
+                <input class="form-input" type="password" id="trustApiKey" 
+                       placeholder="Clé d'accès Trust" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Statut séance</label>
+                <div id="statusBox" class="p-3 bg-surface rounded-md border">
+                  <span class="text-muted">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid mb-6">
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpiAnomalies">0</div>
+            <div class="kpi-label">Anomalies</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value success" id="kpiChecks">—</div>
+            <div class="kpi-label">Contrôles OK</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value primary" id="kpiMotions">—</div>
+            <div class="kpi-label">Résolutions</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpiBallots">—</div>
+            <div class="kpi-label">Bulletins</div>
+          </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+          <!-- Anomalies -->
+          <div class="card">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <h3 class="card-title">🚨 Anomalies détectées</h3>
+                <span class="badge badge-danger" id="badgeAnomalies">0</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="anomaliesList">
+                <div class="empty-state p-6">
+                  <div class="empty-state-icon text-success">✅</div>
+                  <div class="empty-state-title">Aucune anomalie</div>
+                  <div class="empty-state-description">
+                    Tous les contrôles sont passés avec succès
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coherence Checks -->
+          <div class="card">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <h3 class="card-title">✅ Contrôles de cohérence</h3>
+                <button class="btn btn-sm btn-ghost" id="btnRecheck">Recontrôler</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="checksList">
+                <div class="text-center p-4">
+                  <div class="spinner"></div>
+                  <div class="mt-2 text-muted">Vérification en cours...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Motions & Decisions Table -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">📋 Résolutions & Décisions</h3>
+            <p class="card-description">Tableau de cohérence des votes</p>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Résolution</th>
+                    <th>Statut</th>
+                    <th>Pour</th>
+                    <th>Contre</th>
+                    <th>Abstention</th>
+                    <th>Total</th>
+                    <th>Décision</th>
+                    <th>Cohérence</th>
+                  </tr>
+                </thead>
+                <tbody id="motionsTbody">
+                  <tr>
+                    <td colspan="8" class="text-center text-muted p-6">
+                      Sélectionnez une séance pour voir les résolutions
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit Log -->
+        <div class="card">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <h3 class="card-title">📜 Journal d'audit</h3>
+              <div class="flex gap-2">
+                <button class="btn btn-sm btn-secondary" id="btnExportAudit">
+                  📥 Exporter CSV
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div id="auditLog" style="max-height: 400px; overflow-y: auto;">
+              <div class="text-center p-6 text-muted">
+                Sélectionnez une séance pour voir le journal d'audit
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Drawer -->
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close>✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    let currentMeetingId = null;
+    const meetingSelect = document.getElementById('meetingSelect');
+    const apiKeyInput = document.getElementById('trustApiKey');
+
+    // Get meeting_id from URL
+    function getMeetingIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('meeting_id');
+    }
+
+    // Load saved API key
+    function loadApiKey() {
+      const saved = localStorage.getItem('trust.api_key');
+      if (saved) apiKeyInput.value = saved;
+    }
+
+    // Save API key
+    apiKeyInput.addEventListener('change', () => {
+      localStorage.setItem('trust.api_key', apiKeyInput.value);
+    });
+
+    // Get headers with API key
+    function getHeaders() {
+      const headers = {};
+      if (apiKeyInput.value) {
+        headers['X-Api-Key'] = apiKeyInput.value;
+      }
+      return headers;
+    }
+
+    // Load meetings list
+    async function loadMeetings() {
+      try {
+        const response = await fetch('/api/v1/meetings_index.php', {
+          headers: getHeaders()
+        });
+        const body = await response.json();
+        
+        if (body && body.ok && Array.isArray(body.data)) {
+          meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
+          body.data.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = `${m.title} (${m.status || 'draft'})`;
+            meetingSelect.appendChild(opt);
+          });
+
+          const urlMeetingId = getMeetingIdFromUrl();
+          if (urlMeetingId) {
+            meetingSelect.value = urlMeetingId;
+            loadMeetingData(urlMeetingId);
+          }
+        }
+      } catch (err) {
+        setNotif('error', 'Erreur chargement séances: ' + err.message);
+      }
+    }
+
+    // Load meeting data
+    async function loadMeetingData(meetingId) {
+      if (!meetingId) return;
+      
+      currentMeetingId = meetingId;
+      
+      // Update URL
+      const url = new URL(window.location);
+      url.searchParams.set('meeting_id', meetingId);
+      window.history.replaceState({}, '', url);
+
+      await Promise.all([
+        loadMeetingStatus(meetingId),
+        loadAnomalies(meetingId),
+        loadChecks(meetingId),
+        loadMotions(meetingId),
+        loadAuditLog(meetingId)
+      ]);
+    }
+
+    // Load meeting status
+    async function loadMeetingStatus(meetingId) {
+      try {
+        const response = await fetch(`/api/v1/meetings.php?id=${meetingId}`, {
+          headers: getHeaders()
+        });
+        const body = await response.json();
+        
+        if (body && body.ok && body.data) {
+          const m = body.data;
+          document.getElementById('meetingTitle').textContent = m.title;
+          
+          const statusMap = {
+            'draft': { class: 'badge-neutral', text: 'Brouillon', icon: '📝' },
+            'scheduled': { class: 'badge-info', text: 'Programmée', icon: '📅' },
+            'live': { class: 'badge-danger', text: 'En cours', icon: '🔴' },
+            'closed': { class: 'badge-success', text: 'Terminée', icon: '✅' },
+            'archived': { class: 'badge-neutral', text: 'Archivée', icon: '📦' }
+          };
+          const status = statusMap[m.status] || statusMap['draft'];
+          
+          document.getElementById('statusBox').innerHTML = `
+            <span class="badge ${status.class}">${status.icon} ${status.text}</span>
+          `;
+        }
+      } catch (err) {
+        console.error('Status error:', err);
+      }
+    }
+
+    // Load anomalies
+    async function loadAnomalies(meetingId) {
+      try {
+        const response = await fetch(`/api/v1/trust_anomalies.php?meeting_id=${meetingId}`, {
+          headers: getHeaders()
+        });
+        const body = await response.json();
+        
+        const container = document.getElementById('anomaliesList');
+        const badge = document.getElementById('badgeAnomalies');
+        const kpi = document.getElementById('kpiAnomalies');
+        
+        if (body && body.ok && Array.isArray(body.data) && body.data.length > 0) {
+          const anomalies = body.data;
+          badge.textContent = anomalies.length;
+          kpi.textContent = anomalies.length;
+          kpi.className = 'kpi-value danger';
+          
+          container.innerHTML = anomalies.map(a => `
+            <div class="anomaly-card ${a.severity || ''}">
+              <div class="flex items-start gap-3">
+                <span class="text-lg">${a.severity === 'warning' ? '⚠️' : '🚨'}</span>
+                <div>
+                  <div class="font-semibold">${escapeHtml(a.type)}</div>
+                  <div class="text-sm opacity-80">${escapeHtml(a.message)}</div>
+                  ${a.context ? `<div class="text-xs mt-1 opacity-60">${escapeHtml(a.context)}</div>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          badge.textContent = '0';
+          kpi.textContent = '0';
+          kpi.className = 'kpi-value success';
+          
+          container.innerHTML = `
+            <div class="empty-state p-6">
+              <div class="empty-state-icon text-success">✅</div>
+              <div class="empty-state-title">Aucune anomalie</div>
+              <div class="empty-state-description">
+                Tous les contrôles sont passés avec succès
+              </div>
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error('Anomalies error:', err);
+      }
+    }
+
+    // Load coherence checks
+    async function loadChecks(meetingId) {
+      try {
+        const response = await fetch(`/api/v1/trust_checks.php?meeting_id=${meetingId}`, {
+          headers: getHeaders()
+        });
+        const body = await response.json();
+        
+        const container = document.getElementById('checksList');
+        const kpi = document.getElementById('kpiChecks');
+        
+        if (body && body.ok && Array.isArray(body.data)) {
+          const checks = body.data;
+          const passed = checks.filter(c => c.passed).length;
+          kpi.textContent = `${passed}/${checks.length}`;
+          
+          container.innerHTML = checks.map(c => `
+            <div class="check-row ${c.passed ? 'pass' : 'fail'}">
+              <div class="check-icon">${c.passed ? '✓' : '✗'}</div>
+              <div class="flex-1">
+                <div class="font-medium">${escapeHtml(c.label)}</div>
+                ${c.detail ? `<div class="text-xs opacity-75">${escapeHtml(c.detail)}</div>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Checks error:', err);
+      }
+    }
+
+    // Load motions
+    async function loadMotions(meetingId) {
+      try {
+        const response = await fetch(`/api/v1/motions.php?meeting_id=${meetingId}`, {
+          headers: getHeaders()
+        });
+        const body = await response.json();
+        
+        const tbody = document.getElementById('motionsTbody');
+        const kpi = document.getElementById('kpiMotions');
+        
+        if (body && body.ok && Array.isArray(body.data)) {
+          const motions = body.data;
+          kpi.textContent = motions.length;
+          
+          if (motions.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="8" class="text-center text-muted p-6">
+                  Aucune résolution dans cette séance
+                </td>
+              </tr>
+            `;
+            return;
+          }
+          
+          tbody.innerHTML = motions.map(m => {
+            const statusBadge = {
+              'draft': '<span class="badge badge-neutral">Brouillon</span>',
+              'open': '<span class="badge badge-warning badge-dot">Vote ouvert</span>',
+              'closed': '<span class="badge badge-success">Clos</span>'
+            }[m.status] || '<span class="badge">—</span>';
+            
+            const decisionBadge = {
+              'adopted': '<span class="badge badge-success">Adopté</span>',
+              'rejected': '<span class="badge badge-danger">Rejeté</span>',
+              'pending': '<span class="badge badge-neutral">En attente</span>'
+            }[m.result] || '<span class="badge badge-neutral">—</span>';
+            
+            const total = (m.votes_for || 0) + (m.votes_against || 0) + (m.votes_abstain || 0);
+            const isCoherent = m.coherent !== false;
+            
+            return `
+              <tr>
+                <td class="font-medium">${escapeHtml(m.title)}</td>
+                <td>${statusBadge}</td>
+                <td class="text-success font-medium">${m.votes_for || 0}</td>
+                <td class="text-danger font-medium">${m.votes_against || 0}</td>
+                <td class="text-muted">${m.votes_abstain || 0}</td>
+                <td>${total}</td>
+                <td>${decisionBadge}</td>
+                <td>
+                  ${isCoherent 
+                    ? '<span class="text-success">✓ OK</span>' 
+                    : '<span class="text-danger">✗ Incohérent</span>'}
+                </td>
+              </tr>
+            `;
+          }).join('');
+          
+          // Update ballots KPI
+          const totalBallots = motions.reduce((sum, m) => 
+            sum + (m.votes_for || 0) + (m.votes_against || 0) + (m.votes_abstain || 0), 0);
+          document.getElementById('kpiBallots').textContent = totalBallots;
+        }
+      } catch (err) {
+        console.error('Motions error:', err);
+      }
+    }
+
+    // Load audit log
+    async function loadAuditLog(meetingId) {
+      try {
+        const response = await fetch(`/api/v1/audit_log.php?meeting_id=${meetingId}&limit=50`, {
+          headers: getHeaders()
+        });
+        const body = await response.json();
+        
+        const container = document.getElementById('auditLog');
+        
+        if (body && body.ok && Array.isArray(body.data) && body.data.length > 0) {
+          container.innerHTML = body.data.map(entry => `
+            <div class="audit-entry">
+              <div class="audit-time">${formatDate(entry.created_at)}</div>
+              <div class="audit-content">
+                <div class="audit-action">${escapeHtml(entry.action)}</div>
+                ${entry.detail ? `<div class="audit-detail">${escapeHtml(entry.detail)}</div>` : ''}
+              </div>
+              <div>
+                <span class="badge badge-neutral">${entry.actor || 'system'}</span>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = `
+            <div class="text-center p-6 text-muted">
+              Aucune entrée d'audit pour cette séance
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error('Audit error:', err);
+      }
+    }
+
+    // Export audit log
+    document.getElementById('btnExportAudit').addEventListener('click', () => {
+      if (!currentMeetingId) {
+        setNotif('error', 'Sélectionnez d\'abord une séance');
+        return;
+      }
+      
+      const url = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}&format=csv`;
+      window.open(url, '_blank');
+    });
+
+    // Event listeners
+    meetingSelect.addEventListener('change', () => {
+      loadMeetingData(meetingSelect.value);
+    });
+
+    document.getElementById('btnRefresh').addEventListener('click', () => {
+      if (currentMeetingId) {
+        loadMeetingData(currentMeetingId);
+      }
+    });
+
+    document.getElementById('btnRecheck').addEventListener('click', () => {
+      if (currentMeetingId) {
+        loadChecks(currentMeetingId);
+        loadAnomalies(currentMeetingId);
+      }
+    });
+
+    // Initialize
+    loadApiKey();
+    loadMeetings();
+  })();
+  </script>
+</body>
+</html>

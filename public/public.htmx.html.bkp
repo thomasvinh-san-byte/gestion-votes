@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Grand écran - Résolution en cours</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+    :root {
+        /* Couleurs principales */
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-gradient: radial-gradient(circle at top, #0f172a 0%, #1e293b 50%, #020617 100%);
+        
+        /* Accents */
+        --accent-live: #22c55e;    /* Vert pour "en cours" */
+        --accent-idle: #3b82f6;    /* Bleu pour "en séance" */
+        --accent-off: #64748b;     /* Gris pour "hors séance" */
+        --accent-danger: #ef4444;  /* Rouge pour erreurs */
+        --accent-warning: #f59e0b; /* Orange pour avertissements */
+        
+        /* Résultats de vote */
+        --vote-for: #10b981;       /* Vert pour "Pour" */
+        --vote-against: #ef4444;   /* Rouge pour "Contre" */
+        --vote-abstain: #94a3b8;   /* Gris pour "Abstention" */
+        
+        /* Texte */
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg-gradient);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .wrapper {
+        max-width: 1400px;
+        width: 100%;
+        margin: auto;
+        padding: 2.5rem 3rem;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(15,23,42,0.96), rgba(15,23,42,0.98));
+        box-shadow: 0 25px 80px rgba(0,0,0,0.6);
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    /* Status bar */
+    .status-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        border-bottom: 1px solid rgba(148,163,184,0.25);
+        padding-bottom: 1rem;
+    }
+
+    .status-left {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        min-width: 0;
+    }
+
+    .meeting {
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .badge.live {
+        background: rgba(34, 197, 94, 0.15);
+        border-color: var(--accent-live);
+        color: var(--accent-live);
+        animation: pulse 2s infinite;
+    }
+
+    .badge.idle {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: var(--accent-idle);
+        color: var(--accent-idle);
+    }
+
+    .badge.off {
+        background: rgba(100, 116, 139, 0.15);
+        border-color: var(--accent-off);
+        color: var(--accent-off);
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    .clock {
+        font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 1.3rem;
+        color: var(--text-secondary);
+        padding: 0.35rem 0.9rem;
+        border-radius: 999px;
+        border: 1px solid rgba(148,163,184,0.35);
+        background: radial-gradient(circle at top left, rgba(148,163,184,0.15), transparent);
+        min-width: 5.5rem;
+        text-align: center;
+    }
+
+    /* Main content */
+    .main-content {
+        text-align: center;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .motion {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin: 1.3rem 0 0.75rem;
+        min-height: 3em;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        max-width: 100%;
+        word-break: break-word;
+    }
+
+    .sub {
+        font-size: 1.8rem;
+        color: var(--accent-idle);
+        font-weight: 500;
+        min-height: 1.5em;
+    }
+
+    /* Vote timer (placeholder, peut être activé plus tard) */
+    .vote-timer {
+        margin-top: 1.5rem;
+    }
+
+    .timer-circle {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .timer-svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .timer-bg {
+        fill: none;
+        stroke: rgba(148,163,184,0.3);
+        stroke-width: 8;
+    }
+
+    .timer-progress {
+        fill: none;
+        stroke: var(--accent-idle);
+        stroke-width: 8;
+        stroke-linecap: round;
+        stroke-dasharray: 283;
+        stroke-dashoffset: 283;
+        transition: stroke-dashoffset 0.3s linear;
+    }
+
+    .timer-text {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+    }
+
+    /* Waiting state */
+    .waiting-state {
+        text-align: center;
+        padding: 2.5rem 1rem 1rem;
+        opacity: 0.85;
+        display: none;
+    }
+
+    .waiting-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+    }
+
+    .waiting-svg {
+        width: 100%;
+        height: 100%;
+        animation: rotate 2s linear infinite;
+        color: var(--accent-idle);
+    }
+
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .waiting-text h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .waiting-text p {
+        font-size: 1rem;
+        color: var(--text-muted);
+    }
+
+    /* Results section */
+    .results-section {
+        margin-top: 0.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(148,163,184,0.25);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        display: none;
+    }
+
+    .results-section.visible {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .results-header h3 {
+        font-size: 1.3rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+    }
+
+    .last-update {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        font-family: ui-monospace, monospace;
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin: 0 0 2rem;
+    }
+
+    .result-card {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border-top: 4px solid transparent;
+        transition: transform 0.3s ease;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.6);
+    }
+
+    .result-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .result-card.result-for {
+        border-top-color: var(--vote-for);
+    }
+
+    .result-card.result-against {
+        border-top-color: var(--vote-against);
+    }
+
+    .result-card.result-abstain {
+        border-top-color: var(--vote-abstain);
+    }
+
+    .result-label {
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+    }
+
+    .result-numbers {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 1rem 0;
+    }
+
+    .result-count {
+        font-size: 3rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .result-weight {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+    }
+
+    .result-bar {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    .result-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 1s ease;
+    }
+
+    .result-for .result-bar-fill {
+        background: var(--vote-for);
+    }
+
+    .result-against .result-bar-fill {
+        background: var(--vote-against);
+    }
+
+    .result-abstain .result-bar-fill {
+        background: var(--vote-abstain);
+    }
+
+    .decision-section {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .decision-card,
+    .quorum-card {
+        flex: 1 1 0;
+        min-width: 260px;
+        background: radial-gradient(circle at top left, rgba(56,189,248,0.12), rgba(15,23,42,0.95));
+        border-radius: 14px;
+        padding: 1.2rem 1.4rem;
+        border: 1px solid rgba(148,163,184,0.35);
+        display: flex;
+        align-items: baseline;
+        gap: 0.35rem;
+        font-size: 1rem;
+    }
+
+    .quorum-card {
+        background: radial-gradient(circle at top right, rgba(180,83,9,0.18), rgba(15,23,42,0.95));
+    }
+
+    .decision-label,
+    .quorum-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .decision-value {
+        font-weight: 700;
+        font-size: 1.05rem;
+    }
+
+    .decision-reason {
+        color: var(--text-muted);
+    }
+
+    .quorum-value {
+        font-weight: 700;
+        font-size: 1.05rem;
+    }
+
+    .quorum-details {
+        color: var(--text-muted);
+    }
+
+    /* Erreur */
+    .error {
+        color: var(--accent-danger);
+        font-size: 0.95rem;
+        margin-top: 0.75rem;
+        min-height: 1.2em;
+    }
+
+    /* Accessibilité : texte uniquement pour lecteurs d'écran */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .wrapper {
+            padding: 2rem;
+            max-width: 100%;
+        }
+        .motion { font-size: 2.8rem; }
+        .sub { font-size: 1.5rem; }
+        .results-grid {
+            grid-template-columns: 1fr;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .decision-section {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 768px) {
+        body {
+            padding: 10px;
+        }
+        .wrapper {
+            padding: 1.5rem;
+        }
+        .status-bar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .meeting {
+            font-size: 1.2rem;
+        }
+        .motion {
+            font-size: 2.2rem;
+        }
+        .clock {
+            align-self: flex-end;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .status-bar {
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: left;
+        }
+        .clock {
+            align-self: flex-start;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="wrapper" role="main" aria-live="polite" aria-relevant="additions text">
+    <!-- Barre de statut -->
+    <div class="status-bar">
+        <div class="status-left">
+            <div id="badge" class="badge off" role="status" aria-label="Statut de la séance">hors séance</div>
+            <div id="meeting_title" class="meeting">Aucune séance en cours</div>
+        </div>
+        <div class="clock" id="live-clock">--:--</div>
+    </div>
+
+    <!-- Zone principale -->
+    <div class="main-content" id="main_content">
+        <div id="motion_title" class="motion" aria-label="Titre de la résolution en cours">—</div>
+        <div id="motion_sub" class="sub"></div>
+
+        <!-- Timer de vote (optionnel, masqué tant qu'on n'a pas de données) -->
+        <div class="vote-timer" id="vote_timer" style="display: none;">
+            <div class="timer-circle">
+                <svg class="timer-svg" viewBox="0 0 100 100">
+                    <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+                    <circle class="timer-progress" id="timer_progress" cx="50" cy="50" r="45"></circle>
+                </svg>
+                <div class="timer-text" id="timer_text">00:00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- État d'attente (en séance, pas de résolution ouverte) -->
+    <div id="waiting_state" class="waiting-state" aria-hidden="true">
+        <div class="waiting-icon">
+            <svg class="waiting-svg" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+        </div>
+        <div class="waiting-text">
+            <h3>En attente de résolution</h3>
+            <p>La séance est en cours, aucune résolution n'est ouverte pour le moment.</p>
+        </div>
+    </div>
+
+    <!-- Section résultats -->
+    <div class="results-section" id="results_block" aria-label="Résultats du vote électronique">
+        <div class="results-header">
+            <h3>Résultats du vote électronique</h3>
+            <div class="last-update" id="last_update">Dernière mise à jour : --:--:--</div>
+        </div>
+
+        <div class="results-grid">
+            <!-- Pour -->
+            <div class="result-card result-for">
+                <div class="result-label">Pour</div>
+                <div class="result-numbers">
+                    <div class="result-count" id="res_for_count">0</div>
+                    <div class="result-weight">
+                        <span id="res_for_weight">0</span>
+                    </div>
+                </div>
+                <div class="result-bar">
+                    <div class="result-bar-fill" id="res_for_bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Contre -->
+            <div class="result-card result-against">
+                <div class="result-label">Contre</div>
+                <div class="result-numbers">
+                    <div class="result-count" id="res_against_count">0</div>
+                    <div class="result-weight">
+                        <span id="res_against_weight">0</span>
+                    </div>
+                </div>
+                <div class="result-bar">
+                    <div class="result-bar-fill" id="res_against_bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Abstention -->
+            <div class="result-card result-abstain">
+                <div class="result-label">Abstention</div>
+                <div class="result-numbers">
+                    <div class="result-count" id="res_abstain_count">0</div>
+                    <div class="result-weight">
+                        <span id="res_abstain_weight">0</span>
+                    </div>
+                </div>
+                <div class="result-bar">
+                    <div class="result-bar-fill" id="res_abstain_bar" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-section">
+            <div class="decision-card">
+                <span class="decision-label">Décision :</span>
+                <span class="decision-value" id="res_decision_status">—</span>
+                <span class="decision-reason" id="res_decision_reason"></span>
+            </div>
+            <div class="quorum-card">
+                <span class="quorum-label">Quorum :</span>
+                <span class="quorum-value" id="res_quorum_status">–</span>
+                <span class="quorum-details">
+                    (<span id="res_quorum_ratio">0</span> / seuil
+                    <span id="res_quorum_threshold">0</span>)
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zone d'erreur + annonce lecteur d'écran -->
+    <div id="error_box" class="error"></div>
+    <div class="sr-only" id="screen-reader-alert" aria-live="assertive" aria-atomic="true"></div>
+</div>
+
+
+<script>
+/**
+ * API Key injection for public UI (optional if your public endpoints are open).
+ * In dev, you can keep a static key. In prod, prefer server-side injection or reverse-proxy.
+ */
+window.APP_API_KEY = window.APP_API_KEY || "dev-public-key";
+
+(function() {
+  const originalFetch = window.fetch.bind(window);
+
+  window.fetch = function(input, init) {
+    const url = (typeof input === "string") ? input : (input && input.url) || "";
+    const isApiCall = url.startsWith("/api/") || url.includes("/api/");
+
+    if (!isApiCall) return originalFetch(input, init);
+
+    const headers = new Headers((init && init.headers) || (typeof input !== "string" && input.headers) || undefined);
+    if (!headers.has("X-Api-Key")) headers.set("X-Api-Key", window.APP_API_KEY);
+
+    const nextInit = Object.assign({}, init, { headers });
+    return originalFetch(input, nextInit);
+  };
+})();
+</script>
+
+<script src="/assets/js/toast.js"></script><script src="/assets/js/toast.js"></script>
+<script>
+let lastUpdateTime = null;
+let updateInterval = 3000; // 3 secondes par défaut
+
+// --- Accessibilité : annoncer les changements importants ---
+function announceToScreenReader(message) {
+    const alert = document.getElementById('screen-reader-alert');
+    if (alert) {
+        alert.textContent = message;
+        setTimeout(() => {
+            alert.textContent = '';
+        }, 1000);
+    }
+}
+
+// --- Horloge en temps réel ---
+function startClock() {
+    const clockEl = document.getElementById('live-clock');
+    if (!clockEl) return;
+    const updateClock = () => {
+        const now = new Date();
+        clockEl.textContent = now.toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+    updateClock();
+    setInterval(updateClock, 1000);
+}
+
+// --- Fonction de transition douce ---
+function fadeInOut(element, show, duration = 300) {
+    if (!element) return;
+    if (show) {
+        element.classList.add('visible');
+    } else {
+        element.classList.remove('visible');
+        // display: none est géré uniquement via CSS en fonction de la classe
+    }
+}
+
+// --- Timer de vote (optionnel, prêt à être branché plus tard) ---
+let voteTimerInterval = null;
+let voteTimerRemaining = 0;
+
+function startVoteTimer(durationSeconds) {
+    const timerContainer = document.getElementById('vote_timer');
+    const timerText = document.getElementById('timer_text');
+    const timerProgress = document.getElementById('timer_progress');
+
+    if (!timerContainer || !timerText || !timerProgress) return;
+
+    clearInterval(voteTimerInterval);
+    voteTimerRemaining = durationSeconds;
+
+    const circumference = 2 * Math.PI * 45; // r=45
+    timerProgress.style.strokeDasharray = circumference;
+    timerContainer.style.display = 'block';
+
+    const update = () => {
+        if (voteTimerRemaining < 0) {
+            clearInterval(voteTimerInterval);
+            return;
+        }
+        const minutes = String(Math.floor(voteTimerRemaining / 60)).padStart(2, '0');
+        const seconds = String(voteTimerRemaining % 60).padStart(2, '0');
+        timerText.textContent = minutes + ':' + seconds;
+
+        const ratio = voteTimerRemaining / durationSeconds;
+        timerProgress.style.strokeDashoffset = String(circumference * (1 - ratio));
+
+        voteTimerRemaining -= 1;
+    };
+
+    update();
+    voteTimerInterval = setInterval(update, 1000);
+}
+
+function stopVoteTimer() {
+    clearInterval(voteTimerInterval);
+    const timerContainer = document.getElementById('vote_timer');
+    if (timerContainer) timerContainer.style.display = 'none';
+}
+
+// --- Chargement des résultats du vote ---
+async function loadEvoteResults(motionId) {
+    const block = document.getElementById("results_block");
+    if (!block) return;
+
+    if (!motionId) {
+        fadeInOut(block, false);
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/v1/ballots_result.php?motion_id=" + encodeURIComponent(motionId), {
+            headers: { "Accept": "application/json" }
+        });
+        const data = await res.json().catch(() => null);
+
+        if (!data || data.ok === false) {
+            fadeInOut(block, false);
+            return;
+        }
+
+        const d = data.data || data;
+        const t = d.tallies || {};
+        const quorum = d.quorum || {};
+        const decision = d.decision || {};
+
+        const fmt = (x) => (typeof x === "number" ? x.toFixed(2) : (x ?? "0"));
+
+        const forCount     = t.for?.count ?? 0;
+        const againstCount = t.against?.count ?? 0;
+        const abstainCount = t.abstain?.count ?? 0;
+        const totalCount   = forCount + againstCount + abstainCount || 1;
+
+        document.getElementById("res_for_count").textContent      = forCount;
+        document.getElementById("res_for_weight").textContent     = fmt(t.for?.weight ?? 0);
+        document.getElementById("res_against_count").textContent  = againstCount;
+        document.getElementById("res_against_weight").textContent = fmt(t.against?.weight ?? 0);
+        document.getElementById("res_abstain_count").textContent  = abstainCount;
+        document.getElementById("res_abstain_weight").textContent = fmt(t.abstain?.weight ?? 0);
+
+        // Barres de progression (en % du total des voix)
+        document.getElementById("res_for_bar").style.width      = (forCount     * 100 / totalCount) + "%";
+        document.getElementById("res_against_bar").style.width  = (againstCount * 100 / totalCount) + "%";
+        document.getElementById("res_abstain_bar").style.width  = (abstainCount * 100 / totalCount) + "%";
+
+        if (quorum.applied) {
+            document.getElementById("res_quorum_status").textContent    = quorum.met ? "atteint" : "non atteint";
+            document.getElementById("res_quorum_ratio").textContent     = fmt(quorum.ratio ?? 0);
+            document.getElementById("res_quorum_threshold").textContent = fmt(quorum.threshold ?? 0);
+        } else {
+            document.getElementById("res_quorum_status").textContent    = "non défini";
+            document.getElementById("res_quorum_ratio").textContent     = "-";
+            document.getElementById("res_quorum_threshold").textContent = "-";
+        }
+
+        document.getElementById("res_decision_status").textContent = decision.status || "—";
+        document.getElementById("res_decision_reason").textContent = decision.reason ? " — " + decision.reason : "";
+
+        // Affichage + mise à jour de l'heure de rafraîchissement
+        lastUpdateTime = new Date();
+        const lastUpdateEl = document.getElementById("last_update");
+        if (lastUpdateEl && lastUpdateTime) {
+            lastUpdateEl.textContent = "Dernière mise à jour : " + lastUpdateTime.toLocaleTimeString("fr-FR", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            });
+        }
+
+        fadeInOut(block, true);
+    } catch (e) {
+        console.error("Erreur loadEvoteResults", e);
+        fadeInOut(block, false);
+    }
+}
+
+// --- Rafraîchissement de l'écran ---
+async function refreshScreen() {
+    const badge  = document.getElementById("badge");
+    const meet   = document.getElementById("meeting_title");
+    const motion = document.getElementById("motion_title");
+    const sub    = document.getElementById("motion_sub");
+    const err    = document.getElementById("error_box");
+    const waitingState = document.getElementById("waiting_state");
+
+    try {
+        const res  = await fetch("/api/v1/meeting_status.php");
+        const data = await res.json();
+
+        if (!data.ok) {
+            if (data.error === 'no_live_meeting') {
+                badge.className = 'badge off';
+                badge.textContent = 'hors séance';
+                badge.setAttribute('aria-label', 'Aucune séance en cours');
+                meet.textContent  = 'Aucune séance en cours';
+                motion.textContent = '—';
+                sub.textContent = '';
+                err.textContent = '';
+                if (waitingState) {
+                    waitingState.style.display = 'none';
+                    waitingState.setAttribute('aria-hidden', 'true');
+                }
+                stopVoteTimer();
+                await loadEvoteResults(null);
+                return;
+            }
+            badge.className = 'badge off';
+            badge.textContent = 'erreur';
+            badge.setAttribute('aria-label', 'Erreur de statut');
+            meet.textContent  = 'Erreur de statut';
+            motion.textContent = '—';
+            sub.textContent = '';
+            err.textContent = "Erreur : " + (data.error || 'inconnue');
+            if (waitingState) {
+                waitingState.style.display = 'none';
+                waitingState.setAttribute('aria-hidden', 'true');
+            }
+            stopVoteTimer();
+            await loadEvoteResults(null);
+            announceToScreenReader("Erreur de statut de séance : " + (data.error || "inconnue"));
+            return;
+        }
+
+        const s = data.data;
+        err.textContent = '';
+
+        meet.textContent = s.meeting_title || "Séance en cours";
+
+        if (s.motion_title && s.current_motion_id) {
+            // Résolution courante ouverte
+            const wasIdle = badge.classList.contains('idle') || badge.classList.contains('off');
+
+            badge.className = 'badge live';
+            badge.textContent = 'vote en cours';
+            badge.setAttribute('aria-label', 'Vote en cours');
+            motion.textContent = s.motion_title;
+            sub.textContent = 'Résolution ouverte';
+
+            if (waitingState) {
+                waitingState.style.display = 'none';
+                waitingState.setAttribute('aria-hidden', 'true');
+            }
+
+            // Timer : si plus tard l’API retourne une durée, on pourra appeler startVoteTimer(...)
+            stopVoteTimer();
+
+            await loadEvoteResults(s.current_motion_id);
+
+            if (wasIdle) {
+                announceToScreenReader("Une résolution vient d'être ouverte. Vote en cours.");
+            }
+
+        } else {
+            // Aucune résolution courante, mais séance active
+            const wasLive = badge.classList.contains('live');
+
+            badge.className = 'badge idle';
+            badge.textContent = 'en séance';
+            badge.setAttribute('aria-label', 'Séance en cours sans résolution ouverte');
+            motion.textContent = 'En attente de résolution';
+            sub.textContent = '';
+
+            if (waitingState) {
+                waitingState.style.display = 'block';
+                waitingState.setAttribute('aria-hidden', 'false');
+            }
+
+            stopVoteTimer();
+            await loadEvoteResults(null);
+
+            if (wasLive) {
+                announceToScreenReader("La résolution est close. Plus de vote en cours.");
+            }
+        }
+
+    } catch (e) {
+        console.error("Erreur refreshScreen", e);
+        const errBox = document.getElementById("error_box");
+        if (errBox) {
+            errBox.textContent = "Erreur réseau : " + e.message;
+        }
+        stopVoteTimer();
+        await loadEvoteResults(null);
+    }
+}
+
+// --- Boucle de rafraîchissement avec ajustement dynamique de l’intervalle ---
+async function refreshLoop() {
+    const startTime = Date.now();
+    await refreshScreen();
+    const requestDuration = Date.now() - startTime;
+
+    if (requestDuration > 1000) {
+        updateInterval = Math.max(5000, updateInterval + 1000);
+    } else {
+        updateInterval = 3000;
+    }
+
+    setTimeout(refreshLoop, updateInterval);
+}
+
+// --- Gestion des toasts d'erreur (inchangé) ---
+document.addEventListener("DOMContentLoaded", () => {
+    const box = document.getElementById("error_box");
+    if (!box || !window.MutationObserver) return;
+
+    let lastText = box.textContent;
+    const obs = new MutationObserver(() => {
+        const txt = box.textContent.trim();
+        if (txt && txt !== lastText && window.showToast) {
+            window.showToast(txt, { type: 'error' });
+        }
+        lastText = txt;
+    });
+    obs.observe(box, { childList: true, characterData: true, subtree: true });
+
+    // Démarrage horloge + première boucle de rafraîchissement
+    startClock();
+    refreshLoop();
+});
+</script>
+
+</body>
+</html>

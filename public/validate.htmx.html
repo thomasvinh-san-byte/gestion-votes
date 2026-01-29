@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Validation finale de séance - AG-VOTE">
+  <title>Validation — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-2);
+    }
+    
+    .check-item.pass {
+      background: var(--color-success-subtle);
+    }
+    
+    .check-item.fail {
+      background: var(--color-danger-subtle);
+    }
+    
+    .check-icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: var(--text-sm);
+      flex-shrink: 0;
+    }
+    
+    .check-item.pass .check-icon {
+      background: var(--color-success);
+      color: white;
+    }
+    
+    .check-item.fail .check-icon {
+      background: var(--color-danger);
+      color: white;
+    }
+    
+    .validation-zone {
+      padding: var(--space-6);
+      background: linear-gradient(135deg, var(--color-primary-subtle) 0%, var(--color-surface) 100%);
+      border: 2px solid var(--color-primary);
+      border-radius: var(--radius-xl);
+      text-align: center;
+    }
+    
+    .validation-zone.locked {
+      background: var(--color-danger-subtle);
+      border-color: var(--color-danger);
+    }
+    
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--space-3);
+    }
+    
+    .summary-item {
+      text-align: center;
+      padding: var(--space-3);
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+    }
+    
+    .summary-value {
+      font-size: var(--text-xl);
+      font-weight: var(--font-bold);
+    }
+    
+    .summary-label {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="p-4 border-b">
+        <a href="/" class="brand">
+          <span class="brand-logo">AG-VOTE</span>
+          <span class="brand-version">v2.0</span>
+        </a>
+      </div>
+      <nav class="nav">
+        <a class="nav-item" href="/meetings.htmx.html">
+          <span class="nav-item-icon">🏛️</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a class="nav-item" href="/operator.htmx.html">
+          <span class="nav-item-icon">🗂️</span>
+          <span>Fiche séance</span>
+        </a>
+        <a class="nav-item" href="/president.htmx.html">
+          <span class="nav-item-icon">🧑‍⚖️</span>
+          <span>Président</span>
+        </a>
+        <a class="nav-item active" href="/validate.htmx.html">
+          <span class="nav-item-icon">✅</span>
+          <span>Validation</span>
+        </a>
+        <a class="nav-item" href="/trust.htmx.html">
+          <span class="nav-item-icon">🛡️</span>
+          <span>Contrôle</span>
+        </a>
+        <a class="nav-item" href="/archives.htmx.html">
+          <span class="nav-item-icon">📚</span>
+          <span>Archives</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">✅ Validation finale</h1>
+          <p class="text-sm text-secondary" id="meetingTitle">Étape finale : vérifier puis valider</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-secondary" id="btnRefresh">
+          🔄 Actualiser
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- Meeting context -->
+        <div class="alert alert-info mb-6" id="meetingContext" style="display: none;">
+          <span>📌</span>
+          <span>Séance: <strong id="meetingName">—</strong></span>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">📊 Résumé de la séance</h3>
+          </div>
+          <div class="card-body">
+            <div class="summary-grid" id="summaryGrid">
+              <div class="summary-item">
+                <div class="summary-value" id="sumMembers">—</div>
+                <div class="summary-label">Membres</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value" id="sumPresent">—</div>
+                <div class="summary-label">Présents</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value" id="sumMotions">—</div>
+                <div class="summary-label">Résolutions</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value text-success" id="sumAdopted">—</div>
+                <div class="summary-label">Adoptées</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value text-danger" id="sumRejected">—</div>
+                <div class="summary-label">Rejetées</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value" id="sumBallots">—</div>
+                <div class="summary-label">Votes totaux</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+          <!-- Checklist -->
+          <div class="card">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <h3 class="card-title">📋 Checklist pré-validation</h3>
+                <span class="badge" id="readyBadge">—</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="checksList">
+                <div class="text-center p-4">
+                  <div class="spinner"></div>
+                  <div class="mt-2 text-muted">Vérification en cours...</div>
+                </div>
+              </div>
+              <button class="btn btn-secondary w-full mt-4" id="btnRecheck">
+                🔄 Relancer les vérifications
+              </button>
+            </div>
+          </div>
+
+          <!-- Validation Zone -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">✍️ Signature & Validation</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group mb-4">
+                <label class="form-label form-label-required" for="presidentName">
+                  Nom du président
+                </label>
+                <input class="form-input" type="text" id="presidentName" 
+                       placeholder="Ex: Jean Dupont">
+                <p class="form-helper">
+                  Ce nom apparaîtra sur le procès-verbal officiel
+                </p>
+              </div>
+
+              <div class="validation-zone mb-4" id="validationZone">
+                <div class="text-lg font-bold mb-2">⚠️ Action irréversible</div>
+                <div class="text-sm text-secondary mb-4">
+                  La validation archive définitivement la séance.<br>
+                  <strong>Plus aucune modification ne sera possible.</strong>
+                </div>
+                <button class="btn btn-lg btn-primary" id="btnValidate" disabled>
+                  ✅ Valider et archiver la séance
+                </button>
+              </div>
+
+              <div id="validateMsg" class="alert alert-info" style="display: none;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">📌 Notes importantes</h3>
+          </div>
+          <div class="card-body">
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-start gap-2">
+                <span class="text-warning">⚠️</span>
+                <span>La validation <strong>archive définitivement</strong> la séance. Aucune modification ne sera plus possible.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-info">ℹ️</span>
+                <span>En cas de "Non prêt", corrigez les points listés (résolutions non closes, totaux incohérents, etc.).</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-success">✅</span>
+                <span>Après validation, le PV et les exports seront disponibles dans les <a href="/archives.htmx.html" class="text-primary underline">Archives</a>.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Drawer -->
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close>✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    let currentMeetingId = null;
+    let isReady = false;
+
+    // Get meeting_id from URL
+    function getMeetingIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('meeting_id');
+    }
+
+    // Check meeting ID
+    currentMeetingId = getMeetingIdFromUrl();
+    if (!currentMeetingId) {
+      setNotif('error', 'Aucune séance sélectionnée');
+      setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
+    }
+
+    // Load meeting info
+    async function loadMeetingInfo() {
+      try {
+        const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
+        if (body && body.ok && body.data) {
+          document.getElementById('meetingTitle').textContent = body.data.title;
+          document.getElementById('meetingName').textContent = body.data.title;
+          document.getElementById('meetingContext').style.display = 'flex';
+          
+          // Check if already validated
+          if (body.data.status === 'archived' || body.data.validated_at) {
+            showAlreadyValidated();
+          }
+        }
+      } catch (err) {
+        console.error('Meeting info error:', err);
+      }
+    }
+
+    // Show already validated state
+    function showAlreadyValidated() {
+      const zone = document.getElementById('validationZone');
+      zone.classList.add('locked');
+      zone.innerHTML = `
+        <div class="text-lg font-bold mb-2">✅ Séance déjà validée</div>
+        <div class="text-sm mb-4">
+          Cette séance a été validée et archivée.<br>
+          Consultez les exports dans les Archives.
+        </div>
+        <a class="btn btn-primary" href="/archives.htmx.html">
+          📚 Voir les archives
+        </a>
+      `;
+      
+      document.getElementById('presidentName').disabled = true;
+    }
+
+    // Load summary
+    async function loadSummary() {
+      try {
+        const { body } = await api(`/api/v1/meeting_summary.php?meeting_id=${currentMeetingId}`);
+        
+        if (body && body.ok && body.data) {
+          const s = body.data;
+          document.getElementById('sumMembers').textContent = s.total_members ?? '—';
+          document.getElementById('sumPresent').textContent = s.present_count ?? '—';
+          document.getElementById('sumMotions').textContent = s.motions_count ?? '—';
+          document.getElementById('sumAdopted').textContent = s.adopted_count ?? '—';
+          document.getElementById('sumRejected').textContent = s.rejected_count ?? '—';
+          document.getElementById('sumBallots').textContent = s.ballots_count ?? '—';
+        }
+      } catch (err) {
+        console.error('Summary error:', err);
+      }
+    }
+
+    // Load readiness checks
+    async function loadChecks() {
+      const checksList = document.getElementById('checksList');
+      const badge = document.getElementById('readyBadge');
+      const btnValidate = document.getElementById('btnValidate');
+      
+      checksList.innerHTML = `
+        <div class="text-center p-4">
+          <div class="spinner"></div>
+          <div class="mt-2 text-muted">Vérification en cours...</div>
+        </div>
+      `;
+
+      try {
+        const { body } = await api(`/api/v1/meeting_ready_check.php?meeting_id=${currentMeetingId}`);
+        
+        if (body && body.ok && body.data) {
+          const checks = body.data.checks || [];
+          isReady = body.data.ready;
+          
+          badge.className = `badge ${isReady ? 'badge-success' : 'badge-danger'}`;
+          badge.textContent = isReady ? 'Prêt' : 'Non prêt';
+          
+          checksList.innerHTML = checks.map(check => `
+            <div class="check-item ${check.passed ? 'pass' : 'fail'}">
+              <div class="check-icon">${check.passed ? '✓' : '✗'}</div>
+              <div>
+                <div class="font-medium">${escapeHtml(check.label)}</div>
+                ${check.detail ? `<div class="text-xs opacity-75">${escapeHtml(check.detail)}</div>` : ''}
+              </div>
+            </div>
+          `).join('');
+          
+          btnValidate.disabled = !isReady;
+        }
+      } catch (err) {
+        checksList.innerHTML = `
+          <div class="alert alert-danger">
+            Erreur de vérification: ${escapeHtml(err.message)}
+          </div>
+        `;
+      }
+    }
+
+    // Validate meeting
+    document.getElementById('btnValidate').addEventListener('click', async () => {
+      const presidentName = document.getElementById('presidentName').value.trim();
+      const msgDiv = document.getElementById('validateMsg');
+      
+      if (!presidentName) {
+        setNotif('error', 'Le nom du président est requis');
+        return;
+      }
+      
+      if (!isReady) {
+        setNotif('error', 'La séance n\'est pas prête à être validée');
+        return;
+      }
+      
+      const confirm1 = confirm('⚠️ ATTENTION: Cette action est IRRÉVERSIBLE.\n\nLa séance sera définitivement archivée et plus aucune modification ne sera possible.\n\nContinuer ?');
+      if (!confirm1) return;
+      
+      const confirm2 = confirm('Dernière confirmation:\n\nVous êtes sur le point de valider et archiver définitivement cette séance.\n\nConfirmer la validation ?');
+      if (!confirm2) return;
+      
+      try {
+        const { body } = await api('/api/v1/meeting_validate.php', {
+          meeting_id: currentMeetingId,
+          president_name: presidentName
+        });
+        
+        if (body && body.ok) {
+          msgDiv.style.display = 'block';
+          msgDiv.className = 'alert alert-success';
+          msgDiv.innerHTML = '✅ Séance validée et archivée avec succès !';
+          
+          setNotif('success', '✅ Séance validée !');
+          
+          showAlreadyValidated();
+          
+          // Redirect to archives after 3s
+          setTimeout(() => {
+            window.location.href = '/archives.htmx.html';
+          }, 3000);
+        } else {
+          msgDiv.style.display = 'block';
+          msgDiv.className = 'alert alert-danger';
+          msgDiv.innerHTML = `❌ Erreur: ${escapeHtml(body?.error || 'Validation impossible')}`;
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    });
+
+    // Refresh
+    document.getElementById('btnRefresh').addEventListener('click', () => {
+      loadSummary();
+      loadChecks();
+    });
+
+    document.getElementById('btnRecheck').addEventListener('click', loadChecks);
+
+    // Initialize
+    if (currentMeetingId) {
+      loadMeetingInfo();
+      loadSummary();
+      loadChecks();
+    }
+  })();
+  </script>
+</body>
+</html>

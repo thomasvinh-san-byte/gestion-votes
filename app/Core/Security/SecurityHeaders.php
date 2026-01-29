@@ -1,0 +1,274 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Core\Security;
+
+/**
+ * SecurityHeaders - Headers HTTP de sécurité
+ * 
+ * Implémente les headers recommandés OWASP :
+ * - Content-Security-Policy (CSP)
+ * - Strict-Transport-Security (HSTS)
+ * - X-Frame-Options
+ * - X-Content-Type-Options
+ * - X-XSS-Protection
+ * - Referrer-Policy
+ * - Permissions-Policy
+ * 
+ * @package App\Core\Security
+ */
+final class SecurityHeaders
+{
+    /** @var array Configuration par défaut */
+    private static array $defaults = [
+        'csp' => [
+            'default-src' => ["'self'"],
+            'script-src' => ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com"],
+            'style-src' => ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
+            'img-src' => ["'self'", "data:", "blob:"],
+            'font-src' => ["'self'", "https://fonts.gstatic.com"],
+            'connect-src' => ["'self'"],
+            'frame-ancestors' => ["'self'"],
+            'form-action' => ["'self'"],
+            'base-uri' => ["'self'"],
+            'object-src' => ["'none'"],
+        ],
+        'hsts' => [
+            'max-age' => 31536000, // 1 an
+            'includeSubDomains' => true,
+            'preload' => false,
+        ],
+        'frame_options' => 'SAMEORIGIN',
+        'content_type_options' => 'nosniff',
+        'xss_protection' => '1; mode=block',
+        'referrer_policy' => 'strict-origin-when-cross-origin',
+        'permissions_policy' => [
+            'geolocation' => [],
+            'microphone' => [],
+            'camera' => [],
+            'payment' => [],
+        ],
+    ];
+
+    /** @var array Configuration active */
+    private static array $config = [];
+
+    /** @var bool Headers déjà envoyés */
+    private static bool $sent = false;
+
+    /**
+     * Configure les headers (à appeler avant send())
+     */
+    public static function configure(array $config): void
+    {
+        self::$config = array_replace_recursive(self::$defaults, $config);
+    }
+
+    /**
+     * Envoie tous les headers de sécurité
+     */
+    public static function send(): void
+    {
+        if (self::$sent || headers_sent()) {
+            return;
+        }
+
+        $config = empty(self::$config) ? self::$defaults : self::$config;
+
+        // Content-Security-Policy
+        if (!empty($config['csp'])) {
+            self::sendCsp($config['csp']);
+        }
+
+        // Strict-Transport-Security (HTTPS uniquement)
+        if (!empty($config['hsts']) && self::isHttps()) {
+            self::sendHsts($config['hsts']);
+        }
+
+        // X-Frame-Options
+        if (!empty($config['frame_options'])) {
+            header('X-Frame-Options: ' . $config['frame_options']);
+        }
+
+        // X-Content-Type-Options
+        if (!empty($config['content_type_options'])) {
+            header('X-Content-Type-Options: ' . $config['content_type_options']);
+        }
+
+        // X-XSS-Protection (legacy, mais encore utile pour vieux navigateurs)
+        if (!empty($config['xss_protection'])) {
+            header('X-XSS-Protection: ' . $config['xss_protection']);
+        }
+
+        // Referrer-Policy
+        if (!empty($config['referrer_policy'])) {
+            header('Referrer-Policy: ' . $config['referrer_policy']);
+        }
+
+        // Permissions-Policy
+        if (!empty($config['permissions_policy'])) {
+            self::sendPermissionsPolicy($config['permissions_policy']);
+        }
+
+        self::$sent = true;
+    }
+
+    /**
+     * Envoie le header CSP
+     */
+    private static function sendCsp(array $csp): void
+    {
+        $directives = [];
+
+        foreach ($csp as $directive => $values) {
+            if (is_array($values)) {
+                $directives[] = $directive . ' ' . implode(' ', $values);
+            } else {
+                $directives[] = $directive . ' ' . $values;
+            }
+        }
+
+        $policy = implode('; ', $directives);
+        header('Content-Security-Policy: ' . $policy);
+    }
+
+    /**
+     * Envoie le header HSTS
+     */
+    private static function sendHsts(array $hsts): void
+    {
+        $value = 'max-age=' . ($hsts['max-age'] ?? 31536000);
+
+        if (!empty($hsts['includeSubDomains'])) {
+            $value .= '; includeSubDomains';
+        }
+
+        if (!empty($hsts['preload'])) {
+            $value .= '; preload';
+        }
+
+        header('Strict-Transport-Security: ' . $value);
+    }
+
+    /**
+     * Envoie le header Permissions-Policy
+     */
+    private static function sendPermissionsPolicy(array $permissions): void
+    {
+        $directives = [];
+
+        foreach ($permissions as $feature => $allowlist) {
+            if (empty($allowlist)) {
+                $directives[] = $feature . '=()';
+            } else {
+                $quoted = array_map(fn($v) => '"' . $v . '"', $allowlist);
+                $directives[] = $feature . '=(' . implode(' ', $quoted) . ')';
+            }
+        }
+
+        header('Permissions-Policy: ' . implode(', ', $directives));
+    }
+
+    /**
+     * Détecte si la connexion est HTTPS
+     */
+    private static function isHttps(): bool
+    {
+        // Direct HTTPS
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            return true;
+        }
+
+        // Derrière un proxy (X-Forwarded-Proto)
+        if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+            return true;
+        }
+
+        // Port 443
+        if (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Headers spécifiques pour les réponses API JSON
+     */
+    public static function sendApiHeaders(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+    }
+
+    /**
+     * Headers spécifiques pour les téléchargements de fichiers
+     */
+    public static function sendDownloadHeaders(string $filename, string $mimeType = 'application/octet-stream'): void
+    {
+        header('Content-Type: ' . $mimeType);
+        header('Content-Disposition: attachment; filename="' . addslashes($filename) . '"');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+    }
+
+    /**
+     * Headers pour empêcher la mise en cache
+     */
+    public static function sendNoCacheHeaders(): void
+    {
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Cache-Control: post-check=0, pre-check=0', false);
+        header('Pragma: no-cache');
+        header('Expires: 0');
+    }
+
+    /**
+     * Ajoute un nonce CSP pour scripts inline
+     * 
+     * @return string Le nonce généré
+     */
+    public static function generateNonce(): string
+    {
+        static $nonce = null;
+        
+        if ($nonce === null) {
+            $nonce = base64_encode(random_bytes(16));
+        }
+        
+        return $nonce;
+    }
+
+    /**
+     * Modifie la CSP pour ajouter un nonce
+     */
+    public static function addCspNonce(string $nonce): void
+    {
+        $config = empty(self::$config) ? self::$defaults : self::$config;
+        
+        $config['csp']['script-src'][] = "'nonce-{$nonce}'";
+        $config['csp']['style-src'][] = "'nonce-{$nonce}'";
+        
+        self::$config = $config;
+    }
+
+    /**
+     * Retourne le nonce courant pour utilisation dans les templates
+     */
+    public static function getNonce(): string
+    {
+        return self::generateNonce();
+    }
+
+    /**
+     * Génère un attribut nonce pour les balises script/style
+     */
+    public static function nonceAttr(): string
+    {
+        return 'nonce="' . htmlspecialchars(self::generateNonce(), ENT_QUOTES, 'UTF-8') . '"';
+    }
+}
