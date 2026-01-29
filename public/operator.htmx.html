@@ -303,6 +303,7 @@
 
     const meetingSelect = document.getElementById('meetingSelect');
     let currentMeetingId = null;
+    let currentMotionId = null;
 
     // Get meeting_id from URL
     function getMeetingIdFromUrl() {
@@ -479,6 +480,7 @@
         
         if (body && body.ok && body.data && body.data.motions && body.data.motions.length > 0) {
           const m = body.data.motions[0];
+          currentMotionId = m.id;
           
           badge.className = 'badge badge-warning badge-dot';
           badge.textContent = 'Vote ouvert';
@@ -514,9 +516,10 @@
             </div>
           `;
           
+          currentMotionId = null;
           btnOpen.disabled = false;
           btnClose.disabled = true;
-          
+
           document.getElementById('kpiVoted').textContent = '—';
           document.getElementById('kpiPending').textContent = '—';
         }
@@ -545,12 +548,12 @@
     });
 
     document.getElementById('btnCloseMotion').addEventListener('click', async () => {
-      if (!currentMeetingId) return;
-      
+      if (!currentMeetingId || !currentMotionId) return;
+
       if (!confirm('Êtes-vous sûr de vouloir clôturer le vote en cours ?')) return;
-      
+
       try {
-        const { body } = await api('/api/v1/motions_close.php', { meeting_id: currentMeetingId });
+        const { body } = await api('/api/v1/motions_close.php', { motion_id: currentMotionId });
         
         if (body && body.ok) {
           setNotif('success', 'Vote clôturé');
