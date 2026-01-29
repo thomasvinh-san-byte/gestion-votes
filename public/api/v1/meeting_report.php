@@ -55,23 +55,23 @@ $motions = db_select_all(
 );
 
 $attendance = db_select_all(
-  "SELECT m.id AS member_id, m.name, m.voting_power, a.mode, a.checked_in_at
+  "SELECT m.id AS member_id, m.full_name, COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power, a.mode, a.checked_in_at
    FROM members m
    LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = ?
    WHERE m.tenant_id = ? AND m.is_active = true
-   ORDER BY m.name ASC",
+   ORDER BY m.full_name ASC",
   [$meetingId, $tenant]
 );
 
 $proxies = [];
 try {
   $proxies = db_select_all(
-    "SELECT g.name AS giver_name, r.name AS receiver_name, p.created_at, p.revoked_at
+    "SELECT g.full_name AS giver_name, r.full_name AS receiver_name, p.created_at, p.revoked_at
      FROM proxies p
      JOIN members g ON g.id = p.giver_member_id
      JOIN members r ON r.id = p.receiver_member_id
      WHERE p.meeting_id = ?
-     ORDER BY g.name ASC",
+     ORDER BY g.full_name ASC",
     [$meetingId]
   );
 } catch (Throwable $e) { $proxies = []; }
@@ -79,11 +79,11 @@ try {
 $tokens = [];
 try {
   $tokens = db_select_all(
-    "SELECT m.name, i.created_at, i.revoked_at, i.last_used_at
+    "SELECT m.full_name, i.created_at, i.revoked_at, i.last_used_at
      FROM invitations i
      JOIN members m ON m.id = i.member_id
      WHERE i.meeting_id = ?
-     ORDER BY m.name ASC",
+     ORDER BY m.full_name ASC",
     [$meetingId]
   );
 } catch (Throwable $e) { $tokens = []; }
@@ -101,7 +101,7 @@ function policyLabel(?array $votePolicy, ?array $quorumPolicy): string {
   return implode(" · ", $parts);
 }
 
-$engine = new VoteEngine();
+// VoteEngine methods are static
 
 $rowsHtml = '';
 foreach ($motions as $m) {
@@ -139,7 +139,7 @@ foreach ($motions as $m) {
 
   try {
     if ($src === 'evote') {
-      $r = $engine->computeMotionResult($mid);
+      $r = VoteEngine::computeMotionResult($mid);
       $detail['quorum_met'] = $r['quorum']['met'] ?? null;
       $detail['quorum_ratio'] = $r['quorum']['ratio'] ?? null;
       $detail['majority_ratio'] = $r['decision']['ratio'] ?? ($r['majority']['ratio'] ?? null);
@@ -184,7 +184,7 @@ $attRows = '';
 $presentCount = 0; $presentWeight = 0.0; $totalWeight = 0.0;
 foreach ($attendance as $r) {
   $mode = (string)($r['mode'] ?? '');
-  $name = (string)($r['name'] ?? '');
+  $name = (string)($r['full_name'] ?? '');
   $vp = (float)($r['voting_power'] ?? 0);
   $totalWeight += $vp;
   $isPresent = in_array($mode, ['present','remote','proxy'], true);
@@ -203,7 +203,7 @@ $proxySummary = $proxies ? "Procurations: ".count($proxies) : "Procurations: 0";
 // Annex C
 $tokenRows = '';
 foreach ($tokens as $t) {
-  $tokenRows .= "<tr><td>".h($t['name'] ?? '')."</td><td class='tiny muted'>".h((string)($t['created_at'] ?? ''))."</td><td class='tiny muted'>".h((string)($t['last_used_at'] ?? ''))."</td><td class='tiny muted'>".h((string)($t['revoked_at'] ?? ''))."</td></tr>";
+  $tokenRows .= "<tr><td>".h($t['full_name'] ?? '')."</td><td class='tiny muted'>".h((string)($t['created_at'] ?? ''))."</td><td class='tiny muted'>".h((string)($t['last_used_at'] ?? ''))."</td><td class='tiny muted'>".h((string)($t['revoked_at'] ?? ''))."</td></tr>";
 }
 $tokenSummary = $tokens ? "Tokens: ".count($tokens) : "Tokens: 0";
 
@@ -217,18 +217,18 @@ if ($showVoters) {
 
     $ballots = db_select_all(
       "SELECT
-         b.choice,
-         COALESCE(b.effective_power, 0) AS effective_power,
+         COALESCE(b.value::text, b.choice) AS choice,
+         COALESCE(b.weight, b.effective_power, 0) AS effective_power,
          b.is_proxy_vote,
          b.member_id AS giver_member_id,
          b.proxy_source_member_id AS receiver_member_id,
-         mg.name AS giver_name,
-         mr.name AS receiver_name
+         mg.full_name AS giver_name,
+         mr.full_name AS receiver_name
        FROM ballots b
        LEFT JOIN members mg ON mg.id = b.member_id
        LEFT JOIN members mr ON mr.id = b.proxy_source_member_id
        WHERE b.motion_id = ?
-       ORDER BY COALESCE(mg.name, ''), COALESCE(mr.name, '')",
+       ORDER BY COALESCE(mg.full_name, ''), COALESCE(mr.full_name, '')",
       [$mid]
     );
 

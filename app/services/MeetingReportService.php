@@ -43,11 +43,11 @@ final class MeetingReportService
         );
 
         $attendance = db_select_all(
-            "SELECT m.id AS member_id, m.name, m.voting_power, a.mode, a.checked_in_at, a.checked_out_at
+            "SELECT m.id AS member_id, m.full_name, COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power, a.mode, a.checked_in_at, a.checked_out_at
              FROM members m
              LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = ?
              WHERE m.tenant_id = ? AND m.is_active = true
-             ORDER BY m.name ASC",
+             ORDER BY m.full_name ASC",
             [$meetingId, $tenant]
         );
 
@@ -61,8 +61,6 @@ final class MeetingReportService
                 [$meetingId]
             );
         } catch (Throwable $e) { $manualActions = []; }
-
-        $voteEngine = new VoteEngine();
 
         $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
@@ -169,7 +167,7 @@ final class MeetingReportService
 
             $majorityJust = null;
             try {
-                $vr = $voteEngine::computeMotionResult($mid);
+                $vr = VoteEngine::computeMotionResult($mid);
                 $maj = $vr['majority'] ?? null;
                 if (is_array($maj)) {
                     $majorityJust = self::majorityLine($maj);
@@ -209,7 +207,7 @@ final class MeetingReportService
             $html .= "<div class=\"card\"><strong>Annexe – Présences</strong><div class=\"hr\"></div>";
             $html .= "<table><thead><tr><th>Nom</th><th class=\"right\">Pouvoir</th><th>Mode</th></tr></thead><tbody>";
             foreach ($attendance as $a) {
-                $html .= "<tr><td>".$h($a['name'])."</td><td class=\"right\">".$h(self::fmt((float)$a['voting_power']))."</td><td>".$h($a['mode'] ?: 'absent')."</td></tr>";
+                $html .= "<tr><td>".$h($a['full_name'])."</td><td class=\"right\">".$h(self::fmt((float)$a['voting_power']))."</td><td>".$h($a['mode'] ?: 'absent')."</td></tr>";
             }
             $html .= "</tbody></table></div>";
         }

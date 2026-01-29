@@ -90,7 +90,7 @@ final class VoteEngine
         ) ?? 0);
 
         $eligibleWeight = (float)(db_scalar(
-            "SELECT COALESCE(SUM(voting_power), 0) FROM members WHERE tenant_id = :tenant_id AND is_active = true",
+            "SELECT COALESCE(SUM(COALESCE(voting_power, vote_weight, 1.0)), 0) FROM members WHERE tenant_id = :tenant_id AND is_active = true",
             [':tenant_id' => $tenantId]
         ) ?? 0.0);
 
