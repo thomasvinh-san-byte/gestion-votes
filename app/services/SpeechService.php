@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 
 /**
- * SpeechService — gestion de la parole (main levée) inspirée du prototype TSX.
+ * SpeechService — gestion de la parole (main levée).
  *
  * Table attendue: speech_requests
  *  - id (uuid), tenant_id, meeting_id, member_id
@@ -15,7 +15,6 @@ final class SpeechService
 {
     private static function ensureSchema(): void
     {
-        // Best-effort: si la migration n'a pas été jouée, on crée le minimum.
         db_execute("CREATE TABLE IF NOT EXISTS speech_requests (
             id uuid PRIMARY KEY,
             tenant_id uuid NOT NULL,
@@ -27,6 +26,22 @@ final class SpeechService
         )");
         db_execute("CREATE INDEX IF NOT EXISTS idx_speech_requests_meeting_status ON speech_requests (meeting_id, status, created_at)");
         db_execute("CREATE INDEX IF NOT EXISTS idx_speech_requests_member ON speech_requests (meeting_id, member_id, updated_at DESC)");
+    }
+
+    private static function memberLabel(string $memberId): ?string
+    {
+        $m = db_one("SELECT full_name FROM members WHERE id = :id", [':id' => $memberId]);
+        if (!$m) return null;
+        $name = trim((string)($m['full_name'] ?? ''));
+        return $name !== '' ? $name : null;
+    }
+
+    private static function memberPayload(string $memberId): array
+    {
+        return [
+            'member_id' => $memberId,
+            'member_name' => self::memberLabel($memberId),
+        ];
     }
 
     /** @return array{speaker: ?array<string,mixed>, queue: array<int,array<string,mixed>>} */
@@ -41,7 +56,7 @@ final class SpeechService
         $tenantId = (string)$meeting['tenant_id'];
 
         $speaker = db_one(
-            "SELECT sr.*, m.first_name, m.last_name
+            "SELECT sr.*, m.full_name
              FROM speech_requests sr
              JOIN members m ON m.id = sr.member_id
              WHERE sr.meeting_id = :mid AND sr.tenant_id = :tid AND sr.status = 'speaking'
@@ -51,7 +66,7 @@ final class SpeechService
         );
 
         $queue = db_all(
-            "SELECT sr.*, m.first_name, m.last_name
+            "SELECT sr.*, m.full_name
              FROM speech_requests sr
              JOIN members m ON m.id = sr.member_id
              WHERE sr.meeting_id = :mid AND sr.tenant_id = :tid AND sr.status = 'waiting'
@@ -115,28 +130,27 @@ final class SpeechService
                  WHERE id = :id AND tenant_id=:tid",
                 [':id' => (string)$existing['id'], ':tid' => $tenantId]
             );
-            audit_log('speech_cancelled', 'meeting', $meetingId, ['member_id' => $memberId]);
+            audit_log('speech_cancelled', 'meeting', $meetingId, self::memberPayload($memberId));
             return ['status' => 'none', 'request_id' => null];
         }
 
         if ($existing && (string)$existing['status'] === 'speaking') {
-            // Un orateur actif ne peut pas relancer -> il baisse la main (fin)
             db_execute(
                 "UPDATE speech_requests SET status='finished', updated_at=now()
                  WHERE id = :id AND tenant_id=:tid",
                 [':id' => (string)$existing['id'], ':tid' => $tenantId]
             );
-            audit_log('speech_finished_self', 'meeting', $meetingId, ['member_id' => $memberId]);
+            audit_log('speech_finished_self', 'meeting', $meetingId, self::memberPayload($memberId));
             return ['status' => 'none', 'request_id' => null];
         }
 
-        $id = uuid_v4();
+        $id = api_uuid4();
         db_execute(
             "INSERT INTO speech_requests (id, tenant_id, meeting_id, member_id, status)
              VALUES (:id, :tid, :mid, :mem, 'waiting')",
             [':id' => $id, ':tid' => $tenantId, ':mid' => $meetingId, ':mem' => $memberId]
         );
-        audit_log('speech_requested', 'meeting', $meetingId, ['member_id' => $memberId]);
+        audit_log('speech_requested', 'meeting', $meetingId, self::memberPayload($memberId));
         return ['status' => 'waiting', 'request_id' => $id];
     }
 
@@ -157,7 +171,6 @@ final class SpeechService
         );
 
         if ($memberId) {
-            // Prendre la demande waiting la plus récente de ce membre, sinon créer speaking direct
             $req = db_one(
                 "SELECT id FROM speech_requests
                  WHERE meeting_id=:mid AND tenant_id=:tid AND member_id=:mem AND status='waiting'
@@ -171,18 +184,18 @@ final class SpeechService
                      WHERE id=:id AND tenant_id=:tid",
                     [':id' => (string)$req['id'], ':tid' => $tenantId]
                 );
-                audit_log('speech_granted', 'meeting', $meetingId, ['member_id' => $memberId, 'request_id' => (string)$req['id']]);
+                audit_log('speech_granted', 'meeting', $meetingId, array_merge(self::memberPayload($memberId), ['request_id' => (string)$req['id']]));
                 return self::getQueue($meetingId);
             }
 
             // speaking direct
-            $id = uuid_v4();
+            $id = api_uuid4();
             db_execute(
                 "INSERT INTO speech_requests (id, tenant_id, meeting_id, member_id, status)
                  VALUES (:id,:tid,:mid,:mem,'speaking')",
                 [':id' => $id, ':tid' => $tenantId, ':mid' => $meetingId, ':mem' => $memberId]
             );
-            audit_log('speech_granted_direct', 'meeting', $meetingId, ['member_id' => $memberId, 'request_id' => $id]);
+            audit_log('speech_granted_direct', 'meeting', $meetingId, array_merge(self::memberPayload($memberId), ['request_id' => $id]));
             return self::getQueue($meetingId);
         }
 
@@ -200,7 +213,7 @@ final class SpeechService
                  WHERE id=:id AND tenant_id=:tid",
                 [':id' => (string)$next['id'], ':tid' => $tenantId]
             );
-            audit_log('speech_granted_next', 'meeting', $meetingId, ['member_id' => (string)$next['member_id'], 'request_id' => (string)$next['id']]);
+            audit_log('speech_granted_next', 'meeting', $meetingId, array_merge(self::memberPayload((string)$next['member_id']), ['request_id' => (string)$next['id']]));
         }
 
         return self::getQueue($meetingId);
@@ -214,12 +227,30 @@ final class SpeechService
         if (!$meeting) throw new RuntimeException('Séance introuvable');
         $tenantId = (string)$meeting['tenant_id'];
 
+        $cur = db_one(
+            "SELECT id, member_id
+             FROM speech_requests
+             WHERE meeting_id=:mid AND tenant_id=:tid AND status='speaking'
+             ORDER BY updated_at DESC
+             LIMIT 1",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+
         db_execute(
             "UPDATE speech_requests SET status='finished', updated_at=now()
              WHERE meeting_id=:mid AND tenant_id=:tid AND status='speaking'",
             [':mid' => $meetingId, ':tid' => $tenantId]
         );
-        audit_log('speech_ended', 'meeting', $meetingId, []);
+
+        $payload = [];
+        if ($cur) {
+            $payload = array_merge(
+                self::memberPayload((string)$cur['member_id']),
+                ['request_id' => (string)$cur['id']]
+            );
+        }
+        audit_log('speech_ended', 'meeting', $meetingId, $payload);
+
         return self::getQueue($meetingId);
     }
 
@@ -231,12 +262,20 @@ final class SpeechService
         if (!$meeting) throw new RuntimeException('Séance introuvable');
         $tenantId = (string)$meeting['tenant_id'];
 
+        $count = (int)(db_scalar(
+            "SELECT count(*) FROM speech_requests
+             WHERE meeting_id=:mid AND tenant_id=:tid AND status IN ('finished','cancelled')",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        ) ?? 0);
+
         db_execute(
             "DELETE FROM speech_requests
              WHERE meeting_id=:mid AND tenant_id=:tid AND status IN ('finished','cancelled')",
             [':mid' => $meetingId, ':tid' => $tenantId]
         );
-        audit_log('speech_cleared', 'meeting', $meetingId, []);
+
+        audit_log('speech_cleared', 'meeting', $meetingId, ['deleted' => $count]);
+
         return self::getQueue($meetingId);
     }
 }

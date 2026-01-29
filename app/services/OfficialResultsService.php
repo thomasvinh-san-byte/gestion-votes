@@ -50,16 +50,24 @@ final class OfficialResultsService
             [':tenant_id' => $tenantId]
         ) ?? 0.0);
 
+        // Quorum policy: motion-level > meeting-level
+        $appliedQuorumPolicyId = !empty($motion['quorum_policy_id'])
+            ? (string)$motion['quorum_policy_id']
+            : (!empty($motion['meeting_quorum_policy_id']) ? (string)$motion['meeting_quorum_policy_id'] : '');
+
         $quorumPolicy = null;
-        if (!empty($motion['quorum_policy_id'])) {
+        if ($appliedQuorumPolicyId !== '') {
             $quorumPolicy = db_select_one(
                 "SELECT * FROM quorum_policies WHERE id = :id",
-                [':id' => $motion['quorum_policy_id']]
+                [':id' => $appliedQuorumPolicyId]
             );
         }
 
-        // Vote policy: motion.vote_policy_id (éventuellement héritée en amont)
-        $appliedVotePolicyId = !empty($motion['vote_policy_id']) ? (string)$motion['vote_policy_id'] : '';
+        // Vote policy: motion-level > meeting-level
+        $appliedVotePolicyId = !empty($motion['vote_policy_id'])
+            ? (string)$motion['vote_policy_id']
+            : (!empty($motion['meeting_vote_policy_id']) ? (string)$motion['meeting_vote_policy_id'] : '');
+
         $votePolicy = null;
         if ($appliedVotePolicyId !== '') {
             $votePolicy = db_select_one(
@@ -160,6 +168,8 @@ final class OfficialResultsService
                m.vote_policy_id,
                m.quorum_policy_id,
                mt.tenant_id AS tenant_id,
+               mt.vote_policy_id AS meeting_vote_policy_id,
+               mt.quorum_policy_id AS meeting_quorum_policy_id,
                m.manual_total, m.manual_for, m.manual_against, m.manual_abstain,
                m.closed_at
              FROM motions m
@@ -201,12 +211,13 @@ final class OfficialResultsService
         }
 
         // EVOTE: totaux depuis ballots + décision depuis VoteEngine (règle complète)
+        // Utilise COALESCE entre colonnes canoniques (value/weight) et alias compat (choice/effective_power)
         $rows = db_select_one(
             "SELECT
-               COALESCE(SUM(CASE WHEN choice = 'for' THEN COALESCE(effective_power, 0) ELSE 0 END), 0) AS w_for,
-               COALESCE(SUM(CASE WHEN choice = 'against' THEN COALESCE(effective_power, 0) ELSE 0 END), 0) AS w_against,
-               COALESCE(SUM(CASE WHEN choice = 'abstain' THEN COALESCE(effective_power, 0) ELSE 0 END), 0) AS w_abstain,
-               COALESCE(SUM(COALESCE(effective_power, 0)), 0) AS w_total
+               COALESCE(SUM(CASE WHEN COALESCE(value::text, choice) = 'for' THEN COALESCE(weight, effective_power, 0) ELSE 0 END), 0) AS w_for,
+               COALESCE(SUM(CASE WHEN COALESCE(value::text, choice) = 'against' THEN COALESCE(weight, effective_power, 0) ELSE 0 END), 0) AS w_against,
+               COALESCE(SUM(CASE WHEN COALESCE(value::text, choice) = 'abstain' THEN COALESCE(weight, effective_power, 0) ELSE 0 END), 0) AS w_abstain,
+               COALESCE(SUM(COALESCE(weight, effective_power, 0)), 0) AS w_total
              FROM ballots
              WHERE motion_id = ?",
             [$motionId]
@@ -217,8 +228,7 @@ final class OfficialResultsService
         $abW  = (float)$rows['w_abstain'];
         $totW = (float)$rows['w_total'];
 
-        $engine = new VoteEngine();
-        $r = $engine->computeMotionResult($motionId);
+        $r = VoteEngine::computeMotionResult($motionId);
         $status = (string)($r['decision']['status'] ?? (($forW > $agW) ? 'adopted' : 'rejected'));
         $reason = (string)($r['decision']['reason'] ?? 'vote_engine');
 

@@ -103,8 +103,13 @@ final class VoteEngine
             );
         }
 
+        // Résoudre la politique de vote: motion-level > meeting-level
+        $appliedVotePolicyId = !empty($motion['vote_policy_id'])
+            ? (string)$motion['vote_policy_id']
+            : (!empty($motion['meeting_vote_policy_id']) ? (string)$motion['meeting_vote_policy_id'] : '');
+
         $votePolicy = null;
-        if (!empty($appliedVotePolicyId)) {
+        if ($appliedVotePolicyId !== '') {
             $votePolicy = db_select_one(
                 "SELECT * FROM vote_policies WHERE id = :id",
                 [':id' => $appliedVotePolicyId]
