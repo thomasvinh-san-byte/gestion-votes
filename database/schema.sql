@@ -63,12 +63,12 @@ CREATE TABLE IF NOT EXISTS users (
   tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   email citext,
   name text,
-  role text NOT NULL DEFAULT 'operator',
+  role text NOT NULL DEFAULT 'viewer',
   api_key_hash char(64),
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT users_role_check CHECK (role IN ('admin','operator','president','assessor','auditor','voter','viewer'))
+  CONSTRAINT users_role_check CHECK (role IN ('admin','operator','auditor','viewer'))
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_users_tenant_email ON users(tenant_id, email) WHERE email IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS ux_users_tenant_api_key_hash ON users(tenant_id, api_key_hash) WHERE api_key_hash IS NOT NULL;
@@ -608,6 +608,24 @@ CREATE TABLE IF NOT EXISTS role_permissions (
   description text,
   PRIMARY KEY (role, permission)
 );
+
+-- ============================================================
+-- Meeting roles (rôles par séance : president, assessor, voter)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS meeting_roles (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id   uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  meeting_id  uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  user_id     uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role        text NOT NULL,
+  assigned_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  assigned_at timestamptz NOT NULL DEFAULT now(),
+  revoked_at  timestamptz,
+  CONSTRAINT meeting_roles_role_check CHECK (role IN ('president','assessor','voter')),
+  CONSTRAINT meeting_roles_unique_active UNIQUE (tenant_id, meeting_id, user_id, role)
+);
+CREATE INDEX IF NOT EXISTS idx_meeting_roles_meeting ON meeting_roles(tenant_id, meeting_id) WHERE revoked_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_meeting_roles_user ON meeting_roles(tenant_id, user_id) WHERE revoked_at IS NULL;
 
 COMMIT;
 
