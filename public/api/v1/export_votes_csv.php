@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\BallotRepository;
+
 api_require_role('operator');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -14,10 +17,8 @@ if ($meetingId === '') {
 }
 
 // Exports autorisés uniquement après validation (exigence conformité)
-$mt = db_select_one(
-    "SELECT validated_at FROM meetings WHERE tenant_id = ? AND id = ?",
-    [api_current_tenant_id(), $meetingId]
-);
+$meetingRepo = new MeetingRepository();
+$mt = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$mt) {
     http_response_code(404);
     header('Content-Type: text/plain; charset=utf-8');
@@ -38,7 +39,7 @@ header('X-Content-Type-Options: nosniff');
 
 $sep = ';';
 $out = fopen('php://output', 'w');
-fputs($out, "ï»¿"); // UTF-8 BOM for Excel
+fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
 
 fputcsv($out, [
     'Résolution',
@@ -54,26 +55,8 @@ fputcsv($out, [
 ], $sep);
 
 // We export ballots (nominatif) as source of truth
-$rows = db_select_all(
-    "SELECT
-        mo.title AS motion_title,
-        mo.id AS motion_id,
-        mb.full_name AS voter_name,
-        b.member_id,
-        b.value::text AS value,
-        b.weight,
-        b.is_proxy_vote,
-        b.proxy_source_member_id,
-        b.cast_at,
-        COALESCE(b.source, 'tablet') AS source
-     FROM motions mo
-     JOIN meetings mt ON mt.id = mo.meeting_id AND mt.id = ?
-     LEFT JOIN ballots b ON b.motion_id = mo.id
-     LEFT JOIN members mb ON mb.id = b.member_id
-     WHERE mo.meeting_id = ?
-     ORDER BY mo.opened_at NULLS LAST, mo.created_at ASC, mb.full_name ASC NULLS LAST",
-    [$meetingId, $meetingId]
-);
+$ballotRepo = new BallotRepository();
+$rows = $ballotRepo->listVotesExportForMeeting($meetingId);
 
 foreach ($rows as $r) {
     if ($r['member_id'] === null) continue;

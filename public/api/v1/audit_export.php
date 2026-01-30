@@ -1,16 +1,13 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+
 $q = api_request('GET');
 $meetingId = api_require_uuid($q, 'meeting_id');
 
-$events = db_select_all(
-  "SELECT created_at, actor_role, actor_user_id, action, resource_type, resource_id, payload
-   FROM audit_events
-   WHERE tenant_id = ? AND meeting_id = ?
-   ORDER BY created_at ASC",
-  [api_current_tenant_id(), $meetingId]
-);
+$repo = new MeetingRepository();
+$events = $repo->listAuditEventsForExport(api_current_tenant_id(), $meetingId);
 
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="audit_'.$meetingId.'.csv"');

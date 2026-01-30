@@ -364,6 +364,32 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
+     * Upsert d'un check d'urgence (meeting_emergency_checks).
+     */
+    public function upsertEmergencyCheck(
+        string $meetingId,
+        string $procedureCode,
+        int $itemIndex,
+        bool $checked,
+        ?string $checkedBy
+    ): void {
+        $this->execute(
+            "INSERT INTO meeting_emergency_checks(meeting_id, procedure_code, item_index, checked, checked_at, checked_by)
+             VALUES (:m,:p,:i,:c, CASE WHEN :c2 THEN NOW() ELSE NULL END, :by)
+             ON CONFLICT (meeting_id, procedure_code, item_index)
+             DO UPDATE SET checked = EXCLUDED.checked, checked_at = EXCLUDED.checked_at, checked_by = EXCLUDED.checked_by",
+            [
+                ':m' => $meetingId,
+                ':p' => $procedureCode,
+                ':i' => $itemIndex,
+                ':c' => $checked,
+                ':c2' => $checked,
+                ':by' => $checkedBy,
+            ]
+        );
+    }
+
+    /**
      * Lock meeting row pour eviter les conflits concurrents (FOR UPDATE).
      */
     public function lockForUpdate(string $meetingId, string $tenantId): ?array
@@ -526,6 +552,43 @@ class MeetingRepository extends AbstractRepository
     // =========================================================================
 
     /**
+     * Liste les transitions d'etat des seances (table meeting_state_transitions).
+     */
+    public function listStateTransitions(): array
+    {
+        return $this->selectAll(
+            "SELECT from_status, to_status, required_role, description FROM meeting_state_transitions ORDER BY from_status, to_status"
+        );
+    }
+
+    /**
+     * Trouve une seance avec le nom du validateur.
+     */
+    public function findWithValidator(string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT m.*, u.display_name AS validated_by
+             FROM meetings m
+             LEFT JOIN users u ON u.id = m.validated_by_user_id
+             WHERE m.id = :id",
+            [':id' => $meetingId]
+        );
+    }
+
+    /**
+     * Upsert du sha256 du rapport dans meeting_reports.
+     */
+    public function upsertReportHash(string $meetingId, string $sha256): void
+    {
+        $this->execute(
+            "INSERT INTO meeting_reports(meeting_id, sha256, generated_at)
+             VALUES (:m, :h, NOW())
+             ON CONFLICT (meeting_id) DO UPDATE SET sha256 = EXCLUDED.sha256, generated_at = NOW()",
+            [':m' => $meetingId, ':h' => $sha256]
+        );
+    }
+
+    /**
      * Stocke le PV HTML dans meeting_reports.
      */
     public function storePVHtml(string $meetingId, string $html): void
@@ -546,6 +609,20 @@ class MeetingRepository extends AbstractRepository
         return $this->selectOne(
             "SELECT html FROM meeting_reports WHERE meeting_id = :mid",
             [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Audit events pour export CSV (toutes colonnes, tri chronologique).
+     */
+    public function listAuditEventsForExport(string $tenantId, string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT created_at, actor_role, actor_user_id, action, resource_type, resource_id, payload
+             FROM audit_events
+             WHERE tenant_id = :tid AND meeting_id = :mid
+             ORDER BY created_at ASC",
+            [':tid' => $tenantId, ':mid' => $meetingId]
         );
     }
 
@@ -609,6 +686,65 @@ class MeetingRepository extends AbstractRepository
              LIMIT " . max(1, min($limit, 500)),
             $params
         );
+    }
+
+    /**
+     * Audit events pagines pour le journal d'audit (timeline).
+     * Inclut meeting_id direct, resource_type meeting/motion/attendance.
+     */
+    public function listAuditEventsForLog(
+        string $tenantId,
+        string $meetingId,
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->selectAll(
+            "SELECT
+                ae.id,
+                ae.action,
+                ae.resource_type,
+                ae.resource_id,
+                ae.actor_user_id,
+                ae.actor_role,
+                ae.payload,
+                ae.ip_address,
+                ae.created_at
+            FROM audit_events ae
+            WHERE ae.tenant_id = ?
+              AND (
+                ae.meeting_id = ?
+                OR (ae.resource_type = 'meeting' AND ae.resource_id = ?)
+                OR (ae.resource_type = 'motion' AND ae.resource_id IN (
+                    SELECT id FROM motions WHERE meeting_id = ?
+                ))
+                OR (ae.resource_type = 'attendance' AND ae.resource_id IN (
+                    SELECT id FROM attendances WHERE meeting_id = ?
+                ))
+              )
+            ORDER BY ae.created_at DESC
+            LIMIT ? OFFSET ?",
+            [$tenantId, $meetingId, $meetingId, $meetingId, $meetingId, $limit, $offset]
+        );
+    }
+
+    /**
+     * Compte le total d'audit events pour le journal d'audit (pagination).
+     */
+    public function countAuditEventsForLog(string $tenantId, string $meetingId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*)
+            FROM audit_events ae
+            WHERE ae.tenant_id = ?
+              AND (
+                ae.meeting_id = ?
+                OR (ae.resource_type = 'meeting' AND ae.resource_id = ?)
+                OR (ae.resource_type = 'motion' AND ae.resource_id IN (
+                    SELECT id FROM motions WHERE meeting_id = ?
+                ))
+              )",
+            [$tenantId, $meetingId, $meetingId, $meetingId]
+        ) ?? 0);
     }
 
     /**

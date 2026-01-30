@@ -163,6 +163,50 @@ class MemberRepository extends AbstractRepository
         );
     }
 
+    /**
+     * Insere un membre de test (seed) avec ON CONFLICT DO NOTHING.
+     * Retourne true si la ligne a ete inseree, false sinon.
+     */
+    public function insertSeedMember(string $id, string $tenantId, string $fullName): bool
+    {
+        $rows = $this->execute(
+            "INSERT INTO members (id, tenant_id, full_name, is_active, vote_weight, created_at, updated_at)
+             VALUES (:id, :tid, :name, true, 1, now(), now())
+             ON CONFLICT DO NOTHING",
+            [':id' => $id, ':tid' => $tenantId, ':name' => $fullName]
+        );
+        return $rows > 0;
+    }
+
+    /**
+     * Export CSV: membres avec presences et procurations pour une seance.
+     */
+    public function listExportForMeeting(string $meetingId, string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT
+                m.id AS member_id,
+                m.full_name,
+                (CASE WHEN m.is_active THEN '1' ELSE '0' END) AS is_active,
+                COALESCE(m.voting_power, 0) AS voting_power,
+                COALESCE(a.mode::text, 'absent') AS attendance_mode,
+                a.checked_in_at,
+                a.checked_out_at,
+                pr.receiver_member_id AS proxy_to_member_id,
+                r.full_name AS proxy_to_name
+             FROM members m
+             LEFT JOIN attendances a
+                    ON a.meeting_id = ? AND a.member_id = m.id
+             LEFT JOIN proxies pr
+                    ON pr.meeting_id = ? AND pr.giver_member_id = m.id
+             LEFT JOIN members r
+                    ON r.id = pr.receiver_member_id
+             WHERE m.tenant_id = ?
+             ORDER BY m.full_name ASC",
+            [$meetingId, $meetingId, $tenantId]
+        );
+    }
+
     public function create(
         string $id,
         string $tenantId,

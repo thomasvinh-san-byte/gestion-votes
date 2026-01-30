@@ -1,21 +1,25 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\BallotRepository;
+
 api_require_role('operator');
 
 $q = api_request('GET');
 $meetingId = api_require_uuid($q, 'meeting_id');
 $motionId  = api_require_uuid($q, 'motion_id');
 
-$mo = db_select_one("SELECT id, title FROM motions WHERE id = ? AND meeting_id = ?", [$motionId, $meetingId]);
+$motionRepo = new MotionRepository();
+$ballotRepo = new BallotRepository();
+
+$mo = $motionRepo->findByIdAndMeeting($motionId, $meetingId);
 if (!$mo) api_fail('motion_not_found', 404);
 
-$code = db_scalar("SELECT gen_random_uuid()");
+$code = $ballotRepo->newUuid();
 $hash = hash_hmac('sha256', $code, APP_SECRET);
 
-db_execute(
-  "INSERT INTO paper_ballots(meeting_id, motion_id, code, code_hash) VALUES (:m,:mo,:c,:h)",
-  [':m'=>$meetingId, ':mo'=>$motionId, ':c'=>$code, ':h'=>$hash]
-);
+$ballotRepo->createPaperBallot($meetingId, $motionId, $code, $hash);
 
 header('Content-Type: text/html; charset=utf-8');
 $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');

@@ -322,6 +322,20 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
+     * Liste les motions d'une seance pour affichage quorum (badge + justification).
+     */
+    public function listForQuorumDisplay(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT id, title, status, opened_at, closed_at, quorum_policy_id
+             FROM motions
+             WHERE meeting_id = :m
+             ORDER BY sort_order NULLS LAST, created_at ASC",
+            [':m' => $meetingId]
+        );
+    }
+
+    /**
      * Liste les motions "ouvrables" (draft, pas encore ouverte ni fermee) pour le dashboard.
      */
     public function listOpenable(string $tenantId, string $meetingId, int $limit = 100): array
@@ -361,6 +375,93 @@ class MotionRepository extends AbstractRepository
              FROM motions
              WHERE tenant_id = :tid AND id = :id AND meeting_id = :mid",
             [':tid' => $tenantId, ':id' => $motionId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Export CSV: resultats agrege des motions pour une seance.
+     */
+    public function listResultsExportForMeeting(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT
+                mo.id AS motion_id,
+                mo.title,
+                mo.position,
+                mo.opened_at,
+                mo.closed_at,
+                COALESCE(SUM(CASE WHEN b.value = 'for' THEN b.weight ELSE 0 END), 0) AS w_for,
+                COALESCE(SUM(CASE WHEN b.value = 'against' THEN b.weight ELSE 0 END), 0) AS w_against,
+                COALESCE(SUM(CASE WHEN b.value = 'abstain' THEN b.weight ELSE 0 END), 0) AS w_abstain,
+                COALESCE(SUM(CASE WHEN b.value = 'nsp' THEN b.weight ELSE 0 END), 0) AS w_nsp,
+                COALESCE(SUM(b.weight), 0) AS w_total,
+                COALESCE(COUNT(b.id), 0) AS ballots_count,
+                COALESCE(SUM(CASE WHEN b.source = 'manual' THEN 1 ELSE 0 END), 0) AS ballots_manual_count,
+                COALESCE(mo.decision, '') AS decision
+             FROM motions mo
+             LEFT JOIN ballots b ON b.motion_id = mo.id
+             WHERE mo.meeting_id = ?
+             GROUP BY mo.id, mo.title, mo.position, mo.opened_at, mo.closed_at, mo.decision
+             ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC",
+            [$meetingId]
+        );
+    }
+
+    /**
+     * Trouve une motion par son ID et meeting_id (colonnes basiques).
+     */
+    public function findByIdAndMeeting(string $motionId, string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, title FROM motions WHERE id = :id AND meeting_id = :mid",
+            [':id' => $motionId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste titre et evote_results pour generation de rapport.
+     */
+    public function listForReportGeneration(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT title, evote_results
+             FROM motions
+             WHERE meeting_id = :mid
+             ORDER BY COALESCE(position, sort_order, 0) ASC",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Trouve la motion ouverte pour le projecteur (id, title, secret, opened_at).
+     */
+    public function findOpenForProjector(string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, title, secret, opened_at
+             FROM motions
+             WHERE meeting_id = :meeting_id
+               AND opened_at IS NOT NULL
+               AND closed_at IS NULL
+             ORDER BY opened_at DESC
+             LIMIT 1",
+            [':meeting_id' => $meetingId]
+        );
+    }
+
+    /**
+     * Trouve la derniere motion fermee pour le projecteur (id, title, secret, closed_at).
+     */
+    public function findLastClosedForProjector(string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, title, secret, closed_at
+             FROM motions
+             WHERE meeting_id = :meeting_id
+               AND closed_at IS NOT NULL
+             ORDER BY closed_at DESC
+             LIMIT 1",
+            [':meeting_id' => $meetingId]
         );
     }
 

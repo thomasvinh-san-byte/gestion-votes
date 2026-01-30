@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MemberRepository;
+
 try {
     api_require_role('operator');
     $in = api_request('POST');
@@ -17,6 +19,7 @@ try {
         'Simon', 'Michel', 'Lefebvre', 'Leroy', 'Roux', 'David', 'Bertrand', 'Morel', 'Fournier', 'Girard',
         'Bonnet', 'Dupont', 'Lambert', 'Fontaine', 'Rousseau', 'Vincent', 'Muller', 'Lefevre', 'Faure', 'Andre'];
 
+    $repo = new MemberRepository();
     $created = 0;
     for ($i = 0; $i < $count; $i++) {
         $first = $firstNames[array_rand($firstNames)];
@@ -25,13 +28,9 @@ try {
         $id = api_uuid4();
 
         try {
-            db_execute(
-                "INSERT INTO members (id, tenant_id, full_name, is_active, vote_weight, created_at, updated_at)
-                 VALUES (:id, :tid, :name, true, 1, now(), now())
-                 ON CONFLICT DO NOTHING",
-                [':id' => $id, ':tid' => api_current_tenant_id(), ':name' => $fullName]
-            );
-            $created++;
+            if ($repo->insertSeedMember($id, api_current_tenant_id(), $fullName)) {
+                $created++;
+            }
         } catch (Throwable $e) {
             // skip duplicates
         }

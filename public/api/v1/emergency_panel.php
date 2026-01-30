@@ -1,27 +1,20 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\EmergencyProcedureRepository;
+
 header('Content-Type: text/html; charset=utf-8');
 
 $aud = trim((string)($_GET['audience'] ?? 'operator'));
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 
-$rows = db_select_all(
-  "SELECT code, title, steps_json
-   FROM emergency_procedures
-   WHERE audience = ?
-   ORDER BY code ASC",
-  [$aud]
-);
+$repo = new EmergencyProcedureRepository();
+
+$rows = $repo->listByAudience($aud);
 
 $checkMap = [];
 if ($meetingId !== '' && api_is_uuid($meetingId)) {
-  $checks = db_select_all(
-    "SELECT procedure_code, item_index, checked
-     FROM meeting_emergency_checks
-     WHERE meeting_id = ?",
-    [$meetingId]
-  );
+  $checks = $repo->listChecksForMeeting($meetingId);
   foreach ($checks as $c) {
     $key = $c['procedure_code'].'#'.$c['item_index'];
     $checkMap[$key] = (bool)$c['checked'];
@@ -31,7 +24,7 @@ if ($meetingId !== '' && api_is_uuid($meetingId)) {
 $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 
 echo '<section class="card">';
-echo '<div class="row between"><div><div style="font-weight:700;">Procédures d\'urgence</div><div class="muted tiny">Checklists “Que faire si…”</div></div></div>';
+echo '<div class="row between"><div><div style="font-weight:700;">Procédures d\'urgence</div><div class="muted tiny">Checklists "Que faire si…"</div></div></div>';
 echo '<div class="hr"></div>';
 
 if (!$rows) {

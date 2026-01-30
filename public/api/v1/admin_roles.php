@@ -10,36 +10,31 @@
  */
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\UserRepository;
+use AgVote\Repository\MeetingRepository;
+
 api_request('GET');
 api_require_role('admin');
 
+$userRepo    = new UserRepository();
+$meetingRepo = new MeetingRepository();
+
 // Rôles
-$systemRoleLabels = AuthMiddleware::getSystemRoleLabels();
+$systemRoleLabels  = AuthMiddleware::getSystemRoleLabels();
 $meetingRoleLabels = AuthMiddleware::getMeetingRoleLabels();
-$statusLabels = AuthMiddleware::getMeetingStatusLabels();
+$statusLabels      = AuthMiddleware::getMeetingStatusLabels();
 
 // Permissions depuis la DB
-$permissions = db_select_all(
-    "SELECT role, permission, description FROM role_permissions ORDER BY role, permission"
-);
+$permissions = $userRepo->listRolePermissions();
 
 // Transitions
-$transitions = db_select_all(
-    "SELECT from_status, to_status, required_role, description FROM meeting_state_transitions ORDER BY from_status, to_status"
-);
+$transitions = $meetingRepo->listStateTransitions();
 
 // Users par rôle système
-$usersByRole = db_select_all(
-    "SELECT role, COUNT(*) as count FROM users WHERE tenant_id = ? AND is_active = true GROUP BY role ORDER BY role",
-    [api_current_tenant_id()]
-);
+$usersByRole = $userRepo->countBySystemRole(api_current_tenant_id());
 
 // Rôles de séance actifs (combien d'assignations actives par rôle)
-$meetingRoleCounts = db_select_all(
-    "SELECT role, COUNT(DISTINCT user_id) as users, COUNT(DISTINCT meeting_id) as meetings
-     FROM meeting_roles WHERE tenant_id = ? AND revoked_at IS NULL GROUP BY role ORDER BY role",
-    [api_current_tenant_id()]
-);
+$meetingRoleCounts = $userRepo->countByMeetingRole(api_current_tenant_id());
 
 // Matrice permissions groupées par rôle
 $permByRole = [];

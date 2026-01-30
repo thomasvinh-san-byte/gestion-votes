@@ -146,4 +146,128 @@ class BallotRepository extends AbstractRepository
             [':mid' => $motionId]
         );
     }
+
+    // =========================================================================
+    // PAPER BALLOTS
+    // =========================================================================
+
+    /**
+     * Genere un UUID via PostgreSQL (pour code bulletin papier).
+     */
+    public function newUuid(): string
+    {
+        return $this->generateUuid();
+    }
+
+    /**
+     * Cree un bulletin papier.
+     */
+    public function createPaperBallot(string $meetingId, string $motionId, string $code, string $codeHash): void
+    {
+        $this->execute(
+            "INSERT INTO paper_ballots(meeting_id, motion_id, code, code_hash) VALUES (:m, :mo, :c, :h)",
+            [':m' => $meetingId, ':mo' => $motionId, ':c' => $code, ':h' => $codeHash]
+        );
+    }
+
+    /**
+     * Trouve un bulletin papier non utilise par son hash de code (avec tenant_id via meeting).
+     */
+    public function findUnusedPaperBallotByHash(string $codeHash): ?array
+    {
+        return $this->selectOne(
+            "SELECT pb.*, m.tenant_id
+             FROM paper_ballots pb
+             JOIN meetings m ON m.id = pb.meeting_id
+             WHERE pb.code_hash = :hash AND pb.used_at IS NULL",
+            [':hash' => $codeHash]
+        );
+    }
+
+    /**
+     * Marque un bulletin papier comme utilise.
+     */
+    public function markPaperBallotUsed(string $id): void
+    {
+        $this->execute(
+            "UPDATE paper_ballots SET used_at = NOW(), used_by_operator = true WHERE id = :id",
+            [':id' => $id]
+        );
+    }
+
+    /**
+     * Export audit CSV: ballots avec token, attendance, manual_action.
+     */
+    public function listAuditExportForMeeting(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT
+                b.id AS ballot_id,
+                mo.id AS motion_id,
+                mo.title AS motion_title,
+                b.member_id,
+                mb.full_name AS voter_name,
+                COALESCE(a.mode::text, 'absent') AS attendance_mode,
+                b.value::text AS value,
+                b.weight,
+                b.is_proxy_vote,
+                b.proxy_source_member_id,
+                b.cast_at,
+                COALESCE(b.source, 'tablet') AS source,
+                vt.id AS token_id,
+                LEFT(vt.token_hash, 12) AS token_hash_prefix,
+                vt.expires_at AS token_expires_at,
+                vt.used_at AS token_used_at,
+                ma.justification AS manual_justification
+             FROM ballots b
+             JOIN motions mo ON mo.id = b.motion_id
+             LEFT JOIN members mb ON mb.id = b.member_id
+             LEFT JOIN attendances a ON a.meeting_id = mo.meeting_id AND a.member_id = b.member_id
+             LEFT JOIN LATERAL (
+                SELECT id, token_hash, expires_at, used_at
+                FROM vote_tokens
+                WHERE motion_id = b.motion_id AND member_id = b.member_id
+                ORDER BY used_at DESC NULLS LAST, created_at DESC
+                LIMIT 1
+             ) vt ON true
+             LEFT JOIN LATERAL (
+                SELECT justification
+                FROM manual_actions
+                WHERE meeting_id = mo.meeting_id AND action_type = 'manual_vote'
+                  AND motion_id = b.motion_id AND member_id = b.member_id
+                ORDER BY created_at DESC
+                LIMIT 1
+             ) ma ON true
+             WHERE mo.meeting_id = ?
+             ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC, b.cast_at ASC",
+            [$meetingId]
+        );
+    }
+
+    /**
+     * Export votes CSV: ballots nominatifs pour une seance.
+     */
+    public function listVotesExportForMeeting(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT
+                mo.title AS motion_title,
+                mo.id AS motion_id,
+                mb.full_name AS voter_name,
+                b.member_id,
+                b.value::text AS value,
+                b.weight,
+                b.is_proxy_vote,
+                b.proxy_source_member_id,
+                b.cast_at,
+                COALESCE(b.source, 'tablet') AS source
+             FROM motions mo
+             JOIN meetings mt ON mt.id = mo.meeting_id AND mt.id = ?
+             LEFT JOIN ballots b ON b.motion_id = mo.id
+             LEFT JOIN members mb ON mb.id = b.member_id
+             WHERE mo.meeting_id = ?
+             ORDER BY mo.opened_at NULLS LAST, mo.created_at ASC, mb.full_name ASC NULLS LAST",
+            [$meetingId, $meetingId]
+        );
+    }
 }

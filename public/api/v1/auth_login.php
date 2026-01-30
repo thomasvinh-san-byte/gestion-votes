@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\UserRepository;
+
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     api_fail('method_not_allowed', 405);
 }
@@ -28,12 +30,9 @@ if ($apiKey === '') {
 // Hash HMAC-SHA256 (cohérent avec AuthMiddleware::findUserByApiKey)
 $hash = hash_hmac('sha256', $apiKey, APP_SECRET);
 
-$user = db_select_one(
-    "SELECT id, tenant_id, email, name, role, is_active
-     FROM users
-     WHERE api_key_hash = :hash AND tenant_id = :tid",
-    [':hash' => $hash, ':tid' => api_current_tenant_id()]
-);
+$userRepo = new UserRepository();
+
+$user = $userRepo->findByApiKeyHash(api_current_tenant_id(), $hash);
 
 if (!$user) {
     // Rate limit sur les tentatives échouées
@@ -41,14 +40,10 @@ if (!$user) {
 
     // Log l'échec
     try {
-        db_execute(
-            "INSERT INTO auth_failures (ip, user_agent, key_prefix, reason, created_at)
-             VALUES (:ip, :ua, :prefix, 'invalid_key', NOW())",
-            [
-                ':ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                ':ua' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 200),
-                ':prefix' => substr($apiKey, 0, 8) . '...',
-            ]
+        $userRepo->logAuthFailure(
+            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            $_SERVER['HTTP_USER_AGENT'] ?? '',
+            substr($apiKey, 0, 8) . '...'
         );
     } catch (\Throwable $e) { /* best effort */ }
 

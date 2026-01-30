@@ -229,6 +229,19 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
+     * Upsert de presence pour le seeding (ON CONFLICT met a jour le mode).
+     */
+    public function upsertSeed(string $id, string $tenantId, string $meetingId, string $memberId, string $mode): void
+    {
+        $this->execute(
+            "INSERT INTO attendances (id, tenant_id, meeting_id, member_id, mode, checked_in_at, created_at, updated_at)
+             VALUES (:id, :tid, :mid, :mem, :mode, now(), now(), now())
+             ON CONFLICT (meeting_id, member_id) DO UPDATE SET mode = EXCLUDED.mode, updated_at = now()",
+            [':id' => $id, ':tid' => $tenantId, ':mid' => $meetingId, ':mem' => $memberId, ':mode' => $mode]
+        );
+    }
+
+    /**
      * Export CSV: presences avec infos membre et procurations.
      */
     public function listExportForMeeting(string $meetingId): array
