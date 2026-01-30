@@ -104,6 +104,46 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
+     * Liste les seances pour le dashboard operateur.
+     */
+    public function listForDashboard(string $tenantId, int $limit = 50): array
+    {
+        return $this->selectAll(
+            "SELECT id, title, status, scheduled_at, started_at, ended_at, archived_at, validated_at
+             FROM meetings
+             WHERE tenant_id = :tid
+             ORDER BY
+               CASE status WHEN 'live' THEN 0 WHEN 'draft' THEN 1 WHEN 'archived' THEN 3 ELSE 2 END,
+               COALESCE(started_at, scheduled_at, created_at) DESC
+             LIMIT " . max(1, min($limit, 500)),
+            [':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Titre d'une seance par son ID.
+     */
+    public function findTitle(string $meetingId): ?string
+    {
+        $val = $this->scalar(
+            "SELECT title FROM meetings WHERE id = :id",
+            [':id' => $meetingId]
+        );
+        return $val !== null ? (string)$val : null;
+    }
+
+    /**
+     * Compte les procurations actives (non revoquees) pour une seance.
+     */
+    public function countActiveProxies(string $tenantId, string $meetingId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM proxies WHERE tenant_id = :tid AND meeting_id = :mid AND revoked_at IS NULL",
+            [':tid' => $tenantId, ':mid' => $meetingId]
+        ) ?? 0);
+    }
+
+    /**
      * Trouve la seance courante (non archivee) pour un tenant.
      * Priorite : live > closed > draft.
      */
@@ -191,6 +231,24 @@ class MeetingRepository extends AbstractRepository
             "SELECT id, title, status, president_name, validated_at
              FROM meetings WHERE tenant_id = :tenant_id AND id = :id",
             [':tenant_id' => $tenantId, ':id' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les seances archivees avec info rapport (pour archives_list).
+     */
+    public function listArchivedWithReports(string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT mt.id, mt.title, mt.archived_at, mt.validated_at, mt.president_name,
+                    COALESCE(mr.sha256, NULL) AS report_sha256,
+                    COALESCE(mr.generated_at, NULL) AS report_generated_at,
+                    (mr.meeting_id IS NOT NULL) AS has_report
+             FROM meetings mt
+             LEFT JOIN meeting_reports mr ON mr.meeting_id = mt.id
+             WHERE mt.tenant_id = :tid AND mt.status = 'archived'
+             ORDER BY mt.archived_at DESC NULLS LAST, mt.validated_at DESC NULLS LAST",
+            [':tid' => $tenantId]
         );
     }
 
@@ -507,6 +565,49 @@ class MeetingRepository extends AbstractRepository
              ORDER BY created_at {$order}
              LIMIT " . max(1, $limit),
             [':tid' => $tenantId, ':mid' => $meetingId, ':mid2' => $meetingId]
+        );
+    }
+
+    /**
+     * Audit events filtres pour une seance (pour operator_audit_events).
+     */
+    public function listAuditEventsFiltered(
+        string $tenantId,
+        string $meetingId,
+        int $limit = 200,
+        string $resourceType = '',
+        string $action = '',
+        string $q = ''
+    ): array {
+        $where = "WHERE tenant_id = ? AND (
+            (resource_type = 'meeting' AND resource_id = ?)
+            OR
+            (resource_type = 'motion' AND resource_id IN (SELECT id FROM motions WHERE meeting_id = ?))
+        )";
+        $params = [$tenantId, $meetingId, $meetingId];
+
+        if ($resourceType !== '') {
+            $where .= " AND resource_type = ?";
+            $params[] = $resourceType;
+        }
+        if ($action !== '') {
+            $where .= " AND action ILIKE ?";
+            $params[] = "%" . $action . "%";
+        }
+        if ($q !== '') {
+            $where .= " AND (action ILIKE ? OR resource_id ILIKE ? OR payload::text ILIKE ?)";
+            $params[] = "%" . $q . "%";
+            $params[] = "%" . $q . "%";
+            $params[] = "%" . $q . "%";
+        }
+
+        return $this->selectAll(
+            "SELECT id, action, resource_type, resource_id, payload, created_at
+             FROM audit_events
+             {$where}
+             ORDER BY created_at DESC
+             LIMIT " . max(1, min($limit, 500)),
+            $params
         );
     }
 

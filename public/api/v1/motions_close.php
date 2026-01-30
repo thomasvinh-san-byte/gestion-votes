@@ -36,8 +36,7 @@ try {
         exit;
     }
 
-    $pdo = db();
-    $pdo->beginTransaction();
+    db()->beginTransaction();
 
     $repo->markClosed($motionId, api_current_tenant_id());
 
@@ -45,7 +44,7 @@ try {
     require_once __DIR__ . '/../../../app/services/OfficialResultsService.php';
     OfficialResultsService::computeAndPersistMotion((string)$motionId);
 
-    $pdo->commit();
+    db()->commit();
 
     audit_log('motion_closed', 'motion', $motionId, [
         'meeting_id' => (string)$motion['meeting_id'],
@@ -56,7 +55,6 @@ try {
         'closed_motion_id' => $motionId,
     ]);
 } catch (Throwable $e) {
-    $pdo = db();
-    if ($pdo->inTransaction()) $pdo->rollBack();
+    if (db()->inTransaction()) db()->rollBack();
     api_fail('motion_close_failed', 500, ['detail' => $e->getMessage()]);
 }

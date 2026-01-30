@@ -1,17 +1,11 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\PolicyRepository;
+
 api_request('GET');
 
-global $pdo;
-$stmt = $pdo->prepare(
-  "SELECT id, name, description, mode, denominator, threshold, threshold_call2, denominator2, threshold2,
-          include_proxies, count_remote, updated_at
-   FROM quorum_policies
-   WHERE tenant_id = :t
-   ORDER BY name ASC"
-);
-$stmt->execute([':t' => api_current_tenant_id()]);
-$rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+$repo = new PolicyRepository();
+$rows = $repo->listQuorumPolicies(api_current_tenant_id());
 
 api_ok(['items' => $rows]);

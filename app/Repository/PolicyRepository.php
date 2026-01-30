@@ -47,19 +47,50 @@ class PolicyRepository extends AbstractRepository
         ?string $denominator2 = null,
         bool $includeProxies = true,
         bool $countRemote = true,
-        ?float $thresholdCall2 = null
+        ?float $thresholdCall2 = null,
+        ?string $description = null
     ): void {
         $this->execute(
-            "INSERT INTO quorum_policies (id, tenant_id, name, mode, denominator, threshold,
-             threshold2, denominator2, include_proxies, count_remote, threshold_call2, created_at)
-             VALUES (:id, :tid, :name, :mode, :den, :thr, :thr2, :den2, :ip, :cr, :tc2, now())",
+            "INSERT INTO quorum_policies (id, tenant_id, name, description, mode, denominator, threshold,
+             threshold_call2, denominator2, threshold2, include_proxies, count_remote, created_at, updated_at)
+             VALUES (:id, :tid, :name, :desc, :mode, :den, :thr, :tc2, :den2, :thr2, :ip, :cr, NOW(), NOW())",
             [
-                ':id' => $id, ':tid' => $tenantId, ':name' => $name,
+                ':id' => $id, ':tid' => $tenantId, ':name' => $name, ':desc' => $description,
                 ':mode' => $mode, ':den' => $denominator, ':thr' => $threshold,
-                ':thr2' => $threshold2, ':den2' => $denominator2,
+                ':tc2' => $thresholdCall2, ':den2' => $denominator2, ':thr2' => $threshold2,
                 ':ip' => $includeProxies ? 't' : 'f',
                 ':cr' => $countRemote ? 't' : 'f',
-                ':tc2' => $thresholdCall2,
+            ]
+        );
+    }
+
+    public function updateQuorumPolicy(
+        string $id,
+        string $tenantId,
+        string $name,
+        ?string $description,
+        string $mode,
+        string $denominator,
+        float $threshold,
+        ?float $thresholdCall2 = null,
+        ?string $denominator2 = null,
+        ?float $threshold2 = null,
+        bool $includeProxies = true,
+        bool $countRemote = true
+    ): void {
+        $this->execute(
+            "UPDATE quorum_policies SET
+                name=:name, description=:desc, mode=:mode, denominator=:den, threshold=:thr,
+                threshold_call2=:c2, denominator2=:den2, threshold2=:thr2,
+                include_proxies=:ip, count_remote=:cr, updated_at=NOW()
+             WHERE tenant_id=:tid AND id=:id",
+            [
+                ':name' => $name, ':desc' => $description, ':mode' => $mode,
+                ':den' => $denominator, ':thr' => $threshold,
+                ':c2' => $thresholdCall2, ':den2' => $denominator2, ':thr2' => $threshold2,
+                ':ip' => $includeProxies ? 't' : 'f',
+                ':cr' => $countRemote ? 't' : 'f',
+                ':tid' => $tenantId, ':id' => $id,
             ]
         );
     }
@@ -115,6 +146,29 @@ class PolicyRepository extends AbstractRepository
                 ':id' => $id, ':tid' => $tenantId, ':name' => $name,
                 ':base' => $base, ':thr' => $threshold,
                 ':aaa' => $abstentionAsAgainst ? 't' : 'f',
+            ]
+        );
+    }
+
+    public function updateVotePolicy(
+        string $id,
+        string $tenantId,
+        string $name,
+        ?string $description,
+        string $base,
+        float $threshold,
+        bool $abstentionAsAgainst = false
+    ): void {
+        $this->execute(
+            "UPDATE vote_policies SET
+                name=:name, description=:desc, base=:base, threshold=:thr,
+                abstention_as_against=:aaa, updated_at=NOW()
+             WHERE tenant_id=:tid AND id=:id",
+            [
+                ':name' => $name, ':desc' => $description,
+                ':base' => $base, ':thr' => $threshold,
+                ':aaa' => $abstentionAsAgainst ? 't' : 'f',
+                ':tid' => $tenantId, ':id' => $id,
             ]
         );
     }

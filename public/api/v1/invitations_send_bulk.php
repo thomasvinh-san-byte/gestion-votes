@@ -4,6 +4,10 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/MailerService.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\InvitationRepository;
+
 api_require_role('operator');
 $input = api_request('POST');
 
@@ -17,25 +21,18 @@ $limit     = (int)($input['limit'] ?? 0);
 
 if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
-global $pdo, $config;
+global $config;
+
+$meetingRepo    = new MeetingRepository();
+$memberRepo     = new MemberRepository();
+$invitationRepo = new InvitationRepository();
 
 // meeting title
-$mt = $pdo->prepare("SELECT title FROM meetings WHERE id = :id");
-$mt->execute([':id' => $meetingId]);
-$meetingTitle = (string)($mt->fetchColumn() ?: $meetingId);
+$meetingTitle = $meetingRepo->findTitle($meetingId) ?? $meetingId;
 
 // members with emails
-$sql = "SELECT id, full_name, email
-        FROM members
-        WHERE tenant_id = :tenant_id
-          AND is_active = true
-          AND email IS NOT NULL
-          AND email <> ''
-        ORDER BY full_name ASC";
 $tenantId = (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
-$stmt = $pdo->prepare($sql);
-$stmt->execute([':tenant_id' => $tenantId]);
-$members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$members = $memberRepo->listActiveWithEmail($tenantId);
 
 if ($limit > 0) $members = array_slice($members, 0, $limit);
 
@@ -53,31 +50,20 @@ foreach ($members as $m) {
   if ($email === '') { $skipped++; continue; }
 
   if ($onlyUnsent) {
-    $chk = $pdo->prepare("SELECT status FROM invitations WHERE meeting_id=:mid AND member_id=:mem LIMIT 1");
-    $chk->execute([':mid'=>$meetingId, ':mem'=>$memberId]);
-    $st = $chk->fetchColumn();
+    $st = $invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId);
     if ($st === 'sent') { $skipped++; continue; }
   }
 
   $token = bin2hex(random_bytes(16));
-  $pdo->prepare(
-    "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token, status, sent_at, updated_at)
-     VALUES (:tenant_id, :meeting_id, :member_id, :email, :token, :status, :sent_at, now())
-     ON CONFLICT (tenant_id, meeting_id, member_id)
-     DO UPDATE SET token=EXCLUDED.token,
-                   email=COALESCE(EXCLUDED.email, invitations.email),
-                   status=EXCLUDED.status,
-                   sent_at=EXCLUDED.sent_at,
-                   updated_at=now()"
-  )->execute([
-      ':tenant_id'  => $tenantId,
-      ':meeting_id' => $meetingId,
-      ':member_id'  => $memberId,
-      ':email'      => $email,
-      ':token'      => $token,
-      ':status'     => $dryRun ? 'pending' : 'sent',
-      ':sent_at'    => $dryRun ? null : date('c'),
-  ]);
+  $invitationRepo->upsertBulk(
+    $tenantId,
+    $meetingId,
+    $memberId,
+    $email,
+    $token,
+    $dryRun ? 'pending' : 'sent',
+    $dryRun ? null : date('c')
+  );
 
   $appUrl = (string)(($config['app']['url'] ?? '') ?: 'http://localhost:8080');
   $voteUrl = rtrim($appUrl, '/') . "/vote.htmx.html?token=" . rawurlencode($token);
@@ -108,8 +94,7 @@ foreach ($members as $m) {
   if (!$res['ok']) {
     $errors[] = ['member_id'=>$memberId,'email'=>$email,'error'=>$res['error']];
     // mark as bounced (send failure)
-    $pdo->prepare("UPDATE invitations SET status='bounced', updated_at=now() WHERE meeting_id=:mid AND member_id=:mem")
-        ->execute([':mid'=>$meetingId, ':mem'=>$memberId]);
+    $invitationRepo->markBounced($meetingId, $memberId);
   } else {
     $sent++;
   }

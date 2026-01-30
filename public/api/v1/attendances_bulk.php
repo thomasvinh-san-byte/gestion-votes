@@ -3,14 +3,18 @@ declare(strict_types=1);
 
 /**
  * attendances_bulk.php - Actions en masse sur les présences
- * 
+ *
  * POST /api/v1/attendances_bulk.php
  * Body: { "meeting_id": "uuid", "status": "present|absent|remote", "member_ids": ["uuid", ...] }
- * 
+ *
  * Si member_ids n'est pas fourni, applique à tous les membres actifs.
  */
 
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\AttendanceRepository;
 
 api_require_role(['operator', 'admin']);
 
@@ -30,10 +34,8 @@ if (!in_array($mode, $validModes, true)) {
 $tenantId = api_current_tenant_id();
 
 // Vérifier que la séance existe et n'est pas archivée
-$meeting = db_one("
-    SELECT id, status FROM meetings 
-    WHERE tenant_id = ? AND id = ?
-", [$tenantId, $meetingId]);
+$meetingRepo = new MeetingRepository();
+$meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
 
 if (!$meeting) {
     api_fail('meeting_not_found', 404);
@@ -51,11 +53,9 @@ if ($memberIds !== null && !is_array($memberIds)) {
 }
 
 // Si pas de member_ids, prendre tous les membres actifs
+$memberRepo = new MemberRepository();
 if ($memberIds === null || count($memberIds) === 0) {
-    $members = db_all("
-        SELECT id FROM members 
-        WHERE tenant_id = ? AND is_active = true
-    ", [$tenantId]);
+    $members = $memberRepo->listActiveIds($tenantId);
     $memberIds = array_column($members, 'id');
 }
 
@@ -64,13 +64,13 @@ if (count($memberIds) === 0) {
 }
 
 // Traitement en transaction
-$pdo = db();
-$pdo->beginTransaction();
+db()->beginTransaction();
 
 try {
     $updated = 0;
     $created = 0;
-    $now = date('c');
+
+    $attendanceRepo = new AttendanceRepository();
 
     foreach ($memberIds as $memberId) {
         if (!api_is_uuid($memberId)) {
@@ -78,34 +78,20 @@ try {
         }
 
         // Vérifier que le membre existe
-        $member = db_one("SELECT id FROM members WHERE tenant_id = ? AND id = ?", [$tenantId, $memberId]);
-        if (!$member) {
+        if (!$memberRepo->existsForTenant($memberId, $tenantId)) {
             continue;
         }
 
         // Upsert attendance
-        $existing = db_one("
-            SELECT id FROM attendances 
-            WHERE meeting_id = ? AND member_id = ?
-        ", [$meetingId, $memberId]);
-
-        if ($existing) {
-            db_exec("
-                UPDATE attendances
-                SET mode = ?, updated_at = ?
-                WHERE id = ?
-            ", [$mode, $now, $existing['id']]);
-            $updated++;
-        } else {
-            db_exec("
-                INSERT INTO attendances (id, tenant_id, meeting_id, member_id, mode, created_at, updated_at)
-                VALUES (gen_random_uuid(), ?, ?, ?, ?, ?, ?)
-            ", [$tenantId, $meetingId, $memberId, $mode, $now, $now]);
+        $wasCreated = $attendanceRepo->upsertMode($meetingId, $memberId, $mode, $tenantId);
+        if ($wasCreated) {
             $created++;
+        } else {
+            $updated++;
         }
     }
 
-    $pdo->commit();
+    db()->commit();
 
     // Audit log
     audit_log('attendances_bulk_update', 'attendance', $meetingId, [
@@ -123,7 +109,7 @@ try {
     ]);
 
 } catch (\Throwable $e) {
-    $pdo->rollBack();
+    db()->rollBack();
     error_log("attendances_bulk error: " . $e->getMessage());
     api_fail('database_error', 500);
 }

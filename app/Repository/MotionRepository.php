@@ -281,6 +281,49 @@ class MotionRepository extends AbstractRepository
         ) ?? 0);
     }
 
+    /**
+     * Liste les motions "ouvrables" (draft, pas encore ouverte ni fermee) pour le dashboard.
+     */
+    public function listOpenable(string $tenantId, string $meetingId, int $limit = 100): array
+    {
+        return $this->selectAll(
+            "SELECT id, title
+             FROM motions
+             WHERE tenant_id = :tid AND meeting_id = :mid
+               AND opened_at IS NULL AND closed_at IS NULL
+             ORDER BY position NULLS LAST, created_at ASC
+             LIMIT " . max(1, $limit),
+            [':tid' => $tenantId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les motions fermees avec donnees de comptage manuel (pour readiness check).
+     */
+    public function listClosedWithManualTally(string $tenantId, string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT id, title, manual_total, manual_for, manual_against, manual_abstain
+             FROM motions
+             WHERE tenant_id = :tid AND meeting_id = :mid AND closed_at IS NOT NULL
+             ORDER BY closed_at ASC",
+            [':tid' => $tenantId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Trouve une motion dans une seance specifique avec etat d'ouverture.
+     */
+    public function findForMeetingWithState(string $tenantId, string $motionId, string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, opened_at, closed_at
+             FROM motions
+             WHERE tenant_id = :tid AND id = :id AND meeting_id = :mid",
+            [':tid' => $tenantId, ':id' => $motionId, ':mid' => $meetingId]
+        );
+    }
+
     // =========================================================================
     // ECRITURE
     // =========================================================================

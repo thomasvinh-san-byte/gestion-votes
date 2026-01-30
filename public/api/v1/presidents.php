@@ -5,35 +5,17 @@
 
 require __DIR__ . '/../../../app/api.php';
 
-api_require_role('auditor');
+use AgVote\Repository\MemberRepository;
 
+api_require_role('auditor');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     api_fail('method_not_allowed', 405);
 }
 
 try {
-    global $pdo;
-
-    $sql = "
-        SELECT
-            id,
-            full_name,
-            email,
-            role
-        FROM members
-        WHERE tenant_id = :tenant_id
-          AND is_active = true
-        ORDER BY full_name ASC
-    ";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':tenant_id' => api_current_tenant_id()]);
-
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    if ($rows === false) {
-        $rows = [];
-    }
+    $repo = new MemberRepository();
+    $rows = $repo->listActiveForPresident(api_current_tenant_id());
 
     api_ok(['presidents' => $rows]);
 } catch (PDOException $e) {

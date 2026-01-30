@@ -56,8 +56,8 @@ try {
         }
     }
 
-    $pdo = db();
-    $pdo->beginTransaction();
+    // transaction via db()
+    db()->beginTransaction();
 
     if ($motionId === '') {
         $motionId = $motionRepo->generateUuid();
@@ -83,27 +83,27 @@ try {
             'quorum_policy_id' => $quorumPolicyId ?: null,
         ]);
 
-        $pdo->commit();
+        db()->commit();
         api_ok(['motion_id' => (string)$motionId, 'created' => true]);
     }
 
     // Update: ensure motion exists + not deleted
     $motion = $motionRepo->findByIdForTenant($motionId, api_current_tenant_id());
     if (!$motion) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('motion_not_found', 404);
     }
     // Hard guardrail: prevent changing agenda_id across meeting
     if ((string)$motion['agenda_id'] !== $agendaId) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('agenda_mismatch', 409, ['detail' => 'La motion appartient à un autre agenda.']);
     }
     if (!empty($motion['opened_at']) && empty($motion['closed_at'])) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('motion_active_locked', 409, ['detail' => 'Motion active : édition interdite pendant le vote.']);
     }
     if (!empty($motion['closed_at'])) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('motion_closed_locked', 409, ['detail' => 'Motion clôturée : édition interdite.']);
     }
 
@@ -126,12 +126,12 @@ try {
         'quorum_policy_id' => $quorumPolicyId ?: null,
     ]);
 
-    $pdo->commit();
+    db()->commit();
     api_ok(['motion_id' => (string)$motionId, 'created' => false]);
 
 } catch (Throwable $e) {
-    $pdo = db();
-    if ($pdo->inTransaction()) $pdo->rollBack();
+    // transaction via db()
+    if (db()->inTransaction()) db()->rollBack();
     error_log('motions.php error: ' . $e->getMessage());
     api_fail('internal_error', 500, ['detail' => 'Erreur interne du serveur']);
 }

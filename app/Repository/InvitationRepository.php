@@ -141,6 +141,59 @@ class InvitationRepository extends AbstractRepository
     }
 
     /**
+     * Trouve le statut d'une invitation par meeting et member.
+     */
+    public function findStatusByMeetingAndMember(string $meetingId, string $memberId): ?string
+    {
+        $val = $this->scalar(
+            "SELECT status FROM invitations WHERE meeting_id = :mid AND member_id = :uid LIMIT 1",
+            [':mid' => $meetingId, ':uid' => $memberId]
+        );
+        return $val !== null ? (string)$val : null;
+    }
+
+    /**
+     * Upsert pour envoi en masse (avec status et sent_at parametrables).
+     */
+    public function upsertBulk(
+        string $tenantId,
+        string $meetingId,
+        string $memberId,
+        string $email,
+        string $token,
+        string $status,
+        ?string $sentAt
+    ): void {
+        $this->execute(
+            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token, status, sent_at, updated_at)
+             VALUES (:tid, :mid, :uid, :email, :token, :status, :sent_at, now())
+             ON CONFLICT (tenant_id, meeting_id, member_id)
+             DO UPDATE SET token=EXCLUDED.token,
+                           email=COALESCE(EXCLUDED.email, invitations.email),
+                           status=EXCLUDED.status,
+                           sent_at=EXCLUDED.sent_at,
+                           updated_at=now()",
+            [
+                ':tid' => $tenantId, ':mid' => $meetingId, ':uid' => $memberId,
+                ':email' => $email, ':token' => $token,
+                ':status' => $status, ':sent_at' => $sentAt,
+            ]
+        );
+    }
+
+    /**
+     * Marque une invitation comme bounced (echec envoi).
+     */
+    public function markBounced(string $meetingId, string $memberId): void
+    {
+        $this->execute(
+            "UPDATE invitations SET status='bounced', updated_at=now()
+             WHERE meeting_id = :mid AND member_id = :uid",
+            [':mid' => $meetingId, ':uid' => $memberId]
+        );
+    }
+
+    /**
      * Marque une invitation comme acceptee.
      */
     public function markAccepted(string $id): void

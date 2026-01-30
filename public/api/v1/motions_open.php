@@ -73,24 +73,23 @@ try {
         api_fail('motion_missing_quorum_policy', 422, ['detail' => "Policy de quorum absente : impossible d'ouvrir la motion."]);
     }
 
-    $pdo = db();
-    $pdo->beginTransaction();
+    db()->beginTransaction();
 
     // Lock meeting row to prevent concurrent opens
     $mt = $meetingRepo->lockForUpdate($meetingId, api_current_tenant_id());
     if (!$mt) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('meeting_not_found', 404);
     }
     if (!empty($mt['validated_at'])) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('meeting_validated', 409, ['detail' => "Séance validée : action interdite."]);
     }
 
     $open = $motionRepo->findOpenForUpdate($meetingId, api_current_tenant_id());
 
     if ($open && (string)$open['id'] !== $motionId) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('another_motion_active', 409, [
             'detail' => "Une motion est déjà ouverte : veuillez la clôturer avant d'en ouvrir une autre.",
             'open_motion_id' => (string)$open['id'],
@@ -100,13 +99,13 @@ try {
     $updated = $motionRepo->markOpened($motionId, api_current_tenant_id());
 
     if ($updated === 0) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('motion_open_failed', 409, ['detail' => "Impossible d'ouvrir la motion."]);
     }
 
     $meetingRepo->updateCurrentMotion($meetingId, api_current_tenant_id(), $motionId);
 
-    $pdo->commit();
+    db()->commit();
 
     audit_log('motion_opened', 'motion', $motionId, [
         'meeting_id' => $meetingId,
@@ -119,7 +118,6 @@ try {
         'current_motion_id' => $motionId,
     ]);
 } catch (Throwable $e) {
-    $pdo = db();
-    if ($pdo->inTransaction()) $pdo->rollBack();
+    if (db()->inTransaction()) db()->rollBack();
     api_fail('motion_open_failed', 500, ['detail' => $e->getMessage()]);
 }

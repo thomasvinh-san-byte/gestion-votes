@@ -78,6 +78,91 @@ class MemberRepository extends AbstractRepository
         ) ?? 0.0);
     }
 
+    /**
+     * Liste les IDs des membres actifs d'un tenant.
+     */
+    public function listActiveIds(string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT id FROM members WHERE tenant_id = :tid AND is_active = true",
+            [':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Verifie qu'un membre existe pour un tenant.
+     */
+    public function existsForTenant(string $memberId, string $tenantId): bool
+    {
+        return (bool)$this->scalar(
+            "SELECT 1 FROM members WHERE id = :id AND tenant_id = :tid",
+            [':id' => $memberId, ':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Nombre de membres non supprimes d'un tenant (pour dashboard eligible count).
+     */
+    public function countNotDeleted(string $tenantId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND deleted_at IS NULL",
+            [':tid' => $tenantId]
+        ) ?? 0);
+    }
+
+    /**
+     * Somme vote_weight des membres non supprimes (pour dashboard eligible weight).
+     */
+    public function sumNotDeletedVoteWeight(string $tenantId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COALESCE(SUM(vote_weight), 0) FROM members WHERE tenant_id = :tid AND deleted_at IS NULL",
+            [':tid' => $tenantId]
+        ) ?? 0);
+    }
+
+    /**
+     * Liste les membres actifs avec email (pour invitations).
+     */
+    public function listActiveWithEmail(string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT id, full_name, email
+             FROM members
+             WHERE tenant_id = :tid AND is_active = true
+               AND email IS NOT NULL AND email <> ''
+             ORDER BY full_name ASC",
+            [':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Trouve un membre actif avec son poids de vote (pour manual_vote).
+     */
+    public function findActiveWithWeight(string $tenantId, string $memberId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, vote_weight FROM members
+             WHERE tenant_id = :tid AND id = :id AND is_active = true",
+            [':tid' => $tenantId, ':id' => $memberId]
+        );
+    }
+
+    /**
+     * Liste les membres actifs pour selection president.
+     */
+    public function listActiveForPresident(string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT id, full_name, email, role
+             FROM members
+             WHERE tenant_id = :tid AND is_active = true
+             ORDER BY full_name ASC",
+            [':tid' => $tenantId]
+        );
+    }
+
     public function create(
         string $id,
         string $tenantId,

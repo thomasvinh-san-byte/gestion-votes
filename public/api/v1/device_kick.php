@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\DeviceRepository;
+
 header('Content-Type: application/json; charset=utf-8');
 require_any_role(['OPERATOR','ADMIN']);
 
@@ -23,21 +25,11 @@ if ($deviceId === '') {
 }
 
 try {
-  $hb = null;
-  $hbstmt = $pdo->prepare("
-    SELECT role, ip, user_agent, battery_pct, is_charging, last_seen_at
-    FROM device_heartbeats
-    WHERE tenant_id = ?::uuid AND device_id = ?::uuid
-    LIMIT 1
-  ");
-  $hbstmt->execute([$tenantId, $deviceId]);
-  $hb = $hbstmt->fetch(PDO::FETCH_ASSOC) ?: null;
+  $repo = new DeviceRepository();
 
-  $stmt = $pdo->prepare("
-    INSERT INTO device_commands (tenant_id, meeting_id, device_id, command, payload)
-    VALUES (?::uuid, NULLIF(?,'')::uuid, ?::uuid, 'kick', ?::jsonb)
-  ");
-  $stmt->execute([$tenantId, $meetingId, $deviceId, json_encode(['message'=>$message])]);
+  $hb = $repo->findHeartbeat($tenantId, $deviceId);
+
+  $repo->insertKickCommand($tenantId, $meetingId, $deviceId, $message);
 
   if (function_exists('audit_log')) {
     audit_log('device_kicked', 'device', $deviceId, [

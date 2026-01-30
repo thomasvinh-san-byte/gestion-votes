@@ -38,6 +38,60 @@ class BallotRepository extends AbstractRepository
     }
 
     /**
+     * Tally pondere pour le dashboard (for/against/abstain + ballots_count).
+     */
+    public function dashboardTally(string $tenantId, string $meetingId, string $motionId): array
+    {
+        $row = $this->selectOne(
+            "SELECT
+                COUNT(*)::int AS ballots_count,
+                COALESCE(SUM(CASE WHEN COALESCE(value::text, choice)='for' THEN weight ELSE 0 END),0)::int AS weight_for,
+                COALESCE(SUM(CASE WHEN COALESCE(value::text, choice)='against' THEN weight ELSE 0 END),0)::int AS weight_against,
+                COALESCE(SUM(CASE WHEN COALESCE(value::text, choice)='abstain' THEN weight ELSE 0 END),0)::int AS weight_abstain
+             FROM ballots
+             WHERE tenant_id = :tid AND meeting_id = :mid AND motion_id = :moid",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':moid' => $motionId]
+        );
+        return $row ?: ['ballots_count' => 0, 'weight_for' => 0, 'weight_against' => 0, 'weight_abstain' => 0];
+    }
+
+    /**
+     * Nombre de bulletins pour une motion (pour validation readiness).
+     */
+    public function countForMotion(string $tenantId, string $meetingId, string $motionId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM ballots
+             WHERE tenant_id = :tid AND meeting_id = :mid AND motion_id = :moid",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':moid' => $motionId]
+        ) ?? 0);
+    }
+
+    /**
+     * Insere un ballot manuel et retourne son ID.
+     */
+    public function insertManual(
+        string $tenantId,
+        string $meetingId,
+        string $motionId,
+        string $memberId,
+        string $value,
+        string $weight
+    ): string {
+        $row = $this->insertReturning(
+            "INSERT INTO ballots (tenant_id, meeting_id, motion_id, member_id, value, weight, cast_at, is_proxy_vote, source)
+             VALUES (:tid, :mid, :moid, :uid, :value, :weight, NOW(), false, 'manual')
+             RETURNING id",
+            [
+                ':tid' => $tenantId, ':mid' => $meetingId,
+                ':moid' => $motionId, ':uid' => $memberId,
+                ':value' => $value, ':weight' => $weight,
+            ]
+        );
+        return (string)($row['id'] ?? '');
+    }
+
+    /**
      * Existe-t-il au moins un bulletin pour cette motion?
      */
     public function existsForMotion(string $motionId): bool

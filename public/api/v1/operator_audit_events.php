@@ -3,6 +3,8 @@
 // Like meeting_audit_events.php but accessible to operator/admin.
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     api_fail('method_not_allowed', 405);
 }
@@ -22,52 +24,21 @@ $resourceType = trim((string)($_GET['resource_type'] ?? ''));
 $action = trim((string)($_GET['action'] ?? ''));
 $q = trim((string)($_GET['q'] ?? ''));
 
+$meetingRepo = new MeetingRepository();
+
 // Vérifier la séance
-$exists = db_scalar("SELECT 1 FROM meetings WHERE id = ? AND tenant_id = ?", [$meetingId, api_current_tenant_id()]);
-if (!$exists) {
+if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
     api_fail('meeting_not_found', 404);
 }
 
-global $pdo;
-
-$where = "WHERE tenant_id = ? AND (\n        (resource_type = 'meeting' AND resource_id = ?)\n        OR\n        (resource_type = 'motion' AND resource_id IN (SELECT id FROM motions WHERE meeting_id = ?))\n    )";
-$params = [api_current_tenant_id(), $meetingId, $meetingId];
-
-if ($resourceType !== '') {
-    $where .= " AND resource_type = ?";
-    $params[] = $resourceType;
-}
-
-if ($action !== '') {
-    $where .= " AND action ILIKE ?";
-    $params[] = "%{$action}%";
-}
-
-if ($q !== '') {
-    // Recherche large dans action, resource_id, payload JSON.
-    $where .= " AND (action ILIKE ? OR resource_id ILIKE ? OR payload::text ILIKE ?)";
-    $params[] = "%{$q}%";
-    $params[] = "%{$q}%";
-    $params[] = "%{$q}%";
-}
-
-$sql = "
-    SELECT
-      id,
-      action,
-      resource_type,
-      resource_id,
-      payload,
-      created_at
-    FROM audit_events
-    {$where}
-    ORDER BY created_at DESC
-    LIMIT {$limit}
-";
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$rows = $meetingRepo->listAuditEventsFiltered(
+    api_current_tenant_id(),
+    $meetingId,
+    $limit,
+    $resourceType,
+    $action,
+    $q
+);
 
 $events = [];
 foreach ($rows as $r) {

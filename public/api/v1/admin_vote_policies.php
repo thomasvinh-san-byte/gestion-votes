@@ -2,19 +2,17 @@
 // ADMIN: liste + upsert vote_policies (majorité)
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\PolicyRepository;
+
 api_require_role('admin');
 
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
+$repo = new PolicyRepository();
+
 if ($method === 'GET') {
   api_request('GET');
-  $rows = db_select_all(
-    "SELECT id, name, description, base, threshold, abstention_as_against, updated_at
-     FROM vote_policies
-     WHERE tenant_id = ?
-     ORDER BY name ASC",
-    [api_current_tenant_id()]
-  );
+  $rows = $repo->listVotePolicies(api_current_tenant_id());
   api_ok(['items' => $rows]);
 }
 
@@ -37,18 +35,14 @@ if ($method === 'POST') {
 
   if ($id !== '') {
     if (!api_is_uuid($id)) api_fail('invalid_id', 400);
-    db_execute(
-      "UPDATE vote_policies SET
-          name=:n, description=:d, base=:b, threshold=:thr, abstention_as_against=:a, updated_at=NOW()
-       WHERE tenant_id=:t AND id=:id",
-      [':n'=>$name, ':d'=>$desc, ':b'=>$base, ':thr'=>$threshold, ':a'=>$abstBool, ':t'=>api_current_tenant_id(), ':id'=>$id]
+    $repo->updateVotePolicy(
+      $id, api_current_tenant_id(), $name, $desc === '' ? null : $desc,
+      $base, $threshold, $abstBool
     );
   } else {
-    $id = db_scalar("SELECT gen_random_uuid()");
-    db_execute(
-      "INSERT INTO vote_policies(id, tenant_id, name, description, base, threshold, abstention_as_against, created_at, updated_at)
-       VALUES (:id,:t,:n,:d,:b,:thr,:a,NOW(),NOW())",
-      [':id'=>$id, ':t'=>api_current_tenant_id(), ':n'=>$name, ':d'=>$desc, ':b'=>$base, ':thr'=>$threshold, ':a'=>$abstBool]
+    $id = (string)db()->query("SELECT gen_random_uuid()")->fetchColumn();
+    $repo->createVotePolicy(
+      $id, api_current_tenant_id(), $name, $base, $threshold, $abstBool
     );
   }
 
