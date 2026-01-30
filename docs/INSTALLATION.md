@@ -193,6 +193,25 @@ Ouvrir `http://localhost:8080/login.html` et entrer une cle API de test :
 | **auditor** | `auditor-key-2024-secret` |
 | **viewer** | `viewer-key-2024-secret` |
 
+### Acces depuis un autre poste (hors VM)
+
+Le serveur PHP ecoute sur `0.0.0.0` (toutes les interfaces), donc il est
+accessible depuis le reseau. Remplacer `localhost` par l'IP de la machine :
+
+```
+http://192.168.1.50:8080/login.html
+```
+
+Puis ajouter cette origine dans `.env` pour autoriser les requetes CORS :
+
+```
+CORS_ALLOWED_ORIGINS=http://localhost:8080,http://192.168.1.50:8080
+```
+
+> **Note** : `localhost` dans le script `setup_db.sh` et dans `DB_DSN` designe
+> la connexion PHP -> PostgreSQL, qui est toujours locale (meme machine).
+> Ce n'est pas lie a l'acces web depuis l'exterieur.
+
 ### Tester via cURL
 
 ```bash

@@ -4,6 +4,8 @@
 # Peut etre relance autant de fois que necessaire sans casser l'existant.
 set -euo pipefail
 
+# Connexion PostgreSQL (locale : le script tourne sur la meme machine que PG)
+# Pour l'acces web depuis un autre poste, voir CORS_ALLOWED_ORIGINS dans .env
 DB_NAME="vote_app"
 DB_USER="vote_app"
 DB_PASS="vote_app_dev_2026"
@@ -123,4 +125,10 @@ echo ""
 echo "Se connecter :"
 echo "  http://localhost:8080/login.html"
 echo "  Cle admin : admin-key-2024-secret"
+echo ""
+echo "Acces depuis un autre poste :"
+echo "  1. Remplacer localhost par l'IP de la VM"
+echo "     http://<IP>:8080/login.html"
+echo "  2. Ajouter cette origine dans .env :"
+echo "     CORS_ALLOWED_ORIGINS=http://localhost:8080,http://<IP>:8080"
 echo "========================================="
