@@ -16,8 +16,8 @@ return [
       cfg('DB_PORT', '5432'),
       cfg('DB_DATABASE', 'vote_app')
     ),
-    'user' => cfg('DB_USERNAME', 'ca_app'),
-    'pass' => cfg('DB_PASSWORD', 'CHANGE_ME_STRONG'),
+    'user' => cfg('DB_USERNAME', 'vote_app'),
+    'pass' => cfg('DB_PASSWORD', 'vote_app_dev_2026'),
   ],
 
   'cors_allow' => cfg('CORS_ALLOW_ORIGINS', '*'),

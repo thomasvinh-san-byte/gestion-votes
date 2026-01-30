@@ -25,8 +25,8 @@ if ($apiKey === '') {
     api_fail('missing_api_key', 400, ['detail' => 'Clé API requise.']);
 }
 
-// Hash et recherche utilisateur
-$hash = hash('sha256', $apiKey);
+// Hash HMAC-SHA256 (cohérent avec AuthMiddleware::findUserByApiKey)
+$hash = hash_hmac('sha256', $apiKey, APP_SECRET);
 
 $user = db_select_one(
     "SELECT id, tenant_id, email, name, role, is_active
