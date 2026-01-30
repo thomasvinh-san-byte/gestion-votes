@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\MeetingRepository;
+
 api_require_role('operator');
 
 try {
@@ -29,55 +32,46 @@ try {
 
     $secret = (bool)($in['secret'] ?? false);
 
-    $votePolicyId = trim((string)($in['vote_policy_id'] ?? ''));   // optional override
-    $quorumPolicyId = trim((string)($in['quorum_policy_id'] ?? '')); // optional override
+    $votePolicyId = trim((string)($in['vote_policy_id'] ?? ''));
+    $quorumPolicyId = trim((string)($in['quorum_policy_id'] ?? ''));
     if ($votePolicyId !== '' && !api_is_uuid($votePolicyId)) api_fail('invalid_vote_policy_id', 422);
     if ($quorumPolicyId !== '' && !api_is_uuid($quorumPolicyId)) api_fail('invalid_quorum_policy_id', 422);
 
+    $motionRepo = new MotionRepository();
+    $meetingRepo = new MeetingRepository();
+
     // Resolve meeting via agenda
-    $agenda = db_select_one(
-        "SELECT a.id, a.meeting_id, m.tenant_id
-         FROM agendas a
-         JOIN meetings m ON m.id = a.meeting_id
-         WHERE a.id = :aid AND m.tenant_id = :tid",
-        [':aid' => $agendaId, ':tid' => api_current_tenant_id()]
-    );
+    $agenda = $motionRepo->findAgendaWithMeeting($agendaId, api_current_tenant_id());
     if (!$agenda) api_fail('agenda_not_found', 404);
 
     // Validate policies belong to tenant if provided
     if ($votePolicyId !== '') {
-        $vp = db_select_one("SELECT id FROM vote_policies WHERE tenant_id=:tid AND id=:id", [':tid'=>api_current_tenant_id(), ':id'=>$votePolicyId]);
-        if (!$vp) api_fail('vote_policy_not_found', 404);
+        if (!$meetingRepo->votePolicyExists($votePolicyId, api_current_tenant_id())) {
+            api_fail('vote_policy_not_found', 404);
+        }
     }
     if ($quorumPolicyId !== '') {
-        $qp = db_select_one("SELECT id FROM quorum_policies WHERE tenant_id=:tid AND id=:id", [':tid'=>api_current_tenant_id(), ':id'=>$quorumPolicyId]);
-        if (!$qp) api_fail('quorum_policy_not_found', 404);
+        if (!$meetingRepo->quorumPolicyExists($quorumPolicyId, api_current_tenant_id())) {
+            api_fail('quorum_policy_not_found', 404);
+        }
     }
 
-    global $pdo;
-    $pdo->beginTransaction();
+    // transaction via db()
+    db()->beginTransaction();
 
     if ($motionId === '') {
-        $motionId = db_scalar("SELECT gen_random_uuid()") ?: null;
-        if (!$motionId) {
-            $pdo->rollBack();
-            api_fail('uuid_failed', 500);
-        }
+        $motionId = $motionRepo->generateUuid();
 
-        db_execute(
-            "INSERT INTO motions (id, tenant_id, meeting_id, agenda_id, title, description, secret, vote_policy_id, quorum_policy_id, created_at)
-             VALUES (:id, :tid, :mid, :aid, :title, :desc, :secret, NULLIF(:vpid,''), NULLIF(:qpid,''), now())",
-            [
-                ':id' => $motionId,
-                ':tid' => api_current_tenant_id(),
-                ':mid' => $agenda['meeting_id'],
-                ':aid' => $agendaId,
-                ':title' => $title,
-                ':desc' => $description,
-                ':secret' => $secret ? 't' : 'f',
-                ':vpid' => $votePolicyId,
-                ':qpid' => $quorumPolicyId,
-            ]
+        $motionRepo->create(
+            $motionId,
+            api_current_tenant_id(),
+            $agenda['meeting_id'],
+            $agendaId,
+            $title,
+            $description,
+            $secret,
+            $votePolicyId ?: null,
+            $quorumPolicyId ?: null
         );
 
         audit_log('motion_created', 'motion', (string)$motionId, [
@@ -89,55 +83,38 @@ try {
             'quorum_policy_id' => $quorumPolicyId ?: null,
         ]);
 
-        $pdo->commit();
+        db()->commit();
         api_ok(['motion_id' => (string)$motionId, 'created' => true]);
     }
 
     // Update: ensure motion exists + not deleted
-    $motion = db_select_one(
-        "SELECT id, meeting_id, agenda_id, opened_at, closed_at
-         FROM motions
-         WHERE tenant_id=:tid AND id=:id",
-        [':tid'=>api_current_tenant_id(), ':id'=>$motionId]
-    );
+    $motion = $motionRepo->findByIdForTenant($motionId, api_current_tenant_id());
     if (!$motion) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('motion_not_found', 404);
     }
     // Hard guardrail: prevent changing agenda_id across meeting
     if ((string)$motion['agenda_id'] !== $agendaId) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('agenda_mismatch', 409, ['detail' => 'La motion appartient à un autre agenda.']);
     }
-    // Garde-fous backend :
-    // - une motion ACTIVE (ouverte et non clôturée) ne doit pas être modifiée pendant le vote.
-    // - une motion clôturée ne doit pas être modifiée.
     if (!empty($motion['opened_at']) && empty($motion['closed_at'])) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('motion_active_locked', 409, ['detail' => 'Motion active : édition interdite pendant le vote.']);
     }
     if (!empty($motion['closed_at'])) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('motion_closed_locked', 409, ['detail' => 'Motion clôturée : édition interdite.']);
     }
 
-    db_execute(
-        "UPDATE motions
-         SET title=:title,
-             description=:desc,
-             secret=:secret,
-             vote_policy_id=NULLIF(:vpid,''),
-             quorum_policy_id=NULLIF(:qpid,'')
-         WHERE tenant_id=:tid AND id=:id",
-        [
-            ':title'=>$title,
-            ':desc'=>$description,
-            ':secret'=>$secret ? 't' : 'f',
-            ':vpid'=>$votePolicyId,
-            ':qpid'=>$quorumPolicyId,
-            ':tid'=>api_current_tenant_id(),
-            ':id'=>$motionId
-        ]
+    $motionRepo->update(
+        $motionId,
+        api_current_tenant_id(),
+        $title,
+        $description,
+        $secret,
+        $votePolicyId ?: null,
+        $quorumPolicyId ?: null
     );
 
     audit_log('motion_updated', 'motion', (string)$motionId, [
@@ -149,11 +126,12 @@ try {
         'quorum_policy_id' => $quorumPolicyId ?: null,
     ]);
 
-    $pdo->commit();
+    db()->commit();
     api_ok(['motion_id' => (string)$motionId, 'created' => false]);
 
 } catch (Throwable $e) {
-    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    // transaction via db()
+    if (db()->inTransaction()) db()->rollBack();
     error_log('motions.php error: ' . $e->getMessage());
     api_fail('internal_error', 500, ['detail' => 'Erreur interne du serveur']);
 }

@@ -1,20 +1,21 @@
 <?php
+// GET/POST: quorum_policy_id + convocation_no de la séance
+declare(strict_types=1);
+
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MeetingRepository;
 
 api_require_role(['operator', 'admin']);
 
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$repo = new MeetingRepository();
 
 if ($method === 'GET') {
     $q = api_request('GET');
     $meetingId = api_require_uuid($q, 'meeting_id');
 
-    $row = db_select_one(
-        "SELECT id AS meeting_id, title, quorum_policy_id, COALESCE(convocation_no,1) AS convocation_no
-         FROM meetings
-         WHERE tenant_id = ? AND id = ?",
-        [api_current_tenant_id(), $meetingId]
-    );
+    $row = $repo->findQuorumSettings($meetingId, api_current_tenant_id());
     if (!$row) api_fail('meeting_not_found', 404);
 
     api_ok([
@@ -29,7 +30,7 @@ if ($method === 'POST') {
     $in = api_request('POST');
     $meetingId = api_require_uuid($in, 'meeting_id');
 
-api_guard_meeting_not_validated($meetingId);
+    api_guard_meeting_not_validated($meetingId);
 
     $policyId = trim((string)($in['quorum_policy_id'] ?? ''));
     if ($policyId !== '' && !api_is_uuid($policyId)) {
@@ -41,32 +42,22 @@ api_guard_meeting_not_validated($meetingId);
         api_fail('invalid_convocation_no', 400, ['expected' => '1 or 2']);
     }
 
-    $m = db_select_one("SELECT id FROM meetings WHERE tenant_id=? AND id=?", [api_current_tenant_id(), $meetingId]);
-    if (!$m) api_fail('meeting_not_found', 404);
+    if (!$repo->existsForTenant($meetingId, api_current_tenant_id())) {
+        api_fail('meeting_not_found', 404);
+    }
 
     if ($policyId !== '') {
-        $p = db_select_one("SELECT id FROM quorum_policies WHERE tenant_id=? AND id=?", [api_current_tenant_id(), $policyId]);
-        if (!$p) api_fail('quorum_policy_not_found', 404);
+        if (!$repo->quorumPolicyExists($policyId, api_current_tenant_id())) {
+            api_fail('quorum_policy_not_found', 404);
+        }
     }
 
-    db_execute(
-        "UPDATE meetings
-         SET quorum_policy_id = :pid, convocation_no = :c, updated_at = NOW()
-         WHERE tenant_id = :t AND id = :m",
-        [
-            ':pid' => ($policyId == '' ? null : $policyId),
-            ':c' => $convocationNo,
-            ':t' => api_current_tenant_id(),
-            ':m' => $meetingId,
-        ]
-    );
+    $repo->updateQuorumPolicy($meetingId, api_current_tenant_id(), $policyId === '' ? null : $policyId, $convocationNo);
 
-    if (function_exists('audit_log')) {
-        audit_log('meeting_quorum_updated', 'meeting', $meetingId, [
-            'quorum_policy_id' => ($policyId == '' ? null : $policyId),
-            'convocation_no' => $convocationNo,
-        ]);
-    }
+    audit_log('meeting_quorum_updated', 'meeting', $meetingId, [
+        'quorum_policy_id' => ($policyId === '' ? null : $policyId),
+        'convocation_no' => $convocationNo,
+    ]);
 
     api_ok(['saved' => true]);
 }

@@ -2,16 +2,11 @@
 // Liste des politiques de vote (majorité) du tenant
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\PolicyRepository;
+
 api_request('GET');
 
-global $pdo;
-$stmt = $pdo->prepare(
-  "SELECT id, name, description, base, threshold, abstention_as_against, updated_at
-   FROM vote_policies
-   WHERE tenant_id = :t
-   ORDER BY name ASC"
-);
-$stmt->execute([':t' => api_current_tenant_id()]);
-$rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+$repo = new PolicyRepository();
+$rows = $repo->listVotePolicies(api_current_tenant_id());
 
 api_ok(['items' => $rows]);

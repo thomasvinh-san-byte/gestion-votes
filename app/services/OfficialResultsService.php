@@ -4,6 +4,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/VoteEngine.php';
 
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MemberRepository;
+
 /**
  * Source unique de vérité "officielle" des résultats.
  *
@@ -19,18 +24,8 @@ final class OfficialResultsService
 {
     public static function ensureSchema(): void
     {
-        $sql = <<<SQL
-        ALTER TABLE motions
-          ADD COLUMN IF NOT EXISTS official_source text,
-          ADD COLUMN IF NOT EXISTS official_for double precision,
-          ADD COLUMN IF NOT EXISTS official_against double precision,
-          ADD COLUMN IF NOT EXISTS official_abstain double precision,
-          ADD COLUMN IF NOT EXISTS official_total double precision,
-          ADD COLUMN IF NOT EXISTS decision text,
-          ADD COLUMN IF NOT EXISTS decision_reason text,
-          ADD COLUMN IF NOT EXISTS decided_at timestamptz
-        SQL;
-        try { db_exec($sql); } catch (Throwable $e) { /* best-effort */ }
+        $motionRepo = new MotionRepository();
+        $motionRepo->ensureOfficialColumns();
     }
 
     /**
@@ -40,27 +35,20 @@ final class OfficialResultsService
     {
         $tenantId = (string)$motion['tenant_id'];
 
-        $eligibleMembers = (int)(db_scalar(
-            "SELECT COUNT(*) FROM members WHERE tenant_id = :tenant_id AND is_active = true",
-            [':tenant_id' => $tenantId]
-        ) ?? 0);
-
-        $eligibleWeight = (float)(db_scalar(
-            "SELECT COALESCE(SUM(COALESCE(voting_power, vote_weight, 1.0)), 0) FROM members WHERE tenant_id = :tenant_id AND is_active = true",
-            [':tenant_id' => $tenantId]
-        ) ?? 0.0);
+        $memberRepo = new MemberRepository();
+        $eligibleMembers = $memberRepo->countActive($tenantId);
+        $eligibleWeight  = $memberRepo->sumActiveWeight($tenantId);
 
         // Quorum policy: motion-level > meeting-level
         $appliedQuorumPolicyId = !empty($motion['quorum_policy_id'])
             ? (string)$motion['quorum_policy_id']
             : (!empty($motion['meeting_quorum_policy_id']) ? (string)$motion['meeting_quorum_policy_id'] : '');
 
+        $policyRepo = new PolicyRepository();
+
         $quorumPolicy = null;
         if ($appliedQuorumPolicyId !== '') {
-            $quorumPolicy = db_select_one(
-                "SELECT * FROM quorum_policies WHERE id = :id",
-                [':id' => $appliedQuorumPolicyId]
-            );
+            $quorumPolicy = $policyRepo->findQuorumPolicy($appliedQuorumPolicyId);
         }
 
         // Vote policy: motion-level > meeting-level
@@ -70,16 +58,13 @@ final class OfficialResultsService
 
         $votePolicy = null;
         if ($appliedVotePolicyId !== '') {
-            $votePolicy = db_select_one(
-                "SELECT * FROM vote_policies WHERE id = :id",
-                [':id' => $appliedVotePolicyId]
-            );
+            $votePolicy = $policyRepo->findVotePolicy($appliedVotePolicyId);
         }
 
         // Quorum (même logique que VoteEngine)
         $quorumMet = null;
         if ($quorumPolicy) {
-            $quorumBasis     = (string)$quorumPolicy['denominator']; // eligible_members / eligible_weight
+            $quorumBasis     = (string)$quorumPolicy['denominator'];
             $quorumThreshold = (float)$quorumPolicy['threshold'];
 
             if ($quorumBasis === 'eligible_members') {
@@ -102,7 +87,7 @@ final class OfficialResultsService
         $abstAsAgainst     = null;
 
         if ($votePolicy) {
-            $majorityBase      = (string)$votePolicy['base']; // expressed / present / eligible
+            $majorityBase      = (string)$votePolicy['base'];
             $majorityThreshold = (float)$votePolicy['threshold'];
             $abstAsAgainst     = (bool)$votePolicy['abstention_as_against'];
 
@@ -111,7 +96,6 @@ final class OfficialResultsService
             } elseif ($majorityBase === 'eligible') {
                 $baseTotal = $eligibleWeight;
             } elseif ($majorityBase === 'present') {
-                // VoteEngine approxime présent par exprimé
                 $baseTotal = $expressedWeight;
             } else {
                 $baseTotal = $expressedWeight;
@@ -136,7 +120,6 @@ final class OfficialResultsService
             $status = $adopted ? 'adopted' : 'rejected';
             $reason = $adopted ? 'vote_policy_met' : (($quorumMet === false) ? 'quorum_not_met' : 'vote_policy_not_met');
         } else {
-            // Fallback: logique simple (comme avant), mais toujours bloquée si quorum non atteint
             $status = ($forWeight > $againstWeight) ? 'adopted' : 'rejected';
             if ($quorumMet === false) $status = 'rejected';
             $reason = $votePolicy ? 'vote_policy' : (($quorumMet === false) ? 'quorum_not_met' : 'simple_majority');
@@ -160,23 +143,8 @@ final class OfficialResultsService
         $motionId = trim($motionId);
         if ($motionId === '') throw new InvalidArgumentException('motion_id obligatoire');
 
-        $motion = db_select_one(
-            "SELECT
-               m.id AS motion_id,
-               m.meeting_id,
-               m.title,
-               m.vote_policy_id,
-               m.quorum_policy_id,
-               mt.tenant_id AS tenant_id,
-               mt.vote_policy_id AS meeting_vote_policy_id,
-               mt.quorum_policy_id AS meeting_quorum_policy_id,
-               m.manual_total, m.manual_for, m.manual_against, m.manual_abstain,
-               m.closed_at
-             FROM motions m
-             JOIN meetings mt ON mt.id = m.meeting_id
-             WHERE m.id = ?",
-            [$motionId]
-        );
+        $motionRepo = new MotionRepository();
+        $motion = $motionRepo->findWithOfficialContext($motionId);
         if (!$motion) {
             throw new RuntimeException('motion_not_found');
         }
@@ -196,7 +164,7 @@ final class OfficialResultsService
                 $manualAg,
                 $manualAb,
                 $expressedWeight,
-                (int)round($manualTotal) // approx exprimés (membres)
+                (int)round($manualTotal)
             );
 
             return [
@@ -210,18 +178,9 @@ final class OfficialResultsService
             ];
         }
 
-        // EVOTE: totaux depuis ballots + décision depuis VoteEngine (règle complète)
-        // Utilise COALESCE entre colonnes canoniques (value/weight) et alias compat (choice/effective_power)
-        $rows = db_select_one(
-            "SELECT
-               COALESCE(SUM(CASE WHEN COALESCE(value::text, choice) = 'for' THEN COALESCE(weight, effective_power, 0) ELSE 0 END), 0) AS w_for,
-               COALESCE(SUM(CASE WHEN COALESCE(value::text, choice) = 'against' THEN COALESCE(weight, effective_power, 0) ELSE 0 END), 0) AS w_against,
-               COALESCE(SUM(CASE WHEN COALESCE(value::text, choice) = 'abstain' THEN COALESCE(weight, effective_power, 0) ELSE 0 END), 0) AS w_abstain,
-               COALESCE(SUM(COALESCE(weight, effective_power, 0)), 0) AS w_total
-             FROM ballots
-             WHERE motion_id = ?",
-            [$motionId]
-        ) ?: ['w_for'=>0,'w_against'=>0,'w_abstain'=>0,'w_total'=>0];
+        // EVOTE: totaux depuis ballots + décision depuis VoteEngine
+        $ballotRepo = new BallotRepository();
+        $rows = $ballotRepo->weightedTally($motionId);
 
         $forW = (float)$rows['w_for'];
         $agW  = (float)$rows['w_against'];
@@ -248,37 +207,23 @@ final class OfficialResultsService
     {
         self::ensureSchema();
 
-        $motions = db_select_all(
-            "SELECT id FROM motions WHERE meeting_id = ? AND closed_at IS NOT NULL ORDER BY closed_at ASC",
-            [$meetingId]
-        );
+        $motionRepo = new MotionRepository();
+        $motions = $motionRepo->listClosedForMeeting($meetingId);
 
         $updated = 0;
         foreach ($motions as $m) {
             $mid = (string)$m['id'];
             $o = self::computeOfficialTallies($mid);
 
-            db_exec(
-                "UPDATE motions SET
-                   official_source = ?,
-                   official_for = ?,
-                   official_against = ?,
-                   official_abstain = ?,
-                   official_total = ?,
-                   decision = ?,
-                   decision_reason = ?,
-                   decided_at = NOW()
-                 WHERE id = ?",
-                [
-                    $o['source'],
-                    $o['for'],
-                    $o['against'],
-                    $o['abstain'],
-                    $o['total'],
-                    $o['decision'],
-                    $o['reason'],
-                    $mid
-                ]
+            $motionRepo->updateOfficialResults(
+                $mid,
+                $o['source'],
+                $o['for'],
+                $o['against'],
+                $o['abstain'],
+                $o['total'],
+                $o['decision'],
+                $o['reason']
             );
             $updated++;
         }

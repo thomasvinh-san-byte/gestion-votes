@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MotionRepository;
+
 try {
     api_request('GET');
 
@@ -12,28 +14,8 @@ try {
         api_fail('invalid_request', 422, ['detail' => 'meeting_id est obligatoire (uuid).']);
     }
 
-    $motion = db_select_one(
-        "
-        SELECT
-          id,
-          agenda_id,
-          title,
-          description,
-          secret,
-          vote_policy_id,
-          quorum_policy_id,
-          opened_at,
-          closed_at
-        FROM motions
-        WHERE tenant_id = :tid
-          AND meeting_id = :meeting_id
-          AND opened_at IS NOT NULL
-          AND closed_at IS NULL
-        ORDER BY opened_at DESC
-        LIMIT 1
-        ",
-        [':tid' => api_current_tenant_id(), ':meeting_id' => $meetingId]
-    );
+    $repo = new MotionRepository();
+    $motion = $repo->findCurrentOpen($meetingId, api_current_tenant_id());
 
     api_ok(['motion' => $motion]); // motion peut être null
 } catch (Throwable $e) {

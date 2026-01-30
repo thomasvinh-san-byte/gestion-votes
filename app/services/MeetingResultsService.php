@@ -4,6 +4,10 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/VoteEngine.php';
 
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\MemberRepository;
+
 /**
  * Consolidation "officielle" d'un résultat de motion.
  *
@@ -23,29 +27,8 @@ final class MeetingResultsService
             throw new InvalidArgumentException('motion_id obligatoire');
         }
 
-        $motion = db_select_one(
-            "
-            SELECT
-              m.id,
-              m.title,
-              m.meeting_id,
-              mt.tenant_id,
-              mt.quorum_policy_id,
-              mt.vote_policy_id AS meeting_vote_policy_id,
-              m.vote_policy_id,
-              m.quorum_policy_id,
-              m.secret,
-              m.closed_at,
-              m.manual_total,
-              m.manual_for,
-              m.manual_against,
-              m.manual_abstain
-            FROM motions m
-            JOIN meetings mt ON mt.id = m.meeting_id
-            WHERE m.id = :id
-            ",
-            [':id' => $motionId]
-        );
+        $motionRepo = new MotionRepository();
+        $motion = $motionRepo->findWithOfficialContext($motionId);
 
         if (!$motion) {
             throw new RuntimeException('Motion introuvable');
@@ -73,23 +56,16 @@ final class MeetingResultsService
             $expressedWeight = $manualTotal;
         }
 
-        $eligibleMembers = (int)(db_scalar(
-            "SELECT COUNT(*) FROM members WHERE tenant_id = :tenant_id AND is_active = true",
-            [':tenant_id' => $tenantId]
-        ) ?? 0);
-
-        $eligibleWeight = (float)(db_scalar(
-            "SELECT COALESCE(SUM(COALESCE(voting_power, vote_weight, 1.0)), 0) FROM members WHERE tenant_id = :tenant_id AND is_active = true",
-            [':tenant_id' => $tenantId]
-        ) ?? 0.0);
+        $memberRepo = new MemberRepository();
+        $eligibleMembers = $memberRepo->countActive($tenantId);
+        $eligibleWeight  = $memberRepo->sumActiveWeight($tenantId);
 
         // Policies
+        $policyRepo = new PolicyRepository();
+
         $quorumPolicy = null;
         if (!empty($motion['quorum_policy_id'])) {
-            $quorumPolicy = db_select_one(
-                "SELECT * FROM quorum_policies WHERE id = :id",
-                [':id' => $motion['quorum_policy_id']]
-            );
+            $quorumPolicy = $policyRepo->findQuorumPolicy((string)$motion['quorum_policy_id']);
         }
 
         // Résoudre la politique de vote: motion-level > meeting-level
@@ -99,10 +75,7 @@ final class MeetingResultsService
 
         $votePolicy = null;
         if ($appliedVotePolicyId !== '') {
-            $votePolicy = db_select_one(
-                "SELECT * FROM vote_policies WHERE id = :id",
-                [':id' => $appliedVotePolicyId]
-            );
+            $votePolicy = $policyRepo->findVotePolicy($appliedVotePolicyId);
         }
 
         // Quorum

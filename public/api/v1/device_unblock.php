@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\DeviceRepository;
+
 header('Content-Type: application/json; charset=utf-8');
 require_any_role(['OPERATOR','ADMIN']);
 
@@ -20,23 +22,11 @@ if ($deviceId === '') {
 }
 
 try {
-  $hb = null;
-  $hbstmt = $pdo->prepare("
-    SELECT role, ip, user_agent, battery_pct, is_charging, last_seen_at
-    FROM device_heartbeats
-    WHERE tenant_id = ?::uuid AND device_id = ?::uuid
-    LIMIT 1
-  ");
-  $hbstmt->execute([$tenantId, $deviceId]);
-  $hb = $hbstmt->fetch(PDO::FETCH_ASSOC) ?: null;
+  $repo = new DeviceRepository();
 
-  $stmt = $pdo->prepare("
-    INSERT INTO device_blocks (tenant_id, meeting_id, device_id, is_blocked, reason, blocked_at, updated_at)
-    VALUES (?::uuid, NULLIF(?,'')::uuid, ?::uuid, false, NULL, now(), now())
-    ON CONFLICT (COALESCE(meeting_id, '00000000-0000-0000-0000-000000000000'::uuid), device_id)
-    DO UPDATE SET is_blocked = false, reason = NULL, updated_at = now()
-  ");
-  $stmt->execute([$tenantId, $meetingId, $deviceId]);
+  $hb = $repo->findHeartbeat($tenantId, $deviceId);
+
+  $repo->unblockDevice($tenantId, $meetingId, $deviceId);
 
   if (function_exists('audit_log')) {
     audit_log('device_unblocked', 'device', $deviceId, [

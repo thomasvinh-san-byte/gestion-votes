@@ -4,6 +4,9 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/MembersService.php';
 
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\MeetingRepository;
+
 /**
  * Gestion des présences (check-in) par séance.
  *
@@ -28,25 +31,8 @@ final class AttendancesService
             return false;
         }
 
-        global $pdo;
-        $sql = "
-            SELECT 1
-            FROM attendances a
-            JOIN meetings mt ON mt.id = a.meeting_id
-            WHERE a.meeting_id = :meeting_id
-              AND a.member_id = :member_id
-              AND mt.tenant_id = :tenant_id
-              AND a.checked_out_at IS NULL
-              AND a.mode IN ('present','remote','proxy')
-            LIMIT 1
-        ";
-        $st = $pdo->prepare($sql);
-        $st->execute([
-            ':meeting_id' => $meetingId,
-            ':member_id' => $memberId,
-            ':tenant_id' => $tenantId,
-        ]);
-        return (bool)$st->fetchColumn();
+        $repo = new AttendanceRepository();
+        return $repo->isPresent($meetingId, $memberId, $tenantId);
     }
 
     /**
@@ -63,25 +49,8 @@ final class AttendancesService
             return false;
         }
 
-        global $pdo;
-        $sql = "
-            SELECT 1
-            FROM attendances a
-            JOIN meetings mt ON mt.id = a.meeting_id
-            WHERE a.meeting_id = :meeting_id
-              AND a.member_id = :member_id
-              AND mt.tenant_id = :tenant_id
-              AND a.checked_out_at IS NULL
-              AND a.mode IN ('present','remote')
-            LIMIT 1
-        ";
-        $st = $pdo->prepare($sql);
-        $st->execute([
-            ':meeting_id' => $meetingId,
-            ':member_id' => $memberId,
-            ':tenant_id' => $tenantId,
-        ]);
-        return (bool)$st->fetchColumn();
+        $repo = new AttendanceRepository();
+        return $repo->isPresentDirect($meetingId, $memberId, $tenantId);
     }
 
     /**
@@ -97,31 +66,8 @@ final class AttendancesService
             throw new InvalidArgumentException('meeting_id est obligatoire');
         }
 
-        global $pdo;
-        $sql = "
-            SELECT
-              a.id,
-              a.meeting_id,
-              a.member_id,
-              a.mode,
-              a.checked_in_at,
-              a.checked_out_at,
-              a.effective_power,
-              a.notes,
-              m.full_name,
-              m.email,
-              m.role,
-              m.voting_power
-            FROM attendances a
-            JOIN members m ON m.id = a.member_id
-            JOIN meetings mt ON mt.id = a.meeting_id
-            WHERE a.meeting_id = :meeting_id
-              AND mt.tenant_id = :tenant_id
-            ORDER BY m.full_name ASC
-        ";
-        $st = $pdo->prepare($sql);
-        $st->execute([':meeting_id' => $meetingId, ':tenant_id' => $tenantId]);
-        return $st->fetchAll() ?: [];
+        $repo = new AttendanceRepository();
+        return $repo->listForMeeting($meetingId, $tenantId);
     }
 
     /**
@@ -137,26 +83,8 @@ final class AttendancesService
             throw new InvalidArgumentException('meeting_id est obligatoire');
         }
 
-        global $pdo;
-        $sql = "
-            SELECT
-              COUNT(*)::int AS present_count,
-              COALESCE(SUM(a.effective_power), 0)::float8 AS present_weight
-            FROM attendances a
-            JOIN meetings mt ON mt.id = a.meeting_id
-            WHERE a.meeting_id = :meeting_id
-              AND mt.tenant_id = :tenant_id
-              AND a.checked_out_at IS NULL
-              AND a.mode IN ('present','remote','proxy')
-        ";
-        $st = $pdo->prepare($sql);
-        $st->execute([':meeting_id' => $meetingId, ':tenant_id' => $tenantId]);
-        $row = $st->fetch() ?: ['present_count' => 0, 'present_weight' => 0.0];
-
-        return [
-            'present_count' => (int)$row['present_count'],
-            'present_weight' => (float)$row['present_weight'],
-        ];
+        $repo = new AttendanceRepository();
+        return $repo->summaryForMeeting($meetingId, $tenantId);
     }
 
     /**
@@ -184,10 +112,8 @@ final class AttendancesService
         $tenantId = (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
 
         // Vérifier meeting appartient au tenant
-        $meeting = db_select_one(
-            "SELECT id, tenant_id, status FROM meetings WHERE id = :id",
-            [':id' => $meetingId]
-        );
+        $meetingRepo = new MeetingRepository();
+        $meeting = $meetingRepo->findById($meetingId);
         if (!$meeting) {
             throw new RuntimeException('Séance introuvable');
         }
@@ -204,36 +130,16 @@ final class AttendancesService
             throw new RuntimeException('Membre hors tenant');
         }
 
-        global $pdo;
+        $attendanceRepo = new AttendanceRepository();
 
         if ($mode === 'absent') {
-            $st = $pdo->prepare("DELETE FROM attendances WHERE meeting_id = :meeting_id AND member_id = :member_id");
-            $st->execute([':meeting_id' => $meetingId, ':member_id' => $memberId]);
+            $attendanceRepo->deleteByMeetingAndMember($meetingId, $memberId);
             return ['deleted' => true, 'meeting_id' => $meetingId, 'member_id' => $memberId];
         }
 
         $effective = (float)($member['voting_power'] ?? $member['vote_weight'] ?? 1.0);
 
-        $sql = "
-            INSERT INTO attendances (meeting_id, member_id, mode, checked_in_at, checked_out_at, effective_power, notes)
-            VALUES (:meeting_id, :member_id, :mode, now(), NULL, :effective_power, :notes)
-            ON CONFLICT (meeting_id, member_id) DO UPDATE SET
-              mode = EXCLUDED.mode,
-              checked_in_at = now(),
-              checked_out_at = NULL,
-              effective_power = EXCLUDED.effective_power,
-              notes = EXCLUDED.notes
-            RETURNING id, meeting_id, member_id, mode, checked_in_at, checked_out_at, effective_power, notes
-        ";
-        $st = $pdo->prepare($sql);
-        $st->execute([
-            ':meeting_id' => $meetingId,
-            ':member_id' => $memberId,
-            ':mode' => $mode,
-            ':effective_power' => $effective,
-            ':notes' => $notes,
-        ]);
-        $row = $st->fetch();
+        $row = $attendanceRepo->upsert($meetingId, $memberId, $mode, $effective, $notes);
         if (!$row) {
             throw new RuntimeException('Erreur upsert présence');
         }

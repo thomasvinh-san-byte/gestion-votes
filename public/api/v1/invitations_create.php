@@ -4,6 +4,8 @@ declare(strict_types=1);
 // public/api/v1/invitations_create.php
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\InvitationRepository;
+
 api_require_role('operator');
 
 $input = api_request('POST');
@@ -19,29 +21,11 @@ if ($meetingId === '' || $memberId === '') {
     api_fail('missing_meeting_or_member', 400);
 }
 
-// token simple (fonctionnel, non orienté sécurité)
 $token = bin2hex(random_bytes(16));
-
 $tenantId = api_current_tenant_id();
 
-// UPSERT sur (tenant_id, meeting_id, member_id)
-db_exec(
-    "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token, status, sent_at, updated_at)
-     VALUES (:tenant_id, :meeting_id, :member_id, :email, :token, 'sent', now(), now())
-     ON CONFLICT (tenant_id, meeting_id, member_id)
-     DO UPDATE SET token = EXCLUDED.token,
-                   email = COALESCE(EXCLUDED.email, invitations.email),
-                   status = 'sent',
-                   sent_at = now(),
-                   updated_at = now()",
-    [
-        ':tenant_id'  => $tenantId,
-        ':meeting_id' => $meetingId,
-        ':member_id'  => $memberId,
-        ':email'      => $email,
-        ':token'      => $token,
-    ]
-);
+$repo = new InvitationRepository();
+$repo->upsertSent($tenantId, $meetingId, $memberId, $email, $token);
 
 $voteUrl = "/vote.htmx.html?token=" . rawurlencode($token);
 

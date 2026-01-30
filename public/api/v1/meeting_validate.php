@@ -4,6 +4,8 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 
+use AgVote\Repository\MeetingRepository;
+
 api_require_role(['president', 'admin']);
 
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
@@ -24,26 +26,22 @@ if ($meetingId === '') api_fail('missing_meeting_id', 400);
 if ($presidentName === '') api_fail('missing_president_name', 400);
 
 $tenant = api_current_tenant_id();
+$repo = new MeetingRepository();
 
-$meeting = db_select_one(
-  "SELECT id, status FROM meetings WHERE tenant_id = :tid AND id = :id",
-  [':tid'=>$tenant, ':id'=>$meetingId]
-);
+$meeting = $repo->findByIdForTenant($meetingId, $tenant);
 if (!$meeting) api_fail('meeting_not_found', 404);
 
 try {
+  $pdo = db();
   $svc = new OfficialResultsService($pdo);
   $pvHtml = $svc->generatePVHtml($tenant, $meetingId, $presidentName);
 
   // Marque validée
-  $pdo->prepare("UPDATE meetings SET status='validated', validated_at=NOW() WHERE tenant_id=:tid AND id=:id")
-      ->execute([':tid'=>$tenant, ':id'=>$meetingId]);
+  $repo->markValidated($meetingId, $tenant);
 
   // Stocke le PV HTML dans meeting_reports
   try {
-    $pdo->prepare("INSERT INTO meeting_reports(meeting_id, html, created_at, updated_at) VALUES (:mid,:html,NOW(),NOW())
-                   ON CONFLICT (meeting_id) DO UPDATE SET html=EXCLUDED.html, updated_at=NOW()")
-        ->execute([':mid'=>$meetingId, ':html'=>$pvHtml]);
+    $repo->storePVHtml($meetingId, $pvHtml);
   } catch (Throwable $e) {
     error_log("meeting_validate: could not store PV: " . $e->getMessage());
   }

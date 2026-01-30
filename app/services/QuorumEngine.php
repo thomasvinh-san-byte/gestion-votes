@@ -3,6 +3,12 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\MemberRepository;
+
 final class QuorumEngine
 {
     public static function computeForMotion(string $motionId): array
@@ -10,23 +16,15 @@ final class QuorumEngine
         $motionId = trim($motionId);
         if ($motionId === '') throw new InvalidArgumentException('motion_id obligatoire');
 
-        $row = db_select_one(
-            "SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id,
-                    mo.quorum_policy_id AS motion_quorum_policy_id,
-                    mo.opened_at AS motion_opened_at,
-                    mt.tenant_id, mt.quorum_policy_id AS meeting_quorum_policy_id,
-                    COALESCE(mt.convocation_no,1) AS convocation_no
-             FROM motions mo
-             JOIN meetings mt ON mt.id = mo.meeting_id
-             WHERE mo.id = :id",
-            [':id' => $motionId]
-        );
+        $motionRepo = new MotionRepository();
+        $row = $motionRepo->findWithQuorumContext($motionId);
         if (!$row) throw new RuntimeException('Motion introuvable');
 
         $policyId = (string)($row['motion_quorum_policy_id'] ?: $row['meeting_quorum_policy_id']);
         if ($policyId === '') return self::noPolicy((string)$row['meeting_id'], (string)$row['tenant_id']);
 
-        $policy = db_select_one("SELECT * FROM quorum_policies WHERE id = :id", [':id' => $policyId]);
+        $policyRepo = new PolicyRepository();
+        $policy = $policyRepo->findQuorumPolicy($policyId);
         if (!$policy) return self::noPolicy((string)$row['meeting_id'], (string)$row['tenant_id']);
 
         $openedAt = $row['motion_opened_at'] ?? null;
@@ -42,16 +40,21 @@ final class QuorumEngine
         $meetingId = trim($meetingId);
         if ($meetingId === '') throw new InvalidArgumentException('meeting_id obligatoire');
 
-        $row = db_select_one("SELECT id AS meeting_id, tenant_id, quorum_policy_id, COALESCE(convocation_no,1) AS convocation_no FROM meetings WHERE id = :id", [':id'=>$meetingId]);
+        $meetingRepo = new MeetingRepository();
+        $row = $meetingRepo->findById($meetingId);
         if (!$row) throw new RuntimeException('Séance introuvable');
 
         $policyId = (string)($row['quorum_policy_id'] ?? '');
-        if ($policyId === '') return self::noPolicy((string)$row['meeting_id'], (string)$row['tenant_id']);
+        $tenantId = (string)$row['tenant_id'];
+        $convocationNo = (int)($row['convocation_no'] ?? 1);
 
-        $policy = db_select_one("SELECT * FROM quorum_policies WHERE id = :id", [':id'=>$policyId]);
-        if (!$policy) return self::noPolicy((string)$row['meeting_id'], (string)$row['tenant_id']);
+        if ($policyId === '') return self::noPolicy($meetingId, $tenantId);
 
-        return self::computeInternal((string)$row['meeting_id'], (string)$row['tenant_id'], (int)$row['convocation_no'], $policy, null) + [
+        $policyRepo = new PolicyRepository();
+        $policy = $policyRepo->findQuorumPolicy($policyId);
+        if (!$policy) return self::noPolicy($meetingId, $tenantId);
+
+        return self::computeInternal($meetingId, $tenantId, $convocationNo, $policy, null) + [
             'policy' => ['id'=>(string)$policy['id'],'name'=>(string)$policy['name'],'mode'=>(string)$policy['mode']],
         ];
     }
@@ -84,31 +87,15 @@ final class QuorumEngine
         if ($countRemote) $allowed[] = 'remote';
         if ($includeProxies) $allowed[] = 'proxy';
 
-        $ph = implode(',', array_fill(0, count($allowed), '?'));
+        $lateCutoff = ($motionOpenedAt !== null) ? (string)$motionOpenedAt : null;
 
-        $lateFilterSql = "";
-        $lateParams = [];
-        if ($motionOpenedAt !== null) {
-            $lateFilterSql = " AND (a.present_from_at IS NULL OR a.present_from_at <= ? )";
-            $lateParams[] = $motionOpenedAt;
-        }
+        $attendanceRepo = new AttendanceRepository();
+        $numMembers = $attendanceRepo->countPresentMembers($meetingId, $tenantId, $allowed, $lateCutoff);
+        $numWeight  = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, $allowed, $lateCutoff);
 
-        $numMembers = (int)(db_scalar(
-            "SELECT COUNT(*) FROM attendances a
-             JOIN meetings mt ON mt.id=a.meeting_id
-             WHERE a.meeting_id=? AND mt.tenant_id=? AND a.checked_out_at IS NULL AND a.mode IN ($ph) $lateFilterSql",
-            array_merge([$meetingId,$tenantId], $allowed, $lateParams)
-        ) ?? 0);
-
-        $numWeight = (float)(db_scalar(
-            "SELECT COALESCE(SUM(a.effective_power),0) FROM attendances a
-             JOIN meetings mt ON mt.id=a.meeting_id
-             WHERE a.meeting_id=? AND mt.tenant_id=? AND a.checked_out_at IS NULL AND a.mode IN ($ph) $lateFilterSql",
-            array_merge([$meetingId,$tenantId], $allowed, $lateParams)
-        ) ?? 0.0);
-
-        $eligibleMembers = (int)(db_scalar("SELECT COUNT(*) FROM members WHERE tenant_id=? AND is_active=true", [$tenantId]) ?? 0);
-        $eligibleWeight  = (float)(db_scalar("SELECT COALESCE(SUM(COALESCE(voting_power, vote_weight, 1.0)),0) FROM members WHERE tenant_id=? AND is_active=true", [$tenantId]) ?? 0.0);
+        $memberRepo = new MemberRepository();
+        $eligibleMembers = $memberRepo->countActive($tenantId);
+        $eligibleWeight  = $memberRepo->sumActiveWeight($tenantId);
 
         $primary = self::ratioBlock($den1, $thr1, $numMembers, $numWeight, $eligibleMembers, $eligibleWeight);
         $met = $primary['met'];

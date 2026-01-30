@@ -2,20 +2,17 @@
 // ADMIN: liste + upsert quorum_policies (cahier: paramétrage global)
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\PolicyRepository;
+
 api_require_role('admin');
 
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
+$repo = new PolicyRepository();
+
 if ($method === 'GET') {
   api_request('GET');
-  $rows = db_select_all(
-    "SELECT id, name, description, mode, denominator, threshold, threshold_call2, denominator2, threshold2,
-            include_proxies, count_remote, updated_at
-     FROM quorum_policies
-     WHERE tenant_id = ?
-     ORDER BY name ASC",
-    [api_current_tenant_id()]
-  );
+  $rows = $repo->listQuorumPolicies(api_current_tenant_id());
   api_ok(['items' => $rows]);
 }
 
@@ -48,31 +45,19 @@ if ($method === 'POST') {
   $includeProxies = (int)($in['include_proxies'] ?? 0) ? true : false;
   $countRemote = (int)($in['count_remote'] ?? 0) ? true : false;
 
-  // Insert/update
   if ($id !== '') {
     if (!api_is_uuid($id)) api_fail('invalid_id', 400);
-    db_execute(
-      "UPDATE quorum_policies SET
-          name=:n, description=:d, mode=:m, denominator=:den, threshold=:thr,
-          threshold_call2=:c2, denominator2=:den2, threshold2=:thr2,
-          include_proxies=:ip, count_remote=:cr, updated_at=NOW()
-       WHERE tenant_id=:t AND id=:id",
-      [
-        ':n'=>$name, ':d'=>$desc, ':m'=>$mode, ':den'=>$den, ':thr'=>$threshold,
-        ':c2'=>$threshold_call2, ':den2'=>($den2==''?null:$den2), ':thr2'=>$threshold2,
-        ':ip'=>$includeProxies, ':cr'=>$countRemote, ':t'=>api_current_tenant_id(), ':id'=>$id
-      ]
+    $repo->updateQuorumPolicy(
+      $id, api_current_tenant_id(), $name, $desc === '' ? null : $desc,
+      $mode, $den, $threshold, $threshold_call2,
+      $den2 === '' ? null : $den2, $threshold2, $includeProxies, $countRemote
     );
   } else {
-    $id = db_scalar("SELECT gen_random_uuid()");
-    db_execute(
-      "INSERT INTO quorum_policies(id, tenant_id, name, description, mode, denominator, threshold, threshold_call2, denominator2, threshold2, include_proxies, count_remote, created_at, updated_at)
-       VALUES (:id,:t,:n,:d,:m,:den,:thr,:c2,:den2,:thr2,:ip,:cr,NOW(),NOW())",
-      [
-        ':id'=>$id, ':t'=>api_current_tenant_id(), ':n'=>$name, ':d'=>$desc, ':m'=>$mode, ':den'=>$den, ':thr'=>$threshold,
-        ':c2'=>$threshold_call2, ':den2'=>($den2==''?null:$den2), ':thr2'=>$threshold2,
-        ':ip'=>$includeProxies, ':cr'=>$countRemote
-      ]
+    $id = (string)db()->query("SELECT gen_random_uuid()")->fetchColumn();
+    $repo->createQuorumPolicy(
+      $id, api_current_tenant_id(), $name, $mode, $den, $threshold,
+      $threshold2, $den2 === '' ? null : $den2,
+      $includeProxies, $countRemote, $threshold_call2, $desc === '' ? null : $desc
     );
   }
 

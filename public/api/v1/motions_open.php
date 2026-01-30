@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\MeetingRepository;
+
 api_require_role('operator');
 
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
@@ -24,24 +27,10 @@ if ($expectedMeetingId !== '' && !api_is_uuid($expectedMeetingId)) {
 }
 
 try {
-    $row = db_select_one(
-        "SELECT
-            m.id AS motion_id,
-            m.meeting_id,
-            m.title,
-            m.opened_at,
-            m.closed_at,
-            m.vote_policy_id,
-            m.quorum_policy_id,
-            mt.status AS meeting_status,
-            mt.validated_at AS meeting_validated_at,
-            mt.quorum_policy_id AS meeting_quorum_policy_id,
-            mt.vote_policy_id   AS meeting_vote_policy_id
-         FROM motions m
-         JOIN meetings mt ON mt.id = m.meeting_id
-         WHERE m.tenant_id = :tid AND m.id = :id",
-        [':tid' => api_current_tenant_id(), ':id' => $motionId]
-    );
+    $motionRepo = new MotionRepository();
+    $meetingRepo = new MeetingRepository();
+
+    $row = $motionRepo->findWithMeetingInfo($motionId, api_current_tenant_id());
 
     if (!$row) api_fail('motion_not_found', 404);
 
@@ -84,61 +73,39 @@ try {
         api_fail('motion_missing_quorum_policy', 422, ['detail' => "Policy de quorum absente : impossible d'ouvrir la motion."]);
     }
 
-    $pdo = db();
-    $pdo->beginTransaction();
-// Lock meeting row to prevent concurrent opens
-$mt = db_select_one(
-    "SELECT id, validated_at, status FROM meetings WHERE tenant_id=:tid AND id=:id FOR UPDATE",
-    [':tid' => api_current_tenant_id(), ':id' => $meetingId]
-);
-if (!$mt) {
-    $pdo->rollBack();
-    api_fail('meeting_not_found', 404);
-}
-if (!empty($mt['validated_at'])) {
-    $pdo->rollBack();
-    api_fail('meeting_validated', 409, ['detail' => "Séance validée : action interdite."]);
-}
+    db()->beginTransaction();
 
+    // Lock meeting row to prevent concurrent opens
+    $mt = $meetingRepo->lockForUpdate($meetingId, api_current_tenant_id());
+    if (!$mt) {
+        db()->rollBack();
+        api_fail('meeting_not_found', 404);
+    }
+    if (!empty($mt['validated_at'])) {
+        db()->rollBack();
+        api_fail('meeting_validated', 409, ['detail' => "Séance validée : action interdite."]);
+    }
 
-    $open = db_select_one(
-        "SELECT id FROM motions
-         WHERE tenant_id=:tid AND meeting_id=:mid
-           AND opened_at IS NOT NULL AND closed_at IS NULL
-         LIMIT 1
-         FOR UPDATE",
-        [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
-    );
+    $open = $motionRepo->findOpenForUpdate($meetingId, api_current_tenant_id());
 
     if ($open && (string)$open['id'] !== $motionId) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('another_motion_active', 409, [
             'detail' => "Une motion est déjà ouverte : veuillez la clôturer avant d'en ouvrir une autre.",
             'open_motion_id' => (string)$open['id'],
         ]);
     }
 
-    $updated = db_execute(
-        "UPDATE motions
-         SET opened_at = COALESCE(opened_at, now()),
-             closed_at = NULL
-         WHERE tenant_id=:tid AND id=:id AND closed_at IS NULL",
-        [':tid' => api_current_tenant_id(), ':id' => $motionId]
-    );
+    $updated = $motionRepo->markOpened($motionId, api_current_tenant_id());
 
     if ($updated === 0) {
-        $pdo->rollBack();
+        db()->rollBack();
         api_fail('motion_open_failed', 409, ['detail' => "Impossible d'ouvrir la motion."]);
     }
 
-    db_execute(
-        "UPDATE meetings
-         SET current_motion_id = :mo, updated_at = now()
-         WHERE tenant_id=:tid AND id=:mid",
-        [':tid' => api_current_tenant_id(), ':mid' => $meetingId, ':mo' => $motionId]
-    );
+    $meetingRepo->updateCurrentMotion($meetingId, api_current_tenant_id(), $motionId);
 
-    $pdo->commit();
+    db()->commit();
 
     audit_log('motion_opened', 'motion', $motionId, [
         'meeting_id' => $meetingId,
@@ -151,7 +118,6 @@ if (!empty($mt['validated_at'])) {
         'current_motion_id' => $motionId,
     ]);
 } catch (Throwable $e) {
-    $pdo = db();
-    if ($pdo->inTransaction()) $pdo->rollBack();
+    if (db()->inTransaction()) db()->rollBack();
     api_fail('motion_open_failed', 500, ['detail' => $e->getMessage()]);
 }

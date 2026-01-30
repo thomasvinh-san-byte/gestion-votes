@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\DeviceRepository;
+
 header('Content-Type: application/json; charset=utf-8');
 
 require_any_role(['OPERATOR','ADMIN','TRUST']);
@@ -12,35 +14,8 @@ $tenantId = api_current_tenant_id();
 $meetingId = isset($_GET['meeting_id']) ? (string)$_GET['meeting_id'] : '';
 
 try {
-  $stmt = $pdo->prepare("
-    SELECT
-      hb.device_id::text AS device_id,
-      hb.meeting_id::text AS meeting_id,
-      hb.role,
-      hb.ip,
-      hb.user_agent,
-      hb.battery_pct,
-      hb.is_charging,
-      hb.last_seen_at,
-      COALESCE(db.is_blocked,false) AS is_blocked,
-      db.reason AS block_reason
-    FROM device_heartbeats hb
-    LEFT JOIN LATERAL (
-      SELECT is_blocked, reason
-      FROM device_blocks
-      WHERE tenant_id = hb.tenant_id
-        AND device_id = hb.device_id
-        AND (meeting_id IS NULL OR meeting_id = hb.meeting_id)
-      ORDER BY updated_at DESC
-      LIMIT 1
-    ) db ON TRUE
-    WHERE hb.tenant_id = ?::uuid
-      AND (NULLIF(?,'') IS NULL OR hb.meeting_id = NULLIF(?,'')::uuid)
-    ORDER BY hb.last_seen_at DESC
-    LIMIT 500
-  ");
-  $stmt->execute([$tenantId, $meetingId, $meetingId]);
-  $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $repo = new DeviceRepository();
+  $rows = $repo->listHeartbeats($tenantId, $meetingId);
 
   $now = new DateTimeImmutable('now');
   $onlineCut = $now->sub(new DateInterval('PT30S'));

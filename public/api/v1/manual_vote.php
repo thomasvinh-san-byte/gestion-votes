@@ -9,6 +9,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\ManualActionRepository;
+
 api_require_role('operator');
 
 header('Content-Type: application/json; charset=utf-8');
@@ -69,14 +75,14 @@ if (!isset($map[$voteUi])) {
 }
 $value = $map[$voteUi];
 
+$meetingRepo = new MeetingRepository();
+$motionRepo  = new MotionRepository();
+$memberRepo  = new MemberRepository();
+$ballotRepo  = new BallotRepository();
+$manualRepo  = new ManualActionRepository();
+
 // 1) Vérifs intégrité
-$meeting = db_select_one(
-    "SELECT id, validated_at
-     FROM meetings
-     WHERE tenant_id = ? AND id = ?
-     LIMIT 1",
-    [$tenantId, $meetingId]
-);
+$meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
 if (!$meeting) {
     http_response_code(404);
     echo json_encode(['error' => 'meeting_not_found']);
@@ -88,13 +94,7 @@ if (!empty($meeting['validated_at'])) {
     exit;
 }
 
-$motion = db_select_one(
-    "SELECT id, opened_at, closed_at
-     FROM motions
-     WHERE tenant_id = ? AND id = ? AND meeting_id = ?
-     LIMIT 1",
-    [$tenantId, $motionId, $meetingId]
-);
+$motion = $motionRepo->findForMeetingWithState($tenantId, $motionId, $meetingId);
 if (!$motion) {
     http_response_code(404);
     echo json_encode(['error' => 'motion_not_found']);
@@ -106,13 +106,7 @@ if (empty($motion['opened_at']) || !empty($motion['closed_at'])) {
     exit;
 }
 
-$member = db_select_one(
-    "SELECT id, vote_weight
-     FROM members
-     WHERE tenant_id = ? AND id = ? AND is_active = true
-     LIMIT 1",
-    [$tenantId, $memberId]
-);
+$member = $memberRepo->findActiveWithWeight($tenantId, $memberId);
 if (!$member) {
     http_response_code(404);
     echo json_encode(['error' => 'member_not_found']);
@@ -122,23 +116,10 @@ if (!$member) {
 $weight = (string)($member['vote_weight'] ?? '1.0');
 
 // 2) Insert ballot + manual action atomiquement
-$pdo->beginTransaction();
+db()->beginTransaction();
 try {
     // Ballot : unique (motion_id, member_id) au niveau DB
-    $stmt = $pdo->prepare(
-        "INSERT INTO ballots (tenant_id, meeting_id, motion_id, member_id, value, weight, cast_at, is_proxy_vote, source)
-         VALUES (:tenant_id, :meeting_id, :motion_id, :member_id, :value, :weight, NOW(), false, 'manual')
-         RETURNING id"
-    );
-    $stmt->execute([
-        'tenant_id'  => $tenantId,
-        'meeting_id' => $meetingId,
-        'motion_id'  => $motionId,
-        'member_id'  => $memberId,
-        'value'      => $value,
-        'weight'     => $weight,
-    ]);
-    $ballotId = (string)$stmt->fetchColumn();
+    $ballotId = $ballotRepo->insertManual($tenantId, $meetingId, $motionId, $memberId, $value, $weight);
 
     // Trace audit append-only
     $val = [
@@ -149,20 +130,17 @@ try {
         'weight'    => $weight,
     ];
 
-    $stmt2 = $pdo->prepare(
-        "INSERT INTO manual_actions (tenant_id, meeting_id, motion_id, member_id, action_type, value, justification, operator_user_id)
-         VALUES (:tenant_id, :meeting_id, :motion_id, :member_id, 'manual_vote', :value::jsonb, :justification, NULL)"
+    $manualRepo->create(
+        $tenantId,
+        $meetingId,
+        $motionId,
+        $memberId,
+        'manual_vote',
+        json_encode($val, JSON_UNESCAPED_UNICODE),
+        $justif
     );
-    $stmt2->execute([
-        'tenant_id'      => $tenantId,
-        'meeting_id'     => $meetingId,
-        'motion_id'      => $motionId,
-        'member_id'      => $memberId,
-        'value'          => json_encode($val, JSON_UNESCAPED_UNICODE),
-        'justification'  => $justif,
-    ]);
 
-    $pdo->commit();
+    db()->commit();
 
     echo json_encode([
         'ok' => true,
@@ -173,7 +151,7 @@ try {
     exit;
 
 } catch (Throwable $e) {
-    $pdo->rollBack();
+    db()->rollBack();
 
     // Contrainte UNIQUE (motion_id, member_id) => déjà voté (tablet / manual / etc.)
     $msg = $e->getMessage();

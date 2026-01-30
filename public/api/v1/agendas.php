@@ -1,20 +1,20 @@
 <?php
 // public/api/v1/agendas.php
+declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\AgendaRepository;
+
 api_require_role('operator');
 
-
-header('Content-Type: application/json; charset=utf-8');
-
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$meetingRepo = new MeetingRepository();
+$agendaRepo = new AgendaRepository();
 
 try {
     if ($method === 'GET') {
-        // --------------------------------------------------
-        // LISTE DES POINTS D'ODJ POUR UNE SÉANCE (READ)
-        // --------------------------------------------------
         $meetingId = trim($_GET['meeting_id'] ?? '');
 
         if ($meetingId === '') {
@@ -23,34 +23,14 @@ try {
             ]);
         }
 
-        // Vérifier que la séance existe pour ce tenant
-        $exists = db_scalar(
-            "SELECT 1 FROM meetings
-             WHERE id = ? AND tenant_id = ?",
-            [$meetingId, api_current_tenant_id()]
-        );
-
-        if (!$exists) {
+        if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
         }
 
-        // Renvoyer la liste des agendas triés par idx
-        global $pdo;
-        $stmt = $pdo->prepare(
-            "SELECT id, meeting_id, idx, title, description, is_approved, created_at
-             FROM agendas
-             WHERE meeting_id = :meeting_id
-             ORDER BY idx ASC"
-        );
-        $stmt->execute([':meeting_id' => $meetingId]);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-
+        $rows = $agendaRepo->listForMeeting($meetingId);
         api_ok(['agendas' => $rows]);
 
     } elseif ($method === 'POST') {
-        // --------------------------------------------------
-        // CRÉATION D'UN POINT D'ODJ (CREATE)
-        // --------------------------------------------------
         $input = json_decode(file_get_contents('php://input'), true);
         if (!is_array($input)) {
             $input = $_POST;
@@ -63,14 +43,7 @@ try {
             ]);
         }
 
-        // Vérifier que la séance existe pour ce tenant
-        $exists = db_scalar(
-            "SELECT 1 FROM meetings
-             WHERE id = ? AND tenant_id = ?",
-            [$meetingId, api_current_tenant_id()]
-        );
-
-        if (!$exists) {
+        if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
         }
 
@@ -88,37 +61,16 @@ try {
             ]);
         }
 
-        global $pdo;
+        $id  = $agendaRepo->generateUuid();
+        $idx = $agendaRepo->nextIdx($meetingId);
 
-        $id  = db_scalar("SELECT gen_random_uuid()");
-        $idx = db_scalar(
-            "SELECT COALESCE(MAX(idx), 0) + 1 FROM agendas WHERE meeting_id = ?",
-            [$meetingId]
-        );
-        if ($idx === null) {
-            $idx = 1;
-        }
+        $agendaRepo->create($id, $meetingId, $idx, $title);
 
-        $stmt = $pdo->prepare(
-            "INSERT INTO agendas (id, meeting_id, idx, title, description, is_approved, created_at)
-             VALUES (:id, :meeting_id, :idx, :title, :description, false, NOW())"
-        );
-
-        $stmt->execute([
-            'id'          => $id,
-            'meeting_id'  => $meetingId,
-            'idx'         => $idx,
-            'title'       => $title,
-            'description' => null,
+        audit_log('agenda_created', 'agenda', $id, [
+            'meeting_id' => $meetingId,
+            'idx'        => $idx,
+            'title'      => $title,
         ]);
-
-        if (function_exists('audit_log')) {
-            audit_log('agenda_created', 'agenda', $id, [
-                'meeting_id' => $meetingId,
-                'idx'        => $idx,
-                'title'      => $title,
-            ]);
-        }
 
         api_ok([
             'agenda_id' => $id,
@@ -127,7 +79,6 @@ try {
         ], 201);
 
     } else {
-        // Toute autre méthode (PUT, DELETE, etc.)
         api_fail('method_not_allowed', 405);
     }
 

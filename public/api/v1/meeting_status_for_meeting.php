@@ -1,8 +1,12 @@
 <?php
 // public/api/v1/meeting_status_for_meeting.php
+declare(strict_types=1);
+
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/MeetingValidator.php';
 require __DIR__ . '/../../../app/services/NotificationsService.php';
+
+use AgVote\Repository\MeetingRepository;
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     api_fail('method_not_allowed', 405);
@@ -13,14 +17,8 @@ api_require_role('auditor');
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '') api_fail('missing_meeting_id', 422);
 
-$meeting = db_select_one(
-    "SELECT id AS meeting_id, title AS meeting_title, status AS meeting_status,
-            started_at, ended_at, archived_at, validated_at,
-            president_name, ready_to_sign
-     FROM meetings
-     WHERE tenant_id = ? AND id = ?",
-    [api_current_tenant_id(), $meetingId]
-);
+$repo = new MeetingRepository();
+$meeting = $repo->findStatusFields($meetingId, api_current_tenant_id());
 if (!$meeting) api_fail('meeting_not_found', 404);
 
 // Recalcul côté lecture (inclut président + consolidation)

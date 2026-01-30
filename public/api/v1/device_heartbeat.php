@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\DeviceRepository;
+
 header('Content-Type: application/json; charset=utf-8');
 
 // Heartbeat is typically called by voter/projector clients.
@@ -28,73 +30,26 @@ if ($deviceId === '') {
 }
 
 try {
+  $repo = new DeviceRepository();
+
   // Upsert heartbeat
-  $sql = "
-    INSERT INTO device_heartbeats (
-      device_id, tenant_id, meeting_id, role, ip, user_agent, battery_pct, is_charging, last_seen_at
-    ) VALUES (
-      ?::uuid, ?::uuid, NULLIF(?,'')::uuid, NULLIF(?,'')::text, NULLIF(?,'')::text, NULLIF(?,'')::text,
-      ?, ?, now()
-    )
-    ON CONFLICT (device_id)
-    DO UPDATE SET
-      meeting_id   = EXCLUDED.meeting_id,
-      role         = EXCLUDED.role,
-      ip           = EXCLUDED.ip,
-      user_agent   = EXCLUDED.user_agent,
-      battery_pct  = EXCLUDED.battery_pct,
-      is_charging  = EXCLUDED.is_charging,
-      last_seen_at = now()
-  ";
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([
-    $deviceId,
-    $tenantId,
-    $meetingId,
-    $role,
-    $ip,
-    $userAgent,
-    $battery,
-    $charging
-  ]);
+  $repo->upsertHeartbeat($deviceId, $tenantId, $meetingId, $role, $ip, $userAgent, $battery, $charging);
 
   // Block state
-  $bstmt = $pdo->prepare("
-    SELECT is_blocked, reason
-    FROM device_blocks
-    WHERE tenant_id = ?::uuid
-      AND device_id = ?::uuid
-      AND (meeting_id IS NULL OR meeting_id = NULLIF(?,'')::uuid)
-    ORDER BY updated_at DESC
-    LIMIT 1
-  ");
-  $bstmt->execute([$tenantId, $deviceId, $meetingId]);
-  $b = $bstmt->fetch(PDO::FETCH_ASSOC);
+  $b = $repo->findBlockStatus($tenantId, $deviceId, $meetingId);
   $isBlocked = $b ? (bool)$b['is_blocked'] : false;
   $blockReason = $b ? (string)($b['reason'] ?? '') : '';
 
   // Pending kick command
   $kick = false;
   $kickMsg = '';
-  $cstmt = $pdo->prepare("
-    SELECT id, payload
-    FROM device_commands
-    WHERE tenant_id = ?::uuid
-      AND device_id = ?::uuid
-      AND command = 'kick'
-      AND consumed_at IS NULL
-    ORDER BY created_at DESC
-    LIMIT 1
-  ");
-  $cstmt->execute([$tenantId, $deviceId]);
-  $cmd = $cstmt->fetch(PDO::FETCH_ASSOC);
+  $cmd = $repo->findPendingKick($tenantId, $deviceId);
   if ($cmd) {
     $kick = true;
     $payload = json_decode((string)$cmd['payload'], true);
     if (is_array($payload) && isset($payload['message'])) $kickMsg = (string)$payload['message'];
 
-    $upd = $pdo->prepare("UPDATE device_commands SET consumed_at = now() WHERE id = ?::uuid");
-    $upd->execute([$cmd['id']]);
+    $repo->consumeCommand((string)$cmd['id']);
   }
 
   echo json_encode([

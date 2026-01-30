@@ -3,18 +3,12 @@
  * POST /api/v1/meeting_transition.php
  *
  * Transition d'état d'une séance selon la machine à états.
- * Respecte la séparation des pouvoirs :
- *   - L'opérateur prépare (draft → scheduled)
- *   - Le président autorise (scheduled → frozen → live → closed → validated)
- *   - L'admin supervise et archive (validated → archived, retours arrière)
- *
- * Body JSON:
- *   { "meeting_id": "uuid", "to_status": "frozen|live|closed|validated|..." }
- *
- * Retourne:
- *   { "ok": true, "data": { "meeting_id": "...", "from_status": "...", "to_status": "...", "transitioned_at": "..." } }
  */
+declare(strict_types=1);
+
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MeetingRepository;
 
 $input = api_request('POST');
 
@@ -38,10 +32,8 @@ if (!in_array($toStatus, $validStatuses, true)) {
 }
 
 // Charger la séance
-$meeting = db_select_one(
-    "SELECT id, tenant_id, status, title FROM meetings WHERE id = ? AND tenant_id = ?",
-    [$meetingId, api_current_tenant_id()]
-);
+$repo = new MeetingRepository();
+$meeting = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
 
 if (!$meeting) {
     api_fail('meeting_not_found', 404);
@@ -58,58 +50,53 @@ if ($fromStatus === $toStatus) {
 // Vérifier la transition via la machine à états
 AuthMiddleware::requireTransition($fromStatus, $toStatus);
 
-// Construire la requête de mise à jour
-$setClauses = ['status = :to_status', 'updated_at = NOW()'];
-$params = [
-    ':to_status'   => $toStatus,
-    ':meeting_id'  => $meetingId,
-];
+// Construire les champs de mise à jour
+$fields = ['status' => $toStatus];
 
 $userId = api_current_user_id();
 
 // Colonnes spécifiques à certaines transitions
 switch ($toStatus) {
     case 'frozen':
-        $setClauses[] = 'frozen_at = NOW()';
-        $setClauses[] = 'frozen_by = :user_id';
-        $params[':user_id'] = $userId;
+        $fields['frozen_at'] = date('Y-m-d H:i:s');
+        $fields['frozen_by'] = $userId;
         break;
 
     case 'live':
-        $setClauses[] = 'started_at = COALESCE(started_at, NOW())';
-        $setClauses[] = 'opened_by = :user_id';
-        $params[':user_id'] = $userId;
+        // started_at = COALESCE(started_at, NOW()) — only set if not already set
+        if (empty($meeting['started_at'])) {
+            $fields['started_at'] = date('Y-m-d H:i:s');
+        }
+        $fields['opened_by'] = $userId;
         break;
 
     case 'closed':
-        $setClauses[] = 'ended_at = COALESCE(ended_at, NOW())';
-        $setClauses[] = 'closed_by = :user_id';
-        $params[':user_id'] = $userId;
+        if (empty($meeting['ended_at'])) {
+            $fields['ended_at'] = date('Y-m-d H:i:s');
+        }
+        $fields['closed_by'] = $userId;
         break;
 
     case 'validated':
-        $setClauses[] = 'validated_at = NOW()';
-        $setClauses[] = 'validated_by = :user_name';
-        $setClauses[] = 'validated_by_user_id = :user_id';
-        $params[':user_name'] = api_current_user()['name'] ?? 'unknown';
-        $params[':user_id']   = $userId;
+        $fields['validated_at'] = date('Y-m-d H:i:s');
+        $fields['validated_by'] = api_current_user()['name'] ?? 'unknown';
+        $fields['validated_by_user_id'] = $userId;
         break;
 
     case 'archived':
-        $setClauses[] = 'archived_at = NOW()';
+        $fields['archived_at'] = date('Y-m-d H:i:s');
         break;
 
     case 'scheduled':
         // Si on dégèle: effacer frozen_at/frozen_by
         if ($fromStatus === 'frozen') {
-            $setClauses[] = 'frozen_at = NULL';
-            $setClauses[] = 'frozen_by = NULL';
+            $fields['frozen_at'] = null;
+            $fields['frozen_by'] = null;
         }
         break;
 }
 
-$sql = "UPDATE meetings SET " . implode(', ', $setClauses) . " WHERE id = :meeting_id";
-db_execute($sql, $params);
+$repo->updateFields($meetingId, api_current_tenant_id(), $fields);
 
 // Audit
 audit_log(

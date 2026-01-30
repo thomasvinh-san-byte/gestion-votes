@@ -1,6 +1,10 @@
 <?php
 // public/api/v1/meeting_audit.php
+declare(strict_types=1);
+
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MeetingRepository;
 
 api_require_role(['auditor', 'admin']);
 
@@ -13,36 +17,13 @@ if ($meetingId === '') {
     api_fail('missing_meeting_id', 422);
 }
 
-// Vérifier la séance
-$exists = db_scalar("SELECT 1 FROM meetings WHERE id = ? AND tenant_id = ?", [$meetingId, api_current_tenant_id()]);
-if (!$exists) {
+$repo = new MeetingRepository();
+
+if (!$repo->existsForTenant($meetingId, api_current_tenant_id())) {
     api_fail('meeting_not_found', 404);
 }
 
-global $pdo;
-
-// Audit pour la séance elle-même + ses motions
-$stmt = $pdo->prepare("
-    SELECT
-      id,
-      action,
-      resource_type,
-      resource_id,
-      payload,
-      created_at
-    FROM audit_events
-    WHERE tenant_id = ?
-      AND (
-        (resource_type = 'meeting' AND resource_id = ?)
-        OR
-        (resource_type = 'motion' AND resource_id IN (
-            SELECT id FROM motions WHERE meeting_id = ?
-        ))
-      )
-    ORDER BY created_at ASC
-");
-$stmt->execute([api_current_tenant_id(), $meetingId, $meetingId]);
-$rows = $stmt->fetchAll();
+$rows = $repo->listAuditEvents($meetingId, api_current_tenant_id(), 200, 'ASC');
 
 api_ok([
     'meeting_id' => $meetingId,
