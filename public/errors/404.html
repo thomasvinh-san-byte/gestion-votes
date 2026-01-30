@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>404 — Page non trouvee | AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    .error-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-6);
+      background: var(--color-bg);
+    }
+    .error-card {
+      max-width: 480px;
+    }
+    .error-code {
+      font-size: 6rem;
+      font-weight: var(--font-extrabold);
+      line-height: 1;
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-4);
+    }
+    .error-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-bold);
+      margin-bottom: var(--space-3);
+    }
+    .error-desc {
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-6);
+    }
+    .error-actions {
+      display: flex;
+      gap: var(--space-3);
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-page">
+    <div class="error-card">
+      <div class="error-code">404</div>
+      <h1 class="error-title">Page non trouvee</h1>
+      <p class="error-desc">
+        La page que vous cherchez n'existe pas ou a ete deplacee.
+      </p>
+      <div class="error-actions">
+        <a href="/" class="btn btn-primary">Retour a l'accueil</a>
+        <a href="/meetings.htmx.html" class="btn btn-secondary">Tableau de bord</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

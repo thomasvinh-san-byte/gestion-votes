@@ -146,6 +146,42 @@ function api_current_tenant_id(): string {
 }
 
 // =============================================================================
+// FONCTIONS API - GARDES MÉTIER
+// =============================================================================
+
+/**
+ * Vérifie qu'une séance n'est pas validée (interdiction de modification post-validation).
+ * Fatal 409 si la séance est validée.
+ */
+function api_guard_meeting_not_validated(string $meetingId): void {
+    if ($meetingId === '') return;
+    $mt = db_select_one(
+        "SELECT validated_at FROM meetings WHERE tenant_id = :tid AND id = :mid",
+        [':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId]
+    );
+    if ($mt && !empty($mt['validated_at'])) {
+        api_fail('meeting_validated', 409, [
+            'detail' => 'Séance validée : modification interdite (séance figée).'
+        ]);
+    }
+}
+
+/**
+ * Vérifie qu'une séance existe et la retourne.
+ * Fatal 404 si absente.
+ */
+function api_guard_meeting_exists(string $meetingId): array {
+    $mt = db_select_one(
+        "SELECT * FROM meetings WHERE tenant_id = :tid AND id = :mid",
+        [':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId]
+    );
+    if (!$mt) {
+        api_fail('meeting_not_found', 404);
+    }
+    return $mt;
+}
+
+// =============================================================================
 // FONCTIONS API - RATE LIMITING
 // =============================================================================
 

@@ -175,9 +175,25 @@
     return `<div class="row" style="gap:6px; flex-wrap:wrap; margin-top:10px;">${badges.join('')}</div>`;
   }
 
-  // Mode dev: pas de clé API côté UI.
-  async function apiGet(url){ return Utils.apiGet(url); }
-  async function apiPost(url, data){ return Utils.apiPost(url, data); }
+  // Prefer Utils.apiGet/apiPost (loaded from utils.js before this file).
+  // Falls back to a minimal local fetch if Utils is somehow unavailable.
+  async function apiGet(url){
+    if (window.Utils && typeof Utils.apiGet === 'function') return Utils.apiGet(url);
+    const r = await fetch(url, { method: 'GET', credentials: 'same-origin' });
+    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'request_failed'); }
+    return r.json();
+  }
+  async function apiPost(url, data){
+    if (window.Utils && typeof Utils.apiPost === 'function') return Utils.apiPost(url, data);
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'request_failed'); }
+    return r.json();
+  }
 
   function selectedMeetingId(){ return ($("#meetingSelect")?.value || "").trim(); }
   function selectedMemberId(){ return ($("#memberSelect")?.value || "").trim(); }

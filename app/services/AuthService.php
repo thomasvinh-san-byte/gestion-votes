@@ -1,4 +1,9 @@
 <?php
+/**
+ * @deprecated This service is replaced by AuthMiddleware.php.
+ *             Kept for backward compatibility only. Do not add new logic here.
+ * @see \AuthMiddleware
+ */
 declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';

@@ -1,8 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/../../../app/bootstrap.php';
-require __DIR__ . '/../../../app/auth.php';
+require __DIR__ . '/../../../app/api.php';
 
 require_role('operator');
 
@@ -68,7 +67,7 @@ $rows = db_select_all(
    LEFT JOIN attendances a
           ON a.meeting_id = ? AND a.member_id = m.id
    LEFT JOIN proxies pr
-          ON pr.meeting_id = ? AND pr.grantor_member_id = m.id
+          ON pr.meeting_id = ? AND pr.giver_member_id = m.id
    LEFT JOIN members r
           ON r.id = pr.receiver_member_id
    WHERE m.tenant_id = ?

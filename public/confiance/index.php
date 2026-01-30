@@ -1,1 +1,0 @@
-<?php readfile(__DIR__ . '/../trust.htmx.html');
