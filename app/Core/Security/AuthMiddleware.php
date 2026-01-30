@@ -203,22 +203,12 @@ final class AuthMiddleware
         }
 
         try {
-            global $pdo;
-            if (!$pdo) {
-                return [];
-            }
-
-            $stmt = $pdo->prepare(
-                "SELECT role FROM meeting_roles
-                 WHERE tenant_id = :tid AND meeting_id = :mid AND user_id = :uid
-                   AND revoked_at IS NULL"
+            $repo = new \AgVote\Repository\UserRepository();
+            $roles = $repo->listUserRolesForMeeting(
+                $user['tenant_id'] ?? self::getDefaultTenantId(),
+                $mid,
+                $user['id']
             );
-            $stmt->execute([
-                ':tid' => $user['tenant_id'] ?? self::getDefaultTenantId(),
-                ':mid' => $mid,
-                ':uid' => $user['id'],
-            ]);
-            $roles = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
             if ($mid === self::$currentMeetingId) {
                 self::$currentMeetingRoles = $roles;
@@ -516,12 +506,8 @@ final class AuthMiddleware
         $tenantId = $user['tenant_id'] ?? self::getDefaultTenantId();
 
         try {
-            global $pdo;
-            if (!$pdo) return false;
-
-            $stmt = $pdo->prepare("SELECT 1 FROM meetings WHERE id = ? AND tenant_id = ?");
-            $stmt->execute([$meetingId, $tenantId]);
-            return $stmt->fetch() !== false;
+            $repo = new \AgVote\Repository\MeetingRepository();
+            return $repo->findByIdForTenant($meetingId, $tenantId) !== null;
         } catch (\Throwable $e) {
             error_log("Meeting access check error: " . $e->getMessage());
             return false;
@@ -713,17 +699,8 @@ final class AuthMiddleware
         $hash = hash_hmac('sha256', $apiKey, $secret);
 
         try {
-            global $pdo;
-            if (!$pdo) return null;
-
-            $stmt = $pdo->prepare(
-                "SELECT id, tenant_id, email, name, role, is_active
-                 FROM users
-                 WHERE api_key_hash = :hash
-                 LIMIT 1"
-            );
-            $stmt->execute([':hash' => $hash]);
-            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $repo = new \AgVote\Repository\UserRepository();
+            $row = $repo->findByApiKeyHashGlobal($hash);
 
             if (!$row) {
                 self::logAuthFailure('invalid_api_key', $apiKey);
@@ -815,20 +792,12 @@ final class AuthMiddleware
         if (!$userId) return false;
 
         try {
-            global $pdo;
-            if (!$pdo) return false;
-
-            $table = match($resourceType) {
-                'meeting' => 'meetings',
-                'motion' => 'motions',
-                'member' => 'members',
-                default => null
+            return match($resourceType) {
+                'meeting' => (new \AgVote\Repository\MeetingRepository())->isOwnedByUser($resourceId, $userId),
+                'motion'  => (new \AgVote\Repository\MotionRepository())->isOwnedByUser($resourceId, $userId),
+                'member'  => (new \AgVote\Repository\MemberRepository())->isOwnedByUser($resourceId, $userId),
+                default   => false,
             };
-            if (!$table) return false;
-
-            $stmt = $pdo->prepare("SELECT 1 FROM {$table} WHERE id = ? AND created_by_user_id = ?");
-            $stmt->execute([$resourceId, $userId]);
-            return $stmt->fetch() !== false;
         } catch (\Throwable $e) {
             return false;
         }

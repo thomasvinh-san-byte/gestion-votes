@@ -351,4 +351,15 @@ class MemberRepository extends AbstractRepository
             ]
         );
     }
+
+    /**
+     * Verifie si un membre a ete cree par un utilisateur.
+     */
+    public function isOwnedByUser(string $memberId, string $userId): bool
+    {
+        return (bool)$this->scalar(
+            "SELECT 1 FROM members WHERE id = :id AND created_by_user_id = :uid",
+            [':id' => $memberId, ':uid' => $userId]
+        );
+    }
 }

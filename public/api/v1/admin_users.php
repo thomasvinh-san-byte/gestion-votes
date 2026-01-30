@@ -10,7 +10,6 @@
  * POST action=rotate_key → Générer une nouvelle clé API
  */
 require __DIR__ . '/../../../app/api.php';
-require_once __DIR__ . '/../../../app/services/AuthService.php';
 
 use AgVote\Repository\UserRepository;
 
@@ -52,7 +51,7 @@ if ($method === 'POST') {
     if ($action === 'rotate_key') {
         $userId = api_require_uuid($in, 'user_id');
         $apiKey = bin2hex(random_bytes(16));
-        $hash = AuthService::hashKey($apiKey);
+        $hash = AuthMiddleware::hashApiKey($apiKey);
         $userRepo->rotateApiKey(api_current_tenant_id(), $userId, $hash);
         audit_log('admin.user.key_rotated', 'user', $userId, []);
         api_ok(['rotated' => true, 'api_key' => $apiKey, 'user_id' => $userId]);
@@ -135,7 +134,7 @@ if ($method === 'POST') {
 
         $id = $userRepo->newUuid();
         $apiKey = bin2hex(random_bytes(16));
-        $hash = AuthService::hashKey($apiKey);
+        $hash = AuthMiddleware::hashApiKey($apiKey);
 
         $userRepo->createUser($id, api_current_tenant_id(), $email, $name, $role, $hash);
 

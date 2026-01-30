@@ -990,4 +990,15 @@ class MeetingRepository extends AbstractRepository
             [':mid1' => $meetingId, ':mid2' => $meetingId]
         );
     }
+
+    /**
+     * Verifie si une seance a ete creee par un utilisateur.
+     */
+    public function isOwnedByUser(string $meetingId, string $userId): bool
+    {
+        return (bool)$this->scalar(
+            "SELECT 1 FROM meetings WHERE id = :id AND created_by_user_id = :uid",
+            [':id' => $meetingId, ':uid' => $userId]
+        );
+    }
 }

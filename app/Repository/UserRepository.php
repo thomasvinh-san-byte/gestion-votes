@@ -23,6 +23,36 @@ class UserRepository extends AbstractRepository
     }
 
     /**
+     * Trouve un utilisateur par hash de cle API (sans filtre tenant, phase auth).
+     */
+    public function findByApiKeyHashGlobal(string $hash): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, tenant_id, email, name, role, is_active
+             FROM users
+             WHERE api_key_hash = :hash
+             LIMIT 1",
+            [':hash' => $hash]
+        );
+    }
+
+    /**
+     * Liste les noms de roles actifs d'un utilisateur pour une seance donnee.
+     */
+    public function listUserRolesForMeeting(string $tenantId, string $meetingId, string $userId): array
+    {
+        return array_column(
+            $this->selectAll(
+                "SELECT role FROM meeting_roles
+                 WHERE tenant_id = :tid AND meeting_id = :mid AND user_id = :uid
+                   AND revoked_at IS NULL",
+                [':tid' => $tenantId, ':mid' => $meetingId, ':uid' => $userId]
+            ),
+            'role'
+        );
+    }
+
+    /**
      * Liste toutes les permissions par role (table role_permissions).
      */
     public function listRolePermissions(): array
