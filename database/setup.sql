@@ -1,8 +1,14 @@
 -- database/setup.sql
--- Appliquer le schéma + seeds.
--- Usage:
---   psql "$DATABASE_URL" -f database/schema.sql
---   psql "$DATABASE_URL" -f database/seed_minimal.sql
---   psql "$DATABASE_URL" -f database/seed_demo.sql
-
-\echo 'Apply database/schema.sql then database/seed_minimal.sql then (optional) database/seed_demo.sql'
+-- Installation manuelle : executer les fichiers dans cet ordre.
+-- Pour une installation automatique, utiliser : bash scripts/setup_db.sh
+--
+-- 1. schema.sql       — cree tables, types, index, triggers (idempotent)
+-- 2. seed_minimal.sql — tenant, politiques quorum/vote, users sans API key
+-- 3. seeds/test_users.sql — 4 users avec cles API de dev
+-- 4. seed_demo.sql    — seances, membres, motions, presences (optionnel)
+--
+-- Commandes :
+--   sudo -u postgres psql -d vote_app -f database/schema.sql
+--   PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f database/seed_minimal.sql
+--   PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f database/seeds/test_users.sql
+--   PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f database/seed_demo.sql
