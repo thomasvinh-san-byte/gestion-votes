@@ -4,17 +4,48 @@
 # Peut etre relance autant de fois que necessaire sans casser l'existant.
 set -euo pipefail
 
-DB_NAME="vote_app"
-DB_USER="vote_app"
-DB_PASS="vote_app_dev_2026"
-DB_HOST="localhost"
-
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 DB_DIR="$PROJECT_DIR/database"
+ENV_FILE="$PROJECT_DIR/.env"
 
 SKIP_DEMO=false
 [[ "${1:-}" == "--no-demo" ]] && SKIP_DEMO=true
+
+# -------------------------------------------------------------------
+# 0. Lire la configuration depuis .env
+# -------------------------------------------------------------------
+# Le script lit DB_USER, DB_PASS et DB_DSN depuis .env.
+# DB_HOST et DB_NAME sont extraits du DSN (pgsql:host=...;dbname=...).
+# Valeurs par defaut si .env absent ou variable manquante.
+
+DB_USER="vote_app"
+DB_PASS="vote_app_dev_2026"
+DB_HOST="localhost"
+DB_NAME="vote_app"
+
+if [ -f "$ENV_FILE" ]; then
+  while IFS='=' read -r key val; do
+    key="${key## }"; key="${key%% }"
+    val="${val## }"; val="${val%% }"
+    [[ -z "$key" || "$key" == \#* ]] && continue
+    case "$key" in
+      DB_USER) DB_USER="$val" ;;
+      DB_PASS) DB_PASS="$val" ;;
+      DB_DSN)
+        # Extraire host et dbname du DSN pgsql:host=X;port=Y;dbname=Z
+        _host=$(echo "$val" | sed -n 's/.*host=\([^;]*\).*/\1/p')
+        _name=$(echo "$val" | sed -n 's/.*dbname=\([^;]*\).*/\1/p')
+        [ -n "$_host" ] && DB_HOST="$_host"
+        [ -n "$_name" ] && DB_NAME="$_name"
+        ;;
+    esac
+  done < "$ENV_FILE"
+  echo "[..] Configuration lue depuis $ENV_FILE"
+  echo "     DB_USER=$DB_USER  DB_NAME=$DB_NAME  DB_HOST=$DB_HOST"
+else
+  echo "[..] Pas de .env, valeurs par defaut (DB_USER=$DB_USER DB_NAME=$DB_NAME)"
+fi
 
 # -- Couleurs (si terminal)
 if [ -t 1 ]; then
@@ -123,4 +154,10 @@ echo ""
 echo "Se connecter :"
 echo "  http://localhost:8080/login.html"
 echo "  Cle admin : admin-key-2024-secret"
+echo ""
+echo "Acces depuis un autre poste :"
+echo "  1. Remplacer localhost par l'IP de la VM"
+echo "     http://<IP>:8080/login.html"
+echo "  2. Ajouter cette origine dans .env :"
+echo "     CORS_ALLOWED_ORIGINS=http://localhost:8080,http://<IP>:8080"
 echo "========================================="
