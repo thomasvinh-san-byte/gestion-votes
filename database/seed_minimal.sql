@@ -52,13 +52,14 @@ SET description = EXCLUDED.description,
     updated_at = now();
 
 -- Users RBAC (sans API key par défaut)
--- Rôles : admin, operator, president, assessor, auditor, voter, viewer
+-- Rôles SYSTÈME : admin, operator, auditor, viewer
+-- Rôles SÉANCE (meeting_roles) : president, assessor, voter
 INSERT INTO users (id, tenant_id, email, name, role, api_key_hash, is_active, created_at, updated_at)
 VALUES
   ('33333333-3333-3333-3333-333333333001','aaaaaaaa-1111-2222-3333-444444444444','admin@example.test','Administrateur','admin',NULL,true,now(),now()),
   ('33333333-3333-3333-3333-333333333002','aaaaaaaa-1111-2222-3333-444444444444','operator@example.test','Opérateur','operator',NULL,true,now(),now()),
-  ('33333333-3333-3333-3333-333333333003','aaaaaaaa-1111-2222-3333-444444444444','president@example.test','Président','president',NULL,true,now(),now()),
-  ('33333333-3333-3333-3333-333333333004','aaaaaaaa-1111-2222-3333-444444444444','assessor@example.test','Assesseur','assessor',NULL,true,now(),now()),
+  ('33333333-3333-3333-3333-333333333003','aaaaaaaa-1111-2222-3333-444444444444','president@example.test','Mme Dupont','operator',NULL,true,now(),now()),
+  ('33333333-3333-3333-3333-333333333004','aaaaaaaa-1111-2222-3333-444444444444','assessor@example.test','M. Martin','viewer',NULL,true,now(),now()),
   ('33333333-3333-3333-3333-333333333005','aaaaaaaa-1111-2222-3333-444444444444','auditor@example.test','Auditeur','auditor',NULL,true,now(),now())
 ON CONFLICT (id) DO UPDATE
 SET email = EXCLUDED.email,
