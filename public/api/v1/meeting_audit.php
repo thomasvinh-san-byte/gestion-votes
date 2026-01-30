@@ -2,7 +2,7 @@
 // public/api/v1/meeting_audit.php
 require __DIR__ . '/../../../app/api.php';
 
-api_require_role(['trust', 'admin']);
+api_require_role(['auditor', 'admin']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     json_err('method_not_allowed', 405);

@@ -6,7 +6,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     json_err('method_not_allowed', 405);
 }
 
-require_role('trust');
+require_role('auditor');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '') {

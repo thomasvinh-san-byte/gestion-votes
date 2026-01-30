@@ -61,20 +61,21 @@ foreach ($members as $m) {
 
   $token = bin2hex(random_bytes(16));
   $pdo->prepare(
-    "INSERT INTO invitations (meeting_id, member_id, email, token, status, sent_at, updated_at)
-     VALUES (:meeting_id, :member_id, :email, :token, :status, :sent_at, now())
-     ON CONFLICT (meeting_id, member_id)
+    "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token, status, sent_at, updated_at)
+     VALUES (:tenant_id, :meeting_id, :member_id, :email, :token, :status, :sent_at, now())
+     ON CONFLICT (tenant_id, meeting_id, member_id)
      DO UPDATE SET token=EXCLUDED.token,
                    email=COALESCE(EXCLUDED.email, invitations.email),
                    status=EXCLUDED.status,
                    sent_at=EXCLUDED.sent_at,
                    updated_at=now()"
   )->execute([
+      ':tenant_id'  => $tenantId,
       ':meeting_id' => $meetingId,
       ':member_id'  => $memberId,
       ':email'      => $email,
       ':token'      => $token,
-      ':status'     => $dryRun ? 'created' : 'sent',
+      ':status'     => $dryRun ? 'pending' : 'sent',
       ':sent_at'    => $dryRun ? null : date('c'),
   ]);
 
@@ -106,8 +107,8 @@ foreach ($members as $m) {
 
   if (!$res['ok']) {
     $errors[] = ['member_id'=>$memberId,'email'=>$email,'error'=>$res['error']];
-    // mark as error
-    $pdo->prepare("UPDATE invitations SET status='error', updated_at=now() WHERE meeting_id=:mid AND member_id=:mem")
+    // mark as bounced (send failure)
+    $pdo->prepare("UPDATE invitations SET status='bounced', updated_at=now() WHERE meeting_id=:mid AND member_id=:mem")
         ->execute([':mid'=>$meetingId, ':mem'=>$memberId]);
   } else {
     $sent++;

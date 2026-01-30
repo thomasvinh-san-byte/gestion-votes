@@ -200,4 +200,9 @@
   }
 
   window.ShellDrawer = { open: openDrawer, close: closeDrawer, register: registerKind };
+
+  // Auto-load auth UI banner (login/logout + role visibility)
+  var authScript = document.createElement('script');
+  authScript.src = '/assets/js/auth-ui.js';
+  document.head.appendChild(authScript);
 })();

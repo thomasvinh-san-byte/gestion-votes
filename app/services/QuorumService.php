@@ -27,12 +27,12 @@ class QuorumService {
 
         // 2. Calcul basé sur le type de base (Personnes vs Poids/Tantièmes)
         if ($model['base'] === 'persons') {
-            $sql = "SELECT COUNT(*) FROM attendances WHERE meeting_id = :m AND status IN ('present','represented')";
+            $sql = "SELECT COUNT(*) FROM attendances WHERE meeting_id = :m AND mode IN ('present','remote','proxy')";
         } else {
-            $sql = "SELECT COALESCE(SUM(m.weight), 0) 
-                    FROM members m 
-                    JOIN attendances a ON a.member_id = m.id 
-                    WHERE a.meeting_id = :m AND a.status IN ('present','represented')";
+            $sql = "SELECT COALESCE(SUM(m.vote_weight), 0)
+                    FROM members m
+                    JOIN attendances a ON a.member_id = m.id
+                    WHERE a.meeting_id = :m AND a.mode IN ('present','remote','proxy')";
         }
 
         $stmtCalc = $db->prepare($sql);

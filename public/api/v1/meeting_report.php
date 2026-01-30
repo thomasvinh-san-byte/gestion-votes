@@ -6,7 +6,7 @@ require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 require __DIR__ . '/../../../app/services/VoteEngine.php';
 require __DIR__ . '/../../../app/services/MeetingReportService.php';
 
-require_role('trust');
+require_role('auditor');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '') json_err('missing_meeting_id', 400);

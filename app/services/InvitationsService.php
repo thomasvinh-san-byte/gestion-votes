@@ -66,9 +66,9 @@ final class InvitationsService
         $token = bin2hex(random_bytes(16));
 
         db_exec(<<<'SQL'
-            INSERT INTO invitations (meeting_id, member_id, email, token, status, updated_at)
-            VALUES (:meeting_id, :member_id, :email, :token, 'pending', now())
-            ON CONFLICT (meeting_id, member_id)
+            INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token, status, updated_at)
+            VALUES (:tenant_id, :meeting_id, :member_id, :email, :token, 'pending', now())
+            ON CONFLICT (tenant_id, meeting_id, member_id)
             DO UPDATE SET
               email = EXCLUDED.email,
               token = EXCLUDED.token,
@@ -76,6 +76,7 @@ final class InvitationsService
               updated_at = now(),
               responded_at = NULL
         SQL, [
+            ':tenant_id'  => $tenantId,
             ':meeting_id' => $meetingId,
             ':member_id'  => $memberId,
             ':email'      => $email,
@@ -115,9 +116,9 @@ final class InvitationsService
 
         if (!$row) throw new RuntimeException('token_invalide');
 
-        // Marque "responded" best-effort (ne bloque pas le flux si déjà fait)
+        // Marque "accepted" best-effort (ne bloque pas le flux si déjà fait)
         db_exec(
-            "UPDATE invitations SET status = 'responded', responded_at = coalesce(responded_at, now()), updated_at = now() WHERE id = :id",
+            "UPDATE invitations SET status = 'accepted', responded_at = coalesce(responded_at, now()), updated_at = now() WHERE id = :id",
             [':id' => $row['id']]
         );
 
