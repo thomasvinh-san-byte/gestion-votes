@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\MemberRepository;
+
 final class VoteEngine
 {
     /**
@@ -18,23 +23,8 @@ final class VoteEngine
             throw new InvalidArgumentException('motion_id obligatoire');
         }
 
-        $motion = db_select_one(
-            "
-            SELECT
-              m.id            AS motion_id,
-              m.title         AS motion_title,
-              m.vote_policy_id,
-              m.secret,
-              mt.id           AS meeting_id,
-              mt.tenant_id    AS tenant_id,
-              mt.quorum_policy_id,
-              mt.vote_policy_id AS meeting_vote_policy_id
-            FROM motions m
-            JOIN meetings mt ON mt.id = m.meeting_id
-            WHERE m.id = :motion_id
-            ",
-            [':motion_id' => $motionId]
-        );
+        $motionRepo = new MotionRepository();
+        $motion = $motionRepo->findWithVoteContext($motionId);
 
         if (!$motion) {
             throw new RuntimeException('Motion introuvable');
@@ -44,20 +34,8 @@ final class VoteEngine
         $meetingId  = (string)$motion['meeting_id'];
 
         // Agréger les bulletins par valeur
-        global $pdo;
-        $stmt = $pdo->prepare(
-            "
-            SELECT
-              value,
-              COUNT(*)                AS count,
-              COALESCE(SUM(weight),0) AS weight
-            FROM ballots
-            WHERE motion_id = :motion_id
-            GROUP BY value
-            "
-        );
-        $stmt->execute([':motion_id' => $motionId]);
-        $rows = $stmt->fetchAll() ?: [];
+        $ballotRepo = new BallotRepository();
+        $rows = $ballotRepo->tallyByMotion($motionId);
 
         $tallies = [
             'for'     => ['count' => 0, 'weight' => 0.0],
@@ -84,23 +62,16 @@ final class VoteEngine
             + $tallies['abstain']['weight'];
 
         // Électeurs éligibles (par tenant)
-        $eligibleMembers = (int)(db_scalar(
-            "SELECT COUNT(*) FROM members WHERE tenant_id = :tenant_id AND is_active = true",
-            [':tenant_id' => $tenantId]
-        ) ?? 0);
-
-        $eligibleWeight = (float)(db_scalar(
-            "SELECT COALESCE(SUM(COALESCE(voting_power, vote_weight, 1.0)), 0) FROM members WHERE tenant_id = :tenant_id AND is_active = true",
-            [':tenant_id' => $tenantId]
-        ) ?? 0.0);
+        $memberRepo = new MemberRepository();
+        $eligibleMembers = $memberRepo->countActive($tenantId);
+        $eligibleWeight  = $memberRepo->sumActiveWeight($tenantId);
 
         // Charger policies éventuelles
+        $policyRepo = new PolicyRepository();
+
         $quorumPolicy = null;
         if (!empty($motion['quorum_policy_id'])) {
-            $quorumPolicy = db_select_one(
-                "SELECT * FROM quorum_policies WHERE id = :id",
-                [':id' => $motion['quorum_policy_id']]
-            );
+            $quorumPolicy = $policyRepo->findQuorumPolicy((string)$motion['quorum_policy_id']);
         }
 
         // Résoudre la politique de vote: motion-level > meeting-level
@@ -110,10 +81,7 @@ final class VoteEngine
 
         $votePolicy = null;
         if ($appliedVotePolicyId !== '') {
-            $votePolicy = db_select_one(
-                "SELECT * FROM vote_policies WHERE id = :id",
-                [':id' => $appliedVotePolicyId]
-            );
+            $votePolicy = $policyRepo->findVotePolicy($appliedVotePolicyId);
         }
 
         // Calcul du quorum
@@ -124,7 +92,7 @@ final class VoteEngine
         $quorumBasis       = null;
 
         if ($quorumPolicy) {
-            $quorumBasis     = (string)$quorumPolicy['denominator']; // eligible_members / eligible_weight
+            $quorumBasis     = (string)$quorumPolicy['denominator'];
             $quorumThreshold = (float)$quorumPolicy['threshold'];
 
             if ($quorumBasis === 'eligible_members') {
@@ -149,7 +117,7 @@ final class VoteEngine
         $abstAsAgainst     = null;
 
         if ($votePolicy) {
-            $majorityBase      = (string)$votePolicy['base']; // expressed / present / eligible
+            $majorityBase      = (string)$votePolicy['base'];
             $majorityThreshold = (float)$votePolicy['threshold'];
             $abstAsAgainst     = (bool)$votePolicy['abstention_as_against'];
 
@@ -158,7 +126,6 @@ final class VoteEngine
             } elseif ($majorityBase === 'eligible') {
                 $baseTotal = $eligibleWeight;
             } elseif ($majorityBase === 'present') {
-                // Pas de table de présences dans ce schéma : on approxime par les voix exprimées
                 $baseTotal = $expressedWeight;
             } else {
                 $baseTotal = $expressedWeight;
@@ -170,13 +137,11 @@ final class VoteEngine
 
             $effectiveAgainst = $againstWeight + ($abstAsAgainst ? $abstainWeight : 0.0);
 
-            // On mesure le rapport des "pour" sur la base définie
             $denominator = $baseTotal > 0 ? $baseTotal : 0.0001;
             $ratio       = $forWeight / $denominator;
 
             $majorityRatio = $ratio;
 
-            // Si pas de base de calcul ou pas de voix exprimées, non adopté
             if ($baseTotal <= 0.0 || $expressedWeight <= 0.0) {
                 $adopted = false;
             } else {

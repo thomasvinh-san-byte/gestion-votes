@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+
 /**
  * MeetingValidator
  *
@@ -21,10 +24,8 @@ final class MeetingValidator
 {
     public static function canBeValidated(string $meetingId, string $tenantId): array
     {
-        $meeting = db_select_one(
-            "SELECT id, status, president_name FROM meetings WHERE tenant_id = ? AND id = ?",
-            [$tenantId, $meetingId]
-        );
+        $meetingRepo = new MeetingRepository();
+        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
 
         if (!$meeting) {
             return [
@@ -42,38 +43,22 @@ final class MeetingValidator
             $codes[] = 'missing_president';
         }
 
-        $open = (int)(db_scalar(
-            "SELECT count(*) FROM motions WHERE meeting_id = ? AND opened_at IS NOT NULL AND closed_at IS NULL",
-            [$meetingId]
-        ) ?? 0);
+        $motionRepo = new MotionRepository();
+
+        $open = $meetingRepo->countOpenMotions($meetingId);
         if ($open > 0) {
             $reasons[] = "$open motion(s) encore ouverte(s).";
             $codes[] = 'open_motions';
         }
 
-        $bad = (int)(db_scalar(
-            "SELECT count(*) FROM motions mo
-               WHERE mo.meeting_id = ?
-                 AND mo.closed_at IS NOT NULL
-                 AND NOT (
-                   (mo.manual_total > 0 AND (coalesce(mo.manual_for,0)+coalesce(mo.manual_against,0)+coalesce(mo.manual_abstain,0)) = mo.manual_total)
-                   OR EXISTS (SELECT 1 FROM ballots b WHERE b.motion_id = mo.id)
-                 )",
-            [$meetingId]
-        ) ?? 0);
+        $bad = $motionRepo->countBadClosedMotions($meetingId);
         if ($bad > 0) {
             $reasons[] = "$bad motion(s) fermée(s) sans résultat exploitable (manuel cohérent ou e-vote).";
             $codes[] = 'bad_closed_results';
         }
 
-        $closed = (int)(db_scalar(
-            "SELECT count(*) FROM motions WHERE meeting_id = ? AND closed_at IS NOT NULL",
-            [$meetingId]
-        ) ?? 0);
-        $consolidated = (int)(db_scalar(
-            "SELECT count(*) FROM motions WHERE meeting_id = ? AND closed_at IS NOT NULL AND official_source IS NOT NULL",
-            [$meetingId]
-        ) ?? 0);
+        $closed = $meetingRepo->countClosedMotions($meetingId);
+        $consolidated = $motionRepo->countConsolidatedMotions($meetingId);
 
         // On exige la consolidation dès qu'il y a au moins une motion fermée.
         $needsConsolidation = $closed > 0;

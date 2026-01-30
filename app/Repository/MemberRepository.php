@@ -55,6 +55,29 @@ class MemberRepository extends AbstractRepository
     /**
      * Cree un membre et retourne son ID.
      */
+    /**
+     * Nombre de membres actifs d'un tenant.
+     */
+    public function countActive(string $tenantId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true",
+            [':tid' => $tenantId]
+        ) ?? 0);
+    }
+
+    /**
+     * Poids total des membres actifs d'un tenant.
+     */
+    public function sumActiveWeight(string $tenantId): float
+    {
+        return (float)($this->scalar(
+            "SELECT COALESCE(SUM(COALESCE(voting_power, vote_weight, 1.0)), 0)
+             FROM members WHERE tenant_id = :tid AND is_active = true",
+            [':tid' => $tenantId]
+        ) ?? 0.0);
+    }
+
     public function create(
         string $id,
         string $tenantId,

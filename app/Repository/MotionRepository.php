@@ -186,6 +186,101 @@ class MotionRepository extends AbstractRepository
         ) ?? 0);
     }
 
+    /**
+     * Contexte quorum pour une motion (QuorumEngine).
+     */
+    public function findWithQuorumContext(string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id,
+                    mo.quorum_policy_id AS motion_quorum_policy_id,
+                    mo.opened_at AS motion_opened_at,
+                    mt.tenant_id, mt.quorum_policy_id AS meeting_quorum_policy_id,
+                    COALESCE(mt.convocation_no, 1) AS convocation_no
+             FROM motions mo
+             JOIN meetings mt ON mt.id = mo.meeting_id
+             WHERE mo.id = :id",
+            [':id' => $motionId]
+        );
+    }
+
+    /**
+     * Contexte vote pour une motion (VoteEngine).
+     */
+    public function findWithVoteContext(string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT m.id AS motion_id, m.title AS motion_title,
+                    m.vote_policy_id, m.secret,
+                    mt.id AS meeting_id, mt.tenant_id,
+                    mt.quorum_policy_id,
+                    mt.vote_policy_id AS meeting_vote_policy_id
+             FROM motions m
+             JOIN meetings mt ON mt.id = m.meeting_id
+             WHERE m.id = :id",
+            [':id' => $motionId]
+        );
+    }
+
+    /**
+     * Contexte officiel pour une motion (OfficialResultsService, MeetingResultsService).
+     */
+    public function findWithOfficialContext(string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT m.id, m.title, m.meeting_id,
+                    m.vote_policy_id, m.quorum_policy_id,
+                    m.secret, m.closed_at,
+                    m.manual_total, m.manual_for, m.manual_against, m.manual_abstain,
+                    mt.tenant_id,
+                    mt.quorum_policy_id AS meeting_quorum_policy_id,
+                    mt.vote_policy_id AS meeting_vote_policy_id
+             FROM motions m
+             JOIN meetings mt ON mt.id = m.meeting_id
+             WHERE m.id = :id",
+            [':id' => $motionId]
+        );
+    }
+
+    /**
+     * Liste les motions fermees d'une seance (pour consolidation).
+     */
+    public function listClosedForMeeting(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT id FROM motions WHERE meeting_id = :mid AND closed_at IS NOT NULL ORDER BY closed_at ASC",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Motions fermees sans resultat exploitable (MeetingValidator).
+     */
+    public function countBadClosedMotions(string $meetingId): int
+    {
+        return (int)($this->scalar(
+            "SELECT count(*) FROM motions mo
+               WHERE mo.meeting_id = :mid
+                 AND mo.closed_at IS NOT NULL
+                 AND NOT (
+                   (mo.manual_total > 0 AND (coalesce(mo.manual_for,0)+coalesce(mo.manual_against,0)+coalesce(mo.manual_abstain,0)) = mo.manual_total)
+                   OR EXISTS (SELECT 1 FROM ballots b WHERE b.motion_id = mo.id)
+                 )",
+            [':mid' => $meetingId]
+        ) ?? 0);
+    }
+
+    /**
+     * Motions fermees avec official_source renseigne (MeetingValidator).
+     */
+    public function countConsolidatedMotions(string $meetingId): int
+    {
+        return (int)($this->scalar(
+            "SELECT count(*) FROM motions WHERE meeting_id = :mid AND closed_at IS NOT NULL AND official_source IS NOT NULL",
+            [':mid' => $meetingId]
+        ) ?? 0);
+    }
+
     // =========================================================================
     // ECRITURE
     // =========================================================================
@@ -305,5 +400,52 @@ class MotionRepository extends AbstractRepository
             "UPDATE motions SET quorum_policy_id = :pid, updated_at = NOW() WHERE id = :id",
             [':pid' => $policyId, ':id' => $motionId]
         );
+    }
+
+    /**
+     * Persiste les resultats officiels d'une motion (OfficialResultsService).
+     */
+    public function updateOfficialResults(
+        string $motionId,
+        string $source,
+        float $for,
+        float $against,
+        float $abstain,
+        float $total,
+        string $decision,
+        string $reason
+    ): void {
+        $this->execute(
+            "UPDATE motions SET
+               official_source = :src, official_for = :f, official_against = :a,
+               official_abstain = :ab, official_total = :t,
+               decision = :d, decision_reason = :r, decided_at = NOW()
+             WHERE id = :id",
+            [
+                ':src' => $source, ':f' => $for, ':a' => $against,
+                ':ab' => $abstain, ':t' => $total,
+                ':d' => $decision, ':r' => $reason, ':id' => $motionId,
+            ]
+        );
+    }
+
+    /**
+     * Ajoute les colonnes official_* si absentes (migration best-effort).
+     */
+    public function ensureOfficialColumns(): void
+    {
+        try {
+            $this->execute(
+                "ALTER TABLE motions
+                  ADD COLUMN IF NOT EXISTS official_source text,
+                  ADD COLUMN IF NOT EXISTS official_for double precision,
+                  ADD COLUMN IF NOT EXISTS official_against double precision,
+                  ADD COLUMN IF NOT EXISTS official_abstain double precision,
+                  ADD COLUMN IF NOT EXISTS official_total double precision,
+                  ADD COLUMN IF NOT EXISTS decision text,
+                  ADD COLUMN IF NOT EXISTS decision_reason text,
+                  ADD COLUMN IF NOT EXISTS decided_at timestamptz"
+            );
+        } catch (\Throwable $e) { /* best-effort */ }
     }
 }
