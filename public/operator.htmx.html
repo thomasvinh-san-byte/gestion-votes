@@ -11,42 +11,8 @@
 </head>
 <body>
   <div class="app-shell">
-        <!-- Sidebar -->
-    <aside class="app-sidebar">
-      <div class="p-4 border-b">
-        <a href="/" class="brand">
-          <span class="brand-logo">AG-VOTE</span>
-        </a>
-      </div>
-      <nav class="nav">
-        <a class="nav-item" href="/meetings.htmx.html">
-          <span class="nav-item-icon">🏛️</span>
-          <span>Tableau de bord</span>
-        </a>
-        <a class="nav-item active" href="/operator.htmx.html">
-          <span class="nav-item-icon">🗂️</span>
-          <span>Fiche séance</span>
-        </a>
-        <a class="nav-item" href="/members.htmx.html">
-          <span class="nav-item-icon">👥</span>
-          <span>Membres</span>
-        </a>
-        <a class="nav-item" href="/trust.htmx.html">
-          <span class="nav-item-icon">🛡️</span>
-          <span>Contrôle</span>
-        </a>
-        <a class="nav-item" href="/archives.htmx.html">
-          <span class="nav-item-icon">📚</span>
-          <span>Archives</span>
-        </a>
-        <div class="border-t mt-4 pt-4">
-          <a class="nav-item" href="/admin.htmx.html">
-            <span class="nav-item-icon">⚙️</span>
-            <span>Administration</span>
-          </a>
-        </div>
-      </nav>
-    </aside>
+    <!-- Sidebar (loaded from shared partial) -->
+    <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
 
     <!-- Header -->
     <header class="app-header">
@@ -93,7 +59,7 @@
             <span class="quick-action-icon">👤</span>
             <span>Membres</span>
           </a>
-          <a class="quick-action" data-meeting-link href="/operator_flow.htmx.html" style="background: var(--color-primary-subtle); color: var(--color-primary);">
+          <a class="quick-action quick-action-highlight" data-meeting-link href="/operator_flow.htmx.html">
             <span class="quick-action-icon">▶️</span>
             <span>Conduire</span>
           </a>
@@ -290,6 +256,7 @@
 
   <!-- Scripts -->
   <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>
   <script src="/assets/js/meeting-context.js"></script>
 
@@ -377,16 +344,9 @@
 
           // Update status badge
           const statusBadge = document.getElementById('meetingStatusBadge');
-          const statusMap = {
-            'draft': { class: 'badge-neutral', text: 'Brouillon' },
-            'scheduled': { class: 'badge-info', text: 'Programmée' },
-            'live': { class: 'badge-danger badge-dot', text: 'En cours' },
-            'closed': { class: 'badge-success', text: 'Terminée' },
-            'archived': { class: 'badge-neutral', text: 'Archivée' }
-          };
-          const status = statusMap[m.status] || statusMap['draft'];
-          statusBadge.className = `badge ${status.class}`;
-          statusBadge.textContent = status.text;
+          const statusInfo = Shared.MEETING_STATUS_MAP[m.status] || Shared.MEETING_STATUS_MAP['draft'];
+          statusBadge.className = `badge ${statusInfo.badge}`;
+          statusBadge.textContent = statusInfo.text;
         }
 
         // Load attendance stats

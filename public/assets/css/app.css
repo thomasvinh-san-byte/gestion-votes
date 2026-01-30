@@ -366,3 +366,394 @@
   font-weight: var(--font-medium);
   color: var(--color-text-muted);
 }
+
+/* ─── Role Badges (system + meeting roles) ─── */
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.role-badge.admin     { background: var(--color-danger-subtle); color: var(--color-danger); }
+.role-badge.operator  { background: var(--color-info-subtle); color: var(--color-info-text); }
+.role-badge.auditor   { background: var(--color-warning-subtle); color: var(--color-warning-text); }
+.role-badge.viewer    { background: var(--color-success-subtle); color: var(--color-success-text); }
+.role-badge.president { background: #faf5ff; color: #7c3aed; }
+.role-badge.assessor  { background: #fff7ed; color: #c2410c; }
+.role-badge.voter     { background: var(--color-info-subtle); color: var(--color-info); }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .role-badge.president { background: rgba(124, 58, 237, 0.15); color: #a78bfa; }
+  :root:not([data-theme="light"]) .role-badge.assessor  { background: rgba(194, 65, 12, 0.15); color: #fb923c; }
+}
+
+[data-theme="dark"] .role-badge.president { background: rgba(124, 58, 237, 0.15); color: #a78bfa; }
+[data-theme="dark"] .role-badge.assessor  { background: rgba(194, 65, 12, 0.15); color: #fb923c; }
+
+/* Meeting role tag (used inside user tables) */
+.meeting-role-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+}
+
+/* ─── Skeleton Loading Placeholder ─── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-subtle) 25%,
+    var(--color-surface) 50%,
+    var(--color-bg-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius);
+  color: transparent !important;
+}
+
+.skeleton * { visibility: hidden; }
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: var(--space-2);
+}
+
+.skeleton-text:last-child {
+  width: 70%;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ─── Admin Tabs (shared pattern) ─── */
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: var(--space-6);
+}
+
+.admin-tab {
+  padding: var(--space-3) var(--space-5);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  transition: all var(--duration-fast);
+}
+
+.admin-tab:hover {
+  color: var(--color-text);
+}
+
+.admin-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-offset) var(--color-surface),
+              0 0 0 calc(var(--ring-offset) + var(--ring-width)) var(--ring-color);
+}
+
+.admin-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.admin-panel {
+  display: none;
+}
+
+.admin-panel.active {
+  display: block;
+}
+
+/* ─── Admin Users Table ─── */
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.users-table th {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 2px solid var(--color-border);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.users-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.users-table tr:hover td {
+  background: var(--color-bg-subtle);
+}
+
+/* ─── Inline Form ─── */
+.inline-form {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.inline-form .form-group {
+  flex: 1;
+  min-width: 140px;
+}
+
+.inline-form .form-label {
+  font-size: var(--text-xs);
+  margin-bottom: 2px;
+}
+
+.inline-form .form-input {
+  font-size: var(--text-sm);
+  padding: var(--space-2);
+}
+
+/* ─── Permission Matrix ─── */
+.perm-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+}
+
+.perm-matrix th,
+.perm-matrix td {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-subtle);
+  text-align: center;
+}
+
+.perm-matrix th {
+  background: var(--color-bg-subtle);
+  font-weight: var(--font-semibold);
+}
+
+.perm-matrix td:first-child {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.perm-check { color: var(--color-success); font-weight: bold; }
+.perm-none  { color: var(--color-border); }
+
+/* ─── State Machine Flow ─── */
+.state-flow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-4) 0;
+}
+
+.state-node {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+}
+
+.state-node-sm {
+  font-size: var(--text-xs);
+  padding: 2px 8px;
+}
+
+.state-arrow {
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+}
+
+/* ─── System Stat Row ─── */
+.system-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.system-stat:last-child {
+  border-bottom: none;
+}
+
+.system-stat-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.system-stat-value {
+  font-weight: var(--font-semibold);
+  font-family: var(--font-mono);
+}
+
+/* ─── Member Card ─── */
+.member-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast);
+}
+
+.member-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-radius: 50%;
+  font-weight: var(--font-bold);
+  font-size: var(--text-sm);
+  flex-shrink: 0;
+}
+
+.member-details {
+  min-width: 0;
+}
+
+.member-name {
+  font-weight: var(--font-semibold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-email {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.member-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* ─── Upload Zone ─── */
+.upload-zone {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  text-align: center;
+  transition: all var(--duration-fast);
+  cursor: pointer;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+/* ─── Quick Action highlight variant ─── */
+.quick-action-highlight {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+/* ─── Danger Zone Card ─── */
+.card-danger {
+  border-color: var(--color-danger);
+}
+
+.card-danger > .card-header {
+  background: var(--color-danger-subtle);
+}
+
+/* ─── Button extra sizes ─── */
+.btn-xs {
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Responsive grid collapse for 2-col forms ─── */
+@media (max-width: 768px) {
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quick-actions {
+    flex-wrap: wrap;
+  }
+
+  .quick-action {
+    min-width: calc(33% - var(--space-2));
+  }
+
+  .inline-form {
+    flex-direction: column;
+  }
+
+  .inline-form .form-group {
+    min-width: 100%;
+  }
+
+  .member-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .member-actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-cols-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-action {
+    min-width: calc(50% - var(--space-2));
+  }
+}
