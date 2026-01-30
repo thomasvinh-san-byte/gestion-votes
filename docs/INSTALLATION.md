@@ -254,7 +254,7 @@ Dans un navigateur :
 * **Président**
   `http://<IP>:8000/president.htmx.html`
 
-* **Trust / contrôle**
+* **Auditor / contrôle**
   `http://<IP>:8000/trust.htmx.html`
 
 Exemple local :

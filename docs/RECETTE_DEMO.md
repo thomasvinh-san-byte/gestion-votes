@@ -60,7 +60,7 @@ Saisir au moins **une procuration**.
 À montrer :
 * lien mandant / mandataire,
 * prise en compte immédiate dans la pondération,
-* visibilité dans la vue **Trust**.
+* visibilité dans la vue **Auditor**.
 
 ---
 
@@ -144,7 +144,7 @@ Objectif :
 
 ## Contrôles et anomalies (1 minute)
 
-Depuis l’interface **Trust** :
+Depuis l'interface **Auditor** :
 * vérifier :
   * votes manquants = 0 (ou expliqués),
   * procurations conformes,

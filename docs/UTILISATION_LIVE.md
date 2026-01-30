@@ -5,7 +5,7 @@ Ce document décrit **le déroulé opérationnel complet d’une séance**, depu
 Il est destiné :
 * à l’**opérateur** qui conduit la séance,
 * au **président** qui engage la responsabilité juridique,
-* au rôle **trust / contrôle**,
+* au rôle **auditor / contrôle**,
 * et, indirectement, aux **auditeurs**.
 
 ---
@@ -39,7 +39,7 @@ La démonstration guidée est décrite dans `RECETTE_DEMO.md`.
 * valide la séance,
 * engage la responsabilité juridique.
 
-### Trust (contrôle)
+### Auditor (contrôle)
 
 * observe la cohérence des données,
 * vérifie les anomalies,
@@ -58,7 +58,7 @@ La démonstration guidée est décrite dans `RECETTE_DEMO.md`.
 | ----------- | ---------------------- |
 | Operator    | `/operator.htmx.html`  |
 | Président   | `/president.htmx.html` |
-| Trust       | `/trust.htmx.html`     |
+| Auditor     | `/trust.htmx.html`     |
 | Vote        | `/vote.php?token=…`    |
 | Validation  | `/validate.htmx.html`  |
 | PV / Export | `/report.htmx.html`    |
@@ -93,7 +93,7 @@ Contrôles automatiques :
 * impossibilité de chaînes de procuration,
 * impact immédiat sur pondération et quorum.
 
-Toute anomalie est visible dans l’interface **Trust**.
+Toute anomalie est visible dans l'interface **Auditor**.
 
 ---
 
@@ -149,7 +149,7 @@ L’opérateur et le président voient :
 
 ### 2.3 Déclaration d’incident (CDC)
 
-À tout moment, l’opérateur, le président ou le trust peuvent déclarer un incident :
+À tout moment, l'opérateur, le président ou l'auditeur peuvent déclarer un incident :
 
 * problème réseau,
 * matériel défaillant,
@@ -208,7 +208,7 @@ de l’ordre du jour.
 
 ## Contrôles et anomalies
 
-### 4.1 Vue anomalies (Trust)
+### 4.1 Vue anomalies (Auditor)
 
 La vue de contrôle permet de détecter :
 
