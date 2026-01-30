@@ -84,6 +84,23 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
+     * Liste presences pour rapport (avec infos membre).
+     */
+    public function listForReport(string $meetingId, string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT m.id AS member_id, m.full_name,
+                    COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power,
+                    a.mode, a.checked_in_at, a.checked_out_at
+             FROM members m
+             LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
+             WHERE m.tenant_id = :tid AND m.is_active = true
+             ORDER BY m.full_name ASC",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+    }
+
+    /**
      * Resume attendance pour le dashboard (present count + weight via members.vote_weight).
      */
     public function dashboardSummary(string $tenantId, string $meetingId): array
@@ -98,6 +115,17 @@ class AttendanceRepository extends AbstractRepository
             [':tid' => $tenantId, ':mid' => $meetingId]
         );
         return $row ?: ['present_count' => 0, 'present_weight' => 0];
+    }
+
+    /**
+     * Compte les presences eligibles (present/remote/proxy) pour une seance.
+     */
+    public function countEligible(string $meetingId): int
+    {
+        return (int)($this->scalar(
+            "SELECT count(*) FROM attendances WHERE meeting_id = :mid AND mode IN ('present','remote','proxy')",
+            [':mid' => $meetingId]
+        ) ?? 0);
     }
 
     /**
@@ -212,6 +240,19 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
+     * Upsert de presence pour le seeding (ON CONFLICT met a jour le mode).
+     */
+    public function upsertSeed(string $id, string $tenantId, string $meetingId, string $memberId, string $mode): void
+    {
+        $this->execute(
+            "INSERT INTO attendances (id, tenant_id, meeting_id, member_id, mode, checked_in_at, created_at, updated_at)
+             VALUES (:id, :tid, :mid, :mem, :mode, now(), now(), now())
+             ON CONFLICT (meeting_id, member_id) DO UPDATE SET mode = EXCLUDED.mode, updated_at = now()",
+            [':id' => $id, ':tid' => $tenantId, ':mid' => $meetingId, ':mem' => $memberId, ':mode' => $mode]
+        );
+    }
+
+    /**
      * Export CSV: presences avec infos membre et procurations.
      */
     public function listExportForMeeting(string $meetingId): array
@@ -238,6 +279,36 @@ class AttendanceRepository extends AbstractRepository
              WHERE m.tenant_id = mt.tenant_id AND m.is_active = true
              ORDER BY m.full_name ASC",
             [':mid1' => $meetingId, ':mid2' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les member_id eligibles (present/remote/proxy) pour une seance.
+     */
+    public function listEligibleMemberIds(string $tenantId, string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT member_id FROM attendances
+             WHERE tenant_id = :tid AND meeting_id = :mid
+               AND mode IN ('present','remote','proxy')",
+            [':tid' => $tenantId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les votants eligibles avec nom (present/remote) pour generation tokens.
+     */
+    public function listEligibleVotersWithName(string $tenantId, string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT m.id AS member_id, COALESCE(m.full_name, m.name, m.email, m.id::text) AS member_name
+             FROM members m
+             JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
+             WHERE m.tenant_id = :tid
+               AND m.is_active = true
+               AND a.mode IN ('present','remote')
+             ORDER BY COALESCE(m.full_name, m.name, m.email) ASC",
+            [':mid' => $meetingId, ':tid' => $tenantId]
         );
     }
 }

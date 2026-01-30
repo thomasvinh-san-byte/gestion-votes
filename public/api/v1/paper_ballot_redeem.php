@@ -1,5 +1,9 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\ManualActionRepository;
+
 api_require_role('operator');
 
 $in = api_request('POST');
@@ -15,30 +19,23 @@ if ($just === '') api_fail('missing_justification', 400);
 
 $hash = hash_hmac('sha256', $code, APP_SECRET);
 
+$ballotRepo = new BallotRepository();
+$manualRepo = new ManualActionRepository();
+
 // On récupère aussi tenant_id via meeting
-$pb = db_select_one(
-  "SELECT pb.*, m.tenant_id
-   FROM paper_ballots pb
-   JOIN meetings m ON m.id = pb.meeting_id
-   WHERE pb.code_hash = ? AND pb.used_at IS NULL",
-  [$hash]
-);
+$pb = $ballotRepo->findUnusedPaperBallotByHash($hash);
 if (!$pb) api_fail('paper_ballot_not_found_or_used', 404);
 
-db_execute("UPDATE paper_ballots SET used_at = NOW(), used_by_operator = true WHERE id = ?", [$pb['id']]);
+$ballotRepo->markPaperBallotUsed($pb['id']);
 
 // Journal mode dégradé (append-only)
 try {
-  db_execute(
-    "INSERT INTO manual_actions(tenant_id, meeting_id, motion_id, member_id, action_type, value, justification, operator_user_id, signature_hash, created_at)
-     VALUES (:t,:m,:mo,NULL,'paper_ballot', jsonb_build_object('vote_value', :v), :j, NULL, NULL, NOW())",
-    [
-      ':t' => $pb['tenant_id'],
-      ':m' => $pb['meeting_id'],
-      ':mo'=> $pb['motion_id'],
-      ':v' => $vote,
-      ':j' => $just,
-    ]
+  $manualRepo->createPaperBallotAction(
+    $pb['tenant_id'],
+    $pb['meeting_id'],
+    $pb['motion_id'],
+    $vote,
+    $just
   );
 } catch (Throwable $e) {
   // best-effort

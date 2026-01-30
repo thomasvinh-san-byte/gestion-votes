@@ -3,13 +3,15 @@ declare(strict_types=1);
 
 /**
  * audit_log.php - Journal d'audit avec pagination
- * 
+ *
  * GET /api/v1/audit_log.php?meeting_id={uuid}&limit=50&offset=0
- * 
+ *
  * Retourne les événements d'audit formatés pour affichage timeline.
  */
 
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MeetingRepository;
 
 api_require_role(['auditor', 'admin', 'operator', 'president']);
 
@@ -23,53 +25,19 @@ $offset = max(0, (int)($_GET['offset'] ?? 0));
 
 $tenantId = api_current_tenant_id();
 
+$repo = new MeetingRepository();
+
 // Vérifier que la séance existe
-$meeting = db_one("SELECT id, title FROM meetings WHERE tenant_id = ? AND id = ?", [$tenantId, $meetingId]);
+$meeting = $repo->findByIdForTenant($meetingId, $tenantId);
 if (!$meeting) {
     api_fail('meeting_not_found', 404);
 }
 
 // Récupérer les événements liés à cette séance
-$events = db_all("
-    SELECT
-        ae.id,
-        ae.action,
-        ae.resource_type,
-        ae.resource_id,
-        ae.actor_user_id,
-        ae.actor_role,
-        ae.payload,
-        ae.ip_address,
-        ae.created_at
-    FROM audit_events ae
-    WHERE ae.tenant_id = ?
-      AND (
-        ae.meeting_id = ?
-        OR (ae.resource_type = 'meeting' AND ae.resource_id = ?)
-        OR (ae.resource_type = 'motion' AND ae.resource_id IN (
-            SELECT id FROM motions WHERE meeting_id = ?
-        ))
-        OR (ae.resource_type = 'attendance' AND ae.resource_id IN (
-            SELECT id FROM attendances WHERE meeting_id = ?
-        ))
-      )
-    ORDER BY ae.created_at DESC
-    LIMIT ? OFFSET ?
-", [$tenantId, $meetingId, $meetingId, $meetingId, $meetingId, $limit, $offset]);
+$events = $repo->listAuditEventsForLog($tenantId, $meetingId, $limit, $offset);
 
 // Compter le total
-$total = (int)db_scalar("
-    SELECT COUNT(*)
-    FROM audit_events ae
-    WHERE ae.tenant_id = ?
-      AND (
-        ae.meeting_id = ?
-        OR (ae.resource_type = 'meeting' AND ae.resource_id = ?)
-        OR (ae.resource_type = 'motion' AND ae.resource_id IN (
-            SELECT id FROM motions WHERE meeting_id = ?
-        ))
-      )
-", [$tenantId, $meetingId, $meetingId, $meetingId]);
+$total = $repo->countAuditEventsForLog($tenantId, $meetingId);
 
 // Formatter les événements
 $formatted = [];
@@ -77,7 +45,7 @@ foreach ($events as $e) {
     $payload = [];
     if (!empty($e['payload'])) {
         try {
-            $payload = is_string($e['payload']) 
+            $payload = is_string($e['payload'])
                 ? json_decode($e['payload'], true) ?? []
                 : (array)$e['payload'];
         } catch (\Throwable $ex) {

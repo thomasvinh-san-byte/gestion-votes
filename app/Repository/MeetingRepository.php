@@ -252,6 +252,58 @@ class MeetingRepository extends AbstractRepository
         );
     }
 
+    /**
+     * Compte toutes les seances d'un tenant.
+     */
+    public function countForTenant(string $tenantId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM meetings WHERE tenant_id = :tid",
+            [':tid' => $tenantId]
+        ) ?? 0);
+    }
+
+    /**
+     * Liste les procurations d'une seance pour rapport (avec noms mandant/mandataire).
+     */
+    public function listProxiesForReport(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT g.full_name AS giver_name, r.full_name AS receiver_name, p.created_at, p.revoked_at
+             FROM proxies p
+             JOIN members g ON g.id = p.giver_member_id
+             JOIN members r ON r.id = p.receiver_member_id
+             WHERE p.meeting_id = :mid
+             ORDER BY g.full_name ASC",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Detecte les cycles de procuration pour une seance.
+     */
+    public function findProxyCycles(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT p1.giver_member_id, p1.receiver_member_id
+             FROM proxies p1
+             JOIN proxies p2 ON p1.receiver_member_id = p2.giver_member_id AND p1.giver_member_id = p2.receiver_member_id
+             WHERE p1.meeting_id = :mid",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Compte les seances live d'un tenant.
+     */
+    public function countLive(string $tenantId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM meetings WHERE tenant_id = :tid AND status = 'live'",
+            [':tid' => $tenantId]
+        ) ?? 0);
+    }
+
     // =========================================================================
     // ECRITURE
     // =========================================================================
@@ -360,6 +412,32 @@ class MeetingRepository extends AbstractRepository
             "UPDATE meetings SET current_motion_id = :mo, updated_at = now()
              WHERE tenant_id = :tid AND id = :mid",
             [':mo' => $motionId, ':tid' => $tenantId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Upsert d'un check d'urgence (meeting_emergency_checks).
+     */
+    public function upsertEmergencyCheck(
+        string $meetingId,
+        string $procedureCode,
+        int $itemIndex,
+        bool $checked,
+        ?string $checkedBy
+    ): void {
+        $this->execute(
+            "INSERT INTO meeting_emergency_checks(meeting_id, procedure_code, item_index, checked, checked_at, checked_by)
+             VALUES (:m,:p,:i,:c, CASE WHEN :c2 THEN NOW() ELSE NULL END, :by)
+             ON CONFLICT (meeting_id, procedure_code, item_index)
+             DO UPDATE SET checked = EXCLUDED.checked, checked_at = EXCLUDED.checked_at, checked_by = EXCLUDED.checked_by",
+            [
+                ':m' => $meetingId,
+                ':p' => $procedureCode,
+                ':i' => $itemIndex,
+                ':c' => $checked,
+                ':c2' => $checked,
+                ':by' => $checkedBy,
+            ]
         );
     }
 
@@ -526,6 +604,43 @@ class MeetingRepository extends AbstractRepository
     // =========================================================================
 
     /**
+     * Liste les transitions d'etat des seances (table meeting_state_transitions).
+     */
+    public function listStateTransitions(): array
+    {
+        return $this->selectAll(
+            "SELECT from_status, to_status, required_role, description FROM meeting_state_transitions ORDER BY from_status, to_status"
+        );
+    }
+
+    /**
+     * Trouve une seance avec le nom du validateur.
+     */
+    public function findWithValidator(string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT m.*, u.display_name AS validated_by
+             FROM meetings m
+             LEFT JOIN users u ON u.id = m.validated_by_user_id
+             WHERE m.id = :id",
+            [':id' => $meetingId]
+        );
+    }
+
+    /**
+     * Upsert du sha256 du rapport dans meeting_reports.
+     */
+    public function upsertReportHash(string $meetingId, string $sha256): void
+    {
+        $this->execute(
+            "INSERT INTO meeting_reports(meeting_id, sha256, generated_at)
+             VALUES (:m, :h, NOW())
+             ON CONFLICT (meeting_id) DO UPDATE SET sha256 = EXCLUDED.sha256, generated_at = NOW()",
+            [':m' => $meetingId, ':h' => $sha256]
+        );
+    }
+
+    /**
      * Stocke le PV HTML dans meeting_reports.
      */
     public function storePVHtml(string $meetingId, string $html): void
@@ -546,6 +661,20 @@ class MeetingRepository extends AbstractRepository
         return $this->selectOne(
             "SELECT html FROM meeting_reports WHERE meeting_id = :mid",
             [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Audit events pour export CSV (toutes colonnes, tri chronologique).
+     */
+    public function listAuditEventsForExport(string $tenantId, string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT created_at, actor_role, actor_user_id, action, resource_type, resource_id, payload
+             FROM audit_events
+             WHERE tenant_id = :tid AND meeting_id = :mid
+             ORDER BY created_at ASC",
+            [':tid' => $tenantId, ':mid' => $meetingId]
         );
     }
 
@@ -612,6 +741,65 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
+     * Audit events pagines pour le journal d'audit (timeline).
+     * Inclut meeting_id direct, resource_type meeting/motion/attendance.
+     */
+    public function listAuditEventsForLog(
+        string $tenantId,
+        string $meetingId,
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->selectAll(
+            "SELECT
+                ae.id,
+                ae.action,
+                ae.resource_type,
+                ae.resource_id,
+                ae.actor_user_id,
+                ae.actor_role,
+                ae.payload,
+                ae.ip_address,
+                ae.created_at
+            FROM audit_events ae
+            WHERE ae.tenant_id = ?
+              AND (
+                ae.meeting_id = ?
+                OR (ae.resource_type = 'meeting' AND ae.resource_id = ?)
+                OR (ae.resource_type = 'motion' AND ae.resource_id IN (
+                    SELECT id FROM motions WHERE meeting_id = ?
+                ))
+                OR (ae.resource_type = 'attendance' AND ae.resource_id IN (
+                    SELECT id FROM attendances WHERE meeting_id = ?
+                ))
+              )
+            ORDER BY ae.created_at DESC
+            LIMIT ? OFFSET ?",
+            [$tenantId, $meetingId, $meetingId, $meetingId, $meetingId, $limit, $offset]
+        );
+    }
+
+    /**
+     * Compte le total d'audit events pour le journal d'audit (pagination).
+     */
+    public function countAuditEventsForLog(string $tenantId, string $meetingId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*)
+            FROM audit_events ae
+            WHERE ae.tenant_id = ?
+              AND (
+                ae.meeting_id = ?
+                OR (ae.resource_type = 'meeting' AND ae.resource_id = ?)
+                OR (ae.resource_type = 'motion' AND ae.resource_id IN (
+                    SELECT id FROM motions WHERE meeting_id = ?
+                ))
+              )",
+            [$tenantId, $meetingId, $meetingId, $meetingId]
+        ) ?? 0);
+    }
+
+    /**
      * Verifie qu'une politique de vote existe pour un tenant.
      */
     public function votePolicyExists(string $policyId, string $tenantId): bool
@@ -630,6 +818,176 @@ class MeetingRepository extends AbstractRepository
         return (bool)$this->scalar(
             "SELECT 1 FROM quorum_policies WHERE tenant_id = :tid AND id = :id",
             [':tid' => $tenantId, ':id' => $policyId]
+        );
+    }
+
+    /**
+     * Liste les giver_member_id distincts des procurations actives d'une seance.
+     */
+    public function listDistinctProxyGivers(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT DISTINCT giver_member_id FROM proxies WHERE meeting_id = :mid AND revoked_at IS NULL",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les mandataires depassant le plafond de procurations.
+     */
+    public function listProxyCeilingViolations(string $tenantId, string $meetingId, int $maxPerReceiver): array
+    {
+        return $this->selectAll(
+            "SELECT proxy_id, COUNT(*) AS c
+             FROM proxies
+             WHERE tenant_id = :tid AND meeting_id = :mid AND revoked_at IS NULL
+             GROUP BY proxy_id
+             HAVING COUNT(*) > :mx
+             ORDER BY c DESC",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':mx' => $maxPerReceiver]
+        );
+    }
+
+    /**
+     * Compte les audit_events d'un tenant.
+     */
+    public function countAuditEventsForTenant(string $tenantId): ?int
+    {
+        try {
+            return (int)($this->scalar(
+                "SELECT COUNT(*) FROM audit_events WHERE tenant_id = :tid",
+                [':tid' => $tenantId]
+            ) ?? 0);
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /**
+     * Compte les echecs d'authentification recents (15 min).
+     */
+    public function countRecentAuthFailures(): ?int
+    {
+        try {
+            return (int)($this->scalar(
+                "SELECT COUNT(*) FROM auth_failures WHERE created_at > NOW() - INTERVAL '15 minutes'"
+            ) ?? 0);
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /**
+     * Reinitialise les champs live d'une seance (reset demo).
+     */
+    public function resetForDemo(string $meetingId, string $tenantId): void
+    {
+        $this->execute(
+            "UPDATE meetings
+             SET current_motion_id = NULL, status = 'live', updated_at = now()
+             WHERE id = :mid AND tenant_id = :tid",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Supprime les audit_events d'une seance (reset demo, best-effort).
+     */
+    public function deleteAuditEventsByMeeting(string $meetingId, string $tenantId): void
+    {
+        try {
+            $this->execute(
+                "DELETE FROM audit_events WHERE meeting_id = :mid AND tenant_id = :tid",
+                [':mid' => $meetingId, ':tid' => $tenantId]
+            );
+        } catch (\Throwable $e) { /* table may not exist */ }
+    }
+
+    /**
+     * Ping DB (SELECT 1).
+     */
+    public function ping(): bool
+    {
+        try {
+            $this->scalar("SELECT 1");
+            return true;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Nombre de connexions actives PostgreSQL.
+     */
+    public function activeConnections(): ?int
+    {
+        try {
+            return (int)$this->scalar("SELECT COUNT(*) FROM pg_stat_activity WHERE datname = current_database()");
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /**
+     * Verifie si une alerte systeme recente existe.
+     */
+    public function findRecentAlert(string $code): bool
+    {
+        try {
+            return (bool)$this->scalar(
+                "SELECT 1 FROM system_alerts WHERE code = :c AND created_at > NOW() - INTERVAL '10 minutes' LIMIT 1",
+                [':c' => $code]
+            );
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /**
+     * Cree une alerte systeme.
+     */
+    public function createSystemAlert(string $code, string $severity, string $message, ?string $detailsJson): void
+    {
+        try {
+            $this->execute(
+                "INSERT INTO system_alerts(code, severity, message, details_json, created_at) VALUES (:c,:s,:m,:d,NOW())",
+                [':c' => $code, ':s' => $severity, ':m' => $message, ':d' => $detailsJson]
+            );
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /**
+     * Liste les alertes systeme recentes.
+     */
+    public function listRecentAlerts(int $limit = 20): array
+    {
+        try {
+            return $this->selectAll(
+                "SELECT id, created_at, code, severity, message, details_json FROM system_alerts ORDER BY created_at DESC LIMIT " . max(1, $limit)
+            );
+        } catch (\Throwable $e) { return []; }
+    }
+
+    /**
+     * Upsert complet du rapport (HTML + SHA256 + generated_at).
+     */
+    public function upsertReportFull(string $meetingId, string $html, string $sha256): void
+    {
+        $this->execute(
+            "INSERT INTO meeting_reports (meeting_id, html, sha256, generated_at)
+             VALUES (:mid, :html, :hash, NOW())
+             ON CONFLICT (meeting_id)
+             DO UPDATE SET html = EXCLUDED.html, sha256 = EXCLUDED.sha256, generated_at = NOW(), updated_at = NOW()",
+            [':mid' => $meetingId, ':html' => $html, ':hash' => $sha256]
+        );
+    }
+
+    /**
+     * Liste les procurations orphelines (mandataire absent).
+     */
+    public function listOrphanProxies(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT p.id, giver.full_name AS giver_name, receiver.full_name AS receiver_name
+             FROM proxies p
+             JOIN members giver ON giver.id = p.giver_member_id
+             JOIN members receiver ON receiver.id = p.receiver_member_id
+             LEFT JOIN attendances a ON a.meeting_id = :mid1 AND a.member_id = p.receiver_member_id
+             WHERE p.meeting_id = :mid2
+               AND (a.id IS NULL OR a.mode NOT IN ('present', 'remote'))",
+            [':mid1' => $meetingId, ':mid2' => $meetingId]
         );
     }
 }

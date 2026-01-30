@@ -16,6 +16,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MotionRepository;
+
 api_require_role(['auditor', 'admin', 'operator']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -26,7 +30,7 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
 $tenantId = api_current_tenant_id();
 
 // Vérifier que la séance existe
-$meeting = db_one("SELECT id, title, status FROM meetings WHERE tenant_id = ? AND id = ?", [$tenantId, $meetingId]);
+$meeting = (new MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
 if (!$meeting) {
     api_fail('meeting_not_found', 404);
 }
@@ -36,16 +40,7 @@ $anomalies = [];
 // ============================================================================
 // 1. Votes sans présence enregistrée
 // ============================================================================
-$votesWithoutAttendance = db_all("
-    SELECT DISTINCT b.member_id, m.full_name, mo.title AS motion_title
-    FROM ballots b
-    JOIN motions mo ON mo.id = b.motion_id
-    JOIN members m ON m.id = b.member_id
-    LEFT JOIN attendances a ON a.meeting_id = ? AND a.member_id = b.member_id AND a.tenant_id = ?
-    WHERE mo.meeting_id = ?
-      AND (a.id IS NULL OR a.mode NOT IN ('present', 'remote'))
-    ORDER BY m.full_name
-", [$meetingId, $tenantId, $meetingId]);
+$votesWithoutAttendance = (new BallotRepository())->listVotesWithoutAttendance($meetingId, $tenantId);
 
 foreach ($votesWithoutAttendance as $row) {
     $anomalies[] = [
@@ -66,15 +61,7 @@ foreach ($votesWithoutAttendance as $row) {
 // ============================================================================
 // 2. Doubles votes potentiels (même membre, même motion)
 // ============================================================================
-$duplicateVotes = db_all("
-    SELECT b.member_id, m.full_name, mo.title AS motion_title, COUNT(*) AS vote_count
-    FROM ballots b
-    JOIN motions mo ON mo.id = b.motion_id
-    JOIN members m ON m.id = b.member_id
-    WHERE mo.meeting_id = ?
-    GROUP BY b.member_id, b.motion_id, m.full_name, mo.title
-    HAVING COUNT(*) > 1
-", [$meetingId]);
+$duplicateVotes = (new BallotRepository())->listDuplicateVotes($meetingId);
 
 foreach ($duplicateVotes as $row) {
     $anomalies[] = [
@@ -97,17 +84,7 @@ foreach ($duplicateVotes as $row) {
 // ============================================================================
 // 3. Incohérences de pondération
 // ============================================================================
-$weightMismatches = db_all("
-    SELECT b.member_id, m.full_name, m.voting_power AS expected_weight, 
-           b.weight AS actual_weight, mo.title AS motion_title
-    FROM ballots b
-    JOIN motions mo ON mo.id = b.motion_id
-    JOIN members m ON m.id = b.member_id
-    WHERE mo.meeting_id = ?
-      AND b.weight IS NOT NULL 
-      AND m.voting_power IS NOT NULL
-      AND ABS(b.weight - m.voting_power) > 0.01
-", [$meetingId]);
+$weightMismatches = (new BallotRepository())->listWeightMismatches($meetingId);
 
 foreach ($weightMismatches as $row) {
     $anomalies[] = [
@@ -132,15 +109,7 @@ foreach ($weightMismatches as $row) {
 // ============================================================================
 // 4. Procurations orphelines (donneur absent sans proxy valide)
 // ============================================================================
-$orphanProxies = db_all("
-    SELECT p.id, giver.full_name AS giver_name, receiver.full_name AS receiver_name
-    FROM proxies p
-    JOIN members giver ON giver.id = p.giver_member_id
-    JOIN members receiver ON receiver.id = p.receiver_member_id
-    LEFT JOIN attendances a ON a.meeting_id = ? AND a.member_id = p.receiver_member_id
-    WHERE p.meeting_id = ?
-      AND (a.id IS NULL OR a.mode NOT IN ('present', 'remote'))
-", [$meetingId, $meetingId]);
+$orphanProxies = (new MeetingRepository())->listOrphanProxies($meetingId);
 
 foreach ($orphanProxies as $row) {
     $anomalies[] = [
@@ -161,14 +130,7 @@ foreach ($orphanProxies as $row) {
 // ============================================================================
 // 5. Résolutions non closes (ouverte mais pas fermée)
 // ============================================================================
-$unclosedMotions = db_all("
-    SELECT id, title, opened_at
-    FROM motions
-    WHERE meeting_id = ?
-      AND opened_at IS NOT NULL
-      AND closed_at IS NULL
-    ORDER BY opened_at
-", [$meetingId]);
+$unclosedMotions = (new MotionRepository())->listUnclosed($meetingId);
 
 foreach ($unclosedMotions as $row) {
     $anomalies[] = [
@@ -189,15 +151,7 @@ foreach ($unclosedMotions as $row) {
 // ============================================================================
 // 6. Votes manuels non justifiés
 // ============================================================================
-$unjustifiedManualVotes = db_all("
-    SELECT b.id, m.full_name, mo.title AS motion_title
-    FROM ballots b
-    JOIN motions mo ON mo.id = b.motion_id
-    JOIN members m ON m.id = b.member_id
-    WHERE mo.meeting_id = ?
-      AND b.source = 'manual'
-      AND (b.justification IS NULL OR b.justification = '')
-", [$meetingId]);
+$unjustifiedManualVotes = (new BallotRepository())->listUnjustifiedManualVotes($meetingId);
 
 foreach ($unjustifiedManualVotes as $row) {
     $anomalies[] = [

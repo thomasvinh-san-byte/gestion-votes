@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MemberRepository;
+
 api_require_role('operator');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -14,10 +17,8 @@ if ($meetingId === '') {
 }
 
 // Exports autorisés uniquement après validation (exigence conformité)
-$mt = db_select_one(
-    "SELECT validated_at FROM meetings WHERE tenant_id = ? AND id = ?",
-    [api_current_tenant_id(), $meetingId]
-);
+$meetingRepo = new MeetingRepository();
+$mt = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$mt) {
     http_response_code(404);
     header('Content-Type: text/plain; charset=utf-8');
@@ -38,7 +39,7 @@ header('X-Content-Type-Options: nosniff');
 
 $sep = ';';
 $out = fopen('php://output', 'w');
-fputs($out, "ï»¿"); // UTF-8 BOM for Excel
+fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
 
 fputcsv($out, [
   'Member ID',
@@ -52,28 +53,8 @@ fputcsv($out, [
   'Représenté par (nom)',
 ], $sep);
 
-$rows = db_select_all(
-  "SELECT
-      m.id AS member_id,
-      m.full_name,
-      (CASE WHEN m.is_active THEN '1' ELSE '0' END) AS is_active,
-      COALESCE(m.voting_power, 0) AS voting_power,
-      COALESCE(a.mode::text, 'absent') AS attendance_mode,
-      a.checked_in_at,
-      a.checked_out_at,
-      pr.receiver_member_id AS proxy_to_member_id,
-      r.full_name AS proxy_to_name
-   FROM members m
-   LEFT JOIN attendances a
-          ON a.meeting_id = ? AND a.member_id = m.id
-   LEFT JOIN proxies pr
-          ON pr.meeting_id = ? AND pr.giver_member_id = m.id
-   LEFT JOIN members r
-          ON r.id = pr.receiver_member_id
-   WHERE m.tenant_id = ?
-   ORDER BY m.full_name ASC",
-  [$meetingId, $meetingId, api_current_tenant_id()]
-);
+$memberRepo = new MemberRepository();
+$rows = $memberRepo->listExportForMeeting($meetingId, api_current_tenant_id());
 
 foreach ($rows as $r) {
   fputcsv($out, [

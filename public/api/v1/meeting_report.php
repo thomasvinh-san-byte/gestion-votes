@@ -6,6 +6,13 @@ require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 require __DIR__ . '/../../../app/services/VoteEngine.php';
 require __DIR__ . '/../../../app/services/MeetingReportService.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\InvitationRepository;
+
 api_require_role('auditor');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -15,11 +22,14 @@ $showVoters = ((string)($_GET['show_voters'] ?? '') === '1');
 
 $tenant = api_current_tenant_id();
 
-$meeting = db_select_one(
-  "SELECT id, title, status, president_name, validated_at, archived_at, created_at
-   FROM meetings WHERE tenant_id = ? AND id = ?",
-  [$tenant, $meetingId]
-);
+$meetingRepo     = new MeetingRepository();
+$motionRepo      = new MotionRepository();
+$attendanceRepo  = new AttendanceRepository();
+$ballotRepo      = new BallotRepository();
+$policyRepo      = new PolicyRepository();
+$invitationRepo  = new InvitationRepository();
+
+$meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
 if (!$meeting) api_fail('meeting_not_found', 404);
 
 $regen = ((string)($_GET['regen'] ?? '') === '1');
@@ -28,7 +38,7 @@ $regen = ((string)($_GET['regen'] ?? '') === '1');
 // regen=1 permet de recalculer à la demande (debug/contrôle)
 if (!$regen) {
   try {
-    $snap = db_select_one("SELECT html FROM meeting_reports WHERE meeting_id = ?", [$meetingId]);
+    $snap = $meetingRepo->findPVSnapshot($meetingId);
     if ($snap && !empty($snap['html'])) {
       header('Content-Type: text/html; charset=utf-8');
       echo (string)$snap['html'];
@@ -40,51 +50,18 @@ if (!$regen) {
 
 OfficialResultsService::ensureSchema();
 
-$motions = db_select_all(
-  "SELECT
-     id, title, description, opened_at, closed_at,
-     vote_policy_id, quorum_policy_id,
-     official_source, official_for, official_against, official_abstain, official_total,
-     decision, decision_reason,
-     manual_total, manual_for, manual_against, manual_abstain
-   FROM motions
-   WHERE meeting_id = ?
-   ORDER BY position ASC NULLS LAST, created_at ASC",
-  [$meetingId]
-);
+$motions = $motionRepo->listForReport($meetingId);
 
-$attendance = db_select_all(
-  "SELECT m.id AS member_id, m.full_name, COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power, a.mode, a.checked_in_at
-   FROM members m
-   LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = ?
-   WHERE m.tenant_id = ? AND m.is_active = true
-   ORDER BY m.full_name ASC",
-  [$meetingId, $tenant]
-);
+$attendance = $attendanceRepo->listForReport($meetingId, $tenant);
 
 $proxies = [];
 try {
-  $proxies = db_select_all(
-    "SELECT g.full_name AS giver_name, r.full_name AS receiver_name, p.created_at, p.revoked_at
-     FROM proxies p
-     JOIN members g ON g.id = p.giver_member_id
-     JOIN members r ON r.id = p.receiver_member_id
-     WHERE p.meeting_id = ?
-     ORDER BY g.full_name ASC",
-    [$meetingId]
-  );
+  $proxies = $meetingRepo->listProxiesForReport($meetingId);
 } catch (Throwable $e) { $proxies = []; }
 
 $tokens = [];
 try {
-  $tokens = db_select_all(
-    "SELECT m.full_name, i.created_at, i.revoked_at, i.last_used_at
-     FROM invitations i
-     JOIN members m ON m.id = i.member_id
-     WHERE i.meeting_id = ?
-     ORDER BY m.full_name ASC",
-    [$meetingId]
-  );
+  $tokens = $invitationRepo->listTokensForReport($meetingId);
 } catch (Throwable $e) { $tokens = []; }
 
 function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
@@ -107,9 +84,9 @@ foreach ($motions as $m) {
   $mid = (string)$m['id'];
 
   $votePolicy = null;
-  if (!empty($m['vote_policy_id'])) $votePolicy = db_select_one("SELECT * FROM vote_policies WHERE id = ?", [$m['vote_policy_id']]);
+  if (!empty($m['vote_policy_id'])) $votePolicy = $policyRepo->findVotePolicy($m['vote_policy_id']);
   $quorumPolicy = null;
-  if (!empty($m['quorum_policy_id'])) $quorumPolicy = db_select_one("SELECT * FROM quorum_policies WHERE id = ?", [$m['quorum_policy_id']]);
+  if (!empty($m['quorum_policy_id'])) $quorumPolicy = $policyRepo->findQuorumPolicy($m['quorum_policy_id']);
 
   $src = (string)($m['official_source'] ?? '');
   $hasOfficial = $src !== '' && $m['official_total'] !== null;
@@ -214,22 +191,7 @@ if ($showVoters) {
     $title = (string)($m['title'] ?? 'Motion');
     $isClosed = ($m['closed_at'] !== null);
 
-    $ballots = db_select_all(
-      "SELECT
-         COALESCE(b.value::text, b.choice) AS choice,
-         COALESCE(b.weight, b.effective_power, 0) AS effective_power,
-         b.is_proxy_vote,
-         b.member_id AS giver_member_id,
-         b.proxy_source_member_id AS receiver_member_id,
-         mg.full_name AS giver_name,
-         mr.full_name AS receiver_name
-       FROM ballots b
-       LEFT JOIN members mg ON mg.id = b.member_id
-       LEFT JOIN members mr ON mr.id = b.proxy_source_member_id
-       WHERE b.motion_id = ?
-       ORDER BY COALESCE(mg.full_name, ''), COALESCE(mr.full_name, '')",
-      [$mid]
-    );
+    $ballots = $ballotRepo->listDetailedForMotion($mid);
 
     $rows = '';
     $i = 0;

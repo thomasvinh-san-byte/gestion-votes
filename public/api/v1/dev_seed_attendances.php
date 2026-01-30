@@ -5,6 +5,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\AttendanceRepository;
+
 try {
     api_require_role('operator');
     $in = api_request('POST');
@@ -14,11 +17,11 @@ try {
     $modes = ['present', 'remote', 'absent'];
     $presentRatio = (float)($in['present_ratio'] ?? 0.7);
 
+    $memberRepo     = new MemberRepository();
+    $attendanceRepo = new AttendanceRepository();
+
     // Get all active members
-    $members = db_select_all(
-        "SELECT id FROM members WHERE tenant_id = ? AND is_active = true",
-        [api_current_tenant_id()]
-    );
+    $members = $memberRepo->listActiveIds(api_current_tenant_id());
 
     if (empty($members)) {
         api_fail('no_members', 400, ['detail' => 'Aucun membre actif trouvé. Créez des membres d\'abord.']);
@@ -37,12 +40,7 @@ try {
 
         $id = api_uuid4();
         try {
-            db_execute(
-                "INSERT INTO attendances (id, tenant_id, meeting_id, member_id, mode, checked_in_at, created_at, updated_at)
-                 VALUES (:id, :tid, :mid, :mem, :mode, now(), now(), now())
-                 ON CONFLICT (meeting_id, member_id) DO UPDATE SET mode = EXCLUDED.mode, updated_at = now()",
-                [':id' => $id, ':tid' => api_current_tenant_id(), ':mid' => $meetingId, ':mem' => $m['id'], ':mode' => $mode]
-            );
+            $attendanceRepo->upsertSeed($id, api_current_tenant_id(), $meetingId, $m['id'], $mode);
             $created++;
         } catch (Throwable $e) {
             // skip errors

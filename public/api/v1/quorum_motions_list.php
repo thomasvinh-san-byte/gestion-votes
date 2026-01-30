@@ -3,6 +3,8 @@
 require __DIR__ . '/../../../app/api.php';
 require_once __DIR__ . '/../../../app/services/QuorumEngine.php';
 
+use AgVote\Repository\MotionRepository;
+
 header('Content-Type: text/html; charset=utf-8');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -12,13 +14,8 @@ if ($meetingId === '') {
 }
 
 // Récupère motions de la séance
-$motions = db_select_all(
-  "SELECT id, title, status, opened_at, closed_at, quorum_policy_id
-   FROM motions
-   WHERE meeting_id = :m
-   ORDER BY sort_order NULLS LAST, created_at ASC",
-  [':m' => $meetingId]
-);
+$repo = new MotionRepository();
+$motions = $repo->listForQuorumDisplay($meetingId);
 
 echo '<section class="card">';
 echo '  <div class="row between">';

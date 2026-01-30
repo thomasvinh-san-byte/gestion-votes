@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MemberRepository;
+
 // =============================================================================
 // SÉCURITÉ
 // =============================================================================
@@ -120,6 +122,8 @@ $skipped = 0;
 $errors = [];
 $lineNumber = 1;
 
+$memberRepo = new MemberRepository();
+
 db()->beginTransaction();
 
 try {
@@ -172,33 +176,18 @@ try {
         // Check doublon
         $existing = null;
         if (!empty($data['email'])) {
-            $existing = db_one(
-                "SELECT id FROM members WHERE tenant_id = ? AND LOWER(email) = ?",
-                [$tenantId, $data['email']]
-            );
+            $existing = $memberRepo->findByEmail($tenantId, $data['email']);
         }
         if (!$existing) {
-            $existing = db_one(
-                "SELECT id FROM members WHERE tenant_id = ? AND LOWER(full_name) = LOWER(?)",
-                [$tenantId, $data['full_name']]
-            );
+            $existing = $memberRepo->findByFullName($tenantId, $data['full_name']);
         }
 
         if ($existing) {
             // Update
-            db_exec(
-                "UPDATE members SET 
-                    full_name = ?, email = COALESCE(?, email), voting_power = ?, is_active = ?, updated_at = NOW()
-                 WHERE id = ?",
-                [$data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active'] ? 'true' : 'false', $existing['id']]
-            );
+            $memberRepo->updateImport($existing['id'], $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
         } else {
             // Insert
-            db_exec(
-                "INSERT INTO members (id, tenant_id, full_name, email, voting_power, is_active, created_at, updated_at)
-                 VALUES (gen_random_uuid(), ?, ?, ?, ?, ?, NOW(), NOW())",
-                [$tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active'] ? 'true' : 'false']
-            );
+            $memberRepo->createImport($tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
         }
 
         $imported++;

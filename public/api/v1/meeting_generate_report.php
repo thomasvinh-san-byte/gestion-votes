@@ -3,31 +3,26 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+
 api_require_role('president');
 
 $in = api_request('GET');
 $meetingId = trim((string)($in['meeting_id'] ?? ($_GET['meeting_id'] ?? '')));
 if ($meetingId === '' || !api_is_uuid($meetingId)) api_fail('invalid_meeting_id', 400);
 
+$meetingRepo = new MeetingRepository();
+$motionRepo  = new MotionRepository();
+
 // Load meeting
-$meeting = db_select_one(
-  "SELECT m.*, u.display_name AS validated_by
-   FROM meetings m
-   LEFT JOIN users u ON u.id = m.validated_by_user_id
-   WHERE m.id = ?",
-  [$meetingId]
-);
+$meeting = $meetingRepo->findWithValidator($meetingId);
 if (!$meeting) api_fail('meeting_not_found', 404);
 if ($meeting['validated_at'] === null) api_fail('meeting_not_validated', 409);
 
 // Motions + tallies
-$motions = db_select_all(
-  "SELECT title, evote_results
-   FROM motions
-   WHERE meeting_id = ?
-   ORDER BY COALESCE(position, sort_order, 0) ASC",
-  [$meetingId]
-);
+$motions = $motionRepo->listForReportGeneration($meetingId);
 
 // Build HTML
 ob_start();
@@ -77,12 +72,7 @@ $html = ob_get_clean();
 $hash = hash('sha256', $html);
 
 // Persist snapshot
-db_execute(
-  "INSERT INTO meeting_reports(meeting_id, sha256, generated_at)
-   VALUES (:m,:h,NOW())
-   ON CONFLICT (meeting_id) DO UPDATE SET sha256 = EXCLUDED.sha256, generated_at = NOW()",
-  [':m'=>$meetingId, ':h'=>$hash]
-);
+$meetingRepo->upsertReportHash($meetingId, $hash);
 
 header('Content-Type: text/html; charset=utf-8');
 echo $html;

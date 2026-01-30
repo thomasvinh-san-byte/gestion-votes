@@ -182,6 +182,21 @@ class InvitationRepository extends AbstractRepository
     }
 
     /**
+     * Liste les tokens/invitations pour rapport PV (avec nom du membre).
+     */
+    public function listTokensForReport(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT m.full_name, i.created_at, i.revoked_at, i.last_used_at
+             FROM invitations i
+             JOIN members m ON m.id = i.member_id
+             WHERE i.meeting_id = :mid
+             ORDER BY m.full_name ASC",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
      * Marque une invitation comme bounced (echec envoi).
      */
     public function markBounced(string $meetingId, string $memberId): void
@@ -202,6 +217,20 @@ class InvitationRepository extends AbstractRepository
             "UPDATE invitations
              SET status = 'accepted',
                  responded_at = coalesce(responded_at, now()),
+                 updated_at = now()
+             WHERE id = :id",
+            [':id' => $id]
+        );
+    }
+
+    /**
+     * Marque une invitation comme ouverte (si pending/sent).
+     */
+    public function markOpened(string $id): void
+    {
+        $this->execute(
+            "UPDATE invitations
+             SET status = CASE WHEN status IN ('pending','sent') THEN 'opened' ELSE status END,
                  updated_at = now()
              WHERE id = :id",
             [':id' => $id]

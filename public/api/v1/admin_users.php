@@ -12,44 +12,27 @@
 require __DIR__ . '/../../../app/api.php';
 require_once __DIR__ . '/../../../app/services/AuthService.php';
 
+use AgVote\Repository\UserRepository;
+
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 api_require_role('admin');
 
 $validSystemRoles = ['admin', 'operator', 'auditor', 'viewer'];
+
+$userRepo = new UserRepository();
 
 // ─── GET : lister les utilisateurs ───────────────────────────────
 if ($method === 'GET') {
     api_request('GET');
 
     $roleFilter = trim((string)($_GET['role'] ?? ''));
-    $params = [api_current_tenant_id()];
-    $where = "WHERE u.tenant_id = ?";
+    $filterValue = ($roleFilter !== '' && in_array($roleFilter, $validSystemRoles, true)) ? $roleFilter : null;
 
-    if ($roleFilter !== '' && in_array($roleFilter, $validSystemRoles, true)) {
-        $where .= " AND u.role = ?";
-        $params[] = $roleFilter;
-    }
-
-    $rows = db_select_all(
-        "SELECT u.id, u.email, u.name, u.role, u.is_active, u.created_at, u.updated_at,
-                CASE WHEN u.api_key_hash IS NOT NULL THEN true ELSE false END AS has_api_key
-         FROM users u
-         {$where}
-         ORDER BY u.role ASC, u.name ASC",
-        $params
-    );
+    $rows = $userRepo->listByTenant(api_current_tenant_id(), $filterValue);
 
     // Enrichir avec les rôles de séance actifs
     foreach ($rows as &$row) {
-        $meetingRoles = db_select_all(
-            "SELECT mr.role, mr.meeting_id, m.title AS meeting_title
-             FROM meeting_roles mr
-             JOIN meetings m ON m.id = mr.meeting_id
-             WHERE mr.user_id = ? AND mr.tenant_id = ? AND mr.revoked_at IS NULL
-             ORDER BY mr.assigned_at DESC",
-            [$row['id'], api_current_tenant_id()]
-        );
-        $row['meeting_roles'] = $meetingRoles;
+        $row['meeting_roles'] = $userRepo->listActiveMeetingRolesForUser($row['id'], api_current_tenant_id());
     }
     unset($row);
 
@@ -70,10 +53,7 @@ if ($method === 'POST') {
         $userId = api_require_uuid($in, 'user_id');
         $apiKey = bin2hex(random_bytes(16));
         $hash = AuthService::hashKey($apiKey);
-        db_execute(
-            "UPDATE users SET api_key_hash = :h, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
-            [':h' => $hash, ':t' => api_current_tenant_id(), ':id' => $userId]
-        );
+        $userRepo->rotateApiKey(api_current_tenant_id(), $userId, $hash);
         audit_log('admin.user.key_rotated', 'user', $userId, []);
         api_ok(['rotated' => true, 'api_key' => $apiKey, 'user_id' => $userId]);
     }
@@ -81,10 +61,7 @@ if ($method === 'POST') {
     // ── Révoquer la clé API ──
     if ($action === 'revoke_key') {
         $userId = api_require_uuid($in, 'user_id');
-        db_execute(
-            "UPDATE users SET api_key_hash = NULL, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
-            [':t' => api_current_tenant_id(), ':id' => $userId]
-        );
+        $userRepo->revokeApiKey(api_current_tenant_id(), $userId);
         audit_log('admin.user.key_revoked', 'user', $userId, []);
         api_ok(['revoked' => true, 'user_id' => $userId]);
     }
@@ -100,10 +77,7 @@ if ($method === 'POST') {
         }
 
         $active = (int)($in['is_active'] ?? 1) ? true : false;
-        db_execute(
-            "UPDATE users SET is_active = :a, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
-            [':a' => $active ? 'true' : 'false', ':t' => api_current_tenant_id(), ':id' => $userId]
-        );
+        $userRepo->toggleActive(api_current_tenant_id(), $userId, $active);
         audit_log('admin.user.toggled', 'user', $userId, ['is_active' => $active]);
         api_ok(['saved' => true, 'user_id' => $userId, 'is_active' => $active]);
     }
@@ -131,16 +105,7 @@ if ($method === 'POST') {
             api_fail('cannot_demote_self', 400, ['detail' => 'Vous ne pouvez pas changer votre propre rôle.']);
         }
 
-        $setClauses = ["email = :e", "name = :n", "updated_at = NOW()"];
-        $params = [':e' => $email, ':n' => $name, ':t' => api_current_tenant_id(), ':id' => $userId];
-
-        if ($role !== '') {
-            $setClauses[] = "role = :r";
-            $params[':r'] = $role;
-        }
-
-        $sql = "UPDATE users SET " . implode(', ', $setClauses) . " WHERE tenant_id = :t AND id = :id";
-        db_execute($sql, $params);
+        $userRepo->updateUser(api_current_tenant_id(), $userId, $email, $name, $role !== '' ? $role : null);
 
         audit_log('admin.user.updated', 'user', $userId, ['email' => $email, 'role' => $role]);
         api_ok(['saved' => true, 'user_id' => $userId]);
@@ -163,23 +128,16 @@ if ($method === 'POST') {
         }
 
         // Vérifier email unique
-        $existing = db_scalar(
-            "SELECT id FROM users WHERE tenant_id = ? AND email = ?",
-            [api_current_tenant_id(), $email]
-        );
+        $existing = $userRepo->findIdByEmail(api_current_tenant_id(), $email);
         if ($existing) {
             api_fail('email_exists', 409, ['detail' => "Un utilisateur avec l'email '$email' existe déjà."]);
         }
 
-        $id = db_scalar("SELECT gen_random_uuid()");
+        $id = $userRepo->newUuid();
         $apiKey = bin2hex(random_bytes(16));
         $hash = AuthService::hashKey($apiKey);
 
-        db_execute(
-            "INSERT INTO users (id, tenant_id, email, name, role, api_key_hash, is_active, created_at, updated_at)
-             VALUES (:id, :t, :e, :n, :r, :h, true, NOW(), NOW())",
-            [':id' => $id, ':t' => api_current_tenant_id(), ':e' => $email, ':n' => $name, ':r' => $role, ':h' => $hash]
-        );
+        $userRepo->createUser($id, api_current_tenant_id(), $email, $name, $role, $hash);
 
         audit_log('admin.user.created', 'user', $id, ['email' => $email, 'role' => $role]);
         api_ok(['saved' => true, 'user_id' => $id, 'api_key' => $apiKey]);

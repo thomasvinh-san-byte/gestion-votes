@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+
 api_require_role(['operator', 'admin', 'auditor']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -11,10 +14,8 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
 }
 
 // Exports autorisés uniquement après validation (exigence conformité)
-$mt = db_select_one(
-    "SELECT validated_at FROM meetings WHERE tenant_id = ? AND id = ?",
-    [api_current_tenant_id(), $meetingId]
-);
+$meetingRepo = new MeetingRepository();
+$mt = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$mt) api_fail('meeting_not_found', 404);
 if (empty($mt['validated_at'])) api_fail('meeting_not_validated', 409);
 
@@ -25,7 +26,7 @@ header('X-Content-Type-Options: nosniff');
 
 $sep = ';';
 $out = fopen('php://output', 'w');
-fputs($out, "ï»¿"); // UTF-8 BOM for Excel
+fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
 
 fputcsv($out, [
   'Motion ID',
@@ -43,28 +44,8 @@ fputcsv($out, [
   'Décision',
 ], $sep);
 
-$rows = db_select_all(
-  "SELECT
-      mo.id AS motion_id,
-      mo.title,
-      mo.position,
-      mo.opened_at,
-      mo.closed_at,
-      COALESCE(SUM(CASE WHEN b.value = 'for' THEN b.weight ELSE 0 END), 0) AS w_for,
-      COALESCE(SUM(CASE WHEN b.value = 'against' THEN b.weight ELSE 0 END), 0) AS w_against,
-      COALESCE(SUM(CASE WHEN b.value = 'abstain' THEN b.weight ELSE 0 END), 0) AS w_abstain,
-      COALESCE(SUM(CASE WHEN b.value = 'nsp' THEN b.weight ELSE 0 END), 0) AS w_nsp,
-      COALESCE(SUM(b.weight), 0) AS w_total,
-      COALESCE(COUNT(b.id), 0) AS ballots_count,
-      COALESCE(SUM(CASE WHEN b.source = 'manual' THEN 1 ELSE 0 END), 0) AS ballots_manual_count,
-      COALESCE(mo.decision, '') AS decision
-   FROM motions mo
-   LEFT JOIN ballots b ON b.motion_id = mo.id
-   WHERE mo.meeting_id = ?
-   GROUP BY mo.id, mo.title, mo.position, mo.opened_at, mo.closed_at, mo.decision
-   ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC",
-  [$meetingId]
-);
+$motionRepo = new MotionRepository();
+$rows = $motionRepo->listResultsExportForMeeting($meetingId);
 
 foreach ($rows as $r) {
   fputcsv($out, [

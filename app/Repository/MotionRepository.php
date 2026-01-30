@@ -282,6 +282,60 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
+     * Contexte ballot (BallotsService): motion + meeting status + tenant.
+     */
+    public function findWithBallotContext(string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT
+              m.id          AS motion_id,
+              m.opened_at   AS motion_opened_at,
+              m.closed_at   AS motion_closed_at,
+              mt.id         AS meeting_id,
+              mt.status     AS meeting_status,
+              mt.validated_at AS meeting_validated_at,
+              mt.tenant_id  AS tenant_id
+            FROM motions m
+            JOIN meetings mt ON mt.id = m.meeting_id
+            WHERE m.id = :mid",
+            [':mid' => $motionId]
+        );
+    }
+
+    /**
+     * Liste les motions d'une seance pour rapport (avec colonnes officielles).
+     */
+    public function listForReport(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT
+               id, title, description, opened_at, closed_at,
+               vote_policy_id, quorum_policy_id,
+               official_source, official_for, official_against, official_abstain, official_total,
+               decision, decision_reason,
+               manual_total, manual_for, manual_against, manual_abstain
+             FROM motions
+             WHERE meeting_id = :mid
+             ORDER BY position ASC NULLS LAST, created_at ASC",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les motions d'une seance pour affichage quorum (badge + justification).
+     */
+    public function listForQuorumDisplay(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT id, title, status, opened_at, closed_at, quorum_policy_id
+             FROM motions
+             WHERE meeting_id = :m
+             ORDER BY sort_order NULLS LAST, created_at ASC",
+            [':m' => $meetingId]
+        );
+    }
+
+    /**
      * Liste les motions "ouvrables" (draft, pas encore ouverte ni fermee) pour le dashboard.
      */
     public function listOpenable(string $tenantId, string $meetingId, int $limit = 100): array
@@ -322,6 +376,131 @@ class MotionRepository extends AbstractRepository
              WHERE tenant_id = :tid AND id = :id AND meeting_id = :mid",
             [':tid' => $tenantId, ':id' => $motionId, ':mid' => $meetingId]
         );
+    }
+
+    /**
+     * Export CSV: resultats agrege des motions pour une seance.
+     */
+    public function listResultsExportForMeeting(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT
+                mo.id AS motion_id,
+                mo.title,
+                mo.position,
+                mo.opened_at,
+                mo.closed_at,
+                COALESCE(SUM(CASE WHEN b.value = 'for' THEN b.weight ELSE 0 END), 0) AS w_for,
+                COALESCE(SUM(CASE WHEN b.value = 'against' THEN b.weight ELSE 0 END), 0) AS w_against,
+                COALESCE(SUM(CASE WHEN b.value = 'abstain' THEN b.weight ELSE 0 END), 0) AS w_abstain,
+                COALESCE(SUM(CASE WHEN b.value = 'nsp' THEN b.weight ELSE 0 END), 0) AS w_nsp,
+                COALESCE(SUM(b.weight), 0) AS w_total,
+                COALESCE(COUNT(b.id), 0) AS ballots_count,
+                COALESCE(SUM(CASE WHEN b.source = 'manual' THEN 1 ELSE 0 END), 0) AS ballots_manual_count,
+                COALESCE(mo.decision, '') AS decision
+             FROM motions mo
+             LEFT JOIN ballots b ON b.motion_id = mo.id
+             WHERE mo.meeting_id = ?
+             GROUP BY mo.id, mo.title, mo.position, mo.opened_at, mo.closed_at, mo.decision
+             ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC",
+            [$meetingId]
+        );
+    }
+
+    /**
+     * Trouve une motion par son ID et meeting_id (colonnes basiques).
+     */
+    public function findByIdAndMeeting(string $motionId, string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, title FROM motions WHERE id = :id AND meeting_id = :mid",
+            [':id' => $motionId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste titre et evote_results pour generation de rapport.
+     */
+    public function listForReportGeneration(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT title, evote_results
+             FROM motions
+             WHERE meeting_id = :mid
+             ORDER BY COALESCE(position, sort_order, 0) ASC",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Trouve la motion ouverte pour le projecteur (id, title, secret, opened_at).
+     */
+    public function findOpenForProjector(string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, title, secret, opened_at
+             FROM motions
+             WHERE meeting_id = :meeting_id
+               AND opened_at IS NOT NULL
+               AND closed_at IS NULL
+             ORDER BY opened_at DESC
+             LIMIT 1",
+            [':meeting_id' => $meetingId]
+        );
+    }
+
+    /**
+     * Trouve la derniere motion fermee pour le projecteur (id, title, secret, closed_at).
+     */
+    public function findLastClosedForProjector(string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, title, secret, closed_at
+             FROM motions
+             WHERE meeting_id = :meeting_id
+               AND closed_at IS NOT NULL
+             ORDER BY closed_at DESC
+             LIMIT 1",
+            [':meeting_id' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les motions fermees avec donnees de comptage manuel (par meeting_id seul).
+     */
+    public function listClosedForMeetingWithManualTally(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT id, title, manual_total, manual_for, manual_against, manual_abstain, opened_at, closed_at
+             FROM motions
+             WHERE meeting_id = :mid AND closed_at IS NOT NULL
+             ORDER BY closed_at ASC NULLS LAST",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Motions closes sans aucun bulletin pour une seance.
+     */
+    public function listClosedWithoutVotes(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT m.id, m.title
+             FROM motions m
+             LEFT JOIN ballots b ON b.motion_id = m.id
+             WHERE m.meeting_id = :mid AND m.closed_at IS NOT NULL
+             GROUP BY m.id, m.title
+             HAVING COUNT(b.id) = 0",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Compte toutes les motions (global, sans filtre tenant).
+     */
+    public function countAll(): int
+    {
+        return (int)($this->scalar("SELECT COUNT(*) FROM motions") ?? 0);
     }
 
     // =========================================================================
@@ -490,5 +669,153 @@ class MotionRepository extends AbstractRepository
                   ADD COLUMN IF NOT EXISTS decided_at timestamptz"
             );
         } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /**
+     * Compteurs motions pour workflow (total + open au sens ouvert non ferme).
+     */
+    public function countWorkflowSummary(string $meetingId): array
+    {
+        $row = $this->selectOne(
+            "SELECT count(*) AS total,
+                    sum(CASE WHEN opened_at IS NOT NULL AND closed_at IS NULL THEN 1 ELSE 0 END) AS open
+             FROM motions WHERE meeting_id = :mid",
+            [':mid' => $meetingId]
+        );
+        return $row ?: ['total' => 0, 'open' => 0];
+    }
+
+    /**
+     * Prochaine motion non encore ouverte (ordre position/created_at).
+     */
+    public function findNextNotOpened(string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, title FROM motions
+             WHERE meeting_id = :mid AND opened_at IS NULL
+             ORDER BY position ASC NULLS LAST, created_at ASC LIMIT 1",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Prochaine motion non encore ouverte (FOR UPDATE, avec tenant).
+     */
+    public function findNextNotOpenedForUpdate(string $tenantId, string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id FROM motions
+             WHERE tenant_id = :tid AND meeting_id = :mid
+               AND opened_at IS NULL AND closed_at IS NULL
+             ORDER BY COALESCE(position, sort_order, 0) ASC
+             LIMIT 1 FOR UPDATE",
+            [':tid' => $tenantId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Trouve une motion par id + meeting_id (FOR UPDATE, avec tenant).
+     */
+    public function findByIdAndMeetingForUpdate(string $tenantId, string $meetingId, string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id FROM motions
+             WHERE tenant_id = :tid AND meeting_id = :mid AND id = :id
+             FOR UPDATE",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':id' => $motionId]
+        );
+    }
+
+    /**
+     * Trouve une motion dans une seance avec titre et dates.
+     */
+    public function findByMeetingWithDates(string $tenantId, string $meetingId, string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, title, opened_at, closed_at
+             FROM motions
+             WHERE tenant_id = :tid AND meeting_id = :mid AND id = :id",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':id' => $motionId]
+        );
+    }
+
+    /**
+     * Trouve une motion avec son meeting_id et tenant_id (sans filtre tenant).
+     */
+    public function findWithMeetingTenant(string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id, m.tenant_id
+             FROM motions mo
+             JOIN meetings m ON m.id = mo.meeting_id
+             WHERE mo.id = :id",
+            [':id' => $motionId]
+        );
+    }
+
+    /**
+     * Met a jour le comptage manuel d'une motion.
+     */
+    public function updateManualTally(string $motionId, int $total, int $for, int $against, int $abstain): void
+    {
+        $this->execute(
+            "UPDATE motions SET manual_total = :t, manual_for = :f, manual_against = :a, manual_abstain = :ab WHERE id = :id",
+            [':t' => $total, ':f' => $for, ':a' => $against, ':ab' => $abstain, ':id' => $motionId]
+        );
+    }
+
+    /**
+     * Reinitialise toutes les motions d'une seance (reset demo).
+     */
+    public function resetStatesForMeeting(string $meetingId, string $tenantId): void
+    {
+        $this->execute(
+            "UPDATE motions
+             SET opened_at = NULL, closed_at = NULL,
+                 manual_total = NULL, manual_for = NULL, manual_against = NULL, manual_abstain = NULL,
+                 updated_at = now()
+             WHERE meeting_id = :mid AND tenant_id = :tid",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Marque une motion comme ouverte (avec filtre meeting_id).
+     */
+    public function markOpenedInMeeting(string $tenantId, string $motionId, string $meetingId): void
+    {
+        $this->execute(
+            "UPDATE motions
+             SET opened_at = COALESCE(opened_at, now()), closed_at = NULL
+             WHERE tenant_id = :tid AND id = :id AND meeting_id = :mid AND closed_at IS NULL",
+            [':tid' => $tenantId, ':id' => $motionId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Trouve motion ouverte + ses dates pour validation (motionId + meetingId, sans tenant).
+     */
+    public function findByIdAndMeetingWithDates(string $motionId, string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, meeting_id, opened_at, closed_at FROM motions WHERE id = :id AND meeting_id = :mid",
+            [':id' => $motionId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les motions ouvertes et non fermees (anomalies).
+     */
+    public function listUnclosed(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT id, title, opened_at
+             FROM motions
+             WHERE meeting_id = :mid
+               AND opened_at IS NOT NULL
+               AND closed_at IS NULL
+             ORDER BY opened_at",
+            [':mid' => $meetingId]
+        );
     }
 }

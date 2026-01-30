@@ -6,6 +6,9 @@ require_once __DIR__ . '/MembersService.php';
 require_once __DIR__ . '/ProxiesService.php';
 require_once __DIR__ . '/AttendancesService.php';
 
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\BallotRepository;
+
 final class BallotsService
 {
     private static function isUuid(string $s): bool
@@ -38,22 +41,8 @@ final class BallotsService
         }
 
         // Charger motion + meeting + tenant
-        $context = db_select_one(
-            "
-            SELECT
-              m.id          AS motion_id,
-              m.opened_at   AS motion_opened_at,
-              m.closed_at   AS motion_closed_at,
-              mt.id         AS meeting_id,
-              mt.status     AS meeting_status,
-              mt.validated_at AS meeting_validated_at,
-              mt.tenant_id  AS tenant_id
-            FROM motions m
-            JOIN meetings mt ON mt.id = m.meeting_id
-            WHERE m.id = :motion_id
-            ",
-            [':motion_id' => $motionId]
-        );
+        $motionRepo = new MotionRepository();
+        $context = $motionRepo->findWithBallotContext($motionId);
 
         if (!$context) {
             throw new RuntimeException('Motion introuvable');
@@ -63,7 +52,7 @@ final class BallotsService
         $meetingStatus = (string)$context['meeting_status'];
 
         if ($meetingStatus !== 'live') {
-            throw new RuntimeException('Impossible de voter sur une motion dont la séance n’est pas en cours');
+            throw new RuntimeException('Impossible de voter sur une motion dont la séance n\'est pas en cours');
         }
 
 if (!empty($context['meeting_validated_at'])) {
@@ -71,7 +60,7 @@ if (!empty($context['meeting_validated_at'])) {
 }
 
         if (empty($context['motion_opened_at']) || !empty($context['motion_closed_at'])) {
-            throw new RuntimeException('Cette motion n’est pas ouverte au vote');
+            throw new RuntimeException('Cette motion n\'est pas ouverte au vote');
         }
 
         $isProxyVote = (bool)($data['is_proxy_vote'] ?? false);
@@ -145,50 +134,16 @@ if (!empty($context['meeting_validated_at'])) {
             }
         }
 
-        global $pdo;
-
-        $sql = "
-            INSERT INTO ballots (
-              id,
-              tenant_id,
-              motion_id,
-              member_id,
-              value,
-              weight,
-              cast_at,
-              is_proxy_vote,
-              proxy_source_member_id
-            ) VALUES (
-              gen_random_uuid(),
-              :tenant_id,
-              :motion_id,
-              :member_id,
-              :value,
-              :weight,
-              now(),
-              :is_proxy_vote,
-              :proxy_source_member_id
-            )
-            ON CONFLICT (motion_id, member_id) DO UPDATE
-            SET value                  = EXCLUDED.value,
-                weight                 = EXCLUDED.weight,
-                cast_at                = now(),
-                is_proxy_vote          = EXCLUDED.is_proxy_vote,
-                proxy_source_member_id = EXCLUDED.proxy_source_member_id
-        ";
-
-        $params = [
-            ':tenant_id'              => $tenantId,
-            ':motion_id'              => $motionId,
-            ':member_id'              => $memberId,
-            ':value'                  => $value,
-            ':weight'                 => $weight,
-            ':is_proxy_vote'          => $isProxyVote,
-            ':proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
-        ];
-
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
+        $ballotRepo = new BallotRepository();
+        $ballotRepo->castBallot(
+            $tenantId,
+            $motionId,
+            $memberId,
+            $value,
+            $weight,
+            $isProxyVote,
+            $isProxyVote ? $proxyVoterId : null
+        );
 
         if (function_exists('audit_log')) {
             audit_log('ballot_cast', 'motion', $motionId, [
@@ -201,25 +156,7 @@ if (!empty($context['meeting_validated_at'])) {
             ]);
         }
 
-        $row = db_select_one(
-            "
-            SELECT
-              motion_id,
-              member_id,
-              value,
-              weight,
-              cast_at,
-              is_proxy_vote,
-              proxy_source_member_id
-            FROM ballots
-            WHERE motion_id = :motion_id
-              AND member_id = :member_id
-            ",
-            [
-                ':motion_id' => $motionId,
-                ':member_id' => $memberId,
-            ]
-        );
+        $row = $ballotRepo->findByMotionAndMember($motionId, $memberId);
 
         return $row ?? [
             'motion_id' => $motionId,

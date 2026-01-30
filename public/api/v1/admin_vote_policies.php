@@ -40,7 +40,7 @@ if ($method === 'POST') {
       $base, $threshold, $abstBool
     );
   } else {
-    $id = (string)db()->query("SELECT gen_random_uuid()")->fetchColumn();
+    $id = $repo->generateUuid();
     $repo->createVotePolicy(
       $id, api_current_tenant_id(), $name, $base, $threshold, $abstBool
     );
