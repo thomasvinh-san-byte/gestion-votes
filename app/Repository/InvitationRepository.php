@@ -222,4 +222,18 @@ class InvitationRepository extends AbstractRepository
             [':id' => $id]
         );
     }
+
+    /**
+     * Marque une invitation comme ouverte (si pending/sent).
+     */
+    public function markOpened(string $id): void
+    {
+        $this->execute(
+            "UPDATE invitations
+             SET status = CASE WHEN status IN ('pending','sent') THEN 'opened' ELSE status END,
+                 updated_at = now()
+             WHERE id = :id",
+            [':id' => $id]
+        );
+    }
 }

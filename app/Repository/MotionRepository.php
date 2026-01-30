@@ -670,4 +670,152 @@ class MotionRepository extends AbstractRepository
             );
         } catch (\Throwable $e) { /* best-effort */ }
     }
+
+    /**
+     * Compteurs motions pour workflow (total + open au sens ouvert non ferme).
+     */
+    public function countWorkflowSummary(string $meetingId): array
+    {
+        $row = $this->selectOne(
+            "SELECT count(*) AS total,
+                    sum(CASE WHEN opened_at IS NOT NULL AND closed_at IS NULL THEN 1 ELSE 0 END) AS open
+             FROM motions WHERE meeting_id = :mid",
+            [':mid' => $meetingId]
+        );
+        return $row ?: ['total' => 0, 'open' => 0];
+    }
+
+    /**
+     * Prochaine motion non encore ouverte (ordre position/created_at).
+     */
+    public function findNextNotOpened(string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, title FROM motions
+             WHERE meeting_id = :mid AND opened_at IS NULL
+             ORDER BY position ASC NULLS LAST, created_at ASC LIMIT 1",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Prochaine motion non encore ouverte (FOR UPDATE, avec tenant).
+     */
+    public function findNextNotOpenedForUpdate(string $tenantId, string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id FROM motions
+             WHERE tenant_id = :tid AND meeting_id = :mid
+               AND opened_at IS NULL AND closed_at IS NULL
+             ORDER BY COALESCE(position, sort_order, 0) ASC
+             LIMIT 1 FOR UPDATE",
+            [':tid' => $tenantId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Trouve une motion par id + meeting_id (FOR UPDATE, avec tenant).
+     */
+    public function findByIdAndMeetingForUpdate(string $tenantId, string $meetingId, string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id FROM motions
+             WHERE tenant_id = :tid AND meeting_id = :mid AND id = :id
+             FOR UPDATE",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':id' => $motionId]
+        );
+    }
+
+    /**
+     * Trouve une motion dans une seance avec titre et dates.
+     */
+    public function findByMeetingWithDates(string $tenantId, string $meetingId, string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, title, opened_at, closed_at
+             FROM motions
+             WHERE tenant_id = :tid AND meeting_id = :mid AND id = :id",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':id' => $motionId]
+        );
+    }
+
+    /**
+     * Trouve une motion avec son meeting_id et tenant_id (sans filtre tenant).
+     */
+    public function findWithMeetingTenant(string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id, m.tenant_id
+             FROM motions mo
+             JOIN meetings m ON m.id = mo.meeting_id
+             WHERE mo.id = :id",
+            [':id' => $motionId]
+        );
+    }
+
+    /**
+     * Met a jour le comptage manuel d'une motion.
+     */
+    public function updateManualTally(string $motionId, int $total, int $for, int $against, int $abstain): void
+    {
+        $this->execute(
+            "UPDATE motions SET manual_total = :t, manual_for = :f, manual_against = :a, manual_abstain = :ab WHERE id = :id",
+            [':t' => $total, ':f' => $for, ':a' => $against, ':ab' => $abstain, ':id' => $motionId]
+        );
+    }
+
+    /**
+     * Reinitialise toutes les motions d'une seance (reset demo).
+     */
+    public function resetStatesForMeeting(string $meetingId, string $tenantId): void
+    {
+        $this->execute(
+            "UPDATE motions
+             SET opened_at = NULL, closed_at = NULL,
+                 manual_total = NULL, manual_for = NULL, manual_against = NULL, manual_abstain = NULL,
+                 updated_at = now()
+             WHERE meeting_id = :mid AND tenant_id = :tid",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Marque une motion comme ouverte (avec filtre meeting_id).
+     */
+    public function markOpenedInMeeting(string $tenantId, string $motionId, string $meetingId): void
+    {
+        $this->execute(
+            "UPDATE motions
+             SET opened_at = COALESCE(opened_at, now()), closed_at = NULL
+             WHERE tenant_id = :tid AND id = :id AND meeting_id = :mid AND closed_at IS NULL",
+            [':tid' => $tenantId, ':id' => $motionId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Trouve motion ouverte + ses dates pour validation (motionId + meetingId, sans tenant).
+     */
+    public function findByIdAndMeetingWithDates(string $motionId, string $meetingId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, meeting_id, opened_at, closed_at FROM motions WHERE id = :id AND meeting_id = :mid",
+            [':id' => $motionId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les motions ouvertes et non fermees (anomalies).
+     */
+    public function listUnclosed(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT id, title, opened_at
+             FROM motions
+             WHERE meeting_id = :mid
+               AND opened_at IS NOT NULL
+               AND closed_at IS NULL
+             ORDER BY opened_at",
+            [':mid' => $meetingId]
+        );
+    }
 }

@@ -2,12 +2,15 @@
 declare(strict_types=1);
 
 // Saisie manuelle d'un comptage (mode dégradé)
-// - met à jour motions.manual_* 
+// - met à jour motions.manual_*
 // - journalise dans manual_actions (append-only)
 // - émet une notification (warn)
 
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/NotificationsService.php';
+
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\ManualActionRepository;
 
 api_require_role(['operator','auditor']);
 
@@ -22,13 +25,7 @@ $motionId = trim((string)($input['motion_id'] ?? ''));
 if ($motionId === '') api_fail('missing_motion_id', 422);
 
 // Charger motion + meeting + tenant
-$row = db_select_one(
-    "SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id, m.tenant_id
-     FROM motions mo
-     JOIN meetings m ON m.id = mo.meeting_id
-     WHERE mo.id = ?",
-    [$motionId]
-);
+$row = (new MotionRepository())->findWithMeetingTenant($motionId);
 if (!$row) api_fail('motion_not_found', 404);
 
 $meetingId = (string)$row['meeting_id'];
@@ -57,38 +54,24 @@ if ($sum !== $total) {
 }
 
 // Best-effort: créer table manual_actions si setup pas joué
-db_execute("CREATE TABLE IF NOT EXISTS manual_actions (
-  id bigserial PRIMARY KEY,
-  tenant_id uuid NOT NULL,
-  meeting_id uuid NOT NULL,
-  motion_id uuid,
-  member_id uuid,
-  action_type text NOT NULL,
-  value jsonb NOT NULL DEFAULT '{}'::jsonb,
-  justification text,
-  operator_user_id uuid,
-  signature_hash text,
-  created_at timestamptz NOT NULL DEFAULT now()
-)");
-db_execute("CREATE INDEX IF NOT EXISTS idx_manual_actions_meeting ON manual_actions(meeting_id, created_at DESC)");
+(new ManualActionRepository())->ensureSchema();
 
 try {
-    $pdo->beginTransaction();
+    db()->beginTransaction();
 
-    db_execute(
-        "UPDATE motions SET manual_total = ?, manual_for = ?, manual_against = ?, manual_abstain = ? WHERE id = ?",
-        [$total, $for, $against, $abstain, $motionId]
+    (new MotionRepository())->updateManualTally($motionId, $total, $for, $against, $abstain);
+
+    (new ManualActionRepository())->createManualTally(
+        $tenantId,
+        $meetingId,
+        $motionId,
+        json_encode(['total'=>$total,'for'=>$for,'against'=>$against,'abstain'=>$abstain], JSON_UNESCAPED_UNICODE),
+        $justification
     );
 
-    db_execute(
-        "INSERT INTO manual_actions (tenant_id, meeting_id, motion_id, action_type, value, justification)
-         VALUES (?, ?, ?, 'manual_tally', ?::jsonb, ?)",
-        [$tenantId, $meetingId, $motionId, json_encode(['total'=>$total,'for'=>$for,'against'=>$against,'abstain'=>$abstain], JSON_UNESCAPED_UNICODE), $justification]
-    );
-
-    $pdo->commit();
+    db()->commit();
 } catch (Throwable $e) {
-    $pdo->rollBack();
+    db()->rollBack();
     api_fail('degraded_tally_failed', 500, ['detail' => $e->getMessage()]);
 }
 

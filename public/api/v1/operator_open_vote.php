@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\VoteTokenRepository;
+
 api_require_role('operator');
 
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
@@ -37,78 +43,53 @@ $secret = (defined('APP_SECRET') && (string)APP_SECRET !== '')
   ? (string)APP_SECRET
   : (getenv('APP_SECRET') ?: 'change-me-in-prod');
 
+$meetingRepo = new MeetingRepository();
+$motionRepo = new MotionRepository();
+$memberRepo = new MemberRepository();
+$attendanceRepo = new AttendanceRepository();
+$tokenRepo = new VoteTokenRepository();
+
 try {
-  $pdo = db();
-  $pdo->beginTransaction();
+  db()->beginTransaction();
 
   // Meeting
-  $meeting = db_select_one(
-    "SELECT id, status, validated_at
-     FROM meetings
-     WHERE tenant_id = :tid AND id = :id
-     FOR UPDATE",
-    [':tid' => api_current_tenant_id(), ':id' => $meetingId]
-  );
+  $meeting = $meetingRepo->lockForUpdate($meetingId, api_current_tenant_id());
   if (!$meeting) {
-    $pdo->rollBack();
+    db()->rollBack();
     api_fail('meeting_not_found', 404);
   }
   if (!empty($meeting['validated_at'])) {
-    $pdo->rollBack();
+    db()->rollBack();
     api_fail('meeting_validated_locked', 409, ['detail' => "Séance validée : action interdite."]);
   }
 
   // Force live (pour tests / recette)
   $status = (string)($meeting['status'] ?? '');
   if ($status !== 'live') {
-    db_execute(
-      "UPDATE meetings SET status='live', updated_at=now()
-       WHERE tenant_id=:tid AND id=:id",
-      [':tid' => api_current_tenant_id(), ':id' => $meetingId]
-    );
+    $meetingRepo->updateFields($meetingId, api_current_tenant_id(), ['status' => 'live']);
   }
 
   // Motion selection: either provided or next not-opened
   if ($motionId === '') {
-    $next = db_select_one(
-      "SELECT id
-       FROM motions
-       WHERE tenant_id=:tid AND meeting_id=:mid
-         AND opened_at IS NULL AND closed_at IS NULL
-       ORDER BY COALESCE(position, sort_order, 0) ASC
-       LIMIT 1
-       FOR UPDATE",
-      [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
-    );
+    $next = $motionRepo->findNextNotOpenedForUpdate(api_current_tenant_id(), $meetingId);
     if (!$next) {
-      $pdo->rollBack();
+      db()->rollBack();
       api_fail('no_motion_to_open', 409, ['detail' => "Aucune résolution disponible à ouvrir."]);
     }
     $motionId = (string)$next['id'];
   } else {
     // lock row
-    $row = db_select_one(
-      "SELECT id FROM motions
-       WHERE tenant_id=:tid AND meeting_id=:mid AND id=:id
-       FOR UPDATE",
-      [':tid' => api_current_tenant_id(), ':mid' => $meetingId, ':id' => $motionId]
-    );
+    $row = $motionRepo->findByIdAndMeetingForUpdate(api_current_tenant_id(), $meetingId, $motionId);
     if (!$row) {
-      $pdo->rollBack();
+      db()->rollBack();
       api_fail('motion_not_found', 404);
     }
   }
 
   // Ensure only one open motion
-  $open = db_select_one(
-    "SELECT id FROM motions
-     WHERE tenant_id=:tid AND meeting_id=:mid
-       AND opened_at IS NOT NULL AND closed_at IS NULL
-     LIMIT 1",
-    [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
-  );
+  $open = $motionRepo->findCurrentOpen($meetingId, api_current_tenant_id());
   if ($open && (string)$open['id'] !== $motionId) {
-    $pdo->rollBack();
+    db()->rollBack();
     api_fail('another_motion_active', 409, [
       'detail' => "Une résolution est déjà ouverte : clôturez-la avant d'en ouvrir une autre.",
       'open_motion_id' => (string)$open['id'],
@@ -116,41 +97,18 @@ try {
   }
 
   // Open motion (idempotent)
-  db_execute(
-    "UPDATE motions
-     SET opened_at = COALESCE(opened_at, now()),
-         closed_at = NULL
-     WHERE tenant_id=:tid AND id=:id AND meeting_id=:mid AND closed_at IS NULL",
-    [':tid' => api_current_tenant_id(), ':id' => $motionId, ':mid' => $meetingId]
-  );
+  $motionRepo->markOpenedInMeeting(api_current_tenant_id(), $motionId, $meetingId);
 
-  db_execute(
-    "UPDATE meetings
-     SET current_motion_id=:mo, updated_at=now()
-     WHERE tenant_id=:tid AND id=:mid",
-    [':tid' => api_current_tenant_id(), ':mid' => $meetingId, ':mo' => $motionId]
-  );
+  $meetingRepo->updateCurrentMotion($meetingId, api_current_tenant_id(), $motionId);
 
   // Eligible members: present/remote/proxy; fallback all members (recette)
   // Table canonique: attendances(mode)
-  $eligible = db_select_all(
-    "SELECT member_id
-     FROM attendances
-     WHERE tenant_id=:tid AND meeting_id=:mid
-       AND mode IN ('present','remote','proxy')",
-    [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
-  );
+  $eligible = $attendanceRepo->listEligibleMemberIds(api_current_tenant_id(), $meetingId);
 
   if (!$eligible) {
-    $eligible = db_select_all(
-      "SELECT id AS member_id
-       FROM members
-       WHERE tenant_id=:tid AND meeting_id=:mid",
-      [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
-    );
+    $eligible = $memberRepo->listByMeetingFallback(api_current_tenant_id(), $meetingId);
   }
 
-  $expiresAtSql = "now() + make_interval(mins => :mins)";
   $inserted = 0;
   $tokensOut = [];
 
@@ -173,25 +131,10 @@ try {
     // Idempotence pragmatique:
     // - si un token NON utilisé et NON expiré existe déjà => on ne régénère pas
     // - sinon (utilisé ou expiré) => on crée un nouveau token (PK=token_hash => pas de doublons)
-    $active = db_select_one(
-      "SELECT token_hash
-       FROM vote_tokens
-       WHERE tenant_id=:tid AND meeting_id=:mid AND motion_id=:mo AND member_id=:mb
-         AND used_at IS NULL AND expires_at > NOW()
-       ORDER BY created_at DESC
-       LIMIT 1",
-      [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mo'=>$motionId, ':mb'=>$memberId]
-    );
+    $active = $tokenRepo->findActiveForMember(api_current_tenant_id(), $meetingId, $motionId, $memberId);
     if ($active) continue;
 
-    $ok = db_execute(
-      "INSERT INTO vote_tokens(token_hash, tenant_id, meeting_id, member_id, motion_id, expires_at, used_at, created_at)
-       VALUES(:h, :tid, :mid, :mb, :mo, ($expiresAtSql), NULL, now())",
-      [
-        ':h'=>$hash, ':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mb'=>$memberId, ':mo'=>$motionId,
-        ':mins'=>$expiresMinutes
-      ]
-    );
+    $ok = $tokenRepo->insertWithExpiry($hash, api_current_tenant_id(), $meetingId, $memberId, $motionId, $expiresMinutes);
 
     if ($ok > 0) {
       $inserted++;
@@ -205,7 +148,7 @@ try {
     }
   }
 
-  $pdo->commit();
+  db()->commit();
 
   audit_log('vote_tokens_generated', 'motion', $motionId, [
     'meeting_id' => $meetingId,
@@ -220,8 +163,6 @@ try {
     'tokens' => $listTokens ? $tokensOut : null
   ]);
 } catch (Throwable $e) {
-  $pdo = db();
-  if ($pdo->inTransaction()) $pdo->rollBack();
+  if (db()->inTransaction()) db()->rollBack();
   api_fail('operator_open_vote_failed', 500, ['detail' => $e->getMessage()]);
 }
-

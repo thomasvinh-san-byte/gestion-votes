@@ -1,5 +1,11 @@
 <?php
+declare(strict_types=1);
+
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\VoteTokenRepository;
 
 api_request('GET');
 // Accessible opérateur & admin (Tech panel)
@@ -7,28 +13,26 @@ api_require_any_role(['operator','admin']);
 
 $serverTime = date('c');
 
+$meetingRepo = new MeetingRepository();
+
 $t0 = microtime(true);
-try { db_scalar("SELECT 1"); $dbLat = (microtime(true) - $t0) * 1000.0; } catch (Throwable $e) { $dbLat = null; }
+$dbOk = $meetingRepo->ping();
+$dbLat = $dbOk ? (microtime(true) - $t0) * 1000.0 : null;
 
 // Postgres-only metric; kept best-effort
-try { $active = db_scalar("SELECT COUNT(*) FROM pg_stat_activity WHERE datname = current_database()"); }
-catch (Throwable $e) { $active = null; }
+$active = $meetingRepo->activeConnections();
 
 $path = __DIR__;
 try { $free = @disk_free_space($path); $total = @disk_total_space($path); } catch (Throwable $e) { $free = null; $total = null; }
 
-$cntMeet = (int)(db_scalar("SELECT COUNT(*) FROM meetings WHERE tenant_id = ?", [api_current_tenant_id()]) ?? 0);
-$cntMot  = (int)(db_scalar("SELECT COUNT(*) FROM motions") ?? 0);
+$cntMeet = $meetingRepo->countForTenant(api_current_tenant_id());
+$cntMot  = (new MotionRepository())->countAll();
 
-$cntTok = null;
-try { $cntTok = (int)(db_scalar("SELECT COUNT(*) FROM vote_tokens") ?? 0); } catch (Throwable $e) { $cntTok = null; }
+$cntTok = (new VoteTokenRepository())->countAll();
 
-$cntAud = null;
-try { $cntAud = (int)(db_scalar("SELECT COUNT(*) FROM audit_events WHERE tenant_id = ?", [api_current_tenant_id()]) ?? 0); } catch (Throwable $e) { $cntAud = null; }
+$cntAud = $meetingRepo->countAuditEventsForTenant(api_current_tenant_id());
 
-$fail15 = null;
-try { $fail15 = (int)(db_scalar("SELECT COUNT(*) FROM auth_failures WHERE created_at > NOW() - INTERVAL '15 minutes'") ?? 0); }
-catch (Throwable $e) { $fail15 = null; }
+$fail15 = $meetingRepo->countRecentAuthFailures();
 
 $alertsToCreate = [];
 function push_alert(&$arr, $code, $severity, $message, $details=null){ $arr[] = ['code'=>$code,'severity'=>$severity,'message'=>$message,'details'=>$details]; }
@@ -41,20 +45,13 @@ if ($free !== null && $total) {
 }
 
 foreach ($alertsToCreate as $a) {
-  try {
-    $exists = db_scalar("SELECT 1 FROM system_alerts WHERE code = ? AND created_at > NOW() - INTERVAL '10 minutes' LIMIT 1", [$a['code']]);
-    if (!$exists) {
-      db_execute("INSERT INTO system_alerts(code, severity, message, details_json, created_at) VALUES (:c,:s,:m,:d,NOW())",
-        [':c'=>$a['code'], ':s'=>$a['severity'], ':m'=>$a['message'], ':d'=>json_encode($a['details'])]
-      );
-    }
-  } catch (Throwable $e) {}
+  $exists = $meetingRepo->findRecentAlert($a['code']);
+  if (!$exists) {
+    $meetingRepo->createSystemAlert($a['code'], $a['severity'], $a['message'], json_encode($a['details']));
+  }
 }
 
-$recentAlerts = [];
-try {
-  $recentAlerts = db_select_all("SELECT id, created_at, code, severity, message, details_json FROM system_alerts ORDER BY created_at DESC LIMIT 20");
-} catch (Throwable $e) { $recentAlerts = []; }
+$recentAlerts = $meetingRepo->listRecentAlerts(20);
 
 api_ok([
   'system' => [

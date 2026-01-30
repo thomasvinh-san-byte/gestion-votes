@@ -820,4 +820,174 @@ class MeetingRepository extends AbstractRepository
             [':tid' => $tenantId, ':id' => $policyId]
         );
     }
+
+    /**
+     * Liste les giver_member_id distincts des procurations actives d'une seance.
+     */
+    public function listDistinctProxyGivers(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT DISTINCT giver_member_id FROM proxies WHERE meeting_id = :mid AND revoked_at IS NULL",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les mandataires depassant le plafond de procurations.
+     */
+    public function listProxyCeilingViolations(string $tenantId, string $meetingId, int $maxPerReceiver): array
+    {
+        return $this->selectAll(
+            "SELECT proxy_id, COUNT(*) AS c
+             FROM proxies
+             WHERE tenant_id = :tid AND meeting_id = :mid AND revoked_at IS NULL
+             GROUP BY proxy_id
+             HAVING COUNT(*) > :mx
+             ORDER BY c DESC",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':mx' => $maxPerReceiver]
+        );
+    }
+
+    /**
+     * Compte les audit_events d'un tenant.
+     */
+    public function countAuditEventsForTenant(string $tenantId): ?int
+    {
+        try {
+            return (int)($this->scalar(
+                "SELECT COUNT(*) FROM audit_events WHERE tenant_id = :tid",
+                [':tid' => $tenantId]
+            ) ?? 0);
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /**
+     * Compte les echecs d'authentification recents (15 min).
+     */
+    public function countRecentAuthFailures(): ?int
+    {
+        try {
+            return (int)($this->scalar(
+                "SELECT COUNT(*) FROM auth_failures WHERE created_at > NOW() - INTERVAL '15 minutes'"
+            ) ?? 0);
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /**
+     * Reinitialise les champs live d'une seance (reset demo).
+     */
+    public function resetForDemo(string $meetingId, string $tenantId): void
+    {
+        $this->execute(
+            "UPDATE meetings
+             SET current_motion_id = NULL, status = 'live', updated_at = now()
+             WHERE id = :mid AND tenant_id = :tid",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Supprime les audit_events d'une seance (reset demo, best-effort).
+     */
+    public function deleteAuditEventsByMeeting(string $meetingId, string $tenantId): void
+    {
+        try {
+            $this->execute(
+                "DELETE FROM audit_events WHERE meeting_id = :mid AND tenant_id = :tid",
+                [':mid' => $meetingId, ':tid' => $tenantId]
+            );
+        } catch (\Throwable $e) { /* table may not exist */ }
+    }
+
+    /**
+     * Ping DB (SELECT 1).
+     */
+    public function ping(): bool
+    {
+        try {
+            $this->scalar("SELECT 1");
+            return true;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Nombre de connexions actives PostgreSQL.
+     */
+    public function activeConnections(): ?int
+    {
+        try {
+            return (int)$this->scalar("SELECT COUNT(*) FROM pg_stat_activity WHERE datname = current_database()");
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /**
+     * Verifie si une alerte systeme recente existe.
+     */
+    public function findRecentAlert(string $code): bool
+    {
+        try {
+            return (bool)$this->scalar(
+                "SELECT 1 FROM system_alerts WHERE code = :c AND created_at > NOW() - INTERVAL '10 minutes' LIMIT 1",
+                [':c' => $code]
+            );
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /**
+     * Cree une alerte systeme.
+     */
+    public function createSystemAlert(string $code, string $severity, string $message, ?string $detailsJson): void
+    {
+        try {
+            $this->execute(
+                "INSERT INTO system_alerts(code, severity, message, details_json, created_at) VALUES (:c,:s,:m,:d,NOW())",
+                [':c' => $code, ':s' => $severity, ':m' => $message, ':d' => $detailsJson]
+            );
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /**
+     * Liste les alertes systeme recentes.
+     */
+    public function listRecentAlerts(int $limit = 20): array
+    {
+        try {
+            return $this->selectAll(
+                "SELECT id, created_at, code, severity, message, details_json FROM system_alerts ORDER BY created_at DESC LIMIT " . max(1, $limit)
+            );
+        } catch (\Throwable $e) { return []; }
+    }
+
+    /**
+     * Upsert complet du rapport (HTML + SHA256 + generated_at).
+     */
+    public function upsertReportFull(string $meetingId, string $html, string $sha256): void
+    {
+        $this->execute(
+            "INSERT INTO meeting_reports (meeting_id, html, sha256, generated_at)
+             VALUES (:mid, :html, :hash, NOW())
+             ON CONFLICT (meeting_id)
+             DO UPDATE SET html = EXCLUDED.html, sha256 = EXCLUDED.sha256, generated_at = NOW(), updated_at = NOW()",
+            [':mid' => $meetingId, ':html' => $html, ':hash' => $sha256]
+        );
+    }
+
+    /**
+     * Liste les procurations orphelines (mandataire absent).
+     */
+    public function listOrphanProxies(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT p.id, giver.full_name AS giver_name, receiver.full_name AS receiver_name
+             FROM proxies p
+             JOIN members giver ON giver.id = p.giver_member_id
+             JOIN members receiver ON receiver.id = p.receiver_member_id
+             LEFT JOIN attendances a ON a.meeting_id = :mid1 AND a.member_id = p.receiver_member_id
+             WHERE p.meeting_id = :mid2
+               AND (a.id IS NULL OR a.mode NOT IN ('present', 'remote'))",
+            [':mid1' => $meetingId, ':mid2' => $meetingId]
+        );
+    }
 }

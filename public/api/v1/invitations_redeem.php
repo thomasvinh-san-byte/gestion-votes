@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 // public/api/v1/invitations_redeem.php
 require __DIR__ . '/../../../app/api.php';
+use AgVote\Repository\InvitationRepository;
 
 api_require_role('public');
 
@@ -11,12 +12,7 @@ if ($token === '') {
     api_fail('missing_token', 400);
 }
 
-$inv = db_one(
-    "SELECT id, meeting_id, member_id, status
-     FROM invitations
-     WHERE token = :token",
-    [':token' => $token]
-);
+$inv = (new InvitationRepository())->findByToken($token);
 if (!$inv) {
     api_fail('invalid_token', 404);
 }
@@ -27,13 +23,7 @@ if ($status === 'declined' || $status === 'bounced') {
 }
 
 // Marquer comme ouvert (best-effort)
-db_exec(
-    "UPDATE invitations
-     SET status = CASE WHEN status IN ('pending','sent') THEN 'opened' ELSE status END,
-         updated_at = now()
-     WHERE id = :id",
-    [':id' => (string)$inv['id']]
-);
+(new InvitationRepository())->markOpened((string)$inv['id']);
 
 api_ok([
     'meeting_id' => (string)$inv['meeting_id'],

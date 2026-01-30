@@ -281,4 +281,34 @@ class AttendanceRepository extends AbstractRepository
             [':mid1' => $meetingId, ':mid2' => $meetingId]
         );
     }
+
+    /**
+     * Liste les member_id eligibles (present/remote/proxy) pour une seance.
+     */
+    public function listEligibleMemberIds(string $tenantId, string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT member_id FROM attendances
+             WHERE tenant_id = :tid AND meeting_id = :mid
+               AND mode IN ('present','remote','proxy')",
+            [':tid' => $tenantId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les votants eligibles avec nom (present/remote) pour generation tokens.
+     */
+    public function listEligibleVotersWithName(string $tenantId, string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT m.id AS member_id, COALESCE(m.full_name, m.name, m.email, m.id::text) AS member_name
+             FROM members m
+             JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
+             WHERE m.tenant_id = :tid
+               AND m.is_active = true
+               AND a.mode IN ('present','remote')
+             ORDER BY COALESCE(m.full_name, m.name, m.email) ASC",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+    }
 }

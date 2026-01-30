@@ -16,6 +16,9 @@ require_once __DIR__ . '/../../../vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\MotionRepository;
 
 api_require_role(['president', 'admin', 'operator', 'auditor']);
 
@@ -27,15 +30,8 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
 $tenantId = api_current_tenant_id();
 
 // Charger la séance
-$meeting = db_one("
-    SELECT m.*, 
-           u.display_name AS validated_by_name
-    FROM meetings m
-    LEFT JOIN users u ON u.id = m.validated_by_user_id
-    WHERE m.tenant_id = ? AND m.id = ?
-", [$tenantId, $meetingId]);
-
-if (!$meeting) {
+$meeting = (new MeetingRepository())->findWithValidator($meetingId);
+if (!$meeting || (string)($meeting['tenant_id'] ?? '') !== $tenantId) {
     api_fail('meeting_not_found', 404);
 }
 
@@ -46,34 +42,13 @@ if (empty($meeting['validated_at'])) {
 }
 
 // Charger les présences
-$attendances = db_all("
-    SELECT m.full_name, m.voting_power,
-           a.mode, a.checked_in_at, a.checked_out_at
-    FROM members m
-    LEFT JOIN attendances a ON a.meeting_id = ? AND a.member_id = m.id
-    WHERE m.tenant_id = ? AND m.is_active = true
-    ORDER BY m.full_name
-", [$meetingId, $tenantId]);
+$attendances = (new AttendanceRepository())->listForReport($meetingId, $tenantId);
 
 // Charger les résolutions
-$motions = db_all("
-    SELECT id, title, description, opened_at, closed_at,
-           official_source, official_for, official_against, official_abstain, official_total,
-           decision, decision_reason, secret
-    FROM motions
-    WHERE meeting_id = ?
-    ORDER BY position ASC NULLS LAST, created_at ASC
-", [$meetingId]);
+$motions = (new MotionRepository())->listForReport($meetingId);
 
 // Charger les procurations
-$proxies = db_all("
-    SELECT g.full_name AS giver_name, r.full_name AS receiver_name
-    FROM proxies p
-    JOIN members g ON g.id = p.giver_member_id
-    JOIN members r ON r.id = p.receiver_member_id
-    WHERE p.meeting_id = ?
-    ORDER BY g.full_name
-", [$meetingId]);
+$proxies = (new MeetingRepository())->listProxiesForReport($meetingId);
 
 // Générer le HTML
 $html = '<!DOCTYPE html>
@@ -291,12 +266,7 @@ $pdfContent = $dompdf->output();
 $hash = hash('sha256', $pdfContent);
 
 // Persister le rapport HTML + hash d'intégrité du PDF
-db_exec("
-    INSERT INTO meeting_reports (meeting_id, html, sha256, generated_at)
-    VALUES (?, ?, ?, NOW())
-    ON CONFLICT (meeting_id)
-    DO UPDATE SET html = EXCLUDED.html, sha256 = EXCLUDED.sha256, generated_at = NOW(), updated_at = NOW()
-", [$meetingId, $html, $hash]);
+(new MeetingRepository())->upsertReportFull($meetingId, $html, $hash);
 
 // Envoyer le PDF
 $filename = 'PV_' . preg_replace('/[^a-zA-Z0-9]/', '_', $meeting['title'] ?? 'seance') . '_' . date('Ymd') . '.pdf';

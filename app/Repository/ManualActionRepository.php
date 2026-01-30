@@ -68,4 +68,61 @@ class ManualActionRepository extends AbstractRepository
             [':mid' => $meetingId]
         );
     }
+
+    /**
+     * Cree la table manual_actions si elle n'existe pas (best-effort).
+     */
+    public function ensureSchema(): void
+    {
+        try {
+            $this->execute(
+                "CREATE TABLE IF NOT EXISTS manual_actions (
+                  id bigserial PRIMARY KEY,
+                  tenant_id uuid NOT NULL,
+                  meeting_id uuid NOT NULL,
+                  motion_id uuid,
+                  member_id uuid,
+                  action_type text NOT NULL,
+                  value jsonb NOT NULL DEFAULT '{}'::jsonb,
+                  justification text,
+                  operator_user_id uuid,
+                  signature_hash text,
+                  created_at timestamptz NOT NULL DEFAULT now()
+                )"
+            );
+            $this->execute("CREATE INDEX IF NOT EXISTS idx_manual_actions_meeting ON manual_actions(meeting_id, created_at DESC)");
+        } catch (\Throwable $e) { /* best-effort */ }
+    }
+
+    /**
+     * Insere une action manual_tally (comptage degrade).
+     */
+    public function createManualTally(
+        string $tenantId,
+        string $meetingId,
+        string $motionId,
+        string $valueJson,
+        string $justification
+    ): void {
+        $this->execute(
+            "INSERT INTO manual_actions (tenant_id, meeting_id, motion_id, action_type, value, justification)
+             VALUES (:tid, :mid, :moid, 'manual_tally', :val::jsonb, :just)",
+            [
+                ':tid' => $tenantId, ':mid' => $meetingId,
+                ':moid' => $motionId, ':val' => $valueJson,
+                ':just' => $justification,
+            ]
+        );
+    }
+
+    /**
+     * Supprime les actions manuelles d'une seance (reset demo, best-effort).
+     */
+    public function deleteByMeeting(string $meetingId, string $tenantId): void
+    {
+        $this->execute(
+            "DELETE FROM manual_actions WHERE meeting_id = :mid AND tenant_id = :tid",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+    }
 }

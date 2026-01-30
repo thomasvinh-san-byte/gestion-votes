@@ -5,6 +5,11 @@ require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/MeetingValidator.php';
 require __DIR__ . '/../../../app/services/NotificationsService.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\BallotRepository;
+
 api_require_role('operator');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -15,22 +20,17 @@ $minParticipation = (float)($_GET['min_participation'] ?? 0.5);
 
 $tenant = api_current_tenant_id();
 
-$meeting = db_select_one(
-  "SELECT id, title, status, president_name FROM meetings WHERE tenant_id = ? AND id = ?",
-  [$tenant, $meetingId]
-);
+$meetingRepo = new MeetingRepository();
+$memberRepo = new MemberRepository();
+$motionRepo = new MotionRepository();
+$ballotRepo = new BallotRepository();
+
+$meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
 if (!$meeting) api_fail('meeting_not_found', 404);
 
-$eligibleMembers = (int)(db_scalar("SELECT COUNT(*) FROM members WHERE tenant_id = ? AND is_active = true", [$tenant]) ?? 0);
+$eligibleMembers = $memberRepo->countActive($tenant);
 
-$attRows = db_select_all(
-  "SELECT m.id AS member_id, m.full_name, COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power, a.mode AS attendance_mode
-   FROM members m
-   LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = ?
-   WHERE m.tenant_id = ? AND m.is_active = true
-   ORDER BY m.full_name ASC",
-  [$meetingId, $tenant]
-);
+$attRows = $memberRepo->listWithAttendanceForMeeting($meetingId, $tenant);
 
 $presentCount = 0;
 $presentWeight = 0.0;
@@ -57,7 +57,7 @@ $quorumThreshold = 0.5;
 $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
 $quorumOk = $presentCount > 0 && $quorumRatio >= $quorumThreshold;
 
-$coveredRows = db_select_all("SELECT DISTINCT giver_member_id FROM proxies WHERE meeting_id = ? AND revoked_at IS NULL", [$meetingId]);
+$coveredRows = $meetingRepo->listDistinctProxyGivers($meetingId);
 $coveredSet = [];
 foreach ($coveredRows as $x) $coveredSet[(string)$x['giver_member_id']] = true;
 
@@ -65,34 +65,14 @@ $missing = [];
 foreach ($absentIds as $mid) if (!isset($coveredSet[$mid])) $missing[] = $mid;
 $missingNames = array_values(array_filter(array_map(fn($id)=>$absentNames[$id] ?? '', $missing)));
 
-$proxyActive = (int)(db_scalar("SELECT count(*) FROM proxies WHERE meeting_id = ? AND revoked_at IS NULL", [$meetingId]) ?? 0);
+$proxyActive = $meetingRepo->countActiveProxies($tenant, $meetingId);
 
-$motions = db_select_one(
-  "SELECT count(*) AS total,
-          sum(CASE WHEN opened_at IS NOT NULL AND closed_at IS NULL THEN 1 ELSE 0 END) AS open
-   FROM motions WHERE meeting_id = ?",
-  [$meetingId]
-) ?: ['total'=>0,'open'=>0];
+$motions = $motionRepo->countWorkflowSummary($meetingId);
 
-$openMotion = db_select_one(
-  "SELECT id, title, opened_at FROM motions
-   WHERE meeting_id = ? AND opened_at IS NOT NULL AND closed_at IS NULL
-   ORDER BY opened_at DESC LIMIT 1",
-  [$meetingId]
-);
-$nextMotion = db_select_one(
-  "SELECT id, title FROM motions
-   WHERE meeting_id = ? AND opened_at IS NULL
-   ORDER BY position ASC NULLS LAST, created_at ASC LIMIT 1",
-  [$meetingId]
-);
+$openMotion = $motionRepo->findCurrentOpen($meetingId, $tenant);
+$nextMotion = $motionRepo->findNextNotOpened($meetingId);
 
-$lastClosedMotion = db_select_one(
-  "SELECT id, title, closed_at FROM motions
-   WHERE meeting_id = ? AND closed_at IS NOT NULL
-   ORDER BY closed_at DESC LIMIT 1",
-  [$meetingId]
-);
+$lastClosedMotion = $motionRepo->findLastClosedForProjector($meetingId);
 
 $hasAnyMotion = ((int)($motions['total'] ?? 0)) > 0;
 
@@ -104,10 +84,9 @@ $closeBlockers = [];
 $canCloseOpen = false;
 
 if ($openMotion) {
-  $openBallots = (int)(db_scalar("SELECT count(*) FROM ballots WHERE motion_id = ?", [$openMotion['id']]) ?? 0);
+  $openBallots = $ballotRepo->countByMotionId($openMotion['id']);
   if (!empty($openMotion['opened_at'])) {
-    $openAgeSeconds = (int)(db_scalar("SELECT EXTRACT(EPOCH FROM (NOW() - ?::timestamptz))::int", [$openMotion['opened_at']]) ?? 0);
-    if ($openAgeSeconds < 0) $openAgeSeconds = 0;
+    $openAgeSeconds = max(0, time() - strtotime($openMotion['opened_at']));
   }
   $participationRatio = $potentialVoters > 0 ? ($openBallots / $potentialVoters) : 0.0;
 
@@ -118,9 +97,9 @@ if ($openMotion) {
 
 $canOpenNext = $quorumOk && (count($missing) === 0) && ($openMotion === null) && ($nextMotion !== null);
 
-$hasClosed = (int)(db_scalar("SELECT count(*) FROM motions WHERE meeting_id = ? AND closed_at IS NOT NULL", [$meetingId]) ?? 0);
+$hasClosed = $meetingRepo->countClosedMotions($meetingId);
 $canConsolidate = ((int)($motions['open'] ?? 0)) === 0 && $hasClosed > 0;
-$consolidatedCount = (int)(db_scalar("SELECT count(*) FROM motions WHERE meeting_id = ? AND closed_at IS NOT NULL AND official_source IS NOT NULL", [$meetingId]) ?? 0);
+$consolidatedCount = $motionRepo->countConsolidatedMotions($meetingId);
 $consolidationDone = ($hasClosed > 0) && ($consolidatedCount >= $hasClosed);
 
 $consolidateDetail = $canConsolidate ? "Motions fermées: $hasClosed. Vous pouvez consolider."

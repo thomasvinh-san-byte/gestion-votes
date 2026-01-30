@@ -425,4 +425,100 @@ class BallotRepository extends AbstractRepository
             [$meetingId, $meetingId]
         );
     }
+
+    /**
+     * Liste les bulletins d'une motion avec source (pour anomalies).
+     */
+    public function listForMotionWithSource(string $tenantId, string $meetingId, string $motionId): array
+    {
+        return $this->selectAll(
+            "SELECT b.member_id, b.value::text AS value, b.cast_at, COALESCE(b.source,'tablet') AS source
+             FROM ballots b
+             WHERE b.tenant_id = :tid AND b.meeting_id = :mid AND b.motion_id = :mo
+             ORDER BY b.cast_at ASC",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':mo' => $motionId]
+        );
+    }
+
+    /**
+     * Supprime tous les bulletins d'une seance (reset demo).
+     */
+    public function deleteByMeeting(string $meetingId, string $tenantId): void
+    {
+        $this->execute(
+            "DELETE FROM ballots WHERE meeting_id = :mid AND tenant_id = :tid",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Liste les votes sans presence enregistree (anomalie trust).
+     */
+    public function listVotesWithoutAttendance(string $meetingId, string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT DISTINCT b.member_id, m.full_name, mo.title AS motion_title
+             FROM ballots b
+             JOIN motions mo ON mo.id = b.motion_id
+             JOIN members m ON m.id = b.member_id
+             LEFT JOIN attendances a ON a.meeting_id = :mid1 AND a.member_id = b.member_id AND a.tenant_id = :tid
+             WHERE mo.meeting_id = :mid2
+               AND (a.id IS NULL OR a.mode NOT IN ('present', 'remote'))
+             ORDER BY m.full_name",
+            [':mid1' => $meetingId, ':tid' => $tenantId, ':mid2' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les doubles votes (meme membre, meme motion, count > 1).
+     */
+    public function listDuplicateVotes(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT b.member_id, m.full_name, mo.title AS motion_title, COUNT(*) AS vote_count
+             FROM ballots b
+             JOIN motions mo ON mo.id = b.motion_id
+             JOIN members m ON m.id = b.member_id
+             WHERE mo.meeting_id = :mid
+             GROUP BY b.member_id, b.motion_id, m.full_name, mo.title
+             HAVING COUNT(*) > 1",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les incoherences de ponderation (ballot.weight != member.voting_power).
+     */
+    public function listWeightMismatches(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT b.member_id, m.full_name, m.voting_power AS expected_weight,
+                    b.weight AS actual_weight, mo.title AS motion_title
+             FROM ballots b
+             JOIN motions mo ON mo.id = b.motion_id
+             JOIN members m ON m.id = b.member_id
+             WHERE mo.meeting_id = :mid
+               AND b.weight IS NOT NULL
+               AND m.voting_power IS NOT NULL
+               AND ABS(b.weight - m.voting_power) > 0.01",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Liste les votes manuels non justifies.
+     */
+    public function listUnjustifiedManualVotes(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT b.id, m.full_name, mo.title AS motion_title
+             FROM ballots b
+             JOIN motions mo ON mo.id = b.motion_id
+             JOIN members m ON m.id = b.member_id
+             WHERE mo.meeting_id = :mid
+               AND b.source = 'manual'
+               AND (b.justification IS NULL OR b.justification = '')",
+            [':mid' => $meetingId]
+        );
+    }
 }

@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\VoteTokenRepository;
+
 api_request('GET');
 api_require_role('operator');
 
@@ -17,52 +23,32 @@ if ($motionId !== '' && !api_is_uuid($motionId)) {
   api_fail('invalid_motion_id', 422);
 }
 
+$meetingRepo = new MeetingRepository();
+$motionRepo = new MotionRepository();
+$memberRepo = new MemberRepository();
+$ballotRepo = new BallotRepository();
+$tokenRepo = new VoteTokenRepository();
+
 // 1) Meeting (lockdown)
-$meeting = db_select_one(
-  "SELECT id, status, validated_at FROM meetings WHERE tenant_id = :tid AND id = :id",
-  [':tid' => api_current_tenant_id(), ':id' => $meetingId]
-);
+$meeting = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$meeting) api_fail('meeting_not_found', 404);
 
 // 2) Motion cible: motion_id -> sinon motion ouverte -> sinon null
 if ($motionId === '') {
-  $open = db_select_one(
-    "SELECT id FROM motions
-     WHERE tenant_id=:tid AND meeting_id=:mid
-       AND opened_at IS NOT NULL AND closed_at IS NULL
-     ORDER BY opened_at DESC LIMIT 1",
-    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId]
-  );
+  $open = $motionRepo->findCurrentOpen($meetingId, api_current_tenant_id());
   $motionId = $open ? (string)$open['id'] : '';
 }
 
 $motion = null;
 if ($motionId !== '') {
-  $motion = db_select_one(
-    "SELECT id, title, opened_at, closed_at
-     FROM motions WHERE tenant_id=:tid AND meeting_id=:mid AND id=:id",
-    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':id'=>$motionId]
-  );
+  $motion = $motionRepo->findByMeetingWithDates(api_current_tenant_id(), $meetingId, $motionId);
   if (!$motion) api_fail('motion_not_found', 404);
 }
 
 // 3) Éligibles: présents/remote/proxy (fallback: tous)
-$eligibleRows = db_select_all(
-  "SELECT m.id AS member_id, m.full_name
-   FROM members m
-   JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid AND a.tenant_id = m.tenant_id
-   WHERE m.tenant_id = :tid AND m.is_active = true AND a.mode IN ('present','remote','proxy')
-   ORDER BY m.full_name ASC",
-  [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId]
-);
+$eligibleRows = $memberRepo->listEligibleForMeeting(api_current_tenant_id(), $meetingId);
 if (!$eligibleRows) {
-  $eligibleRows = db_select_all(
-    "SELECT id AS member_id, full_name
-     FROM members
-     WHERE tenant_id=:tid AND meeting_id=:mid AND is_active = true
-     ORDER BY full_name ASC",
-    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId]
-  );
+  $eligibleRows = $memberRepo->listActiveFallbackByMeeting(api_current_tenant_id(), $meetingId);
 }
 
 $eligibleIds = [];
@@ -79,15 +65,7 @@ $eligibleCount = count($eligibleIds);
 $proxyMax = (int)($_ENV['PROXY_MAX_PER_RECEIVER'] ?? getenv('PROXY_MAX_PER_RECEIVER') ?? 99);
 $proxyCeilings = [];
 try {
-  $rows = db_select_all(
-    "SELECT proxy_id, COUNT(*) AS c
-     FROM proxies
-     WHERE tenant_id=:tid AND meeting_id=:mid AND revoked_at IS NULL
-     GROUP BY proxy_id
-     HAVING COUNT(*) > :mx
-     ORDER BY c DESC",
-    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mx'=>$proxyMax]
-  );
+  $rows = $meetingRepo->listProxyCeilingViolations(api_current_tenant_id(), $meetingId, $proxyMax);
   foreach ($rows as $r) {
     $pid = (string)$r['proxy_id'];
     $proxyCeilings[] = [
@@ -117,34 +95,13 @@ $ballotsNotEligible = [];
 $duplicates = [];
 
 if ($motionId !== '') {
-  $stats['tokens_active_unused'] = (int)(db_scalar(
-    "SELECT COUNT(*) FROM vote_tokens
-     WHERE tenant_id=:tid AND meeting_id=:mid AND motion_id=:mo
-       AND used_at IS NULL AND expires_at > NOW()",
-    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mo'=>$motionId]
-  ) ?? 0);
+  $stats['tokens_active_unused'] = $tokenRepo->countActiveUnused(api_current_tenant_id(), $meetingId, $motionId);
 
-  $stats['tokens_expired_unused'] = (int)(db_scalar(
-    "SELECT COUNT(*) FROM vote_tokens
-     WHERE tenant_id=:tid AND meeting_id=:mid AND motion_id=:mo
-       AND used_at IS NULL AND expires_at <= NOW()",
-    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mo'=>$motionId]
-  ) ?? 0);
+  $stats['tokens_expired_unused'] = $tokenRepo->countExpiredUnused(api_current_tenant_id(), $meetingId, $motionId);
 
-  $stats['tokens_used'] = (int)(db_scalar(
-    "SELECT COUNT(*) FROM vote_tokens
-     WHERE tenant_id=:tid AND meeting_id=:mid AND motion_id=:mo
-       AND used_at IS NOT NULL",
-    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mo'=>$motionId]
-  ) ?? 0);
+  $stats['tokens_used'] = $tokenRepo->countUsed(api_current_tenant_id(), $meetingId, $motionId);
 
-  $ballots = db_select_all(
-    "SELECT b.member_id, b.value::text AS value, b.cast_at, COALESCE(b.source,'tablet') AS source
-     FROM ballots b
-     WHERE b.tenant_id=:tid AND b.meeting_id=:mid AND b.motion_id=:mo
-     ORDER BY b.cast_at ASC",
-    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mo'=>$motionId]
-  );
+  $ballots = $ballotRepo->listForMotionWithSource(api_current_tenant_id(), $meetingId, $motionId);
 
   $stats['ballots_total'] = count($ballots);
 
