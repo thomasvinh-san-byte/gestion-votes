@@ -56,6 +56,22 @@ class BallotRepository extends AbstractRepository
     }
 
     /**
+     * Compte les bulletins par choix (for/against/abstain) pour une motion.
+     */
+    public function countChoicesByMotion(string $motionId): array
+    {
+        $row = $this->selectOne(
+            "SELECT
+               SUM(CASE WHEN COALESCE(value::text, choice)='for' THEN 1 ELSE 0 END) AS c_for,
+               SUM(CASE WHEN COALESCE(value::text, choice)='against' THEN 1 ELSE 0 END) AS c_against,
+               SUM(CASE WHEN COALESCE(value::text, choice)='abstain' THEN 1 ELSE 0 END) AS c_abstain
+             FROM ballots WHERE motion_id = :mid",
+            [':mid' => $motionId]
+        );
+        return $row ?: ['c_for' => 0, 'c_against' => 0, 'c_abstain' => 0];
+    }
+
+    /**
      * Nombre de bulletins pour une motion (pour validation readiness).
      */
     public function countForMotion(string $tenantId, string $meetingId, string $motionId): int
@@ -137,6 +153,45 @@ class BallotRepository extends AbstractRepository
     }
 
     /**
+     * Liste detaillee des bulletins pour une motion (pour rapport PV Annexe D).
+     */
+    public function listDetailedForMotion(string $motionId): array
+    {
+        return $this->selectAll(
+            "SELECT
+               COALESCE(b.value::text, b.choice) AS choice,
+               COALESCE(b.weight, b.effective_power, 0) AS effective_power,
+               b.is_proxy_vote,
+               b.member_id AS giver_member_id,
+               b.proxy_source_member_id AS receiver_member_id,
+               mg.full_name AS giver_name,
+               mr.full_name AS receiver_name
+             FROM ballots b
+             LEFT JOIN members mg ON mg.id = b.member_id
+             LEFT JOIN members mr ON mr.id = b.proxy_source_member_id
+             WHERE b.motion_id = :mid
+             ORDER BY COALESCE(mg.full_name, ''), COALESCE(mr.full_name, '')",
+            [':mid' => $motionId]
+        );
+    }
+
+    /**
+     * Bulletins crees apres la cloture de leur motion (pour trust_checks).
+     */
+    public function listVotesAfterClose(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT b.id, m.title
+             FROM ballots b
+             JOIN motions m ON m.id = b.motion_id
+             WHERE m.meeting_id = :mid
+               AND m.closed_at IS NOT NULL
+               AND b.created_at > m.closed_at",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
      * Existe-t-il au moins un bulletin pour cette motion?
      */
     public function existsForMotion(string $motionId): bool
@@ -145,6 +200,106 @@ class BallotRepository extends AbstractRepository
             "SELECT 1 FROM ballots WHERE motion_id = :mid LIMIT 1",
             [':mid' => $motionId]
         );
+    }
+
+    /**
+     * Compte les bulletins directs eligibles pour une motion (votant present/remote, actif, non checked_out).
+     */
+    public function countEligibleDirect(string $meetingId, string $motionId): int
+    {
+        return (int)($this->scalar(
+            "SELECT count(*)
+             FROM ballots b
+             JOIN members mem ON mem.id = b.member_id
+             JOIN attendances a ON a.meeting_id = :mid AND a.member_id = b.member_id
+             WHERE b.motion_id = :moid
+               AND COALESCE(b.is_proxy_vote, false) = false
+               AND mem.is_active = true
+               AND a.checked_out_at IS NULL
+               AND a.mode IN ('present','remote')",
+            [':mid' => $meetingId, ':moid' => $motionId]
+        ) ?? 0);
+    }
+
+    /**
+     * Compte les bulletins proxy eligibles pour une motion.
+     */
+    public function countEligibleProxy(string $meetingId, string $motionId): int
+    {
+        return (int)($this->scalar(
+            "SELECT count(*)
+             FROM ballots b
+             JOIN members mandant ON mandant.id = b.member_id
+             JOIN attendances a ON a.meeting_id = :mid AND a.member_id = b.proxy_source_member_id
+             JOIN proxies p ON p.meeting_id = :mid2
+                          AND p.giver_member_id = b.member_id
+                          AND p.receiver_member_id = b.proxy_source_member_id
+                          AND p.revoked_at IS NULL
+             WHERE b.motion_id = :moid
+               AND COALESCE(b.is_proxy_vote, false) = true
+               AND b.proxy_source_member_id IS NOT NULL
+               AND mandant.is_active = true
+               AND a.checked_out_at IS NULL
+               AND a.mode IN ('present','remote')",
+            [':mid' => $meetingId, ':mid2' => $meetingId, ':moid' => $motionId]
+        ) ?? 0);
+    }
+
+    /**
+     * Compte le total de bulletins pour une motion (sans filtre tenant).
+     */
+    public function countByMotionId(string $motionId): int
+    {
+        return (int)($this->scalar(
+            "SELECT count(*) FROM ballots WHERE motion_id = :mid",
+            [':mid' => $motionId]
+        ) ?? 0);
+    }
+
+    /**
+     * Compte les bulletins directs non eligibles pour une motion.
+     */
+    public function countInvalidDirect(string $meetingId, string $motionId): int
+    {
+        return (int)($this->scalar(
+            "SELECT count(*)
+             FROM ballots b
+             JOIN members mem ON mem.id = b.member_id
+             LEFT JOIN attendances a ON a.meeting_id = :mid AND a.member_id = b.member_id
+             WHERE b.motion_id = :moid
+               AND COALESCE(b.is_proxy_vote, false) = false
+               AND mem.is_active = true
+               AND (a.member_id IS NULL OR a.checked_out_at IS NOT NULL OR a.mode NOT IN ('present','remote'))",
+            [':mid' => $meetingId, ':moid' => $motionId]
+        ) ?? 0);
+    }
+
+    /**
+     * Compte les bulletins proxy non eligibles pour une motion.
+     */
+    public function countInvalidProxy(string $meetingId, string $motionId): int
+    {
+        return (int)($this->scalar(
+            "SELECT count(*)
+             FROM ballots b
+             JOIN members mandant ON mandant.id = b.member_id
+             LEFT JOIN attendances a ON a.meeting_id = :mid AND a.member_id = b.proxy_source_member_id
+             LEFT JOIN proxies p ON p.meeting_id = :mid2
+                                AND p.giver_member_id = b.member_id
+                                AND p.receiver_member_id = b.proxy_source_member_id
+                                AND p.revoked_at IS NULL
+             WHERE b.motion_id = :moid
+               AND COALESCE(b.is_proxy_vote, false) = true
+               AND mandant.is_active = true
+               AND (
+                    b.proxy_source_member_id IS NULL
+                    OR a.member_id IS NULL
+                    OR a.checked_out_at IS NOT NULL
+                    OR a.mode NOT IN ('present','remote')
+                    OR p.id IS NULL
+               )",
+            [':mid' => $meetingId, ':mid2' => $meetingId, ':moid' => $motionId]
+        ) ?? 0);
     }
 
     // =========================================================================

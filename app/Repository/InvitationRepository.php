@@ -182,6 +182,21 @@ class InvitationRepository extends AbstractRepository
     }
 
     /**
+     * Liste les tokens/invitations pour rapport PV (avec nom du membre).
+     */
+    public function listTokensForReport(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT m.full_name, i.created_at, i.revoked_at, i.last_used_at
+             FROM invitations i
+             JOIN members m ON m.id = i.member_id
+             WHERE i.meeting_id = :mid
+             ORDER BY m.full_name ASC",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
      * Marque une invitation comme bounced (echec envoi).
      */
     public function markBounced(string $meetingId, string $memberId): void

@@ -56,6 +56,18 @@ class VoteTokenRepository extends AbstractRepository
     }
 
     /**
+     * Compte tous les tokens de vote (global).
+     */
+    public function countAll(): ?int
+    {
+        try {
+            return (int)($this->scalar("SELECT COUNT(*) FROM vote_tokens") ?? 0);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
      * Revoque tous les tokens non utilises pour une motion.
      */
     public function revokeForMotion(string $motionId): int

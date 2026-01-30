@@ -3,6 +3,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\BallotRepository;
+
 /**
  * Ready-check aligné avec les règles d'éligibilité de vote (présences + procurations)
  * et avec les prérequis de validation:
@@ -19,13 +25,14 @@ if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
 $tenant = defined('api_current_tenant_id()') ? api_current_tenant_id() : null;
 
+$meetingRepo    = new MeetingRepository();
+$motionRepo     = new MotionRepository();
+$attendanceRepo = new AttendanceRepository();
+$memberRepo     = new MemberRepository();
+$ballotRepo     = new BallotRepository();
+
 // Meeting
-$meeting = db_select_one(
-    "SELECT id, tenant_id, title, status, president_name
-     FROM meetings
-     WHERE id = ?",
-    [$meetingId]
-);
+$meeting = $meetingRepo->findById($meetingId);
 if (!$meeting) api_fail('meeting_not_found', 404);
 
 if ($tenant !== null && (string)$meeting['tenant_id'] !== (string)$tenant) {
@@ -38,45 +45,28 @@ $bad = [];
 
 $pres = trim((string)($meeting['president_name'] ?? ''));
 if ($pres === '') {
-    $reasons[] = "Aucun président (president_name) n’est renseigné.";
+    $reasons[] = "Aucun président (president_name) n'est renseigné.";
 }
 
 // Motions ouvertes
-$openCount = (int)(db_scalar(
-    "SELECT count(*)
-     FROM motions
-     WHERE meeting_id = ? AND opened_at IS NOT NULL AND closed_at IS NULL",
-    [$meetingId]
-) ?? 0);
+$openCount = $meetingRepo->countOpenMotions($meetingId);
 
 if ($openCount > 0) {
     $reasons[] = "Il reste {$openCount} motion(s) ouverte(s). Fermez-les avant validation.";
 }
 
 // Éligibles (règle CDC): attendances present/remote/proxy ; fallback si aucune présence saisie
-$eligibleCount = (int)(db_scalar(
-    "SELECT count(*) FROM attendances WHERE meeting_id = ? AND mode IN ('present','remote','proxy')",
-    [$meetingId]
-) ?? 0);
+$eligibleCount = $attendanceRepo->countEligible($meetingId);
 
 $fallbackEligibleUsed = false;
 if ($eligibleCount <= 0) {
     $fallbackEligibleUsed = true;
-    $eligibleCount = (int)(db_scalar(
-        "SELECT count(*) FROM members WHERE tenant_id = ? AND is_active = true",
-        [$tenant]
-    ) ?? 0);
+    $eligibleCount = $memberRepo->countActive($tenant);
     $reasons[] = "Présences non saisies : règle de fallback utilisée (tous membres actifs).";
 }
 
 // Motions fermées
-$motions = db_select_all(
-    "SELECT id, title, manual_total, manual_for, manual_against, manual_abstain, opened_at, closed_at
-     FROM motions
-     WHERE meeting_id = ? AND closed_at IS NOT NULL
-     ORDER BY closed_at ASC NULLS LAST",
-    [$meetingId]
-);
+$motions = $motionRepo->listClosedForMeetingWithManualTally($meetingId);
 
 foreach ($motions as $m) {
     $motionId = (string)$m['id'];
@@ -94,45 +84,15 @@ foreach ($motions as $m) {
 
     // --- E-vote "éligible" ---
     // Direct ballots: voter must be present/remote at meeting.
-    $eligibleDirect = (int)(db_scalar(
-        "SELECT count(*)
-         FROM ballots b
-         JOIN members mem ON mem.id = b.member_id
-         JOIN attendances a ON a.meeting_id = ? AND a.member_id = b.member_id
-         WHERE b.motion_id = ?
-           AND COALESCE(b.is_proxy_vote, false) = false
-           AND mem.is_active = true
-           AND a.checked_out_at IS NULL
-           AND a.mode IN ('present','remote')",
-        [$meetingId, $motionId]
-    ) ?? 0);
+    $eligibleDirect = $ballotRepo->countEligibleDirect($meetingId, $motionId);
 
     // Proxy ballots: proxy_source_member_id must be present/remote AND an active proxy must exist.
-    $eligibleProxy = (int)(db_scalar(
-        "SELECT count(*)
-         FROM ballots b
-         JOIN members mandant ON mandant.id = b.member_id
-         JOIN attendances a ON a.meeting_id = ? AND a.member_id = b.proxy_source_member_id
-         JOIN proxies p ON p.meeting_id = ?
-                      AND p.giver_member_id = b.member_id
-                      AND p.receiver_member_id = b.proxy_source_member_id
-                      AND p.revoked_at IS NULL
-         WHERE b.motion_id = ?
-           AND COALESCE(b.is_proxy_vote, false) = true
-           AND b.proxy_source_member_id IS NOT NULL
-           AND mandant.is_active = true
-           AND a.checked_out_at IS NULL
-           AND a.mode IN ('present','remote')",
-        [$meetingId, $meetingId, $motionId]
-    ) ?? 0);
+    $eligibleProxy = $ballotRepo->countEligibleProxy($meetingId, $motionId);
 
     $eligibleBallots = $eligibleDirect + $eligibleProxy;
 
 // Missing ballots (strict readiness): expect 1 ballot per éligible (source tablette ou manuel)
-$ballotsTotal = (int)(db_scalar(
-    "SELECT count(*) FROM ballots WHERE motion_id = ?",
-    [$motionId]
-) ?? 0);
+$ballotsTotal = $ballotRepo->countByMotionId($motionId);
 
 $missing = max(0, $eligibleCount - $ballotsTotal);
 if ($missing > 0) {
@@ -144,39 +104,8 @@ if ($missing > 0) {
 }
 
     // Invalid ballots detection (best-effort)
-    $invalidDirect = (int)(db_scalar(
-        "SELECT count(*)
-         FROM ballots b
-         JOIN members mem ON mem.id = b.member_id
-         LEFT JOIN attendances a ON a.meeting_id = ? AND a.member_id = b.member_id
-         WHERE b.motion_id = ?
-           AND COALESCE(b.is_proxy_vote, false) = false
-           AND mem.is_active = true
-           AND (a.member_id IS NULL OR a.checked_out_at IS NOT NULL OR a.mode NOT IN ('present','remote'))",
-        [$meetingId, $motionId]
-    ) ?? 0);
-
-    $invalidProxy = (int)(db_scalar(
-        "SELECT count(*)
-         FROM ballots b
-         JOIN members mandant ON mandant.id = b.member_id
-         LEFT JOIN attendances a ON a.meeting_id = ? AND a.member_id = b.proxy_source_member_id
-         LEFT JOIN proxies p ON p.meeting_id = ?
-                            AND p.giver_member_id = b.member_id
-                            AND p.receiver_member_id = b.proxy_source_member_id
-                            AND p.revoked_at IS NULL
-         WHERE b.motion_id = ?
-           AND COALESCE(b.is_proxy_vote, false) = true
-           AND mandant.is_active = true
-           AND (
-                b.proxy_source_member_id IS NULL
-                OR a.member_id IS NULL
-                OR a.checked_out_at IS NOT NULL
-                OR a.mode NOT IN ('present','remote')
-                OR p.id IS NULL
-           )",
-        [$meetingId, $meetingId, $motionId]
-    ) ?? 0);
+    $invalidDirect = $ballotRepo->countInvalidDirect($meetingId, $motionId);
+    $invalidProxy = $ballotRepo->countInvalidProxy($meetingId, $motionId);
 
     if ($invalidDirect > 0 || $invalidProxy > 0) {
         $bad[] = [
@@ -203,7 +132,7 @@ if ($missing > 0) {
 }
 
 if (count($bad) > 0) {
-    $reasons[] = "Certaines motions fermées présentent des anomalies ou n’ont pas de résultat exploitable.";
+    $reasons[] = "Certaines motions fermées présentent des anomalies ou n'ont pas de résultat exploitable.";
 }
 
 api_ok([

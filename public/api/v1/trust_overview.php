@@ -4,6 +4,11 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\PolicyRepository;
+
 api_require_role('auditor');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -11,34 +16,20 @@ if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
 $tenant = api_current_tenant_id();
 
-$meeting = db_select_one("SELECT id FROM meetings WHERE tenant_id = ? AND id = ?", [$tenant, $meetingId]);
+$meetingRepo = new MeetingRepository();
+$motionRepo  = new MotionRepository();
+$ballotRepo  = new BallotRepository();
+$policyRepo  = new PolicyRepository();
+
+$meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
 if (!$meeting) api_fail('meeting_not_found', 404);
 
-$meetingSettings = db_select_one(
-  "SELECT vote_policy_id AS meeting_vote_policy_id, quorum_policy_id AS meeting_quorum_policy_id
-   FROM meetings WHERE tenant_id = ? AND id = ?",
-  [$tenant, $meetingId]
-);
-$meetingVotePolicyId = $meetingSettings['meeting_vote_policy_id'] ?? null;
-$meetingQuorumPolicyId = $meetingSettings['meeting_quorum_policy_id'] ?? null;
-
-function _policy_name(?string $table, ?string $id): ?string {
-  if (!$table || !$id) return null;
-  $row = db_select_one("SELECT name FROM {$table} WHERE tenant_id = ? AND id = ?", [api_current_tenant_id(), $id]);
-  return $row ? (string)$row['name'] : null;
-}
+$meetingVotePolicyId = $meeting['vote_policy_id'] ?? null;
+$meetingQuorumPolicyId = $meeting['quorum_policy_id'] ?? null;
 
 OfficialResultsService::ensureSchema();
 
-$motions = db_select_all(
-  "SELECT id, title, description, opened_at, closed_at,
-          secret, vote_policy_id, quorum_policy_id,
-          official_source, official_for, official_against, official_abstain, official_total,
-          decision, decision_reason
-   FROM motions WHERE meeting_id = ?
-   ORDER BY position ASC NULLS LAST, created_at ASC",
-  [$meetingId]
-);
+$motions = $motionRepo->listForReport($meetingId);
 
 $out = [];
 foreach ($motions as $m) {
@@ -60,22 +51,19 @@ foreach ($motions as $m) {
     $decReason = (string)($m['decision_reason'] ?? '');
   }
 
-  $counts = db_select_one(
-    "SELECT
-       SUM(CASE WHEN COALESCE(value::text, choice)='for' THEN 1 ELSE 0 END) AS c_for,
-       SUM(CASE WHEN COALESCE(value::text, choice)='against' THEN 1 ELSE 0 END) AS c_against,
-       SUM(CASE WHEN COALESCE(value::text, choice)='abstain' THEN 1 ELSE 0 END) AS c_abstain
-     FROM ballots WHERE motion_id = ?",
-    [$mid]
-  ) ?: ['c_for'=>0,'c_against'=>0,'c_abstain'=>0];
+  $counts = $ballotRepo->countChoicesByMotion($mid);
 
   $motionVotePolicyId = $m['vote_policy_id'] ?? null;
   $motionQuorumPolicyId = $m['quorum_policy_id'] ?? null;
   $effectiveVotePolicyId = $motionVotePolicyId ?: $meetingVotePolicyId;
   $effectiveQuorumPolicyId = $motionQuorumPolicyId ?: $meetingQuorumPolicyId;
 
-  $votePolicyName = $effectiveVotePolicyId ? _policy_name('vote_policies', $effectiveVotePolicyId) : null;
-  $quorumPolicyName = $effectiveQuorumPolicyId ? _policy_name('quorum_policies', $effectiveQuorumPolicyId) : null;
+  $votePolicyName = $effectiveVotePolicyId
+      ? $policyRepo->findVotePolicyName($tenant, $effectiveVotePolicyId)
+      : null;
+  $quorumPolicyName = $effectiveQuorumPolicyId
+      ? $policyRepo->findQuorumPolicyName($tenant, $effectiveQuorumPolicyId)
+      : null;
 
   $out[] = [
     'motion_id' => $mid,

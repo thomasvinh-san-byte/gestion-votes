@@ -103,6 +103,18 @@ class PolicyRepository extends AbstractRepository
         );
     }
 
+    /**
+     * Retourne le nom d'une politique de quorum par ID et tenant.
+     */
+    public function findQuorumPolicyName(string $tenantId, string $id): ?string
+    {
+        $val = $this->scalar(
+            "SELECT name FROM quorum_policies WHERE tenant_id = :tid AND id = :id",
+            [':tid' => $tenantId, ':id' => $id]
+        );
+        return $val !== false && $val !== null ? (string)$val : null;
+    }
+
     // =========================================================================
     // VOTE POLICIES
     // =========================================================================
@@ -171,6 +183,18 @@ class PolicyRepository extends AbstractRepository
                 ':tid' => $tenantId, ':id' => $id,
             ]
         );
+    }
+
+    /**
+     * Retourne le nom d'une politique de vote par ID et tenant.
+     */
+    public function findVotePolicyName(string $tenantId, string $id): ?string
+    {
+        $val = $this->scalar(
+            "SELECT name FROM vote_policies WHERE tenant_id = :tid AND id = :id",
+            [':tid' => $tenantId, ':id' => $id]
+        );
+        return $val !== false && $val !== null ? (string)$val : null;
     }
 
     public function deleteVotePolicy(string $id, string $tenantId): int

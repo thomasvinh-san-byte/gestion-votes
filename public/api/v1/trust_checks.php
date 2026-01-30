@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 /**
  * trust_checks.php - Contrôles de cohérence de séance
- * 
+ *
  * GET /api/v1/trust_checks.php?meeting_id={uuid}
- * 
+ *
  * Retourne la liste des contrôles de cohérence :
  * - Quorum atteint
  * - Tous les votes clôturés
@@ -16,6 +16,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\PolicyRepository;
+
 api_require_role(['auditor', 'admin', 'operator']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -25,12 +31,14 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
 
 $tenantId = api_current_tenant_id();
 
+$meetingRepo = new MeetingRepository();
+$memberRepo  = new MemberRepository();
+$motionRepo  = new MotionRepository();
+$ballotRepo  = new BallotRepository();
+$policyRepo  = new PolicyRepository();
+
 // Vérifier que la séance existe
-$meeting = db_one("
-    SELECT id, title, status, president_name, quorum_policy_id, vote_policy_id
-    FROM meetings 
-    WHERE tenant_id = ? AND id = ?
-", [$tenantId, $meetingId]);
+$meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
 
 if (!$meeting) {
     api_fail('meeting_not_found', 404);
@@ -46,7 +54,7 @@ $checks[] = [
     'id' => 'president_defined',
     'label' => 'Président renseigné',
     'passed' => $presidentOk,
-    'detail' => $presidentOk 
+    'detail' => $presidentOk
         ? 'Président: ' . $meeting['president_name']
         : 'Aucun président défini pour cette séance',
 ];
@@ -54,16 +62,13 @@ $checks[] = [
 // ============================================================================
 // 2. Au moins un membre présent
 // ============================================================================
-$presentCount = (int)db_scalar("
-    SELECT COUNT(*) FROM attendances
-    WHERE meeting_id = ? AND mode::text IN ('present', 'remote')
-", [$meetingId]);
+$presentCount = $meetingRepo->countPresent($meetingId);
 
 $checks[] = [
     'id' => 'members_present',
     'label' => 'Membres présents',
     'passed' => $presentCount > 0,
-    'detail' => $presentCount > 0 
+    'detail' => $presentCount > 0
         ? "{$presentCount} membre(s) présent(s)"
         : 'Aucun membre présent',
 ];
@@ -71,13 +76,11 @@ $checks[] = [
 // ============================================================================
 // 3. Quorum atteint (global)
 // ============================================================================
-$totalMembers = (int)db_scalar("
-    SELECT COUNT(*) FROM members WHERE tenant_id = ? AND is_active = true
-", [$tenantId]);
+$totalMembers = $memberRepo->countActive($tenantId);
 
 $quorumThreshold = 0.5; // Par défaut 50%
 if ($meeting['quorum_policy_id']) {
-    $policy = db_one("SELECT threshold FROM quorum_policies WHERE id = ?", [$meeting['quorum_policy_id']]);
+    $policy = $policyRepo->findQuorumPolicy($meeting['quorum_policy_id']);
     if ($policy) {
         $quorumThreshold = (float)($policy['threshold'] ?? 0.5);
     }
@@ -102,9 +105,9 @@ $checks[] = [
 // ============================================================================
 // 4. Toutes les résolutions ont été traitées
 // ============================================================================
-$totalMotions = (int)db_scalar("SELECT COUNT(*) FROM motions WHERE meeting_id = ?", [$meetingId]);
-$closedMotions = (int)db_scalar("SELECT COUNT(*) FROM motions WHERE meeting_id = ? AND closed_at IS NOT NULL", [$meetingId]);
-$openMotions = (int)db_scalar("SELECT COUNT(*) FROM motions WHERE meeting_id = ? AND opened_at IS NOT NULL AND closed_at IS NULL", [$meetingId]);
+$totalMotions = $meetingRepo->countMotions($meetingId);
+$closedMotions = $meetingRepo->countClosedMotions($meetingId);
+$openMotions = $meetingRepo->countOpenMotions($meetingId);
 
 $allMotionsClosed = $openMotions === 0;
 $checks[] = [
@@ -124,7 +127,7 @@ $checks[] = [
     'id' => 'has_closed_motions',
     'label' => 'Au moins une résolution',
     'passed' => $hasMotions,
-    'detail' => $hasMotions 
+    'detail' => $hasMotions
         ? "{$closedMotions} résolution(s) votée(s)"
         : 'Aucune résolution n\'a été votée',
 ];
@@ -132,19 +135,14 @@ $checks[] = [
 // ============================================================================
 // 6. Procurations valides (pas de cycle)
 // ============================================================================
-$proxyCycles = db_all("
-    SELECT p1.giver_member_id, p1.receiver_member_id
-    FROM proxies p1
-    JOIN proxies p2 ON p1.receiver_member_id = p2.giver_member_id AND p1.giver_member_id = p2.receiver_member_id
-    WHERE p1.meeting_id = ?
-", [$meetingId]);
+$proxyCycles = $meetingRepo->findProxyCycles($meetingId);
 
 $proxyOk = count($proxyCycles) === 0;
 $checks[] = [
     'id' => 'proxies_valid',
     'label' => 'Procurations valides',
     'passed' => $proxyOk,
-    'detail' => $proxyOk 
+    'detail' => $proxyOk
         ? 'Aucun cycle de procuration détecté'
         : count($proxyCycles) . ' cycle(s) de procuration détecté(s)',
 ];
@@ -153,14 +151,7 @@ $checks[] = [
 // 7. Totaux de vote cohérents (pour chaque motion close)
 // ============================================================================
 // Vérifier que chaque motion close a au moins un bulletin
-$motionsWithoutVotes = db_all("
-    SELECT m.id, m.title
-    FROM motions m
-    LEFT JOIN ballots b ON b.motion_id = m.id
-    WHERE m.meeting_id = ? AND m.closed_at IS NOT NULL
-    GROUP BY m.id, m.title
-    HAVING COUNT(b.id) = 0
-", [$meetingId]);
+$motionsWithoutVotes = $motionRepo->listClosedWithoutVotes($meetingId);
 
 $totalsOk = count($motionsWithoutVotes) === 0;
 $checks[] = [
@@ -177,21 +168,14 @@ $checks[] = [
 // ============================================================================
 // 8. Pas de votes après clôture
 // ============================================================================
-$votesAfterClose = db_all("
-    SELECT b.id, m.title
-    FROM ballots b
-    JOIN motions m ON m.id = b.motion_id
-    WHERE m.meeting_id = ?
-      AND m.closed_at IS NOT NULL
-      AND b.created_at > m.closed_at
-", [$meetingId]);
+$votesAfterClose = $ballotRepo->listVotesAfterClose($meetingId);
 
 $noVotesAfterClose = count($votesAfterClose) === 0;
 $checks[] = [
     'id' => 'no_votes_after_close',
     'label' => 'Pas de votes post-clôture',
     'passed' => $noVotesAfterClose,
-    'detail' => $noVotesAfterClose 
+    'detail' => $noVotesAfterClose
         ? 'Aucun vote enregistré après clôture'
         : count($votesAfterClose) . ' vote(s) après clôture détecté(s)',
 ];
@@ -204,7 +188,7 @@ $checks[] = [
     'id' => 'vote_policy_defined',
     'label' => 'Politique de vote',
     'passed' => $votePolicyDefined,
-    'detail' => $votePolicyDefined 
+    'detail' => $votePolicyDefined
         ? 'Politique de vote définie'
         : 'Aucune politique de vote définie (défaut appliqué)',
 ];
@@ -217,7 +201,7 @@ $checks[] = [
     'id' => 'quorum_policy_defined',
     'label' => 'Politique de quorum',
     'passed' => $quorumPolicyDefined,
-    'detail' => $quorumPolicyDefined 
+    'detail' => $quorumPolicyDefined
         ? 'Politique de quorum définie'
         : 'Aucune politique de quorum définie (défaut 50%)',
 ];

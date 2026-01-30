@@ -465,6 +465,44 @@ class MotionRepository extends AbstractRepository
         );
     }
 
+    /**
+     * Liste les motions fermees avec donnees de comptage manuel (par meeting_id seul).
+     */
+    public function listClosedForMeetingWithManualTally(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT id, title, manual_total, manual_for, manual_against, manual_abstain, opened_at, closed_at
+             FROM motions
+             WHERE meeting_id = :mid AND closed_at IS NOT NULL
+             ORDER BY closed_at ASC NULLS LAST",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Motions closes sans aucun bulletin pour une seance.
+     */
+    public function listClosedWithoutVotes(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT m.id, m.title
+             FROM motions m
+             LEFT JOIN ballots b ON b.motion_id = m.id
+             WHERE m.meeting_id = :mid AND m.closed_at IS NOT NULL
+             GROUP BY m.id, m.title
+             HAVING COUNT(b.id) = 0",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Compte toutes les motions (global, sans filtre tenant).
+     */
+    public function countAll(): int
+    {
+        return (int)($this->scalar("SELECT COUNT(*) FROM motions") ?? 0);
+    }
+
     // =========================================================================
     // ECRITURE
     // =========================================================================

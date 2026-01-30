@@ -252,6 +252,58 @@ class MeetingRepository extends AbstractRepository
         );
     }
 
+    /**
+     * Compte toutes les seances d'un tenant.
+     */
+    public function countForTenant(string $tenantId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM meetings WHERE tenant_id = :tid",
+            [':tid' => $tenantId]
+        ) ?? 0);
+    }
+
+    /**
+     * Liste les procurations d'une seance pour rapport (avec noms mandant/mandataire).
+     */
+    public function listProxiesForReport(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT g.full_name AS giver_name, r.full_name AS receiver_name, p.created_at, p.revoked_at
+             FROM proxies p
+             JOIN members g ON g.id = p.giver_member_id
+             JOIN members r ON r.id = p.receiver_member_id
+             WHERE p.meeting_id = :mid
+             ORDER BY g.full_name ASC",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Detecte les cycles de procuration pour une seance.
+     */
+    public function findProxyCycles(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT p1.giver_member_id, p1.receiver_member_id
+             FROM proxies p1
+             JOIN proxies p2 ON p1.receiver_member_id = p2.giver_member_id AND p1.giver_member_id = p2.receiver_member_id
+             WHERE p1.meeting_id = :mid",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Compte les seances live d'un tenant.
+     */
+    public function countLive(string $tenantId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM meetings WHERE tenant_id = :tid AND status = 'live'",
+            [':tid' => $tenantId]
+        ) ?? 0);
+    }
+
     // =========================================================================
     // ECRITURE
     // =========================================================================

@@ -67,6 +67,17 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
+     * Nombre de membres actifs et non supprimes d'un tenant.
+     */
+    public function countActiveNotDeleted(string $tenantId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true AND deleted_at IS NULL",
+            [':tid' => $tenantId]
+        ) ?? 0);
+    }
+
+    /**
      * Poids total des membres actifs d'un tenant.
      */
     public function sumActiveWeight(string $tenantId): float

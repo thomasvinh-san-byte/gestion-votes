@@ -1,52 +1,51 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\UserRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\VoteTokenRepository;
+
 api_request('GET');
 api_require_role('admin');
 
+$userRepo      = new UserRepository();
+$meetingRepo   = new MeetingRepository();
+$motionRepo    = new MotionRepository();
+$memberRepo    = new MemberRepository();
+$voteTokenRepo = new VoteTokenRepository();
+
 $serverTime = date('c');
 
-$t0 = microtime(true);
-try { db_scalar("SELECT 1"); $dbLat = (microtime(true) - $t0) * 1000.0; } catch (Throwable $e) { $dbLat = null; }
-
-try { $active = db_scalar("SELECT COUNT(*) FROM pg_stat_activity WHERE datname = current_database()"); }
-catch (Throwable $e) { $active = null; }
+$dbLat = $userRepo->dbPing();
+$active = $userRepo->dbActiveConnections();
 
 $path = __DIR__;
 try { $free = @disk_free_space($path); $total = @disk_total_space($path); } catch (Throwable $e) { $free = null; $total = null; }
 
-$cntMeet = (int)(db_scalar("SELECT COUNT(*) FROM meetings WHERE tenant_id = ?", [api_current_tenant_id()]) ?? 0);
-$cntMot  = (int)(db_scalar("SELECT COUNT(*) FROM motions") ?? 0);
-$cntMembers = (int)(db_scalar("SELECT COUNT(*) FROM members WHERE tenant_id = ? AND is_active = true AND deleted_at IS NULL", [api_current_tenant_id()]) ?? 0);
-$cntLive = (int)(db_scalar("SELECT COUNT(*) FROM meetings WHERE tenant_id = ? AND status = 'live'", [api_current_tenant_id()]) ?? 0);
+$cntMeet = $meetingRepo->countForTenant(api_current_tenant_id());
+$cntMot  = $motionRepo->countAll();
+$cntMembers = $memberRepo->countActiveNotDeleted(api_current_tenant_id());
+$cntLive = $meetingRepo->countLive(api_current_tenant_id());
 
-$cntTok = null;
-try { $cntTok = (int)(db_scalar("SELECT COUNT(*) FROM vote_tokens") ?? 0); } catch (Throwable $e) { $cntTok = null; }
-
-$cntAud = null;
-try { $cntAud = (int)(db_scalar("SELECT COUNT(*) FROM audit_events WHERE tenant_id = ?", [api_current_tenant_id()]) ?? 0); } catch (Throwable $e) { $cntAud = null; }
-
-$fail15 = null;
-try { $fail15 = (int)(db_scalar("SELECT COUNT(*) FROM auth_failures WHERE created_at > NOW() - INTERVAL '15 minutes'") ?? 0); }
-catch (Throwable $e) { $fail15 = null; }
+$cntTok = $voteTokenRepo->countAll();
+$cntAud = $userRepo->countAuditEvents(api_current_tenant_id());
+$fail15 = $userRepo->countAuthFailures15m();
 
 try {
-  db_execute(
-    "INSERT INTO system_metrics(server_time, db_latency_ms, db_active_connections, disk_free_bytes, disk_total_bytes, count_meetings, count_motions, count_vote_tokens, count_audit_events, auth_failures_15m)
-     VALUES (:st,:lat,:ac,:free,:tot,:cm,:cmo,:ct,:ca,:af)",
-    [
-      ':st'=>$serverTime,
-      ':lat'=>$dbLat,
-      ':ac'=>$active === null ? null : (int)$active,
-      ':free'=>$free,
-      ':tot'=>$total,
-      ':cm'=>$cntMeet,
-      ':cmo'=>$cntMot,
-      ':ct'=>$cntTok,
-      ':ca'=>$cntAud,
-      ':af'=>$fail15,
-    ]
-  );
+  $userRepo->insertSystemMetric([
+    'server_time' => $serverTime,
+    'db_latency_ms' => $dbLat,
+    'db_active_connections' => $active === null ? null : (int)$active,
+    'disk_free_bytes' => $free,
+    'disk_total_bytes' => $total,
+    'count_meetings' => $cntMeet,
+    'count_motions' => $cntMot,
+    'count_vote_tokens' => $cntTok,
+    'count_audit_events' => $cntAud,
+    'auth_failures_15m' => $fail15,
+  ]);
 } catch (Throwable $e) {}
 
 $alertsToCreate = [];
@@ -61,19 +60,13 @@ if ($free !== null && $total) {
 
 foreach ($alertsToCreate as $a) {
   try {
-    $exists = db_scalar("SELECT 1 FROM system_alerts WHERE code = ? AND created_at > NOW() - INTERVAL '10 minutes' LIMIT 1", [$a['code']]);
-    if (!$exists) {
-      db_execute("INSERT INTO system_alerts(code, severity, message, details_json, created_at) VALUES (:c,:s,:m,:d,NOW())",
-        [':c'=>$a['code'], ':s'=>$a['severity'], ':m'=>$a['message'], ':d'=>json_encode($a['details'])]
-      );
+    if (!$userRepo->findRecentAlert($a['code'])) {
+      $userRepo->insertSystemAlert($a['code'], $a['severity'], $a['message'], json_encode($a['details']));
     }
   } catch (Throwable $e) {}
 }
 
-$recentAlerts = [];
-try {
-  $recentAlerts = db_select_all("SELECT id, created_at, code, severity, message, details_json FROM system_alerts ORDER BY created_at DESC LIMIT 20");
-} catch (Throwable $e) { $recentAlerts = []; }
+$recentAlerts = $userRepo->listRecentAlerts(20);
 
 api_ok([
   'system' => [

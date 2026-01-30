@@ -118,6 +118,17 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
+     * Compte les presences eligibles (present/remote/proxy) pour une seance.
+     */
+    public function countEligible(string $meetingId): int
+    {
+        return (int)($this->scalar(
+            "SELECT count(*) FROM attendances WHERE meeting_id = :mid AND mode IN ('present','remote','proxy')",
+            [':mid' => $meetingId]
+        ) ?? 0);
+    }
+
+    /**
      * Compte les membres presents (avec filtre modes et late rule).
      * Utilise par QuorumEngine.
      */
