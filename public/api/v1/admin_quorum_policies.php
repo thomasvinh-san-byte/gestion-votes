@@ -53,7 +53,7 @@ if ($method === 'POST') {
       $den2 === '' ? null : $den2, $threshold2, $includeProxies, $countRemote
     );
   } else {
-    $id = (string)db()->query("SELECT gen_random_uuid()")->fetchColumn();
+    $id = $repo->generateUuid();
     $repo->createQuorumPolicy(
       $id, api_current_tenant_id(), $name, $mode, $den, $threshold,
       $threshold2, $den2 === '' ? null : $den2,

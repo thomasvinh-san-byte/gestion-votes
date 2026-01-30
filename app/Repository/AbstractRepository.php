@@ -78,7 +78,7 @@ abstract class AbstractRepository
     /**
      * Genere un UUID v4 via PostgreSQL.
      */
-    protected function generateUuid(): string
+    public function generateUuid(): string
     {
         return (string)$this->scalar("SELECT gen_random_uuid()");
     }
