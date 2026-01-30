@@ -65,14 +65,14 @@ $apiKey = AuthMiddleware::generateApiKey();
 
 ### Hiérarchie des rôles
 
-| Rôle | Niveau | Permissions |
+| Rôle (système) | Niveau | Permissions |
 |------|--------|-------------|
 | `admin` | 100 | Accès complet |
 | `operator` | 80 | Gestion séances, membres, votes |
-| `president` | 70 | Validation, signature, export |
-| `trust` | 60 | Contrôle, audit |
-| `readonly` | 20 | Lecture seule |
-| `voter` | 10 | Vote uniquement (token) |
+| `auditor` | 60 | Contrôle, audit |
+| `viewer` | 20 | Lecture seule |
+
+> **Note :** Les rôles de séance (`president`, `assessor`, `voter`) sont attribués par réunion et ne font pas partie de la hiérarchie système.
 
 ### Usage dans les endpoints
 

@@ -63,8 +63,8 @@ php scripts/generate_api_keys.php --env >> .env
 | **admin** | `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2` | admin@ag-vote.local |
 | **operator** | `op1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1` | operator@ag-vote.local |
 | **president** | `pr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1` | president@ag-vote.local |
-| **trust** | `tr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1` | trust@ag-vote.local |
-| **readonly** | `ro1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1` | readonly@ag-vote.local |
+| **auditor** | `tr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1` | auditor@ag-vote.local |
+| **viewer** | `ro1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1` | viewer@ag-vote.local |
 
 ⚠️ **Ces clés ne fonctionnent qu'avec:**
 ```
@@ -75,7 +75,7 @@ APP_SECRET=dev-secret-change-me-in-production-32ch
 
 ```bash
 # Appliquer le seed
-psql -U ag_vote -d ag_vote -f database/seeds/test_users.sql
+psql -U ca_app -d vote_app -f database/seeds/test_users.sql
 ```
 
 ### Test avec cURL

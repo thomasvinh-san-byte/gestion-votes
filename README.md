@@ -1,150 +1,242 @@
-# Gestion des votes
+# AG-Vote — Gestion des votes
 
-**Gestion des votes** est une application web de gestion de séances de vote avec **vote électronique sécurisé**, conçue pour un usage **opérationnel réel** (assemblées générales, conseils, réunions formelles) et un niveau de **conformité CDC** clairement défini.
+Application web de gestion de **seances de vote avec vote electronique securise**, concue pour un usage operationnel reel (assemblees generales, conseils syndicaux, reunions formelles).
 
-Le produit couvre **l’intégralité du cycle de vie d’une séance** :
-préparation → conduite en live → consolidation → validation → production des livrables (PV, exports).
+Le produit couvre l'integralite du cycle de vie d'une seance :
+**preparation > conduite en live > consolidation > validation > production des livrables (PV, exports).**
 
 ---
 
-## 🎯 Objectifs du produit
+## Objectifs du produit
 
-* Permettre la **conduite fluide d’une séance de vote** avec ou sans vote électronique
-* Garantir des **résultats juridiquement défendables** (dans le périmètre CDC défini)
-* Offrir une **traçabilité complète** des actions et incidents
-* Rendre la séance **testable et rejouable** (seed, reset, audit)
-* Fournir des **livrables exploitables** (PV, CSV) après validation
+- Permettre la **conduite fluide d'une seance de vote** avec ou sans vote electronique
+- Garantir des **resultats juridiquement defendables** (dans le perimetre CDC defini)
+- Offrir une **tracabilite complete** des actions et incidents
+- Rendre la seance **testable et rejouable** (seed, reset, audit)
+- Fournir des **livrables exploitables** (PV, CSV) apres validation
 
 Le projet est volontairement :
 
-* **PostgreSQL-first** (DB = source de vérité),
-* **simple côté front** (HTML + HTMX, pas de SPA),
-* **strict sur les règles métier** (garde-fous, verrouillage).
+- **PostgreSQL-first** (DB = source de verite)
+- **Simple cote front** (HTML + HTMX, pas de SPA)
+- **Strict sur les regles metier** (garde-fous, verrouillage)
 
 ---
 
-## ✅ Fonctionnalités principales
+## Stack technique
 
-### Gestion de séance
-
-* Création et pilotage de séances (`meetings`)
-* Ordre du jour et résolutions (`motions`)
-* Gestion des statuts (préparation, live, validée)
-
-### Présences & procurations
-
-* Présents / distants / absents
-* Procurations avec contrôle de plafond
-* Impact sur quorum et pondération
-
-### Vote électronique
-
-* Vote par **token unique** (QR / lien tablette)
-* Anti-rejeu (token consommé)
-* Confirmation obligatoire côté votant
-* Support du **mode dégradé** (vote manuel justifié)
-
-### Calculs automatiques
-
-* Pondération (tantièmes / poids)
-* Quorum (global et par résolution)
-* Majorité **pondérée**
-* Résultat juridique explicite par résolution
-
-### Contrôle & traçabilité
-
-* Déclaration d’incidents (réseau, matériel, décision exceptionnelle)
-* Audit append-only
-* Détection d’anomalies (votes manquants, procurations, tokens)
-
-### Post-séance
-
-* Validation finale par le président
-* **Verrouillage complet** de la base après validation (409)
-* Génération de **PV**
-* Exports CSV (présences, votes, résultats, audit)
+| Composant | Technologie |
+|-----------|-------------|
+| Backend | PHP 8.3+, PDO PostgreSQL |
+| Frontend | HTML, HTMX, JavaScript vanilla |
+| Base de donnees | PostgreSQL 16+ |
+| Authentification | Cle API + session PHP |
+| Serveur | Apache 2.4+ avec mod_rewrite |
 
 ---
 
-## 🧑‍🤝‍🧑 Rôles utilisateurs
+## Demarrage rapide
 
-* **Operator**
-  Conduit la séance : ouvre les résolutions, surveille le live, assiste le président.
+### 1. Prerequis
 
-* **Président**
-  Clôture les votes, valide la séance, engage la responsabilité juridique.
+- PHP >= 8.3 avec extensions : `pdo_pgsql`, `mbstring`, `json`, `session`
+- PostgreSQL >= 16
+- Apache 2.4+ (ou serveur PHP integre pour le dev)
 
-* **Trust**
-  Rôle de contrôle et d’audit : anomalies, cohérence, conformité.
+### 2. Installation
 
-* **Votant**
-  Exprime son vote via tablette ou mobile (interface minimale).
+```bash
+# Cloner le projet
+git clone <url> gestion-votes
+cd gestion-votes
 
----
+# Creer la base de donnees
+sudo -u postgres createuser vote_app --pwprompt
+sudo -u postgres createdb vote_app -O vote_app
+psql -U vote_app -d vote_app -f database/schema.sql
+psql -U vote_app -d vote_app -f database/seeds/test_users.sql
 
-## 🖥️ Interfaces principales
+# Configurer l'environnement
+cp .env.production .env
+# Editer .env : DB_PASS, APP_SECRET, CORS_ALLOWED_ORIGINS
+```
 
-| Rôle            | Page                   |
-| --------------- | ---------------------- |
-| Opérateur       | `/operator.htmx.html`  |
-| Président       | `/president.htmx.html` |
-| Trust           | `/trust.htmx.html`     |
-| Vote (tablette) | `/vote.php?token=…`    |
-| Validation      | `/validate.htmx.html`  |
-| PV / Exports    | `/report.htmx.html`    |
-
----
-
-## ⚖️ Conformité & cadre CDC (résumé)
-
-Le système couvre notamment :
-
-* Identification du votant par token unique
-* Unicité du vote (anti-rejeu)
-* Pondération et quorum
-* Traçabilité complète (audit, incidents, actions manuelles)
-* Calculs rejouables depuis les ballots
-* Verrouillage total après validation
-* PV et exports **uniquement post-validation**
-
-Les limites connues (assumées et documentées) sont détaillées dans
-👉 **CONFORMITE_CDC.md**
-
----
-
-## 📚 Documentation
-
-* **INSTALLATION.md**
-  Installation complète sur Linux (PostgreSQL + PHP)
-
-* **UTILISATION_LIVE.md**
-  Déroulé opérateur / président / trust, le jour J
-
-* **RECETTE_DEMO.md**
-  Scénario de démonstration et de test (≈10 minutes)
-
-* **CONFORMITE_CDC.md**
-  Cadre juridique, garanties, limites
-
----
-
-## 🚀 Démarrage rapide (dev)
+### 3. Lancer le serveur de dev
 
 ```bash
 php -S 0.0.0.0:8000 -t public
 ```
 
-Puis ouvrir :
+### 4. Se connecter
 
-```
-http://<IP>:8000/operator.htmx.html
-```
+Ouvrir `http://localhost:8000/login.html` et entrer une cle API.
+
+Cles de test (defaut dans `database/seeds/test_users.sql`) :
+- **Admin** : `admin-key-2024-secret`
+- **Operateur** : `operator-key-2024-secret`
+- **Auditeur** : `auditor-key-2024-secret`
+- **Lecteur** : `viewer-key-2024-secret`
+
+Voir [docs/INSTALLATION.md](docs/INSTALLATION.md) pour l'installation complete.
 
 ---
 
-## 🧠 Philosophie du projet
+## Roles utilisateurs
 
-* **Clarté > complexité**
-* **DB comme source de vérité**
-* **Moins de magie, plus d’audit**
-* **Ce qui n’est pas couvert est explicitement documenté**
+Le systeme distingue deux types de roles :
+
+### Roles systeme (permanents)
+
+| Role | Acces | Description |
+|------|-------|-------------|
+| **admin** | Total | Gestion des utilisateurs, politiques, configuration systeme |
+| **operator** | Conduite | Pilotage des seances, gestion presences, ouverture/fermeture votes |
+| **auditor** | Lecture audit | Controle des anomalies, journal d'audit, conformite |
+| **viewer** | Lecture seule | Consultation des archives et resultats |
+
+### Roles de seance (par reunion)
+
+| Role | Acces | Description |
+|------|-------|-------------|
+| **president** | Decision | Cloture les votes, valide la seance, engage la responsabilite juridique |
+| **assessor** | Support | Assiste l'operateur, verifie la conformite |
+| **voter** | Vote | Exprime son vote via tablette ou mobile |
+
+---
+
+## Interfaces principales
+
+| Interface | URL | Role cible |
+|-----------|-----|------------|
+| Accueil | `/index.html` | Tous |
+| Connexion | `/login.html` | Tous |
+| Tableau de bord | `/meetings.htmx.html` | operator |
+| Console operateur | `/operator.htmx.html` | operator |
+| Flux operateur | `/operator_flow.htmx.html` | operator |
+| Cockpit president | `/president.htmx.html` | president |
+| Controle & audit | `/trust.htmx.html` | auditor |
+| Administration | `/admin.htmx.html` | admin |
+| Resolutions | `/motions.htmx.html` | operator |
+| Presences | `/attendance.htmx.html` | operator |
+| Membres | `/members.htmx.html` | operator |
+| Procurations | `/proxies.htmx.html` | operator |
+| Invitations | `/invitations.htmx.html` | operator |
+| Vote (tablette) | `/vote.htmx.html` | voter |
+| Validation | `/validate.htmx.html` | president |
+| PV / Exports | `/report.htmx.html` | operator |
+| Archives | `/archives.htmx.html` | viewer |
+| Ecran public | `/public.htmx.html` | public |
+| Vote papier | `/paper_redeem.htmx.html` | public |
+
+---
+
+## Fonctionnalites principales
+
+### Gestion de seance
+- Creation et pilotage de seances avec machine a etats (`draft > scheduled > frozen > live > closed > validated > archived`)
+- Ordre du jour et resolutions
+- Transitions controlees par role
+
+### Presences & procurations
+- Pointage present / distant / absent / excuse
+- Procurations avec controle de plafond
+- Impact automatique sur quorum et ponderation
+
+### Vote electronique
+- Vote par **token unique** (QR / lien tablette)
+- Anti-rejeu (token consomme une seule fois)
+- Confirmation obligatoire cote votant
+- Support du **mode degrade** (vote manuel justifie)
+- Vote papier avec code a usage unique
+
+### Calculs automatiques
+- Ponderation (tantiemes / poids)
+- Quorum global et par resolution (politiques configurables)
+- Majorite ponderee avec politiques de seuil
+- Resultat juridique explicite par resolution
+
+### Controle & tracabilite
+- Journal d'audit append-only avec chaine de hachage SHA256
+- Declaration d'incidents (reseau, materiel, decision exceptionnelle)
+- Detection automatique d'anomalies
+- Actions manuelles tracees avec justification
+
+### Post-seance
+- Validation finale par le president
+- **Verrouillage complet** de la base apres validation (HTTP 409)
+- Generation de PV (HTML + PDF)
+- Exports CSV (presences, votes, resultats, audit)
+
+---
+
+## Architecture du projet
+
+```
+gestion-votes/
++-- public/                  Racine web (DocumentRoot Apache)
+|   +-- api/v1/              118 endpoints REST (PHP)
+|   +-- assets/css/          Feuilles de style
+|   +-- assets/js/           JavaScript client
+|   +-- partials/            Composants HTML reutilisables
+|   +-- errors/              Pages d'erreur 404/500
+|   +-- *.htmx.html          Pages applicatives
+|   +-- .htaccess            Routage et securite Apache
++-- app/                     Code backend
+|   +-- api.php              Point d'entree API (fonctions helpers)
+|   +-- bootstrap.php        Initialisation applicative
+|   +-- services/            17 services metier
+|   +-- Core/Security/       AuthMiddleware, CSRF, RateLimiter
+|   +-- Core/Validation/     Validation des entrees
++-- database/
+|   +-- schema.sql           Schema PostgreSQL (35+ tables)
+|   +-- seeds/               Donnees de test
++-- datasets/                Jeux de donnees de recette
++-- docs/                    Documentation complete
++-- .env                     Configuration environnement
++-- .env.production          Template production
++-- PRODUCTION.md            Checklist deploiement
+```
+
+Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) pour le detail technique.
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Architecture technique, patterns, conventions |
+| [API.md](docs/API.md) | Reference complete des 118 endpoints |
+| [INSTALLATION.md](docs/INSTALLATION.md) | Installation complete sur Linux |
+| [UTILISATION_LIVE.md](docs/UTILISATION_LIVE.md) | Guide operationnel jour J |
+| [RECETTE_DEMO.md](docs/RECETTE_DEMO.md) | Scenario de demonstration (~10 min) |
+| [SECURITY.md](docs/SECURITY.md) | Securite, authentification, audit |
+| [CONFORMITE_CDC.md](docs/CONFORMITE_CDC.md) | Cadre juridique, garanties, limites |
+| [FAQ.md](docs/FAQ.md) | Questions frequentes |
+| [PRODUCTION.md](PRODUCTION.md) | Checklist deploiement production |
+| [cahier_des_charges.md](docs/cahier_des_charges.md) | Specifications fonctionnelles v1.1 |
+
+---
+
+## Conformite & cadre CDC
+
+Le systeme couvre notamment :
+
+- Identification du votant par token unique
+- Unicite du vote (anti-rejeu)
+- Ponderation et quorum
+- Tracabilite complete (audit, incidents, actions manuelles)
+- Calculs rejouables depuis les bulletins
+- Verrouillage total apres validation
+- PV et exports uniquement post-validation
+
+Les limites connues (assumees et documentees) sont detaillees dans [CONFORMITE_CDC.md](docs/CONFORMITE_CDC.md).
+
+---
+
+## Philosophie du projet
+
+- **Clarte > complexite**
+- **DB comme source de verite**
+- **Moins de magie, plus d'audit**
+- **Ce qui n'est pas couvert est explicitement documente**
