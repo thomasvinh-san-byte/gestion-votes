@@ -101,15 +101,12 @@ $proxiesCount = (int)db_scalar("
     SELECT COUNT(*) FROM proxies WHERE meeting_id = ?
 ", [$meetingId]);
 
-// Incidents
-$incidentsCount = 0;
-try {
-    $incidentsCount = (int)db_scalar("
-        SELECT COUNT(*) FROM vote_incidents WHERE meeting_id = ?
-    ", [$meetingId]) ?: 0;
-} catch (\Throwable $e) {
-    // Table peut ne pas exister
-}
+// Incidents (comptés via audit_events)
+$incidentsCount = (int)db_scalar("
+    SELECT COUNT(*) FROM audit_events
+    WHERE resource_type = 'meeting' AND resource_id = ?
+      AND action LIKE '%incident%'
+", [$meetingId]) ?: 0;
 
 // Votes manuels
 $manualVotesCount = (int)db_scalar("

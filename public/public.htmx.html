@@ -796,8 +796,11 @@
  * Affiche en temps réel les résultats des votes
  */
 
-// Configuration
-window.APP_API_KEY = window.APP_API_KEY || "dev-public-key";
+// Configuration — clé API depuis URL param, localStorage, ou variable globale
+window.APP_API_KEY = window.APP_API_KEY
+  || new URLSearchParams(location.search).get("api_key")
+  || (function(){ try { return localStorage.getItem("api_key"); } catch(e){ return null; } })()
+  || "";
 let lastUpdateTime = null;
 let updateInterval = 3000;
 let voteTimerInterval = null;
