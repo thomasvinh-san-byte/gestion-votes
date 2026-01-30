@@ -224,7 +224,7 @@ draft → scheduled → frozen → live → closed → validated → archived
 
 Chaque transition est controlée par role et enregistree dans `meeting_state_transitions`.
 
-## Services metier (app/services/)
+## Services metier (app/services/ — namespace AgVote\Service)
 
 | Service | Responsabilite |
 |---------|---------------|
@@ -242,8 +242,6 @@ Chaque transition est controlée par role et enregistree dans `meeting_state_tra
 | InvitationsService | Tokens d'invitation (email, QR) |
 | MembersService | Gestion du registre des membres |
 | MailerService | Envoi d'emails |
-| AuthService | (deprecated) → AuthMiddleware |
-| QuorumService | (deprecated) → QuorumEngine |
 
 ## Variables d'environnement (.env)
 

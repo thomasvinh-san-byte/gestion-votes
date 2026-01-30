@@ -1,15 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../bootstrap.php';
-require_once __DIR__ . '/OfficialResultsService.php';
-require_once __DIR__ . '/VoteEngine.php';
-
-// QuorumEngine peut ne pas exister si Sprint 4 non appliqué ; on degrade proprement
-$qePath = __DIR__ . '/QuorumEngine.php';
-if (file_exists($qePath)) {
-    require_once $qePath;
-}
+namespace AgVote\Service;
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;

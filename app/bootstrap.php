@@ -185,6 +185,7 @@ AuthMiddleware::init(['debug' => $debug]);
 
 function db(): PDO { global $pdo; return $pdo; }
 
+/** @deprecated Utiliser un Repository a la place. */
 function db_select_one(string $sql, array $params = []): ?array {
     $st = db()->prepare($sql);
     $st->execute($params);
@@ -192,30 +193,36 @@ function db_select_one(string $sql, array $params = []): ?array {
     return $row === false ? null : $row;
 }
 
+/** @deprecated Alias de db_select_one(). Utiliser un Repository. */
 function db_one(string $sql, array $params = []): ?array {
     return db_select_one($sql, $params);
 }
 
+/** @deprecated Utiliser un Repository a la place. */
 function db_select_all(string $sql, array $params = []): array {
     $st = db()->prepare($sql);
     $st->execute($params);
     return $st->fetchAll();
 }
 
+/** @deprecated Alias de db_select_all(). Utiliser un Repository. */
 function db_all(string $sql, array $params = []): array {
     return db_select_all($sql, $params);
 }
 
+/** @deprecated Utiliser un Repository a la place. */
 function db_execute(string $sql, array $params = []): int {
     $st = db()->prepare($sql);
     $st->execute($params);
     return $st->rowCount();
 }
 
+/** @deprecated Alias de db_execute(). Utiliser un Repository. */
 function db_exec(string $sql, array $params = []): int {
     return db_execute($sql, $params);
 }
 
+/** @deprecated Utiliser un Repository a la place. */
 function db_scalar(string $sql, array $params = []): mixed {
     $st = db()->prepare($sql);
     $st->execute($params);

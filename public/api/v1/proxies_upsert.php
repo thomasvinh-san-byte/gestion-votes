@@ -2,6 +2,8 @@
 // public/api/v1/proxies_upsert.php
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Service\ProxiesService;
+
 api_require_role('operator');
 
 $in = api_request('POST');
@@ -13,8 +15,6 @@ $giverId   = api_require_uuid($in, 'giver_member_id');
 
 $receiverRaw = trim((string)($in['receiver_member_id'] ?? ''));
 $scope       = trim((string)($in['scope'] ?? 'full'));
-
-require_once __DIR__ . '/../../../app/services/ProxiesService.php';
 
 try {
     // MVP: receiver_member_id vide => révoque

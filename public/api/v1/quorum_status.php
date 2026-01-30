@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
-require_once __DIR__ . '/../../../app/services/QuorumEngine.php';
+
+use AgVote\Service\QuorumEngine;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     api_fail('method_not_allowed', 405);

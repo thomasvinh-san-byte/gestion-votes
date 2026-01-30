@@ -818,4 +818,15 @@ class MotionRepository extends AbstractRepository
             [':mid' => $meetingId]
         );
     }
+
+    /**
+     * Verifie si une motion a ete creee par un utilisateur.
+     */
+    public function isOwnedByUser(string $motionId, string $userId): bool
+    {
+        return (bool)$this->scalar(
+            "SELECT 1 FROM motions WHERE id = :id AND created_by_user_id = :uid",
+            [':id' => $motionId, ':uid' => $userId]
+        );
+    }
 }

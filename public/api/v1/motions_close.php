@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MotionRepository;
+use AgVote\Service\OfficialResultsService;
 
 api_require_role('operator');
 
@@ -41,7 +42,6 @@ try {
     $repo->markClosed($motionId, api_current_tenant_id());
 
     // Compute/freeze results (official)
-    require_once __DIR__ . '/../../../app/services/OfficialResultsService.php';
     OfficialResultsService::computeAndPersistMotion((string)$motionId);
 
     db()->commit();

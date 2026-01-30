@@ -7,10 +7,10 @@ declare(strict_types=1);
 // - émet une notification (warn)
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/services/NotificationsService.php';
 
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\ManualActionRepository;
+use AgVote\Service\NotificationsService;
 
 api_require_role(['operator','auditor']);
 

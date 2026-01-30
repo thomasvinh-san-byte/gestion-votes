@@ -2,7 +2,8 @@
 // Fragment HTML : badge quorum + justification (polling HTMX)
 // Params: meeting_id=... OR motion_id=...
 require __DIR__ . '/../../../app/api.php';
-require_once __DIR__ . '/../../../app/services/QuorumEngine.php';
+
+use AgVote\Service\QuorumEngine;
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 $motionId  = trim((string)($_GET['motion_id'] ?? ''));

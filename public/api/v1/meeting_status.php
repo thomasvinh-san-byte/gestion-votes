@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/services/MeetingValidator.php';
-require __DIR__ . '/../../../app/services/NotificationsService.php';
 
 use AgVote\Repository\MeetingRepository;
+use AgVote\Service\MeetingValidator;
+use AgVote\Service\NotificationsService;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     api_fail('method_not_allowed', 405);

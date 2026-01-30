@@ -2,9 +2,6 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/services/OfficialResultsService.php';
-require __DIR__ . '/../../../app/services/VoteEngine.php';
-require __DIR__ . '/../../../app/services/MeetingReportService.php';
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
@@ -12,6 +9,9 @@ use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\InvitationRepository;
+use AgVote\Service\OfficialResultsService;
+use AgVote\Service\VoteEngine;
+use AgVote\Service\MeetingReportService;
 
 api_require_role('auditor');
 

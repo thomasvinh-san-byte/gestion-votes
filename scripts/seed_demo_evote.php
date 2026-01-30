@@ -21,9 +21,10 @@ if (PHP_SAPI === 'cli' && !isset($_SERVER['REQUEST_METHOD'])) {
  */
 
 require __DIR__ . '/../app/bootstrap.php';
-require __DIR__ . '/../app/services/MembersService.php';
-require __DIR__ . '/../app/services/BallotsService.php';
-require __DIR__ . '/../app/services/VoteEngine.php';
+
+use AgVote\Service\MembersService;
+use AgVote\Service\BallotsService;
+use AgVote\Service\VoteEngine;
 
 global $pdo;
 

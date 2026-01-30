@@ -373,9 +373,12 @@ Pour chaque endpoint a migrer :
 
 ## Criteres de succes
 
-- [ ] 0 requete SQL dans les endpoints
-- [ ] 0 `global $pdo` dans les services
-- [ ] 15+ repositories avec tests unitaires
-- [ ] Format API inchange (zero breaking change)
-- [ ] Securite inchangee (AuthMiddleware, CSRF, RateLimiter)
+- [x] 0 requete SQL dans les endpoints
+- [x] 0 `global $pdo` dans les services
+- [x] 17 repositories (AbstractRepository + 16 concrets)
+- [ ] Tests unitaires repositories
+- [x] Format API inchange (zero breaking change)
+- [x] Securite inchangee (AuthMiddleware, CSRF, RateLimiter — zero diff)
 - [ ] Temps de reponse API : +-10% (pas de regression)
+- [x] Helpers `db_*()` marques `@deprecated`
+- [x] Code mort supprime (QuorumService.php)
