@@ -243,7 +243,6 @@ Chaque transition est controlée par role et enregistree dans `meeting_state_tra
 | MembersService | Gestion du registre des membres |
 | MailerService | Envoi d'emails |
 | AuthService | (deprecated) → AuthMiddleware |
-| QuorumService | (deprecated) → QuorumEngine |
 
 ## Variables d'environnement (.env)
 
