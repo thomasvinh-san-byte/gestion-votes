@@ -11,7 +11,8 @@ declare(strict_types=1);
  */
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/services/SpeechService.php';
+
+use AgVote\Service\SpeechService;
 
 try {
     api_require_role(['operator', 'president', 'admin']);

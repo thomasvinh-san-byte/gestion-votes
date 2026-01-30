@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/services/BallotsService.php';
+
+use AgVote\Service\BallotsService;
 
 try {
     api_require_role('public');

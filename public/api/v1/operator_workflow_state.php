@@ -2,13 +2,13 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/services/MeetingValidator.php';
-require __DIR__ . '/../../../app/services/NotificationsService.php';
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
+use AgVote\Service\MeetingValidator;
+use AgVote\Service\NotificationsService;
 
 api_require_role('operator');
 

@@ -2,9 +2,9 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/services/MailerService.php';
 
 use AgVote\Repository\MeetingRepository;
+use AgVote\Service\MailerService;
 
 api_require_role('operator');
 $input = api_request('POST');

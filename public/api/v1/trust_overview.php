@@ -2,12 +2,12 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\PolicyRepository;
+use AgVote\Service\OfficialResultsService;
 
 api_require_role('auditor');
 

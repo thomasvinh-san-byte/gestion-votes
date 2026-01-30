@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/services/VoteEngine.php';
+
+use AgVote\Service\VoteEngine;
 
 try {
     $params = api_request('GET');

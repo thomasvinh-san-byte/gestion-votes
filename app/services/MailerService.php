@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+namespace AgVote\Service;
+
 /**
  * MailerService - SMTP socket (STARTTLS/SSL) sans dépendance externe.
  *
@@ -190,7 +192,7 @@ final class MailerService
         }
 
         $boundary = "b1_" . bin2hex(random_bytes(12));
-        $headers[] = "Content-Type: multipart/alternative; boundary="{$boundary}"";
+        $headers[] = "Content-Type: multipart/alternative; boundary=\"{$boundary}\"";
 
         $body .= "--{$boundary}\r\n";
         $body .= "Content-Type: text/plain; charset=UTF-8\r\n";

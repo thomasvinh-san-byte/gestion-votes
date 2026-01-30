@@ -1,9 +1,9 @@
 <?php
 // Fragment HTML: liste des motions + badge quorum + justification (cahier §8.3 visibilité)
 require __DIR__ . '/../../../app/api.php';
-require_once __DIR__ . '/../../../app/services/QuorumEngine.php';
 
 use AgVote\Repository\MotionRepository;
+use AgVote\Service\QuorumEngine;
 
 header('Content-Type: text/html; charset=utf-8');
 

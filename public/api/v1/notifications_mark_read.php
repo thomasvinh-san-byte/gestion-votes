@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
-require __DIR__ . '/../../../app/services/NotificationsService.php';
+
+use AgVote\Service\NotificationsService;
 
 require_any_role(['operator','trust']);
 
