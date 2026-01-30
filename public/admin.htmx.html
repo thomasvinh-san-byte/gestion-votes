@@ -7,88 +7,11 @@
   <meta name="description" content="Administration — AG-VOTE">
   <title>Administration — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
-  <style>
-    /* Tabs */
-    .admin-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--color-border); margin-bottom: var(--space-6); }
-    .admin-tab {
-      padding: var(--space-3) var(--space-5);
-      font-weight: var(--font-semibold);
-      font-size: var(--text-sm);
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      background: none;
-      border-top: none; border-left: none; border-right: none;
-      transition: all 0.15s;
-    }
-    .admin-tab:hover { color: var(--color-text); }
-    .admin-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
-    .admin-panel { display: none; }
-    .admin-panel.active { display: block; }
-
-    /* Users table */
-    .users-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
-    .users-table th { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 2px solid var(--color-border); font-weight: var(--font-semibold); color: var(--color-text-secondary); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; }
-    .users-table td { padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border-subtle); }
-    .users-table tr:hover td { background: var(--color-bg-subtle); }
-
-    /* Role badge */
-    .role-badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: var(--text-xs); font-weight: var(--font-semibold); }
-    .role-badge.admin { background: #fef2f2; color: #dc2626; }
-    .role-badge.operator { background: #eff6ff; color: #2563eb; }
-    .role-badge.auditor { background: #fefce8; color: #ca8a04; }
-    .role-badge.viewer { background: #f0fdf4; color: #16a34a; }
-    .role-badge.president { background: #faf5ff; color: #9333ea; }
-    .role-badge.assessor { background: #fff7ed; color: #ea580c; }
-    .role-badge.voter { background: #ecfeff; color: #0891b2; }
-
-    /* Permission matrix */
-    .perm-matrix { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
-    .perm-matrix th, .perm-matrix td { padding: 4px 8px; border: 1px solid var(--color-border-subtle); text-align: center; }
-    .perm-matrix th { background: var(--color-bg-subtle); font-weight: var(--font-semibold); }
-    .perm-matrix td:first-child { text-align: left; font-family: var(--font-mono); font-weight: 500; }
-    .perm-check { color: #16a34a; font-weight: bold; }
-    .perm-none { color: var(--color-border); }
-
-    /* State machine */
-    .state-flow { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; padding: var(--space-4) 0; }
-    .state-node { padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: var(--font-semibold); background: var(--color-bg-subtle); border: 1px solid var(--color-border); }
-    .state-arrow { color: var(--color-text-muted); font-size: var(--text-lg); }
-
-    /* System stat */
-    .system-stat { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3); border-bottom: 1px solid var(--color-border-subtle); }
-    .system-stat:last-child { border-bottom: none; }
-    .system-stat-label { font-size: var(--text-sm); color: var(--color-text-secondary); }
-    .system-stat-value { font-weight: var(--font-semibold); font-family: var(--font-mono); }
-
-    /* Inline form */
-    .inline-form { display: flex; gap: var(--space-2); align-items: flex-end; flex-wrap: wrap; }
-    .inline-form .form-group { flex: 1; min-width: 140px; }
-    .inline-form .form-label { font-size: var(--text-xs); margin-bottom: 2px; }
-    .inline-form .form-input { font-size: var(--text-sm); padding: var(--space-2); }
-
-    .meeting-role-tag { display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: 4px; font-size: 10px; background: var(--color-bg-subtle); border: 1px solid var(--color-border-subtle); }
-  </style>
 </head>
 <body>
   <div class="app-shell">
-    <!-- Sidebar -->
-    <aside class="app-sidebar">
-      <div class="p-4 border-b">
-        <a href="/" class="brand"><span class="brand-logo">AG-VOTE</span></a>
-      </div>
-      <nav class="nav">
-        <a class="nav-item" href="/meetings.htmx.html"><span class="nav-item-icon">🏛️</span><span>Tableau de bord</span></a>
-        <a class="nav-item" href="/operator.htmx.html"><span class="nav-item-icon">🗂️</span><span>Fiche séance</span></a>
-        <a class="nav-item" href="/members.htmx.html"><span class="nav-item-icon">👥</span><span>Membres</span></a>
-        <a class="nav-item" href="/trust.htmx.html"><span class="nav-item-icon">🛡️</span><span>Contrôle</span></a>
-        <a class="nav-item" href="/archives.htmx.html"><span class="nav-item-icon">📚</span><span>Archives</span></a>
-        <div class="border-t mt-4 pt-4">
-          <a class="nav-item active" href="/admin.htmx.html"><span class="nav-item-icon">⚙️</span><span>Administration</span></a>
-        </div>
-      </nav>
-    </aside>
+    <!-- Sidebar (loaded from shared partial) -->
+    <aside class="app-sidebar" data-include-sidebar data-page="admin"></aside>
 
     <!-- Header -->
     <header class="app-header">
@@ -111,17 +34,17 @@
         <div id="notif_box" class="hidden mb-4"></div>
 
         <!-- Tabs -->
-        <div class="admin-tabs">
-          <button class="admin-tab active" data-tab="users">Utilisateurs</button>
-          <button class="admin-tab" data-tab="roles">Permissions</button>
-          <button class="admin-tab" data-tab="states">Machine à états</button>
-          <button class="admin-tab" data-tab="system">Système</button>
+        <div class="admin-tabs" role="tablist" aria-label="Sections d'administration">
+          <button class="admin-tab active" data-tab="users" role="tab" aria-selected="true" aria-controls="panel-users" id="tab-users">Utilisateurs</button>
+          <button class="admin-tab" data-tab="roles" role="tab" aria-selected="false" aria-controls="panel-roles" id="tab-roles">Permissions</button>
+          <button class="admin-tab" data-tab="states" role="tab" aria-selected="false" aria-controls="panel-states" id="tab-states">Machine à états</button>
+          <button class="admin-tab" data-tab="system" role="tab" aria-selected="false" aria-controls="panel-system" id="tab-system">Système</button>
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
         <!-- TAB 1 : UTILISATEURS                      -->
         <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel active" id="panel-users">
+        <div class="admin-panel active" id="panel-users" role="tabpanel" aria-labelledby="tab-users">
           <!-- Create user form -->
           <div class="card mb-4">
             <div class="card-header"><h3 class="card-title">Ajouter un utilisateur</h3></div>
@@ -135,7 +58,7 @@
                   <label class="form-label">Email</label>
                   <input class="form-input" type="email" id="newEmail" placeholder="jean@example.com">
                 </div>
-                <div class="form-group" style="min-width:120px">
+                <div class="form-group">
                   <label class="form-label">Rôle système</label>
                   <select class="form-input" id="newRole">
                     <option value="viewer">Observateur</option>
@@ -144,7 +67,7 @@
                     <option value="admin">Administrateur</option>
                   </select>
                 </div>
-                <button class="btn btn-primary" id="btnCreateUser" style="margin-bottom:1px">Ajouter</button>
+                <button class="btn btn-primary" id="btnCreateUser">Ajouter</button>
               </div>
             </div>
           </div>
@@ -152,7 +75,7 @@
           <!-- Filter -->
           <div class="flex items-center gap-3 mb-4">
             <label class="text-sm font-semibold">Filtrer par rôle :</label>
-            <select class="form-input" id="filterRole" style="width:auto;font-size:var(--text-sm);padding:4px 8px;">
+            <select class="form-input btn-sm" id="filterRole" style="width:auto">
               <option value="">Tous</option>
               <option value="admin">Administrateur</option>
               <option value="operator">Opérateur</option>
@@ -187,7 +110,7 @@
         <!-- ═══════════════════════════════════════════ -->
         <!-- TAB 2 : PERMISSIONS                       -->
         <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel" id="panel-roles">
+        <div class="admin-panel" id="panel-roles" role="tabpanel" aria-labelledby="tab-roles">
           <div class="card mb-4">
             <div class="card-header">
               <h3 class="card-title">Matrice des permissions</h3>
@@ -212,7 +135,7 @@
         <!-- ═══════════════════════════════════════════ -->
         <!-- TAB 3 : MACHINE À ÉTATS                   -->
         <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel" id="panel-states">
+        <div class="admin-panel" id="panel-states" role="tabpanel" aria-labelledby="tab-states">
           <div class="card mb-4">
             <div class="card-header">
               <h3 class="card-title">Cycle de vie d'une séance</h3>
@@ -236,7 +159,7 @@
         <!-- ═══════════════════════════════════════════ -->
         <!-- TAB 4 : SYSTÈME                           -->
         <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel" id="panel-system">
+        <div class="admin-panel" id="panel-system" role="tabpanel" aria-labelledby="tab-system">
           <div class="card mb-4">
             <div class="card-header">
               <div class="flex items-center justify-between">
@@ -267,8 +190,8 @@
             </div>
           </div>
           <!-- Danger Zone -->
-          <div class="card" style="border-color: var(--color-danger);">
-            <div class="card-header" style="background: var(--color-danger-subtle);"><h3 class="card-title text-danger">Zone dangereuse</h3></div>
+          <div class="card card-danger">
+            <div class="card-header"><h3 class="card-title text-danger">Zone dangereuse</h3></div>
             <div class="card-body">
               <div class="flex items-center justify-between gap-4 p-4 bg-surface rounded-lg border">
                 <div><div class="font-semibold">Réinitialiser les données de démo</div><div class="text-sm text-muted">Supprime toutes les séances et recharge les données de test</div></div>
@@ -294,21 +217,26 @@
 
   <!-- Scripts -->
   <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>
   <script>
   (function() {
     'use strict';
 
-    var roleLabelsSystem = {admin:'Administrateur',operator:'Opérateur',auditor:'Auditeur',viewer:'Observateur'};
-    var roleLabelsSeance = {president:'Président',assessor:'Assesseur',voter:'Électeur'};
-    var allRoleLabels = Object.assign({}, roleLabelsSystem, roleLabelsSeance);
+    var roleLabelsSystem = Shared.ROLE_LABELS_SYSTEM;
+    var roleLabelsSeance = Shared.ROLE_LABELS_MEETING;
+    var allRoleLabels = Shared.ROLE_LABELS_ALL;
 
-    // ─── Tabs ────────────────────────────────────────────
+    // ─── Tabs (with ARIA support) ────────────────────────
     document.querySelectorAll('.admin-tab').forEach(function(tab) {
       tab.addEventListener('click', function() {
-        document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.admin-tab').forEach(function(t) {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
         document.querySelectorAll('.admin-panel').forEach(function(p) { p.classList.remove('active'); });
         tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
         document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
       });
     });
@@ -408,23 +336,46 @@
         return;
       }
 
-      // Edit user
+      // Edit user (modal dialog)
       btn = e.target.closest('.btn-edit-user');
       if (btn) {
         var user = _users.find(function(u) { return u.id === btn.dataset.id; });
         if (!user) return;
-        var newName = prompt('Nom :', user.name);
-        if (newName === null) return;
-        var newEmail = prompt('Email :', user.email);
-        if (newEmail === null) return;
-        var roleOpts = Object.keys(roleLabelsSystem);
-        var newRole = prompt('Rôle système (' + roleOpts.join(', ') + ') :', user.role);
-        if (newRole === null) return;
-        try {
-          var r = await api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole});
-          if (r.body && r.body.ok) { setNotif('success', 'Utilisateur modifié'); loadUsers(); }
-          else { setNotif('error', r.body.error || 'Erreur'); }
-        } catch(err) { setNotif('error', err.message); }
+
+        var roleOptions = Object.keys(roleLabelsSystem).map(function(k) {
+          var sel = k === user.role ? ' selected' : '';
+          return '<option value="' + k + '"' + sel + '>' + escapeHtml(roleLabelsSystem[k]) + '</option>';
+        }).join('');
+
+        Shared.openModal({
+          title: 'Modifier l\'utilisateur',
+          body:
+            '<div class="form-group mb-4">' +
+              '<label class="form-label">Nom</label>' +
+              '<input class="form-input" type="text" id="editName" value="' + escapeHtml(user.name || '') + '">' +
+            '</div>' +
+            '<div class="form-group mb-4">' +
+              '<label class="form-label">Email</label>' +
+              '<input class="form-input" type="email" id="editEmail" value="' + escapeHtml(user.email || '') + '">' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">Rôle système</label>' +
+              '<select class="form-input" id="editRole">' + roleOptions + '</select>' +
+            '</div>',
+          confirmText: 'Enregistrer',
+          onConfirm: function(modal) {
+            var newName = modal.querySelector('#editName').value.trim();
+            var newEmail = modal.querySelector('#editEmail').value.trim();
+            var newRole = modal.querySelector('#editRole').value;
+            if (!newName || !newEmail) { setNotif('error', 'Nom et email requis'); return false; }
+            api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole})
+              .then(function(r) {
+                if (r.body && r.body.ok) { setNotif('success', 'Utilisateur modifié'); loadUsers(); }
+                else { setNotif('error', r.body.error || 'Erreur'); }
+              })
+              .catch(function(err) { setNotif('error', err.message); });
+          }
+        });
         return;
       }
     });
@@ -521,8 +472,8 @@
         // Transitions table
         document.getElementById('transitionsBody').innerHTML = transitions.map(function(t) {
           return '<tr>' +
-            '<td><span class="state-node" style="font-size:12px;padding:2px 8px">' + escapeHtml(statuses[t.from_status] || t.from_status) + '</span></td>' +
-            '<td><span class="state-node" style="font-size:12px;padding:2px 8px">' + escapeHtml(statuses[t.to_status] || t.to_status) + '</span></td>' +
+            '<td><span class="state-node state-node-sm">' + escapeHtml(statuses[t.from_status] || t.from_status) + '</span></td>' +
+            '<td><span class="state-node state-node-sm">' + escapeHtml(statuses[t.to_status] || t.to_status) + '</span></td>' +
             '<td><span class="role-badge ' + escapeHtml(t.required_role) + '">' + escapeHtml(allRoleLabels[t.required_role] || t.required_role) + '</span></td>' +
             '<td class="text-sm">' + escapeHtml(t.description || '') + '</td></tr>';
         }).join('');

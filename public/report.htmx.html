@@ -75,41 +75,7 @@
 <body>
   <div class="app-shell">
         <!-- Sidebar -->
-    <aside class="app-sidebar">
-      <div class="p-4 border-b">
-        <a href="/" class="brand">
-          <span class="brand-logo">AG-VOTE</span>
-        </a>
-      </div>
-      <nav class="nav">
-        <a class="nav-item" href="/meetings.htmx.html">
-          <span class="nav-item-icon">🏛️</span>
-          <span>Tableau de bord</span>
-        </a>
-        <a class="nav-item active" href="/operator.htmx.html">
-          <span class="nav-item-icon">🗂️</span>
-          <span>Fiche séance</span>
-        </a>
-        <a class="nav-item" href="/members.htmx.html">
-          <span class="nav-item-icon">👥</span>
-          <span>Membres</span>
-        </a>
-        <a class="nav-item" href="/trust.htmx.html">
-          <span class="nav-item-icon">🛡️</span>
-          <span>Contrôle</span>
-        </a>
-        <a class="nav-item" href="/archives.htmx.html">
-          <span class="nav-item-icon">📚</span>
-          <span>Archives</span>
-        </a>
-        <div class="border-t mt-4 pt-4">
-          <a class="nav-item" href="/admin.htmx.html">
-            <span class="nav-item-icon">⚙️</span>
-            <span>Administration</span>
-          </a>
-        </div>
-      </nav>
-    </aside>
+    <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
 
     <!-- Header -->
     <header class="app-header">
@@ -238,6 +204,7 @@
 
   <!-- Scripts -->
   <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>
 
   <script>
