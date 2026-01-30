@@ -37,7 +37,7 @@ try {
   );
 
   // manual actions / incidents / audit events (best-effort: tables may not exist)
-  foreach (['manual_actions','vote_incidents','audit_events'] as $t) {
+  foreach (['manual_actions','audit_events'] as $t) {
     try {
       db_execute("DELETE FROM {$t} WHERE meeting_id = :mid AND tenant_id = :tid", [':mid'=>$meetingId, ':tid'=>DEFAULT_TENANT_ID]);
     } catch (Throwable $e) { /* ignore */ }
