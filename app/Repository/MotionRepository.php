@@ -282,6 +282,46 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
+     * Contexte ballot (BallotsService): motion + meeting status + tenant.
+     */
+    public function findWithBallotContext(string $motionId): ?array
+    {
+        return $this->selectOne(
+            "SELECT
+              m.id          AS motion_id,
+              m.opened_at   AS motion_opened_at,
+              m.closed_at   AS motion_closed_at,
+              mt.id         AS meeting_id,
+              mt.status     AS meeting_status,
+              mt.validated_at AS meeting_validated_at,
+              mt.tenant_id  AS tenant_id
+            FROM motions m
+            JOIN meetings mt ON mt.id = m.meeting_id
+            WHERE m.id = :mid",
+            [':mid' => $motionId]
+        );
+    }
+
+    /**
+     * Liste les motions d'une seance pour rapport (avec colonnes officielles).
+     */
+    public function listForReport(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT
+               id, title, description, opened_at, closed_at,
+               vote_policy_id, quorum_policy_id,
+               official_source, official_for, official_against, official_abstain, official_total,
+               decision, decision_reason,
+               manual_total, manual_for, manual_against, manual_abstain
+             FROM motions
+             WHERE meeting_id = :mid
+             ORDER BY position ASC NULLS LAST, created_at ASC",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
      * Liste les motions "ouvrables" (draft, pas encore ouverte ni fermee) pour le dashboard.
      */
     public function listOpenable(string $tenantId, string $meetingId, int $limit = 100): array

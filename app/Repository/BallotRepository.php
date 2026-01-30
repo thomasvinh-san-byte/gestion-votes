@@ -92,6 +92,51 @@ class BallotRepository extends AbstractRepository
     }
 
     /**
+     * Upsert un bulletin de vote (cast ou re-vote).
+     */
+    public function castBallot(
+        string $tenantId,
+        string $motionId,
+        string $memberId,
+        string $value,
+        float $weight,
+        bool $isProxyVote,
+        ?string $proxySourceMemberId
+    ): void {
+        $this->execute(
+            "INSERT INTO ballots (
+              id, tenant_id, motion_id, member_id, value, weight, cast_at, is_proxy_vote, proxy_source_member_id
+            ) VALUES (
+              gen_random_uuid(), :tid, :mid, :mem, :value, :weight, now(), :proxy, :proxy_src
+            )
+            ON CONFLICT (motion_id, member_id) DO UPDATE
+            SET value = EXCLUDED.value,
+                weight = EXCLUDED.weight,
+                cast_at = now(),
+                is_proxy_vote = EXCLUDED.is_proxy_vote,
+                proxy_source_member_id = EXCLUDED.proxy_source_member_id",
+            [
+                ':tid' => $tenantId, ':mid' => $motionId, ':mem' => $memberId,
+                ':value' => $value, ':weight' => $weight,
+                ':proxy' => $isProxyVote, ':proxy_src' => $proxySourceMemberId,
+            ]
+        );
+    }
+
+    /**
+     * Trouve un bulletin par motion et membre (apres cast).
+     */
+    public function findByMotionAndMember(string $motionId, string $memberId): ?array
+    {
+        return $this->selectOne(
+            "SELECT motion_id, member_id, value, weight, cast_at, is_proxy_vote, proxy_source_member_id
+             FROM ballots
+             WHERE motion_id = :mid AND member_id = :mem",
+            [':mid' => $motionId, ':mem' => $memberId]
+        );
+    }
+
+    /**
      * Existe-t-il au moins un bulletin pour cette motion?
      */
     public function existsForMotion(string $motionId): bool

@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\VoteTokenRepository;
+
 /**
  * VoteTokenService — Gestion des tokens de vote (vote_tokens table).
  *
@@ -37,7 +40,8 @@ final class VoteTokenService
         }
 
         // Résoudre le tenant
-        $meeting = db_select_one("SELECT tenant_id FROM meetings WHERE id = :id", [':id' => $meetingId]);
+        $meetingRepo = new MeetingRepository();
+        $meeting = $meetingRepo->findById($meetingId);
         if (!$meeting) {
             throw new RuntimeException('Séance introuvable');
         }
@@ -50,19 +54,8 @@ final class VoteTokenService
         $ttlSeconds = max(60, $ttlSeconds);
         $expiresAt  = gmdate('Y-m-d\TH:i:s\Z', time() + $ttlSeconds);
 
-        db_execute(
-            "INSERT INTO vote_tokens (token_hash, tenant_id, meeting_id, member_id, motion_id, expires_at)
-             VALUES (:hash, :tid, :mid, :mem, :mot, :exp)
-             ON CONFLICT (token_hash) DO NOTHING",
-            [
-                ':hash' => $tokenHash,
-                ':tid'  => $tenantId,
-                ':mid'  => $meetingId,
-                ':mem'  => $memberId,
-                ':mot'  => $motionId,
-                ':exp'  => $expiresAt,
-            ]
-        );
+        $tokenRepo = new VoteTokenRepository();
+        $tokenRepo->insert($tokenHash, $tenantId, $meetingId, $memberId, $motionId, $expiresAt);
 
         return [
             'token'      => $tokenRaw,
@@ -85,12 +78,8 @@ final class VoteTokenService
 
         $tokenHash = hash('sha256', $token);
 
-        $row = db_select_one(
-            "SELECT token_hash, tenant_id, meeting_id, member_id, motion_id, expires_at, used_at
-             FROM vote_tokens
-             WHERE token_hash = :hash",
-            [':hash' => $tokenHash]
-        );
+        $tokenRepo = new VoteTokenRepository();
+        $row = $tokenRepo->findByHash($tokenHash);
 
         if (!$row) {
             return ['valid' => false, 'token_hash' => $tokenHash, 'reason' => 'token_not_found'];
@@ -126,10 +115,8 @@ final class VoteTokenService
 
         $tokenHash = hash('sha256', $token);
 
-        $affected = db_execute(
-            "UPDATE vote_tokens SET used_at = now() WHERE token_hash = :hash AND used_at IS NULL",
-            [':hash' => $tokenHash]
-        );
+        $tokenRepo = new VoteTokenRepository();
+        $affected = $tokenRepo->consume($tokenHash);
 
         return $affected > 0;
     }
@@ -139,9 +126,7 @@ final class VoteTokenService
      */
     public static function revokeForMotion(string $motionId): int
     {
-        return db_execute(
-            "UPDATE vote_tokens SET used_at = now() WHERE motion_id = :mid AND used_at IS NULL",
-            [':mid' => $motionId]
-        );
+        $tokenRepo = new VoteTokenRepository();
+        return $tokenRepo->revokeForMotion($motionId);
     }
 }

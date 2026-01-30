@@ -84,6 +84,23 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
+     * Liste presences pour rapport (avec infos membre).
+     */
+    public function listForReport(string $meetingId, string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT m.id AS member_id, m.full_name,
+                    COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power,
+                    a.mode, a.checked_in_at, a.checked_out_at
+             FROM members m
+             LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
+             WHERE m.tenant_id = :tid AND m.is_active = true
+             ORDER BY m.full_name ASC",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+    }
+
+    /**
      * Resume attendance pour le dashboard (present count + weight via members.vote_weight).
      */
     public function dashboardSummary(string $tenantId, string $meetingId): array

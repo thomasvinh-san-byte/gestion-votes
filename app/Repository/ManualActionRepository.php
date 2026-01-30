@@ -31,4 +31,18 @@ class ManualActionRepository extends AbstractRepository
             ]
         );
     }
+
+    /**
+     * Liste les actions manuelles d'une seance (pour rapport).
+     */
+    public function listForMeeting(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT action_type, value, justification, created_at
+             FROM manual_actions
+             WHERE meeting_id = :mid
+             ORDER BY created_at ASC",
+            [':mid' => $meetingId]
+        );
+    }
 }

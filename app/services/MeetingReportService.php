@@ -11,6 +11,12 @@ if (file_exists($qePath)) {
     require_once $qePath;
 }
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\ManualActionRepository;
+use AgVote\Repository\PolicyRepository;
+
 final class MeetingReportService
 {
     public static function renderHtml(string $meetingId, bool $showVoters = false): string
@@ -20,47 +26,25 @@ final class MeetingReportService
 
         $tenant = DEFAULT_TENANT_ID;
 
-        $meeting = db_select_one(
-            "SELECT id, title, status, president_name, validated_at, archived_at, created_at
-             FROM meetings WHERE tenant_id = ? AND id = ?",
-            [$tenant, $meetingId]
-        );
+        $meetingRepo = new MeetingRepository();
+        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
         if (!$meeting) throw new RuntimeException('meeting_not_found');
 
         OfficialResultsService::ensureSchema();
 
-        $motions = db_select_all(
-            "SELECT
-               id, title, description, opened_at, closed_at,
-               vote_policy_id, quorum_policy_id,
-               official_source, official_for, official_against, official_abstain, official_total,
-               decision, decision_reason,
-               manual_total, manual_for, manual_against, manual_abstain
-             FROM motions
-             WHERE meeting_id = ?
-             ORDER BY position ASC NULLS LAST, created_at ASC",
-            [$meetingId]
-        );
+        $motionRepo = new MotionRepository();
+        $motions = $motionRepo->listForReport($meetingId);
 
-        $attendance = db_select_all(
-            "SELECT m.id AS member_id, m.full_name, COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power, a.mode, a.checked_in_at, a.checked_out_at
-             FROM members m
-             LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = ?
-             WHERE m.tenant_id = ? AND m.is_active = true
-             ORDER BY m.full_name ASC",
-            [$meetingId, $tenant]
-        );
+        $attRepo = new AttendanceRepository();
+        $attendance = $attRepo->listForReport($meetingId, $tenant);
 
         $manualActions = [];
         try {
-            $manualActions = db_select_all(
-                "SELECT action_type, value, justification, created_at
-                 FROM manual_actions
-                 WHERE meeting_id = ?
-                 ORDER BY created_at ASC",
-                [$meetingId]
-            );
+            $maRepo = new ManualActionRepository();
+            $manualActions = $maRepo->listForMeeting($meetingId);
         } catch (Throwable $e) { $manualActions = []; }
+
+        $policyRepo = new PolicyRepository();
 
         $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
@@ -153,9 +137,9 @@ final class MeetingReportService
 
             // Policy labels + justifications
             $votePolicy = null;
-            if (!empty($m['vote_policy_id'])) $votePolicy = db_select_one("SELECT * FROM vote_policies WHERE id = ?", [$m['vote_policy_id']]);
+            if (!empty($m['vote_policy_id'])) $votePolicy = $policyRepo->findVotePolicy($m['vote_policy_id']);
             $quorumPolicy = null;
-            if (!empty($m['quorum_policy_id'])) $quorumPolicy = db_select_one("SELECT * FROM quorum_policies WHERE id = ?", [$m['quorum_policy_id']]);
+            if (!empty($m['quorum_policy_id'])) $quorumPolicy = $policyRepo->findQuorumPolicy($m['quorum_policy_id']);
 
             $policyLine = self::policyLine($votePolicy, $quorumPolicy);
 

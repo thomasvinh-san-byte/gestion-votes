@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\NotificationRepository;
+
 /**
  * NotificationsService (MVP)
  * - Stocke des notifications contextualisées par meeting
@@ -13,32 +16,7 @@ final class NotificationsService
 {
     public static function ensureSchema(): void
     {
-        // Le schéma est créé dans setup_bdd_postgre.sql.
-        // Ici: best-effort pour les environnements où le setup n'a pas été rejoué.
-        db_execute("CREATE TABLE IF NOT EXISTS meeting_notifications (
-            id bigserial PRIMARY KEY,
-            tenant_id uuid NOT NULL,
-            meeting_id uuid NOT NULL,
-            severity text NOT NULL CHECK (severity IN ('blocking','warn','info')),
-            code text NOT NULL,
-            message text NOT NULL,
-            audience text[] NOT NULL DEFAULT ARRAY['operator','trust'],
-            data jsonb NOT NULL DEFAULT '{}'::jsonb,
-            read_at timestamptz,
-            created_at timestamptz NOT NULL DEFAULT now()
-        )");
-        db_execute("CREATE INDEX IF NOT EXISTS idx_meeting_notifications_meeting_id ON meeting_notifications(meeting_id, id DESC)");
-        db_execute("CREATE INDEX IF NOT EXISTS idx_meeting_notifications_audience ON meeting_notifications USING gin(audience)");
-
-        // Cache d'état "readiness" pour éviter le spam des notifications (détection de transitions).
-        db_execute("CREATE TABLE IF NOT EXISTS meeting_validation_state (
-            meeting_id uuid PRIMARY KEY,
-            tenant_id uuid NOT NULL,
-            ready boolean NOT NULL,
-            codes jsonb NOT NULL DEFAULT '[]'::jsonb,
-            updated_at timestamptz NOT NULL DEFAULT now()
-        )");
-        db_execute("CREATE INDEX IF NOT EXISTS idx_meeting_validation_state_tenant ON meeting_validation_state(tenant_id)");
+        (new NotificationRepository())->ensureSchema();
     }
 
     /**
@@ -49,9 +27,12 @@ final class NotificationsService
     {
         self::ensureSchema();
 
-        $row = db_select_one("SELECT tenant_id FROM meetings WHERE id = ?", [$meetingId]);
+        $meetingRepo = new MeetingRepository();
+        $row = $meetingRepo->findById($meetingId);
         if (!$row) return;
         $tenantId = (string)$row['tenant_id'];
+
+        $notifRepo = new NotificationRepository();
 
         $ready = (bool)($validation['can'] ?? false);
         $codes = $validation['codes'] ?? [];
@@ -59,10 +40,7 @@ final class NotificationsService
         $codes = array_values(array_unique(array_map('strval', $codes)));
         sort($codes);
 
-        $prev = db_select_one(
-            "SELECT ready, codes FROM meeting_validation_state WHERE meeting_id = ?",
-            [$meetingId]
-        );
+        $prev = $notifRepo->findValidationState($meetingId);
 
         $prevReady = null;
         $prevCodes = [];
@@ -75,12 +53,7 @@ final class NotificationsService
         }
 
         // Upsert d'état (avant d'émettre pour éviter doubles sur appels concurrents)
-        db_execute(
-            "INSERT INTO meeting_validation_state (meeting_id, tenant_id, ready, codes)
-             VALUES (?, ?, ?, ?::jsonb)
-             ON CONFLICT (meeting_id) DO UPDATE SET ready = EXCLUDED.ready, codes = EXCLUDED.codes, updated_at = now()",
-            [$meetingId, $tenantId, $ready, json_encode($codes, JSON_UNESCAPED_UNICODE)]
-        );
+        $notifRepo->upsertValidationState($meetingId, $tenantId, $ready, json_encode($codes, JSON_UNESCAPED_UNICODE));
 
         // Premier passage: on initialise sans bruit.
         if ($prevReady === null) return;
@@ -95,7 +68,7 @@ final class NotificationsService
         }
         if ($prevReady === true && $ready === false) {
             // On ne spamme pas avec tout le détail ici: les "raisons" suivent via notifications par code (ci-dessous).
-            self::emit($meetingId, 'warn', 'readiness_not_ready', 'Séance n’est plus prête à être validée.', ['operator','trust'], [
+            self::emit($meetingId, 'warn', 'readiness_not_ready', 'Séance n\'est plus prête à être validée.', ['operator','trust'], [
                 'action_label' => 'Voir les blocages',
                 'action_url' => '/operator_flow.htmx.html',
             ]);
@@ -191,17 +164,15 @@ final class NotificationsService
     ): void {
         self::ensureSchema();
 
-        $row = db_select_one("SELECT tenant_id FROM meetings WHERE id = ?", [$meetingId]);
+        $meetingRepo = new MeetingRepository();
+        $row = $meetingRepo->findById($meetingId);
         if (!$row) return;
         $tenantId = (string)$row['tenant_id'];
 
+        $notifRepo = new NotificationRepository();
+
         // Dédoublonnage best-effort: même code + même message + même meeting dans les 10 dernières secondes
-        $recent = (int)(db_scalar(
-            "SELECT count(*) FROM meeting_notifications
-             WHERE meeting_id = ? AND code = ? AND message = ?
-               AND created_at > (now() - interval '10 seconds')",
-            [$meetingId, $code, $message]
-        ) ?? 0);
+        $recent = $notifRepo->countRecentDuplicates($meetingId, $code, $message);
         if ($recent > 0) return;
 
         // Normaliser audience: pas de doublons / pas de vide
@@ -214,11 +185,7 @@ final class NotificationsService
             return '"' . $x . '"';
         }, $aud)) . '}';
 
-        db_execute(
-            "INSERT INTO meeting_notifications (tenant_id, meeting_id, severity, code, message, audience, data)
-             VALUES (?, ?, ?, ?, ?, ?::text[], ?::jsonb)",
-            [$tenantId, $meetingId, $severity, $code, $message, $audLiteral, json_encode($data, JSON_UNESCAPED_UNICODE)]
-        );
+        $notifRepo->insert($tenantId, $meetingId, $severity, $code, $message, $audLiteral, json_encode($data, JSON_UNESCAPED_UNICODE));
     }
 
     /**
@@ -227,30 +194,8 @@ final class NotificationsService
     public static function list(string $meetingId, string $audience = 'operator', int $sinceId = 0, int $limit = 30): array
     {
         self::ensureSchema();
-
-        $limit = max(1, min(100, $limit));
-
-        // audience: 'all' passe tout
-        if ($audience === 'all') {
-            return db_select_all(
-                "SELECT id, severity, code, message, data, read_at, created_at
-                 FROM meeting_notifications
-                 WHERE meeting_id = ? AND id > ?
-                 ORDER BY id ASC
-                 LIMIT {$limit}",
-                [$meetingId, $sinceId]
-            );
-        }
-
-        return db_select_all(
-            "SELECT id, severity, code, message, data, read_at, created_at
-             FROM meeting_notifications
-             WHERE meeting_id = ? AND id > ?
-               AND (audience @> ARRAY[?]::text[])
-             ORDER BY id ASC
-             LIMIT {$limit}",
-            [$meetingId, $sinceId, $audience]
-        );
+        $notifRepo = new NotificationRepository();
+        return $notifRepo->listSinceId($meetingId, $sinceId, $limit, $audience);
     }
 
     /**
@@ -260,74 +205,25 @@ final class NotificationsService
     public static function recent(string $meetingId, string $audience = 'operator', int $limit = 80): array
     {
         self::ensureSchema();
-
-        $limit = max(1, min(200, $limit));
-
-        if ($audience === 'all') {
-            return db_select_all(
-                "SELECT id, severity, code, message, data, read_at, created_at
-                 FROM meeting_notifications
-                 WHERE meeting_id = ?
-                 ORDER BY id DESC
-                 LIMIT {$limit}",
-                [$meetingId]
-            );
-        }
-
-        return db_select_all(
-            "SELECT id, severity, code, message, data, read_at, created_at
-             FROM meeting_notifications
-             WHERE meeting_id = ?
-               AND (audience @> ARRAY[?]::text[])
-             ORDER BY id DESC
-             LIMIT {$limit}",
-            [$meetingId, $audience]
-        );
+        $notifRepo = new NotificationRepository();
+        return $notifRepo->listRecent($meetingId, $limit, $audience);
     }
 
     public static function markRead(string $meetingId, int $id): void
     {
         self::ensureSchema();
-        if ($id <= 0) return;
-        db_execute(
-            "UPDATE meeting_notifications
-             SET read_at = now()
-             WHERE meeting_id = ? AND id = ? AND read_at IS NULL",
-            [$meetingId, $id]
-        );
+        (new NotificationRepository())->markRead($meetingId, $id);
     }
 
     public static function markAllRead(string $meetingId, string $audience = 'operator'): void
     {
         self::ensureSchema();
-        if ($audience === 'all') {
-            db_execute(
-                "UPDATE meeting_notifications
-                 SET read_at = now()
-                 WHERE meeting_id = ? AND read_at IS NULL",
-                [$meetingId]
-            );
-            return;
-        }
-        db_execute(
-            "UPDATE meeting_notifications
-             SET read_at = now()
-             WHERE meeting_id = ? AND read_at IS NULL AND (audience @> ARRAY[?]::text[])",
-            [$meetingId, $audience]
-        );
+        (new NotificationRepository())->markAllRead($meetingId, $audience);
     }
 
     public static function clear(string $meetingId, string $audience = 'operator'): void
     {
         self::ensureSchema();
-        if ($audience === 'all') {
-            db_execute("DELETE FROM meeting_notifications WHERE meeting_id = ?", [$meetingId]);
-            return;
-        }
-        db_execute(
-            "DELETE FROM meeting_notifications
-             WHERE meeting_id = ? AND (audience @> ARRAY[?]::text[])",
-            [$meetingId, $audience]
-        );
+        (new NotificationRepository())->clear($meetingId, $audience);
     }
 }

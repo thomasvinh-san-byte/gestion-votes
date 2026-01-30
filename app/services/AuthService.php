@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
+use AgVote\Repository\UserRepository;
+
 final class AuthService
 {
     public static function enabled(): bool
@@ -51,13 +53,8 @@ final class AuthService
     public static function findUserByKey(string $key): ?array
     {
         $hash = self::hashKey($key);
-        $row = db_select_one(
-            "SELECT id, tenant_id, email, name, role, is_active
-             FROM users
-             WHERE tenant_id = ? AND api_key_hash = ?
-             LIMIT 1",
-            [DEFAULT_TENANT_ID, $hash]
-        );
+        $repo = new UserRepository();
+        $row = $repo->findByApiKeyHash(DEFAULT_TENANT_ID, $hash);
         return $row ?: null;
     }
 
