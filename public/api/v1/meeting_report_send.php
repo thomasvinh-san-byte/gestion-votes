@@ -4,6 +4,8 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/MailerService.php';
 
+use AgVote\Repository\MeetingRepository;
+
 api_require_role('operator');
 $input = api_request('POST');
 
@@ -15,11 +17,11 @@ $toEmail   = trim((string)($input['email'] ?? ''));
 
 if ($meetingId === '' || $toEmail === '') api_fail('missing_meeting_or_email', 400);
 
-global $pdo, $config;
+global $config;
 
-$mt = $pdo->prepare("SELECT title FROM meetings WHERE id = :id");
-$mt->execute([':id' => $meetingId]);
-$meetingTitle = (string)($mt->fetchColumn() ?: $meetingId);
+$repo = new MeetingRepository();
+$meeting = $repo->findById($meetingId);
+$meetingTitle = (string)(($meeting['title'] ?? '') ?: $meetingId);
 
 $appUrl = (string)(($config['app']['url'] ?? '') ?: 'http://localhost:8080');
 $reportUrl = rtrim($appUrl, '/') . "/api/v1/meeting_report.php?meeting_id=" . rawurlencode($meetingId);

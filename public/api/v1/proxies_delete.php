@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 /**
  * proxies_delete.php - Supprimer une procuration
- * 
+ *
  * POST /api/v1/proxies_delete.php
  * Body: { "meeting_id": "uuid", "proxy_id": "uuid" }
  */
 
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\ProxyRepository;
 
 api_require_role(['operator', 'admin']);
 
@@ -26,12 +29,11 @@ if ($proxyId === '' || !api_is_uuid($proxyId)) {
 }
 
 $tenantId = api_current_tenant_id();
+$meetingRepo = new MeetingRepository();
+$proxyRepo = new ProxyRepository();
 
-// Vérifier que la séance existe et n'est pas archivée
-$meeting = db_one("
-    SELECT id, status FROM meetings 
-    WHERE tenant_id = ? AND id = ?
-", [$tenantId, $meetingId]);
+// Verifier que la seance existe et n'est pas archivee
+$meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
 
 if (!$meeting) {
     api_fail('meeting_not_found', 404);
@@ -41,30 +43,20 @@ if ($meeting['status'] === 'archived') {
     api_fail('meeting_archived', 409, ['detail' => 'Séance archivée, modification impossible']);
 }
 
-// Vérifier que la procuration existe
-$proxy = db_one("
-    SELECT p.id, g.full_name AS giver_name, r.full_name AS receiver_name
-    FROM proxies p
-    JOIN members g ON g.id = p.giver_member_id
-    JOIN members r ON r.id = p.receiver_member_id
-    WHERE p.id = ? AND p.meeting_id = ?
-", [$proxyId, $meetingId]);
+// Verifier que la procuration existe
+$proxy = $proxyRepo->findWithNames($proxyId, $meetingId);
 
 if (!$proxy) {
     api_fail('proxy_not_found', 404);
 }
 
 // Supprimer la procuration
-$deleted = db_exec("
-    DELETE FROM proxies 
-    WHERE id = ? AND meeting_id = ?
-", [$proxyId, $meetingId]);
+$deleted = $proxyRepo->deleteProxy($proxyId, $meetingId);
 
 if ($deleted === 0) {
     api_fail('delete_failed', 500);
 }
 
-// Audit log
 audit_log('proxy_deleted', 'proxy', $proxyId, [
     'giver_name' => $proxy['giver_name'],
     'receiver_name' => $proxy['receiver_name'],

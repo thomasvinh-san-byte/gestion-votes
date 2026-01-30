@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MotionRepository;
+
 api_require_role('operator');
 
 try {
     $in = api_request('POST');
     $motionId = api_require_uuid($in, 'motion_id');
 
-    $motion = db_select_one(
-        "SELECT id, meeting_id, agenda_id, opened_at, closed_at
-         FROM motions
-         WHERE tenant_id=:tid AND id=:id",
-        [':tid'=>api_current_tenant_id(), ':id'=>$motionId]
-    );
+    $repo = new MotionRepository();
+    $motion = $repo->findByIdForTenant($motionId, api_current_tenant_id());
     if (!$motion) api_fail('motion_not_found', 404);
 
     if (!empty($motion['opened_at']) && empty($motion['closed_at'])) {
@@ -25,10 +23,7 @@ try {
         api_fail('motion_closed_locked', 409, ['detail' => 'Motion clôturée : suppression interdite.']);
     }
 
-    db_execute(
-        "DELETE FROM motions WHERE tenant_id=:tid AND id=:id",
-        [':tid'=>api_current_tenant_id(), ':id'=>$motionId]
-    );
+    $repo->delete($motionId, api_current_tenant_id());
 
     audit_log('motion_deleted', 'motion', (string)$motionId, [
         'meeting_id' => (string)$motion['meeting_id'],

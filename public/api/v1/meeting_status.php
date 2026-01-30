@@ -1,67 +1,27 @@
 <?php
 // public/api/v1/meeting_status.php
+declare(strict_types=1);
+
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/MeetingValidator.php';
 require __DIR__ . '/../../../app/services/NotificationsService.php';
+
+use AgVote\Repository\MeetingRepository;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     api_fail('method_not_allowed', 405);
 }
 
 try {
-    // Séance "courante" pour le tenant :
-    //  - NON archivée
-    //  - statut live, closed ou draft
-    //  - on privilégie live, puis closed, puis draft
-    $meeting = db_select_one("
-        SELECT
-            m.id                AS meeting_id,
-            m.title             AS meeting_title,
-            m.status            AS meeting_status,
-            m.started_at,
-            m.ended_at,
-            m.archived_at,
-            m.president_member_id,
-            m.president_name,
-            m.president_source,
-            m.ready_to_sign,
-            m.validated_at,
-            u.display_name      AS validated_by
-        FROM meetings m
-        LEFT JOIN users u ON u.id = m.validated_by_user_id
-        WHERE m.tenant_id = :tenant_id
-          AND m.status <> 'archived'
-        ORDER BY
-            CASE m.status
-                WHEN 'live'   THEN 1
-                WHEN 'closed' THEN 2
-                WHEN 'draft'  THEN 3
-                ELSE 4
-            END,
-            m.created_at DESC
-        LIMIT 1
-    ", ['tenant_id' => api_current_tenant_id()]);
+    $repo = new MeetingRepository();
+
+    $meeting = $repo->findCurrentForTenant(api_current_tenant_id());
 
     if (!$meeting) {
         api_fail('no_live_meeting', 404);
     }
 
-    // Compteurs de motions pour affichage et logique
-    $counts = db_select_one("
-        SELECT
-          COUNT(*) AS total_motions,
-          SUM(CASE WHEN mo.closed_at IS NULL THEN 1 ELSE 0 END) AS open_motions,
-          SUM(CASE WHEN mo.closed_at IS NOT NULL THEN 1 ELSE 0 END) AS closed_motions,
-          SUM(
-            CASE
-              WHEN mo.closed_at IS NOT NULL
-               AND (mo.manual_total IS NULL OR mo.manual_total <= 0)
-              THEN 1 ELSE 0
-            END
-          ) AS closed_without_tally
-        FROM motions mo
-        WHERE mo.meeting_id = :meeting_id
-    ", ['meeting_id' => $meeting['meeting_id']]);
+    $counts = $repo->countMotionStats((string)$meeting['meeting_id']);
 
     $totalMotions        = (int)($counts['total_motions']        ?? 0);
     $openMotions         = (int)($counts['open_motions']         ?? 0);
@@ -78,7 +38,7 @@ try {
     $signStatus = 'not_ready';
     $signMessage = "Séance en cours de traitement.";
 
-    if ($meeting['status'] === 'archived') {
+    if ($meeting['meeting_status'] === 'archived') {
         $signStatus  = 'archived';
         $signMessage = "Séance archivée le " . ($meeting['archived_at'] ?? '—');
     } elseif ($readyToSign) {
@@ -99,7 +59,7 @@ try {
         'ready_to_sign'        => $readyToSign,
         'sign_status'          => $signStatus,
         'sign_message'         => $signMessage,
-        // Pour l’instant : pas de RBAC fin, donc on laisse true
+        // Pour l'instant : pas de RBAC fin, donc on laisse true
         'can_current_user_validate' => true,
     ]);
 

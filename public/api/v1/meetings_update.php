@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MeetingRepository;
+
 api_require_role('operator');
 
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
@@ -37,10 +39,8 @@ if ($status !== null) {
     }
 }
 
-$current = db_select_one(
-    "SELECT status FROM meetings WHERE tenant_id=:tid AND id=:id",
-    [':tid' => api_current_tenant_id(), ':id' => $meetingId]
-);
+$repo = new MeetingRepository();
+$current = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$current) api_fail('meeting_not_found', 404);
 
 $currentStatus = (string)$current['status'];
@@ -69,25 +69,18 @@ if ($status !== null) {
 }
 
 $fields = [];
-$params = [':tid' => api_current_tenant_id(), ':id' => $meetingId];
-
 if ($title !== null) {
-    $fields[] = "title = :title";
-    $params[':title'] = $title;
+    $fields['title'] = $title;
 }
 if ($status !== null) {
-    $fields[] = "status = :status";
-    $params[':status'] = $status;
+    $fields['status'] = $status;
 }
 
 if (!$fields) {
     api_ok(['updated' => false, 'meeting_id' => $meetingId]);
 }
 
-$fields[] = "updated_at = now()";
-
-$sql = "UPDATE meetings SET " . implode(", ", $fields) . " WHERE tenant_id=:tid AND id=:id";
-$updated = db_execute($sql, $params);
+$updated = $repo->updateFields($meetingId, api_current_tenant_id(), $fields);
 
 audit_log('meeting_updated', 'meeting', $meetingId, [
     'fields' => array_keys($input),

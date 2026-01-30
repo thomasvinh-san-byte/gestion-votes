@@ -4,25 +4,19 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MemberRepository;
+
 api_require_role('operator');
 
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$repo = new MemberRepository();
 
 try {
     if ($method === 'GET') {
-        // Lister les membres actifs
-        $members = db_select_all(
-            "SELECT id, tenant_id, external_ref, full_name, email, vote_weight,
-                    voting_power, role, is_active, created_at, updated_at
-             FROM members
-             WHERE tenant_id = ? AND deleted_at IS NULL
-             ORDER BY full_name",
-            [api_current_tenant_id()]
-        );
+        $members = $repo->listByTenant(api_current_tenant_id());
         api_ok(['members' => $members]);
 
     } elseif ($method === 'POST') {
-        // Créer un membre
         $input = json_decode(file_get_contents('php://input'), true);
         if (!is_array($input)) $input = $_POST;
 
@@ -40,23 +34,9 @@ try {
         $is_active = ($input['is_active'] ?? true) !== false;
         $id = api_uuid4();
 
-        db_execute(
-            "INSERT INTO members (id, tenant_id, full_name, email, vote_weight, voting_power, is_active, created_at, updated_at)
-             VALUES (:id, :tid, :name, :email, :vw, :vp, :active, now(), now())",
-            [
-                ':id' => $id,
-                ':tid' => api_current_tenant_id(),
-                ':name' => $full_name,
-                ':email' => $email !== '' ? $email : null,
-                ':vw' => $voting_power,
-                ':vp' => $voting_power,
-                ':active' => $is_active ? 'true' : 'false',
-            ]
-        );
+        $repo->create($id, api_current_tenant_id(), $full_name, $email, $voting_power, $is_active);
 
-        if (function_exists('audit_log')) {
-            audit_log('member_created', 'member', $id, ['full_name' => $full_name]);
-        }
+        audit_log('member_created', 'member', $id, ['full_name' => $full_name]);
 
         api_ok(['member_id' => $id, 'full_name' => $full_name], 201);
 

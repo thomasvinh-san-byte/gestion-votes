@@ -3,25 +3,21 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MotionRepository;
+
 api_require_role('operator');
 
 $in = api_request('GET');
 $motionId = trim((string)($in['motion_id'] ?? ($_GET['motion_id'] ?? '')));
 if ($motionId === '' || !api_is_uuid($motionId)) api_fail('invalid_motion_id', 400);
 
-$motion = db_select_one(
-  "SELECT id, meeting_id, closed_at FROM motions WHERE id = ?",
-  [$motionId]
-);
+$repo = new MotionRepository();
+
+$motion = $repo->findByIdForTenant($motionId, api_current_tenant_id());
 if (!$motion) api_fail('motion_not_found', 404);
 
-$rows = db_select_all(
-  "SELECT value, COUNT(*) AS c, COALESCE(SUM(weight),0) AS w
-   FROM ballots
-   WHERE motion_id = ?
-   GROUP BY value",
-  [$motionId]
-);
+$rows = $repo->getTally($motionId);
 
 $result = [
   'for' => ['count'=>0,'weight'=>0],

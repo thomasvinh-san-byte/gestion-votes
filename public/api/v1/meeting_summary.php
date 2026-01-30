@@ -3,17 +3,13 @@ declare(strict_types=1);
 
 /**
  * meeting_summary.php - Résumé statistique d'une séance
- * 
+ *
  * GET /api/v1/meeting_summary.php?meeting_id={uuid}
- * 
- * Retourne un résumé pour la validation :
- * - Nombre de membres
- * - Présents
- * - Résolutions
- * - Votes
  */
 
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MeetingRepository;
 
 api_require_role(['operator', 'president', 'admin', 'auditor']);
 
@@ -23,97 +19,50 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
 }
 
 $tenantId = api_current_tenant_id();
+$repo = new MeetingRepository();
 
 // Vérifier que la séance existe
-$meeting = db_one("
-    SELECT id, title, status, president_name, validated_at
-    FROM meetings 
-    WHERE tenant_id = ? AND id = ?
-", [$tenantId, $meetingId]);
+$meeting = $repo->findSummaryFields($meetingId, $tenantId);
 
 if (!$meeting) {
     api_fail('meeting_not_found', 404);
 }
 
 // Total membres actifs
-$totalMembers = (int)db_scalar("
-    SELECT COUNT(*) FROM members 
-    WHERE tenant_id = ? AND is_active = true
-", [$tenantId]);
+$totalMembers = $repo->countActiveMembers($tenantId);
 
 // Présents
-$presentCount = (int)db_scalar("
-    SELECT COUNT(*) FROM attendances
-    WHERE meeting_id = ? AND mode IN ('present', 'remote')
-", [$meetingId]);
+$presentCount = $repo->countPresent($meetingId);
 
 // Représentés (proxy)
-$proxyCount = (int)db_scalar("
-    SELECT COUNT(*) FROM attendances
-    WHERE meeting_id = ? AND mode = 'proxy'
-", [$meetingId]);
+$proxyCount = $repo->countProxy($meetingId);
 
 // Absents
 $absentCount = $totalMembers - $presentCount - $proxyCount;
 
 // Résolutions
-$motionsCount = (int)db_scalar("
-    SELECT COUNT(*) FROM motions WHERE meeting_id = ?
-", [$meetingId]);
-
-$closedMotionsCount = (int)db_scalar("
-    SELECT COUNT(*) FROM motions 
-    WHERE meeting_id = ? AND closed_at IS NOT NULL
-", [$meetingId]);
-
-$openMotionsCount = (int)db_scalar("
-    SELECT COUNT(*) FROM motions 
-    WHERE meeting_id = ? AND opened_at IS NOT NULL AND closed_at IS NULL
-", [$meetingId]);
+$motionsCount = $repo->countMotions($meetingId);
+$closedMotionsCount = $repo->countClosedMotions($meetingId);
+$openMotionsCount = $repo->countOpenMotions($meetingId);
 
 // Adoptées / Rejetées
-$adoptedCount = (int)db_scalar("
-    SELECT COUNT(*) FROM motions 
-    WHERE meeting_id = ? AND decision = 'adopted'
-", [$meetingId]);
-
-$rejectedCount = (int)db_scalar("
-    SELECT COUNT(*) FROM motions 
-    WHERE meeting_id = ? AND decision = 'rejected'
-", [$meetingId]);
+$adoptedCount = $repo->countAdoptedMotions($meetingId);
+$rejectedCount = $repo->countRejectedMotions($meetingId);
 
 // Bulletins de vote
-$ballotsCount = (int)db_scalar("
-    SELECT COUNT(*) FROM ballots b
-    JOIN motions m ON m.id = b.motion_id
-    WHERE m.meeting_id = ?
-", [$meetingId]);
+$ballotsCount = $repo->countBallots($meetingId);
 
 // Poids total voté
-$totalVotedWeight = (float)db_scalar("
-    SELECT COALESCE(SUM(b.weight), 0) FROM ballots b
-    JOIN motions m ON m.id = b.motion_id
-    WHERE m.meeting_id = ?
-", [$meetingId]) ?: 0;
+$totalVotedWeight = $repo->sumBallotWeight($meetingId);
 
 // Procurations
-$proxiesCount = (int)db_scalar("
-    SELECT COUNT(*) FROM proxies WHERE meeting_id = ?
-", [$meetingId]);
+$proxiesCount = $repo->countProxies($meetingId);
 
 // Incidents (comptés via audit_events)
-$incidentsCount = (int)db_scalar("
-    SELECT COUNT(*) FROM audit_events
-    WHERE resource_type = 'meeting' AND resource_id = ?
-      AND action LIKE '%incident%'
-", [$meetingId]) ?: 0;
+$incidentsCount = $repo->countIncidents($meetingId);
 
 // Votes manuels
-$manualVotesCount = (int)db_scalar("
-    SELECT COUNT(*) FROM ballots b
-    JOIN motions m ON m.id = b.motion_id
-    WHERE m.meeting_id = ? AND b.source = 'manual'
-", [$meetingId]);
+$manualVotesCount = $repo->countManualVotes($meetingId);
 
 api_ok([
     'meeting_id' => $meetingId,

@@ -3,46 +3,32 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
+use AgVote\Repository\ProxyRepository;
+
+/**
+ * Service metier pour les procurations.
+ *
+ * Contient la logique metier (validations, chaines, plafonds).
+ * Delegue tout l'acces donnees a ProxyRepository.
+ */
 final class ProxiesService
 {
     public static function listForMeeting(string $meetingId, ?string $tenantId = null): array
     {
         $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
-
-        return db_select_all(<<<'SQL'
-            SELECT
-              p.id,
-              p.meeting_id,
-              p.giver_member_id,
-              g.full_name AS giver_name,
-              p.receiver_member_id,
-              r.full_name AS receiver_name,
-              p.scope,
-              p.created_at,
-              p.revoked_at
-            FROM meetings me
-            JOIN proxies p ON p.meeting_id = me.id
-            JOIN members g ON g.id = p.giver_member_id
-            JOIN members r ON r.id = p.receiver_member_id
-            WHERE me.id = :meeting_id
-              AND me.tenant_id = :tenant_id
-              AND g.tenant_id = me.tenant_id
-              AND r.tenant_id = me.tenant_id
-            ORDER BY g.full_name ASC
-        SQL, [
-            ':meeting_id' => $meetingId,
-            ':tenant_id'  => $tenantId,
-        ]);
+        $repo = new ProxyRepository();
+        return $repo->listForMeeting($meetingId, $tenantId);
     }
 
     /**
-     * Crée ou remplace la procuration pour un mandant (giver) dans la séance.
-     * Si $receiverMemberId est vide => révocation.
+     * Cree ou remplace la procuration pour un mandant (giver) dans la seance.
+     * Si $receiverMemberId est vide => revocation.
      */
     public static function upsert(string $meetingId, string $giverMemberId, string $receiverMemberId, ?string $tenantId = null): void
     {
         $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
         $maxPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 99);
+        $repo = new ProxyRepository();
 
         if ($giverMemberId === '') {
             throw new InvalidArgumentException('giver_member_id manquant');
@@ -52,102 +38,49 @@ final class ProxiesService
         }
 
         // Check tenant coherence (meeting + giver member)
-        $ok = (int)(db_scalar(<<<'SQL'
-            SELECT count(*)
-            FROM meetings me
-            JOIN members g ON g.tenant_id = me.tenant_id
-            WHERE me.id = :meeting_id
-              AND me.tenant_id = :tenant_id
-              AND g.id = :giver
-        SQL, [
-            ':meeting_id' => $meetingId,
-            ':tenant_id'  => $tenantId,
-            ':giver'      => $giverMemberId,
-        ]) ?? 0);
-
-        if ($ok !== 1) {
+        if ($repo->countTenantCoherence($meetingId, $tenantId, $giverMemberId) !== 1) {
             throw new InvalidArgumentException('meeting_id/giver_member_id invalide pour ce tenant');
         }
 
-        // Révocation si receiver vide
+        // Revocation si receiver vide
         if (trim($receiverMemberId) === '') {
-            db_exec(
-                "UPDATE proxies SET revoked_at = now() WHERE meeting_id = :meeting_id AND giver_member_id = :giver AND revoked_at IS NULL",
-                [':meeting_id' => $meetingId, ':giver' => $giverMemberId]
-            );
+            $repo->revokeForGiver($meetingId, $giverMemberId);
             return;
         }
 
         // Receiver must belong to tenant
-        $ok2 = (int)(db_scalar(<<<'SQL'
-            SELECT count(*)
-            FROM meetings me
-            JOIN members r ON r.tenant_id = me.tenant_id
-            WHERE me.id = :meeting_id
-              AND me.tenant_id = :tenant_id
-              AND r.id = :receiver
-        SQL, [
-            ':meeting_id' => $meetingId,
-            ':tenant_id'  => $tenantId,
-            ':receiver'   => $receiverMemberId,
-        ]) ?? 0);
-
-        if ($ok2 !== 1) {
+        if ($repo->countTenantCoherence($meetingId, $tenantId, $receiverMemberId) !== 1) {
             throw new InvalidArgumentException('receiver_member_id invalide pour ce tenant');
         }
 
         // No proxy chains: receiver cannot itself delegate in this meeting (active)
-        $chain = (int)(db_scalar(
-            "SELECT count(*) FROM proxies WHERE meeting_id = :meeting_id AND giver_member_id = :receiver AND revoked_at IS NULL",
-            [':meeting_id' => $meetingId, ':receiver' => $receiverMemberId]
-        ) ?? 0);
-        if ($chain > 0) {
+        if ($repo->countActiveAsGiver($meetingId, $receiverMemberId) > 0) {
             throw new InvalidArgumentException('Chaîne de procuration interdite (le mandataire délègue déjà).');
         }
 
         // Cap: max active proxies per receiver
-        $cur = (int)(db_scalar(
-            "SELECT count(*) FROM proxies WHERE meeting_id = :meeting_id AND receiver_member_id = :receiver AND revoked_at IS NULL",
-            [':meeting_id' => $meetingId, ':receiver' => $receiverMemberId]
-        ) ?? 0);
-        if ($cur >= $maxPerReceiver) {
+        if ($repo->countActiveAsReceiver($meetingId, $receiverMemberId) >= $maxPerReceiver) {
             throw new InvalidArgumentException("Plafond procurations atteint (max {$maxPerReceiver}).");
         }
 
-        db_exec(<<<'SQL'
-            INSERT INTO proxies (tenant_id, meeting_id, giver_member_id, receiver_member_id, scope)
-            VALUES (:tenant_id, :meeting_id, :giver, :receiver, 'full')
-            ON CONFLICT (tenant_id, meeting_id, giver_member_id)
-            DO UPDATE SET
-              receiver_member_id = EXCLUDED.receiver_member_id,
-              scope = 'full',
-              revoked_at = NULL
-        SQL, [
-            ':tenant_id'  => $tenantId,
-            ':meeting_id' => $meetingId,
-            ':giver'      => $giverMemberId,
-            ':receiver'   => $receiverMemberId,
-        ]);
+        $repo->upsertProxy($tenantId, $meetingId, $giverMemberId, $receiverMemberId);
     }
 
     /**
-     * Vérifie si une procuration active existe entre un mandant (giver) et un mandataire (receiver).
+     * Revoque toutes les procurations actives d'un mandant.
+     */
+    public static function revoke(string $meetingId, string $giverMemberId): void
+    {
+        $repo = new ProxyRepository();
+        $repo->revokeForGiver($meetingId, $giverMemberId);
+    }
+
+    /**
+     * Verifie si une procuration active existe entre un mandant et un mandataire.
      */
     public static function hasActiveProxy(string $meetingId, string $giverMemberId, string $receiverMemberId): bool
     {
-        $count = (int)(db_scalar(
-            "SELECT count(*) FROM proxies
-             WHERE meeting_id = :meeting_id
-               AND giver_member_id = :giver
-               AND receiver_member_id = :receiver
-               AND revoked_at IS NULL",
-            [
-                ':meeting_id' => $meetingId,
-                ':giver'      => $giverMemberId,
-                ':receiver'   => $receiverMemberId,
-            ]
-        ) ?? 0);
-
-        return $count > 0;
+        $repo = new ProxyRepository();
+        return $repo->hasActiveProxy($meetingId, $giverMemberId, $receiverMemberId);
     }
 }

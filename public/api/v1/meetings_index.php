@@ -1,6 +1,10 @@
 <?php
 // public/api/v1/meetings_index.php
+declare(strict_types=1);
+
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\MeetingRepository;
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     api_fail('method_not_allowed', 405);
@@ -11,13 +15,7 @@ api_require_role('operator');
 $limit = (int)($_GET['limit'] ?? 50);
 if ($limit <= 0 || $limit > 200) $limit = 50;
 
-$rows = db_select_all(
-    "SELECT id AS meeting_id, id, title, status::text AS status, created_at, started_at, ended_at, archived_at, validated_at
-     FROM meetings
-     WHERE tenant_id = ?
-     ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC
-     LIMIT $limit",
-    [api_current_tenant_id()]
-);
+$repo = new MeetingRepository();
+$rows = $repo->listByTenantCompact(api_current_tenant_id(), $limit);
 
 api_ok(['meetings' => $rows]);

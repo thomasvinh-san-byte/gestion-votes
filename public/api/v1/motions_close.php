@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\MotionRepository;
+
 api_require_role('operator');
 
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
@@ -21,12 +23,8 @@ if ($motionId === '' || !api_is_uuid($motionId)) {
 }
 
 try {
-    $motion = db_select_one(
-        "SELECT id, meeting_id, opened_at, closed_at
-         FROM motions
-         WHERE tenant_id=:tid AND id=:id",
-        [':tid'=>api_current_tenant_id(), ':id'=>$motionId]
-    );
+    $repo = new MotionRepository();
+    $motion = $repo->findByIdForTenant($motionId, api_current_tenant_id());
     if (!$motion) { api_fail('motion_not_found', 404); exit; }
 
     if (empty($motion['opened_at'])) {
@@ -38,15 +36,10 @@ try {
         exit;
     }
 
-    global $pdo;
+    $pdo = db();
     $pdo->beginTransaction();
 
-    db_execute(
-        "UPDATE motions
-         SET closed_at = now()
-         WHERE tenant_id=:tid AND id=:id AND closed_at IS NULL",
-        [':tid'=>api_current_tenant_id(), ':id'=>$motionId]
-    );
+    $repo->markClosed($motionId, api_current_tenant_id());
 
     // Compute/freeze results (official)
     require_once __DIR__ . '/../../../app/services/OfficialResultsService.php';
@@ -63,6 +56,7 @@ try {
         'closed_motion_id' => $motionId,
     ]);
 } catch (Throwable $e) {
-    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    $pdo = db();
+    if ($pdo->inTransaction()) $pdo->rollBack();
     api_fail('motion_close_failed', 500, ['detail' => $e->getMessage()]);
 }
