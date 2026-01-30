@@ -8,7 +8,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_any_role(['OPERATOR','ADMIN','TRUST']);
 
-$tenantId = DEFAULT_TENANT_ID;
+$tenantId = api_current_tenant_id();
 $meetingId = isset($_GET['meeting_id']) ? (string)$_GET['meeting_id'] : '';
 
 try {

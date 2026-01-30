@@ -11,7 +11,7 @@ $meetingId = trim((string)($in['meeting_id'] ?? ''));
 $audience = trim((string)($in['audience'] ?? 'operator'));
 if ($audience === '') $audience = 'operator';
 
-if ($meetingId === '') json_err('missing_meeting_id', 400);
+if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
 NotificationsService::markAllRead($meetingId, $audience);
-json_ok(['ok' => true]);
+api_ok(['ok' => true]);

@@ -7,7 +7,7 @@ require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 api_require_role(['president', 'admin']);
 
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-  json_err('method_not_allowed', 405);
+  api_fail('method_not_allowed', 405);
   exit;
 }
 
@@ -20,16 +20,16 @@ api_guard_meeting_not_validated($meetingId);
 
 $presidentName = trim((string)($input['president_name'] ?? ''));
 
-if ($meetingId === '') json_err('missing_meeting_id', 400);
-if ($presidentName === '') json_err('missing_president_name', 400);
+if ($meetingId === '') api_fail('missing_meeting_id', 400);
+if ($presidentName === '') api_fail('missing_president_name', 400);
 
-$tenant = DEFAULT_TENANT_ID;
+$tenant = api_current_tenant_id();
 
 $meeting = db_select_one(
   "SELECT id, status FROM meetings WHERE tenant_id = :tid AND id = :id",
   [':tid'=>$tenant, ':id'=>$meetingId]
 );
-if (!$meeting) json_err('meeting_not_found', 404);
+if (!$meeting) api_fail('meeting_not_found', 404);
 
 try {
   $svc = new OfficialResultsService($pdo);
@@ -48,7 +48,7 @@ try {
     error_log("meeting_validate: could not store PV: " . $e->getMessage());
   }
 
-  json_ok(['meeting_id'=>$meetingId, 'status'=>'validated']);
+  api_ok(['meeting_id'=>$meetingId, 'status'=>'validated']);
 } catch (Throwable $e) {
-  json_err('validation_failed', 500, ['detail'=>$e->getMessage()]);
+  api_fail('validation_failed', 500, ['detail'=>$e->getMessage()]);
 }

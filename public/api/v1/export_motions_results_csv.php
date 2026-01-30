@@ -13,7 +13,7 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
 // Exports autorisés uniquement après validation (exigence conformité)
 $mt = db_select_one(
     "SELECT validated_at FROM meetings WHERE tenant_id = ? AND id = ?",
-    [DEFAULT_TENANT_ID, $meetingId]
+    [api_current_tenant_id(), $meetingId]
 );
 if (!$mt) api_fail('meeting_not_found', 404);
 if (empty($mt['validated_at'])) api_fail('meeting_not_validated', 409);

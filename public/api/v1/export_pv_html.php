@@ -5,7 +5,7 @@ require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/MeetingReportService.php';
 
 // Export PV HTML for operator/trust/admin (MVP: auth currently disabled)
-require_role('operator');
+api_require_role('operator');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '') {

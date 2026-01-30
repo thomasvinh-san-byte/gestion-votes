@@ -11,7 +11,7 @@ $stmt = $pdo->prepare(
    WHERE tenant_id = :t
    ORDER BY name ASC"
 );
-$stmt->execute([':t' => DEFAULT_TENANT_ID]);
+$stmt->execute([':t' => api_current_tenant_id()]);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 api_ok(['items' => $rows]);

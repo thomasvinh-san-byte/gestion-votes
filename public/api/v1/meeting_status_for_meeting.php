@@ -5,13 +5,13 @@ require __DIR__ . '/../../../app/services/MeetingValidator.php';
 require __DIR__ . '/../../../app/services/NotificationsService.php';
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
-require_role('auditor');
+api_require_role('auditor');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-if ($meetingId === '') json_err('missing_meeting_id', 422);
+if ($meetingId === '') api_fail('missing_meeting_id', 422);
 
 $meeting = db_select_one(
     "SELECT id AS meeting_id, title AS meeting_title, status AS meeting_status,
@@ -19,12 +19,12 @@ $meeting = db_select_one(
             president_name, ready_to_sign
      FROM meetings
      WHERE tenant_id = ? AND id = ?",
-    [DEFAULT_TENANT_ID, $meetingId]
+    [api_current_tenant_id(), $meetingId]
 );
-if (!$meeting) json_err('meeting_not_found', 404);
+if (!$meeting) api_fail('meeting_not_found', 404);
 
 // Recalcul côté lecture (inclut président + consolidation)
-$validation = MeetingValidator::canBeValidated((string)$meetingId, DEFAULT_TENANT_ID);
+$validation = MeetingValidator::canBeValidated((string)$meetingId, api_current_tenant_id());
 $readyToSign = (bool)($validation['can'] ?? false);
 
 // Notifications readiness (sans spam)
@@ -43,7 +43,7 @@ if (!empty($meeting['validated_at'])) {
     $signMessage = 'Préparation incomplète.';
 }
 
-json_ok([
+api_ok([
     'meeting_id' => $meeting['meeting_id'],
     'meeting_title' => $meeting['meeting_title'],
     'meeting_status' => $meeting['meeting_status'],

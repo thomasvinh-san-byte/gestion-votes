@@ -9,7 +9,7 @@ api_require_role('auditor');
 
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
 try {
@@ -28,18 +28,18 @@ try {
     ";
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([':tenant_id' => DEFAULT_TENANT_ID]);
+    $stmt->execute([':tenant_id' => api_current_tenant_id()]);
 
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     if ($rows === false) {
         $rows = [];
     }
 
-    json_ok(['presidents' => $rows]);
+    api_ok(['presidents' => $rows]);
 } catch (PDOException $e) {
     error_log("Database error in presidents.php: " . $e->getMessage());
-    json_err('database_error', 500, ['detail' => 'Erreur de base de données']);
+    api_fail('database_error', 500, ['detail' => 'Erreur de base de données']);
 } catch (Throwable $e) {
     error_log("Unexpected error in presidents.php: " . $e->getMessage());
-    json_err('internal_error', 500, ['detail' => 'Erreur interne du serveur']);
+    api_fail('internal_error', 500, ['detail' => 'Erreur interne du serveur']);
 }

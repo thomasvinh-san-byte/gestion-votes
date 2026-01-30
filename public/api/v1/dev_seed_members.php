@@ -29,7 +29,7 @@ try {
                 "INSERT INTO members (id, tenant_id, full_name, is_active, vote_weight, created_at, updated_at)
                  VALUES (:id, :tid, :name, true, 1, now(), now())
                  ON CONFLICT DO NOTHING",
-                [':id' => $id, ':tid' => DEFAULT_TENANT_ID, ':name' => $fullName]
+                [':id' => $id, ':tid' => api_current_tenant_id(), ':name' => $fullName]
             );
             $created++;
         } catch (Throwable $e) {

@@ -17,7 +17,7 @@ try {
     // Get all active members
     $members = db_select_all(
         "SELECT id FROM members WHERE tenant_id = ? AND is_active = true",
-        [DEFAULT_TENANT_ID]
+        [api_current_tenant_id()]
     );
 
     if (empty($members)) {
@@ -41,7 +41,7 @@ try {
                 "INSERT INTO attendances (id, tenant_id, meeting_id, member_id, mode, checked_in_at, created_at, updated_at)
                  VALUES (:id, :tid, :mid, :mem, :mode, now(), now(), now())
                  ON CONFLICT (meeting_id, member_id) DO UPDATE SET mode = EXCLUDED.mode, updated_at = now()",
-                [':id' => $id, ':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId, ':mem' => $m['id'], ':mode' => $mode]
+                [':id' => $id, ':tid' => api_current_tenant_id(), ':mid' => $meetingId, ':mem' => $m['id'], ':mode' => $mode]
             );
             $created++;
         } catch (Throwable $e) {

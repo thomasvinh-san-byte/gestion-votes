@@ -9,7 +9,7 @@ $events = db_select_all(
    FROM audit_events
    WHERE tenant_id = ? AND meeting_id = ?
    ORDER BY created_at ASC",
-  [DEFAULT_TENANT_ID, $meetingId]
+  [api_current_tenant_id(), $meetingId]
 );
 
 header('Content-Type: text/csv; charset=utf-8');

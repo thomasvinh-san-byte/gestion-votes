@@ -17,7 +17,7 @@ $motionId  = trim((string)($in['motion_id']  ?? ($_GET['motion_id']  ?? '')));
 if ($meetingId === '' || !api_is_uuid($meetingId)) api_fail('invalid_meeting_id', 400);
 if ($motionId === '' || !api_is_uuid($motionId)) api_fail('invalid_motion_id', 400);
 
-$tenant = DEFAULT_TENANT_ID;
+$tenant = api_current_tenant_id();
 
 // Validate meeting + motion relation
 $meeting = db_select_one(

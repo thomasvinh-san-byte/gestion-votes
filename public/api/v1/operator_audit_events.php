@@ -4,14 +4,14 @@
 require __DIR__ . '/../../../app/api.php';
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
 require_any_role(['operator','admin','trust']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '') {
-    json_err('missing_meeting_id', 422);
+    api_fail('missing_meeting_id', 422);
 }
 
 $limit = (int)($_GET['limit'] ?? 200);
@@ -23,15 +23,15 @@ $action = trim((string)($_GET['action'] ?? ''));
 $q = trim((string)($_GET['q'] ?? ''));
 
 // Vérifier la séance
-$exists = db_scalar("SELECT 1 FROM meetings WHERE id = ? AND tenant_id = ?", [$meetingId, DEFAULT_TENANT_ID]);
+$exists = db_scalar("SELECT 1 FROM meetings WHERE id = ? AND tenant_id = ?", [$meetingId, api_current_tenant_id()]);
 if (!$exists) {
-    json_err('meeting_not_found', 404);
+    api_fail('meeting_not_found', 404);
 }
 
 global $pdo;
 
 $where = "WHERE tenant_id = ? AND (\n        (resource_type = 'meeting' AND resource_id = ?)\n        OR\n        (resource_type = 'motion' AND resource_id IN (SELECT id FROM motions WHERE meeting_id = ?))\n    )";
-$params = [DEFAULT_TENANT_ID, $meetingId, $meetingId];
+$params = [api_current_tenant_id(), $meetingId, $meetingId];
 
 if ($resourceType !== '') {
     $where .= " AND resource_type = ?";
@@ -94,4 +94,4 @@ foreach ($rows as $r) {
     ];
 }
 
-json_ok(['events' => $events]);
+api_ok(['events' => $events]);

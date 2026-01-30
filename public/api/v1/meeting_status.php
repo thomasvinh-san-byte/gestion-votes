@@ -5,7 +5,7 @@ require __DIR__ . '/../../../app/services/MeetingValidator.php';
 require __DIR__ . '/../../../app/services/NotificationsService.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
 try {
@@ -40,10 +40,10 @@ try {
             END,
             m.created_at DESC
         LIMIT 1
-    ", ['tenant_id' => DEFAULT_TENANT_ID]);
+    ", ['tenant_id' => api_current_tenant_id()]);
 
     if (!$meeting) {
-        json_err('no_live_meeting', 404);
+        api_fail('no_live_meeting', 404);
     }
 
     // Compteurs de motions pour affichage et logique
@@ -68,7 +68,7 @@ try {
     $closedWithoutTally  = (int)($counts['closed_without_tally'] ?? 0);
 
     // (Re)calculer ready_to_sign côté lecture, au cas où (inclut président + consolidation)
-    $validation = MeetingValidator::canBeValidated((string)$meeting['meeting_id'], DEFAULT_TENANT_ID);
+    $validation = MeetingValidator::canBeValidated((string)$meeting['meeting_id'], api_current_tenant_id());
     $readyToSign = (bool)($validation['can'] ?? false);
 
     // Notifications readiness (sans spam)
@@ -103,9 +103,9 @@ try {
         'can_current_user_validate' => true,
     ]);
 
-    json_ok($response);
+    api_ok($response);
 
 } catch (PDOException $e) {
     error_log("Database error in meeting_status.php: " . $e->getMessage());
-    json_err('database_error', 500, ['detail' => $e->getMessage()]);
+    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
 }

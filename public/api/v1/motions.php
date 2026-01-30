@@ -40,17 +40,17 @@ try {
          FROM agendas a
          JOIN meetings m ON m.id = a.meeting_id
          WHERE a.id = :aid AND m.tenant_id = :tid",
-        [':aid' => $agendaId, ':tid' => DEFAULT_TENANT_ID]
+        [':aid' => $agendaId, ':tid' => api_current_tenant_id()]
     );
     if (!$agenda) api_fail('agenda_not_found', 404);
 
     // Validate policies belong to tenant if provided
     if ($votePolicyId !== '') {
-        $vp = db_select_one("SELECT id FROM vote_policies WHERE tenant_id=:tid AND id=:id", [':tid'=>DEFAULT_TENANT_ID, ':id'=>$votePolicyId]);
+        $vp = db_select_one("SELECT id FROM vote_policies WHERE tenant_id=:tid AND id=:id", [':tid'=>api_current_tenant_id(), ':id'=>$votePolicyId]);
         if (!$vp) api_fail('vote_policy_not_found', 404);
     }
     if ($quorumPolicyId !== '') {
-        $qp = db_select_one("SELECT id FROM quorum_policies WHERE tenant_id=:tid AND id=:id", [':tid'=>DEFAULT_TENANT_ID, ':id'=>$quorumPolicyId]);
+        $qp = db_select_one("SELECT id FROM quorum_policies WHERE tenant_id=:tid AND id=:id", [':tid'=>api_current_tenant_id(), ':id'=>$quorumPolicyId]);
         if (!$qp) api_fail('quorum_policy_not_found', 404);
     }
 
@@ -69,7 +69,7 @@ try {
              VALUES (:id, :tid, :mid, :aid, :title, :desc, :secret, NULLIF(:vpid,''), NULLIF(:qpid,''), now())",
             [
                 ':id' => $motionId,
-                ':tid' => DEFAULT_TENANT_ID,
+                ':tid' => api_current_tenant_id(),
                 ':mid' => $agenda['meeting_id'],
                 ':aid' => $agendaId,
                 ':title' => $title,
@@ -98,7 +98,7 @@ try {
         "SELECT id, meeting_id, agenda_id, opened_at, closed_at
          FROM motions
          WHERE tenant_id=:tid AND id=:id",
-        [':tid'=>DEFAULT_TENANT_ID, ':id'=>$motionId]
+        [':tid'=>api_current_tenant_id(), ':id'=>$motionId]
     );
     if (!$motion) {
         $pdo->rollBack();
@@ -135,7 +135,7 @@ try {
             ':secret'=>$secret ? 't' : 'f',
             ':vpid'=>$votePolicyId,
             ':qpid'=>$quorumPolicyId,
-            ':tid'=>DEFAULT_TENANT_ID,
+            ':tid'=>api_current_tenant_id(),
             ':id'=>$motionId
         ]
     );

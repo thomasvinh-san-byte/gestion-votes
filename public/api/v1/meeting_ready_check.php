@@ -12,12 +12,12 @@ require __DIR__ . '/../../../app/api.php';
  * - absence de bulletins "non éligibles" (direct ou proxy) détectables
  */
 
-require_role('auditor');
+api_require_role('auditor');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-if ($meetingId === '') json_err('missing_meeting_id', 400);
+if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
-$tenant = defined('DEFAULT_TENANT_ID') ? DEFAULT_TENANT_ID : null;
+$tenant = defined('api_current_tenant_id()') ? api_current_tenant_id() : null;
 
 // Meeting
 $meeting = db_select_one(
@@ -26,11 +26,11 @@ $meeting = db_select_one(
      WHERE id = ?",
     [$meetingId]
 );
-if (!$meeting) json_err('meeting_not_found', 404);
+if (!$meeting) api_fail('meeting_not_found', 404);
 
 if ($tenant !== null && (string)$meeting['tenant_id'] !== (string)$tenant) {
     // Best-effort tenant isolation
-    json_err('meeting_not_found', 404);
+    api_fail('meeting_not_found', 404);
 }
 
 $reasons = [];
@@ -206,7 +206,7 @@ if (count($bad) > 0) {
     $reasons[] = "Certaines motions fermées présentent des anomalies ou n’ont pas de résultat exploitable.";
 }
 
-json_ok([
+api_ok([
     'can' => count($reasons) === 0,
     'reasons' => $reasons,
     'bad_motions' => $bad,

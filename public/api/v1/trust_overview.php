@@ -4,15 +4,15 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 
-require_role('auditor');
+api_require_role('auditor');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-if ($meetingId === '') json_err('missing_meeting_id', 400);
+if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
-$tenant = DEFAULT_TENANT_ID;
+$tenant = api_current_tenant_id();
 
 $meeting = db_select_one("SELECT id FROM meetings WHERE tenant_id = ? AND id = ?", [$tenant, $meetingId]);
-if (!$meeting) json_err('meeting_not_found', 404);
+if (!$meeting) api_fail('meeting_not_found', 404);
 
 $meetingSettings = db_select_one(
   "SELECT vote_policy_id AS meeting_vote_policy_id, quorum_policy_id AS meeting_quorum_policy_id
@@ -24,7 +24,7 @@ $meetingQuorumPolicyId = $meetingSettings['meeting_quorum_policy_id'] ?? null;
 
 function _policy_name(?string $table, ?string $id): ?string {
   if (!$table || !$id) return null;
-  $row = db_select_one("SELECT name FROM {$table} WHERE tenant_id = ? AND id = ?", [DEFAULT_TENANT_ID, $id]);
+  $row = db_select_one("SELECT name FROM {$table} WHERE tenant_id = ? AND id = ?", [api_current_tenant_id(), $id]);
   return $row ? (string)$row['name'] : null;
 }
 
@@ -110,4 +110,4 @@ foreach ($motions as $m) {
   ];
 }
 
-json_ok(['motions' => $out]);
+api_ok(['motions' => $out]);

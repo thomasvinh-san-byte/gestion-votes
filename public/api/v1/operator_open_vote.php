@@ -7,7 +7,7 @@ require __DIR__ . '/../../../app/api.php';
 api_require_role('operator');
 
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-  json_err('method_not_allowed', 405);
+  api_fail('method_not_allowed', 405);
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -18,12 +18,12 @@ $meetingId = trim((string)($input['meeting_id'] ?? ''));
 api_guard_meeting_not_validated($meetingId);
 
 if ($meetingId === '' || !api_is_uuid($meetingId)) {
-  json_err('invalid_meeting_id', 422);
+  api_fail('invalid_meeting_id', 422);
 }
 
 $motionId = trim((string)($input['motion_id'] ?? ''));
 if ($motionId !== '' && !api_is_uuid($motionId)) {
-  json_err('invalid_motion_id', 422);
+  api_fail('invalid_motion_id', 422);
 }
 
 $listTokens = (string)($input['list'] ?? '') === '1'; // optionnel: debug testing
@@ -47,15 +47,15 @@ try {
      FROM meetings
      WHERE tenant_id = :tid AND id = :id
      FOR UPDATE",
-    [':tid' => DEFAULT_TENANT_ID, ':id' => $meetingId]
+    [':tid' => api_current_tenant_id(), ':id' => $meetingId]
   );
   if (!$meeting) {
     $pdo->rollBack();
-    json_err('meeting_not_found', 404);
+    api_fail('meeting_not_found', 404);
   }
   if (!empty($meeting['validated_at'])) {
     $pdo->rollBack();
-    json_err('meeting_validated_locked', 409, ['detail' => "Séance validée : action interdite."]);
+    api_fail('meeting_validated_locked', 409, ['detail' => "Séance validée : action interdite."]);
   }
 
   // Force live (pour tests / recette)
@@ -64,7 +64,7 @@ try {
     db_execute(
       "UPDATE meetings SET status='live', updated_at=now()
        WHERE tenant_id=:tid AND id=:id",
-      [':tid' => DEFAULT_TENANT_ID, ':id' => $meetingId]
+      [':tid' => api_current_tenant_id(), ':id' => $meetingId]
     );
   }
 
@@ -78,11 +78,11 @@ try {
        ORDER BY COALESCE(position, sort_order, 0) ASC
        LIMIT 1
        FOR UPDATE",
-      [':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId]
+      [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
     );
     if (!$next) {
       $pdo->rollBack();
-      json_err('no_motion_to_open', 409, ['detail' => "Aucune résolution disponible à ouvrir."]);
+      api_fail('no_motion_to_open', 409, ['detail' => "Aucune résolution disponible à ouvrir."]);
     }
     $motionId = (string)$next['id'];
   } else {
@@ -91,11 +91,11 @@ try {
       "SELECT id FROM motions
        WHERE tenant_id=:tid AND meeting_id=:mid AND id=:id
        FOR UPDATE",
-      [':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId, ':id' => $motionId]
+      [':tid' => api_current_tenant_id(), ':mid' => $meetingId, ':id' => $motionId]
     );
     if (!$row) {
       $pdo->rollBack();
-      json_err('motion_not_found', 404);
+      api_fail('motion_not_found', 404);
     }
   }
 
@@ -105,11 +105,11 @@ try {
      WHERE tenant_id=:tid AND meeting_id=:mid
        AND opened_at IS NOT NULL AND closed_at IS NULL
      LIMIT 1",
-    [':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId]
+    [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
   );
   if ($open && (string)$open['id'] !== $motionId) {
     $pdo->rollBack();
-    json_err('another_motion_active', 409, [
+    api_fail('another_motion_active', 409, [
       'detail' => "Une résolution est déjà ouverte : clôturez-la avant d'en ouvrir une autre.",
       'open_motion_id' => (string)$open['id'],
     ]);
@@ -121,14 +121,14 @@ try {
      SET opened_at = COALESCE(opened_at, now()),
          closed_at = NULL
      WHERE tenant_id=:tid AND id=:id AND meeting_id=:mid AND closed_at IS NULL",
-    [':tid' => DEFAULT_TENANT_ID, ':id' => $motionId, ':mid' => $meetingId]
+    [':tid' => api_current_tenant_id(), ':id' => $motionId, ':mid' => $meetingId]
   );
 
   db_execute(
     "UPDATE meetings
      SET current_motion_id=:mo, updated_at=now()
      WHERE tenant_id=:tid AND id=:mid",
-    [':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId, ':mo' => $motionId]
+    [':tid' => api_current_tenant_id(), ':mid' => $meetingId, ':mo' => $motionId]
   );
 
   // Eligible members: present/remote/proxy; fallback all members (recette)
@@ -138,7 +138,7 @@ try {
      FROM attendances
      WHERE tenant_id=:tid AND meeting_id=:mid
        AND mode IN ('present','remote','proxy')",
-    [':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId]
+    [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
   );
 
   if (!$eligible) {
@@ -146,7 +146,7 @@ try {
       "SELECT id AS member_id
        FROM members
        WHERE tenant_id=:tid AND meeting_id=:mid",
-      [':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId]
+      [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
     );
   }
 
@@ -180,7 +180,7 @@ try {
          AND used_at IS NULL AND expires_at > NOW()
        ORDER BY created_at DESC
        LIMIT 1",
-      [':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId, ':mo'=>$motionId, ':mb'=>$memberId]
+      [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mo'=>$motionId, ':mb'=>$memberId]
     );
     if ($active) continue;
 
@@ -188,7 +188,7 @@ try {
       "INSERT INTO vote_tokens(token_hash, tenant_id, meeting_id, member_id, motion_id, expires_at, used_at, created_at)
        VALUES(:h, :tid, :mid, :mb, :mo, ($expiresAtSql), NULL, now())",
       [
-        ':h'=>$hash, ':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId, ':mb'=>$memberId, ':mo'=>$motionId,
+        ':h'=>$hash, ':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mb'=>$memberId, ':mo'=>$motionId,
         ':mins'=>$expiresMinutes
       ]
     );
@@ -213,7 +213,7 @@ try {
     'expires_minutes' => $expiresMinutes
   ]);
 
-  json_ok([
+  api_ok([
     'meeting_id' => $meetingId,
     'motion_id' => $motionId,
     'generated' => $inserted,
@@ -222,6 +222,6 @@ try {
 } catch (Throwable $e) {
   $pdo = db();
   if ($pdo->inTransaction()) $pdo->rollBack();
-  json_err('operator_open_vote_failed', 500, ['detail' => $e->getMessage()]);
+  api_fail('operator_open_vote_failed', 500, ['detail' => $e->getMessage()]);
 }
 

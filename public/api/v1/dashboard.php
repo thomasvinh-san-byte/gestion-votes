@@ -6,7 +6,7 @@ require __DIR__ . '/../../../app/api.php';
 api_require_role('operator');
 
 $meetingId = isset($_GET['meeting_id']) ? (string)$_GET['meeting_id'] : '';
-$tenantId  = (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
+$tenantId  = (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
 
 global $pdo;
 
@@ -58,7 +58,7 @@ if ($meetingId !== '') {
   ");
   $stmt->execute([':t' => $tenantId, ':id' => $meetingId]);
   $meeting = $stmt->fetch();
-  if (!$meeting) json_err('meeting_not_found', 404);
+  if (!$meeting) api_fail('meeting_not_found', 404);
   $data['meeting'] = $meeting;
 
   // attendance summary
@@ -184,4 +184,4 @@ if ($meetingId !== '') {
   ];
 }
 
-json_ok($data);
+api_ok($data);

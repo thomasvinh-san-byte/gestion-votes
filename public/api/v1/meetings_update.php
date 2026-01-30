@@ -7,7 +7,7 @@ require __DIR__ . '/../../../app/api.php';
 api_require_role('operator');
 
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -18,7 +18,7 @@ $meetingId = trim((string)($input['meeting_id'] ?? ''));
 api_guard_meeting_not_validated($meetingId);
 
 if ($meetingId === '' || !api_is_uuid($meetingId)) {
-    json_err('missing_meeting_id', 400, ['detail' => 'meeting_id est obligatoire (uuid).']);
+    api_fail('missing_meeting_id', 400, ['detail' => 'meeting_id est obligatoire (uuid).']);
 }
 
 $title  = array_key_exists('title', $input) ? trim((string)$input['title']) : null;
@@ -26,26 +26,26 @@ $status = array_key_exists('status', $input) ? trim((string)$input['status']) : 
 
 if ($title !== null) {
     $len = mb_strlen($title);
-    if ($len === 0) json_err('missing_title', 400, ['detail' => 'Le titre de la séance est obligatoire.']);
-    if ($len > 120) json_err('title_too_long', 400, ['detail' => 'Titre trop long (120 max).']);
+    if ($len === 0) api_fail('missing_title', 400, ['detail' => 'Le titre de la séance est obligatoire.']);
+    if ($len > 120) api_fail('title_too_long', 400, ['detail' => 'Titre trop long (120 max).']);
 }
 
 if ($status !== null) {
     $allowed = ['draft','scheduled','live','closed','archived'];
     if (!in_array($status, $allowed, true)) {
-        json_err('invalid_status', 400, ['detail' => 'Statut invalide.', 'allowed' => $allowed]);
+        api_fail('invalid_status', 400, ['detail' => 'Statut invalide.', 'allowed' => $allowed]);
     }
 }
 
 $current = db_select_one(
     "SELECT status FROM meetings WHERE tenant_id=:tid AND id=:id",
-    [':tid' => DEFAULT_TENANT_ID, ':id' => $meetingId]
+    [':tid' => api_current_tenant_id(), ':id' => $meetingId]
 );
-if (!$current) json_err('meeting_not_found', 404);
+if (!$current) api_fail('meeting_not_found', 404);
 
 $currentStatus = (string)$current['status'];
 if ($currentStatus === 'archived') {
-    json_err('meeting_archived_locked', 409, ['detail' => 'Séance archivée : modification interdite.']);
+    api_fail('meeting_archived_locked', 409, ['detail' => 'Séance archivée : modification interdite.']);
 }
 
 if ($status !== null) {
@@ -59,7 +59,7 @@ if ($status !== null) {
 
     $next = $status;
     if (!isset($allowedTransitions[$currentStatus]) || !in_array($next, $allowedTransitions[$currentStatus], true)) {
-        json_err('invalid_transition', 409, [
+        api_fail('invalid_transition', 409, [
             'detail' => 'Transition de statut interdite.',
             'current' => $currentStatus,
             'next' => $next,
@@ -69,7 +69,7 @@ if ($status !== null) {
 }
 
 $fields = [];
-$params = [':tid' => DEFAULT_TENANT_ID, ':id' => $meetingId];
+$params = [':tid' => api_current_tenant_id(), ':id' => $meetingId];
 
 if ($title !== null) {
     $fields[] = "title = :title";
@@ -81,7 +81,7 @@ if ($status !== null) {
 }
 
 if (!$fields) {
-    json_ok(['updated' => false, 'meeting_id' => $meetingId]);
+    api_ok(['updated' => false, 'meeting_id' => $meetingId]);
 }
 
 $fields[] = "updated_at = now()";
@@ -95,4 +95,4 @@ audit_log('meeting_updated', 'meeting', $meetingId, [
     'to_status' => $status,
 ]);
 
-json_ok(['updated' => $updated > 0, 'meeting_id' => $meetingId]);
+api_ok(['updated' => $updated > 0, 'meeting_id' => $meetingId]);

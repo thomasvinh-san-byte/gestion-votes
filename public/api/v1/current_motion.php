@@ -32,7 +32,7 @@ try {
         ORDER BY opened_at DESC
         LIMIT 1
         ",
-        [':tid' => DEFAULT_TENANT_ID, ':meeting_id' => $meetingId]
+        [':tid' => api_current_tenant_id(), ':meeting_id' => $meetingId]
     );
 
     api_ok(['motion' => $motion]); // motion peut être null

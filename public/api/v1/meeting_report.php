@@ -6,21 +6,21 @@ require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 require __DIR__ . '/../../../app/services/VoteEngine.php';
 require __DIR__ . '/../../../app/services/MeetingReportService.php';
 
-require_role('auditor');
+api_require_role('auditor');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-if ($meetingId === '') json_err('missing_meeting_id', 400);
+if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
 $showVoters = ((string)($_GET['show_voters'] ?? '') === '1');
 
-$tenant = DEFAULT_TENANT_ID;
+$tenant = api_current_tenant_id();
 
 $meeting = db_select_one(
   "SELECT id, title, status, president_name, validated_at, archived_at, created_at
    FROM meetings WHERE tenant_id = ? AND id = ?",
   [$tenant, $meetingId]
 );
-if (!$meeting) json_err('meeting_not_found', 404);
+if (!$meeting) api_fail('meeting_not_found', 404);
 
 $regen = ((string)($_GET['regen'] ?? '') === '1');
 

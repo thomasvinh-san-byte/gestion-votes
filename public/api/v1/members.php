@@ -17,7 +17,7 @@ try {
              FROM members
              WHERE tenant_id = ? AND deleted_at IS NULL
              ORDER BY full_name",
-            [DEFAULT_TENANT_ID]
+            [api_current_tenant_id()]
         );
         api_ok(['members' => $members]);
 
@@ -45,7 +45,7 @@ try {
              VALUES (:id, :tid, :name, :email, :vw, :vp, :active, now(), now())",
             [
                 ':id' => $id,
-                ':tid' => DEFAULT_TENANT_ID,
+                ':tid' => api_current_tenant_id(),
                 ':name' => $full_name,
                 ':email' => $email !== '' ? $email : null,
                 ':vw' => $voting_power,

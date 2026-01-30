@@ -3,7 +3,7 @@
 require __DIR__ . '/../../../app/api.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
 // On prend meeting_id depuis ?meeting_id=... ou éventuellement JSON (fallback)
@@ -16,7 +16,7 @@ $meetingId = $_GET['meeting_id'] ?? ($input['meeting_id'] ?? '');
 $meetingId = trim($meetingId);
 
 if ($meetingId === '') {
-    json_err('missing_meeting_id', 400);
+    api_fail('missing_meeting_id', 400);
 }
 
 try {
@@ -26,10 +26,10 @@ try {
         FROM meetings
         WHERE id = ?
           AND tenant_id = ?
-    ", [$meetingId, DEFAULT_TENANT_ID]);
+    ", [$meetingId, api_current_tenant_id()]);
 
     if (!$exists) {
-        json_err('meeting_not_found', 404);
+        api_fail('meeting_not_found', 404);
     }
 
     // Récupérer toutes les motions + agendas en une fois,
@@ -83,12 +83,12 @@ try {
         WHERE id = ?
     ", [$meetingId]);
 
-    json_ok([
+    api_ok([
         'meeting_id'        => $meetingId,
         'current_motion_id' => $currentMotionId,
         'motions'           => $motions,
     ]);
 } catch (PDOException $e) {
     error_log("Database error in motions_for_meeting.php: " . $e->getMessage());
-    json_err('database_error', 500, ['detail' => $e->getMessage()]);
+    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
 }

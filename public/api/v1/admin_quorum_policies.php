@@ -14,7 +14,7 @@ if ($method === 'GET') {
      FROM quorum_policies
      WHERE tenant_id = ?
      ORDER BY name ASC",
-    [DEFAULT_TENANT_ID]
+    [api_current_tenant_id()]
   );
   api_ok(['items' => $rows]);
 }
@@ -60,7 +60,7 @@ if ($method === 'POST') {
       [
         ':n'=>$name, ':d'=>$desc, ':m'=>$mode, ':den'=>$den, ':thr'=>$threshold,
         ':c2'=>$threshold_call2, ':den2'=>($den2==''?null:$den2), ':thr2'=>$threshold2,
-        ':ip'=>$includeProxies, ':cr'=>$countRemote, ':t'=>DEFAULT_TENANT_ID, ':id'=>$id
+        ':ip'=>$includeProxies, ':cr'=>$countRemote, ':t'=>api_current_tenant_id(), ':id'=>$id
       ]
     );
   } else {
@@ -69,7 +69,7 @@ if ($method === 'POST') {
       "INSERT INTO quorum_policies(id, tenant_id, name, description, mode, denominator, threshold, threshold_call2, denominator2, threshold2, include_proxies, count_remote, created_at, updated_at)
        VALUES (:id,:t,:n,:d,:m,:den,:thr,:c2,:den2,:thr2,:ip,:cr,NOW(),NOW())",
       [
-        ':id'=>$id, ':t'=>DEFAULT_TENANT_ID, ':n'=>$name, ':d'=>$desc, ':m'=>$mode, ':den'=>$den, ':thr'=>$threshold,
+        ':id'=>$id, ':t'=>api_current_tenant_id(), ':n'=>$name, ':d'=>$desc, ':m'=>$mode, ':den'=>$den, ':thr'=>$threshold,
         ':c2'=>$threshold_call2, ':den2'=>($den2==''?null:$den2), ':thr2'=>$threshold2,
         ':ip'=>$includeProxies, ':cr'=>$countRemote
       ]

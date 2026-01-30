@@ -13,7 +13,7 @@ if ($method === 'GET') {
      FROM vote_policies
      WHERE tenant_id = ?
      ORDER BY name ASC",
-    [DEFAULT_TENANT_ID]
+    [api_current_tenant_id()]
   );
   api_ok(['items' => $rows]);
 }
@@ -41,14 +41,14 @@ if ($method === 'POST') {
       "UPDATE vote_policies SET
           name=:n, description=:d, base=:b, threshold=:thr, abstention_as_against=:a, updated_at=NOW()
        WHERE tenant_id=:t AND id=:id",
-      [':n'=>$name, ':d'=>$desc, ':b'=>$base, ':thr'=>$threshold, ':a'=>$abstBool, ':t'=>DEFAULT_TENANT_ID, ':id'=>$id]
+      [':n'=>$name, ':d'=>$desc, ':b'=>$base, ':thr'=>$threshold, ':a'=>$abstBool, ':t'=>api_current_tenant_id(), ':id'=>$id]
     );
   } else {
     $id = db_scalar("SELECT gen_random_uuid()");
     db_execute(
       "INSERT INTO vote_policies(id, tenant_id, name, description, base, threshold, abstention_as_against, created_at, updated_at)
        VALUES (:id,:t,:n,:d,:b,:thr,:a,NOW(),NOW())",
-      [':id'=>$id, ':t'=>DEFAULT_TENANT_ID, ':n'=>$name, ':d'=>$desc, ':b'=>$base, ':thr'=>$threshold, ':a'=>$abstBool]
+      [':id'=>$id, ':t'=>api_current_tenant_id(), ':n'=>$name, ':d'=>$desc, ':b'=>$base, ':thr'=>$threshold, ':a'=>$abstBool]
     );
   }
 

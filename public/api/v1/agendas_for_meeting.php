@@ -3,7 +3,7 @@
 require __DIR__ . '/../../../app/api.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
     exit;
 }
 
@@ -16,14 +16,14 @@ $meetingId = $_GET['meeting_id'] ?? ($input['meeting_id'] ?? '');
 $meetingId = trim($meetingId);
 
 if ($meetingId === '') {
-    json_err('missing_meeting_id', 422);
+    api_fail('missing_meeting_id', 422);
     exit;
 }
 
 // Vérifier que la séance existe
 $exists = db_scalar("SELECT 1 FROM meetings WHERE id = ?", [$meetingId]);
 if (!$exists) {
-    json_err('meeting_not_found', 404);
+    api_fail('meeting_not_found', 404);
     exit;
 }
 
@@ -37,7 +37,7 @@ $stmt = $pdo->prepare("
 $stmt->execute([$meetingId]);
 $rows = $stmt->fetchAll();
 
-json_ok([
+api_ok([
     'meeting_id' => $meetingId,
     'agendas'    => $rows,
 ]);

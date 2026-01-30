@@ -10,18 +10,6 @@ header('Content-Type: application/json; charset=utf-8');
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-function send_json_ok(array $data = [], int $statusCode = 200): void {
-    http_response_code($statusCode);
-    json_ok($data);
-    exit;
-}
-
-function send_json_err(string $error, int $statusCode = 400, array $extra = []): void {
-    http_response_code($statusCode);
-    json_err($error, $statusCode, $extra);
-    exit;
-}
-
 try {
     if ($method === 'GET') {
         // LISTER LES SÉANCES POUR LE TENANT COURANT
@@ -48,10 +36,10 @@ try {
              WHERE tenant_id = :tenant_id
              ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC"
         );
-        $stmt->execute([':tenant_id' => DEFAULT_TENANT_ID]);
+        $stmt->execute([':tenant_id' => api_current_tenant_id()]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        send_json_ok(['meetings' => $rows]);
+        api_ok(['meetings' => $rows]);
 
     } elseif ($method === 'POST') {
         // CRÉER UNE NOUVELLE SÉANCE
@@ -66,7 +54,7 @@ try {
         $location    = trim($input['location'] ?? '');
 
         if ($title === '') {
-            send_json_err('missing_title', 422, [
+            api_fail('missing_title', 422, [
                 'detail' => 'Le titre de la séance est obligatoire.',
             ]);
         }
@@ -101,7 +89,7 @@ try {
 
         $stmt->execute([
             ':id'          => $id,
-            ':tenant_id'   => DEFAULT_TENANT_ID,
+            ':tenant_id'   => api_current_tenant_id(),
             ':title'       => $title,
             ':description' => $description !== '' ? $description : null,
             ':scheduled_at'=> $scheduledAt ?: null,
@@ -116,20 +104,20 @@ try {
             ]);
         }
 
-        send_json_ok([
+        api_ok([
             'meeting_id' => $id,
             'title'      => $title,
         ], 201);
 
     } else {
         // Toute autre méthode (PUT, DELETE, etc.)
-        send_json_err('method_not_allowed', 405);
+        api_fail('method_not_allowed', 405);
     }
 
 } catch (PDOException $e) {
     error_log("Database error in meetings.php: " . $e->getMessage());
-    send_json_err('database_error', 500, ['detail' => 'Erreur de base de données']);
+    api_fail('database_error', 500, ['detail' => 'Erreur de base de données']);
 } catch (Throwable $e) {
     error_log("Unexpected error in meetings.php: " . $e->getMessage());
-    send_json_err('internal_error', 500, ['detail' => 'Erreur interne du serveur']);
+    api_fail('internal_error', 500, ['detail' => 'Erreur interne du serveur']);
 }

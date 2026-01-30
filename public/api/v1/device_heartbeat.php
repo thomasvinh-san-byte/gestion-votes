@@ -12,7 +12,7 @@ $raw = file_get_contents('php://input');
 $in = json_decode($raw ?: '[]', true);
 if (!is_array($in)) $in = [];
 
-$tenantId  = DEFAULT_TENANT_ID;
+$tenantId  = api_current_tenant_id();
 $deviceId  = (string)($in['device_id'] ?? '');
 $meetingId = (string)($in['meeting_id'] ?? '');
 $role      = (string)($in['role'] ?? '');

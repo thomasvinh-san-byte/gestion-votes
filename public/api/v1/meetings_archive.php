@@ -6,7 +6,7 @@ api_require_role('operator');
 
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
 // Filtres optionnels : from, to (YYYY-MM-DD)
@@ -19,7 +19,7 @@ $conditions = [
     "status IN ('closed','archived')"
 ];
 $params = [
-    'tenant_id' => DEFAULT_TENANT_ID,
+    'tenant_id' => api_current_tenant_id(),
 ];
 
 if ($from !== '') {
@@ -53,7 +53,7 @@ try {
     $stmt->execute($params);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    json_ok(['meetings' => $rows]);
+    api_ok(['meetings' => $rows]);
 } catch (PDOException $e) {
-    json_err('database_error', 500, ['detail' => $e->getMessage()]);
+    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
 }
