@@ -10,8 +10,8 @@ $in = json_input();
 $meetingId = trim((string)($in['meeting_id'] ?? ''));
 $id = (int)($in['id'] ?? 0);
 
-if ($meetingId === '') json_err('missing_meeting_id', 400);
-if ($id <= 0) json_err('missing_id', 400);
+if ($meetingId === '') api_fail('missing_meeting_id', 400);
+if ($id <= 0) api_fail('missing_id', 400);
 
 NotificationsService::markRead($meetingId, $id);
-json_ok(['ok' => true]);
+api_ok(['ok' => true]);

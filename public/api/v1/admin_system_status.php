@@ -15,16 +15,16 @@ catch (Throwable $e) { $active = null; }
 $path = __DIR__;
 try { $free = @disk_free_space($path); $total = @disk_total_space($path); } catch (Throwable $e) { $free = null; $total = null; }
 
-$cntMeet = (int)(db_scalar("SELECT COUNT(*) FROM meetings WHERE tenant_id = ?", [DEFAULT_TENANT_ID]) ?? 0);
+$cntMeet = (int)(db_scalar("SELECT COUNT(*) FROM meetings WHERE tenant_id = ?", [api_current_tenant_id()]) ?? 0);
 $cntMot  = (int)(db_scalar("SELECT COUNT(*) FROM motions") ?? 0);
-$cntMembers = (int)(db_scalar("SELECT COUNT(*) FROM members WHERE tenant_id = ? AND is_active = true AND deleted_at IS NULL", [DEFAULT_TENANT_ID]) ?? 0);
-$cntLive = (int)(db_scalar("SELECT COUNT(*) FROM meetings WHERE tenant_id = ? AND status = 'live'", [DEFAULT_TENANT_ID]) ?? 0);
+$cntMembers = (int)(db_scalar("SELECT COUNT(*) FROM members WHERE tenant_id = ? AND is_active = true AND deleted_at IS NULL", [api_current_tenant_id()]) ?? 0);
+$cntLive = (int)(db_scalar("SELECT COUNT(*) FROM meetings WHERE tenant_id = ? AND status = 'live'", [api_current_tenant_id()]) ?? 0);
 
 $cntTok = null;
 try { $cntTok = (int)(db_scalar("SELECT COUNT(*) FROM vote_tokens") ?? 0); } catch (Throwable $e) { $cntTok = null; }
 
 $cntAud = null;
-try { $cntAud = (int)(db_scalar("SELECT COUNT(*) FROM audit_events WHERE tenant_id = ?", [DEFAULT_TENANT_ID]) ?? 0); } catch (Throwable $e) { $cntAud = null; }
+try { $cntAud = (int)(db_scalar("SELECT COUNT(*) FROM audit_events WHERE tenant_id = ?", [api_current_tenant_id()]) ?? 0); } catch (Throwable $e) { $cntAud = null; }
 
 $fail15 = null;
 try { $fail15 = (int)(db_scalar("SELECT COUNT(*) FROM auth_failures WHERE created_at > NOW() - INTERVAL '15 minutes'") ?? 0); }

@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
-require_role('operator');
+api_require_role('operator');
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -32,7 +32,7 @@ if (is_string($ct) && stripos($ct, 'application/json') !== false) {
     $data = $_POST ?? [];
 }
 
-$tenantId  = (string)($data['tenant_id'] ?? DEFAULT_TENANT_ID);
+$tenantId  = (string)($data['tenant_id'] ?? api_current_tenant_id());
 $meetingId = trim((string)($data['meeting_id'] ?? ''));
 $motionId  = trim((string)($data['motion_id'] ?? ''));
 $memberId  = trim((string)($data['member_id'] ?? ''));

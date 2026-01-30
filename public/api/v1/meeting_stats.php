@@ -5,12 +5,12 @@ require __DIR__ . '/../../../app/api.php';
 api_require_role('public');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
 $meetingId = trim($_GET['meeting_id'] ?? '');
 if ($meetingId === '') {
-    json_err('missing_meeting_id', 422);
+    api_fail('missing_meeting_id', 422);
 }
 
 // Vérifier que la séance existe pour ce tenant
@@ -19,10 +19,10 @@ $exists = db_scalar("
     FROM meetings
     WHERE id = ?
       AND tenant_id = ?
-", [$meetingId, DEFAULT_TENANT_ID]);
+", [$meetingId, api_current_tenant_id()]);
 
 if (!$exists) {
-    json_err('meeting_not_found', 404);
+    api_fail('meeting_not_found', 404);
 }
 
 global $pdo;
@@ -143,7 +143,7 @@ if ($totalBallotsAllMotions > 0) {
     ", [$meetingId]) ?? 0;
 }
 
-json_ok([
+api_ok([
     'meeting_id'      => $meetingId,
     'motions_count'   => (int)$motionsCount,
     'distinct_voters' => (int)$distinctVoters,

@@ -31,14 +31,14 @@ $transitions = db_select_all(
 // Users par rôle système
 $usersByRole = db_select_all(
     "SELECT role, COUNT(*) as count FROM users WHERE tenant_id = ? AND is_active = true GROUP BY role ORDER BY role",
-    [DEFAULT_TENANT_ID]
+    [api_current_tenant_id()]
 );
 
 // Rôles de séance actifs (combien d'assignations actives par rôle)
 $meetingRoleCounts = db_select_all(
     "SELECT role, COUNT(DISTINCT user_id) as users, COUNT(DISTINCT meeting_id) as meetings
      FROM meeting_roles WHERE tenant_id = ? AND revoked_at IS NULL GROUP BY role ORDER BY role",
-    [DEFAULT_TENANT_ID]
+    [api_current_tenant_id()]
 );
 
 // Matrice permissions groupées par rôle

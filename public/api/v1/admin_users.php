@@ -22,7 +22,7 @@ if ($method === 'GET') {
     api_request('GET');
 
     $roleFilter = trim((string)($_GET['role'] ?? ''));
-    $params = [DEFAULT_TENANT_ID];
+    $params = [api_current_tenant_id()];
     $where = "WHERE u.tenant_id = ?";
 
     if ($roleFilter !== '' && in_array($roleFilter, $validSystemRoles, true)) {
@@ -47,7 +47,7 @@ if ($method === 'GET') {
              JOIN meetings m ON m.id = mr.meeting_id
              WHERE mr.user_id = ? AND mr.tenant_id = ? AND mr.revoked_at IS NULL
              ORDER BY mr.assigned_at DESC",
-            [$row['id'], DEFAULT_TENANT_ID]
+            [$row['id'], api_current_tenant_id()]
         );
         $row['meeting_roles'] = $meetingRoles;
     }
@@ -72,7 +72,7 @@ if ($method === 'POST') {
         $hash = AuthService::hashKey($apiKey);
         db_execute(
             "UPDATE users SET api_key_hash = :h, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
-            [':h' => $hash, ':t' => DEFAULT_TENANT_ID, ':id' => $userId]
+            [':h' => $hash, ':t' => api_current_tenant_id(), ':id' => $userId]
         );
         audit_log('admin.user.key_rotated', 'user', $userId, []);
         api_ok(['rotated' => true, 'api_key' => $apiKey, 'user_id' => $userId]);
@@ -83,7 +83,7 @@ if ($method === 'POST') {
         $userId = api_require_uuid($in, 'user_id');
         db_execute(
             "UPDATE users SET api_key_hash = NULL, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
-            [':t' => DEFAULT_TENANT_ID, ':id' => $userId]
+            [':t' => api_current_tenant_id(), ':id' => $userId]
         );
         audit_log('admin.user.key_revoked', 'user', $userId, []);
         api_ok(['revoked' => true, 'user_id' => $userId]);
@@ -102,7 +102,7 @@ if ($method === 'POST') {
         $active = (int)($in['is_active'] ?? 1) ? true : false;
         db_execute(
             "UPDATE users SET is_active = :a, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
-            [':a' => $active ? 'true' : 'false', ':t' => DEFAULT_TENANT_ID, ':id' => $userId]
+            [':a' => $active ? 'true' : 'false', ':t' => api_current_tenant_id(), ':id' => $userId]
         );
         audit_log('admin.user.toggled', 'user', $userId, ['is_active' => $active]);
         api_ok(['saved' => true, 'user_id' => $userId, 'is_active' => $active]);
@@ -132,7 +132,7 @@ if ($method === 'POST') {
         }
 
         $setClauses = ["email = :e", "name = :n", "updated_at = NOW()"];
-        $params = [':e' => $email, ':n' => $name, ':t' => DEFAULT_TENANT_ID, ':id' => $userId];
+        $params = [':e' => $email, ':n' => $name, ':t' => api_current_tenant_id(), ':id' => $userId];
 
         if ($role !== '') {
             $setClauses[] = "role = :r";
@@ -165,7 +165,7 @@ if ($method === 'POST') {
         // Vérifier email unique
         $existing = db_scalar(
             "SELECT id FROM users WHERE tenant_id = ? AND email = ?",
-            [DEFAULT_TENANT_ID, $email]
+            [api_current_tenant_id(), $email]
         );
         if ($existing) {
             api_fail('email_exists', 409, ['detail' => "Un utilisateur avec l'email '$email' existe déjà."]);
@@ -178,7 +178,7 @@ if ($method === 'POST') {
         db_execute(
             "INSERT INTO users (id, tenant_id, email, name, role, api_key_hash, is_active, created_at, updated_at)
              VALUES (:id, :t, :e, :n, :r, :h, true, NOW(), NOW())",
-            [':id' => $id, ':t' => DEFAULT_TENANT_ID, ':e' => $email, ':n' => $name, ':r' => $role, ':h' => $hash]
+            [':id' => $id, ':t' => api_current_tenant_id(), ':e' => $email, ':n' => $name, ':r' => $role, ':h' => $hash]
         );
 
         audit_log('admin.user.created', 'user', $id, ['email' => $email, 'role' => $role]);

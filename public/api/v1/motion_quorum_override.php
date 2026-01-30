@@ -17,7 +17,7 @@ $motion = db_select_one(
      FROM motions mo
      JOIN meetings mt ON mt.id = mo.meeting_id
      WHERE mt.tenant_id = ? AND mo.id = ?",
-    [DEFAULT_TENANT_ID, $motionId]
+    [api_current_tenant_id(), $motionId]
 );
 if (!$motion) api_fail('motion_not_found', 404);
 
@@ -35,7 +35,7 @@ if (!empty($motion['closed_at'])) {
 }
 
 if ($policyId !== '') {
-    $p = db_select_one("SELECT id FROM quorum_policies WHERE tenant_id=? AND id=?", [DEFAULT_TENANT_ID, $policyId]);
+    $p = db_select_one("SELECT id FROM quorum_policies WHERE tenant_id=? AND id=?", [api_current_tenant_id(), $policyId]);
     if (!$p) api_fail('quorum_policy_not_found', 404);
 }
 

@@ -14,7 +14,7 @@ try {
         "SELECT id, meeting_id, agenda_id, opened_at, closed_at
          FROM motions
          WHERE tenant_id=:tid AND id=:id",
-        [':tid'=>DEFAULT_TENANT_ID, ':id'=>$motionId]
+        [':tid'=>api_current_tenant_id(), ':id'=>$motionId]
     );
     if (!$motion) api_fail('motion_not_found', 404);
 
@@ -27,7 +27,7 @@ try {
 
     db_execute(
         "DELETE FROM motions WHERE tenant_id=:tid AND id=:id",
-        [':tid'=>DEFAULT_TENANT_ID, ':id'=>$motionId]
+        [':tid'=>api_current_tenant_id(), ':id'=>$motionId]
     );
 
     audit_log('motion_deleted', 'motion', (string)$motionId, [

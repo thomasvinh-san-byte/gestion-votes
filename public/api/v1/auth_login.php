@@ -32,7 +32,7 @@ $user = db_select_one(
     "SELECT id, tenant_id, email, name, role, is_active
      FROM users
      WHERE api_key_hash = :hash AND tenant_id = :tid",
-    [':hash' => $hash, ':tid' => DEFAULT_TENANT_ID]
+    [':hash' => $hash, ':tid' => api_current_tenant_id()]
 );
 
 if (!$user) {

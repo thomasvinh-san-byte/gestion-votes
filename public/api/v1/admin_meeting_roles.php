@@ -30,7 +30,7 @@ if ($method === 'GET') {
              LEFT JOIN users a ON a.id = mr.assigned_by
              WHERE mr.tenant_id = ? AND mr.meeting_id = ? AND mr.revoked_at IS NULL
              ORDER BY mr.role ASC, u.name ASC",
-            [DEFAULT_TENANT_ID, $meetingId]
+            [api_current_tenant_id(), $meetingId]
         );
 
         api_ok([
@@ -54,7 +54,7 @@ if ($method === 'GET') {
          WHERE mr.tenant_id = ? AND mr.revoked_at IS NULL
          GROUP BY m.id, m.title, m.status
          ORDER BY m.title",
-        [DEFAULT_TENANT_ID]
+        [api_current_tenant_id()]
     );
 
     api_ok(['items' => $rows]);
@@ -81,7 +81,7 @@ if ($method === 'POST') {
         // Vérifier que la séance existe
         $meeting = db_select_one(
             "SELECT id, status FROM meetings WHERE id = ? AND tenant_id = ?",
-            [$meetingId, DEFAULT_TENANT_ID]
+            [$meetingId, api_current_tenant_id()]
         );
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
@@ -90,7 +90,7 @@ if ($method === 'POST') {
         // Vérifier que l'utilisateur existe
         $user = db_select_one(
             "SELECT id, name FROM users WHERE id = ? AND tenant_id = ? AND is_active = true",
-            [$userId, DEFAULT_TENANT_ID]
+            [$userId, api_current_tenant_id()]
         );
         if (!$user) {
             api_fail('user_not_found', 404);
@@ -101,14 +101,14 @@ if ($method === 'POST') {
             $existingPres = db_scalar(
                 "SELECT user_id FROM meeting_roles
                  WHERE tenant_id = ? AND meeting_id = ? AND role = 'president' AND revoked_at IS NULL",
-                [DEFAULT_TENANT_ID, $meetingId]
+                [api_current_tenant_id(), $meetingId]
             );
             if ($existingPres && $existingPres !== $userId) {
                 // Révoquer l'ancien président
                 db_execute(
                     "UPDATE meeting_roles SET revoked_at = NOW()
                      WHERE tenant_id = ? AND meeting_id = ? AND role = 'president' AND revoked_at IS NULL",
-                    [DEFAULT_TENANT_ID, $meetingId]
+                    [api_current_tenant_id(), $meetingId]
                 );
             }
         }
@@ -120,7 +120,7 @@ if ($method === 'POST') {
              ON CONFLICT (tenant_id, meeting_id, user_id, role) DO UPDATE
              SET revoked_at = NULL, assigned_by = :by, assigned_at = NOW()",
             [
-                ':t' => DEFAULT_TENANT_ID,
+                ':t' => api_current_tenant_id(),
                 ':m' => $meetingId,
                 ':u' => $userId,
                 ':r' => $role,
@@ -148,7 +148,7 @@ if ($method === 'POST') {
         }
 
         $where = "tenant_id = ? AND meeting_id = ? AND user_id = ? AND revoked_at IS NULL";
-        $params = [DEFAULT_TENANT_ID, $meetingId, $userId];
+        $params = [api_current_tenant_id(), $meetingId, $userId];
 
         if ($role !== '') {
             $where .= " AND role = ?";

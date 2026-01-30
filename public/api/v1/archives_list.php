@@ -12,7 +12,7 @@ $rows = db_select_all(
    LEFT JOIN meeting_reports mr ON mr.meeting_id = mt.id
    WHERE mt.tenant_id = ? AND mt.status = 'archived'
    ORDER BY mt.archived_at DESC NULLS LAST, mt.validated_at DESC NULLS LAST",
-  [DEFAULT_TENANT_ID]
+  [api_current_tenant_id()]
 );
 
 api_ok(['items' => $rows]);

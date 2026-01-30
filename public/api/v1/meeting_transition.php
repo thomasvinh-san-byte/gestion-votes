@@ -40,7 +40,7 @@ if (!in_array($toStatus, $validStatuses, true)) {
 // Charger la séance
 $meeting = db_select_one(
     "SELECT id, tenant_id, status, title FROM meetings WHERE id = ? AND tenant_id = ?",
-    [$meetingId, DEFAULT_TENANT_ID]
+    [$meetingId, api_current_tenant_id()]
 );
 
 if (!$meeting) {

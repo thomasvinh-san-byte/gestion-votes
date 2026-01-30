@@ -3,10 +3,10 @@
 require __DIR__ . '/../../../app/api.php';
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
-require_role('operator');
+api_require_role('operator');
 
 $limit = (int)($_GET['limit'] ?? 50);
 if ($limit <= 0 || $limit > 200) $limit = 50;
@@ -17,7 +17,7 @@ $rows = db_select_all(
      WHERE tenant_id = ?
      ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC
      LIMIT $limit",
-    [DEFAULT_TENANT_ID]
+    [api_current_tenant_id()]
 );
 
-json_ok(['meetings' => $rows]);
+api_ok(['meetings' => $rows]);

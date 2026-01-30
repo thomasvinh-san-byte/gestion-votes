@@ -5,18 +5,18 @@ require __DIR__ . '/../../../app/api.php';
 api_require_role(['auditor', 'admin']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
 $meetingId = trim($_GET['meeting_id'] ?? '');
 if ($meetingId === '') {
-    json_err('missing_meeting_id', 422);
+    api_fail('missing_meeting_id', 422);
 }
 
 // Vérifier la séance
-$exists = db_scalar("SELECT 1 FROM meetings WHERE id = ? AND tenant_id = ?", [$meetingId, DEFAULT_TENANT_ID]);
+$exists = db_scalar("SELECT 1 FROM meetings WHERE id = ? AND tenant_id = ?", [$meetingId, api_current_tenant_id()]);
 if (!$exists) {
-    json_err('meeting_not_found', 404);
+    api_fail('meeting_not_found', 404);
 }
 
 global $pdo;
@@ -41,10 +41,10 @@ $stmt = $pdo->prepare("
       )
     ORDER BY created_at ASC
 ");
-$stmt->execute([DEFAULT_TENANT_ID, $meetingId, $meetingId]);
+$stmt->execute([api_current_tenant_id(), $meetingId, $meetingId]);
 $rows = $stmt->fetchAll();
 
-json_ok([
+api_ok([
     'meeting_id' => $meetingId,
     'events'     => $rows,
 ]);

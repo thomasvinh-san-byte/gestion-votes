@@ -14,7 +14,7 @@ if ($confirm !== 'RESET') {
 }
 
 // Refuse if validated (DB lockdown + conformité)
-$mt = db_select_one("SELECT id, validated_at FROM meetings WHERE tenant_id = ? AND id = ? LIMIT 1", [DEFAULT_TENANT_ID, $meetingId]);
+$mt = db_select_one("SELECT id, validated_at FROM meetings WHERE tenant_id = ? AND id = ? LIMIT 1", [api_current_tenant_id(), $meetingId]);
 if (!$mt) api_fail('meeting_not_found', 404);
 if (!empty($mt['validated_at'])) {
   api_fail('meeting_validated', 409, ['detail' => 'Séance validée : reset interdit (séance figée).']);
@@ -24,7 +24,7 @@ $pdo = db();
 $pdo->beginTransaction();
 try {
   // Delete dependents
-  db_execute("DELETE FROM ballots WHERE meeting_id = :mid AND tenant_id = :tid", [':mid'=>$meetingId, ':tid'=>DEFAULT_TENANT_ID]);
+  db_execute("DELETE FROM ballots WHERE meeting_id = :mid AND tenant_id = :tid", [':mid'=>$meetingId, ':tid'=>api_current_tenant_id()]);
 
   // vote_tokens are per motion; delete by meeting motions
   db_execute(
@@ -33,13 +33,13 @@ try {
      WHERE vt.motion_id = mo.id
        AND mo.meeting_id = :mid
        AND mo.tenant_id = :tid",
-    [':mid'=>$meetingId, ':tid'=>DEFAULT_TENANT_ID]
+    [':mid'=>$meetingId, ':tid'=>api_current_tenant_id()]
   );
 
   // manual actions / incidents / audit events (best-effort: tables may not exist)
   foreach (['manual_actions','audit_events'] as $t) {
     try {
-      db_execute("DELETE FROM {$t} WHERE meeting_id = :mid AND tenant_id = :tid", [':mid'=>$meetingId, ':tid'=>DEFAULT_TENANT_ID]);
+      db_execute("DELETE FROM {$t} WHERE meeting_id = :mid AND tenant_id = :tid", [':mid'=>$meetingId, ':tid'=>api_current_tenant_id()]);
     } catch (Throwable $e) { /* ignore */ }
   }
 
@@ -50,7 +50,7 @@ try {
          manual_total = NULL, manual_for = NULL, manual_against = NULL, manual_abstain = NULL,
          updated_at = now()
      WHERE meeting_id = :mid AND tenant_id = :tid",
-    [':mid'=>$meetingId, ':tid'=>DEFAULT_TENANT_ID]
+    [':mid'=>$meetingId, ':tid'=>api_current_tenant_id()]
   );
 
   // reset meeting live fields (but keep title etc.)
@@ -60,7 +60,7 @@ try {
          status = 'live',
          updated_at = now()
      WHERE id = :mid AND tenant_id = :tid",
-    [':mid'=>$meetingId, ':tid'=>DEFAULT_TENANT_ID]
+    [':mid'=>$meetingId, ':tid'=>api_current_tenant_id()]
   );
 
   $pdo->commit();

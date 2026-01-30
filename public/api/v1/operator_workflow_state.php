@@ -5,21 +5,21 @@ require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/MeetingValidator.php';
 require __DIR__ . '/../../../app/services/NotificationsService.php';
 
-require_role('operator');
+api_require_role('operator');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-if ($meetingId === '') json_err('missing_meeting_id', 400);
+if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
 $minOpen = (int)($_GET['min_open'] ?? 900);
 $minParticipation = (float)($_GET['min_participation'] ?? 0.5);
 
-$tenant = DEFAULT_TENANT_ID;
+$tenant = api_current_tenant_id();
 
 $meeting = db_select_one(
   "SELECT id, title, status, president_name FROM meetings WHERE tenant_id = ? AND id = ?",
   [$tenant, $meetingId]
 );
-if (!$meeting) json_err('meeting_not_found', 404);
+if (!$meeting) api_fail('meeting_not_found', 404);
 
 $eligibleMembers = (int)(db_scalar("SELECT COUNT(*) FROM members WHERE tenant_id = ? AND is_active = true", [$tenant]) ?? 0);
 
@@ -133,7 +133,7 @@ $reasons = (array)($validation['reasons'] ?? []);
 // Notifications: blocages / résolutions issus du ready-check (sans spam via cache).
 NotificationsService::emitReadinessTransitions($meetingId, $validation);
 
-json_ok([
+api_ok([
   'meeting' => [
     'id' => $meeting['id'],
     'title' => $meeting['title'] ?? '',

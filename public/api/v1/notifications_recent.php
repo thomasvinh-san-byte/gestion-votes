@@ -8,7 +8,7 @@ require __DIR__ . '/../../../app/services/NotificationsService.php';
 require_any_role(['operator','trust']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-if ($meetingId === '') json_err('missing_meeting_id', 400);
+if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
 $audience = trim((string)($_GET['audience'] ?? 'operator'));
 if ($audience === '') $audience = 'operator';
@@ -25,4 +25,4 @@ foreach ($list as &$n) {
 }
 unset($n);
 
-json_ok(['notifications' => $list]);
+api_ok(['notifications' => $list]);

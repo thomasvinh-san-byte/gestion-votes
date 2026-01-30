@@ -32,7 +32,7 @@ $sql = "SELECT id, full_name, email
           AND email IS NOT NULL
           AND email <> ''
         ORDER BY full_name ASC";
-$tenantId = (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
+$tenantId = (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
 $stmt = $pdo->prepare($sql);
 $stmt->execute([':tenant_id' => $tenantId]);
 $members = $stmt->fetchAll(PDO::FETCH_ASSOC);

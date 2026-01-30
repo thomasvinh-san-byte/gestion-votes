@@ -4,15 +4,15 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 
-require_role('auditor');
+api_require_role('auditor');
 
 $body = json_read();
 $meetingId = trim((string)($body['meeting_id'] ?? ''));
-if ($meetingId === '') json_err('missing_meeting_id', 400);
+if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
 try {
     $r = OfficialResultsService::consolidateMeeting($meetingId);
-    json_ok(['updated_motions' => $r['updated']]);
+    api_ok(['updated_motions' => $r['updated']]);
 } catch (Throwable $e) {
-    json_err('consolidate_failed', 500, ['detail' => $e->getMessage()]);
+    api_fail('consolidate_failed', 500, ['detail' => $e->getMessage()]);
 }

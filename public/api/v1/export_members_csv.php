@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
-require_role('operator');
+api_require_role('operator');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '') {
@@ -16,7 +16,7 @@ if ($meetingId === '') {
 // Exports autorisés uniquement après validation (exigence conformité)
 $mt = db_select_one(
     "SELECT validated_at FROM meetings WHERE tenant_id = ? AND id = ?",
-    [DEFAULT_TENANT_ID, $meetingId]
+    [api_current_tenant_id(), $meetingId]
 );
 if (!$mt) {
     http_response_code(404);
@@ -72,7 +72,7 @@ $rows = db_select_all(
           ON r.id = pr.receiver_member_id
    WHERE m.tenant_id = ?
    ORDER BY m.full_name ASC",
-  [$meetingId, $meetingId, DEFAULT_TENANT_ID]
+  [$meetingId, $meetingId, api_current_tenant_id()]
 );
 
 foreach ($rows as $r) {

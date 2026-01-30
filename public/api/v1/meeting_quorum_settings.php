@@ -13,7 +13,7 @@ if ($method === 'GET') {
         "SELECT id AS meeting_id, title, quorum_policy_id, COALESCE(convocation_no,1) AS convocation_no
          FROM meetings
          WHERE tenant_id = ? AND id = ?",
-        [DEFAULT_TENANT_ID, $meetingId]
+        [api_current_tenant_id(), $meetingId]
     );
     if (!$row) api_fail('meeting_not_found', 404);
 
@@ -41,11 +41,11 @@ api_guard_meeting_not_validated($meetingId);
         api_fail('invalid_convocation_no', 400, ['expected' => '1 or 2']);
     }
 
-    $m = db_select_one("SELECT id FROM meetings WHERE tenant_id=? AND id=?", [DEFAULT_TENANT_ID, $meetingId]);
+    $m = db_select_one("SELECT id FROM meetings WHERE tenant_id=? AND id=?", [api_current_tenant_id(), $meetingId]);
     if (!$m) api_fail('meeting_not_found', 404);
 
     if ($policyId !== '') {
-        $p = db_select_one("SELECT id FROM quorum_policies WHERE tenant_id=? AND id=?", [DEFAULT_TENANT_ID, $policyId]);
+        $p = db_select_one("SELECT id FROM quorum_policies WHERE tenant_id=? AND id=?", [api_current_tenant_id(), $policyId]);
         if (!$p) api_fail('quorum_policy_not_found', 404);
     }
 
@@ -56,7 +56,7 @@ api_guard_meeting_not_validated($meetingId);
         [
             ':pid' => ($policyId == '' ? null : $policyId),
             ':c' => $convocationNo,
-            ':t' => DEFAULT_TENANT_ID,
+            ':t' => api_current_tenant_id(),
             ':m' => $meetingId,
         ]
     );

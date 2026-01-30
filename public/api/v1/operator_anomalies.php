@@ -9,20 +9,20 @@ api_require_role('operator');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '' || !api_is_uuid($meetingId)) {
-  json_err('invalid_meeting_id', 422);
+  api_fail('invalid_meeting_id', 422);
 }
 
 $motionId = trim((string)($_GET['motion_id'] ?? ''));
 if ($motionId !== '' && !api_is_uuid($motionId)) {
-  json_err('invalid_motion_id', 422);
+  api_fail('invalid_motion_id', 422);
 }
 
 // 1) Meeting (lockdown)
 $meeting = db_select_one(
   "SELECT id, status, validated_at FROM meetings WHERE tenant_id = :tid AND id = :id",
-  [':tid' => DEFAULT_TENANT_ID, ':id' => $meetingId]
+  [':tid' => api_current_tenant_id(), ':id' => $meetingId]
 );
-if (!$meeting) json_err('meeting_not_found', 404);
+if (!$meeting) api_fail('meeting_not_found', 404);
 
 // 2) Motion cible: motion_id -> sinon motion ouverte -> sinon null
 if ($motionId === '') {
@@ -31,7 +31,7 @@ if ($motionId === '') {
      WHERE tenant_id=:tid AND meeting_id=:mid
        AND opened_at IS NOT NULL AND closed_at IS NULL
      ORDER BY opened_at DESC LIMIT 1",
-    [':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId]
+    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId]
   );
   $motionId = $open ? (string)$open['id'] : '';
 }
@@ -41,9 +41,9 @@ if ($motionId !== '') {
   $motion = db_select_one(
     "SELECT id, title, opened_at, closed_at
      FROM motions WHERE tenant_id=:tid AND meeting_id=:mid AND id=:id",
-    [':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId, ':id'=>$motionId]
+    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':id'=>$motionId]
   );
-  if (!$motion) json_err('motion_not_found', 404);
+  if (!$motion) api_fail('motion_not_found', 404);
 }
 
 // 3) Éligibles: présents/remote/proxy (fallback: tous)
@@ -53,7 +53,7 @@ $eligibleRows = db_select_all(
    JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid AND a.tenant_id = m.tenant_id
    WHERE m.tenant_id = :tid AND m.is_active = true AND a.mode IN ('present','remote','proxy')
    ORDER BY m.full_name ASC",
-  [':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId]
+  [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId]
 );
 if (!$eligibleRows) {
   $eligibleRows = db_select_all(
@@ -61,7 +61,7 @@ if (!$eligibleRows) {
      FROM members
      WHERE tenant_id=:tid AND meeting_id=:mid AND is_active = true
      ORDER BY full_name ASC",
-    [':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId]
+    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId]
   );
 }
 
@@ -86,7 +86,7 @@ try {
      GROUP BY proxy_id
      HAVING COUNT(*) > :mx
      ORDER BY c DESC",
-    [':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId, ':mx'=>$proxyMax]
+    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mx'=>$proxyMax]
   );
   foreach ($rows as $r) {
     $pid = (string)$r['proxy_id'];
@@ -121,21 +121,21 @@ if ($motionId !== '') {
     "SELECT COUNT(*) FROM vote_tokens
      WHERE tenant_id=:tid AND meeting_id=:mid AND motion_id=:mo
        AND used_at IS NULL AND expires_at > NOW()",
-    [':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId, ':mo'=>$motionId]
+    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mo'=>$motionId]
   ) ?? 0);
 
   $stats['tokens_expired_unused'] = (int)(db_scalar(
     "SELECT COUNT(*) FROM vote_tokens
      WHERE tenant_id=:tid AND meeting_id=:mid AND motion_id=:mo
        AND used_at IS NULL AND expires_at <= NOW()",
-    [':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId, ':mo'=>$motionId]
+    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mo'=>$motionId]
   ) ?? 0);
 
   $stats['tokens_used'] = (int)(db_scalar(
     "SELECT COUNT(*) FROM vote_tokens
      WHERE tenant_id=:tid AND meeting_id=:mid AND motion_id=:mo
        AND used_at IS NOT NULL",
-    [':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId, ':mo'=>$motionId]
+    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mo'=>$motionId]
   ) ?? 0);
 
   $ballots = db_select_all(
@@ -143,7 +143,7 @@ if ($motionId !== '') {
      FROM ballots b
      WHERE b.tenant_id=:tid AND b.meeting_id=:mid AND b.motion_id=:mo
      ORDER BY b.cast_at ASC",
-    [':tid'=>DEFAULT_TENANT_ID, ':mid'=>$meetingId, ':mo'=>$motionId]
+    [':tid'=>api_current_tenant_id(), ':mid'=>$meetingId, ':mo'=>$motionId]
   );
 
   $stats['ballots_total'] = count($ballots);
@@ -190,7 +190,7 @@ if ($motionId !== '') {
   }
 }
 
-json_ok([
+api_ok([
   'meeting' => [
     'id' => $meetingId,
     'status' => (string)($meeting['status'] ?? ''),

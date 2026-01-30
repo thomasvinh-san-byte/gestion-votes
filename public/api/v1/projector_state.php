@@ -5,7 +5,7 @@
 require __DIR__ . '/../../../app/api.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    json_err('method_not_allowed', 405);
+    api_fail('method_not_allowed', 405);
 }
 
 try {
@@ -29,11 +29,11 @@ try {
             m.created_at DESC
         LIMIT 1
         ",
-        ['tenant_id' => DEFAULT_TENANT_ID]
+        ['tenant_id' => api_current_tenant_id()]
     );
 
     if (!$meeting) {
-        json_err('no_live_meeting', 404);
+        api_fail('no_live_meeting', 404);
     }
 
     $meetingId = (string)$meeting['meeting_id'];
@@ -84,7 +84,7 @@ try {
         ];
     }
 
-    json_ok([
+    api_ok([
         'meeting_id'     => $meetingId,
         'meeting_title'  => (string)$meeting['meeting_title'],
         'meeting_status' => (string)$meeting['meeting_status'],
@@ -94,5 +94,5 @@ try {
 
 } catch (PDOException $e) {
     error_log('Database error in projector_state.php: ' . $e->getMessage());
-    json_err('database_error', 500, ['detail' => $e->getMessage()]);
+    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
 }
