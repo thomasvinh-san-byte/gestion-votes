@@ -1,11 +1,9 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/../../../app/bootstrap.php';
-require __DIR__ . '/../../../app/auth.php';
 require __DIR__ . '/../../../app/api.php';
 
-require_role('operator');
+api_require_role(['operator', 'admin']);
 
 $in = api_request('POST');
 $meetingId = api_require_uuid($in, 'meeting_id');
@@ -38,18 +36,8 @@ try {
     [':mid'=>$meetingId, ':tid'=>DEFAULT_TENANT_ID]
   );
 
-  // results & manual counts
-  db_execute(
-    "DELETE FROM motion_results mr
-     USING motions mo
-     WHERE mr.motion_id = mo.id
-       AND mo.meeting_id = :mid
-       AND mo.tenant_id = :tid",
-    [':mid'=>$meetingId, ':tid'=>DEFAULT_TENANT_ID]
-  );
-
   // manual actions / incidents / audit events (best-effort: tables may not exist)
-  foreach (['manual_actions','vote_incidents','meeting_audit_events'] as $t) {
+  foreach (['manual_actions','vote_incidents','audit_events'] as $t) {
     try {
       db_execute("DELETE FROM {$t} WHERE meeting_id = :mid AND tenant_id = :tid", [':mid'=>$meetingId, ':tid'=>DEFAULT_TENANT_ID]);
     } catch (Throwable $e) { /* ignore */ }

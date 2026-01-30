@@ -521,7 +521,6 @@ body.app-shell{ background: var(--bg); color: var(--text); }
   border-color: var(--border);
 }
 .nav a.active, .nav .nav-item.active{
-  background: var(--panel says);
   background: var(--panel);
   border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
   box-shadow: var(--shadow-xs);

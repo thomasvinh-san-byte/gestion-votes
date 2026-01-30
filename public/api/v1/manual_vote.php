@@ -7,8 +7,7 @@ declare(strict_types=1);
 // - refuser si meeting validé (409 meeting_validated)
 // - refuser si motion pas ouverte (409 motion_not_open)
 
-require __DIR__ . '/../../../app/bootstrap.php';
-require __DIR__ . '/../../../app/auth.php';
+require __DIR__ . '/../../../app/api.php';
 
 require_role('operator');
 

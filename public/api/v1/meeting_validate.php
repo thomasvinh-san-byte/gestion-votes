@@ -4,8 +4,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 
-// auth désactivée en dev dans app/auth.php (MVP)
-// api_require_role('trust');
+api_require_role(['president', 'admin']);
 
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
   json_err('method_not_allowed', 405);
@@ -40,13 +39,13 @@ try {
   $pdo->prepare("UPDATE meetings SET status='validated', validated_at=NOW() WHERE tenant_id=:tid AND id=:id")
       ->execute([':tid'=>$tenant, ':id'=>$meetingId]);
 
-  // Stocke le PV HTML dans reports si table existe
+  // Stocke le PV HTML dans meeting_reports
   try {
-    $pdo->prepare("INSERT INTO reports(tenant_id, meeting_id, html, created_at) VALUES (:tid,:mid,:html,NOW())
-                   ON CONFLICT (tenant_id, meeting_id) DO UPDATE SET html=EXCLUDED.html, created_at=NOW()")
-        ->execute([':tid'=>$tenant, ':mid'=>$meetingId, ':html'=>$pvHtml]);
+    $pdo->prepare("INSERT INTO meeting_reports(meeting_id, html, created_at, updated_at) VALUES (:mid,:html,NOW(),NOW())
+                   ON CONFLICT (meeting_id) DO UPDATE SET html=EXCLUDED.html, updated_at=NOW()")
+        ->execute([':mid'=>$meetingId, ':html'=>$pvHtml]);
   } catch (Throwable $e) {
-    // table reports optionnelle selon schéma
+    error_log("meeting_validate: could not store PV: " . $e->getMessage());
   }
 
   json_ok(['meeting_id'=>$meetingId, 'status'=>'validated']);

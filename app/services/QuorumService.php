@@ -1,5 +1,9 @@
 <?php
 /**
+ * @deprecated This service is replaced by QuorumEngine.php.
+ *             Kept for backward compatibility only. Do not add new logic here.
+ * @see \QuorumEngine
+ *
  * QuorumService - Calcul de la validité juridique de la séance
  * Standard : PSR-12, Strict Types, PDO Prepared Statements
  */

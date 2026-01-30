@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>500 — Erreur serveur | AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    .error-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-6);
+      background: var(--color-bg);
+    }
+    .error-card {
+      max-width: 480px;
+    }
+    .error-code {
+      font-size: 6rem;
+      font-weight: var(--font-extrabold);
+      line-height: 1;
+      color: var(--color-danger, #dc2626);
+      margin-bottom: var(--space-4);
+    }
+    .error-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-bold);
+      margin-bottom: var(--space-3);
+    }
+    .error-desc {
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-6);
+    }
+    .error-actions {
+      display: flex;
+      gap: var(--space-3);
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-page">
+    <div class="error-card">
+      <div class="error-code">500</div>
+      <h1 class="error-title">Erreur interne du serveur</h1>
+      <p class="error-desc">
+        Une erreur inattendue s'est produite. L'equipe technique a ete notifiee.
+        Veuillez reessayer dans quelques instants.
+      </p>
+      <div class="error-actions">
+        <a href="/" class="btn btn-primary">Retour a l'accueil</a>
+        <a href="javascript:location.reload()" class="btn btn-secondary">Reessayer</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

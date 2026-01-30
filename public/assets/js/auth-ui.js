@@ -1,89 +1,102 @@
 (function(){
   window.Auth = window.Auth || { role: null, user: null, enabled: null };
 
-  const ROLE_ORDER = ["readonly","operator","trust","admin"];
-  function roleRank(r){ const i = ROLE_ORDER.indexOf(r||""); return i === -1 ? -1 : i; }
-
+  // Dual role model: system roles hierarchy
   function hasAccess(required, current){
     if(!required) return true;
     if(current === "admin") return true;
     if(required === current) return true;
-    // readonly can only view
-    // operator and trust are distinct; no implicit crossover
-    return false;
+    var order = {admin:4, operator:3, auditor:2, viewer:1};
+    return (order[current] || 0) >= (order[required] || 0);
   }
 
   function ensureBanner(){
-    let b = document.getElementById("auth-banner");
+    var b = document.getElementById("auth-banner");
     if(b) return b;
     b = document.createElement("div");
     b.id = "auth-banner";
-    b.style.cssText = "position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #eee;padding:10px 12px;";
-    b.innerHTML = "<div class='row between' style='gap:12px;flex-wrap:wrap;align-items:center;'>"
-      + "<div><strong>Accès</strong> <span class='muted tiny' id='auth-status'>…</span></div>"
-      + "<div class='row' style='gap:8px;flex-wrap:wrap;'>"
-      + "  <button class='btn' id='auth-set-key'>Définir clé API</button>"
-      + "  <button class='btn' id='auth-clear-key'>Effacer</button>"
-      + "</div></div>";
+    b.style.cssText = "position:sticky;top:0;z-index:20;background:var(--color-surface,#fff);border-bottom:1px solid var(--color-border,#eee);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;";
+    b.innerHTML =
+      "<div><strong>Acces</strong> <span class='muted' id='auth-status' style='font-size:12px;'>...</span></div>" +
+      "<div style='display:flex;gap:8px;align-items:center;'>" +
+      "  <button class='btn btn-sm' id='auth-login-btn' style='font-size:12px;'>Se connecter</button>" +
+      "  <button class='btn btn-sm' id='auth-logout-btn' style='display:none;font-size:12px;'>Deconnexion</button>" +
+      "</div>";
     document.body.prepend(b);
 
-    b.querySelector("#auth-set-key").addEventListener("click", () => {
-      const k = prompt("Colle la clé API (X-API-Key) :");
-      if(k !== null){
-        Utils.setStoredApiKey(k.trim());
-        boot();
-      }
+    b.querySelector("#auth-login-btn").addEventListener("click", function() {
+      window.location.href = "/login.html?redirect=" + encodeURIComponent(window.location.pathname + window.location.search);
     });
-    b.querySelector("#auth-clear-key").addEventListener("click", () => {
-      Utils.setStoredApiKey("");
-      boot();
+    b.querySelector("#auth-logout-btn").addEventListener("click", async function() {
+      try {
+        await fetch("/api/v1/auth_logout.php", {
+          method: "POST",
+          credentials: "same-origin",
+        });
+      } catch(e) {}
+      try { localStorage.removeItem("api_key"); } catch(e) {}
+      window.Auth.user = null;
+      window.Auth.role = null;
+      window.location.href = "/login.html";
     });
     return b;
   }
 
-  function setStatus(text, type){
-    const b = ensureBanner();
-    const s = b.querySelector("#auth-status");
+  function setStatus(text, type, isLoggedIn){
+    var b = ensureBanner();
+    var s = b.querySelector("#auth-status");
     s.textContent = "— " + text;
-    b.style.borderBottomColor = (type === "danger") ? "#f3b3b3" : "#eee";
+    b.style.borderBottomColor = (type === "danger") ? "#f3b3b3" : "var(--color-border,#eee)";
+    b.querySelector("#auth-login-btn").style.display = isLoggedIn ? "none" : "";
+    b.querySelector("#auth-logout-btn").style.display = isLoggedIn ? "" : "none";
   }
 
   function applyVisibility(){
-    const role = window.Auth.role;
-    document.querySelectorAll("[data-requires-role]").forEach(el => {
-      const req = el.getAttribute("data-requires-role");
-      const ok = hasAccess(req, role);
-      el.style.display = ok ? "" : "none";
+    var role = window.Auth.role;
+    document.querySelectorAll("[data-requires-role]").forEach(function(el) {
+      var req = el.getAttribute("data-requires-role");
+      el.style.display = hasAccess(req, role) ? "" : "none";
     });
   }
 
   async function boot(){
     try {
-      const r = await Utils.apiGet("/api/v1/whoami.php");
-      window.Auth.enabled = !!r.auth_enabled;
-      window.Auth.user = r.user || null;
-      window.Auth.role = r.user ? r.user.role : null;
+      var headers = {};
+      try {
+        var storedKey = localStorage.getItem("api_key");
+        if (storedKey) headers["X-Api-Key"] = storedKey;
+      } catch(e) {}
 
-      if (!r.auth_enabled) {
-        setStatus("auth désactivée", "ok");
-      } else if (!r.user) {
-        setStatus("clé API requise", "danger");
+      var resp = await fetch("/api/v1/whoami.php", {
+        credentials: "same-origin",
+        headers: headers,
+      });
+      var data = await resp.json();
+
+      var user = (data.data && data.data.user) ? data.data.user : (data.user || null);
+      var authEnabled = data.data ? data.data.auth_enabled : data.auth_enabled;
+
+      window.Auth.enabled = !!authEnabled;
+      window.Auth.user = user;
+      window.Auth.role = user ? user.role : null;
+
+      if (!authEnabled) {
+        setStatus("auth desactivee (dev)", "ok", false);
+      } else if (!user) {
+        setStatus("Non connecte", "danger", false);
       } else {
-        setStatus((r.user.name || r.user.email || "user") + " (" + r.user.role + ")", "ok");
+        setStatus((user.name || user.email || "utilisateur") + " (" + user.role + ")", "ok", true);
       }
       applyVisibility();
     } catch(e) {
-      // 401 => key missing/invalid
-      const enabled = true;
-      window.Auth.enabled = enabled;
+      window.Auth.enabled = true;
       window.Auth.user = null;
       window.Auth.role = null;
-      setStatus("clé API requise ou invalide", "danger");
+      setStatus("Non connecte", "danger", false);
       applyVisibility();
     }
   }
 
-  // Always show banner; it becomes informative even when auth disabled.
   ensureBanner();
   boot();
 })();

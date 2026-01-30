@@ -64,7 +64,7 @@ ON CONFLICT (email) DO UPDATE SET
   updated_at = NOW();
 
 -- =============================================================================
--- UTILISATEUR PRÉSIDENT
+-- UTILISATEUR OPÉRATEUR 2 (ex-président)
 -- =============================================================================
 -- API Key: pr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1
 -- Hash: 3f8d2a6c0e5b9f1d4a7c2e8b5f0d3a6c9e2b5f8d1a4c7e0b3f6d9a2c5e8b1f4d7
@@ -75,7 +75,7 @@ VALUES (
   'aaaaaaaa-1111-2222-3333-444444444444',
   'president@ag-vote.local',
   'Président Test',
-  'president',
+  'operator',
   '3f8d2a6c0e5b9f1d4a7c2e8b5f0d3a6c9e2b5f8d1a4c7e0b3f6d9a2c5e8b1f4d7',
   true,
   NOW(),
@@ -87,7 +87,7 @@ ON CONFLICT (email) DO UPDATE SET
   updated_at = NOW();
 
 -- =============================================================================
--- UTILISATEUR TRUST
+-- UTILISATEUR AUDITEUR (ex-trust)
 -- =============================================================================
 -- API Key: tr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1
 -- Hash: 9b4f1e7c3a0d5f8b2e6c9a3f7d1b4e8c2a5f9d3b7e1c4a8f2d6b0e3c7a1f5d9b3
@@ -97,8 +97,8 @@ VALUES (
   '44444444-4444-4444-4444-444444444444',
   'aaaaaaaa-1111-2222-3333-444444444444',
   'trust@ag-vote.local',
-  'Trust Test',
-  'trust',
+  'Auditeur Test',
+  'auditor',
   '9b4f1e7c3a0d5f8b2e6c9a3f7d1b4e8c2a5f9d3b7e1c4a8f2d6b0e3c7a1f5d9b3',
   true,
   NOW(),
@@ -110,7 +110,7 @@ ON CONFLICT (email) DO UPDATE SET
   updated_at = NOW();
 
 -- =============================================================================
--- UTILISATEUR LECTURE SEULE
+-- UTILISATEUR VIEWER (ex-readonly)
 -- =============================================================================
 -- API Key: ro1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1
 -- Hash: 1d7a3f9e5b2c8d4a0f6e2b8c4d0a6f2e8b4c0d6a2f8e4b0c6d2a8f4e0b6c2d8a4
@@ -120,8 +120,8 @@ VALUES (
   '55555555-5555-5555-5555-555555555555',
   'aaaaaaaa-1111-2222-3333-444444444444',
   'readonly@ag-vote.local',
-  'Lecture Seule',
-  'readonly',
+  'Viewer Test',
+  'viewer',
   '1d7a3f9e5b2c8d4a0f6e2b8c4d0a6f2e8b4c0d6a2f8e4b0c6d2a8f4e0b6c2d8a4',
   true,
   NOW(),
@@ -141,9 +141,9 @@ ON CONFLICT (email) DO UPDATE SET
 -- ├──────────────┼────────────────────────────────────────────────────────────────────┤
 -- │ admin        │ a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2   │
 -- │ operator     │ op1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
--- │ president    │ pr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
--- │ trust        │ tr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
--- │ readonly     │ ro1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
+-- │ operator(2)  │ pr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
+-- │ auditor      │ tr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
+-- │ viewer       │ ro1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
 -- └──────────────┴────────────────────────────────────────────────────────────────────┘
 --
 -- Note: Ces clés ne fonctionnent qu'avec APP_SECRET=dev-secret-change-me-in-production-32ch

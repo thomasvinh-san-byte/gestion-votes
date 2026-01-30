@@ -1,18 +1,13 @@
 <?php
-<?php
 declare(strict_types=1);
 
-require __DIR__ . '/../../../app/bootstrap.php';
-require __DIR__ . '/../../../app/auth.php';
+require __DIR__ . '/../../../app/api.php';
 
-require_role('operator');
+api_require_role(['operator', 'admin', 'auditor']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-if ($meetingId === '') {
-    http_response_code(400);
-    header('Content-Type: text/plain; charset=utf-8');
-    echo "missing_meeting_id";
-    exit;
+if ($meetingId === '' || !api_is_uuid($meetingId)) {
+    api_fail('missing_meeting_id', 400);
 }
 
 // Exports autorisés uniquement après validation (exigence conformité)
@@ -20,18 +15,8 @@ $mt = db_select_one(
     "SELECT validated_at FROM meetings WHERE tenant_id = ? AND id = ?",
     [DEFAULT_TENANT_ID, $meetingId]
 );
-if (!$mt) {
-    http_response_code(404);
-    header('Content-Type: text/plain; charset=utf-8');
-    echo "meeting_not_found";
-    exit;
-}
-if (empty($mt['validated_at'])) {
-    http_response_code(409);
-    header('Content-Type: text/plain; charset=utf-8');
-    echo "meeting_not_validated";
-    exit;
-}
+if (!$mt) api_fail('meeting_not_found', 404);
+if (empty($mt['validated_at'])) api_fail('meeting_not_validated', 409);
 
 $filename = "motions_results_" . $meetingId . ".csv";
 header('Content-Type: text/csv; charset=utf-8');
@@ -72,12 +57,11 @@ $rows = db_select_all(
       COALESCE(SUM(b.weight), 0) AS w_total,
       COALESCE(COUNT(b.id), 0) AS ballots_count,
       COALESCE(SUM(CASE WHEN b.source = 'manual' THEN 1 ELSE 0 END), 0) AS ballots_manual_count,
-      COALESCE(mr.decision::text, '') AS decision
+      COALESCE(mo.decision, '') AS decision
    FROM motions mo
    LEFT JOIN ballots b ON b.motion_id = mo.id
-   LEFT JOIN motion_results mr ON mr.motion_id = mo.id
    WHERE mo.meeting_id = ?
-   GROUP BY mo.id, mo.title, mo.position, mo.opened_at, mo.closed_at, mr.decision
+   GROUP BY mo.id, mo.title, mo.position, mo.opened_at, mo.closed_at, mo.decision
    ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC",
   [$meetingId]
 );

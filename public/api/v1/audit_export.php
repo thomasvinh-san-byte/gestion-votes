@@ -5,7 +5,7 @@ $q = api_request('GET');
 $meetingId = api_require_uuid($q, 'meeting_id');
 
 $events = db_select_all(
-  "SELECT created_at, actor_role, actor_id, event_type, entity_type, entity_id, details_json
+  "SELECT created_at, actor_role, actor_user_id, action, resource_type, resource_id, payload
    FROM audit_events
    WHERE tenant_id = ? AND meeting_id = ?
    ORDER BY created_at ASC",
@@ -16,16 +16,16 @@ header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="audit_'.$meetingId.'.csv"');
 
 $out = fopen('php://output', 'w');
-fputcsv($out, ['created_at','actor_role','actor_id','event_type','entity_type','entity_id','details_json']);
+fputcsv($out, ['created_at','actor_role','actor_user_id','action','resource_type','resource_id','payload']);
 foreach ($events as $e) {
     fputcsv($out, [
       $e['created_at'],
       $e['actor_role'],
-      $e['actor_id'],
-      $e['event_type'],
-      $e['entity_type'],
-      $e['entity_id'],
-      $e['details_json'],
+      $e['actor_user_id'],
+      $e['action'],
+      $e['resource_type'],
+      $e['resource_id'],
+      is_string($e['payload']) ? $e['payload'] : json_encode($e['payload']),
     ]);
 }
 fclose($out);

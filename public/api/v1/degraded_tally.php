@@ -6,8 +6,7 @@ declare(strict_types=1);
 // - journalise dans manual_actions (append-only)
 // - émet une notification (warn)
 
-require __DIR__ . '/../../../app/bootstrap.php';
-require __DIR__ . '/../../../app/auth.php';
+require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/NotificationsService.php';
 
 require_any_role(['operator','trust']);

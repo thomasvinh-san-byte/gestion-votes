@@ -2,8 +2,7 @@
 // public/api/v1/device_heartbeat.php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../../app/bootstrap.php';
-require_once __DIR__ . '/../../../app/auth.php';
+require __DIR__ . '/../../../app/api.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
