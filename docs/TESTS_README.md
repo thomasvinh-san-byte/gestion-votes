@@ -43,54 +43,42 @@ tests/
 
 ## API Keys de Test
 
-### Génération automatique
+### Cles pre-generees (developpement)
 
-```bash
-# Afficher les clés
-php scripts/generate_api_keys.php
-
-# Générer le SQL d'insertion
-php scripts/generate_api_keys.php --sql > database/seeds/users.sql
-
-# Générer les variables .env
-php scripts/generate_api_keys.php --env >> .env
-```
-
-### Clés pré-générées (développement)
-
-| Rôle | API Key | Email |
+| Role | API Key | Email |
 |------|---------|-------|
-| **admin** | `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2` | admin@ag-vote.local |
-| **operator** | `op1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1` | operator@ag-vote.local |
-| **president** | `pr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1` | president@ag-vote.local |
-| **auditor** | `tr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1` | auditor@ag-vote.local |
-| **viewer** | `ro1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1` | viewer@ag-vote.local |
+| **admin** | `admin-key-2024-secret` | admin@ag-vote.local |
+| **operator** | `operator-key-2024-secret` | operator@ag-vote.local |
+| **auditor** | `auditor-key-2024-secret` | auditor@ag-vote.local |
+| **viewer** | `viewer-key-2024-secret` | viewer@ag-vote.local |
 
-⚠️ **Ces clés ne fonctionnent qu'avec:**
+Hash = HMAC-SHA256(api_key, APP_SECRET). Ces cles ne fonctionnent qu'avec :
+
 ```
-APP_SECRET=dev-secret-change-me-in-production-32ch
+APP_SECRET=dev-secret-do-not-use-in-production-change-me-now-please-64chr
 ```
 
 ### Insertion en base
 
 ```bash
-# Appliquer le seed
-psql -U ca_app -d vote_app -f database/seeds/test_users.sql
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
+  -f database/seeds/test_users.sql
 ```
 
 ### Test avec cURL
 
 ```bash
-# Sans auth (devrait échouer si APP_AUTH_ENABLED=1)
-curl http://localhost:8080/api/v1/meetings.php
+# Login (cree une session PHP)
+curl -s http://localhost:8080/api/v1/auth_login.php \
+  -H "Content-Type: application/json" \
+  -d '{"api_key":"admin-key-2024-secret"}'
 
-# Avec auth admin
-curl -H "X-Api-Key: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2" \
-     http://localhost:8080/api/v1/meetings.php
+# Auth par header X-Api-Key
+curl -s http://localhost:8080/api/v1/meetings_index.php \
+  -H "X-Api-Key: operator-key-2024-secret"
 
-# Avec auth operator
-curl -H "X-Api-Key: op1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1" \
-     http://localhost:8080/api/v1/meetings.php
+# Sans auth (doit echouer si APP_AUTH_ENABLED=1)
+curl -s http://localhost:8080/api/v1/meetings_index.php
 ```
 
 ---

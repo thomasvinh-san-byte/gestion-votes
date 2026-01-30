@@ -1,27 +1,26 @@
 -- =============================================================================
 -- API KEYS DE TEST POUR AG-VOTE
 -- =============================================================================
--- ⚠️  NE PAS UTILISER EN PRODUCTION
--- Ces clés sont générées avec le APP_SECRET de développement
--- APP_SECRET requis: dev-secret-change-me-in-production-32ch
+-- NE PAS UTILISER EN PRODUCTION
+-- Hash = HMAC-SHA256(api_key, APP_SECRET)
+-- APP_SECRET requis: dev-secret-do-not-use-in-production-change-me-now-please-64chr
 -- =============================================================================
 
--- Tenant de développement
-INSERT INTO tenants (id, name, slug, is_active, created_at)
+-- Tenant de developpement
+INSERT INTO tenants (id, name, slug, created_at, updated_at)
 VALUES (
   'aaaaaaaa-1111-2222-3333-444444444444',
-  'Tenant de développement',
+  'Tenant de developpement',
   'dev',
-  true,
+  NOW(),
   NOW()
 )
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
 -- UTILISATEUR ADMIN
+-- API Key: admin-key-2024-secret
 -- =============================================================================
--- API Key: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
--- Hash: 5a8f9c3e7b2d1a4f6e8c0b9d2a5f7e3c1b8d6a4f2e9c7b5d3a1f8e6c4b2d0a9f7
 
 INSERT INTO users (id, tenant_id, email, name, role, api_key_hash, is_active, created_at, updated_at)
 VALUES (
@@ -30,121 +29,95 @@ VALUES (
   'admin@ag-vote.local',
   'Admin Test',
   'admin',
-  '5a8f9c3e7b2d1a4f6e8c0b9d2a5f7e3c1b8d6a4f2e9c7b5d3a1f8e6c4b2d0a9f7',
+  '5abf0a151a493f8cb0ac941f5871f6bcef5f56521dd6e6a3e40f9a8da4ba8e67',
   true,
   NOW(),
   NOW()
 )
-ON CONFLICT (email) DO UPDATE SET
+ON CONFLICT (id) DO UPDATE SET
   api_key_hash = EXCLUDED.api_key_hash,
   role = EXCLUDED.role,
   updated_at = NOW();
 
 -- =============================================================================
--- UTILISATEUR OPÉRATEUR
+-- UTILISATEUR OPERATEUR
+-- API Key: operator-key-2024-secret
 -- =============================================================================
--- API Key: op1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1
--- Hash: 7c2e9f1b5d8a3c6f0e4b7d2a9f5c8e1b3d6a0f4c7e2b9d5a8f1c4e7b0d3a6f9c2
 
 INSERT INTO users (id, tenant_id, email, name, role, api_key_hash, is_active, created_at, updated_at)
 VALUES (
   '22222222-2222-2222-2222-222222222222',
   'aaaaaaaa-1111-2222-3333-444444444444',
   'operator@ag-vote.local',
-  'Opérateur Test',
+  'Operateur Test',
   'operator',
-  '7c2e9f1b5d8a3c6f0e4b7d2a9f5c8e1b3d6a0f4c7e2b9d5a8f1c4e7b0d3a6f9c2',
+  '000b279c8ad165bc2dff3a340d03f9c5ff212de8638a4c257a9f6233029eb90c',
   true,
   NOW(),
   NOW()
 )
-ON CONFLICT (email) DO UPDATE SET
+ON CONFLICT (id) DO UPDATE SET
   api_key_hash = EXCLUDED.api_key_hash,
   role = EXCLUDED.role,
   updated_at = NOW();
 
 -- =============================================================================
--- UTILISATEUR OPÉRATEUR 2 (ex-président)
+-- UTILISATEUR AUDITEUR
+-- API Key: auditor-key-2024-secret
 -- =============================================================================
--- API Key: pr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1
--- Hash: 3f8d2a6c0e5b9f1d4a7c2e8b5f0d3a6c9e2b5f8d1a4c7e0b3f6d9a2c5e8b1f4d7
-
-INSERT INTO users (id, tenant_id, email, name, role, api_key_hash, is_active, created_at, updated_at)
-VALUES (
-  '33333333-3333-3333-3333-333333333333',
-  'aaaaaaaa-1111-2222-3333-444444444444',
-  'president@ag-vote.local',
-  'Président Test',
-  'operator',
-  '3f8d2a6c0e5b9f1d4a7c2e8b5f0d3a6c9e2b5f8d1a4c7e0b3f6d9a2c5e8b1f4d7',
-  true,
-  NOW(),
-  NOW()
-)
-ON CONFLICT (email) DO UPDATE SET
-  api_key_hash = EXCLUDED.api_key_hash,
-  role = EXCLUDED.role,
-  updated_at = NOW();
-
--- =============================================================================
--- UTILISATEUR AUDITEUR (ex-trust)
--- =============================================================================
--- API Key: tr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1
--- Hash: 9b4f1e7c3a0d5f8b2e6c9a3f7d1b4e8c2a5f9d3b7e1c4a8f2d6b0e3c7a1f5d9b3
 
 INSERT INTO users (id, tenant_id, email, name, role, api_key_hash, is_active, created_at, updated_at)
 VALUES (
   '44444444-4444-4444-4444-444444444444',
   'aaaaaaaa-1111-2222-3333-444444444444',
-  'trust@ag-vote.local',
+  'auditor@ag-vote.local',
   'Auditeur Test',
   'auditor',
-  '9b4f1e7c3a0d5f8b2e6c9a3f7d1b4e8c2a5f9d3b7e1c4a8f2d6b0e3c7a1f5d9b3',
+  '0d72d64eeca80fc606bdf65b841f433cfb450b2c066926d3968a8aa4b6fb90d6',
   true,
   NOW(),
   NOW()
 )
-ON CONFLICT (email) DO UPDATE SET
+ON CONFLICT (id) DO UPDATE SET
   api_key_hash = EXCLUDED.api_key_hash,
   role = EXCLUDED.role,
   updated_at = NOW();
 
 -- =============================================================================
--- UTILISATEUR VIEWER (ex-readonly)
+-- UTILISATEUR VIEWER
+-- API Key: viewer-key-2024-secret
 -- =============================================================================
--- API Key: ro1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1
--- Hash: 1d7a3f9e5b2c8d4a0f6e2b8c4d0a6f2e8b4c0d6a2f8e4b0c6d2a8f4e0b6c2d8a4
 
 INSERT INTO users (id, tenant_id, email, name, role, api_key_hash, is_active, created_at, updated_at)
 VALUES (
   '55555555-5555-5555-5555-555555555555',
   'aaaaaaaa-1111-2222-3333-444444444444',
-  'readonly@ag-vote.local',
+  'viewer@ag-vote.local',
   'Viewer Test',
   'viewer',
-  '1d7a3f9e5b2c8d4a0f6e2b8c4d0a6f2e8b4c0d6a2f8e4b0c6d2a8f4e0b6c2d8a4',
+  '4d91dd1fb5df78e80a7cc7d01bd74d9fd4906e9542786814356769e1c8aa9501',
   true,
   NOW(),
   NOW()
 )
-ON CONFLICT (email) DO UPDATE SET
+ON CONFLICT (id) DO UPDATE SET
   api_key_hash = EXCLUDED.api_key_hash,
   role = EXCLUDED.role,
   updated_at = NOW();
 
 -- =============================================================================
--- RÉSUMÉ DES CLÉS DE TEST
+-- RESUME DES CLES DE TEST
 -- =============================================================================
--- 
--- ┌──────────────┬────────────────────────────────────────────────────────────────────┐
--- │ RÔLE         │ API KEY (header X-Api-Key)                                          │
--- ├──────────────┼────────────────────────────────────────────────────────────────────┤
--- │ admin        │ a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2   │
--- │ operator     │ op1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
--- │ operator(2)  │ pr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
--- │ auditor      │ tr1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
--- │ viewer       │ ro1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1   │
--- └──────────────┴────────────────────────────────────────────────────────────────────┘
 --
--- Note: Ces clés ne fonctionnent qu'avec APP_SECRET=dev-secret-change-me-in-production-32ch
+-- +--------------+----------------------------+
+-- | ROLE         | API KEY (header X-Api-Key)  |
+-- +--------------+----------------------------+
+-- | admin        | admin-key-2024-secret       |
+-- | operator     | operator-key-2024-secret    |
+-- | auditor      | auditor-key-2024-secret     |
+-- | viewer       | viewer-key-2024-secret      |
+-- +--------------+----------------------------+
+--
+-- Hash = HMAC-SHA256(api_key, APP_SECRET)
+-- APP_SECRET = dev-secret-do-not-use-in-production-change-me-now-please-64chr
 -- =============================================================================
