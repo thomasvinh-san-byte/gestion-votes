@@ -21,10 +21,10 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
     api_fail('missing_meeting_id', 400);
 }
 
-$status = trim((string)($input['status'] ?? 'present'));
-$validStatuses = ['present', 'absent', 'remote', 'proxy', 'excused'];
-if (!in_array($status, $validStatuses, true)) {
-    api_fail('invalid_status', 400, ['valid' => $validStatuses]);
+$mode = trim((string)($input['mode'] ?? $input['status'] ?? 'present'));
+$validModes = ['present', 'absent', 'remote', 'proxy', 'excused'];
+if (!in_array($mode, $validModes, true)) {
+    api_fail('invalid_mode', 400, ['valid' => $validModes]);
 }
 
 $tenantId = api_current_tenant_id();
@@ -91,16 +91,16 @@ try {
 
         if ($existing) {
             db_exec("
-                UPDATE attendances 
-                SET status = ?, updated_at = ?
+                UPDATE attendances
+                SET mode = ?, updated_at = ?
                 WHERE id = ?
-            ", [$status, $now, $existing['id']]);
+            ", [$mode, $now, $existing['id']]);
             $updated++;
         } else {
             db_exec("
-                INSERT INTO attendances (id, meeting_id, member_id, status, created_at, updated_at)
-                VALUES (gen_random_uuid(), ?, ?, ?, ?, ?)
-            ", [$meetingId, $memberId, $status, $now, $now]);
+                INSERT INTO attendances (id, tenant_id, meeting_id, member_id, mode, created_at, updated_at)
+                VALUES (gen_random_uuid(), ?, ?, ?, ?, ?, ?)
+            ", [$tenantId, $meetingId, $memberId, $mode, $now, $now]);
             $created++;
         }
     }
@@ -109,7 +109,7 @@ try {
 
     // Audit log
     audit_log('attendances_bulk_update', 'attendance', $meetingId, [
-        'status' => $status,
+        'mode' => $mode,
         'created' => $created,
         'updated' => $updated,
         'total' => $created + $updated,
@@ -119,7 +119,7 @@ try {
         'created' => $created,
         'updated' => $updated,
         'total' => $created + $updated,
-        'status' => $status,
+        'mode' => $mode,
     ]);
 
 } catch (\Throwable $e) {

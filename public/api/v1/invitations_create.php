@@ -22,17 +22,20 @@ if ($meetingId === '' || $memberId === '') {
 // token simple (fonctionnel, non orienté sécurité)
 $token = bin2hex(random_bytes(16));
 
-// UPSERT sur (meeting_id, member_id)
+$tenantId = api_current_tenant_id();
+
+// UPSERT sur (tenant_id, meeting_id, member_id)
 db_exec(
-    "INSERT INTO invitations (meeting_id, member_id, email, token, status, sent_at, updated_at)
-     VALUES (:meeting_id, :member_id, :email, :token, 'sent', now(), now())
-     ON CONFLICT (meeting_id, member_id)
+    "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token, status, sent_at, updated_at)
+     VALUES (:tenant_id, :meeting_id, :member_id, :email, :token, 'sent', now(), now())
+     ON CONFLICT (tenant_id, meeting_id, member_id)
      DO UPDATE SET token = EXCLUDED.token,
                    email = COALESCE(EXCLUDED.email, invitations.email),
                    status = 'sent',
                    sent_at = now(),
                    updated_at = now()",
     [
+        ':tenant_id'  => $tenantId,
         ':meeting_id' => $meetingId,
         ':member_id'  => $memberId,
         ':email'      => $email,

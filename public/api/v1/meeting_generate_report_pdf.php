@@ -17,7 +17,7 @@ require_once __DIR__ . '/../../../vendor/autoload.php';
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-api_require_role(['president', 'admin', 'operator', 'trust']);
+api_require_role(['president', 'admin', 'operator', 'auditor']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '' || !api_is_uuid($meetingId)) {
@@ -48,7 +48,7 @@ if (empty($meeting['validated_at'])) {
 // Charger les présences
 $attendances = db_all("
     SELECT m.full_name, m.voting_power,
-           a.status, a.checked_in_at, a.checked_out_at
+           a.mode, a.checked_in_at, a.checked_out_at
     FROM members m
     LEFT JOIN attendances a ON a.meeting_id = ? AND a.member_id = m.id
     WHERE m.tenant_id = ? AND m.is_active = true
@@ -69,8 +69,8 @@ $motions = db_all("
 $proxies = db_all("
     SELECT g.full_name AS giver_name, r.full_name AS receiver_name
     FROM proxies p
-    JOIN members g ON g.id = p.giver_id
-    JOIN members r ON r.id = p.receiver_id
+    JOIN members g ON g.id = p.giver_member_id
+    JOIN members r ON r.id = p.receiver_member_id
     WHERE p.meeting_id = ?
     ORDER BY g.full_name
 ", [$meetingId]);
@@ -185,9 +185,9 @@ $html .= '</div>';
 
 // Présences
 $html .= '<h2>1. Feuille de présence</h2>';
-$presentCount = count(array_filter($attendances, fn($a) => in_array($a['status'], ['present', 'remote'])));
+$presentCount = count(array_filter($attendances, fn($a) => in_array($a['mode'], ['present', 'remote'])));
 $totalPower = array_sum(array_column($attendances, 'voting_power'));
-$presentPower = array_sum(array_map(fn($a) => in_array($a['status'], ['present', 'remote', 'proxy']) ? ($a['voting_power'] ?? 0) : 0, $attendances));
+$presentPower = array_sum(array_map(fn($a) => in_array($a['mode'], ['present', 'remote', 'proxy']) ? ($a['voting_power'] ?? 0) : 0, $attendances));
 
 $html .= '<p><strong>' . $presentCount . '</strong> membres présents sur <strong>' . count($attendances) . '</strong> inscrits';
 $html .= ' — Pouvoir représenté : <strong>' . number_format($presentPower, 2) . '</strong> / ' . number_format($totalPower, 2) . '</p>';
@@ -195,7 +195,7 @@ $html .= ' — Pouvoir représenté : <strong>' . number_format($presentPower, 2
 $html .= '<table>';
 $html .= '<tr><th>Nom</th><th>Pouvoir</th><th>Statut</th><th>Arrivée</th></tr>';
 foreach ($attendances as $a) {
-    $statusLabel = match($a['status'] ?? 'absent') {
+    $statusLabel = match($a['mode'] ?? 'absent') {
         'present' => 'Présent',
         'remote' => 'À distance',
         'proxy' => 'Représenté',
@@ -290,13 +290,13 @@ $dompdf->render();
 $pdfContent = $dompdf->output();
 $hash = hash('sha256', $pdfContent);
 
-// Persister le hash
+// Persister le rapport HTML + hash d'intégrité du PDF
 db_exec("
-    INSERT INTO meeting_reports (meeting_id, sha256, generated_at, format)
-    VALUES (?, ?, NOW(), 'pdf')
-    ON CONFLICT (meeting_id) 
-    DO UPDATE SET sha256 = EXCLUDED.sha256, generated_at = NOW(), format = 'pdf'
-", [$meetingId, $hash]);
+    INSERT INTO meeting_reports (meeting_id, html, sha256, generated_at)
+    VALUES (?, ?, ?, NOW())
+    ON CONFLICT (meeting_id)
+    DO UPDATE SET html = EXCLUDED.html, sha256 = EXCLUDED.sha256, generated_at = NOW(), updated_at = NOW()
+", [$meetingId, $html, $hash]);
 
 // Envoyer le PDF
 $filename = 'PV_' . preg_replace('/[^a-zA-Z0-9]/', '_', $meeting['title'] ?? 'seance') . '_' . date('Ymd') . '.pdf';

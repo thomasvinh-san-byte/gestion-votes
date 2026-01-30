@@ -45,8 +45,8 @@ if ($meeting['status'] === 'archived') {
 $proxy = db_one("
     SELECT p.id, g.full_name AS giver_name, r.full_name AS receiver_name
     FROM proxies p
-    JOIN members g ON g.id = p.giver_id
-    JOIN members r ON r.id = p.receiver_id
+    JOIN members g ON g.id = p.giver_member_id
+    JOIN members r ON r.id = p.receiver_member_id
     WHERE p.id = ? AND p.meeting_id = ?
 ", [$proxyId, $meetingId]);
 

@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
-api_require_role(['trust', 'admin', 'operator', 'president']);
+api_require_role(['auditor', 'admin', 'operator', 'president']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '' || !api_is_uuid($meetingId)) {

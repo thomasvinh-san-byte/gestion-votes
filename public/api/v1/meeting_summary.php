@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
-api_require_role(['operator', 'president', 'admin', 'trust']);
+api_require_role(['operator', 'president', 'admin', 'auditor']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '' || !api_is_uuid($meetingId)) {
@@ -43,14 +43,14 @@ $totalMembers = (int)db_scalar("
 
 // Présents
 $presentCount = (int)db_scalar("
-    SELECT COUNT(*) FROM attendances 
-    WHERE meeting_id = ? AND status IN ('present', 'remote')
+    SELECT COUNT(*) FROM attendances
+    WHERE meeting_id = ? AND mode IN ('present', 'remote')
 ", [$meetingId]);
 
 // Représentés (proxy)
 $proxyCount = (int)db_scalar("
-    SELECT COUNT(*) FROM attendances 
-    WHERE meeting_id = ? AND status = 'proxy'
+    SELECT COUNT(*) FROM attendances
+    WHERE meeting_id = ? AND mode = 'proxy'
 ", [$meetingId]);
 
 // Absents

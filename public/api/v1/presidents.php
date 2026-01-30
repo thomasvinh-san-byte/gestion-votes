@@ -5,7 +5,7 @@
 
 require __DIR__ . '/../../../app/api.php';
 
-api_require_role('trust');
+api_require_role('auditor');
 
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {

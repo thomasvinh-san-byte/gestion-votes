@@ -4,7 +4,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 require __DIR__ . '/../../../app/services/OfficialResultsService.php';
 
-require_role('trust');
+require_role('auditor');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '') json_err('missing_meeting_id', 400);
