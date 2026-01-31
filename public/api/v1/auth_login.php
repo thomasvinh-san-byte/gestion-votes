@@ -2,12 +2,14 @@
 declare(strict_types=1);
 
 /**
- * auth_login.php - Connexion utilisateur par clé API → session PHP
+ * auth_login.php - Connexion utilisateur par email/mot de passe → session PHP
  *
  * POST /api/v1/auth_login.php
- * Body: { "api_key": "..." }
+ * Body: { "email": "...", "password": "..." }
  *
- * Crée une session PHP persistante pour éviter de renvoyer la clé à chaque requête.
+ * Fallback legacy: { "api_key": "..." } (conservé pour compatibilité API)
+ *
+ * Crée une session PHP persistante.
  */
 
 require __DIR__ . '/../../../app/api.php';
@@ -21,45 +23,89 @@ if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
 $input = json_decode(file_get_contents('php://input') ?: '', true);
 if (!is_array($input)) $input = $_POST;
 
-$apiKey = trim((string)($input['api_key'] ?? ''));
-
-if ($apiKey === '') {
-    api_fail('missing_api_key', 400, ['detail' => 'Clé API requise.']);
-}
-
-// Hash HMAC-SHA256 (cohérent avec AuthMiddleware::findUserByApiKey)
-$hash = hash_hmac('sha256', $apiKey, APP_SECRET);
-
 $userRepo = new UserRepository();
+$user = null;
+$authMethod = 'unknown';
 
-$user = $userRepo->findByApiKeyHash(api_current_tenant_id(), $hash);
+// ── Authentification par email/mot de passe (prioritaire) ──
+$email    = trim((string)($input['email'] ?? ''));
+$password = (string)($input['password'] ?? '');
 
-if (!$user) {
-    // Rate limit sur les tentatives échouées
-    api_rate_limit('auth_login_fail', 10, 300);
+if ($email !== '' && $password !== '') {
+    $authMethod = 'password';
 
-    // Log l'échec
-    try {
-        $userRepo->logAuthFailure(
-            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            $_SERVER['HTTP_USER_AGENT'] ?? '',
-            substr($apiKey, 0, 8) . '...'
-        );
-    } catch (\Throwable $e) { /* best effort */ }
+    $user = $userRepo->findByEmailGlobal($email);
 
-    api_fail('invalid_api_key', 401, ['detail' => 'Clé API invalide.']);
+    if (!$user || empty($user['password_hash'])) {
+        api_rate_limit('auth_login_fail', 10, 300);
+        try {
+            $userRepo->logAuthFailure(
+                $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                $_SERVER['HTTP_USER_AGENT'] ?? '',
+                $email,
+                'invalid_credentials'
+            );
+        } catch (\Throwable $e) { /* best effort */ }
+        api_fail('invalid_credentials', 401, ['detail' => 'Email ou mot de passe incorrect.']);
+    }
+
+    if (!password_verify($password, $user['password_hash'])) {
+        api_rate_limit('auth_login_fail', 10, 300);
+        try {
+            $userRepo->logAuthFailure(
+                $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                $_SERVER['HTTP_USER_AGENT'] ?? '',
+                $email,
+                'wrong_password'
+            );
+        } catch (\Throwable $e) { /* best effort */ }
+        api_fail('invalid_credentials', 401, ['detail' => 'Email ou mot de passe incorrect.']);
+    }
+
+    // Rehash si l'algorithme par défaut a changé
+    if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
+        try {
+            $newHash = password_hash($password, PASSWORD_DEFAULT);
+            $userRepo->setPasswordHash($user['tenant_id'], $user['id'], $newHash);
+        } catch (\Throwable $e) { /* best effort */ }
+    }
+
+} else {
+    // ── Fallback : authentification par clé API (compatibilité) ──
+    $apiKey = trim((string)($input['api_key'] ?? ''));
+
+    if ($apiKey === '') {
+        api_fail('missing_credentials', 400, ['detail' => 'Email et mot de passe requis.']);
+    }
+
+    $authMethod = 'api_key';
+    $hash = hash_hmac('sha256', $apiKey, APP_SECRET);
+    $user = $userRepo->findByApiKeyHashGlobal($hash);
+
+    if (!$user) {
+        api_rate_limit('auth_login_fail', 10, 300);
+        try {
+            $userRepo->logAuthFailure(
+                $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                $_SERVER['HTTP_USER_AGENT'] ?? '',
+                substr($apiKey, 0, 8) . '...',
+                'invalid_key'
+            );
+        } catch (\Throwable $e) { /* best effort */ }
+        api_fail('invalid_credentials', 401, ['detail' => 'Identifiants invalides.']);
+    }
 }
 
+// ── Vérifications communes ──
 if (empty($user['is_active'])) {
     api_fail('account_disabled', 403, ['detail' => 'Compte désactivé. Contactez un administrateur.']);
 }
 
-// Créer la session
+// ── Créer la session ──
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Régénérer l'ID de session pour éviter session fixation
 session_regenerate_id(true);
 
 $_SESSION['auth_user'] = [
@@ -74,7 +120,7 @@ $_SESSION['auth_user'] = [
 
 // Audit
 audit_log('user_login', 'user', $user['id'], [
-    'method' => 'api_key',
+    'method' => $authMethod,
     'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
 ]);
 

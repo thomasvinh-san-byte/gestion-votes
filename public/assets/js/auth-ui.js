@@ -34,7 +34,6 @@
           credentials: "same-origin",
         });
       } catch(e) {}
-      try { localStorage.removeItem("api_key"); } catch(e) {}
       window.Auth.user = null;
       window.Auth.role = null;
       window.location.href = "/login.html";
@@ -61,15 +60,8 @@
 
   async function boot(){
     try {
-      const headers = {};
-      try {
-        const storedKey = localStorage.getItem("api_key");
-        if (storedKey) headers["X-Api-Key"] = storedKey;
-      } catch(e) {}
-
       const resp = await fetch("/api/v1/whoami.php", {
         credentials: "same-origin",
-        headers: headers,
       });
       const data = await resp.json();
 

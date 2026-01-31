@@ -49,7 +49,8 @@
       margin-bottom: var(--space-1);
     }
     .login-form input[type="password"],
-    .login-form input[type="text"] {
+    .login-form input[type="text"],
+    .login-form input[type="email"] {
       width: 100%;
       padding: var(--space-3);
       border: 1px solid var(--color-border);
@@ -127,14 +128,21 @@
         <p>Gestion des assemblees deliberatives</p>
       </div>
 
-      <form class="login-form" id="loginForm" autocomplete="off">
+      <form class="login-form" id="loginForm" autocomplete="on">
         <div>
-          <label for="apiKey">Cle API</label>
+          <label for="email">Adresse email</label>
+          <input type="email" id="email" name="email"
+                 placeholder="admin@example.test"
+                 required autofocus autocomplete="email">
+        </div>
+
+        <div>
+          <label for="password">Mot de passe</label>
           <div class="field-wrap">
-            <input type="password" id="apiKey" name="api_key"
-                   placeholder="Collez votre cle API ici"
-                   required autofocus>
-            <button type="button" class="toggle-visibility" id="toggleKey" title="Afficher/masquer">
+            <input type="password" id="password" name="password"
+                   placeholder="Votre mot de passe"
+                   required autocomplete="current-password">
+            <button type="button" class="toggle-visibility" id="togglePassword" title="Afficher/masquer">
               Voir
             </button>
           </div>
@@ -157,19 +165,20 @@
   <script>
   (function() {
     const form = document.getElementById('loginForm');
-    const input = document.getElementById('apiKey');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
     const errorBox = document.getElementById('errorBox');
     const successBox = document.getElementById('successBox');
     const submitBtn = document.getElementById('submitBtn');
-    const toggleBtn = document.getElementById('toggleKey');
+    const toggleBtn = document.getElementById('togglePassword');
 
     // Toggle password visibility
     toggleBtn.addEventListener('click', function() {
-      if (input.type === 'password') {
-        input.type = 'text';
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
         toggleBtn.textContent = 'Masquer';
       } else {
-        input.type = 'password';
+        passwordInput.type = 'password';
         toggleBtn.textContent = 'Voir';
       }
     });
@@ -189,9 +198,11 @@
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      const apiKey = input.value.trim();
-      if (!apiKey) {
-        showError('Veuillez saisir votre cle API.');
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        showError('Veuillez saisir votre email et votre mot de passe.');
         return;
       }
 
@@ -204,26 +215,22 @@
         const resp = await fetch('/api/v1/auth_login.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ api_key: apiKey }),
+          body: JSON.stringify({ email: email, password: password }),
           credentials: 'same-origin',
         });
 
         const data = await resp.json();
 
         if (resp.ok && data.ok) {
-          // Stocker aussi en localStorage pour les requetes API directes
-          try { localStorage.setItem('api_key', apiKey); } catch(ex) {}
-
           showSuccess('Connexion reussie ! Redirection...');
           submitBtn.textContent = 'Connecte';
 
-          // Redirection vers le tableau de bord
           setTimeout(function() {
             const redirect = new URLSearchParams(location.search).get('redirect');
             window.location.href = redirect || '/meetings.htmx.html';
           }, 500);
         } else {
-          const detail = data.detail || data.error || 'Cle API invalide.';
+          const detail = data.detail || data.error || 'Email ou mot de passe incorrect.';
           showError(detail);
           submitBtn.disabled = false;
           submitBtn.textContent = 'Se connecter';
@@ -237,8 +244,8 @@
 
     // Auto-check : si deja connecte, rediriger
     fetch('/api/v1/whoami.php', { credentials: 'same-origin' })
-      .then(r => r.json())
-      .then(data => {
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
         if (data.ok && data.data && data.data.user) {
           showSuccess('Deja connecte en tant que ' + (data.data.user.name || data.data.user.role) + '. Redirection...');
           setTimeout(function() {

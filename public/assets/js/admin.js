@@ -63,11 +63,11 @@
         '<td><span class="role-badge ' + escapeHtml(u.role) + '">' + escapeHtml(roleLabelsSystem[u.role] || u.role) + '</span></td>' +
         '<td>' + (meetingTags || '<span class="text-muted">—</span>') + '</td>' +
         '<td>' + (u.is_active ? '<span class="text-success">Oui</span>' : '<span class="text-danger">Non</span>') + '</td>' +
-        '<td>' + (u.has_api_key ? '<span class="text-success">Oui</span>' : '<span class="text-muted">Non</span>') + '</td>' +
+        '<td>' + (u.has_password ? '<span class="text-success">Oui</span>' : '<span class="text-muted">Non</span>') + '</td>' +
         '<td class="flex gap-1 flex-wrap">' +
           '<button class="btn btn-ghost btn-xs btn-edit-user" data-id="' + u.id + '">Modifier</button>' +
           '<button class="btn btn-ghost btn-xs btn-toggle-user" data-id="' + u.id + '" data-active="' + (u.is_active ? '1' : '0') + '">' + (u.is_active ? 'Désactiver' : 'Activer') + '</button>' +
-          '<button class="btn btn-ghost btn-xs btn-key-user" data-id="' + u.id + '">Clé API</button>' +
+          '<button class="btn btn-ghost btn-xs btn-password-user" data-id="' + u.id + '" data-name="' + escapeHtml(u.name || '') + '">Mot de passe</button>' +
         '</td></tr>';
     }).join('');
   }
@@ -80,14 +80,17 @@
     const name = document.getElementById('newName').value.trim();
     const email = document.getElementById('newEmail').value.trim();
     const role = document.getElementById('newRole').value;
+    const password = document.getElementById('newPassword').value;
     if (!name || !email) { setNotif('error', 'Nom et email requis'); return; }
+    if (!password || password.length < 8) { setNotif('error', 'Mot de passe requis (min. 8 caractères)'); return; }
     Shared.btnLoading(btn, true);
     try {
-      const r = await api('/api/v1/admin_users.php', {action:'create', name:name, email:email, role:role});
+      const r = await api('/api/v1/admin_users.php', {action:'create', name:name, email:email, role:role, password:password});
       if (r.body && r.body.ok) {
-        setNotif('success', 'Utilisateur créé. Clé API : ' + (r.body.data.api_key || ''));
+        setNotif('success', 'Utilisateur créé');
         document.getElementById('newName').value = '';
         document.getElementById('newEmail').value = '';
+        document.getElementById('newPassword').value = '';
         loadUsers();
       } else {
         setNotif('error', r.body.error || 'Erreur');
@@ -115,19 +118,36 @@
       return;
     }
 
-    // Rotate API key
-    btn = e.target.closest('.btn-key-user');
+    // Set password
+    btn = e.target.closest('.btn-password-user');
     if (btn) {
-      if (!confirm('Générer une nouvelle clé API ? L\'ancienne sera invalidée.')) return;
-      Shared.btnLoading(btn, true);
-      try {
-        const r = await api('/api/v1/admin_users.php', {action:'rotate_key', user_id:btn.dataset.id});
-        if (r.body && r.body.ok) {
-          setNotif('success', 'Nouvelle clé API : ' + r.body.data.api_key);
-          loadUsers();
+      const userId = btn.dataset.id;
+      const userName = btn.dataset.name || '';
+      Shared.openModal({
+        title: 'Définir le mot de passe — ' + userName,
+        body:
+          '<div class="form-group mb-4">' +
+            '<label class="form-label">Nouveau mot de passe</label>' +
+            '<input class="form-input" type="password" id="setPassword" placeholder="Min. 8 caractères" autocomplete="new-password">' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Confirmer le mot de passe</label>' +
+            '<input class="form-input" type="password" id="confirmPassword" placeholder="Confirmez le mot de passe" autocomplete="new-password">' +
+          '</div>',
+        confirmText: 'Enregistrer',
+        onConfirm: function(modal) {
+          const pw = modal.querySelector('#setPassword').value;
+          const confirm = modal.querySelector('#confirmPassword').value;
+          if (!pw || pw.length < 8) { setNotif('error', 'Le mot de passe doit contenir au moins 8 caractères'); return false; }
+          if (pw !== confirm) { setNotif('error', 'Les mots de passe ne correspondent pas'); return false; }
+          api('/api/v1/admin_users.php', {action:'set_password', user_id:userId, password:pw})
+            .then(function(r) {
+              if (r.body && r.body.ok) { setNotif('success', 'Mot de passe défini'); loadUsers(); }
+              else { setNotif('error', r.body.error || 'Erreur'); }
+            })
+            .catch(function(err) { setNotif('error', err.message); });
         }
-      } catch(err) { setNotif('error', err.message); }
-      finally { Shared.btnLoading(btn, false); }
+      });
       return;
     }
 

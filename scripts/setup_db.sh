@@ -121,7 +121,20 @@ pg_exec < "$DB_DIR/schema.sql"
 ok "Schema applique"
 
 # -------------------------------------------------------------------
-# 5. Permissions : s'assurer que vote_app peut acceder aux tables
+# 5. Appliquer les migrations (idempotent)
+# -------------------------------------------------------------------
+if [ -d "$DB_DIR/migrations" ]; then
+  warn "Application des migrations..."
+  for f in "$DB_DIR"/migrations/*.sql; do
+    [ -f "$f" ] || continue
+    warn "  -> $(basename "$f")"
+    pg_exec < "$f"
+  done
+  ok "Migrations appliquees"
+fi
+
+# -------------------------------------------------------------------
+# 6. Permissions : s'assurer que vote_app peut acceder aux tables
 # -------------------------------------------------------------------
 warn "Attribution des permissions a $DB_USER..."
 pg_exec <<SQL
@@ -134,7 +147,7 @@ SQL
 ok "Permissions OK"
 
 # -------------------------------------------------------------------
-# 6. Charger les seeds (idempotents, ON CONFLICT)
+# 7. Charger les seeds (idempotents, ON CONFLICT)
 #    Executes en tant que postgres pour eviter tout probleme de droits.
 # -------------------------------------------------------------------
 if [ -f "$DB_DIR/seed_minimal.sql" ]; then
@@ -150,7 +163,7 @@ if [ -f "$DB_DIR/seeds/test_users.sql" ]; then
 fi
 
 # -------------------------------------------------------------------
-# 7. Donnees de demo (optionnel)
+# 8. Donnees de demo (optionnel)
 # -------------------------------------------------------------------
 if [ "$SKIP_DEMO" = false ] && [ -f "$DB_DIR/seed_demo.sql" ]; then
   warn "Chargement seed_demo.sql..."
@@ -161,7 +174,7 @@ else
 fi
 
 # -------------------------------------------------------------------
-# 8. Creer .env si absent
+# 9. Creer .env si absent
 # -------------------------------------------------------------------
 if [ ! -f "$ENV_FILE" ] && [ -f "$PROJECT_DIR/.env.example" ]; then
   cp "$PROJECT_DIR/.env.example" "$ENV_FILE"
@@ -172,7 +185,7 @@ if [ ! -f "$ENV_FILE" ] && [ -f "$PROJECT_DIR/.env.example" ]; then
 fi
 
 # -------------------------------------------------------------------
-# 9. Verification finale
+# 10. Verification finale
 # -------------------------------------------------------------------
 warn "Verification..."
 TABLE_COUNT=$(sudo -u postgres psql -d "$DB_NAME" -tAc \
@@ -186,7 +199,7 @@ MEETING_COUNT=$(sudo -u postgres psql -d "$DB_NAME" -tAc \
 ok "Verification terminee"
 
 # -------------------------------------------------------------------
-# 10. Resume final
+# 11. Resume final
 # -------------------------------------------------------------------
 echo ""
 echo -e "${BLUE}=========================================${NC}"
@@ -211,12 +224,12 @@ echo "  Connexion"
 echo "  ─────────"
 echo "    URL  : http://localhost:8080/login.html"
 echo ""
-echo "  Cles API de test (header X-Api-Key)"
-echo "  ────────────────────────────────────"
-echo "    admin    : admin-key-2024-secret"
-echo "    operator : operator-key-2024-secret"
-echo "    auditor  : auditor-key-2024-secret"
-echo "    viewer   : viewer-key-2024-secret"
+echo "  Identifiants de test (email / mot de passe)"
+echo "  ────────────────────────────────────────────"
+echo "    admin    : admin@ag-vote.local    / Admin2024!"
+echo "    operator : operator@ag-vote.local / Operator2024!"
+echo "    auditor  : auditor@ag-vote.local  / Auditor2024!"
+echo "    viewer   : viewer@ag-vote.local   / Viewer2024!"
 echo ""
 echo "  Pages principales"
 echo "  ─────────────────"
