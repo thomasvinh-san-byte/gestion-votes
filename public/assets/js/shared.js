@@ -17,17 +17,17 @@
    * Usage: add <aside class="app-sidebar" data-include-sidebar data-page="meetings"></aside>
    */
   function initSidebar() {
-    var sidebar = document.querySelector('[data-include-sidebar]');
+    const sidebar = document.querySelector('[data-include-sidebar]');
     if (!sidebar) return;
 
-    var page = sidebar.getAttribute('data-page') || '';
+    const page = sidebar.getAttribute('data-page') || '';
 
     fetch('/partials/sidebar.html')
       .then(function (r) { return r.text(); })
       .then(function (html) {
         sidebar.innerHTML = html;
         if (page) {
-          var link = sidebar.querySelector('[data-page="' + page + '"]');
+          const link = sidebar.querySelector('[data-page="' + page + '"]');
           if (link) link.classList.add('active');
         }
       })
@@ -47,24 +47,24 @@
   // ROLE & STATUS LABEL MAPS
   // =========================================================================
 
-  var ROLE_LABELS_SYSTEM = {
+  const ROLE_LABELS_SYSTEM = {
     admin: 'Administrateur',
     operator: 'Opérateur',
     auditor: 'Auditeur',
     viewer: 'Observateur'
   };
 
-  var ROLE_LABELS_MEETING = {
+  const ROLE_LABELS_MEETING = {
     president: 'Président',
     assessor: 'Assesseur',
     voter: 'Électeur'
   };
 
-  var ROLE_LABELS_ALL = {};
+  const ROLE_LABELS_ALL = {};
   Object.keys(ROLE_LABELS_SYSTEM).forEach(function (k) { ROLE_LABELS_ALL[k] = ROLE_LABELS_SYSTEM[k]; });
   Object.keys(ROLE_LABELS_MEETING).forEach(function (k) { ROLE_LABELS_ALL[k] = ROLE_LABELS_MEETING[k]; });
 
-  var MEETING_STATUS_MAP = {
+  const MEETING_STATUS_MAP = {
     draft:     { badge: 'badge-neutral',          text: 'Brouillon' },
     scheduled: { badge: 'badge-info',             text: 'Programmée' },
     frozen:    { badge: 'badge-info',             text: 'Verrouillée' },
@@ -101,7 +101,7 @@
       btn.disabled = true;
       btn.classList.add('loading');
       btn._prevHtml = btn.innerHTML;
-      var label = btn.textContent.trim();
+      const label = btn.textContent.trim();
       btn.innerHTML = '<span class="spinner spinner-sm"></span> <span>' + label + '</span>';
     } else {
       btn.disabled = false;
@@ -130,12 +130,12 @@
    * @returns {HTMLElement} the backdrop element
    */
   function openModal(opts) {
-    var backdrop = document.createElement('div');
+    const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop open';
     backdrop.setAttribute('role', 'dialog');
     backdrop.setAttribute('aria-modal', 'true');
 
-    var modal = document.createElement('div');
+    const modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML =
       '<div class="modal-header">' +
@@ -152,7 +152,7 @@
     document.body.appendChild(backdrop);
 
     // Focus first input if any
-    var firstInput = modal.querySelector('input, select, textarea');
+    const firstInput = modal.querySelector('input, select, textarea');
     if (firstInput) setTimeout(function () { firstInput.focus(); }, 50);
 
     function close() {
@@ -171,7 +171,7 @@
 
     modal.querySelector('.modal-confirm-btn').addEventListener('click', function () {
       if (opts.onConfirm) {
-        var result = opts.onConfirm(modal);
+        const result = opts.onConfirm(modal);
         if (result === false) return; // prevent close
       }
       close();

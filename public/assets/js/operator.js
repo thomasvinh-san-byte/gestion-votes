@@ -276,13 +276,13 @@
       }
       body.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement...</div>';
       try {
-        var res = await api('/api/v1/quorum_status.php?meeting_id=' + meetingId);
-        var b = res.body;
+        const res = await api('/api/v1/quorum_status.php?meeting_id=' + meetingId);
+        const b = res.body;
         if (b && b.ok && b.data) {
-          var q = b.data;
-          var ratio = Math.min(100, Math.round((q.ratio || 0) * 100));
-          var threshold = Math.round((q.threshold || 0.5) * 100);
-          var barColor = q.met ? 'var(--color-success,#22c55e)' : (ratio > 30 ? 'var(--color-warning,#e8a73e)' : 'var(--color-danger,#c53030)');
+          const q = b.data;
+          const ratio = Math.min(100, Math.round((q.ratio || 0) * 100));
+          const threshold = Math.round((q.threshold || 0.5) * 100);
+          const barColor = q.met ? 'var(--color-success,#22c55e)' : (ratio > 30 ? 'var(--color-warning,#e8a73e)' : 'var(--color-danger,#c53030)');
           body.innerHTML =
             '<div style="display:flex;flex-direction:column;gap:16px;padding:4px 0;">' +
               '<div style="text-align:center;padding:16px;">' +

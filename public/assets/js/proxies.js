@@ -238,7 +238,7 @@
     }
 
     // Check if giver already gave proxy
-    const existing = proxiesCache.find(p => p.giver_id == giverId);
+    const existing = proxiesCache.find(p => String(p.giver_id) === String(giverId));
     if (existing) {
       warning.style.display = 'flex';
       document.getElementById('proxyWarningText').textContent =
@@ -247,7 +247,7 @@
     }
 
     // Check max proxies
-    const receiverProxies = proxiesCache.filter(p => p.receiver_id == receiverId).length;
+    const receiverProxies = proxiesCache.filter(p => String(p.receiver_id) === String(receiverId)).length;
     const maxProxies = parseInt(document.getElementById('maxProxies').textContent) || 3;
     if (receiverProxies >= maxProxies) {
       warning.style.display = 'flex';

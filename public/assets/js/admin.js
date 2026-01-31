@@ -9,9 +9,9 @@
 (function() {
   'use strict';
 
-  var roleLabelsSystem = Shared.ROLE_LABELS_SYSTEM;
-  var roleLabelsSeance = Shared.ROLE_LABELS_MEETING;
-  var allRoleLabels = Shared.ROLE_LABELS_ALL;
+  const roleLabelsSystem = Shared.ROLE_LABELS_SYSTEM;
+  const roleLabelsSeance = Shared.ROLE_LABELS_MEETING;
+  const allRoleLabels = Shared.ROLE_LABELS_ALL;
 
   // ─── Tabs (with ARIA support) ────────────────────────
   document.querySelectorAll('.admin-tab').forEach(function(tab) {
@@ -30,13 +30,13 @@
   // ═══════════════════════════════════════════════════════
   // USERS
   // ═══════════════════════════════════════════════════════
-  var _users = [];
+  let _users = [];
 
   async function loadUsers() {
     try {
-      var filter = document.getElementById('filterRole').value;
-      var url = '/api/v1/admin_users.php' + (filter ? '?role=' + filter : '');
-      var r = await api(url);
+      const filter = document.getElementById('filterRole').value;
+      const url = '/api/v1/admin_users.php' + (filter ? '?role=' + filter : '');
+      const r = await api(url);
       if (r.body && r.body.ok && r.body.data) {
         _users = r.body.data.items || [];
         renderUsersTable(_users);
@@ -45,13 +45,13 @@
   }
 
   function renderUsersTable(users) {
-    var tbody = document.getElementById('usersTableBody');
+    const tbody = document.getElementById('usersTableBody');
     if (!users.length) {
       tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-muted">Aucun utilisateur</td></tr>';
       return;
     }
     tbody.innerHTML = users.map(function(u) {
-      var meetingTags = (u.meeting_roles || []).map(function(mr) {
+      const meetingTags = (u.meeting_roles || []).map(function(mr) {
         return '<span class="meeting-role-tag"><span class="role-badge ' + escapeHtml(mr.role) + '">' +
           escapeHtml(allRoleLabels[mr.role] || mr.role) + '</span> ' +
           escapeHtml(mr.meeting_title || '') + '</span>';
@@ -76,14 +76,14 @@
 
   // Create user
   document.getElementById('btnCreateUser').addEventListener('click', async function() {
-    var btn = this;
-    var name = document.getElementById('newName').value.trim();
-    var email = document.getElementById('newEmail').value.trim();
-    var role = document.getElementById('newRole').value;
+    const btn = this;
+    const name = document.getElementById('newName').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
+    const role = document.getElementById('newRole').value;
     if (!name || !email) { setNotif('error', 'Nom et email requis'); return; }
     Shared.btnLoading(btn, true);
     try {
-      var r = await api('/api/v1/admin_users.php', {action:'create', name:name, email:email, role:role});
+      const r = await api('/api/v1/admin_users.php', {action:'create', name:name, email:email, role:role});
       if (r.body && r.body.ok) {
         setNotif('success', 'Utilisateur créé. Clé API : ' + (r.body.data.api_key || ''));
         document.getElementById('newName').value = '';
@@ -98,13 +98,13 @@
 
   // Delegated clicks on users table
   document.getElementById('usersTableBody').addEventListener('click', async function(e) {
-    var btn;
+    let btn;
 
     // Toggle active
     btn = e.target.closest('.btn-toggle-user');
     if (btn) {
-      var active = btn.dataset.active === '1' ? 0 : 1;
-      var label = active ? 'activer' : 'désactiver';
+      const active = btn.dataset.active === '1' ? 0 : 1;
+      const label = active ? 'activer' : 'désactiver';
       if (!confirm('Voulez-vous ' + label + ' cet utilisateur ?')) return;
       Shared.btnLoading(btn, true);
       try {
@@ -121,7 +121,7 @@
       if (!confirm('Générer une nouvelle clé API ? L\'ancienne sera invalidée.')) return;
       Shared.btnLoading(btn, true);
       try {
-        var r = await api('/api/v1/admin_users.php', {action:'rotate_key', user_id:btn.dataset.id});
+        const r = await api('/api/v1/admin_users.php', {action:'rotate_key', user_id:btn.dataset.id});
         if (r.body && r.body.ok) {
           setNotif('success', 'Nouvelle clé API : ' + r.body.data.api_key);
           loadUsers();
@@ -134,11 +134,11 @@
     // Edit user (modal dialog)
     btn = e.target.closest('.btn-edit-user');
     if (btn) {
-      var user = _users.find(function(u) { return u.id === btn.dataset.id; });
+      const user = _users.find(function(u) { return u.id === btn.dataset.id; });
       if (!user) return;
 
-      var roleOptions = Object.keys(roleLabelsSystem).map(function(k) {
-        var sel = k === user.role ? ' selected' : '';
+      const roleOptions = Object.keys(roleLabelsSystem).map(function(k) {
+        const sel = k === user.role ? ' selected' : '';
         return '<option value="' + k + '"' + sel + '>' + escapeHtml(roleLabelsSystem[k]) + '</option>';
       }).join('');
 
@@ -159,9 +159,9 @@
           '</div>',
         confirmText: 'Enregistrer',
         onConfirm: function(modal) {
-          var newName = modal.querySelector('#editName').value.trim();
-          var newEmail = modal.querySelector('#editEmail').value.trim();
-          var newRole = modal.querySelector('#editRole').value;
+          const newName = modal.querySelector('#editName').value.trim();
+          const newEmail = modal.querySelector('#editEmail').value.trim();
+          const newRole = modal.querySelector('#editRole').value;
           if (!newName || !newEmail) { setNotif('error', 'Nom et email requis'); return false; }
           api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole})
             .then(function(r) {
@@ -178,18 +178,18 @@
   // ═══════════════════════════════════════════════════════
   // MEETING ROLES
   // ═══════════════════════════════════════════════════════
-  var _meetings = [];
+  let _meetings = [];
 
   async function loadMeetingSelects() {
     try {
-      var r = await api('/api/v1/meetings.php');
+      const r = await api('/api/v1/meetings.php');
       if (r.body && r.body.ok && r.body.data) {
         _meetings = r.body.data.items || r.body.data || [];
-        var meetingSel = document.getElementById('mrMeeting');
+        const meetingSel = document.getElementById('mrMeeting');
         meetingSel.innerHTML = '<option value="">— Toutes les séances —</option>' +
           _meetings.map(function(m) {
-            var statusMap = Shared.MEETING_STATUS_MAP || {};
-            var st = (statusMap[m.status] || {}).text || m.status;
+            const statusMap = Shared.MEETING_STATUS_MAP || {};
+            const st = (statusMap[m.status] || {}).text || m.status;
             return '<option value="' + m.id + '">' + escapeHtml(m.title) + ' (' + escapeHtml(st) + ')</option>';
           }).join('');
       }
@@ -197,10 +197,10 @@
 
     // Populate user select from full users list
     try {
-      var r2 = await api('/api/v1/admin_users.php');
+      const r2 = await api('/api/v1/admin_users.php');
       if (r2.body && r2.body.ok && r2.body.data) {
-        var users = r2.body.data.items || [];
-        var userSel = document.getElementById('mrUser');
+        const users = r2.body.data.items || [];
+        const userSel = document.getElementById('mrUser');
         userSel.innerHTML = '<option value="">— Sélectionner —</option>' +
           users.filter(function(u) { return u.is_active; }).map(function(u) {
             return '<option value="' + u.id + '">' + escapeHtml(u.name) + ' (' + escapeHtml(roleLabelsSystem[u.role] || u.role) + ')</option>';
@@ -210,23 +210,23 @@
   }
 
   async function loadMeetingRoles() {
-    var meetingId = document.getElementById('mrMeeting').value;
-    var tbody = document.getElementById('meetingRolesBody');
+    const meetingId = document.getElementById('mrMeeting').value;
+    const tbody = document.getElementById('meetingRolesBody');
     tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr>';
 
     try {
-      var url = '/api/v1/admin_meeting_roles.php' + (meetingId ? '?meeting_id=' + meetingId : '');
-      var r = await api(url);
+      const url = '/api/v1/admin_meeting_roles.php' + (meetingId ? '?meeting_id=' + meetingId : '');
+      const r = await api(url);
       if (r.body && r.body.ok && r.body.data) {
-        var items = r.body.data.items || [];
+        const items = r.body.data.items || [];
         if (!items.length) {
           tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Aucun rôle assigné</td></tr>';
           return;
         }
         tbody.innerHTML = items.map(function(row) {
-          var meetingTitle = row.meeting_title || row.meeting_id || '';
-          var userName = row.user_name || row.name || row.user_id || '';
-          var role = row.role || '';
+          const meetingTitle = row.meeting_title || row.meeting_id || '';
+          const userName = row.user_name || row.name || row.user_id || '';
+          const role = row.role || '';
           return '<tr>' +
             '<td>' + escapeHtml(meetingTitle) + '</td>' +
             '<td><strong>' + escapeHtml(userName) + '</strong></td>' +
@@ -247,14 +247,14 @@
 
   // Assign role
   document.getElementById('btnAssignRole').addEventListener('click', async function() {
-    var btn = this;
-    var meetingId = document.getElementById('mrMeeting').value;
-    var userId = document.getElementById('mrUser').value;
-    var role = document.getElementById('mrRole').value;
+    const btn = this;
+    const meetingId = document.getElementById('mrMeeting').value;
+    const userId = document.getElementById('mrUser').value;
+    const role = document.getElementById('mrRole').value;
     if (!meetingId || !userId) { setNotif('error', 'Séance et utilisateur requis'); return; }
     Shared.btnLoading(btn, true);
     try {
-      var r = await api('/api/v1/admin_meeting_roles.php', {action:'assign', meeting_id:meetingId, user_id:userId, role:role});
+      const r = await api('/api/v1/admin_meeting_roles.php', {action:'assign', meeting_id:meetingId, user_id:userId, role:role});
       if (r.body && r.body.ok) {
         setNotif('success', 'Rôle assigné');
         loadMeetingRoles();
@@ -268,12 +268,12 @@
 
   // Revoke role (delegated)
   document.getElementById('meetingRolesBody').addEventListener('click', async function(e) {
-    var btn = e.target.closest('.btn-revoke-role');
+    const btn = e.target.closest('.btn-revoke-role');
     if (!btn) return;
     if (!confirm('Révoquer ce rôle de séance ?')) return;
     Shared.btnLoading(btn, true);
     try {
-      var r = await api('/api/v1/admin_meeting_roles.php', {
+      const r = await api('/api/v1/admin_meeting_roles.php', {
         action: 'revoke',
         meeting_id: btn.dataset.meetingId,
         user_id: btn.dataset.userId,
@@ -293,11 +293,11 @@
   // ═══════════════════════════════════════════════════════
   // POLICIES — QUORUM
   // ═══════════════════════════════════════════════════════
-  var _quorumPolicies = [];
+  let _quorumPolicies = [];
 
   async function loadQuorumPolicies() {
     try {
-      var r = await api('/api/v1/admin_quorum_policies.php');
+      const r = await api('/api/v1/admin_quorum_policies.php');
       if (r.body && r.body.ok && r.body.data && Array.isArray(r.body.data.items)) {
         _quorumPolicies = r.body.data.items;
         renderQuorumList(_quorumPolicies);
@@ -306,7 +306,7 @@
   }
 
   function renderQuorumList(items) {
-    var el = document.getElementById('quorumList');
+    const el = document.getElementById('quorumList');
     if (!items.length) {
       el.innerHTML = '<div class="text-center text-muted">Aucune politique de quorum</div>';
       return;
@@ -329,16 +329,16 @@
   }
 
   function openQuorumModal(policy) {
-    var isEdit = !!policy;
-    var p = policy || {};
+    const isEdit = !!policy;
+    const p = policy || {};
 
-    var modeOptions = ['single','evolving','double'].map(function(m) {
-      var sel = m === (p.mode || 'single') ? ' selected' : '';
+    const modeOptions = ['single','evolving','double'].map(function(m) {
+      const sel = m === (p.mode || 'single') ? ' selected' : '';
       return '<option value="' + m + '"' + sel + '>' + m + '</option>';
     }).join('');
 
-    var denOptions = ['eligible_members','eligible_weight'].map(function(d) {
-      var sel = d === (p.denominator || 'eligible_members') ? ' selected' : '';
+    const denOptions = ['eligible_members','eligible_weight'].map(function(d) {
+      const sel = d === (p.denominator || 'eligible_members') ? ' selected' : '';
       return '<option value="' + d + '"' + sel + '>' + d + '</option>';
     }).join('');
 
@@ -371,9 +371,9 @@
         '</div>',
       confirmText: isEdit ? 'Enregistrer' : 'Créer',
       onConfirm: function(modal) {
-        var name = modal.querySelector('#qpName').value.trim();
+        const name = modal.querySelector('#qpName').value.trim();
         if (!name) { setNotif('error', 'Nom requis'); return false; }
-        var payload = {
+        const payload = {
           name: name,
           description: modal.querySelector('#qpDesc').value.trim(),
           mode: modal.querySelector('#qpMode').value,
@@ -396,20 +396,20 @@
   document.getElementById('btnAddQuorum').addEventListener('click', function() { openQuorumModal(null); });
 
   document.getElementById('quorumList').addEventListener('click', function(e) {
-    var btn = e.target.closest('.btn-edit-quorum');
+    const btn = e.target.closest('.btn-edit-quorum');
     if (!btn) return;
-    var policy = _quorumPolicies.find(function(p) { return p.id === btn.dataset.id; });
+    const policy = _quorumPolicies.find(function(p) { return p.id === btn.dataset.id; });
     if (policy) openQuorumModal(policy);
   });
 
   // ═══════════════════════════════════════════════════════
   // POLICIES — VOTE
   // ═══════════════════════════════════════════════════════
-  var _votePolicies = [];
+  let _votePolicies = [];
 
   async function loadVotePolicies() {
     try {
-      var r = await api('/api/v1/admin_vote_policies.php');
+      const r = await api('/api/v1/admin_vote_policies.php');
       if (r.body && r.body.ok && r.body.data && Array.isArray(r.body.data.items)) {
         _votePolicies = r.body.data.items;
         renderVoteList(_votePolicies);
@@ -418,7 +418,7 @@
   }
 
   function renderVoteList(items) {
-    var el = document.getElementById('voteList');
+    const el = document.getElementById('voteList');
     if (!items.length) {
       el.innerHTML = '<div class="text-center text-muted">Aucune politique de vote</div>';
       return;
@@ -440,11 +440,11 @@
   }
 
   function openVoteModal(policy) {
-    var isEdit = !!policy;
-    var p = policy || {};
+    const isEdit = !!policy;
+    const p = policy || {};
 
-    var baseOptions = ['expressed','total_eligible'].map(function(b) {
-      var sel = b === (p.base || 'expressed') ? ' selected' : '';
+    const baseOptions = ['expressed','total_eligible'].map(function(b) {
+      const sel = b === (p.base || 'expressed') ? ' selected' : '';
       return '<option value="' + b + '"' + sel + '>' + b + '</option>';
     }).join('');
 
@@ -473,9 +473,9 @@
         '</label>',
       confirmText: isEdit ? 'Enregistrer' : 'Créer',
       onConfirm: function(modal) {
-        var name = modal.querySelector('#vpName').value.trim();
+        const name = modal.querySelector('#vpName').value.trim();
         if (!name) { setNotif('error', 'Nom requis'); return false; }
-        var payload = {
+        const payload = {
           name: name,
           description: modal.querySelector('#vpDesc').value.trim(),
           base: modal.querySelector('#vpBase').value,
@@ -496,9 +496,9 @@
   document.getElementById('btnAddVote').addEventListener('click', function() { openVoteModal(null); });
 
   document.getElementById('voteList').addEventListener('click', function(e) {
-    var btn = e.target.closest('.btn-edit-vote');
+    const btn = e.target.closest('.btn-edit-vote');
     if (!btn) return;
-    var policy = _votePolicies.find(function(p) { return p.id === btn.dataset.id; });
+    const policy = _votePolicies.find(function(p) { return p.id === btn.dataset.id; });
     if (policy) openVoteModal(policy);
   });
 
@@ -507,13 +507,13 @@
   // ═══════════════════════════════════════════════════════
   async function loadRoles() {
     try {
-      var r = await api('/api/v1/admin_roles.php');
+      const r = await api('/api/v1/admin_roles.php');
       if (!r.body || !r.body.ok) return;
-      var d = r.body.data;
+      const d = r.body.data;
 
       // System roles info
-      var sysInfo = Object.entries(d.system_roles || {}).map(function(e) {
-        var cnt = (d.users_by_system_role || []).find(function(x) { return x.role === e[0]; });
+      const sysInfo = Object.entries(d.system_roles || {}).map(function(e) {
+        const cnt = (d.users_by_system_role || []).find(function(x) { return x.role === e[0]; });
         return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
           '<span class="role-badge ' + e[0] + '">' + escapeHtml(e[1]) + '</span>' +
           '<span class="text-sm text-muted">' + ((cnt && cnt.count) || 0) + ' utilisateur(s)</span></div>';
@@ -521,8 +521,8 @@
       document.getElementById('systemRolesInfo').innerHTML = sysInfo;
 
       // Meeting roles info
-      var mtgInfo = Object.entries(d.meeting_roles || {}).map(function(e) {
-        var cnt = (d.meeting_role_counts || []).find(function(x) { return x.role === e[0]; });
+      const mtgInfo = Object.entries(d.meeting_roles || {}).map(function(e) {
+        const cnt = (d.meeting_role_counts || []).find(function(x) { return x.role === e[0]; });
         return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
           '<span class="role-badge ' + e[0] + '">' + escapeHtml(e[1]) + '</span>' +
           '<span class="text-sm text-muted">' + ((cnt && cnt.users) || 0) + ' personne(s), ' + ((cnt && cnt.meetings) || 0) + ' séance(s)</span></div>';
@@ -530,32 +530,32 @@
       document.getElementById('meetingRolesInfo').innerHTML = mtgInfo;
 
       // Permission matrix
-      var perms = d.permissions_by_role || {};
-      var allPermsSet = {};
-      var roleOrder = ['admin','operator','auditor','viewer','president','assessor','voter'];
+      const perms = d.permissions_by_role || {};
+      const allPermsSet = {};
+      const roleOrder = ['admin','operator','auditor','viewer','president','assessor','voter'];
       roleOrder.forEach(function(role) {
         (perms[role] || []).forEach(function(p) { allPermsSet[p.permission] = true; });
       });
-      var allPerms = Object.keys(allPermsSet).sort();
+      const allPerms = Object.keys(allPermsSet).sort();
 
       // Group by resource
-      var groups = {};
+      const groups = {};
       allPerms.forEach(function(p) {
-        var parts = p.split(':');
-        var g = parts[0];
+        const parts = p.split(':');
+        const g = parts[0];
         if (!groups[g]) groups[g] = [];
         groups[g].push(p);
       });
 
-      var permsByRole = {};
+      const permsByRole = {};
       roleOrder.forEach(function(role) {
         permsByRole[role] = {};
         (perms[role] || []).forEach(function(p) { permsByRole[role][p.permission] = true; });
       });
 
-      var html = '<table class="perm-matrix"><thead><tr><th>Permission</th>';
+      let html = '<table class="perm-matrix"><thead><tr><th>Permission</th>';
       roleOrder.forEach(function(role) {
-        var isSys = !!roleLabelsSystem[role];
+        const isSys = !!roleLabelsSystem[role];
         html += '<th><span class="role-badge ' + role + '">' + escapeHtml(allRoleLabels[role] || role) + '</span><br><span class="text-xs text-muted">' + (isSys ? 'S' : 'M') + '</span></th>';
       });
       html += '</tr></thead><tbody>';
@@ -581,16 +581,16 @@
   // ═══════════════════════════════════════════════════════
   async function loadStates() {
     try {
-      var r = await api('/api/v1/admin_roles.php');
+      const r = await api('/api/v1/admin_roles.php');
       if (!r.body || !r.body.ok) return;
-      var d = r.body.data;
-      var statuses = d.statuses || {};
-      var transitions = d.state_transitions || [];
+      const d = r.body.data;
+      const statuses = d.statuses || {};
+      const transitions = d.state_transitions || [];
 
       // Flow diagram
-      var flow = ['draft','scheduled','frozen','live','closed','validated','archived'];
+      const flow = ['draft','scheduled','frozen','live','closed','validated','archived'];
       document.getElementById('stateFlow').innerHTML = flow.map(function(s, i) {
-        var label = statuses[s] || s;
+        const label = statuses[s] || s;
         return (i > 0 ? '<span class="state-arrow">&rarr;</span>' : '') +
           '<span class="state-node">' + escapeHtml(label) + '</span>';
       }).join('');
@@ -612,9 +612,9 @@
   // ═══════════════════════════════════════════════════════
   async function loadSystemStatus() {
     try {
-      var r = await api('/api/v1/admin_system_status.php');
+      const r = await api('/api/v1/admin_system_status.php');
       if (r.body && r.body.ok && r.body.data) {
-        var s = r.body.data.system || r.body.data;
+        const s = r.body.data.system || r.body.data;
         document.getElementById('statDbStatus').textContent = 'Connectée';
         document.getElementById('statDbStatus').className = 'system-stat-value text-success';
         document.getElementById('statDbLatency').textContent = s.db_latency_ms != null ? s.db_latency_ms + ' ms' : '—';
@@ -645,10 +645,10 @@
   // ═══════════════════════════════════════════════════════
   document.getElementById('btnResetDemo').addEventListener('click', async function() {
     if (!confirm('Cette action va supprimer TOUTES les données et réinitialiser la démo. Continuer ?')) return;
-    var btn = this;
+    const btn = this;
     Shared.btnLoading(btn, true);
     try {
-      var r = await api('/api/v1/admin_reset_demo.php', {});
+      const r = await api('/api/v1/admin_reset_demo.php', {});
       if (r.body && r.body.ok) { setNotif('success', 'Données de démo réinitialisées'); refreshAll(); }
       else { setNotif('error', r.body.error || 'Erreur'); }
     } catch(e) { setNotif('error', e.message); }

@@ -6,7 +6,7 @@
   const titleEl = document.getElementById("drawerTitle");
 
   // Registry for page-specific drawer kinds
-  var customKinds = {};
+  const customKinds = {};
 
   function getMeetingId(){
     const el = document.querySelector("[data-meeting-id]");
@@ -46,7 +46,7 @@
     else if (kind === "anomalies") { setTitle("Anomalies"); renderAnomalies(meetingId); }
     // Page-registered kinds
     else if (customKinds[kind]) {
-      var custom = customKinds[kind];
+      const custom = customKinds[kind];
       setTitle(custom.title || kind);
       custom.render(meetingId, dbody, esc);
     }
@@ -55,7 +55,7 @@
 
   // ---- Menu drawer ----
   function renderMenu(meetingId) {
-    var mid = meetingId ? '?meeting_id=' + encodeURIComponent(meetingId) : '';
+    const mid = meetingId ? '?meeting_id=' + encodeURIComponent(meetingId) : '';
     dbody.innerHTML =
       '<nav style="display:flex;flex-direction:column;gap:6px;padding:4px 0;">' +
         '<a href="/operator.htmx.html' + mid + '" class="btn btn-ghost" style="justify-content:flex-start;">Opérateur</a>' +
@@ -78,11 +78,11 @@
     if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
     dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
     try {
-      var res = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + meetingId);
-      var b = res.body;
+      const res = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + meetingId);
+      const b = res.body;
       if (b && b.ok && b.data) {
-        var d = b.data;
-        var checks = d.checks || [];
+        const d = b.data;
+        const checks = d.checks || [];
         dbody.innerHTML =
           '<div style="padding:4px 0;display:flex;flex-direction:column;gap:10px;">' +
             '<div class="badge ' + (d.ready ? 'badge-success' : 'badge-warning') + '" style="font-size:14px;padding:6px 12px;">' +
@@ -108,11 +108,11 @@
     if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
     dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
     try {
-      var res = await window.api('/api/v1/meetings.php?id=' + meetingId);
-      var b = res.body;
+      const res = await window.api('/api/v1/meetings.php?id=' + meetingId);
+      const b = res.body;
       if (b && b.ok && b.data) {
-        var m = b.data;
-        var statusBadge = m.status === 'live' ? 'badge-success' : (m.status === 'draft' ? 'badge-neutral' : 'badge-warning');
+        const m = b.data;
+        const statusBadge = m.status === 'live' ? 'badge-success' : (m.status === 'draft' ? 'badge-neutral' : 'badge-warning');
         dbody.innerHTML =
           '<div style="display:flex;flex-direction:column;gap:12px;padding:4px 0;">' +
             '<div><strong>' + esc(m.title) + '</strong></div>' +
@@ -137,10 +137,10 @@
     if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
     dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
     try {
-      var res = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + meetingId);
-      var b = res.body;
+      const res = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + meetingId);
+      const b = res.body;
       if (b && b.ok && b.data) {
-        var items = b.data.anomalies || b.data.items || [];
+        const items = b.data.anomalies || b.data.items || [];
         if (items.length === 0) {
           dbody.innerHTML = '<div style="padding:16px;text-align:center;" class="text-muted">Aucune anomalie détectée.</div>';
         } else {
@@ -173,10 +173,10 @@
   }
 
   document.addEventListener("click", function(e) {
-    var t = e.target;
+    const t = e.target;
     if (!t) return;
 
-    var btn = t.closest && t.closest("[data-drawer]");
+    const btn = t.closest && t.closest("[data-drawer]");
     if (btn){
       openDrawer(btn.getAttribute("data-drawer"));
       return;
@@ -202,7 +202,7 @@
   window.ShellDrawer = { open: openDrawer, close: closeDrawer, register: registerKind };
 
   // Auto-load auth UI banner (login/logout + role visibility)
-  var authScript = document.createElement('script');
+  const authScript = document.createElement('script');
   authScript.src = '/assets/js/auth-ui.js';
   document.head.appendChild(authScript);
 })();
