@@ -6,7 +6,7 @@
   const membersList = document.getElementById('membersList');
   const searchInput = document.getElementById('searchInput');
 
-  var getInitials = Shared.getInitials;
+  const getInitials = Shared.getInitials;
 
   // Parse members from response
   function parseMembers(resp) {
@@ -236,12 +236,12 @@
   // Register stats drawer
   if (window.ShellDrawer && window.ShellDrawer.register) {
     window.ShellDrawer.register('stats', 'Statistiques membres', function(mid, body) {
-      var total = membersCache.length;
-      var active = membersCache.filter(function(m) { return m.is_active !== false && m.active !== false; }).length;
-      var inactive = total - active;
-      var totalPower = membersCache.reduce(function(s, m) { return s + (m.voting_power || m.power || 1); }, 0);
-      var avgPower = total > 0 ? (totalPower / total).toFixed(1) : '0';
-      var withEmail = membersCache.filter(function(m) { return m.email; }).length;
+      const total = membersCache.length;
+      const active = membersCache.filter(function(m) { return m.is_active !== false && m.active !== false; }).length;
+      const inactive = total - active;
+      const totalPower = membersCache.reduce(function(s, m) { return s + (m.voting_power || m.power || 1); }, 0);
+      const avgPower = total > 0 ? (totalPower / total).toFixed(1) : '0';
+      const withEmail = membersCache.filter(function(m) { return m.email; }).length;
 
       body.innerHTML =
         '<div style="display:flex;flex-direction:column;gap:16px;padding:4px 0;">' +

@@ -6,12 +6,12 @@
     if(!required) return true;
     if(current === "admin") return true;
     if(required === current) return true;
-    var order = {admin:4, operator:3, auditor:2, viewer:1};
+    const order = {admin:4, operator:3, auditor:2, viewer:1};
     return (order[current] || 0) >= (order[required] || 0);
   }
 
   function ensureBanner(){
-    var b = document.getElementById("auth-banner");
+    let b = document.getElementById("auth-banner");
     if(b) return b;
     b = document.createElement("div");
     b.id = "auth-banner";
@@ -43,8 +43,8 @@
   }
 
   function setStatus(text, type, isLoggedIn){
-    var b = ensureBanner();
-    var s = b.querySelector("#auth-status");
+    const b = ensureBanner();
+    const s = b.querySelector("#auth-status");
     s.textContent = "— " + text;
     b.style.borderBottomColor = (type === "danger") ? "#f3b3b3" : "var(--color-border,#eee)";
     b.querySelector("#auth-login-btn").style.display = isLoggedIn ? "none" : "";
@@ -52,29 +52,29 @@
   }
 
   function applyVisibility(){
-    var role = window.Auth.role;
+    const role = window.Auth.role;
     document.querySelectorAll("[data-requires-role]").forEach(function(el) {
-      var req = el.getAttribute("data-requires-role");
+      const req = el.getAttribute("data-requires-role");
       el.style.display = hasAccess(req, role) ? "" : "none";
     });
   }
 
   async function boot(){
     try {
-      var headers = {};
+      const headers = {};
       try {
-        var storedKey = localStorage.getItem("api_key");
+        const storedKey = localStorage.getItem("api_key");
         if (storedKey) headers["X-Api-Key"] = storedKey;
       } catch(e) {}
 
-      var resp = await fetch("/api/v1/whoami.php", {
+      const resp = await fetch("/api/v1/whoami.php", {
         credentials: "same-origin",
         headers: headers,
       });
-      var data = await resp.json();
+      const data = await resp.json();
 
-      var user = (data.data && data.data.user) ? data.data.user : (data.user || null);
-      var authEnabled = data.data ? data.data.auth_enabled : data.auth_enabled;
+      const user = (data.data && data.data.user) ? data.data.user : (data.user || null);
+      const authEnabled = data.data ? data.data.auth_enabled : data.auth_enabled;
 
       window.Auth.enabled = !!authEnabled;
       window.Auth.user = user;

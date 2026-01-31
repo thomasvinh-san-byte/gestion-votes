@@ -128,8 +128,8 @@ code,kbd,pre{ font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Li
 /* -----------------------------
    2) Utilities (compat)
 -------------------------------- */
-.hidden{ display:none !important; }
-.muted{ color: var(--muted) !important; }
+/* .hidden is defined in design-system.css */
+.muted{ color: var(--muted); }
 .tiny{ font-size:12px; }
 .hr{ border-top: 1px solid var(--border); }
 .pad{ padding: var(--space-4); }

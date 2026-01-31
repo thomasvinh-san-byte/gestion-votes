@@ -201,7 +201,7 @@
 
       if (body && body.ok !== false) {
         // Update cache
-        const item = attendanceCache.find(a => a.member_id == memberId);
+        const item = attendanceCache.find(a => String(a.member_id) === String(memberId));
         if (item) item.status = status;
 
         render(attendanceCache);
