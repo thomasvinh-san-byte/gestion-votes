@@ -9,6 +9,17 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 DB_DIR="$PROJECT_DIR/database"
 ENV_FILE="$PROJECT_DIR/.env"
 
+# Validation des chemins resolus
+if [ ! -d "$DB_DIR" ]; then
+  echo "[ERR] Repertoire introuvable : $DB_DIR" >&2
+  echo "      Verifiez que le script est lance depuis la racine du projet." >&2
+  exit 1
+fi
+if [ ! -f "$DB_DIR/schema.sql" ]; then
+  echo "[ERR] Fichier introuvable : $DB_DIR/schema.sql" >&2
+  exit 1
+fi
+
 SKIP_DEMO=false
 [[ "${1:-}" == "--no-demo" ]] && SKIP_DEMO=true
 
@@ -101,8 +112,8 @@ fi
 # -------------------------------------------------------------------
 # 4. Appliquer le schema (idempotent, superuser pour CREATE EXTENSION)
 # -------------------------------------------------------------------
-warn "Application du schema..."
-sudo -u postgres psql -d "$DB_NAME" -q -f "$DB_DIR/schema.sql"
+warn "Application du schema ($DB_DIR/schema.sql)..."
+sudo -u postgres psql -d "$DB_NAME" -q < "$DB_DIR/schema.sql"
 info "Schema applique"
 
 # -------------------------------------------------------------------
@@ -110,12 +121,12 @@ info "Schema applique"
 # -------------------------------------------------------------------
 warn "Chargement seed_minimal.sql..."
 PGPASSWORD="$DB_PASS" psql -U "$DB_USER" -d "$DB_NAME" -h "$DB_HOST" -q \
-  -f "$DB_DIR/seed_minimal.sql"
+  < "$DB_DIR/seed_minimal.sql"
 info "seed_minimal.sql OK"
 
 warn "Chargement test_users.sql..."
 PGPASSWORD="$DB_PASS" psql -U "$DB_USER" -d "$DB_NAME" -h "$DB_HOST" -q \
-  -f "$DB_DIR/seeds/test_users.sql"
+  < "$DB_DIR/seeds/test_users.sql"
 info "test_users.sql OK"
 
 # -------------------------------------------------------------------
@@ -124,7 +135,7 @@ info "test_users.sql OK"
 if [ "$SKIP_DEMO" = false ]; then
   warn "Chargement seed_demo.sql..."
   PGPASSWORD="$DB_PASS" psql -U "$DB_USER" -d "$DB_NAME" -h "$DB_HOST" -q \
-    -f "$DB_DIR/seed_demo.sql"
+    < "$DB_DIR/seed_demo.sql"
   info "seed_demo.sql OK"
 else
   info "Demo skip (--no-demo)"
