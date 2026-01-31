@@ -2,8 +2,9 @@
  * admin.js — Administration page logic for AG-VOTE.
  *
  * Must be loaded AFTER utils.js, shared.js and shell.js.
- * Handles: users CRUD, permissions matrix, state machine,
- *          system status, policies, demo reset.
+ * Handles: users CRUD, meeting roles assign/revoke,
+ *          policies CRUD, permissions matrix, state machine,
+ *          system status, demo reset.
  */
 (function() {
   'use strict';
@@ -26,7 +27,9 @@
     });
   });
 
-  // ─── Users ───────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════
+  // USERS
+  // ═══════════════════════════════════════════════════════
   var _users = [];
 
   async function loadUsers() {
@@ -73,10 +76,12 @@
 
   // Create user
   document.getElementById('btnCreateUser').addEventListener('click', async function() {
+    var btn = this;
     var name = document.getElementById('newName').value.trim();
     var email = document.getElementById('newEmail').value.trim();
     var role = document.getElementById('newRole').value;
     if (!name || !email) { setNotif('error', 'Nom et email requis'); return; }
+    Shared.btnLoading(btn, true);
     try {
       var r = await api('/api/v1/admin_users.php', {action:'create', name:name, email:email, role:role});
       if (r.body && r.body.ok) {
@@ -88,6 +93,7 @@
         setNotif('error', r.body.error || 'Erreur');
       }
     } catch (e) { setNotif('error', e.message); }
+    finally { Shared.btnLoading(btn, false); }
   });
 
   // Delegated clicks on users table
@@ -100,10 +106,12 @@
       var active = btn.dataset.active === '1' ? 0 : 1;
       var label = active ? 'activer' : 'désactiver';
       if (!confirm('Voulez-vous ' + label + ' cet utilisateur ?')) return;
+      Shared.btnLoading(btn, true);
       try {
         await api('/api/v1/admin_users.php', {action:'toggle', user_id:btn.dataset.id, is_active:active});
         loadUsers();
       } catch(err) { setNotif('error', err.message); }
+      finally { Shared.btnLoading(btn, false); }
       return;
     }
 
@@ -111,6 +119,7 @@
     btn = e.target.closest('.btn-key-user');
     if (btn) {
       if (!confirm('Générer une nouvelle clé API ? L\'ancienne sera invalidée.')) return;
+      Shared.btnLoading(btn, true);
       try {
         var r = await api('/api/v1/admin_users.php', {action:'rotate_key', user_id:btn.dataset.id});
         if (r.body && r.body.ok) {
@@ -118,6 +127,7 @@
           loadUsers();
         }
       } catch(err) { setNotif('error', err.message); }
+      finally { Shared.btnLoading(btn, false); }
       return;
     }
 
@@ -165,7 +175,336 @@
     }
   });
 
-  // ─── Roles / Permissions ─────────────────────────────
+  // ═══════════════════════════════════════════════════════
+  // MEETING ROLES
+  // ═══════════════════════════════════════════════════════
+  var _meetings = [];
+
+  async function loadMeetingSelects() {
+    try {
+      var r = await api('/api/v1/meetings.php');
+      if (r.body && r.body.ok && r.body.data) {
+        _meetings = r.body.data.items || r.body.data || [];
+        var meetingSel = document.getElementById('mrMeeting');
+        meetingSel.innerHTML = '<option value="">— Toutes les séances —</option>' +
+          _meetings.map(function(m) {
+            var statusMap = Shared.MEETING_STATUS_MAP || {};
+            var st = (statusMap[m.status] || {}).text || m.status;
+            return '<option value="' + m.id + '">' + escapeHtml(m.title) + ' (' + escapeHtml(st) + ')</option>';
+          }).join('');
+      }
+    } catch(e) { console.error('loadMeetingSelects', e); }
+
+    // Populate user select from full users list
+    try {
+      var r2 = await api('/api/v1/admin_users.php');
+      if (r2.body && r2.body.ok && r2.body.data) {
+        var users = r2.body.data.items || [];
+        var userSel = document.getElementById('mrUser');
+        userSel.innerHTML = '<option value="">— Sélectionner —</option>' +
+          users.filter(function(u) { return u.is_active; }).map(function(u) {
+            return '<option value="' + u.id + '">' + escapeHtml(u.name) + ' (' + escapeHtml(roleLabelsSystem[u.role] || u.role) + ')</option>';
+          }).join('');
+      }
+    } catch(e) { console.error('loadUserSelect', e); }
+  }
+
+  async function loadMeetingRoles() {
+    var meetingId = document.getElementById('mrMeeting').value;
+    var tbody = document.getElementById('meetingRolesBody');
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr>';
+
+    try {
+      var url = '/api/v1/admin_meeting_roles.php' + (meetingId ? '?meeting_id=' + meetingId : '');
+      var r = await api(url);
+      if (r.body && r.body.ok && r.body.data) {
+        var items = r.body.data.items || [];
+        if (!items.length) {
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Aucun rôle assigné</td></tr>';
+          return;
+        }
+        tbody.innerHTML = items.map(function(row) {
+          var meetingTitle = row.meeting_title || row.meeting_id || '';
+          var userName = row.user_name || row.name || row.user_id || '';
+          var role = row.role || '';
+          return '<tr>' +
+            '<td>' + escapeHtml(meetingTitle) + '</td>' +
+            '<td><strong>' + escapeHtml(userName) + '</strong></td>' +
+            '<td><span class="role-badge ' + escapeHtml(role) + '">' + escapeHtml(roleLabelsSeance[role] || role) + '</span></td>' +
+            '<td><button class="btn btn-ghost btn-xs btn-danger-text btn-revoke-role" ' +
+              'data-meeting-id="' + escapeHtml(row.meeting_id || '') + '" ' +
+              'data-user-id="' + escapeHtml(row.user_id || '') + '" ' +
+              'data-role="' + escapeHtml(role) + '">Révoquer</button></td></tr>';
+        }).join('');
+      }
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Erreur de chargement</td></tr>';
+    }
+  }
+
+  // Filter roles when meeting selection changes
+  document.getElementById('mrMeeting').addEventListener('change', loadMeetingRoles);
+
+  // Assign role
+  document.getElementById('btnAssignRole').addEventListener('click', async function() {
+    var btn = this;
+    var meetingId = document.getElementById('mrMeeting').value;
+    var userId = document.getElementById('mrUser').value;
+    var role = document.getElementById('mrRole').value;
+    if (!meetingId || !userId) { setNotif('error', 'Séance et utilisateur requis'); return; }
+    Shared.btnLoading(btn, true);
+    try {
+      var r = await api('/api/v1/admin_meeting_roles.php', {action:'assign', meeting_id:meetingId, user_id:userId, role:role});
+      if (r.body && r.body.ok) {
+        setNotif('success', 'Rôle assigné');
+        loadMeetingRoles();
+        loadUsers(); // refresh meeting roles column in users table
+      } else {
+        setNotif('error', r.body.error || 'Erreur');
+      }
+    } catch(e) { setNotif('error', e.message); }
+    finally { Shared.btnLoading(btn, false); }
+  });
+
+  // Revoke role (delegated)
+  document.getElementById('meetingRolesBody').addEventListener('click', async function(e) {
+    var btn = e.target.closest('.btn-revoke-role');
+    if (!btn) return;
+    if (!confirm('Révoquer ce rôle de séance ?')) return;
+    Shared.btnLoading(btn, true);
+    try {
+      var r = await api('/api/v1/admin_meeting_roles.php', {
+        action: 'revoke',
+        meeting_id: btn.dataset.meetingId,
+        user_id: btn.dataset.userId,
+        role: btn.dataset.role
+      });
+      if (r.body && r.body.ok) {
+        setNotif('success', 'Rôle révoqué');
+        loadMeetingRoles();
+        loadUsers();
+      } else {
+        setNotif('error', r.body.error || 'Erreur');
+      }
+    } catch(e) { setNotif('error', e.message); }
+    finally { Shared.btnLoading(btn, false); }
+  });
+
+  // ═══════════════════════════════════════════════════════
+  // POLICIES — QUORUM
+  // ═══════════════════════════════════════════════════════
+  var _quorumPolicies = [];
+
+  async function loadQuorumPolicies() {
+    try {
+      var r = await api('/api/v1/admin_quorum_policies.php');
+      if (r.body && r.body.ok && r.body.data && Array.isArray(r.body.data.items)) {
+        _quorumPolicies = r.body.data.items;
+        renderQuorumList(_quorumPolicies);
+      }
+    } catch(e) { console.error('loadQuorumPolicies', e); }
+  }
+
+  function renderQuorumList(items) {
+    var el = document.getElementById('quorumList');
+    if (!items.length) {
+      el.innerHTML = '<div class="text-center text-muted">Aucune politique de quorum</div>';
+      return;
+    }
+    el.innerHTML = items.map(function(p) {
+      return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
+        '<div>' +
+          '<div class="font-semibold text-sm">' + escapeHtml(p.name) + '</div>' +
+          '<div class="text-xs text-muted">' +
+            escapeHtml(p.description || '') +
+            (p.mode ? ' | mode: ' + escapeHtml(p.mode) : '') +
+            ' | seuil: ' + Math.round((p.threshold||0)*100) + '%' +
+            (p.include_proxies ? ' | procurations' : '') +
+            (p.count_remote ? ' | distanciel' : '') +
+          '</div>' +
+        '</div>' +
+        '<button class="btn btn-ghost btn-xs btn-edit-quorum" data-id="' + escapeHtml(p.id) + '">Modifier</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function openQuorumModal(policy) {
+    var isEdit = !!policy;
+    var p = policy || {};
+
+    var modeOptions = ['single','evolving','double'].map(function(m) {
+      var sel = m === (p.mode || 'single') ? ' selected' : '';
+      return '<option value="' + m + '"' + sel + '>' + m + '</option>';
+    }).join('');
+
+    var denOptions = ['eligible_members','eligible_weight'].map(function(d) {
+      var sel = d === (p.denominator || 'eligible_members') ? ' selected' : '';
+      return '<option value="' + d + '"' + sel + '>' + d + '</option>';
+    }).join('');
+
+    Shared.openModal({
+      title: isEdit ? 'Modifier la politique de quorum' : 'Nouvelle politique de quorum',
+      body:
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Nom</label>' +
+          '<input class="form-input" type="text" id="qpName" value="' + escapeHtml(p.name || '') + '">' +
+        '</div>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Description</label>' +
+          '<input class="form-input" type="text" id="qpDesc" value="' + escapeHtml(p.description || '') + '">' +
+        '</div>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Mode</label>' +
+          '<select class="form-input" id="qpMode">' + modeOptions + '</select>' +
+        '</div>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Dénominateur</label>' +
+          '<select class="form-input" id="qpDen">' + denOptions + '</select>' +
+        '</div>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Seuil (0 à 1)</label>' +
+          '<input class="form-input" type="number" id="qpThreshold" min="0" max="1" step="0.01" value="' + (p.threshold != null ? p.threshold : '0.5') + '">' +
+        '</div>' +
+        '<div class="flex gap-4 mb-3">' +
+          '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpProxies"' + (p.include_proxies ? ' checked' : '') + '> Inclure procurations</label>' +
+          '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpRemote"' + (p.count_remote ? ' checked' : '') + '> Compter distanciel</label>' +
+        '</div>',
+      confirmText: isEdit ? 'Enregistrer' : 'Créer',
+      onConfirm: function(modal) {
+        var name = modal.querySelector('#qpName').value.trim();
+        if (!name) { setNotif('error', 'Nom requis'); return false; }
+        var payload = {
+          name: name,
+          description: modal.querySelector('#qpDesc').value.trim(),
+          mode: modal.querySelector('#qpMode').value,
+          denominator: modal.querySelector('#qpDen').value,
+          threshold: modal.querySelector('#qpThreshold').value,
+          include_proxies: modal.querySelector('#qpProxies').checked ? 1 : 0,
+          count_remote: modal.querySelector('#qpRemote').checked ? 1 : 0
+        };
+        if (isEdit) payload.id = p.id;
+        api('/api/v1/admin_quorum_policies.php', payload)
+          .then(function(r) {
+            if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique modifiée' : 'Politique créée'); loadQuorumPolicies(); }
+            else { setNotif('error', r.body.error || 'Erreur'); }
+          })
+          .catch(function(err) { setNotif('error', err.message); });
+      }
+    });
+  }
+
+  document.getElementById('btnAddQuorum').addEventListener('click', function() { openQuorumModal(null); });
+
+  document.getElementById('quorumList').addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-edit-quorum');
+    if (!btn) return;
+    var policy = _quorumPolicies.find(function(p) { return p.id === btn.dataset.id; });
+    if (policy) openQuorumModal(policy);
+  });
+
+  // ═══════════════════════════════════════════════════════
+  // POLICIES — VOTE
+  // ═══════════════════════════════════════════════════════
+  var _votePolicies = [];
+
+  async function loadVotePolicies() {
+    try {
+      var r = await api('/api/v1/admin_vote_policies.php');
+      if (r.body && r.body.ok && r.body.data && Array.isArray(r.body.data.items)) {
+        _votePolicies = r.body.data.items;
+        renderVoteList(_votePolicies);
+      }
+    } catch(e) { console.error('loadVotePolicies', e); }
+  }
+
+  function renderVoteList(items) {
+    var el = document.getElementById('voteList');
+    if (!items.length) {
+      el.innerHTML = '<div class="text-center text-muted">Aucune politique de vote</div>';
+      return;
+    }
+    el.innerHTML = items.map(function(p) {
+      return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
+        '<div>' +
+          '<div class="font-semibold text-sm">' + escapeHtml(p.name) + '</div>' +
+          '<div class="text-xs text-muted">' +
+            escapeHtml(p.description || '') +
+            (p.base ? ' | base: ' + escapeHtml(p.base) : '') +
+            ' | seuil: ' + Math.round((p.threshold||0)*100) + '%' +
+            (p.abstention_as_against ? ' | abstention=contre' : '') +
+          '</div>' +
+        '</div>' +
+        '<button class="btn btn-ghost btn-xs btn-edit-vote" data-id="' + escapeHtml(p.id) + '">Modifier</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function openVoteModal(policy) {
+    var isEdit = !!policy;
+    var p = policy || {};
+
+    var baseOptions = ['expressed','total_eligible'].map(function(b) {
+      var sel = b === (p.base || 'expressed') ? ' selected' : '';
+      return '<option value="' + b + '"' + sel + '>' + b + '</option>';
+    }).join('');
+
+    Shared.openModal({
+      title: isEdit ? 'Modifier la politique de vote' : 'Nouvelle politique de vote',
+      body:
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Nom</label>' +
+          '<input class="form-input" type="text" id="vpName" value="' + escapeHtml(p.name || '') + '">' +
+        '</div>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Description</label>' +
+          '<input class="form-input" type="text" id="vpDesc" value="' + escapeHtml(p.description || '') + '">' +
+        '</div>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Base de calcul</label>' +
+          '<select class="form-input" id="vpBase">' + baseOptions + '</select>' +
+        '</div>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Seuil (0 à 1)</label>' +
+          '<input class="form-input" type="number" id="vpThreshold" min="0" max="1" step="0.01" value="' + (p.threshold != null ? p.threshold : '0.5') + '">' +
+        '</div>' +
+        '<label class="flex items-center gap-2 text-sm">' +
+          '<input type="checkbox" id="vpAbstention"' + (p.abstention_as_against ? ' checked' : '') + '>' +
+          ' Compter abstentions comme contre' +
+        '</label>',
+      confirmText: isEdit ? 'Enregistrer' : 'Créer',
+      onConfirm: function(modal) {
+        var name = modal.querySelector('#vpName').value.trim();
+        if (!name) { setNotif('error', 'Nom requis'); return false; }
+        var payload = {
+          name: name,
+          description: modal.querySelector('#vpDesc').value.trim(),
+          base: modal.querySelector('#vpBase').value,
+          threshold: modal.querySelector('#vpThreshold').value,
+          abstention_as_against: modal.querySelector('#vpAbstention').checked ? 1 : 0
+        };
+        if (isEdit) payload.id = p.id;
+        api('/api/v1/admin_vote_policies.php', payload)
+          .then(function(r) {
+            if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique modifiée' : 'Politique créée'); loadVotePolicies(); }
+            else { setNotif('error', r.body.error || 'Erreur'); }
+          })
+          .catch(function(err) { setNotif('error', err.message); });
+      }
+    });
+  }
+
+  document.getElementById('btnAddVote').addEventListener('click', function() { openVoteModal(null); });
+
+  document.getElementById('voteList').addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-edit-vote');
+    if (!btn) return;
+    var policy = _votePolicies.find(function(p) { return p.id === btn.dataset.id; });
+    if (policy) openVoteModal(policy);
+  });
+
+  // ═══════════════════════════════════════════════════════
+  // PERMISSIONS MATRIX
+  // ═══════════════════════════════════════════════════════
   async function loadRoles() {
     try {
       var r = await api('/api/v1/admin_roles.php');
@@ -237,7 +576,9 @@
     } catch (e) { console.error('loadRoles', e); }
   }
 
-  // ─── State Machine ───────────────────────────────────
+  // ═══════════════════════════════════════════════════════
+  // STATE MACHINE
+  // ═══════════════════════════════════════════════════════
   async function loadStates() {
     try {
       var r = await api('/api/v1/admin_roles.php');
@@ -266,7 +607,9 @@
     } catch (e) { console.error('loadStates', e); }
   }
 
-  // ─── System Status ───────────────────────────────────
+  // ═══════════════════════════════════════════════════════
+  // SYSTEM STATUS
+  // ═══════════════════════════════════════════════════════
   async function loadSystemStatus() {
     try {
       var r = await api('/api/v1/admin_system_status.php');
@@ -297,61 +640,39 @@
     }
   }
 
-  async function loadQuorumPolicies() {
-    try {
-      var r = await api('/api/v1/quorum_policies.php');
-      if (r.body && r.body.ok && r.body.data && Array.isArray(r.body.data.items)) {
-        var items = r.body.data.items;
-        var el = document.getElementById('quorumList');
-        if (!items.length) { el.innerHTML = '<div class="text-center text-muted">Aucune politique</div>'; return; }
-        el.innerHTML = items.map(function(p) {
-          return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
-            '<div><div class="font-semibold text-sm">' + escapeHtml(p.name) + '</div>' +
-            '<div class="text-xs text-muted">' + escapeHtml(p.description || p.mode || '') + ' — seuil ' + Math.round((p.threshold||0)*100) + '%</div></div></div>';
-        }).join('');
-      }
-    } catch(e) {}
-  }
-
-  async function loadVotePolicies() {
-    try {
-      var r = await api('/api/v1/vote_policies.php');
-      if (r.body && r.body.ok && r.body.data && Array.isArray(r.body.data.items)) {
-        var items = r.body.data.items;
-        var el = document.getElementById('voteList');
-        if (!items.length) { el.innerHTML = '<div class="text-center text-muted">Aucune politique</div>'; return; }
-        el.innerHTML = items.map(function(p) {
-          return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
-            '<div><div class="font-semibold text-sm">' + escapeHtml(p.name) + '</div>' +
-            '<div class="text-xs text-muted">' + escapeHtml(p.description || p.base || '') + ' — seuil ' + Math.round((p.threshold||0)*100) + '%</div></div></div>';
-        }).join('');
-      }
-    } catch(e) {}
-  }
-
-  // Reset demo
+  // ═══════════════════════════════════════════════════════
+  // RESET DEMO
+  // ═══════════════════════════════════════════════════════
   document.getElementById('btnResetDemo').addEventListener('click', async function() {
     if (!confirm('Cette action va supprimer TOUTES les données et réinitialiser la démo. Continuer ?')) return;
+    var btn = this;
+    Shared.btnLoading(btn, true);
     try {
       var r = await api('/api/v1/admin_reset_demo.php', {});
       if (r.body && r.body.ok) { setNotif('success', 'Données de démo réinitialisées'); refreshAll(); }
       else { setNotif('error', r.body.error || 'Erreur'); }
     } catch(e) { setNotif('error', e.message); }
+    finally { Shared.btnLoading(btn, false); }
   });
 
-  // ─── Refresh ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════
+  // REFRESH ALL
+  // ═══════════════════════════════════════════════════════
   function refreshAll() {
     loadUsers();
+    loadMeetingSelects().then(loadMeetingRoles);
+    loadQuorumPolicies();
+    loadVotePolicies();
     loadRoles();
     loadStates();
     loadSystemStatus();
-    loadQuorumPolicies();
-    loadVotePolicies();
   }
 
   document.getElementById('btnRefresh').addEventListener('click', refreshAll);
 
-  // Guide drawer
+  // ═══════════════════════════════════════════════════════
+  // GUIDE DRAWER
+  // ═══════════════════════════════════════════════════════
   if (window.ShellDrawer && window.ShellDrawer.register) {
     window.ShellDrawer.register('guide', 'Guide', function(mid, body) {
       body.innerHTML =

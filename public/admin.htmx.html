@@ -36,6 +36,8 @@
         <!-- Tabs -->
         <div class="admin-tabs" role="tablist" aria-label="Sections d'administration">
           <button class="admin-tab active" data-tab="users" role="tab" aria-selected="true" aria-controls="panel-users" id="tab-users">Utilisateurs</button>
+          <button class="admin-tab" data-tab="meeting-roles" role="tab" aria-selected="false" aria-controls="panel-meeting-roles" id="tab-meeting-roles">Rôles de séance</button>
+          <button class="admin-tab" data-tab="policies" role="tab" aria-selected="false" aria-controls="panel-policies" id="tab-policies">Politiques</button>
           <button class="admin-tab" data-tab="roles" role="tab" aria-selected="false" aria-controls="panel-roles" id="tab-roles">Permissions</button>
           <button class="admin-tab" data-tab="states" role="tab" aria-selected="false" aria-controls="panel-states" id="tab-states">Machine à états</button>
           <button class="admin-tab" data-tab="system" role="tab" aria-selected="false" aria-controls="panel-system" id="tab-system">Système</button>
@@ -108,7 +110,83 @@
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 2 : PERMISSIONS                       -->
+        <!-- TAB 2 : RÔLES DE SÉANCE                   -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="admin-panel" id="panel-meeting-roles" role="tabpanel" aria-labelledby="tab-meeting-roles">
+          <!-- Assign form -->
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">Assigner un rôle de séance</h3></div>
+            <div class="card-body">
+              <div class="inline-form">
+                <div class="form-group">
+                  <label class="form-label">Séance</label>
+                  <select class="form-input" id="mrMeeting"><option value="">Chargement…</option></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Utilisateur</label>
+                  <select class="form-input" id="mrUser"><option value="">Chargement…</option></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Rôle</label>
+                  <select class="form-input" id="mrRole">
+                    <option value="president">Président</option>
+                    <option value="assessor">Assesseur</option>
+                    <option value="voter">Électeur</option>
+                  </select>
+                </div>
+                <button class="btn btn-primary" id="btnAssignRole">Assigner</button>
+              </div>
+            </div>
+          </div>
+          <!-- Roles by meeting -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Rôles assignés</h3>
+              <p class="card-description">Sélectionnez une séance pour voir les rôles ou affichez le résumé global</p>
+            </div>
+            <div class="card-body p-0">
+              <table class="users-table">
+                <thead>
+                  <tr><th>Séance</th><th>Utilisateur</th><th>Rôle</th><th style="width:100px">Actions</th></tr>
+                </thead>
+                <tbody id="meetingRolesBody">
+                  <tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- TAB 3 : POLITIQUES                         -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="admin-panel" id="panel-policies" role="tabpanel" aria-labelledby="tab-policies">
+          <div class="grid grid-cols-2 gap-6">
+            <!-- Quorum policies -->
+            <div class="card">
+              <div class="card-header">
+                <div class="flex items-center justify-between">
+                  <div><h3 class="card-title">Politiques de quorum</h3><p class="card-description">Règles de quorum applicables aux séances</p></div>
+                  <button class="btn btn-primary btn-sm" id="btnAddQuorum">Ajouter</button>
+                </div>
+              </div>
+              <div class="card-body" id="quorumList"><div class="text-center p-4 text-muted">Chargement...</div></div>
+            </div>
+            <!-- Vote policies -->
+            <div class="card">
+              <div class="card-header">
+                <div class="flex items-center justify-between">
+                  <div><h3 class="card-title">Politiques de vote</h3><p class="card-description">Règles de majorité applicables aux résolutions</p></div>
+                  <button class="btn btn-primary btn-sm" id="btnAddVote">Ajouter</button>
+                </div>
+              </div>
+              <div class="card-body" id="voteList"><div class="text-center p-4 text-muted">Chargement...</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- TAB 4 : PERMISSIONS                        -->
         <!-- ═══════════════════════════════════════════ -->
         <div class="admin-panel" id="panel-roles" role="tabpanel" aria-labelledby="tab-roles">
           <div class="card mb-4">
@@ -157,7 +235,7 @@
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 4 : SYSTÈME                           -->
+        <!-- TAB 6 : SYSTÈME                           -->
         <!-- ═══════════════════════════════════════════ -->
         <div class="admin-panel" id="panel-system" role="tabpanel" aria-labelledby="tab-system">
           <div class="card mb-4">
@@ -176,17 +254,6 @@
               <div class="system-stat"><span class="system-stat-label">Membres actifs</span><span class="system-stat-value" id="statTotalMembers">—</span></div>
               <div class="system-stat"><span class="system-stat-label">Version PHP</span><span class="system-stat-value" id="statPhpVersion">—</span></div>
               <div class="system-stat"><span class="system-stat-label">Mémoire</span><span class="system-stat-value" id="statMemory">—</span></div>
-            </div>
-          </div>
-          <!-- Policies -->
-          <div class="grid grid-cols-2 gap-6 mb-6">
-            <div class="card">
-              <div class="card-header"><h3 class="card-title">Politiques de quorum</h3></div>
-              <div class="card-body"><div id="quorumList" class="text-center p-4 text-muted">Chargement...</div></div>
-            </div>
-            <div class="card">
-              <div class="card-header"><h3 class="card-title">Politiques de vote</h3></div>
-              <div class="card-body"><div id="voteList" class="text-center p-4 text-muted">Chargement...</div></div>
             </div>
           </div>
           <!-- Danger Zone -->
