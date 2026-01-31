@@ -34,6 +34,13 @@ DB_PORT="${DB_PORT:-5432}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
+# Validation des chemins resolus
+if [ ! -f "$SCRIPT_DIR/schema.sql" ]; then
+    echo -e "${RED}[ERR]${NC} Fichier introuvable : $SCRIPT_DIR/schema.sql" >&2
+    echo "      Verifiez que le script est lance depuis la racine du projet." >&2
+    exit 1
+fi
+
 log()  { echo -e "${GREEN}[OK]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 err()  { echo -e "${RED}[ERR]${NC} $1" >&2; }
@@ -122,8 +129,8 @@ create_user_and_db() {
 # Schéma
 # =============================================================================
 apply_schema() {
-    info "Application du schéma..."
-    sudo -u postgres psql -d "$DB_NAME" -f "$SCRIPT_DIR/schema.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    info "Application du schéma ($SCRIPT_DIR/schema.sql)..."
+    sudo -u postgres psql -d "$DB_NAME" < "$SCRIPT_DIR/schema.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     log "Schéma appliqué"
 
     # Accorder les permissions sur les tables créées par postgres
@@ -143,7 +150,7 @@ apply_migrations() {
         local fname
         fname=$(basename "$f")
         info "  → $fname"
-        sudo -u postgres psql -d "$DB_NAME" -f "$f" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+        sudo -u postgres psql -d "$DB_NAME" < "$f" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     done
 
     # Accorder les permissions sur les nouvelles tables
@@ -162,12 +169,12 @@ apply_seeds() {
 
     if [ -f "$SCRIPT_DIR/seed_minimal.sql" ]; then
         info "  → seed_minimal.sql"
-        sudo -u postgres psql -d "$DB_NAME" -f "$SCRIPT_DIR/seed_minimal.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+        sudo -u postgres psql -d "$DB_NAME" < "$SCRIPT_DIR/seed_minimal.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     fi
 
     if [ -f "$SCRIPT_DIR/seed_demo.sql" ]; then
         info "  → seed_demo.sql"
-        sudo -u postgres psql -d "$DB_NAME" -f "$SCRIPT_DIR/seed_demo.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+        sudo -u postgres psql -d "$DB_NAME" < "$SCRIPT_DIR/seed_demo.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     fi
 
     log "Seeds appliquées"
