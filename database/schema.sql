@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS users (
   email citext,
   name text,
   role text NOT NULL DEFAULT 'viewer',
+  password_hash text,
   api_key_hash char(64),
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),

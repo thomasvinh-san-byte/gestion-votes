@@ -10,6 +10,8 @@
 #   sudo bash database/setup.sh --migrate    # migrations uniquement
 #   sudo bash database/setup.sh --reset      # SUPPRIME et recrée tout
 #
+# Idempotent : peut être relancé autant de fois que nécessaire.
+#
 # Prérequis:
 #   - PostgreSQL 14+ installé et démarré
 #   - Exécuté en tant que root ou utilisateur pouvant sudo
@@ -46,6 +48,9 @@ warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 err()  { echo -e "${RED}[ERR]${NC} $1" >&2; }
 info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 
+# Helper : exécuter du SQL en tant que postgres (pipe stdin, pas -f)
+pg_exec() { sudo -u postgres psql -d "$DB_NAME" -q "$@"; }
+
 # =============================================================================
 # Vérifications
 # =============================================================================
@@ -81,7 +86,8 @@ create_user_and_db() {
     user_exists=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" 2>/dev/null || echo "")
 
     if [ "$user_exists" = "1" ]; then
-        warn "L'utilisateur '$DB_USER' existe déjà"
+        sudo -u postgres psql -q -c "ALTER ROLE $DB_USER WITH PASSWORD '$DB_PASS';" 2>/dev/null
+        warn "L'utilisateur '$DB_USER' existe déjà — mot de passe synchronisé"
     else
         sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS' NOSUPERUSER NOCREATEDB NOCREATEROLE;" 2>/dev/null
         log "Utilisateur '$DB_USER' créé"
@@ -100,10 +106,11 @@ create_user_and_db() {
     fi
 
     # Extensions et permissions
-    sudo -u postgres psql -d "$DB_NAME" -c "
+    pg_exec -c "
         CREATE EXTENSION IF NOT EXISTS pgcrypto;
         CREATE EXTENSION IF NOT EXISTS citext;
         GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
+        GRANT USAGE ON SCHEMA public TO $DB_USER;
         GRANT ALL PRIVILEGES ON SCHEMA public TO $DB_USER;
         ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;
         ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;
@@ -114,7 +121,6 @@ create_user_and_db() {
     local hba
     hba=$(sudo -u postgres psql -tAc "SHOW hba_file" 2>/dev/null)
     if [ -n "$hba" ] && ! grep -q "^local.*$DB_NAME.*$DB_USER.*scram-sha-256" "$hba" 2>/dev/null; then
-        # Ajouter avant la première règle 'local'
         local line_num
         line_num=$(grep -n "^local" "$hba" | head -1 | cut -d: -f1)
         if [ -n "$line_num" ]; then
@@ -129,12 +135,12 @@ create_user_and_db() {
 # Schéma
 # =============================================================================
 apply_schema() {
-    info "Application du schéma ($SCRIPT_DIR/schema.sql)..."
-    sudo -u postgres psql -d "$DB_NAME" < "$SCRIPT_DIR/schema.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    info "Application du schéma..."
+    pg_exec < "$SCRIPT_DIR/schema.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     log "Schéma appliqué"
 
     # Accorder les permissions sur les tables créées par postgres
-    sudo -u postgres psql -d "$DB_NAME" -c "
+    pg_exec -c "
         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
         GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
     " 2>/dev/null
@@ -150,11 +156,11 @@ apply_migrations() {
         local fname
         fname=$(basename "$f")
         info "  → $fname"
-        sudo -u postgres psql -d "$DB_NAME" < "$f" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+        pg_exec < "$f" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     done
 
     # Accorder les permissions sur les nouvelles tables
-    sudo -u postgres psql -d "$DB_NAME" -c "
+    pg_exec -c "
         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
         GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
     " 2>/dev/null
@@ -169,12 +175,17 @@ apply_seeds() {
 
     if [ -f "$SCRIPT_DIR/seed_minimal.sql" ]; then
         info "  → seed_minimal.sql"
-        sudo -u postgres psql -d "$DB_NAME" < "$SCRIPT_DIR/seed_minimal.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+        pg_exec < "$SCRIPT_DIR/seed_minimal.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    fi
+
+    if [ -f "$SCRIPT_DIR/seeds/test_users.sql" ]; then
+        info "  → seeds/test_users.sql"
+        pg_exec < "$SCRIPT_DIR/seeds/test_users.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     fi
 
     if [ -f "$SCRIPT_DIR/seed_demo.sql" ]; then
         info "  → seed_demo.sql"
-        sudo -u postgres psql -d "$DB_NAME" < "$SCRIPT_DIR/seed_demo.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+        pg_exec < "$SCRIPT_DIR/seed_demo.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     fi
 
     log "Seeds appliquées"
@@ -194,7 +205,6 @@ setup_env() {
     fi
 
     if [ -f "$env_file" ]; then
-        # Mettre à jour les valeurs DB
         sed -i "s|^DB_USER=.*|DB_USER=$DB_USER|" "$env_file"
         sed -i "s|^DB_PASS=.*|DB_PASS=$DB_PASS|" "$env_file"
         sed -i "s|^DB_DSN=.*|DB_DSN=pgsql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_NAME|" "$env_file"
@@ -229,14 +239,70 @@ reset_db() {
 # =============================================================================
 verify() {
     info "Vérification de la connexion..."
-    local result
-    result=$(PGPASSWORD="$DB_PASS" psql -U "$DB_USER" -d "$DB_NAME" -h "$DB_HOST" -p "$DB_PORT" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'" 2>/dev/null || echo "0")
-    if [ "$result" -gt 0 ] 2>/dev/null; then
-        log "Connexion OK — $result tables trouvées"
+
+    local table_count user_count member_count meeting_count
+    table_count=$(pg_exec -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'" 2>/dev/null || echo "0")
+    user_count=$(pg_exec -tAc "SELECT count(*) FROM users" 2>/dev/null || echo "0")
+    member_count=$(pg_exec -tAc "SELECT count(*) FROM members" 2>/dev/null || echo "0")
+    meeting_count=$(pg_exec -tAc "SELECT count(*) FROM meetings" 2>/dev/null || echo "0")
+
+    if [ "$table_count" -gt 0 ] 2>/dev/null; then
+        log "Connexion OK — $table_count tables trouvées"
     else
-        err "Échec de connexion avec l'utilisateur '$DB_USER'"
+        err "Échec de connexion ou aucune table trouvée"
         exit 1
     fi
+
+    # Résumé final
+    echo ""
+    echo -e "${BLUE}=========================================${NC}"
+    echo -e "${BLUE}  AG-VOTE — Base de données prête${NC}"
+    echo -e "${BLUE}=========================================${NC}"
+    echo ""
+    echo "  Base de données"
+    echo "  ───────────────"
+    echo "    Base     : $DB_NAME"
+    echo "    Rôle     : $DB_USER"
+    echo "    Host     : $DB_HOST:$DB_PORT"
+    echo "    Tables   : $table_count"
+    echo "    Users    : $user_count"
+    echo "    Membres  : $member_count"
+    echo "    Séances  : $meeting_count"
+    echo ""
+    echo "  Lancer le serveur"
+    echo "  ─────────────────"
+    echo "    php -S 0.0.0.0:8080 -t public"
+    echo ""
+    echo "  Connexion"
+    echo "  ─────────"
+    echo "    URL  : http://localhost:8080/login.html"
+    echo ""
+    echo "  Identifiants de test (email / mot de passe)"
+    echo "  ────────────────────────────────────────────"
+    echo "    admin    : admin@ag-vote.local    / Admin2024!"
+    echo "    operator : operator@ag-vote.local / Operator2024!"
+    echo "    auditor  : auditor@ag-vote.local  / Auditor2024!"
+    echo "    viewer   : viewer@ag-vote.local   / Viewer2024!"
+    echo ""
+    echo "  Pages principales"
+    echo "  ─────────────────"
+    echo "    Admin      : http://localhost:8080/admin.htmx.html"
+    echo "    Opérateur  : http://localhost:8080/operator.htmx.html"
+    echo "    Président  : http://localhost:8080/president.htmx.html"
+    echo "    Vote       : http://localhost:8080/vote.htmx.html"
+    echo ""
+    echo "  Connexion psql"
+    echo "  ──────────────"
+    echo "    PGPASSWORD=$DB_PASS psql -U $DB_USER -d $DB_NAME -h $DB_HOST"
+    echo ""
+    echo "  Accès distant"
+    echo "  ─────────────"
+    echo "    Remplacer localhost par l'IP de la machine."
+    echo "    Ajouter l'origine dans .env :"
+    echo "    CORS_ALLOWED_ORIGINS=http://localhost:8080,http://<IP>:8080"
+    echo ""
+    echo -e "${BLUE}=========================================${NC}"
+    echo ""
 }
 
 # =============================================================================
@@ -275,13 +341,6 @@ main() {
     esac
 
     verify
-
-    echo ""
-    log "Setup terminé avec succès !"
-    echo ""
-    info "Connexion: PGPASSWORD=$DB_PASS psql -U $DB_USER -d $DB_NAME -h $DB_HOST"
-    info "Lancer le serveur: cd $PROJECT_DIR && php -S localhost:8000 -t public"
-    echo ""
 }
 
 main "$@"

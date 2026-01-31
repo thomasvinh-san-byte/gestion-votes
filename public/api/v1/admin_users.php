@@ -2,11 +2,11 @@
 /**
  * /api/v1/admin_users.php — CRUD utilisateurs
  *
- * GET              → Liste tous les utilisateurs
- * POST             → Créer un utilisateur
- * POST action=update  → Modifier un utilisateur
- * POST action=toggle  → Activer/désactiver
- * POST action=delete  → Désactiver (soft delete)
+ * GET                    → Liste tous les utilisateurs
+ * POST action=create     → Créer un utilisateur (avec mot de passe)
+ * POST action=update     → Modifier un utilisateur
+ * POST action=toggle     → Activer/désactiver
+ * POST action=set_password → Définir le mot de passe
  * POST action=rotate_key → Générer une nouvelle clé API
  */
 require __DIR__ . '/../../../app/api.php';
@@ -46,6 +46,21 @@ if ($method === 'GET') {
 if ($method === 'POST') {
     $in = api_request('POST');
     $action = trim((string)($in['action'] ?? 'create'));
+
+    // ── Définir le mot de passe ──
+    if ($action === 'set_password') {
+        $userId   = api_require_uuid($in, 'user_id');
+        $password = (string)($in['password'] ?? '');
+
+        if (strlen($password) < 8) {
+            api_fail('weak_password', 400, ['detail' => 'Le mot de passe doit contenir au moins 8 caractères.']);
+        }
+
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $userRepo->setPasswordHash(api_current_tenant_id(), $userId, $hash);
+        audit_log('admin.user.password_set', 'user', $userId, []);
+        api_ok(['saved' => true, 'user_id' => $userId]);
+    }
 
     // ── Générer une clé API ──
     if ($action === 'rotate_key') {
@@ -132,14 +147,18 @@ if ($method === 'POST') {
             api_fail('email_exists', 409, ['detail' => "Un utilisateur avec l'email '$email' existe déjà."]);
         }
 
-        $id = $userRepo->newUuid();
-        $apiKey = bin2hex(random_bytes(16));
-        $hash = AuthMiddleware::hashApiKey($apiKey);
+        $password = trim((string)($in['password'] ?? ''));
+        if (strlen($password) < 8) {
+            api_fail('weak_password', 400, ['detail' => 'Le mot de passe doit contenir au moins 8 caractères.']);
+        }
 
-        $userRepo->createUser($id, api_current_tenant_id(), $email, $name, $role, $hash);
+        $id = $userRepo->newUuid();
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+        $userRepo->createUser($id, api_current_tenant_id(), $email, $name, $role, $passwordHash);
 
         audit_log('admin.user.created', 'user', $id, ['email' => $email, 'role' => $role]);
-        api_ok(['saved' => true, 'user_id' => $id, 'api_key' => $apiKey]);
+        api_ok(['saved' => true, 'user_id' => $id]);
     }
 
     api_fail('unknown_action', 400, ['detail' => "Action '$action' inconnue."]);

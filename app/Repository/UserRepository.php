@@ -37,6 +37,45 @@ class UserRepository extends AbstractRepository
     }
 
     /**
+     * Trouve un utilisateur par email (pour auth par mot de passe).
+     */
+    public function findByEmail(string $tenantId, string $email): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, tenant_id, email, name, role, password_hash, is_active
+             FROM users
+             WHERE tenant_id = :tid AND email = :email
+             LIMIT 1",
+            [':tid' => $tenantId, ':email' => $email]
+        );
+    }
+
+    /**
+     * Trouve un utilisateur par email sans filtre tenant (phase login).
+     */
+    public function findByEmailGlobal(string $email): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, tenant_id, email, name, role, password_hash, is_active
+             FROM users
+             WHERE email = :email
+             LIMIT 1",
+            [':email' => $email]
+        );
+    }
+
+    /**
+     * Met a jour le mot de passe d'un utilisateur.
+     */
+    public function setPasswordHash(string $tenantId, string $userId, string $hash): void
+    {
+        $this->execute(
+            "UPDATE users SET password_hash = :h, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
+            [':h' => $hash, ':t' => $tenantId, ':id' => $userId]
+        );
+    }
+
+    /**
      * Liste les noms de roles actifs d'un utilisateur pour une seance donnee.
      */
     public function listUserRolesForMeeting(string $tenantId, string $meetingId, string $userId): array
@@ -119,6 +158,7 @@ class UserRepository extends AbstractRepository
         }
         return $this->selectAll(
             "SELECT u.id, u.email, u.name, u.role, u.is_active, u.created_at, u.updated_at,
+                    CASE WHEN u.password_hash IS NOT NULL THEN true ELSE false END AS has_password,
                     CASE WHEN u.api_key_hash IS NOT NULL THEN true ELSE false END AS has_api_key
              FROM users u
              {$where}
@@ -219,12 +259,12 @@ class UserRepository extends AbstractRepository
         string $email,
         string $name,
         string $role,
-        string $apiKeyHash
+        string $passwordHash
     ): void {
         $this->execute(
-            "INSERT INTO users (id, tenant_id, email, name, role, api_key_hash, is_active, created_at, updated_at)
+            "INSERT INTO users (id, tenant_id, email, name, role, password_hash, is_active, created_at, updated_at)
              VALUES (:id, :t, :e, :n, :r, :h, true, NOW(), NOW())",
-            [':id' => $id, ':t' => $tenantId, ':e' => $email, ':n' => $name, ':r' => $role, ':h' => $apiKeyHash]
+            [':id' => $id, ':t' => $tenantId, ':e' => $email, ':n' => $name, ':r' => $role, ':h' => $passwordHash]
         );
     }
 

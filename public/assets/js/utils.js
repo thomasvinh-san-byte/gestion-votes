@@ -31,60 +31,14 @@ window.Utils = window.Utils || {};
   }
 
   // ==========================================================================
-  // API KEY STORAGE (existant, conservé)
-  // ==========================================================================
-
-  const STORAGE_KEY = 'ag_vote_api_key';
-
-  Utils.getStoredApiKey = function() {
-    try {
-      return localStorage.getItem(STORAGE_KEY) || '';
-    } catch (e) {
-      return '';
-    }
-  };
-
-  Utils.setStoredApiKey = function(key) {
-    try {
-      if (key) {
-        localStorage.setItem(STORAGE_KEY, key);
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    } catch (e) {
-      console.warn('localStorage unavailable');
-    }
-  };
-
-  Utils.bindApiKeyInput = function(role, inputEl, onChange) {
-    const storageKey = role + '.api_key';
-    const saved = localStorage.getItem(storageKey) || '';
-    if (inputEl && saved) inputEl.value = saved;
-    
-    if (inputEl) {
-      inputEl.addEventListener('change', () => {
-        localStorage.setItem(storageKey, inputEl.value || '');
-        if (onChange) onChange();
-      });
-    }
-  };
-
-  // ==========================================================================
-  // HTTP HELPERS (MIS À JOUR AVEC CSRF)
+  // HTTP HELPERS (AVEC CSRF)
   // ==========================================================================
 
   function buildHeaders(extra = {}) {
-    const headers = {
+    return {
       ...getCsrfHeaders(),
       ...extra,
     };
-    
-    const apiKey = Utils.getStoredApiKey();
-    if (apiKey) {
-      headers['X-Api-Key'] = apiKey;
-    }
-    
-    return headers;
   }
 
   Utils.apiGet = async function(url, options = {}) {
@@ -224,11 +178,6 @@ window.Utils = window.Utils || {};
     if (token) {
       e.detail.headers['X-CSRF-Token'] = token;
     }
-    
-    const apiKey = Utils.getStoredApiKey();
-    if (apiKey) {
-      e.detail.headers['X-Api-Key'] = apiKey;
-    }
   });
 
   // Re-init CSRF après HTMX swap
@@ -308,12 +257,6 @@ async function api(url, data = null) {
   if (window.Utils && window.Utils.getCsrfToken) {
     const token = window.Utils.getCsrfToken();
     if (token) headers['X-CSRF-Token'] = token;
-  }
-  
-  // Add API key
-  if (window.Utils && window.Utils.getStoredApiKey) {
-    const apiKey = window.Utils.getStoredApiKey();
-    if (apiKey) headers['X-Api-Key'] = apiKey;
   }
   
   try {
