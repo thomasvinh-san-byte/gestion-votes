@@ -125,7 +125,7 @@
     <div class="login-card">
       <div class="login-brand">
         <h1>AG-VOTE</h1>
-        <p>Gestion des assemblees deliberatives</p>
+        <p>Gestion des assemblées délibératives</p>
       </div>
 
       <form class="login-form" id="loginForm" autocomplete="on">
@@ -157,7 +157,7 @@
       </form>
 
       <div class="login-footer">
-        <a href="/index.html">Retour a l'accueil</a>
+        <a href="/index.html">Retour à l'accueil</a>
       </div>
     </div>
   </div>
@@ -223,9 +223,9 @@
 
         if (resp.ok && data.ok) {
           var user = data.user || (data.data && data.data.user) || {};
-          var roleLabel = { admin: 'Administrateur', operator: 'Operateur', auditor: 'Auditeur', viewer: 'Observateur' };
-          showSuccess('Connecte en tant que ' + (user.name || user.email || '') + ' (' + (roleLabel[user.role] || user.role) + ')');
-          submitBtn.textContent = 'Connecte';
+          var roleLabel = { admin: 'Administrateur', operator: 'Opérateur', auditor: 'Auditeur', viewer: 'Observateur' };
+          showSuccess('Connecté en tant que ' + (user.name || user.email || '') + ' (' + (roleLabel[user.role] || user.role) + ')');
+          submitBtn.textContent = 'Connecté';
 
           setTimeout(function() {
             var redirect = new URLSearchParams(location.search).get('redirect');
@@ -250,7 +250,7 @@
           submitBtn.textContent = 'Se connecter';
         }
       } catch (err) {
-        showError('Erreur reseau. Verifiez votre connexion.');
+        showError('Erreur réseau. Vérifiez votre connexion.');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Se connecter';
       }
@@ -262,8 +262,8 @@
       .then(function(data) {
         var user = (data.data && data.data.user) ? data.data.user : null;
         if (data.ok && user) {
-          var roleLabel = { admin: 'Administrateur', operator: 'Operateur', auditor: 'Auditeur', viewer: 'Observateur' };
-          showSuccess('Deja connecte : ' + (user.name || user.email) + ' (' + (roleLabel[user.role] || user.role) + '). Redirection...');
+          var roleLabel = { admin: 'Administrateur', operator: 'Opérateur', auditor: 'Auditeur', viewer: 'Observateur' };
+          showSuccess('Déjà connecté : ' + (user.name || user.email) + ' (' + (roleLabel[user.role] || user.role) + '). Redirection...');
           setTimeout(function() {
             var redirect = new URLSearchParams(location.search).get('redirect');
             if (redirect) {

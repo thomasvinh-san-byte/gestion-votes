@@ -77,12 +77,12 @@
 
   var ROLE_LABELS = {
     admin: 'Administrateur',
-    operator: 'Operateur',
+    operator: 'Opérateur',
     auditor: 'Auditeur',
     viewer: 'Observateur',
-    president: 'President',
+    president: 'Président',
     assessor: 'Assesseur',
-    voter: 'Electeur'
+    voter: 'Électeur'
   };
 
   // =========================================================================
@@ -103,13 +103,13 @@
 
     b.innerHTML =
       '<div>' +
-      '  <strong>Acces</strong> ' +
+      '  <strong>Accès</strong> ' +
       '  <span class="muted" id="auth-status" style="font-size:12px;">...</span>' +
       '</div>' +
       '<div style="display:flex;gap:8px;align-items:center;">' +
       '  <span id="auth-roles-badge" style="font-size:11px;display:none;"></span>' +
       '  <button class="btn btn-sm" id="auth-login-btn" style="font-size:12px;">Se connecter</button>' +
-      '  <button class="btn btn-sm" id="auth-logout-btn" style="display:none;font-size:12px;">Deconnexion</button>' +
+      '  <button class="btn btn-sm" id="auth-logout-btn" style="display:none;font-size:12px;">Déconnexion</button>' +
       '</div>';
 
     document.body.prepend(b);
@@ -157,7 +157,7 @@
       if (unique.indexOf(labels[i]) === -1) unique.push(labels[i]);
     }
     if (unique.length) {
-      badge.textContent = 'Seance : ' + unique.join(', ');
+      badge.textContent = 'Séance : ' + unique.join(', ');
       badge.style.display = '';
       badge.style.cssText += 'background:var(--color-primary-subtle,#e8eadf);padding:2px 8px;border-radius:4px;';
     }
@@ -216,13 +216,13 @@
     main.innerHTML =
       '<div style="max-width:480px;margin:80px auto;text-align:center;padding:var(--space-8);">' +
       '  <div style="font-size:64px;margin-bottom:16px;">&#x1F6AB;</div>' +
-      '  <h2 style="margin-bottom:8px;">Acces refuse</h2>' +
+      '  <h2 style="margin-bottom:8px;">Accès refusé</h2>' +
       '  <p style="color:var(--color-text-secondary,#666);margin-bottom:24px;">' +
-      '    Cette page necessite le role <strong>' + requiredLabels + '</strong>.<br>' +
-      '    Votre role actuel : <strong>' + roleLabel + '</strong>.' +
+      '    Cette page nécessite le rôle <strong>' + requiredLabels + '</strong>.<br>' +
+      '    Votre rôle actuel : <strong>' + roleLabel + '</strong>.' +
       '  </p>' +
       '  <div style="display:flex;gap:8px;justify-content:center;">' +
-      '    <a href="/" class="btn btn-secondary">Retour a l\'accueil</a>' +
+      '    <a href="/" class="btn btn-secondary">Retour à l\'accueil</a>' +
       '    <a href="/login.html" class="btn btn-primary">Changer de compte</a>' +
       '  </div>' +
       '</div>';
@@ -264,9 +264,9 @@
       window.Auth.meetingRoles = meetingRoles;
 
       if (!authEnabled) {
-        setStatus('auth desactivee (dev)', 'ok', false);
+        setStatus('auth désactivée (dev)', 'ok', false);
       } else if (!user) {
-        setStatus('Non connecte', 'danger', false);
+        setStatus('Non connecté', 'danger', false);
       } else {
         var label = (user.name || user.email || 'utilisateur');
         var roleLabel = ROLE_LABELS[user.role] || user.role;
@@ -285,7 +285,7 @@
       window.Auth.user = null;
       window.Auth.role = null;
       window.Auth.meetingRoles = [];
-      setStatus('Non connecte', 'danger', false);
+      setStatus('Non connecté', 'danger', false);
       applyVisibility();
       enforcePageRole();
     }

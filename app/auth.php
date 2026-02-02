@@ -47,7 +47,7 @@ function require_role(string $role): void {
         }
         http_response_code(500);
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => false, 'error' => 'server_misconfigured', 'detail' => "missing key for role: $role"]);
+        echo json_encode(['ok' => false, 'error' => 'server_misconfigured', 'detail' => "Clé manquante pour le rôle : $role"]);
         exit;
     }
 
