@@ -1,6 +1,6 @@
--- database/seed_demo.sql
+-- database/seeds/03_demo.sql
 -- Seed démo complète pour tests UI. Idempotent.
--- Dépend de seed_minimal.sql.
+-- Dépend de 01_minimal.sql.
 --
 -- Crée :
 --   • 1 séance LIVE (prête à voter) + 1 séance DRAFT (future)

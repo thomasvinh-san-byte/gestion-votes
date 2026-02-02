@@ -62,7 +62,7 @@ APP_SECRET=dev-secret-do-not-use-in-production-change-me-now-please-64chr
 
 ```bash
 PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
-  -f database/seeds/test_users.sql
+  -f database/seeds/02_test_users.sql
 ```
 
 ### Test avec cURL

@@ -1,4 +1,4 @@
--- database/seed_minimal.sql
+-- database/seeds/01_minimal.sql
 -- Seed minimal compatible avec database/schema.sql (idempotent).
 -- Mot de passe par defaut pour tous les utilisateurs : Changez-moi1
 -- Changez les mots de passe via l'admin (/api/v1/admin_users.php action=set_password).

@@ -1,32 +1,99 @@
-# Bundle SQL PostgreSQL — source de vérité
+# database/ — Schéma, migrations et seeds PostgreSQL
 
-Ce bundle remplace les variantes historiques (`setup_bdd_postgre.sql`, `schema.sql`, `setup.sql`, `seed_*`)
-par **une source unique** alignée sur les endpoints actuels (`/public/api/v1`).
+Source de vérité unique pour la base de données AG-VOTE.
 
-## Fichiers
+## Structure
 
-- `database/schema.sql` : schéma canonique Postgres (idempotent)
-- `database/seed_minimal.sql` : 1 tenant (DEFAULT_TENANT_ID) + politiques + users RBAC (sans API key)
-- `database/seed_demo.sql` : séance/membres/motions pour smoke test UI
-- `database/setup.sql` : rappel d'ordre d'exécution
-
-## Installation
-
-```bash
-psql "$DATABASE_URL" -f database/schema.sql
-psql "$DATABASE_URL" -f database/seed_minimal.sql
-psql "$DATABASE_URL" -f database/seed_demo.sql
+```
+database/
+  schema.sql              Schéma PostgreSQL complet (35+ tables, idempotent)
+  setup.sh                Script d'initialisation automatique
+  migrations/             Migrations incrémentales (numérotées)
+    001_admin_enhancements.sql
+    002_rbac_meeting_states.sql
+    003_meeting_roles.sql
+    004_password_auth.sql
+  seeds/                  Données de peuplement (numérotées, idempotent)
+    01_minimal.sql        Tenant, politiques quorum/vote, users RBAC
+    02_test_users.sql     Comptes de test (admin, operator, president, votant...)
+    03_demo.sql           Séance live, 12 membres, 5 motions, bulletins
+    04_e2e.sql            Séance E2E complète (cycle de vie entier)
+    05_test_simple.sql    Dataset : AG 20 membres, quorum simple
+    06_test_weighted.sql  Dataset : copro 100 membres avec tantièmes
+    07_test_incidents.sql Dataset : scénarios d'incidents
 ```
 
-## Notes importantes
+## Installation automatique
 
-- `DEFAULT_TENANT_ID` dans `app/bootstrap.php` est `aaaaaaaa-1111-2222-3333-444444444444` : le seed le crée.
-- Si `APP_AUTH_ENABLED=1`, il faut créer/rotater les clés via l'endpoint `ADMIN` (ex: `POST /api/v1/admin_users.php`),
-  car le seed ne peut pas calculer `api_key_hash` sans connaître `APP_SECRET`.
-- Compat ajoutée : `motions.body` est auto-remplie depuis `motions.description` pour les écrans qui lisent `body`.
-- Compat ajoutée : `ballots.meeting_id` est auto-remplie depuis `motions.meeting_id` (certains services n'envoient pas meeting_id).
+```bash
+# Setup complet (recommandé)
+sudo bash database/setup.sh
 
-## Prochaine étape (code)
+# Sans données de démo (01 + 02 uniquement)
+sudo bash database/setup.sh --no-demo
 
-Après ce bundle SQL, la prochaine étape est de supprimer/bypasser définitivement la branche MySQL (`/public/agvote`, `bootstrap_agvote.php`)
-et de vérifier les derniers `require` cassés (vote.php et quelques endpoints legacy).
+# Schéma + migrations uniquement
+sudo bash database/setup.sh --schema
+
+# Seeds uniquement
+sudo bash database/setup.sh --seed
+
+# Reset complet (DESTRUCTIF)
+sudo bash database/setup.sh --reset
+```
+
+## Installation manuelle
+
+```bash
+# 1. Créer le rôle et la base
+sudo -u postgres createuser vote_app --pwprompt
+sudo -u postgres createdb vote_app -O vote_app
+
+# 2. Schéma
+sudo -u postgres psql -d vote_app -f database/schema.sql
+
+# 3. Migrations
+sudo -u postgres psql -d vote_app -f database/migrations/001_admin_enhancements.sql
+sudo -u postgres psql -d vote_app -f database/migrations/002_rbac_meeting_states.sql
+sudo -u postgres psql -d vote_app -f database/migrations/003_meeting_roles.sql
+sudo -u postgres psql -d vote_app -f database/migrations/004_password_auth.sql
+
+# 4. Seeds (dans l'ordre)
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
+  -f database/seeds/01_minimal.sql
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
+  -f database/seeds/02_test_users.sql
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
+  -f database/seeds/03_demo.sql
+```
+
+## Seeds — détail
+
+| Fichier | Requis | Contenu |
+|---------|--------|---------|
+| `01_minimal.sql` | oui | Tenant par défaut, 5 politiques quorum, 4 politiques vote, 5 users RBAC |
+| `02_test_users.sql` | oui | 6 comptes de test avec mots de passe bcrypt et clés API |
+| `03_demo.sql` | non | 1 séance LIVE + 1 DRAFT, 12 membres, 5 motions, présences, proxy |
+| `04_e2e.sql` | non | Séance E2E complète (conseil municipal, 5 résolutions, parcours) |
+| `05-07_test_*.sql` | non | Jeux de données de recette (volume, pondération, incidents) |
+
+## Comptes de test
+
+Créés par `02_test_users.sql` :
+
+| Rôle | Email | Mot de passe |
+|------|-------|-------------|
+| admin | `admin@ag-vote.local` | `Admin2024!` |
+| operator | `operator@ag-vote.local` | `Operator2024!` |
+| president | `president@ag-vote.local` | `President2024!` |
+| votant | `votant@ag-vote.local` | `Votant2024!` |
+| auditor | `auditor@ag-vote.local` | `Auditor2024!` |
+| viewer | `viewer@ag-vote.local` | `Viewer2024!` |
+
+## Notes
+
+- `DEFAULT_TENANT_ID` = `aaaaaaaa-1111-2222-3333-444444444444` (doit matcher `app/bootstrap.php`)
+- Tous les seeds sont idempotent (ON CONFLICT)
+- Le schéma utilise les extensions `pgcrypto` et `citext`
+- `motions.body` est auto-remplie depuis `motions.description` (compat écrans legacy)
+- `ballots.meeting_id` est auto-remplie depuis `motions.meeting_id` (compat services)

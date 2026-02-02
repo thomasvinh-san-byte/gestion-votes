@@ -1,7 +1,7 @@
 -- =============================================================================
 -- SEED E2E : Parcours complet d'une seance de A a Z
 -- =============================================================================
--- Depend de : seed_minimal.sql (politiques, tenant) + seeds/test_users.sql (comptes)
+-- Depend de : 01_minimal.sql (politiques, tenant) + 02_test_users.sql (comptes)
 --
 -- Cree une seance en DRAFT avec tout le necessaire pour tester le cycle :
 --   DRAFT → SCHEDULED → FROZEN → LIVE → (votes) → CLOSED → VALIDATED → ARCHIVED

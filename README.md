@@ -50,32 +50,33 @@ Le projet est volontairement :
 git clone <url> gestion-votes
 cd gestion-votes
 
-# Creer la base de donnees
-sudo -u postgres createuser vote_app --pwprompt
-sudo -u postgres createdb vote_app -O vote_app
-psql -U vote_app -d vote_app -f database/schema.sql
-psql -U vote_app -d vote_app -f database/seeds/test_users.sql
+# Installer les dependances systeme (Ubuntu/Debian)
+sudo bash scripts/install-deps.sh
 
-# Configurer l'environnement
-cp .env.production .env
-# Editer .env : DB_PASS, APP_SECRET, CORS_ALLOWED_ORIGINS
+# Initialiser la base de donnees (role + schema + migrations + seeds + .env)
+sudo bash database/setup.sh
 ```
+
+Ou sans donnees de demo : `sudo bash database/setup.sh --no-demo`
 
 ### 3. Lancer le serveur de dev
 
 ```bash
-php -S 0.0.0.0:8000 -t public
+php -S 0.0.0.0:8080 -t public
 ```
 
 ### 4. Se connecter
 
-Ouvrir `http://localhost:8000/login.html` et entrer une cle API.
+Ouvrir `http://localhost:8080/login.html` avec les identifiants de test :
 
-Cles de test (defaut dans `database/seeds/test_users.sql`) :
-- **Admin** : `admin-key-2024-secret`
-- **Operateur** : `operator-key-2024-secret`
-- **Auditeur** : `auditor-key-2024-secret`
-- **Lecteur** : `viewer-key-2024-secret`
+| Role | Email | Mot de passe |
+|------|-------|-------------|
+| admin | `admin@ag-vote.local` | `Admin2024!` |
+| operator | `operator@ag-vote.local` | `Operator2024!` |
+| president | `president@ag-vote.local` | `President2024!` |
+| votant | `votant@ag-vote.local` | `Votant2024!` |
+
+Comptes crees par `database/seeds/02_test_users.sql`.
 
 Voir [docs/INSTALLATION.md](docs/INSTALLATION.md) pour l'installation complete.
 
@@ -189,8 +190,9 @@ gestion-votes/
 |   +-- Core/Validation/     Validation des entrees
 +-- database/
 |   +-- schema.sql           Schema PostgreSQL (35+ tables)
-|   +-- seeds/               Donnees de test
-+-- datasets/                Jeux de donnees de recette
+|   +-- setup.sh             Script d'initialisation automatique
+|   +-- migrations/          Migrations incrementales
+|   +-- seeds/               Seeds numerotes (01-07)
 +-- docs/                    Documentation complete
 +-- .env                     Configuration environnement
 +-- .env.production          Template production

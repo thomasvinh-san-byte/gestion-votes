@@ -5,50 +5,98 @@
 #
 # Usage:
 #   sudo bash database/setup.sh              # setup complet (user + schema + seeds)
-#   sudo bash database/setup.sh --schema     # schéma uniquement
-#   sudo bash database/setup.sh --seed       # seeds uniquement
+#   sudo bash database/setup.sh --schema     # schéma + migrations uniquement
+#   sudo bash database/setup.sh --seed       # seeds uniquement (tous)
+#   sudo bash database/setup.sh --seed-only  # alias de --seed
 #   sudo bash database/setup.sh --migrate    # migrations uniquement
+#   sudo bash database/setup.sh --no-demo    # setup complet SANS demo ni e2e
 #   sudo bash database/setup.sh --reset      # SUPPRIME et recrée tout
+#
+# Les seeds sont chargés depuis database/seeds/ par ordre alphabétique :
+#   01_minimal.sql    — tenant, politiques quorum/vote, users RBAC
+#   02_test_users.sql — comptes de test avec mots de passe et clés API
+#   03_demo.sql       — séance live, membres, motions, bulletins (optionnel)
+#   04_e2e.sql        — séance E2E complète (optionnel)
+#   05-07_test_*.sql  — jeux de données de recette (optionnel)
 #
 # Idempotent : peut être relancé autant de fois que nécessaire.
 #
 # Prérequis:
 #   - PostgreSQL 14+ installé et démarré
-#   - Exécuté en tant que root ou utilisateur pouvant sudo
+#   - Exécuté en tant que root ou utilisateur pouvant sudo vers postgres
 # =============================================================================
 
 set -euo pipefail
 
-# Couleurs
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# ---------------------------------------------------------------------------
+# Couleurs (désactivées hors terminal)
+# ---------------------------------------------------------------------------
+if [ -t 1 ]; then
+    RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
+else
+    RED=''; GREEN=''; YELLOW=''; BLUE=''; NC=''
+fi
 
-# Configuration (peut être surchargée par variables d'environnement)
+# ---------------------------------------------------------------------------
+# Configuration (surchargeable par variables d'env ou .env)
+# ---------------------------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+SEEDS_DIR="$SCRIPT_DIR/seeds"
+ENV_FILE="$PROJECT_DIR/.env"
+
 DB_NAME="${DB_NAME:-vote_app}"
 DB_USER="${DB_USER:-vote_app}"
 DB_PASS="${DB_PASS:-vote_app_dev_2026}"
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+# Lire .env si présent (les variables d'env explicites priment)
+if [ -f "$ENV_FILE" ]; then
+    while IFS='=' read -r key val; do
+        key="${key## }"; key="${key%% }"
+        val="${val## }"; val="${val%% }"
+        [[ -z "$key" || "$key" == \#* ]] && continue
+        case "$key" in
+            DB_USER) DB_USER="${DB_USER:-$val}" ;;
+            DB_PASS) DB_PASS="${DB_PASS:-$val}" ;;
+            DB_DSN)
+                _host=$(echo "$val" | sed -n 's/.*host=\([^;]*\).*/\1/p')
+                _name=$(echo "$val" | sed -n 's/.*dbname=\([^;]*\).*/\1/p')
+                _port=$(echo "$val" | sed -n 's/.*port=\([^;]*\).*/\1/p')
+                [ -n "${_host:-}" ] && DB_HOST="${DB_HOST:-$_host}"
+                [ -n "${_name:-}" ] && DB_NAME="${DB_NAME:-$_name}"
+                [ -n "${_port:-}" ] && DB_PORT="${DB_PORT:-$_port}"
+                ;;
+        esac
+    done < "$ENV_FILE"
+fi
 
-# Validation des chemins resolus
+# ---------------------------------------------------------------------------
+# Validation des chemins
+# ---------------------------------------------------------------------------
 if [ ! -f "$SCRIPT_DIR/schema.sql" ]; then
     echo -e "${RED}[ERR]${NC} Fichier introuvable : $SCRIPT_DIR/schema.sql" >&2
-    echo "      Verifiez que le script est lance depuis la racine du projet." >&2
+    echo "      Vérifiez que le script est lancé depuis la racine du projet." >&2
     exit 1
 fi
 
-log()  { echo -e "${GREEN}[OK]${NC} $1"; }
-warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-err()  { echo -e "${RED}[ERR]${NC} $1" >&2; }
+if [ ! -d "$SEEDS_DIR" ]; then
+    echo -e "${RED}[ERR]${NC} Répertoire introuvable : $SEEDS_DIR" >&2
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+log()  { echo -e "${GREEN}[OK]${NC}   $1"; }
+warn() { echo -e "${YELLOW}[..]${NC}   $1"; }
+err()  { echo -e "${RED}[ERR]${NC}  $1" >&2; }
 info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 
-# Helper : exécuter du SQL en tant que postgres (pipe stdin, pas -f)
+# ---------------------------------------------------------------------------
+# Helper : exécuter du SQL en tant que postgres
+# ---------------------------------------------------------------------------
 pg_exec() { sudo -u postgres psql -d "$DB_NAME" -q "$@"; }
 
 # =============================================================================
@@ -56,7 +104,8 @@ pg_exec() { sudo -u postgres psql -d "$DB_NAME" -q "$@"; }
 # =============================================================================
 check_postgres() {
     if ! command -v psql &>/dev/null; then
-        err "psql non trouvé. Installez PostgreSQL: sudo apt install postgresql"
+        err "psql non trouvé. Installez PostgreSQL :"
+        err "  sudo apt install postgresql postgresql-contrib"
         exit 1
     fi
 
@@ -66,6 +115,8 @@ check_postgres() {
             local ver
             ver=$(pg_lsclusters -h | head -1 | awk '{print $1}')
             pg_ctlcluster "$ver" main start 2>/dev/null || true
+        elif command -v service &>/dev/null; then
+            sudo service postgresql start 2>/dev/null || true
         fi
         sleep 1
         if ! pg_isready -q 2>/dev/null; then
@@ -117,7 +168,7 @@ create_user_and_db() {
     " 2>/dev/null
     log "Extensions et permissions configurées"
 
-    # pg_hba.conf: vérifier/ajouter la règle pour le socket local
+    # pg_hba.conf : vérifier/ajouter la règle pour le socket local
     local hba
     hba=$(sudo -u postgres psql -tAc "SHOW hba_file" 2>/dev/null)
     if [ -n "$hba" ] && ! grep -q "^local.*$DB_NAME.*$DB_USER.*scram-sha-256" "$hba" 2>/dev/null; then
@@ -139,17 +190,18 @@ apply_schema() {
     pg_exec < "$SCRIPT_DIR/schema.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     log "Schéma appliqué"
 
-    # Accorder les permissions sur les tables créées par postgres
-    pg_exec -c "
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
-    " 2>/dev/null
+    grant_permissions
 }
 
 # =============================================================================
 # Migrations
 # =============================================================================
 apply_migrations() {
+    if [ ! -d "$SCRIPT_DIR/migrations" ]; then
+        warn "Aucun répertoire migrations/ trouvé"
+        return
+    fi
+
     info "Application des migrations..."
     for f in "$SCRIPT_DIR"/migrations/*.sql; do
         [ -f "$f" ] || continue
@@ -159,11 +211,7 @@ apply_migrations() {
         pg_exec < "$f" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     done
 
-    # Accorder les permissions sur les nouvelles tables
-    pg_exec -c "
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
-    " 2>/dev/null
+    grant_permissions
     log "Migrations appliquées"
 }
 
@@ -171,29 +219,38 @@ apply_migrations() {
 # Seeds
 # =============================================================================
 apply_seeds() {
+    local no_demo="${1:-false}"
+
     info "Application des seeds..."
+    for f in "$SEEDS_DIR"/*.sql; do
+        [ -f "$f" ] || continue
+        local fname
+        fname=$(basename "$f")
 
-    if [ -f "$SCRIPT_DIR/seed_minimal.sql" ]; then
-        info "  → seed_minimal.sql"
-        pg_exec < "$SCRIPT_DIR/seed_minimal.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
-    fi
+        # En mode --no-demo, on ne charge que 01 et 02
+        if [ "$no_demo" = "true" ]; then
+            case "$fname" in
+                01_*|02_*) ;;  # toujours chargés
+                *) info "  ⊘ $fname (ignoré, mode --no-demo)"; continue ;;
+            esac
+        fi
 
-    if [ -f "$SCRIPT_DIR/seeds/test_users.sql" ]; then
-        info "  → seeds/test_users.sql"
-        pg_exec < "$SCRIPT_DIR/seeds/test_users.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
-    fi
+        info "  → $fname"
+        pg_exec < "$f" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    done
 
-    if [ -f "$SCRIPT_DIR/seed_demo.sql" ]; then
-        info "  → seed_demo.sql"
-        pg_exec < "$SCRIPT_DIR/seed_demo.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
-    fi
+    grant_permissions
+    log "Seeds appliqués"
+}
 
-    if [ -f "$SCRIPT_DIR/seeds/seed_e2e.sql" ]; then
-        info "  → seeds/seed_e2e.sql"
-        pg_exec < "$SCRIPT_DIR/seeds/seed_e2e.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
-    fi
-
-    log "Seeds appliquées"
+# =============================================================================
+# Permissions (appelé après chaque étape SQL)
+# =============================================================================
+grant_permissions() {
+    pg_exec -c "
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
+    " 2>/dev/null
 }
 
 # =============================================================================
@@ -221,7 +278,7 @@ setup_env() {
 # Reset (destructif)
 # =============================================================================
 reset_db() {
-    warn "ATTENTION: Cette opération va SUPPRIMER la base '$DB_NAME' et la recréer."
+    warn "ATTENTION : cette opération va SUPPRIMER la base '$DB_NAME' et la recréer."
     read -p "Êtes-vous sûr ? (oui/non) " confirm
     if [ "$confirm" != "oui" ]; then
         info "Annulé."
@@ -235,7 +292,7 @@ reset_db() {
     create_user_and_db
     apply_schema
     apply_migrations
-    apply_seeds
+    apply_seeds "false"
     setup_env
 }
 
@@ -284,10 +341,12 @@ verify() {
     echo ""
     echo "  Identifiants de test (email / mot de passe)"
     echo "  ────────────────────────────────────────────"
-    echo "    admin    : admin@ag-vote.local    / Admin2024!"
-    echo "    operator : operator@ag-vote.local / Operator2024!"
-    echo "    auditor  : auditor@ag-vote.local  / Auditor2024!"
-    echo "    viewer   : viewer@ag-vote.local   / Viewer2024!"
+    echo "    admin     : admin@ag-vote.local     / Admin2024!"
+    echo "    operator  : operator@ag-vote.local  / Operator2024!"
+    echo "    president : president@ag-vote.local / President2024!"
+    echo "    votant    : votant@ag-vote.local    / Votant2024!"
+    echo "    auditor   : auditor@ag-vote.local   / Auditor2024!"
+    echo "    viewer    : viewer@ag-vote.local    / Viewer2024!"
     echo ""
     echo "  Pages principales"
     echo "  ─────────────────"
@@ -327,11 +386,18 @@ main() {
             apply_schema
             apply_migrations
             ;;
-        --seed)
-            apply_seeds
+        --seed|--seed-only)
+            apply_seeds "false"
             ;;
         --migrate)
             apply_migrations
+            ;;
+        --no-demo)
+            create_user_and_db
+            apply_schema
+            apply_migrations
+            apply_seeds "true"
+            setup_env
             ;;
         --reset)
             reset_db
@@ -340,7 +406,7 @@ main() {
             create_user_and_db
             apply_schema
             apply_migrations
-            apply_seeds
+            apply_seeds "false"
             setup_env
             ;;
     esac

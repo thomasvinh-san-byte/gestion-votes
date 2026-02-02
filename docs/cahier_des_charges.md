@@ -16,7 +16,7 @@
 | 1.0     | 2026-01-08 | Équipe technique | Consolidation initiale cahier                                    | En attente  |
 | 1.1     | 2026-01-08 | Lead Technique   | Alignement implémentation + priorité UI/UX + URLs lisibles (low) | ✅ Validé    |
 
-**Documents référencés (livrables)** : INSTALL.md, SECURITY.md, docs/ (guides rôles), tests/ (recette), schema.sql (final), seed_demo.sql.
+**Documents référencés (livrables)** : INSTALL.md, SECURITY.md, docs/ (guides rôles), tests/ (recette), schema.sql (final), database/seeds/03_demo.sql.
 
 ---
 
