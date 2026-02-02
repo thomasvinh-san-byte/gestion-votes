@@ -231,17 +231,30 @@
             var redirect = new URLSearchParams(location.search).get('redirect');
             if (redirect) {
               window.location.href = redirect;
-            } else {
-              // Redirection selon le role
-              var role = user.role || 'viewer';
-              var defaultPage = {
-                admin: '/admin.htmx.html',
-                operator: '/meetings.htmx.html',
-                auditor: '/trust.htmx.html',
-                viewer: '/meetings.htmx.html'
-              };
-              window.location.href = defaultPage[role] || '/meetings.htmx.html';
+              return;
             }
+            // Check meeting roles for president redirect
+            fetch('/api/v1/whoami.php', { credentials: 'same-origin' })
+              .then(function(r) { return r.json(); })
+              .then(function(who) {
+                var mr = (who.data && who.data.meeting_roles) || [];
+                var isPresident = mr.some(function(r) { return r.role === 'president'; });
+                if (isPresident) {
+                  window.location.href = '/president.htmx.html';
+                } else {
+                  var role = user.role || 'viewer';
+                  var defaultPage = {
+                    admin: '/admin.htmx.html',
+                    operator: '/meetings.htmx.html',
+                    auditor: '/trust.htmx.html',
+                    viewer: '/meetings.htmx.html'
+                  };
+                  window.location.href = defaultPage[role] || '/meetings.htmx.html';
+                }
+              })
+              .catch(function() {
+                window.location.href = '/meetings.htmx.html';
+              });
           }, 600);
         } else {
           var detail = data.detail || data.error || 'Email ou mot de passe incorrect.';
@@ -271,6 +284,12 @@
             var redirect = new URLSearchParams(location.search).get('redirect');
             if (redirect) {
               window.location.href = redirect;
+              return;
+            }
+            var mr = (data.data && data.data.meeting_roles) || [];
+            var isPresident = mr.some(function(r) { return r.role === 'president'; });
+            if (isPresident) {
+              window.location.href = '/president.htmx.html';
             } else {
               var defaultPage = {
                 admin: '/admin.htmx.html',

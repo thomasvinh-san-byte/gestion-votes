@@ -264,8 +264,48 @@
       }
     }
 
+    // Auto-select: try saved, then try Auth user name matching
     const saved = (localStorage.getItem("public.member_id") || "").trim();
-    if (saved && [...sel.options].some(o=>o.value===saved)) sel.value = saved;
+    if (saved && [...sel.options].some(o=>o.value===saved)) {
+      sel.value = saved;
+    } else if (window.Auth && window.Auth.user) {
+      autoSelectMember(sel);
+    } else if (window.Auth && window.Auth.ready) {
+      window.Auth.ready.then(() => autoSelectMember(sel));
+    }
+
+    // Update member display in footer
+    updateMemberFromSelect(sel);
+    sel.addEventListener('change', () => updateMemberFromSelect(sel));
+  }
+
+  function autoSelectMember(sel) {
+    if (!window.Auth || !window.Auth.user) return;
+    const userName = (window.Auth.user.name || '').toLowerCase().trim();
+    const userEmail = (window.Auth.user.email || '').toLowerCase().trim();
+    if (!userName && !userEmail) return;
+
+    for (const opt of sel.options) {
+      if (!opt.value) continue;
+      const text = opt.textContent.toLowerCase();
+      if ((userName && text.includes(userName)) || (userEmail && text.includes(userEmail))) {
+        sel.value = opt.value;
+        localStorage.setItem("public.member_id", opt.value);
+        updateMemberFromSelect(sel);
+        break;
+      }
+    }
+  }
+
+  function updateMemberFromSelect(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    if (typeof window.updateMemberDisplay === 'function') {
+      if (opt && opt.value) {
+        window.updateMemberDisplay({ name: opt.textContent.split('(')[0].trim() });
+      } else {
+        window.updateMemberDisplay(null);
+      }
+    }
   }
 
   async function refresh(){

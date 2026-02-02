@@ -67,6 +67,11 @@
     currentMeetingId = meetingId;
     updateMeetingLinks(meetingId);
 
+    // Notify wizard
+    if (window.Wizard && window.Wizard.selectMeeting) {
+      window.Wizard.selectMeeting(meetingId);
+    }
+
     // Update URL
     const url = new URL(window.location);
     url.searchParams.set('meeting_id', meetingId);
@@ -184,7 +189,7 @@
     }
   }
 
-  // Load active motion
+  // Load active motion + motions list (single API call)
   async function loadActiveMotion(meetingId) {
     try {
       const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${meetingId}`);
@@ -230,7 +235,7 @@
           <div class="p-4 bg-surface rounded-lg border text-center">
             <div class="text-muted mb-2">Aucune résolution ouverte</div>
             <div class="text-sm text-secondary">
-              Ouvrez une résolution depuis la page Résolutions
+              Ouvrez une résolution depuis la liste ci-dessous
             </div>
           </div>
         `;
@@ -242,8 +247,118 @@
         document.getElementById('kpiVoted').textContent = '—';
         document.getElementById('kpiPending').textContent = '—';
       }
+
+      // Also render the full motions list
+      renderMotionsList(allMotions, meetingId);
     } catch (err) {
       console.error('Motion error:', err);
+    }
+  }
+
+  // ==========================================================================
+  // MOTIONS LIST (merged from operator_flow)
+  // ==========================================================================
+
+  function renderMotionsList(motions, meetingId) {
+    const card = document.getElementById('motionsListCard');
+    const container = document.getElementById('motionsList');
+    const countBadge = document.getElementById('motionsCountBadge');
+
+    if (!card || !container) return;
+
+    card.style.display = 'block';
+    countBadge.textContent = motions.length;
+
+    if (motions.length === 0) {
+      container.innerHTML = `
+        <div class="text-center p-4">
+          <div class="text-muted mb-2">Aucune résolution créée</div>
+          <a class="btn btn-sm btn-primary" data-meeting-link href="/motions.htmx.html">
+            Créer des résolutions
+          </a>
+        </div>
+      `;
+      updateMeetingLinks(meetingId);
+      return;
+    }
+
+    container.innerHTML = motions.map((m, i) => {
+      const isOpen = !!(m.opened_at && !m.closed_at);
+      const isClosed = !!m.closed_at;
+      const statusClass = isOpen ? 'active' : (isClosed ? 'done' : '');
+      const statusIcon = isOpen ? '🔴' : (isClosed ? '✅' : '⚪');
+      const statusText = isOpen ? 'Vote en cours' : (isClosed ? 'Terminé' : 'En attente');
+
+      let buttons = '';
+      if (!isOpen && !isClosed) {
+        buttons = `<button class="btn btn-sm btn-primary btn-open-motion" data-motion-id="${m.id}">Ouvrir</button>`;
+      } else if (isOpen) {
+        buttons = `<button class="btn btn-sm btn-secondary btn-close-motion" data-motion-id="${m.id}">Clôturer</button>`;
+      }
+
+      return `
+        <div class="motion-item ${statusClass}">
+          <div class="motion-number">${i + 1}</div>
+          <div class="motion-info">
+            <div class="motion-title">${escapeHtml(m.title)}</div>
+            <div class="motion-meta">${statusIcon} ${statusText}</div>
+          </div>
+          <div class="flex gap-2">${buttons}</div>
+        </div>
+      `;
+    }).join('');
+
+    // Bind open buttons
+    container.querySelectorAll('.btn-open-motion').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openVote(btn.dataset.motionId, meetingId);
+      });
+    });
+
+    // Bind close buttons
+    container.querySelectorAll('.btn-close-motion').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeVote(btn.dataset.motionId);
+      });
+    });
+  }
+
+  async function openVote(motionId, meetingId) {
+    try {
+      const { body } = await api('/api/v1/motions_open.php', {
+        meeting_id: meetingId || currentMeetingId,
+        motion_id: motionId
+      });
+
+      if (body && body.ok) {
+        setNotif('success', 'Vote ouvert');
+        loadActiveMotion(currentMeetingId);
+      } else {
+        setNotif('error', body?.error || 'Erreur ouverture vote');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function closeVote(motionId) {
+    if (!confirm('Clôturer ce vote ?')) return;
+    try {
+      const { body } = await api('/api/v1/motions_close.php', {
+        meeting_id: currentMeetingId,
+        motion_id: motionId || currentMotionId
+      });
+
+      if (body && body.ok) {
+        setNotif('success', 'Vote clôturé');
+        loadActiveMotion(currentMeetingId);
+      } else {
+        setNotif('error', body?.error || 'Erreur clôture vote');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
     }
   }
 
@@ -404,27 +519,14 @@
 
   document.getElementById('btnOpenMotion').addEventListener('click', async () => {
     if (!currentMeetingId) return;
-    // Redirect to motions page to select which motion to open
-    window.location.href = `/motions.htmx.html?meeting_id=${currentMeetingId}`;
+    // Scroll to motions list card
+    const card = document.getElementById('motionsListCard');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 
   document.getElementById('btnCloseMotion').addEventListener('click', async () => {
     if (!currentMeetingId || !currentMotionId) return;
-
-    if (!confirm('Êtes-vous sûr de vouloir clôturer le vote en cours ?')) return;
-
-    try {
-      const { body } = await api('/api/v1/motions_close.php', { motion_id: currentMotionId });
-
-      if (body && body.ok) {
-        setNotif('success', 'Vote clôturé');
-        loadActiveMotion(currentMeetingId);
-      } else {
-        setNotif('error', body?.error || 'Erreur');
-      }
-    } catch (err) {
-      setNotif('error', err.message);
-    }
+    closeVote(currentMotionId);
   });
 
   // Register quorum drawer

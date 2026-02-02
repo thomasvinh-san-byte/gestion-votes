@@ -8,6 +8,28 @@
   <title>Fiche séance — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    .motion-list { display: flex; flex-direction: column; gap: var(--space-3, 12px); }
+    .motion-item {
+      display: flex; align-items: center; gap: var(--space-4, 16px);
+      padding: var(--space-3, 12px) var(--space-4, 16px);
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg, 8px); transition: all 0.15s;
+    }
+    .motion-item:hover { border-color: var(--color-primary); box-shadow: var(--shadow-sm); }
+    .motion-item.active { border-color: var(--color-warning); background: var(--color-warning-subtle); }
+    .motion-item.done { border-color: var(--color-success); background: var(--color-success-subtle); }
+    .motion-number {
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      background: var(--color-bg-subtle); border-radius: var(--radius-md, 6px);
+      font-weight: 700; flex-shrink: 0; font-size: 14px;
+    }
+    .motion-item.active .motion-number { background: var(--color-warning); color: #fff; }
+    .motion-item.done .motion-number { background: var(--color-success); color: #fff; }
+    .motion-info { flex: 1; min-width: 0; }
+    .motion-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .motion-meta { font-size: var(--text-sm, 13px); color: var(--color-text-muted); }
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -59,9 +81,9 @@
             <span class="quick-action-icon">👤</span>
             <span>Membres</span>
           </a>
-          <a class="quick-action quick-action-highlight" data-meeting-link href="/operator_flow.htmx.html">
-            <span class="quick-action-icon">▶️</span>
-            <span>Conduire</span>
+          <a class="quick-action quick-action-highlight" data-meeting-link href="/validate.htmx.html">
+            <span class="quick-action-icon">✅</span>
+            <span>Validation</span>
           </a>
         </div>
 
@@ -215,6 +237,24 @@
           </div>
         </div>
 
+        <!-- Motions List Card (merged from operator_flow) -->
+        <div class="card mb-6" id="motionsListCard" style="display: none;">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="card-title">📋 Résolutions</h3>
+                <p class="card-description">Ouvrez / clôturez les votes directement</p>
+              </div>
+              <span class="badge badge-primary" id="motionsCountBadge">0</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="motion-list" id="motionsList">
+              <div class="text-center p-4 text-muted">Chargement...</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Quorum Indicator -->
         <div class="card mb-6">
           <div class="card-header">
@@ -293,6 +333,7 @@
   <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>
   <script src="/assets/js/meeting-context.js"></script>
+  <script src="/assets/js/session-wizard.js"></script>
   <script src="/assets/js/operator.js"></script>
 </body>
 </html>
