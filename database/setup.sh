@@ -188,6 +188,11 @@ apply_seeds() {
         pg_exec < "$SCRIPT_DIR/seed_demo.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     fi
 
+    if [ -f "$SCRIPT_DIR/seeds/seed_e2e.sql" ]; then
+        info "  → seeds/seed_e2e.sql"
+        pg_exec < "$SCRIPT_DIR/seeds/seed_e2e.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    fi
+
     log "Seeds appliquées"
 }
 
