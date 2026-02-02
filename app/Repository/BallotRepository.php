@@ -134,7 +134,7 @@ class BallotRepository extends AbstractRepository
             [
                 ':tid' => $tenantId, ':mid' => $motionId, ':mem' => $memberId,
                 ':value' => $value, ':weight' => $weight,
-                ':proxy' => $isProxyVote, ':proxy_src' => $proxySourceMemberId,
+                ':proxy' => $isProxyVote ? 't' : 'f', ':proxy_src' => $proxySourceMemberId,
             ]
         );
     }
