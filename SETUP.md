@@ -57,10 +57,12 @@ cp .env.example .env
 Le `.env` fourni pour le dev désactive l'authentification :
 
 ```
-APP_AUTH_ENABLED=0    # Pas de clé API requise
+APP_AUTH_ENABLED=0    # Pas de login requis
 CSRF_ENABLED=0        # Pas de token CSRF
 RATE_LIMIT_ENABLED=0  # Pas de rate limiting
 ```
+
+Pour tester avec l'authentification activée (`APP_AUTH_ENABLED=1`), voir les comptes de test ci-dessous.
 
 **Variables de connexion DB à ajuster :**
 
@@ -96,9 +98,22 @@ php -S 0.0.0.0:8000 -t public
 | Archives | http://localhost:8000/archives.htmx.html | operator |
 | Validation | http://localhost:8000/validate.htmx.html | president |
 
-## 5. Données de démo
+## 5. Comptes de test
+
+Les comptes sont créés par `database/seeds/test_users.sql` (appliqué automatiquement par `setup.sh --seed`).
+
+| Rôle | Email | Mot de passe | Rôle système |
+|---|---|---|---|
+| Admin | `admin@ag-vote.local` | `Admin2024!` | admin |
+| Opérateur | `operator@ag-vote.local` | `Operator2024!` | operator |
+| Président | `president@ag-vote.local` | `President2024!` | operator |
+| Votant | `votant@ag-vote.local` | `Votant2024!` | viewer |
+
+## 6. Données de démo
 
 Après le seed, la base contient :
+
+### Seed démo (`seed_demo.sql`)
 
 - **1 séance LIVE** : "Assemblée Générale Ordinaire" (démarrée, en cours)
 - **1 séance DRAFT** : "AGE — Prochaine" (dans 14 jours)
@@ -113,9 +128,25 @@ Après le seed, la base contient :
   - Questions diverses — à venir
 - **5 politiques de quorum** + **4 politiques de vote**
 
-## 6. Réinitialiser
+### Seed E2E (`seed_e2e.sql`)
+
+- **1 séance DRAFT** : "Conseil Municipal — Séance E2E"
+- **12 élus municipaux** (poids de vote égal : 1 voix)
+- **5 résolutions** avec politiques variées (majorité simple, absolue, 2/3, scrutin secret)
+- **1 procuration** : Fontaine → Dupont
+- **Rôles de séance** : président, assesseur, électeur
+
+> Pour le parcours de test complet de cette séance, voir **[docs/TEST_E2E.md](docs/TEST_E2E.md)**.
+
+## 7. Réinitialiser
 
 Pour revenir à l'état initial :
+
+```bash
+sudo bash database/setup.sh --seed
+```
+
+Ou manuellement :
 
 ```bash
 sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
@@ -125,7 +156,7 @@ sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -f ./seed_minimal.sql
 sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -f ./seed_demo.sql
 ```
 
-## 7. API rapide
+## 8. API rapide
 
 Avec `APP_AUTH_ENABLED=0`, tous les endpoints répondent sans clé :
 
