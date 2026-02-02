@@ -379,13 +379,119 @@
     }
   });
 
+  // Show waiting state: meeting selector for president
+  function showMeetingSelector() {
+    const container = document.querySelector('.container');
+    if (!container) return;
+
+    // Hide tabs and panels
+    const tabs = document.querySelector('.tabs');
+    if (tabs) tabs.style.display = 'none';
+    if (panelSpeech) panelSpeech.style.display = 'none';
+    if (panelValidation) panelValidation.style.display = 'none';
+
+    // Insert selector card
+    const selectorDiv = document.createElement('div');
+    selectorDiv.id = 'presidentWaiting';
+    selectorDiv.innerHTML = `
+      <div class="card mb-6">
+        <div class="card-header">
+          <h3 class="card-title">Bienvenue, Monsieur le Président</h3>
+          <p class="card-description">Sélectionnez une séance ou attendez qu'elle soit créée par l'opérateur</p>
+        </div>
+        <div class="card-body">
+          <div class="form-group mb-4">
+            <label class="form-label" for="presidentMeetingSelect">Séance disponible</label>
+            <select class="form-input" id="presidentMeetingSelect">
+              <option value="">— En attente d'une séance —</option>
+            </select>
+          </div>
+          <button class="btn btn-primary w-full" id="btnSelectMeeting" disabled>
+            Rejoindre la séance
+          </button>
+          <div class="text-sm text-muted text-center mt-3" id="waitingHint">
+            La page s'actualisera automatiquement lorsqu'une séance sera disponible.
+          </div>
+        </div>
+      </div>
+    `;
+
+    const notifBox = document.getElementById('notif_box');
+    if (notifBox && notifBox.nextSibling) {
+      container.insertBefore(selectorDiv, notifBox.nextSibling);
+    } else {
+      container.appendChild(selectorDiv);
+    }
+
+    const sel = document.getElementById('presidentMeetingSelect');
+    const btn = document.getElementById('btnSelectMeeting');
+
+    sel.addEventListener('change', () => {
+      btn.disabled = !sel.value;
+    });
+
+    btn.addEventListener('click', () => {
+      if (sel.value) {
+        window.location.href = '/president.htmx.html?meeting_id=' + encodeURIComponent(sel.value);
+      }
+    });
+
+    // Poll for meetings
+    loadAvailableMeetings(sel, btn);
+    meetingPollTimer = setInterval(() => loadAvailableMeetings(sel, btn), 5000);
+  }
+
+  let meetingPollTimer = null;
+
+  async function loadAvailableMeetings(sel, btn) {
+    try {
+      const { body } = await api('/api/v1/meetings_index.php');
+      if (!body || !body.ok || !Array.isArray(body.data?.meetings)) return;
+
+      const meetings = body.data.meetings;
+      const current = sel.value;
+      sel.innerHTML = '<option value="">— Sélectionner une séance —</option>';
+
+      let hasLive = null;
+      meetings.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = `${m.title} (${m.status || 'draft'})`;
+        sel.appendChild(opt);
+        if (m.status === 'live' && !hasLive) hasLive = m;
+      });
+
+      // Auto-select live meeting
+      if (hasLive) {
+        sel.value = hasLive.id;
+        btn.disabled = false;
+        if (window.Wizard && window.Wizard.showToast) {
+          window.Wizard.showToast('Séance en cours détectée : ' + hasLive.title);
+        }
+        document.getElementById('waitingHint').innerHTML =
+          '<strong>Séance en cours détectée !</strong> Cliquez sur "Rejoindre" pour commencer.';
+      } else if (meetings.length > 0) {
+        if (current) sel.value = current;
+        btn.disabled = !sel.value;
+        document.getElementById('waitingHint').textContent =
+          meetings.length + ' séance(s) disponible(s). Sélectionnez-en une pour commencer.';
+      } else {
+        btn.disabled = true;
+        document.getElementById('waitingHint').textContent =
+          'En attente... La page se rafraîchit automatiquement.';
+      }
+    } catch (err) {
+      console.error('Meeting poll error:', err);
+    }
+  }
+
   // Initialize
   function init() {
     currentMeetingId = getMeetingIdFromUrl();
 
     if (!currentMeetingId) {
-      setNotif('error', 'Aucune séance sélectionnée');
-      setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
+      // Instead of redirecting, show meeting selector and wait
+      showMeetingSelector();
       return;
     }
 
@@ -404,6 +510,7 @@
   // Cleanup
   window.addEventListener('beforeunload', () => {
     if (pollingInterval) clearInterval(pollingInterval);
+    if (meetingPollTimer) clearInterval(meetingPollTimer);
   });
 
   init();

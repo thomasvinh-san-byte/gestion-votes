@@ -179,6 +179,7 @@
   <script src="/assets/js/utils.js"></script>
   <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/session-wizard.js"></script>
 
   <script>
   // Global state required by meetings.js
@@ -245,6 +246,11 @@
       sel.addEventListener('change', () => {
         setMeetingLinks(sel.value);
         state.currentMeetingId = sel.value || null;
+        // Notify wizard
+        if (sel.value && window.Wizard && window.Wizard.selectMeeting) {
+          var opt = sel.options[sel.selectedIndex];
+          window.Wizard.selectMeeting(sel.value, opt ? opt.textContent : '');
+        }
       });
     }
 
@@ -280,6 +286,10 @@
           if (mid && sel) {
             sel.value = mid;
             setMeetingLinks(mid);
+            // Notify wizard
+            if (window.Wizard && window.Wizard.onMeetingCreated) {
+              window.Wizard.onMeetingCreated(mid, title);
+            }
           }
         } catch (err) {
           setNotif('error', 'Erreur réseau: ' + err.message);
