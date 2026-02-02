@@ -371,9 +371,12 @@
     $("#memberSelect")?.addEventListener("change", refresh);
     $("#btnRefresh")?.addEventListener("click", refresh);
 
-    document.querySelectorAll("[data-choice]").forEach(btn=>{
-      btn.addEventListener("click", ()=>cast(btn.dataset.choice));
-    });
+    // Only bind direct cast if no confirmation overlay (vote.htmx.html has its own overlay that calls submitVote)
+    if (!document.getElementById('confirmationOverlay')) {
+      document.querySelectorAll("[data-choice]").forEach(btn=>{
+        btn.addEventListener("click", ()=>cast(btn.dataset.choice));
+      });
+    }
 
     loadMeetings().then(async () => {
       if (urlMeetingId) {
