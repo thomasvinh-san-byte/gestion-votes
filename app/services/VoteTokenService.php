@@ -5,6 +5,8 @@ namespace AgVote\Service;
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\VoteTokenRepository;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * VoteTokenService — Gestion des tokens de vote (vote_tokens table).

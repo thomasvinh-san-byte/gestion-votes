@@ -15,7 +15,7 @@ $motion = db_select_one(
    WHERE tenant_id = ? AND meeting_id = ? AND opened_at IS NOT NULL AND closed_at IS NULL
    ORDER BY opened_at DESC
    LIMIT 1",
-  [DEFAULT_TENANT_ID, $meetingId]
+  [api_current_tenant_id(), $meetingId]
 );
 
 $motionTitle = $motion ? (string)$motion['title'] : 'Aucune résolution ouverte';
@@ -24,25 +24,25 @@ $motionMeta = $motion ? ('Vote en cours') : '—';
 // Expected voters (simple: present+remote)
 $eligible = (int)(db_select_one(
   "SELECT COUNT(*) AS c FROM members WHERE tenant_id = ? AND meeting_id = ?",
-  [DEFAULT_TENANT_ID, $meetingId]
+  [api_current_tenant_id(), $meetingId]
 )['c'] ?? 0);
 
 $currentPresent = (int)(db_select_one(
   "SELECT COUNT(*) AS c FROM attendance WHERE tenant_id = ? AND meeting_id = ? AND status IN ('present','remote')",
-  [DEFAULT_TENANT_ID, $meetingId]
+  [api_current_tenant_id(), $meetingId]
 )['c'] ?? 0);
 
 // Quorum required based on meeting.quorum_policy_id threshold if any
 $meeting = db_select_one(
   "SELECT quorum_policy_id, validated_at FROM meetings WHERE tenant_id = ? AND id = ?",
-  [DEFAULT_TENANT_ID, $meetingId]
+  [api_current_tenant_id(), $meetingId]
 );
 $required = null;
 $quorumReached = null;
 if ($meeting && !empty($meeting['quorum_policy_id'])) {
   $qp = db_select_one(
     "SELECT threshold FROM quorum_policies WHERE tenant_id = ? AND id = ?",
-    [DEFAULT_TENANT_ID, $meeting['quorum_policy_id']]
+    [api_current_tenant_id(), $meeting['quorum_policy_id']]
   );
   if ($qp) {
     $th = (float)$qp['threshold'];
@@ -61,7 +61,7 @@ if ($motion) {
      FROM ballots
      WHERE tenant_id = ? AND meeting_id = ? AND motion_id = ?
      GROUP BY value",
-    [DEFAULT_TENANT_ID, $meetingId, $motion['id']]
+    [api_current_tenant_id(), $meetingId, $motion['id']]
   );
   foreach ($rows as $r) {
     $v = (string)$r['value'];

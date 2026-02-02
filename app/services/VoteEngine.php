@@ -7,6 +7,8 @@ use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\MemberRepository;
+use InvalidArgumentException;
+use RuntimeException;
 
 final class VoteEngine
 {

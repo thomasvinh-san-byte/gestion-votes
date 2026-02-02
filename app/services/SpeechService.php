@@ -6,6 +6,7 @@ namespace AgVote\Service;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\SpeechRepository;
+use RuntimeException;
 
 /**
  * SpeechService — gestion de la parole (main levée).

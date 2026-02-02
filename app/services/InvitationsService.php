@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 use AgVote\Repository\InvitationRepository;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Service metier pour les invitations.

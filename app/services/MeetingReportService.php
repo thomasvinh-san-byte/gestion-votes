@@ -8,6 +8,9 @@ use AgVote\Repository\MotionRepository;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\ManualActionRepository;
 use AgVote\Repository\PolicyRepository;
+use InvalidArgumentException;
+use RuntimeException;
+use Throwable;
 
 final class MeetingReportService
 {
@@ -16,7 +19,7 @@ final class MeetingReportService
         $meetingId = trim($meetingId);
         if ($meetingId === '') throw new InvalidArgumentException('meeting_id obligatoire');
 
-        $tenant = DEFAULT_TENANT_ID;
+        $tenant = (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
 
         $meetingRepo = new MeetingRepository();
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);

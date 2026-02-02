@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 use AgVote\Repository\ProxyRepository;
+use InvalidArgumentException;
 
 /**
  * Service metier pour les procurations.

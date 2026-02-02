@@ -6,6 +6,8 @@ namespace AgVote\Service;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\MemberRepository;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Consolidation "officielle" d'un résultat de motion.

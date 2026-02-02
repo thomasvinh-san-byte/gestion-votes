@@ -9,7 +9,7 @@ if ($meetingId === '') {
   exit;
 }
 
-$tenantId = defined('DEFAULT_TENANT_ID') ? DEFAULT_TENANT_ID : null;
+$tenantId = api_current_tenant_id();
 
 $meeting = db_select_one(
   "SELECT id, title, validated_at FROM meetings WHERE tenant_id = ? AND id = ?",
