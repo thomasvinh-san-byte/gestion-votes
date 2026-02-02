@@ -136,13 +136,16 @@
     if (!currentMeetingId) return;
 
     try {
-      const { body } = await api(`/api/v1/motions.php?meeting_id=${currentMeetingId}&status=open`);
+      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${currentMeetingId}`);
       const infoDiv = document.getElementById('activeMotionInfo');
       const badge = document.getElementById('motionBadge');
       const btnClose = document.getElementById('btnCloseVote');
 
-      if (body && body.ok && body.data && (body.data.motion || body.data.motions?.length > 0)) {
-        const motion = body.data.motion || body.data.motions[0];
+      const allMotions = body?.data?.motions || [];
+      const openMotions = allMotions.filter(m => m.opened_at && !m.closed_at);
+
+      if (openMotions.length > 0) {
+        const motion = openMotions[0];
         badge.className = 'badge badge-warning badge-dot';
         badge.textContent = 'Vote ouvert';
 

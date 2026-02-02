@@ -523,7 +523,7 @@ class MotionRepository extends AbstractRepository
     ): void {
         $this->execute(
             "INSERT INTO motions (id, tenant_id, meeting_id, agenda_id, title, description, secret, vote_policy_id, quorum_policy_id, created_at)
-             VALUES (:id, :tid, :mid, :aid, :title, :desc, :secret, NULLIF(:vpid,''), NULLIF(:qpid,''), now())",
+             VALUES (:id, :tid, :mid, :aid, :title, :desc, :secret, NULLIF(:vpid,'')::uuid, NULLIF(:qpid,'')::uuid, now())",
             [
                 ':id' => $id,
                 ':tid' => $tenantId,
@@ -553,7 +553,7 @@ class MotionRepository extends AbstractRepository
         $this->execute(
             "UPDATE motions
              SET title = :title, description = :desc, secret = :secret,
-                 vote_policy_id = NULLIF(:vpid,''), quorum_policy_id = NULLIF(:qpid,'')
+                 vote_policy_id = NULLIF(:vpid,'')::uuid, quorum_policy_id = NULLIF(:qpid,'')::uuid
              WHERE tenant_id = :tid AND id = :id",
             [
                 ':title' => $title,

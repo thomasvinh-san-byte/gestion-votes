@@ -94,6 +94,40 @@
           </div>
         </div>
 
+        <!-- Meeting Control: Transitions + President Assignment -->
+        <div class="card mb-6" id="meetingControlCard" style="display: none;">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="card-title">⚙️ Pilotage de la séance</h3>
+                <p class="card-description">Transitions d'état et rôles</p>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-2 gap-6">
+              <!-- Transitions -->
+              <div>
+                <div class="font-medium mb-3">Changer l'état</div>
+                <div class="flex flex-col gap-2" id="transitionButtons">
+                  <div class="text-muted text-sm">Sélectionnez une séance</div>
+                </div>
+              </div>
+              <!-- President Assignment -->
+              <div>
+                <div class="font-medium mb-3">Président de séance</div>
+                <div id="presidentInfo" class="mb-3 text-sm text-muted">Aucun président assigné</div>
+                <div class="flex gap-2">
+                  <select class="form-input flex-1" id="presidentSelect">
+                    <option value="">— Choisir un utilisateur —</option>
+                  </select>
+                  <button class="btn btn-secondary" id="btnAssignPresident">Assigner</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- KPI Grid -->
         <div class="kpi-grid mb-6">
           <div class="kpi-card">

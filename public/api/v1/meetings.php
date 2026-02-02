@@ -15,6 +15,16 @@ $repo = new MeetingRepository();
 
 try {
     if ($method === 'GET') {
+        // Single meeting by id
+        $singleId = trim($_GET['id'] ?? '');
+        if ($singleId !== '') {
+            $meeting = $repo->findByIdForTenant($singleId, api_current_tenant_id());
+            if (!$meeting) {
+                api_fail('meeting_not_found', 404);
+            }
+            api_ok($meeting);
+        }
+        // List all meetings
         $rows = $repo->listByTenant(api_current_tenant_id());
         api_ok(['meetings' => $rows]);
 
