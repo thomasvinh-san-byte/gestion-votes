@@ -42,6 +42,24 @@ require_once __DIR__ . '/Core/Validation/InputValidator.php';
 $autoload = __DIR__ . '/../vendor/autoload.php';
 if (file_exists($autoload)) {
     require_once $autoload;
+} else {
+    // Fallback PSR-4 autoloader (fonctionne sans composer install)
+    spl_autoload_register(function (string $class): void {
+        $map = [
+            'AgVote\\Repository\\' => __DIR__ . '/Repository/',
+            'AgVote\\Service\\'    => __DIR__ . '/services/',
+        ];
+        foreach ($map as $prefix => $dir) {
+            $len = strlen($prefix);
+            if (strncmp($class, $prefix, $len) === 0) {
+                $file = $dir . str_replace('\\', '/', substr($class, $len)) . '.php';
+                if (file_exists($file)) {
+                    require_once $file;
+                    return;
+                }
+            }
+        }
+    });
 }
 
 // =============================================================================
