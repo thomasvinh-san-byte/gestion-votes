@@ -171,6 +171,17 @@ foreach ($unjustifiedManualVotes as $row) {
 // ============================================================================
 // Résumé
 // ============================================================================
+// Add frontend-expected aliases (message = description, context from available data)
+foreach ($anomalies as &$a) {
+    $a['message'] = $a['description'] ?? '';
+    $parts = [];
+    if (!empty($a['member_name'])) $parts[] = $a['member_name'];
+    if (!empty($a['motion_title'])) $parts[] = $a['motion_title'];
+    if (!empty($a['giver_name'])) $parts[] = $a['giver_name'] . ' → ' . ($a['receiver_name'] ?? '');
+    $a['context'] = implode(' · ', $parts) ?: null;
+}
+unset($a);
+
 $summary = [
     'total' => count($anomalies),
     'danger' => count(array_filter($anomalies, fn($a) => $a['severity'] === 'danger')),

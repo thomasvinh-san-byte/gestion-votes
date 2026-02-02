@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\PolicyRepository;
 
 api_require_role('operator');
 
@@ -54,6 +55,17 @@ try {
             $scheduledAt ?: null,
             $location !== '' ? $location : null
         );
+
+        // Auto-assign tenant's first vote/quorum policies as defaults
+        $policyRepo = new PolicyRepository();
+        $votePolicies = $policyRepo->listVotePolicies(api_current_tenant_id());
+        $quorumPolicies = $policyRepo->listQuorumPolicies(api_current_tenant_id());
+        $defaults = [];
+        if (!empty($votePolicies))   $defaults['vote_policy_id']   = $votePolicies[0]['id'];
+        if (!empty($quorumPolicies)) $defaults['quorum_policy_id'] = $quorumPolicies[0]['id'];
+        if ($defaults) {
+            $repo->updateFields($id, api_current_tenant_id(), $defaults);
+        }
 
         audit_log('meeting_created', 'meeting', $id, [
             'title'       => $title,

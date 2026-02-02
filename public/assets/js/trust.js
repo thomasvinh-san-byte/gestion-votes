@@ -169,7 +169,7 @@
   // Load motions
   async function loadMotions(meetingId) {
     try {
-      const { body } = await api(`/api/v1/motions.php?meeting_id=${meetingId}`);
+      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${meetingId}`);
 
       const tbody = document.getElementById('motionsTbody');
       const kpi = document.getElementById('kpiMotions');

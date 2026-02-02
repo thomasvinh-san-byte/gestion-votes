@@ -430,15 +430,15 @@
       <!-- Vote buttons -->
       <div class="vote-buttons-container">
         <div class="vote-buttons">
-          <button class="vote-btn vote-btn-for" id="btnFor" data-choice="FOR" disabled>
+          <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled>
             <span class="vote-btn-icon">👍</span>
             <span>Pour</span>
           </button>
-          <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="AGAINST" disabled>
+          <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="against" disabled>
             <span class="vote-btn-icon">👎</span>
             <span>Contre</span>
           </button>
-          <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="ABSTAIN" disabled>
+          <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstain" disabled>
             <span class="vote-btn-icon">✋</span>
             <span>Abstention</span>
           </button>
@@ -500,9 +500,9 @@
     
     // Choice labels and icons
     const choiceInfo = {
-      'FOR': { label: 'POUR', icon: '👍', color: 'var(--color-success)' },
-      'AGAINST': { label: 'CONTRE', icon: '👎', color: 'var(--color-danger)' },
-      'ABSTAIN': { label: 'ABSTENTION', icon: '✋', color: 'var(--color-text-muted)' }
+      'for': { label: 'POUR', icon: '👍', color: 'var(--color-success)' },
+      'against': { label: 'CONTRE', icon: '👎', color: 'var(--color-danger)' },
+      'abstain': { label: 'ABSTENTION', icon: '✋', color: 'var(--color-text-muted)' }
     };
     
     // Vote button click -> show confirmation

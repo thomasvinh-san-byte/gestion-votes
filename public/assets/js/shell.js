@@ -108,8 +108,8 @@
             '</div>' +
             checks.map(function(c) {
               return '<div style="display:flex;align-items:center;gap:8px;">' +
-                '<span>' + (c.ok ? '✅' : '❌') + '</span>' +
-                '<span>' + esc(c.label || c.check || '') + '</span>' +
+                '<span>' + (c.passed ? '✅' : '❌') + '</span>' +
+                '<span>' + esc(c.label || '') + '</span>' +
               '</div>';
             }).join('') +
           '</div>';

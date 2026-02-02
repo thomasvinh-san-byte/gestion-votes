@@ -32,7 +32,7 @@ try {
         api_fail('invalid_receiver_member_id', 400, ['detail' => 'receiver_member_id doit être un UUID ou vide (pour révoquer).']);
     }
 
-    $row = ProxiesService::upsert($meetingId, $giverId, $receiverRaw, $scope ?: 'full');
+    ProxiesService::upsert($meetingId, $giverId, $receiverRaw);
 
     if (function_exists('audit_log')) {
         audit_log('proxy_upsert', 'meeting', $meetingId, [
