@@ -53,24 +53,42 @@
     else { dbody.innerHTML = ""; }
   }
 
-  // ---- Menu drawer ----
+  // ---- Menu drawer (role-aware) ----
   function renderMenu(meetingId) {
     const mid = meetingId ? '?meeting_id=' + encodeURIComponent(meetingId) : '';
-    dbody.innerHTML =
-      '<nav style="display:flex;flex-direction:column;gap:6px;padding:4px 0;">' +
-        '<a href="/operator.htmx.html' + mid + '" class="btn btn-ghost" style="justify-content:flex-start;">Opérateur</a>' +
-        '<a href="/president.htmx.html' + mid + '" class="btn btn-ghost" style="justify-content:flex-start;">Président</a>' +
-        '<a href="/motions.htmx.html' + mid + '" class="btn btn-ghost" style="justify-content:flex-start;">Résolutions</a>' +
-        '<a href="/attendance.htmx.html' + mid + '" class="btn btn-ghost" style="justify-content:flex-start;">Présences</a>' +
-        '<a href="/proxies.htmx.html' + mid + '" class="btn btn-ghost" style="justify-content:flex-start;">Procurations</a>' +
-        '<a href="/invitations.htmx.html' + mid + '" class="btn btn-ghost" style="justify-content:flex-start;">Invitations</a>' +
-        '<a href="/trust.htmx.html' + mid + '" class="btn btn-ghost" style="justify-content:flex-start;">Contrôle</a>' +
-        '<a href="/report.htmx.html' + mid + '" class="btn btn-ghost" style="justify-content:flex-start;">PV / Export</a>' +
-        '<hr style="border-color:var(--color-border,#ddd);margin:4px 0;">' +
-        '<a href="/meetings.htmx.html" class="btn btn-ghost" style="justify-content:flex-start;">Séances</a>' +
-        '<a href="/members.htmx.html" class="btn btn-ghost" style="justify-content:flex-start;">Membres</a>' +
-        '<a href="/admin.htmx.html" class="btn btn-ghost" style="justify-content:flex-start;">Admin</a>' +
-      '</nav>';
+    const role = (window.Auth && window.Auth.role) || null;
+    const mr = (window.Auth && window.Auth.meetingRoles) || [];
+    const check = (window.Auth && window.Auth.hasAccess)
+      ? function(r) { return window.Auth.hasAccess(r, role, mr); }
+      : function() { return true; };
+
+    const items = [
+      { href: '/operator.htmx.html',    label: 'Opérateur',     req: 'operator',            useMid: true },
+      { href: '/president.htmx.html',   label: 'Président',     req: 'president,operator',  useMid: true },
+      { href: '/motions.htmx.html',     label: 'Résolutions',   req: 'operator',            useMid: true },
+      { href: '/attendance.htmx.html',  label: 'Présences',     req: 'operator',            useMid: true },
+      { href: '/proxies.htmx.html',     label: 'Procurations',  req: 'operator',            useMid: true },
+      { href: '/invitations.htmx.html', label: 'Invitations',   req: 'operator',            useMid: true },
+      { href: '/vote.htmx.html',        label: 'Vote',          req: 'voter,operator',      useMid: true },
+      { href: '/trust.htmx.html',       label: 'Contrôle',      req: 'auditor,assessor',    useMid: true },
+      { href: '/report.htmx.html',      label: 'PV / Export',   req: 'operator,president',  useMid: true },
+      { sep: true },
+      { href: '/meetings.htmx.html',    label: 'Séances',       req: 'viewer',              useMid: false },
+      { href: '/members.htmx.html',     label: 'Membres',       req: 'operator',            useMid: false },
+      { href: '/archives.htmx.html',    label: 'Archives',      req: 'viewer',              useMid: false },
+      { href: '/admin.htmx.html',       label: 'Admin',         req: 'admin',               useMid: false }
+    ];
+
+    let html = '<nav style="display:flex;flex-direction:column;gap:6px;padding:4px 0;">';
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      if (it.sep) { html += '<hr style="border-color:var(--color-border,#ddd);margin:4px 0;">'; continue; }
+      if (!check(it.req)) continue;
+      const url = it.href + (it.useMid ? mid : '');
+      html += '<a href="' + url + '" class="btn btn-ghost" style="justify-content:flex-start;">' + it.label + '</a>';
+    }
+    html += '</nav>';
+    dbody.innerHTML = html;
   }
 
   // ---- Readiness drawer ----

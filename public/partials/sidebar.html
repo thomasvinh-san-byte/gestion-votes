@@ -4,28 +4,44 @@
   </a>
 </div>
 <nav class="nav" id="sidebarNav">
-  <a class="nav-item" href="/meetings.htmx.html" data-page="meetings">
+  <!-- Tableau de bord : accessible a tous les connectes -->
+  <a class="nav-item" href="/meetings.htmx.html" data-page="meetings" data-requires-role="viewer">
     <span class="nav-item-icon" aria-hidden="true">&#x1f3db;&#xfe0f;</span>
     <span>Tableau de bord</span>
   </a>
-  <a class="nav-item" href="/operator.htmx.html" data-page="operator">
+  <!-- Fiche seance : operator+ -->
+  <a class="nav-item" href="/operator.htmx.html" data-page="operator" data-requires-role="operator">
     <span class="nav-item-icon" aria-hidden="true">&#x1f5c2;&#xfe0f;</span>
     <span>Fiche s&eacute;ance</span>
   </a>
-  <a class="nav-item" href="/members.htmx.html" data-page="members">
+  <!-- Membres : operator+ -->
+  <a class="nav-item" href="/members.htmx.html" data-page="members" data-requires-role="operator">
     <span class="nav-item-icon" aria-hidden="true">&#x1f465;</span>
     <span>Membres</span>
   </a>
-  <a class="nav-item" href="/trust.htmx.html" data-page="trust">
+  <!-- President : role de seance president, ou operator+ -->
+  <a class="nav-item" href="/president.htmx.html" data-page="president" data-requires-role="president,operator">
+    <span class="nav-item-icon" aria-hidden="true">&#x1f451;</span>
+    <span>Pr&eacute;sidence</span>
+  </a>
+  <!-- Vote : role de seance voter, ou operator+ -->
+  <a class="nav-item" href="/vote.htmx.html" data-page="vote" data-requires-role="voter,operator">
+    <span class="nav-item-icon" aria-hidden="true">&#x1f5f3;&#xfe0f;</span>
+    <span>Vote</span>
+  </a>
+  <!-- Controle : auditor+ ou assessor (seance) -->
+  <a class="nav-item" href="/trust.htmx.html" data-page="trust" data-requires-role="auditor,assessor">
     <span class="nav-item-icon" aria-hidden="true">&#x1f6e1;&#xfe0f;</span>
     <span>Contr&ocirc;le</span>
   </a>
-  <a class="nav-item" href="/archives.htmx.html" data-page="archives">
+  <!-- Archives : viewer+ -->
+  <a class="nav-item" href="/archives.htmx.html" data-page="archives" data-requires-role="viewer">
     <span class="nav-item-icon" aria-hidden="true">&#x1f4da;</span>
     <span>Archives</span>
   </a>
   <div class="border-t mt-4 pt-4">
-    <a class="nav-item" href="/admin.htmx.html" data-page="admin">
+    <!-- Admin : admin uniquement -->
+    <a class="nav-item" href="/admin.htmx.html" data-page="admin" data-requires-role="admin">
       <span class="nav-item-icon" aria-hidden="true">&#x2699;&#xfe0f;</span>
       <span>Administration</span>
     </a>
