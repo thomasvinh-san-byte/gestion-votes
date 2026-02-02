@@ -95,12 +95,18 @@
                   <option value="">— Sélectionner une séance —</option>
                 </select>
               </div>
-              <div class="flex gap-2">
+              <div class="flex gap-2 flex-wrap">
                 <a class="btn btn-secondary flex-1" id="btnOpenMotions" href="/motions.htmx.html">
                   📋 Résolutions
                 </a>
+                <a class="btn btn-secondary flex-1" id="btnOpenAttendance" href="/attendance.htmx.html">
+                  👥 Présences
+                </a>
                 <a class="btn btn-primary flex-1" id="btnOpenOperator" href="/operator.htmx.html">
                   ▶️ Conduire
+                </a>
+                <a class="btn btn-secondary flex-1" id="btnOpenPresident" href="/president.htmx.html">
+                  🎖️ Président
                 </a>
               </div>
               <p class="form-helper mt-3">
@@ -195,7 +201,7 @@
 
     // Navigation guard: disable links until a meeting is selected
     function setMeetingLinks(meetingId) {
-      [['btnOpenMotions', '/motions.htmx.html'], ['btnOpenOperator', '/operator.htmx.html']].forEach(([id, base]) => {
+      [['btnOpenMotions', '/motions.htmx.html'], ['btnOpenAttendance', '/attendance.htmx.html'], ['btnOpenOperator', '/operator.htmx.html'], ['btnOpenPresident', '/president.htmx.html']].forEach(([id, base]) => {
         const a = document.getElementById(id);
         if (!a) return;
         if (!meetingId) {

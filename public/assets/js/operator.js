@@ -91,7 +91,17 @@
         const statusInfo = Shared.MEETING_STATUS_MAP[m.status] || Shared.MEETING_STATUS_MAP['draft'];
         statusBadge.className = `badge ${statusInfo.badge}`;
         statusBadge.textContent = statusInfo.text;
+
+        // Show control card and update transitions
+        document.getElementById('meetingControlCard').style.display = 'block';
+        updateTransitionButtons(m.status);
+
+        // Load meeting roles (president assignment)
+        loadMeetingRoles(meetingId);
       }
+
+      // Load users for president dropdown (once)
+      loadUsersForPresident();
 
       // Load attendance stats
       await loadAttendanceStats(meetingId);
@@ -113,13 +123,19 @@
       const { body } = await api(`/api/v1/attendances.php?meeting_id=${meetingId}`);
 
       if (body && body.ok && body.data) {
-        const stats = body.data.summary || {};
-        document.getElementById('statPresent').textContent = stats.present || 0;
-        document.getElementById('statRemote').textContent = stats.remote || 0;
-        document.getElementById('statProxy').textContent = stats.proxy || 0;
-        document.getElementById('statAbsent').textContent = stats.absent || 0;
-        document.getElementById('badgeAttendance').textContent = stats.total || 0;
-        document.getElementById('kpiPresent').textContent = (stats.present || 0) + (stats.remote || 0);
+        const attendances = body.data.attendances || [];
+        const present = attendances.filter(a => a.mode === 'present').length;
+        const remote = attendances.filter(a => a.mode === 'remote').length;
+        const proxy = attendances.filter(a => a.mode === 'proxy').length;
+        const total = attendances.length;
+        const absent = total - present - remote - proxy;
+
+        document.getElementById('statPresent').textContent = present;
+        document.getElementById('statRemote').textContent = remote;
+        document.getElementById('statProxy').textContent = proxy;
+        document.getElementById('statAbsent').textContent = absent;
+        document.getElementById('badgeAttendance').textContent = total;
+        document.getElementById('kpiPresent').textContent = present + remote;
       }
     } catch (err) {
       console.error('Attendance error:', err);
@@ -171,15 +187,18 @@
   // Load active motion
   async function loadActiveMotion(meetingId) {
     try {
-      const { body } = await api(`/api/v1/motions.php?meeting_id=${meetingId}&status=open`);
+      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${meetingId}`);
 
       const btnOpen = document.getElementById('btnOpenMotion');
       const btnClose = document.getElementById('btnCloseMotion');
       const badge = document.getElementById('badgeMotion');
       const detail = document.getElementById('motionDetail');
 
-      if (body && body.ok && body.data && body.data.motions && body.data.motions.length > 0) {
-        const m = body.data.motions[0];
+      const allMotions = body?.data?.motions || [];
+      const openMotions = allMotions.filter(m => m.opened_at && !m.closed_at);
+
+      if (openMotions.length > 0) {
+        const m = openMotions[0];
         currentMotionId = m.id;
 
         badge.className = 'badge badge-warning badge-dot';
@@ -228,11 +247,153 @@
     }
   }
 
-  // Reset context
+  // ==========================================================================
+  // MEETING TRANSITIONS
+  // ==========================================================================
+
+  const TRANSITIONS = {
+    draft: [{ to: 'scheduled', label: 'Planifier', icon: '📅', cls: 'btn-secondary' }],
+    scheduled: [
+      { to: 'frozen', label: 'Geler (verrouiller)', icon: '🧊', cls: 'btn-warning' },
+      { to: 'draft', label: 'Retour brouillon', icon: '↩️', cls: 'btn-ghost' }
+    ],
+    frozen: [
+      { to: 'live', label: 'Ouvrir la séance', icon: '▶️', cls: 'btn-primary' },
+      { to: 'scheduled', label: 'Dégeler', icon: '↩️', cls: 'btn-ghost' }
+    ],
+    live: [{ to: 'closed', label: 'Clôturer la séance', icon: '⏹️', cls: 'btn-danger' }],
+    closed: [{ to: 'validated', label: 'Valider la séance', icon: '✅', cls: 'btn-primary' }],
+    validated: [{ to: 'archived', label: 'Archiver', icon: '📦', cls: 'btn-secondary' }],
+    archived: []
+  };
+
+  let currentMeetingStatus = null;
+
+  function updateTransitionButtons(status) {
+    currentMeetingStatus = status;
+    const container = document.getElementById('transitionButtons');
+    const transitions = TRANSITIONS[status] || [];
+
+    if (transitions.length === 0) {
+      container.innerHTML = '<div class="text-sm text-muted">Aucune transition disponible</div>';
+      return;
+    }
+
+    container.innerHTML = transitions.map(t => `
+      <button class="btn ${t.cls}" data-transition="${t.to}">
+        ${t.icon} ${t.label}
+      </button>
+    `).join('');
+
+    container.querySelectorAll('[data-transition]').forEach(btn => {
+      btn.addEventListener('click', () => doTransition(btn.dataset.transition));
+    });
+  }
+
+  async function doTransition(toStatus) {
+    if (!currentMeetingId) return;
+    if (!confirm(`Changer l'état de la séance vers "${toStatus}" ?`)) return;
+
+    try {
+      const { body } = await api('/api/v1/meeting_transition.php', {
+        meeting_id: currentMeetingId,
+        to_status: toStatus
+      });
+
+      if (body && body.ok) {
+        setNotif('success', `Séance passée en "${toStatus}"`);
+        loadMeetings();
+        loadMeetingContext(currentMeetingId);
+      } else {
+        const debug = body?.debug || {};
+        let msg = body?.error || 'Erreur';
+        if (debug.required_role) {
+          msg += ` — Rôle requis: ${debug.required_role} (votre rôle: ${debug.user_role || '?'})`;
+        }
+        setNotif('error', msg);
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  // ==========================================================================
+  // PRESIDENT ASSIGNMENT
+  // ==========================================================================
+
+  async function loadUsersForPresident() {
+    try {
+      const { body } = await api('/api/v1/admin_users.php');
+      const sel = document.getElementById('presidentSelect');
+      sel.innerHTML = '<option value="">— Choisir un utilisateur —</option>';
+
+      const users = body?.data?.users || body?.data?.items || [];
+      users.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id;
+        opt.textContent = `${u.name || u.email} (${u.role})`;
+        sel.appendChild(opt);
+      });
+    } catch (err) {
+      console.error('Load users error:', err);
+    }
+  }
+
+  async function loadMeetingRoles(meetingId) {
+    try {
+      const { body } = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${meetingId}`);
+      const items = body?.data?.items || [];
+      const president = items.find(r => r.role === 'president');
+      const infoDiv = document.getElementById('presidentInfo');
+
+      if (president) {
+        infoDiv.innerHTML = `<span class="badge badge-success">Président: ${escapeHtml(president.user_name || president.name || president.email || '?')}</span>`;
+        const sel = document.getElementById('presidentSelect');
+        if (sel) sel.value = president.user_id || '';
+      } else {
+        infoDiv.innerHTML = '<span class="badge badge-warning">Aucun président assigné</span>';
+      }
+    } catch (err) {
+      console.error('Meeting roles error:', err);
+    }
+  }
+
+  document.getElementById('btnAssignPresident').addEventListener('click', async () => {
+    const userId = document.getElementById('presidentSelect').value;
+    if (!userId || !currentMeetingId) {
+      setNotif('error', 'Sélectionnez un utilisateur');
+      return;
+    }
+
+    try {
+      const { body } = await api('/api/v1/admin_meeting_roles.php', {
+        action: 'assign',
+        meeting_id: currentMeetingId,
+        user_id: userId,
+        role: 'president'
+      });
+
+      if (body && body.ok) {
+        setNotif('success', 'Président assigné');
+        loadMeetingRoles(currentMeetingId);
+      } else {
+        setNotif('error', body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  });
+
+  // ==========================================================================
+  // CONTEXT MANAGEMENT
+  // ==========================================================================
+
   function resetContext() {
     currentMeetingId = null;
+    currentMeetingStatus = null;
     document.getElementById('meetingSummary').innerHTML = 'Sélectionnez une séance';
     document.getElementById('meetingStatusBadge').textContent = '—';
+    document.getElementById('meetingControlCard').style.display = 'none';
     updateMeetingLinks(null);
   }
 

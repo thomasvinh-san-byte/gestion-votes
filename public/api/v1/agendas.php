@@ -64,7 +64,7 @@ try {
         $id  = $agendaRepo->generateUuid();
         $idx = $agendaRepo->nextIdx($meetingId);
 
-        $agendaRepo->create($id, $meetingId, $idx, $title);
+        $agendaRepo->create($id, api_current_tenant_id(), $meetingId, $idx, $title);
 
         audit_log('agenda_created', 'agenda', $id, [
             'meeting_id' => $meetingId,

@@ -63,9 +63,14 @@ switch ($toStatus) {
         break;
 
     case 'live':
+        $now = date('Y-m-d H:i:s');
         // started_at = COALESCE(started_at, NOW()) — only set if not already set
         if (empty($meeting['started_at'])) {
-            $fields['started_at'] = date('Y-m-d H:i:s');
+            $fields['started_at'] = $now;
+        }
+        // If scheduled_at is in the future, set it to now to satisfy meetings_times_ok constraint
+        if (!empty($meeting['scheduled_at']) && $meeting['scheduled_at'] > $now) {
+            $fields['scheduled_at'] = $now;
         }
         $fields['opened_by'] = $userId;
         break;

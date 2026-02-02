@@ -14,7 +14,14 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\UserRepository;
 
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-api_require_role('admin');
+
+// GET: operators can list users (needed for meeting role assignment)
+// POST: admin only (create, update, toggle, etc.)
+if ($method === 'GET') {
+    api_require_role(['admin', 'operator']);
+} else {
+    api_require_role('admin');
+}
 
 $validSystemRoles = ['admin', 'operator', 'auditor', 'viewer'];
 

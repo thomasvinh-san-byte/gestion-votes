@@ -51,15 +51,15 @@
 
     let filtered = items;
 
-    // Apply status filter
+    // Apply status filter (API field is 'mode')
     if (currentFilter !== 'all') {
-      filtered = filtered.filter(a => a.status === currentFilter);
+      filtered = filtered.filter(a => a.mode === currentFilter);
     }
 
     // Apply search filter
     if (query) {
       filtered = filtered.filter(a => {
-        const name = (a.member_name || a.name || '').toLowerCase();
+        const name = (a.full_name || a.member_name || a.name || '').toLowerCase();
         const email = (a.email || '').toLowerCase();
         return name.includes(query) || email.includes(query);
       });
@@ -81,11 +81,11 @@
     }
 
     attendanceList.innerHTML = filtered.map(a => {
-      const name = escapeHtml(a.member_name || a.name || '—');
+      const name = escapeHtml(a.full_name || a.member_name || a.name || '—');
       const email = escapeHtml(a.email || '');
-      const power = a.voting_power ?? 1;
-      const status = a.status || 'absent';
-      const initials = getInitials(a.member_name || a.name);
+      const power = a.voting_power ?? a.effective_power ?? 1;
+      const status = a.mode || 'absent';
+      const initials = getInitials(a.full_name || a.member_name || a.name);
 
       return `
         <div class="attendance-card ${status}" data-member-id="${a.member_id}">
@@ -125,10 +125,10 @@
   // Update KPIs
   function updateKPIs(items) {
     const total = items.length;
-    const present = items.filter(a => a.status === 'present').length;
-    const remote = items.filter(a => a.status === 'remote').length;
-    const proxy = items.filter(a => a.status === 'proxy').length;
-    const absent = items.filter(a => !a.status || a.status === 'absent').length;
+    const present = items.filter(a => a.mode === 'present').length;
+    const remote = items.filter(a => a.mode === 'remote').length;
+    const proxy = items.filter(a => a.mode === 'proxy').length;
+    const absent = items.filter(a => !a.mode || a.mode === 'absent').length;
 
     document.getElementById('kpiTotal').textContent = total;
     document.getElementById('kpiPresent').textContent = present;
@@ -176,7 +176,8 @@
 
     try {
       const { body } = await api(`/api/v1/attendances.php?meeting_id=${currentMeetingId}`);
-      attendanceCache = body?.data || body?.items || [];
+      attendanceCache = body?.data?.attendances || body?.items || [];
+      if (!Array.isArray(attendanceCache)) attendanceCache = [];
       render(attendanceCache);
       updateKPIs(attendanceCache);
       loadQuorum();
@@ -191,18 +192,18 @@
   }
 
   // Update status
-  async function updateStatus(memberId, status) {
+  async function updateStatus(memberId, mode) {
     try {
-      const { body } = await api('/api/v1/attendances.php', {
+      const { body } = await api('/api/v1/attendances_upsert.php', {
         meeting_id: currentMeetingId,
         member_id: memberId,
-        status
+        mode
       });
 
       if (body && body.ok !== false) {
         // Update cache
         const item = attendanceCache.find(a => String(a.member_id) === String(memberId));
-        if (item) item.status = status;
+        if (item) item.mode = mode;
 
         render(attendanceCache);
         updateKPIs(attendanceCache);
@@ -222,7 +223,7 @@
     try {
       const { body } = await api('/api/v1/attendances_bulk.php', {
         meeting_id: currentMeetingId,
-        status: 'present'
+        mode: 'present'
       });
 
       if (body && body.ok) {

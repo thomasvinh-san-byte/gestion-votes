@@ -169,7 +169,7 @@
 
     try {
       const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${currentMeetingId}`);
-      motionsCache = body?.items || body?.motions || body?.data || [];
+      motionsCache = body?.data?.motions || body?.items || body?.motions || [];
       render(motionsCache);
     } catch (err) {
       motionsList.innerHTML = `
@@ -246,6 +246,25 @@
   document.getElementById('btnCancelModal').addEventListener('click', closeModal);
   backdrop.addEventListener('click', closeModal);
 
+  // Get or create a default agenda for the meeting, returns agenda_id
+  async function getOrCreateAgenda() {
+    // First try to find an existing agenda
+    const { body: listBody } = await api(`/api/v1/agendas.php?meeting_id=${currentMeetingId}`);
+    const existing = listBody?.data?.agendas || [];
+    if (existing.length > 0) {
+      return existing[0].id;
+    }
+    // None found — create a default one
+    const { body: createBody } = await api('/api/v1/agendas.php', {
+      meeting_id: currentMeetingId,
+      title: 'Résolutions'
+    });
+    if (createBody?.data?.agenda_id) {
+      return createBody.data.agenda_id;
+    }
+    throw new Error('Impossible de créer le point d\'ordre du jour');
+  }
+
   // Save motion
   document.getElementById('btnSaveMotion').addEventListener('click', async () => {
     const title = document.getElementById('motionTitle').value.trim();
@@ -258,11 +277,10 @@
     }
 
     try {
-      // Create agenda if needed
-      await api('/api/v1/agendas.php', { meeting_id: currentMeetingId, title: 'Résolutions' }).catch(() => {});
+      const agendaId = await getOrCreateAgenda();
 
       const { body } = await api('/api/v1/motions.php', {
-        meeting_id: currentMeetingId,
+        agenda_id: agendaId,
         title,
         description,
         secret

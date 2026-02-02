@@ -51,13 +51,14 @@ class AgendaRepository extends AbstractRepository
     /**
      * Cree un point d'ordre du jour.
      */
-    public function create(string $id, string $meetingId, int $idx, string $title): void
+    public function create(string $id, string $tenantId, string $meetingId, int $idx, string $title): void
     {
         $this->execute(
-            "INSERT INTO agendas (id, meeting_id, idx, title, description, is_approved, created_at)
-             VALUES (:id, :meeting_id, :idx, :title, NULL, false, NOW())",
+            "INSERT INTO agendas (id, tenant_id, meeting_id, idx, title, description, is_approved, created_at)
+             VALUES (:id, :tenant_id, :meeting_id, :idx, :title, NULL, false, NOW())",
             [
                 ':id' => $id,
+                ':tenant_id' => $tenantId,
                 ':meeting_id' => $meetingId,
                 ':idx' => $idx,
                 ':title' => $title,
