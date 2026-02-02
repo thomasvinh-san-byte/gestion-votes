@@ -40,30 +40,38 @@ if ($tenant !== null && (string)$meeting['tenant_id'] !== (string)$tenant) {
     api_fail('meeting_not_found', 404);
 }
 
-$reasons = [];
+$checks = [];
 $bad = [];
 
+// Check 1: Président renseigné
 $pres = trim((string)($meeting['president_name'] ?? ''));
-if ($pres === '') {
-    $reasons[] = "Aucun président (president_name) n'est renseigné.";
-}
+$checks[] = [
+    'passed' => $pres !== '',
+    'label' => 'Président renseigné',
+    'detail' => $pres !== '' ? $pres : "Aucun président (president_name) n'est renseigné.",
+];
 
-// Motions ouvertes
+// Check 2: Motions ouvertes
 $openCount = $meetingRepo->countOpenMotions($meetingId);
+$checks[] = [
+    'passed' => $openCount === 0,
+    'label' => 'Motions fermées',
+    'detail' => $openCount > 0 ? "Il reste {$openCount} motion(s) ouverte(s). Fermez-les avant validation." : '',
+];
 
-if ($openCount > 0) {
-    $reasons[] = "Il reste {$openCount} motion(s) ouverte(s). Fermez-les avant validation.";
-}
-
-// Éligibles (règle CDC): attendances present/remote/proxy ; fallback si aucune présence saisie
+// Check 3: Éligibles (règle CDC): attendances present/remote/proxy ; fallback si aucune présence saisie
 $eligibleCount = $attendanceRepo->countEligible($meetingId);
 
 $fallbackEligibleUsed = false;
 if ($eligibleCount <= 0) {
     $fallbackEligibleUsed = true;
     $eligibleCount = $memberRepo->countActive($tenant);
-    $reasons[] = "Présences non saisies : règle de fallback utilisée (tous membres actifs).";
 }
+$checks[] = [
+    'passed' => !$fallbackEligibleUsed,
+    'label' => 'Présences saisies',
+    'detail' => $fallbackEligibleUsed ? "Règle de fallback utilisée (tous membres actifs)." : '',
+];
 
 // Motions fermées
 $motions = $motionRepo->listClosedForMeetingWithManualTally($meetingId);
@@ -83,25 +91,20 @@ foreach ($motions as $m) {
     }
 
     // --- E-vote "éligible" ---
-    // Direct ballots: voter must be present/remote at meeting.
     $eligibleDirect = $ballotRepo->countEligibleDirect($meetingId, $motionId);
-
-    // Proxy ballots: proxy_source_member_id must be present/remote AND an active proxy must exist.
     $eligibleProxy = $ballotRepo->countEligibleProxy($meetingId, $motionId);
-
     $eligibleBallots = $eligibleDirect + $eligibleProxy;
 
-// Missing ballots (strict readiness): expect 1 ballot per éligible (source tablette ou manuel)
-$ballotsTotal = $ballotRepo->countByMotionId($motionId);
-
-$missing = max(0, $eligibleCount - $ballotsTotal);
-if ($missing > 0) {
-    $bad[] = [
-        'motion_id' => $motionId,
-        'title' => $title,
-        'detail' => "Votes manquants : {$missing} (attendus: {$eligibleCount}, reçus: {$ballotsTotal})."
-    ];
-}
+    // Missing ballots (strict readiness)
+    $ballotsTotal = $ballotRepo->countByMotionId($motionId);
+    $missing = max(0, $eligibleCount - $ballotsTotal);
+    if ($missing > 0) {
+        $bad[] = [
+            'motion_id' => $motionId,
+            'title' => $title,
+            'detail' => "Votes manquants : {$missing} (attendus: {$eligibleCount}, reçus: {$ballotsTotal})."
+        ];
+    }
 
     // Invalid ballots detection (best-effort)
     $invalidDirect = $ballotRepo->countInvalidDirect($meetingId, $motionId);
@@ -131,13 +134,25 @@ if ($missing > 0) {
     }
 }
 
-if (count($bad) > 0) {
-    $reasons[] = "Certaines motions fermées présentent des anomalies ou n'ont pas de résultat exploitable.";
+// Convert bad motions into individual checks
+foreach ($bad as $b) {
+    $checks[] = ['passed' => false, 'label' => $b['title'], 'detail' => $b['detail']];
+}
+
+// If motions exist and none are bad, add a passing check
+if (count($bad) === 0 && count($motions) > 0) {
+    $checks[] = ['passed' => true, 'label' => 'Résultats exploitables', 'detail' => count($motions) . ' motion(s) avec résultat valide.'];
+}
+
+$ready = true;
+foreach ($checks as $c) {
+    if (!$c['passed']) { $ready = false; break; }
 }
 
 api_ok([
-    'can' => count($reasons) === 0,
-    'reasons' => $reasons,
+    'ready' => $ready,
+    'checks' => $checks,
+    'can' => $ready,
     'bad_motions' => $bad,
     'meta' => [
         'meeting_id' => $meetingId,

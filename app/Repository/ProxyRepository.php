@@ -18,9 +18,12 @@ class ProxyRepository extends AbstractRepository
               p.id,
               p.meeting_id,
               p.giver_member_id,
+              p.giver_member_id AS giver_id,
               g.full_name AS giver_name,
               p.receiver_member_id,
+              p.receiver_member_id AS receiver_id,
               r.full_name AS receiver_name,
+              g.voting_power,
               p.scope,
               p.created_at,
               p.revoked_at

@@ -6,6 +6,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     api_fail('method_not_allowed', 405);
@@ -47,8 +48,55 @@ try {
         }
     }
 
+    // Enrich motions with vote tallies and policy names
+    $stats = $motionRepo->listStatsForMeeting($meetingId);
+    $statsMap = [];
+    foreach ($stats as $s) {
+        $statsMap[(string)$s['motion_id']] = $s;
+    }
+
+    $tenantId = api_current_tenant_id();
+    $policyRepo = new PolicyRepository();
+    $policyNameCache = [];
+
+    foreach ($motions as &$m) {
+        // Normalize id/title aliases
+        $m['id'] = $m['motion_id'] ?? $m['id'] ?? null;
+        $m['title'] = $m['motion_title'] ?? $m['title'] ?? '';
+        $m['description'] = $m['motion_description'] ?? $m['description'] ?? '';
+        $m['result'] = $m['decision'] ?? null;
+
+        // Add vote tallies from stats
+        $mid = (string)$m['id'];
+        if (isset($statsMap[$mid])) {
+            $m['votes_for']     = (int)$statsMap[$mid]['ballots_for'];
+            $m['votes_against'] = (int)$statsMap[$mid]['ballots_against'];
+            $m['votes_abstain'] = (int)$statsMap[$mid]['ballots_abstain'];
+            $m['votes_count']   = (int)$statsMap[$mid]['ballots_total'];
+        } else {
+            $m['votes_for'] = 0;
+            $m['votes_against'] = 0;
+            $m['votes_abstain'] = 0;
+            $m['votes_count'] = 0;
+        }
+
+        // Resolve policy names (cached)
+        $vpId = (string)($m['vote_policy_id'] ?? '');
+        if ($vpId !== '' && !isset($policyNameCache['v_' . $vpId])) {
+            $policyNameCache['v_' . $vpId] = $policyRepo->findVotePolicyName($tenantId, $vpId);
+        }
+        $m['vote_policy_name'] = $policyNameCache['v_' . $vpId] ?? null;
+
+        $qpId = (string)($m['quorum_policy_id'] ?? '');
+        if ($qpId !== '' && !isset($policyNameCache['q_' . $qpId])) {
+            $policyNameCache['q_' . $qpId] = $policyRepo->findQuorumPolicyName($tenantId, $qpId);
+        }
+        $m['quorum_policy_name'] = $policyNameCache['q_' . $qpId] ?? null;
+    }
+    unset($m);
+
     // Motion courante de la séance (peut être NULL)
-    $meeting = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
+    $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
     $currentMotionId = $meeting['current_motion_id'] ?? null;
 
     api_ok([

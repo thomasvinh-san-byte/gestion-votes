@@ -12,7 +12,14 @@ try {
     $meetingId = trim((string)($q['meeting_id'] ?? ''));
     if ($meetingId === '') throw new InvalidArgumentException('meeting_id requis');
     $out = SpeechService::getQueue($meetingId);
-    api_ok($out);
+    // Return just the queue array with frontend-expected field aliases
+    $queue = $out['queue'] ?? [];
+    foreach ($queue as &$item) {
+        $item['member_name'] = $item['full_name'] ?? $item['member_name'] ?? '';
+        $item['requested_at'] = $item['created_at'] ?? null;
+    }
+    unset($item);
+    api_ok($queue);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);
 } catch (RuntimeException $e) {

@@ -53,7 +53,7 @@
   async function loadMembers() {
     try {
       const { body } = await api('/api/v1/members.php');
-      membersCache = body?.data || body?.members || [];
+      membersCache = body?.data?.members || [];
 
       const giverSelect = document.getElementById('giverSelect');
       const receiverSelect = document.getElementById('receiverSelect');
@@ -102,7 +102,7 @@
       const receiverName = escapeHtml(p.receiver_name || '—');
       const giverInitials = getInitials(p.giver_name);
       const receiverInitials = getInitials(p.receiver_name);
-      const power = p.voting_power ?? 1;
+      const power = parseFloat(p.voting_power) || 1;
 
       return `
         <div class="proxy-card">
@@ -142,7 +142,7 @@
     const total = proxies.length;
     const givers = new Set(proxies.map(p => p.giver_id)).size;
     const receivers = new Set(proxies.map(p => p.receiver_id)).size;
-    const voices = proxies.reduce((sum, p) => sum + (p.voting_power || 1), 0);
+    const voices = proxies.reduce((sum, p) => sum + (parseFloat(p.voting_power) || 1), 0);
 
     document.getElementById('kpiTotal').textContent = total;
     document.getElementById('kpiGivers').textContent = givers;
@@ -161,7 +161,7 @@
 
     try {
       const { body } = await api(`/api/v1/proxies.php?meeting_id=${currentMeetingId}`);
-      proxiesCache = body?.data || body?.proxies || [];
+      proxiesCache = body?.data?.proxies || [];
       render(proxiesCache);
       updateKPIs(proxiesCache);
     } catch (err) {
@@ -279,10 +279,10 @@
     }
 
     try {
-      const { body } = await api('/api/v1/proxies.php', {
+      const { body } = await api('/api/v1/proxies_upsert.php', {
         meeting_id: currentMeetingId,
-        giver_id: giverId,
-        receiver_id: receiverId
+        giver_member_id: giverId,
+        receiver_member_id: receiverId
       });
 
       if (body && body.ok !== false) {
