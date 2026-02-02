@@ -26,7 +26,7 @@ if ($method !== 'POST') {
     exit;
 }
 
-$raw = file_get_contents('php://input') ?: '';
+$raw = $GLOBALS['__ag_vote_raw_body'] ?? (file_get_contents('php://input') ?: '');
 $data = [];
 $ct = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
 

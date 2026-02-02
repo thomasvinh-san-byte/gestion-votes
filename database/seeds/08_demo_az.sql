@@ -40,7 +40,7 @@ BEGIN;
 --   deadbeef-0001-4a11-8000-000000000001 (assessor)
 --
 -- Members (10)
---   aaa00001-4a00-8000-0000-000000000001 ... 000010
+--   aaa00001-4a00-4000-8000-000000000001 ... 000010
 -- ============================================================================
 
 -- ============================================================================
@@ -78,7 +78,7 @@ INSERT INTO meetings (
   'scheduled',
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   (SELECT id FROM vote_policies  WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple'         LIMIT 1),
-  NOW() + INTERVAL '10 minutes',
+  NOW() - INTERVAL '5 minutes',
   'Salle du Conseil — Siege social',
   'Mme Dupont',
   '2026/AGO-AZ',
@@ -105,16 +105,16 @@ ON CONFLICT (id) DO UPDATE SET
 -- ============================================================================
 INSERT INTO members (id, tenant_id, external_ref, full_name, email, vote_weight, role, is_active, created_at, updated_at)
 VALUES
-  ('aaa00001-4a00-8000-0000-000000000001','aaaaaaaa-1111-2222-3333-444444444444','AZ-001','Mme Dupont','dupont@demo.test',150.0000,'member',true,NOW(),NOW()),
-  ('aaa00001-4a00-8000-0000-000000000002','aaaaaaaa-1111-2222-3333-444444444444','AZ-002','M. Martin','martin@demo.test',120.0000,'member',true,NOW(),NOW()),
-  ('aaa00001-4a00-8000-0000-000000000003','aaaaaaaa-1111-2222-3333-444444444444','AZ-003','Mme Bernard','bernard@demo.test',110.0000,'member',true,NOW(),NOW()),
-  ('aaa00001-4a00-8000-0000-000000000004','aaaaaaaa-1111-2222-3333-444444444444','AZ-004','M. Petit','petit@demo.test',100.0000,'member',true,NOW(),NOW()),
-  ('aaa00001-4a00-8000-0000-000000000005','aaaaaaaa-1111-2222-3333-444444444444','AZ-005','Mme Moreau','moreau@demo.test', 95.0000,'member',true,NOW(),NOW()),
-  ('aaa00001-4a00-8000-0000-000000000006','aaaaaaaa-1111-2222-3333-444444444444','AZ-006','M. Leroy','leroy@demo.test',   90.0000,'member',true,NOW(),NOW()),
-  ('aaa00001-4a00-8000-0000-000000000007','aaaaaaaa-1111-2222-3333-444444444444','AZ-007','Mme Roux','roux@demo.test',     85.0000,'member',true,NOW(),NOW()),
-  ('aaa00001-4a00-8000-0000-000000000008','aaaaaaaa-1111-2222-3333-444444444444','AZ-008','M. Garcia','garcia@demo.test',  80.0000,'member',true,NOW(),NOW()),
-  ('aaa00001-4a00-8000-0000-000000000009','aaaaaaaa-1111-2222-3333-444444444444','AZ-009','Mme Thomas','thomas@demo.test',  90.0000,'member',true,NOW(),NOW()),
-  ('aaa00001-4a00-8000-0000-000000000010','aaaaaaaa-1111-2222-3333-444444444444','AZ-010','M. Lambert','lambert@demo.test',80.0000,'member',true,NOW(),NOW())
+  ('aaa00001-4a00-4000-8000-000000000001','aaaaaaaa-1111-2222-3333-444444444444','AZ-001','Mme Dupont','dupont@demo.test',150.0000,'member',true,NOW(),NOW()),
+  ('aaa00001-4a00-4000-8000-000000000002','aaaaaaaa-1111-2222-3333-444444444444','AZ-002','M. Martin','martin@demo.test',120.0000,'member',true,NOW(),NOW()),
+  ('aaa00001-4a00-4000-8000-000000000003','aaaaaaaa-1111-2222-3333-444444444444','AZ-003','Mme Bernard','bernard@demo.test',110.0000,'member',true,NOW(),NOW()),
+  ('aaa00001-4a00-4000-8000-000000000004','aaaaaaaa-1111-2222-3333-444444444444','AZ-004','M. Petit','petit@demo.test',100.0000,'member',true,NOW(),NOW()),
+  ('aaa00001-4a00-4000-8000-000000000005','aaaaaaaa-1111-2222-3333-444444444444','AZ-005','Mme Moreau','moreau@demo.test', 95.0000,'member',true,NOW(),NOW()),
+  ('aaa00001-4a00-4000-8000-000000000006','aaaaaaaa-1111-2222-3333-444444444444','AZ-006','M. Leroy','leroy@demo.test',   90.0000,'member',true,NOW(),NOW()),
+  ('aaa00001-4a00-4000-8000-000000000007','aaaaaaaa-1111-2222-3333-444444444444','AZ-007','Mme Roux','roux@demo.test',     85.0000,'member',true,NOW(),NOW()),
+  ('aaa00001-4a00-4000-8000-000000000008','aaaaaaaa-1111-2222-3333-444444444444','AZ-008','M. Garcia','garcia@demo.test',  80.0000,'member',true,NOW(),NOW()),
+  ('aaa00001-4a00-4000-8000-000000000009','aaaaaaaa-1111-2222-3333-444444444444','AZ-009','Mme Thomas','thomas@demo.test',  90.0000,'member',true,NOW(),NOW()),
+  ('aaa00001-4a00-4000-8000-000000000010','aaaaaaaa-1111-2222-3333-444444444444','AZ-010','M. Lambert','lambert@demo.test',80.0000,'member',true,NOW(),NOW())
 ON CONFLICT (tenant_id, full_name) DO UPDATE
 SET external_ref = EXCLUDED.external_ref,
     email = EXCLUDED.email,
@@ -226,16 +226,16 @@ COMMIT;
 -- +------+---------------+--------+-------------------------------------------+
 -- | Ref  | Nom           | Poids  | UUID                                      |
 -- +------+---------------+--------+-------------------------------------------+
--- | AZ-001 | Mme Dupont  |  150   | aaa00001-4a00-8000-0000-000000000001      |
--- | AZ-002 | M. Martin   |  120   | aaa00001-4a00-8000-0000-000000000002      |
--- | AZ-003 | Mme Bernard |  110   | aaa00001-4a00-8000-0000-000000000003      |
--- | AZ-004 | M. Petit    |  100   | aaa00001-4a00-8000-0000-000000000004      |
--- | AZ-005 | Mme Moreau  |   95   | aaa00001-4a00-8000-0000-000000000005      |
--- | AZ-006 | M. Leroy    |   90   | aaa00001-4a00-8000-0000-000000000006      |
--- | AZ-007 | Mme Roux    |   85   | aaa00001-4a00-8000-0000-000000000007      |
--- | AZ-008 | M. Garcia   |   80   | aaa00001-4a00-8000-0000-000000000008      |
--- | AZ-009 | Mme Thomas  |   90   | aaa00001-4a00-8000-0000-000000000009      |
--- | AZ-010 | M. Lambert  |   80   | aaa00001-4a00-8000-0000-000000000010      |
+-- | AZ-001 | Mme Dupont  |  150   | aaa00001-4a00-4000-8000-000000000001      |
+-- | AZ-002 | M. Martin   |  120   | aaa00001-4a00-4000-8000-000000000002      |
+-- | AZ-003 | Mme Bernard |  110   | aaa00001-4a00-4000-8000-000000000003      |
+-- | AZ-004 | M. Petit    |  100   | aaa00001-4a00-4000-8000-000000000004      |
+-- | AZ-005 | Mme Moreau  |   95   | aaa00001-4a00-4000-8000-000000000005      |
+-- | AZ-006 | M. Leroy    |   90   | aaa00001-4a00-4000-8000-000000000006      |
+-- | AZ-007 | Mme Roux    |   85   | aaa00001-4a00-4000-8000-000000000007      |
+-- | AZ-008 | M. Garcia   |   80   | aaa00001-4a00-4000-8000-000000000008      |
+-- | AZ-009 | Mme Thomas  |   90   | aaa00001-4a00-4000-8000-000000000009      |
+-- | AZ-010 | M. Lambert  |   80   | aaa00001-4a00-4000-8000-000000000010      |
 -- +------+---------------+--------+-------------------------------------------+
 --
 -- 2 RESOLUTIONS :

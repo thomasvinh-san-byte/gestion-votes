@@ -11,6 +11,14 @@ declare(strict_types=1);
 require __DIR__ . '/bootstrap.php';
 
 // =============================================================================
+// CACHE php://input (ne peut être lu qu'une seule fois)
+// Le CSRF middleware et api_request() en ont tous les deux besoin.
+// =============================================================================
+if (!isset($GLOBALS['__ag_vote_raw_body'])) {
+    $GLOBALS['__ag_vote_raw_body'] = file_get_contents('php://input') ?: '';
+}
+
+// =============================================================================
 // FONCTIONS API - RÉPONSES JSON
 // =============================================================================
 
@@ -42,7 +50,7 @@ function api_fail(string $error, int $code = 400, array $extra = []): never {
 
 function api_is_uuid(string $v): bool {
     return (bool)preg_match(
-        '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
+        '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
         $v
     );
 }
@@ -113,8 +121,8 @@ function api_request(string $expectedMethod = 'GET'): array {
         ]);
     }
 
-    // Parse le body JSON ou POST
-    $raw = file_get_contents('php://input');
+    // Parse le body JSON ou POST (utilise le cache global)
+    $raw = $GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input');
     $data = json_decode($raw ?: '', true);
 
     if (!is_array($data)) {
