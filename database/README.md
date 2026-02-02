@@ -83,12 +83,12 @@ Créés par `02_test_users.sql` :
 
 | Rôle | Email | Mot de passe |
 |------|-------|-------------|
-| admin | `admin@ag-vote.local` | `Admin2024!` |
-| operator | `operator@ag-vote.local` | `Operator2024!` |
-| president | `president@ag-vote.local` | `President2024!` |
-| votant | `votant@ag-vote.local` | `Votant2024!` |
-| auditor | `auditor@ag-vote.local` | `Auditor2024!` |
-| viewer | `viewer@ag-vote.local` | `Viewer2024!` |
+| admin | `admin@ag-vote.local` | `Admin2026!` |
+| operator | `operator@ag-vote.local` | `Operator2026!` |
+| president | `president@ag-vote.local` | `President2026!` |
+| votant | `votant@ag-vote.local` | `Votant2026!` |
+| auditor | `auditor@ag-vote.local` | `Auditor2026!` |
+| viewer | `viewer@ag-vote.local` | `Viewer2026!` |
 
 ## Notes
 

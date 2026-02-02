@@ -50,10 +50,10 @@ Ouvrir `/login.html` et saisir la cle API de l'utilisateur. Cela cree une sessio
 
 ### Quelles sont les cles de test par defaut ?
 Les cles definies dans `database/seeds/02_test_users.sql` :
-- `admin-key-2024-secret` (role admin)
-- `operator-key-2024-secret` (role operator)
-- `auditor-key-2024-secret` (role auditor)
-- `viewer-key-2024-secret` (role viewer)
+- `admin-key-2026-secret` (role admin)
+- `operator-key-2026-secret` (role operator)
+- `auditor-key-2026-secret` (role auditor)
+- `viewer-key-2026-secret` (role viewer)
 
 **Changer ces cles en production.**
 
@@ -163,7 +163,7 @@ Puis acceder a `http://localhost:8000/login.html`.
 Via l'interface Admin > Reset demo, ou par API :
 ```bash
 curl -X POST http://localhost:8000/api/v1/meeting_reset_demo.php \
-  -H "X-Api-Key: admin-key-2024-secret" \
+  -H "X-Api-Key: admin-key-2026-secret" \
   -H "Content-Type: application/json" \
   -d '{"meeting_id": "UUID_DE_LA_SEANCE"}'
 ```

@@ -1,35 +1,55 @@
 -- database/seeds/03_demo.sql
--- Seed démo complète pour tests UI. Idempotent.
--- Dépend de 01_minimal.sql.
+-- Seed demo complete pour tests UI. Idempotent.
+-- Depend de 01_minimal.sql.
 --
--- Crée :
---   • 1 séance LIVE (prête à voter) + 1 séance DRAFT (future)
---   • 12 membres pondérés
---   • Présences pour la séance live
---   • 5 motions (1 ouverte, 1 fermée avec résultats, 3 à venir)
---   • 1 proxy
---   • API keys de dev pour chaque rôle (utilisables uniquement avec APP_AUTH_ENABLED=1)
+-- Cree :
+--   - 1 seance LIVE (prete a voter) + 1 seance DRAFT (future)
+--   - 12 membres ponderes
+--   - Presences pour la seance live
+--   - 5 motions (1 ouverte, 1 fermee avec resultats, 3 a venir)
+--   - 1 proxy
+--
+-- Script idempotent : nettoie les donnees dependantes avant reinsertion.
+-- Peut etre relance autant de fois que necessaire pour retrouver un etat stable.
 
 BEGIN;
 
 -- ============================================================================
--- API keys de développement
+-- NETTOYAGE COMPLET des donnees de cette seed
+-- (ordre inverse des dependances pour respecter les FK)
 -- ============================================================================
--- Ces clés sont le hash HMAC-SHA256 de la clé brute avec le secret 'dev-secret-not-for-production'.
--- Clé brute admin:    dev-admin-key-00000000000000000000000000000000
--- Clé brute operator: dev-operator-key-000000000000000000000000000000
--- Clé brute trust:    dev-trust-key-0000000000000000000000000000000000
---
--- Pour les utiliser, header: X-Api-Key: dev-admin-key-00000000000000000000000000000000
--- (le hash est calculé par le code PHP, on le pré-calcule ici pour le seed)
-
--- On met à jour les users existants avec des api_key_hash pré-calculés.
--- Hash = HMAC-SHA256(key, 'dev-secret-not-for-production')
--- NOTE: Ces clés ne fonctionnent QUE si APP_SECRET n'est pas défini ou vaut 'dev-secret-not-for-production'
--- Avec le .env dev fourni (APP_AUTH_ENABLED=0), l'auth est bypassée donc ces clés sont optionnelles.
+DELETE FROM ballots WHERE meeting_id IN (
+  '44444444-4444-4444-4444-444444444001',
+  '44444444-4444-4444-4444-444444444002'
+);
+DELETE FROM attendances WHERE meeting_id IN (
+  '44444444-4444-4444-4444-444444444001',
+  '44444444-4444-4444-4444-444444444002'
+);
+DELETE FROM proxies WHERE meeting_id IN (
+  '44444444-4444-4444-4444-444444444001',
+  '44444444-4444-4444-4444-444444444002'
+);
+-- Detacher la motion courante avant de supprimer les motions
+UPDATE meetings SET current_motion_id = NULL WHERE id IN (
+  '44444444-4444-4444-4444-444444444001',
+  '44444444-4444-4444-4444-444444444002'
+);
+DELETE FROM motions WHERE meeting_id IN (
+  '44444444-4444-4444-4444-444444444001',
+  '44444444-4444-4444-4444-444444444002'
+);
+DELETE FROM meeting_roles WHERE meeting_id IN (
+  '44444444-4444-4444-4444-444444444001',
+  '44444444-4444-4444-4444-444444444002'
+);
+DELETE FROM meetings WHERE id IN (
+  '44444444-4444-4444-4444-444444444001',
+  '44444444-4444-4444-4444-444444444002'
+);
 
 -- ============================================================================
--- Séance LIVE (en cours)
+-- Seance LIVE (en cours)
 -- ============================================================================
 INSERT INTO meetings (
   id, tenant_id, title, description, status, quorum_policy_id, vote_policy_id,
@@ -38,54 +58,36 @@ INSERT INTO meetings (
 ) VALUES (
   '44444444-4444-4444-4444-444444444001',
   'aaaaaaaa-1111-2222-3333-444444444444',
-  'Assemblée Générale Ordinaire — Séance démo',
-  'Séance de démonstration pour tester l''ensemble des fonctionnalités.',
+  'Assemblee Generale Ordinaire — Seance demo',
+  'Seance de demonstration pour tester l''ensemble des fonctionnalites.',
   'live',
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   now() - interval '1 hour',
   now() - interval '30 minutes',
-  'Salle du Conseil — Bâtiment A',
+  'Salle du Conseil — Batiment A',
   'Mme Martin',
-  '2025/AGO-001',
+  '2026/AGO-001',
   now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title,
-    description = EXCLUDED.description,
-    status = EXCLUDED.status,
-    quorum_policy_id = EXCLUDED.quorum_policy_id,
-    vote_policy_id = EXCLUDED.vote_policy_id,
-    scheduled_at = EXCLUDED.scheduled_at,
-    started_at = EXCLUDED.started_at,
-    location = EXCLUDED.location,
-    president_name = EXCLUDED.president_name,
-    convocation_no = EXCLUDED.convocation_no,
-    updated_at = now();
+);
 
--- Séance DRAFT (future)
+-- Seance DRAFT (future)
 INSERT INTO meetings (
   id, tenant_id, title, status, quorum_policy_id, scheduled_at, location,
   created_at, updated_at
 ) VALUES (
   '44444444-4444-4444-4444-444444444002',
   'aaaaaaaa-1111-2222-3333-444444444444',
-  'Assemblée Générale Extraordinaire — Prochaine',
+  'Assemblee Generale Extraordinaire — Prochaine',
   'draft',
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   now() + interval '14 days',
   'Salle B',
   now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title,
-    status = EXCLUDED.status,
-    scheduled_at = EXCLUDED.scheduled_at,
-    location = EXCLUDED.location,
-    updated_at = now();
+);
 
 -- ============================================================================
--- Membres (12, pondérés)
+-- Membres (12, ponderes)
 -- ============================================================================
 INSERT INTO members (id, tenant_id, external_ref, full_name, email, vote_weight, role, is_active, created_at, updated_at)
 VALUES
@@ -110,7 +112,7 @@ SET external_ref = EXCLUDED.external_ref,
     updated_at = now();
 
 -- ============================================================================
--- Présences (10 présents sur 12 pour la séance live)
+-- Presences (10 presents sur 12 pour la seance live)
 -- ============================================================================
 INSERT INTO attendances (tenant_id, meeting_id, member_id, mode, effective_power, checked_in_at, created_at, updated_at)
 VALUES
@@ -123,16 +125,11 @@ VALUES
   ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555007','present',70.0000,now() - interval '17 minutes',now(),now()),
   ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555008','present',55.0000,now() - interval '15 minutes',now(),now()),
   ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555009','present',45.0000,now() - interval '12 minutes',now(),now()),
-  ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555010','present',85.0000,now() - interval '10 minutes',now(),now())
+  ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555010','present',85.0000,now() - interval '10 minutes',now(),now());
   -- LOT-011 (Thomas) et LOT-012 (Lambert) sont absents
-ON CONFLICT (tenant_id, meeting_id, member_id) DO UPDATE
-SET mode = EXCLUDED.mode,
-    effective_power = EXCLUDED.effective_power,
-    checked_in_at = EXCLUDED.checked_in_at,
-    updated_at = now();
 
 -- ============================================================================
--- Proxy : Lambert (absent) donne procuration à Martin (présent)
+-- Proxy : Lambert (absent) donne procuration a Martin (present)
 -- ============================================================================
 INSERT INTO proxies (id, tenant_id, meeting_id, giver_member_id, receiver_member_id, scope, created_at)
 VALUES (
@@ -140,19 +137,16 @@ VALUES (
   'aaaaaaaa-1111-2222-3333-444444444444',
   '44444444-4444-4444-4444-444444444001',
   '55555555-5555-5555-5555-555555555012',  -- Lambert (absent)
-  '55555555-5555-5555-5555-555555555001',  -- Martin (présent)
+  '55555555-5555-5555-5555-555555555001',  -- Martin (present)
   'full',
   now()
-)
-ON CONFLICT (tenant_id, meeting_id, giver_member_id) DO UPDATE
-SET receiver_member_id = EXCLUDED.receiver_member_id,
-    scope = EXCLUDED.scope;
+);
 
 -- ============================================================================
--- Motions pour la séance live
+-- Motions pour la seance live
 -- ============================================================================
 
--- Motion 1 : fermée avec résultats (ADOPTÉE)
+-- Motion 1 : fermee avec resultats (ADOPTEE)
 INSERT INTO motions (
   id, tenant_id, meeting_id, title, description, secret, sort_order,
   vote_policy_id, quorum_policy_id,
@@ -162,23 +156,14 @@ INSERT INTO motions (
   '66666666-6666-6666-6666-666666666001',
   'aaaaaaaa-1111-2222-3333-444444444444',
   '44444444-4444-4444-4444-444444444001',
-  'Approbation des comptes 2024',
-  'Vote sur l''approbation des comptes annuels de l''exercice 2024.',
+  'Approbation des comptes 2025',
+  'Vote sur l''approbation des comptes annuels de l''exercice 2025.',
   false, 1,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   NULL,
   'closed', now() - interval '20 minutes', now() - interval '15 minutes', 'adopted',
   now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title,
-    description = EXCLUDED.description,
-    status = EXCLUDED.status,
-    sort_order = EXCLUDED.sort_order,
-    opened_at = EXCLUDED.opened_at,
-    closed_at = EXCLUDED.closed_at,
-    decision = EXCLUDED.decision,
-    updated_at = now();
+);
 
 -- Motion 2 : EN COURS DE VOTE (ouverte)
 INSERT INTO motions (
@@ -190,30 +175,21 @@ INSERT INTO motions (
   '66666666-6666-6666-6666-666666666002',
   'aaaaaaaa-1111-2222-3333-444444444444',
   '44444444-4444-4444-4444-444444444001',
-  'Budget travaux toiture — 45 000 €',
-  'Vote sur le budget travaux de réfection de la toiture, devis n°2025-0042.',
+  'Budget travaux toiture — 45 000 EUR',
+  'Vote sur le budget travaux de refection de la toiture, devis n.2026-0042.',
   false, 2,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité 2/3' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   'open', now() - interval '5 minutes',
   now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title,
-    description = EXCLUDED.description,
-    status = EXCLUDED.status,
-    sort_order = EXCLUDED.sort_order,
-    opened_at = EXCLUDED.opened_at,
-    closed_at = NULL,
-    decision = NULL,
-    updated_at = now();
+);
 
 -- Mettre cette motion comme motion courante
 UPDATE meetings
 SET current_motion_id = '66666666-6666-6666-6666-666666666002'
 WHERE id = '44444444-4444-4444-4444-444444444001';
 
--- Motion 3 : à venir
+-- Motion 3 : a venir
 INSERT INTO motions (
   id, tenant_id, meeting_id, title, description, secret, sort_order,
   vote_policy_id, quorum_policy_id,
@@ -222,22 +198,15 @@ INSERT INTO motions (
   '66666666-6666-6666-6666-666666666003',
   'aaaaaaaa-1111-2222-3333-444444444444',
   '44444444-4444-4444-4444-444444444001',
-  'Élection du président de séance',
-  'Vote à bulletin secret pour l''élection du président.',
+  'Election du president de seance',
+  'Vote a bulletin secret pour l''election du president.',
   true, 3,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 33% (personnes)' LIMIT 1),
   'draft', now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title,
-    description = EXCLUDED.description,
-    secret = EXCLUDED.secret,
-    sort_order = EXCLUDED.sort_order,
-    status = EXCLUDED.status,
-    updated_at = now();
+);
 
--- Motion 4 : à venir
+-- Motion 4 : a venir
 INSERT INTO motions (
   id, tenant_id, meeting_id, title, description, secret, sort_order,
   vote_policy_id, status, created_at, updated_at
@@ -246,19 +215,13 @@ INSERT INTO motions (
   'aaaaaaaa-1111-2222-3333-444444444444',
   '44444444-4444-4444-4444-444444444001',
   'Changement de syndic',
-  'Vote sur la résolution de changement de syndic de copropriété.',
+  'Vote sur la resolution de changement de syndic de copropriete.',
   false, 4,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité absolue' LIMIT 1),
   'draft', now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title,
-    description = EXCLUDED.description,
-    sort_order = EXCLUDED.sort_order,
-    status = EXCLUDED.status,
-    updated_at = now();
+);
 
--- Motion 5 : à venir
+-- Motion 5 : a venir
 INSERT INTO motions (
   id, tenant_id, meeting_id, title, description, secret, sort_order,
   vote_policy_id, status, created_at, updated_at
@@ -267,20 +230,14 @@ INSERT INTO motions (
   'aaaaaaaa-1111-2222-3333-444444444444',
   '44444444-4444-4444-4444-444444444001',
   'Questions diverses',
-  'Discussion et vote sur les questions diverses soulevées par les copropriétaires.',
+  'Discussion et vote sur les questions diverses soulevees par les coproprietaires.',
   false, 5,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   'draft', now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title,
-    description = EXCLUDED.description,
-    sort_order = EXCLUDED.sort_order,
-    status = EXCLUDED.status,
-    updated_at = now();
+);
 
 -- ============================================================================
--- Bulletins pour la motion 1 (fermée, adoptée)
+-- Bulletins pour la motion 1 (fermee, adoptee)
 -- ============================================================================
 INSERT INTO ballots (id, tenant_id, meeting_id, motion_id, member_id, value, weight, cast_at)
 VALUES
@@ -293,7 +250,6 @@ VALUES
   (gen_random_uuid(),'aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','66666666-6666-6666-6666-666666666001','55555555-5555-5555-5555-555555555007','abstain',70.0000,now() - interval '16 minutes'),
   (gen_random_uuid(),'aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','66666666-6666-6666-6666-666666666001','55555555-5555-5555-5555-555555555008','for',55.0000,now() - interval '16 minutes'),
   (gen_random_uuid(),'aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','66666666-6666-6666-6666-666666666001','55555555-5555-5555-5555-555555555009','for',45.0000,now() - interval '15 minutes'),
-  (gen_random_uuid(),'aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','66666666-6666-6666-6666-666666666001','55555555-5555-5555-5555-555555555010','against',85.0000,now() - interval '15 minutes')
-ON CONFLICT (motion_id, member_id) DO NOTHING;
+  (gen_random_uuid(),'aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','66666666-6666-6666-6666-666666666001','55555555-5555-5555-5555-555555555010','against',85.0000,now() - interval '15 minutes');
 
 COMMIT;

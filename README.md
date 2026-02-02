@@ -71,10 +71,10 @@ Ouvrir `http://localhost:8080/login.html` avec les identifiants de test :
 
 | Role | Email | Mot de passe |
 |------|-------|-------------|
-| admin | `admin@ag-vote.local` | `Admin2024!` |
-| operator | `operator@ag-vote.local` | `Operator2024!` |
-| president | `president@ag-vote.local` | `President2024!` |
-| votant | `votant@ag-vote.local` | `Votant2024!` |
+| admin | `admin@ag-vote.local` | `Admin2026!` |
+| operator | `operator@ag-vote.local` | `Operator2026!` |
+| president | `president@ag-vote.local` | `President2026!` |
+| votant | `votant@ag-vote.local` | `Votant2026!` |
 
 Comptes crees par `database/seeds/02_test_users.sql`.
 
