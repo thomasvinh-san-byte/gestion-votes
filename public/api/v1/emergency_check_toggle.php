@@ -24,7 +24,7 @@ $repo->upsertEmergencyCheck(
     $procedure,
     $idx,
     $checked,
-    ($GLOBALS['AUTH_USER']['role'] ?? null)
+    (api_current_role())
 );
 
 if (function_exists('audit_log')) {

@@ -134,8 +134,8 @@
     statusBadge.textContent = dryRun ? 'Aperçu...' : 'Envoi...';
     statusBadge.className = 'badge badge-warning';
 
-    btnPreview.disabled = true;
-    btnSend.disabled = true;
+    const activeBtn = dryRun ? btnPreview : btnSend;
+    Shared.btnLoading(activeBtn, true);
 
     try {
       const { body } = await api('/api/v1/invitations_send_bulk.php', {
@@ -166,8 +166,7 @@
       statusBadge.className = 'badge badge-danger';
       showResult('error', e.message);
     } finally {
-      btnPreview.disabled = false;
-      btnSend.disabled = false;
+      Shared.btnLoading(activeBtn, false);
     }
   }
 

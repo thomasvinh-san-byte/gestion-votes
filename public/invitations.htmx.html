@@ -82,13 +82,13 @@
 
             <div class="form-group">
               <label class="form-label">Limite d'envoi</label>
-              <input type="number" class="form-control" id="limitInput" min="0" value="0" placeholder="0 = illimité">
+              <input type="number" class="form-input" id="limitInput" min="0" value="0" placeholder="0 = illimité">
               <p class="form-hint">0 = envoyer à tous les membres éligibles</p>
             </div>
 
             <div class="form-group">
               <label class="form-label">Sujet personnalisé (optionnel)</label>
-              <input type="text" class="form-control" id="subjectInput" placeholder="Invitation à voter - {titre_séance}">
+              <input type="text" class="form-input" id="subjectInput" placeholder="Invitation à voter - {titre_séance}">
             </div>
 
             <hr class="my-4">
@@ -130,8 +130,8 @@
         <div class="card-header">
           <h2 class="card-title">👥 Statut des invitations</h2>
           <div class="flex gap-2">
-            <input type="text" class="form-control" id="searchInput" placeholder="Rechercher..." style="width: 200px;">
-            <select class="form-control" id="filterSelect" style="width: 150px;">
+            <input type="text" class="form-input" id="searchInput" placeholder="Rechercher..." style="width: 200px;">
+            <select class="form-input" id="filterSelect" style="width: 150px;">
               <option value="all">Tous</option>
               <option value="sent">Envoyés</option>
               <option value="pending">En attente</option>

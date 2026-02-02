@@ -30,6 +30,17 @@
           const link = sidebar.querySelector('[data-page="' + page + '"]');
           if (link) link.classList.add('active');
         }
+        // Propagate meeting_id from URL to sidebar nav links
+        const params = new URLSearchParams(window.location.search);
+        const mid = params.get('meeting_id');
+        if (mid) {
+          sidebar.querySelectorAll('a.nav-item[href]').forEach(function (a) {
+            const href = a.getAttribute('href') || '';
+            // Skip archives and admin — they don't need meeting context
+            if (href.indexOf('admin') !== -1 || href.indexOf('archives') !== -1) return;
+            a.href = href.split('?')[0] + '?meeting_id=' + encodeURIComponent(mid);
+          });
+        }
       })
       .catch(function () {
         // Fallback: leave empty sidebar (navigation still works via drawer menu)
