@@ -47,7 +47,7 @@
           Cette séance a été validée et archivée.<br>
           Consultez les exports dans les Archives.
         </div>
-        <a class="btn btn-primary" href="/archives.htmx.html">
+        <a class="btn btn-primary" href="/archives.htmx.html${currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : ''}">
           📚 Voir les archives
         </a>
       `;
@@ -139,6 +139,8 @@
       const confirm2 = confirm('Dernière confirmation:\n\nVous êtes sur le point de valider et archiver définitivement cette séance.\n\nConfirmer la validation ?');
       if (!confirm2) return;
 
+      const btn = document.getElementById('btnValidate');
+      Shared.btnLoading(btn, true);
       try {
         const { body } = await api('/api/v1/meeting_validate.php', {
           meeting_id: currentMeetingId,
@@ -156,15 +158,17 @@
 
           // Redirect to archives after 3s
           setTimeout(() => {
-            window.location.href = '/archives.htmx.html';
+            window.location.href = '/archives.htmx.html' + (currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : '');
           }, 3000);
         } else {
           msgDiv.style.display = 'block';
           msgDiv.className = 'alert alert-danger';
           msgDiv.innerHTML = `❌ Erreur: ${escapeHtml(body?.error || 'Validation impossible')}`;
+          Shared.btnLoading(btn, false);
         }
       } catch (err) {
         setNotif('error', err.message);
+        Shared.btnLoading(btn, false);
       }
     });
 
@@ -176,10 +180,24 @@
 
     document.getElementById('btnRecheck').addEventListener('click', loadChecks);
 
+    // Polling (5s auto-refresh for checks and summary)
+    let pollingInterval = null;
+    function startPolling() {
+      if (pollingInterval) return;
+      pollingInterval = setInterval(() => {
+        if (!document.hidden && currentMeetingId) {
+          loadSummary();
+          loadChecks();
+        }
+      }, 5000);
+    }
+    window.addEventListener('beforeunload', () => { if (pollingInterval) clearInterval(pollingInterval); });
+
     // Initialize
     if (currentMeetingId) {
       loadMeetingInfo();
       loadSummary();
       loadChecks();
+      startPolling();
     }
   })();

@@ -220,6 +220,8 @@
   document.getElementById('btnMarkAllPresent').addEventListener('click', async () => {
     if (!confirm('Marquer tous les membres comme présents ?')) return;
 
+    const btn = document.getElementById('btnMarkAllPresent');
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/attendances_bulk.php', {
         meeting_id: currentMeetingId,
@@ -234,6 +236,8 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
     }
   });
 
@@ -250,9 +254,22 @@
   // Search
   searchInput.addEventListener('input', () => render(attendanceCache));
 
+  // Polling (5s auto-refresh for multi-operator sync)
+  let pollingInterval = null;
+  function startPolling() {
+    if (pollingInterval) return;
+    pollingInterval = setInterval(() => {
+      if (!document.hidden && currentMeetingId) {
+        loadAttendance();
+      }
+    }, 5000);
+  }
+  window.addEventListener('beforeunload', () => { if (pollingInterval) clearInterval(pollingInterval); });
+
   // Initialize
   if (currentMeetingId) {
     loadMeetingInfo();
     loadAttendance();
+    startPolling();
   }
 })();

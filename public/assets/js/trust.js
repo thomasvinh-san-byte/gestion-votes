@@ -294,6 +294,18 @@
     }
   });
 
+  // Polling (10s auto-refresh for anomaly detection)
+  let pollingInterval = null;
+  function startPolling() {
+    if (pollingInterval) return;
+    pollingInterval = setInterval(() => {
+      if (!document.hidden && currentMeetingId) {
+        loadMeetingData(currentMeetingId);
+      }
+    }, 10000);
+  }
+  window.addEventListener('beforeunload', () => { if (pollingInterval) clearInterval(pollingInterval); });
+
   // Initialize
-  loadMeetings();
+  loadMeetings().then(() => startPolling());
 })();

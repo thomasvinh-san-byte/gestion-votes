@@ -2,7 +2,7 @@
  * session-wizard.js — Wizard de séance AG-VOTE.
  *
  * Couche intermédiaire entre les pages et l'API :
- *   - État centralisé dans sessionStorage
+ *   - État centralisé dans localStorage
  *   - Barre de progression injectée dans le sidebar
  *   - Garde-fous par page (prérequis)
  *   - Polling léger pour notifications inter-pages
@@ -50,7 +50,7 @@
 
   function getState() {
     try {
-      var raw = sessionStorage.getItem(STORAGE_KEY);
+      var raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : {};
     } catch (e) { return {}; }
   }
@@ -61,7 +61,7 @@
       if (patch.hasOwnProperty(k)) s[k] = patch[k];
     }
     s.updatedAt = Date.now();
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
     return s;
   }
 
