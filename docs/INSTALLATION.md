@@ -205,12 +205,12 @@ Crees par `database/seeds/02_test_users.sql` :
 
 | Role | Email | Mot de passe | Description |
 |------|-------|-------------|-------------|
-| admin | `admin@ag-vote.local` | `Admin2024!` | Acces total |
-| operator | `operator@ag-vote.local` | `Operator2024!` | Gestion courante |
-| president | `president@ag-vote.local` | `President2024!` | Preside la seance |
-| votant | `votant@ag-vote.local` | `Votant2024!` | Vote en seance |
-| auditor | `auditor@ag-vote.local` | `Auditor2024!` | Conformite (lecture) |
-| viewer | `viewer@ag-vote.local` | `Viewer2024!` | Lecture seule |
+| admin | `admin@ag-vote.local` | `Admin2026!` | Acces total |
+| operator | `operator@ag-vote.local` | `Operator2026!` | Gestion courante |
+| president | `president@ag-vote.local` | `President2026!` | Preside la seance |
+| votant | `votant@ag-vote.local` | `Votant2026!` | Vote en seance |
+| auditor | `auditor@ag-vote.local` | `Auditor2026!` | Conformite (lecture) |
+| viewer | `viewer@ag-vote.local` | `Viewer2026!` | Lecture seule |
 
 ### Acces depuis un autre poste (hors VM)
 
@@ -252,7 +252,7 @@ Si vous changez le `APP_SECRET`, les hash en base deviennent invalides.
 ```bash
 php -r '
 $secret = "VOTRE_NOUVEAU_SECRET";
-$keys = ["admin-key-2024-secret", "operator-key-2024-secret", "auditor-key-2024-secret", "viewer-key-2024-secret"];
+$keys = ["admin-key-2026-secret", "operator-key-2026-secret", "auditor-key-2026-secret", "viewer-key-2026-secret"];
 foreach ($keys as $k) { echo "$k => " . hash_hmac("sha256", $k, $secret) . "\n"; }
 '
 ```

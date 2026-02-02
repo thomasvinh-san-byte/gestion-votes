@@ -10,6 +10,7 @@
 #   sudo bash database/setup.sh --seed-only  # alias de --seed
 #   sudo bash database/setup.sh --migrate    # migrations uniquement
 #   sudo bash database/setup.sh --no-demo    # setup complet SANS demo ni e2e
+#   sudo bash database/setup.sh --clean      # nettoie TOUTES les données et re-seed
 #   sudo bash database/setup.sh --reset      # SUPPRIME et recrée tout
 #
 # Les seeds sont chargés depuis database/seeds/ par ordre alphabétique :
@@ -275,6 +276,33 @@ setup_env() {
 }
 
 # =============================================================================
+# Nettoyage complet des donnees (conserve le schema)
+# =============================================================================
+clean_data() {
+    info "Nettoyage complet des donnees..."
+    pg_exec -c "
+        -- Detacher les motions courantes pour eviter les FK
+        UPDATE meetings SET current_motion_id = NULL;
+        -- Supprimer dans l'ordre inverse des dependances
+        DELETE FROM ballots;
+        DELETE FROM attendances;
+        DELETE FROM proxies;
+        DELETE FROM motions;
+        DELETE FROM agendas;
+        DELETE FROM meeting_roles;
+        DELETE FROM meetings;
+        DELETE FROM members;
+        DELETE FROM auth_failures;
+        DELETE FROM audit_events;
+        DELETE FROM users;
+        DELETE FROM vote_policies;
+        DELETE FROM quorum_policies;
+        DELETE FROM tenants;
+    " 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    log "Donnees nettoyees"
+}
+
+# =============================================================================
 # Reset (destructif)
 # =============================================================================
 reset_db() {
@@ -341,12 +369,12 @@ verify() {
     echo ""
     echo "  Identifiants de test (email / mot de passe)"
     echo "  ────────────────────────────────────────────"
-    echo "    admin     : admin@ag-vote.local     / Admin2024!"
-    echo "    operator  : operator@ag-vote.local  / Operator2024!"
-    echo "    president : president@ag-vote.local / President2024!"
-    echo "    votant    : votant@ag-vote.local    / Votant2024!"
-    echo "    auditor   : auditor@ag-vote.local   / Auditor2024!"
-    echo "    viewer    : viewer@ag-vote.local    / Viewer2024!"
+    echo "    admin     : admin@ag-vote.local     / Admin2026!"
+    echo "    operator  : operator@ag-vote.local  / Operator2026!"
+    echo "    president : president@ag-vote.local / President2026!"
+    echo "    votant    : votant@ag-vote.local    / Votant2026!"
+    echo "    auditor   : auditor@ag-vote.local   / Auditor2026!"
+    echo "    viewer    : viewer@ag-vote.local    / Viewer2026!"
     echo ""
     echo "  Pages principales"
     echo "  ─────────────────"
@@ -388,6 +416,11 @@ main() {
             ;;
         --seed|--seed-only)
             apply_seeds "false"
+            ;;
+        --clean)
+            clean_data
+            apply_seeds "false"
+            grant_permissions
             ;;
         --migrate)
             apply_migrations

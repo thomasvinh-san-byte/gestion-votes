@@ -47,10 +47,10 @@ tests/
 
 | Role | API Key | Email |
 |------|---------|-------|
-| **admin** | `admin-key-2024-secret` | admin@ag-vote.local |
-| **operator** | `operator-key-2024-secret` | operator@ag-vote.local |
-| **auditor** | `auditor-key-2024-secret` | auditor@ag-vote.local |
-| **viewer** | `viewer-key-2024-secret` | viewer@ag-vote.local |
+| **admin** | `admin-key-2026-secret` | admin@ag-vote.local |
+| **operator** | `operator-key-2026-secret` | operator@ag-vote.local |
+| **auditor** | `auditor-key-2026-secret` | auditor@ag-vote.local |
+| **viewer** | `viewer-key-2026-secret` | viewer@ag-vote.local |
 
 Hash = HMAC-SHA256(api_key, APP_SECRET). Ces cles ne fonctionnent qu'avec :
 
@@ -71,11 +71,11 @@ PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
 # Login (cree une session PHP)
 curl -s http://localhost:8080/api/v1/auth_login.php \
   -H "Content-Type: application/json" \
-  -d '{"api_key":"admin-key-2024-secret"}'
+  -d '{"api_key":"admin-key-2026-secret"}'
 
 # Auth par header X-Api-Key
 curl -s http://localhost:8080/api/v1/meetings_index.php \
-  -H "X-Api-Key: operator-key-2024-secret"
+  -H "X-Api-Key: operator-key-2026-secret"
 
 # Sans auth (doit echouer si APP_AUTH_ENABLED=1)
 curl -s http://localhost:8080/api/v1/meetings_index.php

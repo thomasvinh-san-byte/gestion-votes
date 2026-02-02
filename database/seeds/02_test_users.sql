@@ -7,7 +7,13 @@
 --   - Email / mot de passe (production) : voir tableau ci-dessous
 --   - API key (legacy/fallback) : hash = HMAC-SHA256(api_key, APP_SECRET)
 --     APP_SECRET = dev-secret-do-not-use-in-production-change-me-now-please-64chr
+--
+-- Script idempotent : peut etre relance autant de fois que necessaire.
+-- Les utilisateurs existants sont mis a jour (ON CONFLICT DO UPDATE).
+-- Les donnees liees (meeting_roles) sont nettoyees avant reinsertion.
 -- =============================================================================
+
+BEGIN;
 
 -- Tenant de developpement
 INSERT INTO tenants (id, name, slug, created_at, updated_at)
@@ -18,12 +24,21 @@ VALUES (
   NOW(),
   NOW()
 )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  slug = EXCLUDED.slug,
+  updated_at = NOW();
+
+-- =============================================================================
+-- NETTOYAGE des donnees dependantes avant reinsertion
+-- =============================================================================
+DELETE FROM meeting_roles WHERE meeting_id = 'bbbbbbbb-1111-2222-3333-444444444444';
+DELETE FROM meetings WHERE id = 'bbbbbbbb-1111-2222-3333-444444444444';
 
 -- =============================================================================
 -- UTILISATEUR ADMIN
--- Email: admin@ag-vote.local / Mot de passe: Admin2024!
--- API Key (legacy): admin-key-2024-secret
+-- Email: admin@ag-vote.local / Mot de passe: Admin2026!
+-- API Key (legacy): admin-key-2026-secret
 -- =============================================================================
 
 INSERT INTO users (id, tenant_id, email, name, role, password_hash, api_key_hash, is_active, created_at, updated_at)
@@ -33,8 +48,8 @@ VALUES (
   'admin@ag-vote.local',
   'Admin Test',
   'admin',
-  '$2y$12$r2GRtsuDzIOD0v57V6UIBeUWEcqk58xFpCYh67by0d3P8E6xTnB2a',
-  '5abf0a151a493f8cb0ac941f5871f6bcef5f56521dd6e6a3e40f9a8da4ba8e67',
+  '$2y$12$BpzWieD.FL2PAGgk0D6JWe2bf.IxKPx/subD6bLI3c3/iFa0fyUZu',
+  '1d2b215cf1a0e29b52260471ab2fa6e86bb7ca0ea2c009dea361945125cdb00a',
   true,
   NOW(),
   NOW()
@@ -47,8 +62,8 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- =============================================================================
 -- UTILISATEUR OPERATEUR
--- Email: operator@ag-vote.local / Mot de passe: Operator2024!
--- API Key (legacy): operator-key-2024-secret
+-- Email: operator@ag-vote.local / Mot de passe: Operator2026!
+-- API Key (legacy): operator-key-2026-secret
 -- =============================================================================
 
 INSERT INTO users (id, tenant_id, email, name, role, password_hash, api_key_hash, is_active, created_at, updated_at)
@@ -58,8 +73,8 @@ VALUES (
   'operator@ag-vote.local',
   'Operateur Test',
   'operator',
-  '$2y$12$rd0UERIoVtnzuzl82/GmSu4Ay5uPWCrKyj75LYnrf5iGL8.CnqGlq',
-  '000b279c8ad165bc2dff3a340d03f9c5ff212de8638a4c257a9f6233029eb90c',
+  '$2y$12$DziNeg6NTowzU1bpe2wcleySwSpX4HAgh3fcqwb42OwSfuJDejgnu',
+  '34aff63bbcf077deadabac6e85717b3bfbea1dd80bd65ab7472a334290db20e2',
   true,
   NOW(),
   NOW()
@@ -72,8 +87,8 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- =============================================================================
 -- UTILISATEUR AUDITEUR
--- Email: auditor@ag-vote.local / Mot de passe: Auditor2024!
--- API Key (legacy): auditor-key-2024-secret
+-- Email: auditor@ag-vote.local / Mot de passe: Auditor2026!
+-- API Key (legacy): auditor-key-2026-secret
 -- =============================================================================
 
 INSERT INTO users (id, tenant_id, email, name, role, password_hash, api_key_hash, is_active, created_at, updated_at)
@@ -83,8 +98,8 @@ VALUES (
   'auditor@ag-vote.local',
   'Auditeur Test',
   'auditor',
-  '$2y$12$.cHP5GA.P/EPzDY4n5uqtO9KRgMLKx/L9VfziWykkQo.eqGE.HSG6',
-  '0d72d64eeca80fc606bdf65b841f433cfb450b2c066926d3968a8aa4b6fb90d6',
+  '$2y$12$C6QB/lO9MKqfmnw3c2Yr/umfRqhpAYWjp3awda4XBqy4yzMbtM2ju',
+  '8952e9b2705b7c4d4d2112e4d5824145df65af7126e5b3522ffed0d764a1f644',
   true,
   NOW(),
   NOW()
@@ -97,8 +112,8 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- =============================================================================
 -- UTILISATEUR VIEWER
--- Email: viewer@ag-vote.local / Mot de passe: Viewer2024!
--- API Key (legacy): viewer-key-2024-secret
+-- Email: viewer@ag-vote.local / Mot de passe: Viewer2026!
+-- API Key (legacy): viewer-key-2026-secret
 -- =============================================================================
 
 INSERT INTO users (id, tenant_id, email, name, role, password_hash, api_key_hash, is_active, created_at, updated_at)
@@ -108,8 +123,8 @@ VALUES (
   'viewer@ag-vote.local',
   'Viewer Test',
   'viewer',
-  '$2y$12$kYDWYLnNi61lbc.uI7L0h.zs029pDnfDKIgD7CvyYq5U2BpQD3/Ce',
-  '4d91dd1fb5df78e80a7cc7d01bd74d9fd4906e9542786814356769e1c8aa9501',
+  '$2y$12$KDUogyLNsKiN/D9RVVRCI.g2/KOTED6KFWE4jlLLF4xCepxAMIHce',
+  '0ea6c2e3db4707a3c7643423f0e714cb9f93c126bfb1b5de94969fb9f3754fc2',
   true,
   NOW(),
   NOW()
@@ -122,8 +137,8 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- =============================================================================
 -- UTILISATEUR PRESIDENT DE SEANCE
--- Email: president@ag-vote.local / Mot de passe: President2024!
--- API Key (legacy): president-key-2024-secret
+-- Email: president@ag-vote.local / Mot de passe: President2026!
+-- API Key (legacy): president-key-2026-secret
 -- Role systeme: operator (acces operationnel)
 -- Role de seance: president (attribue sur la seance demo)
 -- =============================================================================
@@ -135,8 +150,8 @@ VALUES (
   'president@ag-vote.local',
   'President Test',
   'operator',
-  '$2y$12$dg6Zkb9.I//cSoOEGYGTVOdreVUOgdDYenfq8Qf4dnO6uw0vI9b9K',
-  'dbbe8585b6302770f83d211338f211a13a71a64bb55c74da66036e9aacd585b0',
+  '$2y$12$ViedR4kFQkzmieDB6H8fAeQBX9IRd6ZQYPHFGxs/VsSzgixzWy2iW',
+  '4135460a78b04a46a0be4197ce237e3ae22c41e9343df54d54c512d42c59b73f',
   true,
   NOW(),
   NOW()
@@ -149,8 +164,8 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- =============================================================================
 -- UTILISATEUR VOTANT
--- Email: votant@ag-vote.local / Mot de passe: Votant2024!
--- API Key (legacy): votant-key-2024-secret
+-- Email: votant@ag-vote.local / Mot de passe: Votant2026!
+-- API Key (legacy): votant-key-2026-secret
 -- Role systeme: viewer (lecture seule au niveau plateforme)
 -- Role de seance: voter (attribue sur la seance demo)
 -- =============================================================================
@@ -162,8 +177,8 @@ VALUES (
   'votant@ag-vote.local',
   'Votant Test',
   'viewer',
-  '$2y$12$FyfRB2mlxWc1/wsl39jG6.v7VWmu235NhvPtsEpH8hZuZoYG6Ca8C',
-  '79f3e3a4aed6ef6f05212f57914f2af6e438700ede7b48bfa23c523ad3060fdb',
+  '$2y$12$IMsb/IodXXhw14492MijceTje5i1Tny9DfH1V.3h40BBXLfe6xjUe',
+  'f96e42de17c95c2834497e1d45fb466d0132a02f320d44f0676eb9a131051006',
   true,
   NOW(),
   NOW()
@@ -190,7 +205,13 @@ VALUES (
   NOW(),
   NOW()
 )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  status = EXCLUDED.status,
+  scheduled_at = EXCLUDED.scheduled_at,
+  location = EXCLUDED.location,
+  updated_at = NOW();
 
 -- Attribution du role president sur la seance demo
 INSERT INTO meeting_roles (id, tenant_id, meeting_id, user_id, role, assigned_by, assigned_at)
@@ -218,6 +239,8 @@ VALUES (
 )
 ON CONFLICT (tenant_id, meeting_id, user_id, role) DO NOTHING;
 
+COMMIT;
+
 -- =============================================================================
 -- RESUME DES IDENTIFIANTS DE TEST
 -- =============================================================================
@@ -226,25 +249,25 @@ ON CONFLICT (tenant_id, meeting_id, user_id, role) DO NOTHING;
 -- +------------+------------------------+-----------------+-------------------+
 -- | ROLE       | EMAIL                  | MOT DE PASSE    | DESCRIPTION       |
 -- +------------+------------------------+-----------------+-------------------+
--- | admin      | admin@ag-vote.local    | Admin2024!      | Acces total       |
--- | operator   | operator@ag-vote.local | Operator2024!   | Gestion courante  |
--- | auditor    | auditor@ag-vote.local  | Auditor2024!    | Conformite (R/O)  |
--- | viewer     | viewer@ag-vote.local   | Viewer2024!     | Lecture seule     |
+-- | admin      | admin@ag-vote.local    | Admin2026!      | Acces total       |
+-- | operator   | operator@ag-vote.local | Operator2026!   | Gestion courante  |
+-- | auditor    | auditor@ag-vote.local  | Auditor2026!    | Conformite (R/O)  |
+-- | viewer     | viewer@ag-vote.local   | Viewer2026!     | Lecture seule     |
 -- +------------+------------------------+-----------------+-------------------+
 --
 -- ROLES DE SEANCE (attribues sur la "Seance de test") :
 -- +------------+---------------------------+-----------------+-------------------+
 -- | ROLE       | EMAIL                     | MOT DE PASSE    | DESCRIPTION       |
 -- +------------+---------------------------+-----------------+-------------------+
--- | president  | president@ag-vote.local   | President2024!  | Preside la seance |
--- | votant     | votant@ag-vote.local      | Votant2024!     | Vote en seance    |
+-- | president  | president@ag-vote.local   | President2026!  | Preside la seance |
+-- | votant     | votant@ag-vote.local      | Votant2026!     | Vote en seance    |
 -- +------------+---------------------------+-----------------+-------------------+
 --
 -- Tous les mots de passe sont hashes en bcrypt ($2y$12$...).
 -- Aucun mot de passe n'est stocke en clair dans la base.
 --
 -- Les cles API (legacy) restent fonctionnelles en fallback :
---   admin-key-2024-secret, operator-key-2024-secret,
---   auditor-key-2024-secret, viewer-key-2024-secret,
---   president-key-2024-secret, votant-key-2024-secret
+--   admin-key-2026-secret, operator-key-2026-secret,
+--   auditor-key-2026-secret, viewer-key-2026-secret,
+--   president-key-2026-secret, votant-key-2026-secret
 -- =============================================================================

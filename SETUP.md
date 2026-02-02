@@ -127,17 +127,17 @@ Créés par `database/seeds/02_test_users.sql` (chargé automatiquement par `set
 
 | Rôle | Email | Mot de passe | Description |
 |---|---|---|---|
-| Admin | `admin@ag-vote.local` | `Admin2024!` | Accès total |
-| Opérateur | `operator@ag-vote.local` | `Operator2024!` | Gestion courante |
-| Auditeur | `auditor@ag-vote.local` | `Auditor2024!` | Conformité (lecture) |
-| Lecteur | `viewer@ag-vote.local` | `Viewer2024!` | Lecture seule |
+| Admin | `admin@ag-vote.local` | `Admin2026!` | Accès total |
+| Opérateur | `operator@ag-vote.local` | `Operator2026!` | Gestion courante |
+| Auditeur | `auditor@ag-vote.local` | `Auditor2026!` | Conformité (lecture) |
+| Lecteur | `viewer@ag-vote.local` | `Viewer2026!` | Lecture seule |
 
 ### Rôles de séance
 
 | Rôle | Email | Mot de passe | Description |
 |---|---|---|---|
-| Président | `president@ag-vote.local` | `President2024!` | Préside la séance |
-| Votant | `votant@ag-vote.local` | `Votant2024!` | Vote en séance |
+| Président | `president@ag-vote.local` | `President2026!` | Préside la séance |
+| Votant | `votant@ag-vote.local` | `Votant2026!` | Vote en séance |
 
 ## 6. Données de démo
 

@@ -231,8 +231,8 @@ $motions = $r['body']['items'] ?? $r['body']['motions'] ?? $r['body']['data'] ??
 if (count($motions) === 0) {
     // Créer des résolutions de test
     $motionTitles = [
-        'Approbation des comptes 2024',
-        'Budget prévisionnel 2025',
+        'Approbation des comptes 2025',
+        'Budget prévisionnel 2026',
         'Renouvellement du conseil',
     ];
     

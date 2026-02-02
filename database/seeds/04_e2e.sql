@@ -4,39 +4,55 @@
 -- Depend de : 01_minimal.sql (politiques, tenant) + 02_test_users.sql (comptes)
 --
 -- Cree une seance en DRAFT avec tout le necessaire pour tester le cycle :
---   DRAFT → SCHEDULED → FROZEN → LIVE → (votes) → CLOSED → VALIDATED → ARCHIVED
+--   DRAFT -> SCHEDULED -> FROZEN -> LIVE -> (votes) -> CLOSED -> VALIDATED -> ARCHIVED
+--
+-- Script idempotent : nettoie les donnees dependantes avant reinsertion.
+-- Peut etre relance autant de fois que necessaire pour retrouver un etat stable.
 --
 -- COMPTES DE TEST (voir test_users.sql pour les mots de passe) :
 -- +------------+---------------------------+-----------------+
 -- | ROLE       | EMAIL                     | MOT DE PASSE    |
 -- +------------+---------------------------+-----------------+
--- | admin      | admin@ag-vote.local       | Admin2024!      |
--- | operator   | operator@ag-vote.local    | Operator2024!   |
--- | president  | president@ag-vote.local   | President2024!  |
--- | votant     | votant@ag-vote.local      | Votant2024!     |
+-- | admin      | admin@ag-vote.local       | Admin2026!      |
+-- | operator   | operator@ag-vote.local    | Operator2026!   |
+-- | president  | president@ag-vote.local   | President2026!  |
+-- | votant     | votant@ag-vote.local      | Votant2026!     |
 -- +------------+---------------------------+-----------------+
 --
 -- PARCOURS DE TEST :
--- 1. Se connecter en tant qu'operator → /meetings.htmx.html
+-- 1. Se connecter en tant qu'operator -> /meetings.htmx.html
 -- 2. La seance "Conseil Municipal — Seance E2E" apparait en DRAFT
 -- 3. Operator : modifier les details, verifier les membres (12 elus)
 -- 4. Operator : passer en SCHEDULED (bouton transition)
--- 5. Se connecter en tant que president → /president.htmx.html
+-- 5. Se connecter en tant que president -> /president.htmx.html
 -- 6. President : passer en FROZEN (verrouiller la configuration)
 -- 7. President : passer en LIVE (ouvrir la seance)
 -- 8. Operator : enregistrer les presences (10/12 presents)
 -- 9. Operator : ouvrir le vote sur la 1ere resolution
--- 10. Se connecter en tant que votant → /vote.htmx.html
+-- 10. Se connecter en tant que votant -> /vote.htmx.html
 -- 11. Votant : voter (POUR / CONTRE / ABSTENTION)
 -- 12. Operator : saisir les votes manuels pour les autres membres
--- 13. Operator : fermer le vote → resultats calcules
+-- 13. Operator : fermer le vote -> resultats calcules
 -- 14. Repeter pour les autres resolutions
--- 15. President : cloturer la seance (LIVE → CLOSED)
--- 16. President : valider et signer le PV (CLOSED → VALIDATED)
--- 17. Admin : archiver la seance (VALIDATED → ARCHIVED)
+-- 15. President : cloturer la seance (LIVE -> CLOSED)
+-- 16. President : valider et signer le PV (CLOSED -> VALIDATED)
+-- 17. Admin : archiver la seance (VALIDATED -> ARCHIVED)
 -- =============================================================================
 
 BEGIN;
+
+-- ============================================================================
+-- NETTOYAGE COMPLET des donnees de cette seed
+-- (ordre inverse des dependances pour respecter les FK)
+-- ============================================================================
+DELETE FROM ballots WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
+DELETE FROM attendances WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
+DELETE FROM proxies WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
+UPDATE meetings SET current_motion_id = NULL WHERE id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
+DELETE FROM motions WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
+DELETE FROM agendas WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
+DELETE FROM meeting_roles WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
+DELETE FROM meetings WHERE id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
 
 -- ============================================================================
 -- SEANCE E2E (DRAFT, prete a etre lancee)
@@ -62,31 +78,13 @@ INSERT INTO meetings (
   'Mme Dupont (President Test)',
   'Seance de test E2E. Ne pas utiliser en production.',
   now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title,
-    description = EXCLUDED.description,
-    status = 'draft',
-    quorum_policy_id = EXCLUDED.quorum_policy_id,
-    vote_policy_id = EXCLUDED.vote_policy_id,
-    scheduled_at = EXCLUDED.scheduled_at,
-    location = EXCLUDED.location,
-    convocation_no = EXCLUDED.convocation_no,
-    president_name = EXCLUDED.president_name,
-    notes = EXCLUDED.notes,
-    started_at = NULL,
-    ended_at = NULL,
-    validated_at = NULL,
-    archived_at = NULL,
-    frozen_at = NULL,
-    current_motion_id = NULL,
-    updated_at = now();
+);
 
 -- ============================================================================
 -- ROLES DE SEANCE (president, assessor, voter) pour les comptes de test
 -- ============================================================================
 
--- President Test (president@ag-vote.local) → president de cette seance
+-- President Test (president@ag-vote.local) -> president de cette seance
 INSERT INTO meeting_roles (id, tenant_id, meeting_id, user_id, role, assigned_by, assigned_at)
 VALUES (
   'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00010',
@@ -96,10 +94,9 @@ VALUES (
   'president',
   '11111111-1111-1111-1111-111111111111',  -- admin
   now()
-)
-ON CONFLICT (tenant_id, meeting_id, user_id, role) DO NOTHING;
+);
 
--- Operator Test → assessor (co-controle)
+-- Operator Test -> assessor (co-controle)
 INSERT INTO meeting_roles (id, tenant_id, meeting_id, user_id, role, assigned_by, assigned_at)
 VALUES (
   'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00011',
@@ -109,10 +106,9 @@ VALUES (
   'assessor',
   '11111111-1111-1111-1111-111111111111',
   now()
-)
-ON CONFLICT (tenant_id, meeting_id, user_id, role) DO NOTHING;
+);
 
--- Votant Test → voter
+-- Votant Test -> voter
 INSERT INTO meeting_roles (id, tenant_id, meeting_id, user_id, role, assigned_by, assigned_at)
 VALUES (
   'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00012',
@@ -122,14 +118,10 @@ VALUES (
   'voter',
   '11111111-1111-1111-1111-111111111111',
   now()
-)
-ON CONFLICT (tenant_id, meeting_id, user_id, role) DO NOTHING;
+);
 
 -- ============================================================================
--- MEMBRES (12 elus municipaux avec poids de vote different)
--- ============================================================================
--- Ces membres sont les personnes physiques qui siegent et votent.
--- Ils sont distincts des "users" (comptes systeme).
+-- MEMBRES (12 elus municipaux avec poids de vote egal)
 -- ============================================================================
 INSERT INTO members (id, tenant_id, external_ref, full_name, email, vote_weight, role, is_active, created_at, updated_at)
 VALUES
@@ -176,11 +168,7 @@ VALUES
   ('eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00205','aaaaaaaa-1111-2222-3333-444444444444','eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001',5,
    'Questions diverses',
    'Discussion ouverte sur les points divers souleves par les elus.',
-   now(),now())
-ON CONFLICT (tenant_id, meeting_id, idx) DO UPDATE
-SET title = EXCLUDED.title,
-    description = EXCLUDED.description,
-    updated_at = now();
+   now(),now());
 
 -- ============================================================================
 -- RESOLUTIONS / MOTIONS (5, toutes en draft, pretes a voter)
@@ -204,12 +192,7 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   'draft', now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title, description = EXCLUDED.description,
-    sort_order = EXCLUDED.sort_order, status = 'draft',
-    opened_at = NULL, closed_at = NULL, decision = NULL,
-    updated_at = now();
+);
 
 -- Resolution 2 : Budget (majorite absolue)
 INSERT INTO motions (
@@ -229,12 +212,7 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité absolue' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   'draft', now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title, description = EXCLUDED.description,
-    sort_order = EXCLUDED.sort_order, status = 'draft',
-    opened_at = NULL, closed_at = NULL, decision = NULL,
-    updated_at = now();
+);
 
 -- Resolution 3 : Travaux (majorite 2/3)
 INSERT INTO motions (
@@ -255,12 +233,7 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité 2/3' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   'draft', now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title, description = EXCLUDED.description,
-    sort_order = EXCLUDED.sort_order, status = 'draft',
-    opened_at = NULL, closed_at = NULL, decision = NULL,
-    updated_at = now();
+);
 
 -- Resolution 4 : Convention (majorite simple)
 INSERT INTO motions (
@@ -280,12 +253,7 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   NULL,
   'draft', now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title, description = EXCLUDED.description,
-    sort_order = EXCLUDED.sort_order, status = 'draft',
-    opened_at = NULL, closed_at = NULL, decision = NULL,
-    updated_at = now();
+);
 
 -- Resolution 5 : Election a bulletin secret
 INSERT INTO motions (
@@ -304,13 +272,7 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 33% (personnes)' LIMIT 1),
   'draft', now(), now()
-)
-ON CONFLICT (id) DO UPDATE
-SET title = EXCLUDED.title, description = EXCLUDED.description,
-    secret = EXCLUDED.secret,
-    sort_order = EXCLUDED.sort_order, status = 'draft',
-    opened_at = NULL, closed_at = NULL, decision = NULL,
-    updated_at = now();
+);
 
 -- ============================================================================
 -- PROCURATIONS (1 proxy pre-configure)
@@ -325,61 +287,6 @@ VALUES (
   'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00101',  -- Mme Dupont (presente)
   'full',
   now()
-)
-ON CONFLICT (tenant_id, meeting_id, giver_member_id) DO UPDATE
-SET receiver_member_id = EXCLUDED.receiver_member_id,
-    scope = EXCLUDED.scope;
-
--- ============================================================================
--- NETTOYAGE : supprimer les presences/ballots existants pour cette seance
--- (permet de re-executer le seed sans probleme)
--- ============================================================================
-DELETE FROM ballots WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
-DELETE FROM attendances WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
-
--- ============================================================================
--- RESUME DU SCENARIO
--- ============================================================================
---
--- SEANCE : "Conseil Municipal — Seance E2E"
--- ID : eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001
--- ETAT : DRAFT (pret a etre lance)
--- QUORUM : 50% des personnes (6/12 minimum)
--- VOTE PAR DEFAUT : Majorite simple (> 50% des exprimes)
---
--- 12 MEMBRES (CM-001 a CM-012) :
---   CM-001 Mme Dupont (Maire) — poids 1
---   CM-002 M. Lefebvre (1er Adjoint) — poids 1
---   ...
---   CM-012 M. Fontaine — poids 1 (absent, procuration a Dupont)
---
--- 5 RESOLUTIONS :
---   1. Approbation PV (majorite simple, quorum 50%)
---   2. Budget supplementaire (majorite absolue, quorum 50%)
---   3. Renovation salle des fetes (majorite 2/3, quorum 50%)
---   4. Convention dechets (majorite simple, pas de quorum specifique)
---   5. Election delegue (bulletin secret, majorite simple, quorum 33%)
---
--- 1 PROCURATION : Fontaine → Dupont
---
--- ROLES DE SEANCE :
---   president@ag-vote.local → president
---   operator@ag-vote.local → assessor
---   votant@ag-vote.local → voter
---
--- PARCOURS :
---   1. operator : cree/verifie la seance (DRAFT)
---   2. operator : DRAFT → SCHEDULED
---   3. president : SCHEDULED → FROZEN
---   4. president : FROZEN → LIVE
---   5. operator : enregistre les presences
---   6. operator : ouvre le vote resolution 1
---   7. votant + operator : votent
---   8. operator : ferme le vote → resultats
---   9. Repeter 6-8 pour les resolutions 2-5
---   10. president : LIVE → CLOSED
---   11. president : CLOSED → VALIDATED (signe PV)
---   12. admin : VALIDATED → ARCHIVED
--- =============================================================================
+);
 
 COMMIT;

@@ -38,10 +38,10 @@ L'authentification doit être **activée** pour tester les rôles.
 
 | Rôle | Email | Mot de passe | Rôle système | Rôle de séance |
 |---|---|---|---|---|
-| Admin | `admin@ag-vote.local` | `Admin2024!` | admin | — |
-| Opérateur | `operator@ag-vote.local` | `Operator2024!` | operator | assesseur |
-| Président | `president@ag-vote.local` | `President2024!` | operator | président |
-| Votant | `votant@ag-vote.local` | `Votant2024!` | viewer | électeur |
+| Admin | `admin@ag-vote.local` | `Admin2026!` | admin | — |
+| Opérateur | `operator@ag-vote.local` | `Operator2026!` | operator | assesseur |
+| Président | `president@ag-vote.local` | `President2026!` | operator | président |
+| Votant | `votant@ag-vote.local` | `Votant2026!` | viewer | électeur |
 
 ---
 
@@ -88,7 +88,7 @@ L'authentification doit être **activée** pour tester les rôles.
 
 ### Phase 1 — Préparation (opérateur)
 
-**Se connecter** sur `/login.html` avec `operator@ag-vote.local` / `Operator2024!`
+**Se connecter** sur `/login.html` avec `operator@ag-vote.local` / `Operator2026!`
 
 #### Étape 1.1 — Vérifier la séance
 
@@ -132,7 +132,7 @@ L'authentification doit être **activée** pour tester les rôles.
 
 ### Phase 2 — Verrouillage et ouverture (président)
 
-**Se connecter** sur `/login.html` avec `president@ag-vote.local` / `President2024!`
+**Se connecter** sur `/login.html` avec `president@ag-vote.local` / `President2026!`
 
 #### Étape 2.1 — Transition SCHEDULED → FROZEN
 
@@ -179,7 +179,7 @@ En tant qu'**opérateur** :
 
 #### Étape 4.2 — Voter en tant que votant
 
-**Se connecter** dans un autre navigateur avec `votant@ag-vote.local` / `Votant2024!`
+**Se connecter** dans un autre navigateur avec `votant@ag-vote.local` / `Votant2026!`
 
 - Aller sur `/vote.htmx.html?meeting_id=eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001`
 - La résolution 1 est affichée
@@ -281,7 +281,7 @@ Pour chaque résolution : Ouvrir → Voter → Clôturer → Vérifier le résul
 
 ### Phase 7 — Archivage et livrables (admin)
 
-**Se connecter** avec `admin@ag-vote.local` / `Admin2024!`
+**Se connecter** avec `admin@ag-vote.local` / `Admin2026!`
 
 #### Étape 7.1 — Archiver la séance
 
