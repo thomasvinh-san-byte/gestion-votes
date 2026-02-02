@@ -14,7 +14,7 @@ if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     exit;
 }
 
-$input = json_decode(file_get_contents('php://input'), true);
+$input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
 if (!is_array($input)) $input = $_POST;
 
 $motionId = trim((string)($input['motion_id'] ?? ''));
@@ -37,12 +37,20 @@ try {
         exit;
     }
 
+    // Ensure official columns exist BEFORE transaction (DDL can't be in a TX)
+    OfficialResultsService::ensureSchema();
+
     db()->beginTransaction();
 
     $repo->markClosed($motionId, api_current_tenant_id());
 
-    // Compute/freeze results (official)
-    OfficialResultsService::computeAndPersistMotion((string)$motionId);
+    // Compute/freeze results (official) — schema already ensured above
+    $o = OfficialResultsService::computeOfficialTallies((string)$motionId);
+    $repo->updateOfficialResults(
+        (string)$motionId,
+        $o['source'], $o['for'], $o['against'],
+        $o['abstain'], $o['total'], $o['decision'], $o['reason']
+    );
 
     db()->commit();
 

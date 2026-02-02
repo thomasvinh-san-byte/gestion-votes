@@ -7,7 +7,7 @@ use AgVote\Service\OfficialResultsService;
 
 api_require_role('auditor');
 
-$body = json_decode(file_get_contents('php://input'), true) ?? [];
+$body = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true) ?? [];
 $meetingId = trim((string)($body['meeting_id'] ?? ''));
 if ($meetingId === '') api_fail('missing_meeting_id', 400);
 

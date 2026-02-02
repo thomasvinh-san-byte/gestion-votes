@@ -19,7 +19,7 @@ try {
         api_ok(['meetings' => $rows]);
 
     } elseif ($method === 'POST') {
-        $input = json_decode(file_get_contents('php://input'), true);
+        $input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
         if (!is_array($input)) {
             $input = $_POST;
         }
