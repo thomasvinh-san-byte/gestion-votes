@@ -47,8 +47,8 @@ if ($fromStatus === $toStatus) {
     ]);
 }
 
-// Vérifier la transition via la machine à états
-AuthMiddleware::requireTransition($fromStatus, $toStatus);
+// Vérifier la transition via la machine à états (avec contexte séance pour les rôles de séance)
+AuthMiddleware::requireTransition($fromStatus, $toStatus, $meetingId);
 
 // Construire les champs de mise à jour
 $fields = ['status' => $toStatus];

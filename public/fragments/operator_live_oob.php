@@ -7,20 +7,20 @@ if ($meetingId === '') { http_response_code(204); exit; }
 
 $meeting = db_select_one(
   "SELECT id, title, validated_at FROM meetings WHERE tenant_id = ? AND id = ?",
-  [DEFAULT_TENANT_ID, $meetingId]
+  [api_current_tenant_id(), $meetingId]
 );
 if (!$meeting) { http_response_code(204); exit; }
 
 $open = db_select_one(
   "SELECT id, title FROM motions WHERE tenant_id = ? AND meeting_id = ? AND opened_at IS NOT NULL AND closed_at IS NULL ORDER BY opened_at DESC LIMIT 1",
-  [DEFAULT_TENANT_ID, $meetingId]
+  [api_current_tenant_id(), $meetingId]
 );
 
 $present = (int)(db_select_one(
   "SELECT COUNT(*) AS c
    FROM attendances
    WHERE tenant_id = ? AND meeting_id = ? AND mode IN ('present','remote','proxy')",
-  [DEFAULT_TENANT_ID, $meetingId]
+  [api_current_tenant_id(), $meetingId]
 )['c'] ?? 0);
 
 $tokens = 0;
@@ -30,12 +30,12 @@ $pending = null;
 if ($open) {
   $tokens = (int)(db_select_one(
     "SELECT COUNT(*) AS c FROM vote_tokens WHERE tenant_id = ? AND meeting_id = ? AND motion_id = ? AND used_at IS NULL AND expires_at > NOW()",
-    [DEFAULT_TENANT_ID, $meetingId, $open['id']]
+    [api_current_tenant_id(), $meetingId, $open['id']]
   )['c'] ?? 0);
 
   $votes = (int)(db_select_one(
     "SELECT COUNT(*) AS c FROM ballots WHERE tenant_id = ? AND meeting_id = ? AND motion_id = ?",
-    [DEFAULT_TENANT_ID, $meetingId, $open['id']]
+    [api_current_tenant_id(), $meetingId, $open['id']]
   )['c'] ?? 0);
 
   $pending = max(0, $present - $votes);

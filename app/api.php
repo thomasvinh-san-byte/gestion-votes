@@ -157,7 +157,7 @@ function api_guard_meeting_not_validated(string $meetingId): void {
     if ($meetingId === '') return;
     $mt = db_select_one(
         "SELECT validated_at FROM meetings WHERE tenant_id = :tid AND id = :mid",
-        [':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId]
+        [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
     );
     if ($mt && !empty($mt['validated_at'])) {
         api_fail('meeting_validated', 409, [
@@ -173,7 +173,7 @@ function api_guard_meeting_not_validated(string $meetingId): void {
 function api_guard_meeting_exists(string $meetingId): array {
     $mt = db_select_one(
         "SELECT * FROM meetings WHERE tenant_id = :tid AND id = :mid",
-        [':tid' => DEFAULT_TENANT_ID, ':mid' => $meetingId]
+        [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
     );
     if (!$mt) {
         api_fail('meeting_not_found', 404);

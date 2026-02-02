@@ -5,6 +5,8 @@ namespace AgVote\Service;
 
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MeetingRepository;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Gestion des présences (check-in) par séance.
