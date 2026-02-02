@@ -43,8 +43,13 @@ BEGIN;
 
 -- ============================================================================
 -- NETTOYAGE COMPLET des donnees de cette seed
--- (ordre inverse des dependances pour respecter les FK)
+-- Desactive les triggers de protection pour permettre le nettoyage,
+-- puis les reactive apres.
 -- ============================================================================
+ALTER TABLE ballots DISABLE TRIGGER trg_no_ballot_change_after_validation;
+ALTER TABLE attendances DISABLE TRIGGER trg_no_attendance_change_after_validation;
+ALTER TABLE motions DISABLE TRIGGER trg_no_motion_update_after_validation;
+
 DELETE FROM ballots WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
 DELETE FROM attendances WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
 DELETE FROM proxies WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
@@ -53,6 +58,10 @@ DELETE FROM motions WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
 DELETE FROM agendas WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
 DELETE FROM meeting_roles WHERE meeting_id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
 DELETE FROM meetings WHERE id = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
+
+ALTER TABLE ballots ENABLE TRIGGER trg_no_ballot_change_after_validation;
+ALTER TABLE attendances ENABLE TRIGGER trg_no_attendance_change_after_validation;
+ALTER TABLE motions ENABLE TRIGGER trg_no_motion_update_after_validation;
 
 -- ============================================================================
 -- SEANCE E2E (DRAFT, prete a etre lancee)
@@ -78,7 +87,13 @@ INSERT INTO meetings (
   'Mme Dupont (President Test)',
   'Seance de test E2E. Ne pas utiliser en production.',
   now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  status = EXCLUDED.status,
+  scheduled_at = EXCLUDED.scheduled_at,
+  updated_at = now();
 
 -- ============================================================================
 -- ROLES DE SEANCE (president, assessor, voter) pour les comptes de test
@@ -94,7 +109,10 @@ VALUES (
   'president',
   '11111111-1111-1111-1111-111111111111',  -- admin
   now()
-);
+)
+ON CONFLICT (tenant_id, meeting_id, user_id, role) DO UPDATE SET
+  assigned_by = EXCLUDED.assigned_by,
+  assigned_at = EXCLUDED.assigned_at;
 
 -- Operator Test -> assessor (co-controle)
 INSERT INTO meeting_roles (id, tenant_id, meeting_id, user_id, role, assigned_by, assigned_at)
@@ -106,7 +124,10 @@ VALUES (
   'assessor',
   '11111111-1111-1111-1111-111111111111',
   now()
-);
+)
+ON CONFLICT (tenant_id, meeting_id, user_id, role) DO UPDATE SET
+  assigned_by = EXCLUDED.assigned_by,
+  assigned_at = EXCLUDED.assigned_at;
 
 -- Votant Test -> voter
 INSERT INTO meeting_roles (id, tenant_id, meeting_id, user_id, role, assigned_by, assigned_at)
@@ -118,7 +139,10 @@ VALUES (
   'voter',
   '11111111-1111-1111-1111-111111111111',
   now()
-);
+)
+ON CONFLICT (tenant_id, meeting_id, user_id, role) DO UPDATE SET
+  assigned_by = EXCLUDED.assigned_by,
+  assigned_at = EXCLUDED.assigned_at;
 
 -- ============================================================================
 -- MEMBRES (12 elus municipaux avec poids de vote egal)
@@ -168,7 +192,11 @@ VALUES
   ('eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00205','aaaaaaaa-1111-2222-3333-444444444444','eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001',5,
    'Questions diverses',
    'Discussion ouverte sur les points divers souleves par les elus.',
-   now(),now());
+   now(),now())
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  updated_at = now();
 
 -- ============================================================================
 -- RESOLUTIONS / MOTIONS (5, toutes en draft, pretes a voter)
@@ -192,7 +220,12 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   'draft', now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  status = EXCLUDED.status,
+  updated_at = now();
 
 -- Resolution 2 : Budget (majorite absolue)
 INSERT INTO motions (
@@ -212,7 +245,12 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité absolue' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   'draft', now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  status = EXCLUDED.status,
+  updated_at = now();
 
 -- Resolution 3 : Travaux (majorite 2/3)
 INSERT INTO motions (
@@ -233,7 +271,12 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité 2/3' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   'draft', now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  status = EXCLUDED.status,
+  updated_at = now();
 
 -- Resolution 4 : Convention (majorite simple)
 INSERT INTO motions (
@@ -253,7 +296,12 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   NULL,
   'draft', now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  status = EXCLUDED.status,
+  updated_at = now();
 
 -- Resolution 5 : Election a bulletin secret
 INSERT INTO motions (
@@ -272,7 +320,12 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 33% (personnes)' LIMIT 1),
   'draft', now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  status = EXCLUDED.status,
+  updated_at = now();
 
 -- ============================================================================
 -- PROCURATIONS (1 proxy pre-configure)
@@ -287,6 +340,9 @@ VALUES (
   'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00101',  -- Mme Dupont (presente)
   'full',
   now()
-);
+)
+ON CONFLICT (tenant_id, meeting_id, giver_member_id) DO UPDATE SET
+  receiver_member_id = EXCLUDED.receiver_member_id,
+  scope = EXCLUDED.scope;
 
 COMMIT;

@@ -280,24 +280,34 @@ setup_env() {
 # =============================================================================
 clean_data() {
     info "Nettoyage complet des donnees..."
+    # TRUNCATE CASCADE supprime toutes les donnees y compris les tables
+    # liees par FK, et ignore les triggers de protection.
+    # Les tables de reference (meeting_state_transitions, role_permissions)
+    # sont re-creees par les migrations.
     pg_exec -c "
-        -- Detacher les motions courantes pour eviter les FK
-        UPDATE meetings SET current_motion_id = NULL;
-        -- Supprimer dans l'ordre inverse des dependances
-        DELETE FROM ballots;
-        DELETE FROM attendances;
-        DELETE FROM proxies;
-        DELETE FROM motions;
-        DELETE FROM agendas;
-        DELETE FROM meeting_roles;
-        DELETE FROM meetings;
-        DELETE FROM members;
-        DELETE FROM auth_failures;
-        DELETE FROM audit_events;
-        DELETE FROM users;
-        DELETE FROM vote_policies;
-        DELETE FROM quorum_policies;
-        DELETE FROM tenants;
+        TRUNCATE TABLE
+            ballots,
+            paper_ballots,
+            vote_tokens,
+            attendances,
+            proxies,
+            motions,
+            agendas,
+            meeting_roles,
+            meeting_emergency_checks,
+            meeting_reports,
+            device_heartbeats,
+            device_blocks,
+            device_commands,
+            meetings,
+            members,
+            auth_failures,
+            audit_events,
+            users,
+            vote_policies,
+            quorum_policies,
+            tenants
+        CASCADE;
     " 2>&1 | grep -E "^(ERROR|FATAL)" || true
     log "Donnees nettoyees"
 }

@@ -12,6 +12,9 @@ declare(strict_types=1);
  * Crée une session PHP persistante.
  */
 
+// Lire le body AVANT tout require (evite que php://input soit consomme par un middleware)
+$__rawBody = file_get_contents('php://input') ?: '';
+
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\UserRepository;
@@ -20,7 +23,7 @@ if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     api_fail('method_not_allowed', 405);
 }
 
-$input = json_decode(file_get_contents('php://input') ?: '', true);
+$input = json_decode($__rawBody, true);
 if (!is_array($input)) $input = $_POST;
 
 $userRepo = new UserRepository();

@@ -16,8 +16,13 @@ BEGIN;
 
 -- ============================================================================
 -- NETTOYAGE COMPLET des donnees de cette seed
--- (ordre inverse des dependances pour respecter les FK)
+-- Desactive les triggers de protection pour permettre le nettoyage,
+-- puis les reactive apres.
 -- ============================================================================
+ALTER TABLE ballots DISABLE TRIGGER trg_no_ballot_change_after_validation;
+ALTER TABLE attendances DISABLE TRIGGER trg_no_attendance_change_after_validation;
+ALTER TABLE motions DISABLE TRIGGER trg_no_motion_update_after_validation;
+
 DELETE FROM ballots WHERE meeting_id IN (
   '44444444-4444-4444-4444-444444444001',
   '44444444-4444-4444-4444-444444444002'
@@ -48,6 +53,10 @@ DELETE FROM meetings WHERE id IN (
   '44444444-4444-4444-4444-444444444002'
 );
 
+ALTER TABLE ballots ENABLE TRIGGER trg_no_ballot_change_after_validation;
+ALTER TABLE attendances ENABLE TRIGGER trg_no_attendance_change_after_validation;
+ALTER TABLE motions ENABLE TRIGGER trg_no_motion_update_after_validation;
+
 -- ============================================================================
 -- Seance LIVE (en cours)
 -- ============================================================================
@@ -69,7 +78,9 @@ INSERT INTO meetings (
   'Mme Martin',
   '2026/AGO-001',
   now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
 
 -- Seance DRAFT (future)
 INSERT INTO meetings (
@@ -84,7 +95,9 @@ INSERT INTO meetings (
   now() + interval '14 days',
   'Salle B',
   now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
 
 -- ============================================================================
 -- Membres (12, ponderes)
@@ -125,8 +138,10 @@ VALUES
   ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555007','present',70.0000,now() - interval '17 minutes',now(),now()),
   ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555008','present',55.0000,now() - interval '15 minutes',now(),now()),
   ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555009','present',45.0000,now() - interval '12 minutes',now(),now()),
-  ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555010','present',85.0000,now() - interval '10 minutes',now(),now());
+  ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555010','present',85.0000,now() - interval '10 minutes',now(),now())
   -- LOT-011 (Thomas) et LOT-012 (Lambert) sont absents
+ON CONFLICT (tenant_id, meeting_id, member_id) DO UPDATE
+SET mode = EXCLUDED.mode, effective_power = EXCLUDED.effective_power, updated_at = now();
 
 -- ============================================================================
 -- Proxy : Lambert (absent) donne procuration a Martin (present)
@@ -140,7 +155,9 @@ VALUES (
   '55555555-5555-5555-5555-555555555001',  -- Martin (present)
   'full',
   now()
-);
+)
+ON CONFLICT (tenant_id, meeting_id, giver_member_id) DO UPDATE
+SET receiver_member_id = EXCLUDED.receiver_member_id, scope = EXCLUDED.scope;
 
 -- ============================================================================
 -- Motions pour la seance live
@@ -163,7 +180,8 @@ INSERT INTO motions (
   NULL,
   'closed', now() - interval '20 minutes', now() - interval '15 minutes', 'adopted',
   now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
 
 -- Motion 2 : EN COURS DE VOTE (ouverte)
 INSERT INTO motions (
@@ -182,7 +200,8 @@ INSERT INTO motions (
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   'open', now() - interval '5 minutes',
   now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
 
 -- Mettre cette motion comme motion courante
 UPDATE meetings
@@ -204,7 +223,8 @@ INSERT INTO motions (
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 33% (personnes)' LIMIT 1),
   'draft', now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
 
 -- Motion 4 : a venir
 INSERT INTO motions (
@@ -219,7 +239,8 @@ INSERT INTO motions (
   false, 4,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité absolue' LIMIT 1),
   'draft', now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
 
 -- Motion 5 : a venir
 INSERT INTO motions (
@@ -234,7 +255,8 @@ INSERT INTO motions (
   false, 5,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   'draft', now(), now()
-);
+)
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
 
 -- ============================================================================
 -- Bulletins pour la motion 1 (fermee, adoptee)
