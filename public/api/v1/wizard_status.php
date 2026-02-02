@@ -29,10 +29,19 @@ try {
         api_fail('meeting_not_found', 404);
     }
 
-    // Members count
-    $members = $pdo->prepare("SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true");
-    $members->execute([':tid' => $tenantId]);
+    // Members count: enrolled in this meeting (via attendances table)
+    $members = $pdo->prepare(
+        "SELECT COUNT(*) FROM attendances WHERE meeting_id = :mid"
+    );
+    $members->execute([':mid' => $meetingId]);
     $membersCount = (int)$members->fetchColumn();
+
+    // Fallback: if no attendances yet, count all active members for tenant
+    if ($membersCount === 0) {
+        $membersAll = $pdo->prepare("SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true");
+        $membersAll->execute([':tid' => $tenantId]);
+        $membersCount = (int)$membersAll->fetchColumn();
+    }
 
     // Attendance: present count (any mode except absent/null)
     $att = $pdo->prepare(

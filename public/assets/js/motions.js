@@ -183,6 +183,8 @@
 
   // Open vote
   async function openVote(motionId) {
+    const btn = motionsList.querySelector(`.btn-open-vote[data-motion-id="${motionId}"]`);
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/motions_open.php', {
         meeting_id: currentMeetingId,
@@ -194,9 +196,11 @@
         loadMotions();
       } else {
         setNotif('error', body?.error || 'Erreur ouverture vote');
+        Shared.btnLoading(btn, false);
       }
     } catch (err) {
       setNotif('error', err.message);
+      Shared.btnLoading(btn, false);
     }
   }
 
@@ -204,6 +208,8 @@
   async function closeVote(motionId) {
     if (!confirm('Clôturer ce vote ? Cette action calculera le résultat définitif.')) return;
 
+    const btn = motionsList.querySelector(`.btn-close-vote[data-motion-id="${motionId}"]`);
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/motions_close.php', {
         meeting_id: currentMeetingId,
@@ -215,9 +221,11 @@
         loadMotions();
       } else {
         setNotif('error', body?.error || 'Erreur clôture vote');
+        Shared.btnLoading(btn, false);
       }
     } catch (err) {
       setNotif('error', err.message);
+      Shared.btnLoading(btn, false);
     }
   }
 
@@ -276,6 +284,8 @@
       return;
     }
 
+    const btn = document.getElementById('btnSaveMotion');
+    Shared.btnLoading(btn, true);
     try {
       const agendaId = await getOrCreateAgenda();
 
@@ -295,6 +305,8 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
     }
   });
 
@@ -319,9 +331,22 @@
     }
   });
 
+  // Polling (5s auto-refresh for vote state sync)
+  let pollingInterval = null;
+  function startPolling() {
+    if (pollingInterval) return;
+    pollingInterval = setInterval(() => {
+      if (!document.hidden && currentMeetingId) {
+        loadMotions();
+      }
+    }, 5000);
+  }
+  window.addEventListener('beforeunload', () => { if (pollingInterval) clearInterval(pollingInterval); });
+
   // Initialize
   if (currentMeetingId) {
     loadMeetingInfo();
     loadMotions();
+    startPolling();
   }
 })();

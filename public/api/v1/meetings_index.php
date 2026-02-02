@@ -10,7 +10,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     api_fail('method_not_allowed', 405);
 }
 
-api_require_role('operator');
+api_require_role('viewer'); // any authenticated user (president needs this too)
 
 $limit = (int)($_GET['limit'] ?? 50);
 if ($limit <= 0 || $limit > 200) $limit = 50;

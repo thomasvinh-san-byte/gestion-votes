@@ -300,10 +300,23 @@
   // Search
   searchInput.addEventListener('input', () => render(proxiesCache));
 
+  // Polling (5s auto-refresh for multi-operator sync)
+  let pollingInterval = null;
+  function startPolling() {
+    if (pollingInterval) return;
+    pollingInterval = setInterval(() => {
+      if (!document.hidden && currentMeetingId) {
+        loadProxies();
+      }
+    }, 5000);
+  }
+  window.addEventListener('beforeunload', () => { if (pollingInterval) clearInterval(pollingInterval); });
+
   // Initialize
   if (currentMeetingId) {
     loadMeetingInfo();
     loadMembers();
     loadProxies();
+    startPolling();
   }
 })();

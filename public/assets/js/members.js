@@ -109,6 +109,86 @@
   // Search filter (debounced)
   searchInput.addEventListener('input', Utils.debounce(() => render(membersCache), 250));
 
+  // Edit member — delegated click on .btn-edit
+  membersList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-edit');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const member = membersCache.find(m => m.id === id);
+    if (!member) return;
+
+    const card = btn.closest('.member-card');
+    if (!card) return;
+
+    const name = member.full_name || member.name || '';
+    const email = member.email || '';
+    const power = member.voting_power ?? member.power ?? 1;
+    const isActive = member.is_active !== false && member.active !== false;
+
+    card.innerHTML = `
+      <div class="member-edit-form" style="display:flex;flex-direction:column;gap:8px;width:100%;padding:4px 0;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input class="form-input" type="text" id="edit_name_${id}" value="${escapeHtml(name)}" placeholder="Nom" style="flex:2;min-width:140px;">
+          <input class="form-input" type="email" id="edit_email_${id}" value="${escapeHtml(email)}" placeholder="Email" style="flex:2;min-width:140px;">
+          <input class="form-input" type="number" id="edit_power_${id}" value="${power}" min="0" step="1" style="width:70px;">
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;">
+            <input type="checkbox" id="edit_active_${id}" ${isActive ? 'checked' : ''}> Actif
+          </label>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn btn-sm btn-ghost btn-cancel-edit">Annuler</button>
+          <button class="btn btn-sm btn-primary btn-save-edit" data-id="${id}">Enregistrer</button>
+        </div>
+      </div>
+    `;
+  });
+
+  // Save edit — delegated
+  membersList.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.btn-save-edit');
+    if (!btn) return;
+    const id = btn.dataset.id;
+
+    const full_name = document.getElementById('edit_name_' + id)?.value.trim();
+    const email = document.getElementById('edit_email_' + id)?.value.trim();
+    const voting_power = parseInt(document.getElementById('edit_power_' + id)?.value) || 1;
+    const is_active = document.getElementById('edit_active_' + id)?.checked ?? true;
+
+    if (!full_name) {
+      setNotif('error', 'Le nom est requis');
+      return;
+    }
+
+    Shared.btnLoading(btn, true);
+    try {
+      const resp = await fetch('/api/v1/members.php', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ id, full_name, email: email || null, voting_power, is_active })
+      });
+      const body = await resp.json();
+
+      if (body && body.ok !== false) {
+        setNotif('success', 'Membre mis à jour');
+        loadMembers();
+      } else {
+        setNotif('error', body?.error || 'Erreur mise à jour');
+        Shared.btnLoading(btn, false);
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+      Shared.btnLoading(btn, false);
+    }
+  });
+
+  // Cancel edit — delegated
+  membersList.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-cancel-edit')) {
+      render(membersCache);
+    }
+  });
+
   // Create member
   document.getElementById('btnCreate').addEventListener('click', async () => {
     const full_name = document.getElementById('mName').value.trim();
@@ -128,6 +208,8 @@
       return;
     }
 
+    const btn = document.getElementById('btnCreate');
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/members.php', { full_name, email: email || null, voting_power, is_active });
 
@@ -142,6 +224,8 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
     }
   });
 
@@ -193,6 +277,7 @@
     out.style.display = 'block';
     out.textContent = 'Import en cours...';
 
+    Shared.btnLoading(btnImport, true);
     const fd = new FormData();
     fd.append('file', file);
 
@@ -214,6 +299,8 @@
     } catch (err) {
       out.textContent = err.message;
       setNotif('error', 'Erreur import: ' + err.message);
+    } finally {
+      Shared.btnLoading(btnImport, false);
     }
   });
 

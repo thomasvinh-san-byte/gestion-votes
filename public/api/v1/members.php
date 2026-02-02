@@ -40,6 +40,34 @@ try {
 
         api_ok(['member_id' => $id, 'full_name' => $full_name], 201);
 
+    } elseif ($method === 'PATCH' || $method === 'PUT') {
+        $input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
+        if (!is_array($input)) $input = $_POST;
+
+        $id = trim($input['id'] ?? $input['member_id'] ?? '');
+        if ($id === '' || !api_is_uuid($id)) {
+            api_fail('missing_member_id', 422, ['detail' => 'ID membre requis.']);
+        }
+
+        $full_name = trim($input['full_name'] ?? '');
+        if ($full_name === '') {
+            api_fail('missing_full_name', 422, ['detail' => 'Le nom complet est requis.']);
+        }
+
+        $email = trim($input['email'] ?? '');
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            api_fail('invalid_email', 422, ['detail' => 'Format d\'email invalide.']);
+        }
+
+        $voting_power = (float)($input['voting_power'] ?? $input['vote_weight'] ?? 1);
+        $is_active = ($input['is_active'] ?? true) !== false;
+
+        $repo->updateImport($id, $full_name, $email ?: null, $voting_power, $is_active);
+
+        audit_log('member_updated', 'member', $id, ['full_name' => $full_name]);
+
+        api_ok(['member_id' => $id, 'full_name' => $full_name]);
+
     } else {
         api_fail('method_not_allowed', 405);
     }
