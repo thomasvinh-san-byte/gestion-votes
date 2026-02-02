@@ -115,7 +115,7 @@ SET external_ref = EXCLUDED.external_ref,
 
 -- Resolution 1 : Approbation des comptes (majorite simple)
 INSERT INTO motions (
-  id, tenant_id, meeting_id, title, description, secret, sort_order,
+  id, tenant_id, meeting_id, title, description, secret, sort_order, position,
   vote_policy_id, quorum_policy_id,
   status, created_at, updated_at
 ) VALUES (
@@ -124,7 +124,7 @@ INSERT INTO motions (
   'deadbeef-demo-0001-az00-000000000001',
   'Resolution 1 — Approbation des comptes 2025',
   'Approbation des comptes annuels de l''exercice clos le 31 decembre 2025, tels que presentes par le conseil syndical.',
-  false, 1,
+  false, 1, 1,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   'draft', NOW(), NOW()
@@ -142,7 +142,7 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- Resolution 2 : Affectation du resultat (majorite 2/3)
 INSERT INTO motions (
-  id, tenant_id, meeting_id, title, description, secret, sort_order,
+  id, tenant_id, meeting_id, title, description, secret, sort_order, position,
   vote_policy_id, quorum_policy_id,
   status, created_at, updated_at
 ) VALUES (
@@ -151,7 +151,7 @@ INSERT INTO motions (
   'deadbeef-demo-0001-az00-000000000001',
   'Resolution 2 — Affectation du resultat de l''exercice',
   'Vote sur l''affectation du resultat de l''exercice 2025 : report a nouveau, distribution, reserves.',
-  false, 2,
+  false, 2, 2,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité 2/3' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
   'draft', NOW(), NOW()
