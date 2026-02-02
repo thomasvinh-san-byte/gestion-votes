@@ -26,13 +26,25 @@ if (!$user['is_active']) {
   exit;
 }
 
+// Charger les rôles de séance actifs
+$meetingRoles = [];
+try {
+    $userRepo = new \AgVote\Repository\UserRepository();
+    $meetingRoles = $userRepo->listActiveMeetingRolesForUser($user['id'], $user['tenant_id']);
+} catch (\Throwable $e) {
+    // best effort
+}
+
 echo json_encode([
   'ok' => true,
   'auth_enabled' => true,
-  'user' => [
-    'id' => $user['id'],
-    'email' => $user['email'],
-    'name' => $user['name'],
-    'role' => $user['role'],
+  'data' => [
+    'user' => [
+      'id' => $user['id'],
+      'email' => $user['email'],
+      'name' => $user['name'],
+      'role' => $user['role'],
+    ],
+    'meeting_roles' => $meetingRoles,
   ]
 ]);

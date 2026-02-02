@@ -222,13 +222,27 @@
         const data = await resp.json();
 
         if (resp.ok && data.ok) {
-          showSuccess('Connexion reussie ! Redirection...');
+          var user = data.user || (data.data && data.data.user) || {};
+          var roleLabel = { admin: 'Administrateur', operator: 'Operateur', auditor: 'Auditeur', viewer: 'Observateur' };
+          showSuccess('Connecte en tant que ' + (user.name || user.email || '') + ' (' + (roleLabel[user.role] || user.role) + ')');
           submitBtn.textContent = 'Connecte';
 
           setTimeout(function() {
-            const redirect = new URLSearchParams(location.search).get('redirect');
-            window.location.href = redirect || '/meetings.htmx.html';
-          }, 500);
+            var redirect = new URLSearchParams(location.search).get('redirect');
+            if (redirect) {
+              window.location.href = redirect;
+            } else {
+              // Redirection selon le role
+              var role = user.role || 'viewer';
+              var defaultPage = {
+                admin: '/admin.htmx.html',
+                operator: '/meetings.htmx.html',
+                auditor: '/trust.htmx.html',
+                viewer: '/meetings.htmx.html'
+              };
+              window.location.href = defaultPage[role] || '/meetings.htmx.html';
+            }
+          }, 600);
         } else {
           const detail = data.detail || data.error || 'Email ou mot de passe incorrect.';
           showError(detail);
@@ -242,14 +256,27 @@
       }
     });
 
-    // Auto-check : si deja connecte, rediriger
+    // Auto-check : si deja connecte, rediriger selon le role
     fetch('/api/v1/whoami.php', { credentials: 'same-origin' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (data.ok && data.data && data.data.user) {
-          showSuccess('Deja connecte en tant que ' + (data.data.user.name || data.data.user.role) + '. Redirection...');
+        var user = (data.data && data.data.user) ? data.data.user : null;
+        if (data.ok && user) {
+          var roleLabel = { admin: 'Administrateur', operator: 'Operateur', auditor: 'Auditeur', viewer: 'Observateur' };
+          showSuccess('Deja connecte : ' + (user.name || user.email) + ' (' + (roleLabel[user.role] || user.role) + '). Redirection...');
           setTimeout(function() {
-            window.location.href = '/meetings.htmx.html';
+            var redirect = new URLSearchParams(location.search).get('redirect');
+            if (redirect) {
+              window.location.href = redirect;
+            } else {
+              var defaultPage = {
+                admin: '/admin.htmx.html',
+                operator: '/meetings.htmx.html',
+                auditor: '/trust.htmx.html',
+                viewer: '/meetings.htmx.html'
+              };
+              window.location.href = defaultPage[user.role] || '/meetings.htmx.html';
+            }
           }, 800);
         }
       })
