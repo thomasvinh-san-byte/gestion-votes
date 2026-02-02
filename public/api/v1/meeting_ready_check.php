@@ -23,7 +23,7 @@ api_require_role('auditor');
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
-$tenant = defined('api_current_tenant_id()') ? api_current_tenant_id() : null;
+$tenant = api_current_tenant_id();
 
 $meetingRepo    = new MeetingRepository();
 $motionRepo     = new MotionRepository();

@@ -67,6 +67,8 @@
         return;
       }
 
+      const btn = document.getElementById('btnSendEmail');
+      Shared.btnLoading(btn, true);
       try {
         const { body } = await api('/api/v1/meeting_report_send.php', {
           meeting_id: currentMeetingId,
@@ -87,6 +89,8 @@
         msgDiv.style.display = 'block';
         msgDiv.className = 'alert alert-danger';
         msgDiv.textContent = `❌ Erreur: ${err.message}`;
+      } finally {
+        Shared.btnLoading(btn, false);
       }
     });
 

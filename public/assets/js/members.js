@@ -161,13 +161,7 @@
 
     Shared.btnLoading(btn, true);
     try {
-      const resp = await fetch('/api/v1/members.php', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ id, full_name, email: email || null, voting_power, is_active })
-      });
-      const body = await resp.json();
+      const { body } = await api('/api/v1/members.php', { id, full_name, email: email || null, voting_power, is_active }, 'PATCH');
 
       if (body && body.ok !== false) {
         setNotif('success', 'Membre mis à jour');

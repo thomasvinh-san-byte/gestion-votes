@@ -326,6 +326,8 @@
   }
 
   async function openVote(motionId, meetingId) {
+    const btn = document.querySelector(`.btn-open-motion[data-motion-id="${motionId}"]`);
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/motions_open.php', {
         meeting_id: meetingId || currentMeetingId,
@@ -337,14 +339,18 @@
         loadActiveMotion(currentMeetingId);
       } else {
         setNotif('error', body?.error || 'Erreur ouverture vote');
+        Shared.btnLoading(btn, false);
       }
     } catch (err) {
       setNotif('error', err.message);
+      Shared.btnLoading(btn, false);
     }
   }
 
   async function closeVote(motionId) {
     if (!confirm('Clôturer ce vote ?')) return;
+    const btn = document.querySelector(`.btn-close-motion[data-motion-id="${motionId}"]`) || document.getElementById('btnCloseMotion');
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/motions_close.php', {
         meeting_id: currentMeetingId,
@@ -356,9 +362,11 @@
         loadActiveMotion(currentMeetingId);
       } else {
         setNotif('error', body?.error || 'Erreur clôture vote');
+        Shared.btnLoading(btn, false);
       }
     } catch (err) {
       setNotif('error', err.message);
+      Shared.btnLoading(btn, false);
     }
   }
 
@@ -409,6 +417,8 @@
     if (!currentMeetingId) return;
     if (!confirm(`Changer l'état de la séance vers "${toStatus}" ?`)) return;
 
+    const btn = document.querySelector(`[data-transition="${toStatus}"]`);
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/meeting_transition.php', {
         meeting_id: currentMeetingId,
@@ -426,9 +436,11 @@
           msg += ` — Rôle requis: ${debug.required_role} (votre rôle: ${debug.user_role || '?'})`;
         }
         setNotif('error', msg);
+        Shared.btnLoading(btn, false);
       }
     } catch (err) {
       setNotif('error', err.message);
+      Shared.btnLoading(btn, false);
     }
   }
 

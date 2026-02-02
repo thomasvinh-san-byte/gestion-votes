@@ -246,25 +246,26 @@ window.Utils = window.Utils || {};
  * @param {object} data - Data to POST (null for GET)
  * @returns {Promise<{status: number, body: object}>}
  */
-async function api(url, data = null) {
-  const isPost = data !== null;
-  
+async function api(url, data = null, method = null) {
+  const hasBody = data !== null;
+  const httpMethod = method || (hasBody ? 'POST' : 'GET');
+
   const headers = {
     'Content-Type': 'application/json',
   };
-  
+
   // Add CSRF token
   if (window.Utils && window.Utils.getCsrfToken) {
     const token = window.Utils.getCsrfToken();
     if (token) headers['X-CSRF-Token'] = token;
   }
-  
+
   try {
     const response = await fetch(url, {
-      method: isPost ? 'POST' : 'GET',
+      method: httpMethod,
       headers,
       credentials: 'same-origin',
-      body: isPost ? JSON.stringify(data) : undefined,
+      body: hasBody ? JSON.stringify(data) : undefined,
     });
     
     const body = await response.json().catch(() => ({}));

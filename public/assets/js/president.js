@@ -248,6 +248,8 @@
 
   // End speech
   document.getElementById('btnEndSpeech').addEventListener('click', async () => {
+    const btn = document.getElementById('btnEndSpeech');
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/speech_end.php', {
         meeting_id: currentMeetingId
@@ -261,11 +263,15 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
     }
   });
 
   // Next speaker
   document.getElementById('btnNextSpeaker').addEventListener('click', async () => {
+    const btn = document.getElementById('btnNextSpeaker');
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/speech_next.php', {
         meeting_id: currentMeetingId
@@ -279,6 +285,8 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
     }
   });
 
@@ -286,6 +294,8 @@
   document.getElementById('btnClearQueue').addEventListener('click', async () => {
     if (!confirm('Vider toute la file d\'attente ?')) return;
 
+    const btn = document.getElementById('btnClearQueue');
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/speech_clear.php', {
         meeting_id: currentMeetingId
@@ -299,6 +309,8 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
     }
   });
 
@@ -310,6 +322,7 @@
     if (!motionId) return;
     if (!confirm('Clôturer ce vote ? Cette action calculera le résultat définitif.')) return;
 
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/motions_close.php', {
         meeting_id: currentMeetingId,
@@ -321,9 +334,11 @@
         loadActiveMotion();
       } else {
         setNotif('error', body?.error || 'Erreur');
+        Shared.btnLoading(btn, false);
       }
     } catch (err) {
       setNotif('error', err.message);
+      Shared.btnLoading(btn, false);
     }
   });
 
