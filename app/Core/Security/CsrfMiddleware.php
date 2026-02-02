@@ -37,7 +37,7 @@ final class CsrfMiddleware
             'domain' => '',
             'secure' => $secure,
             'httponly' => true,
-            'samesite' => 'Strict'
+            'samesite' => 'Lax'
         ]);
 
         session_start();
@@ -141,8 +141,8 @@ final class CsrfMiddleware
             return trim((string)$_POST[self::TOKEN_NAME]);
         }
 
-        // 4. JSON body
-        $rawBody = file_get_contents('php://input');
+        // 4. JSON body (utilise le cache global pour eviter de consommer php://input)
+        $rawBody = $GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input');
         if ($rawBody) {
             $json = json_decode($rawBody, true);
             if (is_array($json) && isset($json[self::TOKEN_NAME])) {

@@ -12,7 +12,7 @@ return [
   // CORS
   'cors' => [
     'allowed_origins'    => array_filter(array_map('trim', explode(',', getenv('CORS_ALLOWED_ORIGINS') ?: ''))),
-    'allow_credentials'  => false,
+    'allow_credentials'  => true,
   ],
 
   // Database (defaults = dev local PostgreSQL via TCP with dedicated user)
