@@ -50,7 +50,7 @@
     membersList.innerHTML = filtered.map(m => {
       const name = escapeHtml(m.full_name || m.name || '—');
       const email = escapeHtml(m.email || '—');
-      const power = m.voting_power ?? m.power ?? 1;
+      const power = parseFloat(m.voting_power ?? m.power ?? 1);
       const isActive = m.is_active !== false && m.active !== false;
       const initials = getInitials(m.full_name || m.name);
 
@@ -91,7 +91,7 @@
 
       // Update KPIs
       const active = membersCache.filter(m => m.is_active !== false && m.active !== false);
-      const totalPower = membersCache.reduce((sum, m) => sum + (m.voting_power ?? m.power ?? 1), 0);
+      const totalPower = membersCache.reduce((sum, m) => sum + parseFloat(m.voting_power ?? m.power ?? 1), 0);
 
       document.getElementById('kpiTotal').textContent = membersCache.length;
       document.getElementById('kpiActive').textContent = active.length;

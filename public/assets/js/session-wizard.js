@@ -17,13 +17,13 @@
   // =========================================================================
 
   var STEPS = [
-    { id: 'select',     num: 0, label: 'Séance',       href: '/meetings.htmx.html',   icon: '📋', needsMeeting: false },
-    { id: 'members',    num: 1, label: 'Membres',      href: '/members.htmx.html',    icon: '👤', needsMeeting: false },
-    { id: 'motions',    num: 2, label: 'Résolutions',   href: '/motions.htmx.html',    icon: '📝', needsMeeting: true },
-    { id: 'attendance', num: 3, label: 'Présences',     href: '/attendance.htmx.html',  icon: '👥', needsMeeting: true },
-    { id: 'conduct',    num: 4, label: 'Conduite',      href: '/operator.htmx.html',    icon: '▶️', needsMeeting: true },
-    { id: 'validate',   num: 5, label: 'Validation',    href: '/validate.htmx.html',    icon: '✅', needsMeeting: true },
-    { id: 'archive',    num: 6, label: 'Archive',       href: '/archives.htmx.html',    icon: '📦', needsMeeting: false }
+    { id: 'conduct',    num: 0, label: 'Conduite',      href: '/operator.htmx.html',    icon: '▶️', needsMeeting: false },
+    { id: 'select',     num: 1, label: 'Séance',        href: '/meetings.htmx.html',    icon: '📋', needsMeeting: false },
+    { id: 'members',    num: 2, label: 'Membres',       href: '/members.htmx.html',     icon: '👤', needsMeeting: false },
+    { id: 'motions',    num: 3, label: 'Résolutions',   href: '/motions.htmx.html',     icon: '📝', needsMeeting: true },
+    { id: 'attendance', num: 4, label: 'Présences',     href: '/attendance.htmx.html',   icon: '👥', needsMeeting: true },
+    { id: 'validate',   num: 5, label: 'Validation',    href: '/validate.htmx.html',     icon: '✅', needsMeeting: true },
+    { id: 'archive',    num: 6, label: 'Archive',       href: '/archives.htmx.html',     icon: '📦', needsMeeting: false }
   ];
 
   // Map page paths to wizard step ids
