@@ -8,6 +8,7 @@ config.local.php
 
 # Dependencies
 /vendor/
+/vendor_bak/
 node_modules/
 
 # Logs & cache
