@@ -8,6 +8,14 @@
 #   sudo bash database/setup_demo_az.sh --seed-only   # seeds seulement (schema deja en place)
 #   sudo bash database/setup_demo_az.sh --reset       # DETRUIT et recree tout
 #
+# ARCHITECTURE :
+#   Phase A (admin) : CREATE ROLE / CREATE DATABASE / extensions
+#                     → sudo -u postgres psql (seul endroit qui l'utilise)
+#   Phase B (app)   : schema, migrations, seeds
+#                     → PGPASSWORD=... psql -U vote_app (user applicatif)
+#                     → pas de probleme de permissions fichier
+#                     → tables creees en tant que vote_app (pas besoin de OWNER TO)
+#
 # Ce script charge UNIQUEMENT ce qui est necessaire pour la demo A-Z :
 #   - schema.sql (toutes les tables)
 #   - migrations 001-004 (idempotent, no-op si schema recent)
@@ -16,8 +24,8 @@
 #   - 08_demo_az.sql (seance scheduled + 10 membres + 2 resolutions)
 #
 # IMPORTANT:
-#   - Les seeds sont executes avec ON_ERROR_STOP=1 : au moindre ERROR SQL, le script s'arrete.
-#   - Ne "masque" plus les erreurs via grep|true (ancien comportement).
+#   - ON_ERROR_STOP=1 partout : au moindre ERROR SQL, le script s'arrete.
+#   - set -euo pipefail : au moindre echec bash, le script s'arrete.
 #
 # A la fin :
 #   Meeting ID : deadbeef-0001-4a00-8000-000000000001
@@ -70,9 +78,20 @@ if [ -f "$ENV_FILE" ]; then
   done < "$ENV_FILE"
 fi
 
-# psql helper : stop immediately on SQL errors
-pg_exec() {
-  sudo -u postgres psql -X -v ON_ERROR_STOP=1 -d "$DB_NAME" -q "$@"
+# =============================================================================
+# Phase A : admin postgres (CREATE ROLE, CREATE DATABASE, extensions)
+# =============================================================================
+pg_admin() {
+  sudo -u postgres psql -X -v ON_ERROR_STOP=1 -q "$@"
+}
+
+# =============================================================================
+# Phase B : user applicatif (schema, migrations, seeds)
+#   → pas de sudo -u postgres → pas de Permission denied sur les fichiers
+#   → les tables sont creees par vote_app → pas besoin de ALTER TABLE OWNER
+# =============================================================================
+pg_app() {
+  PGPASSWORD="$DB_PASS" psql -X -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -q "$@"
 }
 
 check_postgres() {
@@ -94,23 +113,25 @@ check_postgres() {
   log "PostgreSQL OK"
 }
 
+# Phase A : bootstrap (admin postgres uniquement)
 create_user_and_db() {
-  info "Creation user '$DB_USER' + base '$DB_NAME'..."
+  info "Phase A : creation user '$DB_USER' + base '$DB_NAME'..."
 
   local user_exists db_exists
   user_exists=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" 2>/dev/null || echo "")
   if [ "$user_exists" = "1" ]; then
-    sudo -u postgres psql -q -c "ALTER ROLE $DB_USER WITH PASSWORD '$DB_PASS';" 2>/dev/null
+    pg_admin -c "ALTER ROLE $DB_USER WITH PASSWORD '$DB_PASS';"
   else
-    sudo -u postgres psql -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS' NOSUPERUSER NOCREATEDB NOCREATEROLE;" 2>/dev/null
+    pg_admin -c "CREATE ROLE $DB_USER WITH LOGIN PASSWORD '$DB_PASS' NOSUPERUSER NOCREATEDB NOCREATEROLE;"
   fi
 
   db_exists=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" 2>/dev/null || echo "")
   if [ "$db_exists" != "1" ]; then
-    sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER ENCODING 'UTF8';" 2>/dev/null
+    pg_admin -c "CREATE DATABASE $DB_NAME OWNER $DB_USER ENCODING 'UTF8';"
   fi
 
-  pg_exec -c "
+  # Extensions + privileges (doit etre fait en superuser)
+  pg_admin -d "$DB_NAME" -c "
     CREATE EXTENSION IF NOT EXISTS pgcrypto;
     CREATE EXTENSION IF NOT EXISTS citext;
     GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
@@ -118,53 +139,44 @@ create_user_and_db() {
     GRANT ALL PRIVILEGES ON SCHEMA public TO $DB_USER;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;
-  " >/dev/null
-  log "User + base prets"
+  "
+
+  # Transferer ownership du schema public a vote_app pour qu'il puisse creer des tables
+  pg_admin -d "$DB_NAME" -c "ALTER SCHEMA public OWNER TO $DB_USER;"
+
+  log "Phase A terminee — user + base prets"
 }
 
-grant_perms() {
-  pg_exec -c "
-    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
-    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
-    -- Transfer ownership so vote_app can ALTER tables (needed for ensureSchema calls)
-    DO \$\$ DECLARE r RECORD; BEGIN
-      FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = 'public' LOOP
-        EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO $DB_USER';
-      END LOOP;
-    END \$\$;
-  " >/dev/null
-}
-
+# Phase B : schema (user applicatif)
 apply_schema() {
-  info "Schema..."
-  pg_exec -f "$SCRIPT_DIR/schema.sql" >/dev/null
-  grant_perms
+  info "Phase B : schema..."
+  pg_app -f "$SCRIPT_DIR/schema.sql"
   log "Schema applique"
 }
 
+# Phase B : migrations (user applicatif)
 apply_migrations() {
-  info "Migrations..."
+  info "Phase B : migrations..."
   shopt -s nullglob
   for f in "$SCRIPT_DIR"/migrations/*.sql; do
     info "  Migration: $(basename "$f")"
-    pg_exec -f "$f" >/dev/null
+    pg_app -f "$f"
   done
   shopt -u nullglob
-  grant_perms
   log "Migrations appliquees"
 }
 
+# Phase B : seeds demo (user applicatif)
 apply_demo_seeds() {
-  info "Seed 01_minimal.sql (tenant + policies + users)..."
-  pg_exec -f "$SCRIPT_DIR/seeds/01_minimal.sql" >/dev/null
+  info "Phase B : seed 01_minimal.sql (tenant + policies + users)..."
+  pg_app -f "$SCRIPT_DIR/seeds/01_minimal.sql"
 
-  info "Seed 02_test_users.sql (comptes admin/operator/president/auditor/viewer/votant)..."
-  pg_exec -f "$SCRIPT_DIR/seeds/02_test_users.sql" >/dev/null
+  info "Phase B : seed 02_test_users.sql (comptes admin/operator/president/auditor/viewer/votant)..."
+  pg_app -f "$SCRIPT_DIR/seeds/02_test_users.sql"
 
-  info "Seed 08_demo_az.sql (seance + 10 membres + 2 resolutions)..."
-  pg_exec -f "$SCRIPT_DIR/seeds/08_demo_az.sql" >/dev/null
+  info "Phase B : seed 08_demo_az.sql (seance + 10 membres + 2 resolutions)..."
+  pg_app -f "$SCRIPT_DIR/seeds/08_demo_az.sql"
 
-  grant_perms
   log "Seeds demo A-Z charges"
 }
 
@@ -177,7 +189,9 @@ setup_env() {
     grep -q '^DB_USER=' "$ENV_FILE" && sed -i "s|^DB_USER=.*|DB_USER=$DB_USER|" "$ENV_FILE" || echo "DB_USER=$DB_USER" >> "$ENV_FILE"
     grep -q '^DB_PASS=' "$ENV_FILE" && sed -i "s|^DB_PASS=.*|DB_PASS=$DB_PASS|" "$ENV_FILE" || echo "DB_PASS=$DB_PASS" >> "$ENV_FILE"
     grep -q '^DB_DSN='  "$ENV_FILE" && sed -i "s|^DB_DSN=.*|DB_DSN=pgsql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_NAME|" "$ENV_FILE" || echo "DB_DSN=pgsql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_NAME" >> "$ENV_FILE"
-    log ".env mis a jour"
+    # Demo mode : CSRF off pour simplifier les tests curl
+    grep -q '^CSRF_ENABLED=' "$ENV_FILE" && sed -i "s|^CSRF_ENABLED=.*|CSRF_ENABLED=0|" "$ENV_FILE" || echo "CSRF_ENABLED=0" >> "$ENV_FILE"
+    log ".env mis a jour (CSRF_ENABLED=0 pour demo)"
   fi
 }
 
@@ -196,10 +210,10 @@ run_composer() {
 
 verify() {
   local tc uc mc mtc
-  tc=$(pg_exec -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'" 2>/dev/null || echo "0")
-  uc=$(pg_exec -tAc "SELECT count(*) FROM users" 2>/dev/null || echo "0")
-  mc=$(pg_exec -tAc "SELECT count(*) FROM members" 2>/dev/null || echo "0")
-  mtc=$(pg_exec -tAc "SELECT count(*) FROM meetings" 2>/dev/null || echo "0")
+  tc=$(pg_app -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'" 2>/dev/null || echo "0")
+  uc=$(pg_app -tAc "SELECT count(*) FROM users" 2>/dev/null || echo "0")
+  mc=$(pg_app -tAc "SELECT count(*) FROM members" 2>/dev/null || echo "0")
+  mtc=$(pg_app -tAc "SELECT count(*) FROM meetings" 2>/dev/null || echo "0")
 
   echo ""
   echo -e "${BLUE}============================================${NC}"
@@ -223,6 +237,9 @@ verify() {
   echo "    Admin      : http://localhost:8080/admin.htmx.html"
   echo "    Operator   : http://localhost:8080/operator.htmx.html"
   echo "    President  : http://localhost:8080/president.htmx.html"
+  echo ""
+  echo "  Smoke test :"
+  echo "    bash scripts/smoke_test.sh"
   echo ""
   echo "  Meeting demo A-Z :"
   echo "    ID     : $MEETING_ID_DEMO_AZ"
