@@ -316,7 +316,7 @@
 
     try{
       await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
-      notify("success", "Vote enregistre.");
+      notify("success", "Vote enregistré.");
     } catch(e){
       notify("error", e?.message || String(e));
     }

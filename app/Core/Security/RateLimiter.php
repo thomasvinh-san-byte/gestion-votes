@@ -158,7 +158,7 @@ final class RateLimiter
         echo json_encode([
             'ok' => false,
             'error' => 'rate_limit_exceeded',
-            'detail' => 'Too many requests. Please try again later.',
+            'detail' => 'Trop de requêtes. Veuillez réessayer plus tard.',
             'retry_after' => $retryAfter,
         ], JSON_UNESCAPED_UNICODE);
 

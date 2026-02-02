@@ -167,7 +167,7 @@ final class CsrfMiddleware
         echo json_encode([
             'ok' => false,
             'error' => $code,
-            'detail' => 'CSRF validation failed. Refresh the page and try again.'
+            'detail' => 'Validation CSRF échouée. Rechargez la page et réessayez.'
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
