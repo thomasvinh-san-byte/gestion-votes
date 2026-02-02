@@ -727,6 +727,10 @@ BEGIN
       USING ERRCODE = 'check_violation';
   END IF;
 
+  -- DELETE: NEW is NULL, returning NULL would silently abort the delete
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

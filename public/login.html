@@ -244,7 +244,10 @@
             }
           }, 600);
         } else {
-          const detail = data.detail || data.error || 'Email ou mot de passe incorrect.';
+          var detail = data.detail || data.error || 'Email ou mot de passe incorrect.';
+          if (data.debug && data.debug.message) {
+            detail += ' — ' + data.debug.message + ' (' + (data.debug.file || '') + ':' + (data.debug.line || '') + ')';
+          }
           showError(detail);
           submitBtn.disabled = false;
           submitBtn.textContent = 'Se connecter';
