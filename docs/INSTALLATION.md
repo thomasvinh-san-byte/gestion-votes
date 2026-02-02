@@ -37,11 +37,20 @@ L'utilisation en seance, la demonstration et la conformite CDC sont decrites dan
 * **PostgreSQL >= 16**
 * (optionnel) **Git** pour cloner le depot
 
-Installation sur Debian / Ubuntu :
+### Installation automatique (Ubuntu / Debian)
+
+```bash
+sudo bash scripts/install-deps.sh
+```
+
+Ce script installe PHP, PostgreSQL, Composer, git, et les extensions necessaires.
+
+### Installation manuelle
 
 ```bash
 sudo apt update
-sudo apt install -y php php-cli php-pgsql php-mbstring postgresql git
+sudo apt install -y php php-cli php-pgsql php-mbstring php-xml php-zip \
+  php-gd php-curl postgresql postgresql-contrib git unzip curl composer
 ```
 
 Verification :
@@ -66,72 +75,76 @@ Structure attendue :
 gestion-votes/
   app/        # logique metier, services, bootstrap, config
   public/     # racine web (HTML, HTMX, API)
-  database/   # schema SQL, seeds, migrations
+  database/   # schema SQL, seeds, migrations, setup.sh
+  scripts/    # install-deps.sh (dependances systeme)
   docs/       # documentation
   .env        # configuration environnement (a creer)
 ```
 
 ---
 
-## 3. Configuration PostgreSQL
+## 3. Base de donnees
 
 L'application utilise PostgreSQL comme **source de verite unique**.
 
-### 3.1 Demarrer PostgreSQL
+### 3.1 Installation automatique (recommande)
 
 ```bash
+# Setup complet (role + base + schema + migrations + seeds + .env)
+sudo bash database/setup.sh
+
+# Sans donnees de demo (minimal + comptes de test uniquement)
+sudo bash database/setup.sh --no-demo
+```
+
+Le script est idempotent : il peut etre relance sans casser l'existant.
+
+Options disponibles :
+
+| Option | Description |
+|--------|-------------|
+| *(aucune)* | Setup complet |
+| `--no-demo` | Setup sans donnees de demo (seeds 01 + 02 uniquement) |
+| `--schema` | Schema + migrations uniquement |
+| `--seed` | Seeds uniquement |
+| `--migrate` | Migrations uniquement |
+| `--reset` | Supprime et recree tout (DESTRUCTIF) |
+
+### 3.2 Installation manuelle
+
+```bash
+# Demarrer PostgreSQL
 sudo service postgresql start
 pg_isready  # doit afficher "accepting connections"
-```
 
-### 3.2 Creer le role applicatif
+# Creer le role applicatif
+sudo -u postgres psql -c "CREATE ROLE vote_app LOGIN PASSWORD 'vote_app_dev_2026';"
 
-```bash
-sudo -u postgres psql
-```
-
-```sql
-CREATE ROLE vote_app LOGIN PASSWORD 'vote_app_dev_2026';
-\q
-```
-
-> En production, utilisez un mot de passe fort et reportez-le dans `.env`.
-
-### 3.3 Creer la base de donnees
-
-```bash
+# Creer la base de donnees
 sudo -u postgres createdb vote_app -O vote_app
-```
 
-### 3.4 Appliquer le schema
-
-```bash
+# Appliquer le schema
 sudo -u postgres psql -d vote_app -f database/schema.sql
+
+# Appliquer les migrations
+sudo -u postgres psql -d vote_app -f database/migrations/001_admin_enhancements.sql
+sudo -u postgres psql -d vote_app -f database/migrations/002_rbac_meeting_states.sql
+sudo -u postgres psql -d vote_app -f database/migrations/003_meeting_roles.sql
+sudo -u postgres psql -d vote_app -f database/migrations/004_password_auth.sql
+
+# Charger les donnees
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
+  -f database/seeds/01_minimal.sql
+
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
+  -f database/seeds/02_test_users.sql
+
+# (Optionnel) Donnees de demo
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
+  -f database/seeds/03_demo.sql
 ```
 
-Le schema est **idempotent** (peut etre rejoue sans casser l'existant). Il :
-
-* installe les extensions `pgcrypto` et `citext`,
-* cree 29+ tables (tenants, users, meetings, motions, ballots, etc.),
-* installe les types ENUM, triggers d'audit et garde-fous post-validation.
-
-### 3.5 Charger les donnees
-
-```bash
-# Donnees minimales (tenant, politiques quorum/vote) — requis
-PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
-  -f database/seed_minimal.sql
-
-# Utilisateurs de test (4 roles avec cles API) — requis pour se connecter
-PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
-  -f database/seeds/test_users.sql
-
-# (Optionnel) Donnees de demo (seances, membres, motions, presences)
-PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
-  -f database/seed_demo.sql
-```
-
-### 3.6 Verifier
+### 3.3 Verifier
 
 ```bash
 PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -c "\dt"
@@ -146,10 +159,10 @@ Vous devez voir 29+ tables.
 ### 4.1 Fichier .env
 
 Le fichier `.env` a la racine du projet est la source de configuration.
-Un fichier de developpement est fourni. En production, copier le template :
+Le script `setup.sh` le cree automatiquement si absent. Sinon :
 
 ```bash
-cp .env.production .env
+cp .env.example .env
 # Editer les valeurs : DB_PASS, APP_SECRET, CORS_ALLOWED_ORIGINS
 ```
 
@@ -184,14 +197,20 @@ php -S 0.0.0.0:8080 -t public
 
 ### Se connecter
 
-Ouvrir `http://localhost:8080/login.html` et entrer une cle API de test :
+Ouvrir `http://localhost:8080/login.html` et entrer les identifiants ci-dessous.
 
-| Role | Cle API |
-|------|---------|
-| **admin** | `admin-key-2024-secret` |
-| **operator** | `operator-key-2024-secret` |
-| **auditor** | `auditor-key-2024-secret` |
-| **viewer** | `viewer-key-2024-secret` |
+### Comptes de test
+
+Crees par `database/seeds/02_test_users.sql` :
+
+| Role | Email | Mot de passe | Description |
+|------|-------|-------------|-------------|
+| admin | `admin@ag-vote.local` | `Admin2024!` | Acces total |
+| operator | `operator@ag-vote.local` | `Operator2024!` | Gestion courante |
+| president | `president@ag-vote.local` | `President2024!` | Preside la seance |
+| votant | `votant@ag-vote.local` | `Votant2024!` | Vote en seance |
+| auditor | `auditor@ag-vote.local` | `Auditor2024!` | Conformite (lecture) |
+| viewer | `viewer@ag-vote.local` | `Viewer2024!` | Lecture seule |
 
 ### Acces depuis un autre poste (hors VM)
 
@@ -206,23 +225,6 @@ Puis ajouter cette origine dans `.env` pour autoriser les requetes CORS :
 
 ```
 CORS_ALLOWED_ORIGINS=http://localhost:8080,http://192.168.1.50:8080
-```
-
-> **Note** : `localhost` dans le script `setup_db.sh` et dans `DB_DSN` designe
-> la connexion PHP -> PostgreSQL, qui est toujours locale (meme machine).
-> Ce n'est pas lie a l'acces web depuis l'exterieur.
-
-### Tester via cURL
-
-```bash
-# Login (cree une session PHP)
-curl -s http://localhost:8080/api/v1/auth_login.php \
-  -H "Content-Type: application/json" \
-  -d '{"api_key":"admin-key-2024-secret"}'
-
-# Auth par header (sans session)
-curl -s http://localhost:8080/api/v1/meetings_index.php \
-  -H "X-Api-Key: operator-key-2024-secret"
 ```
 
 ---
@@ -265,15 +267,12 @@ UPDATE users SET api_key_hash = '<nouveau_hash>' WHERE email = 'admin@ag-vote.lo
 
 ## 8. Reinitialiser la base (dev)
 
-Pour repartir de zero :
-
 ```bash
-sudo -u postgres dropdb vote_app
-sudo -u postgres createdb vote_app -O vote_app
-sudo -u postgres psql -d vote_app -f database/schema.sql
-PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f database/seed_minimal.sql
-PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f database/seeds/test_users.sql
-PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f database/seed_demo.sql
+# Reappliquer les seeds (sans toucher au schema)
+sudo bash database/setup.sh --seed
+
+# Reset complet (SUPPRIME et recree tout)
+sudo bash database/setup.sh --reset
 ```
 
 ---
@@ -299,7 +298,7 @@ PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f databa
 Le schema n'a pas ete applique. Rejouer :
 
 ```bash
-sudo -u postgres psql -d vote_app -f database/schema.sql
+sudo bash database/setup.sh --schema
 ```
 
 ### `invalid_api_key`
@@ -315,6 +314,7 @@ Une fois l'application lancee :
 
 * **Conduire une seance** : [UTILISATION_LIVE.md](UTILISATION_LIVE.md)
 * **Tester rapidement (~10 min)** : [RECETTE_DEMO.md](RECETTE_DEMO.md)
+* **Test E2E complet** : [TEST_E2E.md](TEST_E2E.md)
 * **Architecture technique** : [ARCHITECTURE.md](ARCHITECTURE.md)
 * **Reference API** : [API.md](API.md)
 * **Securite** : [SECURITY.md](SECURITY.md)

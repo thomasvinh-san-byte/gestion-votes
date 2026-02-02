@@ -49,7 +49,7 @@ VALUES (gen_random_uuid(), 'aaaaaaaa-1111-2222-3333-444444444444',
 Ouvrir `/login.html` et saisir la cle API de l'utilisateur. Cela cree une session PHP — la cle n'a pas besoin d'etre resaisie tant que la session est active.
 
 ### Quelles sont les cles de test par defaut ?
-Les cles definies dans `database/seeds/test_users.sql` :
+Les cles definies dans `database/seeds/02_test_users.sql` :
 - `admin-key-2024-secret` (role admin)
 - `operator-key-2024-secret` (role operator)
 - `auditor-key-2024-secret` (role auditor)

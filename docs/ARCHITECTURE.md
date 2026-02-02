@@ -33,10 +33,10 @@ gestion-votes/
 │   └── .htaccess               Deny all (defense en profondeur)
 ├── database/
 │   ├── schema.sql              Schema DDL complet (35+ tables, triggers, index)
-│   ├── seeds/                  Donnees de test (users, members)
+│   ├── setup.sh                Script d'initialisation automatique
+│   ├── seeds/                  Seeds numerotes (01-07, idempotent)
 │   ├── migrations/             Migrations incrementales
 │   └── .htaccess               Deny all
-├── datasets/                   Jeux de donnees de recette
 ├── config/                     Configuration avancee
 ├── docs/                       Documentation
 ├── tests/                      Tests unitaires (PHPUnit)

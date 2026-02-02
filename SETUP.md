@@ -2,28 +2,56 @@
 
 ## Prérequis
 
-- PHP 8.1+
-- PostgreSQL 13+ (extensions `pgcrypto`, `citext`)
+- PHP 8.1+ avec extensions : `pdo_pgsql`, `mbstring`, `json`, `session`
+- PostgreSQL 14+ (extensions `pgcrypto`, `citext`)
 - Navigateur moderne
+
+### Installation des dépendances sur Ubuntu/Debian
+
+```bash
+sudo bash scripts/install-deps.sh
+```
+
+Ou manuellement :
+
+```bash
+sudo apt update
+sudo apt install -y php php-cli php-pgsql php-mbstring php-xml php-zip \
+  php-gd php-curl postgresql postgresql-contrib git unzip curl composer
+```
 
 ## 1. Base de données
 
+### Installation automatique (recommandé)
+
 ```bash
-# Créer la base (une seule fois)
-sudo -u postgres createdb vote_app
+# Setup complet (schéma + migrations + tous les seeds)
+sudo bash database/setup.sh
 
-# Réinitialiser le schéma (supprime TOUT)
-sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
+# Setup sans données de démo (minimal + comptes de test uniquement)
+sudo bash database/setup.sh --no-demo
+```
 
-# Charger le schéma
-cd database
-sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -f ./schema.sql
+Le script crée automatiquement le rôle PostgreSQL, la base, applique le schéma,
+les migrations, charge les seeds et configure le `.env`.
 
-# Charger les données de base (tenant, users, politiques)
-sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -f ./seed_minimal.sql
+### Installation manuelle
 
-# Charger les données de démo (séance live, membres, motions, votes)
-sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -f ./seed_demo.sql
+```bash
+# Créer la base
+sudo -u postgres createuser vote_app --pwprompt
+sudo -u postgres createdb vote_app -O vote_app
+
+# Schéma
+sudo -u postgres psql -d vote_app -f database/schema.sql
+
+# Seeds (dans l'ordre)
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
+  -f database/seeds/01_minimal.sql
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
+  -f database/seeds/02_test_users.sql
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
+  -f database/seeds/03_demo.sql
 ```
 
 ### Vérifications
@@ -33,16 +61,10 @@ sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -f ./seed_demo.sql
 sudo -u postgres psql -d vote_app -c "\dt"
 
 # Séances
-sudo -u postgres psql -d vote_app -c "SELECT id, title, status, started_at FROM meetings;"
-
-# Motions
-sudo -u postgres psql -d vote_app -c "SELECT id, meeting_id, title, status, opened_at, closed_at FROM motions ORDER BY sort_order;"
+sudo -u postgres psql -d vote_app -c "SELECT id, title, status FROM meetings;"
 
 # Membres
-sudo -u postgres psql -d vote_app -c "SELECT full_name, vote_weight, email FROM members ORDER BY vote_weight DESC;"
-
-# Présences
-sudo -u postgres psql -d vote_app -c "SELECT m.full_name, a.mode, a.effective_power FROM attendances a JOIN members m ON m.id = a.member_id WHERE a.meeting_id = '44444444-4444-4444-4444-444444444001';"
+sudo -u postgres psql -d vote_app -c "SELECT full_name, vote_weight FROM members ORDER BY vote_weight DESC;"
 ```
 
 ## 2. Configuration
@@ -68,52 +90,60 @@ Pour tester avec l'authentification activée (`APP_AUTH_ENABLED=1`), voir les co
 
 ```
 DB_DSN=pgsql:host=localhost;port=5432;dbname=vote_app
-DB_USER=postgres
-DB_PASS=
+DB_USER=vote_app
+DB_PASS=vote_app_dev_2026
 ```
 
 ## 3. Lancer le serveur
 
 ```bash
-cd /chemin/vers/gestion-votes
-php -S 0.0.0.0:8000 -t public
+php -S 0.0.0.0:8080 -t public
 ```
 
 ## 4. Accès aux interfaces
 
 | Page | URL | Rôle |
 |---|---|---|
-| Accueil | http://localhost:8000/ | — |
-| Opérateur | http://localhost:8000/operator.htmx.html | operator |
-| Président | http://localhost:8000/president.htmx.html | president |
-| Résolutions | http://localhost:8000/motions.htmx.html | operator |
-| Présences | http://localhost:8000/attendance.htmx.html | operator |
-| Membres | http://localhost:8000/members.htmx.html | operator |
-| Procurations | http://localhost:8000/proxies.htmx.html | operator |
-| Invitations | http://localhost:8000/invitations.htmx.html | operator |
-| Contrôle (trust) | http://localhost:8000/trust.htmx.html | trust |
-| Vote public | http://localhost:8000/public.htmx.html | public |
-| Admin | http://localhost:8000/admin.htmx.html | admin |
-| PV / Export | http://localhost:8000/report.htmx.html | operator |
-| Archives | http://localhost:8000/archives.htmx.html | operator |
-| Validation | http://localhost:8000/validate.htmx.html | president |
+| Accueil | http://localhost:8080/ | — |
+| Opérateur | http://localhost:8080/operator.htmx.html | operator |
+| Président | http://localhost:8080/president.htmx.html | president |
+| Résolutions | http://localhost:8080/motions.htmx.html | operator |
+| Présences | http://localhost:8080/attendance.htmx.html | operator |
+| Membres | http://localhost:8080/members.htmx.html | operator |
+| Procurations | http://localhost:8080/proxies.htmx.html | operator |
+| Invitations | http://localhost:8080/invitations.htmx.html | operator |
+| Contrôle (audit) | http://localhost:8080/trust.htmx.html | auditor |
+| Vote public | http://localhost:8080/public.htmx.html | public |
+| Admin | http://localhost:8080/admin.htmx.html | admin |
+| PV / Export | http://localhost:8080/report.htmx.html | operator |
+| Archives | http://localhost:8080/archives.htmx.html | operator |
+| Validation | http://localhost:8080/validate.htmx.html | president |
 
 ## 5. Comptes de test
 
-Les comptes sont créés par `database/seeds/test_users.sql` (appliqué automatiquement par `setup.sh --seed`).
+Créés par `database/seeds/02_test_users.sql` (chargé automatiquement par `setup.sh`).
 
-| Rôle | Email | Mot de passe | Rôle système |
+### Rôles système
+
+| Rôle | Email | Mot de passe | Description |
 |---|---|---|---|
-| Admin | `admin@ag-vote.local` | `Admin2024!` | admin |
-| Opérateur | `operator@ag-vote.local` | `Operator2024!` | operator |
-| Président | `president@ag-vote.local` | `President2024!` | operator |
-| Votant | `votant@ag-vote.local` | `Votant2024!` | viewer |
+| Admin | `admin@ag-vote.local` | `Admin2024!` | Accès total |
+| Opérateur | `operator@ag-vote.local` | `Operator2024!` | Gestion courante |
+| Auditeur | `auditor@ag-vote.local` | `Auditor2024!` | Conformité (lecture) |
+| Lecteur | `viewer@ag-vote.local` | `Viewer2024!` | Lecture seule |
+
+### Rôles de séance
+
+| Rôle | Email | Mot de passe | Description |
+|---|---|---|---|
+| Président | `president@ag-vote.local` | `President2024!` | Préside la séance |
+| Votant | `votant@ag-vote.local` | `Votant2024!` | Vote en séance |
 
 ## 6. Données de démo
 
-Après le seed, la base contient :
+Après le setup, la base contient :
 
-### Seed démo (`seed_demo.sql`)
+### Seed démo (`seeds/03_demo.sql`)
 
 - **1 séance LIVE** : "Assemblée Générale Ordinaire" (démarrée, en cours)
 - **1 séance DRAFT** : "AGE — Prochaine" (dans 14 jours)
@@ -128,7 +158,7 @@ Après le seed, la base contient :
   - Questions diverses — à venir
 - **5 politiques de quorum** + **4 politiques de vote**
 
-### Seed E2E (`seed_e2e.sql`)
+### Seed E2E (`seeds/04_e2e.sql`)
 
 - **1 séance DRAFT** : "Conseil Municipal — Séance E2E"
 - **12 élus municipaux** (poids de vote égal : 1 voix)
@@ -140,20 +170,12 @@ Après le seed, la base contient :
 
 ## 7. Réinitialiser
 
-Pour revenir à l'état initial :
-
 ```bash
+# Réappliquer tous les seeds (sans toucher au schéma)
 sudo bash database/setup.sh --seed
-```
 
-Ou manuellement :
-
-```bash
-sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
-cd database
-sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -f ./schema.sql
-sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -f ./seed_minimal.sql
-sudo -u postgres psql -d vote_app -v ON_ERROR_STOP=1 -f ./seed_demo.sql
+# Reset complet (SUPPRIME et recrée tout)
+sudo bash database/setup.sh --reset
 ```
 
 ## 8. API rapide
@@ -162,17 +184,14 @@ Avec `APP_AUTH_ENABLED=0`, tous les endpoints répondent sans clé :
 
 ```bash
 # Liste des séances
-curl -s http://localhost:8000/api/v1/meetings_index.php | python3 -m json.tool
+curl -s http://localhost:8080/api/v1/meetings_index.php | python3 -m json.tool
 
 # Détail d'une séance
-curl -s 'http://localhost:8000/api/v1/meetings.php?id=44444444-4444-4444-4444-444444444001' | python3 -m json.tool
+curl -s 'http://localhost:8080/api/v1/meetings.php?id=44444444-4444-4444-4444-444444444001' | python3 -m json.tool
 
 # Motions de la séance
-curl -s 'http://localhost:8000/api/v1/motions.php?meeting_id=44444444-4444-4444-4444-444444444001' | python3 -m json.tool
-
-# Présences
-curl -s 'http://localhost:8000/api/v1/attendances.php?meeting_id=44444444-4444-4444-4444-444444444001' | python3 -m json.tool
+curl -s 'http://localhost:8080/api/v1/motions.php?meeting_id=44444444-4444-4444-4444-444444444001' | python3 -m json.tool
 
 # Ping (health check)
-curl -s http://localhost:8000/api/v1/ping.php
+curl -s http://localhost:8080/api/v1/ping.php
 ```

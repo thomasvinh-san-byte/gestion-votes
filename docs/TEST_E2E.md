@@ -1,7 +1,7 @@
 # Parcours de test A-Z — Séance complète
 
 Guide de test de bout en bout pour valider le cycle de vie complet d'une séance,
-de la création à l'archivage. Basé sur le jeu de données `database/seeds/seed_e2e.sql`.
+de la création à l'archivage. Basé sur le jeu de données `database/seeds/04_e2e.sql`.
 
 ---
 
@@ -364,7 +364,7 @@ Le seed E2E est idempotent : il remet la séance en `draft`, supprime les bullet
 
 ## Références
 
-- `database/seeds/seed_e2e.sql` — Données du scénario
-- `database/seeds/test_users.sql` — Comptes de test
+- `database/seeds/04_e2e.sql` — Données du scénario
+- `database/seeds/02_test_users.sql` — Comptes de test
 - `docs/RECETTE_DEMO.md` — Scénario de démonstration rapide (10 min)
 - `docs/UTILISATION_LIVE.md` — Guide opérationnel des séances
