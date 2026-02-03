@@ -521,7 +521,65 @@
 
       <!-- Tab: Paramètres -->
       <div class="tab-content" id="tab-parametres">
+        <!-- Launch button - prominently at top when ready -->
+        <div id="launchBanner" class="settings-section" style="display:none; background: var(--color-success-subtle); border-color: var(--color-success); margin-bottom: 1.5rem;">
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h3 style="margin:0; color: var(--color-success);">🚀 Prêt à lancer la séance</h3>
+              <p class="text-muted text-sm mt-1">Tous les prérequis sont remplis. Vous pouvez démarrer le vote.</p>
+            </div>
+            <button class="btn btn-lg" id="btnLaunchSession" style="background: var(--color-success); color: #fff; font-size: 1rem; padding: 0.75rem 1.5rem;">
+              ▶️ Lancer la séance
+            </button>
+          </div>
+        </div>
+
         <div class="settings-grid">
+          <!-- Membres card -->
+          <div class="settings-section">
+            <h3>👥 Membres</h3>
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <span class="text-3xl font-bold" id="membersCount">0</span>
+                <span class="text-muted ml-2">membres inscrits</span>
+              </div>
+            </div>
+            <div id="membersList" class="flex flex-col gap-1 mb-3" style="max-height: 150px; overflow-y: auto;">
+              <!-- Rendered by JS -->
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-primary flex-1" id="btnAddMember">+ Ajouter un membre</button>
+              <a href="/members.htmx.html" class="btn btn-sm btn-secondary">Gérer</a>
+            </div>
+          </div>
+
+          <!-- Présences card -->
+          <div class="settings-section">
+            <h3>✋ Présences</h3>
+            <div class="flex gap-4 mb-3">
+              <div class="text-center">
+                <span class="text-2xl font-bold text-success" id="quickPresent">0</span>
+                <div class="text-xs text-muted">Présents</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold text-info" id="quickRemote">0</span>
+                <div class="text-xs text-muted">Distants</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold text-warning" id="quickExcused">0</span>
+                <div class="text-xs text-muted">Excusés</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold text-muted" id="quickAbsent">0</span>
+                <div class="text-xs text-muted">Absents</div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-success flex-1" id="btnQuickAllPresent">✓ Tous présents</button>
+              <button class="btn btn-sm btn-secondary" data-tab-switch="presences">Détails</button>
+            </div>
+          </div>
+
           <div class="settings-section">
             <h3>📅 Informations générales</h3>
             <div class="form-group mb-3">
