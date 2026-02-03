@@ -177,6 +177,7 @@
 
   async function loadAllData() {
     await Promise.all([
+      loadMembers(),
       loadAttendance(),
       loadResolutions(),
       loadPolicies(),
@@ -184,6 +185,161 @@
       loadStatusChecklist()
     ]);
     populateSettingsForm();
+    updateQuickStats();
+    checkLaunchReady();
+  }
+
+  // =========================================================================
+  // MEMBERS CARD
+  // =========================================================================
+
+  let membersCache = [];
+
+  async function loadMembers() {
+    try {
+      const { body } = await api('/api/v1/members.php');
+      membersCache = body?.data?.members || [];
+      renderMembersCard();
+    } catch (err) {
+      console.error('Members error:', err);
+    }
+  }
+
+  function renderMembersCard() {
+    document.getElementById('membersCount').textContent = membersCache.length;
+
+    const list = document.getElementById('membersList');
+    if (membersCache.length === 0) {
+      list.innerHTML = '<span class="text-muted text-sm">Aucun membre</span>';
+      return;
+    }
+
+    // Show first 5 members
+    const display = membersCache.slice(0, 5);
+    list.innerHTML = display.map(m => `
+      <div class="flex items-center gap-2 text-sm py-1">
+        <span class="text-muted">•</span>
+        <span>${escapeHtml(m.full_name || m.email || '—')}</span>
+      </div>
+    `).join('');
+
+    if (membersCache.length > 5) {
+      list.innerHTML += `<div class="text-sm text-muted">+ ${membersCache.length - 5} autres...</div>`;
+    }
+  }
+
+  async function addMemberQuick() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+
+    modal.innerHTML = `
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:400px;width:90%;">
+        <h3 style="margin:0 0 1rem;">Ajouter un membre</h3>
+        <div class="form-group mb-3">
+          <label class="form-label">Nom complet</label>
+          <input type="text" class="form-input" id="newMemberName" placeholder="Nom Prénom">
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Email (optionnel)</label>
+          <input type="email" class="form-input" id="newMemberEmail" placeholder="email@exemple.com">
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button class="btn btn-secondary" id="btnCancelMember">Annuler</button>
+          <button class="btn btn-primary" id="btnConfirmMember">Ajouter</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('btnCancelMember').onclick = () => modal.remove();
+    document.getElementById('btnConfirmMember').onclick = async () => {
+      const name = document.getElementById('newMemberName').value.trim();
+      const email = document.getElementById('newMemberEmail').value.trim();
+
+      if (!name) {
+        setNotif('error', 'Le nom est requis');
+        return;
+      }
+
+      try {
+        await api('/api/v1/members.php', {
+          action: 'create',
+          full_name: name,
+          email: email || null
+        });
+        setNotif('success', 'Membre ajouté');
+        modal.remove();
+        loadMembers();
+        loadAttendance();
+        loadStatusChecklist();
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    };
+  }
+
+  // =========================================================================
+  // QUICK STATS & LAUNCH BANNER
+  // =========================================================================
+
+  function updateQuickStats() {
+    const present = attendanceCache.filter(a => a.mode === 'present').length;
+    const remote = attendanceCache.filter(a => a.mode === 'remote').length;
+    const excused = attendanceCache.filter(a => a.mode === 'excused').length;
+    const absent = attendanceCache.filter(a => !a.mode || a.mode === 'absent').length;
+
+    document.getElementById('quickPresent').textContent = present;
+    document.getElementById('quickRemote').textContent = remote;
+    document.getElementById('quickExcused').textContent = excused;
+    document.getElementById('quickAbsent').textContent = absent;
+  }
+
+  function checkLaunchReady() {
+    const banner = document.getElementById('launchBanner');
+    if (!banner) return;
+
+    // Show banner if: has members, has attendance, has motions, status is frozen/scheduled
+    const hasMembers = membersCache.length > 0;
+    const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
+    const hasMotions = motionsCache.length > 0;
+    const canLaunch = ['scheduled', 'frozen'].includes(currentMeetingStatus);
+
+    if (hasMembers && hasAttendance && hasMotions && canLaunch) {
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  async function launchSession() {
+    if (!confirm('Lancer la séance et ouvrir les votes ?')) return;
+
+    try {
+      // If frozen, go to live; if scheduled, go to frozen then live
+      if (currentMeetingStatus === 'scheduled') {
+        await api('/api/v1/meeting_transition.php', {
+          meeting_id: currentMeetingId,
+          to_status: 'frozen'
+        });
+      }
+
+      const { body } = await api('/api/v1/meeting_transition.php', {
+        meeting_id: currentMeetingId,
+        to_status: 'live'
+      });
+
+      if (body?.ok) {
+        setNotif('success', 'Séance lancée !');
+        switchTab('vote');
+        loadMeetingContext(currentMeetingId);
+      } else {
+        setNotif('error', body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
   }
 
   // =========================================================================
@@ -950,6 +1106,33 @@
 
   // Add assessor button
   document.getElementById('btnAddAssessor')?.addEventListener('click', addAssessor);
+
+  // Quick member add
+  document.getElementById('btnAddMember')?.addEventListener('click', addMemberQuick);
+
+  // Quick all present
+  document.getElementById('btnQuickAllPresent')?.addEventListener('click', async () => {
+    if (!confirm('Marquer tous les membres comme présents ?')) return;
+    try {
+      await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
+      attendanceCache.forEach(m => m.mode = 'present');
+      renderAttendance();
+      updateQuickStats();
+      loadStatusChecklist();
+      checkLaunchReady();
+      setNotif('success', 'Tous marqués présents');
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  });
+
+  // Launch session button
+  document.getElementById('btnLaunchSession')?.addEventListener('click', launchSession);
+
+  // Tab switch buttons
+  document.querySelectorAll('[data-tab-switch]').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tabSwitch));
+  });
 
   initTabs();
   loadMeetings();
