@@ -1646,14 +1646,43 @@
   initTabs();
   loadMeetings();
 
-  // Auto-refresh
-  setInterval(() => {
-    if (currentMeetingId && !document.hidden) {
-      loadStatusChecklist();
-      loadDashboard();
-      loadDevices();
-      if (currentOpenMotion) loadBallots(currentOpenMotion.id);
+  // Auto-refresh - adaptive polling
+  let lastPollTime = 0;
+  const POLL_FAST = 2000;  // 2s when vote is active
+  const POLL_SLOW = 5000;  // 5s otherwise
+
+  async function autoPoll() {
+    if (!currentMeetingId || document.hidden) {
+      setTimeout(autoPoll, POLL_SLOW);
+      return;
     }
-  }, 5000);
+
+    const isVoteActive = !!currentOpenMotion;
+    const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
+    const onVoteTab = activeTab === 'vote';
+
+    // Always refresh these
+    loadStatusChecklist();
+    loadDashboard();
+    loadDevices();
+
+    // If vote is active or on vote tab, poll more aggressively
+    if (isVoteActive || onVoteTab) {
+      // Refresh resolutions to detect motion state changes
+      await loadResolutions();
+
+      if (currentOpenMotion) {
+        await loadBallots(currentOpenMotion.id);
+        loadVoteTab();
+      }
+    }
+
+    // Schedule next poll
+    const interval = isVoteActive ? POLL_FAST : POLL_SLOW;
+    setTimeout(autoPoll, interval);
+  }
+
+  // Start polling after initial load
+  setTimeout(autoPoll, POLL_SLOW);
 
 })();
