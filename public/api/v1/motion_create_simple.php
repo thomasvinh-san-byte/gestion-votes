@@ -49,7 +49,7 @@ try {
     if (empty($agendas)) {
         // Create default agenda
         $agendaId = $agendaRepo->generateUuid();
-        $agendaRepo->create($agendaId, $tenantId, $meetingId, 'Ordre du jour', 1);
+        $agendaRepo->create($agendaId, $tenantId, $meetingId, 1, 'Ordre du jour');
         audit_log('agenda_created', 'agenda', $agendaId, [
             'meeting_id' => $meetingId,
             'title' => 'Ordre du jour',
