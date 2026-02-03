@@ -1118,16 +1118,16 @@
             <span style="font-weight:700;margin-right:0.5rem;">${i + 1}.</span>
             <span class="resolution-title">${escapeHtml(m.title)}</span>
             <span class="resolution-status ${statusClass}">${statusText}</span>
-            <div class="resolution-edit-btns" style="margin-left:auto;">${editActions}</div>
+            <div class="resolution-header-actions" style="margin-left:auto;display:flex;gap:0.5rem;align-items:center;">
+              ${voteActions}
+              ${editActions}
+            </div>
           </div>
           <div class="resolution-body">
             <div class="resolution-content">
               ${m.description ? escapeHtml(m.description) : '<em class="text-muted">Aucune description</em>'}
             </div>
             ${results}
-            <div class="resolution-actions">
-              ${voteActions}
-            </div>
           </div>
         </div>
       `;
@@ -1341,6 +1341,7 @@
     if (!currentOpenMotion) {
       document.getElementById('noActiveVote').style.display = 'block';
       document.getElementById('activeVotePanel').style.display = 'none';
+      renderQuickOpenList();
       return;
     }
 
@@ -1350,6 +1351,37 @@
 
     await loadBallots(currentOpenMotion.id);
     renderManualVoteList();
+  }
+
+  // Render quick open buttons in the Vote tab when no vote is active
+  function renderQuickOpenList() {
+    const list = document.getElementById('quickOpenMotionList');
+    if (!list) return;
+
+    const isLive = currentMeetingStatus === 'live';
+    const openableMotions = motionsCache.filter(m => !m.opened_at && !m.closed_at);
+
+    if (!isLive || openableMotions.length === 0) {
+      list.innerHTML = isLive
+        ? '<p class="text-muted text-sm">Aucune résolution en attente</p>'
+        : '<p class="text-muted text-sm">La séance doit être en mode "live" pour ouvrir un vote</p>';
+      return;
+    }
+
+    list.innerHTML = openableMotions.slice(0, 5).map((m, i) => `
+      <button class="btn btn-primary btn-quick-open" data-motion-id="${m.id}">
+        ▶️ ${i + 1}. ${escapeHtml(m.title.length > 30 ? m.title.substring(0, 30) + '...' : m.title)}
+      </button>
+    `).join('');
+
+    if (openableMotions.length > 5) {
+      list.innerHTML += `<span class="text-muted text-sm">+ ${openableMotions.length - 5} autres</span>`;
+    }
+
+    // Bind quick open buttons
+    list.querySelectorAll('.btn-quick-open').forEach(btn => {
+      btn.addEventListener('click', () => openVote(btn.dataset.motionId));
+    });
   }
 
   async function loadBallots(motionId) {
@@ -1614,14 +1646,43 @@
   initTabs();
   loadMeetings();
 
-  // Auto-refresh
-  setInterval(() => {
-    if (currentMeetingId && !document.hidden) {
-      loadStatusChecklist();
-      loadDashboard();
-      loadDevices();
-      if (currentOpenMotion) loadBallots(currentOpenMotion.id);
+  // Auto-refresh - adaptive polling
+  let lastPollTime = 0;
+  const POLL_FAST = 2000;  // 2s when vote is active
+  const POLL_SLOW = 5000;  // 5s otherwise
+
+  async function autoPoll() {
+    if (!currentMeetingId || document.hidden) {
+      setTimeout(autoPoll, POLL_SLOW);
+      return;
     }
-  }, 5000);
+
+    const isVoteActive = !!currentOpenMotion;
+    const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
+    const onVoteTab = activeTab === 'vote';
+
+    // Always refresh these
+    loadStatusChecklist();
+    loadDashboard();
+    loadDevices();
+
+    // If vote is active or on vote tab, poll more aggressively
+    if (isVoteActive || onVoteTab) {
+      // Refresh resolutions to detect motion state changes
+      await loadResolutions();
+
+      if (currentOpenMotion) {
+        await loadBallots(currentOpenMotion.id);
+        loadVoteTab();
+      }
+    }
+
+    // Schedule next poll
+    const interval = isVoteActive ? POLL_FAST : POLL_SLOW;
+    setTimeout(autoPoll, interval);
+  }
+
+  // Start polling after initial load
+  setTimeout(autoPoll, POLL_SLOW);
 
 })();
