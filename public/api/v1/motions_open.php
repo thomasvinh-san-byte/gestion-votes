@@ -6,6 +6,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\PolicyRepository;
 
 api_require_role('operator');
 
@@ -56,21 +57,41 @@ try {
         api_fail('motion_invalid_title', 422, ['detail' => "Titre vide : impossible d'ouvrir la motion."]);
     }
 
+    $policyRepo = new PolicyRepository();
+    $tenantId = api_current_tenant_id();
+
+    // Resolve vote policy: motion → meeting → first available
     $effectiveVotePolicyId = (string)($row['vote_policy_id'] ?? '');
     if ($effectiveVotePolicyId === '') {
         $effectiveVotePolicyId = (string)($row['meeting_vote_policy_id'] ?? '');
     }
+    if ($effectiveVotePolicyId === '' || !api_is_uuid($effectiveVotePolicyId)) {
+        // Try to auto-assign first available vote policy
+        $defaultVotePolicy = $policyRepo->getFirstVotePolicy($tenantId);
+        if ($defaultVotePolicy) {
+            $effectiveVotePolicyId = (string)$defaultVotePolicy['id'];
+        } else {
+            api_fail('motion_missing_vote_policy', 422, [
+                'detail' => "Aucune politique de vote disponible. Créez une politique de vote dans Paramètres > Politiques."
+            ]);
+        }
+    }
 
+    // Resolve quorum policy: motion → meeting → first available
     $effectiveQuorumPolicyId = (string)($row['quorum_policy_id'] ?? '');
     if ($effectiveQuorumPolicyId === '') {
         $effectiveQuorumPolicyId = (string)($row['meeting_quorum_policy_id'] ?? '');
     }
-
-    if ($effectiveVotePolicyId === '' || !api_is_uuid($effectiveVotePolicyId)) {
-        api_fail('motion_missing_vote_policy', 422, ['detail' => "Policy de vote absente : impossible d'ouvrir la motion."]);
-    }
     if ($effectiveQuorumPolicyId === '' || !api_is_uuid($effectiveQuorumPolicyId)) {
-        api_fail('motion_missing_quorum_policy', 422, ['detail' => "Policy de quorum absente : impossible d'ouvrir la motion."]);
+        // Try to auto-assign first available quorum policy
+        $defaultQuorumPolicy = $policyRepo->getFirstQuorumPolicy($tenantId);
+        if ($defaultQuorumPolicy) {
+            $effectiveQuorumPolicyId = (string)$defaultQuorumPolicy['id'];
+        } else {
+            api_fail('motion_missing_quorum_policy', 422, [
+                'detail' => "Aucune politique de quorum disponible. Créez une politique de quorum dans Paramètres > Politiques."
+            ]);
+        }
     }
 
     db()->beginTransaction();

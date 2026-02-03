@@ -1056,18 +1056,7 @@
     try {
       const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${currentMeetingId}`);
       motionsCache = body?.data?.motions || [];
-
-      // Debug: log motion data to understand structure
-      console.log('Motions loaded:', motionsCache.map(m => ({
-        id: m.id,
-        title: m.title,
-        opened_at: m.opened_at,
-        closed_at: m.closed_at
-      })));
-
       currentOpenMotion = motionsCache.find(m => m.opened_at && !m.closed_at) || null;
-      console.log('Current open motion:', currentOpenMotion);
-
       renderResolutions();
       document.getElementById('tabCountResolutions').textContent = motionsCache.length;
     } catch (err) {
@@ -1505,31 +1494,23 @@
 
   async function openVote(motionId) {
     try {
-      console.log('Opening vote for motion:', motionId);
       const openResult = await api('/api/v1/motions_open.php', { meeting_id: currentMeetingId, motion_id: motionId });
-      console.log('Open result:', openResult);
 
       if (!openResult.body?.ok) {
-        setNotif('error', openResult.body?.error || openResult.body?.detail || 'Erreur ouverture vote');
+        // Prefer detail message over error code for user-friendly display
+        const errorMsg = openResult.body?.detail || openResult.body?.error || 'Erreur ouverture vote';
+        setNotif('error', errorMsg);
         return;
       }
 
       setNotif('success', 'Vote ouvert');
 
       // Must await loadResolutions so currentOpenMotion is set before switching tabs
-      console.log('Loading resolutions after opening vote...');
       await loadResolutions();
-      console.log('After loadResolutions, currentOpenMotion:', currentOpenMotion);
-
-      // Force check: if motion should be open but currentOpenMotion is null, there's an issue
-      const openedMotion = motionsCache.find(m => m.id === motionId);
-      console.log('Just opened motion in cache:', openedMotion);
 
       switchTab('vote');
-      // Ensure vote tab is loaded with the new motion
       await loadVoteTab();
     } catch (err) {
-      console.error('openVote error:', err);
       setNotif('error', err.message);
     }
   }

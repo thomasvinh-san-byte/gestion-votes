@@ -20,10 +20,15 @@
 
   <!-- Section utilisateurs -->
   <div class="nav-section border-t mt-3 pt-3">
-    <!-- Présidence : rôle de séance president, ou operator+ -->
-    <a class="nav-item" href="/president.htmx.html" data-page="president" data-requires-role="president,operator">
+    <!-- Dashboard Président : vue lecture seule pour president -->
+    <a class="nav-item" href="/president-dashboard.htmx.html" data-page="president" data-requires-role="president">
       <span class="nav-item-icon" aria-hidden="true">&#x1f451;</span>
-      <span>Pr&eacute;sidence</span>
+      <span>Dashboard Pr&eacute;sident</span>
+    </a>
+    <!-- Gestion de séance : operator+ (contrôle complet) -->
+    <a class="nav-item" href="/president.htmx.html" data-page="president-control" data-requires-role="operator">
+      <span class="nav-item-icon" aria-hidden="true">&#x1f3af;</span>
+      <span>Gestion parole</span>
     </a>
     <!-- Vote : rôle de séance voter, ou operator+ -->
     <a class="nav-item" href="/vote.htmx.html" data-page="vote" data-requires-role="voter,operator">
