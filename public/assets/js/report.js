@@ -36,6 +36,27 @@
       document.getElementById('exportAudit').href = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}`;
     }
 
+    // Disable export buttons
+    function disableExports() {
+      const exportIds = ['exportPV', 'exportAttendance', 'exportVotes', 'exportMotions', 'exportMembers', 'exportAudit', 'btnExportPDF'];
+      exportIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.add('disabled');
+          el.style.pointerEvents = 'none';
+          el.style.opacity = '0.5';
+          el.removeAttribute('href');
+          el.title = 'Exports disponibles après validation';
+        }
+      });
+      // Also disable email send
+      const btnSend = document.getElementById('btnSendEmail');
+      if (btnSend) {
+        btnSend.disabled = true;
+        btnSend.title = 'Envoi disponible après validation';
+      }
+    }
+
     // Load meeting info
     async function loadMeetingInfo() {
       try {
@@ -45,9 +66,11 @@
           document.getElementById('meetingName').textContent = body.data.title;
           document.getElementById('meetingContext').style.display = 'flex';
 
-          // Check validation status
-          if (body.data.status !== 'archived' && !body.data.validated_at) {
+          // Check validation status - disable exports if not validated
+          const isValidated = body.data.status === 'validated' || body.data.status === 'archived';
+          if (!isValidated) {
             document.getElementById('notValidatedWarning').style.display = 'flex';
+            disableExports();
           }
         }
       } catch (err) {

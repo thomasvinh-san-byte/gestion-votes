@@ -52,12 +52,9 @@
     btnSave.disabled = true;
     try {
       const { body } = await api('/api/v1/paper_ballot_redeem.php', {
-        method: 'POST',
-        body: JSON.stringify({
-          code: codeInput.value.trim(),
-          choice: voteChoice.value,
-          justification: justInput.value.trim()
-        })
+        code: codeInput.value.trim(),
+        choice: voteChoice.value,
+        justification: justInput.value.trim()
       });
       if (body?.ok) {
         showMsg('success', '✅ Vote enregistré');

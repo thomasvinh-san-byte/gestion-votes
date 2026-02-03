@@ -148,13 +148,6 @@
   <script src="/assets/js/session-wizard.js"></script>
 
   <script>
-  // Global state for compatibility
-  var state = { meetings: [], currentMeetingId: null };
-  async function loadAgendasAndMotions() { /* no-op */ }
-  </script>
-  <script src="/assets/js/meetings.js"></script>
-
-  <script>
   (function() {
     'use strict';
 
@@ -267,9 +260,6 @@
 
     // Initial load
     fetchMeetings();
-
-    // Make fetchMeetings available for meetings.js compatibility
-    window.loadMeetings = fetchMeetings;
   })();
   </script>
 </body>
