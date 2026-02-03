@@ -7,6 +7,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Service\AttendancesService;
 
 try {
+    api_require_role(['operator', 'trust', 'admin']);
     api_request('GET');
 
     $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -14,11 +15,9 @@ try {
         api_fail('invalid_request', 422, ['detail' => 'meeting_id est obligatoire']);
     }
 
-    // Lecture: opérateur + trust (au choix). Ici: trust minimum.
-    // Pour simplifier le MVP, on autorise operator|trust|admin.
-    // (API ne supporte pas OR, donc on ne force rien : GET est public par défaut.)
-    $list = AttendancesService::listForMeeting($meetingId);
-    $summary = AttendancesService::summaryForMeeting($meetingId);
+    $tenantId = api_current_tenant_id();
+    $list = AttendancesService::listForMeeting($meetingId, $tenantId);
+    $summary = AttendancesService::summaryForMeeting($meetingId, $tenantId);
 
     api_ok([
         'attendances' => $list,
