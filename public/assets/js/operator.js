@@ -19,12 +19,33 @@
   const voterList = document.getElementById('voterList');
   const openMotionTitle = document.getElementById('openMotionTitle');
   const btnCloseVote = document.getElementById('btnCloseVote');
+  const statusAlert = document.getElementById('statusAlert');
+  const statusChecklist = document.getElementById('statusChecklist');
+  const statusActions = document.getElementById('statusActions');
 
   let currentMeetingId = null;
   let currentMeetingStatus = null;
+  let currentWizardChecks = {};
   let currentOpenMotion = null;
   let votersCache = [];
   let ballotsCache = {};
+
+  // Transitions (state machine) - moved up for early reference
+  const TRANSITIONS = {
+    draft: [{ to: 'scheduled', label: 'Planifier', icon: '📅' }],
+    scheduled: [
+      { to: 'frozen', label: 'Geler (verrouiller)', icon: '🧊' },
+      { to: 'draft', label: 'Retour brouillon', icon: '↩️' }
+    ],
+    frozen: [
+      { to: 'live', label: 'Ouvrir la séance', icon: '▶️' },
+      { to: 'scheduled', label: 'Dégeler', icon: '↩️' }
+    ],
+    live: [{ to: 'closed', label: 'Clôturer la séance', icon: '⏹️' }],
+    closed: [{ to: 'validated', label: 'Valider la séance', icon: '✅' }],
+    validated: [{ to: 'archived', label: 'Archiver', icon: '📦' }],
+    archived: []
+  };
 
   // Get meeting_id from URL
   function getMeetingIdFromUrl() {
@@ -79,6 +100,7 @@
     quickLinks.style.display = 'none';
     motionsSection.style.display = 'none';
     votePanel.style.display = 'none';
+    if (statusAlert) statusAlert.style.display = 'none';
     meetingStatusBadge.textContent = '—';
     meetingStatusBadge.className = 'badge';
     meetingTitle.textContent = '—';
@@ -88,6 +110,99 @@
     noMeetingAlert.style.display = 'none';
     quickLinks.style.display = 'flex';
     motionsSection.style.display = 'block';
+  }
+
+  // Update status alert based on meeting state and wizard checks
+  function updateStatusAlert() {
+    if (!statusAlert || !currentMeetingId) {
+      if (statusAlert) statusAlert.style.display = 'none';
+      return;
+    }
+
+    // If meeting is live, hide the alert
+    if (currentMeetingStatus === 'live') {
+      statusAlert.style.display = 'none';
+      return;
+    }
+
+    // Build checklist
+    const checks = currentWizardChecks;
+    const mid = currentMeetingId;
+    const items = [];
+
+    // Check 1: Members
+    if (checks.hasMembers) {
+      items.push({ done: true, text: 'Membres ajoutés' });
+    } else {
+      items.push({ done: false, text: 'Ajouter des membres', link: '/members.htmx.html' });
+    }
+
+    // Check 2: Attendance
+    if (checks.hasAttendance) {
+      items.push({ done: true, text: 'Présences pointées' });
+    } else {
+      items.push({ done: false, text: 'Pointer les présences', link: `/attendance.htmx.html?meeting_id=${mid}` });
+    }
+
+    // Check 3: Motions
+    if (checks.hasMotions) {
+      items.push({ done: true, text: 'Résolutions créées' });
+    } else {
+      items.push({ done: false, text: 'Créer des résolutions', link: `/motions.htmx.html?meeting_id=${mid}` });
+    }
+
+    // Check 4: Policies
+    if (checks.policiesAssigned) {
+      items.push({ done: true, text: 'Politiques configurées' });
+    } else {
+      items.push({ done: false, text: 'Configurer quorum/vote (bouton ⚙️)', link: null });
+    }
+
+    // Render checklist
+    statusChecklist.innerHTML = items.map(item => {
+      const icon = item.done ? '✓' : '○';
+      const cls = item.done ? 'done' : 'pending';
+      let content = item.text;
+      if (!item.done && item.link) {
+        content = `<a href="${item.link}">${item.text}</a>`;
+      }
+      return `<div class="check-item ${cls}"><span>${icon}</span> ${content}</div>`;
+    }).join('');
+
+    // Update title based on status
+    const titles = {
+      draft: { title: 'Séance en brouillon', desc: 'Planifiez la séance pour continuer.' },
+      scheduled: { title: 'Séance planifiée', desc: 'Gelez la séance quand les présences sont finalisées.' },
+      frozen: { title: 'Séance gelée', desc: 'Tout est prêt. Ouvrez la séance pour démarrer les votes.' },
+      closed: { title: 'Séance clôturée', desc: 'La séance est terminée. Validez pour archiver.' },
+      validated: { title: 'Séance validée', desc: 'La séance est verrouillée.' },
+      archived: { title: 'Séance archivée', desc: 'Consultation uniquement.' }
+    };
+    const info = titles[currentMeetingStatus] || titles.draft;
+    document.getElementById('statusAlertTitle').textContent = info.title;
+    document.getElementById('statusAlertDesc').textContent = info.desc;
+
+    // Render action buttons
+    const transitions = TRANSITIONS[currentMeetingStatus] || [];
+    if (transitions.length > 0) {
+      statusActions.innerHTML = transitions.map(t => {
+        const btnClass = t.to === 'live' ? 'btn-primary' : 'btn-secondary';
+        return `<button class="btn ${btnClass}" data-transition="${t.to}">${t.icon} ${t.label}</button>`;
+      }).join('');
+
+      statusActions.querySelectorAll('[data-transition]').forEach(btn => {
+        btn.addEventListener('click', () => doTransition(btn.dataset.transition));
+      });
+    } else {
+      statusActions.innerHTML = '';
+    }
+
+    // Show or hide based on status
+    if (currentMeetingStatus === 'live') {
+      statusAlert.style.display = 'none';
+    } else {
+      statusAlert.style.display = 'block';
+    }
   }
 
   // Load meeting context
@@ -126,15 +241,39 @@
         meetingStatusBadge.textContent = statusInfo.text;
       }
 
-      // Load stats and motions
+      // Load stats, motions, and wizard status
       await Promise.all([
         loadAttendanceStats(meetingId),
         loadQuorumStatus(meetingId),
-        loadMotions(meetingId)
+        loadMotions(meetingId),
+        loadWizardStatus(meetingId)
       ]);
+
+      // Update status alert after all data is loaded
+      updateStatusAlert();
 
     } catch (err) {
       setNotif('error', 'Erreur: ' + err.message);
+    }
+  }
+
+  // Load wizard status for checklist
+  async function loadWizardStatus(meetingId) {
+    try {
+      const { body } = await api(`/api/v1/wizard_status.php?meeting_id=${meetingId}`);
+      if (body && body.ok && body.data) {
+        const d = body.data;
+        currentWizardChecks = {
+          hasMembers: (d.members_count || 0) > 0,
+          hasMotions: (d.motions_total || 0) > 0,
+          hasAttendance: (d.present_count || 0) > 0,
+          hasPresident: !!d.has_president,
+          policiesAssigned: !!d.policies_assigned,
+          allMotionsClosed: d.motions_total > 0 && d.motions_closed === d.motions_total
+        };
+      }
+    } catch (err) {
+      console.error('Wizard status error:', err);
     }
   }
 
@@ -402,23 +541,6 @@
     }
   });
 
-  // Transitions (state machine)
-  const TRANSITIONS = {
-    draft: [{ to: 'scheduled', label: 'Planifier', icon: '📅' }],
-    scheduled: [
-      { to: 'frozen', label: 'Geler (verrouiller)', icon: '🧊' },
-      { to: 'draft', label: 'Retour brouillon', icon: '↩️' }
-    ],
-    frozen: [
-      { to: 'live', label: 'Ouvrir la séance', icon: '▶️' },
-      { to: 'scheduled', label: 'Dégeler', icon: '↩️' }
-    ],
-    live: [{ to: 'closed', label: 'Clôturer la séance', icon: '⏹️' }],
-    closed: [{ to: 'validated', label: 'Valider la séance', icon: '✅' }],
-    validated: [{ to: 'archived', label: 'Archiver', icon: '📦' }],
-    archived: []
-  };
-
   async function doTransition(toStatus) {
     if (!currentMeetingId) return;
     if (!confirm(`Changer l'état vers "${toStatus}" ?`)) return;
@@ -625,11 +747,15 @@
   loadMeetings();
 
   // Auto-refresh every 5s
-  setInterval(() => {
+  setInterval(async () => {
     if (currentMeetingId && !document.hidden) {
-      loadAttendanceStats(currentMeetingId);
-      loadQuorumStatus(currentMeetingId);
-      loadMotions(currentMeetingId);
+      await Promise.all([
+        loadAttendanceStats(currentMeetingId),
+        loadQuorumStatus(currentMeetingId),
+        loadMotions(currentMeetingId),
+        loadWizardStatus(currentMeetingId)
+      ]);
+      updateStatusAlert();
     }
   }, 5000);
 
