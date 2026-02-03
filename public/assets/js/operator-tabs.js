@@ -8,11 +8,6 @@
   // DOM elements
   const meetingSelect = document.getElementById('meetingSelect');
   const meetingStatusBadge = document.getElementById('meetingStatusBadge');
-  const meetingHeaderBar = document.getElementById('meetingHeaderBar');
-  const meetingTitle = document.getElementById('meetingTitle');
-  const meetingSubtitle = document.getElementById('meetingSubtitle');
-  const meetingSaved = document.getElementById('meetingSaved');
-  const statusBadgeText = document.getElementById('statusBadgeText');
   const tabsNav = document.getElementById('tabsNav');
   const noMeetingState = document.getElementById('noMeetingState');
 
@@ -131,7 +126,6 @@
 
   function showNoMeeting() {
     noMeetingState.style.display = 'flex';
-    meetingHeaderBar.style.display = 'none';
     tabsNav.style.display = 'none';
     tabContents.forEach(c => c.classList.remove('active'));
     currentMeetingId = null;
@@ -140,23 +134,14 @@
 
   function showMeetingContent() {
     noMeetingState.style.display = 'none';
-    meetingHeaderBar.style.display = 'flex';
     tabsNav.style.display = 'flex';
     switchTab('parametres');
   }
 
   function updateHeader(meeting) {
-    meetingTitle.textContent = meeting.title || '—';
-    const date = meeting.scheduled_at ? new Date(meeting.scheduled_at).toLocaleDateString('fr-FR') : '—';
-    meetingSubtitle.textContent = `Date: ${date}`;
-
     const statusInfo = Shared.MEETING_STATUS_MAP[meeting.status] || Shared.MEETING_STATUS_MAP['draft'];
     meetingStatusBadge.className = `badge ${statusInfo.badge}`;
     meetingStatusBadge.textContent = statusInfo.text;
-    statusBadgeText.textContent = statusInfo.text;
-
-    const updated = meeting.updated_at ? new Date(meeting.updated_at) : new Date();
-    meetingSaved.innerHTML = `<span>💾</span> ${updated.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}`;
 
     // Update meeting links
     document.querySelectorAll('[data-meeting-link]').forEach(link => {
@@ -300,11 +285,11 @@
     const banner = document.getElementById('launchBanner');
     if (!banner) return;
 
-    // Show banner if: has members, has attendance, has motions, status is frozen/scheduled
+    // Show banner if: has members, has attendance, has motions, and not already live/closed
     const hasMembers = membersCache.length > 0;
     const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
     const hasMotions = motionsCache.length > 0;
-    const canLaunch = ['scheduled', 'frozen'].includes(currentMeetingStatus);
+    const canLaunch = ['draft', 'scheduled', 'frozen'].includes(currentMeetingStatus);
 
     if (hasMembers && hasAttendance && hasMotions && canLaunch) {
       banner.style.display = 'block';
@@ -317,26 +302,27 @@
     if (!confirm('Lancer la séance et ouvrir les votes ?')) return;
 
     try {
-      // If frozen, go to live; if scheduled, go to frozen then live
-      if (currentMeetingStatus === 'scheduled') {
-        await api('/api/v1/meeting_transition.php', {
+      // Transition through required states: draft → scheduled → frozen → live
+      const transitions = [];
+      if (currentMeetingStatus === 'draft') transitions.push('scheduled', 'frozen', 'live');
+      else if (currentMeetingStatus === 'scheduled') transitions.push('frozen', 'live');
+      else if (currentMeetingStatus === 'frozen') transitions.push('live');
+      else transitions.push('live');
+
+      for (const status of transitions) {
+        const { body } = await api('/api/v1/meeting_transition.php', {
           meeting_id: currentMeetingId,
-          to_status: 'frozen'
+          to_status: status
         });
+        if (!body?.ok) {
+          setNotif('error', body?.error || `Erreur passage vers ${status}`);
+          return;
+        }
       }
 
-      const { body } = await api('/api/v1/meeting_transition.php', {
-        meeting_id: currentMeetingId,
-        to_status: 'live'
-      });
-
-      if (body?.ok) {
-        setNotif('success', 'Séance lancée !');
-        switchTab('vote');
-        loadMeetingContext(currentMeetingId);
-      } else {
-        setNotif('error', body?.error || 'Erreur');
-      }
+      setNotif('success', 'Séance lancée !');
+      switchTab('vote');
+      loadMeetingContext(currentMeetingId);
     } catch (err) {
       setNotif('error', err.message);
     }
