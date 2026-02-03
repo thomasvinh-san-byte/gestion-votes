@@ -633,6 +633,69 @@
               <!-- Transition buttons rendered by JS -->
             </div>
           </div>
+
+          <!-- Dashboard en direct -->
+          <div class="settings-section" id="dashboardCard" style="display:none;">
+            <h3>📊 Dashboard en direct</h3>
+            <div class="flex flex-wrap gap-4 mb-3">
+              <div class="text-center">
+                <span class="text-2xl font-bold" id="dashPresentCount">-</span>
+                <span class="text-muted">/</span>
+                <span id="dashEligibleCount">-</span>
+                <div class="text-xs text-muted">Présents</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold" id="dashProxyCount">0</span>
+                <div class="text-xs text-muted">Procurations</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold" id="dashOpenMotions">0</span>
+                <div class="text-xs text-muted">Motions ouvertes</div>
+              </div>
+            </div>
+            <div id="dashCurrentMotion" class="text-sm text-muted mb-2" style="display:none;">
+              Motion: <strong id="dashMotionTitle">—</strong>
+              <div class="flex gap-3 mt-1">
+                <span class="text-success">✓ <span id="dashVoteFor">0</span></span>
+                <span class="text-danger">✗ <span id="dashVoteAgainst">0</span></span>
+                <span>○ <span id="dashVoteAbstain">0</span></span>
+              </div>
+            </div>
+            <div id="dashReadySign" class="text-sm" style="display:none;">
+              <span class="badge badge-success">✓ Prêt pour signature</span>
+            </div>
+            <div id="dashNotReadySign" class="text-sm" style="display:none;">
+              <span class="badge badge-warning">⚠ Non prêt</span>
+              <ul id="dashReadyReasons" class="text-xs text-muted mt-1" style="margin:0;padding-left:1rem;"></ul>
+            </div>
+          </div>
+
+          <!-- Appareils connectés -->
+          <div class="settings-section" id="devicesCard" style="display:none;">
+            <h3>📱 Appareils connectés</h3>
+            <div class="flex gap-4 mb-3">
+              <div class="text-center">
+                <span class="text-2xl font-bold text-success" id="devOnline">0</span>
+                <div class="text-xs text-muted">En ligne</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold text-warning" id="devStale">0</span>
+                <div class="text-xs text-muted">Inactifs</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold text-muted" id="devOffline">0</span>
+                <div class="text-xs text-muted">Hors ligne</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold text-danger" id="devBlocked">0</span>
+                <div class="text-xs text-muted">Bloqués</div>
+              </div>
+            </div>
+            <div id="devicesList" class="flex flex-col gap-1 mb-3" style="max-height:120px;overflow-y:auto;">
+              <span class="text-muted text-sm">Aucun appareil</span>
+            </div>
+            <button class="btn btn-sm btn-secondary" id="btnManageDevices">🔧 Gérer les appareils</button>
+          </div>
         </div>
       </div>
 
