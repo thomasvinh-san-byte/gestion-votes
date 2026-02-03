@@ -7,7 +7,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\MotionRepository;
 use AgVote\Service\OfficialResultsService;
 
-api_require_role('operator');
+api_require_role(['operator', 'president', 'admin']);
 
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     api_fail('method_not_allowed', 405);
