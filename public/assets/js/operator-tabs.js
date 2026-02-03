@@ -228,8 +228,8 @@
         api('/api/v1/vote_policies.php')
       ]);
 
-      policiesCache.quorum = qpRes.body?.items || [];
-      policiesCache.vote = vpRes.body?.items || [];
+      policiesCache.quorum = qpRes.body?.data?.items || [];
+      policiesCache.vote = vpRes.body?.data?.items || [];
 
       const qSelect = document.getElementById('settingQuorumPolicy');
       const vSelect = document.getElementById('settingVotePolicy');
@@ -262,8 +262,8 @@
         api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`)
       ]);
 
-      usersCache = usersRes.body?.items || [];
-      const roles = rolesRes.body?.items || [];
+      usersCache = usersRes.body?.data?.items || [];
+      const roles = rolesRes.body?.data?.items || [];
       const president = roles.find(r => r.role === 'president');
       const assessors = roles.filter(r => r.role === 'assessor');
 
@@ -431,7 +431,7 @@
       } else {
         // Remove current president
         const { body } = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`);
-        const roles = body?.items || [];
+        const roles = body?.data?.items || [];
         const president = roles.find(r => r.role === 'president');
         if (president) {
           await api('/api/v1/admin_meeting_roles.php', {
