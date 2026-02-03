@@ -256,6 +256,34 @@
       border-top: 1px solid var(--color-border);
     }
 
+    .resolution-reorder {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-right: 0.5rem;
+    }
+
+    .resolution-reorder .btn {
+      padding: 0.1rem 0.4rem;
+      font-size: 0.7rem;
+      line-height: 1;
+      min-width: auto;
+    }
+
+    .resolution-reorder .btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .resolution-edit-btns {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .resolution-edit-btns .btn {
+      padding: 0.25rem 0.5rem;
+    }
+
     /* Attendance grid */
     .attendance-grid {
       display: grid;
