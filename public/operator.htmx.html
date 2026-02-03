@@ -161,6 +161,180 @@
       color: var(--color-text-muted);
     }
 
+    /* Attendance inline section */
+    .attendance-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .attendance-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-border);
+      cursor: pointer;
+    }
+
+    .attendance-header:hover {
+      background: var(--color-bg-subtle);
+    }
+
+    .attendance-header h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .attendance-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .attendance-stats .stat {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .attendance-stats .stat.present { color: var(--color-success); }
+    .attendance-stats .stat.remote { color: var(--color-info, #3b82f6); }
+    .attendance-stats .stat.excused { color: var(--color-warning); }
+    .attendance-stats .stat.absent { color: var(--color-text-muted); }
+
+    .attendance-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .attendance-section.expanded .attendance-body {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .attendance-toolbar {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-bg-subtle);
+      border-bottom: 1px solid var(--color-border);
+      flex-wrap: wrap;
+    }
+
+    .attendance-toolbar input {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .attendance-list {
+      padding: 0.5rem;
+    }
+
+    .att-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+
+    .att-row:hover {
+      background: var(--color-bg-subtle);
+    }
+
+    .att-row .att-name {
+      flex: 1;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .att-row .att-btns {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .att-btn {
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .att-btn:hover { background: var(--color-bg-subtle); }
+    .att-btn.present.active { background: var(--color-success); color: #fff; border-color: transparent; }
+    .att-btn.remote.active { background: var(--color-info, #3b82f6); color: #fff; border-color: transparent; }
+    .att-btn.excused.active { background: var(--color-warning); color: #fff; border-color: transparent; }
+    .att-btn.absent.active { background: var(--color-text-muted); color: #fff; border-color: transparent; }
+
+    .att-empty {
+      text-align: center;
+      padding: 2rem;
+      color: var(--color-text-muted);
+    }
+
+    /* Exports section */
+    .exports-section {
+      background: var(--color-success-subtle, #d4edda);
+      border: 2px solid var(--color-success);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .exports-section h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 0 1rem 0;
+      font-size: 1rem;
+    }
+
+    .exports-validated-info {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .exports-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .export-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .export-btn:hover {
+      border-color: var(--color-primary);
+      background: var(--color-bg-subtle);
+    }
+
+    .export-btn .export-icon {
+      font-size: 1.2rem;
+    }
+
     .results-inline {
       display: flex;
       gap: 0.75rem;
@@ -341,6 +515,8 @@
         <p class="text-sm text-secondary" id="meetingTitle">—</p>
       </div>
       <div class="flex items-center gap-2">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="members" title="Membres">👥</button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="motions" title="Résolutions">📋</button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="roles" title="Rôles séance">👔</button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="settings" title="Réglages">🔧</button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="quorum" title="Quorum">📊</button>
@@ -400,6 +576,29 @@
           <div class="status-actions" id="statusActions"></div>
         </div>
 
+        <!-- Attendance inline section -->
+        <div class="attendance-section" id="attendanceSection" style="display: none;">
+          <div class="attendance-header" id="attendanceHeader">
+            <h3>👥 Présences</h3>
+            <div class="attendance-stats">
+              <span class="stat present">✓ <strong id="attPresent">0</strong></span>
+              <span class="stat remote">📡 <strong id="attRemote">0</strong></span>
+              <span class="stat excused">📝 <strong id="attExcused">0</strong></span>
+              <span class="stat absent">○ <strong id="attAbsent">0</strong></span>
+            </div>
+          </div>
+          <div class="attendance-body">
+            <div class="attendance-toolbar">
+              <input type="text" class="form-input" id="attSearchInput" placeholder="Rechercher...">
+              <button class="btn btn-sm btn-secondary" id="btnAttAllPresent" title="Tous présents">✓ Tous</button>
+              <button class="btn btn-sm btn-ghost" id="btnAttFullView" title="Vue complète">↗</button>
+            </div>
+            <div class="attendance-list" id="attendanceList">
+              <div class="att-empty">Chargement...</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Vote panel (shown when a motion is open) -->
         <div class="vote-panel" id="votePanel" style="display: none;">
           <div class="vote-panel-header">
@@ -428,6 +627,32 @@
           </div>
           <div class="motion-list" id="motionsList">
             <div class="text-center p-4 text-muted">Chargement...</div>
+          </div>
+        </div>
+
+        <!-- Exports section (shown when validated/archived) -->
+        <div class="exports-section" id="exportsSection" style="display: none;">
+          <h3>📄 Procès-Verbal & Exports</h3>
+          <div class="exports-validated-info" id="validatedInfo">
+            Séance validée
+          </div>
+          <div class="exports-grid">
+            <button class="export-btn" id="btnExportPV">
+              <span class="export-icon">📄</span>
+              <span>Télécharger PV (PDF)</span>
+            </button>
+            <button class="export-btn" id="btnExportAttendance">
+              <span class="export-icon">📊</span>
+              <span>Export Présences (CSV)</span>
+            </button>
+            <button class="export-btn" id="btnExportVotes">
+              <span class="export-icon">📊</span>
+              <span>Export Votes (CSV)</span>
+            </button>
+            <a href="/report.htmx.html" class="export-btn" id="linkFullReport" data-meeting-link>
+              <span class="export-icon">📋</span>
+              <span>Voir le rapport complet</span>
+            </a>
           </div>
         </div>
       </div>

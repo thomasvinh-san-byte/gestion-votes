@@ -3,12 +3,14 @@
  * POST /api/v1/meeting_transition.php
  *
  * Transition d'état d'une séance selon la machine à états.
+ * Now includes workflow validation (Helios-style issues_before_freeze).
  */
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MeetingRepository;
+use AgVote\Service\MeetingWorkflowService;
 
 $input = api_request('POST');
 
@@ -49,6 +51,19 @@ if ($fromStatus === $toStatus) {
 
 // Vérifier la transition via la machine à états (avec contexte séance pour les rôles de séance)
 AuthMiddleware::requireTransition($fromStatus, $toStatus, $meetingId);
+
+// Workflow validation (Helios-style issues_before_transition)
+$forceTransition = filter_var($input['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
+$workflowCheck = MeetingWorkflowService::issuesBeforeTransition($meetingId, api_current_tenant_id(), $toStatus);
+
+if (!$workflowCheck['can_proceed'] && !$forceTransition) {
+    api_fail('workflow_issues', 422, [
+        'detail' => 'Transition bloquée par des pré-requis',
+        'issues' => $workflowCheck['issues'],
+        'warnings' => $workflowCheck['warnings'],
+        'hint' => 'Corrigez les issues ou passez force=true pour ignorer (non recommandé)',
+    ]);
+}
 
 // Construire les champs de mise à jour
 $fields = ['status' => $toStatus];
@@ -121,4 +136,5 @@ api_ok([
     'from_status'     => $fromStatus,
     'to_status'       => $toStatus,
     'transitioned_at' => date('c'),
+    'warnings'        => $workflowCheck['warnings'] ?? [],
 ]);

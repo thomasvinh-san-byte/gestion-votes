@@ -23,12 +23,31 @@
   const statusChecklist = document.getElementById('statusChecklist');
   const statusActions = document.getElementById('statusActions');
 
+  // Attendance inline elements
+  const attendanceSection = document.getElementById('attendanceSection');
+  const attendanceHeader = document.getElementById('attendanceHeader');
+  const attendanceList = document.getElementById('attendanceList');
+  const attSearchInput = document.getElementById('attSearchInput');
+  const btnAttAllPresent = document.getElementById('btnAttAllPresent');
+  const btnAttFullView = document.getElementById('btnAttFullView');
+
+  // Exports section elements
+  const exportsSection = document.getElementById('exportsSection');
+  const validatedInfo = document.getElementById('validatedInfo');
+  const btnExportPV = document.getElementById('btnExportPV');
+  const btnExportAttendance = document.getElementById('btnExportAttendance');
+  const btnExportVotes = document.getElementById('btnExportVotes');
+
   let currentMeetingId = null;
   let currentMeetingStatus = null;
   let currentWizardChecks = {};
   let currentOpenMotion = null;
   let votersCache = [];
   let ballotsCache = {};
+
+  // Attendance inline state
+  let attendanceCache = [];
+  let attSearchTerm = '';
 
   // Transitions (state machine) - moved up for early reference
   const TRANSITIONS = {
@@ -101,6 +120,7 @@
     motionsSection.style.display = 'none';
     votePanel.style.display = 'none';
     if (statusAlert) statusAlert.style.display = 'none';
+    if (attendanceSection) attendanceSection.style.display = 'none';
     meetingStatusBadge.textContent = '—';
     meetingStatusBadge.className = 'badge';
     meetingTitle.textContent = '—';
@@ -110,6 +130,7 @@
     noMeetingAlert.style.display = 'none';
     quickLinks.style.display = 'flex';
     motionsSection.style.display = 'block';
+    if (attendanceSection) attendanceSection.style.display = 'block';
   }
 
   // Update status alert based on meeting state and wizard checks
@@ -247,6 +268,9 @@
         const statusInfo = Shared.MEETING_STATUS_MAP[m.status] || Shared.MEETING_STATUS_MAP['draft'];
         meetingStatusBadge.className = `badge ${statusInfo.badge}`;
         meetingStatusBadge.textContent = statusInfo.text;
+
+        // Update exports section visibility
+        updateExportsSection(m);
       }
 
       // Load stats, motions, and wizard status
@@ -292,13 +316,171 @@
 
       if (body && body.ok && body.data) {
         const attendances = body.data.attendances || [];
+        attendanceCache = attendances;
         votersCache = attendances.filter(a => a.mode === 'present' || a.mode === 'remote');
         const present = votersCache.length;
         statPresent.textContent = present;
         document.getElementById('voteEligible').textContent = present;
+
+        // Update inline attendance
+        renderAttendanceInline();
       }
     } catch (err) {
       console.error('Attendance error:', err);
+    }
+  }
+
+  // Render attendance inline section
+  function renderAttendanceInline() {
+    if (!attendanceSection) return;
+
+    // Update stats
+    const present = attendanceCache.filter(a => a.mode === 'present').length;
+    const remote = attendanceCache.filter(a => a.mode === 'remote').length;
+    const excused = attendanceCache.filter(a => a.mode === 'excused').length;
+    const absent = attendanceCache.filter(a => !a.mode || a.mode === 'absent').length;
+
+    document.getElementById('attPresent').textContent = present;
+    document.getElementById('attRemote').textContent = remote;
+    document.getElementById('attExcused').textContent = excused;
+    document.getElementById('attAbsent').textContent = absent;
+
+    // Filter and sort
+    let filtered = attendanceCache;
+    if (attSearchTerm) {
+      const term = attSearchTerm.toLowerCase();
+      filtered = attendanceCache.filter(a => (a.full_name || '').toLowerCase().includes(term));
+    }
+
+    // Sort: present/remote first, then by name
+    filtered = [...filtered].sort((a, b) => {
+      const orderA = a.mode === 'present' ? 0 : a.mode === 'remote' ? 1 : a.mode === 'excused' ? 2 : 3;
+      const orderB = b.mode === 'present' ? 0 : b.mode === 'remote' ? 1 : b.mode === 'excused' ? 2 : 3;
+      if (orderA !== orderB) return orderA - orderB;
+      return (a.full_name || '').localeCompare(b.full_name || '');
+    });
+
+    const isLocked = ['validated', 'archived'].includes(currentMeetingStatus);
+
+    if (filtered.length === 0) {
+      attendanceList.innerHTML = `<div class="att-empty">${attSearchTerm ? 'Aucun résultat' : 'Aucun membre'}</div>`;
+      return;
+    }
+
+    attendanceList.innerHTML = filtered.map(m => {
+      const mode = m.mode || 'absent';
+      const disabled = isLocked ? 'disabled' : '';
+
+      return `
+        <div class="att-row" data-member-id="${m.member_id}">
+          <span class="att-name">${escapeHtml(m.full_name || '—')}</span>
+          <div class="att-btns">
+            <button class="att-btn present ${mode === 'present' ? 'active' : ''}" data-mode="present" ${disabled}>P</button>
+            <button class="att-btn remote ${mode === 'remote' ? 'active' : ''}" data-mode="remote" ${disabled}>D</button>
+            <button class="att-btn excused ${mode === 'excused' ? 'active' : ''}" data-mode="excused" ${disabled}>E</button>
+            <button class="att-btn absent ${mode === 'absent' ? 'active' : ''}" data-mode="absent" ${disabled}>A</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Bind click handlers
+    if (!isLocked) {
+      attendanceList.querySelectorAll('.att-btn:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const row = e.target.closest('.att-row');
+          const memberId = row.dataset.memberId;
+          const mode = btn.dataset.mode;
+          updateAttendanceInline(memberId, mode);
+        });
+      });
+    }
+  }
+
+  // Update single attendance inline
+  async function updateAttendanceInline(memberId, mode) {
+    try {
+      const { body } = await api('/api/v1/attendances_upsert.php', {
+        meeting_id: currentMeetingId,
+        member_id: memberId,
+        mode: mode
+      });
+
+      if (body && body.ok !== false) {
+        // Update local cache
+        const member = attendanceCache.find(m => String(m.member_id) === String(memberId));
+        if (member) member.mode = mode;
+        renderAttendanceInline();
+
+        // Update voters cache for vote panel
+        votersCache = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
+        statPresent.textContent = votersCache.length;
+        document.getElementById('voteEligible').textContent = votersCache.length;
+
+        // Update wizard checks
+        currentWizardChecks.hasAttendance = votersCache.length > 0;
+        updateStatusAlert();
+      } else {
+        setNotif('error', body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  // Bulk mark all as present
+  async function markAllPresentInline() {
+    if (!currentMeetingId) return;
+    if (['validated', 'archived'].includes(currentMeetingStatus)) {
+      setNotif('error', 'Séance verrouillée');
+      return;
+    }
+    if (!confirm('Marquer tous les membres comme présents ?')) return;
+
+    Shared.btnLoading(btnAttAllPresent, true);
+    try {
+      const { body } = await api('/api/v1/attendances_bulk.php', {
+        meeting_id: currentMeetingId,
+        mode: 'present'
+      });
+
+      if (body && body.ok) {
+        attendanceCache.forEach(m => m.mode = 'present');
+        renderAttendanceInline();
+
+        votersCache = [...attendanceCache];
+        statPresent.textContent = votersCache.length;
+        document.getElementById('voteEligible').textContent = votersCache.length;
+
+        currentWizardChecks.hasAttendance = true;
+        updateStatusAlert();
+
+        setNotif('success', 'Tous marqués présents');
+      } else {
+        setNotif('error', body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btnAttAllPresent, false);
+    }
+  }
+
+  // Update exports section visibility
+  function updateExportsSection(meeting) {
+    if (!exportsSection) return;
+
+    const showExports = ['validated', 'archived'].includes(currentMeetingStatus);
+    exportsSection.style.display = showExports ? 'block' : 'none';
+
+    if (showExports && meeting) {
+      const validatedAt = meeting.validated_at;
+      if (validatedAt) {
+        const date = new Date(validatedAt);
+        validatedInfo.textContent = `Séance validée le ${date.toLocaleDateString('fr-FR')} à ${date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}`;
+      } else {
+        validatedInfo.textContent = currentMeetingStatus === 'archived' ? 'Séance archivée' : 'Séance validée';
+      }
     }
   }
 
@@ -891,6 +1073,306 @@
       });
     });
 
+    // Motions drawer - create/manage resolutions
+    window.ShellDrawer.register('motions', 'Résolutions', async function(meetingId, body, esc) {
+      if (!currentMeetingId) {
+        body.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>';
+        return;
+      }
+      body.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement...</div>';
+
+      try {
+        const { body: res } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${currentMeetingId}`);
+        const motions = res?.data?.motions || [];
+
+        const canEdit = !['validated', 'archived'].includes(currentMeetingStatus);
+
+        body.innerHTML = `
+          <div style="padding:8px 0;display:flex;flex-direction:column;gap:16px;">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-muted">${motions.length} résolution(s)</span>
+              ${canEdit ? '<button class="btn btn-sm btn-primary" id="btnAddMotion">+ Ajouter</button>' : ''}
+            </div>
+
+            <div id="addMotionForm" style="display:none;background:var(--color-bg-subtle);padding:12px;border-radius:6px;">
+              <div class="form-group mb-2">
+                <input type="text" class="form-input" id="newMotionTitle" placeholder="Titre de la résolution">
+              </div>
+              <div class="form-group mb-2">
+                <textarea class="form-input" id="newMotionDesc" rows="2" placeholder="Description (optionnel)"></textarea>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-sm btn-primary" id="btnConfirmMotion">Créer</button>
+                <button class="btn btn-sm btn-ghost" id="btnCancelMotion">Annuler</button>
+              </div>
+            </div>
+
+            <div id="motionsDrawerList" style="display:flex;flex-direction:column;gap:8px;">
+              ${motions.map((m, i) => {
+                const isOpen = !!(m.opened_at && !m.closed_at);
+                const isClosed = !!m.closed_at;
+                const statusIcon = isOpen ? '🟡' : (isClosed ? '✓' : '○');
+                const statusText = isOpen ? 'En cours' : (isClosed ? 'Terminé' : 'En attente');
+
+                return `
+                  <div class="flex items-center gap-2 p-2 border border-border rounded" style="background:var(--color-surface);">
+                    <span style="font-weight:bold;">${i + 1}</span>
+                    <div class="flex-1" style="min-width:0;">
+                      <div style="font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(m.title)}</div>
+                      <div style="font-size:0.75rem;color:var(--color-text-muted);">${statusIcon} ${statusText}</div>
+                    </div>
+                    ${canEdit && !isOpen && !isClosed ? `<button class="btn btn-xs btn-ghost btn-delete-motion" data-motion-id="${m.id}" title="Supprimer">🗑️</button>` : ''}
+                  </div>
+                `;
+              }).join('')}
+              ${motions.length === 0 ? '<div class="text-center p-4 text-muted">Aucune résolution</div>' : ''}
+            </div>
+
+            <a href="/motions.htmx.html?meeting_id=${currentMeetingId}" class="btn btn-block btn-secondary">📋 Vue complète</a>
+          </div>
+        `;
+
+        if (canEdit) {
+          const addForm = body.querySelector('#addMotionForm');
+
+          // Add motion toggle
+          body.querySelector('#btnAddMotion')?.addEventListener('click', () => {
+            addForm.style.display = addForm.style.display === 'none' ? 'block' : 'none';
+          });
+
+          body.querySelector('#btnCancelMotion')?.addEventListener('click', () => {
+            addForm.style.display = 'none';
+          });
+
+          // Create motion
+          body.querySelector('#btnConfirmMotion')?.addEventListener('click', async () => {
+            const title = body.querySelector('#newMotionTitle').value.trim();
+            const desc = body.querySelector('#newMotionDesc').value.trim();
+
+            if (!title) {
+              setNotif('error', 'Titre requis');
+              return;
+            }
+
+            try {
+              const { body: createRes } = await api('/api/v1/motions.php', {
+                meeting_id: currentMeetingId,
+                title: title,
+                description: desc || null
+              });
+
+              if (createRes?.ok !== false && (createRes?.data?.id || createRes?.id)) {
+                setNotif('success', 'Résolution créée');
+                loadMotions(currentMeetingId);
+                loadWizardStatus(currentMeetingId);
+                updateStatusAlert();
+                // Refresh drawer
+                document.querySelector('[data-drawer="motions"]')?.click();
+              } else {
+                setNotif('error', createRes?.error || createRes?.detail || 'Erreur');
+              }
+            } catch (err) {
+              setNotif('error', err.message);
+            }
+          });
+
+          // Delete motion
+          body.querySelectorAll('.btn-delete-motion').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              if (!confirm('Supprimer cette résolution ?')) return;
+
+              try {
+                const { body: delRes } = await api('/api/v1/motions_delete.php', {
+                  motion_id: btn.dataset.motionId,
+                  meeting_id: currentMeetingId
+                });
+
+                if (delRes?.ok) {
+                  setNotif('success', 'Résolution supprimée');
+                  loadMotions(currentMeetingId);
+                  loadWizardStatus(currentMeetingId);
+                  updateStatusAlert();
+                  // Refresh drawer
+                  document.querySelector('[data-drawer="motions"]')?.click();
+                } else {
+                  setNotif('error', delRes?.error || 'Erreur');
+                }
+              } catch (err) {
+                setNotif('error', err.message);
+              }
+            });
+          });
+        }
+
+      } catch (e) {
+        body.innerHTML = '<div style="padding:16px;" class="text-muted">Erreur de chargement.</div>';
+        console.error('Motions drawer error:', e);
+      }
+    });
+
+    // Members drawer - view/add members
+    window.ShellDrawer.register('members', 'Gestion des membres', async function(meetingId, body, esc) {
+      body.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement...</div>';
+
+      try {
+        const { body: res } = await api('/api/v1/members.php');
+        const members = res?.data?.members || res?.members || [];
+
+        body.innerHTML = `
+          <div style="padding:8px 0;display:flex;flex-direction:column;gap:16px;">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-muted">${members.length} membre(s)</span>
+              <div class="flex gap-2">
+                <button class="btn btn-sm btn-secondary" id="btnImportCsv">📥 Import CSV</button>
+                <button class="btn btn-sm btn-primary" id="btnAddMember">+ Ajouter</button>
+              </div>
+            </div>
+
+            <div id="addMemberForm" style="display:none;background:var(--color-bg-subtle);padding:12px;border-radius:6px;">
+              <div class="form-group mb-2">
+                <input type="text" class="form-input" id="newMemberName" placeholder="Nom complet">
+              </div>
+              <div class="form-group mb-2">
+                <input type="email" class="form-input" id="newMemberEmail" placeholder="Email (optionnel)">
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-sm btn-primary" id="btnConfirmAdd">Ajouter</button>
+                <button class="btn btn-sm btn-ghost" id="btnCancelAdd">Annuler</button>
+              </div>
+            </div>
+
+            <div id="importCsvForm" style="display:none;background:var(--color-bg-subtle);padding:12px;border-radius:6px;">
+              <p class="text-sm text-muted mb-2">Format CSV: name,email,voting_power (en-têtes requis)</p>
+              <input type="file" accept=".csv" id="csvFileInput" class="form-input mb-2">
+              <div class="flex gap-2">
+                <button class="btn btn-sm btn-primary" id="btnUploadCsv">📤 Importer</button>
+                <button class="btn btn-sm btn-ghost" id="btnCancelImport">Annuler</button>
+              </div>
+              <div id="importResult" class="mt-2" style="display:none;"></div>
+            </div>
+
+            <input type="text" class="form-input" id="memberSearchInput" placeholder="Rechercher...">
+
+            <div id="membersList" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;">
+              ${members.map(m => `
+                <div class="flex items-center gap-2 p-2 bg-surface border border-border rounded" style="font-size:0.85rem;">
+                  <span class="flex-1">${esc(m.full_name || m.name || '—')}</span>
+                  <span class="text-muted">${m.voting_power || 1}</span>
+                </div>
+              `).join('')}
+              ${members.length === 0 ? '<div class="text-center p-4 text-muted">Aucun membre</div>' : ''}
+            </div>
+
+            <a href="/members.htmx.html" class="btn btn-block btn-secondary">📋 Vue complète</a>
+          </div>
+        `;
+
+        const addForm = body.querySelector('#addMemberForm');
+        const importForm = body.querySelector('#importCsvForm');
+        const membersList = body.querySelector('#membersList');
+
+        // Add member toggle
+        body.querySelector('#btnAddMember').addEventListener('click', () => {
+          addForm.style.display = addForm.style.display === 'none' ? 'block' : 'none';
+          importForm.style.display = 'none';
+        });
+
+        body.querySelector('#btnCancelAdd').addEventListener('click', () => {
+          addForm.style.display = 'none';
+        });
+
+        // Add member submit
+        body.querySelector('#btnConfirmAdd').addEventListener('click', async () => {
+          const name = body.querySelector('#newMemberName').value.trim();
+          const email = body.querySelector('#newMemberEmail').value.trim();
+
+          if (!name) {
+            setNotif('error', 'Nom requis');
+            return;
+          }
+
+          try {
+            const { body: addRes } = await api('/api/v1/members.php', {
+              full_name: name,
+              email: email || null
+            });
+
+            if (addRes?.ok !== false && (addRes?.data?.id || addRes?.id)) {
+              setNotif('success', 'Membre ajouté');
+              // Refresh drawer
+              document.querySelector('[data-drawer="members"]')?.click();
+            } else {
+              setNotif('error', addRes?.error || addRes?.detail || 'Erreur');
+            }
+          } catch (err) {
+            setNotif('error', err.message);
+          }
+        });
+
+        // Import CSV toggle
+        body.querySelector('#btnImportCsv').addEventListener('click', () => {
+          importForm.style.display = importForm.style.display === 'none' ? 'block' : 'none';
+          addForm.style.display = 'none';
+        });
+
+        body.querySelector('#btnCancelImport').addEventListener('click', () => {
+          importForm.style.display = 'none';
+        });
+
+        // CSV upload
+        body.querySelector('#btnUploadCsv').addEventListener('click', async () => {
+          const fileInput = body.querySelector('#csvFileInput');
+          const resultDiv = body.querySelector('#importResult');
+
+          if (!fileInput.files || !fileInput.files[0]) {
+            setNotif('error', 'Sélectionnez un fichier CSV');
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('file', fileInput.files[0]);
+
+          try {
+            const response = await fetch('/api/v1/members_import_csv.php', {
+              method: 'POST',
+              body: formData
+            });
+            const result = await response.json();
+
+            resultDiv.style.display = 'block';
+            if (result.ok) {
+              resultDiv.className = 'alert alert-success';
+              resultDiv.innerHTML = `✓ ${result.imported} importé(s), ${result.skipped} ignoré(s)`;
+              setNotif('success', `Import: ${result.imported} membres`);
+              // Refresh wizard status
+              loadWizardStatus(currentMeetingId);
+              updateStatusAlert();
+            } else {
+              resultDiv.className = 'alert alert-danger';
+              resultDiv.textContent = result.error || 'Erreur import';
+            }
+          } catch (err) {
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'alert alert-danger';
+            resultDiv.textContent = err.message;
+          }
+        });
+
+        // Search filter
+        body.querySelector('#memberSearchInput').addEventListener('input', (e) => {
+          const term = e.target.value.toLowerCase();
+          membersList.querySelectorAll('.flex.items-center').forEach(row => {
+            const name = row.textContent.toLowerCase();
+            row.style.display = name.includes(term) ? 'flex' : 'none';
+          });
+        });
+
+      } catch (e) {
+        body.innerHTML = '<div style="padding:16px;" class="text-muted">Erreur de chargement.</div>';
+        console.error('Members drawer error:', e);
+      }
+    });
+
     // Incident drawer - declare incidents
     window.ShellDrawer.register('incident', 'Déclarer un incident', async function(meetingId, body, esc) {
       if (!currentMeetingId) {
@@ -1014,6 +1496,60 @@
   meetingSelect.addEventListener('change', () => {
     loadMeetingContext(meetingSelect.value);
   });
+
+  // Attendance inline event listeners
+  if (attendanceHeader) {
+    attendanceHeader.addEventListener('click', () => {
+      attendanceSection.classList.toggle('expanded');
+    });
+  }
+
+  if (attSearchInput) {
+    attSearchInput.addEventListener('input', (e) => {
+      attSearchTerm = e.target.value.trim();
+      renderAttendanceInline();
+    });
+    // Prevent toggle when clicking in search
+    attSearchInput.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  if (btnAttAllPresent) {
+    btnAttAllPresent.addEventListener('click', (e) => {
+      e.stopPropagation();
+      markAllPresentInline();
+    });
+  }
+
+  if (btnAttFullView) {
+    btnAttFullView.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentMeetingId) {
+        window.location.href = `/attendance.htmx.html?meeting_id=${currentMeetingId}`;
+      }
+    });
+  }
+
+  // Export buttons event listeners
+  if (btnExportPV) {
+    btnExportPV.addEventListener('click', async () => {
+      if (!currentMeetingId) return;
+      window.open(`/api/v1/report_pdf.php?meeting_id=${currentMeetingId}`, '_blank');
+    });
+  }
+
+  if (btnExportAttendance) {
+    btnExportAttendance.addEventListener('click', async () => {
+      if (!currentMeetingId) return;
+      window.open(`/api/v1/export_attendance.php?meeting_id=${currentMeetingId}`, '_blank');
+    });
+  }
+
+  if (btnExportVotes) {
+    btnExportVotes.addEventListener('click', async () => {
+      if (!currentMeetingId) return;
+      window.open(`/api/v1/export_votes.php?meeting_id=${currentMeetingId}`, '_blank');
+    });
+  }
 
   // Initial load
   loadMeetings();

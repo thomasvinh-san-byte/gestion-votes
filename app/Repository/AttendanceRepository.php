@@ -130,6 +130,20 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
+     * Compte les membres presents ou distants (pour workflow validation).
+     */
+    public function countPresentOrRemote(string $meetingId, string $tenantId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM attendances
+             WHERE tenant_id = :tid AND meeting_id = :mid
+               AND mode IN ('present','remote')
+               AND checked_out_at IS NULL",
+            [':tid' => $tenantId, ':mid' => $meetingId]
+        ) ?? 0);
+    }
+
+    /**
      * Compte les membres presents (avec filtre modes et late rule).
      * Utilise par QuorumEngine.
      */
