@@ -1,9 +1,9 @@
 /**
- * session-wizard.js — Wizard de séance AG-VOTE.
+ * session-wizard.js — Wizard de séance AG-VOTE (Diligent Style).
  *
  * Couche intermédiaire entre les pages et l'API :
  *   - État centralisé dans localStorage
- *   - Barre de progression injectée dans le sidebar
+ *   - Barre de progression Diligent-style injectée dans la page
  *   - Garde-fous par page (prérequis)
  *   - Polling léger pour notifications inter-pages
  *
@@ -13,30 +13,27 @@
   'use strict';
 
   // =========================================================================
-  // ÉTAPES DU WIZARD
+  // ÉTAPES DU WIZARD (Diligent workflow)
   // =========================================================================
 
   var STEPS = [
-    { id: 'conduct',    num: 0, label: 'Conduite',      href: '/operator.htmx.html',    icon: '▶️', needsMeeting: false },
-    { id: 'select',     num: 1, label: 'Séance',        href: '/meetings.htmx.html',    icon: '📋', needsMeeting: false },
-    { id: 'members',    num: 2, label: 'Membres',       href: '/members.htmx.html',     icon: '👤', needsMeeting: false },
-    { id: 'attendance', num: 3, label: 'Présences',     href: '/attendance.htmx.html',   icon: '👥', needsMeeting: true },
-    { id: 'motions',    num: 4, label: 'Résolutions',   href: '/motions.htmx.html',     icon: '📝', needsMeeting: true },
-    { id: 'validate',   num: 5, label: 'Validation',    href: '/validate.htmx.html',     icon: '✅', needsMeeting: true },
-    { id: 'archive',    num: 6, label: 'Archive',       href: '/archives.htmx.html',     icon: '📦', needsMeeting: false }
+    { id: 'select',     num: 0, label: 'Séance',        shortLabel: 'Séance',     href: '/meetings.htmx.html',    icon: '1', needsMeeting: false },
+    { id: 'members',    num: 1, label: 'Membres',       shortLabel: 'Membres',    href: '/members.htmx.html',     icon: '2', needsMeeting: false },
+    { id: 'attendance', num: 2, label: 'Présences',     shortLabel: 'Présences',  href: '/operator.htmx.html',    icon: '3', needsMeeting: true },
+    { id: 'resolutions',num: 3, label: 'Résolutions',   shortLabel: 'Résolutions',href: '/operator.htmx.html',    icon: '4', needsMeeting: true },
+    { id: 'conduct',    num: 4, label: 'Vote',          shortLabel: 'Vote',       href: '/operator.htmx.html',    icon: '5', needsMeeting: true },
+    { id: 'validate',   num: 5, label: 'Validation',    shortLabel: 'Clôture',    href: '/operator.htmx.html',    icon: '6', needsMeeting: true }
   ];
 
   // Map page paths to wizard step ids
   var PAGE_STEP_MAP = {
     '/meetings.htmx.html':   'select',
     '/members.htmx.html':    'members',
-    '/motions.htmx.html':    'motions',
-    '/attendance.htmx.html': 'attendance',
     '/operator.htmx.html':   'conduct',
     '/operator_flow.htmx.html': 'conduct',
     '/president.htmx.html':  'conduct',
     '/validate.htmx.html':   'validate',
-    '/archives.htmx.html':   'archive'
+    '/archives.htmx.html':   'validate'
   };
 
   var STORAGE_KEY = 'ag_vote_wizard';
@@ -81,116 +78,278 @@
   // =========================================================================
 
   function computeStep(checks) {
+    // Step 0: Séance - Need to select/create a meeting
     if (!checks) return 0;
     if (!checks.meetingId) return 0;
+
+    // Step 1: Membres - Need members in the system
     if (!checks.hasMembers) return 1;
-    if (!checks.hasMotions || !checks.policiesAssigned) return 2;
-    if (!checks.hasAttendance || !checks.hasPresident) return 3;
+
+    // Step 2: Présences - Need some attendance (president is optional for demo)
+    if (!checks.hasAttendance) return 2;
+
+    // Step 3: Résolutions - Need at least one motion
+    if (!checks.hasMotions || !checks.policiesAssigned) return 3;
+
     var status = checks.meetingStatus || '';
+
+    // Step 4: Vote - Meeting is live, conducting votes
     if (status === 'live') {
       if (!checks.allMotionsClosed) return 4;
-      return 5;
+      return 5; // All votes done, ready for validation
     }
-    if (status === 'closed') return 5;
-    if (status === 'validated' || status === 'archived') return 6;
-    // draft/scheduled/frozen → still in prep
-    if (status === 'draft') return 1;
+
+    // Step 5: Validation/Clôture
+    if (status === 'closed' || status === 'validated' || status === 'archived') return 5;
+
+    // draft/scheduled/frozen → still preparing attendance/resolutions
+    if (status === 'draft') return 2;
     if (status === 'scheduled' || status === 'frozen') return 3;
+
     return 0;
   }
 
   // =========================================================================
-  // PROGRESS BAR (injected into page)
+  // PROGRESS BAR - Diligent Style Stepper
   // =========================================================================
 
+  // Inject wizard styles once
+  function injectWizardStyles() {
+    if (document.getElementById('wizard-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'wizard-styles';
+    style.textContent = `
+      .wizard-container {
+        background: var(--color-surface, #fff);
+        border-bottom: 1px solid var(--color-border, #e5e7eb);
+        padding: 1rem 1.5rem;
+      }
+      .wizard-stepper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .wizard-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        flex: 1;
+        text-decoration: none;
+        color: inherit;
+      }
+      .wizard-step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 16px;
+        left: calc(50% + 20px);
+        width: calc(100% - 40px);
+        height: 2px;
+        background: var(--color-border, #e5e7eb);
+      }
+      .wizard-step.done:not(:last-child)::after {
+        background: var(--color-success, #22c55e);
+      }
+      .wizard-step.current:not(:last-child)::after {
+        background: linear-gradient(90deg, var(--color-primary, #3b82f6) 50%, var(--color-border, #e5e7eb) 50%);
+      }
+      .wizard-step-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: var(--color-bg-subtle, #f3f4f6);
+        border: 2px solid var(--color-border, #e5e7eb);
+        color: var(--color-text-muted, #6b7280);
+        position: relative;
+        z-index: 1;
+        transition: all 0.2s;
+      }
+      .wizard-step.done .wizard-step-circle {
+        background: var(--color-success, #22c55e);
+        border-color: var(--color-success, #22c55e);
+        color: #fff;
+      }
+      .wizard-step.current .wizard-step-circle {
+        background: var(--color-primary, #3b82f6);
+        border-color: var(--color-primary, #3b82f6);
+        color: #fff;
+        box-shadow: 0 0 0 4px var(--color-primary-subtle, rgba(59,130,246,0.2));
+      }
+      .wizard-step:hover .wizard-step-circle {
+        transform: scale(1.05);
+      }
+      .wizard-step-label {
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--color-text-muted, #6b7280);
+        text-align: center;
+        white-space: nowrap;
+      }
+      .wizard-step.done .wizard-step-label,
+      .wizard-step.current .wizard-step-label {
+        color: var(--color-text, #1f2937);
+        font-weight: 600;
+      }
+      .wizard-meeting-info {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--color-border, #e5e7eb);
+        font-size: 0.85rem;
+      }
+      .wizard-meeting-title {
+        font-weight: 600;
+        color: var(--color-text, #1f2937);
+      }
+      .wizard-meeting-status {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+      .wizard-guard-message {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        margin-top: 0.75rem;
+        background: var(--color-warning-subtle, #fef3cd);
+        border: 1px solid var(--color-warning, #e8a73e);
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: var(--color-warning-dark, #92400e);
+      }
+      .wizard-guard-message a {
+        color: var(--color-primary, #3b82f6);
+        font-weight: 500;
+      }
+      @media (max-width: 640px) {
+        .wizard-step-label { display: none; }
+        .wizard-step-circle { width: 28px; height: 28px; font-size: 0.75rem; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function renderProgressBar() {
+    injectWizardStyles();
+
     var container = document.getElementById('wizard-progress');
     if (!container) {
-      // Create and inject into .app-main before the .container, or top of main
-      var main = document.querySelector('.app-main .container') || document.querySelector('.app-main') || document.querySelector('main');
-      if (!main) return;
+      // Create and inject before meeting header or at top of main
+      var headerBar = document.querySelector('.meeting-header-bar') || document.querySelector('.session-selector');
+      var main = document.querySelector('.app-main');
+      if (!headerBar && !main) return;
+
       container = document.createElement('div');
       container.id = 'wizard-progress';
-      container.style.cssText = 'padding:12px 16px 0;';
-      main.insertBefore(container, main.firstChild);
+      container.className = 'wizard-container';
+
+      if (headerBar && headerBar.parentNode) {
+        headerBar.parentNode.insertBefore(container, headerBar);
+      } else if (main) {
+        main.insertBefore(container, main.firstChild);
+      }
     }
 
     var state = getState();
     var checks = state.checks || {};
     var currentStep = computeStep(checks);
     var meetingId = state.meetingId || '';
+    var meetingTitle = checks.meetingTitle || '';
+    var meetingStatus = checks.meetingStatus || '';
     var mid = meetingId ? '?meeting_id=' + encodeURIComponent(meetingId) : '';
 
     // Determine current page step
     var pagePath = window.location.pathname;
     var pageStepId = PAGE_STEP_MAP[pagePath] || null;
 
-    var html = '<div class="wizard-bar" style="display:flex;gap:2px;margin-bottom:12px;border-radius:8px;overflow:hidden;background:var(--color-bg-subtle,#f0f0f0);height:6px;">';
+    // Build stepper HTML
+    var html = '<div class="wizard-stepper">';
+
     for (var i = 0; i < STEPS.length; i++) {
       var step = STEPS[i];
       var isDone = step.num < currentStep;
       var isCurrent = step.num === currentStep;
-      var isPage = step.id === pageStepId;
-      var color = isDone ? 'var(--color-success,#22c55e)' :
-                  (isCurrent ? 'var(--color-primary,#3b82f6)' :
-                  'transparent');
-      html += '<div style="flex:1;background:' + color + ';' +
-              (isPage ? 'box-shadow:inset 0 -2px 0 var(--color-text,#333);' : '') +
-              '"></div>';
+      var stepClass = isDone ? 'done' : (isCurrent ? 'current' : '');
+      var href = step.needsMeeting && !meetingId ? '#' : (step.href + (step.needsMeeting ? mid : ''));
+      var circleContent = isDone ? '✓' : step.icon;
+
+      html += '<a href="' + href + '" class="wizard-step ' + stepClass + '" title="' + step.label + '">';
+      html += '<div class="wizard-step-circle">' + circleContent + '</div>';
+      html += '<div class="wizard-step-label">' + step.shortLabel + '</div>';
+      html += '</a>';
     }
+
     html += '</div>';
 
-    // Step labels row
-    html += '<div class="wizard-steps" style="display:flex;gap:4px;font-size:11px;margin-bottom:8px;">';
-    for (var j = 0; j < STEPS.length; j++) {
-      var s = STEPS[j];
-      var done = s.num < currentStep;
-      var curr = s.num === currentStep;
-      var active = s.id === pageStepId;
-      var href = s.needsMeeting && !meetingId ? '#' : (s.href + (s.needsMeeting ? mid : ''));
-      var weight = (active || curr) ? 'font-weight:700;' : '';
-      var opacity = (done || curr || active) ? '' : 'opacity:0.4;';
-      var icon = done ? '&#10003;' : s.icon;
-      html += '<a href="' + href + '" style="flex:1;text-align:center;text-decoration:none;color:var(--color-text,#333);' + weight + opacity + '" title="' + s.label + '">' +
-              '<span style="font-size:14px;">' + icon + '</span><br>' + s.label +
-              '</a>';
+    // Meeting info (if a meeting is selected)
+    if (meetingId && meetingTitle) {
+      var statusInfo = (window.Shared && window.Shared.MEETING_STATUS_MAP && window.Shared.MEETING_STATUS_MAP[meetingStatus])
+        ? window.Shared.MEETING_STATUS_MAP[meetingStatus]
+        : { text: meetingStatus, badge: 'badge-muted' };
+
+      html += '<div class="wizard-meeting-info">';
+      html += '<span class="wizard-meeting-title">📋 ' + escapeHtmlWizard(meetingTitle) + '</span>';
+      html += '<span class="badge ' + statusInfo.badge + ' wizard-meeting-status">' + statusInfo.text + '</span>';
+      html += '</div>';
     }
-    html += '</div>';
 
     // Guard message if prerequisites missing
     var guardMsg = getGuardMessage(pageStepId, checks, state);
     if (guardMsg) {
-      html += '<div style="padding:8px 12px;background:var(--color-warning-subtle,#fef3cd);border:1px solid var(--color-warning,#e8a73e);border-radius:6px;font-size:13px;margin-bottom:8px;">' +
-              guardMsg + '</div>';
+      html += '<div class="wizard-guard-message">';
+      html += '<span>⚠️</span><span>' + guardMsg + '</span>';
+      html += '</div>';
     }
 
     container.innerHTML = html;
+  }
+
+  function escapeHtmlWizard(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   function getGuardMessage(pageStepId, checks, state) {
     if (!pageStepId) return null;
     var mid = state.meetingId;
     var status = checks.meetingStatus || '';
+    var midParam = mid ? '?meeting_id=' + encodeURIComponent(mid) : '';
 
     switch (pageStepId) {
-      case 'motions':
-        if (!mid) return '&#9888; Sélectionnez d\'abord une séance depuis <a href="/meetings.htmx.html">Séances</a>.';
-        if (!checks.hasMembers) return '&#9888; Ajoutez des membres avant de créer des résolutions.';
+      case 'select':
+        // No guard for meeting selection
         break;
-      case 'attendance':
-        if (!mid) return '&#9888; Sélectionnez d\'abord une séance.';
-        if (!checks.hasPresident) return '&#9888; Assignez un président depuis <a href="/operator.htmx.html' + (mid ? '?meeting_id=' + mid : '') + '">Opérateur</a> avant de gérer les présences.';
+      case 'members':
+        if (!mid) return 'Sélectionnez d\'abord une séance depuis <a href="/meetings.htmx.html">Séances</a>.';
         break;
       case 'conduct':
-        if (!mid) return '&#9888; Sélectionnez une séance pour conduire les votes.';
-        if (!checks.hasMotions) return '&#9888; Créez au moins une résolution avant de conduire la séance.';
-        if (!checks.hasAttendance) return '&#9888; Pointez les présences avant d\'ouvrir la séance.';
-        if (status === 'draft') return '&#9888; La séance est en brouillon. Planifiez-la pour avancer.';
+        if (!mid) return 'Sélectionnez une séance pour commencer.';
+        if (!checks.hasMembers) return 'Ajoutez des <a href="/members.htmx.html">membres</a> avant de continuer.';
+        if (!checks.hasAttendance) return 'Pointez les <strong>présences</strong> dans l\'onglet Présences.';
+        if (!checks.hasMotions) return 'Créez au moins une <strong>résolution</strong> dans l\'onglet Résolutions.';
+        if (status === 'draft') return 'La séance est en brouillon. Passez-la en statut <strong>Programmée</strong> ou <strong>En cours</strong>.';
+        if (status === 'live' && !checks.quorumMet) return 'Attention : le <strong>quorum</strong> n\'est pas atteint.';
+        if (status === 'live' && !checks.hasPresident) return 'Info : aucun <strong>président</strong> assigné (optionnel).';
         break;
       case 'validate':
-        if (!mid) return '&#9888; Sélectionnez une séance.';
-        if (status !== 'closed' && status !== 'validated') return '&#9888; La séance doit être clôturée avant validation.';
-        if (!checks.allMotionsClosed) return '&#9888; Toutes les résolutions doivent être clôturées.';
+        if (!mid) return 'Sélectionnez une séance.';
+        if (status === 'live') return 'Clôturez d\'abord tous les votes avant de valider la séance.';
+        if (status !== 'closed' && status !== 'validated' && status !== 'archived') return 'La séance doit être clôturée avant validation.';
+        if (!checks.allMotionsClosed) return 'Toutes les résolutions doivent être clôturées avant validation.';
         break;
     }
     return null;

@@ -8,7 +8,69 @@
   <title>Présences — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
   <style>
-    .attendance-header {
+    /* Page header - Diligent style */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .page-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .page-header-subtitle {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .page-header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 2rem;
+      padding: 1rem 1.5rem;
+      background: var(--color-bg-subtle);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+    }
+
+    .stat-item.present .stat-value { color: var(--color-success); }
+    .stat-item.remote .stat-value { color: var(--color-info); }
+    .stat-item.excused .stat-value { color: var(--color-warning); }
+    .stat-item.absent .stat-value { color: var(--color-danger); }
+
+    /* Content area */
+    .page-content {
+      padding: 1.5rem;
+    }
+
+    /* Search & actions row */
+    .toolbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -17,57 +79,91 @@
       flex-wrap: wrap;
     }
 
-    .attendance-stats {
-      display: flex;
-      gap: 1rem;
-      font-size: 0.9rem;
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      max-width: 400px;
     }
 
-    .stat-item {
+    /* Filter tabs */
+    .filter-tabs {
       display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
-    .stat-value {
-      font-weight: 700;
-      min-width: 1.5rem;
-    }
-
-    .stat-present { color: var(--color-success, #22c55e); }
-    .stat-remote { color: var(--color-info, #3b82f6); }
-    .stat-absent { color: var(--color-text-muted, #6b7280); }
-
-    .member-list {
-      display: flex;
-      flex-direction: column;
       gap: 0.5rem;
+      margin-bottom: 1.5rem;
     }
 
-    .member-row {
+    .filter-tab {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-surface);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-tab:hover {
+      border-color: var(--color-primary);
+    }
+
+    .filter-tab.active {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+
+    /* Section header */
+    .section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.75rem 1rem;
-      background: var(--color-surface, #fff);
-      border: 1px solid var(--color-border, #e5e7eb);
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .section-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    /* Member cards grid */
+    .members-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .member-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
       border-radius: 8px;
-      transition: border-color 0.15s;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      transition: all 0.15s;
     }
 
-    .member-row:hover {
-      border-color: var(--color-primary, #6366f1);
+    .member-card:hover {
+      border-color: var(--color-primary);
     }
 
-    .member-row.is-present {
-      border-left: 3px solid var(--color-success, #22c55e);
+    .member-card.is-present {
+      border-left: 4px solid var(--color-success);
     }
 
-    .member-row.is-remote {
-      border-left: 3px solid var(--color-info, #3b82f6);
+    .member-card.is-remote {
+      border-left: 4px solid var(--color-info);
     }
 
-    .member-row.is-absent {
+    .member-card.is-excused {
+      border-left: 4px solid var(--color-warning);
+      opacity: 0.8;
+    }
+
+    .member-card.is-absent {
       opacity: 0.6;
     }
 
@@ -75,42 +171,66 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      min-width: 0;
     }
 
     .member-avatar {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: var(--color-bg-subtle, #f3f4f6);
+      background: var(--color-bg-subtle);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 600;
-      font-size: 0.75rem;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .member-card.is-present .member-avatar {
+      background: var(--color-success-subtle);
+      color: var(--color-success);
+    }
+
+    .member-card.is-remote .member-avatar {
+      background: var(--color-info-subtle);
+      color: var(--color-info);
     }
 
     .member-name {
       font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .member-meta {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
     }
 
     .status-btns {
       display: flex;
       gap: 0.25rem;
+      flex-shrink: 0;
     }
 
     .status-btn {
-      padding: 0.375rem 0.75rem;
-      border: 1px solid var(--color-border, #e5e7eb);
-      background: var(--color-surface, #fff);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
       border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 500;
+      font-size: 0.9rem;
       cursor: pointer;
       transition: all 0.15s;
     }
 
     .status-btn:hover {
-      background: var(--color-bg-subtle, #f3f4f6);
+      background: var(--color-bg-subtle);
     }
 
     .status-btn.active {
@@ -118,71 +238,75 @@
       border-color: transparent;
     }
 
-    .status-btn.present.active { background: var(--color-success, #22c55e); }
-    .status-btn.remote.active { background: var(--color-info, #3b82f6); }
-    .status-btn.excused.active { background: var(--color-warning, #f59e0b); }
-    .status-btn.absent.active { background: var(--color-danger, #ef4444); }
+    .status-btn.present.active { background: var(--color-success); }
+    .status-btn.remote.active { background: var(--color-info); }
+    .status-btn.excused.active { background: var(--color-warning); }
+    .status-btn.absent.active { background: var(--color-danger); }
 
-    .member-row.is-excused {
-      border-left: 3px solid var(--color-warning, #f59e0b);
-      opacity: 0.7;
-    }
-
-    .stat-excused { color: var(--color-warning, #f59e0b); }
-
-    .search-box {
-      margin-bottom: 1rem;
-    }
-
-    .locked-alert {
-      background: var(--color-danger-subtle, #fee2e2);
-      border: 2px solid var(--color-danger, #ef4444);
+    /* Add member card */
+    .add-member-card {
+      background: var(--color-surface);
+      border: 2px dashed var(--color-border);
       border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      text-align: center;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .add-member-card h3 {
+      margin: 0 0 1rem 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .add-form input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* Alert states */
+    .locked-alert {
+      background: var(--color-danger-subtle);
+      border: 2px solid var(--color-danger);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
     }
 
     .locked-alert strong {
-      color: var(--color-danger, #ef4444);
+      color: var(--color-danger);
     }
 
     .no-meeting-alert {
       text-align: center;
-      padding: 3rem 1rem;
-      background: var(--color-bg-subtle, #f9fafb);
+      padding: 4rem 2rem;
+      background: var(--color-bg-subtle);
       border-radius: 8px;
-      margin: 2rem 0;
     }
 
     .no-meeting-alert h3 {
-      margin-bottom: 0.5rem;
-      color: var(--color-text, #111);
+      margin: 0 0 0.5rem 0;
     }
 
     .no-meeting-alert p {
-      color: var(--color-text-muted, #6b7280);
-      margin-bottom: 1rem;
+      color: var(--color-text-muted);
+      margin: 0 0 1.5rem 0;
     }
 
-    .add-member-form {
-      background: var(--color-bg-subtle, #f9fafb);
-      border: 1px solid var(--color-border, #e5e7eb);
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .form-row {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .form-row .form-input {
-      flex: 1;
-      min-width: 150px;
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--color-text-muted);
+      grid-column: 1 / -1;
     }
   </style>
 </head>
@@ -190,85 +314,103 @@
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
 
-    <header class="app-header">
+    <!-- Page header -->
+    <div class="page-header">
       <div>
-        <h1 class="text-xl font-bold">👥 Présences</h1>
-        <p class="text-sm text-secondary" id="meetingTitle">—</p>
+        <h1>Présences</h1>
+        <div class="page-header-subtitle" id="meetingTitle">Aucune séance sélectionnée</div>
       </div>
-      <div class="flex items-center gap-2">
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">☰</button>
+      <div class="page-header-actions">
+        <button class="btn btn-success" id="btnAllPresent" style="display: none;">Tous présents</button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu"></button>
       </div>
-    </header>
+    </div>
 
-    <main class="app-main">
-      <div class="container">
-        <div id="notif_box" class="hidden mb-4"></div>
+    <!-- Stats bar -->
+    <div class="stats-bar" id="statsBar" style="display: none;">
+      <div class="stat-item present">
+        <div class="stat-value" id="countPresent">0</div>
+        <div class="stat-label">Présents</div>
+      </div>
+      <div class="stat-item remote">
+        <div class="stat-value" id="countRemote">0</div>
+        <div class="stat-label">Distants</div>
+      </div>
+      <div class="stat-item excused">
+        <div class="stat-value" id="countExcused">0</div>
+        <div class="stat-label">Excusés</div>
+      </div>
+      <div class="stat-item absent">
+        <div class="stat-value" id="countAbsent">0</div>
+        <div class="stat-label">Absents</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="countTotal">0</div>
+        <div class="stat-label">Total</div>
+      </div>
+    </div>
+
+    <main class="app-main" style="padding: 0;">
+      <div class="page-content">
+        <div id="notif_box" class="alert hidden mb-4"></div>
 
         <!-- No meeting selected -->
         <div id="noMeetingAlert" class="no-meeting-alert" style="display: none;">
+          <div style="font-size: 3rem; margin-bottom: 1rem;"></div>
           <h3>Aucune séance sélectionnée</h3>
           <p>Sélectionnez une séance pour gérer les présences.</p>
           <a href="/meetings.htmx.html" class="btn btn-primary">Choisir une séance</a>
         </div>
 
-        <!-- Locked alert (shown when meeting is validated) -->
+        <!-- Locked alert -->
         <div id="lockedAlert" class="locked-alert" style="display: none;">
-          <strong>🔒 Séance verrouillée</strong>
-          <p class="text-sm mt-1">Cette séance est validée. Les présences ne peuvent plus être modifiées.</p>
+          <span style="font-size: 1.5rem;"></span>
+          <div>
+            <strong>Séance verrouillée</strong>
+            <p class="text-sm mb-0">Cette séance est validée. Les présences ne peuvent plus être modifiées.</p>
+          </div>
         </div>
 
-        <!-- Main content (hidden if no meeting) -->
+        <!-- Main content -->
         <div id="mainContent" style="display: none;">
-          <div class="attendance-header">
-            <div class="attendance-stats">
-              <div class="stat-item">
-                <span class="stat-value stat-present" id="countPresent">0</span>
-                <span>présents</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-value stat-remote" id="countRemote">0</span>
-                <span>distants</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-value stat-excused" id="countExcused">0</span>
-                <span>excusés</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-value stat-absent" id="countAbsent">0</span>
-                <span>absents</span>
-              </div>
-              <div class="stat-item" style="opacity: 0.6;">
-                <span>/</span>
-                <span id="countTotal">0</span>
-                <span>total</span>
-              </div>
-            </div>
-            <div class="flex gap-2" id="actionButtons">
-              <button class="btn btn-secondary btn-sm" id="btnAddMember">+ Nouveau</button>
-              <button class="btn btn-success" id="btnAllPresent">✓ Tous présents</button>
-            </div>
-          </div>
-
-          <!-- Search box -->
-          <div class="search-box">
-            <input type="text" class="form-input" id="searchInput" placeholder="🔍 Rechercher un membre...">
-          </div>
-
-          <!-- Inline add member form -->
-          <div class="add-member-form" id="addMemberForm" style="display: none;">
-            <div class="form-row">
+          <!-- Add member card -->
+          <div class="add-member-card" id="addMemberCard">
+            <h3>Ajouter un participant</h3>
+            <div class="add-form">
               <input type="text" class="form-input" id="newMemberName" placeholder="Nom complet du membre">
               <select class="form-input" id="newMemberMode" style="width: auto; flex: 0;">
                 <option value="present">Présent</option>
                 <option value="remote">Distant</option>
               </select>
-              <button class="btn btn-primary btn-sm" id="btnConfirmAdd">Ajouter</button>
-              <button class="btn btn-ghost btn-sm" id="btnCancelAdd">Annuler</button>
+              <button class="btn btn-primary" id="btnConfirmAdd">Ajouter</button>
             </div>
           </div>
 
-          <div class="member-list" id="memberList">
-            <div class="text-center p-6 text-muted">Chargement...</div>
+          <!-- Toolbar -->
+          <div class="toolbar">
+            <div class="search-box">
+              <input type="text" class="form-input" id="searchInput" placeholder="Rechercher un membre...">
+            </div>
+          </div>
+
+          <!-- Filter tabs -->
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">Tous</button>
+            <button class="filter-tab" data-filter="present">Présents</button>
+            <button class="filter-tab" data-filter="remote">Distants</button>
+            <button class="filter-tab" data-filter="excused">Excusés</button>
+            <button class="filter-tab" data-filter="absent">Absents</button>
+          </div>
+
+          <!-- Section header -->
+          <div class="section-header">
+            <span class="section-title">Liste des membres</span>
+            <span class="text-sm text-muted" id="membersCount">0 membres</span>
+          </div>
+
+          <!-- Members grid -->
+          <div class="members-grid" id="memberList">
+            <div class="text-center p-6 text-muted" style="grid-column: 1 / -1;">Chargement...</div>
           </div>
         </div>
       </div>
@@ -279,7 +421,7 @@
   <aside class="drawer" id="drawer">
     <div class="drawer-header">
       <div id="drawerTitle" class="font-semibold">Menu</div>
-      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close>✕</button>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close></button>
     </div>
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
@@ -289,6 +431,268 @@
   <script src="/assets/js/shell.js"></script>
   <script src="/assets/js/meeting-context.js"></script>
   <script src="/assets/js/session-wizard.js"></script>
-  <script src="/assets/js/attendance.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    const searchInput = document.getElementById('searchInput');
+    const memberList = document.getElementById('memberList');
+    const membersCount = document.getElementById('membersCount');
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const statsBar = document.getElementById('statsBar');
+    const mainContent = document.getElementById('mainContent');
+    const noMeetingAlert = document.getElementById('noMeetingAlert');
+    const lockedAlert = document.getElementById('lockedAlert');
+    const btnAllPresent = document.getElementById('btnAllPresent');
+    const addMemberCard = document.getElementById('addMemberCard');
+
+    let allMembers = [];
+    let currentFilter = 'all';
+    let meetingId = null;
+    let isLocked = false;
+
+    // Get meeting ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    meetingId = urlParams.get('meeting_id');
+
+    // Check meeting context
+    async function checkMeeting() {
+      if (!meetingId) {
+        noMeetingAlert.style.display = 'block';
+        mainContent.style.display = 'none';
+        statsBar.style.display = 'none';
+        btnAllPresent.style.display = 'none';
+        return false;
+      }
+
+      try {
+        const { body } = await api(`/api/v1/meetings.php?meeting_id=${meetingId}`);
+        if (body?.data?.meeting) {
+          const meeting = body.data.meeting;
+          document.getElementById('meetingTitle').textContent = meeting.title || 'Séance';
+
+          isLocked = ['validated', 'archived'].includes(meeting.status);
+          lockedAlert.style.display = isLocked ? 'flex' : 'none';
+          addMemberCard.style.display = isLocked ? 'none' : 'block';
+          btnAllPresent.style.display = isLocked ? 'none' : 'inline-flex';
+
+          noMeetingAlert.style.display = 'none';
+          mainContent.style.display = 'block';
+          statsBar.style.display = 'flex';
+          return true;
+        }
+      } catch (err) {
+        console.error('Error loading meeting:', err);
+      }
+
+      noMeetingAlert.style.display = 'block';
+      return false;
+    }
+
+    // Update stats
+    function updateStats(members) {
+      const present = members.filter(m => m.attendance_status === 'present').length;
+      const remote = members.filter(m => m.attendance_status === 'remote').length;
+      const excused = members.filter(m => m.attendance_status === 'excused').length;
+      const absent = members.filter(m => !m.attendance_status || m.attendance_status === 'absent').length;
+
+      document.getElementById('countPresent').textContent = present;
+      document.getElementById('countRemote').textContent = remote;
+      document.getElementById('countExcused').textContent = excused;
+      document.getElementById('countAbsent').textContent = absent;
+      document.getElementById('countTotal').textContent = members.length;
+    }
+
+    // Filter members
+    function filterMembers(members, filter, search = '') {
+      let filtered = members;
+
+      if (filter !== 'all') {
+        if (filter === 'absent') {
+          filtered = filtered.filter(m => !m.attendance_status || m.attendance_status === 'absent');
+        } else {
+          filtered = filtered.filter(m => m.attendance_status === filter);
+        }
+      }
+
+      if (search) {
+        const s = search.toLowerCase();
+        filtered = filtered.filter(m => (m.name || '').toLowerCase().includes(s));
+      }
+
+      return filtered;
+    }
+
+    // Render members
+    function renderMembers(members) {
+      const search = searchInput.value.trim();
+      const filtered = filterMembers(members, currentFilter, search);
+      membersCount.textContent = `${filtered.length} membre${filtered.length > 1 ? 's' : ''}`;
+
+      if (!filtered.length) {
+        memberList.innerHTML = '<div class="empty-state">Aucun membre trouvé</div>';
+        return;
+      }
+
+      memberList.innerHTML = filtered.map(m => {
+        const status = m.attendance_status || 'absent';
+        const initials = (m.name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+        const cardClass = `is-${status}`;
+
+        return `
+          <div class="member-card ${cardClass}" data-member-id="${m.id}">
+            <div class="member-info">
+              <div class="member-avatar">${initials}</div>
+              <div>
+                <div class="member-name">${escapeHtml(m.name || '—')}</div>
+                <div class="member-meta">Poids: ${m.voting_power || 1}</div>
+              </div>
+            </div>
+            <div class="status-btns">
+              <button class="status-btn present ${status === 'present' ? 'active' : ''}"
+                      data-status="present" title="Présent" ${isLocked ? 'disabled' : ''}>P</button>
+              <button class="status-btn remote ${status === 'remote' ? 'active' : ''}"
+                      data-status="remote" title="Distant" ${isLocked ? 'disabled' : ''}>D</button>
+              <button class="status-btn excused ${status === 'excused' ? 'active' : ''}"
+                      data-status="excused" title="Excusé" ${isLocked ? 'disabled' : ''}>E</button>
+              <button class="status-btn absent ${status === 'absent' ? 'active' : ''}"
+                      data-status="absent" title="Absent" ${isLocked ? 'disabled' : ''}>A</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Bind status buttons
+      memberList.querySelectorAll('.status-btn:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const card = e.target.closest('.member-card');
+          const memberId = card.dataset.memberId;
+          const newStatus = e.target.dataset.status;
+          await updateAttendance(memberId, newStatus);
+        });
+      });
+    }
+
+    // Update attendance
+    async function updateAttendance(memberId, status) {
+      try {
+        const { body } = await api('/api/v1/attendance.php', {
+          meeting_id: meetingId,
+          member_id: memberId,
+          status: status
+        });
+
+        if (body?.ok) {
+          // Update local state
+          const member = allMembers.find(m => m.id === memberId);
+          if (member) {
+            member.attendance_status = status;
+          }
+          updateStats(allMembers);
+          renderMembers(allMembers);
+        } else {
+          setNotif('error', body?.error || 'Erreur');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    }
+
+    // Load members
+    async function fetchMembers() {
+      memberList.innerHTML = '<div class="text-center p-6 text-muted" style="grid-column: 1 / -1;">Chargement...</div>';
+
+      try {
+        const { body } = await api(`/api/v1/attendance_list.php?meeting_id=${meetingId}`);
+        allMembers = body?.data?.attendees || [];
+        updateStats(allMembers);
+        renderMembers(allMembers);
+      } catch (err) {
+        memberList.innerHTML = `<div class="alert alert-danger" style="grid-column: 1 / -1;">Erreur: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    // Mark all present
+    btnAllPresent.addEventListener('click', async () => {
+      if (!confirm('Marquer tous les membres comme présents ?')) return;
+
+      Shared.btnLoading(btnAllPresent, true);
+      try {
+        const { body } = await api('/api/v1/attendance_bulk.php', {
+          meeting_id: meetingId,
+          action: 'all_present'
+        });
+
+        if (body?.ok) {
+          setNotif('success', 'Tous marqués présents');
+          await fetchMembers();
+        } else {
+          setNotif('error', body?.error || 'Erreur');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      } finally {
+        Shared.btnLoading(btnAllPresent, false);
+      }
+    });
+
+    // Add member
+    document.getElementById('btnConfirmAdd').addEventListener('click', async () => {
+      const name = document.getElementById('newMemberName').value.trim();
+      const mode = document.getElementById('newMemberMode').value;
+
+      if (!name) {
+        setNotif('error', 'Le nom est requis');
+        return;
+      }
+
+      try {
+        // First create the member
+        const { body: createBody } = await api('/api/v1/members.php', { name });
+        if (!createBody?.ok) {
+          setNotif('error', createBody?.error || 'Erreur création');
+          return;
+        }
+
+        const memberId = createBody.data?.member_id;
+        if (memberId) {
+          // Then add attendance
+          await api('/api/v1/attendance.php', {
+            meeting_id: meetingId,
+            member_id: memberId,
+            status: mode
+          });
+        }
+
+        setNotif('success', 'Membre ajouté');
+        document.getElementById('newMemberName').value = '';
+        await fetchMembers();
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    });
+
+    // Filter tabs
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        filterTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFilter = tab.dataset.filter;
+        renderMembers(allMembers);
+      });
+    });
+
+    // Search
+    searchInput.addEventListener('input', () => {
+      renderMembers(allMembers);
+    });
+
+    // Init
+    checkMeeting().then(ok => {
+      if (ok) fetchMembers();
+    });
+  })();
+  </script>
 </body>
 </html>

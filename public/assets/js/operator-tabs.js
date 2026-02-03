@@ -28,6 +28,8 @@
   let motionsCache = [];
   let currentOpenMotion = null;
   let ballotsCache = {};
+  let usersCache = [];
+  let policiesCache = { quorum: [], vote: [] };
 
   // Transitions
   const TRANSITIONS = {
@@ -181,11 +183,43 @@
       loadRoles(),
       loadStatusChecklist()
     ]);
+    populateSettingsForm();
   }
 
   // =========================================================================
   // TAB: PARAMÈTRES - Settings
   // =========================================================================
+
+  function populateSettingsForm() {
+    if (!currentMeeting) return;
+
+    // Titre
+    const titleInput = document.getElementById('settingTitle');
+    if (titleInput) titleInput.value = currentMeeting.title || '';
+
+    // Date
+    const dateInput = document.getElementById('settingDate');
+    if (dateInput && currentMeeting.scheduled_at) {
+      // Format: YYYY-MM-DDTHH:mm
+      dateInput.value = currentMeeting.scheduled_at.slice(0, 16);
+    }
+
+    // Type de consultation (stored in description or metadata)
+    const meetingType = currentMeeting.meeting_type || 'ordinary';
+    document.querySelectorAll('input[name="meetingType"]').forEach(radio => {
+      radio.checked = radio.value === meetingType;
+    });
+
+    // Policies
+    const qSelect = document.getElementById('settingQuorumPolicy');
+    const vSelect = document.getElementById('settingVotePolicy');
+    if (qSelect) qSelect.value = currentMeeting.quorum_policy_id || '';
+    if (vSelect) vSelect.value = currentMeeting.vote_policy_id || '';
+
+    // Convocation
+    const convSelect = document.getElementById('settingConvocation');
+    if (convSelect) convSelect.value = currentMeeting.convocation_no || 1;
+  }
 
   async function loadPolicies() {
     try {
@@ -194,36 +228,27 @@
         api('/api/v1/vote_policies.php')
       ]);
 
+      policiesCache.quorum = qpRes.body?.items || [];
+      policiesCache.vote = vpRes.body?.items || [];
+
       const qSelect = document.getElementById('settingQuorumPolicy');
       const vSelect = document.getElementById('settingVotePolicy');
 
       qSelect.innerHTML = '<option value="">— Aucune —</option>';
-      (qpRes.body?.items || []).forEach(p => {
+      policiesCache.quorum.forEach(p => {
         qSelect.innerHTML += `<option value="${p.id}">${escapeHtml(p.label || p.name)}</option>`;
       });
 
       vSelect.innerHTML = '<option value="">— Aucune —</option>';
-      (vpRes.body?.items || []).forEach(p => {
+      policiesCache.vote.forEach(p => {
         vSelect.innerHTML += `<option value="${p.id}">${escapeHtml(p.label || p.name)}</option>`;
       });
 
-      // Load current settings
-      if (currentMeetingId) {
-        const [qsRes, vsRes] = await Promise.all([
-          api(`/api/v1/meeting_quorum_settings.php?meeting_id=${currentMeetingId}`),
-          api(`/api/v1/meeting_vote_settings.php?meeting_id=${currentMeetingId}`)
-        ]);
-        qSelect.value = qsRes.body?.data?.quorum_policy_id || '';
-        vSelect.value = vsRes.body?.data?.vote_policy_id || '';
-        document.getElementById('settingConvocation').value = qsRes.body?.data?.convocation_no || 1;
-      }
-
-      // Populate title/date
+      // Set values if meeting is loaded
       if (currentMeeting) {
-        document.getElementById('settingTitle').value = currentMeeting.title || '';
-        if (currentMeeting.scheduled_at) {
-          document.getElementById('settingDate').value = currentMeeting.scheduled_at.slice(0, 16);
-        }
+        qSelect.value = currentMeeting.quorum_policy_id || '';
+        vSelect.value = currentMeeting.vote_policy_id || '';
+        document.getElementById('settingConvocation').value = currentMeeting.convocation_no || 1;
       }
     } catch (err) {
       console.error('Policies error:', err);
@@ -237,19 +262,59 @@
         api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`)
       ]);
 
-      const users = usersRes.body?.items || [];
+      usersCache = usersRes.body?.items || [];
       const roles = rolesRes.body?.items || [];
       const president = roles.find(r => r.role === 'president');
+      const assessors = roles.filter(r => r.role === 'assessor');
 
+      // President select
       const presSelect = document.getElementById('settingPresident');
       presSelect.innerHTML = '<option value="">— Non assigné —</option>';
-      users.forEach(u => {
-        presSelect.innerHTML += `<option value="${u.id}" ${president?.user_id === u.id ? 'selected' : ''}>${escapeHtml(u.name || u.email)}</option>`;
+      usersCache.forEach(u => {
+        const selected = president?.user_id === u.id ? 'selected' : '';
+        presSelect.innerHTML += `<option value="${u.id}" ${selected}>${escapeHtml(u.name || u.email)}</option>`;
       });
+
+      // Assessors list
+      renderAssessors(assessors);
     } catch (err) {
       console.error('Roles error:', err);
     }
   }
+
+  function renderAssessors(assessors) {
+    const container = document.getElementById('assessorsList');
+    if (!assessors || assessors.length === 0) {
+      container.innerHTML = '<span class="text-muted text-sm">Aucun assesseur</span>';
+      return;
+    }
+
+    container.innerHTML = assessors.map(a => {
+      const user = usersCache.find(u => u.id === a.user_id);
+      const name = user ? (user.name || user.email) : a.user_id;
+      return `
+        <div class="flex items-center justify-between gap-2 p-2 bg-subtle rounded">
+          <span>${escapeHtml(name)}</span>
+          <button class="btn btn-sm btn-ghost text-danger" onclick="removeAssessor('${a.user_id}')" title="Retirer">✕</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.removeAssessor = async function(userId) {
+    try {
+      await api('/api/v1/admin_meeting_roles.php', {
+        action: 'revoke',
+        meeting_id: currentMeetingId,
+        user_id: userId,
+        role: 'assessor'
+      });
+      setNotif('success', 'Assesseur retiré');
+      loadRoles();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  };
 
   async function loadStatusChecklist() {
     try {
@@ -290,6 +355,150 @@
     } catch (err) {
       console.error('Checklist error:', err);
     }
+  }
+
+  // =========================================================================
+  // SAVE SETTINGS
+  // =========================================================================
+
+  async function saveGeneralSettings() {
+    const title = document.getElementById('settingTitle').value.trim();
+    const scheduledAt = document.getElementById('settingDate').value;
+    const meetingType = document.querySelector('input[name="meetingType"]:checked')?.value || 'ordinary';
+
+    if (!title) {
+      setNotif('error', 'Le titre est obligatoire');
+      return;
+    }
+
+    const btn = document.getElementById('btnSaveSettings');
+    Shared.btnLoading(btn, true);
+
+    try {
+      // Save title and date
+      await api('/api/v1/meetings_update.php', {
+        meeting_id: currentMeetingId,
+        title: title,
+        scheduled_at: scheduledAt || null
+      });
+
+      // Save policies
+      const quorumPolicyId = document.getElementById('settingQuorumPolicy').value || null;
+      const votePolicyId = document.getElementById('settingVotePolicy').value || null;
+      const convocationNo = parseInt(document.getElementById('settingConvocation').value) || 1;
+
+      await api('/api/v1/meeting_quorum_settings.php', {
+        meeting_id: currentMeetingId,
+        quorum_policy_id: quorumPolicyId,
+        convocation_no: convocationNo
+      });
+
+      await api('/api/v1/meeting_vote_settings.php', {
+        meeting_id: currentMeetingId,
+        vote_policy_id: votePolicyId
+      });
+
+      // Update local state and header
+      currentMeeting.title = title;
+      currentMeeting.scheduled_at = scheduledAt;
+      currentMeeting.quorum_policy_id = quorumPolicyId;
+      currentMeeting.vote_policy_id = votePolicyId;
+      currentMeeting.convocation_no = convocationNo;
+
+      updateHeader(currentMeeting);
+      loadStatusChecklist();
+
+      setNotif('success', 'Paramètres enregistrés');
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
+    }
+  }
+
+  async function savePresident() {
+    const presidentId = document.getElementById('settingPresident').value;
+
+    try {
+      if (presidentId) {
+        await api('/api/v1/admin_meeting_roles.php', {
+          action: 'assign',
+          meeting_id: currentMeetingId,
+          user_id: presidentId,
+          role: 'president'
+        });
+        setNotif('success', 'Président assigné');
+      } else {
+        // Remove current president
+        const { body } = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`);
+        const roles = body?.items || [];
+        const president = roles.find(r => r.role === 'president');
+        if (president) {
+          await api('/api/v1/admin_meeting_roles.php', {
+            action: 'revoke',
+            meeting_id: currentMeetingId,
+            user_id: president.user_id,
+            role: 'president'
+          });
+        }
+        setNotif('success', 'Président retiré');
+      }
+      loadStatusChecklist();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function addAssessor() {
+    // Show modal or prompt for user selection
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+
+    const availableUsers = usersCache.filter(u => {
+      // Exclude current president
+      const presId = document.getElementById('settingPresident').value;
+      return u.id !== presId;
+    });
+
+    modal.innerHTML = `
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:400px;width:90%;">
+        <h3 style="margin:0 0 1rem;">Ajouter un assesseur</h3>
+        <select class="form-input" id="assessorSelect" style="margin-bottom:1rem;">
+          <option value="">— Sélectionner —</option>
+          ${availableUsers.map(u => `<option value="${u.id}">${escapeHtml(u.name || u.email)}</option>`).join('')}
+        </select>
+        <div class="flex gap-2 justify-end">
+          <button class="btn btn-secondary" id="btnCancelAssessor">Annuler</button>
+          <button class="btn btn-primary" id="btnConfirmAssessor">Ajouter</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('btnCancelAssessor').onclick = () => modal.remove();
+    document.getElementById('btnConfirmAssessor').onclick = async () => {
+      const userId = document.getElementById('assessorSelect').value;
+      if (!userId) {
+        setNotif('error', 'Sélectionnez un utilisateur');
+        return;
+      }
+
+      try {
+        await api('/api/v1/admin_meeting_roles.php', {
+          action: 'assign',
+          meeting_id: currentMeetingId,
+          user_id: userId,
+          role: 'assessor'
+        });
+        setNotif('success', 'Assesseur ajouté');
+        loadRoles();
+        modal.remove();
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    };
   }
 
   // =========================================================================
@@ -735,22 +944,13 @@
   });
 
   // Settings save
-  document.getElementById('btnSaveSettings')?.addEventListener('click', async () => {
-    try {
-      await api('/api/v1/meeting_quorum_settings.php', {
-        meeting_id: currentMeetingId,
-        quorum_policy_id: document.getElementById('settingQuorumPolicy').value,
-        convocation_no: parseInt(document.getElementById('settingConvocation').value)
-      });
-      await api('/api/v1/meeting_vote_settings.php', {
-        meeting_id: currentMeetingId,
-        vote_policy_id: document.getElementById('settingVotePolicy').value
-      });
-      setNotif('success', 'Paramètres enregistrés');
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  });
+  document.getElementById('btnSaveSettings')?.addEventListener('click', saveGeneralSettings);
+
+  // President change handler
+  document.getElementById('settingPresident')?.addEventListener('change', savePresident);
+
+  // Add assessor button
+  document.getElementById('btnAddAssessor')?.addEventListener('click', addAssessor);
 
   initTabs();
   loadMeetings();

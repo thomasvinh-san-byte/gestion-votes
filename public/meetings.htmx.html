@@ -8,77 +8,93 @@
   <title>Séances — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
   <style>
+    /* Page header - Diligent style */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .page-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .page-header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 2rem;
+      padding: 1rem 1.5rem;
+      background: var(--color-bg-subtle);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+    }
+
+    .stat-item.live .stat-value { color: var(--color-success); }
+    .stat-item.draft .stat-value { color: var(--color-text-muted); }
+
+    /* Content area */
+    .page-content {
+      padding: 1.5rem;
+    }
+
+    /* Create form card */
+    .create-card {
+      background: var(--color-surface);
+      border: 2px dashed var(--color-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .create-card h3 {
+      margin: 0 0 1rem 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
     .create-form {
       display: flex;
       gap: 0.75rem;
-      margin-bottom: 1.5rem;
       flex-wrap: wrap;
     }
 
     .create-form input {
       flex: 1;
-      min-width: 200px;
+      min-width: 250px;
     }
 
-    .meetings-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .meeting-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      transition: all 0.15s;
-    }
-
-    .meeting-row:hover {
-      border-color: var(--color-primary);
-    }
-
-    .meeting-row.is-live {
-      border-left: 4px solid var(--color-success);
-    }
-
-    .meeting-row.is-draft {
-      opacity: 0.7;
-    }
-
-    .meeting-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .meeting-title {
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .meeting-meta {
-      font-size: 0.8rem;
-      color: var(--color-text-muted);
-      margin-top: 0.25rem;
-    }
-
-    .meeting-actions {
-      display: flex;
-      gap: 0.5rem;
-      flex-shrink: 0;
-      flex-wrap: wrap;
-    }
-
+    /* Section header */
     .section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--color-border);
     }
 
     .section-title {
@@ -86,12 +102,128 @@
       font-size: 1rem;
     }
 
-    .empty-state-inline {
-      text-align: center;
-      padding: 2rem;
+    /* Meetings grid */
+    .meetings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+
+    .meeting-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.15s;
+    }
+
+    .meeting-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .meeting-card.is-live {
+      border-left: 4px solid var(--color-success);
+    }
+
+    .meeting-card.is-draft {
+      opacity: 0.8;
+    }
+
+    .meeting-card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .meeting-card-title {
+      font-weight: 600;
+      font-size: 1rem;
+      margin: 0 0 0.5rem 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .meeting-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.8rem;
       color: var(--color-text-muted);
+    }
+
+    .meeting-card-body {
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .meeting-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .meeting-stats span {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .meeting-card-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
       background: var(--color-bg-subtle);
       border-radius: 8px;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      margin: 0 0 0.5rem 0;
+    }
+
+    .empty-state p {
+      color: var(--color-text-muted);
+      margin: 0;
+    }
+
+    /* Filter tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .filter-tab {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-surface);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-tab:hover {
+      border-color: var(--color-primary);
+    }
+
+    .filter-tab.active {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
     }
   </style>
 </head>
@@ -99,33 +231,65 @@
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="meetings"></aside>
 
-    <header class="app-header">
-      <div>
-        <h1 class="text-xl font-bold">Séances</h1>
-        <p class="text-sm text-secondary">Gestion des assemblées</p>
-      </div>
-      <div class="flex items-center gap-2">
+    <!-- Page header -->
+    <div class="page-header">
+      <h1>📋 Séances</h1>
+      <div class="page-header-actions">
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">☰</button>
       </div>
-    </header>
+    </div>
 
-    <main class="app-main">
-      <div class="container">
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat-item live">
+        <div class="stat-value" id="statLive">0</div>
+        <div class="stat-label">En cours</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="statScheduled">0</div>
+        <div class="stat-label">Planifiées</div>
+      </div>
+      <div class="stat-item draft">
+        <div class="stat-value" id="statDraft">0</div>
+        <div class="stat-label">Brouillons</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Total</div>
+      </div>
+    </div>
+
+    <main class="app-main" style="padding: 0;">
+      <div class="page-content">
         <div id="notif_box" class="alert hidden mb-4"></div>
 
-        <!-- Create form -->
-        <div class="create-form">
-          <input class="form-input" type="text" id="meeting_title" placeholder="Titre de la séance...">
-          <button class="btn btn-primary" id="create_meeting_btn">Créer</button>
+        <!-- Create card -->
+        <div class="create-card">
+          <h3>➕ Nouvelle séance</h3>
+          <div class="create-form">
+            <input class="form-input" type="text" id="meeting_title" placeholder="Titre de la séance (ex: Assemblée Générale 2024)">
+            <input class="form-input" type="datetime-local" id="meeting_date" style="max-width: 220px;">
+            <button class="btn btn-primary" id="create_meeting_btn">Créer la séance</button>
+          </div>
         </div>
 
-        <!-- Meetings list -->
+        <!-- Filter tabs -->
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="all">Toutes</button>
+          <button class="filter-tab" data-filter="live">En cours</button>
+          <button class="filter-tab" data-filter="scheduled">Planifiées</button>
+          <button class="filter-tab" data-filter="draft">Brouillons</button>
+          <button class="filter-tab" data-filter="archived">Archives</button>
+        </div>
+
+        <!-- Section header -->
         <div class="section-header">
-          <span class="section-title">Séances</span>
+          <span class="section-title">Liste des séances</span>
           <span class="text-sm text-muted" id="meetingsCount">0 séances</span>
         </div>
 
-        <div class="meetings-list" id="meetingsList">
+        <!-- Meetings grid -->
+        <div class="meetings-grid" id="meetingsList">
           <div class="text-center p-6 text-muted">Chargement...</div>
         </div>
       </div>
@@ -152,27 +316,56 @@
     'use strict';
 
     const titleInput = document.getElementById('meeting_title');
+    const dateInput = document.getElementById('meeting_date');
     const createBtn = document.getElementById('create_meeting_btn');
     const meetingsList = document.getElementById('meetingsList');
     const meetingsCount = document.getElementById('meetingsCount');
+    const filterTabs = document.querySelectorAll('.filter-tab');
+
+    let allMeetings = [];
+    let currentFilter = 'all';
+
+    // Stats
+    function updateStats(meetings) {
+      const live = meetings.filter(m => m.status === 'live').length;
+      const scheduled = meetings.filter(m => ['scheduled', 'frozen'].includes(m.status)).length;
+      const draft = meetings.filter(m => m.status === 'draft').length;
+
+      document.getElementById('statLive').textContent = live;
+      document.getElementById('statScheduled').textContent = scheduled;
+      document.getElementById('statDraft').textContent = draft;
+      document.getElementById('statTotal').textContent = meetings.length;
+    }
+
+    // Filter meetings
+    function filterMeetings(meetings, filter) {
+      if (filter === 'all') return meetings;
+      if (filter === 'live') return meetings.filter(m => m.status === 'live');
+      if (filter === 'scheduled') return meetings.filter(m => ['scheduled', 'frozen'].includes(m.status));
+      if (filter === 'draft') return meetings.filter(m => m.status === 'draft');
+      if (filter === 'archived') return meetings.filter(m => ['closed', 'validated', 'archived'].includes(m.status));
+      return meetings;
+    }
 
     // Render meetings
     function renderMeetings(meetings) {
-      meetingsCount.textContent = `${meetings.length} séance${meetings.length > 1 ? 's' : ''}`;
+      const filtered = filterMeetings(meetings, currentFilter);
+      meetingsCount.textContent = `${filtered.length} séance${filtered.length > 1 ? 's' : ''}`;
 
-      if (!meetings || meetings.length === 0) {
+      if (!filtered || filtered.length === 0) {
         meetingsList.innerHTML = `
-          <div class="empty-state-inline">
-            <p>Aucune séance</p>
-            <p class="text-sm mt-2">Créez une nouvelle séance avec le formulaire ci-dessus.</p>
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon">📋</div>
+            <h3>Aucune séance</h3>
+            <p>Créez une nouvelle séance avec le formulaire ci-dessus.</p>
           </div>
         `;
         return;
       }
 
       // Sort by status: live first, then scheduled, draft, closed, archived
-      const statusOrder = { live: 0, scheduled: 1, frozen: 2, draft: 3, closed: 4, validated: 5, archived: 6 };
-      const sorted = [...meetings].sort((a, b) => {
+      const statusOrder = { live: 0, frozen: 1, scheduled: 2, draft: 3, closed: 4, validated: 5, archived: 6 };
+      const sorted = [...filtered].sort((a, b) => {
         const orderA = statusOrder[a.status] ?? 99;
         const orderB = statusOrder[b.status] ?? 99;
         if (orderA !== orderB) return orderA - orderB;
@@ -184,20 +377,29 @@
         const statusInfo = Shared.MEETING_STATUS_MAP[m.status] || Shared.MEETING_STATUS_MAP['draft'];
         const isLive = m.status === 'live';
         const isDraft = m.status === 'draft';
-        const rowClass = isLive ? 'is-live' : (isDraft ? 'is-draft' : '');
+        const cardClass = isLive ? 'is-live' : (isDraft ? 'is-draft' : '');
+
+        const date = m.scheduled_at
+          ? new Date(m.scheduled_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+          : '—';
 
         return `
-          <div class="meeting-row ${rowClass}">
-            <div class="meeting-info">
-              <div class="meeting-title">${title}</div>
-              <div class="meeting-meta">
+          <div class="meeting-card ${cardClass}">
+            <div class="meeting-card-header">
+              <h3 class="meeting-card-title">${title}</h3>
+              <div class="meeting-card-meta">
                 <span class="badge ${statusInfo.badge} badge-sm">${statusInfo.text}</span>
+                <span>📅 ${date}</span>
               </div>
             </div>
-            <div class="meeting-actions">
-              <a class="btn btn-sm btn-secondary" href="/attendance.htmx.html?meeting_id=${m.id}">Présences</a>
-              <a class="btn btn-sm btn-secondary" href="/motions.htmx.html?meeting_id=${m.id}">Résolutions</a>
-              <a class="btn btn-sm btn-primary" href="/operator.htmx.html?meeting_id=${m.id}">Ouvrir</a>
+            <div class="meeting-card-body">
+              <div class="meeting-stats">
+                <span title="Résolutions">📋 ${m.motions_count || 0}</span>
+                <span title="Présents">👥 ${m.attendees_count || 0}</span>
+              </div>
+              <div class="meeting-card-actions">
+                <a class="btn btn-sm btn-primary" href="/operator.htmx.html?meeting_id=${m.id}">Ouvrir</a>
+              </div>
             </div>
           </div>
         `;
@@ -206,15 +408,16 @@
 
     // Load meetings
     async function fetchMeetings() {
-      meetingsList.innerHTML = '<div class="text-center p-6 text-muted">Chargement...</div>';
+      meetingsList.innerHTML = '<div class="text-center p-6 text-muted" style="grid-column: 1 / -1;">Chargement...</div>';
 
       try {
         const { body } = await api('/api/v1/meetings_index.php');
-        const meetings = body?.data?.meetings || [];
-        renderMeetings(meetings);
+        allMeetings = body?.data?.meetings || [];
+        updateStats(allMeetings);
+        renderMeetings(allMeetings);
       } catch (err) {
         meetingsList.innerHTML = `
-          <div class="alert alert-danger">Erreur: ${escapeHtml(err.message)}</div>
+          <div class="alert alert-danger" style="grid-column: 1 / -1;">Erreur: ${escapeHtml(err.message)}</div>
         `;
       }
     }
@@ -228,19 +431,23 @@
         return;
       }
 
+      const scheduled_at = dateInput.value || null;
+
       Shared.btnLoading(createBtn, true);
       try {
-        const { body } = await api('/api/v1/meetings.php', { title });
+        const { body } = await api('/api/v1/meetings.php', { title, scheduled_at });
 
         if (body && body.ok) {
           setNotif('success', 'Séance créée');
           titleInput.value = '';
-          fetchMeetings();
+          dateInput.value = '';
 
-          // Notify wizard
+          // Redirect to operator
           const mid = body.data?.meeting_id;
-          if (mid && window.Wizard && window.Wizard.onMeetingCreated) {
-            window.Wizard.onMeetingCreated(mid, title);
+          if (mid) {
+            window.location.href = `/operator.htmx.html?meeting_id=${mid}`;
+          } else {
+            fetchMeetings();
           }
         } else {
           setNotif('error', body?.error || 'Erreur');
@@ -250,6 +457,16 @@
       } finally {
         Shared.btnLoading(createBtn, false);
       }
+    });
+
+    // Filter tabs
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        filterTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFilter = tab.dataset.filter;
+        renderMeetings(allMeetings);
+      });
     });
 
     // Enter key
