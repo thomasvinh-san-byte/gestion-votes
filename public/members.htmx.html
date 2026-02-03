@@ -562,12 +562,17 @@
       const total = members.length;
       const active = members.filter(m => m.is_active).length;
       const inactive = total - active;
-      const power = members.filter(m => m.is_active).reduce((sum, m) => sum + (m.voting_power || 1), 0);
+      // Parse voting_power as float to avoid string concatenation
+      const power = members.filter(m => m.is_active).reduce((sum, m) => {
+        const vp = parseFloat(m.voting_power) || 1;
+        return sum + vp;
+      }, 0);
 
       document.getElementById('kpiTotal').textContent = total;
       document.getElementById('kpiActive').textContent = active;
       document.getElementById('kpiInactive').textContent = inactive;
-      document.getElementById('kpiPower').textContent = power;
+      // Format as integer if whole number, otherwise show 2 decimals
+      document.getElementById('kpiPower').textContent = Number.isInteger(power) ? power : power.toFixed(2);
     }
 
     // Filter members
