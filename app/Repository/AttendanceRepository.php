@@ -50,15 +50,15 @@ class AttendanceRepository extends AbstractRepository
     public function listForMeeting(string $meetingId, string $tenantId): array
     {
         return $this->selectAll(
-            "SELECT a.id, a.meeting_id, a.member_id, a.mode,
-                    a.checked_in_at, a.checked_out_at, a.effective_power, a.notes,
-                    m.full_name, m.email, m.role, m.voting_power
-             FROM attendances a
-             JOIN members m ON m.id = a.member_id
-             JOIN meetings mt ON mt.id = a.meeting_id
-             WHERE a.meeting_id = :mid AND mt.tenant_id = :tid
+            "SELECT m.id AS member_id, m.full_name, m.email, m.role, m.voting_power,
+                    a.id, COALESCE(a.meeting_id, :mid2) AS meeting_id,
+                    COALESCE(a.mode, 'absent') AS mode,
+                    a.checked_in_at, a.checked_out_at, a.effective_power, a.notes
+             FROM members m
+             LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
+             WHERE m.tenant_id = :tid AND m.is_active = true
              ORDER BY m.full_name ASC",
-            [':mid' => $meetingId, ':tid' => $tenantId]
+            [':mid' => $meetingId, ':mid2' => $meetingId, ':tid' => $tenantId]
         );
     }
 
