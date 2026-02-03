@@ -128,6 +128,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 0.5rem;
         max-width: 900px;
         margin: 0 auto;
       }
@@ -137,6 +138,7 @@
         align-items: center;
         position: relative;
         flex: 1;
+        min-width: 60px;
         text-decoration: none;
         color: inherit;
       }
@@ -187,11 +189,12 @@
       }
       .wizard-step-label {
         margin-top: 0.5rem;
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         font-weight: 500;
         color: var(--color-text-muted, #6b7280);
         text-align: center;
         white-space: nowrap;
+        letter-spacing: 0.02em;
       }
       .wizard-step.done .wizard-step-label,
       .wizard-step.current .wizard-step-label {
