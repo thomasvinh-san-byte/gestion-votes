@@ -204,4 +204,26 @@ class PolicyRepository extends AbstractRepository
             [':id' => $id, ':tid' => $tenantId]
         );
     }
+
+    /**
+     * Get first available vote policy for tenant (for auto-assignment).
+     */
+    public function getFirstVotePolicy(string $tenantId): ?array
+    {
+        return $this->selectOne(
+            "SELECT * FROM vote_policies WHERE tenant_id = :tid ORDER BY created_at LIMIT 1",
+            [':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Get first available quorum policy for tenant (for auto-assignment).
+     */
+    public function getFirstQuorumPolicy(string $tenantId): ?array
+    {
+        return $this->selectOne(
+            "SELECT * FROM quorum_policies WHERE tenant_id = :tid ORDER BY created_at LIMIT 1",
+            [':tid' => $tenantId]
+        );
+    }
 }
