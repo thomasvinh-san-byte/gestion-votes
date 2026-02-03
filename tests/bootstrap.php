@@ -32,7 +32,9 @@ putenv('APP_AUTH_ENABLED=0');
 require_once PROJECT_ROOT . '/app/Core/Security/CsrfMiddleware.php';
 require_once PROJECT_ROOT . '/app/Core/Security/AuthMiddleware.php';
 require_once PROJECT_ROOT . '/app/Core/Security/RateLimiter.php';
+require_once PROJECT_ROOT . '/app/Core/Security/PermissionChecker.php';
 require_once PROJECT_ROOT . '/app/Core/Validation/InputValidator.php';
+require_once PROJECT_ROOT . '/app/Core/Logger.php';
 
 // Configurer le RateLimiter pour les tests
 RateLimiter::configure([

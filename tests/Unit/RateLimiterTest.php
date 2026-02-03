@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__ . '/../app/Core/Security/RateLimiter.php';
+require_once __DIR__ . '/../../app/Core/Security/RateLimiter.php';
 
 /**
  * Tests unitaires pour RateLimiter
