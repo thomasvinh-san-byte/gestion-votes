@@ -503,6 +503,17 @@ class MotionRepository extends AbstractRepository
         return (int)($this->scalar("SELECT COUNT(*) FROM motions") ?? 0);
     }
 
+    /**
+     * Compte les motions pour une séance donnée.
+     */
+    public function countForMeeting(string $meetingId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM motions WHERE meeting_id = ?",
+            [$meetingId]
+        ) ?? 0);
+    }
+
     // =========================================================================
     // ECRITURE
     // =========================================================================
