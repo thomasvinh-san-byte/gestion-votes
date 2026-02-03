@@ -1574,6 +1574,83 @@
     document.getElementById('exportPV').href = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${currentMeetingId}&preview=1`;
     document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${currentMeetingId}`;
     document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${currentMeetingId}`;
+
+    // Update close session section
+    updateCloseSessionStatus();
+  }
+
+  function updateCloseSessionStatus() {
+    const section = document.getElementById('closeSessionSection');
+    const statusDiv = document.getElementById('closeSessionStatus');
+    const btnClose = document.getElementById('btnCloseSession');
+    if (!section || !statusDiv || !btnClose) return;
+
+    // Only show for live sessions
+    if (currentMeetingStatus !== 'live') {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = 'block';
+
+    // Check readiness
+    const total = motionsCache.length;
+    const closed = motionsCache.filter(m => m.closed_at).length;
+    const open = motionsCache.filter(m => m.opened_at && !m.closed_at).length;
+    const pending = total - closed - open;
+    const allClosed = total > 0 && closed === total;
+    const hasOpenVote = open > 0;
+
+    let statusHtml = '';
+    let canClose = true;
+
+    if (hasOpenVote) {
+      statusHtml += `<div class="alert alert-warning mb-2">⚠️ Un vote est en cours — clôturez-le avant de fermer la séance.</div>`;
+      canClose = false;
+    }
+
+    if (pending > 0) {
+      statusHtml += `<div class="alert alert-info mb-2">ℹ️ ${pending} résolution(s) n'ont pas encore été votées.</div>`;
+    }
+
+    if (allClosed) {
+      statusHtml += `<div class="alert alert-success mb-2">✅ Tous les votes sont terminés. Vous pouvez clôturer la séance.</div>`;
+    }
+
+    statusDiv.innerHTML = statusHtml || '<div class="text-muted">Prêt à clôturer.</div>';
+    btnClose.disabled = !canClose;
+  }
+
+  async function closeSession() {
+    const open = motionsCache.filter(m => m.opened_at && !m.closed_at);
+    if (open.length > 0) {
+      setNotif('error', 'Impossible de clôturer : un vote est encore ouvert');
+      return;
+    }
+
+    const pending = motionsCache.filter(m => !m.opened_at && !m.closed_at);
+    if (pending.length > 0) {
+      if (!confirm(`Attention: ${pending.length} résolution(s) n'ont pas été votées. Clôturer quand même ?`)) {
+        return;
+      }
+    } else if (!confirm('Clôturer la séance ? Cette action est irréversible.')) {
+      return;
+    }
+
+    try {
+      const { body } = await api('/api/v1/meeting_transition.php', {
+        meeting_id: currentMeetingId,
+        to_status: 'closed'
+      });
+      if (body?.ok) {
+        setNotif('success', 'Séance clôturée');
+        loadMeetingContext(currentMeetingId);
+        loadMeetings();
+      } else {
+        setNotif('error', body?.detail || body?.error || 'Erreur lors de la clôture');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
   }
 
   // =========================================================================
@@ -1668,6 +1745,9 @@
   document.querySelectorAll('[data-tab-switch]').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tabSwitch));
   });
+
+  // Close session button
+  document.getElementById('btnCloseSession')?.addEventListener('click', closeSession);
 
   initTabs();
   loadMeetings();

@@ -4,61 +4,47 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Tableau de bord Président - Vue en lecture seule">
+  <meta name="description" content="Dashboard Président - Vue temps réel">
   <title>Dashboard Président — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
   <style>
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 1.5rem;
+    .dashboard-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
     }
 
-    .stat-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
-
-    .stat-card h3 {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--color-text-muted);
-      margin: 0 0 1rem 0;
+    .live-header {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, var(--color-primary-subtle), var(--color-success-subtle));
+      border-radius: 16px;
+      margin-bottom: 2rem;
     }
 
-    .stat-value {
-      font-size: 2.5rem;
-      font-weight: 700;
-      line-height: 1;
-    }
-
-    .stat-label {
-      font-size: 0.875rem;
-      color: var(--color-text-muted);
-      margin-top: 0.25rem;
+    .live-header.not-live {
+      background: var(--color-bg-subtle);
     }
 
     .live-badge {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: var(--color-warning-subtle);
-      border: 1px solid var(--color-warning);
+      padding: 0.5rem 1.5rem;
+      background: var(--color-success);
+      color: white;
       border-radius: 99px;
-      font-weight: 600;
-      color: var(--color-warning);
+      font-weight: 700;
+      font-size: 1.1rem;
     }
 
     .live-badge .pulse {
-      width: 8px;
-      height: 8px;
-      background: var(--color-warning);
+      width: 10px;
+      height: 10px;
+      background: white;
       border-radius: 50%;
       animation: pulse 1.5s infinite;
     }
@@ -68,152 +54,190 @@
       50% { opacity: 0.5; transform: scale(1.3); }
     }
 
-    .speaker-card {
-      background: var(--color-success-subtle);
-      border: 2px solid var(--color-success);
+    .meeting-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat-box {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
       border-radius: 12px;
-      padding: 1.5rem;
+      padding: 1.25rem;
       text-align: center;
     }
 
-    .speaker-card.no-speaker {
-      background: var(--color-bg-subtle);
-      border-color: var(--color-border);
+    .stat-box .value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1;
     }
 
-    .speaker-name {
+    .stat-box .label {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .stat-box.success .value { color: var(--color-success); }
+    .stat-box.danger .value { color: var(--color-danger); }
+    .stat-box.warning .value { color: var(--color-warning); }
+    .stat-box.info .value { color: var(--color-info); }
+
+    /* Current Vote Card */
+    .vote-card {
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .vote-card.active {
+      background: linear-gradient(135deg, var(--color-warning-subtle), var(--color-surface));
+      border-color: var(--color-warning);
+    }
+
+    .vote-card h2 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0 0 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .vote-card.active h2 {
+      color: var(--color-warning);
+    }
+
+    .vote-card.active h2::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--color-warning);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    .vote-title {
       font-size: 1.5rem;
       font-weight: 700;
+      margin-bottom: 1.5rem;
+      text-align: center;
     }
 
-    .queue-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-
-    .queue-item {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-    }
-
-    .queue-item .position {
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--color-primary);
-      color: white;
-      border-radius: 50%;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .vote-panel {
-      background: var(--color-warning-subtle);
-      border: 2px solid var(--color-warning);
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
-
-    .vote-panel.closed {
-      background: var(--color-success-subtle);
-      border-color: var(--color-success);
-    }
-
-    .vote-panel.no-vote {
-      background: var(--color-bg-subtle);
-      border-color: var(--color-border);
-    }
-
-    .vote-counts {
+    .vote-results {
       display: flex;
       justify-content: center;
       gap: 3rem;
-      margin-top: 1rem;
     }
 
     .vote-count {
       text-align: center;
     }
 
-    .vote-count .value {
-      font-size: 2rem;
+    .vote-count .num {
+      font-size: 3rem;
       font-weight: 700;
+      line-height: 1;
     }
 
-    .vote-count.for .value { color: var(--color-success); }
-    .vote-count.against .value { color: var(--color-danger); }
-    .vote-count.abstain .value { color: var(--color-text-muted); }
-
-    .resolution-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
+    .vote-count .lbl {
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      margin-top: 0.25rem;
     }
 
-    .resolution-item {
+    .vote-count.for .num { color: var(--color-success); }
+    .vote-count.against .num { color: var(--color-danger); }
+    .vote-count.abstain .num { color: var(--color-text-muted); }
+
+    .no-vote {
+      text-align: center;
+      padding: 2rem;
+      color: var(--color-text-muted);
+    }
+
+    .no-vote-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Progress Section */
+    .progress-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .progress-section h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      margin: 0 0 1rem 0;
+    }
+
+    .progress-bar-container {
+      background: var(--color-bg-subtle);
+      border-radius: 8px;
+      height: 12px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--color-success);
+      border-radius: 8px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-label {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+
+    /* Read-only notice */
+    .read-only-footer {
+      text-align: center;
       padding: 1rem;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+
+    /* Update indicator */
+    .update-time {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: 8px;
-    }
-
-    .resolution-item.open {
-      background: var(--color-warning-subtle);
-      border-color: var(--color-warning);
-    }
-
-    .resolution-item.adopted {
-      border-left: 4px solid var(--color-success);
-    }
-
-    .resolution-item.rejected {
-      border-left: 4px solid var(--color-danger);
-    }
-
-    .resolution-status {
-      padding: 0.25rem 0.75rem;
-      border-radius: 4px;
       font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .resolution-status.pending { background: var(--color-bg-subtle); color: var(--color-text-muted); }
-    .resolution-status.open { background: var(--color-warning); color: white; }
-    .resolution-status.adopted { background: var(--color-success); color: white; }
-    .resolution-status.rejected { background: var(--color-danger); color: white; }
-
-    .read-only-notice {
-      background: var(--color-info-subtle);
-      border: 1px solid var(--color-info);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      font-size: 0.875rem;
-      color: var(--color-info);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .header-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      gap: 1rem;
+      color: var(--color-text-muted);
     }
   </style>
 </head>
@@ -223,17 +247,12 @@
 
     <header class="app-header">
       <div class="flex items-center gap-4">
-        <div id="liveIndicator" class="live-badge" style="display: none;">
-          <span class="pulse"></span>
-          <span>EN DIRECT</span>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold">Tableau de bord Président</h1>
-          <p class="text-sm text-secondary" id="meetingTitle">Chargement...</p>
-        </div>
+        <h1 class="text-xl font-bold">Dashboard Président</h1>
       </div>
       <div class="flex items-center gap-2">
-        <span class="text-sm text-muted" id="lastUpdate">—</span>
+        <select class="form-input" id="meetingSelect" style="max-width: 250px;">
+          <option value="">— Séance —</option>
+        </select>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
           ☰
         </button>
@@ -241,109 +260,73 @@
     </header>
 
     <main class="app-main">
-      <div class="container">
-        <!-- No meeting selected -->
-        <div id="noMeetingState" class="text-center p-8">
-          <div class="text-4xl mb-4">📋</div>
-          <h2 class="text-xl font-bold mb-2">Sélectionnez une séance</h2>
-          <p class="text-muted mb-4">Choisissez une séance pour voir le tableau de bord en temps réel.</p>
-          <select class="form-input" id="meetingSelect" style="max-width: 400px; margin: 0 auto;">
-            <option value="">— Chargement des séances —</option>
-          </select>
+      <!-- No meeting selected -->
+      <div id="noMeetingState" class="text-center p-8">
+        <div class="text-4xl mb-4">📊</div>
+        <h2 class="text-xl font-bold mb-2">Sélectionnez une séance</h2>
+        <p class="text-muted">Choisissez une séance pour voir les statistiques en temps réel.</p>
+      </div>
+
+      <!-- Dashboard content -->
+      <div id="dashboardContent" class="dashboard-container" style="display: none;">
+        <!-- Live Header -->
+        <div id="liveHeader" class="live-header not-live">
+          <div class="live-badge" id="liveBadge" style="display: none;">
+            <span class="pulse"></span>
+            <span>EN DIRECT</span>
+          </div>
+          <div class="meeting-title" id="meetingTitle">—</div>
         </div>
 
-        <!-- Dashboard content (hidden until meeting selected) -->
-        <div id="dashboardContent" style="display: none;">
-          <div class="read-only-notice mb-4">
-            <span>👁️</span>
-            <span>Mode observation — Ce tableau de bord se met à jour automatiquement. L'opérateur gère la séance.</span>
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-box success">
+            <div class="value" id="statPresent">0</div>
+            <div class="label">Présents</div>
           </div>
-
-          <!-- Top stats -->
-          <div class="dashboard-grid mb-6">
-            <!-- Current Speaker -->
-            <div class="stat-card">
-              <h3>🎤 Orateur en cours</h3>
-              <div id="currentSpeaker" class="speaker-card no-speaker">
-                <div class="text-muted">Personne n'a la parole</div>
-              </div>
-            </div>
-
-            <!-- Speech Queue -->
-            <div class="stat-card">
-              <h3>✋ File d'attente <span class="badge badge-info ml-2" id="queueCount">0</span></h3>
-              <div id="speechQueue" class="queue-list">
-                <div class="text-center p-4 text-muted">Aucune demande</div>
-              </div>
-            </div>
+          <div class="stat-box info">
+            <div class="value" id="statVoters">0</div>
+            <div class="label">Votants</div>
           </div>
-
-          <!-- Current Vote -->
-          <div class="stat-card mb-6">
-            <h3>🗳️ Vote en cours</h3>
-            <div id="currentVote" class="vote-panel no-vote">
-              <div class="text-center text-muted">Aucun vote ouvert</div>
-            </div>
+          <div class="stat-box success">
+            <div class="value" id="statAdopted">0</div>
+            <div class="label">Adoptées</div>
           </div>
-
-          <!-- Attendance Stats -->
-          <div class="dashboard-grid mb-6">
-            <div class="stat-card">
-              <h3>👥 Présences</h3>
-              <div class="flex gap-6">
-                <div>
-                  <div class="stat-value text-success" id="statPresent">0</div>
-                  <div class="stat-label">Présents</div>
-                </div>
-                <div>
-                  <div class="stat-value text-info" id="statRemote">0</div>
-                  <div class="stat-label">Distants</div>
-                </div>
-                <div>
-                  <div class="stat-value text-warning" id="statExcused">0</div>
-                  <div class="stat-label">Excusés</div>
-                </div>
-                <div>
-                  <div class="stat-value text-muted" id="statAbsent">0</div>
-                  <div class="stat-label">Absents</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <h3>📊 Résolutions</h3>
-              <div class="flex gap-6">
-                <div>
-                  <div class="stat-value" id="statTotal">0</div>
-                  <div class="stat-label">Total</div>
-                </div>
-                <div>
-                  <div class="stat-value text-success" id="statAdopted">0</div>
-                  <div class="stat-label">Adoptées</div>
-                </div>
-                <div>
-                  <div class="stat-value text-danger" id="statRejected">0</div>
-                  <div class="stat-label">Rejetées</div>
-                </div>
-                <div>
-                  <div class="stat-value text-warning" id="statPending">0</div>
-                  <div class="stat-label">En attente</div>
-                </div>
-              </div>
-            </div>
+          <div class="stat-box danger">
+            <div class="value" id="statRejected">0</div>
+            <div class="label">Rejetées</div>
           </div>
+        </div>
 
-          <!-- Resolutions List -->
-          <div class="stat-card">
-            <h3>📋 Liste des résolutions</h3>
-            <div id="resolutionsList" class="resolution-list">
-              <div class="text-center p-4 text-muted">Aucune résolution</div>
-            </div>
+        <!-- Current Vote -->
+        <div id="voteCard" class="vote-card">
+          <h2>Vote en cours</h2>
+          <div id="voteContent" class="no-vote">
+            <div class="no-vote-icon">🗳️</div>
+            <div>Aucun vote ouvert</div>
           </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-section">
+          <h3>Avancement des résolutions</h3>
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+          </div>
+          <div class="progress-label">
+            <span id="progressVoted">0 votées</span>
+            <span id="progressTotal">sur 0</span>
+          </div>
+        </div>
+
+        <div class="read-only-footer">
+          Mode observation — Mise à jour automatique
         </div>
       </div>
     </main>
   </div>
+
+  <div class="update-time" id="updateTime">—</div>
 
   <div class="drawer-backdrop" data-drawer-close></div>
   <aside class="drawer" id="drawer">
@@ -368,34 +351,30 @@
     const noMeetingState = document.getElementById('noMeetingState');
     const dashboardContent = document.getElementById('dashboardContent');
 
-    // Get meeting_id from URL
-    function getMeetingIdFromUrl() {
-      return new URLSearchParams(window.location.search).get('meeting_id');
-    }
-
-    // Load available meetings
+    // Load meetings
     async function loadMeetings() {
       try {
         const { body } = await api('/api/v1/meetings_index.php');
         if (body?.ok && body?.data?.meetings) {
-          meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
+          meetingSelect.innerHTML = '<option value="">— Séance —</option>';
           body.data.meetings.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
-            opt.textContent = `${m.title} (${m.status || 'draft'})`;
+            opt.textContent = m.title;
+            if (m.status === 'live') opt.textContent += ' (en cours)';
             meetingSelect.appendChild(opt);
           });
 
-          // Pre-select from URL or auto-select live meeting
-          const urlMeetingId = getMeetingIdFromUrl();
-          if (urlMeetingId) {
-            meetingSelect.value = urlMeetingId;
-            loadMeetingDashboard(urlMeetingId);
+          // Auto-select from URL or live meeting
+          const urlId = new URLSearchParams(window.location.search).get('meeting_id');
+          if (urlId) {
+            meetingSelect.value = urlId;
+            loadDashboard(urlId);
           } else {
-            const liveMeeting = body.data.meetings.find(m => m.status === 'live');
-            if (liveMeeting) {
-              meetingSelect.value = liveMeeting.id;
-              loadMeetingDashboard(liveMeeting.id);
+            const live = body.data.meetings.find(m => m.status === 'live');
+            if (live) {
+              meetingSelect.value = live.id;
+              loadDashboard(live.id);
             }
           }
         }
@@ -404,13 +383,13 @@
       }
     }
 
-    // Meeting select change
     meetingSelect.addEventListener('change', () => {
-      if (meetingSelect.value) {
+      const id = meetingSelect.value;
+      if (id) {
         const url = new URL(window.location);
-        url.searchParams.set('meeting_id', meetingSelect.value);
+        url.searchParams.set('meeting_id', id);
         window.history.replaceState({}, '', url);
-        loadMeetingDashboard(meetingSelect.value);
+        loadDashboard(id);
       } else {
         noMeetingState.style.display = 'block';
         dashboardContent.style.display = 'none';
@@ -418,206 +397,116 @@
       }
     });
 
-    // Load meeting dashboard
-    async function loadMeetingDashboard(meetingId) {
+    async function loadDashboard(meetingId) {
       currentMeetingId = meetingId;
       noMeetingState.style.display = 'none';
       dashboardContent.style.display = 'block';
 
+      await refreshAll();
+
+      if (pollingInterval) clearInterval(pollingInterval);
+      pollingInterval = setInterval(refreshAll, 2000);
+    }
+
+    async function refreshAll() {
+      if (!currentMeetingId || document.hidden) return;
+
       await Promise.all([
         loadMeetingInfo(),
-        loadSpeechData(),
-        loadMotions(),
-        loadAttendance()
+        loadStats(),
+        loadCurrentVote()
       ]);
 
-      // Start polling
-      if (pollingInterval) clearInterval(pollingInterval);
-      pollingInterval = setInterval(refreshData, 3000);
+      document.getElementById('updateTime').textContent =
+        new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
-    async function refreshData() {
-      if (!currentMeetingId || document.hidden) return;
-      await Promise.all([
-        loadSpeechData(),
-        loadMotions(),
-        loadAttendance()
-      ]);
-      document.getElementById('lastUpdate').textContent =
-        'Mis à jour: ' + new Date().toLocaleTimeString('fr-FR');
-    }
-
-    // Load meeting info
     async function loadMeetingInfo() {
       try {
         const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
         if (body?.ok && body?.data) {
           document.getElementById('meetingTitle').textContent = body.data.title;
           const isLive = body.data.status === 'live';
-          document.getElementById('liveIndicator').style.display = isLive ? 'flex' : 'none';
+          document.getElementById('liveBadge').style.display = isLive ? 'flex' : 'none';
+          document.getElementById('liveHeader').classList.toggle('not-live', !isLive);
         }
       } catch (err) {
         console.error('Meeting info error:', err);
       }
     }
 
-    // Load speech data
-    async function loadSpeechData() {
+    async function loadStats() {
       try {
-        // Current speaker
-        const { body: currentBody } = await api(`/api/v1/speech_current.php?meeting_id=${currentMeetingId}`);
-        const speakerDiv = document.getElementById('currentSpeaker');
+        // Attendance
+        const { body: attBody } = await api(`/api/v1/attendances.php?meeting_id=${currentMeetingId}`);
+        const attendances = attBody?.data?.attendances || [];
+        const present = attendances.filter(a => a.mode === 'present').length;
+        const remote = attendances.filter(a => a.mode === 'remote').length;
+        document.getElementById('statPresent').textContent = present + remote;
+        document.getElementById('statVoters').textContent = present + remote;
 
-        if (currentBody?.ok && currentBody?.data) {
-          speakerDiv.className = 'speaker-card';
-          speakerDiv.innerHTML = `
-            <div class="speaker-name">${escapeHtml(currentBody.data.member_name)}</div>
-            <div class="text-sm text-muted mt-1">En parole depuis ${formatTime(currentBody.data.started_at)}</div>
-          `;
-        } else {
-          speakerDiv.className = 'speaker-card no-speaker';
-          speakerDiv.innerHTML = '<div class="text-muted">Personne n\'a la parole</div>';
-        }
+        // Motions
+        const { body: motBody } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${currentMeetingId}`);
+        const motions = motBody?.data?.motions || [];
+        const closed = motions.filter(m => m.closed_at);
+        const adopted = closed.filter(m => (m.votes_for || 0) > (m.votes_against || 0)).length;
+        const rejected = closed.length - adopted;
 
-        // Queue
-        const { body: queueBody } = await api(`/api/v1/speech_queue.php?meeting_id=${currentMeetingId}`);
-        const queueDiv = document.getElementById('speechQueue');
-        const queueCount = document.getElementById('queueCount');
+        document.getElementById('statAdopted').textContent = adopted;
+        document.getElementById('statRejected').textContent = rejected;
 
-        if (queueBody?.ok && Array.isArray(queueBody?.data) && queueBody.data.length > 0) {
-          queueCount.textContent = queueBody.data.length;
-          queueDiv.innerHTML = queueBody.data.map((req, i) => `
-            <div class="queue-item">
-              <span class="position">${i + 1}</span>
-              <span>${escapeHtml(req.member_name)}</span>
-            </div>
-          `).join('');
-        } else {
-          queueCount.textContent = '0';
-          queueDiv.innerHTML = '<div class="text-center p-4 text-muted">Aucune demande</div>';
-        }
+        // Progress
+        const total = motions.length;
+        const voted = closed.length;
+        const pct = total > 0 ? Math.round((voted / total) * 100) : 0;
+        document.getElementById('progressBar').style.width = pct + '%';
+        document.getElementById('progressVoted').textContent = voted + ' votées';
+        document.getElementById('progressTotal').textContent = 'sur ' + total;
       } catch (err) {
-        console.error('Speech error:', err);
+        console.error('Stats error:', err);
       }
     }
 
-    // Load motions
-    async function loadMotions() {
+    async function loadCurrentVote() {
       try {
         const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${currentMeetingId}`);
         const motions = body?.data?.motions || [];
+        const open = motions.find(m => m.opened_at && !m.closed_at);
 
-        // Stats
-        const open = motions.filter(m => m.opened_at && !m.closed_at);
-        const closed = motions.filter(m => m.closed_at);
-        const pending = motions.filter(m => !m.opened_at && !m.closed_at);
-        const adopted = closed.filter(m => (m.votes_for || 0) > (m.votes_against || 0));
-        const rejected = closed.filter(m => (m.votes_for || 0) <= (m.votes_against || 0));
+        const card = document.getElementById('voteCard');
+        const content = document.getElementById('voteContent');
 
-        document.getElementById('statTotal').textContent = motions.length;
-        document.getElementById('statAdopted').textContent = adopted.length;
-        document.getElementById('statRejected').textContent = rejected.length;
-        document.getElementById('statPending').textContent = pending.length + open.length;
-
-        // Current vote
-        const voteDiv = document.getElementById('currentVote');
-        if (open.length > 0) {
-          const m = open[0];
-          voteDiv.className = 'vote-panel';
-          voteDiv.innerHTML = `
-            <div class="text-center">
-              <div class="font-semibold text-lg">${escapeHtml(m.title)}</div>
-              <div class="vote-counts">
-                <div class="vote-count for">
-                  <div class="value">${m.votes_for || 0}</div>
-                  <div class="text-sm text-muted">Pour</div>
-                </div>
-                <div class="vote-count against">
-                  <div class="value">${m.votes_against || 0}</div>
-                  <div class="text-sm text-muted">Contre</div>
-                </div>
-                <div class="vote-count abstain">
-                  <div class="value">${m.votes_abstain || 0}</div>
-                  <div class="text-sm text-muted">Abstention</div>
-                </div>
+        if (open) {
+          card.classList.add('active');
+          content.innerHTML = `
+            <div class="vote-title">${escapeHtml(open.title)}</div>
+            <div class="vote-results">
+              <div class="vote-count for">
+                <div class="num">${open.votes_for || 0}</div>
+                <div class="lbl">Pour</div>
+              </div>
+              <div class="vote-count against">
+                <div class="num">${open.votes_against || 0}</div>
+                <div class="lbl">Contre</div>
+              </div>
+              <div class="vote-count abstain">
+                <div class="num">${open.votes_abstain || 0}</div>
+                <div class="lbl">Abstention</div>
               </div>
             </div>
           `;
         } else {
-          voteDiv.className = 'vote-panel no-vote';
-          voteDiv.innerHTML = '<div class="text-center text-muted">Aucun vote ouvert</div>';
-        }
-
-        // Resolutions list
-        const listDiv = document.getElementById('resolutionsList');
-        if (motions.length === 0) {
-          listDiv.innerHTML = '<div class="text-center p-4 text-muted">Aucune résolution</div>';
-        } else {
-          listDiv.innerHTML = motions.map((m, i) => {
-            const isOpen = m.opened_at && !m.closed_at;
-            const isClosed = !!m.closed_at;
-            const isAdopted = isClosed && (m.votes_for || 0) > (m.votes_against || 0);
-            const isRejected = isClosed && !isAdopted;
-
-            let statusClass = 'pending';
-            let statusText = 'En attente';
-            let itemClass = '';
-
-            if (isOpen) {
-              statusClass = 'open';
-              statusText = 'Vote ouvert';
-              itemClass = 'open';
-            } else if (isAdopted) {
-              statusClass = 'adopted';
-              statusText = 'Adoptée';
-              itemClass = 'adopted';
-            } else if (isRejected) {
-              statusClass = 'rejected';
-              statusText = 'Rejetée';
-              itemClass = 'rejected';
-            }
-
-            return `
-              <div class="resolution-item ${itemClass}">
-                <div>
-                  <span class="font-medium">${i + 1}. ${escapeHtml(m.title)}</span>
-                  ${isClosed ? `<span class="text-sm text-muted ml-2">(${m.votes_for || 0} pour / ${m.votes_against || 0} contre)</span>` : ''}
-                </div>
-                <span class="resolution-status ${statusClass}">${statusText}</span>
-              </div>
-            `;
-          }).join('');
+          card.classList.remove('active');
+          content.innerHTML = `
+            <div class="no-vote">
+              <div class="no-vote-icon">🗳️</div>
+              <div>Aucun vote ouvert</div>
+            </div>
+          `;
         }
       } catch (err) {
-        console.error('Motions error:', err);
+        console.error('Vote error:', err);
       }
-    }
-
-    // Load attendance
-    async function loadAttendance() {
-      try {
-        const { body } = await api(`/api/v1/attendances.php?meeting_id=${currentMeetingId}`);
-        const attendances = body?.data?.attendances || [];
-
-        const present = attendances.filter(a => a.mode === 'present').length;
-        const remote = attendances.filter(a => a.mode === 'remote').length;
-        const excused = attendances.filter(a => a.mode === 'excused').length;
-        const absent = attendances.filter(a => !a.mode || a.mode === 'absent').length;
-
-        document.getElementById('statPresent').textContent = present;
-        document.getElementById('statRemote').textContent = remote;
-        document.getElementById('statExcused').textContent = excused;
-        document.getElementById('statAbsent').textContent = absent;
-      } catch (err) {
-        console.error('Attendance error:', err);
-      }
-    }
-
-    // Helper: format time
-    function formatTime(dateStr) {
-      if (!dateStr) return '—';
-      const d = new Date(dateStr);
-      return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     }
 
     // Initialize
