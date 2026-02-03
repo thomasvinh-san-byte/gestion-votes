@@ -176,6 +176,10 @@
 
     try {
       const { body } = await api(`/api/v1/attendances.php?meeting_id=${currentMeetingId}`);
+      console.log('[Attendance] API response:', body);
+      if (body?.data?.debug) {
+        console.warn('[Attendance] Debug info:', body.data.debug);
+      }
       attendanceCache = body?.data?.attendances || body?.items || [];
       if (!Array.isArray(attendanceCache)) attendanceCache = [];
       render(attendanceCache);
