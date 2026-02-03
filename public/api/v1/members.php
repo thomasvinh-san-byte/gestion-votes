@@ -13,7 +13,8 @@ $repo = new MemberRepository();
 
 try {
     if ($method === 'GET') {
-        $members = $repo->listByTenant(api_current_tenant_id());
+        // Use listActive() to match AttendanceRepository filter (is_active = true AND deleted_at IS NULL)
+        $members = $repo->listActive(api_current_tenant_id());
         api_ok(['members' => $members]);
 
     } elseif ($method === 'POST') {
