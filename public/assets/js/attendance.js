@@ -1,12 +1,20 @@
-/** attendance.js — Attendance tracking page for AG-VOTE. Must be loaded AFTER utils.js, shared.js and shell.js. */
+/**
+ * attendance.js — Simplified attendance management for AG-VOTE
+ * Requires: utils.js, shared.js, shell.js
+ */
 (function() {
   'use strict';
 
+  // DOM elements
+  const noMeetingAlert = document.getElementById('noMeetingAlert');
+  const mainContent = document.getElementById('mainContent');
+  const memberList = document.getElementById('memberList');
+  const meetingTitle = document.getElementById('meetingTitle');
+  const btnAllPresent = document.getElementById('btnAllPresent');
+
+  // State
   let currentMeetingId = null;
-  let attendanceCache = [];
-  let currentFilter = 'all';
-  const attendanceList = document.getElementById('attendanceList');
-  const searchInput = document.getElementById('searchInput');
+  let members = [];
 
   // Get meeting_id from URL
   function getMeetingIdFromUrl() {
@@ -14,218 +22,107 @@
     return params.get('meeting_id');
   }
 
-  // Check meeting ID
-  currentMeetingId = getMeetingIdFromUrl();
-  if (!currentMeetingId) {
-    setNotif('error', 'Aucune séance sélectionnée');
-    setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
-  }
-
-  // Get initials
+  // Get initials from name
   function getInitials(name) {
-    return (name || '?')
-      .split(' ')
-      .map(w => w[0])
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
+    return (name || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
   }
 
-  // Load meeting info
-  async function loadMeetingInfo() {
-    try {
-      const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
-      if (body && body.ok && body.data) {
-        document.getElementById('meetingTitle').textContent = body.data.title;
-        document.getElementById('meetingName').textContent = body.data.title;
-        document.getElementById('meetingContext').style.display = 'flex';
-      }
-    } catch (err) {
-      console.error('Meeting info error:', err);
-    }
+  // Update stats display
+  function updateStats() {
+    const present = members.filter(m => m.mode === 'present').length;
+    const remote = members.filter(m => m.mode === 'remote').length;
+    const absent = members.filter(m => !m.mode || m.mode === 'absent').length;
+
+    document.getElementById('countPresent').textContent = present;
+    document.getElementById('countRemote').textContent = remote;
+    document.getElementById('countAbsent').textContent = absent;
+    document.getElementById('countTotal').textContent = members.length;
   }
 
-  // Render attendance
-  function render(items) {
-    const query = searchInput.value.toLowerCase().trim();
+  // Sort members: present/remote first, then by name
+  function sortMembers(list) {
+    return [...list].sort((a, b) => {
+      const orderA = a.mode === 'present' ? 0 : a.mode === 'remote' ? 1 : 2;
+      const orderB = b.mode === 'present' ? 0 : b.mode === 'remote' ? 1 : 2;
+      if (orderA !== orderB) return orderA - orderB;
+      return (a.full_name || '').localeCompare(b.full_name || '');
+    });
+  }
 
-    let filtered = items;
-
-    // Apply status filter (API field is 'mode')
-    if (currentFilter !== 'all') {
-      filtered = filtered.filter(a => a.mode === currentFilter);
-    }
-
-    // Apply search filter
-    if (query) {
-      filtered = filtered.filter(a => {
-        const name = (a.full_name || a.member_name || a.name || '').toLowerCase();
-        const email = (a.email || '').toLowerCase();
-        return name.includes(query) || email.includes(query);
-      });
-    }
-
-    document.getElementById('filteredCount').textContent = `${filtered.length} membre${filtered.length > 1 ? 's' : ''}`;
-
-    if (filtered.length === 0) {
-      attendanceList.innerHTML = `
-        <div class="empty-state p-6">
-          <div class="empty-state-icon">👥</div>
-          <div class="empty-state-title">Aucun résultat</div>
-          <div class="empty-state-description">
-            ${query || currentFilter !== 'all' ? 'Modifiez vos filtres' : 'Aucun participant dans cette séance'}
-          </div>
+  // Render member list
+  function render() {
+    if (members.length === 0) {
+      memberList.innerHTML = `
+        <div class="text-center p-6 text-muted">
+          <p>Aucun membre trouvé.</p>
+          <p class="mt-2"><a href="/members.htmx.html" class="btn btn-sm btn-secondary">Ajouter des membres</a></p>
         </div>
       `;
+      updateStats();
       return;
     }
 
-    attendanceList.innerHTML = filtered.map(a => {
-      const name = escapeHtml(a.full_name || a.member_name || a.name || '—');
-      const email = escapeHtml(a.email || '');
-      const power = a.voting_power ?? a.effective_power ?? 1;
-      const status = a.mode || 'absent';
-      const initials = getInitials(a.full_name || a.member_name || a.name);
+    const sorted = sortMembers(members);
+
+    memberList.innerHTML = sorted.map(m => {
+      const mode = m.mode || 'absent';
+      const statusClass = mode === 'present' ? 'is-present' : mode === 'remote' ? 'is-remote' : 'is-absent';
 
       return `
-        <div class="attendance-card ${status}" data-member-id="${a.member_id}">
-          <div class="attendance-info">
-            <div class="attendance-avatar">${initials}</div>
-            <div>
-              <div class="attendance-name">${name}</div>
-              <div class="attendance-meta">${email} · ${power} voix</div>
-            </div>
+        <div class="member-row ${statusClass}" data-member-id="${m.member_id}">
+          <div class="member-info">
+            <div class="member-avatar">${getInitials(m.full_name)}</div>
+            <span class="member-name">${escapeHtml(m.full_name || '—')}</span>
           </div>
-          <div class="status-buttons">
-            <button class="status-btn present ${status === 'present' ? 'active' : ''}"
-                    data-member-id="${a.member_id}" data-status="present">
-              Présent
-            </button>
-            <button class="status-btn remote ${status === 'remote' ? 'active' : ''}"
-                    data-member-id="${a.member_id}" data-status="remote">
-              Distant
-            </button>
-            <button class="status-btn absent ${status === 'absent' ? 'active' : ''}"
-                    data-member-id="${a.member_id}" data-status="absent">
-              Absent
-            </button>
+          <div class="status-btns">
+            <button class="status-btn present ${mode === 'present' ? 'active' : ''}" data-mode="present">Présent</button>
+            <button class="status-btn remote ${mode === 'remote' ? 'active' : ''}" data-mode="remote">Distant</button>
+            <button class="status-btn absent ${mode === 'absent' ? 'active' : ''}" data-mode="absent">Absent</button>
           </div>
         </div>
       `;
     }).join('');
 
-    // Bind status buttons
-    attendanceList.querySelectorAll('.status-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        updateStatus(btn.dataset.memberId, btn.dataset.status);
+    // Bind click handlers
+    memberList.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const row = e.target.closest('.member-row');
+        const memberId = row.dataset.memberId;
+        const mode = btn.dataset.mode;
+        updateMemberStatus(memberId, mode);
       });
     });
+
+    updateStats();
   }
 
-  // Update KPIs
-  function updateKPIs(items) {
-    const total = items.length;
-    const present = items.filter(a => a.mode === 'present').length;
-    const remote = items.filter(a => a.mode === 'remote').length;
-    const proxy = items.filter(a => a.mode === 'proxy').length;
-    const absent = items.filter(a => !a.mode || a.mode === 'absent').length;
-
-    document.getElementById('kpiTotal').textContent = total;
-    document.getElementById('kpiPresent').textContent = present;
-    document.getElementById('kpiRemote').textContent = remote;
-    document.getElementById('kpiProxy').textContent = proxy;
-    document.getElementById('kpiAbsent').textContent = absent;
-  }
-
-  // Load quorum
-  async function loadQuorum() {
-    try {
-      const { body } = await api(`/api/v1/quorum_status.php?meeting_id=${currentMeetingId}`);
-
-      if (body && body.ok && body.data) {
-        const q = body.data;
-        const ratio = Math.round((q.ratio || 0) * 100);
-        const threshold = Math.round((q.threshold || 0.5) * 100);
-
-        document.getElementById('quorumRatio').textContent = `${ratio}% / ${threshold}%`;
-
-        const fill = document.getElementById('quorumFill');
-        fill.style.width = Math.min(100, ratio) + '%';
-        fill.className = `quorum-fill ${q.met ? 'reached' : ratio > 30 ? 'partial' : 'critical'}`;
-
-        document.getElementById('quorumThreshold').style.left = threshold + '%';
-        document.getElementById('quorumCurrent').textContent = `${q.eligible || 0} éligibles`;
-
-        const status = document.getElementById('quorumStatus');
-        status.className = `badge ${q.met ? 'badge-success' : 'badge-warning'}`;
-        status.textContent = q.met ? 'Atteint' : 'Non atteint';
-      }
-    } catch (err) {
-      console.error('Quorum error:', err);
-    }
-  }
-
-  // Load attendance
-  async function loadAttendance() {
-    attendanceList.innerHTML = `
-      <div class="text-center p-6">
-        <div class="spinner"></div>
-        <div class="mt-4 text-muted">Chargement des présences...</div>
-      </div>
-    `;
-
-    try {
-      const { body } = await api(`/api/v1/attendances.php?meeting_id=${currentMeetingId}`);
-      console.log('[Attendance] API response:', body);
-      if (body?.data?.debug) {
-        console.warn('[Attendance] Debug info:', body.data.debug);
-      }
-      attendanceCache = body?.data?.attendances || body?.items || [];
-      if (!Array.isArray(attendanceCache)) attendanceCache = [];
-      render(attendanceCache);
-      updateKPIs(attendanceCache);
-      loadQuorum();
-    } catch (err) {
-      attendanceList.innerHTML = `
-        <div class="alert alert-danger">
-          <span>❌</span>
-          <span>Erreur de chargement: ${escapeHtml(err.message)}</span>
-        </div>
-      `;
-    }
-  }
-
-  // Update status
-  async function updateStatus(memberId, mode) {
+  // Update single member status
+  async function updateMemberStatus(memberId, mode) {
     try {
       const { body } = await api('/api/v1/attendances_upsert.php', {
         meeting_id: currentMeetingId,
         member_id: memberId,
-        mode
+        mode: mode
       });
 
       if (body && body.ok !== false) {
-        // Update cache
-        const item = attendanceCache.find(a => String(a.member_id) === String(memberId));
-        if (item) item.mode = mode;
-
-        render(attendanceCache);
-        updateKPIs(attendanceCache);
-        loadQuorum();
+        // Update local state
+        const member = members.find(m => String(m.member_id) === String(memberId));
+        if (member) member.mode = mode;
+        render();
       } else {
-        setNotif('error', body?.error || 'Erreur mise à jour');
+        setNotif('error', body?.error || 'Erreur');
       }
     } catch (err) {
       setNotif('error', err.message);
     }
   }
 
-  // Mark all present
-  document.getElementById('btnMarkAllPresent').addEventListener('click', async () => {
+  // Mark all as present
+  async function markAllPresent() {
     if (!confirm('Marquer tous les membres comme présents ?')) return;
 
-    const btn = document.getElementById('btnMarkAllPresent');
-    Shared.btnLoading(btn, true);
+    Shared.btnLoading(btnAllPresent, true);
     try {
       const { body } = await api('/api/v1/attendances_bulk.php', {
         meeting_id: currentMeetingId,
@@ -233,47 +130,77 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', '✅ Tous marqués présents');
-        loadAttendance();
+        members.forEach(m => m.mode = 'present');
+        render();
+        setNotif('success', 'Tous marqués présents');
       } else {
         setNotif('error', body?.error || 'Erreur');
       }
     } catch (err) {
       setNotif('error', err.message);
     } finally {
-      Shared.btnLoading(btn, false);
+      Shared.btnLoading(btnAllPresent, false);
     }
-  });
-
-  // Filter tabs
-  document.querySelectorAll('.attendance-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.attendance-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentFilter = tab.dataset.filter;
-      render(attendanceCache);
-    });
-  });
-
-  // Search
-  searchInput.addEventListener('input', () => render(attendanceCache));
-
-  // Polling (5s auto-refresh for multi-operator sync)
-  let pollingInterval = null;
-  function startPolling() {
-    if (pollingInterval) return;
-    pollingInterval = setInterval(() => {
-      if (!document.hidden && currentMeetingId) {
-        loadAttendance();
-      }
-    }, 5000);
   }
-  window.addEventListener('beforeunload', () => { if (pollingInterval) clearInterval(pollingInterval); });
+
+  // Load meeting info
+  async function loadMeetingInfo() {
+    try {
+      const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
+      if (body?.ok && body?.data) {
+        meetingTitle.textContent = body.data.title || 'Séance';
+      }
+    } catch (err) {
+      console.error('Meeting info error:', err);
+    }
+  }
+
+  // Load attendance data
+  async function loadData() {
+    memberList.innerHTML = '<div class="text-center p-6 text-muted">Chargement...</div>';
+
+    try {
+      const { body } = await api(`/api/v1/attendances.php?meeting_id=${currentMeetingId}`);
+      console.log('[Attendance] API response:', body);
+
+      if (body?.data?.debug) {
+        console.warn('[Attendance] Debug:', body.data.debug);
+      }
+
+      members = body?.data?.attendances || [];
+      if (!Array.isArray(members)) members = [];
+
+      render();
+    } catch (err) {
+      memberList.innerHTML = `<div class="alert alert-danger">Erreur: ${escapeHtml(err.message)}</div>`;
+    }
+  }
 
   // Initialize
-  if (currentMeetingId) {
+  function init() {
+    currentMeetingId = getMeetingIdFromUrl();
+
+    if (!currentMeetingId) {
+      noMeetingAlert.style.display = 'block';
+      mainContent.style.display = 'none';
+      return;
+    }
+
+    noMeetingAlert.style.display = 'none';
+    mainContent.style.display = 'block';
+
     loadMeetingInfo();
-    loadAttendance();
-    startPolling();
+    loadData();
+
+    btnAllPresent.addEventListener('click', markAllPresent);
+
+    // Auto-refresh every 10s
+    setInterval(() => {
+      if (!document.hidden && currentMeetingId) {
+        loadData();
+      }
+    }, 10000);
   }
+
+  init();
 })();
