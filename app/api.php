@@ -105,6 +105,13 @@ function require_any_role(array $roles): void {
     api_require_role($roles);
 }
 
+/**
+ * Alias api_require_any_role -> api_require_role (accepts array)
+ */
+function api_require_any_role(string|array $roles): void {
+    api_require_role($roles);
+}
+
 // =============================================================================
 // FONCTIONS API - PARSING REQUÊTE
 // =============================================================================

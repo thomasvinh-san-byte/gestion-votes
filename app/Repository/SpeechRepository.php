@@ -27,6 +27,17 @@ class SpeechRepository extends AbstractRepository
     }
 
     /**
+     * Trouve une demande de parole par son ID.
+     */
+    public function findById(string $id, string $tenantId): ?array
+    {
+        return $this->selectOne(
+            "SELECT * FROM speech_requests WHERE id = :id AND tenant_id = :tid",
+            [':id' => $id, ':tid' => $tenantId]
+        );
+    }
+
+    /**
      * Trouve l'orateur courant (status = speaking) pour une seance.
      */
     public function findCurrentSpeaker(string $meetingId, string $tenantId): ?array
