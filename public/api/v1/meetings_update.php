@@ -25,11 +25,17 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
 
 $title  = array_key_exists('title', $input) ? trim((string)$input['title']) : null;
 $status = array_key_exists('status', $input) ? trim((string)$input['status']) : null;
+$presidentName = array_key_exists('president_name', $input) ? trim((string)$input['president_name']) : null;
+$scheduledAt = array_key_exists('scheduled_at', $input) ? trim((string)$input['scheduled_at']) : null;
 
 if ($title !== null) {
     $len = mb_strlen($title);
     if ($len === 0) api_fail('missing_title', 400, ['detail' => 'Le titre de la séance est obligatoire.']);
     if ($len > 120) api_fail('title_too_long', 400, ['detail' => 'Titre trop long (120 max).']);
+}
+
+if ($presidentName !== null && mb_strlen($presidentName) > 200) {
+    api_fail('president_name_too_long', 400, ['detail' => 'Nom du président trop long (200 max).']);
 }
 
 if ($status !== null) {
@@ -74,6 +80,12 @@ if ($title !== null) {
 }
 if ($status !== null) {
     $fields['status'] = $status;
+}
+if ($presidentName !== null) {
+    $fields['president_name'] = $presidentName;
+}
+if ($scheduledAt !== null) {
+    $fields['scheduled_at'] = $scheduledAt ?: null;
 }
 
 if (!$fields) {
