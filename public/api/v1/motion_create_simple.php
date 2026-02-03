@@ -64,10 +64,6 @@ try {
     $motionRepo = new MotionRepository();
     $motionId = $motionRepo->generateUuid();
 
-    // Get next order number
-    $existingMotions = $motionRepo->listForMeeting($meetingId);
-    $order = count($existingMotions) + 1;
-
     $motionRepo->create(
         $motionId,
         $tenantId,
@@ -91,7 +87,6 @@ try {
     api_ok([
         'motion_id' => $motionId,
         'agenda_id' => $agendaId,
-        'order' => $order,
         'created' => true
     ]);
 
