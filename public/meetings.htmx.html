@@ -211,7 +211,6 @@
       try {
         const { body } = await api('/api/v1/meetings_index.php');
         const meetings = body?.data?.meetings || [];
-        state.meetings = meetings;
         renderMeetings(meetings);
       } catch (err) {
         meetingsList.innerHTML = `
