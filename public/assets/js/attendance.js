@@ -11,6 +11,12 @@
   const memberList = document.getElementById('memberList');
   const meetingTitle = document.getElementById('meetingTitle');
   const btnAllPresent = document.getElementById('btnAllPresent');
+  const btnAddMember = document.getElementById('btnAddMember');
+  const addMemberForm = document.getElementById('addMemberForm');
+  const newMemberName = document.getElementById('newMemberName');
+  const newMemberMode = document.getElementById('newMemberMode');
+  const btnConfirmAdd = document.getElementById('btnConfirmAdd');
+  const btnCancelAdd = document.getElementById('btnCancelAdd');
 
   // State
   let currentMeetingId = null;
@@ -118,6 +124,71 @@
     }
   }
 
+  // Show/hide add member form
+  function showAddMemberForm() {
+    addMemberForm.style.display = 'block';
+    newMemberName.value = '';
+    newMemberName.focus();
+  }
+
+  function hideAddMemberForm() {
+    addMemberForm.style.display = 'none';
+    newMemberName.value = '';
+  }
+
+  // Add new member and mark as present
+  async function addNewMember() {
+    const name = newMemberName.value.trim();
+    const mode = newMemberMode.value;
+
+    if (!name) {
+      setNotif('error', 'Veuillez saisir un nom');
+      newMemberName.focus();
+      return;
+    }
+
+    Shared.btnLoading(btnConfirmAdd, true);
+    try {
+      // Step 1: Create member
+      const { body: createResult } = await api('/api/v1/members.php', {
+        full_name: name
+      });
+
+      if (!createResult || createResult.ok === false) {
+        setNotif('error', createResult?.detail || createResult?.error || 'Erreur de creation');
+        return;
+      }
+
+      const memberId = createResult.data?.id || createResult.id;
+      if (!memberId) {
+        setNotif('error', 'ID membre non retourne');
+        return;
+      }
+
+      // Step 2: Mark as present
+      const { body: attendResult } = await api('/api/v1/attendances_upsert.php', {
+        meeting_id: currentMeetingId,
+        member_id: memberId,
+        mode: mode
+      });
+
+      if (attendResult && attendResult.ok !== false) {
+        setNotif('success', `${name} ajouté et marqué ${mode === 'present' ? 'présent' : 'distant'}`);
+        hideAddMemberForm();
+        loadData(); // Reload the list
+      } else {
+        // Member created but attendance failed - still reload
+        setNotif('warning', 'Membre créé mais erreur de pointage');
+        loadData();
+      }
+
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btnConfirmAdd, false);
+    }
+  }
+
   // Mark all as present
   async function markAllPresent() {
     if (!confirm('Marquer tous les membres comme présents ?')) return;
@@ -192,7 +263,23 @@
     loadMeetingInfo();
     loadData();
 
+    // Event listeners
     btnAllPresent.addEventListener('click', markAllPresent);
+
+    if (btnAddMember) {
+      btnAddMember.addEventListener('click', showAddMemberForm);
+    }
+    if (btnConfirmAdd) {
+      btnConfirmAdd.addEventListener('click', addNewMember);
+    }
+    if (btnCancelAdd) {
+      btnCancelAdd.addEventListener('click', hideAddMemberForm);
+    }
+    if (newMemberName) {
+      newMemberName.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addNewMember();
+      });
+    }
 
     // Auto-refresh every 10s
     setInterval(() => {

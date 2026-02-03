@@ -139,6 +139,26 @@
       color: var(--color-text-muted, #6b7280);
       margin-bottom: 1rem;
     }
+
+    .add-member-form {
+      background: var(--color-bg-subtle, #f9fafb);
+      border: 1px solid var(--color-border, #e5e7eb);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .form-row .form-input {
+      flex: 1;
+      min-width: 150px;
+    }
   </style>
 </head>
 <body>
@@ -188,7 +208,23 @@
                 <span>total</span>
               </div>
             </div>
-            <button class="btn btn-success" id="btnAllPresent">✓ Tous présents</button>
+            <div class="flex gap-2">
+              <button class="btn btn-secondary btn-sm" id="btnAddMember">+ Nouveau</button>
+              <button class="btn btn-success" id="btnAllPresent">✓ Tous présents</button>
+            </div>
+          </div>
+
+          <!-- Inline add member form -->
+          <div class="add-member-form" id="addMemberForm" style="display: none;">
+            <div class="form-row">
+              <input type="text" class="form-input" id="newMemberName" placeholder="Nom complet du membre">
+              <select class="form-input" id="newMemberMode" style="width: auto; flex: 0;">
+                <option value="present">Présent</option>
+                <option value="remote">Distant</option>
+              </select>
+              <button class="btn btn-primary btn-sm" id="btnConfirmAdd">Ajouter</button>
+              <button class="btn btn-ghost btn-sm" id="btnCancelAdd">Annuler</button>
+            </div>
           </div>
 
           <div class="member-list" id="memberList">

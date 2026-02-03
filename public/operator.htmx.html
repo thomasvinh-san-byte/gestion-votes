@@ -263,6 +263,72 @@
       align-items: center;
       gap: 0.25rem;
     }
+
+    /* Status alert */
+    .status-alert {
+      background: var(--color-warning-subtle, #fef3cd);
+      border: 2px solid var(--color-warning, #e8a73e);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .status-alert-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .status-alert-icon {
+      font-size: 1.5rem;
+    }
+
+    .status-alert-text strong {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .status-alert-text p {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      margin: 0;
+    }
+
+    .status-checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding-left: 0.5rem;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .check-item.done {
+      color: var(--color-success);
+    }
+
+    .check-item.pending {
+      color: var(--color-text-muted);
+    }
+
+    .check-item a {
+      color: var(--color-primary);
+      text-decoration: underline;
+    }
+
+    .status-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
   </style>
 </head>
 <body>
@@ -317,6 +383,19 @@
         <div id="noMeetingAlert" class="no-meeting-alert" style="display: none;">
           <h3>Sélectionnez une séance</h3>
           <p class="text-muted mt-2">Choisissez une séance dans la liste ci-dessus pour gérer les votes.</p>
+        </div>
+
+        <!-- Status alert (shown when meeting is not live) -->
+        <div class="status-alert" id="statusAlert" style="display: none;">
+          <div class="status-alert-content">
+            <div class="status-alert-icon">⚠️</div>
+            <div class="status-alert-text">
+              <strong id="statusAlertTitle">Séance en préparation</strong>
+              <p id="statusAlertDesc">Complétez les étapes ci-dessous pour ouvrir la séance.</p>
+            </div>
+          </div>
+          <div class="status-checklist" id="statusChecklist"></div>
+          <div class="status-actions" id="statusActions"></div>
         </div>
 
         <!-- Vote panel (shown when a motion is open) -->
