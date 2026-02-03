@@ -17,10 +17,16 @@
   const newMemberMode = document.getElementById('newMemberMode');
   const btnConfirmAdd = document.getElementById('btnConfirmAdd');
   const btnCancelAdd = document.getElementById('btnCancelAdd');
+  const searchInput = document.getElementById('searchInput');
+  const lockedAlert = document.getElementById('lockedAlert');
+  const actionButtons = document.getElementById('actionButtons');
 
   // State
   let currentMeetingId = null;
+  let currentMeetingStatus = null;
   let members = [];
+  let searchTerm = '';
+  let isLocked = false;
 
   // Get meeting_id from URL
   function getMeetingIdFromUrl() {
@@ -37,10 +43,13 @@
   function updateStats() {
     const present = members.filter(m => m.mode === 'present').length;
     const remote = members.filter(m => m.mode === 'remote').length;
+    const excused = members.filter(m => m.mode === 'excused').length;
     const absent = members.filter(m => !m.mode || m.mode === 'absent').length;
 
     document.getElementById('countPresent').textContent = present;
     document.getElementById('countRemote').textContent = remote;
+    const excusedEl = document.getElementById('countExcused');
+    if (excusedEl) excusedEl.textContent = excused;
     document.getElementById('countAbsent').textContent = absent;
     document.getElementById('countTotal').textContent = members.length;
   }
@@ -48,11 +57,35 @@
   // Sort members: present/remote first, then by name
   function sortMembers(list) {
     return [...list].sort((a, b) => {
-      const orderA = a.mode === 'present' ? 0 : a.mode === 'remote' ? 1 : 2;
-      const orderB = b.mode === 'present' ? 0 : b.mode === 'remote' ? 1 : 2;
+      const orderA = a.mode === 'present' ? 0 : a.mode === 'remote' ? 1 : a.mode === 'excused' ? 2 : 3;
+      const orderB = b.mode === 'present' ? 0 : b.mode === 'remote' ? 1 : b.mode === 'excused' ? 2 : 3;
       if (orderA !== orderB) return orderA - orderB;
       return (a.full_name || '').localeCompare(b.full_name || '');
     });
+  }
+
+  // Filter members by search term
+  function filterMembers(list) {
+    if (!searchTerm) return list;
+    const term = searchTerm.toLowerCase();
+    return list.filter(m => (m.full_name || '').toLowerCase().includes(term));
+  }
+
+  // Update UI based on locked state
+  function updateLockedState() {
+    isLocked = ['validated', 'archived'].includes(currentMeetingStatus);
+
+    if (lockedAlert) {
+      lockedAlert.style.display = isLocked ? 'block' : 'none';
+    }
+
+    if (actionButtons) {
+      actionButtons.style.display = isLocked ? 'none' : 'flex';
+    }
+
+    // Disable buttons if locked
+    if (btnAllPresent) btnAllPresent.disabled = isLocked;
+    if (btnAddMember) btnAddMember.disabled = isLocked;
   }
 
   // Render member list
@@ -68,11 +101,23 @@
       return;
     }
 
-    const sorted = sortMembers(members);
+    const filtered = filterMembers(members);
+    const sorted = sortMembers(filtered);
+
+    if (sorted.length === 0) {
+      memberList.innerHTML = `
+        <div class="text-center p-6 text-muted">
+          <p>Aucun résultat pour "${escapeHtml(searchTerm)}"</p>
+        </div>
+      `;
+      updateStats();
+      return;
+    }
 
     memberList.innerHTML = sorted.map(m => {
       const mode = m.mode || 'absent';
-      const statusClass = mode === 'present' ? 'is-present' : mode === 'remote' ? 'is-remote' : 'is-absent';
+      const statusClass = mode === 'present' ? 'is-present' : mode === 'remote' ? 'is-remote' : mode === 'excused' ? 'is-excused' : 'is-absent';
+      const disabled = isLocked ? 'disabled' : '';
 
       return `
         <div class="member-row ${statusClass}" data-member-id="${m.member_id}">
@@ -81,29 +126,37 @@
             <span class="member-name">${escapeHtml(m.full_name || '—')}</span>
           </div>
           <div class="status-btns">
-            <button class="status-btn present ${mode === 'present' ? 'active' : ''}" data-mode="present">Présent</button>
-            <button class="status-btn remote ${mode === 'remote' ? 'active' : ''}" data-mode="remote">Distant</button>
-            <button class="status-btn absent ${mode === 'absent' ? 'active' : ''}" data-mode="absent">Absent</button>
+            <button class="status-btn present ${mode === 'present' ? 'active' : ''}" data-mode="present" ${disabled}>Présent</button>
+            <button class="status-btn remote ${mode === 'remote' ? 'active' : ''}" data-mode="remote" ${disabled}>Distant</button>
+            <button class="status-btn excused ${mode === 'excused' ? 'active' : ''}" data-mode="excused" ${disabled}>Excusé</button>
+            <button class="status-btn absent ${mode === 'absent' ? 'active' : ''}" data-mode="absent" ${disabled}>Absent</button>
           </div>
         </div>
       `;
     }).join('');
 
-    // Bind click handlers
-    memberList.querySelectorAll('.status-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const row = e.target.closest('.member-row');
-        const memberId = row.dataset.memberId;
-        const mode = btn.dataset.mode;
-        updateMemberStatus(memberId, mode);
+    // Bind click handlers (only if not locked)
+    if (!isLocked) {
+      memberList.querySelectorAll('.status-btn:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const row = e.target.closest('.member-row');
+          const memberId = row.dataset.memberId;
+          const mode = btn.dataset.mode;
+          updateMemberStatus(memberId, mode);
+        });
       });
-    });
+    }
 
     updateStats();
   }
 
   // Update single member status
   async function updateMemberStatus(memberId, mode) {
+    if (isLocked) {
+      setNotif('error', 'Séance verrouillée');
+      return;
+    }
+
     try {
       const { body } = await api('/api/v1/attendances_upsert.php', {
         meeting_id: currentMeetingId,
@@ -126,6 +179,7 @@
 
   // Show/hide add member form
   function showAddMemberForm() {
+    if (isLocked) return;
     addMemberForm.style.display = 'block';
     newMemberName.value = '';
     newMemberName.focus();
@@ -138,6 +192,8 @@
 
   // Add new member and mark as present
   async function addNewMember() {
+    if (isLocked) return;
+
     const name = newMemberName.value.trim();
     const mode = newMemberMode.value;
 
@@ -173,7 +229,7 @@
       });
 
       if (attendResult && attendResult.ok !== false) {
-        setNotif('success', `${name} ajouté et marqué ${mode === 'present' ? 'présent' : 'distant'}`);
+        setNotif('success', `${name} ajouté et marqué ${mode === 'present' ? 'présent' : mode === 'remote' ? 'distant' : mode}`);
         hideAddMemberForm();
         loadData(); // Reload the list
       } else {
@@ -191,6 +247,7 @@
 
   // Mark all as present
   async function markAllPresent() {
+    if (isLocked) return;
     if (!confirm('Marquer tous les membres comme présents ?')) return;
 
     Shared.btnLoading(btnAllPresent, true);
@@ -220,6 +277,8 @@
       const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
       if (body?.ok && body?.data) {
         meetingTitle.textContent = body.data.title || 'Séance';
+        currentMeetingStatus = body.data.status;
+        updateLockedState();
       }
     } catch (err) {
       console.error('Meeting info error:', err);
@@ -278,6 +337,14 @@
     if (newMemberName) {
       newMemberName.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addNewMember();
+      });
+    }
+
+    // Search input
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchTerm = e.target.value.trim();
+        render();
       });
     }
 

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__ . '/../app/Core/Security/CsrfMiddleware.php';
+require_once __DIR__ . '/../../app/Core/Security/CsrfMiddleware.php';
 
 /**
  * Tests unitaires pour CsrfMiddleware

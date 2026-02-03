@@ -151,11 +151,18 @@
       items.push({ done: false, text: 'Créer des résolutions', link: `/motions.htmx.html?meeting_id=${mid}` });
     }
 
-    // Check 4: Policies
+    // Check 4: President assigned
+    if (checks.hasPresident) {
+      items.push({ done: true, text: 'Président assigné' });
+    } else {
+      items.push({ done: false, text: 'Assigner un président (bouton 👔)', link: null });
+    }
+
+    // Check 5: Policies
     if (checks.policiesAssigned) {
       items.push({ done: true, text: 'Politiques configurées' });
     } else {
-      items.push({ done: false, text: 'Configurer quorum/vote (bouton ⚙️)', link: null });
+      items.push({ done: false, text: 'Configurer quorum/vote (bouton 🔧)', link: null });
     }
 
     // Render checklist
@@ -565,6 +572,152 @@
 
   // Register drawers
   if (window.ShellDrawer && window.ShellDrawer.register) {
+    // Roles drawer - assign president/assessors
+    window.ShellDrawer.register('roles', 'Rôles de séance', async function(meetingId, body, esc) {
+      if (!currentMeetingId) {
+        body.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>';
+        return;
+      }
+      body.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement...</div>';
+
+      try {
+        // Load users
+        const usersRes = await api('/api/v1/admin_users.php');
+        const users = usersRes.body?.items || [];
+
+        // Load current meeting roles
+        const rolesRes = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`);
+        const currentRoles = rolesRes.body?.items || [];
+
+        // Find current president
+        const currentPresident = currentRoles.find(r => r.role === 'president');
+        const currentAssessors = currentRoles.filter(r => r.role === 'assessor');
+
+        body.innerHTML = `
+          <div style="padding:8px 0;display:flex;flex-direction:column;gap:16px;">
+            <div class="form-group">
+              <label class="form-label">👔 Président de séance</label>
+              <select class="form-input" id="rolesPresident">
+                <option value="">— Aucun —</option>
+                ${users.map(u => `
+                  <option value="${u.id}" ${currentPresident?.user_id === u.id ? 'selected' : ''}>
+                    ${esc(u.name || u.email || u.id)}
+                  </option>
+                `).join('')}
+              </select>
+              <p class="text-sm text-muted mt-1">Le président peut ouvrir/clôturer la séance et valider les résultats.</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">🎖️ Assesseurs / Scrutateurs</label>
+              <div id="assessorsList" style="display:flex;flex-direction:column;gap:8px;">
+                ${currentAssessors.length === 0 ? '<div class="text-sm text-muted">Aucun assesseur</div>' : ''}
+                ${currentAssessors.map(a => `
+                  <div class="flex items-center gap-2" data-assessor-id="${a.user_id}">
+                    <span class="flex-1">${esc(a.user_name || a.user_id)}</span>
+                    <button class="btn btn-ghost btn-sm btn-remove-assessor" data-user-id="${a.user_id}">✕</button>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="flex gap-2 mt-2">
+                <select class="form-input flex-1" id="newAssessor">
+                  <option value="">Ajouter un assesseur...</option>
+                  ${users.filter(u => !currentAssessors.find(a => a.user_id === u.id)).map(u => `
+                    <option value="${u.id}">${esc(u.name || u.email || u.id)}</option>
+                  `).join('')}
+                </select>
+                <button class="btn btn-secondary btn-sm" id="btnAddAssessor">+</button>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="btnSaveRoles">💾 Enregistrer le président</button>
+          </div>
+        `;
+
+        // Save president
+        body.querySelector('#btnSaveRoles').addEventListener('click', async () => {
+          const presidentId = body.querySelector('#rolesPresident').value;
+          if (!presidentId) {
+            setNotif('warning', 'Sélectionnez un président');
+            return;
+          }
+
+          try {
+            const { body: res } = await api('/api/v1/admin_meeting_roles.php', {
+              action: 'assign',
+              meeting_id: currentMeetingId,
+              user_id: presidentId,
+              role: 'president'
+            });
+
+            if (res?.ok || res?.assigned) {
+              setNotif('success', 'Président assigné');
+              loadWizardStatus(currentMeetingId);
+              updateStatusAlert();
+            } else {
+              setNotif('error', res?.error || 'Erreur');
+            }
+          } catch (err) {
+            setNotif('error', err.message);
+          }
+        });
+
+        // Add assessor
+        body.querySelector('#btnAddAssessor').addEventListener('click', async () => {
+          const userId = body.querySelector('#newAssessor').value;
+          if (!userId) return;
+
+          try {
+            const { body: res } = await api('/api/v1/admin_meeting_roles.php', {
+              action: 'assign',
+              meeting_id: currentMeetingId,
+              user_id: userId,
+              role: 'assessor'
+            });
+
+            if (res?.ok || res?.assigned) {
+              setNotif('success', 'Assesseur ajouté');
+              // Refresh drawer
+              document.querySelector('[data-drawer="roles"]')?.click();
+            } else {
+              setNotif('error', res?.error || 'Erreur');
+            }
+          } catch (err) {
+            setNotif('error', err.message);
+          }
+        });
+
+        // Remove assessor
+        body.querySelectorAll('.btn-remove-assessor').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const userId = btn.dataset.userId;
+
+            try {
+              const { body: res } = await api('/api/v1/admin_meeting_roles.php', {
+                action: 'revoke',
+                meeting_id: currentMeetingId,
+                user_id: userId,
+                role: 'assessor'
+              });
+
+              if (res?.ok || res?.revoked) {
+                setNotif('success', 'Assesseur retiré');
+                btn.closest('[data-assessor-id]')?.remove();
+              } else {
+                setNotif('error', res?.error || 'Erreur');
+              }
+            } catch (err) {
+              setNotif('error', err.message);
+            }
+          });
+        });
+
+      } catch (e) {
+        body.innerHTML = '<div style="padding:16px;" class="text-muted">Erreur de chargement.</div>';
+        console.error('Roles drawer error:', e);
+      }
+    });
+
     // Settings drawer
     window.ShellDrawer.register('settings', 'Réglages de la séance', async function(meetingId, body, esc) {
       if (!currentMeetingId) {
@@ -734,6 +887,124 @@
           // Close drawer
           document.querySelector('[data-drawer-close]')?.click();
         });
+      });
+    });
+
+    // Incident drawer - declare incidents
+    window.ShellDrawer.register('incident', 'Déclarer un incident', async function(meetingId, body, esc) {
+      if (!currentMeetingId) {
+        body.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>';
+        return;
+      }
+
+      const INCIDENT_TYPES = [
+        { value: 'network', label: 'Problème réseau', icon: '📶' },
+        { value: 'hardware', label: 'Problème matériel', icon: '💻' },
+        { value: 'procedural', label: 'Problème procédural', icon: '📋' },
+        { value: 'voter', label: 'Problème votant', icon: '🙋' },
+        { value: 'power', label: 'Coupure électrique', icon: '⚡' },
+        { value: 'other', label: 'Autre', icon: '❓' }
+      ];
+
+      body.innerHTML = `
+        <div style="padding:8px 0;display:flex;flex-direction:column;gap:16px;">
+          <p class="text-sm text-muted">
+            Déclarez tout incident survenu pendant la séance. Ces informations seront enregistrées dans le journal d'audit.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Type d'incident</label>
+            <div id="incidentTypes" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              ${INCIDENT_TYPES.map(t => `
+                <button class="btn btn-secondary incident-type-btn" data-kind="${t.value}">
+                  ${t.icon} ${t.label}
+                </button>
+              `).join('')}
+            </div>
+            <input type="hidden" id="incidentKind" value="">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" id="incidentDetail" rows="3" placeholder="Décrivez l'incident..."></textarea>
+          </div>
+
+          <div id="incidentMsg" style="display:none;"></div>
+
+          <button class="btn btn-warning btn-block" id="btnDeclareIncident" disabled>
+            ⚠️ Déclarer l'incident
+          </button>
+
+          <div class="text-sm text-muted" style="border-top:1px solid var(--color-border);padding-top:12px;">
+            <strong>Incidents déclarés cette séance:</strong>
+            <div id="incidentHistory" class="mt-2">—</div>
+          </div>
+        </div>
+      `;
+
+      const kindInput = body.querySelector('#incidentKind');
+      const detailInput = body.querySelector('#incidentDetail');
+      const btnDeclare = body.querySelector('#btnDeclareIncident');
+      const msgBox = body.querySelector('#incidentMsg');
+
+      // Type selection
+      body.querySelectorAll('.incident-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          body.querySelectorAll('.incident-type-btn').forEach(b => b.classList.remove('btn-primary'));
+          btn.classList.add('btn-primary');
+          btn.classList.remove('btn-secondary');
+          kindInput.value = btn.dataset.kind;
+          validateIncidentForm();
+        });
+      });
+
+      // Validate form
+      function validateIncidentForm() {
+        const hasKind = kindInput.value.length > 0;
+        const hasDetail = detailInput.value.trim().length >= 5;
+        btnDeclare.disabled = !(hasKind && hasDetail);
+      }
+
+      detailInput.addEventListener('input', validateIncidentForm);
+
+      // Submit
+      btnDeclare.addEventListener('click', async () => {
+        if (btnDeclare.disabled) return;
+
+        Shared.btnLoading(btnDeclare, true);
+        try {
+          const { body: res } = await api('/api/v1/vote_incident.php', {
+            kind: kindInput.value,
+            detail: detailInput.value.trim(),
+            meeting_id: currentMeetingId
+          });
+
+          if (res?.ok || res?.saved) {
+            msgBox.style.display = 'block';
+            msgBox.className = 'alert alert-success';
+            msgBox.textContent = 'Incident enregistré dans le journal d\'audit';
+            setNotif('success', 'Incident déclaré');
+
+            // Reset form
+            kindInput.value = '';
+            detailInput.value = '';
+            body.querySelectorAll('.incident-type-btn').forEach(b => {
+              b.classList.remove('btn-primary');
+              b.classList.add('btn-secondary');
+            });
+            validateIncidentForm();
+          } else {
+            msgBox.style.display = 'block';
+            msgBox.className = 'alert alert-danger';
+            msgBox.textContent = res?.error || 'Erreur';
+          }
+        } catch (err) {
+          msgBox.style.display = 'block';
+          msgBox.className = 'alert alert-danger';
+          msgBox.textContent = err.message;
+        } finally {
+          Shared.btnLoading(btnDeclare, false);
+        }
       });
     });
   }
