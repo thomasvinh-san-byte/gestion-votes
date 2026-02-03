@@ -85,8 +85,8 @@
     // Step 1: Membres - Need members in the system
     if (!checks.hasMembers) return 1;
 
-    // Step 2: Présences - Need president and some attendance
-    if (!checks.hasPresident || !checks.hasAttendance) return 2;
+    // Step 2: Présences - Need some attendance (president is optional for demo)
+    if (!checks.hasAttendance) return 2;
 
     // Step 3: Résolutions - Need at least one motion
     if (!checks.hasMotions || !checks.policiesAssigned) return 3;
@@ -339,11 +339,11 @@
       case 'conduct':
         if (!mid) return 'Sélectionnez une séance pour commencer.';
         if (!checks.hasMembers) return 'Ajoutez des <a href="/members.htmx.html">membres</a> avant de continuer.';
-        if (!checks.hasPresident) return 'Assignez un <strong>président</strong> dans l\'onglet Paramètres.';
         if (!checks.hasAttendance) return 'Pointez les <strong>présences</strong> dans l\'onglet Présences.';
         if (!checks.hasMotions) return 'Créez au moins une <strong>résolution</strong> dans l\'onglet Résolutions.';
         if (status === 'draft') return 'La séance est en brouillon. Passez-la en statut <strong>Programmée</strong> ou <strong>En cours</strong>.';
         if (status === 'live' && !checks.quorumMet) return 'Attention : le <strong>quorum</strong> n\'est pas atteint.';
+        if (status === 'live' && !checks.hasPresident) return 'Info : aucun <strong>président</strong> assigné (optionnel).';
         break;
       case 'validate':
         if (!mid) return 'Sélectionnez une séance.';
