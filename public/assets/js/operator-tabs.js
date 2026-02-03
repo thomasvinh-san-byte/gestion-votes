@@ -167,7 +167,9 @@
       loadResolutions(),
       loadPolicies(),
       loadRoles(),
-      loadStatusChecklist()
+      loadStatusChecklist(),
+      loadDashboard(),
+      loadDevices()
     ]);
     populateSettingsForm();
     updateQuickStats();
@@ -456,6 +458,202 @@
       setNotif('error', err.message);
     }
   };
+
+  // =========================================================================
+  // DASHBOARD & DEVICES WIDGETS
+  // =========================================================================
+
+  async function loadDashboard() {
+    if (!currentMeetingId) return;
+
+    try {
+      const { body } = await api(`/api/v1/dashboard.php?meeting_id=${currentMeetingId}`);
+      const d = body?.data || body || {};
+
+      // Show card
+      const card = document.getElementById('dashboardCard');
+      if (card) card.style.display = 'block';
+
+      // Attendance
+      document.getElementById('dashPresentCount').textContent = d.attendance?.present_count ?? '-';
+      document.getElementById('dashEligibleCount').textContent = d.attendance?.eligible_count ?? '-';
+      document.getElementById('dashProxyCount').textContent = d.proxies?.count ?? 0;
+      document.getElementById('dashOpenMotions').textContent = d.openable_motions?.length ?? 0;
+
+      // Current motion
+      const motionDiv = document.getElementById('dashCurrentMotion');
+      if (d.current_motion) {
+        motionDiv.style.display = 'block';
+        document.getElementById('dashMotionTitle').textContent = d.current_motion.title || '—';
+        const votes = d.current_motion_votes || {};
+        document.getElementById('dashVoteFor').textContent = votes.weight_for ?? 0;
+        document.getElementById('dashVoteAgainst').textContent = votes.weight_against ?? 0;
+        document.getElementById('dashVoteAbstain').textContent = votes.weight_abstain ?? 0;
+      } else {
+        motionDiv.style.display = 'none';
+      }
+
+      // Ready to sign
+      const ready = d.ready_to_sign || {};
+      document.getElementById('dashReadySign').style.display = ready.can ? 'block' : 'none';
+      document.getElementById('dashNotReadySign').style.display = ready.can ? 'none' : 'block';
+      if (!ready.can && ready.reasons?.length) {
+        document.getElementById('dashReadyReasons').innerHTML = ready.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('');
+      }
+    } catch (err) {
+      console.error('Dashboard error:', err);
+    }
+  }
+
+  async function loadDevices() {
+    if (!currentMeetingId) return;
+
+    try {
+      const resp = await fetch(`/api/v1/devices_list.php?meeting_id=${currentMeetingId}`, { credentials: 'same-origin' });
+      const data = await resp.json();
+
+      if (!data.ok) return;
+
+      // Show card
+      const card = document.getElementById('devicesCard');
+      if (card) card.style.display = 'block';
+
+      const counts = data.counts || {};
+      document.getElementById('devOnline').textContent = counts.online ?? 0;
+      document.getElementById('devStale').textContent = counts.stale ?? 0;
+      document.getElementById('devOffline').textContent = counts.offline ?? 0;
+      document.getElementById('devBlocked').textContent = counts.blocked ?? 0;
+
+      // Device list (show first 5)
+      const items = data.items || [];
+      const list = document.getElementById('devicesList');
+
+      if (items.length === 0) {
+        list.innerHTML = '<span class="text-muted text-sm">Aucun appareil connecté</span>';
+      } else {
+        const display = items.slice(0, 5);
+        list.innerHTML = display.map(dev => {
+          const statusIcon = dev.status === 'online' ? '🟢' : dev.status === 'stale' ? '🟡' : '⚫';
+          const blocked = dev.is_blocked ? ' 🚫' : '';
+          const battery = dev.battery_pct !== null ? ` ${dev.battery_pct}%` : '';
+          const role = dev.role ? ` (${dev.role})` : '';
+          return `<div class="text-sm">${statusIcon}${blocked} ${escapeHtml(dev.device_id.slice(0, 8))}...${role}${battery}</div>`;
+        }).join('');
+
+        if (items.length > 5) {
+          list.innerHTML += `<div class="text-sm text-muted">+ ${items.length - 5} autres...</div>`;
+        }
+      }
+    } catch (err) {
+      console.error('Devices error:', err);
+    }
+  }
+
+  function showDeviceManagementModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+
+    modal.innerHTML = `
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:80vh;overflow:auto;">
+        <div class="flex items-center justify-between mb-4">
+          <h3 style="margin:0;">📱 Gestion des appareils</h3>
+          <button class="btn btn-sm btn-ghost" id="btnCloseDevices">✕</button>
+        </div>
+        <div id="devicesModalList">
+          <div class="text-center p-4"><div class="spinner"></div></div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.getElementById('btnCloseDevices').onclick = () => modal.remove();
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+    loadDevicesModal(modal);
+  }
+
+  async function loadDevicesModal(modal) {
+    const list = modal.querySelector('#devicesModalList');
+
+    try {
+      const resp = await fetch(`/api/v1/devices_list.php?meeting_id=${currentMeetingId}`, { credentials: 'same-origin' });
+      const data = await resp.json();
+
+      if (!data.ok || !data.items?.length) {
+        list.innerHTML = '<div class="text-center p-4 text-muted">Aucun appareil connecté</div>';
+        return;
+      }
+
+      list.innerHTML = data.items.map(dev => {
+        const statusIcon = dev.status === 'online' ? '🟢' : dev.status === 'stale' ? '🟡' : '⚫';
+        const blocked = dev.is_blocked;
+        const battery = dev.battery_pct !== null ? `🔋 ${dev.battery_pct}%${dev.is_charging ? '⚡' : ''}` : '';
+
+        return `
+          <div class="flex items-center justify-between p-3 border-b" style="border-color:var(--color-border);">
+            <div>
+              <div class="font-medium">${statusIcon} ${escapeHtml(dev.device_id.slice(0, 12))}...</div>
+              <div class="text-xs text-muted">${dev.role || 'inconnu'} • ${dev.ip || '—'} ${battery}</div>
+              ${blocked ? `<div class="text-xs text-danger">🚫 Bloqué: ${escapeHtml(dev.block_reason || '')}</div>` : ''}
+            </div>
+            <div class="flex gap-1">
+              ${blocked
+                ? `<button class="btn btn-xs btn-success btn-unblock" data-device="${dev.device_id}">Débloquer</button>`
+                : `<button class="btn btn-xs btn-warning btn-block" data-device="${dev.device_id}">Bloquer</button>`
+              }
+              <button class="btn btn-xs btn-secondary btn-kick" data-device="${dev.device_id}">Kick</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Bind actions
+      list.querySelectorAll('.btn-block').forEach(btn => {
+        btn.addEventListener('click', () => blockDevice(btn.dataset.device, modal));
+      });
+      list.querySelectorAll('.btn-unblock').forEach(btn => {
+        btn.addEventListener('click', () => unblockDevice(btn.dataset.device, modal));
+      });
+      list.querySelectorAll('.btn-kick').forEach(btn => {
+        btn.addEventListener('click', () => kickDevice(btn.dataset.device, modal));
+      });
+    } catch (err) {
+      list.innerHTML = `<div class="text-center p-4 text-danger">Erreur: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function blockDevice(deviceId, modal) {
+    const reason = prompt('Raison du blocage (optionnel):') || 'Bloqué par opérateur';
+    try {
+      await api('/api/v1/device_block.php', { device_id: deviceId, reason });
+      setNotif('success', 'Appareil bloqué');
+      loadDevicesModal(modal);
+      loadDevices();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function unblockDevice(deviceId, modal) {
+    try {
+      await api('/api/v1/device_unblock.php', { device_id: deviceId });
+      setNotif('success', 'Appareil débloqué');
+      loadDevicesModal(modal);
+      loadDevices();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function kickDevice(deviceId, modal) {
+    try {
+      await api('/api/v1/device_kick.php', { device_id: deviceId, message: 'Reconnexion demandée par opérateur' });
+      setNotif('success', 'Demande de reconnexion envoyée');
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
 
   async function loadStatusChecklist() {
     try {
@@ -758,6 +956,78 @@
     }
   }
 
+  function showImportCSVModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+
+    modal.innerHTML = `
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:500px;width:90%;">
+        <h3 style="margin:0 0 1rem;">📥 Importer des membres (CSV)</h3>
+        <p class="text-muted text-sm mb-3">
+          Format attendu: <code>nom,email,poids</code> (une ligne par membre).<br>
+          L'email et le poids sont optionnels.
+        </p>
+        <div class="form-group mb-3">
+          <label class="form-label">Fichier CSV</label>
+          <input type="file" class="form-input" id="csvFileInput" accept=".csv,.txt">
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Ou coller le contenu</label>
+          <textarea class="form-input" id="csvTextInput" rows="5" placeholder="Jean Dupont,jean@exemple.com,1\nMarie Martin,,2"></textarea>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button class="btn btn-secondary" id="btnCancelImport">Annuler</button>
+          <button class="btn btn-primary" id="btnConfirmImport">Importer</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('btnCancelImport').onclick = () => modal.remove();
+    document.getElementById('btnConfirmImport').onclick = async () => {
+      const fileInput = document.getElementById('csvFileInput');
+      const textInput = document.getElementById('csvTextInput');
+      let csvContent = textInput.value.trim();
+
+      // Read file if selected
+      if (fileInput.files.length > 0) {
+        csvContent = await fileInput.files[0].text();
+      }
+
+      if (!csvContent) {
+        setNotif('error', 'Aucun contenu à importer');
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('csv_content', csvContent);
+
+        const resp = await fetch('/api/v1/members_import_csv.php', {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+          const count = data.data?.imported || 0;
+          setNotif('success', `${count} membre(s) importé(s)`);
+          modal.remove();
+          loadMembers();
+          loadAttendance();
+          loadStatusChecklist();
+        } else {
+          setNotif('error', data.error || 'Erreur import');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    };
+  }
+
   // =========================================================================
   // TAB: RÉSOLUTIONS - Motions
   // =========================================================================
@@ -857,7 +1127,7 @@
         e.stopPropagation();
         if (!confirm('Supprimer cette résolution ?')) return;
         try {
-          await api('/api/v1/motions_delete.php', { motion_id: btn.dataset.motionId, meeting_id: currentMeetingId });
+          await api('/api/v1/motion_delete.php', { motion_id: btn.dataset.motionId, meeting_id: currentMeetingId });
           setNotif('success', 'Résolution supprimée');
           loadResolutions();
           loadStatusChecklist();
@@ -1041,9 +1311,9 @@
     }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>';
 
     // Export links
-    document.getElementById('exportPV').href = `/api/v1/report_pdf.php?meeting_id=${currentMeetingId}`;
-    document.getElementById('exportAttendance').href = `/api/v1/export_attendance.php?meeting_id=${currentMeetingId}`;
-    document.getElementById('exportVotes').href = `/api/v1/export_votes.php?meeting_id=${currentMeetingId}`;
+    document.getElementById('exportPV').href = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${currentMeetingId}`;
+    document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${currentMeetingId}`;
+    document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${currentMeetingId}`;
   }
 
   // =========================================================================
@@ -1081,6 +1351,9 @@
   // Presence search
   document.getElementById('presenceSearch')?.addEventListener('input', renderAttendance);
   document.getElementById('btnMarkAllPresent')?.addEventListener('click', markAllPresent);
+
+  // Import CSV button
+  document.getElementById('btnImportCSV')?.addEventListener('click', showImportCSVModal);
 
   // Resolution search
   document.getElementById('resolutionSearch')?.addEventListener('input', renderResolutions);
@@ -1128,6 +1401,9 @@
   // Launch session button
   document.getElementById('btnLaunchSession')?.addEventListener('click', launchSession);
 
+  // Device management button
+  document.getElementById('btnManageDevices')?.addEventListener('click', showDeviceManagementModal);
+
   // Tab switch buttons
   document.querySelectorAll('[data-tab-switch]').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tabSwitch));
@@ -1140,6 +1416,8 @@
   setInterval(() => {
     if (currentMeetingId && !document.hidden) {
       loadStatusChecklist();
+      loadDashboard();
+      loadDevices();
       if (currentOpenMotion) loadBallots(currentOpenMotion.id);
     }
   }, 5000);
