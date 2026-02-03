@@ -324,10 +324,20 @@ function setNotif(type, message, duration = 5000) {
   // Show container if hidden
   container.classList.remove('hidden');
   container.style.display = 'flex';
-  
+
+  // Limit to 3 toasts max - remove oldest if needed
+  const MAX_TOASTS = 3;
+  const existingToasts = container.querySelectorAll('.toast');
+  if (existingToasts.length >= MAX_TOASTS) {
+    // Remove oldest toasts (first ones in the container)
+    for (let i = 0; i <= existingToasts.length - MAX_TOASTS; i++) {
+      existingToasts[i].remove();
+    }
+  }
+
   // Add to container
   container.appendChild(toast);
-  
+
   // Auto-dismiss
   if (duration > 0) {
     setTimeout(() => {
