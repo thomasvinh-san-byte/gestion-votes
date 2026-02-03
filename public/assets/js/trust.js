@@ -190,17 +190,35 @@
         }
 
         tbody.innerHTML = motions.map(m => {
+          // Compute status from opened_at/closed_at timestamps
+          let status = 'draft';
+          if (m.closed_at) {
+            status = 'closed';
+          } else if (m.opened_at) {
+            status = 'open';
+          }
+
           const statusBadge = {
-            'draft': '<span class="badge badge-neutral">Brouillon</span>',
+            'draft': '<span class="badge badge-neutral">En attente</span>',
             'open': '<span class="badge badge-warning badge-dot">Vote ouvert</span>',
             'closed': '<span class="badge badge-success">Clos</span>'
-          }[m.status] || '<span class="badge">—</span>';
+          }[status] || '<span class="badge">—</span>';
+
+          // Compute decision from vote counts
+          const votesFor = m.votes_for || 0;
+          const votesAgainst = m.votes_against || 0;
+          let decision = m.result || m.decision;
+          if (!decision && status === 'closed') {
+            decision = votesFor > votesAgainst ? 'adopted' : 'rejected';
+          } else if (!decision) {
+            decision = 'pending';
+          }
 
           const decisionBadge = {
             'adopted': '<span class="badge badge-success">Adopté</span>',
             'rejected': '<span class="badge badge-danger">Rejeté</span>',
             'pending': '<span class="badge badge-neutral">En attente</span>'
-          }[m.result] || '<span class="badge badge-neutral">—</span>';
+          }[decision] || '<span class="badge badge-neutral">—</span>';
 
           const total = (m.votes_for || 0) + (m.votes_against || 0) + (m.votes_abstain || 0);
           const isCoherent = m.coherent !== false;
@@ -241,18 +259,23 @@
       const container = document.getElementById('auditLog');
 
       if (body && body.ok && body.data && Array.isArray(body.data.events) && body.data.events.length > 0) {
-        container.innerHTML = body.data.events.map(entry => `
-          <div class="audit-entry">
-            <div class="audit-time">${formatDate(entry.created_at)}</div>
-            <div class="audit-content">
-              <div class="audit-action">${escapeHtml(entry.action)}</div>
-              ${entry.detail ? `<div class="audit-detail">${escapeHtml(entry.detail)}</div>` : ''}
+        container.innerHTML = body.data.events.map(entry => {
+          const time = entry.timestamp || entry.created_at;
+          const detail = entry.message || entry.detail || '';
+          const actionLabel = entry.action_label || entry.action;
+          return `
+            <div class="audit-entry">
+              <div class="audit-time">${formatDate(time)}</div>
+              <div class="audit-content">
+                <div class="audit-action">${escapeHtml(actionLabel)}</div>
+                ${detail ? `<div class="audit-detail">${escapeHtml(detail)}</div>` : ''}
+              </div>
+              <div>
+                <span class="badge badge-neutral">${escapeHtml(entry.actor || 'système')}</span>
+              </div>
             </div>
-            <div>
-              <span class="badge badge-neutral">${entry.actor || 'system'}</span>
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       } else {
         container.innerHTML = `
           <div class="text-center p-6 text-muted">
