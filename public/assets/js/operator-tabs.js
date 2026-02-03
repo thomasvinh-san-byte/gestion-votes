@@ -758,6 +758,78 @@
     }
   }
 
+  function showImportCSVModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+
+    modal.innerHTML = `
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:500px;width:90%;">
+        <h3 style="margin:0 0 1rem;">📥 Importer des membres (CSV)</h3>
+        <p class="text-muted text-sm mb-3">
+          Format attendu: <code>nom,email,poids</code> (une ligne par membre).<br>
+          L'email et le poids sont optionnels.
+        </p>
+        <div class="form-group mb-3">
+          <label class="form-label">Fichier CSV</label>
+          <input type="file" class="form-input" id="csvFileInput" accept=".csv,.txt">
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Ou coller le contenu</label>
+          <textarea class="form-input" id="csvTextInput" rows="5" placeholder="Jean Dupont,jean@exemple.com,1\nMarie Martin,,2"></textarea>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button class="btn btn-secondary" id="btnCancelImport">Annuler</button>
+          <button class="btn btn-primary" id="btnConfirmImport">Importer</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('btnCancelImport').onclick = () => modal.remove();
+    document.getElementById('btnConfirmImport').onclick = async () => {
+      const fileInput = document.getElementById('csvFileInput');
+      const textInput = document.getElementById('csvTextInput');
+      let csvContent = textInput.value.trim();
+
+      // Read file if selected
+      if (fileInput.files.length > 0) {
+        csvContent = await fileInput.files[0].text();
+      }
+
+      if (!csvContent) {
+        setNotif('error', 'Aucun contenu à importer');
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('csv_content', csvContent);
+
+        const resp = await fetch('/api/v1/members_import_csv.php', {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+          const count = data.data?.imported || 0;
+          setNotif('success', `${count} membre(s) importé(s)`);
+          modal.remove();
+          loadMembers();
+          loadAttendance();
+          loadStatusChecklist();
+        } else {
+          setNotif('error', data.error || 'Erreur import');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    };
+  }
+
   // =========================================================================
   // TAB: RÉSOLUTIONS - Motions
   // =========================================================================
@@ -857,7 +929,7 @@
         e.stopPropagation();
         if (!confirm('Supprimer cette résolution ?')) return;
         try {
-          await api('/api/v1/motions_delete.php', { motion_id: btn.dataset.motionId, meeting_id: currentMeetingId });
+          await api('/api/v1/motion_delete.php', { motion_id: btn.dataset.motionId, meeting_id: currentMeetingId });
           setNotif('success', 'Résolution supprimée');
           loadResolutions();
           loadStatusChecklist();
@@ -1041,9 +1113,9 @@
     }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>';
 
     // Export links
-    document.getElementById('exportPV').href = `/api/v1/report_pdf.php?meeting_id=${currentMeetingId}`;
-    document.getElementById('exportAttendance').href = `/api/v1/export_attendance.php?meeting_id=${currentMeetingId}`;
-    document.getElementById('exportVotes').href = `/api/v1/export_votes.php?meeting_id=${currentMeetingId}`;
+    document.getElementById('exportPV').href = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${currentMeetingId}`;
+    document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${currentMeetingId}`;
+    document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${currentMeetingId}`;
   }
 
   // =========================================================================
@@ -1081,6 +1153,9 @@
   // Presence search
   document.getElementById('presenceSearch')?.addEventListener('input', renderAttendance);
   document.getElementById('btnMarkAllPresent')?.addEventListener('click', markAllPresent);
+
+  // Import CSV button
+  document.getElementById('btnImportCSV')?.addEventListener('click', showImportCSVModal);
 
   // Resolution search
   document.getElementById('resolutionSearch')?.addEventListener('input', renderResolutions);
