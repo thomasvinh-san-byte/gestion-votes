@@ -1,16 +1,19 @@
 /**
- * motions.js — Resolutions/motions management for AG-VOTE.
- *
+ * motions.js — Simplified motions management for AG-VOTE.
  * Must be loaded AFTER utils.js, shared.js and shell.js.
- * Handles: motions list, create, open vote, close vote,
- *          KPI updates, seed attendances (dev).
  */
 (function() {
   'use strict';
 
   let currentMeetingId = null;
-  let motionsCache = [];
   const motionsList = document.getElementById('motionsList');
+  const noMeetingAlert = document.getElementById('noMeetingAlert');
+  const mainContent = document.getElementById('mainContent');
+  const meetingTitle = document.getElementById('meetingTitle');
+  const statTotal = document.getElementById('statTotal');
+  const statOpen = document.getElementById('statOpen');
+  const statClosed = document.getElementById('statClosed');
+  const statPending = document.getElementById('statPending');
 
   // Get meeting_id from URL
   function getMeetingIdFromUrl() {
@@ -21,8 +24,11 @@
   // Check meeting ID
   currentMeetingId = getMeetingIdFromUrl();
   if (!currentMeetingId) {
-    setNotif('error', 'Aucune séance sélectionnée');
-    setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
+    noMeetingAlert.style.display = 'block';
+    mainContent.style.display = 'none';
+  } else {
+    noMeetingAlert.style.display = 'none';
+    mainContent.style.display = 'block';
   }
 
   // Load meeting info
@@ -30,9 +36,7 @@
     try {
       const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
       if (body && body.ok && body.data) {
-        document.getElementById('meetingTitle').textContent = body.data.title;
-        document.getElementById('meetingName').textContent = body.data.title;
-        document.getElementById('meetingContext').style.display = 'flex';
+        meetingTitle.textContent = body.data.title;
       }
     } catch (err) {
       console.error('Meeting info error:', err);
@@ -41,109 +45,68 @@
 
   // Render motions
   function render(motions) {
+    // Update stats
+    const open = motions.filter(m => m.opened_at && !m.closed_at).length;
+    const closed = motions.filter(m => m.closed_at).length;
+    const pending = motions.filter(m => !m.opened_at).length;
+
+    statTotal.textContent = motions.length;
+    statOpen.textContent = open;
+    statClosed.textContent = closed;
+    statPending.textContent = pending;
+
     if (!motions || motions.length === 0) {
       motionsList.innerHTML = `
-        <div class="card">
-          <div class="empty-state p-8">
-            <div class="empty-state-icon">📋</div>
-            <div class="empty-state-title">Aucune résolution</div>
-            <div class="empty-state-description">
-              Ajoutez des résolutions à l'ordre du jour
-            </div>
-            <button class="btn btn-primary mt-4" id="btnAddEmpty">
-              ➕ Ajouter une résolution
-            </button>
-          </div>
+        <div class="empty-state-inline">
+          <p>Aucune résolution</p>
+          <button class="btn btn-primary btn-sm mt-4" id="btnAddEmpty">➕ Ajouter une résolution</button>
         </div>
       `;
       document.getElementById('btnAddEmpty')?.addEventListener('click', openModal);
       return;
     }
 
-    // Update KPIs
-    const open = motions.filter(m => m.opened_at && !m.closed_at).length;
-    const closed = motions.filter(m => m.closed_at).length;
-    const pending = motions.filter(m => !m.opened_at).length;
-
-    document.getElementById('kpiTotal').textContent = motions.length;
-    document.getElementById('kpiOpen').textContent = open;
-    document.getElementById('kpiClosed').textContent = closed;
-    document.getElementById('kpiPending').textContent = pending;
-
     motionsList.innerHTML = motions.map((m, i) => {
       const title = escapeHtml(m.motion_title || m.title || '(sans titre)');
-      const desc = escapeHtml(m.motion_description || m.description || '');
       const isOpen = m.opened_at && !m.closed_at;
       const isClosed = !!m.closed_at;
       const isPending = !m.opened_at;
 
-      const statusClass = isOpen ? 'open' : (isClosed ? 'closed' : '');
-      const statusBadge = isOpen
-        ? '<span class="badge badge-warning badge-dot">Vote ouvert</span>'
-        : (isClosed
-          ? '<span class="badge badge-success">Terminé</span>'
-          : '<span class="badge badge-neutral">En attente</span>');
+      const statusClass = isOpen ? 'is-open' : (isClosed ? 'is-closed' : '');
+      const statusText = isOpen ? 'Vote en cours' : (isClosed ? 'Terminé' : 'En attente');
 
-      const policies = [];
-      if (m.secret) policies.push('<span class="badge badge-danger">🔒 Secret</span>');
-      if (m.vote_policy_name) policies.push(`<span class="badge">Majorité: ${escapeHtml(m.vote_policy_name)}</span>`);
-      if (m.quorum_policy_name) policies.push(`<span class="badge">Quorum: ${escapeHtml(m.quorum_policy_name)}</span>`);
+      let resultHtml = '';
+      if (isClosed) {
+        const resultClass = m.result === 'adopted' ? 'result-adopted' : (m.result === 'rejected' ? 'result-rejected' : '');
+        const resultLabel = m.result === 'adopted' ? '✓ Adopté' : (m.result === 'rejected' ? '✗ Rejeté' : '—');
+        resultHtml = `
+          <div class="results-inline">
+            <span style="color:var(--color-success)">✓ ${m.votes_for || 0}</span>
+            <span style="color:var(--color-danger)">✗ ${m.votes_against || 0}</span>
+            <span>⚪ ${m.votes_abstain || 0}</span>
+            <span class="result-badge ${resultClass}">${resultLabel}</span>
+          </div>
+        `;
+      }
 
-      const results = isClosed ? `
-        <div class="motion-results">
-          <div class="motion-result-item">
-            <div class="motion-result-value text-success">${m.votes_for || 0}</div>
-            <div class="motion-result-label">Pour</div>
-          </div>
-          <div class="motion-result-item">
-            <div class="motion-result-value text-danger">${m.votes_against || 0}</div>
-            <div class="motion-result-label">Contre</div>
-          </div>
-          <div class="motion-result-item">
-            <div class="motion-result-value">${m.votes_abstain || 0}</div>
-            <div class="motion-result-label">Abstention</div>
-          </div>
-          <div class="motion-result-item">
-            ${m.result === 'adopted'
-              ? '<span class="badge badge-success badge-lg">✓ Adopté</span>'
-              : (m.result === 'rejected'
-                ? '<span class="badge badge-danger badge-lg">✗ Rejeté</span>'
-                : '<span class="badge badge-neutral">—</span>')}
-          </div>
-        </div>
-      ` : '';
+      let actionBtn = '';
+      if (isPending) {
+        actionBtn = `<button class="btn btn-primary btn-sm btn-open-vote" data-motion-id="${m.id}">Ouvrir</button>`;
+      } else if (isOpen) {
+        actionBtn = `<button class="btn btn-secondary btn-sm btn-close-vote" data-motion-id="${m.id}">Clôturer</button>`;
+      }
 
-      const actions = isPending ? `
-        <button class="btn btn-primary btn-open-vote" data-motion-id="${m.id}">
-          ▶️ Ouvrir le vote
-        </button>
-      ` : (isOpen ? `
-        <button class="btn btn-secondary btn-close-vote" data-motion-id="${m.id}">
-          ⏹️ Clôturer
-        </button>
-      ` : '');
+      const secretBadge = m.secret ? '<span class="badge badge-sm">🔒</span>' : '';
 
       return `
-        <div class="motion-card ${statusClass}">
-          <div class="motion-header">
-            <div class="flex items-start gap-4">
-              <div class="motion-number">${i + 1}</div>
-              <div>
-                <div class="motion-title">${title}</div>
-                ${desc ? `<div class="motion-desc">${desc}</div>` : ''}
-                ${policies.length ? `<div class="motion-policies">${policies.join('')}</div>` : ''}
-              </div>
-            </div>
-            ${statusBadge}
+        <div class="motion-row ${statusClass}">
+          <div class="motion-number">${i + 1}</div>
+          <div class="motion-info">
+            <div class="motion-title">${title} ${secretBadge}</div>
+            <div class="motion-meta">${statusText}</div>
           </div>
-          ${results || actions ? `
-            <div class="motion-footer">
-              ${results}
-              <div class="flex gap-2">
-                ${actions}
-              </div>
-            </div>
-          ` : ''}
+          ${resultHtml}
+          <div class="motion-actions">${actionBtn}</div>
         </div>
       `;
     }).join('');
@@ -160,23 +123,15 @@
 
   // Load motions
   async function loadMotions() {
-    motionsList.innerHTML = `
-      <div class="text-center p-6">
-        <div class="spinner"></div>
-        <div class="mt-4 text-muted">Chargement des résolutions...</div>
-      </div>
-    `;
+    motionsList.innerHTML = '<div class="text-center p-6 text-muted">Chargement...</div>';
 
     try {
       const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${currentMeetingId}`);
-      motionsCache = body?.data?.motions || body?.items || body?.motions || [];
-      render(motionsCache);
+      const motions = body?.data?.motions || body?.items || body?.motions || [];
+      render(motions);
     } catch (err) {
       motionsList.innerHTML = `
-        <div class="alert alert-danger">
-          <span>❌</span>
-          <span>Erreur de chargement: ${escapeHtml(err.message)}</span>
-        </div>
+        <div class="alert alert-danger">Erreur: ${escapeHtml(err.message)}</div>
       `;
     }
   }
@@ -192,10 +147,10 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', '🗳️ Vote ouvert');
+        setNotif('success', 'Vote ouvert');
         loadMotions();
       } else {
-        setNotif('error', body?.error || 'Erreur ouverture vote');
+        setNotif('error', body?.error || 'Erreur');
         Shared.btnLoading(btn, false);
       }
     } catch (err) {
@@ -206,7 +161,7 @@
 
   // Close vote
   async function closeVote(motionId) {
-    if (!confirm('Clôturer ce vote ? Cette action calculera le résultat définitif.')) return;
+    if (!confirm('Clôturer ce vote ?')) return;
 
     const btn = motionsList.querySelector(`.btn-close-vote[data-motion-id="${motionId}"]`);
     Shared.btnLoading(btn, true);
@@ -217,10 +172,10 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', '✅ Vote clôturé');
+        setNotif('success', 'Vote clôturé');
         loadMotions();
       } else {
-        setNotif('error', body?.error || 'Erreur clôture vote');
+        setNotif('error', body?.error || 'Erreur');
         Shared.btnLoading(btn, false);
       }
     } catch (err) {
@@ -254,15 +209,13 @@
   document.getElementById('btnCancelModal').addEventListener('click', closeModal);
   backdrop.addEventListener('click', closeModal);
 
-  // Get or create a default agenda for the meeting, returns agenda_id
+  // Get or create a default agenda
   async function getOrCreateAgenda() {
-    // First try to find an existing agenda
     const { body: listBody } = await api(`/api/v1/agendas.php?meeting_id=${currentMeetingId}`);
     const existing = listBody?.data?.agendas || [];
     if (existing.length > 0) {
       return existing[0].id;
     }
-    // None found — create a default one
     const { body: createBody } = await api('/api/v1/agendas.php', {
       meeting_id: currentMeetingId,
       title: 'Résolutions'
@@ -297,11 +250,11 @@
       });
 
       if (body && body.ok !== false) {
-        setNotif('success', '✅ Résolution créée');
+        setNotif('success', 'Résolution créée');
         closeModal();
         loadMotions();
       } else {
-        setNotif('error', body?.error || 'Erreur création');
+        setNotif('error', body?.error || 'Erreur');
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -310,28 +263,7 @@
     }
   });
 
-  // Seed attendances
-  document.getElementById('btnSeedAttend').addEventListener('click', async () => {
-    const limit = prompt('Combien de présences à créer ? (0 = tous)', '0');
-    if (limit === null) return;
-
-    try {
-      const { body } = await api('/api/v1/dev_seed_attendances.php', {
-        meeting_id: currentMeetingId,
-        limit: parseInt(limit) || 0
-      });
-
-      if (body && body.ok) {
-        setNotif('success', '🧪 Présences générées');
-      } else {
-        setNotif('warning', 'Seed non disponible');
-      }
-    } catch (err) {
-      setNotif('warning', 'Endpoint seed non disponible');
-    }
-  });
-
-  // Polling (5s auto-refresh for vote state sync)
+  // Auto-refresh
   let pollingInterval = null;
   function startPolling() {
     if (pollingInterval) return;

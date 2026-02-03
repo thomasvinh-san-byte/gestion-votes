@@ -1,24 +1,27 @@
-/** proxies.js — Proxy management page for AG-VOTE. Must be loaded AFTER utils.js, shared.js and shell.js. */
+/**
+ * proxies.js — Simplified proxy management for AG-VOTE.
+ * Must be loaded AFTER utils.js, shared.js and shell.js.
+ */
 (function() {
   'use strict';
 
   let currentMeetingId = null;
   let proxiesCache = [];
   let membersCache = [];
+  let maxProxiesPerMember = 3;
+
   const proxiesList = document.getElementById('proxiesList');
   const searchInput = document.getElementById('searchInput');
+  const noMeetingAlert = document.getElementById('noMeetingAlert');
+  const mainContent = document.getElementById('mainContent');
+  const meetingTitle = document.getElementById('meetingTitle');
+  const statTotal = document.getElementById('statTotal');
+  const statVoices = document.getElementById('statVoices');
 
   // Get meeting_id from URL
   function getMeetingIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
     return params.get('meeting_id');
-  }
-
-  // Check meeting ID
-  currentMeetingId = getMeetingIdFromUrl();
-  if (!currentMeetingId) {
-    setNotif('error', 'Aucune séance sélectionnée');
-    setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
   }
 
   // Get initials
@@ -31,17 +34,25 @@
       .toUpperCase();
   }
 
+  // Check meeting ID
+  currentMeetingId = getMeetingIdFromUrl();
+  if (!currentMeetingId) {
+    noMeetingAlert.style.display = 'block';
+    mainContent.style.display = 'none';
+  } else {
+    noMeetingAlert.style.display = 'none';
+    mainContent.style.display = 'block';
+  }
+
   // Load meeting info
   async function loadMeetingInfo() {
     try {
       const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
       if (body && body.ok && body.data) {
-        document.getElementById('meetingTitle').textContent = body.data.title;
-        document.getElementById('meetingName').textContent = body.data.title;
-        document.getElementById('meetingContext').style.display = 'flex';
-
+        meetingTitle.textContent = body.data.title;
         if (body.data.max_proxies_per_member) {
-          document.getElementById('maxProxies').textContent = body.data.max_proxies_per_member;
+          maxProxiesPerMember = body.data.max_proxies_per_member;
+          document.getElementById('maxProxies').textContent = maxProxiesPerMember;
         }
       }
     } catch (err) {
@@ -62,8 +73,8 @@
         `<option value="${m.id}">${escapeHtml(m.full_name || m.name)}</option>`
       ).join('');
 
-      giverSelect.innerHTML = '<option value="">— Sélectionner un membre —</option>' + options;
-      receiverSelect.innerHTML = '<option value="">— Sélectionner un membre —</option>' + options;
+      giverSelect.innerHTML = '<option value="">— Sélectionner —</option>' + options;
+      receiverSelect.innerHTML = '<option value="">— Sélectionner —</option>' + options;
     } catch (err) {
       console.error('Members error:', err);
     }
@@ -82,18 +93,19 @@
       });
     }
 
-    document.getElementById('proxiesCount').textContent = `${filtered.length} procuration${filtered.length > 1 ? 's' : ''} active${filtered.length > 1 ? 's' : ''}`;
+    // Update stats
+    statTotal.textContent = proxies.length;
+    const voices = proxies.reduce((sum, p) => sum + (parseFloat(p.voting_power) || 1), 0);
+    statVoices.textContent = voices;
 
     if (filtered.length === 0) {
       proxiesList.innerHTML = `
-        <div class="empty-state p-6">
-          <div class="empty-state-icon">📝</div>
-          <div class="empty-state-title">Aucune procuration</div>
-          <div class="empty-state-description">
-            ${query ? 'Aucun résultat pour cette recherche' : 'Créez une procuration pour déléguer un vote'}
-          </div>
+        <div class="empty-state-inline">
+          <p>${query ? 'Aucun résultat' : 'Aucune procuration'}</p>
+          ${!query ? '<button class="btn btn-primary btn-sm mt-4" id="btnAddEmpty">➕ Ajouter</button>' : ''}
         </div>
       `;
+      document.getElementById('btnAddEmpty')?.addEventListener('click', openModal);
       return;
     }
 
@@ -102,31 +114,19 @@
       const receiverName = escapeHtml(p.receiver_name || '—');
       const giverInitials = getInitials(p.giver_name);
       const receiverInitials = getInitials(p.receiver_name);
-      const power = parseFloat(p.voting_power) || 1;
 
       return `
-        <div class="proxy-card">
+        <div class="proxy-row">
           <div class="proxy-member">
             <div class="proxy-avatar giver">${giverInitials}</div>
-            <div>
-              <div class="proxy-name">${giverName}</div>
-              <div class="proxy-meta">Mandant · ${power} voix</div>
-            </div>
+            <span class="proxy-name">${giverName}</span>
           </div>
-
-          <div class="proxy-arrow">→</div>
-
+          <span class="proxy-arrow">→</span>
           <div class="proxy-member">
             <div class="proxy-avatar receiver">${receiverInitials}</div>
-            <div>
-              <div class="proxy-name">${receiverName}</div>
-              <div class="proxy-meta">Mandataire</div>
-            </div>
+            <span class="proxy-name">${receiverName}</span>
           </div>
-
-          <button class="btn btn-ghost btn-sm btn-delete" data-proxy-id="${p.id}">
-            🗑️
-          </button>
+          <button class="btn btn-ghost btn-sm btn-delete" data-proxy-id="${p.id}">🗑️</button>
         </div>
       `;
     }).join('');
@@ -137,39 +137,17 @@
     });
   }
 
-  // Update KPIs
-  function updateKPIs(proxies) {
-    const total = proxies.length;
-    const givers = new Set(proxies.map(p => p.giver_id)).size;
-    const receivers = new Set(proxies.map(p => p.receiver_id)).size;
-    const voices = proxies.reduce((sum, p) => sum + (parseFloat(p.voting_power) || 1), 0);
-
-    document.getElementById('kpiTotal').textContent = total;
-    document.getElementById('kpiGivers').textContent = givers;
-    document.getElementById('kpiReceivers').textContent = receivers;
-    document.getElementById('kpiVoicesDelegated').textContent = voices;
-  }
-
   // Load proxies
   async function loadProxies() {
-    proxiesList.innerHTML = `
-      <div class="text-center p-6">
-        <div class="spinner"></div>
-        <div class="mt-4 text-muted">Chargement des procurations...</div>
-      </div>
-    `;
+    proxiesList.innerHTML = '<div class="text-center p-6 text-muted">Chargement...</div>';
 
     try {
       const { body } = await api(`/api/v1/proxies.php?meeting_id=${currentMeetingId}`);
       proxiesCache = body?.data?.proxies || [];
       render(proxiesCache);
-      updateKPIs(proxiesCache);
     } catch (err) {
       proxiesList.innerHTML = `
-        <div class="alert alert-danger">
-          <span>❌</span>
-          <span>Erreur de chargement: ${escapeHtml(err.message)}</span>
-        </div>
+        <div class="alert alert-danger">Erreur: ${escapeHtml(err.message)}</div>
       `;
     }
   }
@@ -185,10 +163,10 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', '✅ Procuration supprimée');
+        setNotif('success', 'Procuration supprimée');
         loadProxies();
       } else {
-        setNotif('error', body?.error || 'Erreur suppression');
+        setNotif('error', body?.error || 'Erreur');
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -231,7 +209,7 @@
     }
 
     if (giverId === receiverId) {
-      warning.style.display = 'flex';
+      warning.style.display = 'block';
       document.getElementById('proxyWarningText').textContent =
         'Un membre ne peut pas se donner procuration à lui-même';
       return false;
@@ -240,7 +218,7 @@
     // Check if giver already gave proxy
     const existing = proxiesCache.find(p => String(p.giver_id) === String(giverId));
     if (existing) {
-      warning.style.display = 'flex';
+      warning.style.display = 'block';
       document.getElementById('proxyWarningText').textContent =
         'Ce membre a déjà donné procuration';
       return false;
@@ -248,11 +226,10 @@
 
     // Check max proxies
     const receiverProxies = proxiesCache.filter(p => String(p.receiver_id) === String(receiverId)).length;
-    const maxProxies = parseInt(document.getElementById('maxProxies').textContent) || 3;
-    if (receiverProxies >= maxProxies) {
-      warning.style.display = 'flex';
+    if (receiverProxies >= maxProxiesPerMember) {
+      warning.style.display = 'block';
       document.getElementById('proxyWarningText').textContent =
-        `Ce mandataire a déjà ${receiverProxies} procurations (max: ${maxProxies})`;
+        `Ce mandataire a déjà ${receiverProxies} procurations (max: ${maxProxiesPerMember})`;
       return false;
     }
 
@@ -278,6 +255,8 @@
       return;
     }
 
+    const btn = document.getElementById('btnSaveProxy');
+    Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/proxies_upsert.php', {
         meeting_id: currentMeetingId,
@@ -286,21 +265,23 @@
       });
 
       if (body && body.ok !== false) {
-        setNotif('success', '✅ Procuration créée');
+        setNotif('success', 'Procuration créée');
         closeModal();
         loadProxies();
       } else {
-        setNotif('error', body?.error || 'Erreur création');
+        setNotif('error', body?.error || 'Erreur');
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
     }
   });
 
   // Search
   searchInput.addEventListener('input', () => render(proxiesCache));
 
-  // Polling (5s auto-refresh for multi-operator sync)
+  // Auto-refresh
   let pollingInterval = null;
   function startPolling() {
     if (pollingInterval) return;

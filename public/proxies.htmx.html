@@ -7,157 +7,153 @@
   <meta name="description" content="Gestion des procurations - AG-VOTE">
   <title>Procurations — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <style>
-    .proxy-card {
+    .proxies-header {
       display: flex;
       align-items: center;
-      gap: var(--space-4);
-      padding: var(--space-4);
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .proxies-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .proxies-stats .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .proxies-stats .stat-value {
+      font-weight: 700;
+      min-width: 1.5rem;
+    }
+
+    .proxy-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .proxy-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
       background: var(--color-surface);
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      margin-bottom: var(--space-3);
+      border-radius: 8px;
+      transition: border-color 0.15s;
     }
-    
-    .proxy-card:hover {
+
+    .proxy-row:hover {
       border-color: var(--color-primary);
-      box-shadow: var(--shadow-sm);
     }
-    
+
     .proxy-member {
       display: flex;
       align-items: center;
-      gap: var(--space-3);
+      gap: 0.5rem;
       flex: 1;
+      min-width: 0;
     }
-    
+
     .proxy-avatar {
-      width: 40px;
-      height: 40px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--color-bg-subtle);
-      border-radius: 50%;
-      font-weight: var(--font-bold);
-      font-size: var(--text-sm);
+      font-weight: 600;
+      font-size: 0.75rem;
+      flex-shrink: 0;
     }
-    
+
     .proxy-avatar.giver {
       background: var(--color-warning-subtle);
       color: var(--color-warning-text);
     }
-    
+
     .proxy-avatar.receiver {
       background: var(--color-success-subtle);
       color: var(--color-success-text);
     }
-    
-    .proxy-arrow {
-      font-size: var(--text-xl);
-      color: var(--color-text-muted);
-    }
-    
+
     .proxy-name {
-      font-weight: var(--font-medium);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    
-    .proxy-meta {
-      font-size: var(--text-sm);
+
+    .proxy-arrow {
       color: var(--color-text-muted);
+      flex-shrink: 0;
     }
-    
-    .proxy-rule {
-      padding: var(--space-3) var(--space-4);
-      background: var(--color-info-subtle);
-      border-radius: var(--radius-md);
-      font-size: var(--text-sm);
+
+    .no-meeting-alert {
+      text-align: center;
+      padding: 3rem;
+      background: var(--color-bg-subtle);
+      border-radius: 8px;
+    }
+
+    .empty-state-inline {
+      text-align: center;
+      padding: 2rem;
+      color: var(--color-text-muted);
     }
   </style>
 </head>
 <body>
   <div class="app-shell">
-        <!-- Sidebar -->
     <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
 
-    <!-- Header -->
     <header class="app-header">
-      <div class="flex items-center gap-4">
-        <div>
-          <h1 class="text-xl font-bold">📝 Procurations</h1>
-          <p class="text-sm text-secondary" id="meetingTitle">Gestion des pouvoirs</p>
-        </div>
+      <div>
+        <h1 class="text-xl font-bold">Procurations</h1>
+        <p class="text-sm text-secondary" id="meetingTitle">—</p>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn btn-primary" id="btnAddProxy">
-          ➕ Nouvelle procuration
-        </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance">
-          ℹ️
-        </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
-          ☰
-        </button>
+        <button class="btn btn-primary" id="btnAddProxy">➕ Ajouter</button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">☰</button>
       </div>
     </header>
 
-    <!-- Main Content -->
     <main class="app-main">
       <div class="container">
-        <!-- Notification area -->
         <div id="notif_box" class="hidden mb-4"></div>
 
-        <!-- Meeting context -->
-        <div class="alert alert-info mb-6" id="meetingContext" style="display: none;">
-          <span>📌</span>
-          <span>Séance: <strong id="meetingName">—</strong></span>
+        <!-- No meeting alert -->
+        <div id="noMeetingAlert" class="no-meeting-alert" style="display: none;">
+          <h3>Aucune séance sélectionnée</h3>
+          <p class="text-muted mt-2">Sélectionnez une séance pour gérer les procurations.</p>
+          <a href="/meetings.htmx.html" class="btn btn-primary mt-4">Choisir une séance</a>
         </div>
 
-        <!-- Rule reminder -->
-        <div class="proxy-rule mb-6">
-          <strong>📋 Règle:</strong> Un mandataire ne peut détenir plus de <strong id="maxProxies">3</strong> procurations en plus de sa propre voix.
-        </div>
-
-        <!-- KPI Grid -->
-        <div class="kpi-grid mb-6">
-          <div class="kpi-card">
-            <div class="kpi-value primary" id="kpiTotal">—</div>
-            <div class="kpi-label">Procurations</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-value" id="kpiGivers">—</div>
-            <div class="kpi-label">Mandants</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-value" id="kpiReceivers">—</div>
-            <div class="kpi-label">Mandataires</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-value success" id="kpiVoicesDelegated">—</div>
-            <div class="kpi-label">Voix déléguées</div>
-          </div>
-        </div>
-
-        <!-- Proxies List -->
-        <div class="card">
-          <div class="card-header">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="card-title">Liste des procurations</h3>
-                <p class="card-description" id="proxiesCount">— procurations actives</p>
+        <!-- Main content -->
+        <div id="mainContent" style="display: none;">
+          <div class="proxies-header">
+            <div class="proxies-stats">
+              <div class="stat-item">
+                <span class="stat-value" id="statTotal">0</span>
+                <span>procurations</span>
               </div>
-              <input type="text" class="form-input" id="searchInput" 
-                     placeholder="🔍 Rechercher..." style="width: 200px;">
-            </div>
-          </div>
-          <div class="card-body">
-            <div id="proxiesList">
-              <div class="text-center p-6">
-                <div class="spinner"></div>
-                <div class="mt-4 text-muted">Chargement des procurations...</div>
+              <div class="stat-item">
+                <span class="stat-value" id="statVoices">0</span>
+                <span>voix déléguées</span>
               </div>
             </div>
+            <input type="text" class="form-input" id="searchInput" placeholder="Rechercher..." style="width: 180px;">
+          </div>
+
+          <div class="proxy-list" id="proxiesList">
+            <div class="text-center p-6 text-muted">Chargement...</div>
           </div>
         </div>
       </div>
@@ -168,32 +164,30 @@
   <div class="modal-backdrop" id="modalBackdrop" style="display: none;"></div>
   <div class="modal" id="addProxyModal" style="display: none;">
     <div class="modal-header">
-      <h3 class="modal-title">➕ Nouvelle procuration</h3>
+      <h3 class="modal-title">Nouvelle procuration</h3>
       <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseModal">✕</button>
     </div>
     <div class="modal-body">
+      <p class="text-sm text-muted mb-4">Max <strong id="maxProxies">3</strong> procurations par mandataire.</p>
       <div class="form-group mb-4">
         <label class="form-label form-label-required" for="giverSelect">Mandant (donne sa voix)</label>
         <select class="form-input" id="giverSelect">
-          <option value="">— Sélectionner un membre —</option>
+          <option value="">— Sélectionner —</option>
         </select>
-        <p class="form-helper">Le membre qui délègue son droit de vote</p>
       </div>
       <div class="form-group mb-4">
         <label class="form-label form-label-required" for="receiverSelect">Mandataire (reçoit la voix)</label>
         <select class="form-input" id="receiverSelect">
-          <option value="">— Sélectionner un membre —</option>
+          <option value="">— Sélectionner —</option>
         </select>
-        <p class="form-helper">Le membre qui votera pour le mandant</p>
       </div>
       <div class="alert alert-warning" id="proxyWarning" style="display: none;">
-        <span>⚠️</span>
         <span id="proxyWarningText">—</span>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="btnCancelModal">Annuler</button>
-      <button class="btn btn-primary" id="btnSaveProxy">Créer la procuration</button>
+      <button class="btn btn-primary" id="btnSaveProxy">Créer</button>
     </div>
   </div>
 
@@ -207,12 +201,10 @@
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
 
-  <!-- Scripts -->
   <script src="/assets/js/utils.js"></script>
   <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>
   <script src="/assets/js/session-wizard.js"></script>
-
   <script src="/assets/js/proxies.js"></script>
 </body>
 </html>

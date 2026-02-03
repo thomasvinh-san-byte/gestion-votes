@@ -7,37 +7,67 @@
   <meta name="description" content="Gestion des résolutions - AG-VOTE">
   <title>Résolutions — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <style>
-    .motion-card {
+    .motions-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .motions-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .motions-stats .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .motions-stats .stat-value {
+      font-weight: 700;
+      min-width: 1.5rem;
+    }
+
+    .stat-open { color: var(--color-warning); }
+    .stat-closed { color: var(--color-success); }
+    .stat-pending { color: var(--color-text-muted); }
+
+    .motion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .motion-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
       background: var(--color-surface);
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-5);
-      margin-bottom: var(--space-4);
-      transition: all var(--duration-fast);
+      border-radius: 8px;
+      transition: all 0.15s;
     }
-    
-    .motion-card:hover {
-      box-shadow: var(--shadow-md);
+
+    .motion-row:hover {
+      border-color: var(--color-primary);
     }
-    
-    .motion-card.open {
-      border-color: var(--color-warning);
+
+    .motion-row.is-open {
+      border-left: 4px solid var(--color-warning);
       background: var(--color-warning-subtle);
     }
-    
-    .motion-card.closed {
-      border-color: var(--color-success);
+
+    .motion-row.is-closed {
+      border-left: 4px solid var(--color-success);
     }
-    
-    .motion-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: var(--space-4);
-    }
-    
+
     .motion-number {
       width: 32px;
       height: 32px;
@@ -45,136 +75,130 @@
       align-items: center;
       justify-content: center;
       background: var(--color-bg-subtle);
-      border-radius: var(--radius-md);
-      font-weight: var(--font-bold);
-      font-size: var(--text-sm);
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.9rem;
       flex-shrink: 0;
     }
-    
-    .motion-card.open .motion-number {
+
+    .motion-row.is-open .motion-number {
       background: var(--color-warning);
-      color: white;
+      color: #fff;
     }
-    
-    .motion-card.closed .motion-number {
+
+    .motion-row.is-closed .motion-number {
       background: var(--color-success);
-      color: white;
+      color: #fff;
     }
-    
+
+    .motion-info {
+      flex: 1;
+      min-width: 0;
+    }
+
     .motion-title {
-      font-weight: var(--font-semibold);
-      font-size: var(--text-lg);
+      font-weight: 500;
     }
-    
-    .motion-desc {
-      color: var(--color-text-secondary);
-      margin-top: var(--space-2);
-    }
-    
-    .motion-policies {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-2);
-      margin-top: var(--space-3);
-    }
-    
-    .motion-footer {
+
+    .motion-meta {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin-top: 0.25rem;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: var(--space-4);
-      padding-top: var(--space-4);
-      margin-top: var(--space-4);
-      border-top: 1px solid var(--color-border-subtle);
+      gap: 0.5rem;
     }
-    
-    .motion-results {
+
+    .motion-actions {
       display: flex;
-      align-items: center;
-      gap: var(--space-4);
+      gap: 0.5rem;
+      flex-shrink: 0;
     }
-    
-    .motion-result-item {
+
+    .results-inline {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.75rem;
+      background: var(--color-bg-subtle);
+      border-radius: 6px;
+    }
+
+    .result-badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .result-adopted { background: var(--color-success-subtle); color: var(--color-success-text); }
+    .result-rejected { background: var(--color-danger-subtle); color: var(--color-danger); }
+
+    .no-meeting-alert {
       text-align: center;
+      padding: 3rem;
+      background: var(--color-bg-subtle);
+      border-radius: 8px;
     }
-    
-    .motion-result-value {
-      font-size: var(--text-xl);
-      font-weight: var(--font-bold);
-    }
-    
-    .motion-result-label {
-      font-size: var(--text-xs);
+
+    .empty-state-inline {
+      text-align: center;
+      padding: 2rem;
       color: var(--color-text-muted);
     }
   </style>
 </head>
 <body>
   <div class="app-shell">
-        <!-- Sidebar -->
     <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
 
-    <!-- Header -->
     <header class="app-header">
-      <div class="flex items-center gap-4">
-        <div>
-          <h1 class="text-xl font-bold">📋 Résolutions</h1>
-          <p class="text-sm text-secondary" id="meetingTitle">Ordre du jour</p>
-        </div>
+      <div>
+        <h1 class="text-xl font-bold">Résolutions</h1>
+        <p class="text-sm text-secondary" id="meetingTitle">—</p>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn btn-secondary" id="btnSeedAttend">
-          🧪 Remplir présences
-        </button>
-        <button class="btn btn-primary" id="btnAddMotion">
-          ➕ Ajouter
-        </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance">
-          ℹ️
-        </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
-          ☰
-        </button>
+        <button class="btn btn-primary" id="btnAddMotion">➕ Ajouter</button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">☰</button>
       </div>
     </header>
 
-    <!-- Main Content -->
     <main class="app-main">
       <div class="container">
-        <!-- Notification area -->
         <div id="notif_box" class="hidden mb-4"></div>
 
-        <!-- Meeting context -->
-        <div class="alert alert-info mb-6" id="meetingContext" style="display: none;">
-          <span>📌</span>
-          <span>Séance: <strong id="meetingName">—</strong></span>
+        <!-- No meeting alert -->
+        <div id="noMeetingAlert" class="no-meeting-alert" style="display: none;">
+          <h3>Aucune séance sélectionnée</h3>
+          <p class="text-muted mt-2">Sélectionnez une séance pour gérer les résolutions.</p>
+          <a href="/meetings.htmx.html" class="btn btn-primary mt-4">Choisir une séance</a>
         </div>
 
-        <!-- KPI Grid -->
-        <div class="kpi-grid mb-6">
-          <div class="kpi-card">
-            <div class="kpi-value primary" id="kpiTotal">—</div>
-            <div class="kpi-label">Résolutions</div>
+        <!-- Main content -->
+        <div id="mainContent" style="display: none;">
+          <div class="motions-header">
+            <div class="motions-stats">
+              <div class="stat-item">
+                <span class="stat-value" id="statTotal">0</span>
+                <span>total</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value stat-open" id="statOpen">0</span>
+                <span>en cours</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value stat-closed" id="statClosed">0</span>
+                <span>terminés</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value stat-pending" id="statPending">0</span>
+                <span>en attente</span>
+              </div>
+            </div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-value warning" id="kpiOpen">—</div>
-            <div class="kpi-label">Vote ouvert</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-value success" id="kpiClosed">—</div>
-            <div class="kpi-label">Terminées</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-value" id="kpiPending">—</div>
-            <div class="kpi-label">En attente</div>
-          </div>
-        </div>
 
-        <!-- Motions List -->
-        <div id="motionsList">
-          <div class="text-center p-6">
-            <div class="spinner"></div>
-            <div class="mt-4 text-muted">Chargement des résolutions...</div>
+          <div class="motion-list" id="motionsList">
+            <div class="text-center p-6 text-muted">Chargement...</div>
           </div>
         </div>
       </div>
@@ -185,31 +209,28 @@
   <div class="modal-backdrop" id="modalBackdrop" style="display: none;"></div>
   <div class="modal" id="addMotionModal" style="display: none;">
     <div class="modal-header">
-      <h3 class="modal-title">➕ Nouvelle résolution</h3>
+      <h3 class="modal-title">Nouvelle résolution</h3>
       <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseModal">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-group mb-4">
         <label class="form-label form-label-required" for="motionTitle">Titre</label>
-        <input class="form-input" type="text" id="motionTitle" 
-               placeholder="Ex: Approbation du budget 2024">
+        <input class="form-input" type="text" id="motionTitle" placeholder="Ex: Approbation du budget 2024">
       </div>
       <div class="form-group mb-4">
         <label class="form-label" for="motionDesc">Description</label>
-        <textarea class="form-input" id="motionDesc" rows="3"
-                  placeholder="Détails de la résolution..."></textarea>
+        <textarea class="form-input" id="motionDesc" rows="2" placeholder="Détails optionnels..."></textarea>
       </div>
       <div class="form-group">
         <label class="flex items-center gap-2">
           <input type="checkbox" id="motionSecret">
           <span>Vote secret</span>
         </label>
-        <p class="form-helper">Les votes individuels ne seront pas affichés</p>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="btnCancelModal">Annuler</button>
-      <button class="btn btn-primary" id="btnSaveMotion">Créer la résolution</button>
+      <button class="btn btn-primary" id="btnSaveMotion">Créer</button>
     </div>
   </div>
 
@@ -223,13 +244,11 @@
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
 
-  <!-- Scripts -->
   <script src="/assets/js/utils.js"></script>
   <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>
   <script src="/assets/js/meeting-context.js"></script>
   <script src="/assets/js/session-wizard.js"></script>
-
   <script src="/assets/js/motions.js"></script>
 </body>
 </html>
