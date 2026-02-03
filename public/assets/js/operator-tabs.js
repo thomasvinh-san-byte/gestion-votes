@@ -1,0 +1,766 @@
+/**
+ * operator-tabs.js — Tab-based operator console for AG-VOTE (Diligent-style)
+ * Requires: utils.js, shared.js, shell.js
+ */
+(function() {
+  'use strict';
+
+  // DOM elements
+  const meetingSelect = document.getElementById('meetingSelect');
+  const meetingStatusBadge = document.getElementById('meetingStatusBadge');
+  const meetingHeaderBar = document.getElementById('meetingHeaderBar');
+  const meetingTitle = document.getElementById('meetingTitle');
+  const meetingSubtitle = document.getElementById('meetingSubtitle');
+  const meetingSaved = document.getElementById('meetingSaved');
+  const statusBadgeText = document.getElementById('statusBadgeText');
+  const tabsNav = document.getElementById('tabsNav');
+  const noMeetingState = document.getElementById('noMeetingState');
+
+  // Tab elements
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  // State
+  let currentMeetingId = null;
+  let currentMeetingStatus = null;
+  let currentMeeting = null;
+  let attendanceCache = [];
+  let motionsCache = [];
+  let currentOpenMotion = null;
+  let ballotsCache = {};
+
+  // Transitions
+  const TRANSITIONS = {
+    draft: [{ to: 'scheduled', label: 'Planifier', icon: '📅' }],
+    scheduled: [
+      { to: 'frozen', label: 'Geler', icon: '🧊' },
+      { to: 'draft', label: 'Retour brouillon', icon: '↩️' }
+    ],
+    frozen: [
+      { to: 'live', label: 'Ouvrir la séance', icon: '▶️' },
+      { to: 'scheduled', label: 'Dégeler', icon: '↩️' }
+    ],
+    live: [{ to: 'closed', label: 'Clôturer', icon: '⏹️' }],
+    closed: [{ to: 'validated', label: 'Valider', icon: '✅' }],
+    validated: [{ to: 'archived', label: 'Archiver', icon: '📦' }],
+    archived: []
+  };
+
+  // =========================================================================
+  // TAB NAVIGATION
+  // =========================================================================
+
+  function initTabs() {
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.dataset.tab;
+        switchTab(tabId);
+      });
+    });
+  }
+
+  function switchTab(tabId) {
+    tabButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabId);
+    });
+    tabContents.forEach(content => {
+      content.classList.toggle('active', content.id === `tab-${tabId}`);
+    });
+
+    // Reload data when switching to certain tabs
+    if (currentMeetingId) {
+      if (tabId === 'presences') loadAttendance();
+      if (tabId === 'resolutions') loadResolutions();
+      if (tabId === 'vote') loadVoteTab();
+      if (tabId === 'resultats') loadResults();
+    }
+  }
+
+  // =========================================================================
+  // MEETING SELECTION
+  // =========================================================================
+
+  async function loadMeetings() {
+    try {
+      const { body } = await api('/api/v1/meetings_index.php');
+      if (body?.ok && body?.data?.meetings) {
+        meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
+        body.data.meetings.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.id;
+          opt.textContent = `${m.title} (${m.status || 'draft'})`;
+          meetingSelect.appendChild(opt);
+        });
+
+        // Pre-select from URL
+        const urlMeetingId = new URLSearchParams(window.location.search).get('meeting_id');
+        if (urlMeetingId) {
+          meetingSelect.value = urlMeetingId;
+          loadMeetingContext(urlMeetingId);
+        }
+      }
+    } catch (err) {
+      setNotif('error', 'Erreur chargement: ' + err.message);
+    }
+  }
+
+  async function loadMeetingContext(meetingId) {
+    if (!meetingId) {
+      showNoMeeting();
+      return;
+    }
+
+    currentMeetingId = meetingId;
+    updateURLParam('meeting_id', meetingId);
+
+    try {
+      const { body } = await api(`/api/v1/meetings.php?id=${meetingId}`);
+      if (body?.ok && body?.data) {
+        currentMeeting = body.data;
+        currentMeetingStatus = body.data.status;
+        showMeetingContent();
+        updateHeader(body.data);
+        await loadAllData();
+      }
+    } catch (err) {
+      setNotif('error', 'Erreur: ' + err.message);
+    }
+  }
+
+  function showNoMeeting() {
+    noMeetingState.style.display = 'flex';
+    meetingHeaderBar.style.display = 'none';
+    tabsNav.style.display = 'none';
+    tabContents.forEach(c => c.classList.remove('active'));
+    currentMeetingId = null;
+    currentMeeting = null;
+  }
+
+  function showMeetingContent() {
+    noMeetingState.style.display = 'none';
+    meetingHeaderBar.style.display = 'flex';
+    tabsNav.style.display = 'flex';
+    switchTab('parametres');
+  }
+
+  function updateHeader(meeting) {
+    meetingTitle.textContent = meeting.title || '—';
+    const date = meeting.scheduled_at ? new Date(meeting.scheduled_at).toLocaleDateString('fr-FR') : '—';
+    meetingSubtitle.textContent = `Date: ${date}`;
+
+    const statusInfo = Shared.MEETING_STATUS_MAP[meeting.status] || Shared.MEETING_STATUS_MAP['draft'];
+    meetingStatusBadge.className = `badge ${statusInfo.badge}`;
+    meetingStatusBadge.textContent = statusInfo.text;
+    statusBadgeText.textContent = statusInfo.text;
+
+    const updated = meeting.updated_at ? new Date(meeting.updated_at) : new Date();
+    meetingSaved.innerHTML = `<span>💾</span> ${updated.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}`;
+
+    // Update meeting links
+    document.querySelectorAll('[data-meeting-link]').forEach(link => {
+      const base = link.getAttribute('href').split('?')[0];
+      link.href = `${base}?meeting_id=${currentMeetingId}`;
+    });
+  }
+
+  function updateURLParam(key, value) {
+    const url = new URL(window.location);
+    url.searchParams.set(key, value);
+    window.history.replaceState({}, '', url);
+  }
+
+  // =========================================================================
+  // LOAD ALL DATA
+  // =========================================================================
+
+  async function loadAllData() {
+    await Promise.all([
+      loadAttendance(),
+      loadResolutions(),
+      loadPolicies(),
+      loadRoles(),
+      loadStatusChecklist()
+    ]);
+  }
+
+  // =========================================================================
+  // TAB: PARAMÈTRES - Settings
+  // =========================================================================
+
+  async function loadPolicies() {
+    try {
+      const [qpRes, vpRes] = await Promise.all([
+        api('/api/v1/quorum_policies.php'),
+        api('/api/v1/vote_policies.php')
+      ]);
+
+      const qSelect = document.getElementById('settingQuorumPolicy');
+      const vSelect = document.getElementById('settingVotePolicy');
+
+      qSelect.innerHTML = '<option value="">— Aucune —</option>';
+      (qpRes.body?.items || []).forEach(p => {
+        qSelect.innerHTML += `<option value="${p.id}">${escapeHtml(p.label || p.name)}</option>`;
+      });
+
+      vSelect.innerHTML = '<option value="">— Aucune —</option>';
+      (vpRes.body?.items || []).forEach(p => {
+        vSelect.innerHTML += `<option value="${p.id}">${escapeHtml(p.label || p.name)}</option>`;
+      });
+
+      // Load current settings
+      if (currentMeetingId) {
+        const [qsRes, vsRes] = await Promise.all([
+          api(`/api/v1/meeting_quorum_settings.php?meeting_id=${currentMeetingId}`),
+          api(`/api/v1/meeting_vote_settings.php?meeting_id=${currentMeetingId}`)
+        ]);
+        qSelect.value = qsRes.body?.data?.quorum_policy_id || '';
+        vSelect.value = vsRes.body?.data?.vote_policy_id || '';
+        document.getElementById('settingConvocation').value = qsRes.body?.data?.convocation_no || 1;
+      }
+
+      // Populate title/date
+      if (currentMeeting) {
+        document.getElementById('settingTitle').value = currentMeeting.title || '';
+        if (currentMeeting.scheduled_at) {
+          document.getElementById('settingDate').value = currentMeeting.scheduled_at.slice(0, 16);
+        }
+      }
+    } catch (err) {
+      console.error('Policies error:', err);
+    }
+  }
+
+  async function loadRoles() {
+    try {
+      const [usersRes, rolesRes] = await Promise.all([
+        api('/api/v1/admin_users.php'),
+        api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`)
+      ]);
+
+      const users = usersRes.body?.items || [];
+      const roles = rolesRes.body?.items || [];
+      const president = roles.find(r => r.role === 'president');
+
+      const presSelect = document.getElementById('settingPresident');
+      presSelect.innerHTML = '<option value="">— Non assigné —</option>';
+      users.forEach(u => {
+        presSelect.innerHTML += `<option value="${u.id}" ${president?.user_id === u.id ? 'selected' : ''}>${escapeHtml(u.name || u.email)}</option>`;
+      });
+    } catch (err) {
+      console.error('Roles error:', err);
+    }
+  }
+
+  async function loadStatusChecklist() {
+    try {
+      const { body } = await api(`/api/v1/wizard_status.php?meeting_id=${currentMeetingId}`);
+      const d = body?.data || {};
+
+      const checks = [
+        { done: d.members_count > 0, text: 'Membres ajoutés', link: '/members.htmx.html' },
+        { done: d.present_count > 0, text: 'Présences pointées', link: `#tab-presences` },
+        { done: d.motions_total > 0, text: 'Résolutions créées', link: `#tab-resolutions` },
+        { done: d.has_president, text: 'Président assigné', optional: true },
+        { done: d.policies_assigned, text: 'Politiques configurées', optional: true }
+      ];
+
+      const checklist = document.getElementById('statusChecklist');
+      checklist.innerHTML = checks.map(c => {
+        const icon = c.done ? '✓' : '○';
+        const cls = c.done ? 'color: var(--color-success)' : 'color: var(--color-text-muted)';
+        const style = c.optional ? 'opacity:0.7;font-style:italic;' : '';
+        return `<div class="flex items-center gap-2" style="${cls};${style}"><span>${icon}</span> ${c.text}</div>`;
+      }).join('');
+
+      // Transition buttons
+      const transitions = TRANSITIONS[currentMeetingStatus] || [];
+      const actions = document.getElementById('statusActions');
+      actions.innerHTML = transitions.map(t => {
+        const btnClass = t.to === 'live' ? 'btn-primary' : 'btn-secondary';
+        return `<button class="btn ${btnClass}" data-transition="${t.to}">${t.icon} ${t.label}</button>`;
+      }).join('');
+
+      actions.querySelectorAll('[data-transition]').forEach(btn => {
+        btn.addEventListener('click', () => doTransition(btn.dataset.transition));
+      });
+
+      // Update tab counts
+      document.getElementById('tabCountResolutions').textContent = d.motions_total || 0;
+      document.getElementById('tabCountPresences').textContent = d.present_count || 0;
+    } catch (err) {
+      console.error('Checklist error:', err);
+    }
+  }
+
+  // =========================================================================
+  // TAB: PRÉSENCES - Attendance
+  // =========================================================================
+
+  async function loadAttendance() {
+    try {
+      const { body } = await api(`/api/v1/attendances.php?meeting_id=${currentMeetingId}`);
+      attendanceCache = body?.data?.attendances || [];
+      renderAttendance();
+    } catch (err) {
+      console.error('Attendance error:', err);
+    }
+  }
+
+  function renderAttendance() {
+    const present = attendanceCache.filter(a => a.mode === 'present').length;
+    const remote = attendanceCache.filter(a => a.mode === 'remote').length;
+    const excused = attendanceCache.filter(a => a.mode === 'excused').length;
+    const absent = attendanceCache.filter(a => !a.mode || a.mode === 'absent').length;
+
+    document.getElementById('presStatPresent').textContent = present;
+    document.getElementById('presStatRemote').textContent = remote;
+    document.getElementById('presStatExcused').textContent = excused;
+    document.getElementById('presStatAbsent').textContent = absent;
+    document.getElementById('tabCountPresences').textContent = present + remote;
+
+    const searchTerm = (document.getElementById('presenceSearch')?.value || '').toLowerCase();
+    let filtered = attendanceCache;
+    if (searchTerm) {
+      filtered = attendanceCache.filter(a => (a.full_name || '').toLowerCase().includes(searchTerm));
+    }
+
+    // Sort
+    filtered = [...filtered].sort((a, b) => {
+      const orderA = a.mode === 'present' ? 0 : a.mode === 'remote' ? 1 : a.mode === 'excused' ? 2 : 3;
+      const orderB = b.mode === 'present' ? 0 : b.mode === 'remote' ? 1 : b.mode === 'excused' ? 2 : 3;
+      if (orderA !== orderB) return orderA - orderB;
+      return (a.full_name || '').localeCompare(b.full_name || '');
+    });
+
+    const grid = document.getElementById('attendanceGrid');
+    const isLocked = ['validated', 'archived'].includes(currentMeetingStatus);
+
+    grid.innerHTML = filtered.map(m => {
+      const mode = m.mode || 'absent';
+      const disabled = isLocked ? 'disabled' : '';
+      return `
+        <div class="attendance-card ${mode}" data-member-id="${m.member_id}">
+          <span class="attendance-name">${escapeHtml(m.full_name || '—')}</span>
+          <div class="attendance-mode-btns">
+            <button class="mode-btn present ${mode === 'present' ? 'active' : ''}" data-mode="present" ${disabled}>P</button>
+            <button class="mode-btn remote ${mode === 'remote' ? 'active' : ''}" data-mode="remote" ${disabled}>D</button>
+            <button class="mode-btn excused ${mode === 'excused' ? 'active' : ''}" data-mode="excused" ${disabled}>E</button>
+            <button class="mode-btn absent ${mode === 'absent' ? 'active' : ''}" data-mode="absent" ${disabled}>A</button>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="text-center p-4 text-muted">Aucun membre</div>';
+
+    if (!isLocked) {
+      grid.querySelectorAll('.mode-btn:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const card = e.target.closest('.attendance-card');
+          const memberId = card.dataset.memberId;
+          const mode = btn.dataset.mode;
+          await updateAttendance(memberId, mode);
+        });
+      });
+    }
+  }
+
+  async function updateAttendance(memberId, mode) {
+    try {
+      const { body } = await api('/api/v1/attendances_upsert.php', {
+        meeting_id: currentMeetingId,
+        member_id: memberId,
+        mode: mode
+      });
+      if (body?.ok !== false) {
+        const m = attendanceCache.find(a => String(a.member_id) === String(memberId));
+        if (m) m.mode = mode;
+        renderAttendance();
+        loadStatusChecklist();
+      } else {
+        setNotif('error', body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function markAllPresent() {
+    if (!confirm('Marquer tous présents ?')) return;
+    try {
+      await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
+      attendanceCache.forEach(m => m.mode = 'present');
+      renderAttendance();
+      setNotif('success', 'Tous marqués présents');
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  // =========================================================================
+  // TAB: RÉSOLUTIONS - Motions
+  // =========================================================================
+
+  async function loadResolutions() {
+    try {
+      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${currentMeetingId}`);
+      motionsCache = body?.data?.motions || [];
+      currentOpenMotion = motionsCache.find(m => m.opened_at && !m.closed_at) || null;
+      renderResolutions();
+      document.getElementById('tabCountResolutions').textContent = motionsCache.length;
+    } catch (err) {
+      console.error('Resolutions error:', err);
+    }
+  }
+
+  function renderResolutions() {
+    const list = document.getElementById('resolutionsList');
+    const searchTerm = (document.getElementById('resolutionSearch')?.value || '').toLowerCase();
+    let filtered = motionsCache;
+    if (searchTerm) {
+      filtered = motionsCache.filter(m => (m.title || '').toLowerCase().includes(searchTerm));
+    }
+
+    const canEdit = !['validated', 'archived'].includes(currentMeetingStatus);
+    const isLive = currentMeetingStatus === 'live';
+
+    list.innerHTML = filtered.map((m, i) => {
+      const isOpen = !!(m.opened_at && !m.closed_at);
+      const isClosed = !!m.closed_at;
+      const statusClass = isOpen ? 'open' : (isClosed ? 'closed' : 'pending');
+      const statusText = isOpen ? 'Vote en cours' : (isClosed ? 'Terminé' : 'En attente');
+
+      let actions = '';
+      if (isLive && !isOpen && !isClosed) {
+        actions = `<button class="btn btn-sm btn-primary btn-open-vote" data-motion-id="${m.id}">▶️ Ouvrir</button>`;
+      } else if (isLive && isOpen) {
+        actions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${m.id}">⏹️ Clôturer</button>`;
+      }
+      if (canEdit && !isOpen && !isClosed) {
+        actions += ` <button class="btn btn-sm btn-ghost btn-delete-motion" data-motion-id="${m.id}">🗑️</button>`;
+      }
+
+      const results = isClosed ? `
+        <div style="display:flex;gap:1rem;font-size:0.85rem;margin-top:0.5rem;">
+          <span style="color:var(--color-success)">✓ ${m.votes_for || 0}</span>
+          <span style="color:var(--color-danger)">✗ ${m.votes_against || 0}</span>
+          <span style="color:var(--color-text-muted)">○ ${m.votes_abstain || 0}</span>
+        </div>
+      ` : '';
+
+      return `
+        <div class="resolution-section" data-motion-id="${m.id}">
+          <div class="resolution-header">
+            <span class="resolution-chevron">▶</span>
+            <span style="font-weight:700;margin-right:0.5rem;">${i + 1}.</span>
+            <span class="resolution-title">${escapeHtml(m.title)}</span>
+            <span class="resolution-status ${statusClass}">${statusText}</span>
+          </div>
+          <div class="resolution-body">
+            <div class="resolution-content">
+              ${m.description ? escapeHtml(m.description) : '<em class="text-muted">Aucune description</em>'}
+            </div>
+            ${results}
+            <div class="resolution-actions">
+              ${actions}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>';
+
+    // Bind collapsible
+    list.querySelectorAll('.resolution-header').forEach(header => {
+      header.addEventListener('click', () => {
+        header.closest('.resolution-section').classList.toggle('expanded');
+      });
+    });
+
+    // Bind vote actions
+    list.querySelectorAll('.btn-open-vote').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openVote(btn.dataset.motionId);
+      });
+    });
+
+    list.querySelectorAll('.btn-close-vote').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeVote(btn.dataset.motionId);
+      });
+    });
+
+    list.querySelectorAll('.btn-delete-motion').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!confirm('Supprimer cette résolution ?')) return;
+        try {
+          await api('/api/v1/motions_delete.php', { motion_id: btn.dataset.motionId, meeting_id: currentMeetingId });
+          setNotif('success', 'Résolution supprimée');
+          loadResolutions();
+          loadStatusChecklist();
+        } catch (err) {
+          setNotif('error', err.message);
+        }
+      });
+    });
+  }
+
+  async function createResolution() {
+    const title = document.getElementById('newResolutionTitle').value.trim();
+    const desc = document.getElementById('newResolutionDesc').value.trim();
+    if (!title) {
+      setNotif('error', 'Titre requis');
+      return;
+    }
+
+    try {
+      await api('/api/v1/motions.php', { meeting_id: currentMeetingId, title, description: desc || null });
+      setNotif('success', 'Résolution créée');
+      document.getElementById('addResolutionForm').style.display = 'none';
+      document.getElementById('newResolutionTitle').value = '';
+      document.getElementById('newResolutionDesc').value = '';
+      loadResolutions();
+      loadStatusChecklist();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  // =========================================================================
+  // TAB: VOTE EN DIRECT
+  // =========================================================================
+
+  async function loadVoteTab() {
+    if (!currentOpenMotion) {
+      document.getElementById('noActiveVote').style.display = 'block';
+      document.getElementById('activeVotePanel').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('noActiveVote').style.display = 'none';
+    document.getElementById('activeVotePanel').style.display = 'block';
+    document.getElementById('activeVoteTitle').textContent = currentOpenMotion.title;
+
+    await loadBallots(currentOpenMotion.id);
+    renderManualVoteList();
+  }
+
+  async function loadBallots(motionId) {
+    try {
+      const { body } = await api(`/api/v1/ballots.php?motion_id=${motionId}`);
+      const ballots = body?.data?.ballots || body?.ballots || [];
+      ballotsCache = {};
+      let forCount = 0, againstCount = 0, abstainCount = 0;
+      ballots.forEach(b => {
+        ballotsCache[b.member_id] = b.value;
+        if (b.value === 'for') forCount++;
+        else if (b.value === 'against') againstCount++;
+        else if (b.value === 'abstain') abstainCount++;
+      });
+      document.getElementById('liveVoteFor').textContent = forCount;
+      document.getElementById('liveVoteAgainst').textContent = againstCount;
+      document.getElementById('liveVoteAbstain').textContent = abstainCount;
+    } catch (err) {
+      console.error('Ballots error:', err);
+    }
+  }
+
+  function renderManualVoteList() {
+    const voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
+    const list = document.getElementById('manualVoteList');
+
+    list.innerHTML = voters.map(v => {
+      const vote = ballotsCache[v.member_id];
+      const hasVoted = !!vote;
+      return `
+        <div class="attendance-card ${hasVoted ? 'present' : ''}" data-member-id="${v.member_id}">
+          <span class="attendance-name">${escapeHtml(v.full_name || '—')}</span>
+          <div class="attendance-mode-btns">
+            <button class="mode-btn present ${vote === 'for' ? 'active' : ''}" data-vote="for" ${hasVoted ? 'disabled' : ''}>✓</button>
+            <button class="mode-btn absent ${vote === 'against' ? 'active' : ''}" data-vote="against" ${hasVoted ? 'disabled' : ''}>✗</button>
+            <button class="mode-btn excused ${vote === 'abstain' ? 'active' : ''}" data-vote="abstain" ${hasVoted ? 'disabled' : ''}>○</button>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="text-center p-4 text-muted">Aucun votant</div>';
+
+    list.querySelectorAll('.mode-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const card = e.target.closest('.attendance-card');
+        await castManualVote(card.dataset.memberId, btn.dataset.vote);
+      });
+    });
+  }
+
+  async function castManualVote(memberId, vote) {
+    if (!currentOpenMotion) return;
+    try {
+      await api('/api/v1/manual_vote.php', {
+        meeting_id: currentMeetingId,
+        motion_id: currentOpenMotion.id,
+        member_id: memberId,
+        vote: vote,
+        justification: 'Vote opérateur manuel'
+      });
+      ballotsCache[memberId] = vote;
+      await loadBallots(currentOpenMotion.id);
+      renderManualVoteList();
+      setNotif('success', 'Vote enregistré');
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function openVote(motionId) {
+    try {
+      await api('/api/v1/motions_open.php', { meeting_id: currentMeetingId, motion_id: motionId });
+      setNotif('success', 'Vote ouvert');
+      loadResolutions();
+      switchTab('vote');
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function closeVote(motionId) {
+    if (!confirm('Clôturer ce vote ?')) return;
+    try {
+      await api('/api/v1/motions_close.php', { meeting_id: currentMeetingId, motion_id: motionId });
+      setNotif('success', 'Vote clôturé');
+      currentOpenMotion = null;
+      loadResolutions();
+      loadVoteTab();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  // =========================================================================
+  // TAB: RÉSULTATS
+  // =========================================================================
+
+  async function loadResults() {
+    const closed = motionsCache.filter(m => m.closed_at);
+    const adopted = closed.filter(m => (m.votes_for || 0) > (m.votes_against || 0)).length;
+    const rejected = closed.length - adopted;
+
+    document.getElementById('resultAdopted').textContent = adopted;
+    document.getElementById('resultRejected').textContent = rejected;
+    document.getElementById('resultTotal').textContent = motionsCache.length;
+
+    const list = document.getElementById('resultsDetailList');
+    list.innerHTML = motionsCache.map((m, i) => {
+      const isClosed = !!m.closed_at;
+      const vFor = m.votes_for || 0;
+      const vAgainst = m.votes_against || 0;
+      const vAbstain = m.votes_abstain || 0;
+      const total = vFor + vAgainst + vAbstain;
+      const pct = total > 0 ? Math.round((vFor / total) * 100) : 0;
+      const status = !isClosed ? 'En attente' : (vFor > vAgainst ? 'Adoptée' : 'Rejetée');
+      const statusColor = !isClosed ? 'var(--color-text-muted)' : (vFor > vAgainst ? 'var(--color-success)' : 'var(--color-danger)');
+
+      return `
+        <div class="settings-section" style="margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong>${i + 1}. ${escapeHtml(m.title)}</strong>
+            <span style="color:${statusColor};font-weight:600;">${status}</span>
+          </div>
+          ${isClosed ? `
+            <div style="display:flex;gap:2rem;margin-top:1rem;font-size:1.1rem;">
+              <span style="color:var(--color-success)">✓ ${vFor}</span>
+              <span style="color:var(--color-danger)">✗ ${vAgainst}</span>
+              <span style="color:var(--color-text-muted)">○ ${vAbstain}</span>
+              <span style="margin-left:auto;">${pct}% pour</span>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>';
+
+    // Export links
+    document.getElementById('exportPV').href = `/api/v1/report_pdf.php?meeting_id=${currentMeetingId}`;
+    document.getElementById('exportAttendance').href = `/api/v1/export_attendance.php?meeting_id=${currentMeetingId}`;
+    document.getElementById('exportVotes').href = `/api/v1/export_votes.php?meeting_id=${currentMeetingId}`;
+  }
+
+  // =========================================================================
+  // TRANSITIONS
+  // =========================================================================
+
+  async function doTransition(toStatus) {
+    if (!confirm(`Changer l'état vers "${toStatus}" ?`)) return;
+    try {
+      const { body } = await api('/api/v1/meeting_transition.php', {
+        meeting_id: currentMeetingId,
+        to_status: toStatus
+      });
+      if (body?.ok) {
+        if (body.warnings?.length) {
+          body.warnings.forEach(w => setNotif('warning', w.msg));
+        }
+        setNotif('success', `Séance passée en "${toStatus}"`);
+        loadMeetingContext(currentMeetingId);
+        loadMeetings();
+      } else {
+        setNotif('error', body?.detail || body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  // =========================================================================
+  // INIT
+  // =========================================================================
+
+  meetingSelect.addEventListener('change', () => loadMeetingContext(meetingSelect.value));
+
+  // Presence search
+  document.getElementById('presenceSearch')?.addEventListener('input', renderAttendance);
+  document.getElementById('btnMarkAllPresent')?.addEventListener('click', markAllPresent);
+
+  // Resolution search
+  document.getElementById('resolutionSearch')?.addEventListener('input', renderResolutions);
+  document.getElementById('btnAddResolution')?.addEventListener('click', () => {
+    document.getElementById('addResolutionForm').style.display = 'block';
+  });
+  document.getElementById('btnCancelResolution')?.addEventListener('click', () => {
+    document.getElementById('addResolutionForm').style.display = 'none';
+  });
+  document.getElementById('btnConfirmResolution')?.addEventListener('click', createResolution);
+
+  // Vote tab
+  document.getElementById('btnCloseVote')?.addEventListener('click', () => {
+    if (currentOpenMotion) closeVote(currentOpenMotion.id);
+  });
+
+  // Settings save
+  document.getElementById('btnSaveSettings')?.addEventListener('click', async () => {
+    try {
+      await api('/api/v1/meeting_quorum_settings.php', {
+        meeting_id: currentMeetingId,
+        quorum_policy_id: document.getElementById('settingQuorumPolicy').value,
+        convocation_no: parseInt(document.getElementById('settingConvocation').value)
+      });
+      await api('/api/v1/meeting_vote_settings.php', {
+        meeting_id: currentMeetingId,
+        vote_policy_id: document.getElementById('settingVotePolicy').value
+      });
+      setNotif('success', 'Paramètres enregistrés');
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  });
+
+  initTabs();
+  loadMeetings();
+
+  // Auto-refresh
+  setInterval(() => {
+    if (currentMeetingId && !document.hidden) {
+      loadStatusChecklist();
+      if (currentOpenMotion) loadBallots(currentOpenMotion.id);
+    }
+  }, 5000);
+
+})();
