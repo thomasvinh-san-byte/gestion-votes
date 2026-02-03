@@ -1065,6 +1065,7 @@
 
     const canEdit = !['validated', 'archived'].includes(currentMeetingStatus);
     const isLive = currentMeetingStatus === 'live';
+    const totalCount = motionsCache.length;
 
     list.innerHTML = filtered.map((m, i) => {
       const isOpen = !!(m.opened_at && !m.closed_at);
@@ -1072,14 +1073,33 @@
       const statusClass = isOpen ? 'open' : (isClosed ? 'closed' : 'pending');
       const statusText = isOpen ? 'Vote en cours' : (isClosed ? 'Terminé' : 'En attente');
 
-      let actions = '';
+      // Vote actions
+      let voteActions = '';
       if (isLive && !isOpen && !isClosed) {
-        actions = `<button class="btn btn-sm btn-primary btn-open-vote" data-motion-id="${m.id}">▶️ Ouvrir</button>`;
+        voteActions = `<button class="btn btn-sm btn-primary btn-open-vote" data-motion-id="${m.id}">▶️ Ouvrir</button>`;
       } else if (isLive && isOpen) {
-        actions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${m.id}">⏹️ Clôturer</button>`;
+        voteActions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${m.id}">⏹️ Clôturer</button>`;
       }
+
+      // Edit actions (only for pending resolutions)
+      let editActions = '';
       if (canEdit && !isOpen && !isClosed) {
-        actions += ` <button class="btn btn-sm btn-ghost btn-delete-motion" data-motion-id="${m.id}">🗑️</button>`;
+        editActions = `
+          <button class="btn btn-sm btn-ghost btn-edit-motion" data-motion-id="${m.id}" title="Modifier">✏️</button>
+          <button class="btn btn-sm btn-ghost btn-delete-motion" data-motion-id="${m.id}" title="Supprimer">🗑️</button>
+        `;
+      }
+
+      // Reorder buttons (only when not searching and can edit)
+      let reorderBtns = '';
+      if (canEdit && !searchTerm && !isOpen && !isClosed) {
+        const globalIdx = motionsCache.findIndex(x => x.id === m.id);
+        const canMoveUp = globalIdx > 0;
+        const canMoveDown = globalIdx < totalCount - 1;
+        reorderBtns = `
+          <button class="btn btn-xs btn-ghost btn-move-up" data-motion-id="${m.id}" ${canMoveUp ? '' : 'disabled'} title="Monter">▲</button>
+          <button class="btn btn-xs btn-ghost btn-move-down" data-motion-id="${m.id}" ${canMoveDown ? '' : 'disabled'} title="Descendre">▼</button>
+        `;
       }
 
       const results = isClosed ? `
@@ -1093,10 +1113,12 @@
       return `
         <div class="resolution-section" data-motion-id="${m.id}">
           <div class="resolution-header">
+            <div class="resolution-reorder">${reorderBtns}</div>
             <span class="resolution-chevron">▶</span>
             <span style="font-weight:700;margin-right:0.5rem;">${i + 1}.</span>
             <span class="resolution-title">${escapeHtml(m.title)}</span>
             <span class="resolution-status ${statusClass}">${statusText}</span>
+            <div class="resolution-edit-btns" style="margin-left:auto;">${editActions}</div>
           </div>
           <div class="resolution-body">
             <div class="resolution-content">
@@ -1104,16 +1126,17 @@
             </div>
             ${results}
             <div class="resolution-actions">
-              ${actions}
+              ${voteActions}
             </div>
           </div>
         </div>
       `;
     }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>';
 
-    // Bind collapsible
+    // Bind collapsible (only on chevron/title, not buttons)
     list.querySelectorAll('.resolution-header').forEach(header => {
-      header.addEventListener('click', () => {
+      header.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return; // Don't toggle on button clicks
         header.closest('.resolution-section').classList.toggle('expanded');
       });
     });
@@ -1133,6 +1156,15 @@
       });
     });
 
+    // Bind edit button
+    list.querySelectorAll('.btn-edit-motion').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showEditResolutionModal(btn.dataset.motionId);
+      });
+    });
+
+    // Bind delete button
     list.querySelectorAll('.btn-delete-motion').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -1147,6 +1179,127 @@
         }
       });
     });
+
+    // Bind reorder buttons
+    list.querySelectorAll('.btn-move-up').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        moveResolution(btn.dataset.motionId, -1);
+      });
+    });
+
+    list.querySelectorAll('.btn-move-down').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        moveResolution(btn.dataset.motionId, 1);
+      });
+    });
+  }
+
+  // Edit resolution modal
+  function showEditResolutionModal(motionId) {
+    const motion = motionsCache.find(m => m.id === motionId);
+    if (!motion) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+
+    modal.innerHTML = `
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:80vh;overflow:auto;">
+        <h3 style="margin:0 0 1rem;">Modifier la résolution</h3>
+        <div class="form-group mb-3">
+          <label class="form-label">Titre</label>
+          <input type="text" class="form-input" id="editResolutionTitle" value="${escapeHtml(motion.title || '')}" maxlength="200">
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Description / Texte complet</label>
+          <textarea class="form-input" id="editResolutionDesc" rows="6">${escapeHtml(motion.description || '')}</textarea>
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">
+            <input type="checkbox" id="editResolutionSecret" ${motion.secret ? 'checked' : ''}>
+            Vote secret
+          </label>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button class="btn btn-secondary" id="btnCancelEdit">Annuler</button>
+          <button class="btn btn-primary" id="btnSaveEdit">Enregistrer</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    document.getElementById('btnCancelEdit').onclick = () => modal.remove();
+
+    document.getElementById('btnSaveEdit').onclick = async () => {
+      const title = document.getElementById('editResolutionTitle').value.trim();
+      const description = document.getElementById('editResolutionDesc').value.trim();
+      const secret = document.getElementById('editResolutionSecret').checked;
+
+      if (!title) {
+        setNotif('error', 'Titre requis');
+        return;
+      }
+
+      try {
+        const { body } = await api('/api/v1/motions.php', {
+          motion_id: motionId,
+          agenda_id: motion.agenda_id,
+          title,
+          description,
+          secret
+        });
+
+        if (body?.ok === true) {
+          setNotif('success', 'Résolution mise à jour');
+          modal.remove();
+          loadResolutions();
+        } else {
+          setNotif('error', body?.error || body?.detail || 'Erreur lors de la mise à jour');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    };
+
+    // Focus on title
+    document.getElementById('editResolutionTitle').focus();
+  }
+
+  // Move resolution up or down
+  async function moveResolution(motionId, direction) {
+    const idx = motionsCache.findIndex(m => m.id === motionId);
+    if (idx < 0) return;
+
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= motionsCache.length) return;
+
+    // Swap in local cache for immediate feedback
+    const ids = motionsCache.map(m => m.id);
+    [ids[idx], ids[newIdx]] = [ids[newIdx], ids[idx]];
+
+    // Optimistic update
+    [motionsCache[idx], motionsCache[newIdx]] = [motionsCache[newIdx], motionsCache[idx]];
+    renderResolutions();
+
+    // Save to server
+    try {
+      const { body } = await api('/api/v1/motion_reorder.php', {
+        meeting_id: currentMeetingId,
+        motion_ids: ids
+      });
+
+      if (body?.ok !== true) {
+        // Revert on error
+        loadResolutions();
+        setNotif('error', body?.error || 'Erreur lors du réordonnancement');
+      }
+    } catch (err) {
+      loadResolutions();
+      setNotif('error', err.message);
+    }
   }
 
   async function createResolution() {

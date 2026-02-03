@@ -107,7 +107,7 @@ class MotionRepository extends AbstractRepository
     public function listForMeetingJson(string $meetingId): ?array
     {
         return $this->selectOne(
-            "SELECT json_agg(t) AS motions
+            "SELECT json_agg(t ORDER BY t.position ASC NULLS LAST, t.created_at ASC) AS motions
              FROM (
                 SELECT
                     mo.id AS motion_id, mo.title AS motion_title,
@@ -116,14 +116,39 @@ class MotionRepository extends AbstractRepository
                     mo.tally_status, mo.decision, mo.decision_reason,
                     mo.evote_results, mo.manual_tally,
                     mo.vote_policy_id, mo.quorum_policy_id,
+                    mo.position, mo.created_at,
                     a.id AS agenda_id, a.title AS agenda_title, a.idx AS agenda_idx
                 FROM motions mo
                 LEFT JOIN agendas a ON a.id = mo.agenda_id
                 WHERE mo.meeting_id = :mid
-                ORDER BY a.idx ASC, mo.created_at ASC
              ) AS t",
             [':mid' => $meetingId]
         );
+    }
+
+    /**
+     * Met a jour la position d'une motion.
+     */
+    public function updatePosition(string $motionId, string $tenantId, int $position): void
+    {
+        $this->execute(
+            "UPDATE motions SET position = :pos WHERE tenant_id = :tid AND id = :id",
+            [':pos' => $position, ':tid' => $tenantId, ':id' => $motionId]
+        );
+    }
+
+    /**
+     * Reordonne toutes les motions d'une seance selon un tableau d'IDs.
+     */
+    public function reorderAll(string $meetingId, string $tenantId, array $motionIds): void
+    {
+        foreach ($motionIds as $position => $motionId) {
+            $this->execute(
+                "UPDATE motions SET position = :pos
+                 WHERE tenant_id = :tid AND meeting_id = :mid AND id = :id",
+                [':pos' => $position + 1, ':tid' => $tenantId, ':mid' => $meetingId, ':id' => $motionId]
+            );
+        }
     }
 
     /**

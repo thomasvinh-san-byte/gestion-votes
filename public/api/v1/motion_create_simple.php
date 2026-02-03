@@ -57,7 +57,7 @@ try {
         ]);
     } else {
         // Use first/main agenda
-        $agendaId = $agendas[0]['id'];
+        $agendaId = $agendas[0]['agenda_id'];
     }
 
     // Create motion
