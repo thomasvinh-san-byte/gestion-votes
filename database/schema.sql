@@ -17,7 +17,15 @@ BEGIN
     CREATE TYPE meeting_status AS ENUM ('draft','scheduled','frozen','live','closed','validated','archived');
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'attendance_mode') THEN
-    CREATE TYPE attendance_mode AS ENUM ('present','remote','proxy');
+    CREATE TYPE attendance_mode AS ENUM ('present','remote','proxy','excused');
+  END IF;
+  -- Add 'excused' if missing (migration for existing DBs)
+  IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'attendance_mode')
+     AND NOT EXISTS (
+       SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+       WHERE t.typname = 'attendance_mode' AND e.enumlabel = 'excused'
+     ) THEN
+    ALTER TYPE attendance_mode ADD VALUE 'excused';
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'proxy_scope') THEN
     CREATE TYPE proxy_scope AS ENUM ('full','agenda_items');

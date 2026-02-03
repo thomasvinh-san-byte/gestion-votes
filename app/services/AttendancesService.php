@@ -105,9 +105,9 @@ final class AttendancesService
             throw new InvalidArgumentException('meeting_id et member_id sont obligatoires');
         }
 
-        $allowed = ['present','remote','proxy','absent'];
+        $allowed = ['present','remote','proxy','excused','absent'];
         if (!in_array($mode, $allowed, true)) {
-            throw new InvalidArgumentException("mode invalide (present/remote/proxy/absent)");
+            throw new InvalidArgumentException("mode invalide (present/remote/proxy/excused/absent)");
         }
 
         $tenantId = (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
@@ -140,7 +140,7 @@ final class AttendancesService
 
         $effective = (float)($member['voting_power'] ?? $member['vote_weight'] ?? 1.0);
 
-        $row = $attendanceRepo->upsert($meetingId, $memberId, $mode, $effective, $notes);
+        $row = $attendanceRepo->upsert($tenantId, $meetingId, $memberId, $mode, $effective, $notes);
         if (!$row) {
             throw new RuntimeException('Erreur upsert présence');
         }

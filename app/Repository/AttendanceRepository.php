@@ -53,13 +53,13 @@ class AttendanceRepository extends AbstractRepository
             "SELECT m.id AS member_id, m.full_name, m.email, m.role,
                     COALESCE(m.voting_power, m.vote_weight, 1) AS voting_power,
                     a.id AS attendance_id, a.meeting_id,
-                    COALESCE(a.mode, 'absent') AS mode,
+                    COALESCE(a.mode::text, 'absent') AS mode,
                     a.checked_in_at, a.checked_out_at, a.effective_power, a.notes
              FROM members m
-             LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
-             WHERE m.tenant_id = :tid AND m.is_active = true AND m.deleted_at IS NULL
+             LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid AND a.tenant_id = :tid
+             WHERE m.tenant_id = :tid2 AND m.is_active = true AND m.deleted_at IS NULL
              ORDER BY m.full_name ASC",
-            [':mid' => $meetingId, ':tid' => $tenantId]
+            [':mid' => $meetingId, ':tid' => $tenantId, ':tid2' => $tenantId]
         );
     }
 
@@ -94,10 +94,10 @@ class AttendanceRepository extends AbstractRepository
                     COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power,
                     a.mode, a.checked_in_at, a.checked_out_at
              FROM members m
-             LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
-             WHERE m.tenant_id = :tid AND m.is_active = true AND m.deleted_at IS NULL
+             LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid AND a.tenant_id = :tid
+             WHERE m.tenant_id = :tid2 AND m.is_active = true AND m.deleted_at IS NULL
              ORDER BY m.full_name ASC",
-            [':mid' => $meetingId, ':tid' => $tenantId]
+            [':mid' => $meetingId, ':tid' => $tenantId, ':tid2' => $tenantId]
         );
     }
 
@@ -178,16 +178,17 @@ class AttendanceRepository extends AbstractRepository
     /**
      * Upsert presence (INSERT ... ON CONFLICT DO UPDATE ... RETURNING).
      */
-    public function upsert(string $meetingId, string $memberId, string $mode, float $effectivePower, ?string $notes = null): ?array
+    public function upsert(string $tenantId, string $meetingId, string $memberId, string $mode, float $effectivePower, ?string $notes = null): ?array
     {
         return $this->insertReturning(
-            "INSERT INTO attendances (meeting_id, member_id, mode, checked_in_at, checked_out_at, effective_power, notes)
-             VALUES (:mid, :uid, :mode, now(), NULL, :ep, :notes)
-             ON CONFLICT (meeting_id, member_id) DO UPDATE SET
+            "INSERT INTO attendances (tenant_id, meeting_id, member_id, mode, checked_in_at, checked_out_at, effective_power, notes)
+             VALUES (:tid, :mid, :uid, :mode, now(), NULL, :ep, :notes)
+             ON CONFLICT (tenant_id, meeting_id, member_id) DO UPDATE SET
                mode = EXCLUDED.mode, checked_in_at = now(), checked_out_at = NULL,
-               effective_power = EXCLUDED.effective_power, notes = EXCLUDED.notes
-             RETURNING id, meeting_id, member_id, mode, checked_in_at, checked_out_at, effective_power, notes",
-            [':mid' => $meetingId, ':uid' => $memberId, ':mode' => $mode, ':ep' => $effectivePower, ':notes' => $notes]
+               effective_power = EXCLUDED.effective_power, notes = EXCLUDED.notes,
+               updated_at = now()
+             RETURNING id, tenant_id, meeting_id, member_id, mode, checked_in_at, checked_out_at, effective_power, notes",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':uid' => $memberId, ':mode' => $mode, ':ep' => $effectivePower, ':notes' => $notes]
         );
     }
 

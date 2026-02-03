@@ -151,29 +151,30 @@
       items.push({ done: false, text: 'Créer des résolutions', link: `/motions.htmx.html?meeting_id=${mid}` });
     }
 
-    // Check 4: President assigned
+    // Check 4: President assigned (optional for demo)
     if (checks.hasPresident) {
       items.push({ done: true, text: 'Président assigné' });
     } else {
-      items.push({ done: false, text: 'Assigner un président (bouton 👔)', link: null });
+      items.push({ done: true, text: 'Président: optionnel (bouton 👔)', link: null, optional: true });
     }
 
-    // Check 5: Policies
+    // Check 5: Policies (optional for demo - defaults apply)
     if (checks.policiesAssigned) {
       items.push({ done: true, text: 'Politiques configurées' });
     } else {
-      items.push({ done: false, text: 'Configurer quorum/vote (bouton 🔧)', link: null });
+      items.push({ done: true, text: 'Politiques: défauts appliqués (bouton 🔧)', link: null, optional: true });
     }
 
     // Render checklist
     statusChecklist.innerHTML = items.map(item => {
       const icon = item.done ? '✓' : '○';
-      const cls = item.done ? 'done' : 'pending';
+      const cls = item.done ? (item.optional ? 'done optional' : 'done') : 'pending';
       let content = item.text;
       if (!item.done && item.link) {
         content = `<a href="${item.link}">${item.text}</a>`;
       }
-      return `<div class="check-item ${cls}"><span>${icon}</span> ${content}</div>`;
+      const style = item.optional ? 'opacity:0.7;font-style:italic;' : '';
+      return `<div class="check-item ${cls}" style="${style}"><span>${icon}</span> ${content}</div>`;
     }).join('');
 
     // Update title based on status
