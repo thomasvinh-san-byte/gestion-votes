@@ -7,143 +7,512 @@
   <meta name="description" content="Gestion des membres - AG-VOTE">
   <title>Membres — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    /* Page header - Diligent style */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .page-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .page-header-subtitle {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .page-header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 2rem;
+      padding: 1rem 1.5rem;
+      background: var(--color-bg-subtle);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+    }
+
+    .stat-item.total .stat-value { color: var(--color-primary); }
+    .stat-item.active .stat-value { color: var(--color-success); }
+    .stat-item.inactive .stat-value { color: var(--color-text-muted); }
+
+    /* Content area */
+    .page-content {
+      padding: 1.5rem;
+    }
+
+    /* Add member card */
+    .create-card {
+      background: var(--color-surface);
+      border: 2px dashed var(--color-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .create-card h3 {
+      margin: 0 0 1rem 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .create-form {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr auto auto;
+      gap: 0.75rem;
+      align-items: end;
+    }
+
+    @media (max-width: 900px) {
+      .create-form {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .form-group label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Import card */
+    .import-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .import-card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .import-card-desc {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--color-border);
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-subtle);
+    }
+
+    .upload-zone-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-zone-text {
+      font-weight: 500;
+    }
+
+    .upload-zone-hint {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Filter tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-tab {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-surface);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-tab:hover {
+      border-color: var(--color-primary);
+    }
+
+    .filter-tab.active {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      max-width: 400px;
+    }
+
+    /* Section header */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .section-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    /* Members grid */
+    .members-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .member-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      transition: all 0.15s;
+    }
+
+    .member-card:hover {
+      border-color: var(--color-primary);
+    }
+
+    .member-card.is-active {
+      border-left: 4px solid var(--color-success);
+    }
+
+    .member-card.is-inactive {
+      opacity: 0.6;
+    }
+
+    .member-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .member-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--color-bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .member-card.is-active .member-avatar {
+      background: var(--color-success-subtle);
+      color: var(--color-success);
+    }
+
+    .member-details {
+      min-width: 0;
+    }
+
+    .member-name {
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .member-meta {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .member-actions {
+      display: flex;
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+
+    .member-action-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .member-action-btn:hover {
+      background: var(--color-bg-subtle);
+    }
+
+    .member-action-btn.danger:hover {
+      background: var(--color-danger-subtle);
+      border-color: var(--color-danger);
+      color: var(--color-danger);
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: var(--color-bg-subtle);
+      border-radius: 8px;
+      grid-column: 1 / -1;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      margin: 0 0 0.5rem 0;
+    }
+
+    .empty-state p {
+      color: var(--color-text-muted);
+      margin: 0;
+    }
+
+    /* Collapsible sections */
+    .collapsible-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+      transition: all 0.15s;
+    }
+
+    .collapsible-header:hover {
+      border-color: var(--color-primary);
+    }
+
+    .collapsible-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .collapsible-chevron {
+      transition: transform 0.2s;
+    }
+
+    .collapsible-section.expanded .collapsible-chevron {
+      transform: rotate(90deg);
+    }
+
+    .collapsible-content {
+      display: none;
+      padding: 1rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .collapsible-section.expanded .collapsible-content {
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <div class="app-shell">
-    <!-- Sidebar (loaded from shared partial) -->
     <aside class="app-sidebar" data-include-sidebar data-page="members"></aside>
 
-    <!-- Header -->
-    <header class="app-header">
-      <div class="flex items-center gap-4">
-        <div>
-          <h1 class="text-xl font-bold">👥 Membres</h1>
-          <p class="text-sm text-secondary">Gestion des participants et pondération</p>
-        </div>
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <h1>Membres</h1>
+        <div class="page-header-subtitle">Gestion des participants et pondération</div>
       </div>
-      <div class="flex items-center gap-2">
-        <a class="btn btn-secondary" href="/api/v1/members_export_csv.php" target="_blank">
-          📥 Exporter CSV
-        </a>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="stats" title="Statistiques">
-          📊
-        </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
-          ☰
-        </button>
+      <div class="page-header-actions">
+        <a class="btn btn-secondary" href="/api/v1/members_export_csv.php" target="_blank">Exporter CSV</a>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu"></button>
       </div>
-    </header>
+    </div>
 
-    <!-- Main Content -->
-    <main class="app-main">
-      <div class="container">
-        <!-- Notification area -->
-        <div id="notif_box" class="hidden mb-4"></div>
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat-item total">
+        <div class="stat-value" id="kpiTotal">0</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-item active">
+        <div class="stat-value" id="kpiActive">0</div>
+        <div class="stat-label">Actifs</div>
+      </div>
+      <div class="stat-item inactive">
+        <div class="stat-value" id="kpiInactive">0</div>
+        <div class="stat-label">Inactifs</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="kpiPower">0</div>
+        <div class="stat-label">Voix totales</div>
+      </div>
+    </div>
 
-        <!-- KPI Grid -->
-        <div class="kpi-grid mb-6">
-          <div class="kpi-card">
-            <div class="kpi-value primary" id="kpiTotal">—</div>
-            <div class="kpi-label">Total membres</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-value success" id="kpiActive">—</div>
-            <div class="kpi-label">Actifs</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-value" id="kpiPower">—</div>
-            <div class="kpi-label">Voix totales</div>
-          </div>
-        </div>
+    <main class="app-main" style="padding: 0;">
+      <div class="page-content">
+        <div id="notif_box" class="alert hidden mb-4"></div>
 
-        <!-- Add Member -->
-        <div class="card mb-6">
-          <div class="card-header">
-            <h3 class="card-title">➕ Ajouter un membre</h3>
-            <p class="card-description">Créer un nouveau participant</p>
-          </div>
-          <div class="card-body">
-            <div class="grid grid-cols-4 gap-4">
-              <div class="form-group">
-                <label class="form-label form-label-required" for="mName">Nom complet</label>
-                <input class="form-input" type="text" id="mName" placeholder="Jean Dupont">
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="mEmail">Email</label>
-                <input class="form-input" type="email" id="mEmail" placeholder="jean@exemple.com">
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="mPower">Poids (voix)</label>
-                <input class="form-input" type="number" id="mPower" value="1" min="0" step="1">
-              </div>
-              <div class="form-group">
-                <label class="form-label">&nbsp;</label>
-                <div class="flex items-center gap-4">
-                  <label class="flex items-center gap-2">
-                    <input type="checkbox" id="mActive" checked>
-                    <span>Actif</span>
-                  </label>
-                  <button class="btn btn-primary" id="btnCreate">
-                    ➕ Ajouter
-                  </button>
-                </div>
-              </div>
+        <!-- Create member card -->
+        <div class="create-card">
+          <h3>Ajouter un membre</h3>
+          <div class="create-form">
+            <div class="form-group">
+              <label for="mName">Nom complet *</label>
+              <input class="form-input" type="text" id="mName" placeholder="Jean Dupont">
+            </div>
+            <div class="form-group">
+              <label for="mEmail">Email</label>
+              <input class="form-input" type="email" id="mEmail" placeholder="jean@exemple.com">
+            </div>
+            <div class="form-group">
+              <label for="mPower">Poids (voix)</label>
+              <input class="form-input" type="number" id="mPower" value="1" min="0" step="1">
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <label class="flex items-center gap-2">
+                <input type="checkbox" id="mActive" checked>
+                <span>Actif</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button class="btn btn-primary" id="btnCreate">Ajouter</button>
             </div>
           </div>
         </div>
 
-        <!-- Import CSV -->
-        <div class="card mb-6">
-          <div class="card-header">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="card-title">📄 Import CSV</h3>
-                <p class="card-description">
-                  Colonnes: <code>name</code>, <code>email</code>, <code>voting_power</code>, <code>is_active</code>
-                </p>
-              </div>
-              <button class="btn btn-secondary btn-sm" id="btnSeed">
-                🧪 Générer fictifs
-              </button>
-            </div>
+        <!-- Import section (collapsible) -->
+        <div class="collapsible-section" id="importSection">
+          <div class="collapsible-header" onclick="toggleSection('importSection')">
+            <h3><span>Import CSV</span></h3>
+            <span class="collapsible-chevron">&#9654;</span>
           </div>
-          <div class="card-body">
+          <div class="collapsible-content">
+            <div class="import-card-desc">
+              Colonnes: <code>name</code>, <code>email</code>, <code>voting_power</code>, <code>is_active</code>
+            </div>
             <div class="upload-zone" id="uploadZone">
               <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;">
-              <div class="text-3xl mb-2">📁</div>
-              <div class="font-medium">Glisser un fichier CSV ici</div>
-              <div class="text-sm text-muted mt-1">ou cliquer pour sélectionner</div>
+              <div class="upload-zone-icon"></div>
+              <div class="upload-zone-text">Glisser un fichier CSV ici</div>
+              <div class="upload-zone-hint">ou cliquer pour sélectionner</div>
             </div>
             <div class="flex gap-2 mt-4">
-              <button class="btn btn-primary" id="btnImport" disabled>
-                📥 Importer
-              </button>
-              <span class="text-sm text-muted" id="fileName">Aucun fichier sélectionné</span>
+              <button class="btn btn-primary" id="btnImport" disabled>Importer</button>
+              <button class="btn btn-secondary" id="btnSeed">Générer fictifs</button>
+              <span class="text-sm text-muted" id="fileName" style="align-self: center;">Aucun fichier sélectionné</span>
             </div>
-            <pre id="importOut" class="mt-4 p-3 bg-surface rounded-md text-sm font-mono" style="display: none;"></pre>
+            <pre id="importOut" class="mt-4 p-3 bg-subtle rounded-md text-sm font-mono" style="display: none;"></pre>
           </div>
         </div>
 
-        <!-- Members List -->
-        <div class="card">
-          <div class="card-header">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="card-title">📋 Liste des membres</h3>
-                <p class="card-description" id="membersCount">— membres</p>
-              </div>
-              <input type="text" class="form-input" id="searchInput" 
-                     placeholder="🔍 Rechercher..." style="width: 250px;">
-            </div>
+        <!-- Filter tabs -->
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="all">Tous</button>
+          <button class="filter-tab" data-filter="active">Actifs</button>
+          <button class="filter-tab" data-filter="inactive">Inactifs</button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="search-box">
+            <input type="text" class="form-input" id="searchInput" placeholder="Rechercher un membre...">
           </div>
-          <div class="card-body">
-            <div class="flex flex-col gap-3" id="membersList">
-              <div class="text-center p-6">
-                <div class="spinner"></div>
-                <div class="mt-4 text-muted">Chargement des membres...</div>
-              </div>
-            </div>
-          </div>
+        </div>
+
+        <!-- Section header -->
+        <div class="section-header">
+          <span class="section-title">Liste des membres</span>
+          <span class="text-sm text-muted" id="membersCount">0 membres</span>
+        </div>
+
+        <!-- Members grid -->
+        <div class="members-grid" id="membersList">
+          <div class="text-center p-6 text-muted" style="grid-column: 1 / -1;">Chargement...</div>
         </div>
       </div>
     </main>
@@ -154,7 +523,7 @@
   <aside class="drawer" id="drawer">
     <div class="drawer-header">
       <div id="drawerTitle" class="font-semibold">Menu</div>
-      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close>✕</button>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close></button>
     </div>
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
@@ -166,6 +535,317 @@
   <script src="/assets/js/meeting-context.js"></script>
   <script src="/assets/js/session-wizard.js"></script>
 
-  <script src="/assets/js/members.js"></script>
+  <script>
+  (function() {
+    'use strict';
+
+    const searchInput = document.getElementById('searchInput');
+    const membersList = document.getElementById('membersList');
+    const membersCount = document.getElementById('membersCount');
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const uploadZone = document.getElementById('uploadZone');
+    const csvFile = document.getElementById('csvFile');
+    const btnImport = document.getElementById('btnImport');
+    const fileName = document.getElementById('fileName');
+
+    let allMembers = [];
+    let currentFilter = 'all';
+
+    // Toggle collapsible section
+    window.toggleSection = function(sectionId) {
+      const section = document.getElementById(sectionId);
+      section.classList.toggle('expanded');
+    };
+
+    // Update stats
+    function updateStats(members) {
+      const total = members.length;
+      const active = members.filter(m => m.is_active).length;
+      const inactive = total - active;
+      const power = members.filter(m => m.is_active).reduce((sum, m) => sum + (m.voting_power || 1), 0);
+
+      document.getElementById('kpiTotal').textContent = total;
+      document.getElementById('kpiActive').textContent = active;
+      document.getElementById('kpiInactive').textContent = inactive;
+      document.getElementById('kpiPower').textContent = power;
+    }
+
+    // Filter members
+    function filterMembers(members, filter, search = '') {
+      let filtered = members;
+
+      if (filter === 'active') {
+        filtered = filtered.filter(m => m.is_active);
+      } else if (filter === 'inactive') {
+        filtered = filtered.filter(m => !m.is_active);
+      }
+
+      if (search) {
+        const s = search.toLowerCase();
+        filtered = filtered.filter(m =>
+          (m.name || '').toLowerCase().includes(s) ||
+          (m.email || '').toLowerCase().includes(s)
+        );
+      }
+
+      return filtered;
+    }
+
+    // Render members
+    function renderMembers(members) {
+      const search = searchInput.value.trim();
+      const filtered = filterMembers(members, currentFilter, search);
+      membersCount.textContent = `${filtered.length} membre${filtered.length > 1 ? 's' : ''}`;
+
+      if (!filtered.length) {
+        membersList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon"></div>
+            <h3>Aucun membre</h3>
+            <p>Ajoutez des membres avec le formulaire ci-dessus.</p>
+          </div>
+        `;
+        return;
+      }
+
+      membersList.innerHTML = filtered.map(m => {
+        const initials = (m.name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+        const cardClass = m.is_active ? 'is-active' : 'is-inactive';
+        const statusBadge = m.is_active
+          ? '<span class="badge badge-success badge-sm">Actif</span>'
+          : '<span class="badge badge-neutral badge-sm">Inactif</span>';
+
+        return `
+          <div class="member-card ${cardClass}" data-member-id="${m.id}">
+            <div class="member-info">
+              <div class="member-avatar">${initials}</div>
+              <div class="member-details">
+                <div class="member-name">${escapeHtml(m.name || '—')}</div>
+                <div class="member-meta">
+                  <span>Poids: ${m.voting_power || 1}</span>
+                  ${m.email ? `<span>${escapeHtml(m.email)}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="member-actions">
+              ${statusBadge}
+              <button class="member-action-btn" onclick="toggleActive('${m.id}', ${!m.is_active})" title="${m.is_active ? 'Désactiver' : 'Activer'}">
+                ${m.is_active ? '&#x23F8;' : '&#x25B6;'}
+              </button>
+              <button class="member-action-btn danger" onclick="deleteMember('${m.id}')" title="Supprimer">
+                &#x1f5d1;
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Load members
+    async function fetchMembers() {
+      membersList.innerHTML = '<div class="text-center p-6 text-muted" style="grid-column: 1 / -1;">Chargement...</div>';
+
+      try {
+        const { body } = await api('/api/v1/members_list.php');
+        allMembers = body?.data?.members || [];
+        updateStats(allMembers);
+        renderMembers(allMembers);
+      } catch (err) {
+        membersList.innerHTML = `<div class="alert alert-danger" style="grid-column: 1 / -1;">Erreur: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    // Create member
+    document.getElementById('btnCreate').addEventListener('click', async () => {
+      const name = document.getElementById('mName').value.trim();
+      const email = document.getElementById('mEmail').value.trim();
+      const voting_power = parseInt(document.getElementById('mPower').value) || 1;
+      const is_active = document.getElementById('mActive').checked;
+
+      if (!name) {
+        setNotif('error', 'Le nom est requis');
+        document.getElementById('mName').focus();
+        return;
+      }
+
+      const btn = document.getElementById('btnCreate');
+      Shared.btnLoading(btn, true);
+
+      try {
+        const { body } = await api('/api/v1/members.php', {
+          name,
+          email: email || null,
+          voting_power,
+          is_active
+        });
+
+        if (body?.ok) {
+          setNotif('success', 'Membre ajouté');
+          document.getElementById('mName').value = '';
+          document.getElementById('mEmail').value = '';
+          document.getElementById('mPower').value = '1';
+          document.getElementById('mActive').checked = true;
+          await fetchMembers();
+        } else {
+          setNotif('error', body?.error || 'Erreur');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      } finally {
+        Shared.btnLoading(btn, false);
+      }
+    });
+
+    // Toggle active status
+    window.toggleActive = async function(memberId, newStatus) {
+      try {
+        const { body } = await api('/api/v1/members_update.php', {
+          member_id: memberId,
+          is_active: newStatus
+        });
+
+        if (body?.ok) {
+          const member = allMembers.find(m => m.id === memberId);
+          if (member) member.is_active = newStatus;
+          updateStats(allMembers);
+          renderMembers(allMembers);
+        } else {
+          setNotif('error', body?.error || 'Erreur');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    };
+
+    // Delete member
+    window.deleteMember = async function(memberId) {
+      if (!confirm('Supprimer ce membre ?')) return;
+
+      try {
+        const { body } = await api('/api/v1/members_delete.php', { member_id: memberId });
+
+        if (body?.ok) {
+          setNotif('success', 'Membre supprimé');
+          await fetchMembers();
+        } else {
+          setNotif('error', body?.error || 'Erreur');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      }
+    };
+
+    // Filter tabs
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        filterTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFilter = tab.dataset.filter;
+        renderMembers(allMembers);
+      });
+    });
+
+    // Search
+    searchInput.addEventListener('input', () => {
+      renderMembers(allMembers);
+    });
+
+    // CSV upload
+    uploadZone.addEventListener('click', () => csvFile.click());
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.style.borderColor = 'var(--color-primary)';
+    });
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.style.borderColor = '';
+    });
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.style.borderColor = '';
+      if (e.dataTransfer.files.length) {
+        csvFile.files = e.dataTransfer.files;
+        handleFileSelect();
+      }
+    });
+    csvFile.addEventListener('change', handleFileSelect);
+
+    function handleFileSelect() {
+      if (csvFile.files.length) {
+        fileName.textContent = csvFile.files[0].name;
+        btnImport.disabled = false;
+      }
+    }
+
+    // Import CSV
+    btnImport.addEventListener('click', async () => {
+      if (!csvFile.files.length) return;
+
+      const formData = new FormData();
+      formData.append('csv_file', csvFile.files[0]);
+
+      Shared.btnLoading(btnImport, true);
+      const importOut = document.getElementById('importOut');
+
+      try {
+        const resp = await fetch('/api/v1/members_import_csv.php', {
+          method: 'POST',
+          body: formData
+        });
+        const body = await resp.json();
+
+        importOut.style.display = 'block';
+        if (body?.ok) {
+          importOut.textContent = `Import réussi: ${body.data?.imported || 0} membres importés`;
+          importOut.className = 'mt-4 p-3 rounded-md text-sm font-mono alert alert-success';
+          setNotif('success', 'Import terminé');
+          await fetchMembers();
+        } else {
+          importOut.textContent = body?.error || 'Erreur import';
+          importOut.className = 'mt-4 p-3 rounded-md text-sm font-mono alert alert-danger';
+        }
+      } catch (err) {
+        importOut.style.display = 'block';
+        importOut.textContent = err.message;
+        importOut.className = 'mt-4 p-3 rounded-md text-sm font-mono alert alert-danger';
+      } finally {
+        Shared.btnLoading(btnImport, false);
+        csvFile.value = '';
+        fileName.textContent = 'Aucun fichier sélectionné';
+        btnImport.disabled = true;
+      }
+    });
+
+    // Generate seed members
+    document.getElementById('btnSeed').addEventListener('click', async () => {
+      if (!confirm('Générer 10 membres fictifs ?')) return;
+
+      const btn = document.getElementById('btnSeed');
+      Shared.btnLoading(btn, true);
+
+      try {
+        const { body } = await api('/api/v1/members_seed.php', { count: 10 });
+
+        if (body?.ok) {
+          setNotif('success', `${body.data?.created || 0} membres générés`);
+          await fetchMembers();
+        } else {
+          setNotif('error', body?.error || 'Erreur');
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+      } finally {
+        Shared.btnLoading(btn, false);
+      }
+    });
+
+    // Enter key on name field
+    document.getElementById('mName').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('btnCreate').click();
+    });
+
+    // Initial load
+    fetchMembers();
+  })();
+  </script>
 </body>
 </html>

@@ -10,240 +10,305 @@
   <title>Vote — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
   <style>
-    /* Vote tablet-specific styles */
+    /* Full height app for tablets */
     html, body {
       height: 100%;
       overflow: hidden;
     }
-    
+
     .vote-app {
       display: flex;
       flex-direction: column;
       height: 100vh;
       background: var(--color-bg);
     }
-    
-    .vote-header {
+
+    /* Page header - Diligent style */
+    .page-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: var(--space-4) var(--space-5);
+      padding: 1rem 1.5rem;
       background: var(--color-surface);
       border-bottom: 1px solid var(--color-border);
       flex-shrink: 0;
     }
-    
+
+    .page-header-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .page-header-subtitle {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+
+    .page-header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Context bar */
+    .context-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: var(--color-bg-subtle);
+      border-bottom: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+
+    .context-bar .form-group {
+      margin: 0;
+    }
+
+    .context-bar .form-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Main content */
     .vote-main {
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: var(--space-5);
+      padding: 1.5rem;
       overflow-y: auto;
     }
-    
-    .vote-context {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-4);
-      margin-bottom: var(--space-5);
+
+    /* Speech panel */
+    .speech-panel {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
     }
-    
-    .vote-motion {
+
+    .speech-panel.speaking {
+      border-color: var(--color-success);
+      background: var(--color-success-subtle);
+    }
+
+    .speech-info h4 {
+      margin: 0 0 0.25rem 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .speech-info p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+    }
+
+    /* Motion card */
+    .motion-card {
       background: var(--color-surface);
       border: 2px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      padding: var(--space-6);
+      border-radius: 12px;
+      padding: 1.5rem;
       text-align: center;
-      margin-bottom: var(--space-5);
+      margin-bottom: 1.5rem;
     }
-    
-    .vote-motion.active {
+
+    .motion-card.active {
       border-color: var(--color-primary);
       background: var(--color-primary-subtle);
     }
-    
-    .vote-motion.waiting {
+
+    .motion-card.waiting {
       border-color: var(--color-warning);
       background: var(--color-warning-subtle);
     }
-    
-    .vote-motion-number {
-      font-size: var(--text-lg);
+
+    .motion-number {
+      font-size: 1rem;
       color: var(--color-text-muted);
-      margin-bottom: var(--space-2);
+      margin-bottom: 0.5rem;
     }
-    
-    .vote-motion-title {
-      font-size: var(--text-2xl);
-      font-weight: var(--font-bold);
-      color: var(--color-text);
-      margin-bottom: var(--space-3);
+
+    .motion-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
     }
-    
-    .vote-motion-status {
+
+    .motion-status {
       display: inline-flex;
       align-items: center;
-      gap: var(--space-2);
-      padding: var(--space-2) var(--space-4);
-      border-radius: var(--radius-full);
-      font-size: var(--text-sm);
-      font-weight: var(--font-semibold);
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 600;
     }
-    
-    .vote-motion-status.open {
+
+    .motion-status.open {
       background: var(--color-success);
       color: white;
     }
-    
-    .vote-motion-status.closed {
+
+    .motion-status.closed {
       background: var(--color-text-muted);
       color: white;
     }
-    
-    .vote-motion-status.waiting {
+
+    .motion-status.waiting {
       background: var(--color-warning);
       color: white;
     }
-    
+
+    /* Vote buttons container */
     .vote-buttons-container {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
     }
-    
+
     .vote-buttons {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-5);
+      gap: 1.5rem;
       max-width: 900px;
       margin: 0 auto;
       width: 100%;
     }
-    
+
     .vote-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: var(--space-3);
-      padding: var(--space-10) var(--space-6);
-      font-size: var(--text-2xl);
-      font-weight: var(--font-extrabold);
+      gap: 0.75rem;
+      padding: 3rem 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       border: none;
-      border-radius: var(--radius-xl);
+      border-radius: 16px;
       cursor: pointer;
-      transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+      transition: transform 0.1s, box-shadow 0.15s;
       position: relative;
       overflow: hidden;
     }
-    
+
     .vote-btn:active:not(:disabled) {
       transform: scale(0.97);
     }
-    
+
     .vote-btn:disabled {
       opacity: 0.4;
       cursor: not-allowed;
       transform: none;
     }
-    
+
     .vote-btn-icon {
       font-size: 3rem;
     }
-    
+
     .vote-btn-for {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: white;
-      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.5);
+      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
     }
-    
+
     .vote-btn-for:hover:not(:disabled) {
-      box-shadow: 0 15px 50px rgba(16, 185, 129, 0.6);
+      box-shadow: 0 15px 50px rgba(16, 185, 129, 0.5);
     }
-    
+
     .vote-btn-against {
       background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       color: white;
-      box-shadow: 0 10px 40px rgba(239, 68, 68, 0.5);
+      box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
     }
-    
+
     .vote-btn-against:hover:not(:disabled) {
-      box-shadow: 0 15px 50px rgba(239, 68, 68, 0.6);
+      box-shadow: 0 15px 50px rgba(239, 68, 68, 0.5);
     }
-    
+
     .vote-btn-abstain {
       background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
       color: white;
-      box-shadow: 0 10px 40px rgba(107, 114, 128, 0.5);
+      box-shadow: 0 10px 40px rgba(107, 114, 128, 0.4);
     }
-    
+
     .vote-btn-abstain:hover:not(:disabled) {
-      box-shadow: 0 15px 50px rgba(107, 114, 128, 0.6);
+      box-shadow: 0 15px 50px rgba(107, 114, 128, 0.5);
     }
-    
+
     .vote-btn.selected::after {
-      content: '✓';
+      content: '';
       position: absolute;
-      top: var(--space-3);
-      right: var(--space-3);
-      width: 32px;
-      height: 32px;
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 28px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: white;
       color: currentColor;
       border-radius: 50%;
-      font-size: var(--text-lg);
+      font-size: 1rem;
     }
-    
+
+    /* Footer */
     .vote-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: var(--space-4) var(--space-5);
+      padding: 1rem 1.5rem;
       background: var(--color-surface);
       border-top: 1px solid var(--color-border);
       flex-shrink: 0;
     }
-    
-    .vote-member-info {
+
+    .member-info {
       display: flex;
       align-items: center;
-      gap: var(--space-3);
+      gap: 0.75rem;
     }
-    
-    .vote-member-avatar {
-      width: 48px;
-      height: 48px;
+
+    .member-avatar {
+      width: 44px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: var(--color-primary-subtle);
       color: var(--color-primary);
       border-radius: 50%;
-      font-weight: var(--font-bold);
-      font-size: var(--text-lg);
+      font-weight: 700;
+      font-size: 1.1rem;
     }
-    
-    .vote-member-name {
-      font-weight: var(--font-semibold);
+
+    .member-name {
+      font-weight: 600;
     }
-    
-    .vote-member-weight {
-      font-size: var(--text-sm);
+
+    .member-weight {
+      font-size: 0.85rem;
       color: var(--color-text-muted);
     }
-    
-    .vote-connection {
+
+    .connection-status {
       display: flex;
       align-items: center;
-      gap: var(--space-2);
+      gap: 0.5rem;
     }
-    
+
     .connection-dot {
       width: 10px;
       height: 10px;
@@ -251,195 +316,173 @@
       background: var(--color-success);
       animation: pulse 2s ease-in-out infinite;
     }
-    
+
     .connection-dot.offline {
       background: var(--color-danger);
       animation: none;
     }
-    
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
     /* Confirmation overlay */
     .vote-confirmation {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.85);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: var(--space-6);
+      padding: 1.5rem;
       z-index: 100;
       opacity: 0;
       visibility: hidden;
-      transition: opacity var(--duration-normal), visibility var(--duration-normal);
+      transition: opacity 0.2s, visibility 0.2s;
     }
-    
+
     .vote-confirmation.show {
       opacity: 1;
       visibility: visible;
     }
-    
+
     .vote-confirmation-content {
       background: var(--color-surface);
-      border-radius: var(--radius-xl);
-      padding: var(--space-8);
+      border-radius: 16px;
+      padding: 2.5rem;
       text-align: center;
-      max-width: 500px;
+      max-width: 450px;
       width: 100%;
-      transform: scale(0.9);
-      transition: transform var(--duration-normal) var(--ease-out);
+      transform: scale(0.95);
+      transition: transform 0.2s;
     }
-    
+
     .vote-confirmation.show .vote-confirmation-content {
       transform: scale(1);
     }
-    
+
     .vote-confirmation-icon {
-      font-size: 5rem;
-      margin-bottom: var(--space-4);
+      font-size: 4rem;
+      margin-bottom: 1rem;
     }
-    
+
     .vote-confirmation-title {
-      font-size: var(--text-2xl);
-      font-weight: var(--font-bold);
-      margin-bottom: var(--space-2);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
     }
-    
+
     .vote-confirmation-message {
       color: var(--color-text-secondary);
-      margin-bottom: var(--space-6);
+      margin-bottom: 2rem;
     }
-    
+
     .vote-confirmation-buttons {
       display: flex;
-      gap: var(--space-4);
+      gap: 1rem;
       justify-content: center;
     }
-    
+
     .vote-confirmation-buttons .btn {
-      min-width: 150px;
-      padding: var(--space-4) var(--space-6);
-      font-size: var(--text-lg);
+      min-width: 140px;
+      padding: 1rem 1.5rem;
+      font-size: 1.1rem;
     }
-    
-    /* Speech request */
-    .speech-panel {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-4);
-      margin-bottom: var(--space-4);
-    }
-    
-    .speech-panel.speaking {
-      border-color: var(--color-success);
-      background: var(--color-success-subtle);
-    }
-    
+
+    /* Responsive */
     @media (max-width: 768px) {
       .vote-buttons {
         grid-template-columns: 1fr;
-        gap: var(--space-4);
+        gap: 1rem;
       }
-      
+
       .vote-btn {
-        padding: var(--space-6) var(--space-4);
+        padding: 1.5rem;
         flex-direction: row;
         justify-content: center;
       }
-      
+
       .vote-btn-icon {
         font-size: 2rem;
       }
-      
-      .vote-context {
+
+      .context-bar {
         grid-template-columns: 1fr;
       }
     }
-    
-    @media (min-height: 800px) {
+
+    @media (min-height: 900px) {
       .vote-btn {
-        padding: var(--space-12) var(--space-8);
+        padding: 4rem 2rem;
       }
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
     }
   </style>
 </head>
 <body>
   <div class="vote-app">
-    <!-- Header -->
-    <header class="vote-header">
+    <!-- Page header -->
+    <div class="page-header">
       <div>
-        <div class="text-lg font-bold">🗳️ Vote</div>
-        <div class="text-sm text-secondary">Interface tablette</div>
+        <h1 class="page-header-title">Vote</h1>
+        <div class="page-header-subtitle">Interface tablette</div>
       </div>
-      <div class="flex items-center gap-2">
-        <button class="btn btn-secondary btn-sm" id="btnRefresh">
-          🔄 Actualiser
-        </button>
-        <a href="/public.htmx.html" class="btn btn-ghost btn-sm">📺 Écran</a>
+      <div class="page-header-actions">
+        <button class="btn btn-secondary btn-sm" id="btnRefresh">Actualiser</button>
+        <a href="/public.htmx.html" class="btn btn-ghost btn-sm">Écran</a>
       </div>
-    </header>
+    </div>
+
+    <!-- Context bar -->
+    <div class="context-bar">
+      <div class="form-group">
+        <label class="form-label">Séance</label>
+        <select class="form-input" id="meetingSelect">
+          <option value="">— Chargement —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Votant</label>
+        <select class="form-input" id="memberSelect">
+          <option value="">— Sélectionner votre nom —</option>
+        </select>
+      </div>
+    </div>
 
     <!-- Main content -->
     <main class="vote-main">
-      <!-- Context selection -->
-      <div class="vote-context">
-        <div class="form-group">
-          <label class="form-label" for="meetingSelect">Séance</label>
-          <select class="form-input" id="meetingSelect">
-            <option value="">— Chargement —</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="memberSelect">Votant</label>
-          <select class="form-input" id="memberSelect">
-            <option value="">— Sélectionner votre nom —</option>
-          </select>
-        </div>
-      </div>
-
       <!-- Speech panel -->
       <div class="speech-panel" id="speechBox">
-        <div class="flex items-center justify-between gap-4">
-          <div>
-            <div class="font-semibold">✋ Demande de parole</div>
-            <div class="text-sm text-muted" id="speechHint">Vous pouvez demander la parole</div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="badge badge-neutral" id="speechStatus">En attente</span>
-            <button class="btn btn-secondary" id="btnHand" type="button">
-              ✋ Lever la main
-            </button>
-          </div>
+        <div class="speech-info">
+          <h4>Demande de parole</h4>
+          <p id="speechHint">Vous pouvez demander la parole</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="badge badge-neutral" id="speechStatus">En attente</span>
+          <button class="btn btn-secondary btn-sm" id="btnHand" type="button">Lever la main</button>
         </div>
       </div>
 
-      <!-- Motion info -->
-      <div class="vote-motion" id="motionBox">
-        <div class="vote-motion-number">—</div>
-        <div class="vote-motion-title">En attente d'une résolution</div>
-        <span class="vote-motion-status waiting">
-          <span>⏳</span>
-          <span>Aucun vote en cours</span>
-        </span>
+      <!-- Motion card -->
+      <div class="motion-card" id="motionBox">
+        <div class="motion-number">—</div>
+        <div class="motion-title">En attente d'une résolution</div>
+        <span class="motion-status waiting">Aucun vote en cours</span>
       </div>
 
       <!-- Vote buttons -->
       <div class="vote-buttons-container">
         <div class="vote-buttons">
           <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled>
-            <span class="vote-btn-icon">👍</span>
+            <span class="vote-btn-icon">&#128077;</span>
             <span>Pour</span>
           </button>
           <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="against" disabled>
-            <span class="vote-btn-icon">👎</span>
+            <span class="vote-btn-icon">&#128078;</span>
             <span>Contre</span>
           </button>
           <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstain" disabled>
-            <span class="vote-btn-icon">✋</span>
+            <span class="vote-btn-icon">&#9995;</span>
             <span>Abstention</span>
           </button>
         </div>
@@ -448,14 +491,14 @@
 
     <!-- Footer -->
     <footer class="vote-footer">
-      <div class="vote-member-info" id="memberInfo">
-        <div class="vote-member-avatar" id="memberAvatar">?</div>
+      <div class="member-info" id="memberInfo">
+        <div class="member-avatar" id="memberAvatar">?</div>
         <div>
-          <div class="vote-member-name" id="memberName">Non connecté</div>
-          <div class="vote-member-weight" id="memberWeight">—</div>
+          <div class="member-name" id="memberName">Non connecté</div>
+          <div class="member-weight" id="memberWeight">—</div>
         </div>
       </div>
-      <div class="vote-connection">
+      <div class="connection-status">
         <div class="connection-dot" id="connectionDot"></div>
         <span class="text-sm text-muted" id="connectionStatus">Connecté</span>
       </div>
@@ -465,14 +508,14 @@
   <!-- Confirmation overlay -->
   <div class="vote-confirmation" id="confirmationOverlay">
     <div class="vote-confirmation-content">
-      <div class="vote-confirmation-icon" id="confirmIcon">🗳️</div>
+      <div class="vote-confirmation-icon" id="confirmIcon"></div>
       <div class="vote-confirmation-title" id="confirmTitle">Confirmer votre vote</div>
       <div class="vote-confirmation-message" id="confirmMessage">
         Vous êtes sur le point de voter <strong id="confirmChoice">POUR</strong>
       </div>
       <div class="vote-confirmation-buttons">
         <button class="btn btn-secondary" id="btnCancel">Annuler</button>
-        <button class="btn btn-primary" id="btnConfirm">✓ Confirmer</button>
+        <button class="btn btn-primary" id="btnConfirm">Confirmer</button>
       </div>
     </div>
   </div>
@@ -485,11 +528,11 @@
   <script src="/assets/js/utils.js"></script>
   <script src="/assets/js/auth-ui.js"></script>
   <script src="/assets/js/vote.js"></script>
-  
+
   <script>
   (function() {
     'use strict';
-    
+
     const voteButtons = document.querySelectorAll('.vote-btn');
     const confirmOverlay = document.getElementById('confirmationOverlay');
     const confirmChoice = document.getElementById('confirmChoice');
@@ -497,36 +540,36 @@
     const btnCancel = document.getElementById('btnCancel');
     const btnConfirm = document.getElementById('btnConfirm');
     let pendingVote = null;
-    
+
     // Choice labels and icons
     const choiceInfo = {
-      'for': { label: 'POUR', icon: '👍', color: 'var(--color-success)' },
-      'against': { label: 'CONTRE', icon: '👎', color: 'var(--color-danger)' },
-      'abstain': { label: 'ABSTENTION', icon: '✋', color: 'var(--color-text-muted)' }
+      'for': { label: 'POUR', icon: '&#128077;', color: 'var(--color-success)' },
+      'against': { label: 'CONTRE', icon: '&#128078;', color: 'var(--color-danger)' },
+      'abstain': { label: 'ABSTENTION', icon: '&#9995;', color: 'var(--color-text-muted)' }
     };
-    
+
     // Vote button click -> show confirmation
     voteButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         if (btn.disabled) return;
-        
+
         pendingVote = btn.dataset.choice;
         const info = choiceInfo[pendingVote];
-        
+
         confirmChoice.textContent = info.label;
         confirmChoice.style.color = info.color;
-        confirmIcon.textContent = info.icon;
-        
+        confirmIcon.innerHTML = info.icon;
+
         confirmOverlay.classList.add('show');
       });
     });
-    
+
     // Cancel
     btnCancel.addEventListener('click', () => {
       confirmOverlay.classList.remove('show');
       pendingVote = null;
     });
-    
+
     // Click outside to cancel
     confirmOverlay.addEventListener('click', (e) => {
       if (e.target === confirmOverlay) {
@@ -534,44 +577,43 @@
         pendingVote = null;
       }
     });
-    
+
     // Confirm vote
     btnConfirm.addEventListener('click', async () => {
       if (!pendingVote) return;
-      
+
       btnConfirm.disabled = true;
       btnConfirm.innerHTML = '<span class="spinner spinner-sm"></span> Envoi...';
-      
+
       try {
         // The actual vote submission is handled by vote.js
-        // This triggers the standard vote flow
         if (typeof submitVote === 'function') {
           await submitVote(pendingVote);
         }
-        
+
         // Mark selected button
         voteButtons.forEach(b => b.classList.remove('selected'));
         document.querySelector(`[data-choice="${pendingVote}"]`)?.classList.add('selected');
-        
+
         confirmOverlay.classList.remove('show');
-        setNotif('success', `✅ Vote ${choiceInfo[pendingVote].label} enregistré`);
-        
+        setNotif('success', `Vote ${choiceInfo[pendingVote].label} enregistré`);
+
         // Disable buttons after vote
         voteButtons.forEach(b => b.disabled = true);
       } catch (err) {
         setNotif('error', 'Erreur: ' + err.message);
       } finally {
         btnConfirm.disabled = false;
-        btnConfirm.innerHTML = '✓ Confirmer';
+        btnConfirm.innerHTML = 'Confirmer';
         pendingVote = null;
       }
     });
-    
+
     // Connection status
     function updateConnectionStatus(online) {
       const dot = document.getElementById('connectionDot');
       const status = document.getElementById('connectionStatus');
-      
+
       if (online) {
         dot.classList.remove('offline');
         status.textContent = 'Connecté';
@@ -580,12 +622,12 @@
         status.textContent = 'Hors ligne';
       }
     }
-    
+
     // Monitor connection
     window.addEventListener('online', () => updateConnectionStatus(true));
     window.addEventListener('offline', () => updateConnectionStatus(false));
     updateConnectionStatus(navigator.onLine);
-    
+
     // Update member info display
     window.updateMemberDisplay = function(member) {
       if (!member) {
@@ -594,11 +636,11 @@
         document.getElementById('memberAvatar').textContent = '?';
         return;
       }
-      
+
       document.getElementById('memberName').textContent = member.name || 'Membre';
-      document.getElementById('memberWeight').textContent = 
+      document.getElementById('memberWeight').textContent =
         member.weight ? `Poids: ${member.weight}` : '—';
-      document.getElementById('memberAvatar').textContent = 
+      document.getElementById('memberAvatar').textContent =
         (member.name || '?').charAt(0).toUpperCase();
     };
   })();
