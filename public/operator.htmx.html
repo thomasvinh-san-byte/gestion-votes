@@ -172,6 +172,97 @@
       align-items: center;
       gap: 0.25rem;
     }
+
+    /* Vote panel */
+    .vote-panel {
+      background: var(--color-warning-subtle);
+      border: 2px solid var(--color-warning);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .vote-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .vote-panel-title {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .voter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .voter-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem;
+      background: var(--color-surface);
+      border-radius: 6px;
+    }
+
+    .voter-row.has-voted {
+      opacity: 0.5;
+    }
+
+    .voter-name {
+      flex: 1;
+      font-size: 0.9rem;
+    }
+
+    .vote-btns {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .vote-btn {
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .vote-btn:hover { background: var(--color-bg-subtle); }
+    .vote-btn.for { color: var(--color-success); }
+    .vote-btn.against { color: var(--color-danger); }
+    .vote-btn.abstain { color: var(--color-text-muted); }
+    .vote-btn.active {
+      color: #fff;
+      border-color: transparent;
+    }
+    .vote-btn.for.active { background: var(--color-success); }
+    .vote-btn.against.active { background: var(--color-danger); }
+    .vote-btn.abstain.active { background: var(--color-text-muted); }
+
+    .vote-summary {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--color-border);
+      font-size: 0.85rem;
+    }
+
+    .vote-summary span {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
   </style>
 </head>
 <body>
@@ -184,6 +275,7 @@
         <p class="text-sm text-secondary" id="meetingTitle">—</p>
       </div>
       <div class="flex items-center gap-2">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="settings" title="Réglages">🔧</button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="quorum" title="Quorum">📊</button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="transitions" title="Transitions">⚙️</button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">☰</button>
@@ -225,6 +317,26 @@
         <div id="noMeetingAlert" class="no-meeting-alert" style="display: none;">
           <h3>Sélectionnez une séance</h3>
           <p class="text-muted mt-2">Choisissez une séance dans la liste ci-dessus pour gérer les votes.</p>
+        </div>
+
+        <!-- Vote panel (shown when a motion is open) -->
+        <div class="vote-panel" id="votePanel" style="display: none;">
+          <div class="vote-panel-header">
+            <div class="vote-panel-title">
+              <span>🗳️</span>
+              <span>Vote en cours: <strong id="openMotionTitle">—</strong></span>
+            </div>
+            <button class="btn btn-sm btn-secondary" id="btnCloseVote">Clôturer le vote</button>
+          </div>
+          <div class="voter-list" id="voterList">
+            <div class="text-center p-2 text-muted">Chargement...</div>
+          </div>
+          <div class="vote-summary">
+            <span style="color:var(--color-success)">✓ Pour: <strong id="voteFor">0</strong></span>
+            <span style="color:var(--color-danger)">✗ Contre: <strong id="voteAgainst">0</strong></span>
+            <span>⚪ Abstention: <strong id="voteAbstain">0</strong></span>
+            <span class="text-muted">| Votants: <strong id="voteTotal">0</strong>/<strong id="voteEligible">0</strong></span>
+          </div>
         </div>
 
         <!-- Motions list (main content) -->

@@ -15,9 +15,16 @@
   const motionsList = document.getElementById('motionsList');
   const motionsCount = document.getElementById('motionsCount');
   const meetingTitle = document.getElementById('meetingTitle');
+  const votePanel = document.getElementById('votePanel');
+  const voterList = document.getElementById('voterList');
+  const openMotionTitle = document.getElementById('openMotionTitle');
+  const btnCloseVote = document.getElementById('btnCloseVote');
 
   let currentMeetingId = null;
   let currentMeetingStatus = null;
+  let currentOpenMotion = null;
+  let votersCache = [];
+  let ballotsCache = {};
 
   // Get meeting_id from URL
   function getMeetingIdFromUrl() {
@@ -71,6 +78,7 @@
     noMeetingAlert.style.display = 'block';
     quickLinks.style.display = 'none';
     motionsSection.style.display = 'none';
+    votePanel.style.display = 'none';
     meetingStatusBadge.textContent = '—';
     meetingStatusBadge.className = 'badge';
     meetingTitle.textContent = '—';
@@ -137,9 +145,10 @@
 
       if (body && body.ok && body.data) {
         const attendances = body.data.attendances || [];
-        const present = attendances.filter(a => a.mode === 'present').length;
-        const remote = attendances.filter(a => a.mode === 'remote').length;
-        statPresent.textContent = present + remote;
+        votersCache = attendances.filter(a => a.mode === 'present' || a.mode === 'remote');
+        const present = votersCache.length;
+        statPresent.textContent = present;
+        document.getElementById('voteEligible').textContent = present;
       }
     } catch (err) {
       console.error('Attendance error:', err);
@@ -168,6 +177,15 @@
       const motions = body?.data?.motions || [];
 
       motionsCount.textContent = `${motions.length} résolution${motions.length > 1 ? 's' : ''}`;
+
+      // Find open motion
+      currentOpenMotion = motions.find(m => m.opened_at && !m.closed_at) || null;
+
+      if (currentOpenMotion) {
+        showVotePanel(currentOpenMotion);
+      } else {
+        votePanel.style.display = 'none';
+      }
 
       if (motions.length === 0) {
         motionsList.innerHTML = `
@@ -224,12 +242,109 @@
       });
 
       motionsList.querySelectorAll('.btn-close').forEach(btn => {
-        btn.addEventListener('click', () => closeVote(btn.dataset.motionId));
+        btn.addEventListener('click', () => closeVoteFromList(btn.dataset.motionId));
       });
 
     } catch (err) {
       console.error('Motions error:', err);
       motionsList.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+    }
+  }
+
+  // Show vote panel
+  function showVotePanel(motion) {
+    votePanel.style.display = 'block';
+    openMotionTitle.textContent = motion.title;
+    ballotsCache = {};
+    renderVoterList();
+    loadBallots(motion.id);
+  }
+
+  // Load existing ballots for the motion
+  async function loadBallots(motionId) {
+    try {
+      const { body } = await api(`/api/v1/ballots.php?motion_id=${motionId}`);
+      const ballots = body?.data?.ballots || body?.ballots || [];
+
+      ballotsCache = {};
+      let forCount = 0, againstCount = 0, abstainCount = 0;
+
+      ballots.forEach(b => {
+        ballotsCache[b.member_id] = b.value;
+        if (b.value === 'for') forCount++;
+        else if (b.value === 'against') againstCount++;
+        else if (b.value === 'abstain') abstainCount++;
+      });
+
+      document.getElementById('voteFor').textContent = forCount;
+      document.getElementById('voteAgainst').textContent = againstCount;
+      document.getElementById('voteAbstain').textContent = abstainCount;
+      document.getElementById('voteTotal').textContent = ballots.length;
+
+      renderVoterList();
+    } catch (err) {
+      console.error('Ballots error:', err);
+    }
+  }
+
+  // Render voter list
+  function renderVoterList() {
+    if (votersCache.length === 0) {
+      voterList.innerHTML = '<div class="text-center p-2 text-muted">Aucun membre présent</div>';
+      return;
+    }
+
+    voterList.innerHTML = votersCache.map(v => {
+      const vote = ballotsCache[v.member_id];
+      const hasVoted = !!vote;
+      const name = escapeHtml(v.full_name || '—');
+
+      return `
+        <div class="voter-row ${hasVoted ? 'has-voted' : ''}">
+          <span class="voter-name">${name}</span>
+          <div class="vote-btns">
+            <button class="vote-btn for ${vote === 'for' ? 'active' : ''}"
+                    data-member="${v.member_id}" data-vote="for" ${hasVoted ? 'disabled' : ''}>Pour</button>
+            <button class="vote-btn against ${vote === 'against' ? 'active' : ''}"
+                    data-member="${v.member_id}" data-vote="against" ${hasVoted ? 'disabled' : ''}>Contre</button>
+            <button class="vote-btn abstain ${vote === 'abstain' ? 'active' : ''}"
+                    data-member="${v.member_id}" data-vote="abstain" ${hasVoted ? 'disabled' : ''}>Abst.</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Bind vote buttons
+    voterList.querySelectorAll('.vote-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', () => castManualVote(btn.dataset.member, btn.dataset.vote));
+    });
+  }
+
+  // Cast manual vote
+  async function castManualVote(memberId, vote) {
+    if (!currentOpenMotion) return;
+
+    const justification = 'Vote opérateur manuel';
+
+    try {
+      const { body } = await api('/api/v1/manual_vote.php', {
+        meeting_id: currentMeetingId,
+        motion_id: currentOpenMotion.id,
+        member_id: memberId,
+        vote: vote,
+        justification: justification
+      });
+
+      if (body && body.ok) {
+        ballotsCache[memberId] = vote;
+        renderVoterList();
+        loadBallots(currentOpenMotion.id);
+        setNotif('success', 'Vote enregistré');
+      } else {
+        setNotif('error', body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
     }
   }
 
@@ -256,8 +371,8 @@
     }
   }
 
-  // Close vote
-  async function closeVote(motionId) {
+  // Close vote from list
+  async function closeVoteFromList(motionId) {
     if (!confirm('Clôturer ce vote ?')) return;
     const btn = motionsList.querySelector(`.btn-close[data-motion-id="${motionId}"]`);
     Shared.btnLoading(btn, true);
@@ -279,6 +394,13 @@
       Shared.btnLoading(btn, false);
     }
   }
+
+  // Close vote from panel button
+  btnCloseVote.addEventListener('click', () => {
+    if (currentOpenMotion) {
+      closeVoteFromList(currentOpenMotion.id);
+    }
+  });
 
   // Transitions (state machine)
   const TRANSITIONS = {
@@ -321,6 +443,94 @@
 
   // Register drawers
   if (window.ShellDrawer && window.ShellDrawer.register) {
+    // Settings drawer
+    window.ShellDrawer.register('settings', 'Réglages de la séance', async function(meetingId, body, esc) {
+      if (!currentMeetingId) {
+        body.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>';
+        return;
+      }
+      body.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement...</div>';
+
+      try {
+        // Load quorum policies
+        const qpRes = await api('/api/v1/quorum_policies.php');
+        const quorumPolicies = qpRes.body?.items || [];
+
+        // Load vote policies
+        const vpRes = await api('/api/v1/vote_policies.php');
+        const votePolicies = vpRes.body?.items || [];
+
+        // Load current settings
+        const qsRes = await api(`/api/v1/meeting_quorum_settings.php?meeting_id=${currentMeetingId}`);
+        const currentQuorumPolicy = qsRes.body?.data?.quorum_policy_id || '';
+        const currentConvocation = qsRes.body?.data?.convocation_no || 1;
+
+        const vsRes = await api(`/api/v1/meeting_vote_settings.php?meeting_id=${currentMeetingId}`);
+        const currentVotePolicy = vsRes.body?.data?.vote_policy_id || '';
+
+        body.innerHTML = `
+          <div style="padding:8px 0;display:flex;flex-direction:column;gap:16px;">
+            <div class="form-group">
+              <label class="form-label">Politique de quorum</label>
+              <select class="form-input" id="settingsQuorumPolicy">
+                <option value="">— Aucune —</option>
+                ${quorumPolicies.map(p => `
+                  <option value="${p.id}" ${p.id === currentQuorumPolicy ? 'selected' : ''}>
+                    ${esc(p.label || p.name || p.id)}
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Numéro de convocation</label>
+              <select class="form-input" id="settingsConvocation">
+                <option value="1" ${currentConvocation === 1 ? 'selected' : ''}>1ère convocation</option>
+                <option value="2" ${currentConvocation === 2 ? 'selected' : ''}>2ème convocation</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Politique de vote (majorité)</label>
+              <select class="form-input" id="settingsVotePolicy">
+                <option value="">— Aucune —</option>
+                ${votePolicies.map(p => `
+                  <option value="${p.id}" ${p.id === currentVotePolicy ? 'selected' : ''}>
+                    ${esc(p.label || p.name || p.id)}
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+            <button class="btn btn-primary btn-block" id="btnSaveSettings">💾 Enregistrer</button>
+          </div>
+        `;
+
+        body.querySelector('#btnSaveSettings').addEventListener('click', async () => {
+          const qpId = body.querySelector('#settingsQuorumPolicy').value;
+          const conv = parseInt(body.querySelector('#settingsConvocation').value, 10);
+          const vpId = body.querySelector('#settingsVotePolicy').value;
+
+          try {
+            await api('/api/v1/meeting_quorum_settings.php', {
+              meeting_id: currentMeetingId,
+              quorum_policy_id: qpId,
+              convocation_no: conv
+            });
+
+            await api('/api/v1/meeting_vote_settings.php', {
+              meeting_id: currentMeetingId,
+              vote_policy_id: vpId
+            });
+
+            setNotif('success', 'Réglages enregistrés');
+            document.querySelector('[data-drawer-close]')?.click();
+          } catch (err) {
+            setNotif('error', err.message);
+          }
+        });
+      } catch (e) {
+        body.innerHTML = '<div style="padding:16px;" class="text-muted">Erreur de chargement.</div>';
+      }
+    });
+
     // Quorum drawer
     window.ShellDrawer.register('quorum', 'Statut du quorum', async function(meetingId, body, esc) {
       if (!meetingId && currentMeetingId) meetingId = currentMeetingId;

@@ -9,6 +9,20 @@ namespace AgVote\Repository;
 class BallotRepository extends AbstractRepository
 {
     /**
+     * Liste les bulletins d'une motion (pour affichage opérateur).
+     */
+    public function listForMotion(string $motionId): array
+    {
+        return $this->selectAll(
+            "SELECT b.member_id, COALESCE(b.value::text, b.choice) AS value, b.weight, b.cast_at
+             FROM ballots b
+             WHERE b.motion_id = :mid
+             ORDER BY b.cast_at ASC",
+            [':mid' => $motionId]
+        );
+    }
+
+    /**
      * Tally par valeur (for/against/abstain/nsp) pour une motion.
      */
     public function tallyByMotion(string $motionId): array

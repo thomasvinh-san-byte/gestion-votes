@@ -57,7 +57,7 @@ class AttendanceRepository extends AbstractRepository
                     a.checked_in_at, a.checked_out_at, a.effective_power, a.notes
              FROM members m
              LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
-             WHERE m.tenant_id = :tid AND m.deleted_at IS NULL
+             WHERE m.tenant_id = :tid AND m.is_active = true AND m.deleted_at IS NULL
              ORDER BY m.full_name ASC",
             [':mid' => $meetingId, ':tid' => $tenantId]
         );
@@ -95,7 +95,7 @@ class AttendanceRepository extends AbstractRepository
                     a.mode, a.checked_in_at, a.checked_out_at
              FROM members m
              LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
-             WHERE m.tenant_id = :tid AND m.deleted_at IS NULL
+             WHERE m.tenant_id = :tid AND m.is_active = true AND m.deleted_at IS NULL
              ORDER BY m.full_name ASC",
             [':mid' => $meetingId, ':tid' => $tenantId]
         );
