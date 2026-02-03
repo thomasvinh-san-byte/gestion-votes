@@ -22,6 +22,7 @@
   let attendanceCache = [];
   let motionsCache = [];
   let currentOpenMotion = null;
+  let previousOpenMotionId = null;  // Tracks previous motion ID for detecting new votes
   let ballotsCache = {};
   let usersCache = [];
   let policiesCache = { quorum: [], vote: [] };
@@ -183,6 +184,14 @@
     populateSettingsForm();
     updateQuickStats();
     checkLaunchReady();
+
+    // Initialize motion tracking state to avoid false notifications on page load
+    initializePreviousMotionState();
+
+    // If a vote is already open, switch to vote tab
+    if (currentOpenMotion && currentMeetingStatus === 'live') {
+      switchTab('vote');
+    }
   }
 
   // =========================================================================
@@ -1055,6 +1064,11 @@
     }
   }
 
+  // Initialize previousOpenMotionId when loading meeting to avoid false "vote opened" notifications
+  function initializePreviousMotionState() {
+    previousOpenMotionId = currentOpenMotion?.id || null;
+  }
+
   function renderResolutions() {
     const list = document.getElementById('resolutionsList');
     const searchTerm = (document.getElementById('resolutionSearch')?.value || '').toLowerCase();
@@ -1482,8 +1496,11 @@
     try {
       await api('/api/v1/motions_open.php', { meeting_id: currentMeetingId, motion_id: motionId });
       setNotif('success', 'Vote ouvert');
-      loadResolutions();
+      // Must await loadResolutions so currentOpenMotion is set before switching tabs
+      await loadResolutions();
       switchTab('vote');
+      // Ensure vote tab is loaded with the new motion
+      await loadVoteTab();
     } catch (err) {
       setNotif('error', err.message);
     }
@@ -1647,7 +1664,6 @@
   loadMeetings();
 
   // Auto-refresh - adaptive polling
-  let lastPollTime = 0;
   const POLL_FAST = 2000;  // 2s when vote is active
   const POLL_SLOW = 5000;  // 5s otherwise
 
@@ -1657,7 +1673,7 @@
       return;
     }
 
-    const isVoteActive = !!currentOpenMotion;
+    const wasVoteActive = !!previousOpenMotionId;
     const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
     const onVoteTab = activeTab === 'vote';
 
@@ -1666,11 +1682,23 @@
     loadDashboard();
     loadDevices();
 
-    // If vote is active or on vote tab, poll more aggressively
-    if (isVoteActive || onVoteTab) {
-      // Refresh resolutions to detect motion state changes
-      await loadResolutions();
+    // Refresh resolutions to detect motion state changes
+    await loadResolutions();
 
+    const isVoteActive = !!currentOpenMotion;
+    const currentMotionId = currentOpenMotion?.id || null;
+
+    // Detect if a new vote was opened (not by us, e.g. from another tab/device)
+    if (isVoteActive && currentMotionId !== previousOpenMotionId) {
+      // A new vote was opened - switch to vote tab automatically
+      setNotif('info', `Vote ouvert: ${currentOpenMotion.title}`);
+      switchTab('vote');
+    }
+
+    previousOpenMotionId = currentMotionId;
+
+    // If vote is active or on vote tab, refresh ballot counts
+    if (isVoteActive || onVoteTab) {
       if (currentOpenMotion) {
         await loadBallots(currentOpenMotion.id);
         loadVoteTab();
