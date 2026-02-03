@@ -282,14 +282,9 @@ final class AuthMiddleware
      */
     public static function requireRole(string|array $roles, bool $strict = true): bool
     {
-        // Bypass si auth désactivée (DEV uniquement)
+        // Bypass si auth désactivée (DEV uniquement) - handled in authenticate()
         if (!self::isEnabled()) {
-            self::$currentUser = [
-                'id' => 'dev-user',
-                'role' => 'admin',
-                'name' => 'Dev User (Auth Disabled)',
-                'tenant_id' => self::getDefaultTenantId(),
-            ];
+            self::authenticate(); // Sets dev-user as admin
             return true;
         }
 
@@ -359,6 +354,17 @@ final class AuthMiddleware
     public static function authenticate(): ?array
     {
         if (self::$currentUser !== null) {
+            return self::$currentUser;
+        }
+
+        // Bypass si auth désactivée (DEV uniquement)
+        if (!self::isEnabled()) {
+            self::$currentUser = [
+                'id' => 'dev-user',
+                'role' => 'admin',
+                'name' => 'Dev User (Auth Disabled)',
+                'tenant_id' => self::getDefaultTenantId(),
+            ];
             return self::$currentUser;
         }
 
