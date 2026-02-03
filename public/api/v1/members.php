@@ -13,8 +13,8 @@ $repo = new MemberRepository();
 
 try {
     if ($method === 'GET') {
-        // Use listActive() to match AttendanceRepository filter (is_active = true AND deleted_at IS NULL)
-        $members = $repo->listActive(api_current_tenant_id());
+        // Use listAll() to return both active and inactive members for the management page
+        $members = $repo->listAll(api_current_tenant_id());
         api_ok(['members' => $members]);
 
     } elseif ($method === 'POST') {
@@ -68,6 +68,21 @@ try {
         audit_log('member_updated', 'member', $id, ['full_name' => $full_name]);
 
         api_ok(['member_id' => $id, 'full_name' => $full_name]);
+
+    } elseif ($method === 'DELETE') {
+        $input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
+        if (!is_array($input)) $input = $_GET;
+
+        $id = trim($input['id'] ?? $input['member_id'] ?? '');
+        if ($id === '' || !api_is_uuid($id)) {
+            api_fail('missing_member_id', 422, ['detail' => 'ID membre requis.']);
+        }
+
+        $repo->softDelete($id);
+
+        audit_log('member_deleted', 'member', $id);
+
+        api_ok(['member_id' => $id, 'deleted' => true]);
 
     } else {
         api_fail('method_not_allowed', 405);
