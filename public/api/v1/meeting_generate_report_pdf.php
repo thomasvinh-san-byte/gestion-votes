@@ -3,9 +3,10 @@ declare(strict_types=1);
 
 /**
  * meeting_generate_report_pdf.php - Génère le PV en PDF
- * 
+ *
  * GET /api/v1/meeting_generate_report_pdf.php?meeting_id={uuid}
- * 
+ * GET /api/v1/meeting_generate_report_pdf.php?meeting_id={uuid}&preview=1  (mode brouillon pour tests)
+ *
  * Utilise Dompdf pour convertir le HTML en PDF.
  */
 
@@ -27,6 +28,9 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
     api_fail('invalid_meeting_id', 400);
 }
 
+// Mode preview pour les tests (permet de générer un brouillon)
+$isPreview = !empty($_GET['preview']) || !empty($_GET['draft']);
+
 $tenantId = api_current_tenant_id();
 
 // Charger la séance
@@ -35,9 +39,10 @@ if (!$meeting || (string)($meeting['tenant_id'] ?? '') !== $tenantId) {
     api_fail('meeting_not_found', 404);
 }
 
-if (empty($meeting['validated_at'])) {
+// Vérification validation (sauf en mode preview)
+if (!$isPreview && empty($meeting['validated_at'])) {
     api_fail('meeting_not_validated', 409, [
-        'detail' => 'La séance doit être validée avant de générer le PV définitif.'
+        'detail' => 'La séance doit être validée avant de générer le PV définitif. Utilisez ?preview=1 pour un brouillon.'
     ]);
 }
 
@@ -144,18 +149,49 @@ $html = '<!DOCTYPE html>
         padding: 20px;
         text-align: center;
     }
+    .draft-watermark {
+        position: fixed;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 80pt;
+        color: rgba(220, 38, 38, 0.15);
+        font-weight: bold;
+        z-index: -1;
+        white-space: nowrap;
+    }
+    .draft-banner {
+        background: #fef2f2;
+        border: 2px solid #dc2626;
+        color: #dc2626;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: bold;
+    }
 </style>
 </head>
 <body>';
 
+// Watermark et bannière pour mode preview
+if ($isPreview) {
+    $html .= '<div class="draft-watermark">BROUILLON</div>';
+    $html .= '<div class="draft-banner">⚠️ DOCUMENT BROUILLON - NON VALIDÉ - À TITRE INDICATIF UNIQUEMENT</div>';
+}
+
 // En-tête
-$html .= '<h1>PROCÈS-VERBAL DE SÉANCE</h1>';
+$html .= '<h1>PROCÈS-VERBAL DE SÉANCE' . ($isPreview ? ' (BROUILLON)' : '') . '</h1>';
 $html .= '<div class="header-info">';
 $html .= '<p><strong>Titre :</strong> ' . htmlspecialchars($meeting['title'] ?? '—') . '</p>';
 $html .= '<p><strong>Date :</strong> ' . ($meeting['scheduled_at'] ? date('d/m/Y à H:i', strtotime($meeting['scheduled_at'])) : '—') . '</p>';
 $html .= '<p><strong>Lieu :</strong> ' . htmlspecialchars($meeting['location'] ?? '—') . '</p>';
 $html .= '<p><strong>Président :</strong> ' . htmlspecialchars($meeting['president_name'] ?? '—') . '</p>';
-$html .= '<p><strong>Validé le :</strong> ' . date('d/m/Y à H:i', strtotime($meeting['validated_at'])) . '</p>';
+if ($isPreview) {
+    $html .= '<p><strong>Statut :</strong> <span style="color:#dc2626;">Non validé (brouillon)</span></p>';
+} else {
+    $html .= '<p><strong>Validé le :</strong> ' . date('d/m/Y à H:i', strtotime($meeting['validated_at'])) . '</p>';
+}
 $html .= '</div>';
 
 // Présences
@@ -239,7 +275,11 @@ foreach ($motions as $i => $m) {
 $html .= '<div class="signature-box">';
 $html .= '<p>Le Président de séance</p>';
 $html .= '<p style="margin-top: 40px;"><strong>' . htmlspecialchars($meeting['president_name'] ?? '—') . '</strong></p>';
-$html .= '<p style="font-size: 9pt; color: #6b7280;">Fait le ' . date('d/m/Y à H:i', strtotime($meeting['validated_at'])) . '</p>';
+if ($isPreview) {
+    $html .= '<p style="font-size: 9pt; color: #dc2626;">Document brouillon - Généré le ' . date('d/m/Y à H:i') . '</p>';
+} else {
+    $html .= '<p style="font-size: 9pt; color: #6b7280;">Fait le ' . date('d/m/Y à H:i', strtotime($meeting['validated_at'])) . '</p>';
+}
 $html .= '</div>';
 
 // Footer
@@ -265,11 +305,14 @@ $dompdf->render();
 $pdfContent = $dompdf->output();
 $hash = hash('sha256', $pdfContent);
 
-// Persister le rapport HTML + hash d'intégrité du PDF
-(new MeetingRepository())->upsertReportFull($meetingId, $html, $hash);
+// Persister le rapport HTML + hash d'intégrité du PDF (sauf en preview)
+if (!$isPreview) {
+    (new MeetingRepository())->upsertReportFull($meetingId, $html, $hash);
+}
 
 // Envoyer le PDF
-$filename = 'PV_' . preg_replace('/[^a-zA-Z0-9]/', '_', $meeting['title'] ?? 'seance') . '_' . date('Ymd') . '.pdf';
+$prefix = $isPreview ? 'BROUILLON_PV_' : 'PV_';
+$filename = $prefix . preg_replace('/[^a-zA-Z0-9]/', '_', $meeting['title'] ?? 'seance') . '_' . date('Ymd') . '.pdf';
 
 header('Content-Type: application/pdf');
 header('Content-Disposition: attachment; filename="' . $filename . '"');

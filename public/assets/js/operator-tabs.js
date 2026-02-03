@@ -161,7 +161,8 @@
   // =========================================================================
 
   async function loadAllData() {
-    await Promise.all([
+    // Use Promise.allSettled to handle partial failures gracefully
+    const results = await Promise.allSettled([
       loadMembers(),
       loadAttendance(),
       loadResolutions(),
@@ -171,6 +172,14 @@
       loadDashboard(),
       loadDevices()
     ]);
+
+    // Log any failures but continue
+    results.forEach((result, idx) => {
+      if (result.status === 'rejected') {
+        console.warn(`loadAllData: Task ${idx} failed:`, result.reason);
+      }
+    });
+
     populateSettingsForm();
     updateQuickStats();
     checkLaunchReady();
@@ -931,13 +940,15 @@
         member_id: memberId,
         mode: mode
       });
-      if (body?.ok !== false) {
+      if (body?.ok === true) {
         const m = attendanceCache.find(a => String(a.member_id) === String(memberId));
         if (m) m.mode = mode;
         renderAttendance();
         loadStatusChecklist();
+        updateQuickStats();
+        checkLaunchReady();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', body?.error || 'Erreur de mise à jour');
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -1147,13 +1158,23 @@
     }
 
     try {
-      await api('/api/v1/motions.php', { meeting_id: currentMeetingId, title, description: desc || null });
-      setNotif('success', 'Résolution créée');
-      document.getElementById('addResolutionForm').style.display = 'none';
-      document.getElementById('newResolutionTitle').value = '';
-      document.getElementById('newResolutionDesc').value = '';
-      loadResolutions();
-      loadStatusChecklist();
+      const { body } = await api('/api/v1/motion_create_simple.php', {
+        meeting_id: currentMeetingId,
+        title: title,
+        description: desc || ''
+      });
+
+      if (body?.ok === true) {
+        setNotif('success', 'Résolution créée');
+        document.getElementById('addResolutionForm').style.display = 'none';
+        document.getElementById('newResolutionTitle').value = '';
+        document.getElementById('newResolutionDesc').value = '';
+        loadResolutions();
+        loadStatusChecklist();
+        checkLaunchReady();
+      } else {
+        setNotif('error', body?.error || body?.detail || 'Erreur lors de la création');
+      }
     } catch (err) {
       setNotif('error', err.message);
     }
@@ -1202,6 +1223,7 @@
     const voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
     const list = document.getElementById('manualVoteList');
 
+    // Allow vote correction - buttons are never disabled, but show current vote
     list.innerHTML = voters.map(v => {
       const vote = ballotsCache[v.member_id];
       const hasVoted = !!vote;
@@ -1209,36 +1231,63 @@
         <div class="attendance-card ${hasVoted ? 'present' : ''}" data-member-id="${v.member_id}">
           <span class="attendance-name">${escapeHtml(v.full_name || '—')}</span>
           <div class="attendance-mode-btns">
-            <button class="mode-btn present ${vote === 'for' ? 'active' : ''}" data-vote="for" ${hasVoted ? 'disabled' : ''}>✓</button>
-            <button class="mode-btn absent ${vote === 'against' ? 'active' : ''}" data-vote="against" ${hasVoted ? 'disabled' : ''}>✗</button>
-            <button class="mode-btn excused ${vote === 'abstain' ? 'active' : ''}" data-vote="abstain" ${hasVoted ? 'disabled' : ''}>○</button>
+            <button class="mode-btn present ${vote === 'for' ? 'active' : ''}" data-vote="for" title="Pour">✓</button>
+            <button class="mode-btn absent ${vote === 'against' ? 'active' : ''}" data-vote="against" title="Contre">✗</button>
+            <button class="mode-btn excused ${vote === 'abstain' ? 'active' : ''}" data-vote="abstain" title="Abstention">○</button>
           </div>
         </div>
       `;
     }).join('') || '<div class="text-center p-4 text-muted">Aucun votant</div>';
 
-    list.querySelectorAll('.mode-btn:not([disabled])').forEach(btn => {
+    // Bind all buttons (allow vote correction)
+    list.querySelectorAll('.mode-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const card = e.target.closest('.attendance-card');
-        await castManualVote(card.dataset.memberId, btn.dataset.vote);
+        const memberId = card.dataset.memberId;
+        const newVote = btn.dataset.vote;
+        const currentVote = ballotsCache[memberId];
+
+        // Skip if clicking same vote
+        if (currentVote === newVote) return;
+
+        // Confirm if correcting existing vote
+        if (currentVote && !confirm(`Modifier le vote de "${currentVote}" vers "${newVote}" ?`)) {
+          return;
+        }
+
+        await castManualVote(memberId, newVote);
       });
     });
   }
 
+  const VALID_VOTE_TYPES = ['for', 'against', 'abstain'];
+
   async function castManualVote(memberId, vote) {
     if (!currentOpenMotion) return;
+
+    // Validate vote type
+    if (!VALID_VOTE_TYPES.includes(vote)) {
+      setNotif('error', `Type de vote invalide: ${vote}`);
+      return;
+    }
+
     try {
-      await api('/api/v1/manual_vote.php', {
+      const { body } = await api('/api/v1/manual_vote.php', {
         meeting_id: currentMeetingId,
         motion_id: currentOpenMotion.id,
         member_id: memberId,
         vote: vote,
         justification: 'Vote opérateur manuel'
       });
-      ballotsCache[memberId] = vote;
-      await loadBallots(currentOpenMotion.id);
-      renderManualVoteList();
-      setNotif('success', 'Vote enregistré');
+
+      if (body?.ok === true) {
+        ballotsCache[memberId] = vote;
+        await loadBallots(currentOpenMotion.id);
+        renderManualVoteList();
+        setNotif('success', 'Vote enregistré');
+      } else {
+        setNotif('error', body?.error || 'Erreur lors du vote');
+      }
     } catch (err) {
       setNotif('error', err.message);
     }
@@ -1310,8 +1359,8 @@
       `;
     }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>';
 
-    // Export links
-    document.getElementById('exportPV').href = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${currentMeetingId}`;
+    // Export links (preview=1 permet de générer un brouillon si séance non validée)
+    document.getElementById('exportPV').href = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${currentMeetingId}&preview=1`;
     document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${currentMeetingId}`;
     document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${currentMeetingId}`;
   }

@@ -6,6 +6,9 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MotionRepository;
 
+// Allow authenticated users (voters, operators, etc.) to query current motion
+api_require_role('public');
+
 try {
     api_request('GET');
 
