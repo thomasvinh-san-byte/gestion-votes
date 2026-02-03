@@ -583,7 +583,7 @@
       if (search) {
         const s = search.toLowerCase();
         filtered = filtered.filter(m =>
-          (m.name || '').toLowerCase().includes(s) ||
+          (m.full_name || m.name || '').toLowerCase().includes(s) ||
           (m.email || '').toLowerCase().includes(s)
         );
       }
@@ -609,7 +609,8 @@
       }
 
       membersList.innerHTML = filtered.map(m => {
-        const initials = (m.name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+        const name = m.full_name || m.name || '—';
+        const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
         const cardClass = m.is_active ? 'is-active' : 'is-inactive';
         const statusBadge = m.is_active
           ? '<span class="badge badge-success badge-sm">Actif</span>'
@@ -620,7 +621,7 @@
             <div class="member-info">
               <div class="member-avatar">${initials}</div>
               <div class="member-details">
-                <div class="member-name">${escapeHtml(m.name || '—')}</div>
+                <div class="member-name">${escapeHtml(name)}</div>
                 <div class="member-meta">
                   <span>Poids: ${m.voting_power || 1}</span>
                   ${m.email ? `<span>${escapeHtml(m.email)}</span>` : ''}
@@ -629,6 +630,9 @@
             </div>
             <div class="member-actions">
               ${statusBadge}
+              <button class="member-action-btn" onclick="editMember('${m.id}')" title="Modifier">
+                &#x270E;
+              </button>
               <button class="member-action-btn" onclick="toggleActive('${m.id}', ${!m.is_active})" title="${m.is_active ? 'Désactiver' : 'Activer'}">
                 ${m.is_active ? '&#x23F8;' : '&#x25B6;'}
               </button>
@@ -646,7 +650,7 @@
       membersList.innerHTML = '<div class="text-center p-6 text-muted" style="grid-column: 1 / -1;">Chargement...</div>';
 
       try {
-        const { body } = await api('/api/v1/members_list.php');
+        const { body } = await api('/api/v1/members.php');
         allMembers = body?.data?.members || [];
         updateStats(allMembers);
         renderMembers(allMembers);
@@ -657,12 +661,12 @@
 
     // Create member
     document.getElementById('btnCreate').addEventListener('click', async () => {
-      const name = document.getElementById('mName').value.trim();
+      const full_name = document.getElementById('mName').value.trim();
       const email = document.getElementById('mEmail').value.trim();
       const voting_power = parseInt(document.getElementById('mPower').value) || 1;
       const is_active = document.getElementById('mActive').checked;
 
-      if (!name) {
+      if (!full_name) {
         setNotif('error', 'Le nom est requis');
         document.getElementById('mName').focus();
         return;
@@ -673,7 +677,7 @@
 
       try {
         const { body } = await api('/api/v1/members.php', {
-          name,
+          full_name,
           email: email || null,
           voting_power,
           is_active
@@ -687,7 +691,7 @@
           document.getElementById('mActive').checked = true;
           await fetchMembers();
         } else {
-          setNotif('error', body?.error || 'Erreur');
+          setNotif('error', body?.detail || body?.error || 'Erreur');
         }
       } catch (err) {
         setNotif('error', err.message);
@@ -698,19 +702,24 @@
 
     // Toggle active status
     window.toggleActive = async function(memberId, newStatus) {
+      const member = allMembers.find(m => m.id === memberId);
+      if (!member) return;
+
       try {
-        const { body } = await api('/api/v1/members_update.php', {
+        const { body } = await api('/api/v1/members.php', {
           member_id: memberId,
+          full_name: member.full_name || member.name,
+          email: member.email || '',
+          voting_power: member.voting_power || 1,
           is_active: newStatus
-        });
+        }, 'PATCH');
 
         if (body?.ok) {
-          const member = allMembers.find(m => m.id === memberId);
-          if (member) member.is_active = newStatus;
+          member.is_active = newStatus;
           updateStats(allMembers);
           renderMembers(allMembers);
         } else {
-          setNotif('error', body?.error || 'Erreur');
+          setNotif('error', body?.detail || body?.error || 'Erreur');
         }
       } catch (err) {
         setNotif('error', err.message);
@@ -722,17 +731,83 @@
       if (!confirm('Supprimer ce membre ?')) return;
 
       try {
-        const { body } = await api('/api/v1/members_delete.php', { member_id: memberId });
+        const { body } = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
 
         if (body?.ok) {
           setNotif('success', 'Membre supprimé');
           await fetchMembers();
         } else {
-          setNotif('error', body?.error || 'Erreur');
+          setNotif('error', body?.detail || body?.error || 'Erreur');
         }
       } catch (err) {
         setNotif('error', err.message);
       }
+    };
+
+    // Edit member
+    window.editMember = function(memberId) {
+      const member = allMembers.find(m => m.id === memberId);
+      if (!member) return;
+
+      const name = member.full_name || member.name || '';
+
+      Shared.openModal({
+        title: 'Modifier le membre',
+        body: `
+          <div class="form-group mb-3">
+            <label class="form-label">Nom complet *</label>
+            <input class="form-input" type="text" id="editMemberName" value="${escapeHtml(name)}" placeholder="Jean Dupont">
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" id="editMemberEmail" value="${escapeHtml(member.email || '')}" placeholder="jean@exemple.com">
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label">Poids (voix)</label>
+            <input class="form-input" type="number" id="editMemberPower" value="${member.voting_power || 1}" min="0" step="1">
+          </div>
+          <div class="form-group">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" id="editMemberActive" ${member.is_active ? 'checked' : ''}>
+              <span>Membre actif</span>
+            </label>
+          </div>
+        `,
+        confirmText: 'Enregistrer',
+        onConfirm: async function(modal) {
+          const newName = modal.querySelector('#editMemberName').value.trim();
+          const newEmail = modal.querySelector('#editMemberEmail').value.trim();
+          const newPower = parseInt(modal.querySelector('#editMemberPower').value) || 1;
+          const newActive = modal.querySelector('#editMemberActive').checked;
+
+          if (!newName) {
+            setNotif('error', 'Le nom est requis');
+            return false;
+          }
+
+          try {
+            const { body } = await api('/api/v1/members.php', {
+              member_id: memberId,
+              full_name: newName,
+              email: newEmail || null,
+              voting_power: newPower,
+              is_active: newActive
+            }, 'PATCH');
+
+            if (body?.ok) {
+              setNotif('success', 'Membre modifié');
+              await fetchMembers();
+              return true;
+            } else {
+              setNotif('error', body?.detail || body?.error || 'Erreur');
+              return false;
+            }
+          } catch (err) {
+            setNotif('error', err.message);
+            return false;
+          }
+        }
+      });
     };
 
     // Filter tabs
@@ -823,13 +898,13 @@
       Shared.btnLoading(btn, true);
 
       try {
-        const { body } = await api('/api/v1/members_seed.php', { count: 10 });
+        const { body } = await api('/api/v1/dev_seed_members.php', { count: 10 });
 
         if (body?.ok) {
           setNotif('success', `${body.data?.created || 0} membres générés`);
           await fetchMembers();
         } else {
-          setNotif('error', body?.error || 'Erreur');
+          setNotif('error', body?.detail || body?.error || 'Erreur');
         }
       } catch (err) {
         setNotif('error', err.message);

@@ -31,6 +31,7 @@
   // USERS
   // ═══════════════════════════════════════════════════════
   let _users = [];
+  let _allUsers = [];
 
   async function loadUsers() {
     try {
@@ -38,16 +39,43 @@
       const url = '/api/v1/admin_users.php' + (filter ? '?role=' + filter : '');
       const r = await api(url);
       if (r.body && r.body.ok && r.body.data) {
-        _users = r.body.data.items || [];
-        renderUsersTable(_users);
+        _allUsers = r.body.data.items || [];
+        filterAndRenderUsers();
       }
     } catch (e) { console.error('loadUsers', e); }
+  }
+
+  function filterAndRenderUsers() {
+    const searchInput = document.getElementById('searchUser');
+    const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+    if (search) {
+      _users = _allUsers.filter(function(u) {
+        return (u.name || '').toLowerCase().includes(search) ||
+               (u.email || '').toLowerCase().includes(search);
+      });
+    } else {
+      _users = _allUsers;
+    }
+
+    const countEl = document.getElementById('usersCount');
+    if (countEl) {
+      countEl.textContent = _users.length + ' utilisateur' + (_users.length !== 1 ? 's' : '');
+    }
+
+    renderUsersTable(_users);
+  }
+
+  // Search input handler
+  var searchUserInput = document.getElementById('searchUser');
+  if (searchUserInput) {
+    searchUserInput.addEventListener('input', filterAndRenderUsers);
   }
 
   function renderUsersTable(users) {
     const tbody = document.getElementById('usersTableBody');
     if (!users.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-muted">Aucun utilisateur</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-muted">Aucun utilisateur trouvé</td></tr>';
       return;
     }
     tbody.innerHTML = users.map(function(u) {

@@ -362,4 +362,32 @@ class MemberRepository extends AbstractRepository
             [':id' => $memberId, ':uid' => $userId]
         );
     }
+
+    /**
+     * Soft delete un membre (marque deleted_at).
+     */
+    public function softDelete(string $id): void
+    {
+        $this->execute(
+            "UPDATE members SET deleted_at = NOW(), updated_at = NOW() WHERE id = :id",
+            [':id' => $id]
+        );
+    }
+
+    /**
+     * Liste tous les membres d'un tenant (actifs et inactifs, non supprimés).
+     */
+    public function listAll(string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT id, full_name, full_name AS name, email, role,
+                    COALESCE(voting_power, vote_weight, 1.0) AS voting_power,
+                    vote_weight, is_active, created_at, updated_at, tenant_id
+             FROM members
+             WHERE tenant_id = :tenant_id
+               AND deleted_at IS NULL
+             ORDER BY full_name ASC",
+            [':tenant_id' => $tenantId]
+        );
+    }
 }
