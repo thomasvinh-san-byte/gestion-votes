@@ -51,14 +51,14 @@ class AttendanceRepository extends AbstractRepository
     {
         return $this->selectAll(
             "SELECT m.id AS member_id, m.full_name, m.email, m.role, m.voting_power,
-                    a.id, COALESCE(a.meeting_id, :mid2) AS meeting_id,
+                    a.id AS attendance_id, a.meeting_id,
                     COALESCE(a.mode, 'absent') AS mode,
                     a.checked_in_at, a.checked_out_at, a.effective_power, a.notes
              FROM members m
              LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
              WHERE m.tenant_id = :tid AND m.is_active = true
              ORDER BY m.full_name ASC",
-            [':mid' => $meetingId, ':mid2' => $meetingId, ':tid' => $tenantId]
+            [':mid' => $meetingId, ':tid' => $tenantId]
         );
     }
 
