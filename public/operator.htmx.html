@@ -821,7 +821,11 @@
         <div id="noActiveVote" style="text-align: center; padding: 3rem;">
           <span style="font-size: 3rem;">🗳️</span>
           <h3 class="mt-4">Aucun vote en cours</h3>
-          <p class="text-muted">Ouvrez une résolution pour démarrer le vote.</p>
+          <p class="text-muted mb-4">Ouvrez une résolution pour démarrer le vote.</p>
+          <div id="quickOpenMotionList" class="mb-4" style="display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;">
+            <!-- Filled by JS with available motions to open -->
+          </div>
+          <button class="btn btn-secondary" data-tab-switch="resolutions">Voir toutes les résolutions</button>
         </div>
 
         <div id="activeVotePanel" style="display: none;">
