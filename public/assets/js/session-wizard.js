@@ -126,10 +126,10 @@
       }
       .wizard-stepper {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-        max-width: 900px;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 0;
+        max-width: 700px;
         margin: 0 auto;
       }
       .wizard-step {
@@ -138,35 +138,36 @@
         align-items: center;
         position: relative;
         flex: 1;
-        min-width: 60px;
         text-decoration: none;
         color: inherit;
+        padding: 0 0.25rem;
       }
       .wizard-step:not(:last-child)::after {
         content: '';
         position: absolute;
-        top: 16px;
-        left: calc(50% + 20px);
-        width: calc(100% - 40px);
+        top: 14px;
+        left: 50%;
+        width: 100%;
         height: 2px;
         background: var(--color-border, #e5e7eb);
+        z-index: 0;
       }
       .wizard-step.done:not(:last-child)::after {
         background: var(--color-success, #22c55e);
       }
       .wizard-step.current:not(:last-child)::after {
-        background: linear-gradient(90deg, var(--color-primary, #3b82f6) 50%, var(--color-border, #e5e7eb) 50%);
+        background: var(--color-border, #e5e7eb);
       }
       .wizard-step-circle {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         font-weight: 600;
-        background: var(--color-bg-subtle, #f3f4f6);
+        background: var(--color-surface, #fff);
         border: 2px solid var(--color-border, #e5e7eb);
         color: var(--color-text-muted, #6b7280);
         position: relative;
