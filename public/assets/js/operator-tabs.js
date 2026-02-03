@@ -559,14 +559,22 @@
 
   async function savePresident() {
     const presidentId = document.getElementById('settingPresident').value;
+    const presSelect = document.getElementById('settingPresident');
+    const presidentName = presSelect.options[presSelect.selectedIndex]?.text || '';
 
     try {
       if (presidentId) {
+        // Assign role
         await api('/api/v1/admin_meeting_roles.php', {
           action: 'assign',
           meeting_id: currentMeetingId,
           user_id: presidentId,
           role: 'president'
+        });
+        // Also save president_name to meeting for PV/validation
+        await api('/api/v1/meetings_update.php', {
+          meeting_id: currentMeetingId,
+          president_name: presidentName
         });
         setNotif('success', 'Président assigné');
       } else {
@@ -582,6 +590,11 @@
             role: 'president'
           });
         }
+        // Clear president_name
+        await api('/api/v1/meetings_update.php', {
+          meeting_id: currentMeetingId,
+          president_name: ''
+        });
         setNotif('success', 'Président retiré');
       }
       loadStatusChecklist();
