@@ -197,11 +197,10 @@
     const titleInput = document.getElementById('settingTitle');
     if (titleInput) titleInput.value = currentMeeting.title || '';
 
-    // Date
+    // Date (format: YYYY-MM-DD)
     const dateInput = document.getElementById('settingDate');
     if (dateInput && currentMeeting.scheduled_at) {
-      // Format: YYYY-MM-DDTHH:mm
-      dateInput.value = currentMeeting.scheduled_at.slice(0, 16);
+      dateInput.value = currentMeeting.scheduled_at.slice(0, 10);
     }
 
     // Type de consultation (stored in description or metadata)
