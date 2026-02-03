@@ -8,6 +8,32 @@
   <title>Fiche séance — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
   <style>
+    /* Override grid for this page - add session selector and tabs nav rows */
+    .app-shell {
+      grid-template-rows: auto auto 1fr;
+      grid-template-areas:
+        "sidebar session"
+        "sidebar tabs"
+        "sidebar main";
+    }
+
+    .session-selector {
+      grid-area: session;
+    }
+
+    .tabs-nav {
+      grid-area: tabs;
+    }
+
+    @media (max-width: 768px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "session"
+          "tabs"
+          "main";
+      }
+    }
     /* Meeting header bar - Diligent style */
     .meeting-header-bar {
       display: flex;
