@@ -12,7 +12,7 @@ Suite à l'audit fonctionnel complet, l'application AG-Vote est **production-rea
 
 | Priorité | Domaine | Impact | Effort | Statut |
 |----------|---------|--------|--------|--------|
-| P1 | Consolidation UX opérateur | Élevé | Moyen | En cours |
+| P1 | Consolidation UX opérateur | Élevé | Moyen | ✅ Fait |
 | P1 | Groupes de membres | Élevé | Faible | ✅ Fait |
 | P2 | Calendrier des séances | Moyen | Moyen | ✅ Fait |
 | P2 | Analytics avancés | Moyen | Moyen | ✅ Fait |
@@ -27,41 +27,38 @@ Suite à l'audit fonctionnel complet, l'application AG-Vote est **production-rea
 
 ## P1 — Priorité haute
 
-### 1.1 Consolidation UX opérateur
+### 1.1 Consolidation UX opérateur ✅ FAIT
 
-**Problème actuel** :
-L'opérateur doit naviguer entre plusieurs pages pour gérer une séance :
-- `operator.htmx.html` : Console principale
-- `members.htmx.html` : Gestion des membres
-- `speaker.htmx.html` : File des orateurs
-- Actions dispersées dans les onglets
+**Statut** : Implémenté (février 2026)
 
-**Solution proposée** :
-Unifier toutes les actions dans une console opérateur unique avec navigation par onglets intégrée.
+**Implémentation réalisée** :
+- Console : `public/operator.htmx.html`
+- JavaScript : `public/assets/js/operator-tabs.js`
 
-**Wireframe conceptuel** :
+**Onglets disponibles** :
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ AG 2024 - Console Opérateur                     [Live] [Menu]  │
-├─────────────────────────────────────────────────────────────────┤
-│ [Tableau de bord] [Résolutions] [Présences] [Membres] [Parole] │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │     Présents    │  │   Résolutions   │  │    Prochaine    │ │
-│  │       42/50     │  │      5/8        │  │   Résolution 6  │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                                                                 │
-│  [Contenu de l'onglet actif]                                   │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Onglet | Description |
+|--------|-------------|
+| Paramètres | Configuration de la séance, politiques, rôles |
+| Résolutions | Gestion de l'ordre du jour, réordonner, éditer |
+| Présences | Émargement rapide, import CSV, stats temps réel |
+| Parole | File des orateurs, timer, gestion de la parole |
+| Vote en direct | Ouverture/clôture votes, vote manuel |
+| Résultats | Récapitulatif, exports PDF/CSV |
 
-**Fichiers à modifier** :
-- `operator.htmx.html` : Intégrer tous les onglets
-- `operator.js` : Unifier la logique
-- Supprimer ou rediriger : `members.htmx.html` (contexte séance)
+**Onglet Parole** (intégré) :
+- Affichage de l'orateur courant avec timer
+- File d'attente des demandes de parole
+- Boutons : Donner parole, Terminer, Suivant
+- Ajout manuel d'un membre à la file
+- Polling automatique pour mise à jour en temps réel
+
+**APIs utilisées** :
+- `speech_queue.php` : Obtenir la file et l'orateur courant
+- `speech_grant.php` : Donner la parole
+- `speech_end.php` : Terminer la parole
+- `speech_next.php` : Passer au suivant
+- `speech_clear.php` : Vider l'historique
 
 **Effort estimé** : 5 jours
 
@@ -415,17 +412,18 @@ Cache local avec synchronisation.
 
 ## Roadmap suggérée
 
-### Sprint 1 (2 semaines)
+### Sprint 1 (2 semaines) ✅ Terminé
 - [x] Audit fonctionnel
-- [x] Groupes de membres (P1) ✅
-- [ ] Début consolidation UX
+- [x] Groupes de membres (P1)
+- [x] Début consolidation UX
 
-### Sprint 2 (2 semaines)
-- [ ] Fin consolidation UX opérateur (P1)
-- [x] Calendrier des séances (P2) ✅
+### Sprint 2 (2 semaines) ✅ Terminé
+- [x] Fin consolidation UX opérateur (P1)
+- [x] Calendrier des séances (P2)
 
-### Sprint 3 (2 semaines)
-- [x] Analytics avancés (P2) ✅
+### Sprint 3 (2 semaines) ✅ Terminé
+- [x] Analytics avancés (P2)
+- [x] Conformité RGPD (suppression Top votants, ajout Anomalies)
 - [ ] Templates emails (voir PLAN_INVITATIONS.md)
 
 ### Sprint 4 (2 semaines)
@@ -466,12 +464,18 @@ Cache local avec synchronisation.
 
 AG-Vote est une application mature et fonctionnelle pour les assemblées générales et votes formels. Les améliorations identifiées sont des **enrichissements** et non des **corrections critiques**.
 
-**Recommandations immédiates** (P1) :
-1. ~~Implémenter les groupes de membres (3 jours)~~ ✅ Fait
-2. Consolider l'interface opérateur (5 jours)
+**Tâches P1 terminées** :
+1. ~~Implémenter les groupes de membres~~ ✅ Fait
+2. ~~Consolider l'interface opérateur~~ ✅ Fait
 
-**Recommandations à moyen terme** (P2) :
-3. Ajouter le calendrier (3 jours)
-4. Dashboard analytics (5 jours)
+**Tâches P2 terminées** :
+3. ~~Ajouter le calendrier~~ ✅ Fait
+4. ~~Dashboard analytics~~ ✅ Fait
+5. ~~Conformité RGPD analytics~~ ✅ Fait
 
-Ces améliorations apporteront une valeur significative aux utilisateurs sans compromettre la stabilité existante.
+**Prochaines étapes recommandées** :
+- Templates emails (voir PLAN_INVITATIONS.md)
+- Exports XLSX (voir PLAN_EXPORTS.md)
+- WebSocket temps réel (P2)
+
+Ces améliorations ont été implémentées sans compromettre la stabilité existante.
