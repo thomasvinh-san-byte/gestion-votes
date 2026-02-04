@@ -1,4 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#2563eb"/>
-  <path d="M9 17l4 4 10-10" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Ballot box -->
+  <rect x="4" y="12" width="24" height="16" rx="2" fill="#1e3a5f"/>
+  <rect x="4" y="12" width="24" height="4" rx="1" fill="#2d5a87"/>
+  <!-- Slot -->
+  <rect x="11" y="13" width="10" height="2" rx="1" fill="#0f172a"/>
+  <!-- Ballot paper going in -->
+  <rect x="12" y="4" width="8" height="12" rx="1" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
+  <!-- Checkmark on ballot -->
+  <path d="M14 9l2 2 4-4" stroke="#059669" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 </svg>

@@ -42,16 +42,16 @@
     }
 
     .live-badge .pulse {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       background: white;
       border-radius: 50%;
-      animation: pulse 1.5s infinite;
+      animation: blink-dot 2s ease-in-out infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.3); }
+    @keyframes blink-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
     }
 
     .meeting-title {

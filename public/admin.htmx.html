@@ -20,6 +20,7 @@
     }
 
     .state-node-visual {
+      position: relative;
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
@@ -53,12 +54,23 @@
       background: var(--color-danger-subtle, #fee2e2);
       border-color: var(--color-danger, #ef4444);
       color: var(--color-danger);
-      animation: pulse-live 2s ease-in-out infinite;
     }
 
-    @keyframes pulse-live {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-      50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    .state-node-visual.live::before {
+      content: '';
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 8px;
+      height: 8px;
+      background: var(--color-danger, #ef4444);
+      border-radius: 50%;
+      animation: blink-subtle 2s ease-in-out infinite;
+    }
+
+    @keyframes blink-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
     }
 
     .state-node-visual.closed {

@@ -37,7 +37,7 @@
     if (filtered.length === 0) {
       membersList.innerHTML = `
         <div class="empty-state p-6">
-          <div class="empty-state-icon">👥</div>
+          <div class="empty-state-icon">${icon('users', 'icon-xl')}</div>
           <div class="empty-state-title">Aucun membre</div>
           <div class="empty-state-description">
             ${query ? 'Aucun résultat pour cette recherche' : 'Ajoutez des membres ou importez un CSV'}
@@ -68,7 +68,7 @@
             <span class="badge ${isActive ? 'badge-success' : 'badge-neutral'}">
               ${isActive ? 'Actif' : 'Inactif'}
             </span>
-            <button class="btn btn-ghost btn-sm btn-edit" data-id="${m.id}">✏️</button>
+            <button class="btn btn-ghost btn-sm btn-edit" data-id="${m.id}">${icon('edit', 'icon-sm')}</button>
           </div>
         </div>
       `;
