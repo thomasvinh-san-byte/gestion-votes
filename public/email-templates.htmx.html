@@ -216,13 +216,13 @@
             <option value="invitation">Invitation</option>
             <option value="reminder">Rappel</option>
             <option value="confirmation">Confirmation</option>
-            <option value="custom">Personnalise</option>
+            <option value="custom">Personnalisé</option>
           </select>
         </div>
         <div class="flex gap-2">
           <button class="btn btn-secondary" id="btnCreateDefaults">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh"></use></svg>
-            Creer templates par defaut
+            Créer templates par défaut
           </button>
           <button class="btn btn-primary" id="btnNewTemplate">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
@@ -240,10 +240,10 @@
       <div id="emptyState" class="empty-state" style="display: none;">
         <svg class="icon" style="width: 4rem; height: 4rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
         <h2>Aucun template</h2>
-        <p class="text-muted">Creez des templates email pour personnaliser vos invitations.</p>
+        <p class="text-muted">Créez des templates email pour personnaliser vos invitations.</p>
         <button class="btn btn-primary mt-4" id="btnEmptyCreate">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
-          Creer un template
+          Créer un template
         </button>
       </div>
     </main>
@@ -274,7 +274,7 @@
               <option value="invitation">Invitation</option>
               <option value="reminder">Rappel</option>
               <option value="confirmation">Confirmation</option>
-              <option value="custom">Personnalise</option>
+              <option value="custom">Personnalisé</option>
             </select>
           </div>
 
@@ -291,13 +291,13 @@
           <div class="form-group">
             <label class="form-label inline-flex items-center gap-2">
               <input type="checkbox" id="templateIsDefault">
-              <span>Template par defaut pour ce type</span>
+              <span>Template par défaut pour ce type</span>
             </label>
           </div>
 
           <!-- Variables helper -->
           <div class="variables-section">
-            <h4>Variables disponibles (cliquez pour inserer)</h4>
+            <h4>Variables disponibles (cliquez pour insérer)</h4>
             <div id="variablesList">
               <!-- Rendered by JS -->
             </div>
@@ -307,7 +307,7 @@
         <div class="template-editor-preview">
           <div class="preview-header">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-eye"></use></svg>
-            Previsualisation
+            Prévisualisation
             <button class="btn btn-sm btn-secondary ml-auto" id="btnRefreshPreview">Actualiser</button>
           </div>
           <iframe class="preview-frame" id="previewFrame" sandbox="allow-same-origin"></iframe>
@@ -378,7 +378,7 @@
           <div class="template-card-header">
             <div class="template-card-title">
               ${escapeHtml(t.name)}
-              ${t.is_default ? '<span class="badge badge-sm ml-2">Par defaut</span>' : ''}
+              ${t.is_default ? '<span class="badge badge-sm ml-2">Par défaut</span>' : ''}
             </div>
             <span class="template-card-type ${t.template_type}">${t.template_type}</span>
           </div>
@@ -398,7 +398,7 @@
             <button class="btn btn-sm btn-secondary" onclick="duplicateTemplate('${t.id}')" title="Dupliquer">
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-copy"></use></svg>
             </button>
-            <button class="btn btn-sm btn-danger" onclick="deleteTemplate('${t.id}')" ${t.is_default ? 'disabled title="Impossible de supprimer le template par defaut"' : ''}>
+            <button class="btn btn-sm btn-danger" onclick="deleteTemplate('${t.id}')" ${t.is_default ? 'disabled title="Impossible de supprimer le template par défaut"' : ''}>
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
             </button>
           </div>
@@ -502,7 +502,7 @@
         const data = await resp.json();
         if (!data.ok) throw new Error(data.message || data.error || 'Erreur sauvegarde');
 
-        window.showToast?.('Template enregistre', 'success');
+        window.showToast?.('Template enregistré', 'success');
         templateEditor.classList.remove('active');
         loadTemplates();
       } catch (err) {
@@ -524,7 +524,7 @@
         const data = await resp.json();
         if (!data.ok) throw new Error(data.message || data.error || 'Erreur suppression');
 
-        window.showToast?.('Template supprime', 'success');
+        window.showToast?.('Template supprimé', 'success');
         loadTemplates();
       } catch (err) {
         window.showToast?.('Erreur: ' + err.message, 'error');
@@ -551,7 +551,7 @@
         const data = await resp.json();
         if (!data.ok) throw new Error(data.message || data.error || 'Erreur duplication');
 
-        window.showToast?.('Template duplique', 'success');
+        window.showToast?.('Template dupliqué', 'success');
         loadTemplates();
       } catch (err) {
         window.showToast?.('Erreur: ' + err.message, 'error');
@@ -560,7 +560,7 @@
 
     // Create default templates
     async function createDefaults() {
-      if (!confirm('Creer les templates par defaut (invitation et rappel) ?')) return;
+      if (!confirm('Créer les templates par défaut (invitation et rappel) ?')) return;
 
       try {
         const resp = await fetch(`${API_BASE}/email_templates.php`, {
@@ -573,7 +573,7 @@
         const data = await resp.json();
         if (!data.ok) throw new Error(data.message || data.error || 'Erreur creation');
 
-        window.showToast?.(`${data.data.count} templates crees`, 'success');
+        window.showToast?.(`${data.data.count} templates créés`, 'success');
         loadTemplates();
       } catch (err) {
         window.showToast?.('Erreur: ' + err.message, 'error');
@@ -584,7 +584,7 @@
     async function updatePreview() {
       const bodyHtml = document.getElementById('templateBody').value;
       if (!bodyHtml) {
-        previewFrame.srcdoc = '<p style="padding:20px;color:#666;">Entrez du contenu HTML pour voir la previsualisation</p>';
+        previewFrame.srcdoc = '<p style="padding:20px;color:#666;">Entrez du contenu HTML pour voir la prévisualisation</p>';
         return;
       }
 

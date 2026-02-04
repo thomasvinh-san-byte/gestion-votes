@@ -40,6 +40,31 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
+     * Trouve une séance par son slug (obfuscation URL).
+     */
+    public function findBySlugForTenant(string $slug, string $tenantId): ?array
+    {
+        return $this->selectOne(
+            "SELECT * FROM meetings WHERE slug = :slug AND tenant_id = :tenant_id",
+            [':slug' => $slug, ':tenant_id' => $tenantId]
+        );
+    }
+
+    /**
+     * Trouve une séance par ID ou slug (support dual).
+     * Détecte automatiquement si l'identifiant est un UUID ou un slug.
+     */
+    public function findByIdOrSlugForTenant(string $identifier, string $tenantId): ?array
+    {
+        // Vérifier si c'est un UUID
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
+            return $this->findByIdForTenant($identifier, $tenantId);
+        }
+        // Sinon, chercher par slug
+        return $this->findBySlugForTenant($identifier, $tenantId);
+    }
+
+    /**
      * Liste toutes les seances d'un tenant (pour meetings.php GET).
      */
     public function listByTenant(string $tenantId): array

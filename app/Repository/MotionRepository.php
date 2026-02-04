@@ -23,6 +23,31 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
+     * Trouve une motion par son slug (obfuscation URL).
+     */
+    public function findBySlugForTenant(string $slug, string $tenantId): ?array
+    {
+        return $this->selectOne(
+            "SELECT * FROM motions WHERE slug = :slug AND tenant_id = :tid",
+            [':slug' => $slug, ':tid' => $tenantId]
+        );
+    }
+
+    /**
+     * Trouve une motion par ID ou slug (support dual).
+     * Détecte automatiquement si l'identifiant est un UUID ou un slug.
+     */
+    public function findByIdOrSlugForTenant(string $identifier, string $tenantId): ?array
+    {
+        // Vérifier si c'est un UUID
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
+            return $this->findByIdForTenant($identifier, $tenantId);
+        }
+        // Sinon, chercher par slug
+        return $this->findBySlugForTenant($identifier, $tenantId);
+    }
+
+    /**
      * Trouve une motion avec informations de la seance (status, validated_at, policies).
      */
     public function findWithMeetingInfo(string $motionId, string $tenantId): ?array
@@ -39,6 +64,23 @@ class MotionRepository extends AbstractRepository
              FROM motions m
              JOIN meetings mt ON mt.id = m.meeting_id
              WHERE m.tenant_id = :tid AND m.id = :id",
+            [':tid' => $tenantId, ':id' => $motionId]
+        );
+    }
+
+    /**
+     * Trouve une motion par ID avec lock FOR UPDATE (pour transactions).
+     * Retourne toutes les colonnes principales avec verrouillage.
+     */
+    public function findByIdForTenantForUpdate(string $motionId, string $tenantId): ?array
+    {
+        return $this->selectOne(
+            "SELECT m.id, m.meeting_id, m.agenda_id, m.title, m.description,
+                    m.opened_at, m.closed_at, m.secret, m.vote_policy_id, m.quorum_policy_id
+             FROM motions m
+             JOIN meetings mt ON mt.id = m.meeting_id
+             WHERE m.tenant_id = :tid AND m.id = :id
+             FOR UPDATE",
             [':tid' => $tenantId, ':id' => $motionId]
         );
     }

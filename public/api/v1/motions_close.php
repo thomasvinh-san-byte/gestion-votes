@@ -25,22 +25,31 @@ if ($motionId === '' || !api_is_uuid($motionId)) {
 
 try {
     $repo = new MotionRepository();
-    $motion = $repo->findByIdForTenant($motionId, api_current_tenant_id());
-    if (!$motion) { api_fail('motion_not_found', 404); exit; }
-
-    if (empty($motion['opened_at'])) {
-        api_fail('motion_not_open', 409);
-        exit;
-    }
-    if (!empty($motion['closed_at'])) {
-        api_fail('motion_already_closed', 409);
-        exit;
-    }
 
     // Ensure official columns exist BEFORE transaction (DDL can't be in a TX)
     OfficialResultsService::ensureSchema();
 
+    // SECURITY: Use transaction + lock to prevent race conditions
     db()->beginTransaction();
+
+    // Load motion with FOR UPDATE lock to prevent concurrent modifications
+    $motion = $repo->findByIdForTenantForUpdate($motionId, api_current_tenant_id());
+    if (!$motion) {
+        db()->rollBack();
+        api_fail('motion_not_found', 404);
+        exit;
+    }
+
+    if (empty($motion['opened_at'])) {
+        db()->rollBack();
+        api_fail('motion_not_open', 409);
+        exit;
+    }
+    if (!empty($motion['closed_at'])) {
+        db()->rollBack();
+        api_fail('motion_already_closed', 409);
+        exit;
+    }
 
     $repo->markClosed($motionId, api_current_tenant_id());
 

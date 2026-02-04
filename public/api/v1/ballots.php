@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MotionRepository;
 
 api_require_role(['operator', 'admin', 'president']);
 api_request('GET');
@@ -15,6 +16,13 @@ if ($motionId === '' || !api_is_uuid($motionId)) {
 }
 
 try {
+    // SECURITY: Verify motion belongs to current tenant
+    $motionRepo = new MotionRepository();
+    $motion = $motionRepo->findByIdForTenant($motionId, api_current_tenant_id());
+    if (!$motion) {
+        api_fail('motion_not_found', 404, ['detail' => 'Motion introuvable']);
+    }
+
     $repo = new BallotRepository();
     $ballots = $repo->listForMotion($motionId);
 
