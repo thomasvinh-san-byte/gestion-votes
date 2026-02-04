@@ -48,19 +48,6 @@
         var(--color-bg);
     }
     
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-2);
-      padding: var(--space-1) var(--space-3);
-      background: var(--color-primary-subtle);
-      color: var(--color-primary);
-      border-radius: var(--radius-full);
-      font-size: var(--text-sm);
-      font-weight: var(--font-medium);
-      margin-bottom: var(--space-6);
-    }
-    
     .hero-title {
       font-size: clamp(2.5rem, 6vw, 4rem);
       font-weight: var(--font-extrabold);
@@ -145,10 +132,18 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
       background: var(--color-primary-subtle);
       border-radius: var(--radius-lg);
       margin-bottom: var(--space-4);
+      color: var(--color-primary);
+    }
+
+    .role-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
     }
     
     .role-title {
@@ -202,11 +197,27 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
       background: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
       flex-shrink: 0;
+      color: var(--color-primary);
+    }
+
+    .feature-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
     }
     
     .feature-content h4 {
@@ -280,22 +291,18 @@
 
     <!-- Hero -->
     <section class="hero">
-      <span class="hero-badge">
-        <span>✨</span>
-        <span>Nouvelle version disponible</span>
-      </span>
       <h1 class="hero-title">Gestion des assemblées délibératives</h1>
       <p class="hero-subtitle">
-        Solution complète pour piloter, sécuriser et archiver vos séances de vote. 
+        Solution complète pour piloter, sécuriser et archiver vos séances de vote.
         Quorum paramétrable, traçabilité juridique, interface moderne.
       </p>
       <div class="hero-actions">
         <a href="/meetings.htmx.html" class="btn btn-primary btn-lg">
-          <span>🚀</span>
+          <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
           <span>Commencer une séance</span>
         </a>
         <a href="/docs/UTILISATION_LIVE.md" class="btn btn-secondary btn-lg">
-          <span>📖</span>
+          <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
           <span>Documentation</span>
         </a>
       </div>
@@ -311,10 +318,12 @@
       </div>
       <div class="roles-grid">
         <article class="role-card">
-          <div class="role-icon">🧑‍💼</div>
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </div>
           <h3 class="role-title">Opérateur</h3>
           <p class="role-desc">
-            Préparez et pilotez la séance. Gérez présences, procurations et résolutions. 
+            Préparez et pilotez la séance. Gérez présences, procurations et résolutions.
             Contrôlez le flux des votes en temps réel.
           </p>
           <a href="/operator.htmx.html" class="role-link">
@@ -322,12 +331,14 @@
             <span>→</span>
           </a>
         </article>
-        
+
         <article class="role-card">
-          <div class="role-icon">🧑‍⚖️</div>
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          </div>
           <h3 class="role-title">Président</h3>
           <p class="role-desc">
-            Validez les votes, gérez la parole et signez le procès-verbal final. 
+            Validez les votes, gérez la parole et signez le procès-verbal final.
             Engagez la responsabilité juridique de la séance.
           </p>
           <a href="/president.htmx.html" class="role-link">
@@ -335,12 +346,14 @@
             <span>→</span>
           </a>
         </article>
-        
+
         <article class="role-card">
-          <div class="role-icon">🛡️</div>
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+          </div>
           <h3 class="role-title">Contrôle (Trust)</h3>
           <p class="role-desc">
-            Surveillez les anomalies, vérifiez la cohérence des données en temps réel. 
+            Surveillez les anomalies, vérifiez la cohérence des données en temps réel.
             Documentez les incidents pour l'audit.
           </p>
           <a href="/trust.htmx.html" class="role-link">
@@ -348,12 +361,14 @@
             <span>→</span>
           </a>
         </article>
-        
+
         <article class="role-card">
-          <div class="role-icon">🗳️</div>
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path><path d="m9 13 2 2 4-4"></path></svg>
+          </div>
           <h3 class="role-title">Votant (Tablette)</h3>
           <p class="role-desc">
-            Interface simplifiée pour tablette tactile. Exprimez votre vote en toute sécurité 
+            Interface simplifiée pour tablette tactile. Exprimez votre vote en toute sécurité
             avec confirmation visuelle immédiate.
           </p>
           <a href="/vote.htmx.html" class="role-link">
@@ -361,12 +376,14 @@
             <span>→</span>
           </a>
         </article>
-        
+
         <article class="role-card">
-          <div class="role-icon">📺</div>
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </div>
           <h3 class="role-title">Écran public</h3>
           <p class="role-desc">
-            Affichage grand format pour projection. Visualisez en temps réel : 
+            Affichage grand format pour projection. Visualisez en temps réel :
             résolution active, quorum, résultats.
           </p>
           <a href="/public.htmx.html" class="role-link">
@@ -374,12 +391,14 @@
             <span>→</span>
           </a>
         </article>
-        
+
         <article class="role-card">
-          <div class="role-icon">🗄️</div>
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24"><path d="m21 8-2-2H5L3 8"></path><rect x="3" y="8" width="18" height="12" rx="1"></rect><path d="M10 12h4"></path></svg>
+          </div>
           <h3 class="role-title">Archives</h3>
           <p class="role-desc">
-            Consultez les séances passées, exportez les PV et audits en CSV/PDF. 
+            Consultez les séances passées, exportez les PV et audits en CSV/PDF.
             Retrouvez l'historique complet des décisions.
           </p>
           <a href="/archives.htmx.html" class="role-link">
@@ -400,47 +419,59 @@
       </div>
       <div class="features-grid">
         <div class="feature-item">
-          <div class="feature-icon">✅</div>
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
           <div class="feature-content">
             <h4>Quorum paramétrable</h4>
             <p>Simple, pondéré, double ou évolutif. Justification automatique pour chaque résolution.</p>
           </div>
         </div>
-        
+
         <div class="feature-item">
-          <div class="feature-icon">🔒</div>
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </div>
           <div class="feature-content">
             <h4>Vote sécurisé</h4>
             <p>Token unique par votant, protection CSRF, validation serveur. Anti-replay intégré.</p>
           </div>
         </div>
-        
+
         <div class="feature-item">
-          <div class="feature-icon">📊</div>
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          </div>
           <div class="feature-content">
             <h4>Pondération (tantièmes)</h4>
             <p>Chaque votant peut avoir un poids différent. Calculs automatiques en temps réel.</p>
           </div>
         </div>
-        
+
         <div class="feature-item">
-          <div class="feature-icon">📝</div>
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </div>
           <div class="feature-content">
             <h4>Procurations</h4>
             <p>Globales ou limitées. Plafond configurable par mandataire, traçabilité complète.</p>
           </div>
         </div>
-        
+
         <div class="feature-item">
-          <div class="feature-icon">⚡</div>
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          </div>
           <div class="feature-content">
             <h4>Temps réel (HTMX)</h4>
             <p>Rafraîchissement automatique sans rechargement. Interface réactive et fluide.</p>
           </div>
         </div>
-        
+
         <div class="feature-item">
-          <div class="feature-icon">📋</div>
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+          </div>
           <div class="feature-content">
             <h4>PV figé et signé</h4>
             <p>Procès-verbal verrouillé après validation. Export PDF/HTML avec hash d'intégrité.</p>
