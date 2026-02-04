@@ -5,16 +5,28 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MemberGroupRepository;
 
 api_require_role('operator');
 
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $repo = new MemberRepository();
+$tenantId = $tenantId;
 
 try {
     if ($method === 'GET') {
         // Use listAll() to return both active and inactive members for the management page
-        $members = $repo->listAll(api_current_tenant_id());
+        $members = $repo->listAll($tenantId);
+
+        // Include groups if requested
+        $includeGroups = isset($_GET['include_groups']) && $_GET['include_groups'];
+        if ($includeGroups) {
+            $groupRepo = new MemberGroupRepository();
+            foreach ($members as &$member) {
+                $member['groups'] = $groupRepo->listGroupsForMember($member['id'], $tenantId);
+            }
+        }
+
         api_ok(['members' => $members]);
 
     } elseif ($method === 'POST') {
@@ -35,7 +47,7 @@ try {
         $is_active = ($input['is_active'] ?? true) !== false;
         $id = api_uuid4();
 
-        $repo->create($id, api_current_tenant_id(), $full_name, $email, $voting_power, $is_active);
+        $repo->create($id, $tenantId, $full_name, $email, $voting_power, $is_active);
 
         audit_log('member_created', 'member', $id, ['full_name' => $full_name]);
 

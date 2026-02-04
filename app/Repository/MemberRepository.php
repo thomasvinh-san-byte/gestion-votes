@@ -339,17 +339,20 @@ class MemberRepository extends AbstractRepository
 
     /**
      * Cree un membre avec UUID genere cote serveur (import CSV).
+     * Retourne l'ID du membre cree.
      */
-    public function createImport(string $tenantId, string $fullName, ?string $email, float $votingPower, bool $isActive): void
+    public function createImport(string $tenantId, string $fullName, ?string $email, float $votingPower, bool $isActive): string
     {
-        $this->execute(
+        $result = $this->insertReturning(
             "INSERT INTO members (id, tenant_id, full_name, email, voting_power, is_active, created_at, updated_at)
-             VALUES (gen_random_uuid(), :tid, :name, :email, :vp, :active, NOW(), NOW())",
+             VALUES (gen_random_uuid(), :tid, :name, :email, :vp, :active, NOW(), NOW())
+             RETURNING id",
             [
                 ':tid' => $tenantId, ':name' => $fullName, ':email' => $email,
                 ':vp' => $votingPower, ':active' => $isActive ? 'true' : 'false',
             ]
         );
+        return $result['id'];
     }
 
     /**
