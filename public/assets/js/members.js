@@ -159,6 +159,13 @@
       return;
     }
 
+    // Validate email format
+    if (email && !Utils.isValidEmail(email)) {
+      setNotif('error', 'Format d\'email invalide');
+      document.getElementById('edit_email_' + id)?.focus();
+      return;
+    }
+
     Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/members.php', { id, full_name, email: email || null, voting_power, is_active }, 'PATCH');
@@ -196,7 +203,7 @@
       return;
     }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (email && !Utils.isValidEmail(email)) {
       setNotif('error', 'Format d\'email invalide');
       document.getElementById('mEmail').focus();
       return;

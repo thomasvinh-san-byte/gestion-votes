@@ -241,6 +241,240 @@ window.Utils = window.Utils || {};
     return body.message || body.detail || body.error || fallback;
   };
 
+  // ==========================================================================
+  // VALIDATION UTILITIES
+  // ==========================================================================
+
+  /**
+   * Validate email format
+   * @param {string} email - Email to validate
+   * @returns {boolean} True if valid email format
+   */
+  Utils.isValidEmail = function(email) {
+    if (!email || typeof email !== 'string') return false;
+    // RFC 5322 compliant regex (simplified)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim());
+  };
+
+  /**
+   * Validate email and return error message if invalid
+   * @param {string} email - Email to validate
+   * @returns {{valid: boolean, error?: string}}
+   */
+  Utils.validateEmail = function(email) {
+    if (!email || email.trim() === '') {
+      return { valid: true }; // Empty is valid (not required)
+    }
+    if (!Utils.isValidEmail(email)) {
+      return { valid: false, error: 'Format email invalide' };
+    }
+    return { valid: true };
+  };
+
+  /**
+   * Add validation feedback to email input
+   * @param {HTMLInputElement} input - Email input element
+   */
+  Utils.setupEmailValidation = function(input) {
+    if (!input) return;
+
+    const validate = () => {
+      const result = Utils.validateEmail(input.value);
+      input.classList.toggle('is-invalid', !result.valid);
+      input.classList.toggle('is-valid', result.valid && input.value.trim() !== '');
+
+      // Update or create error message
+      let errorEl = input.parentElement?.querySelector('.validation-error');
+      if (!result.valid) {
+        if (!errorEl) {
+          errorEl = document.createElement('div');
+          errorEl.className = 'validation-error text-sm text-danger mt-1';
+          input.parentElement?.appendChild(errorEl);
+        }
+        errorEl.textContent = result.error;
+      } else if (errorEl) {
+        errorEl.remove();
+      }
+
+      return result.valid;
+    };
+
+    input.addEventListener('blur', validate);
+    input.addEventListener('input', Utils.debounce(validate, 500));
+
+    return validate;
+  };
+
+  // ==========================================================================
+  // CSV UTILITIES
+  // ==========================================================================
+
+  /**
+   * Parse CSV content into array of objects
+   * @param {string} content - CSV content
+   * @param {object} options - Options: {delimiter, hasHeader}
+   * @returns {{headers: string[], rows: object[], errors: string[]}}
+   */
+  Utils.parseCSV = function(content, options = {}) {
+    const delimiter = options.delimiter || ',';
+    const hasHeader = options.hasHeader !== false;
+
+    const errors = [];
+    const lines = content.trim().split(/\r?\n/).filter(l => l.trim() !== '');
+
+    if (lines.length === 0) {
+      return { headers: [], rows: [], errors: ['Fichier CSV vide'] };
+    }
+
+    // Parse header row
+    const headerLine = hasHeader ? lines[0] : null;
+    const headers = headerLine
+      ? Utils.parseCSVLine(headerLine, delimiter)
+      : ['name', 'email', 'voting_power'];
+
+    // Parse data rows
+    const dataLines = hasHeader ? lines.slice(1) : lines;
+    const rows = [];
+
+    dataLines.forEach((line, idx) => {
+      const lineNum = hasHeader ? idx + 2 : idx + 1;
+      const values = Utils.parseCSVLine(line, delimiter);
+
+      if (values.length === 0) return;
+
+      const row = {};
+      headers.forEach((h, i) => {
+        row[h.toLowerCase().trim()] = values[i]?.trim() || '';
+      });
+
+      // Basic validation
+      const name = row['name'] || row['nom'] || row['full_name'] || '';
+      const email = row['email'] || row['e-mail'] || row['mail'] || '';
+      const power = row['voting_power'] || row['poids'] || row['weight'] || '';
+
+      if (!name) {
+        errors.push(`Ligne ${lineNum}: nom manquant`);
+      }
+
+      if (email && !Utils.isValidEmail(email)) {
+        errors.push(`Ligne ${lineNum}: email invalide (${email})`);
+      }
+
+      if (power && isNaN(parseFloat(power))) {
+        errors.push(`Ligne ${lineNum}: pouvoir de vote invalide (${power})`);
+      }
+
+      rows.push({
+        _line: lineNum,
+        _raw: line,
+        name,
+        email,
+        voting_power: power ? parseFloat(power) : 1,
+      });
+    });
+
+    return { headers, rows, errors };
+  };
+
+  /**
+   * Parse a single CSV line handling quotes
+   * @param {string} line - CSV line
+   * @param {string} delimiter - Field delimiter
+   * @returns {string[]} Array of field values
+   */
+  Utils.parseCSVLine = function(line, delimiter = ',') {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+
+      if (inQuotes) {
+        if (char === '"' && nextChar === '"') {
+          current += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = false;
+        } else {
+          current += char;
+        }
+      } else {
+        if (char === '"') {
+          inQuotes = true;
+        } else if (char === delimiter) {
+          values.push(current);
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+    }
+
+    values.push(current);
+    return values;
+  };
+
+  /**
+   * Generate HTML preview table for CSV data
+   * @param {object} parsed - Result from parseCSV
+   * @param {number} maxRows - Maximum rows to show
+   * @returns {string} HTML string
+   */
+  Utils.generateCSVPreview = function(parsed, maxRows = 10) {
+    const { rows, errors } = parsed;
+
+    if (rows.length === 0) {
+      return '<div class="text-muted p-4 text-center">Aucune donnée à importer</div>';
+    }
+
+    let html = '';
+
+    // Show errors if any
+    if (errors.length > 0) {
+      html += '<div class="alert alert-warning mb-4">';
+      html += '<strong>Attention :</strong>';
+      html += '<ul class="mb-0 mt-2">';
+      errors.slice(0, 5).forEach(err => {
+        html += `<li>${Utils.escapeHtml(err)}</li>`;
+      });
+      if (errors.length > 5) {
+        html += `<li>... et ${errors.length - 5} autre(s) erreur(s)</li>`;
+      }
+      html += '</ul></div>';
+    }
+
+    // Summary
+    html += `<div class="mb-4"><strong>${rows.length}</strong> membre(s) à importer</div>`;
+
+    // Preview table
+    html += '<div class="table-container" style="max-height:300px;overflow:auto;">';
+    html += '<table class="table table-sm">';
+    html += '<thead><tr><th>#</th><th>Nom</th><th>Email</th><th>Poids</th></tr></thead>';
+    html += '<tbody>';
+
+    const displayRows = rows.slice(0, maxRows);
+    displayRows.forEach((row, idx) => {
+      const emailClass = row.email && !Utils.isValidEmail(row.email) ? 'text-danger' : '';
+      html += '<tr>';
+      html += `<td class="text-muted">${idx + 1}</td>`;
+      html += `<td>${Utils.escapeHtml(row.name) || '<span class="text-danger">—</span>'}</td>`;
+      html += `<td class="${emailClass}">${Utils.escapeHtml(row.email) || '—'}</td>`;
+      html += `<td>${row.voting_power}</td>`;
+      html += '</tr>';
+    });
+
+    if (rows.length > maxRows) {
+      html += `<tr><td colspan="4" class="text-center text-muted">... et ${rows.length - maxRows} autre(s)</td></tr>`;
+    }
+
+    html += '</tbody></table></div>';
+
+    return html;
+  };
+
   // Init au chargement
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', Utils.initCsrfForms);
@@ -249,6 +483,20 @@ window.Utils = window.Utils || {};
   }
 
 })(window.Utils);
+
+/**
+ * Global email validation function
+ */
+function isValidEmail(email) {
+  return Utils.isValidEmail(email);
+}
+
+/**
+ * Global CSV parse function
+ */
+function parseCSV(content, options) {
+  return Utils.parseCSV(content, options);
+}
 
 // ==========================================================================
 // GLOBAL CONVENIENCE FUNCTIONS

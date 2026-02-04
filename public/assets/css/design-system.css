@@ -732,6 +732,35 @@ h4, .h4 {
   box-shadow: 0 0 0 3px var(--color-danger-subtle);
 }
 
+/* Validation states */
+.form-input.is-invalid,
+.form-select.is-invalid,
+.form-textarea.is-invalid {
+  border-color: var(--color-danger);
+}
+
+.form-input.is-invalid:focus,
+.form-select.is-invalid:focus {
+  box-shadow: 0 0 0 3px var(--color-danger-subtle);
+}
+
+.form-input.is-valid,
+.form-select.is-valid,
+.form-textarea.is-valid {
+  border-color: var(--color-success);
+}
+
+.form-input.is-valid:focus,
+.form-select.is-valid:focus {
+  box-shadow: 0 0 0 3px var(--color-success-subtle);
+}
+
+.validation-error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin-top: 0.25rem;
+}
+
 .form-helper {
   font-size: var(--text-sm);
   color: var(--color-text-muted);

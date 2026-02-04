@@ -983,10 +983,10 @@
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
 
     modal.innerHTML = `
-      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:500px;width:90%;">
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:90vh;overflow:auto;">
         <h3 style="margin:0 0 1rem;"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer des membres (CSV)</h3>
         <p class="text-muted text-sm mb-3">
-          Format attendu: <code>nom,email,poids</code> (une ligne par membre).<br>
+          Format attendu: <code>name,email,voting_power</code> (en-tête requis).<br>
           L'email et le poids sont optionnels.
         </p>
         <div class="form-group mb-3">
@@ -995,27 +995,71 @@
         </div>
         <div class="form-group mb-3">
           <label class="form-label">Ou coller le contenu</label>
-          <textarea class="form-input" id="csvTextInput" rows="5" placeholder="Jean Dupont,jean@exemple.com,1\nMarie Martin,,2"></textarea>
+          <textarea class="form-input" id="csvTextInput" rows="4" placeholder="name,email,voting_power\nJean Dupont,jean@exemple.com,1\nMarie Martin,,2"></textarea>
         </div>
+        <div id="csvPreviewContainer" style="display:none;" class="mb-4"></div>
         <div class="flex gap-2 justify-end">
           <button class="btn btn-secondary" id="btnCancelImport">Annuler</button>
-          <button class="btn btn-primary" id="btnConfirmImport">Importer</button>
+          <button class="btn btn-outline" id="btnPreviewCSV">Aperçu</button>
+          <button class="btn btn-primary" id="btnConfirmImport" disabled>Importer</button>
         </div>
       </div>
     `;
 
     document.body.appendChild(modal);
 
-    document.getElementById('btnCancelImport').onclick = () => modal.remove();
-    document.getElementById('btnConfirmImport').onclick = async () => {
+    let parsedData = null;
+
+    const previewContainer = document.getElementById('csvPreviewContainer');
+    const btnPreview = document.getElementById('btnPreviewCSV');
+    const btnConfirm = document.getElementById('btnConfirmImport');
+
+    // Get CSV content from file or textarea
+    async function getCSVContent() {
       const fileInput = document.getElementById('csvFileInput');
       const textInput = document.getElementById('csvTextInput');
       let csvContent = textInput.value.trim();
 
-      // Read file if selected
       if (fileInput.files.length > 0) {
         csvContent = await fileInput.files[0].text();
       }
+      return csvContent;
+    }
+
+    // Preview button handler
+    btnPreview.onclick = async () => {
+      const csvContent = await getCSVContent();
+
+      if (!csvContent) {
+        setNotif('error', 'Aucun contenu à prévisualiser');
+        return;
+      }
+
+      // Parse and generate preview
+      parsedData = Utils.parseCSV(csvContent);
+      const previewHtml = Utils.generateCSVPreview(parsedData);
+
+      previewContainer.innerHTML = previewHtml;
+      previewContainer.style.display = 'block';
+
+      // Enable import button if we have valid rows
+      const hasValidRows = parsedData.rows.some(r => r.name);
+      btnConfirm.disabled = !hasValidRows;
+
+      if (!hasValidRows) {
+        setNotif('warning', 'Aucune donnée valide trouvée');
+      }
+    };
+
+    // Auto-preview when file is selected
+    document.getElementById('csvFileInput').onchange = () => {
+      btnPreview.click();
+    };
+
+    document.getElementById('btnCancelImport').onclick = () => modal.remove();
+
+    btnConfirm.onclick = async () => {
+      const csvContent = await getCSVContent();
 
       if (!csvContent) {
         setNotif('error', 'Aucun contenu à importer');
@@ -1023,6 +1067,9 @@
       }
 
       try {
+        btnConfirm.disabled = true;
+        btnConfirm.textContent = 'Import en cours...';
+
         const formData = new FormData();
         formData.append('csv_content', csvContent);
 
@@ -1042,9 +1089,13 @@
           loadStatusChecklist();
         } else {
           setNotif('error', data.error || 'Erreur import');
+          btnConfirm.disabled = false;
+          btnConfirm.textContent = 'Importer';
         }
       } catch (err) {
         setNotif('error', err.message);
+        btnConfirm.disabled = false;
+        btnConfirm.textContent = 'Importer';
       }
     };
   }
