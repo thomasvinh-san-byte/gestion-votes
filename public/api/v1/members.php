@@ -62,6 +62,11 @@ try {
             api_fail('missing_member_id', 422, ['detail' => 'ID membre requis.']);
         }
 
+        // Vérifier que le membre appartient au tenant courant (isolation)
+        if (!$repo->existsForTenant($id, $tenantId)) {
+            api_fail('member_not_found', 404, ['detail' => 'Membre introuvable.']);
+        }
+
         $full_name = trim($input['full_name'] ?? '');
         if ($full_name === '') {
             api_fail('missing_full_name', 422, ['detail' => 'Le nom complet est requis.']);
@@ -88,6 +93,11 @@ try {
         $id = trim($input['id'] ?? $input['member_id'] ?? '');
         if ($id === '' || !api_is_uuid($id)) {
             api_fail('missing_member_id', 422, ['detail' => 'ID membre requis.']);
+        }
+
+        // Vérifier que le membre appartient au tenant courant (isolation)
+        if (!$repo->existsForTenant($id, $tenantId)) {
+            api_fail('member_not_found', 404, ['detail' => 'Membre introuvable.']);
         }
 
         $repo->softDelete($id);

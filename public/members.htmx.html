@@ -956,7 +956,7 @@
 
           try {
             const { body } = await api('/api/v1/member_groups.php', {
-              group_id: groupId,
+              id: groupId,
               name: newName,
               description: newDesc || null,
               color: newColor
@@ -986,7 +986,7 @@
       if (!confirm(`Supprimer le groupe "${group.name}" ? Les membres ne seront pas supprimés.`)) return;
 
       try {
-        const { body } = await api('/api/v1/member_groups.php', { group_id: groupId }, 'DELETE');
+        const { body } = await api(`/api/v1/member_groups.php?id=${encodeURIComponent(groupId)}`, null, 'DELETE');
 
         if (body?.ok) {
           setNotif('success', 'Groupe supprimé');

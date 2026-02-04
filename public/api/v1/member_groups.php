@@ -22,6 +22,10 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\MemberGroupRepository;
 
 $method = $_SERVER['REQUEST_METHOD'];
+
+// Authentification requise pour tous les endpoints
+api_require_any_role(['operator', 'admin']);
+
 $tenantId = api_current_tenant_id();
 $repo = new MemberGroupRepository();
 
@@ -32,17 +36,14 @@ try {
             break;
 
         case 'POST':
-            api_require_any_role(['operator', 'admin']);
             handlePost($repo, $tenantId);
             break;
 
         case 'PATCH':
-            api_require_any_role(['operator', 'admin']);
             handlePatch($repo, $tenantId);
             break;
 
         case 'DELETE':
-            api_require_any_role(['operator', 'admin']);
             handleDelete($repo, $tenantId);
             break;
 
