@@ -29,7 +29,6 @@
   const attendanceList = document.getElementById('attendanceList');
   const attSearchInput = document.getElementById('attSearchInput');
   const btnAttAllPresent = document.getElementById('btnAttAllPresent');
-  const btnAttFullView = document.getElementById('btnAttFullView');
 
   // Exports section elements
   const exportsSection = document.getElementById('exportsSection');
@@ -162,14 +161,14 @@
     if (checks.hasAttendance) {
       items.push({ done: true, text: 'Présences pointées' });
     } else {
-      items.push({ done: false, text: 'Pointer les présences', link: `/attendance.htmx.html?meeting_id=${mid}` });
+      items.push({ done: false, text: 'Pointer les présences (onglet Présences)', link: null });
     }
 
     // Check 3: Motions
     if (checks.hasMotions) {
       items.push({ done: true, text: 'Résolutions créées' });
     } else {
-      items.push({ done: false, text: 'Créer des résolutions', link: `/motions.htmx.html?meeting_id=${mid}` });
+      items.push({ done: false, text: 'Créer des résolutions (onglet Résolutions)', link: null });
     }
 
     // Check 4: President assigned (optional for demo)
@@ -520,9 +519,9 @@
         motionsList.innerHTML = `
           <div class="empty-motions">
             <p>Aucune résolution</p>
-            <a href="/motions.htmx.html?meeting_id=${meetingId}" class="btn btn-primary btn-sm mt-4">
+            <button class="btn btn-primary btn-sm mt-4" data-tab-switch="resolutions">
               ${icon('plus', 'icon-sm icon-text')}Créer des résolutions
-            </a>
+            </button>
           </div>
         `;
         return;
@@ -1128,7 +1127,7 @@
               ${motions.length === 0 ? '<div class="text-center p-4 text-muted">Aucune résolution</div>' : ''}
             </div>
 
-            <a href="/motions.htmx.html?meeting_id=${currentMeetingId}" class="btn btn-block btn-secondary">${icon('clipboard-list', 'icon-sm icon-text')}Vue complète</a>
+            <button class="btn btn-block btn-secondary" data-tab-switch="resolutions">${icon('clipboard-list', 'icon-sm icon-text')}Voir toutes les résolutions</button>
           </div>
         `;
 
@@ -1520,14 +1519,7 @@
     });
   }
 
-  if (btnAttFullView) {
-    btnAttFullView.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (currentMeetingId) {
-        window.location.href = `/attendance.htmx.html?meeting_id=${currentMeetingId}`;
-      }
-    });
-  }
+  // btnAttFullView removed - attendance is now in the Présences tab
 
   // Export buttons event listeners
   if (btnExportPV) {

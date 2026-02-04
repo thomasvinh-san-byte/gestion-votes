@@ -1,5 +1,5 @@
 /**
- * president.js — President cockpit for AG-VOTE.
+ * speaker.js — Speaker/speech management for AG-VOTE operators.
  *
  * Must be loaded AFTER utils.js, shared.js, shell.js and meeting-context.js.
  * Handles: speech queue management, active motion tracking,
@@ -344,7 +344,7 @@
 
     btn.addEventListener('click', () => {
       if (sel.value) {
-        window.location.href = '/president.htmx.html?meeting_id=' + encodeURIComponent(sel.value);
+        window.location.href = '/speaker.htmx.html?meeting_id=' + encodeURIComponent(sel.value);
       }
     });
 

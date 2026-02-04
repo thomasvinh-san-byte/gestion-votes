@@ -33,10 +33,8 @@ echo '  <div class="card-body">';
 
 echo '<div class="toolbar" style="flex-direction:column; align-items:stretch;">';
 echo '  <a class="btn" href="/operator.htmx.html?meeting_id='.h($meetingId).'">🗂️ Fiche séance</a>';
-echo '  <a class="btn" href="/attendance.htmx.html?meeting_id='.h($meetingId).'">👥 Présences</a>';
-echo '  <a class="btn" href="/proxies.htmx.html?meeting_id='.h($meetingId).'">📝 Procurations</a>';
-echo '  <a class="btn" href="/motions.htmx.html?meeting_id='.h($meetingId).'">📌 Résolutions</a>';
-echo '  <a class="btn primary" href="/operator_flow.htmx.html?meeting_id='.h($meetingId).'">▶ Conduite (live)</a>';
+echo '  <a class="btn" href="/speaker.htmx.html?meeting_id='.h($meetingId).'">🎙️ Gestion parole</a>';
+echo '  <a class="btn" href="/vote.htmx.html?meeting_id='.h($meetingId).'">🗳️ Vote</a>';
 echo '</div>';
 
 echo '<div style="height:12px;"></div>';

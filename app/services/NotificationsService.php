@@ -70,7 +70,7 @@ final class NotificationsService
             // On ne spamme pas avec tout le détail ici: les "raisons" suivent via notifications par code (ci-dessous).
             self::emit($meetingId, 'warn', 'readiness_not_ready', 'Séance n\'est plus prête à être validée.', ['operator','trust'], [
                 'action_label' => 'Voir les blocages',
-                'action_url' => '/operator_flow.htmx.html',
+                'action_url' => '/operator.htmx.html',
             ]);
         }
 
@@ -114,7 +114,7 @@ final class NotificationsService
                     'audience' => $aud,
                     'data'     => [
                         'action_label' => 'Aller aux votes',
-                        'action_url' => '/operator_flow.htmx.html',
+                        'action_url' => '/operator.htmx.html',
                     ],
                 ];
             case 'bad_closed_results':
@@ -124,7 +124,7 @@ final class NotificationsService
                     'audience' => $aud,
                     'data'     => [
                         'action_label' => 'Corriger le comptage',
-                        'action_url' => '/operator_flow.htmx.html',
+                        'action_url' => '/operator.htmx.html',
                     ],
                 ];
             case 'consolidation_missing':
@@ -134,7 +134,7 @@ final class NotificationsService
                     'audience' => $aud,
                     'data'     => [
                         'action_label' => 'Consolider',
-                        'action_url' => '/operator_flow.htmx.html',
+                        'action_url' => '/operator.htmx.html',
                     ],
                 ];
         }
@@ -145,7 +145,7 @@ final class NotificationsService
             'audience' => $aud,
             'data'     => [
                 'action_label' => 'Ouvrir la séance',
-                'action_url' => '/operator_flow.htmx.html',
+                'action_url' => '/operator.htmx.html',
             ],
         ];
     }

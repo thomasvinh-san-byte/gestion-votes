@@ -12,20 +12,15 @@ $publicDir = __DIR__ . '/../public';
 // Pages à patcher
 $pages = [
     'operator.htmx.html',
-    'operator_flow.htmx.html',
     'trust.htmx.html',
     'vote.htmx.html',
     'validate.htmx.html',
-    'president.htmx.html',
+    'speaker.htmx.html',
+    'president-dashboard.htmx.html',
     'admin.htmx.html',
     'archives.htmx.html',
     'meetings.htmx.html',
     'members.htmx.html',
-    'motions.htmx.html',
-    'attendance.htmx.html',
-    'proxies.htmx.html',
-    'invitations.htmx.html',
-    'paper_redeem.htmx.html',
     'public.htmx.html',
     'report.htmx.html',
 ];
