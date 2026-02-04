@@ -75,7 +75,7 @@
     tbody.innerHTML = members.map(m => {
       const name = m.full_name || m.name || '';
       const st = (m.mode || 'absent').toUpperCase();
-      const w = (m.voting_power ?? m.vote_weight ?? '');
+      const w = parseFloat(m.voting_power) || parseFloat(m.vote_weight) || 1;
       return `<tr>${td(name)}${td('')}${td(pill(st))}${td(`<span style="font-variant-numeric:tabular-nums;">${w}</span>`, true)}</tr>`;
     }).join('');
 
