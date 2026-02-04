@@ -122,7 +122,7 @@
         document.getElementById('newPassword').value = '';
         loadUsers();
       } else {
-        setNotif('error', r.body.error || 'Erreur');
+        setNotif('error', getApiError(r.body));
       }
     } catch (e) { setNotif('error', e.message); }
     finally { Shared.btnLoading(btn, false); }
@@ -172,7 +172,7 @@
           api('/api/v1/admin_users.php', {action:'set_password', user_id:userId, password:pw})
             .then(function(r) {
               if (r.body && r.body.ok) { setNotif('success', 'Mot de passe défini'); loadUsers(); }
-              else { setNotif('error', r.body.error || 'Erreur'); }
+              else { setNotif('error', getApiError(r.body)); }
             })
             .catch(function(err) { setNotif('error', err.message); });
         }
@@ -192,7 +192,7 @@
           setNotif('success', 'Utilisateur supprimé');
           loadUsers();
         } else {
-          setNotif('error', r.body.error || 'Erreur lors de la suppression');
+          setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
         }
       } catch(err) { setNotif('error', err.message); }
       finally { Shared.btnLoading(btn, false); }
@@ -234,7 +234,7 @@
           api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole})
             .then(function(r) {
               if (r.body && r.body.ok) { setNotif('success', 'Utilisateur modifié'); loadUsers(); }
-              else { setNotif('error', r.body.error || 'Erreur'); }
+              else { setNotif('error', getApiError(r.body)); }
             })
             .catch(function(err) { setNotif('error', err.message); });
         }
@@ -328,7 +328,7 @@
         loadMeetingRoles();
         loadUsers(); // refresh meeting roles column in users table
       } else {
-        setNotif('error', r.body.error || 'Erreur');
+        setNotif('error', getApiError(r.body));
       }
     } catch(e) { setNotif('error', e.message); }
     finally { Shared.btnLoading(btn, false); }
@@ -352,7 +352,7 @@
         loadMeetingRoles();
         loadUsers();
       } else {
-        setNotif('error', r.body.error || 'Erreur');
+        setNotif('error', getApiError(r.body));
       }
     } catch(e) { setNotif('error', e.message); }
     finally { Shared.btnLoading(btn, false); }
@@ -457,7 +457,7 @@
         api('/api/v1/admin_quorum_policies.php', payload)
           .then(function(r) {
             if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique modifiée' : 'Politique créée'); loadQuorumPolicies(); }
-            else { setNotif('error', r.body.error || 'Erreur'); }
+            else { setNotif('error', getApiError(r.body)); }
           })
           .catch(function(err) { setNotif('error', err.message); });
       }
@@ -486,7 +486,7 @@
           setNotif('success', 'Politique supprimée');
           loadQuorumPolicies();
         } else {
-          setNotif('error', r.body.error || 'Erreur lors de la suppression');
+          setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
         }
       } catch(err) { setNotif('error', err.message); }
       finally { Shared.btnLoading(btn, false); }
@@ -580,7 +580,7 @@
         api('/api/v1/admin_vote_policies.php', payload)
           .then(function(r) {
             if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique modifiée' : 'Politique créée'); loadVotePolicies(); }
-            else { setNotif('error', r.body.error || 'Erreur'); }
+            else { setNotif('error', getApiError(r.body)); }
           })
           .catch(function(err) { setNotif('error', err.message); });
       }
@@ -609,7 +609,7 @@
           setNotif('success', 'Politique supprimée');
           loadVotePolicies();
         } else {
-          setNotif('error', r.body.error || 'Erreur lors de la suppression');
+          setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
         }
       } catch(err) { setNotif('error', err.message); }
       finally { Shared.btnLoading(btn, false); }
@@ -808,7 +808,7 @@
     try {
       const r = await api('/api/v1/admin_reset_demo.php', {});
       if (r.body && r.body.ok) { setNotif('success', 'Données de démo réinitialisées'); refreshAll(); }
-      else { setNotif('error', r.body.error || 'Erreur'); }
+      else { setNotif('error', getApiError(r.body)); }
     } catch(e) { setNotif('error', e.message); }
     finally { Shared.btnLoading(btn, false); }
   });

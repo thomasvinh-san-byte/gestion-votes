@@ -421,7 +421,7 @@
         currentWizardChecks.hasAttendance = votersCache.length > 0;
         updateStatusAlert();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -457,7 +457,7 @@
 
         setNotif('success', 'Tous marqués présents');
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -669,7 +669,7 @@
         loadBallots(currentOpenMotion.id);
         setNotif('success', 'Vote enregistré');
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -690,7 +690,7 @@
         setNotif('success', 'Vote ouvert');
         loadMotions(currentMeetingId);
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
         Shared.btnLoading(btn, false);
       }
     } catch (err) {
@@ -714,7 +714,7 @@
         setNotif('success', 'Vote clôturé');
         loadMotions(currentMeetingId);
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
         Shared.btnLoading(btn, false);
       }
     } catch (err) {
@@ -730,22 +730,70 @@
     }
   });
 
+  // Labels français pour les statuts
+  const statusLabels = {
+    draft: 'Brouillon',
+    scheduled: 'Programmée',
+    frozen: 'Figée',
+    live: 'En cours',
+    closed: 'Clôturée',
+    validated: 'Validée',
+    archived: 'Archivée'
+  };
+
   async function doTransition(toStatus) {
     if (!currentMeetingId) return;
-    if (!confirm(`Changer l'état vers "${toStatus}" ?`)) return;
+
+    const statusLabel = statusLabels[toStatus] || toStatus;
 
     try {
+      // 1. Vérifier les prérequis avant transition
+      const checkRes = await api(`/api/v1/meeting_workflow_check.php?meeting_id=${currentMeetingId}&to_status=${toStatus}`);
+
+      if (!checkRes.body || !checkRes.body.ok) {
+        setNotif('error', getApiError(checkRes.body, 'Erreur de vérification'));
+        return;
+      }
+
+      const { can_proceed, issues, warnings } = checkRes.body.data;
+
+      // 2. Si des issues bloquantes existent, afficher et bloquer
+      if (issues && issues.length > 0) {
+        const issuesList = issues.map(i => `• ${i}`).join('\n');
+        alert(`Impossible de passer en "${statusLabel}"\n\nProblèmes à résoudre :\n${issuesList}`);
+        setNotif('error', `${issues.length} problème(s) bloquant(s)`);
+        return;
+      }
+
+      // 3. Si des warnings existent, demander confirmation explicite
+      let confirmMessage = `Passer la séance en "${statusLabel}" ?`;
+      if (warnings && warnings.length > 0) {
+        const warningsList = warnings.map(w => `• ${w}`).join('\n');
+        confirmMessage = `Passer la séance en "${statusLabel}" ?\n\nAvertissements :\n${warningsList}\n\nVoulez-vous continuer malgré ces avertissements ?`;
+      }
+
+      if (!confirm(confirmMessage)) return;
+
+      // 4. Effectuer la transition
       const { body } = await api('/api/v1/meeting_transition.php', {
         meeting_id: currentMeetingId,
         to_status: toStatus
       });
 
       if (body && body.ok) {
-        setNotif('success', `Séance passée en "${toStatus}"`);
+        setNotif('success', `Séance passée en "${statusLabel}"`);
         loadMeetings();
         loadMeetingContext(currentMeetingId);
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        // Traduire les erreurs courantes
+        const errorMessages = {
+          'workflow_issues': 'Prérequis non remplis pour cette transition',
+          'invalid_transition': 'Transition non autorisée depuis l\'état actuel',
+          'meeting_not_found': 'Séance introuvable',
+          'meeting_already_validated': 'Séance déjà validée (modification interdite)',
+        };
+        const errorMsg = errorMessages[body?.error] || body?.error || 'Erreur lors de la transition';
+        setNotif('error', errorMsg);
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -837,7 +885,7 @@
               loadWizardStatus(currentMeetingId);
               updateStatusAlert();
             } else {
-              setNotif('error', res?.error || 'Erreur');
+              setNotif('error', getApiError(res));
             }
           } catch (err) {
             setNotif('error', err.message);
@@ -862,7 +910,7 @@
               // Refresh drawer
               document.querySelector('[data-drawer="roles"]')?.click();
             } else {
-              setNotif('error', res?.error || 'Erreur');
+              setNotif('error', getApiError(res));
             }
           } catch (err) {
             setNotif('error', err.message);
@@ -886,7 +934,7 @@
                 setNotif('success', 'Assesseur retiré');
                 btn.closest('[data-assessor-id]')?.remove();
               } else {
-                setNotif('error', res?.error || 'Erreur');
+                setNotif('error', getApiError(res));
               }
             } catch (err) {
               setNotif('error', err.message);
@@ -1168,7 +1216,7 @@
                 // Refresh drawer
                 document.querySelector('[data-drawer="motions"]')?.click();
               } else {
-                setNotif('error', createRes?.error || createRes?.detail || 'Erreur');
+                setNotif('error', getApiError(createRes));
               }
             } catch (err) {
               setNotif('error', err.message);
@@ -1194,7 +1242,7 @@
                   // Refresh drawer
                   document.querySelector('[data-drawer="motions"]')?.click();
                 } else {
-                  setNotif('error', delRes?.error || 'Erreur');
+                  setNotif('error', getApiError(delRes));
                 }
               } catch (err) {
                 setNotif('error', err.message);
@@ -1301,7 +1349,7 @@
               // Refresh drawer
               document.querySelector('[data-drawer="members"]')?.click();
             } else {
-              setNotif('error', addRes?.error || addRes?.detail || 'Erreur');
+              setNotif('error', getApiError(addRes));
             }
           } catch (err) {
             setNotif('error', err.message);
@@ -1478,7 +1526,7 @@
           } else {
             msgBox.style.display = 'block';
             msgBox.className = 'alert alert-danger';
-            msgBox.textContent = res?.error || 'Erreur';
+            msgBox.textContent = getApiError(res);
           }
         } catch (err) {
           msgBox.style.display = 'block';

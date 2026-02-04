@@ -184,7 +184,7 @@
         setNotif('success', 'Parole accordée');
         loadSpeechData();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -204,7 +204,7 @@
         setNotif('success', 'Parole terminée');
         loadSpeechData();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -226,7 +226,7 @@
         setNotif('success', 'Parole au suivant');
         loadSpeechData();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -250,7 +250,7 @@
         setNotif('success', 'File vidée');
         loadSpeechData();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -278,7 +278,7 @@
         setNotif('success', 'Vote clôturé');
         loadActiveMotion();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
         Shared.btnLoading(btn, false);
       }
     } catch (err) {

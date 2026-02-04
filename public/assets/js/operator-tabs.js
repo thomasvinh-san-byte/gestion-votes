@@ -958,7 +958,7 @@
         updateQuickStats();
         checkLaunchReady();
       } else {
-        setNotif('error', body?.error || 'Erreur de mise à jour');
+        setNotif('error', getApiError(body, 'Erreur de mise à jour'));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -1272,7 +1272,7 @@
           modal.remove();
           loadResolutions();
         } else {
-          setNotif('error', body?.error || body?.detail || 'Erreur lors de la mise à jour');
+          setNotif('error', getApiError(body, 'Erreur lors de la mise à jour'));
         }
       } catch (err) {
         setNotif('error', err.message);
@@ -1309,7 +1309,7 @@
       if (body?.ok !== true) {
         // Revert on error
         loadResolutions();
-        setNotif('error', body?.error || 'Erreur lors du réordonnancement');
+        setNotif('error', getApiError(body, 'Erreur lors du réordonnancement'));
       }
     } catch (err) {
       loadResolutions();
@@ -1341,7 +1341,7 @@
         loadStatusChecklist();
         checkLaunchReady();
       } else {
-        setNotif('error', body?.error || body?.detail || 'Erreur lors de la création');
+        setNotif('error', getApiError(body, 'Erreur lors de la création'));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -1486,7 +1486,7 @@
         renderManualVoteList();
         setNotif('success', 'Vote enregistré');
       } else {
-        setNotif('error', body?.error || 'Erreur lors du vote');
+        setNotif('error', getApiError(body, 'Erreur lors du vote'));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -1499,7 +1499,7 @@
 
       if (!openResult.body?.ok) {
         // Prefer detail message over error code for user-friendly display
-        const errorMsg = openResult.body?.detail || openResult.body?.error || 'Erreur ouverture vote';
+        const errorMsg = getApiError(openResult.body, 'Erreur ouverture vote');
         setNotif('error', errorMsg);
         return;
       }
@@ -1647,7 +1647,7 @@
         loadMeetingContext(currentMeetingId);
         loadMeetings();
       } else {
-        setNotif('error', body?.detail || body?.error || 'Erreur lors de la clôture');
+        setNotif('error', getApiError(body, 'Erreur lors de la clôture'));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -1673,7 +1673,7 @@
         loadMeetingContext(currentMeetingId);
         loadMeetings();
       } else {
-        setNotif('error', body?.detail || body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);

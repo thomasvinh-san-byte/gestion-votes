@@ -220,11 +220,25 @@ window.Utils = window.Utils || {};
 
   /**
    * Humanize error messages from API
+   * Préfère 'message' (message français traduit) sur 'error' (code technique)
    */
   Utils.humanizeError = function(err) {
     if (!err) return 'Erreur inconnue';
     if (typeof err === 'string') return err;
-    return err.message || err.error || err.detail || JSON.stringify(err);
+    // Priorité: message > detail > error > stringify
+    return err.message || err.detail || err.error || JSON.stringify(err);
+  };
+
+  /**
+   * Extract error message from API response body
+   * @param {object} body - API response body
+   * @param {string} fallback - Default message if no error found
+   * @returns {string} Human-readable error message
+   */
+  Utils.getApiError = function(body, fallback = 'Une erreur est survenue') {
+    if (!body) return fallback;
+    // Priorité: message (FR traduit) > detail > error (code)
+    return body.message || body.detail || body.error || fallback;
   };
 
   // Init au chargement
@@ -449,6 +463,18 @@ function log(...args) {
     while (box.children.length > 50) box.removeChild(box.lastElementChild);
   }
   console.log('[AG-VOTE]', ...args);
+}
+
+/**
+ * Extract error message from API response body
+ * Préfère 'message' (FR traduit) sur 'error' (code technique)
+ * @param {object} body - API response body
+ * @param {string} fallback - Default message if no error found
+ * @returns {string} Human-readable error message
+ */
+function getApiError(body, fallback = 'Une erreur est survenue') {
+  if (!body) return fallback;
+  return body.message || body.detail || body.error || fallback;
 }
 
 // Add slide-out animation
