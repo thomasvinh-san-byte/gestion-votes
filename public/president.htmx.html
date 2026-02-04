@@ -38,12 +38,6 @@
       border-color: var(--color-success);
     }
     
-    .validation-checklist {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-    }
-    
     .check-item {
       display: flex;
       align-items: center;
@@ -116,10 +110,10 @@
         <!-- Notification area -->
         <div id="notif_box" class="hidden mb-4"></div>
 
-        <!-- Tabs -->
-        <div class="tabs mb-6">
-          <button class="tab active" id="tabSpeech" type="button">✋ Gestion de la parole</button>
-          <button class="tab" id="tabValidation" type="button">✅ Validation séance</button>
+        <!-- Page title -->
+        <div class="mb-6">
+          <h2 class="text-xl font-bold">Gestion de la parole</h2>
+          <p class="text-muted text-sm">Contrôle des prises de parole et des votes en cours</p>
         </div>
 
         <!-- Panel: Speech Management -->
@@ -195,65 +189,6 @@
               </div>
             </div>
           </div>
-        </section>
-
-        <!-- Panel: Validation -->
-        <section id="panelValidation" style="display: none;">
-          <div class="grid grid-cols-2 gap-6">
-            <!-- Readiness Check -->
-            <div class="card">
-              <div class="card-header">
-                <div class="flex items-center justify-between">
-                  <h3 class="card-title">📋 Contrôle pré-validation</h3>
-                  <span class="badge" id="readyBadge">—</span>
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="validation-checklist" id="readinessChecklist">
-                  <div class="text-center p-4">
-                    <div class="spinner"></div>
-                    <div class="mt-2 text-muted">Vérification en cours...</div>
-                  </div>
-                </div>
-                <button class="btn btn-secondary w-full mt-4" id="btnRecheck">
-                  🔄 Recontrôler
-                </button>
-              </div>
-            </div>
-
-            <!-- Signature & Validation -->
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">✍️ Signature & Validation</h3>
-              </div>
-              <div class="card-body">
-                <div class="form-group mb-4">
-                  <label class="form-label form-label-required" for="presidentName">
-                    Nom du président
-                  </label>
-                  <input class="form-input" type="text" id="presidentName" 
-                         placeholder="Ex: Jean Dupont">
-                  <p class="form-helper">
-                    Ce nom apparaîtra sur le procès-verbal
-                  </p>
-                </div>
-
-                <div class="president-action mb-4">
-                  <div class="text-lg font-bold mb-2">⚠️ Action irréversible</div>
-                  <div class="text-sm text-secondary mb-4">
-                    La validation archive définitivement la séance.<br>
-                    Aucune modification ne sera plus possible.
-                  </div>
-                  <button class="btn btn-lg btn-primary" id="btnValidate" disabled>
-                    ✅ Valider et archiver la séance
-                  </button>
-                </div>
-
-                <div id="validateMsg" class="alert alert-info" style="display: none;"></div>
-              </div>
-            </div>
-          </div>
-
         </section>
       </div>
     </main>

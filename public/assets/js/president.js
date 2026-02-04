@@ -25,27 +25,6 @@
     });
   }
 
-  // Tab switching
-  const tabSpeech = document.getElementById('tabSpeech');
-  const tabValidation = document.getElementById('tabValidation');
-  const panelSpeech = document.getElementById('panelSpeech');
-  const panelValidation = document.getElementById('panelValidation');
-
-  tabSpeech.addEventListener('click', () => {
-    tabSpeech.classList.add('active');
-    tabValidation.classList.remove('active');
-    panelSpeech.style.display = 'block';
-    panelValidation.style.display = 'none';
-  });
-
-  tabValidation.addEventListener('click', () => {
-    tabValidation.classList.add('active');
-    tabSpeech.classList.remove('active');
-    panelValidation.style.display = 'block';
-    panelSpeech.style.display = 'none';
-    loadReadinessCheck();
-  });
-
   // Load meeting info
   async function loadMeetingInfo(meetingId) {
     try {
@@ -193,40 +172,6 @@
     }
   }
 
-  // Load readiness check
-  async function loadReadinessCheck() {
-    if (!currentMeetingId) return;
-
-    try {
-      const { body } = await api(`/api/v1/meeting_ready_check.php?meeting_id=${currentMeetingId}`);
-      const checklist = document.getElementById('readinessChecklist');
-      const badge = document.getElementById('readyBadge');
-      const btnValidate = document.getElementById('btnValidate');
-
-      if (body && body.ok && body.data) {
-        const checks = body.data.checks || [];
-        const ready = body.data.ready;
-
-        badge.className = `badge ${ready ? 'badge-success' : 'badge-danger'}`;
-        badge.textContent = ready ? 'Prêt' : 'Non prêt';
-
-        checklist.innerHTML = checks.map(check => `
-          <div class="check-item ${check.passed ? 'pass' : 'fail'}">
-            <div class="check-icon">${check.passed ? icon('check', 'icon-sm icon-success') : icon('x', 'icon-sm icon-danger')}</div>
-            <div>
-              <div class="font-medium">${escapeHtml(check.label)}</div>
-              ${check.detail ? `<div class="text-xs opacity-75">${escapeHtml(check.detail)}</div>` : ''}
-            </div>
-          </div>
-        `).join('');
-
-        btnValidate.disabled = !ready;
-      }
-    } catch (err) {
-      console.error('Ready check error:', err);
-    }
-  }
-
   // Grant speech
   async function grantSpeech(requestId) {
     try {
@@ -342,56 +287,10 @@
     }
   });
 
-  // Recheck readiness
-  document.getElementById('btnRecheck').addEventListener('click', loadReadinessCheck);
-
-  // Validate meeting
-  document.getElementById('btnValidate').addEventListener('click', async () => {
-    const presidentName = document.getElementById('presidentName').value.trim();
-    const msgDiv = document.getElementById('validateMsg');
-
-    if (!presidentName) {
-      setNotif('error', 'Le nom du président est requis');
-      return;
-    }
-
-    if (!confirm('ATTENTION: Cette action est IRRÉVERSIBLE.\n\nLa séance sera définitivement archivée et plus aucune modification ne sera possible.\n\nConfirmer la validation ?')) {
-      return;
-    }
-
-    try {
-      const { body } = await api('/api/v1/meeting_validate.php', {
-        meeting_id: currentMeetingId,
-        president_name: presidentName
-      });
-
-      if (body && body.ok) {
-        msgDiv.style.display = 'block';
-        msgDiv.className = 'alert alert-success';
-        msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès !`;
-
-        setNotif('success', 'Séance validée !');
-
-        // Disable validation
-        document.getElementById('btnValidate').disabled = true;
-        document.getElementById('presidentName').disabled = true;
-      } else {
-        msgDiv.style.display = 'block';
-        msgDiv.className = 'alert alert-danger';
-        msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Erreur: ${escapeHtml(body?.error || 'Validation impossible')}`;
-      }
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  });
-
   // Refresh button
   document.getElementById('btnRefresh').addEventListener('click', () => {
     loadSpeechData();
     loadActiveMotion();
-    if (panelValidation.style.display !== 'none') {
-      loadReadinessCheck();
-    }
   });
 
   // Show waiting state: meeting selector for president
@@ -399,11 +298,9 @@
     const container = document.querySelector('.container');
     if (!container) return;
 
-    // Hide tabs and panels
-    const tabs = document.querySelector('.tabs');
-    if (tabs) tabs.style.display = 'none';
+    // Hide panels
+    const panelSpeech = document.getElementById('panelSpeech');
     if (panelSpeech) panelSpeech.style.display = 'none';
-    if (panelValidation) panelValidation.style.display = 'none';
 
     // Insert selector card
     const selectorDiv = document.createElement('div');
