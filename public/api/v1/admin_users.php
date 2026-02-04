@@ -103,6 +103,21 @@ if ($method === 'POST') {
         api_ok(['saved' => true, 'user_id' => $userId, 'is_active' => $active]);
     }
 
+    // ── Supprimer un utilisateur (soft delete) ──
+    if ($action === 'delete') {
+        $userId = api_require_uuid($in, 'user_id');
+
+        // Protection : l'admin ne peut pas se supprimer lui-même
+        $currentUserId = api_current_user_id();
+        if ($userId === $currentUserId) {
+            api_fail('cannot_delete_self', 400, ['detail' => 'Vous ne pouvez pas vous supprimer vous-même.']);
+        }
+
+        $userRepo->deleteUser(api_current_tenant_id(), $userId);
+        audit_log('admin.user.deleted', 'user', $userId, []);
+        api_ok(['deleted' => true, 'user_id' => $userId]);
+    }
+
     // ── Modifier un utilisateur ──
     if ($action === 'update') {
         $userId = api_require_uuid($in, 'user_id');

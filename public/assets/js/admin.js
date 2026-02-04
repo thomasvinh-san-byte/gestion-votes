@@ -96,6 +96,7 @@
           '<button class="btn btn-ghost btn-xs btn-edit-user" data-id="' + u.id + '">Modifier</button>' +
           '<button class="btn btn-ghost btn-xs btn-toggle-user" data-id="' + u.id + '" data-active="' + (u.is_active ? '1' : '0') + '">' + (u.is_active ? 'Désactiver' : 'Activer') + '</button>' +
           '<button class="btn btn-ghost btn-xs btn-password-user" data-id="' + u.id + '" data-name="' + escapeHtml(u.name || '') + '">Mot de passe</button>' +
+          '<button class="btn btn-ghost btn-xs btn-danger-text btn-delete-user" data-id="' + u.id + '" data-name="' + escapeHtml(u.name || '') + '">Supprimer</button>' +
         '</td></tr>';
     }).join('');
   }
@@ -176,6 +177,25 @@
             .catch(function(err) { setNotif('error', err.message); });
         }
       });
+      return;
+    }
+
+    // Delete user
+    btn = e.target.closest('.btn-delete-user');
+    if (btn) {
+      const userName = btn.dataset.name || 'cet utilisateur';
+      if (!confirm('Supprimer définitivement ' + userName + ' ?\nCette action est irréversible.')) return;
+      Shared.btnLoading(btn, true);
+      try {
+        const r = await api('/api/v1/admin_users.php', {action:'delete', user_id:btn.dataset.id});
+        if (r.body && r.body.ok) {
+          setNotif('success', 'Utilisateur supprimé');
+          loadUsers();
+        } else {
+          setNotif('error', r.body.error || 'Erreur lors de la suppression');
+        }
+      } catch(err) { setNotif('error', err.message); }
+      finally { Shared.btnLoading(btn, false); }
       return;
     }
 
@@ -360,10 +380,10 @@
       return;
     }
     el.innerHTML = items.map(function(p) {
-      return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
-        '<div>' +
-          '<div class="font-semibold text-sm">' + escapeHtml(p.name) + '</div>' +
-          '<div class="text-xs text-muted">' +
+      return '<div class="policy-card">' +
+        '<div class="policy-info">' +
+          '<div class="policy-name">' + escapeHtml(p.name) + '</div>' +
+          '<div class="policy-details">' +
             escapeHtml(p.description || '') +
             (p.mode ? ' | mode: ' + escapeHtml(p.mode) : '') +
             ' | seuil: ' + Math.round((p.threshold||0)*100) + '%' +
@@ -371,7 +391,10 @@
             (p.count_remote ? ' | distanciel' : '') +
           '</div>' +
         '</div>' +
-        '<button class="btn btn-ghost btn-xs btn-edit-quorum" data-id="' + escapeHtml(p.id) + '">Modifier</button>' +
+        '<div class="policy-actions">' +
+          '<button class="btn btn-ghost btn-xs btn-edit-quorum" data-id="' + escapeHtml(p.id) + '">Modifier</button>' +
+          '<button class="btn btn-ghost btn-xs btn-danger-text btn-delete-quorum" data-id="' + escapeHtml(p.id) + '" data-name="' + escapeHtml(p.name) + '">Supprimer</button>' +
+        '</div>' +
       '</div>';
     }).join('');
   }
@@ -443,11 +466,31 @@
 
   document.getElementById('btnAddQuorum').addEventListener('click', function() { openQuorumModal(null); });
 
-  document.getElementById('quorumList').addEventListener('click', function(e) {
-    const btn = e.target.closest('.btn-edit-quorum');
-    if (!btn) return;
-    const policy = _quorumPolicies.find(function(p) { return p.id === btn.dataset.id; });
-    if (policy) openQuorumModal(policy);
+  document.getElementById('quorumList').addEventListener('click', async function(e) {
+    // Edit
+    var btn = e.target.closest('.btn-edit-quorum');
+    if (btn) {
+      const policy = _quorumPolicies.find(function(p) { return p.id === btn.dataset.id; });
+      if (policy) openQuorumModal(policy);
+      return;
+    }
+    // Delete
+    btn = e.target.closest('.btn-delete-quorum');
+    if (btn) {
+      const name = btn.dataset.name || 'cette politique';
+      if (!confirm('Supprimer la politique "' + name + '" ?\nCette action est irréversible.')) return;
+      Shared.btnLoading(btn, true);
+      try {
+        const r = await api('/api/v1/admin_quorum_policies.php', {action:'delete', id:btn.dataset.id});
+        if (r.body && r.body.ok) {
+          setNotif('success', 'Politique supprimée');
+          loadQuorumPolicies();
+        } else {
+          setNotif('error', r.body.error || 'Erreur lors de la suppression');
+        }
+      } catch(err) { setNotif('error', err.message); }
+      finally { Shared.btnLoading(btn, false); }
+    }
   });
 
   // ═══════════════════════════════════════════════════════
@@ -472,17 +515,20 @@
       return;
     }
     el.innerHTML = items.map(function(p) {
-      return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
-        '<div>' +
-          '<div class="font-semibold text-sm">' + escapeHtml(p.name) + '</div>' +
-          '<div class="text-xs text-muted">' +
+      return '<div class="policy-card">' +
+        '<div class="policy-info">' +
+          '<div class="policy-name">' + escapeHtml(p.name) + '</div>' +
+          '<div class="policy-details">' +
             escapeHtml(p.description || '') +
             (p.base ? ' | base: ' + escapeHtml(p.base) : '') +
             ' | seuil: ' + Math.round((p.threshold||0)*100) + '%' +
             (p.abstention_as_against ? ' | abstention=contre' : '') +
           '</div>' +
         '</div>' +
-        '<button class="btn btn-ghost btn-xs btn-edit-vote" data-id="' + escapeHtml(p.id) + '">Modifier</button>' +
+        '<div class="policy-actions">' +
+          '<button class="btn btn-ghost btn-xs btn-edit-vote" data-id="' + escapeHtml(p.id) + '">Modifier</button>' +
+          '<button class="btn btn-ghost btn-xs btn-danger-text btn-delete-vote" data-id="' + escapeHtml(p.id) + '" data-name="' + escapeHtml(p.name) + '">Supprimer</button>' +
+        '</div>' +
       '</div>';
     }).join('');
   }
@@ -543,11 +589,31 @@
 
   document.getElementById('btnAddVote').addEventListener('click', function() { openVoteModal(null); });
 
-  document.getElementById('voteList').addEventListener('click', function(e) {
-    const btn = e.target.closest('.btn-edit-vote');
-    if (!btn) return;
-    const policy = _votePolicies.find(function(p) { return p.id === btn.dataset.id; });
-    if (policy) openVoteModal(policy);
+  document.getElementById('voteList').addEventListener('click', async function(e) {
+    // Edit
+    var btn = e.target.closest('.btn-edit-vote');
+    if (btn) {
+      const policy = _votePolicies.find(function(p) { return p.id === btn.dataset.id; });
+      if (policy) openVoteModal(policy);
+      return;
+    }
+    // Delete
+    btn = e.target.closest('.btn-delete-vote');
+    if (btn) {
+      const name = btn.dataset.name || 'cette politique';
+      if (!confirm('Supprimer la politique "' + name + '" ?\nCette action est irréversible.')) return;
+      Shared.btnLoading(btn, true);
+      try {
+        const r = await api('/api/v1/admin_vote_policies.php', {action:'delete', id:btn.dataset.id});
+        if (r.body && r.body.ok) {
+          setNotif('success', 'Politique supprimée');
+          loadVotePolicies();
+        } else {
+          setNotif('error', r.body.error || 'Erreur lors de la suppression');
+        }
+      } catch(err) { setNotif('error', err.message); }
+      finally { Shared.btnLoading(btn, false); }
+    }
   });
 
   // ═══════════════════════════════════════════════════════
@@ -635,24 +701,68 @@
       const statuses = d.statuses || {};
       const transitions = d.state_transitions || [];
 
-      // Flow diagram
+      // State icons
+      const stateIcons = {
+        'draft': '📝',
+        'scheduled': '📅',
+        'frozen': '🔒',
+        'live': '🔴',
+        'closed': '✅',
+        'validated': '📋',
+        'archived': '📦'
+      };
+
+      // Flow diagram with visual styling
       const flow = ['draft','scheduled','frozen','live','closed','validated','archived'];
       document.getElementById('stateFlow').innerHTML = flow.map(function(s, i) {
         const label = statuses[s] || s;
-        return (i > 0 ? '<span class="state-arrow">&rarr;</span>' : '') +
-          '<span class="state-node">' + escapeHtml(label) + '</span>';
+        const icon = stateIcons[s] || '';
+        return (i > 0 ? '<span class="state-arrow-visual">→</span>' : '') +
+          '<span class="state-node-visual ' + escapeHtml(s) + '">' + icon + ' ' + escapeHtml(label) + '</span>';
       }).join('');
 
-      // Transitions table
+      // Transitions table with visual states
       document.getElementById('transitionsBody').innerHTML = transitions.map(function(t) {
+        const fromIcon = stateIcons[t.from_status] || '';
+        const toIcon = stateIcons[t.to_status] || '';
         return '<tr>' +
-          '<td><span class="state-node state-node-sm">' + escapeHtml(statuses[t.from_status] || t.from_status) + '</span></td>' +
-          '<td><span class="state-node state-node-sm">' + escapeHtml(statuses[t.to_status] || t.to_status) + '</span></td>' +
+          '<td><span class="state-node-visual ' + escapeHtml(t.from_status) + '" style="padding:0.5rem 0.75rem;font-size:0.8rem">' + fromIcon + ' ' + escapeHtml(statuses[t.from_status] || t.from_status) + '</span></td>' +
+          '<td><span class="state-node-visual ' + escapeHtml(t.to_status) + '" style="padding:0.5rem 0.75rem;font-size:0.8rem">' + toIcon + ' ' + escapeHtml(statuses[t.to_status] || t.to_status) + '</span></td>' +
           '<td><span class="role-badge ' + escapeHtml(t.required_role) + '">' + escapeHtml(allRoleLabels[t.required_role] || t.required_role) + '</span></td>' +
           '<td class="text-sm">' + escapeHtml(t.description || '') + '</td></tr>';
       }).join('');
 
+      // Load state stats
+      loadStateStats();
+
     } catch (e) { console.error('loadStates', e); }
+  }
+
+  // Load statistics by state
+  async function loadStateStats() {
+    try {
+      const r = await api('/api/v1/meetings.php');
+      if (r.body && r.body.ok && r.body.data) {
+        const meetings = r.body.data.meetings || r.body.data.items || r.body.data || [];
+        const counts = {
+          draft: 0, scheduled: 0, frozen: 0, live: 0, closed: 0, validated: 0, archived: 0
+        };
+        meetings.forEach(function(m) {
+          if (counts.hasOwnProperty(m.status)) counts[m.status]++;
+        });
+
+        const statsEl = document.getElementById('stateStats');
+        statsEl.innerHTML = '<div class="flex flex-wrap gap-3">' +
+          Object.entries(counts).map(function(e) {
+            const status = e[0];
+            const count = e[1];
+            return '<div class="flex items-center gap-2">' +
+              '<span class="state-node-visual ' + status + '" style="padding:0.25rem 0.5rem;font-size:0.75rem">' + count + '</span>' +
+            '</div>';
+          }).join('') +
+        '</div>';
+      }
+    } catch (e) { console.error('loadStateStats', e); }
   }
 
   // ═══════════════════════════════════════════════════════

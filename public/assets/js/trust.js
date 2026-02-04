@@ -3,6 +3,8 @@
   'use strict';
 
   let currentMeetingId = null;
+  let currentAnomalies = [];
+  let currentSeverityFilter = 'all';
   const meetingSelect = document.getElementById('meetingSelect');
 
   function getMeetingIdFromUrl() {
@@ -96,47 +98,129 @@
     try {
       const { body } = await api(`/api/v1/trust_anomalies.php?meeting_id=${meetingId}`);
 
-      const container = document.getElementById('anomaliesList');
       const badge = document.getElementById('badgeAnomalies');
       const kpi = document.getElementById('kpiAnomalies');
 
-      if (body && body.ok && body.data && Array.isArray(body.data.anomalies) && body.data.anomalies.length > 0) {
-        const anomalies = body.data.anomalies;
-        badge.textContent = anomalies.length;
-        kpi.textContent = anomalies.length;
-        kpi.className = 'kpi-value danger';
+      if (body && body.ok && body.data && Array.isArray(body.data.anomalies)) {
+        currentAnomalies = body.data.anomalies;
+        const total = currentAnomalies.length;
 
-        container.innerHTML = anomalies.map(a => `
-          <div class="anomaly-card ${a.severity || ''}">
-            <div class="flex items-start gap-3">
-              <span class="text-lg">${a.severity === 'warning' ? '⚠️' : '🚨'}</span>
-              <div>
-                <div class="font-semibold">${escapeHtml(a.type)}</div>
-                <div class="text-sm opacity-80">${escapeHtml(a.message)}</div>
-                ${a.context ? `<div class="text-xs mt-1 opacity-60">${escapeHtml(a.context)}</div>` : ''}
-              </div>
-            </div>
-          </div>
-        `).join('');
+        badge.textContent = total;
+        kpi.textContent = total;
+
+        // Update severity counts
+        const dangerCount = currentAnomalies.filter(a => a.severity === 'danger').length;
+        const warningCount = currentAnomalies.filter(a => a.severity === 'warning').length;
+        const infoCount = currentAnomalies.filter(a => a.severity === 'info').length;
+
+        document.getElementById('countDanger').textContent = dangerCount;
+        document.getElementById('countWarning').textContent = warningCount;
+        document.getElementById('countInfo').textContent = infoCount;
+
+        // Update integrity status
+        updateIntegrityStatus(total, dangerCount);
+
+        renderAnomalies();
       } else {
+        currentAnomalies = [];
         badge.textContent = '0';
         kpi.textContent = '0';
-        kpi.className = 'kpi-value success';
-
-        container.innerHTML = `
-          <div class="empty-state p-6">
-            <div class="empty-state-icon text-success">✅</div>
-            <div class="empty-state-title">Aucune anomalie</div>
-            <div class="empty-state-description">
-              Tous les contrôles sont passés avec succès
-            </div>
-          </div>
-        `;
+        document.getElementById('countDanger').textContent = '0';
+        document.getElementById('countWarning').textContent = '0';
+        document.getElementById('countInfo').textContent = '0';
+        updateIntegrityStatus(0, 0);
+        renderAnomalies();
       }
     } catch (err) {
       console.error('Anomalies error:', err);
     }
   }
+
+  // Render anomalies with current filter
+  function renderAnomalies() {
+    const container = document.getElementById('anomaliesList');
+    let filtered = currentAnomalies;
+
+    if (currentSeverityFilter !== 'all') {
+      filtered = currentAnomalies.filter(a => a.severity === currentSeverityFilter);
+    }
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state p-6">
+          <div class="empty-state-icon text-success">✅</div>
+          <div class="empty-state-title">${currentSeverityFilter === 'all' ? 'Aucune anomalie' : 'Aucune anomalie de ce type'}</div>
+          <div class="empty-state-description">
+            ${currentSeverityFilter === 'all' ? 'Tous les contrôles sont passés avec succès' : 'Filtrez par un autre niveau de sévérité'}
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const severityIcons = {
+      'danger': '🚨',
+      'warning': '⚠️',
+      'info': 'ℹ️'
+    };
+
+    const severityLabels = {
+      'danger': 'Critique',
+      'warning': 'Avertissement',
+      'info': 'Information'
+    };
+
+    container.innerHTML = filtered.map(a => `
+      <div class="anomaly-card ${a.severity || ''}" style="margin-bottom: 0.75rem;">
+        <div class="flex items-start gap-3">
+          <span class="text-lg">${severityIcons[a.severity] || '⚠️'}</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-semibold">${escapeHtml(a.title || a.type)}</span>
+              <span class="badge badge-${a.severity === 'danger' ? 'danger' : a.severity === 'warning' ? 'warning' : 'info'}" style="font-size:0.65rem">${severityLabels[a.severity] || ''}</span>
+            </div>
+            <div class="text-sm opacity-80">${escapeHtml(a.message || a.description)}</div>
+            ${a.context ? `<div class="text-xs mt-1 opacity-60">${escapeHtml(a.context)}</div>` : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Update integrity status indicator
+  function updateIntegrityStatus(totalAnomalies, dangerCount) {
+    const statusEl = document.getElementById('integrityStatus');
+    if (!statusEl) return;
+
+    let statusClass = 'success';
+    let statusIcon = '✅';
+    let statusText = 'Conforme';
+
+    if (dangerCount > 0) {
+      statusClass = 'danger';
+      statusIcon = '🚨';
+      statusText = 'Critique';
+    } else if (totalAnomalies > 0) {
+      statusClass = 'warning';
+      statusIcon = '⚠️';
+      statusText = 'Attention';
+    }
+
+    statusEl.className = `integrity-stat ${statusClass}`;
+    statusEl.querySelector('.integrity-stat-value').textContent = statusIcon;
+    statusEl.querySelector('.integrity-stat-label').textContent = statusText;
+  }
+
+  // Severity filter click handler
+  document.getElementById('severityFilters').addEventListener('click', (e) => {
+    const pill = e.target.closest('.severity-pill');
+    if (!pill) return;
+
+    document.querySelectorAll('.severity-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    currentSeverityFilter = pill.dataset.severity;
+    renderAnomalies();
+  });
 
   // Load coherence checks
   async function loadChecks(meetingId) {
@@ -149,17 +233,42 @@
       if (body && body.ok && body.data && Array.isArray(body.data.checks)) {
         const checks = body.data.checks;
         const passed = checks.filter(c => c.passed).length;
-        kpi.textContent = `${passed}/${checks.length}`;
+        const total = checks.length;
+        const percentage = total > 0 ? Math.round((passed / total) * 100) : 0;
 
-        container.innerHTML = checks.map(c => `
-          <div class="check-row ${c.passed ? 'pass' : 'fail'}">
-            <div class="check-icon">${c.passed ? '✓' : '✗'}</div>
-            <div class="flex-1">
-              <div class="font-medium">${escapeHtml(c.label)}</div>
-              ${c.detail ? `<div class="text-xs opacity-75">${escapeHtml(c.detail)}</div>` : ''}
-            </div>
+        kpi.textContent = `${passed}/${total}`;
+
+        // Update integrity checks class based on pass rate
+        const integrityChecksEl = document.getElementById('integrityChecks');
+        if (integrityChecksEl) {
+          integrityChecksEl.className = 'integrity-stat ' + (percentage === 100 ? 'success' : percentage >= 70 ? 'warning' : 'danger');
+        }
+
+        // Update present count from checks data
+        const presentCheck = checks.find(c => c.id === 'members_present');
+        if (presentCheck && presentCheck.detail) {
+          const match = presentCheck.detail.match(/(\d+)/);
+          if (match) {
+            document.getElementById('kpiPresent').textContent = match[1];
+          }
+        }
+
+        // Render progress bar and checks
+        container.innerHTML = `
+          <div class="checks-progress">
+            <div class="checks-progress-bar" style="width: ${percentage}%"></div>
           </div>
-        `).join('');
+          <div class="text-sm text-muted mb-3">${passed} sur ${total} contrôles validés (${percentage}%)</div>
+          ${checks.map(c => `
+            <div class="check-row ${c.passed ? 'pass' : 'fail'}">
+              <div class="check-icon">${c.passed ? '✓' : '✗'}</div>
+              <div class="flex-1">
+                <div class="font-medium">${escapeHtml(c.label)}</div>
+                ${c.detail ? `<div class="text-xs opacity-75">${escapeHtml(c.detail)}</div>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        `;
       }
     } catch (err) {
       console.error('Checks error:', err);

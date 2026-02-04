@@ -551,6 +551,12 @@
     let allMembers = [];
     let currentFilter = 'all';
 
+    // Format voting power (avoid showing 1.0000, show 1 for integers)
+    function formatVotingPower(vp) {
+      const val = parseFloat(vp) || 1;
+      return Number.isInteger(val) ? val : val.toFixed(2).replace(/\.?0+$/, '');
+    }
+
     // Toggle collapsible section
     window.toggleSection = function(sectionId) {
       const section = document.getElementById(sectionId);
@@ -628,7 +634,7 @@
               <div class="member-details">
                 <div class="member-name">${escapeHtml(name)}</div>
                 <div class="member-meta">
-                  <span>Poids: ${m.voting_power || 1}</span>
+                  <span>Poids: ${formatVotingPower(m.voting_power)}</span>
                   ${m.email ? `<span>${escapeHtml(m.email)}</span>` : ''}
                 </div>
               </div>
