@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="fr" data-page-role="operator">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tableaux de bord et analytics - AG-VOTE">
+  <title>Analytics — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    /* Page header */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .page-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    /* Content area */
+    .page-content {
+      padding: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Period selector */
+    .period-selector {
+      display: flex;
+      gap: 0.25rem;
+      padding: 0.25rem;
+      background: var(--color-bg-subtle);
+      border-radius: 6px;
+    }
+
+    .period-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+
+    .period-btn:hover {
+      color: var(--color-text);
+    }
+
+    .period-btn.active {
+      background: var(--color-surface);
+      color: var(--color-primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Overview cards */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .overview-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .overview-card-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .overview-card-value {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .overview-card-value.success { color: var(--color-success); }
+    .overview-card-value.primary { color: var(--color-primary); }
+    .overview-card-value.warning { color: var(--color-warning); }
+
+    .overview-card-sub {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin-top: 0.5rem;
+    }
+
+    /* Charts section */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .chart-card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chart-card-title {
+      font-weight: 600;
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .chart-card-body {
+      padding: 1.25rem;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 280px;
+    }
+
+    /* Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .data-table th {
+      font-weight: 600;
+      color: var(--color-text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .data-table tr:hover td {
+      background: var(--color-bg-subtle);
+    }
+
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Loading / Error states */
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      color: var(--color-text-muted);
+    }
+
+    .error-message {
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--color-danger);
+    }
+
+    /* Tabs */
+    .analytics-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .analytics-tab {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      border-radius: 6px 6px 0 0;
+      transition: all 0.15s;
+    }
+
+    .analytics-tab:hover {
+      color: var(--color-text);
+      background: var(--color-bg-subtle);
+    }
+
+    .analytics-tab.active {
+      color: var(--color-primary);
+      background: var(--color-primary-subtle);
+      font-weight: 600;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Progress bar */
+    .progress-bar {
+      height: 8px;
+      background: var(--color-bg-subtle);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .progress-bar-fill.success { background: var(--color-success); }
+    .progress-bar-fill.danger { background: var(--color-danger); }
+    .progress-bar-fill.primary { background: var(--color-primary); }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar" data-include-sidebar data-page="analytics"></aside>
+
+    <!-- Page header -->
+    <div class="page-header">
+      <h1>
+        <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
+        Tableaux de bord
+      </h1>
+      <div class="page-header-actions">
+        <div class="period-selector">
+          <button class="period-btn" data-period="month">Mois</button>
+          <button class="period-btn" data-period="quarter">Trimestre</button>
+          <button class="period-btn active" data-period="year">Année</button>
+          <button class="period-btn" data-period="all">Tout</button>
+        </div>
+        <button class="btn btn-ghost btn-icon" id="refreshBtn" title="Actualiser">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh"></use></svg>
+        </button>
+      </div>
+    </div>
+
+    <main class="app-main" style="padding: 0;">
+      <div class="page-content">
+        <div id="notif_box" class="alert hidden mb-4"></div>
+
+        <!-- Overview cards -->
+        <div class="overview-grid" id="overviewCards">
+          <div class="loading-spinner">Chargement...</div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="analytics-tabs">
+          <button class="analytics-tab active" data-tab="participation">Participation</button>
+          <button class="analytics-tab" data-tab="motions">Résolutions</button>
+          <button class="analytics-tab" data-tab="timing">Temps de vote</button>
+          <button class="analytics-tab" data-tab="voters">Top votants</button>
+        </div>
+
+        <!-- Tab: Participation -->
+        <div class="tab-content active" id="tab-participation">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">Taux de participation par séance</h3>
+              </div>
+              <div class="chart-card-body">
+                <div class="chart-container">
+                  <canvas id="participationChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">Détail des présences</h3>
+              </div>
+              <div class="chart-card-body">
+                <div id="participationTable" class="loading-spinner">Chargement...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Motions -->
+        <div class="tab-content" id="tab-motions">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">Résolutions adoptées vs rejetées</h3>
+              </div>
+              <div class="chart-card-body">
+                <div class="chart-container">
+                  <canvas id="motionsChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">Évolution par séance</h3>
+              </div>
+              <div class="chart-card-body">
+                <div class="chart-container">
+                  <canvas id="motionsTrendChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Timing -->
+        <div class="tab-content" id="tab-timing">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">Durée des votes</h3>
+              </div>
+              <div class="chart-card-body">
+                <div class="chart-container">
+                  <canvas id="durationChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">Temps de réponse des votants</h3>
+              </div>
+              <div class="chart-card-body">
+                <div class="chart-container">
+                  <canvas id="responseTimeChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Top voters -->
+        <div class="tab-content" id="tab-voters">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3 class="chart-card-title">Membres les plus actifs</h3>
+            </div>
+            <div class="chart-card-body">
+              <div id="topVotersTable" class="loading-spinner">Chargement...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Drawer -->
+  <div id="drawerOverlay" class="drawer-backdrop" data-drawer-close></div>
+  <aside id="drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close title="Fermer">✕</button>
+    </div>
+    <div id="drawerBody" class="drawer-body"></div>
+  </aside>
+
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shared.js"></script>
+  <script src="/assets/js/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    let currentPeriod = 'year';
+    let charts = {};
+
+    // Chart.js default options
+    const chartDefaults = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 15,
+            usePointStyle: true,
+          }
+        }
+      }
+    };
+
+    // Colors
+    const COLORS = {
+      primary: '#6366f1',
+      success: '#10b981',
+      danger: '#ef4444',
+      warning: '#f59e0b',
+      muted: '#9ca3af',
+      info: '#3b82f6',
+    };
+
+    // Period buttons
+    document.querySelectorAll('.period-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPeriod = btn.dataset.period;
+        loadAllData();
+      });
+    });
+
+    // Tabs
+    document.querySelectorAll('.analytics-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.analytics-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+      });
+    });
+
+    // Refresh button
+    document.getElementById('refreshBtn')?.addEventListener('click', loadAllData);
+
+    // =========================================================================
+    // DATA LOADING
+    // =========================================================================
+
+    async function loadAllData() {
+      await Promise.all([
+        loadOverview(),
+        loadParticipation(),
+        loadMotions(),
+        loadVoteDuration(),
+        loadVoteTiming(),
+        loadTopVoters(),
+      ]);
+    }
+
+    async function loadOverview() {
+      const container = document.getElementById('overviewCards');
+      try {
+        const { body } = await api(`/api/v1/analytics.php?type=overview`);
+        const data = body?.data;
+        if (!data) throw new Error('Données non disponibles');
+
+        const totals = data.totals || {};
+        const avgRate = data.avg_participation_rate || 0;
+        const decisions = data.motion_decisions || {};
+
+        const adopted = parseInt(decisions.adopted || 0);
+        const rejected = parseInt(decisions.rejected || 0);
+        const total = adopted + rejected;
+        const adoptionRate = total > 0 ? Math.round(adopted / total * 100) : 0;
+
+        container.innerHTML = `
+          <div class="overview-card">
+            <div class="overview-card-label">Séances totales</div>
+            <div class="overview-card-value primary">${totals.meetings || 0}</div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-card-label">Membres</div>
+            <div class="overview-card-value">${totals.members || 0}</div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-card-label">Résolutions</div>
+            <div class="overview-card-value">${totals.motions || 0}</div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-card-label">Votes enregistrés</div>
+            <div class="overview-card-value">${totals.ballots || 0}</div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-card-label">Participation moyenne</div>
+            <div class="overview-card-value success">${avgRate}%</div>
+            <div class="progress-bar" style="margin-top:0.5rem;">
+              <div class="progress-bar-fill success" style="width:${avgRate}%"></div>
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-card-label">Taux d'adoption</div>
+            <div class="overview-card-value ${adoptionRate >= 50 ? 'success' : 'warning'}">${adoptionRate}%</div>
+            <div class="overview-card-sub">${adopted} adoptées / ${rejected} rejetées</div>
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `<div class="error-message">Erreur: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    async function loadParticipation() {
+      try {
+        const { body } = await api(`/api/v1/analytics.php?type=participation&period=${currentPeriod}`);
+        const data = body?.data;
+        if (!data) throw new Error('Données non disponibles');
+
+        const meetings = data.meetings || [];
+        const labels = meetings.map(m => m.title?.substring(0, 15) || 'Séance');
+        const rates = meetings.map(m => m.rate);
+        const presents = meetings.map(m => m.present);
+        const proxies = meetings.map(m => m.proxy);
+
+        // Destroy existing chart
+        if (charts.participation) charts.participation.destroy();
+
+        const ctx = document.getElementById('participationChart')?.getContext('2d');
+        if (ctx) {
+          charts.participation = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [{
+                label: 'Taux (%)',
+                data: rates,
+                borderColor: COLORS.primary,
+                backgroundColor: COLORS.primary + '20',
+                fill: true,
+                tension: 0.3,
+              }]
+            },
+            options: {
+              ...chartDefaults,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  ticks: { callback: v => v + '%' }
+                }
+              }
+            }
+          });
+        }
+
+        // Table
+        const tableContainer = document.getElementById('participationTable');
+        if (meetings.length === 0) {
+          tableContainer.innerHTML = '<p class="text-muted text-center p-4">Aucune donnée disponible</p>';
+        } else {
+          tableContainer.innerHTML = `
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Séance</th>
+                  <th>Présents</th>
+                  <th>Procurations</th>
+                  <th>Taux</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${meetings.slice(-10).reverse().map(m => `
+                  <tr>
+                    <td>${escapeHtml(m.title?.substring(0, 30) || 'Séance')}</td>
+                    <td>${m.present} / ${m.eligible}</td>
+                    <td>${m.proxy}</td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="progress-bar" style="width:60px;">
+                          <div class="progress-bar-fill ${m.rate >= 50 ? 'success' : 'warning'}" style="width:${m.rate}%"></div>
+                        </div>
+                        <span>${m.rate}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        }
+      } catch (err) {
+        console.error('Participation error:', err);
+      }
+    }
+
+    async function loadMotions() {
+      try {
+        const { body } = await api(`/api/v1/analytics.php?type=motions&period=${currentPeriod}`);
+        const data = body?.data;
+        if (!data) throw new Error('Données non disponibles');
+
+        const summary = data.summary || {};
+        const byMeeting = data.by_meeting || [];
+
+        // Pie chart
+        if (charts.motions) charts.motions.destroy();
+        const ctx1 = document.getElementById('motionsChart')?.getContext('2d');
+        if (ctx1) {
+          charts.motions = new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+              labels: ['Adoptées', 'Rejetées', 'En attente'],
+              datasets: [{
+                data: [
+                  summary.adopted || 0,
+                  summary.rejected || 0,
+                  (summary.total || 0) - (summary.adopted || 0) - (summary.rejected || 0)
+                ],
+                backgroundColor: [COLORS.success, COLORS.danger, COLORS.muted],
+              }]
+            },
+            options: chartDefaults
+          });
+        }
+
+        // Trend chart
+        if (charts.motionsTrend) charts.motionsTrend.destroy();
+        const ctx2 = document.getElementById('motionsTrendChart')?.getContext('2d');
+        if (ctx2 && byMeeting.length > 0) {
+          charts.motionsTrend = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+              labels: byMeeting.map(m => m.meeting_title?.substring(0, 12) || ''),
+              datasets: [
+                {
+                  label: 'Adoptées',
+                  data: byMeeting.map(m => parseInt(m.adopted) || 0),
+                  backgroundColor: COLORS.success,
+                },
+                {
+                  label: 'Rejetées',
+                  data: byMeeting.map(m => parseInt(m.rejected) || 0),
+                  backgroundColor: COLORS.danger,
+                }
+              ]
+            },
+            options: {
+              ...chartDefaults,
+              scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true }
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Motions error:', err);
+      }
+    }
+
+    async function loadVoteDuration() {
+      try {
+        const { body } = await api(`/api/v1/analytics.php?type=vote_duration&period=${currentPeriod}`);
+        const data = body?.data;
+        if (!data) throw new Error('Données non disponibles');
+
+        const distribution = data.distribution || {};
+
+        if (charts.duration) charts.duration.destroy();
+        const ctx = document.getElementById('durationChart')?.getContext('2d');
+        if (ctx) {
+          charts.duration = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(distribution),
+              datasets: [{
+                label: 'Nombre de votes',
+                data: Object.values(distribution),
+                backgroundColor: COLORS.info,
+              }]
+            },
+            options: {
+              ...chartDefaults,
+              plugins: {
+                ...chartDefaults.plugins,
+                title: {
+                  display: true,
+                  text: `Durée moyenne: ${data.avg_formatted || 'N/A'}`
+                }
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Vote duration error:', err);
+      }
+    }
+
+    async function loadVoteTiming() {
+      try {
+        const { body } = await api(`/api/v1/analytics.php?type=vote_timing&period=${currentPeriod}`);
+        const data = body?.data;
+        if (!data) throw new Error('Données non disponibles');
+
+        const distribution = data.distribution || {};
+
+        if (charts.responseTime) charts.responseTime.destroy();
+        const ctx = document.getElementById('responseTimeChart')?.getContext('2d');
+        if (ctx) {
+          charts.responseTime = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(distribution),
+              datasets: [{
+                label: 'Nombre de votes',
+                data: Object.values(distribution),
+                backgroundColor: COLORS.primary,
+              }]
+            },
+            options: {
+              ...chartDefaults,
+              plugins: {
+                ...chartDefaults.plugins,
+                title: {
+                  display: true,
+                  text: `Temps moyen: ${data.avg_formatted || 'N/A'}`
+                }
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Vote timing error:', err);
+      }
+    }
+
+    async function loadTopVoters() {
+      const container = document.getElementById('topVotersTable');
+      try {
+        const { body } = await api(`/api/v1/analytics.php?type=top_voters&period=${currentPeriod}&limit=20`);
+        const data = body?.data;
+        if (!data) throw new Error('Données non disponibles');
+
+        const voters = data.voters || [];
+
+        if (voters.length === 0) {
+          container.innerHTML = '<p class="text-muted text-center p-4">Aucune donnée disponible</p>';
+          return;
+        }
+
+        const maxBallots = Math.max(...voters.map(v => parseInt(v.ballot_count) || 0));
+
+        container.innerHTML = `
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Membre</th>
+                <th>Votes</th>
+                <th>Séances</th>
+                <th>Poids total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${voters.map((v, i) => `
+                <tr>
+                  <td><span class="badge ${i < 3 ? 'badge-primary' : 'badge-muted'}">${i + 1}</span></td>
+                  <td>${escapeHtml(v.full_name || 'Inconnu')}</td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                      <div class="progress-bar" style="width:80px;">
+                        <div class="progress-bar-fill primary" style="width:${maxBallots > 0 ? (parseInt(v.ballot_count) / maxBallots * 100) : 0}%"></div>
+                      </div>
+                      <span>${v.ballot_count}</span>
+                    </div>
+                  </td>
+                  <td>${v.meetings_voted}</td>
+                  <td>${parseFloat(v.total_weight || 0).toFixed(1)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        container.innerHTML = `<div class="error-message">Erreur: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    // Initial load
+    loadAllData();
+  })();
+  </script>
+</body>
+</html>

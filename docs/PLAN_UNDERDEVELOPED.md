@@ -14,8 +14,8 @@ Suite à l'audit fonctionnel complet, l'application AG-Vote est **production-rea
 |----------|---------|--------|--------|--------|
 | P1 | Consolidation UX opérateur | Élevé | Moyen | En cours |
 | P1 | Groupes de membres | Élevé | Faible | ✅ Fait |
-| P2 | Calendrier des séances | Moyen | Moyen | À faire |
-| P2 | Analytics avancés | Moyen | Moyen | À faire |
+| P2 | Calendrier des séances | Moyen | Moyen | ✅ Fait |
+| P2 | Analytics avancés | Moyen | Moyen | ✅ Fait |
 | P2 | Temps réel (WebSocket) | Moyen | Élevé | À faire |
 | P3 | Multi-langue | Faible | Moyen | À faire |
 | P3 | Séances récurrentes | Faible | Moyen | À faire |
@@ -137,30 +137,30 @@ public/meetings.htmx.html (toggle grille/calendrier)
 
 ---
 
-### 2.2 Analytics et tableaux de bord avancés
+### 2.2 Analytics et tableaux de bord avancés ✅ FAIT
 
-**Problème actuel** :
-KPIs basiques uniquement (comptages simples).
+**Statut** : Implémenté
 
-**Solution proposée** :
-Dashboard avec métriques avancées et graphiques.
+**Implémentation réalisée** :
+- Page : `public/analytics.htmx.html`
+- API : `public/api/v1/analytics.php`
+- Bibliothèque graphiques : Chart.js (CDN)
 
-**Métriques à ajouter** :
+**Métriques implémentées** :
 
 | Métrique | Description |
 |----------|-------------|
-| Taux de participation | % présents sur eligible, évolution |
-| Résolutions adoptées/rejetées | Ratio, tendance |
-| Temps moyen par vote | Durée ouverture→fermeture |
-| Procurations actives | Évolution, plafond |
-| Quorum historique | Tendance sur N séances |
-| Top votants | Membres les plus actifs |
+| Taux de participation | % présents sur éligibles, évolution par séance |
+| Résolutions adoptées/rejetées | Ratio, graphique en donut, tendance par séance |
+| Temps moyen par vote | Durée ouverture→fermeture, distribution |
+| Top votants | Membres les plus actifs avec nombre de votes |
 | Délais de vote | Distribution des temps de réponse |
 
-**Implémentation** :
-- Bibliothèque graphiques : Chart.js (MIT, léger)
-- Nouvelle page : `analytics.htmx.html`
-- API : `GET /api/v1/analytics.php?type=participation&period=year`
+**Fonctionnalités** :
+- Filtrage par période (mois, trimestre, année, tout)
+- Graphiques interactifs (ligne, barres, donut)
+- Tableaux de données détaillés
+- Vue d'ensemble avec KPIs principaux
 
 **Effort estimé** : 5 jours
 
@@ -395,10 +395,10 @@ Cache local avec synchronisation.
 
 ### Sprint 2 (2 semaines)
 - [ ] Fin consolidation UX opérateur (P1)
-- [ ] Calendrier des séances (P2)
+- [x] Calendrier des séances (P2) ✅
 
 ### Sprint 3 (2 semaines)
-- [ ] Analytics avancés (P2)
+- [x] Analytics avancés (P2) ✅
 - [ ] Templates emails (voir PLAN_INVITATIONS.md)
 
 ### Sprint 4 (2 semaines)
