@@ -261,7 +261,7 @@
           <div class="text-sm text-muted mb-3">${passed} sur ${total} contrôles validés (${percentage}%)</div>
           ${checks.map(c => `
             <div class="check-row ${c.passed ? 'pass' : 'fail'}">
-              <div class="check-icon">${c.passed ? '✓' : '✗'}</div>
+              <div class="check-icon">${c.passed ? icon('check', 'icon-sm icon-success') : icon('x', 'icon-sm icon-danger')}</div>
               <div class="flex-1">
                 <div class="font-medium">${escapeHtml(c.label)}</div>
                 ${c.detail ? `<div class="text-xs opacity-75">${escapeHtml(c.detail)}</div>` : ''}
@@ -343,8 +343,8 @@
               <td>${decisionBadge}</td>
               <td>
                 ${isCoherent
-                  ? '<span class="text-success">✓ OK</span>'
-                  : '<span class="text-danger">✗ Incohérent</span>'}
+                  ? '<span class="text-success">' + icon('check', 'icon-sm icon-text') + 'OK</span>'
+                  : '<span class="text-danger">' + icon('x', 'icon-sm icon-text') + 'Incohérent</span>'}
               </td>
             </tr>
           `;

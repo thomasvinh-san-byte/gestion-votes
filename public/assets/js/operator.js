@@ -183,19 +183,19 @@
     if (checks.policiesAssigned) {
       items.push({ done: true, text: 'Politiques configurées' });
     } else {
-      items.push({ done: true, text: 'Politiques: défauts appliqués (bouton 🔧)', link: null, optional: true });
+      items.push({ done: true, text: 'Politiques: défauts appliqués', link: null, optional: true });
     }
 
     // Render checklist
     statusChecklist.innerHTML = items.map(item => {
-      const icon = item.done ? '✓' : '○';
+      const iconHtml = item.done ? icon('check', 'icon-sm icon-success') : icon('circle', 'icon-sm icon-muted');
       const cls = item.done ? (item.optional ? 'done optional' : 'done') : 'pending';
       let content = item.text;
       if (!item.done && item.link) {
         content = `<a href="${item.link}">${item.text}</a>`;
       }
       const style = item.optional ? 'opacity:0.7;font-style:italic;' : '';
-      return `<div class="check-item ${cls}" style="${style}"><span>${icon}</span> ${content}</div>`;
+      return `<div class="check-item ${cls}" style="${style}"><span>${iconHtml}</span> ${content}</div>`;
     }).join('');
 
     // Update title based on status
@@ -492,8 +492,7 @@
 
       if (body && body.ok && body.data) {
         const q = body.data;
-        statQuorum.textContent = q.met ? '✓' : '✗';
-        statQuorum.style.color = q.met ? 'var(--color-success)' : 'var(--color-danger)';
+        statQuorum.innerHTML = q.met ? icon('check', 'icon-sm icon-success') : icon('x', 'icon-sm icon-danger');
       }
     } catch (err) {
       console.error('Quorum error:', err);
@@ -546,9 +545,9 @@
         if (isClosed) {
           results = `
             <div class="results-inline">
-              <span style="color:var(--color-success)">✓ ${m.votes_for || 0}</span>
-              <span style="color:var(--color-danger)">✗ ${m.votes_against || 0}</span>
-              <span>⚪ ${m.votes_abstain || 0}</span>
+              <span style="color:var(--color-success)">${icon('check', 'icon-xs')} ${m.votes_for || 0}</span>
+              <span style="color:var(--color-danger)">${icon('x', 'icon-xs')} ${m.votes_against || 0}</span>
+              <span>${icon('minus', 'icon-xs')} ${m.votes_abstain || 0}</span>
             </div>
           `;
         }
@@ -793,13 +792,13 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">🎖️ Assesseurs / Scrutateurs</label>
+              <label class="form-label">${icon('award', 'icon-sm icon-text')}Assesseurs / Scrutateurs</label>
               <div id="assessorsList" style="display:flex;flex-direction:column;gap:8px;">
                 ${currentAssessors.length === 0 ? '<div class="text-sm text-muted">Aucun assesseur</div>' : ''}
                 ${currentAssessors.map(a => `
                   <div class="flex items-center gap-2" data-assessor-id="${a.user_id}">
                     <span class="flex-1">${esc(a.user_name || a.user_id)}</span>
-                    <button class="btn btn-ghost btn-sm btn-remove-assessor" data-user-id="${a.user_id}">✕</button>
+                    <button class="btn btn-ghost btn-sm btn-remove-assessor" data-user-id="${a.user_id}">${icon('x', 'icon-sm')}</button>
                   </div>
                 `).join('')}
               </div>
@@ -1112,7 +1111,7 @@
               ${motions.map((m, i) => {
                 const isOpen = !!(m.opened_at && !m.closed_at);
                 const isClosed = !!m.closed_at;
-                const statusIcon = isOpen ? '🟡' : (isClosed ? '✓' : '○');
+                const statusIcon = isOpen ? icon('circle', 'icon-xs icon-warning') : (isClosed ? icon('check', 'icon-xs icon-success') : icon('circle', 'icon-xs icon-muted'));
                 const statusText = isOpen ? 'En cours' : (isClosed ? 'Terminé' : 'En attente');
 
                 return `
@@ -1343,7 +1342,7 @@
             resultDiv.style.display = 'block';
             if (result.ok) {
               resultDiv.className = 'alert alert-success';
-              resultDiv.innerHTML = `✓ ${result.imported} importé(s), ${result.skipped} ignoré(s)`;
+              resultDiv.innerHTML = `${icon('check', 'icon-sm icon-text')}${result.imported} importé(s), ${result.skipped} ignoré(s)`;
               setNotif('success', `Import: ${result.imported} membres`);
               // Refresh wizard status
               loadWizardStatus(currentMeetingId);
