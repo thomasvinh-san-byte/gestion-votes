@@ -216,6 +216,24 @@ class UserRepository extends AbstractRepository
     }
 
     /**
+     * Supprime un utilisateur (soft delete : desactive et anonymise).
+     */
+    public function deleteUser(string $tenantId, string $userId): int
+    {
+        return $this->execute(
+            "UPDATE users SET
+                is_active = false,
+                password_hash = NULL,
+                api_key_hash = NULL,
+                email = CONCAT('deleted_', id, '@deleted.local'),
+                name = CONCAT('Utilisateur supprimé #', SUBSTRING(id::text, 1, 8)),
+                updated_at = NOW()
+             WHERE tenant_id = :t AND id = :id",
+            [':t' => $tenantId, ':id' => $userId]
+        );
+    }
+
+    /**
      * Met a jour les champs d'un utilisateur.
      */
     public function updateUser(string $tenantId, string $userId, string $email, string $name, ?string $role = null): void

@@ -19,6 +19,21 @@ if ($method === 'GET') {
 if ($method === 'POST') {
   $in = api_request('POST');
 
+  $action = trim((string)($in['action'] ?? ''));
+
+  // ── Supprimer une politique de vote ──
+  if ($action === 'delete') {
+    $id = trim((string)($in['id'] ?? ''));
+    if ($id === '' || !api_is_uuid($id)) api_fail('missing_id', 400);
+
+    $repo->deleteVotePolicy($id, api_current_tenant_id());
+    if (function_exists('audit_log')) {
+      audit_log('admin_vote_policy_deleted', 'vote_policy', $id, []);
+    }
+    api_ok(['deleted' => true, 'id' => $id]);
+  }
+
+  // ── Créer ou mettre à jour ──
   $id = trim((string)($in['id'] ?? ''));
   $name = trim((string)($in['name'] ?? ''));
   if ($name === '') api_fail('missing_name', 400);
