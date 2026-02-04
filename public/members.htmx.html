@@ -646,7 +646,7 @@
         <div class="collapsible-section" id="groupsSection">
           <div class="collapsible-header" onclick="toggleSection('groupsSection')">
             <h3><span>Groupes de membres</span></h3>
-            <span class="collapsible-chevron">&#9654;</span>
+            <svg class="icon collapsible-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
           </div>
           <div class="collapsible-content">
             <p class="text-sm text-muted mb-4">Organisez vos membres par catégories, collèges électoraux, départements, etc.</p>
@@ -675,7 +675,7 @@
         <div class="collapsible-section" id="importSection">
           <div class="collapsible-header" onclick="toggleSection('importSection')">
             <h3><span>Import CSV</span></h3>
-            <span class="collapsible-chevron">&#9654;</span>
+            <svg class="icon collapsible-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
           </div>
           <div class="collapsible-content">
             <div class="import-card-desc">
@@ -860,8 +860,8 @@
             </div>
           </div>
           <div class="group-actions">
-            <button class="member-action-btn" onclick="editGroup('${g.id}')" title="Modifier">&#x270E;</button>
-            <button class="member-action-btn danger" onclick="deleteGroup('${g.id}')" title="Supprimer">&#x1f5d1;</button>
+            <button class="member-action-btn" onclick="editGroup('${g.id}')" title="Modifier"><svg class="icon"><use href="/assets/icons.svg#icon-edit"></use></svg></button>
+            <button class="member-action-btn danger" onclick="deleteGroup('${g.id}')" title="Supprimer"><svg class="icon"><use href="/assets/icons.svg#icon-trash"></use></svg></button>
           </div>
         </div>
       `).join('');
@@ -1075,13 +1075,13 @@
             <div class="member-actions">
               ${statusBadge}
               <button class="member-action-btn" onclick="editMember('${m.id}')" title="Modifier">
-                &#x270E;
+                <svg class="icon"><use href="/assets/icons.svg#icon-edit"></use></svg>
               </button>
               <button class="member-action-btn" onclick="toggleActive('${m.id}', ${!m.is_active})" title="${m.is_active ? 'Désactiver' : 'Activer'}">
-                ${m.is_active ? '&#x23F8;' : '&#x25B6;'}
+                <svg class="icon"><use href="/assets/icons.svg#icon-${m.is_active ? 'pause' : 'play'}"></use></svg>
               </button>
               <button class="member-action-btn danger" onclick="deleteMember('${m.id}')" title="Supprimer">
-                &#x1f5d1;
+                <svg class="icon"><use href="/assets/icons.svg#icon-trash"></use></svg>
               </button>
             </div>
           </div>

@@ -679,7 +679,7 @@
         groups[g].forEach(function(perm) {
           html += '<tr><td>' + escapeHtml(perm) + '</td>';
           roleOrder.forEach(function(role) {
-            html += '<td>' + (permsByRole[role][perm] ? '<span class="perm-check">&#10003;</span>' : '<span class="perm-none">-</span>') + '</td>';
+            html += '<td>' + (permsByRole[role][perm] ? '<span class="perm-check"><svg class="icon icon-sm"><use href="/assets/icons.svg#icon-check"></use></svg></span>' : '<span class="perm-none">-</span>') + '</td>';
           });
           html += '</tr>';
         });

@@ -11,7 +11,7 @@ api_require_role('operator');
 
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $repo = new MemberRepository();
-$tenantId = $tenantId;
+$tenantId = api_current_tenant_id();
 
 try {
     if ($method === 'GET') {
