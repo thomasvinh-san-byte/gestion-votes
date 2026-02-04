@@ -139,12 +139,13 @@ public/meetings.htmx.html (toggle grille/calendrier)
 
 ### 2.2 Analytics et tableaux de bord avancés ✅ FAIT
 
-**Statut** : Implémenté
+**Statut** : Implémenté (mise à jour RGPD février 2026)
 
 **Implémentation réalisée** :
 - Page : `public/analytics.htmx.html`
 - API : `public/api/v1/analytics.php`
 - Bibliothèque graphiques : Chart.js (CDN)
+- Documentation : `docs/ANALYTICS_ETHICS.md`
 
 **Métriques implémentées** :
 
@@ -153,14 +154,29 @@ public/meetings.htmx.html (toggle grille/calendrier)
 | Taux de participation | % présents sur éligibles, évolution par séance |
 | Résolutions adoptées/rejetées | Ratio, graphique en donut, tendance par séance |
 | Temps moyen par vote | Durée ouverture→fermeture, distribution |
-| Top votants | Membres les plus actifs avec nombre de votes |
+| Anomalies | Indicateurs de qualité agrégés (RGPD-compliant) |
 | Délais de vote | Distribution des temps de réponse |
+
+**Conformité RGPD** :
+- ~~Top votants~~ Supprimé (pression sociale)
+- Toutes les métriques sont agrégées
+- Aucune donnée nominative exposée
+- Documentation éthique incluse
+
+**Anomalies détectées** :
+- Participation faible (<50%)
+- Problèmes de quorum
+- Résolutions incomplètes
+- Concentration des procurations
+- Taux d'abstention élevé
+- Votes très courts (<30s)
 
 **Fonctionnalités** :
 - Filtrage par période (mois, trimestre, année, tout)
 - Graphiques interactifs (ligne, barres, donut)
 - Tableaux de données détaillés
 - Vue d'ensemble avec KPIs principaux
+- Onglet Anomalies pour la qualité des processus
 
 **Effort estimé** : 5 jours
 
@@ -383,6 +399,17 @@ Cache local avec synchronisation.
 | SSO (SAML/OIDC) | Absent | 5 jours |
 | Audit de sécurité externe | Non fait | Variable |
 | Penetration testing | Non fait | Variable |
+
+### Conformité RGPD
+
+| Amélioration | Statut | Effort |
+|--------------|--------|--------|
+| Analytics sans données nominatives | ✅ Fait | - |
+| Suppression "Top votants" | ✅ Fait | - |
+| Documentation éthique | ✅ Fait | - |
+| Checklist audit RGPD | ✅ Fait | - |
+| Droit à l'oubli (suppression membre) | Existant | - |
+| Export données personnelles | À faire | 2 jours |
 
 ---
 

@@ -43,7 +43,7 @@ try {
         'motions' => getMotionsStats($tenantId, $dateFrom, $meetingRepo, $motionRepo, $limit),
         'vote_duration' => getVoteDuration($tenantId, $dateFrom, $motionRepo, $limit),
         'proxies' => getProxiesStats($tenantId, $dateFrom, $meetingRepo, $limit),
-        'top_voters' => getTopVoters($tenantId, $dateFrom, $ballotRepo, $limit),
+        'anomalies' => getAnomalies($tenantId, $dateFrom, $memberRepo, $limit),
         'vote_timing' => getVoteTimingDistribution($tenantId, $dateFrom, $ballotRepo),
         default => api_fail('invalid_type', 400),
     };
@@ -381,38 +381,168 @@ function getProxiesStats(
 }
 
 /**
- * Top votants (membres les plus actifs)
+ * Détection d'anomalies (statistiques agrégées, RGPD-compliant)
+ *
+ * Ne révèle JAMAIS l'identité des membres individuels.
+ * Signale uniquement des indicateurs agrégés pour améliorer la qualité des processus.
  */
-function getTopVoters(
+function getAnomalies(
     string $tenantId,
     string $dateFrom,
-    BallotRepository $ballotRepo,
+    MemberRepository $memberRepo,
     int $limit
 ): array {
     $db = \AgVote\Database\Connection::getInstance()->getPdo();
 
-    $stmt = $db->prepare(
+    // 1. Séances avec participation faible (<50%)
+    $lowParticipation = $db->prepare(
+        "SELECT COUNT(*) FROM (
+            SELECT m.id,
+                COUNT(CASE WHEN a.mode IN ('present', 'remote', 'proxy') THEN 1 END) as attended,
+                (SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true) as eligible
+            FROM meetings m
+            LEFT JOIN attendances a ON a.meeting_id = m.id
+            WHERE m.tenant_id = :tid2
+              AND m.started_at IS NOT NULL
+              AND m.started_at >= :from
+            GROUP BY m.id
+            HAVING eligible > 0 AND (attended::float / eligible) < 0.5
+        ) sub"
+    );
+    $lowParticipation->execute([':tid' => $tenantId, ':tid2' => $tenantId, ':from' => $dateFrom]);
+    $lowParticipationCount = (int)$lowParticipation->fetchColumn();
+
+    // 2. Séances avec problèmes de quorum (résolutions votées sans quorum)
+    $quorumIssues = $db->prepare(
+        "SELECT COUNT(DISTINCT m.id) FROM meetings m
+         JOIN motions mo ON mo.meeting_id = m.id
+         WHERE m.tenant_id = :tid
+           AND m.started_at >= :from
+           AND mo.decision IS NOT NULL
+           AND mo.quorum_reached = false"
+    );
+    $quorumIssues->execute([':tid' => $tenantId, ':from' => $dateFrom]);
+    $quorumIssuesCount = (int)$quorumIssues->fetchColumn();
+
+    // 3. Résolutions ouvertes mais jamais fermées (incomplètes)
+    $incompleteVotes = $db->prepare(
+        "SELECT COUNT(*) FROM motions mo
+         JOIN meetings m ON m.id = mo.meeting_id
+         WHERE m.tenant_id = :tid
+           AND mo.opened_at IS NOT NULL
+           AND mo.closed_at IS NULL
+           AND mo.opened_at >= :from"
+    );
+    $incompleteVotes->execute([':tid' => $tenantId, ':from' => $dateFrom]);
+    $incompleteVotesCount = (int)$incompleteVotes->fetchColumn();
+
+    // 4. Concentration des procurations (>3 par membre récepteur) - COMPTAGE ANONYME
+    $highProxyConcentration = $db->prepare(
+        "SELECT COUNT(*) FROM (
+            SELECT p.receiver_member_id, COUNT(*) as proxy_count
+            FROM proxies p
+            JOIN meetings m ON m.id = p.meeting_id
+            WHERE m.tenant_id = :tid
+              AND m.started_at >= :from
+              AND p.revoked_at IS NULL
+            GROUP BY p.receiver_member_id
+            HAVING COUNT(*) > 3
+        ) sub"
+    );
+    $highProxyConcentration->execute([':tid' => $tenantId, ':from' => $dateFrom]);
+    $highProxyConcentrationCount = (int)$highProxyConcentration->fetchColumn();
+
+    // 5. Taux d'abstention moyen
+    $abstentionRate = $db->prepare(
         "SELECT
-            mb.id as member_id,
-            mb.full_name,
-            COUNT(b.id) as ballot_count,
-            COUNT(DISTINCT mo.meeting_id) as meetings_voted,
-            SUM(b.weight) as total_weight
+            CASE WHEN COUNT(*) > 0
+                THEN ROUND(COUNT(CASE WHEN b.value = 'abstain' THEN 1 END)::numeric / COUNT(*) * 100, 1)
+                ELSE 0
+            END as rate
          FROM ballots b
-         JOIN members mb ON mb.id = b.member_id
          JOIN motions mo ON mo.id = b.motion_id
          JOIN meetings m ON m.id = mo.meeting_id
          WHERE m.tenant_id = :tid
-           AND b.created_at >= :from
-         GROUP BY mb.id, mb.full_name
-         ORDER BY ballot_count DESC
+           AND b.created_at >= :from"
+    );
+    $abstentionRate->execute([':tid' => $tenantId, ':from' => $dateFrom]);
+    $abstentionRateValue = (float)$abstentionRate->fetchColumn();
+
+    // 6. Votes très courts (<30 secondes)
+    $veryShortVotes = $db->prepare(
+        "SELECT COUNT(*) FROM motions mo
+         JOIN meetings m ON m.id = mo.meeting_id
+         WHERE m.tenant_id = :tid
+           AND mo.opened_at IS NOT NULL
+           AND mo.closed_at IS NOT NULL
+           AND mo.opened_at >= :from
+           AND EXTRACT(EPOCH FROM (mo.closed_at - mo.opened_at)) < 30"
+    );
+    $veryShortVotes->execute([':tid' => $tenantId, ':from' => $dateFrom]);
+    $veryShortVotesCount = (int)$veryShortVotes->fetchColumn();
+
+    // 7. Séances flaggées avec détails (sans identifier les membres)
+    $flaggedMeetings = $db->prepare(
+        "SELECT
+            m.id,
+            m.title,
+            m.started_at as date,
+            COUNT(CASE WHEN a.mode IN ('present', 'remote', 'proxy') THEN 1 END) as attended,
+            (SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true) as eligible,
+            COUNT(DISTINCT CASE WHEN mo.decision IS NOT NULL AND mo.quorum_reached = false THEN mo.id END) as quorum_issues,
+            COUNT(DISTINCT CASE WHEN mo.opened_at IS NOT NULL AND mo.closed_at IS NULL THEN mo.id END) as incomplete
+         FROM meetings m
+         LEFT JOIN attendances a ON a.meeting_id = m.id
+         LEFT JOIN motions mo ON mo.meeting_id = m.id
+         WHERE m.tenant_id = :tid2
+           AND m.started_at IS NOT NULL
+           AND m.started_at >= :from
+         GROUP BY m.id, m.title, m.started_at
+         ORDER BY m.started_at DESC
          LIMIT :lim"
     );
-    $stmt->execute([':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]);
-    $topVoters = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    $flaggedMeetings->execute([':tid' => $tenantId, ':tid2' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]);
+    $meetings = $flaggedMeetings->fetchAll(\PDO::FETCH_ASSOC);
+
+    // Construire la liste des séances avec flags
+    $flaggedList = [];
+    foreach ($meetings as $m) {
+        $flags = [];
+        $eligible = (int)$m['eligible'];
+        $attended = (int)$m['attended'];
+        $rate = $eligible > 0 ? round($attended / $eligible * 100, 1) : 0;
+
+        if ($rate < 50 && $eligible > 0) {
+            $flags[] = 'Participation faible';
+        }
+        if ((int)$m['quorum_issues'] > 0) {
+            $flags[] = 'Quorum';
+        }
+        if ((int)$m['incomplete'] > 0) {
+            $flags[] = 'Votes incomplets';
+        }
+
+        if (count($flags) > 0) {
+            $flaggedList[] = [
+                'meeting_id' => $m['id'],
+                'title' => $m['title'],
+                'date' => $m['date'],
+                'participation_rate' => $rate,
+                'flags' => $flags,
+            ];
+        }
+    }
 
     return [
-        'voters' => $topVoters,
+        'indicators' => [
+            'low_participation_count' => $lowParticipationCount,
+            'quorum_issues_count' => $quorumIssuesCount,
+            'incomplete_votes_count' => $incompleteVotesCount,
+            'high_proxy_concentration' => $highProxyConcentrationCount,
+            'abstention_rate' => $abstentionRateValue,
+            'very_short_votes_count' => $veryShortVotesCount,
+        ],
+        'flagged_meetings' => $flaggedList,
     ];
 }
 
