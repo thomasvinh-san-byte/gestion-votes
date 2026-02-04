@@ -227,22 +227,22 @@
     <header class="app-header">
       <div class="flex items-center gap-4">
         <div>
-          <h1 class="text-xl font-bold">🛡️ Contrôle & Audit</h1>
+          <h1 class="text-xl font-bold"><svg class="icon icon-md icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield-check"></use></svg> Contrôle & Audit</h1>
           <p class="text-sm text-secondary" id="meetingTitle">Vérification de cohérence</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
         <button class="btn btn-secondary" id="btnRefresh">
-          🔄 Actualiser
+          <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
         </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="anomalies" title="Anomalies">
-          ⚠️
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
         </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance">
-          ℹ️
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
         </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
-          ☰
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
     </header>
@@ -314,7 +314,7 @@
           <div class="card">
             <div class="card-header">
               <div class="flex items-center justify-between">
-                <h3 class="card-title">🚨 Anomalies détectées</h3>
+                <h3 class="card-title"><svg class="icon icon-sm icon-text icon-danger" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-circle"></use></svg> Anomalies détectées</h3>
                 <span class="badge badge-danger" id="badgeAnomalies">0</span>
               </div>
             </div>
@@ -322,13 +322,13 @@
               <!-- Severity filters -->
               <div class="severity-filters" id="severityFilters">
                 <button class="severity-pill active" data-severity="all">Tous</button>
-                <button class="severity-pill danger" data-severity="danger">🚨 Critiques <span id="countDanger">0</span></button>
-                <button class="severity-pill warning" data-severity="warning">⚠️ Avertissements <span id="countWarning">0</span></button>
-                <button class="severity-pill info" data-severity="info">ℹ️ Info <span id="countInfo">0</span></button>
+                <button class="severity-pill danger" data-severity="danger"><svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-circle"></use></svg> Critiques <span id="countDanger">0</span></button>
+                <button class="severity-pill warning" data-severity="warning"><svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Avertissements <span id="countWarning">0</span></button>
+                <button class="severity-pill info" data-severity="info"><svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg> Info <span id="countInfo">0</span></button>
               </div>
               <div id="anomaliesList">
                 <div class="empty-state p-6">
-                  <div class="empty-state-icon text-success">✅</div>
+                  <div class="empty-state-icon text-success"><svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg></div>
                   <div class="empty-state-title">Aucune anomalie</div>
                   <div class="empty-state-description">
                     Tous les contrôles sont passés avec succès
@@ -342,7 +342,7 @@
           <div class="card">
             <div class="card-header">
               <div class="flex items-center justify-between">
-                <h3 class="card-title">✅ Contrôles de cohérence</h3>
+                <h3 class="card-title"><svg class="icon icon-sm icon-text icon-success" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Contrôles de cohérence</h3>
                 <button class="btn btn-sm btn-ghost" id="btnRecheck">Recontrôler</button>
               </div>
             </div>
@@ -360,7 +360,7 @@
         <!-- Motions & Decisions Table -->
         <div class="card mb-6">
           <div class="card-header">
-            <h3 class="card-title">📋 Résolutions & Décisions</h3>
+            <h3 class="card-title"><svg class="icon icon-sm icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg> Résolutions & Décisions</h3>
             <p class="card-description">Tableau de cohérence des votes</p>
           </div>
           <div class="card-body p-0">
