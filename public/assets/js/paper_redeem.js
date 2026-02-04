@@ -57,7 +57,7 @@
         justification: justInput.value.trim()
       });
       if (body?.ok) {
-        showMsg('success', '✅ Vote enregistré');
+        showMsg('success', 'Vote enregistré');
         addRecent(codeInput.value, voteChoice.value, justInput.value);
         btnReset.click();
       } else {

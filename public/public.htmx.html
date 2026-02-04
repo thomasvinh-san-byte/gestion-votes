@@ -6,195 +6,306 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Écran de projection - Résultats en direct">
   <title>Écran public — AG-VOTE</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+
   <style>
-    /* ============================================
-       DESIGN TOKENS - Cohérent avec design-system.css
-       ============================================ */
-    :root {
-      /* Brand palette — cohérent avec design-system.css */
-      --brand-ebony: #4e5340;
-      --brand-ebony-2: #697268;
-      --brand-cool-steel: #95a3a4;
-      --brand-pale-sky: #b7d1da;
-      --brand-soft-linen: #e2e8dd;
-
-      /* Couleurs */
-      --color-primary: #4e5340;
-      --color-success: #5a7a5b;
-      --color-danger: #a05252;
-      --color-warning: #b8915a;
-      --color-info: #5a8a9a;
-      --color-neutral: var(--brand-cool-steel);
-
-      /* Surfaces */
-      --color-bg: #f4f6f2;
-      --color-bg-gradient: linear-gradient(135deg, #f4f6f2 0%, var(--brand-soft-linen) 100%);
-      --color-surface: #ffffff;
-      --color-border: #d5dbd2;
-
-      /* Texte */
-      --color-text: var(--brand-ebony);
-      --color-text-secondary: var(--brand-ebony-2);
-      --color-text-muted: var(--brand-cool-steel);
-
-      /* Vote — keep distinct for readability on projector */
-      --vote-for: #5a7a5b;
-      --vote-against: #a05252;
-      --vote-abstain: var(--brand-cool-steel);
-
-      /* Rayons */
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
-      --radius-full: 9999px;
-
-      /* Ombres */
-      --shadow-lg: 0 10px 40px rgb(78 83 64 / 0.10);
-      --shadow-xl: 0 20px 60px rgb(78 83 64 / 0.15);
-
-      /* Transitions */
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* ============================================
-       RESET & BASE
-       ============================================ */
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    /* Projection screen specific styles */
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-      background: var(--color-bg-gradient);
-      color: var(--color-text);
       min-height: 100vh;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* ============================================
-       LAYOUT PRINCIPAL
-       ============================================ */
-    .projector-wrapper {
-      max-width: 1400px;
-      width: 100%;
-      background: var(--color-surface);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-xl);
-      border: 1px solid var(--color-border);
-      padding: 48px;
-      display: flex;
       flex-direction: column;
-      gap: 40px;
+      overflow: hidden;
     }
 
-    /* ============================================
-       HEADER - Statut et horloge
-       ============================================ */
-    .projector-header {
+    /* Header */
+    .projection-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 24px;
-      border-bottom: 2px solid var(--color-border);
+      padding: var(--space-4) var(--space-8);
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
     }
 
     .header-left {
       display: flex;
       align-items: center;
-      gap: 20px;
-    }
-
-    .meeting-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: var(--color-text-secondary);
+      gap: var(--space-4);
     }
 
     .status-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 24px;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
       border-radius: var(--radius-full);
-      font-size: 0.875rem;
-      font-weight: 700;
+      font-size: var(--text-sm);
+      font-weight: var(--font-semibold);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      transition: var(--transition);
     }
 
     .status-badge.live {
-      background: rgba(16, 185, 129, 0.15);
+      background: var(--color-success-subtle);
       color: var(--color-success);
-      border: 2px solid var(--color-success);
+    }
+
+    .status-badge.live::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--color-success);
+      border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
     }
 
     .status-badge.idle {
-      background: rgba(59, 130, 246, 0.15);
+      background: var(--color-info-subtle);
       color: var(--color-info);
-      border: 2px solid var(--color-info);
     }
 
     .status-badge.off {
-      background: rgba(100, 116, 139, 0.15);
-      color: var(--color-neutral);
-      border: 2px solid var(--color-neutral);
+      background: var(--color-bg-subtle);
+      color: var(--color-text-muted);
     }
 
-    .live-clock {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: var(--color-text);
+    .meeting-title {
+      font-size: var(--text-base);
+      font-weight: var(--font-medium);
+      color: var(--color-text-secondary);
+    }
+
+    .clock {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-bold);
       font-variant-numeric: tabular-nums;
-      letter-spacing: -0.02em;
+      color: var(--color-text);
     }
 
-    /* ============================================
-       ZONE PRINCIPALE - Motion
-       ============================================ */
-    .main-content {
+    /* Main content */
+    .projection-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-8);
+      gap: var(--space-8);
+    }
+
+    /* Motion title */
+    .motion-section {
       text-align: center;
-      padding: 24px 0;
+      max-width: 1000px;
     }
 
     .motion-title {
-      font-size: 3.5rem;
-      font-weight: 800;
+      font-size: clamp(1.875rem, 4vw, 3rem);
+      font-weight: var(--font-extrabold);
+      line-height: var(--leading-tight);
+      margin-bottom: var(--space-2);
       color: var(--color-text);
-      line-height: 1.2;
-      letter-spacing: -0.02em;
-      margin-bottom: 16px;
     }
 
     .motion-subtitle {
-      font-size: 1.5rem;
+      font-size: var(--text-lg);
       color: var(--color-text-muted);
-      font-weight: 500;
+      font-weight: var(--font-medium);
     }
 
-    /* ============================================
-       ÉTAT D'ATTENTE
-       ============================================ */
+    /* Chart container */
+    .chart-container {
+      display: none;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .chart-container.visible {
+      display: block;
+    }
+
+    /* Bar chart */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: var(--space-10);
+      height: 320px;
+      padding: 50px var(--space-4) 0;
+    }
+
+    .bar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      max-width: 180px;
+    }
+
+    .bar-label-top {
+      position: relative;
+      margin-bottom: var(--space-3);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all var(--duration-slow) var(--ease-bounce);
+    }
+
+    .bar-item.animate .bar-label-top {
+      opacity: 1;
+      transform: translateY(0);
+      transition-delay: 0.4s;
+    }
+
+    .bar-percentage {
+      font-size: var(--text-xl);
+      font-weight: var(--font-bold);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius);
+      position: relative;
+      color: white;
+    }
+
+    .bar-percentage::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+    }
+
+    .bar-item.for .bar-percentage {
+      background: var(--color-success);
+    }
+    .bar-item.for .bar-percentage::after {
+      border-top: 6px solid var(--color-success);
+    }
+
+    .bar-item.against .bar-percentage {
+      background: var(--color-danger);
+    }
+    .bar-item.against .bar-percentage::after {
+      border-top: 6px solid var(--color-danger);
+    }
+
+    .bar-item.abstain .bar-percentage {
+      background: var(--color-text-muted);
+    }
+    .bar-item.abstain .bar-percentage::after {
+      border-top: 6px solid var(--color-text-muted);
+    }
+
+    .bar-count {
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+      margin-top: var(--space-1);
+    }
+
+    .bar-wrapper {
+      width: 100%;
+      height: 220px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .bar {
+      width: 100%;
+      max-width: 100px;
+      height: 0;
+      border-radius: var(--radius) var(--radius) 0 0;
+      transition: height 1s var(--ease-bounce);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar-item.for .bar {
+      background: linear-gradient(180deg, var(--color-success) 0%, var(--color-success-hover) 100%);
+    }
+    .bar-item.against .bar {
+      background: linear-gradient(180deg, var(--color-danger) 0%, var(--color-danger-hover) 100%);
+    }
+    .bar-item.abstain .bar {
+      background: linear-gradient(180deg, var(--color-text-muted) 0%, var(--color-border-strong) 100%);
+    }
+
+    .bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+    }
+
+    .bar-label {
+      margin-top: var(--space-4);
+      font-size: var(--text-lg);
+      font-weight: var(--font-semibold);
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Decision section */
+    .decision-section {
+      display: none;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .decision-section.visible {
+      display: block;
+    }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-4);
+    }
+
+    .decision-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      text-align: center;
+    }
+
+    .decision-label {
+      font-size: var(--text-sm);
+      font-weight: var(--font-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-2);
+    }
+
+    .decision-value {
+      font-size: var(--text-xl);
+      font-weight: var(--font-bold);
+    }
+
+    .decision-value.adopted { color: var(--color-success); }
+    .decision-value.rejected { color: var(--color-danger); }
+    .decision-value.pending { color: var(--color-text-muted); }
+
+    .decision-detail {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-top: var(--space-1);
+    }
+
+    /* Waiting state */
     .waiting-state {
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 60px;
-      background: var(--color-bg);
-      border-radius: var(--radius-lg);
-      border: 2px dashed var(--color-border);
+      text-align: center;
+      padding: var(--space-12);
     }
 
     .waiting-state.visible {
@@ -202,251 +313,32 @@
     }
 
     .waiting-icon {
-      width: 80px;
-      height: 80px;
-      margin-bottom: 24px;
+      width: 64px;
+      height: 64px;
+      margin-bottom: var(--space-4);
       color: var(--color-text-muted);
-      animation: spin 4s linear infinite;
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      animation: spin 8s linear infinite;
     }
 
     .waiting-title {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--color-text);
-      margin-bottom: 8px;
+      font-size: var(--text-xl);
+      font-weight: var(--font-semibold);
+      margin-bottom: var(--space-2);
     }
 
     .waiting-text {
-      font-size: 1.125rem;
       color: var(--color-text-muted);
     }
 
-    /* ============================================
-       TIMER DE VOTE
-       ============================================ */
-    .vote-timer {
-      display: none;
-      justify-content: center;
-      margin: 32px 0;
-    }
-
-    .vote-timer.visible {
-      display: flex;
-    }
-
-    .timer-circle {
-      position: relative;
-      width: 160px;
-      height: 160px;
-    }
-
-    .timer-svg {
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-    }
-
-    .timer-bg {
-      fill: none;
-      stroke: var(--color-border);
-      stroke-width: 8;
-    }
-
-    .timer-progress {
-      fill: none;
-      stroke: var(--color-primary);
-      stroke-width: 8;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 1s linear;
-    }
-
-    .timer-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 2.5rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* ============================================
-       RÉSULTATS
-       ============================================ */
-    .results-section {
-      opacity: 0;
-      transform: translateY(20px);
-      transition: var(--transition);
-    }
-
-    .results-section.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .results-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
-
-    .results-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--color-text);
-    }
-
-    .last-update {
-      font-size: 0.875rem;
-      color: var(--color-text-muted);
-    }
-
-    /* Grille des résultats */
-    .results-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-bottom: 32px;
-    }
-
-    .result-card {
-      background: var(--color-surface);
-      border-radius: var(--radius-lg);
-      padding: 28px;
-      border: 1px solid var(--color-border);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      transition: var(--transition);
-    }
-
-    .result-card:hover {
-      box-shadow: var(--shadow-lg);
-    }
-
-    .result-card.for {
-      border-left: 6px solid var(--vote-for);
-    }
-
-    .result-card.against {
-      border-left: 6px solid var(--vote-against);
-    }
-
-    .result-card.abstain {
-      border-left: 6px solid var(--vote-abstain);
-    }
-
-    .result-label {
-      font-size: 0.875rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--color-text-muted);
-      margin-bottom: 12px;
-    }
-
-    .result-numbers {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-
-    .result-count {
-      font-size: 3.5rem;
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .result-card.for .result-count { color: var(--vote-for); }
-    .result-card.against .result-count { color: var(--vote-against); }
-    .result-card.abstain .result-count { color: var(--vote-abstain); }
-
-    .result-weight {
-      font-size: 1rem;
-      color: var(--color-text-muted);
-      background: var(--color-bg);
-      padding: 4px 12px;
-      border-radius: var(--radius-full);
-    }
-
-    .result-bar {
-      height: 8px;
-      background: var(--color-bg);
-      border-radius: var(--radius-full);
-      overflow: hidden;
-    }
-
-    .result-bar-fill {
-      height: 100%;
-      border-radius: var(--radius-full);
-      transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .result-card.for .result-bar-fill { background: var(--vote-for); }
-    .result-card.against .result-bar-fill { background: var(--vote-against); }
-    .result-card.abstain .result-bar-fill { background: var(--vote-abstain); }
-
-    /* Décision & Quorum */
-    .decision-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
-    }
-
-    .decision-card,
-    .quorum-card {
-      background: var(--color-surface);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      border: 1px solid var(--color-border);
-    }
-
-    .decision-card {
-      border-left: 6px solid var(--color-primary);
-    }
-
-    .quorum-card {
-      border-left: 6px solid var(--color-warning);
-    }
-
-    .decision-label,
-    .quorum-label {
-      font-size: 0.875rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--color-text-muted);
-      margin-bottom: 8px;
-    }
-
-    .decision-value,
-    .quorum-value {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--color-text);
-      margin-bottom: 4px;
-    }
-
-    .decision-reason,
-    .quorum-details {
-      font-size: 0.9375rem;
-      color: var(--color-text-muted);
-    }
-
-    /* Vote secret */
+    /* Secret vote */
     .secret-block {
       display: none;
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-      border: 2px solid rgba(99, 102, 241, 0.3);
-      border-radius: var(--radius-lg);
-      padding: 32px;
       text-align: center;
-      margin-bottom: 24px;
+      padding: var(--space-8);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      max-width: 500px;
     }
 
     .secret-block.visible {
@@ -454,706 +346,458 @@
     }
 
     .secret-icon {
-      font-size: 3rem;
-      margin-bottom: 16px;
+      color: var(--color-info);
+      margin-bottom: var(--space-4);
     }
 
     .secret-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--color-text);
-      margin-bottom: 8px;
+      font-size: var(--text-xl);
+      font-weight: var(--font-bold);
+      margin-bottom: var(--space-2);
     }
 
     .secret-text {
       color: var(--color-text-muted);
+      margin-bottom: var(--space-6);
     }
 
-    .secret-participation {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
-      margin-top: 24px;
+    .participation-bar {
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-full);
+      height: 20px;
+      overflow: hidden;
+      margin-bottom: var(--space-2);
     }
 
-    /* ============================================
-       ERREUR
-       ============================================ */
+    .participation-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-info) 0%, var(--color-info-hover) 100%);
+      border-radius: var(--radius-full);
+      transition: width 1s var(--ease-out);
+    }
+
+    .participation-text {
+      font-size: var(--text-lg);
+      font-weight: var(--font-semibold);
+    }
+
+    /* Error */
     .error-box {
       display: none;
-      padding: 16px 24px;
-      background: rgba(239, 68, 68, 0.1);
+      padding: var(--space-4);
+      background: var(--color-danger-subtle);
       border: 1px solid var(--color-danger);
-      border-left: 4px solid var(--color-danger);
       border-radius: var(--radius-md);
-      color: var(--color-danger);
-      font-weight: 500;
+      color: var(--color-danger-text);
+      font-weight: var(--font-medium);
+      text-align: center;
     }
 
     .error-box.visible {
       display: block;
     }
 
-    /* ============================================
-       FOOTER - Navigation
-       ============================================ */
-    .projector-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 24px;
-      border-top: 1px solid var(--color-border);
-    }
-
-    .footer-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .footer-logo {
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: var(--color-primary);
-    }
-
-    .footer-version {
-      font-size: 0.75rem;
+    /* Footer */
+    .projection-footer {
+      padding: var(--space-4);
+      text-align: center;
       color: var(--color-text-muted);
-      background: var(--color-bg);
-      padding: 4px 8px;
-      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      font-weight: var(--font-semibold);
     }
 
-    .footer-nav {
-      display: flex;
-      gap: 12px;
-    }
-
-    .footer-link {
-      padding: 8px 16px;
-      background: var(--color-bg);
-      color: var(--color-text-secondary);
-      text-decoration: none;
-      border-radius: var(--radius-md);
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: var(--transition);
-    }
-
-    .footer-link:hover {
-      background: var(--color-primary);
-      color: white;
-    }
-
-    /* ============================================
-       ACCESSIBILITÉ
-       ============================================ */
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    /* ============================================
-       RESPONSIVE
-       ============================================ */
-    @media (max-width: 1200px) {
-      .projector-wrapper {
-        padding: 32px;
-      }
-      
-      .motion-title {
-        font-size: 2.5rem;
-      }
-      
-      .results-grid {
-        grid-template-columns: 1fr;
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-      
-      .decision-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
+    /* Responsive */
     @media (max-width: 768px) {
-      body {
-        padding: 12px;
-      }
-      
-      .projector-wrapper {
-        padding: 24px;
-        gap: 24px;
-      }
-      
-      .projector-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-      }
-      
-      .header-left {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .live-clock {
-        font-size: 1.75rem;
-      }
-      
-      .motion-title {
-        font-size: 1.75rem;
-      }
-      
-      .motion-subtitle {
-        font-size: 1.125rem;
-      }
-      
-      .result-count {
-        font-size: 2.5rem;
-      }
-      
-      .secret-participation {
-        grid-template-columns: 1fr;
-      }
-      
-      .footer-nav {
-        display: none;
-      }
+      .projection-header { padding: var(--space-3) var(--space-4); }
+      .projection-main { padding: var(--space-4); gap: var(--space-6); }
+      .bar-chart { height: 260px; gap: var(--space-6); }
+      .bar-wrapper { height: 180px; }
+      .bar { max-width: 70px; }
+      .decision-grid { grid-template-columns: 1fr; }
+      .clock { font-size: var(--text-xl); }
     }
   </style>
 </head>
 <body>
 
-<div class="projector-wrapper">
-  <!-- Header -->
-  <header class="projector-header">
-    <div class="header-left">
-      <span class="status-badge off" id="badge" aria-label="Statut">hors séance</span>
-      <h1 class="meeting-title" id="meeting_title">Aucune séance</h1>
-    </div>
-    <div class="live-clock" id="live_clock">--:--</div>
-  </header>
+<header class="projection-header">
+  <div class="header-left">
+    <span class="status-badge off" id="badge">hors seance</span>
+    <span class="meeting-title" id="meeting_title">Aucune seance</span>
+  </div>
+  <div class="clock" id="clock">--:--</div>
+</header>
 
-  <!-- Zone principale -->
-  <main class="main-content" id="main_content">
-    <h2 class="motion-title" id="motion_title">—</h2>
+<main class="projection-main">
+  <!-- Motion title -->
+  <section class="motion-section">
+    <h1 class="motion-title" id="motion_title">—</h1>
     <p class="motion-subtitle" id="motion_sub"></p>
+  </section>
 
-    <!-- Timer de vote -->
-    <div class="vote-timer" id="vote_timer">
-      <div class="timer-circle">
-        <svg class="timer-svg" viewBox="0 0 100 100">
-          <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
-          <circle class="timer-progress" id="timer_progress" cx="50" cy="50" r="45"></circle>
-        </svg>
-        <div class="timer-text" id="timer_text">00:00</div>
-      </div>
-    </div>
-  </main>
-
-  <!-- État d'attente -->
-  <div class="waiting-state" id="waiting_state" aria-hidden="true">
-    <svg class="waiting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <!-- Waiting state -->
+  <div class="waiting-state" id="waiting_state">
+    <svg class="waiting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <circle cx="12" cy="12" r="10"/>
       <polyline points="12 6 12 12 16 14"/>
     </svg>
-    <h3 class="waiting-title">En attente de résolution</h3>
-    <p class="waiting-text">La séance est en cours, aucune résolution n'est ouverte pour le moment.</p>
+    <h3 class="waiting-title">En attente</h3>
+    <p class="waiting-text">Aucune resolution ouverte</p>
   </div>
 
-  <!-- Section résultats -->
-  <section class="results-section" id="results_block" aria-label="Résultats du vote">
-    <div class="results-header">
-      <h3 class="results-title">📊 Résultats du vote électronique</h3>
-      <span class="last-update" id="last_update">Dernière mise à jour : --:--:--</span>
+  <!-- Secret vote -->
+  <div class="secret-block" id="secret_block">
+    <div class="secret-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
     </div>
+    <h4 class="secret-title">Vote secret</h4>
+    <p class="secret-text">Resultats affiches a la cloture</p>
+    <div class="participation-bar">
+      <div class="participation-fill" id="participation_bar" style="width: 0%;"></div>
+    </div>
+    <div class="participation-text"><span id="participation_pct">0</span>% de participation</div>
+  </div>
 
-    <!-- Vote secret -->
-    <div class="secret-block" id="secret_block">
-      <div class="secret-icon">🔒</div>
-      <h4 class="secret-title">Vote secret en cours</h4>
-      <p class="secret-text">Les détails seront affichés à la clôture du vote.</p>
-      
-      <div class="secret-participation">
-        <div class="result-card">
-          <div class="result-label">Participation (membres)</div>
-          <div class="result-numbers">
-            <div class="result-count" id="sec_part_members" style="color: var(--color-info)">0</div>
-            <div class="result-weight">/ <span id="sec_elig_members">0</span></div>
-          </div>
-          <div class="result-bar">
-            <div class="result-bar-fill" id="sec_part_members_bar" style="width:0%; background: var(--color-info);"></div>
-          </div>
+  <!-- Bar chart -->
+  <div class="chart-container" id="chart_container">
+    <div class="bar-chart">
+      <div class="bar-item for" id="bar_for">
+        <div class="bar-label-top">
+          <div class="bar-percentage" id="pct_for">0%</div>
+          <div class="bar-count"><span id="count_for">0</span> voix</div>
         </div>
-        
-        <div class="result-card">
-          <div class="result-label">Participation (poids)</div>
-          <div class="result-numbers">
-            <div class="result-count" id="sec_part_weight" style="color: var(--color-info)">0</div>
-            <div class="result-weight">/ <span id="sec_elig_weight">0</span></div>
-          </div>
-          <div class="result-bar">
-            <div class="result-bar-fill" id="sec_part_weight_bar" style="width:0%; background: var(--color-info);"></div>
-          </div>
+        <div class="bar-wrapper">
+          <div class="bar" id="bar_for_fill"></div>
         </div>
+        <div class="bar-label">Pour</div>
+      </div>
+      <div class="bar-item against" id="bar_against">
+        <div class="bar-label-top">
+          <div class="bar-percentage" id="pct_against">0%</div>
+          <div class="bar-count"><span id="count_against">0</span> voix</div>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" id="bar_against_fill"></div>
+        </div>
+        <div class="bar-label">Contre</div>
+      </div>
+      <div class="bar-item abstain" id="bar_abstain">
+        <div class="bar-label-top">
+          <div class="bar-percentage" id="pct_abstain">0%</div>
+          <div class="bar-count"><span id="count_abstain">0</span> voix</div>
+        </div>
+        <div class="bar-wrapper">
+          <div class="bar" id="bar_abstain_fill"></div>
+        </div>
+        <div class="bar-label">Abstention</div>
       </div>
     </div>
+  </div>
 
-    <!-- Détails des résultats -->
-    <div id="results_detail">
-      <div class="results-grid">
-        <!-- Pour -->
-        <div class="result-card for">
-          <div class="result-label">✅ Pour</div>
-          <div class="result-numbers">
-            <div class="result-count" id="res_for_count">0</div>
-            <div class="result-weight"><span id="res_for_weight">0</span> voix</div>
-          </div>
-          <div class="result-bar">
-            <div class="result-bar-fill" id="res_for_bar" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <!-- Contre -->
-        <div class="result-card against">
-          <div class="result-label">❌ Contre</div>
-          <div class="result-numbers">
-            <div class="result-count" id="res_against_count">0</div>
-            <div class="result-weight"><span id="res_against_weight">0</span> voix</div>
-          </div>
-          <div class="result-bar">
-            <div class="result-bar-fill" id="res_against_bar" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <!-- Abstention -->
-        <div class="result-card abstain">
-          <div class="result-label">⚪ Abstention</div>
-          <div class="result-numbers">
-            <div class="result-count" id="res_abstain_count">0</div>
-            <div class="result-weight"><span id="res_abstain_weight">0</span> voix</div>
-          </div>
-          <div class="result-bar">
-            <div class="result-bar-fill" id="res_abstain_bar" style="width: 0%;"></div>
-          </div>
-        </div>
+  <!-- Decision -->
+  <section class="decision-section" id="decision_section">
+    <div class="decision-grid">
+      <div class="decision-card">
+        <div class="decision-label">Decision</div>
+        <div class="decision-value" id="decision_value">—</div>
+        <div class="decision-detail" id="decision_detail"></div>
       </div>
-
-      <div class="decision-grid">
-        <div class="decision-card">
-          <div class="decision-label">📋 Décision</div>
-          <div class="decision-value" id="res_decision_status">—</div>
-          <div class="decision-reason" id="res_decision_reason"></div>
-        </div>
-        <div class="quorum-card">
-          <div class="quorum-label">📊 Quorum</div>
-          <div class="quorum-value" id="res_quorum_status">—</div>
-          <div class="quorum-details">
-            (<span id="res_quorum_ratio">0</span> / seuil <span id="res_quorum_threshold">0</span>)
-          </div>
-        </div>
+      <div class="decision-card">
+        <div class="decision-label">Quorum</div>
+        <div class="decision-value" id="quorum_value">—</div>
+        <div class="decision-detail" id="quorum_detail"></div>
       </div>
     </div>
   </section>
 
-  <!-- Erreur -->
+  <!-- Error -->
   <div class="error-box" id="error_box"></div>
+</main>
 
-  <!-- Footer -->
-  <footer class="projector-footer">
-    <div class="footer-brand">
-      <span class="footer-logo">AG-VOTE</span>
-    </div>
-    <nav class="footer-nav">
-      <a class="footer-link" href="/operator.htmx.html">🗂️ Opérateur</a>
-      <a class="footer-link" href="/vote.htmx.html">🗳️ Vote</a>
-      <a class="footer-link" href="/trust.htmx.html">🛡️ Contrôle</a>
-    </nav>
-  </footer>
-</div>
+<footer class="projection-footer">AG-VOTE</footer>
 
-<!-- Accessibilité -->
-<div class="sr-only" id="screen_reader_alert" aria-live="assertive" aria-atomic="true"></div>
+<div class="sr-only" id="sr_alert" aria-live="assertive" aria-atomic="true"></div>
 
 <script>
-/**
- * AG-VOTE - Écran de projection
- * Affiche en temps réel les résultats des votes
- */
-
-// Configuration — clé API depuis URL param, localStorage, ou variable globale
 window.APP_API_KEY = window.APP_API_KEY
   || new URLSearchParams(location.search).get("api_key")
   || (function(){ try { return localStorage.getItem("api_key"); } catch(e){ return null; } })()
   || "";
-let lastUpdateTime = null;
-let updateInterval = 3000;
-let voteTimerInterval = null;
-let voteTimerRemaining = 0;
 
-// Injection API Key
+let MEETING_ID = null;
+let currentMotionId = null;
+
+// Inject API key
 (function() {
   const originalFetch = window.fetch.bind(window);
   window.fetch = function(input, init) {
     const url = (typeof input === "string") ? input : (input?.url || "");
     if (!url.includes("/api/")) return originalFetch(input, init);
-    
     const headers = new Headers(init?.headers || {});
     if (!headers.has("X-Api-Key")) headers.set("X-Api-Key", window.APP_API_KEY);
     return originalFetch(input, { ...init, headers });
   };
 })();
 
-// Accessibilité
-function announceToScreenReader(message) {
-  const alert = document.getElementById('screen_reader_alert');
-  if (alert) {
-    alert.textContent = message;
-    setTimeout(() => alert.textContent = '', 1000);
-  }
-}
-
-// Horloge
+// Clock
 function startClock() {
-  const clockEl = document.getElementById('live_clock');
-  if (!clockEl) return;
-  
+  const el = document.getElementById('clock');
   const update = () => {
-    clockEl.textContent = new Date().toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
+    el.textContent = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   };
-  
   update();
   setInterval(update, 1000);
 }
 
-// Fade in/out
-function fadeInOut(element, show) {
-  if (!element) return;
-  element.classList.toggle('visible', show);
+// Announce to screen reader
+function announce(msg) {
+  const el = document.getElementById('sr_alert');
+  if (el) { el.textContent = msg; setTimeout(() => el.textContent = '', 1000); }
 }
 
-// Timer de vote
-function startVoteTimer(durationSeconds) {
-  const container = document.getElementById('vote_timer');
-  const text = document.getElementById('timer_text');
-  const progress = document.getElementById('timer_progress');
-  
-  if (!container || !text || !progress) return;
-  
-  clearInterval(voteTimerInterval);
-  voteTimerRemaining = durationSeconds;
-  
-  const circumference = 2 * Math.PI * 45;
-  progress.style.strokeDasharray = circumference;
-  container.classList.add('visible');
-  
-  const update = () => {
-    if (voteTimerRemaining < 0) {
-      clearInterval(voteTimerInterval);
-      container.classList.remove('visible');
-      return;
-    }
-    
-    const minutes = String(Math.floor(voteTimerRemaining / 60)).padStart(2, '0');
-    const seconds = String(voteTimerRemaining % 60).padStart(2, '0');
-    text.textContent = `${minutes}:${seconds}`;
-    
-    const ratio = voteTimerRemaining / durationSeconds;
-    progress.style.strokeDashoffset = String(circumference * (1 - ratio));
-    voteTimerRemaining--;
-  };
-  
-  update();
-  voteTimerInterval = setInterval(update, 1000);
+// Show/hide elements
+function show(id, visible) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('visible', visible);
 }
 
-function stopVoteTimer() {
-  clearInterval(voteTimerInterval);
-  const container = document.getElementById('vote_timer');
-  if (container) container.classList.remove('visible');
+// Animate bars
+function animateBars(forPct, againstPct, abstainPct, forCount, againstCount, abstainCount, forWeight, againstWeight, abstainWeight) {
+  const maxHeight = 200; // max bar height in px
+
+  // Update percentages and counts
+  document.getElementById('pct_for').textContent = forPct.toFixed(0) + '%';
+  document.getElementById('pct_against').textContent = againstPct.toFixed(0) + '%';
+  document.getElementById('pct_abstain').textContent = abstainPct.toFixed(0) + '%';
+
+  document.getElementById('count_for').textContent = forWeight.toFixed(0);
+  document.getElementById('count_against').textContent = againstWeight.toFixed(0);
+  document.getElementById('count_abstain').textContent = abstainWeight.toFixed(0);
+
+  // Animate bar heights
+  requestAnimationFrame(() => {
+    document.getElementById('bar_for_fill').style.height = (forPct / 100 * maxHeight) + 'px';
+    document.getElementById('bar_against_fill').style.height = (againstPct / 100 * maxHeight) + 'px';
+    document.getElementById('bar_abstain_fill').style.height = (abstainPct / 100 * maxHeight) + 'px';
+
+    // Trigger label animation
+    setTimeout(() => {
+      document.getElementById('bar_for').classList.add('animate');
+      document.getElementById('bar_against').classList.add('animate');
+      document.getElementById('bar_abstain').classList.add('animate');
+    }, 100);
+  });
 }
 
-// Charger résultats
-async function loadEvoteResults(motionId, options = {}) {
-  const block = document.getElementById("results_block");
-  if (!block) return;
-  
-  const reveal = options.reveal === true;
-  const secretBlock = document.getElementById('secret_block');
-  const detailBlock = document.getElementById('results_detail');
-  
+// Reset bars
+function resetBars() {
+  document.getElementById('bar_for_fill').style.height = '0';
+  document.getElementById('bar_against_fill').style.height = '0';
+  document.getElementById('bar_abstain_fill').style.height = '0';
+  document.getElementById('bar_for').classList.remove('animate');
+  document.getElementById('bar_against').classList.remove('animate');
+  document.getElementById('bar_abstain').classList.remove('animate');
+}
+
+// Load results
+async function loadResults(motionId, reveal = true) {
   if (!motionId) {
-    fadeInOut(block, false);
-    if (secretBlock) secretBlock.classList.remove('visible');
-    if (detailBlock) detailBlock.style.display = '';
+    show('chart_container', false);
+    show('decision_section', false);
+    show('secret_block', false);
+    resetBars();
     return;
   }
-  
+
   try {
     const res = await fetch(`/api/v1/ballots_result.php?motion_id=${encodeURIComponent(motionId)}`);
     const data = await res.json().catch(() => null);
-    
+
     if (!data || data.ok === false) {
-      fadeInOut(block, false);
+      show('chart_container', false);
+      show('decision_section', false);
       return;
     }
-    
+
     const d = data.data || data;
     const isSecret = !!(d.motion?.secret);
     const t = d.tallies || {};
     const quorum = d.quorum || {};
     const decision = d.decision || {};
-    
-    // Vote secret
+
+    // Secret vote - only show participation
     if (isSecret && !reveal) {
-      if (secretBlock) secretBlock.classList.add('visible');
-      if (detailBlock) detailBlock.style.display = 'none';
-      
-      const expM = d.expressed?.members ?? 0;
-      const eligM = d.eligible?.members ?? 0;
+      show('chart_container', false);
+      show('decision_section', false);
+      show('secret_block', true);
+
       const expW = d.expressed?.weight ?? 0;
-      const eligW = d.eligible?.weight ?? 0;
-      
-      const pctM = eligM > 0 ? (expM * 100 / eligM) : 0;
-      const pctW = eligW > 0 ? (expW * 100 / eligW) : 0;
-      
-      document.getElementById('sec_part_members').textContent = expM;
-      document.getElementById('sec_elig_members').textContent = eligM;
-      document.getElementById('sec_part_members_bar').style.width = Math.min(100, pctM) + '%';
-      
-      document.getElementById('sec_part_weight').textContent = expW.toFixed(2);
-      document.getElementById('sec_elig_weight').textContent = eligW.toFixed(2);
-      document.getElementById('sec_part_weight_bar').style.width = Math.min(100, pctW) + '%';
-      
-      updateTimestamp();
-      fadeInOut(block, true);
+      const eligW = d.eligible?.weight ?? 1;
+      const pct = (expW / eligW * 100) || 0;
+
+      document.getElementById('participation_bar').style.width = Math.min(100, pct) + '%';
+      document.getElementById('participation_pct').textContent = pct.toFixed(0);
       return;
     }
-    
-    // Résultats normaux
-    if (secretBlock) secretBlock.classList.remove('visible');
-    if (detailBlock) detailBlock.style.display = '';
-    
-    const fmt = x => typeof x === "number" ? x.toFixed(2) : (x ?? "0");
-    
+
+    // Normal results
+    show('secret_block', false);
+    show('chart_container', true);
+    show('decision_section', true);
+
     const forCount = t.for?.count ?? 0;
     const againstCount = t.against?.count ?? 0;
     const abstainCount = t.abstain?.count ?? 0;
-    const totalCount = forCount + againstCount + abstainCount || 1;
-    
-    document.getElementById("res_for_count").textContent = forCount;
-    document.getElementById("res_for_weight").textContent = fmt(t.for?.weight ?? 0);
-    document.getElementById("res_against_count").textContent = againstCount;
-    document.getElementById("res_against_weight").textContent = fmt(t.against?.weight ?? 0);
-    document.getElementById("res_abstain_count").textContent = abstainCount;
-    document.getElementById("res_abstain_weight").textContent = fmt(t.abstain?.weight ?? 0);
-    
-    document.getElementById("res_for_bar").style.width = (forCount * 100 / totalCount) + "%";
-    document.getElementById("res_against_bar").style.width = (againstCount * 100 / totalCount) + "%";
-    document.getElementById("res_abstain_bar").style.width = (abstainCount * 100 / totalCount) + "%";
-    
+    const forWeight = t.for?.weight ?? 0;
+    const againstWeight = t.against?.weight ?? 0;
+    const abstainWeight = t.abstain?.weight ?? 0;
+
+    const totalWeight = forWeight + againstWeight + abstainWeight || 1;
+    const forPct = forWeight / totalWeight * 100;
+    const againstPct = againstWeight / totalWeight * 100;
+    const abstainPct = abstainWeight / totalWeight * 100;
+
+    animateBars(forPct, againstPct, abstainPct, forCount, againstCount, abstainCount, forWeight, againstWeight, abstainWeight);
+
+    // Decision
+    const decisionEl = document.getElementById('decision_value');
+    decisionEl.textContent = decision.status || '—';
+    decisionEl.className = 'decision-value ' + (decision.status === 'Adopte' ? 'adopted' : decision.status === 'Rejete' ? 'rejected' : 'pending');
+    document.getElementById('decision_detail').textContent = decision.reason || '';
+
+    // Quorum
+    const quorumEl = document.getElementById('quorum_value');
     if (quorum.applied) {
-      document.getElementById("res_quorum_status").textContent = quorum.met ? "Atteint ✓" : "Non atteint";
-      document.getElementById("res_quorum_ratio").textContent = fmt(quorum.ratio ?? 0);
-      document.getElementById("res_quorum_threshold").textContent = fmt(quorum.threshold ?? 0);
+      quorumEl.textContent = quorum.met ? 'Atteint' : 'Non atteint';
+      quorumEl.className = 'decision-value ' + (quorum.met ? 'adopted' : 'rejected');
+      document.getElementById('quorum_detail').textContent = `${(quorum.ratio ?? 0).toFixed(2)} / ${(quorum.threshold ?? 0).toFixed(2)}`;
     } else {
-      document.getElementById("res_quorum_status").textContent = "Non applicable";
-      document.getElementById("res_quorum_ratio").textContent = "-";
-      document.getElementById("res_quorum_threshold").textContent = "-";
+      quorumEl.textContent = 'N/A';
+      quorumEl.className = 'decision-value pending';
+      document.getElementById('quorum_detail').textContent = '';
     }
-    
-    document.getElementById("res_decision_status").textContent = decision.status || "—";
-    document.getElementById("res_decision_reason").textContent = decision.reason ? ` — ${decision.reason}` : "";
-    
-    updateTimestamp();
-    fadeInOut(block, true);
+
   } catch (e) {
-    console.error("Erreur loadEvoteResults", e);
-    fadeInOut(block, false);
+    console.error('loadResults error:', e);
   }
 }
 
-function updateTimestamp() {
-  lastUpdateTime = new Date();
-  const el = document.getElementById("last_update");
-  if (el) {
-    el.textContent = `Dernière mise à jour : ${lastUpdateTime.toLocaleTimeString("fr-FR")}`;
-  }
-}
+// Refresh screen
+async function refresh() {
+  const badge = document.getElementById('badge');
+  const meet = document.getElementById('meeting_title');
+  const motion = document.getElementById('motion_title');
+  const sub = document.getElementById('motion_sub');
+  const err = document.getElementById('error_box');
 
-// Refresh écran
-async function refreshScreen() {
-  const badge = document.getElementById("badge");
-  const meet = document.getElementById("meeting_title");
-  const motion = document.getElementById("motion_title");
-  const sub = document.getElementById("motion_sub");
-  const err = document.getElementById("error_box");
-  const waitingState = document.getElementById("waiting_state");
-  
   try {
-    const res = await fetch("/api/v1/projector_state.php");
+    const res = await fetch('/api/v1/projector_state.php');
     const data = await res.json();
-    
+
     if (!data.ok) {
       if (data.error === 'no_live_meeting') {
         badge.className = 'status-badge off';
-        badge.textContent = 'hors séance';
-        meet.textContent = 'Aucune séance en cours';
-        motion.textContent = '—';
+        badge.textContent = 'hors seance';
+        meet.textContent = '';
+        motion.textContent = 'Aucune seance en cours';
         sub.textContent = '';
         err.classList.remove('visible');
-        waitingState?.classList.remove('visible');
-        stopVoteTimer();
-        await loadEvoteResults(null);
+        show('waiting_state', false);
+        show('chart_container', false);
+        show('decision_section', false);
+        show('secret_block', false);
+        resetBars();
         return;
       }
-      
-      badge.className = 'status-badge off';
-      badge.textContent = 'erreur';
-      meet.textContent = 'Erreur de statut';
-      err.textContent = `Erreur : ${data.error || 'inconnue'}`;
-      err.classList.add('visible');
-      stopVoteTimer();
-      await loadEvoteResults(null);
-      announceToScreenReader(`Erreur: ${data.error || 'inconnue'}`);
-      return;
+      throw new Error(data.error || 'Erreur inconnue');
     }
-    
+
     const s = data.data;
-    err.textContent = '';
     err.classList.remove('visible');
-    meet.textContent = s.meeting_title || "Séance en cours";
-    window.MEETING_ID = s.meeting_id || window.MEETING_ID;
-    
+    meet.textContent = s.meeting_title || '';
+    MEETING_ID = s.meeting_id;
+
     if (s.phase === 'active' && s.motion?.id) {
-      // Vote en cours
-      const wasIdle = !badge.classList.contains('live');
-      
+      // Vote in progress
       badge.className = 'status-badge live';
       badge.textContent = 'vote en cours';
-      motion.textContent = s.motion.title || 'Résolution';
-      sub.textContent = s.motion.secret ? '🔒 Vote secret' : 'Résolution ouverte';
-      waitingState?.classList.remove('visible');
-      stopVoteTimer();
-      
-      await loadEvoteResults(s.motion.id, { reveal: !s.motion.secret });
-      
-      if (wasIdle) {
-        announceToScreenReader("Une résolution vient d'être ouverte. Vote en cours.");
+      motion.textContent = s.motion.title || 'Resolution';
+      sub.textContent = s.motion.secret ? 'Vote secret' : '';
+      show('waiting_state', false);
+
+      if (currentMotionId !== s.motion.id) {
+        resetBars();
+        currentMotionId = s.motion.id;
       }
-      
+
+      await loadResults(s.motion.id, !s.motion.secret);
+
     } else if (s.phase === 'closed' && s.motion?.id) {
-      // Résultat final
-      const wasLive = badge.classList.contains('live');
-      
+      // Final result
       badge.className = 'status-badge idle';
-      badge.textContent = 'résultat';
-      motion.textContent = s.motion.title || 'Résolution clôturée';
-      sub.textContent = '✅ Résultat final';
-      waitingState?.classList.remove('visible');
-      stopVoteTimer();
-      
-      await loadEvoteResults(s.motion.id, { reveal: true });
-      
-      if (wasLive) {
-        announceToScreenReader("La résolution est close. Résultat final affiché.");
+      badge.textContent = 'resultat';
+      motion.textContent = s.motion.title || 'Resolution';
+      sub.textContent = 'Resultat final';
+      show('waiting_state', false);
+
+      if (currentMotionId !== s.motion.id) {
+        resetBars();
+        currentMotionId = s.motion.id;
       }
-      
+
+      await loadResults(s.motion.id, true);
+
     } else {
-      // En attente
-      const wasLive = badge.classList.contains('live');
-      
+      // Waiting
       badge.className = 'status-badge idle';
-      badge.textContent = 'en séance';
-      motion.textContent = 'En attente de résolution';
+      badge.textContent = 'en seance';
+      motion.textContent = 'En attente';
       sub.textContent = '';
-      waitingState?.classList.add('visible');
-      stopVoteTimer();
-      
-      await loadEvoteResults(null);
-      
-      if (wasLive) {
-        announceToScreenReader("La résolution est close. Plus de vote en cours.");
-      }
+      show('waiting_state', true);
+      show('chart_container', false);
+      show('decision_section', false);
+      show('secret_block', false);
+      currentMotionId = null;
+      resetBars();
     }
-    
+
   } catch (e) {
-    console.error("Erreur refreshScreen", e);
-    err.textContent = `Erreur réseau : ${e.message}`;
+    console.error('refresh error:', e);
+    err.textContent = 'Erreur : ' + e.message;
     err.classList.add('visible');
-    stopVoteTimer();
-    await loadEvoteResults(null);
   }
 }
 
-// Boucle de refresh
-async function refreshLoop() {
-  const start = Date.now();
-  await refreshScreen();
-  const duration = Date.now() - start;
-  
-  updateInterval = duration > 1000 ? Math.max(5000, updateInterval + 1000) : 3000;
-  setTimeout(refreshLoop, updateInterval);
-}
-
-// Device heartbeat
+// Heartbeat
 function getDeviceId() {
   try {
-    const key = 'device.id';
-    let id = localStorage.getItem(key);
-    if (!id) {
-      id = crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      localStorage.setItem(key, id);
-    }
+    let id = localStorage.getItem('device.id');
+    if (!id) { id = crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`; localStorage.setItem('device.id', id); }
     return id;
-  } catch {
-    return `anon-${Date.now()}`;
-  }
+  } catch { return `anon-${Date.now()}`; }
 }
 
-async function sendHeartbeat() {
-  const meetingId = String(window.MEETING_ID || '').trim();
-  if (!meetingId) return;
-  
+async function heartbeat() {
+  if (!MEETING_ID) return;
   try {
-    const res = await fetch('/api/v1/device_heartbeat.php', {
+    await fetch('/api/v1/device_heartbeat.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        meeting_id: meetingId,
-        device_id: getDeviceId(),
-        role: 'projector',
-        user_agent: navigator.userAgent
-      })
+      body: JSON.stringify({ meeting_id: MEETING_ID, device_id: getDeviceId(), role: 'projector' })
     });
-    
-    const data = await res.json().catch(() => ({}));
-    if (data?.data?.command?.type === 'kick') {
-      setTimeout(() => location.reload(), 800);
-    }
   } catch {}
 }
 
 // Init
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
   startClock();
-  refreshLoop();
-  sendHeartbeat();
-  setInterval(() => { if (!document.hidden) sendHeartbeat(); }, 15000);
+  refresh();
+  setInterval(refresh, 3000);
+  heartbeat();
+  setInterval(() => { if (!document.hidden) heartbeat(); }, 15000);
 });
 </script>
 

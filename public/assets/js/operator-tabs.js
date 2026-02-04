@@ -551,8 +551,8 @@
       } else {
         const display = items.slice(0, 5);
         list.innerHTML = display.map(dev => {
-          const statusIcon = dev.status === 'online' ? '🟢' : dev.status === 'stale' ? '🟡' : '⚫';
-          const blocked = dev.is_blocked ? ' 🚫' : '';
+          const statusIcon = dev.status === 'online' ? icon('circle', 'icon-xs icon-success') : dev.status === 'stale' ? icon('circle', 'icon-xs icon-warning') : icon('circle', 'icon-xs icon-muted');
+          const blocked = dev.is_blocked ? ' ' + icon('ban', 'icon-xs icon-danger') : '';
           const battery = dev.battery_pct !== null ? ` ${dev.battery_pct}%` : '';
           const role = dev.role ? ` (${dev.role})` : '';
           return `<div class="text-sm">${statusIcon}${blocked} ${escapeHtml(dev.device_id.slice(0, 8))}...${role}${battery}</div>`;
@@ -604,16 +604,16 @@
       }
 
       list.innerHTML = data.items.map(dev => {
-        const statusIcon = dev.status === 'online' ? '🟢' : dev.status === 'stale' ? '🟡' : '⚫';
+        const statusIcon = dev.status === 'online' ? icon('circle', 'icon-xs icon-success') : dev.status === 'stale' ? icon('circle', 'icon-xs icon-warning') : icon('circle', 'icon-xs icon-muted');
         const blocked = dev.is_blocked;
-        const battery = dev.battery_pct !== null ? `🔋 ${dev.battery_pct}%${dev.is_charging ? '⚡' : ''}` : '';
+        const battery = dev.battery_pct !== null ? `${icon('battery', 'icon-xs')} ${dev.battery_pct}%${dev.is_charging ? icon('zap', 'icon-xs') : ''}` : '';
 
         return `
           <div class="flex items-center justify-between p-3 border-b" style="border-color:var(--color-border);">
             <div>
               <div class="font-medium">${statusIcon} ${escapeHtml(dev.device_id.slice(0, 12))}...</div>
               <div class="text-xs text-muted">${dev.role || 'inconnu'} • ${dev.ip || '—'} ${battery}</div>
-              ${blocked ? `<div class="text-xs text-danger">🚫 Bloqué: ${escapeHtml(dev.block_reason || '')}</div>` : ''}
+              ${blocked ? `<div class="text-xs text-danger">${icon('ban', 'icon-xs icon-text')}Bloqué: ${escapeHtml(dev.block_reason || '')}</div>` : ''}
             </div>
             <div class="flex gap-1">
               ${blocked
@@ -688,10 +688,10 @@
 
       const checklist = document.getElementById('statusChecklist');
       checklist.innerHTML = checks.map(c => {
-        const icon = c.done ? '✓' : '○';
+        const iconHtml = c.done ? icon('check', 'icon-sm icon-success') : icon('circle', 'icon-sm icon-muted');
         const cls = c.done ? 'color: var(--color-success)' : 'color: var(--color-text-muted)';
         const style = c.optional ? 'opacity:0.7;font-style:italic;' : '';
-        return `<div class="flex items-center gap-2" style="${cls};${style}"><span>${icon}</span> ${c.text}</div>`;
+        return `<div class="flex items-center gap-2" style="${cls};${style}"><span>${iconHtml}</span> ${c.text}</div>`;
       }).join('');
 
       // Transition buttons
@@ -1091,9 +1091,9 @@
       // Vote actions
       let voteActions = '';
       if (isLive && !isOpen && !isClosed) {
-        voteActions = `<button class="btn btn-sm btn-primary btn-open-vote" data-motion-id="${m.id}">▶️ Ouvrir</button>`;
+        voteActions = `<button class="btn btn-sm btn-primary btn-open-vote" data-motion-id="${m.id}">${icon('play', 'icon-sm icon-text')}Ouvrir</button>`;
       } else if (isLive && isOpen) {
-        voteActions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${m.id}">⏹️ Clôturer</button>`;
+        voteActions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${m.id}">${icon('square', 'icon-sm icon-text')}Clôturer</button>`;
       }
 
       // Edit actions (only for pending resolutions)
@@ -1119,9 +1119,9 @@
 
       const results = isClosed ? `
         <div style="display:flex;gap:1rem;font-size:0.85rem;margin-top:0.5rem;">
-          <span style="color:var(--color-success)">✓ ${m.votes_for || 0}</span>
-          <span style="color:var(--color-danger)">✗ ${m.votes_against || 0}</span>
-          <span style="color:var(--color-text-muted)">○ ${m.votes_abstain || 0}</span>
+          <span style="color:var(--color-success)">${icon('check', 'icon-xs')} ${m.votes_for || 0}</span>
+          <span style="color:var(--color-danger)">${icon('x', 'icon-xs')} ${m.votes_against || 0}</span>
+          <span style="color:var(--color-text-muted)">${icon('minus', 'icon-xs')} ${m.votes_abstain || 0}</span>
         </div>
       ` : '';
 
@@ -1385,7 +1385,7 @@
 
     list.innerHTML = openableMotions.slice(0, 5).map((m, i) => `
       <button class="btn btn-primary btn-quick-open" data-motion-id="${m.id}">
-        ▶️ ${i + 1}. ${escapeHtml(m.title.length > 30 ? m.title.substring(0, 30) + '...' : m.title)}
+        ${icon('play', 'icon-sm icon-text')}${i + 1}. ${escapeHtml(m.title.length > 30 ? m.title.substring(0, 30) + '...' : m.title)}
       </button>
     `).join('');
 
@@ -1431,9 +1431,9 @@
         <div class="attendance-card ${hasVoted ? 'present' : ''}" data-member-id="${v.member_id}">
           <span class="attendance-name">${escapeHtml(v.full_name || '—')}</span>
           <div class="attendance-mode-btns">
-            <button class="mode-btn present ${vote === 'for' ? 'active' : ''}" data-vote="for" title="Pour">✓</button>
-            <button class="mode-btn absent ${vote === 'against' ? 'active' : ''}" data-vote="against" title="Contre">✗</button>
-            <button class="mode-btn excused ${vote === 'abstain' ? 'active' : ''}" data-vote="abstain" title="Abstention">○</button>
+            <button class="mode-btn present ${vote === 'for' ? 'active' : ''}" data-vote="for" title="Pour">${icon('check', 'icon-sm')}</button>
+            <button class="mode-btn absent ${vote === 'against' ? 'active' : ''}" data-vote="against" title="Contre">${icon('x', 'icon-sm')}</button>
+            <button class="mode-btn excused ${vote === 'abstain' ? 'active' : ''}" data-vote="abstain" title="Abstention">${icon('minus', 'icon-sm')}</button>
           </div>
         </div>
       `;
@@ -1561,9 +1561,9 @@
           </div>
           ${isClosed ? `
             <div style="display:flex;gap:2rem;margin-top:1rem;font-size:1.1rem;">
-              <span style="color:var(--color-success)">✓ ${vFor}</span>
-              <span style="color:var(--color-danger)">✗ ${vAgainst}</span>
-              <span style="color:var(--color-text-muted)">○ ${vAbstain}</span>
+              <span style="color:var(--color-success)">${icon('check', 'icon-sm')} ${vFor}</span>
+              <span style="color:var(--color-danger)">${icon('x', 'icon-sm')} ${vAgainst}</span>
+              <span style="color:var(--color-text-muted)">${icon('minus', 'icon-sm')} ${vAbstain}</span>
               <span style="margin-left:auto;">${pct}% pour</span>
             </div>
           ` : ''}

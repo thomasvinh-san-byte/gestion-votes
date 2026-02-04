@@ -285,7 +285,7 @@
       out.textContent = JSON.stringify(result, null, 2);
 
       if (result && result.ok !== false) {
-        setNotif('success', `✅ Import terminé: ${result.imported || 0} membres`);
+        setNotif('success', `Import terminé: ${result.imported || 0} membres`);
         loadMembers();
       } else {
         setNotif('error', result?.error || 'Erreur import');

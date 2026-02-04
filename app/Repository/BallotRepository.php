@@ -200,7 +200,7 @@ class BallotRepository extends AbstractRepository
              JOIN motions m ON m.id = b.motion_id
              WHERE m.meeting_id = :mid
                AND m.closed_at IS NOT NULL
-               AND b.created_at > m.closed_at",
+               AND b.cast_at > m.closed_at",
             [':mid' => $meetingId]
         );
     }

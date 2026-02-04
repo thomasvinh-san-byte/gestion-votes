@@ -99,7 +99,7 @@
 
           checksList.innerHTML = checks.map(check => `
             <div class="check-item ${check.passed ? 'pass' : 'fail'}">
-              <div class="check-icon">${check.passed ? '✓' : '✗'}</div>
+              <div class="check-icon">${check.passed ? icon('check', 'icon-sm icon-success') : icon('x', 'icon-sm icon-danger')}</div>
               <div>
                 <div class="font-medium">${escapeHtml(check.label)}</div>
                 ${check.detail ? `<div class="text-xs opacity-75">${escapeHtml(check.detail)}</div>` : ''}

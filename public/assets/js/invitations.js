@@ -97,9 +97,9 @@
       let statusHtml = '';
       if (m.invitation_sent_at) {
         const date = new Date(m.invitation_sent_at).toLocaleDateString('fr-FR');
-        statusHtml = `<span class="badge badge-success">✓ Envoyé ${date}</span>`;
+        statusHtml = `<span class="badge badge-success">${icon('check', 'icon-xs icon-text')}Envoyé ${date}</span>`;
       } else if (m.invitation_failed) {
-        statusHtml = `<span class="badge badge-danger">✗ Échec</span>`;
+        statusHtml = `<span class="badge badge-danger">${icon('x', 'icon-xs icon-text')}Échec</span>`;
       } else {
         statusHtml = `<span class="badge badge-warning">En attente</span>`;
       }
