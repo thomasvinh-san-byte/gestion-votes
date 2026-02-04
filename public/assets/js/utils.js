@@ -277,6 +277,20 @@ async function api(url, data = null, method = null) {
 }
 
 /**
+ * Create SVG icon from sprite
+ * @param {string} name - Icon name (without 'icon-' prefix)
+ * @param {string} className - Additional CSS classes
+ * @returns {string} SVG markup
+ */
+function icon(name, className = '') {
+  const classes = ['icon', className].filter(Boolean).join(' ');
+  return `<svg class="${classes}" aria-hidden="true"><use href="/assets/icons.svg#icon-${name}"></use></svg>`;
+}
+
+// Make icon function globally available
+window.icon = icon;
+
+/**
  * Display notification toast
  * @param {string} type - 'success', 'error', 'warning', 'info'
  * @param {string} message - Message to display
@@ -284,7 +298,7 @@ async function api(url, data = null, method = null) {
  */
 function setNotif(type, message, duration = 5000) {
   const container = document.getElementById('notif_box') || createNotifContainer();
-  
+
   // Map types to CSS classes
   const typeMap = {
     success: 'toast-success',
@@ -293,25 +307,25 @@ function setNotif(type, message, duration = 5000) {
     warning: 'toast-warning',
     info: 'toast-info',
   };
-  
+
   // Create toast element
   const toast = document.createElement('div');
   toast.className = `toast ${typeMap[type] || 'toast-info'}`;
   toast.setAttribute('role', 'alert');
-  
+
   // Icon based on type
-  const icons = {
-    success: '✅',
-    error: '❌',
-    danger: '❌',
-    warning: '⚠️',
-    info: 'ℹ️',
+  const iconMap = {
+    success: 'check-circle',
+    error: 'x-circle',
+    danger: 'x-circle',
+    warning: 'alert-triangle',
+    info: 'info',
   };
-  
+
   toast.innerHTML = `
-    <span class="toast-icon">${icons[type] || icons.info}</span>
+    <span class="toast-icon">${icon(iconMap[type] || iconMap.info, 'icon-md')}</span>
     <span class="toast-message">${escapeHtml(message)}</span>
-    <button class="toast-close btn btn-ghost btn-icon btn-sm" aria-label="Fermer">✕</button>
+    <button class="toast-close btn btn-ghost btn-icon btn-sm" aria-label="Fermer">${icon('x', 'icon-sm')}</button>
   `;
   
   // Close button handler

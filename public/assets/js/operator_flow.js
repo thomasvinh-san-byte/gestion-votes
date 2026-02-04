@@ -46,7 +46,7 @@
         if (motions.length === 0) {
           container.innerHTML = `
             <div class="empty-state p-6">
-              <div class="empty-state-icon">📋</div>
+              <div class="empty-state-icon">${icon('clipboard-list', 'icon-xl')}</div>
               <div class="empty-state-title">Aucune résolution</div>
               <div class="empty-state-description">
                 Créez des résolutions depuis la fiche séance
@@ -64,7 +64,7 @@
           const isOpen = m.status === 'open';
           const isClosed = m.status === 'closed';
           const statusClass = isOpen ? 'active' : (isClosed ? 'done' : '');
-          const statusIcon = isOpen ? '🔴' : (isClosed ? '✅' : '⚪');
+          const statusIcon = isOpen ? icon('circle', 'icon-xs icon-danger') : (isClosed ? icon('check-circle', 'icon-xs icon-success') : icon('circle', 'icon-xs icon-muted'));
 
           if (isOpen) {
             currentMotionId = m.id;
@@ -203,7 +203,7 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', '🗳️ Vote ouvert');
+        setNotif('success', 'Vote ouvert');
         loadMotions(currentMeetingId);
       } else {
         setNotif('error', body?.error || 'Erreur ouverture vote');
@@ -224,7 +224,7 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', '✅ Vote clôturé');
+        setNotif('success', 'Vote clôturé');
         loadMotions(currentMeetingId);
       } else {
         setNotif('error', body?.error || 'Erreur clôture vote');

@@ -102,7 +102,7 @@
       proxiesList.innerHTML = `
         <div class="empty-state-inline">
           <p>${query ? 'Aucun résultat' : 'Aucune procuration'}</p>
-          ${!query ? '<button class="btn btn-primary btn-sm mt-4" id="btnAddEmpty">➕ Ajouter</button>' : ''}
+          ${!query ? `<button class="btn btn-primary btn-sm mt-4" id="btnAddEmpty">${icon('plus', 'icon-sm icon-text')}Ajouter</button>` : ''}
         </div>
       `;
       document.getElementById('btnAddEmpty')?.addEventListener('click', openModal);
@@ -121,12 +121,12 @@
             <div class="proxy-avatar giver">${giverInitials}</div>
             <span class="proxy-name">${giverName}</span>
           </div>
-          <span class="proxy-arrow">→</span>
+          <span class="proxy-arrow">${icon('arrow-right', 'icon-sm icon-muted')}</span>
           <div class="proxy-member">
             <div class="proxy-avatar receiver">${receiverInitials}</div>
             <span class="proxy-name">${receiverName}</span>
           </div>
-          <button class="btn btn-ghost btn-sm btn-delete" data-proxy-id="${p.id}">🗑️</button>
+          <button class="btn btn-ghost btn-sm btn-delete" data-proxy-id="${p.id}">${icon('trash', 'icon-sm')}</button>
         </div>
       `;
     }).join('');

@@ -51,18 +51,18 @@
 
   // Transitions (state machine) - moved up for early reference
   const TRANSITIONS = {
-    draft: [{ to: 'scheduled', label: 'Planifier', icon: '📅' }],
+    draft: [{ to: 'scheduled', label: 'Planifier', iconName: 'calendar' }],
     scheduled: [
-      { to: 'frozen', label: 'Geler (verrouiller)', icon: '🧊' },
-      { to: 'draft', label: 'Retour brouillon', icon: '↩️' }
+      { to: 'frozen', label: 'Geler (verrouiller)', iconName: 'lock' },
+      { to: 'draft', label: 'Retour brouillon', iconName: 'arrow-left' }
     ],
     frozen: [
-      { to: 'live', label: 'Ouvrir la séance', icon: '▶️' },
-      { to: 'scheduled', label: 'Dégeler', icon: '↩️' }
+      { to: 'live', label: 'Ouvrir la séance', iconName: 'play' },
+      { to: 'scheduled', label: 'Dégeler', iconName: 'unlock' }
     ],
-    live: [{ to: 'closed', label: 'Clôturer la séance', icon: '⏹️' }],
-    closed: [{ to: 'validated', label: 'Valider la séance', icon: '✅' }],
-    validated: [{ to: 'archived', label: 'Archiver', icon: '📦' }],
+    live: [{ to: 'closed', label: 'Clôturer la séance', iconName: 'square' }],
+    closed: [{ to: 'validated', label: 'Valider la séance', iconName: 'check-circle' }],
+    validated: [{ to: 'archived', label: 'Archiver', iconName: 'archive' }],
     archived: []
   };
 
@@ -216,7 +216,8 @@
     if (transitions.length > 0) {
       statusActions.innerHTML = transitions.map(t => {
         const btnClass = t.to === 'live' ? 'btn-primary' : 'btn-secondary';
-        return `<button class="btn ${btnClass}" data-transition="${t.to}">${t.icon} ${t.label}</button>`;
+        const iconHtml = t.iconName ? icon(t.iconName, 'icon-sm icon-text') : '';
+        return `<button class="btn ${btnClass}" data-transition="${t.to}">${iconHtml}${t.label}</button>`;
       }).join('');
 
       statusActions.querySelectorAll('[data-transition]').forEach(btn => {
@@ -521,7 +522,7 @@
           <div class="empty-motions">
             <p>Aucune résolution</p>
             <a href="/motions.htmx.html?meeting_id=${meetingId}" class="btn btn-primary btn-sm mt-4">
-              ➕ Créer des résolutions
+              ${icon('plus', 'icon-sm icon-text')}Créer des résolutions
             </a>
           </div>
         `;
@@ -1057,7 +1058,7 @@
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${transitions.map(t => `
               <button class="btn btn-block" data-transition="${t.to}">
-                ${t.icon} ${t.label}
+                ${t.iconName ? icon(t.iconName, 'icon-sm icon-text') : ''}${t.label}
               </button>
             `).join('')}
           </div>
@@ -1121,14 +1122,14 @@
                       <div style="font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(m.title)}</div>
                       <div style="font-size:0.75rem;color:var(--color-text-muted);">${statusIcon} ${statusText}</div>
                     </div>
-                    ${canEdit && !isOpen && !isClosed ? `<button class="btn btn-xs btn-ghost btn-delete-motion" data-motion-id="${m.id}" title="Supprimer">🗑️</button>` : ''}
+                    ${canEdit && !isOpen && !isClosed ? `<button class="btn btn-xs btn-ghost btn-delete-motion" data-motion-id="${m.id}" title="Supprimer">${icon('trash', 'icon-sm')}</button>` : ''}
                   </div>
                 `;
               }).join('')}
               ${motions.length === 0 ? '<div class="text-center p-4 text-muted">Aucune résolution</div>' : ''}
             </div>
 
-            <a href="/motions.htmx.html?meeting_id=${currentMeetingId}" class="btn btn-block btn-secondary">📋 Vue complète</a>
+            <a href="/motions.htmx.html?meeting_id=${currentMeetingId}" class="btn btn-block btn-secondary">${icon('clipboard-list', 'icon-sm icon-text')}Vue complète</a>
           </div>
         `;
 
@@ -1263,7 +1264,7 @@
               ${members.length === 0 ? '<div class="text-center p-4 text-muted">Aucun membre</div>' : ''}
             </div>
 
-            <a href="/members.htmx.html" class="btn btn-block btn-secondary">📋 Vue complète</a>
+            <a href="/members.htmx.html" class="btn btn-block btn-secondary">${icon('users', 'icon-sm icon-text')}Vue complète</a>
           </div>
         `;
 
@@ -1381,12 +1382,12 @@
       }
 
       const INCIDENT_TYPES = [
-        { value: 'network', label: 'Problème réseau', icon: '📶' },
-        { value: 'hardware', label: 'Problème matériel', icon: '💻' },
-        { value: 'procedural', label: 'Problème procédural', icon: '📋' },
-        { value: 'voter', label: 'Problème votant', icon: '🙋' },
-        { value: 'power', label: 'Coupure électrique', icon: '⚡' },
-        { value: 'other', label: 'Autre', icon: '❓' }
+        { value: 'network', label: 'Problème réseau', iconName: 'activity' },
+        { value: 'hardware', label: 'Problème matériel', iconName: 'settings' },
+        { value: 'procedural', label: 'Problème procédural', iconName: 'clipboard-list' },
+        { value: 'voter', label: 'Problème votant', iconName: 'user' },
+        { value: 'power', label: 'Coupure électrique', iconName: 'zap' },
+        { value: 'other', label: 'Autre', iconName: 'info' }
       ];
 
       body.innerHTML = `
@@ -1400,7 +1401,7 @@
             <div id="incidentTypes" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
               ${INCIDENT_TYPES.map(t => `
                 <button class="btn btn-secondary incident-type-btn" data-kind="${t.value}">
-                  ${t.icon} ${t.label}
+                  ${t.iconName ? icon(t.iconName, 'icon-sm icon-text') : ''}${t.label}
                 </button>
               `).join('')}
             </div>
@@ -1415,7 +1416,7 @@
           <div id="incidentMsg" style="display:none;"></div>
 
           <button class="btn btn-warning btn-block" id="btnDeclareIncident" disabled>
-            ⚠️ Déclarer l'incident
+            ${icon('alert-triangle', 'icon-sm icon-text')}Déclarer l'incident
           </button>
 
           <div class="text-sm text-muted" style="border-top:1px solid var(--color-border);padding-top:12px;">

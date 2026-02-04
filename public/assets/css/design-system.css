@@ -316,6 +316,57 @@ h4, .h4 {
 .font-semibold { font-weight: var(--font-semibold); }
 .font-bold { font-weight: var(--font-bold); }
 
+/* Icons (Lucide SVG sprite) */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.icon:hover { opacity: 1; }
+
+/* Icon sizes */
+.icon-xs { width: 0.875rem; height: 0.875rem; }
+.icon-sm { width: 1rem; height: 1rem; }
+.icon-md { width: 1.25rem; height: 1.25rem; }
+.icon-lg { width: 1.5rem; height: 1.5rem; }
+.icon-xl { width: 2rem; height: 2rem; }
+
+/* Icon spacing */
+.icon-text { margin-right: 0.375em; }
+.icon-inline { vertical-align: middle; margin: 0 0.25em; }
+
+/* Icon semantic colors - match design system */
+.icon-primary { color: var(--color-primary); opacity: 1; }
+.icon-secondary { color: var(--color-text-secondary); }
+.icon-muted { color: var(--color-text-muted); opacity: 0.7; }
+.icon-success { color: var(--color-success); opacity: 1; }
+.icon-warning { color: var(--color-warning); opacity: 1; }
+.icon-danger { color: var(--color-danger); opacity: 1; }
+.icon-info { color: var(--color-info); opacity: 1; }
+
+/* Icon in buttons - inherit button color */
+.btn .icon { opacity: 0.9; }
+.btn:hover .icon { opacity: 1; }
+.btn-ghost .icon { opacity: 0.7; }
+.btn-ghost:hover .icon { opacity: 1; }
+
+/* Empty state icons - subtle but visible */
+.empty-state-icon .icon {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  stroke-width: 1.5;
+}
+
 /* =============================================================================
    4. LAYOUT & GRID
    ============================================================================= */

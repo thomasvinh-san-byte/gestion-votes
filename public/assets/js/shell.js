@@ -108,7 +108,7 @@
             '</div>' +
             checks.map(function(c) {
               return '<div style="display:flex;align-items:center;gap:8px;">' +
-                '<span>' + (c.passed ? '✅' : '❌') + '</span>' +
+                '<span>' + (c.passed ? icon('check-circle', 'icon-sm icon-success') : icon('x-circle', 'icon-sm icon-danger')) + '</span>' +
                 '<span>' + esc(c.label || '') + '</span>' +
               '</div>';
             }).join('') +

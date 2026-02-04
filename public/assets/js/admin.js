@@ -703,13 +703,13 @@
 
       // State icons
       const stateIcons = {
-        'draft': '📝',
-        'scheduled': '📅',
-        'frozen': '🔒',
-        'live': '🔴',
-        'closed': '✅',
-        'validated': '📋',
-        'archived': '📦'
+        'draft': icon('file-text', 'icon-sm'),
+        'scheduled': icon('calendar', 'icon-sm'),
+        'frozen': icon('lock', 'icon-sm'),
+        'live': icon('circle', 'icon-sm'),
+        'closed': icon('check-circle', 'icon-sm'),
+        'validated': icon('clipboard-list', 'icon-sm'),
+        'archived': icon('archive', 'icon-sm')
       };
 
       // Flow diagram with visual styling

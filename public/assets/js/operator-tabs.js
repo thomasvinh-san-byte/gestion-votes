@@ -27,20 +27,20 @@
   let usersCache = [];
   let policiesCache = { quorum: [], vote: [] };
 
-  // Transitions
+  // Transitions (icons are added dynamically via icon() function)
   const TRANSITIONS = {
-    draft: [{ to: 'scheduled', label: 'Planifier', icon: '📅' }],
+    draft: [{ to: 'scheduled', label: 'Planifier', iconName: 'calendar' }],
     scheduled: [
-      { to: 'frozen', label: 'Geler', icon: '🧊' },
-      { to: 'draft', label: 'Retour brouillon', icon: '↩️' }
+      { to: 'frozen', label: 'Geler', iconName: 'lock' },
+      { to: 'draft', label: 'Retour brouillon', iconName: 'arrow-left' }
     ],
     frozen: [
-      { to: 'live', label: 'Ouvrir la séance', icon: '▶️' },
-      { to: 'scheduled', label: 'Dégeler', icon: '↩️' }
+      { to: 'live', label: 'Ouvrir la séance', iconName: 'play' },
+      { to: 'scheduled', label: 'Dégeler', iconName: 'unlock' }
     ],
-    live: [{ to: 'closed', label: 'Clôturer', icon: '⏹️' }],
-    closed: [{ to: 'validated', label: 'Valider', icon: '✅' }],
-    validated: [{ to: 'archived', label: 'Archiver', icon: '📦' }],
+    live: [{ to: 'closed', label: 'Clôturer', iconName: 'square' }],
+    closed: [{ to: 'validated', label: 'Valider', iconName: 'check-circle' }],
+    validated: [{ to: 'archived', label: 'Archiver', iconName: 'archive' }],
     archived: []
   };
 
@@ -699,7 +699,8 @@
       const actions = document.getElementById('statusActions');
       actions.innerHTML = transitions.map(t => {
         const btnClass = t.to === 'live' ? 'btn-primary' : 'btn-secondary';
-        return `<button class="btn ${btnClass}" data-transition="${t.to}">${t.icon} ${t.label}</button>`;
+        const iconHtml = t.iconName ? icon(t.iconName, 'icon-sm icon-text') : '';
+        return `<button class="btn ${btnClass}" data-transition="${t.to}">${iconHtml}${t.label}</button>`;
       }).join('');
 
       actions.querySelectorAll('[data-transition]').forEach(btn => {
@@ -1099,8 +1100,8 @@
       let editActions = '';
       if (canEdit && !isOpen && !isClosed) {
         editActions = `
-          <button class="btn btn-sm btn-ghost btn-edit-motion" data-motion-id="${m.id}" title="Modifier">✏️</button>
-          <button class="btn btn-sm btn-ghost btn-delete-motion" data-motion-id="${m.id}" title="Supprimer">🗑️</button>
+          <button class="btn btn-sm btn-ghost btn-edit-motion" data-motion-id="${m.id}" title="Modifier">${icon('edit', 'icon-sm')}</button>
+          <button class="btn btn-sm btn-ghost btn-delete-motion" data-motion-id="${m.id}" title="Supprimer">${icon('trash', 'icon-sm')}</button>
         `;
       }
 
@@ -1604,16 +1605,16 @@
     let canClose = true;
 
     if (hasOpenVote) {
-      statusHtml += `<div class="alert alert-warning mb-2">⚠️ Un vote est en cours — clôturez-le avant de fermer la séance.</div>`;
+      statusHtml += `<div class="alert alert-warning mb-2">${icon('alert-triangle', 'icon-sm icon-text')}Un vote est en cours — clôturez-le avant de fermer la séance.</div>`;
       canClose = false;
     }
 
     if (pending > 0) {
-      statusHtml += `<div class="alert alert-info mb-2">ℹ️ ${pending} résolution(s) n'ont pas encore été votées.</div>`;
+      statusHtml += `<div class="alert alert-info mb-2">${icon('info', 'icon-sm icon-text')}${pending} résolution(s) n'ont pas encore été votées.</div>`;
     }
 
     if (allClosed) {
-      statusHtml += `<div class="alert alert-success mb-2">✅ Tous les votes sont terminés. Vous pouvez clôturer la séance.</div>`;
+      statusHtml += `<div class="alert alert-success mb-2">${icon('check-circle', 'icon-sm icon-text')}Tous les votes sont terminés. Vous pouvez clôturer la séance.</div>`;
     }
 
     statusDiv.innerHTML = statusHtml || '<div class="text-muted">Prêt à clôturer.</div>';

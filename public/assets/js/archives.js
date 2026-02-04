@@ -68,15 +68,15 @@
               <div>
                 <div class="font-semibold text-lg">${title}</div>
                 <div class="text-sm text-muted mt-1">
-                  <span>🧑‍⚖️ ${president}</span>
+                  <span>${icon('gavel', 'icon-sm icon-muted')} ${president}</span>
                   <span class="mx-2">•</span>
-                  <span>📅 ${archived}</span>
+                  <span>${icon('calendar', 'icon-sm icon-muted')} ${archived}</span>
                 </div>
               </div>
               <div class="flex items-center gap-2">
                 ${hasReport
-                  ? '<span class="archive-badge has-pv">✅ PV</span>'
-                  : '<span class="archive-badge no-pv">⏳ PV en attente</span>'}
+                  ? `<span class="archive-badge has-pv">${icon('check-circle', 'icon-sm icon-success')} PV</span>`
+                  : `<span class="archive-badge no-pv">${icon('clock', 'icon-sm')} PV en attente</span>`}
                 <span class="badge badge-success">Archivée</span>
               </div>
             </div>
@@ -105,8 +105,8 @@
                 ${hasReport ? `SHA: <code>${sha}</code>` : 'Intégrité non vérifiée'}
               </div>
               <div class="flex gap-2">
-                ${hasReport ? `<a class="btn btn-primary btn-sm" href="${pvUrl}" target="_blank">📋 PV</a>` : ''}
-                <a class="btn btn-secondary btn-sm" href="${auditUrl}" target="_blank">📜 Audit</a>
+                ${hasReport ? `<a class="btn btn-primary btn-sm" href="${pvUrl}" target="_blank">${icon('file-text', 'icon-sm icon-text')}PV</a>` : ''}
+                <a class="btn btn-secondary btn-sm" href="${auditUrl}" target="_blank">${icon('shield-check', 'icon-sm icon-text')}Audit</a>
                 <button class="btn btn-ghost btn-sm btn-view-details" data-id="${id}">Détails</button>
               </div>
             </div>
@@ -152,7 +152,7 @@
                   <td class="text-center">${ballotsCount}</td>
                   <td class="text-center">
                     ${hasReport
-                      ? '<span class="text-success">✅</span>'
+                      ? `<span class="text-success">${icon('check-circle', 'icon-sm icon-success')}</span>`
                       : '<span class="text-muted">—</span>'}
                   </td>
                   <td>
@@ -226,7 +226,7 @@
       } catch (err) {
         archivesList.innerHTML = `
           <div class="alert alert-danger">
-            <span>❌</span>
+            <span>${icon('x-circle', 'icon-md icon-danger')}</span>
             <span>Erreur de chargement: ${escapeHtml(err.message)}</span>
           </div>
         `;
@@ -319,7 +319,7 @@
           </div>
           ${archive.has_report ? `
             <div class="alert alert-success mb-4">
-              <span>✅</span>
+              <span>${icon('check-circle', 'icon-md icon-success')}</span>
               <span>Procès-verbal disponible</span>
             </div>
             <div class="text-xs text-muted">
@@ -328,7 +328,7 @@
             </div>
           ` : `
             <div class="alert alert-warning">
-              <span>⏳</span>
+              <span>${icon('clock', 'icon-md icon-warning')}</span>
               <span>Procès-verbal non encore généré</span>
             </div>
           `}
