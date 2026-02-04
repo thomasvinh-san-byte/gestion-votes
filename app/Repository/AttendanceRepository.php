@@ -270,6 +270,7 @@ class AttendanceRepository extends AbstractRepository
 
     /**
      * Export CSV: presences avec infos membre et procurations.
+     * Note: Isolation tenant renforcée sur tous les JOINs pour éviter cross-tenant leaks.
      */
     public function listExportForMeeting(string $meetingId): array
     {
@@ -283,14 +284,15 @@ class AttendanceRepository extends AbstractRepository
                 COALESCE(rc.cnt, 0) AS proxies_received
              FROM members m
              JOIN meetings mt ON mt.id = :mid1 AND mt.tenant_id = m.tenant_id
-             LEFT JOIN attendances a ON a.meeting_id = mt.id AND a.member_id = m.id
-             LEFT JOIN proxies pr ON pr.meeting_id = mt.id AND pr.giver_member_id = m.id AND pr.revoked_at IS NULL
-             LEFT JOIN members r ON r.id = pr.receiver_member_id
+             LEFT JOIN attendances a ON a.meeting_id = mt.id AND a.member_id = m.id AND a.tenant_id = mt.tenant_id
+             LEFT JOIN proxies pr ON pr.meeting_id = mt.id AND pr.giver_member_id = m.id AND pr.tenant_id = mt.tenant_id AND pr.revoked_at IS NULL
+             LEFT JOIN members r ON r.id = pr.receiver_member_id AND r.tenant_id = mt.tenant_id
              LEFT JOIN (
-                SELECT receiver_member_id, COUNT(*)::int AS cnt
-                FROM proxies
-                WHERE meeting_id = :mid2 AND revoked_at IS NULL
-                GROUP BY receiver_member_id
+                SELECT p2.receiver_member_id, COUNT(*)::int AS cnt
+                FROM proxies p2
+                JOIN meetings mt2 ON mt2.id = p2.meeting_id AND mt2.tenant_id = p2.tenant_id
+                WHERE p2.meeting_id = :mid2 AND p2.revoked_at IS NULL
+                GROUP BY p2.receiver_member_id
              ) rc ON rc.receiver_member_id = m.id
              WHERE m.tenant_id = mt.tenant_id AND m.is_active = true
              ORDER BY m.full_name ASC",

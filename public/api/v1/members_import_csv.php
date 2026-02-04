@@ -3,16 +3,26 @@ declare(strict_types=1);
 
 /**
  * members_import_csv.php - Import CSV des membres
- * 
+ *
  * Format CSV attendu (première ligne = en-têtes):
- *   name,email,voting_power,is_active
+ *   name,email,voting_power,is_active,groups
  *   ou
- *   nom,prenom,email,ponderation,type,adresse
+ *   nom,prenom,email,ponderation,type,adresse,groupes
+ *
+ * Colonnes reconnues:
+ *   - name/nom/full_name: Nom complet (requis si pas first_name+last_name)
+ *   - first_name/prenom + last_name: Alternative au nom complet
+ *   - email/mail: Adresse email (optionnel)
+ *   - voting_power/ponderation/tantiemes: Poids de vote (défaut: 1)
+ *   - is_active/actif: Statut actif (défaut: true)
+ *   - groups/groupes/college/categorie: Noms de groupes séparés par | ou ;
+ *     Les groupes sont créés automatiquement s'ils n'existent pas.
  */
 
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MemberGroupRepository;
 
 // =============================================================================
 // SÉCURITÉ
@@ -33,11 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // VALIDATION FICHIER
 // =============================================================================
 
-if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+// Accept both 'file' and 'csv_file' field names
+$file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
+if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
     api_fail('upload_error', 400, ['detail' => 'Fichier manquant ou erreur upload.']);
 }
-
-$file = $_FILES['file'];
 
 // Extension
 $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -88,6 +98,7 @@ $columnMap = [
     'email' => ['email', 'mail', 'e-mail'],
     'voting_power' => ['voting_power', 'ponderation', 'pondération', 'weight', 'tantiemes'],
     'is_active' => ['is_active', 'actif', 'active'],
+    'groups' => ['groups', 'groupes', 'group', 'groupe', 'college', 'collège', 'categorie', 'catégorie'],
 ];
 
 $colIndex = [];
@@ -123,6 +134,29 @@ $errors = [];
 $lineNumber = 1;
 
 $memberRepo = new MemberRepository();
+$groupRepo = new MemberGroupRepository();
+
+// Preload existing groups for lookup by name
+$existingGroups = [];
+foreach ($groupRepo->listForTenant($tenantId, false) as $g) {
+    $existingGroups[mb_strtolower($g['name'])] = $g['id'];
+}
+
+// Helper to find or create group by name
+$findOrCreateGroup = function(string $name) use ($groupRepo, $tenantId, &$existingGroups): ?string {
+    $name = trim($name);
+    if ($name === '') return null;
+
+    $key = mb_strtolower($name);
+    if (isset($existingGroups[$key])) {
+        return $existingGroups[$key];
+    }
+
+    // Create group
+    $group = $groupRepo->create($tenantId, $name);
+    $existingGroups[$key] = $group['id'];
+    return $group['id'];
+};
 
 db()->beginTransaction();
 
@@ -182,12 +216,37 @@ try {
             $existing = $memberRepo->findByFullName($tenantId, $data['full_name']);
         }
 
+        // Parse groups (separated by | or ,)
+        $groupNames = [];
+        if (isset($colIndex['groups'])) {
+            $groupsRaw = trim($row[$colIndex['groups']] ?? '');
+            if ($groupsRaw !== '') {
+                // Split by | or ; (not comma since CSV may use comma as separator)
+                $groupNames = preg_split('/[|;]/', $groupsRaw);
+                $groupNames = array_filter(array_map('trim', $groupNames));
+            }
+        }
+
+        $memberId = null;
         if ($existing) {
             // Update
-            $memberRepo->updateImport($existing['id'], $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
+            $memberId = $existing['id'];
+            $memberRepo->updateImport($memberId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
         } else {
             // Insert
-            $memberRepo->createImport($tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
+            $memberId = $memberRepo->createImport($tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
+        }
+
+        // Assign groups
+        if (!empty($groupNames) && $memberId) {
+            $groupIds = [];
+            foreach ($groupNames as $gn) {
+                $gid = $findOrCreateGroup($gn);
+                if ($gid) $groupIds[] = $gid;
+            }
+            if (!empty($groupIds)) {
+                $groupRepo->setMemberGroups($memberId, $groupIds);
+            }
         }
 
         $imported++;

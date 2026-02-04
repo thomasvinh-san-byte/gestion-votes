@@ -613,6 +613,75 @@
             </div>
           </div>
 
+          <!-- Invitations card -->
+          <div class="settings-section" id="invitationsCard">
+            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Invitations</h3>
+            <div class="flex gap-4 mb-3">
+              <div class="text-center">
+                <span class="text-2xl font-bold" id="invTotal">0</span>
+                <div class="text-xs text-muted">Total</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold text-success" id="invSent">0</span>
+                <div class="text-xs text-muted">Envoyees</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold text-info" id="invOpened">0</span>
+                <div class="text-xs text-muted">Ouvertes</div>
+              </div>
+              <div class="text-center">
+                <span class="text-2xl font-bold text-danger" id="invBounced">0</span>
+                <div class="text-xs text-muted">Echecs</div>
+              </div>
+            </div>
+            <div id="invEngagement" class="text-sm text-muted mb-3" style="display:none;">
+              Taux ouverture: <strong id="invOpenRate">0%</strong>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <button class="btn btn-sm btn-primary flex-1" id="btnSendInvitations">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
+                Envoyer les invitations
+              </button>
+              <button class="btn btn-sm btn-secondary" id="btnScheduleInvitations" title="Programmer l'envoi">
+                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+              </button>
+              <a href="/email-templates.htmx.html" class="btn btn-sm btn-secondary" title="Gerer les templates">
+                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
+              </a>
+            </div>
+            <!-- Invitations options (hidden by default) -->
+            <div id="invitationsOptions" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--color-border);">
+              <div class="form-group mb-3">
+                <label class="form-label">Template</label>
+                <select class="form-input" id="invTemplateSelect">
+                  <option value="">Template par defaut</option>
+                </select>
+              </div>
+              <div class="form-group mb-3">
+                <label class="form-label">Destinataires</label>
+                <div class="flex flex-col gap-1">
+                  <label class="flex items-center gap-2">
+                    <input type="radio" name="invRecipients" value="unsent" checked> Non encore invites
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input type="radio" name="invRecipients" value="all"> Tous les membres
+                  </label>
+                </div>
+              </div>
+              <div class="form-group mb-3" id="scheduleGroup" style="display:none;">
+                <label class="form-label">Date/heure d'envoi</label>
+                <input type="datetime-local" class="form-input" id="invScheduleAt">
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-sm btn-success" id="btnConfirmSend">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
+                  Confirmer l'envoi
+                </button>
+                <button class="btn btn-sm btn-secondary" id="btnCancelSend">Annuler</button>
+              </div>
+            </div>
+          </div>
+
           <div class="settings-section">
             <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg> Informations générales</h3>
             <div class="form-group mb-3">

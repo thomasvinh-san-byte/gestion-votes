@@ -74,6 +74,19 @@ if (!defined('APP_SECRET')) {
     define('APP_SECRET', $secret);
 }
 
+// Validation du secret en production
+$isProduction = in_array(getenv('APP_ENV') ?: ($config['env'] ?? 'dev'), ['production', 'prod'], true);
+$authEnabled = getenv('APP_AUTH_ENABLED') === '1' || strtolower((string)getenv('APP_AUTH_ENABLED')) === 'true';
+
+if ($isProduction || $authEnabled) {
+    if (APP_SECRET === 'change-me-in-prod' || strlen(APP_SECRET) < 32) {
+        throw new RuntimeException(
+            '[SECURITY] APP_SECRET must be set to a secure value (min 32 characters) in production. ' .
+            'Generate one with: php -r "echo bin2hex(random_bytes(32));"'
+        );
+    }
+}
+
 // Tenant par défaut
 if (!defined('DEFAULT_TENANT_ID')) {
     $tid = getenv('DEFAULT_TENANT_ID') ?: (getenv('TENANT_ID') ?: ($config['default_tenant_id'] ?? 'aaaaaaaa-1111-2222-3333-444444444444'));

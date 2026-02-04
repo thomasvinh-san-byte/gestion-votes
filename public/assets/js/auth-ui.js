@@ -215,7 +215,7 @@
 
     main.innerHTML =
       '<div style="max-width:480px;margin:80px auto;text-align:center;padding:var(--space-8);">' +
-      '  <div style="font-size:64px;margin-bottom:16px;">&#x1F6AB;</div>' +
+      '  <div style="margin-bottom:16px;"><svg class="icon" style="width:64px;height:64px;color:var(--color-danger);"><use href="/assets/icons.svg#icon-x-circle"></use></svg></div>' +
       '  <h2 style="margin-bottom:8px;">Accès refusé</h2>' +
       '  <p style="color:var(--color-text-secondary,#666);margin-bottom:24px;">' +
       '    Cette page nécessite le rôle <strong>' + requiredLabels + '</strong>.<br>' +

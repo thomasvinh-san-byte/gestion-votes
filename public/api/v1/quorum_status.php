@@ -11,10 +11,13 @@ $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 $motionId  = trim((string)($_GET['motion_id'] ?? ''));
 
 try {
+    // Use tenant context if available for security
+    $tenantId = api_current_tenant_id();
+
     if ($motionId !== '') {
         $res = QuorumEngine::computeForMotion($motionId);
     } elseif ($meetingId !== '') {
-        $res = QuorumEngine::computeForMeeting($meetingId);
+        $res = QuorumEngine::computeForMeeting($meetingId, $tenantId);
     } else {
         api_fail('missing_params', 400, ['detail' => 'meeting_id ou motion_id requis']);
     }

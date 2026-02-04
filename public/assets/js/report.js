@@ -29,16 +29,28 @@
       document.getElementById('btnExportPDF').href = pdfUrl;
       document.getElementById('btnOpenNewTab').href = reportUrl;
       document.getElementById('exportPV').href = reportUrl;
-      document.getElementById('exportAttendance').href = `/api/v1/attendance_export.php?meeting_id=${currentMeetingId}`;
-      document.getElementById('exportVotes').href = `/api/v1/votes_export.php?meeting_id=${currentMeetingId}`;
-      document.getElementById('exportMotions').href = `/api/v1/motions_export.php?meeting_id=${currentMeetingId}`;
-      document.getElementById('exportMembers').href = `/api/v1/members_export.php?meeting_id=${currentMeetingId}`;
+
+      // CSV exports
+      document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportMotions').href = `/api/v1/export_motions_results_csv.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportMembers').href = `/api/v1/export_members_csv.php?meeting_id=${currentMeetingId}`;
       document.getElementById('exportAudit').href = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}`;
+
+      // XLSX exports
+      document.getElementById('exportFullXlsx').href = `/api/v1/export_full_xlsx.php?meeting_id=${currentMeetingId}&include_votes=0`;
+      document.getElementById('exportFullXlsxWithVotes').href = `/api/v1/export_full_xlsx.php?meeting_id=${currentMeetingId}&include_votes=1`;
+      document.getElementById('exportAttendanceXlsx').href = `/api/v1/export_attendance_xlsx.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportVotesXlsx').href = `/api/v1/export_votes_xlsx.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportResultsXlsx').href = `/api/v1/export_results_xlsx.php?meeting_id=${currentMeetingId}`;
     }
 
     // Disable export buttons
     function disableExports() {
-      const exportIds = ['exportPV', 'exportAttendance', 'exportVotes', 'exportMotions', 'exportMembers', 'exportAudit', 'btnExportPDF'];
+      const exportIds = [
+        'exportPV', 'exportAttendance', 'exportVotes', 'exportMotions', 'exportMembers', 'exportAudit', 'btnExportPDF',
+        'exportFullXlsx', 'exportFullXlsxWithVotes', 'exportAttendanceXlsx', 'exportVotesXlsx', 'exportResultsXlsx'
+      ];
       exportIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) {

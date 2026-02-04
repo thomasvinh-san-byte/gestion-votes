@@ -236,4 +236,78 @@ class InvitationRepository extends AbstractRepository
             [':id' => $id]
         );
     }
+
+    /**
+     * Marque une invitation comme envoyee.
+     */
+    public function markSent(string $id): void
+    {
+        $this->execute(
+            "UPDATE invitations
+             SET status = 'sent',
+                 sent_at = COALESCE(sent_at, now()),
+                 updated_at = now()
+             WHERE id = :id",
+            [':id' => $id]
+        );
+    }
+
+    /**
+     * Incremente le compteur d'ouvertures.
+     */
+    public function incrementOpenCount(string $id): void
+    {
+        $this->execute(
+            "UPDATE invitations
+             SET open_count = COALESCE(open_count, 0) + 1,
+                 opened_at = COALESCE(opened_at, now()),
+                 status = CASE WHEN status IN ('pending','sent') THEN 'opened' ELSE status END,
+                 updated_at = now()
+             WHERE id = :id",
+            [':id' => $id]
+        );
+    }
+
+    /**
+     * Incremente le compteur de clics.
+     */
+    public function incrementClickCount(string $id): void
+    {
+        $this->execute(
+            "UPDATE invitations
+             SET click_count = COALESCE(click_count, 0) + 1,
+                 clicked_at = COALESCE(clicked_at, now()),
+                 updated_at = now()
+             WHERE id = :id",
+            [':id' => $id]
+        );
+    }
+
+    /**
+     * Statistiques d'envoi pour une seance.
+     */
+    public function getStatsForMeeting(string $meetingId, string $tenantId): array
+    {
+        $row = $this->selectOne(
+            "SELECT
+                 COUNT(*) as total,
+                 COUNT(*) FILTER (WHERE status = 'pending') as pending,
+                 COUNT(*) FILTER (WHERE status = 'sent') as sent,
+                 COUNT(*) FILTER (WHERE status = 'opened') as opened,
+                 COUNT(*) FILTER (WHERE status = 'accepted') as accepted,
+                 COUNT(*) FILTER (WHERE status = 'declined') as declined,
+                 COUNT(*) FILTER (WHERE status = 'bounced') as bounced,
+                 COALESCE(SUM(open_count), 0) as total_opens,
+                 COALESCE(SUM(click_count), 0) as total_clicks
+             FROM invitations
+             WHERE meeting_id = :meeting_id AND tenant_id = :tenant_id",
+            [':meeting_id' => $meetingId, ':tenant_id' => $tenantId]
+        );
+
+        return $row ?: [
+            'total' => 0, 'pending' => 0, 'sent' => 0, 'opened' => 0,
+            'accepted' => 0, 'declined' => 0, 'bounced' => 0,
+            'total_opens' => 0, 'total_clicks' => 0,
+        ];
+    }
 }

@@ -64,20 +64,26 @@ final class OfficialResultsService
 
         // Quorum (même logique que VoteEngine)
         $quorumMet = null;
+        $quorumRatio = null;
+        $quorumThreshold = null;
+        $quorumBasis = null;
+        $quorumNumerator = null;
+        $quorumDenominator = null;
+
         if ($quorumPolicy) {
             $quorumBasis     = (string)$quorumPolicy['denominator'];
             $quorumThreshold = (float)$quorumPolicy['threshold'];
 
             if ($quorumBasis === 'eligible_members') {
-                $denominator = max(1, $eligibleMembers);
-                $numerator   = max(0, $expressedMembersApprox);
+                $quorumDenominator = max(1, $eligibleMembers);
+                $quorumNumerator   = max(0, $expressedMembersApprox);
             } else {
-                $denominator = $eligibleWeight > 0 ? $eligibleWeight : 0.0001;
-                $numerator   = $expressedWeight;
+                $quorumDenominator = $eligibleWeight > 0 ? $eligibleWeight : 0.0001;
+                $quorumNumerator   = $expressedWeight;
             }
 
-            $ratio    = $denominator > 0 ? $numerator / $denominator : 0.0;
-            $quorumMet = $ratio >= $quorumThreshold;
+            $quorumRatio = $quorumDenominator > 0 ? $quorumNumerator / $quorumDenominator : 0.0;
+            $quorumMet = $quorumRatio >= $quorumThreshold;
         }
 
         // Majorité (même logique que VoteEngine)
@@ -86,6 +92,7 @@ final class OfficialResultsService
         $majorityThreshold = null;
         $majorityBase      = null;
         $abstAsAgainst     = null;
+        $majorityDenominator = null;
 
         if ($votePolicy) {
             $majorityBase      = (string)$votePolicy['base'];
@@ -102,28 +109,69 @@ final class OfficialResultsService
                 $baseTotal = $expressedWeight;
             }
 
-            $denominator = $baseTotal > 0 ? $baseTotal : 0.0001;
-            $ratio       = $forWeight / $denominator;
-            $majorityRatio = $ratio;
+            $majorityDenominator = $baseTotal > 0 ? $baseTotal : 0.0001;
+            $majorityRatio = $forWeight / $majorityDenominator;
 
             if ($baseTotal <= 0.0 || $expressedWeight <= 0.0) {
                 $adopted = false;
             } else {
-                $adopted = $ratio >= $majorityThreshold;
+                $adopted = $majorityRatio >= $majorityThreshold;
                 if ($quorumMet === false) {
                     $adopted = false;
                 }
             }
         }
 
-        // Décision finale
+        // Décision finale et raison explicite
+        $status = 'rejected';
+        $reason = '';
+
         if ($votePolicy) {
             $status = $adopted ? 'adopted' : 'rejected';
-            $reason = $adopted ? 'vote_policy_met' : (($quorumMet === false) ? 'quorum_not_met' : 'vote_policy_not_met');
+
+            // Raison explicite avec valeurs numériques
+            if ($quorumMet === false) {
+                // Quorum non atteint
+                $quorumPct = self::formatPct($quorumRatio);
+                $thresholdPct = self::formatPct($quorumThreshold);
+                $basisLabel = ($quorumBasis === 'eligible_members') ? 'des membres éligibles' : 'du poids éligible';
+                $reason = "Quorum non atteint ({$quorumPct} < {$thresholdPct} {$basisLabel})";
+            } elseif ($adopted) {
+                // Majorité atteinte
+                $ratioPct = self::formatPct($majorityRatio);
+                $thresholdPct = self::formatPct($majorityThreshold);
+                $baseLabel = self::getMajorityBaseLabel($majorityBase);
+                $reason = "Majorité atteinte ({$ratioPct} >= {$thresholdPct} {$baseLabel})";
+            } else {
+                // Majorité non atteinte
+                $ratioPct = self::formatPct($majorityRatio);
+                $thresholdPct = self::formatPct($majorityThreshold);
+                $baseLabel = self::getMajorityBaseLabel($majorityBase);
+                $reason = "Majorité non atteinte ({$ratioPct} < {$thresholdPct} {$baseLabel})";
+            }
         } else {
+            // Pas de politique de vote: majorité simple
             $status = ($forWeight > $againstWeight) ? 'adopted' : 'rejected';
-            if ($quorumMet === false) $status = 'rejected';
-            $reason = $votePolicy ? 'vote_policy' : (($quorumMet === false) ? 'quorum_not_met' : 'simple_majority');
+
+            if ($quorumMet === false) {
+                $status = 'rejected';
+                $quorumPct = self::formatPct($quorumRatio);
+                $thresholdPct = self::formatPct($quorumThreshold);
+                $basisLabel = ($quorumBasis === 'eligible_members') ? 'des membres éligibles' : 'du poids éligible';
+                $reason = "Quorum non atteint ({$quorumPct} < {$thresholdPct} {$basisLabel})";
+            } elseif ($status === 'adopted') {
+                $forFmt = self::formatWeight($forWeight);
+                $againstFmt = self::formatWeight($againstWeight);
+                $reason = "Majorité simple (Pour: {$forFmt} > Contre: {$againstFmt})";
+            } else {
+                $forFmt = self::formatWeight($forWeight);
+                $againstFmt = self::formatWeight($againstWeight);
+                if ($forWeight === $againstWeight) {
+                    $reason = "Égalité des voix (Pour: {$forFmt} = Contre: {$againstFmt})";
+                } else {
+                    $reason = "Majorité simple non atteinte (Pour: {$forFmt} <= Contre: {$againstFmt})";
+                }
+            }
         }
 
         return [
@@ -134,6 +182,99 @@ final class OfficialResultsService
             'majority_threshold' => $majorityThreshold,
             'majority_base' => $majorityBase,
         ];
+    }
+
+    /**
+     * Formate un pourcentage pour les raisons de décision
+     */
+    private static function formatPct(?float $value): string
+    {
+        if ($value === null) {
+            return '0%';
+        }
+        $pct = $value * 100;
+        // Afficher sans décimales si entier, sinon 1 décimale
+        if (abs($pct - round($pct)) < 0.01) {
+            return number_format((int)round($pct), 0, ',', ' ') . '%';
+        }
+        return number_format($pct, 1, ',', ' ') . '%';
+    }
+
+    /**
+     * Formate un poids pour les raisons de décision
+     */
+    private static function formatWeight(float $value): string
+    {
+        if (abs($value - round($value)) < 0.0001) {
+            return number_format((int)round($value), 0, ',', ' ');
+        }
+        return number_format($value, 2, ',', ' ');
+    }
+
+    /**
+     * Retourne le label français pour la base de majorité
+     */
+    private static function getMajorityBaseLabel(?string $base): string
+    {
+        return match ($base) {
+            'expressed' => 'des exprimés',
+            'eligible' => 'des éligibles',
+            'present' => 'des présents',
+            default => 'des votants',
+        };
+    }
+
+    /**
+     * Construit une raison explicite à partir des données de VoteEngine
+     */
+    private static function buildExplicitReasonFromVoteEngine(array $result, float $forWeight, float $againstWeight, string $status): string
+    {
+        $quorum = $result['quorum'] ?? [];
+        $majority = $result['majority'] ?? [];
+
+        // Cas: quorum non atteint
+        if (($quorum['applied'] ?? false) && ($quorum['met'] ?? true) === false) {
+            $quorumPct = self::formatPct($quorum['ratio'] ?? 0);
+            $thresholdPct = self::formatPct($quorum['threshold'] ?? 0);
+            $basis = ($quorum['basis'] ?? '') === 'eligible_members' ? 'des membres éligibles' : 'du poids éligible';
+            return "Quorum non atteint ({$quorumPct} < {$thresholdPct} {$basis})";
+        }
+
+        // Cas: politique de vote appliquée
+        if ($majority['applied'] ?? false) {
+            $ratioPct = self::formatPct($majority['ratio'] ?? 0);
+            $thresholdPct = self::formatPct($majority['threshold'] ?? 0);
+            $baseLabel = self::getMajorityBaseLabel($majority['base'] ?? null);
+
+            if ($majority['met'] ?? false) {
+                return "Majorité atteinte ({$ratioPct} >= {$thresholdPct} {$baseLabel})";
+            }
+            return "Majorité non atteinte ({$ratioPct} < {$thresholdPct} {$baseLabel})";
+        }
+
+        // Cas: pas de politique (majorité simple) ou aucun vote
+        if ($status === 'no_votes') {
+            return 'Aucun bulletin enregistré';
+        }
+
+        if ($status === 'no_policy') {
+            $forFmt = self::formatWeight($forWeight);
+            $againstFmt = self::formatWeight($againstWeight);
+            if ($forWeight > $againstWeight) {
+                return "Majorité simple (Pour: {$forFmt} > Contre: {$againstFmt})";
+            } elseif ($forWeight === $againstWeight) {
+                return "Égalité des voix (Pour: {$forFmt} = Contre: {$againstFmt})";
+            }
+            return "Majorité simple non atteinte (Pour: {$forFmt} <= Contre: {$againstFmt})";
+        }
+
+        // Fallback pour les autres statuts
+        $forFmt = self::formatWeight($forWeight);
+        $againstFmt = self::formatWeight($againstWeight);
+        if ($status === 'adopted') {
+            return "Majorité simple (Pour: {$forFmt} > Contre: {$againstFmt})";
+        }
+        return "Majorité simple non atteinte (Pour: {$forFmt} <= Contre: {$againstFmt})";
     }
 
     /**
@@ -190,7 +331,9 @@ final class OfficialResultsService
 
         $r = VoteEngine::computeMotionResult($motionId);
         $status = (string)($r['decision']['status'] ?? (($forW > $agW) ? 'adopted' : 'rejected'));
-        $reason = (string)($r['decision']['reason'] ?? 'vote_engine');
+
+        // Construire une raison explicite à partir des données de VoteEngine
+        $reason = self::buildExplicitReasonFromVoteEngine($r, $forW, $agW, $status);
 
         return [
             'source' => 'evote',

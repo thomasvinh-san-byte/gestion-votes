@@ -273,12 +273,13 @@
         updateExportsSection(m);
       }
 
-      // Load stats, motions, and wizard status
+      // Load stats, motions, wizard status and invitations
       await Promise.all([
         loadAttendanceStats(meetingId),
         loadQuorumStatus(meetingId),
         loadMotions(meetingId),
-        loadWizardStatus(meetingId)
+        loadWizardStatus(meetingId),
+        loadInvitationStats(meetingId)
       ]);
 
       // Update status alert after all data is loaded
@@ -421,7 +422,7 @@
         currentWizardChecks.hasAttendance = votersCache.length > 0;
         updateStatusAlert();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -457,7 +458,7 @@
 
         setNotif('success', 'Tous marqués présents');
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -669,7 +670,7 @@
         loadBallots(currentOpenMotion.id);
         setNotif('success', 'Vote enregistré');
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -690,7 +691,7 @@
         setNotif('success', 'Vote ouvert');
         loadMotions(currentMeetingId);
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
         Shared.btnLoading(btn, false);
       }
     } catch (err) {
@@ -714,7 +715,7 @@
         setNotif('success', 'Vote clôturé');
         loadMotions(currentMeetingId);
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
         Shared.btnLoading(btn, false);
       }
     } catch (err) {
@@ -730,22 +731,70 @@
     }
   });
 
+  // Labels français pour les statuts
+  const statusLabels = {
+    draft: 'Brouillon',
+    scheduled: 'Programmée',
+    frozen: 'Figée',
+    live: 'En cours',
+    closed: 'Clôturée',
+    validated: 'Validée',
+    archived: 'Archivée'
+  };
+
   async function doTransition(toStatus) {
     if (!currentMeetingId) return;
-    if (!confirm(`Changer l'état vers "${toStatus}" ?`)) return;
+
+    const statusLabel = statusLabels[toStatus] || toStatus;
 
     try {
+      // 1. Vérifier les prérequis avant transition
+      const checkRes = await api(`/api/v1/meeting_workflow_check.php?meeting_id=${currentMeetingId}&to_status=${toStatus}`);
+
+      if (!checkRes.body || !checkRes.body.ok) {
+        setNotif('error', getApiError(checkRes.body, 'Erreur de vérification'));
+        return;
+      }
+
+      const { can_proceed, issues, warnings } = checkRes.body.data;
+
+      // 2. Si des issues bloquantes existent, afficher et bloquer
+      if (issues && issues.length > 0) {
+        const issuesList = issues.map(i => `• ${i}`).join('\n');
+        alert(`Impossible de passer en "${statusLabel}"\n\nProblèmes à résoudre :\n${issuesList}`);
+        setNotif('error', `${issues.length} problème(s) bloquant(s)`);
+        return;
+      }
+
+      // 3. Si des warnings existent, demander confirmation explicite
+      let confirmMessage = `Passer la séance en "${statusLabel}" ?`;
+      if (warnings && warnings.length > 0) {
+        const warningsList = warnings.map(w => `• ${w}`).join('\n');
+        confirmMessage = `Passer la séance en "${statusLabel}" ?\n\nAvertissements :\n${warningsList}\n\nVoulez-vous continuer malgré ces avertissements ?`;
+      }
+
+      if (!confirm(confirmMessage)) return;
+
+      // 4. Effectuer la transition
       const { body } = await api('/api/v1/meeting_transition.php', {
         meeting_id: currentMeetingId,
         to_status: toStatus
       });
 
       if (body && body.ok) {
-        setNotif('success', `Séance passée en "${toStatus}"`);
+        setNotif('success', `Séance passée en "${statusLabel}"`);
         loadMeetings();
         loadMeetingContext(currentMeetingId);
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        // Traduire les erreurs courantes
+        const errorMessages = {
+          'workflow_issues': 'Prérequis non remplis pour cette transition',
+          'invalid_transition': 'Transition non autorisée depuis l\'état actuel',
+          'meeting_not_found': 'Séance introuvable',
+          'meeting_already_validated': 'Séance déjà validée (modification interdite)',
+        };
+        const errorMsg = errorMessages[body?.error] || body?.error || 'Erreur lors de la transition';
+        setNotif('error', errorMsg);
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -837,7 +886,7 @@
               loadWizardStatus(currentMeetingId);
               updateStatusAlert();
             } else {
-              setNotif('error', res?.error || 'Erreur');
+              setNotif('error', getApiError(res));
             }
           } catch (err) {
             setNotif('error', err.message);
@@ -862,7 +911,7 @@
               // Refresh drawer
               document.querySelector('[data-drawer="roles"]')?.click();
             } else {
-              setNotif('error', res?.error || 'Erreur');
+              setNotif('error', getApiError(res));
             }
           } catch (err) {
             setNotif('error', err.message);
@@ -886,7 +935,7 @@
                 setNotif('success', 'Assesseur retiré');
                 btn.closest('[data-assessor-id]')?.remove();
               } else {
-                setNotif('error', res?.error || 'Erreur');
+                setNotif('error', getApiError(res));
               }
             } catch (err) {
               setNotif('error', err.message);
@@ -1168,7 +1217,7 @@
                 // Refresh drawer
                 document.querySelector('[data-drawer="motions"]')?.click();
               } else {
-                setNotif('error', createRes?.error || createRes?.detail || 'Erreur');
+                setNotif('error', getApiError(createRes));
               }
             } catch (err) {
               setNotif('error', err.message);
@@ -1194,7 +1243,7 @@
                   // Refresh drawer
                   document.querySelector('[data-drawer="motions"]')?.click();
                 } else {
-                  setNotif('error', delRes?.error || 'Erreur');
+                  setNotif('error', getApiError(delRes));
                 }
               } catch (err) {
                 setNotif('error', err.message);
@@ -1301,7 +1350,7 @@
               // Refresh drawer
               document.querySelector('[data-drawer="members"]')?.click();
             } else {
-              setNotif('error', addRes?.error || addRes?.detail || 'Erreur');
+              setNotif('error', getApiError(addRes));
             }
           } catch (err) {
             setNotif('error', err.message);
@@ -1478,7 +1527,7 @@
           } else {
             msgBox.style.display = 'block';
             msgBox.className = 'alert alert-danger';
-            msgBox.textContent = res?.error || 'Erreur';
+            msgBox.textContent = getApiError(res);
           }
         } catch (err) {
           msgBox.style.display = 'block';
@@ -1543,6 +1592,181 @@
     });
   }
 
+  // ============================================================================
+  // INVITATIONS MANAGEMENT
+  // ============================================================================
+
+  const invitationsCard = document.getElementById('invitationsCard');
+  const invTotal = document.getElementById('invTotal');
+  const invSent = document.getElementById('invSent');
+  const invOpened = document.getElementById('invOpened');
+  const invBounced = document.getElementById('invBounced');
+  const invEngagement = document.getElementById('invEngagement');
+  const invOpenRate = document.getElementById('invOpenRate');
+  const invitationsOptions = document.getElementById('invitationsOptions');
+  const invTemplateSelect = document.getElementById('invTemplateSelect');
+  const scheduleGroup = document.getElementById('scheduleGroup');
+  const invScheduleAt = document.getElementById('invScheduleAt');
+
+  let invitationStats = {};
+  let isScheduleMode = false;
+
+  // Load invitation stats for current meeting
+  async function loadInvitationStats(meetingId) {
+    if (!invitationsCard) return;
+
+    try {
+      const { body } = await api(`/api/v1/invitations_stats.php?meeting_id=${meetingId}`);
+
+      if (body && body.ok && body.data) {
+        invitationStats = body.data;
+
+        const inv = body.data.invitations || {};
+        invTotal.textContent = inv.total || 0;
+        invSent.textContent = (inv.sent || 0) + (inv.opened || 0) + (inv.accepted || 0);
+        invOpened.textContent = (inv.opened || 0) + (inv.accepted || 0);
+        invBounced.textContent = inv.bounced || 0;
+
+        // Show engagement rate if there are sent emails
+        const totalSent = (inv.sent || 0) + (inv.opened || 0) + (inv.accepted || 0) + (inv.bounced || 0);
+        if (totalSent > 0) {
+          invEngagement.style.display = 'block';
+          invOpenRate.textContent = body.data.engagement?.open_rate + '%' || '0%';
+        } else {
+          invEngagement.style.display = 'none';
+        }
+      }
+    } catch (err) {
+      console.error('Invitation stats error:', err);
+    }
+  }
+
+  // Load email templates for dropdown
+  async function loadEmailTemplates() {
+    if (!invTemplateSelect) return;
+
+    try {
+      const { body } = await api('/api/v1/email_templates.php?type=invitation');
+
+      if (body && body.ok && body.data) {
+        const templates = body.data.templates || [];
+
+        invTemplateSelect.innerHTML = '<option value="">Template par defaut</option>';
+        templates.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = t.name + (t.is_default ? ' (defaut)' : '');
+          invTemplateSelect.appendChild(opt);
+        });
+      }
+    } catch (err) {
+      console.error('Templates load error:', err);
+    }
+  }
+
+  // Show/hide invitations options panel
+  function showInvitationsOptions(scheduleMode = false) {
+    if (!invitationsOptions) return;
+
+    isScheduleMode = scheduleMode;
+    invitationsOptions.style.display = 'block';
+    scheduleGroup.style.display = scheduleMode ? 'block' : 'none';
+
+    if (scheduleMode && invScheduleAt) {
+      // Set default schedule to tomorrow at 9:00
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(9, 0, 0, 0);
+      invScheduleAt.value = tomorrow.toISOString().slice(0, 16);
+    }
+
+    loadEmailTemplates();
+  }
+
+  function hideInvitationsOptions() {
+    if (invitationsOptions) {
+      invitationsOptions.style.display = 'none';
+    }
+  }
+
+  // Send invitations
+  async function sendInvitations() {
+    if (!currentMeetingId) return;
+
+    const templateId = invTemplateSelect?.value || null;
+    const recipientsRadio = document.querySelector('input[name="invRecipients"]:checked');
+    const onlyUnsent = recipientsRadio?.value !== 'all';
+    const scheduledAt = isScheduleMode ? invScheduleAt?.value : null;
+
+    // Confirm before sending
+    const action = isScheduleMode ? 'programmer' : 'envoyer';
+    const target = onlyUnsent ? 'aux membres non encore invites' : 'a tous les membres';
+    if (!confirm(`Confirmer ${action} les invitations ${target} ?`)) return;
+
+    const btnConfirm = document.getElementById('btnConfirmSend');
+    if (btnConfirm) Shared.btnLoading(btnConfirm, true);
+
+    try {
+      const endpoint = isScheduleMode ? '/api/v1/invitations_schedule.php' : '/api/v1/invitations_send_bulk.php';
+      const payload = {
+        meeting_id: currentMeetingId,
+        only_unsent: onlyUnsent
+      };
+
+      if (templateId) {
+        payload.template_id = templateId;
+      }
+
+      if (isScheduleMode && scheduledAt) {
+        payload.scheduled_at = scheduledAt;
+      }
+
+      const { body } = await api(endpoint, payload);
+
+      if (body && (body.ok || body.data)) {
+        const count = body.data?.sent || body.data?.scheduled || body.sent || 0;
+        const msg = isScheduleMode
+          ? `${count} invitation(s) programmee(s)`
+          : `${count} invitation(s) envoyee(s)`;
+        setNotif('success', msg);
+        hideInvitationsOptions();
+        loadInvitationStats(currentMeetingId);
+      } else {
+        setNotif('error', getApiError(body));
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      if (btnConfirm) Shared.btnLoading(btnConfirm, false);
+    }
+  }
+
+  // Invitation button event listeners
+  const btnSendInvitations = document.getElementById('btnSendInvitations');
+  const btnScheduleInvitations = document.getElementById('btnScheduleInvitations');
+  const btnConfirmSend = document.getElementById('btnConfirmSend');
+  const btnCancelSend = document.getElementById('btnCancelSend');
+
+  if (btnSendInvitations) {
+    btnSendInvitations.addEventListener('click', () => {
+      showInvitationsOptions(false);
+    });
+  }
+
+  if (btnScheduleInvitations) {
+    btnScheduleInvitations.addEventListener('click', () => {
+      showInvitationsOptions(true);
+    });
+  }
+
+  if (btnConfirmSend) {
+    btnConfirmSend.addEventListener('click', sendInvitations);
+  }
+
+  if (btnCancelSend) {
+    btnCancelSend.addEventListener('click', hideInvitationsOptions);
+  }
+
   // Initial load
   loadMeetings();
 
@@ -1553,10 +1777,20 @@
         loadAttendanceStats(currentMeetingId),
         loadQuorumStatus(currentMeetingId),
         loadMotions(currentMeetingId),
-        loadWizardStatus(currentMeetingId)
+        loadWizardStatus(currentMeetingId),
+        loadInvitationStats(currentMeetingId)
       ]);
       updateStatusAlert();
     }
   }, 5000);
+
+  // Also load invitation stats when meeting changes
+  const originalLoadMeetingContext = loadMeetingContext;
+  window.addEventListener('load', () => {
+    // Override to add invitation stats loading
+    if (currentMeetingId) {
+      loadInvitationStats(currentMeetingId);
+    }
+  });
 
 })();

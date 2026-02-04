@@ -473,15 +473,15 @@
       <div class="vote-buttons-container">
         <div class="vote-buttons">
           <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled>
-            <span class="vote-btn-icon">&#128077;</span>
+            <span class="vote-btn-icon"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-up"></use></svg></span>
             <span>Pour</span>
           </button>
           <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="against" disabled>
-            <span class="vote-btn-icon">&#128078;</span>
+            <span class="vote-btn-icon"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-down"></use></svg></span>
             <span>Contre</span>
           </button>
           <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstain" disabled>
-            <span class="vote-btn-icon">&#9995;</span>
+            <span class="vote-btn-icon"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-hand"></use></svg></span>
             <span>Abstention</span>
           </button>
         </div>
@@ -540,11 +540,12 @@
     const btnConfirm = document.getElementById('btnConfirm');
     let pendingVote = null;
 
-    // Choice labels and icons
+    // Choice labels and icons (SVG)
+    const svgIcon = (name) => `<svg class="icon icon-lg" style="vertical-align: middle;"><use href="/assets/icons.svg#icon-${name}"></use></svg>`;
     const choiceInfo = {
-      'for': { label: 'POUR', icon: '&#128077;', color: 'var(--color-success)' },
-      'against': { label: 'CONTRE', icon: '&#128078;', color: 'var(--color-danger)' },
-      'abstain': { label: 'ABSTENTION', icon: '&#9995;', color: 'var(--color-text-muted)' }
+      'for': { label: 'POUR', icon: svgIcon('thumbs-up'), color: 'var(--color-success)' },
+      'against': { label: 'CONTRE', icon: svgIcon('thumbs-down'), color: 'var(--color-danger)' },
+      'abstain': { label: 'ABSTENTION', icon: svgIcon('hand'), color: 'var(--color-text-muted)' }
     };
 
     // Vote button click -> show confirmation

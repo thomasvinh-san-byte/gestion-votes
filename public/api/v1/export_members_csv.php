@@ -1,10 +1,20 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * Export CSV des membres
+ *
+ * Génère un fichier CSV avec la liste des membres et leur présence
+ * formaté en français pour utilisation directe dans Excel ou autre tableur.
+ *
+ * Disponible uniquement après validation de la séance.
+ */
+
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
+use AgVote\Service\ExportService;
 
 api_require_role('operator');
 
@@ -32,42 +42,21 @@ if (empty($mt['validated_at'])) {
     exit;
 }
 
-$filename = "members_" . $meetingId . ".csv";
-header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename="' . $filename . '"');
-header('X-Content-Type-Options: nosniff');
+// Génération du fichier
+$filename = ExportService::generateFilename('membres', $mt['title'] ?? '');
+ExportService::initCsvOutput($filename);
 
-$sep = ';';
-$out = fopen('php://output', 'w');
-fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
+$out = ExportService::openCsvOutput();
 
-fputcsv($out, [
-  'Member ID',
-  'Nom',
-  'Actif',
-  'Pouvoir de vote',
-  'Mode présence',
-  'Entrée',
-  'Sortie',
-  'Représenté par (member_id)',
-  'Représenté par (nom)',
-], $sep);
+// En-têtes français
+ExportService::writeCsvRow($out, ExportService::getMembersHeaders());
 
+// Données formatées
 $memberRepo = new MemberRepository();
 $rows = $memberRepo->listExportForMeeting($meetingId, api_current_tenant_id());
 
 foreach ($rows as $r) {
-  fputcsv($out, [
-    (string)($r['member_id'] ?? ''),
-    (string)($r['full_name'] ?? ''),
-    (string)($r['is_active'] ?? '0'),
-    (string)($r['voting_power'] ?? 0),
-    (string)($r['attendance_mode'] ?? 'absent'),
-    (string)($r['checked_in_at'] ?? ''),
-    (string)($r['checked_out_at'] ?? ''),
-    (string)($r['proxy_to_member_id'] ?? ''),
-    (string)($r['proxy_to_name'] ?? ''),
-  ], $sep);
+    ExportService::writeCsvRow($out, ExportService::formatMemberRow($r));
 }
 
 fclose($out);

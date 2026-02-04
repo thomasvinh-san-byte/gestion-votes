@@ -32,7 +32,11 @@ function json_ok(array $data = [], int $code = 200): never {
 function json_err(string $error, int $code = 400, array $extra = []): never {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['ok' => false, 'error' => $error] + $extra, JSON_UNESCAPED_UNICODE);
+
+    // Enrichir avec le message français traduit
+    $enriched = \AgVote\Service\ErrorDictionary::enrichError($error, $extra);
+
+    echo json_encode(['ok' => false, 'error' => $error] + $enriched, JSON_UNESCAPED_UNICODE);
     exit;
 }
 

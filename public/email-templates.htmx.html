@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="fr" data-page-role="admin">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gestion des templates email - AG-VOTE">
+  <title>Templates Email — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    .templates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+
+    .template-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .template-card.is-default {
+      border-color: var(--color-primary);
+    }
+
+    .template-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .template-card-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .template-card-type {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      background: var(--color-bg-subtle);
+    }
+
+    .template-card-type.invitation { background: var(--color-success-subtle); color: var(--color-success); }
+    .template-card-type.reminder { background: var(--color-warning-subtle); color: var(--color-warning); }
+    .template-card-type.confirmation { background: var(--color-info-subtle); color: var(--color-info); }
+
+    .template-card-body {
+      padding: 1rem;
+    }
+
+    .template-card-subject {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .template-card-preview {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      max-height: 60px;
+      overflow: hidden;
+    }
+
+    .template-card-footer {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-bg-subtle);
+    }
+
+    /* Editor modal */
+    .template-editor {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .template-editor.active {
+      display: flex;
+    }
+
+    .template-editor-content {
+      background: var(--color-surface);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 1000px;
+      max-height: 90vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+    }
+
+    .template-editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .template-editor-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .template-editor-body {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .template-editor-form {
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .template-editor-preview {
+      border-left: 1px solid var(--color-border);
+      background: var(--color-bg-subtle);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-header {
+      padding: 0.75rem 1rem;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .preview-frame {
+      flex: 1;
+      border: none;
+      background: white;
+    }
+
+    .template-editor-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--color-border);
+    }
+
+    /* Variables helper */
+    .variables-section {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--color-bg-subtle);
+      border-radius: 8px;
+    }
+
+    .variables-section h4 {
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .variable-tag {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      margin: 0.125rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-family: monospace;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .variable-tag:hover {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+
+    .variable-tag:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar" data-include-sidebar data-page="settings"></aside>
+
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <a href="/admin.htmx.html" class="text-muted hover:text-current">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
+        </a>
+        <h1 class="page-title">Templates Email</h1>
+      </div>
+    </header>
+
+    <main class="app-main" style="padding: 1.5rem;">
+      <!-- Toolbar -->
+      <div class="flex items-center justify-between gap-4 mb-6 flex-wrap">
+        <div class="flex items-center gap-2">
+          <select class="form-input" id="filterType">
+            <option value="">Tous les types</option>
+            <option value="invitation">Invitation</option>
+            <option value="reminder">Rappel</option>
+            <option value="confirmation">Confirmation</option>
+            <option value="custom">Personnalise</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary" id="btnCreateDefaults">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh"></use></svg>
+            Creer templates par defaut
+          </button>
+          <button class="btn btn-primary" id="btnNewTemplate">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
+            Nouveau template
+          </button>
+        </div>
+      </div>
+
+      <!-- Templates grid -->
+      <div class="templates-grid" id="templatesGrid">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <svg class="icon" style="width: 4rem; height: 4rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
+        <h2>Aucun template</h2>
+        <p class="text-muted">Creez des templates email pour personnaliser vos invitations.</p>
+        <button class="btn btn-primary mt-4" id="btnEmptyCreate">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
+          Creer un template
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Template Editor Modal -->
+  <div class="template-editor" id="templateEditor">
+    <div class="template-editor-content">
+      <div class="template-editor-header">
+        <h2 id="editorTitle">Nouveau template</h2>
+        <button class="btn btn-icon" id="btnCloseEditor" title="Fermer">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg>
+        </button>
+      </div>
+
+      <div class="template-editor-body">
+        <div class="template-editor-form">
+          <input type="hidden" id="templateId">
+
+          <div class="form-group">
+            <label class="form-label">Nom du template *</label>
+            <input type="text" class="form-input" id="templateName" placeholder="Ex: Invitation formelle">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Type *</label>
+            <select class="form-input" id="templateType">
+              <option value="invitation">Invitation</option>
+              <option value="reminder">Rappel</option>
+              <option value="confirmation">Confirmation</option>
+              <option value="custom">Personnalise</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Sujet *</label>
+            <input type="text" class="form-input" id="templateSubject" placeholder="Ex: Invitation de vote - {{meeting_title}}">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Contenu HTML *</label>
+            <textarea class="form-input" id="templateBody" rows="12" placeholder="Contenu HTML du template..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label inline-flex items-center gap-2">
+              <input type="checkbox" id="templateIsDefault">
+              <span>Template par defaut pour ce type</span>
+            </label>
+          </div>
+
+          <!-- Variables helper -->
+          <div class="variables-section">
+            <h4>Variables disponibles (cliquez pour inserer)</h4>
+            <div id="variablesList">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="template-editor-preview">
+          <div class="preview-header">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-eye"></use></svg>
+            Previsualisation
+            <button class="btn btn-sm btn-secondary ml-auto" id="btnRefreshPreview">Actualiser</button>
+          </div>
+          <iframe class="preview-frame" id="previewFrame" sandbox="allow-same-origin"></iframe>
+        </div>
+      </div>
+
+      <div class="template-editor-footer">
+        <span id="editorStatus" class="text-sm text-muted"></span>
+        <button class="btn btn-secondary" id="btnCancelEdit">Annuler</button>
+        <button class="btn btn-primary" id="btnSaveTemplate">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/app.js"></script>
+  <script>
+    const API_BASE = '/api/v1';
+    let templates = [];
+    let availableVariables = {};
+
+    // DOM elements
+    const templatesGrid = document.getElementById('templatesGrid');
+    const emptyState = document.getElementById('emptyState');
+    const filterType = document.getElementById('filterType');
+    const templateEditor = document.getElementById('templateEditor');
+    const previewFrame = document.getElementById('previewFrame');
+    const variablesList = document.getElementById('variablesList');
+
+    // Load templates
+    async function loadTemplates() {
+      try {
+        const type = filterType.value;
+        const url = type
+          ? `${API_BASE}/email_templates.php?type=${type}&include_variables=1`
+          : `${API_BASE}/email_templates.php?include_variables=1`;
+
+        const resp = await fetch(url, { credentials: 'include' });
+        const data = await resp.json();
+
+        if (!data.ok) throw new Error(data.error || 'Erreur chargement');
+
+        templates = data.data.templates || [];
+        availableVariables = data.data.available_variables || {};
+
+        renderTemplates();
+        renderVariables();
+      } catch (err) {
+        console.error('Load templates error:', err);
+        window.showToast?.('Erreur chargement templates', 'error');
+      }
+    }
+
+    // Render templates grid
+    function renderTemplates() {
+      if (templates.length === 0) {
+        templatesGrid.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+
+      templatesGrid.innerHTML = templates.map(t => `
+        <div class="template-card ${t.is_default ? 'is-default' : ''}" data-id="${t.id}">
+          <div class="template-card-header">
+            <div class="template-card-title">
+              ${escapeHtml(t.name)}
+              ${t.is_default ? '<span class="badge badge-sm ml-2">Par defaut</span>' : ''}
+            </div>
+            <span class="template-card-type ${t.template_type}">${t.template_type}</span>
+          </div>
+          <div class="template-card-body">
+            <div class="template-card-subject">
+              <strong>Sujet:</strong> ${escapeHtml(t.subject)}
+            </div>
+            <div class="template-card-preview">
+              ${escapeHtml(stripHtml(t.body_html).substring(0, 150))}...
+            </div>
+          </div>
+          <div class="template-card-footer">
+            <button class="btn btn-sm btn-secondary flex-1" onclick="editTemplate('${t.id}')">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
+              Modifier
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="duplicateTemplate('${t.id}')" title="Dupliquer">
+              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-copy"></use></svg>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="deleteTemplate('${t.id}')" ${t.is_default ? 'disabled title="Impossible de supprimer le template par defaut"' : ''}>
+              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render variables helper
+    function renderVariables() {
+      variablesList.innerHTML = Object.entries(availableVariables).map(([v, desc]) => `
+        <span class="variable-tag" onclick="insertVariable('${v}')" title="${escapeHtml(desc)}">${v}</span>
+      `).join('');
+    }
+
+    // Insert variable at cursor
+    function insertVariable(variable) {
+      const textarea = document.getElementById('templateBody');
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+
+      textarea.value = text.substring(0, start) + variable + text.substring(end);
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd = start + variable.length;
+    }
+
+    // Open editor for new template
+    function openNewEditor() {
+      document.getElementById('templateId').value = '';
+      document.getElementById('templateName').value = '';
+      document.getElementById('templateType').value = 'invitation';
+      document.getElementById('templateSubject').value = 'Invitation de vote - {{meeting_title}}';
+      document.getElementById('templateBody').value = '';
+      document.getElementById('templateIsDefault').checked = false;
+      document.getElementById('editorTitle').textContent = 'Nouveau template';
+      document.getElementById('editorStatus').textContent = '';
+
+      templateEditor.classList.add('active');
+      updatePreview();
+    }
+
+    // Edit existing template
+    async function editTemplate(id) {
+      try {
+        const resp = await fetch(`${API_BASE}/email_templates.php?id=${id}`, { credentials: 'include' });
+        const data = await resp.json();
+
+        if (!data.ok) throw new Error(data.error || 'Template non trouve');
+
+        const t = data.data.template;
+
+        document.getElementById('templateId').value = t.id;
+        document.getElementById('templateName').value = t.name;
+        document.getElementById('templateType').value = t.template_type;
+        document.getElementById('templateSubject').value = t.subject;
+        document.getElementById('templateBody').value = t.body_html;
+        document.getElementById('templateIsDefault').checked = t.is_default;
+        document.getElementById('editorTitle').textContent = 'Modifier: ' + t.name;
+        document.getElementById('editorStatus').textContent = '';
+
+        templateEditor.classList.add('active');
+        updatePreview();
+      } catch (err) {
+        window.showToast?.('Erreur: ' + err.message, 'error');
+      }
+    }
+
+    // Save template
+    async function saveTemplate() {
+      const id = document.getElementById('templateId').value;
+      const name = document.getElementById('templateName').value.trim();
+      const type = document.getElementById('templateType').value;
+      const subject = document.getElementById('templateSubject').value.trim();
+      const bodyHtml = document.getElementById('templateBody').value.trim();
+      const isDefault = document.getElementById('templateIsDefault').checked;
+
+      if (!name || !subject || !bodyHtml) {
+        window.showToast?.('Veuillez remplir tous les champs obligatoires', 'error');
+        return;
+      }
+
+      document.getElementById('editorStatus').textContent = 'Enregistrement...';
+
+      try {
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `${API_BASE}/email_templates.php?id=${id}` : `${API_BASE}/email_templates.php`;
+
+        const resp = await fetch(url, {
+          method,
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            template_type: type,
+            subject,
+            body_html: bodyHtml,
+            is_default: isDefault
+          })
+        });
+
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.message || data.error || 'Erreur sauvegarde');
+
+        window.showToast?.('Template enregistre', 'success');
+        templateEditor.classList.remove('active');
+        loadTemplates();
+      } catch (err) {
+        document.getElementById('editorStatus').textContent = 'Erreur: ' + err.message;
+        window.showToast?.('Erreur: ' + err.message, 'error');
+      }
+    }
+
+    // Delete template
+    async function deleteTemplate(id) {
+      if (!confirm('Supprimer ce template ?')) return;
+
+      try {
+        const resp = await fetch(`${API_BASE}/email_templates.php?id=${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.message || data.error || 'Erreur suppression');
+
+        window.showToast?.('Template supprime', 'success');
+        loadTemplates();
+      } catch (err) {
+        window.showToast?.('Erreur: ' + err.message, 'error');
+      }
+    }
+
+    // Duplicate template
+    async function duplicateTemplate(id) {
+      const newName = prompt('Nom du nouveau template:');
+      if (!newName) return;
+
+      try {
+        const resp = await fetch(`${API_BASE}/email_templates.php`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'duplicate',
+            source_id: id,
+            new_name: newName
+          })
+        });
+
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.message || data.error || 'Erreur duplication');
+
+        window.showToast?.('Template duplique', 'success');
+        loadTemplates();
+      } catch (err) {
+        window.showToast?.('Erreur: ' + err.message, 'error');
+      }
+    }
+
+    // Create default templates
+    async function createDefaults() {
+      if (!confirm('Creer les templates par defaut (invitation et rappel) ?')) return;
+
+      try {
+        const resp = await fetch(`${API_BASE}/email_templates.php`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'create_defaults' })
+        });
+
+        const data = await resp.json();
+        if (!data.ok) throw new Error(data.message || data.error || 'Erreur creation');
+
+        window.showToast?.(`${data.data.count} templates crees`, 'success');
+        loadTemplates();
+      } catch (err) {
+        window.showToast?.('Erreur: ' + err.message, 'error');
+      }
+    }
+
+    // Update preview
+    async function updatePreview() {
+      const bodyHtml = document.getElementById('templateBody').value;
+      if (!bodyHtml) {
+        previewFrame.srcdoc = '<p style="padding:20px;color:#666;">Entrez du contenu HTML pour voir la previsualisation</p>';
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE}/email_templates_preview.php`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body_html: bodyHtml })
+        });
+
+        const data = await resp.json();
+        if (data.ok) {
+          previewFrame.srcdoc = data.data.preview_html;
+        }
+      } catch (err) {
+        console.error('Preview error:', err);
+      }
+    }
+
+    // Helpers
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function stripHtml(html) {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      return div.textContent || '';
+    }
+
+    // Event listeners
+    document.getElementById('btnNewTemplate').addEventListener('click', openNewEditor);
+    document.getElementById('btnEmptyCreate').addEventListener('click', openNewEditor);
+    document.getElementById('btnCloseEditor').addEventListener('click', () => templateEditor.classList.remove('active'));
+    document.getElementById('btnCancelEdit').addEventListener('click', () => templateEditor.classList.remove('active'));
+    document.getElementById('btnSaveTemplate').addEventListener('click', saveTemplate);
+    document.getElementById('btnCreateDefaults').addEventListener('click', createDefaults);
+    document.getElementById('btnRefreshPreview').addEventListener('click', updatePreview);
+    filterType.addEventListener('change', loadTemplates);
+
+    // Debounced preview update
+    let previewTimeout;
+    document.getElementById('templateBody').addEventListener('input', () => {
+      clearTimeout(previewTimeout);
+      previewTimeout = setTimeout(updatePreview, 500);
+    });
+
+    // Close modal on escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && templateEditor.classList.contains('active')) {
+        templateEditor.classList.remove('active');
+      }
+    });
+
+    // Close modal on backdrop click
+    templateEditor.addEventListener('click', (e) => {
+      if (e.target === templateEditor) {
+        templateEditor.classList.remove('active');
+      }
+    });
+
+    // Init
+    loadTemplates();
+  </script>
+</body>
+</html>

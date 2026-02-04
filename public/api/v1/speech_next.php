@@ -24,9 +24,12 @@ try {
         throw new InvalidArgumentException('meeting_id requis');
     }
     
+    // Pass tenant context for security validation
+    $tenantId = api_current_tenant_id();
+
     // Terminer l'orateur courant et passer au suivant
     // La méthode grant() sans memberId prend automatiquement le prochain
-    $result = SpeechService::grant($meetingId);
+    $result = SpeechService::grant($meetingId, null, $tenantId);
     
     api_ok($result);
     

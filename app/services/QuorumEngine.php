@@ -37,13 +37,24 @@ final class QuorumEngine
         ];
     }
 
-    public static function computeForMeeting(string $meetingId): array
+    /**
+     * Compute quorum for a meeting.
+     * @param string $meetingId Meeting ID
+     * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
+     */
+    public static function computeForMeeting(string $meetingId, ?string $expectedTenantId = null): array
     {
         $meetingId = trim($meetingId);
         if ($meetingId === '') throw new InvalidArgumentException('meeting_id obligatoire');
 
         $meetingRepo = new MeetingRepository();
-        $row = $meetingRepo->findById($meetingId);
+
+        // Use tenant-isolated query if tenant context is provided
+        if ($expectedTenantId !== null && $expectedTenantId !== '') {
+            $row = $meetingRepo->findByIdForTenant($meetingId, $expectedTenantId);
+        } else {
+            $row = $meetingRepo->findById($meetingId);
+        }
         if (!$row) throw new RuntimeException('Séance introuvable');
 
         $policyId = (string)($row['quorum_policy_id'] ?? '');

@@ -159,6 +159,13 @@
       return;
     }
 
+    // Validate email format
+    if (email && !Utils.isValidEmail(email)) {
+      setNotif('error', 'Format d\'email invalide');
+      document.getElementById('edit_email_' + id)?.focus();
+      return;
+    }
+
     Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/members.php', { id, full_name, email: email || null, voting_power, is_active }, 'PATCH');
@@ -167,7 +174,7 @@
         setNotif('success', 'Membre mis à jour');
         loadMembers();
       } else {
-        setNotif('error', body?.error || 'Erreur mise à jour');
+        setNotif('error', getApiError(body, 'Erreur mise à jour'));
         Shared.btnLoading(btn, false);
       }
     } catch (err) {
@@ -196,7 +203,7 @@
       return;
     }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (email && !Utils.isValidEmail(email)) {
       setNotif('error', 'Format d\'email invalide');
       document.getElementById('mEmail').focus();
       return;
@@ -214,7 +221,7 @@
         document.getElementById('mPower').value = '1';
         loadMembers();
       } else {
-        setNotif('error', body?.error || 'Erreur création');
+        setNotif('error', getApiError(body, 'Erreur création'));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -288,7 +295,7 @@
         setNotif('success', `Import terminé: ${result.imported || 0} membres`);
         loadMembers();
       } else {
-        setNotif('error', result?.error || 'Erreur import');
+        setNotif('error', getApiError(result, 'Erreur import'));
       }
     } catch (err) {
       out.textContent = err.message;

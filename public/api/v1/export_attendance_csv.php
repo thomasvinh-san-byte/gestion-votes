@@ -1,10 +1,20 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * Export CSV des présences (émargement)
+ *
+ * Génère un fichier CSV avec les données de présence formatées en français
+ * pour utilisation directe dans Excel ou autre tableur.
+ *
+ * Disponible uniquement après validation de la séance.
+ */
+
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\AttendanceRepository;
+use AgVote\Service\ExportService;
 
 api_require_role('operator');
 
@@ -35,28 +45,18 @@ if (empty($mt['validated_at'])) {
 $attendanceRepo = new AttendanceRepository();
 $rows = $attendanceRepo->listExportForMeeting($meetingId);
 
-$filename = "presence_" . $meetingId . ".csv";
-header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename="' . $filename . '"');
-header('X-Content-Type-Options: nosniff');
+// Génération du fichier
+$filename = ExportService::generateFilename('presences', $mt['title'] ?? '');
+ExportService::initCsvOutput($filename);
 
-$sep = ';';
-$out = fopen('php://output', 'w');
-fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
+$out = ExportService::openCsvOutput();
 
-// Header
-fputcsv($out, ['Nom', 'Pouvoir', 'Présence', 'Arrivée', 'Départ', 'Mandataire', 'Procurations détenues'], $sep);
+// En-têtes français
+ExportService::writeCsvRow($out, ExportService::getAttendanceHeaders());
 
+// Données formatées
 foreach ($rows as $r) {
-    fputcsv($out, [
-        (string)($r['full_name'] ?? ''),
-        (string)($r['voting_power'] ?? ''),
-        (string)($r['attendance_mode'] ?? ''),
-        (string)($r['checked_in_at'] ?? ''),
-        (string)($r['checked_out_at'] ?? ''),
-        (string)($r['proxy_to_name'] ?? ''),
-        (string)($r['proxies_received'] ?? '0'),
-    ], $sep);
+    ExportService::writeCsvRow($out, ExportService::formatAttendanceRow($r));
 }
 
 fclose($out);

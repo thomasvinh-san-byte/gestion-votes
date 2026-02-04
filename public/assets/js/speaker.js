@@ -10,6 +10,8 @@
 
   let currentMeetingId = null;
   let pollingInterval = null;
+  let timerInterval = null;
+  let speakerStartedAt = null;
 
   // Get meeting_id from URL
   function getMeetingIdFromUrl() {
@@ -23,6 +25,45 @@
       const baseUrl = link.getAttribute('href').split('?')[0];
       link.href = meetingId ? `${baseUrl}?meeting_id=${meetingId}` : baseUrl;
     });
+  }
+
+  // Format elapsed time as MM:SS
+  function formatElapsedTime(startedAt) {
+    if (!startedAt) return '00:00';
+
+    const startTime = new Date(startedAt).getTime();
+    const now = Date.now();
+    const elapsedSeconds = Math.max(0, Math.floor((now - startTime) / 1000));
+
+    const minutes = Math.floor(elapsedSeconds / 60);
+    const seconds = elapsedSeconds % 60;
+
+    return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+  }
+
+  // Update timer display every second
+  function updateTimerDisplay() {
+    const timerEl = document.getElementById('speakerTimer');
+    if (timerEl && speakerStartedAt) {
+      timerEl.textContent = formatElapsedTime(speakerStartedAt);
+    }
+  }
+
+  // Start timer interval
+  function startTimer(startedAt) {
+    speakerStartedAt = startedAt;
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(updateTimerDisplay, 1000);
+    updateTimerDisplay();
+  }
+
+  // Stop timer interval
+  function stopTimer() {
+    speakerStartedAt = null;
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
   }
 
   // Load meeting info
@@ -50,21 +91,40 @@
 
       if (currentBody && currentBody.ok && currentBody.data) {
         const speaker = currentBody.data;
+        const queueCount = currentBody.data.queue_count || 0;
+
         currentDiv.innerHTML = `
           <div class="speech-item speaking">
-            <div>
-              <div class="font-semibold">${escapeHtml(speaker.member_name)}</div>
-              <div class="text-sm text-muted">Depuis ${formatDate(speaker.started_at)}</div>
+            <div style="display:flex;align-items:center;gap:1rem;">
+              <div style="flex:1;">
+                <div class="font-semibold" style="font-size:1.1rem;">${escapeHtml(speaker.member_name)}</div>
+                <div class="text-sm text-muted">A la parole</div>
+              </div>
+              <div style="text-align:center;">
+                <div id="speakerTimer" style="font-size:2rem;font-weight:700;font-family:monospace;color:var(--color-warning);">
+                  ${speaker.elapsed_formatted || '00:00'}
+                </div>
+                <div class="text-xs text-muted">Temps de parole</div>
+              </div>
             </div>
           </div>
         `;
+
+        // Start/update the timer with the speaker's start time
+        startTimer(speaker.started_at);
+
         speakingBadge.style.display = 'inline-flex';
+        speakingBadge.innerHTML = `<span class="pulse-dot"></span> En cours`;
         btnEnd.disabled = false;
       } else {
+        stopTimer();
+        const queueCount = currentBody?.queue_count || 0;
+
         currentDiv.innerHTML = `
           <div class="text-center p-6 text-muted">
             <svg class="icon" style="width:2rem;height:2rem;margin-bottom:0.5rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-mic-off"></use></svg>
             <div>Personne n'a la parole</div>
+            ${queueCount > 0 ? `<div class="text-sm mt-2">${queueCount} personne(s) en attente</div>` : ''}
           </div>
         `;
         speakingBadge.style.display = 'none';
@@ -184,7 +244,7 @@
         setNotif('success', 'Parole accordée');
         loadSpeechData();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -204,7 +264,7 @@
         setNotif('success', 'Parole terminée');
         loadSpeechData();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -226,7 +286,7 @@
         setNotif('success', 'Parole au suivant');
         loadSpeechData();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -250,7 +310,7 @@
         setNotif('success', 'File vidée');
         loadSpeechData();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
       }
     } catch (err) {
       setNotif('error', err.message);
@@ -278,7 +338,7 @@
         setNotif('success', 'Vote clôturé');
         loadActiveMotion();
       } else {
-        setNotif('error', body?.error || 'Erreur');
+        setNotif('error', getApiError(body));
         Shared.btnLoading(btn, false);
       }
     } catch (err) {
@@ -423,6 +483,7 @@
   window.addEventListener('beforeunload', () => {
     if (pollingInterval) clearInterval(pollingInterval);
     if (meetingPollTimer) clearInterval(meetingPollTimer);
+    if (timerInterval) clearInterval(timerInterval);
   });
 
   init();

@@ -153,13 +153,49 @@
           </div>
         </div>
 
+        <!-- Export complet Excel -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-spreadsheet"></use></svg> Export complet Excel</h3>
+            <p class="card-description">Un fichier Excel avec toutes les données de la séance</p>
+          </div>
+          <div class="card-body">
+            <div class="flex gap-3 flex-wrap">
+              <a class="btn btn-primary" id="exportFullXlsx" href="#" target="_blank">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Export complet (Excel)
+              </a>
+              <a class="btn btn-secondary" id="exportFullXlsxWithVotes" href="#" target="_blank">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Export complet avec votes
+              </a>
+            </div>
+            <p class="text-sm text-secondary mt-3">Inclut : Résumé, Émargement, Résolutions (et votes si demandé)</p>
+          </div>
+        </div>
+
         <!-- Export buttons -->
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Autres exports</h3>
+            <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Exports individuels</h3>
             <p class="card-description">Disponibles après validation de la séance</p>
           </div>
           <div class="card-body">
+            <h4 class="text-sm font-semibold text-secondary mb-3">Format Excel (.xlsx)</h4>
+            <div class="export-grid mb-6">
+              <a class="export-btn" id="exportAttendanceXlsx" href="#" target="_blank">
+                <span class="export-btn-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg></span>
+                <span class="export-btn-label">Présences (Excel)</span>
+              </a>
+              <a class="export-btn" id="exportVotesXlsx" href="#" target="_blank">
+                <span class="export-btn-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg></span>
+                <span class="export-btn-label">Votes (Excel)</span>
+              </a>
+              <a class="export-btn" id="exportResultsXlsx" href="#" target="_blank">
+                <span class="export-btn-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg></span>
+                <span class="export-btn-label">Résultats (Excel)</span>
+              </a>
+            </div>
+
+            <h4 class="text-sm font-semibold text-secondary mb-3">Format CSV</h4>
             <div class="export-grid">
               <a class="export-btn" id="exportPV" href="#" target="_blank">
                 <span class="export-btn-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></span>
