@@ -6,6 +6,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Service\AttendancesService;
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MeetingRepository;
 
 try {
     api_require_role(['operator', 'trust', 'admin']);
@@ -17,6 +18,14 @@ try {
     }
 
     $tenantId = api_current_tenant_id();
+
+    // SECURITY: Verify meeting belongs to current tenant
+    $meetingRepo = new MeetingRepository();
+    $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+    if (!$meeting) {
+        api_fail('meeting_not_found', 404, ['detail' => 'Séance introuvable']);
+    }
+
     $list = AttendancesService::listForMeeting($meetingId, $tenantId);
     $summary = AttendancesService::summaryForMeeting($meetingId, $tenantId);
 

@@ -40,6 +40,31 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
+     * Trouve une séance par son slug (obfuscation URL).
+     */
+    public function findBySlugForTenant(string $slug, string $tenantId): ?array
+    {
+        return $this->selectOne(
+            "SELECT * FROM meetings WHERE slug = :slug AND tenant_id = :tenant_id",
+            [':slug' => $slug, ':tenant_id' => $tenantId]
+        );
+    }
+
+    /**
+     * Trouve une séance par ID ou slug (support dual).
+     * Détecte automatiquement si l'identifiant est un UUID ou un slug.
+     */
+    public function findByIdOrSlugForTenant(string $identifier, string $tenantId): ?array
+    {
+        // Vérifier si c'est un UUID
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
+            return $this->findByIdForTenant($identifier, $tenantId);
+        }
+        // Sinon, chercher par slug
+        return $this->findBySlugForTenant($identifier, $tenantId);
+    }
+
+    /**
      * Liste toutes les seances d'un tenant (pour meetings.php GET).
      */
     public function listByTenant(string $tenantId): array
@@ -60,6 +85,28 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
+     * Liste les séances actives (exclut validated et archived).
+     * Utilisé pour les listes déroulantes de sélection.
+     */
+    public function listActiveByTenant(string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT
+                id, tenant_id, title, description,
+                status::text AS status,
+                scheduled_at, started_at, ended_at,
+                location, quorum_policy_id, vote_policy_id,
+                president_name, convocation_no,
+                created_at, updated_at
+             FROM meetings
+             WHERE tenant_id = :tenant_id
+               AND status NOT IN ('validated', 'archived')
+             ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC",
+            [':tenant_id' => $tenantId]
+        );
+    }
+
+    /**
      * Liste compacte (pour meetings_index.php).
      */
     public function listByTenantCompact(string $tenantId, int $limit = 50): array
@@ -69,6 +116,23 @@ class MeetingRepository extends AbstractRepository
                     created_at, started_at, ended_at, archived_at, validated_at
              FROM meetings
              WHERE tenant_id = :tenant_id
+             ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC
+             LIMIT " . max(1, min($limit, 200)),
+            [':tenant_id' => $tenantId]
+        );
+    }
+
+    /**
+     * Liste compacte des séances actives (exclut validated et archived).
+     */
+    public function listActiveByTenantCompact(string $tenantId, int $limit = 50): array
+    {
+        return $this->selectAll(
+            "SELECT id AS meeting_id, id, title, status::text AS status,
+                    created_at, started_at, ended_at, archived_at, validated_at
+             FROM meetings
+             WHERE tenant_id = :tenant_id
+               AND status NOT IN ('validated', 'archived')
              ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC
              LIMIT " . max(1, min($limit, 200)),
             [':tenant_id' => $tenantId]

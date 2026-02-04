@@ -6,13 +6,16 @@ Source de vérité unique pour la base de données AG-VOTE.
 
 ```
 database/
-  schema.sql              Schéma PostgreSQL complet (35+ tables, idempotent)
+  schema-master.sql       Schéma complet consolidé (recommandé)
   setup.sh                Script d'initialisation automatique
-  migrations/             Migrations incrémentales (numérotées)
+  migrations/             Migrations incrémentales (pour mises à jour)
     001_admin_enhancements.sql
     002_rbac_meeting_states.sql
     003_meeting_roles.sql
     004_password_auth.sql
+    005_email_system.sql
+    006_member_groups.sql
+    20260204_add_slugs.sql
   seeds/                  Données de peuplement (numérotées, idempotent)
     01_minimal.sql        Tenant, politiques quorum/vote, users RBAC
     02_test_users.sql     Comptes de test (admin, operator, president, votant...)
@@ -21,6 +24,24 @@ database/
     05_test_simple.sql    Dataset : AG 20 membres, quorum simple
     06_test_weighted.sql  Dataset : copro 100 membres avec tantièmes
     07_test_incidents.sql Dataset : scénarios d'incidents
+```
+
+## Installation rapide (nouvelle base)
+
+Pour une nouvelle installation, utilisez le script maître consolidé :
+
+```bash
+# Créer le rôle et la base
+sudo -u postgres createuser agvote --pwprompt
+sudo -u postgres createdb agvote -O agvote
+
+# Schéma complet (inclut toutes les migrations)
+sudo -u postgres psql -d agvote -f database/schema-master.sql
+
+# Seeds (optionnel)
+PGPASSWORD=xxx psql -U agvote -d agvote -f database/seeds/01_minimal.sql
+PGPASSWORD=xxx psql -U agvote -d agvote -f database/seeds/02_test_users.sql
+PGPASSWORD=xxx psql -U agvote -d agvote -f database/seeds/03_demo.sql
 ```
 
 ## Installation automatique
@@ -42,30 +63,38 @@ sudo bash database/setup.sh --seed
 sudo bash database/setup.sh --reset
 ```
 
-## Installation manuelle
+## Mise à jour d'une base existante
+
+Si vous avez déjà une base en production, appliquez les migrations incrémentales :
 
 ```bash
-# 1. Créer le rôle et la base
-sudo -u postgres createuser vote_app --pwprompt
-sudo -u postgres createdb vote_app -O vote_app
+# Appliquer une migration spécifique
+psql -U agvote -d agvote -f database/migrations/006_member_groups.sql
 
-# 2. Schéma
-sudo -u postgres psql -d vote_app -f database/schema.sql
-
-# 3. Migrations
-sudo -u postgres psql -d vote_app -f database/migrations/001_admin_enhancements.sql
-sudo -u postgres psql -d vote_app -f database/migrations/002_rbac_meeting_states.sql
-sudo -u postgres psql -d vote_app -f database/migrations/003_meeting_roles.sql
-sudo -u postgres psql -d vote_app -f database/migrations/004_password_auth.sql
-
-# 4. Seeds (dans l'ordre)
-PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
-  -f database/seeds/01_minimal.sql
-PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
-  -f database/seeds/02_test_users.sql
-PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
-  -f database/seeds/03_demo.sql
+# Ou toutes les nouvelles migrations
+for f in database/migrations/*.sql; do
+  psql -U agvote -d agvote -f "$f"
+done
 ```
+
+## Contenu du schéma maître
+
+`schema-master.sql` inclut :
+
+- **Tables** : tenants, users, members, meetings, motions, ballots, etc.
+- **Migrations** : toutes les migrations consolidées (001-006 + slugs)
+- **Systèmes** :
+  - Email (templates, queue, rappels)
+  - Groupes de membres
+  - Slugs URL pour obfuscation
+  - RBAC avec rôles système et rôles de séance
+- **Données de référence** :
+  - `role_permissions` : permissions par rôle
+  - `meeting_state_transitions` : transitions d'état valides
+- **Vues** :
+  - `email_stats_by_meeting` : statistiques email
+  - `member_groups_with_count` : groupes avec compteurs
+  - `members_with_groups` : membres avec leurs groupes
 
 ## Seeds — détail
 

@@ -250,7 +250,7 @@
 
   async function loadMeetingSelects() {
     try {
-      const r = await api('/api/v1/meetings.php');
+      const r = await api('/api/v1/meetings.php?active_only=1');
       if (r.body && r.body.ok && r.body.data) {
         _meetings = r.body.data.items || r.body.data || [];
         const meetingSel = document.getElementById('mrMeeting');

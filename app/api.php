@@ -59,10 +59,37 @@ function api_is_uuid(string $v): bool {
     );
 }
 
+/**
+ * Vérifie si une chaîne ressemble à un slug (non-UUID, alphanumérique avec tirets).
+ */
+function api_is_slug(string $v): bool {
+    return (bool)preg_match('/^[a-zA-Z0-9][a-zA-Z0-9-]{2,48}[a-zA-Z0-9]$/', $v)
+        && !api_is_uuid($v);
+}
+
+/**
+ * Vérifie si une chaîne est un identifiant valide (UUID ou slug).
+ */
+function api_is_identifier(string $v): bool {
+    return api_is_uuid($v) || api_is_slug($v);
+}
+
 function api_require_uuid(array $in, string $key): string {
     $v = trim((string)($in[$key] ?? ''));
     if ($v === '' || !api_is_uuid($v)) {
         api_fail('missing_or_invalid_uuid', 400, ['field' => $key, 'expected' => 'uuid']);
+    }
+    return $v;
+}
+
+/**
+ * Exige un identifiant (UUID ou slug) dans les données d'entrée.
+ * Permet une obfuscation URL tout en supportant les anciens UUIDs.
+ */
+function api_require_identifier(array $in, string $key): string {
+    $v = trim((string)($in[$key] ?? ''));
+    if ($v === '' || !api_is_identifier($v)) {
+        api_fail('missing_or_invalid_identifier', 400, ['field' => $key, 'expected' => 'uuid ou slug']);
     }
     return $v;
 }

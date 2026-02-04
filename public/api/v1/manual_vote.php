@@ -38,7 +38,8 @@ if (is_string($ct) && stripos($ct, 'application/json') !== false) {
     $data = $_POST ?? [];
 }
 
-$tenantId  = (string)($data['tenant_id'] ?? api_current_tenant_id());
+// SECURITY: Always use current authenticated tenant - never from input
+$tenantId  = api_current_tenant_id();
 $meetingId = trim((string)($data['meeting_id'] ?? ''));
 $motionId  = trim((string)($data['motion_id'] ?? ''));
 $memberId  = trim((string)($data['member_id'] ?? ''));

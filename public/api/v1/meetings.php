@@ -25,8 +25,13 @@ try {
             }
             api_ok($meeting);
         }
-        // List all meetings
-        $rows = $repo->listByTenant(api_current_tenant_id());
+        // List meetings - filter by active_only if requested
+        $activeOnly = filter_var($_GET['active_only'] ?? '0', FILTER_VALIDATE_BOOLEAN);
+        if ($activeOnly) {
+            $rows = $repo->listActiveByTenant(api_current_tenant_id());
+        } else {
+            $rows = $repo->listByTenant(api_current_tenant_id());
+        }
         api_ok(['meetings' => $rows]);
 
     } elseif ($method === 'POST') {

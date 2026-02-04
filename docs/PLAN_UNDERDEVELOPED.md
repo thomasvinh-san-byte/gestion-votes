@@ -10,18 +10,18 @@ Suite à l'audit fonctionnel complet, l'application AG-Vote est **production-rea
 
 ### Classement des lacunes
 
-| Priorité | Domaine | Impact | Effort |
-|----------|---------|--------|--------|
-| P1 | Consolidation UX opérateur | Élevé | Moyen |
-| P1 | Groupes de membres | Élevé | Faible |
-| P2 | Calendrier des séances | Moyen | Moyen |
-| P2 | Analytics avancés | Moyen | Moyen |
-| P2 | Temps réel (WebSocket) | Moyen | Élevé |
-| P3 | Multi-langue | Faible | Moyen |
-| P3 | Séances récurrentes | Faible | Moyen |
-| P3 | Champs personnalisés | Faible | Moyen |
-| P4 | Application mobile | Faible | Élevé |
-| P4 | Mode hors-ligne | Faible | Élevé |
+| Priorité | Domaine | Impact | Effort | Statut |
+|----------|---------|--------|--------|--------|
+| P1 | Consolidation UX opérateur | Élevé | Moyen | En cours |
+| P1 | Groupes de membres | Élevé | Faible | ✅ Fait |
+| P2 | Calendrier des séances | Moyen | Moyen | ✅ Fait |
+| P2 | Analytics avancés | Moyen | Moyen | ✅ Fait |
+| P2 | Temps réel (WebSocket) | Moyen | Élevé | À faire |
+| P3 | Multi-langue | Faible | Moyen | À faire |
+| P3 | Séances récurrentes | Faible | Moyen | À faire |
+| P3 | Champs personnalisés | Faible | Moyen | À faire |
+| P4 | Application mobile | Faible | Élevé | À faire |
+| P4 | Mode hors-ligne | Faible | Élevé | À faire |
 
 ---
 
@@ -67,33 +67,35 @@ Unifier toutes les actions dans une console opérateur unique avec navigation pa
 
 ---
 
-### 1.2 Groupes et catégories de membres
+### 1.2 Groupes et catégories de membres ✅ FAIT
 
-**Problème actuel** :
-Pas de moyen de regrouper les membres (collèges électoraux, catégories, départements).
+**Statut** : Implémenté
 
-**Impact** :
-- Impossible de filtrer les présences par groupe
-- Pas de quorum par collège
-- Rapports non segmentés
+**Implémentation réalisée** :
+- Migration : `database/migrations/006_member_groups.sql`
+- API : `public/api/v1/member_groups.php`, `member_group_assignments.php`
+- Repository : `app/Repository/MemberGroupRepository.php`
+- Vues SQL : `member_groups_with_count`, `members_with_groups`
+- Support import CSV avec colonne groupe
 
-**Solution proposée** :
+**Tables créées** :
 
 ```sql
 CREATE TABLE member_groups (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL REFERENCES tenants(id),
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    color VARCHAR(7), -- #FF5733
+    color VARCHAR(7) DEFAULT '#6366f1',
     sort_order INT DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
+    is_active BOOLEAN DEFAULT true,
     UNIQUE(tenant_id, name)
 );
 
 CREATE TABLE member_group_assignments (
     member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
     group_id UUID NOT NULL REFERENCES member_groups(id) ON DELETE CASCADE,
+    assigned_by UUID REFERENCES users(id),
     PRIMARY KEY (member_id, group_id)
 );
 ```
@@ -135,30 +137,30 @@ public/meetings.htmx.html (toggle grille/calendrier)
 
 ---
 
-### 2.2 Analytics et tableaux de bord avancés
+### 2.2 Analytics et tableaux de bord avancés ✅ FAIT
 
-**Problème actuel** :
-KPIs basiques uniquement (comptages simples).
+**Statut** : Implémenté
 
-**Solution proposée** :
-Dashboard avec métriques avancées et graphiques.
+**Implémentation réalisée** :
+- Page : `public/analytics.htmx.html`
+- API : `public/api/v1/analytics.php`
+- Bibliothèque graphiques : Chart.js (CDN)
 
-**Métriques à ajouter** :
+**Métriques implémentées** :
 
 | Métrique | Description |
 |----------|-------------|
-| Taux de participation | % présents sur eligible, évolution |
-| Résolutions adoptées/rejetées | Ratio, tendance |
-| Temps moyen par vote | Durée ouverture→fermeture |
-| Procurations actives | Évolution, plafond |
-| Quorum historique | Tendance sur N séances |
-| Top votants | Membres les plus actifs |
+| Taux de participation | % présents sur éligibles, évolution par séance |
+| Résolutions adoptées/rejetées | Ratio, graphique en donut, tendance par séance |
+| Temps moyen par vote | Durée ouverture→fermeture, distribution |
+| Top votants | Membres les plus actifs avec nombre de votes |
 | Délais de vote | Distribution des temps de réponse |
 
-**Implémentation** :
-- Bibliothèque graphiques : Chart.js (MIT, léger)
-- Nouvelle page : `analytics.htmx.html`
-- API : `GET /api/v1/analytics.php?type=participation&period=year`
+**Fonctionnalités** :
+- Filtrage par période (mois, trimestre, année, tout)
+- Graphiques interactifs (ligne, barres, donut)
+- Tableaux de données détaillés
+- Vue d'ensemble avec KPIs principaux
 
 **Effort estimé** : 5 jours
 
@@ -388,15 +390,15 @@ Cache local avec synchronisation.
 
 ### Sprint 1 (2 semaines)
 - [x] Audit fonctionnel
-- [ ] Groupes de membres (P1)
+- [x] Groupes de membres (P1) ✅
 - [ ] Début consolidation UX
 
 ### Sprint 2 (2 semaines)
 - [ ] Fin consolidation UX opérateur (P1)
-- [ ] Calendrier des séances (P2)
+- [x] Calendrier des séances (P2) ✅
 
 ### Sprint 3 (2 semaines)
-- [ ] Analytics avancés (P2)
+- [x] Analytics avancés (P2) ✅
 - [ ] Templates emails (voir PLAN_INVITATIONS.md)
 
 ### Sprint 4 (2 semaines)
@@ -438,7 +440,7 @@ Cache local avec synchronisation.
 AG-Vote est une application mature et fonctionnelle pour les assemblées générales et votes formels. Les améliorations identifiées sont des **enrichissements** et non des **corrections critiques**.
 
 **Recommandations immédiates** (P1) :
-1. Implémenter les groupes de membres (3 jours)
+1. ~~Implémenter les groupes de membres (3 jours)~~ ✅ Fait
 2. Consolider l'interface opérateur (5 jours)
 
 **Recommandations à moyen terme** (P2) :
