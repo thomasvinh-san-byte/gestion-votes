@@ -317,7 +317,48 @@
       height: 64px;
       margin-bottom: var(--space-4);
       color: var(--color-text-muted);
-      animation: spin 8s linear infinite;
+    }
+
+    .clock-face {
+      stroke: currentColor;
+      fill: none;
+    }
+
+    .clock-hand {
+      stroke: currentColor;
+      stroke-linecap: round;
+      transform-origin: 12px 12px;
+    }
+
+    .clock-hand-hour {
+      stroke-width: 2;
+      animation: clock-hour 43200s linear infinite; /* 12h */
+    }
+
+    .clock-hand-minute {
+      stroke-width: 1.5;
+      animation: clock-minute 3600s linear infinite; /* 1h */
+    }
+
+    .clock-hand-second {
+      stroke-width: 1;
+      stroke: var(--color-primary);
+      animation: clock-second 60s linear infinite;
+    }
+
+    @keyframes clock-hour {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes clock-minute {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes clock-second {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     .waiting-title {
@@ -437,12 +478,25 @@
 
   <!-- Waiting state -->
   <div class="waiting-state" id="waiting_state">
-    <svg class="waiting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="12" cy="12" r="10"/>
-      <polyline points="12 6 12 12 16 14"/>
+    <svg class="waiting-icon" viewBox="0 0 24 24" fill="none">
+      <!-- Cadran -->
+      <circle class="clock-face" cx="12" cy="12" r="10" stroke-width="1.5"/>
+      <!-- Repères heures (12, 3, 6, 9) -->
+      <line class="clock-face" x1="12" y1="3" x2="12" y2="5" stroke-width="1"/>
+      <line class="clock-face" x1="21" y1="12" x2="19" y2="12" stroke-width="1"/>
+      <line class="clock-face" x1="12" y1="21" x2="12" y2="19" stroke-width="1"/>
+      <line class="clock-face" x1="3" y1="12" x2="5" y2="12" stroke-width="1"/>
+      <!-- Aiguille des heures -->
+      <line class="clock-hand clock-hand-hour" x1="12" y1="12" x2="12" y2="7"/>
+      <!-- Aiguille des minutes -->
+      <line class="clock-hand clock-hand-minute" x1="12" y1="12" x2="12" y2="5"/>
+      <!-- Aiguille des secondes -->
+      <line class="clock-hand clock-hand-second" x1="12" y1="12" x2="12" y2="4"/>
+      <!-- Centre -->
+      <circle cx="12" cy="12" r="1" fill="currentColor"/>
     </svg>
     <h3 class="waiting-title">En attente</h3>
-    <p class="waiting-text">Aucune resolution ouverte</p>
+    <p class="waiting-text">Aucune résolution ouverte</p>
   </div>
 
   <!-- Secret vote -->
