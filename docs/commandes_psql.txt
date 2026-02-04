@@ -1,3 +1,0 @@
-sudo cp database/setup_bdd_postgre.sql /tmp/setup_bdd_postgre.sql
-sudo chown postgres:postgres /tmp/setup_bdd_postgre.sql
-sudo -u postgres psql -d vote_app -f /tmp/setup_bdd_postgre.sql > test.txt 2>&1

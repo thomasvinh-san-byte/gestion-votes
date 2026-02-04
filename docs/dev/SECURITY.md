@@ -1,4 +1,4 @@
-# 🔒 SECURITY.md - Documentation Sécurité AG-VOTE
+# Sécurité — AG-VOTE
 
 ## Table des matières
 

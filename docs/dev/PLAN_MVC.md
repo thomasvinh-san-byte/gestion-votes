@@ -1,46 +1,46 @@
 # Plan de migration MVC
 
-Ce document decrit la migration de l'architecture actuelle (endpoint-centric)
-vers un MVC pragmatique a 3 couches. La migration est incrementale : on peut
-convertir un endpoint a la fois sans casser l'existant.
+Ce document décrit la migration de l'architecture actuelle (endpoint-centric)
+vers un MVC pragmatique à 3 couches. La migration est incrémentale : on peut
+convertir un endpoint à la fois sans casser l'existant.
 
 ---
 
-## Etat actuel
+## État actuel
 
 ```
 public/api/v1/*.php  →  [SQL direct OU Service]  →  PostgreSQL
 ```
 
-| Metrique | Valeur |
+| Métrique | Valeur |
 |----------|--------|
 | Endpoints | 118 fichiers |
 | SQL inline dans endpoints | 84 (71%) |
-| Endpoints deleguant a un service | 34 (29%) |
+| Endpoints déléguant à un service | 34 (29%) |
 | Services | 17 classes statiques (3 300 lignes) |
 | Repositories | 0 |
-| DTOs / Entites | 0 |
-| Injection de dependances | Non (global `$pdo`) |
+| DTOs / Entités | 0 |
+| Injection de dépendances | Non (global `$pdo`) |
 
-**Probleme** : 71% des endpoints melangent validation HTTP, logique metier
-et requetes SQL dans le meme fichier.
+**Problème** : 71% des endpoints mélangent validation HTTP, logique métier
+et requêtes SQL dans le même fichier.
 
 ---
 
 ## Architecture cible
 
 ```
-Endpoint (Controller)  →  Service (Logique metier)  →  Repository (SQL)
+Endpoint (Controller)  →  Service (Logique métier)  →  Repository (SQL)
        ↓                         ↓                          ↓
-   Validation HTTP          Regles metier           Requetes PostgreSQL
-   Auth / CSRF              Exceptions typees       Retourne des arrays
+   Validation HTTP          Règles métier           Requêtes PostgreSQL
+   Auth / CSRF              Exceptions typées       Retourne des arrays
    Response JSON            Aucun SQL               Aucune logique
 ```
 
-**Regles strictes :**
+**Règles strictes :**
 - Un endpoint ne contient JAMAIS de SQL
 - Un service ne contient JAMAIS de SQL — il appelle un Repository
-- Un repository ne contient JAMAIS de logique metier
+- Un repository ne contient JAMAIS de logique métier
 - `audit_log()` reste dans l'endpoint (couche HTTP)
 
 ---
@@ -49,7 +49,7 @@ Endpoint (Controller)  →  Service (Logique metier)  →  Repository (SQL)
 
 ```
 app/
-  Repository/                    # NOUVEAU — acces donnees
+  Repository/                    # NOUVEAU — accès données
     AbstractRepository.php       # Classe de base (PDO, helpers)
     MeetingRepository.php
     MotionRepository.php
@@ -65,21 +65,21 @@ app/
     QuorumCalculationRepository.php
     VoteCalculationRepository.php
     SpeechRepository.php
-  services/                      # REFACTORISE — logique metier pure
+  services/                      # REFACTORISÉ — logique métier pure
     BallotsService.php           # Utilise BallotRepository + MemberRepository
     AttendancesService.php       # Utilise AttendanceRepository
     QuorumEngine.php             # Utilise QuorumCalculationRepository
     VoteEngine.php               # Utilise VoteCalculationRepository
     NotificationsService.php     # Utilise NotificationRepository
     ...
-  Core/                          # INCHANGE — securite
+  Core/                          # INCHANGÉ — sécurité
     Security/AuthMiddleware.php
     Security/CsrfMiddleware.php
     Security/RateLimiter.php
     Validation/InputValidator.php
   bootstrap.php                  # Ajoute : autoload repositories
-  api.php                        # INCHANGE
-public/api/v1/                   # REFACTORISE — thin controllers
+  api.php                        # INCHANGÉ
+public/api/v1/                   # REFACTORISÉ — thin controllers
   meetings.php                   # 10-20 lignes max
   motions.php
   ...
@@ -89,11 +89,11 @@ public/api/v1/                   # REFACTORISE — thin controllers
 
 ## Phases de migration
 
-### Phase 0 — Fondation (prerequis)
+### Phase 0 — Fondation (prérequis)
 
 **Objectif** : poser les bases sans toucher aux endpoints existants.
 
-1. **AbstractRepository** : classe de base avec acces PDO
+1. **AbstractRepository** : classe de base avec accès PDO
 
 ```php
 // app/Repository/AbstractRepository.php
@@ -146,13 +146,13 @@ class AbstractRepository {
 
 3. **bootstrap.php** : ajouter `require vendor/autoload.php`
 
-**Livrable** : AbstractRepository + autoload. Zero changement fonctionnel.
+**Livrable** : AbstractRepository + autoload. Zéro changement fonctionnel.
 
 ---
 
 ### Phase 1 — Domaines simples (CRUD)
 
-**Objectif** : migrer les endpoints simples pour etablir le pattern.
+**Objectif** : migrer les endpoints simples pour établir le pattern.
 
 | Domaine | Endpoints | Repository | Effort |
 |---------|-----------|------------|--------|
@@ -175,7 +175,7 @@ if ($method === 'GET') {
 }
 ```
 
-**Apres :**
+**Après :**
 
 ```php
 api_require_role('operator');
@@ -186,11 +186,11 @@ if ($method === 'GET') {
 }
 ```
 
-**Livrable** : 4 repositories, 13 endpoints migres, tests unitaires.
+**Livrable** : 4 repositories, 13 endpoints migrés, tests unitaires.
 
 ---
 
-### Phase 2 — Domaines coeur (Meetings + Motions)
+### Phase 2 — Domaines cœur (Meetings + Motions)
 
 **Objectif** : migrer le domaine le plus volumineux (29 endpoints).
 
@@ -199,11 +199,11 @@ if ($method === 'GET') {
 | Meetings | 20 fichiers | MeetingRepository | 5 jours |
 | Motions | 9 fichiers | MotionRepository | 3 jours |
 
-Les meetings sont le domaine le plus complexe : machine d'etats
+Les meetings sont le domaine le plus complexe : machine d'états
 (draft → scheduled → frozen → live → closed → validated → archived),
 transitions, validation, statistiques, rapports.
 
-**MeetingRepository — methodes cles :**
+**MeetingRepository — méthodes clés :**
 
 ```
 findById(id, tenantId): ?array
@@ -218,7 +218,7 @@ getSummary(id): array
 getReadyCheck(id): array
 ```
 
-**Livrable** : 2 repositories, 29 endpoints migres, tests integration workflow.
+**Livrable** : 2 repositories, 29 endpoints migrés, tests intégration workflow.
 
 ---
 
@@ -232,8 +232,8 @@ getReadyCheck(id): array
 | VoteEngine | VoteCalculationRepository | 254 | 1.5 jours |
 | OfficialResultsService | VoteCalculationRepository | 288 | 1 jour |
 
-**Principe** : le service garde la logique de calcul (seuils, regles de
-majorite), le repository fournit les donnees brutes (comptages, aggregations).
+**Principe** : le service garde la logique de calcul (seuils, règles de
+majorité), le repository fournit les données brutes (comptages, agrégations).
 
 ```
 QuorumEngine.compute(motionId)
@@ -242,7 +242,7 @@ QuorumEngine.compute(motionId)
   → calcul du seuil (logique pure, testable sans BD)
 ```
 
-**Livrable** : 2 repositories, 3 services refactorises, tests unitaires calcul.
+**Livrable** : 2 repositories, 3 services refactorisés, tests unitaires calcul.
 
 ---
 
@@ -261,7 +261,7 @@ QuorumEngine.compute(motionId)
 | Quorum config | 4 fichiers | PolicyRepository | 0.5 jour |
 | Notifications | 5 fichiers | NotificationRepository | 1 jour |
 
-**Livrable** : 8 repositories, ~55 endpoints migres.
+**Livrable** : 8 repositories, ~55 endpoints migrés.
 
 ---
 
@@ -271,17 +271,17 @@ QuorumEngine.compute(motionId)
 
 1. Supprimer les appels `db_select_*()` / `db_execute()` des endpoints
 2. Supprimer `global $pdo` des services
-3. Verifier que TOUT le SQL est dans `app/Repository/`
-4. Marquer les helpers `db_*()` comme deprecated (garder pour compatibilite)
-5. Audit securite (aucune regression AuthMiddleware/CSRF)
+3. Vérifier que TOUT le SQL est dans `app/Repository/`
+4. Marquer les helpers `db_*()` comme deprecated (garder pour compatibilité)
+5. Audit sécurité (aucune régression AuthMiddleware/CSRF)
 
 ---
 
 ## Inventaire par domaine
 
-### Endpoints deja propres (34 — aucun travail)
+### Endpoints déjà propres (34 — aucun travail)
 
-| Fichier | Service utilise |
+| Fichier | Service utilisé |
 |---------|-----------------|
 | ballots_cast.php | BallotsService |
 | ballots_result.php | VoteEngine |
@@ -295,9 +295,9 @@ QuorumEngine.compute(motionId)
 | whoami.php | - |
 | + ~14 autres | divers |
 
-### Endpoints a migrer (84 — par priorite)
+### Endpoints à migrer (84 — par priorité)
 
-**Critique** (coeur metier, 29 fichiers) :
+**Critique** (cœur métier, 29 fichiers) :
 - meetings.php, meetings_update.php, meetings_archive.php
 - meeting_transition.php, meeting_status.php, meeting_validate.php
 - meeting_consolidate.php, meeting_ready_check.php, meeting_stats.php
@@ -331,16 +331,16 @@ QuorumEngine.compute(motionId)
 
 ---
 
-## Regles de migration par endpoint
+## Règles de migration par endpoint
 
-Pour chaque endpoint a migrer :
+Pour chaque endpoint à migrer :
 
-1. **Identifier** les requetes SQL dans le fichier
-2. **Creer** la methode correspondante dans le Repository
+1. **Identifier** les requêtes SQL dans le fichier
+2. **Créer** la méthode correspondante dans le Repository
 3. **Remplacer** l'appel SQL par l'appel Repository
-4. **Verifier** que l'endpoint ne contient plus de SQL
+4. **Vérifier** que l'endpoint ne contient plus de SQL
 5. **Tester** via cURL que le comportement est identique
-6. **Committer** endpoint par endpoint (petit diff, facile a relire)
+6. **Committer** endpoint par endpoint (petit diff, facile à relire)
 
 ---
 
@@ -348,12 +348,12 @@ Pour chaque endpoint a migrer :
 
 | Composant | Raison |
 |-----------|--------|
-| app/Core/Security/* | Securite deja bien isolee |
-| app/Core/Validation/* | Validation deja bien isolee |
-| api.php | Helpers de reponse inchanges |
+| app/Core/Security/* | Sécurité déjà bien isolée |
+| app/Core/Validation/* | Validation déjà bien isolée |
+| api.php | Helpers de réponse inchangés |
 | Format API `{"ok": true, "data": {...}}` | Aucun breaking change |
-| database/schema.sql | Schema SQL inchange |
-| public/*.html | Frontend inchange |
+| database/schema.sql | Schéma SQL inchangé |
+| public/*.html | Frontend inchangé |
 
 ---
 
@@ -371,14 +371,14 @@ Pour chaque endpoint a migrer :
 
 ---
 
-## Criteres de succes
+## Critères de succès
 
-- [x] 0 requete SQL dans les endpoints
+- [x] 0 requête SQL dans les endpoints
 - [x] 0 `global $pdo` dans les services
 - [x] 17 repositories (AbstractRepository + 16 concrets)
 - [ ] Tests unitaires repositories
-- [x] Format API inchange (zero breaking change)
-- [x] Securite inchangee (AuthMiddleware, CSRF, RateLimiter — zero diff)
-- [ ] Temps de reponse API : +-10% (pas de regression)
-- [x] Helpers `db_*()` marques `@deprecated`
-- [x] Code mort supprime (QuorumService.php)
+- [x] Format API inchangé (zéro breaking change)
+- [x] Sécurité inchangée (AuthMiddleware, CSRF, RateLimiter — zéro diff)
+- [ ] Temps de réponse API : +-10% (pas de régression)
+- [x] Helpers `db_*()` marqués `@deprecated`
+- [x] Code mort supprimé (QuorumService.php)
