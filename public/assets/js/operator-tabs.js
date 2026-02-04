@@ -1605,16 +1605,16 @@
     let canClose = true;
 
     if (hasOpenVote) {
-      statusHtml += `<div class="alert alert-warning mb-2">⚠️ Un vote est en cours — clôturez-le avant de fermer la séance.</div>`;
+      statusHtml += `<div class="alert alert-warning mb-2">${icon('alert-triangle', 'icon-sm icon-text')}Un vote est en cours — clôturez-le avant de fermer la séance.</div>`;
       canClose = false;
     }
 
     if (pending > 0) {
-      statusHtml += `<div class="alert alert-info mb-2">ℹ️ ${pending} résolution(s) n'ont pas encore été votées.</div>`;
+      statusHtml += `<div class="alert alert-info mb-2">${icon('info', 'icon-sm icon-text')}${pending} résolution(s) n'ont pas encore été votées.</div>`;
     }
 
     if (allClosed) {
-      statusHtml += `<div class="alert alert-success mb-2">✅ Tous les votes sont terminés. Vous pouvez clôturer la séance.</div>`;
+      statusHtml += `<div class="alert alert-success mb-2">${icon('check-circle', 'icon-sm icon-text')}Tous les votes sont terminés. Vous pouvez clôturer la séance.</div>`;
     }
 
     statusDiv.innerHTML = statusHtml || '<div class="text-muted">Prêt à clôturer.</div>';

@@ -76,16 +76,16 @@
         document.getElementById('meetingTitle').textContent = m.title;
 
         const statusMap = {
-          'draft': { class: 'badge-neutral', text: 'Brouillon', icon: '📝' },
-          'scheduled': { class: 'badge-info', text: 'Programmée', icon: '📅' },
-          'live': { class: 'badge-danger', text: 'En cours', icon: '🔴' },
-          'closed': { class: 'badge-success', text: 'Terminée', icon: '✅' },
-          'archived': { class: 'badge-neutral', text: 'Archivée', icon: '📦' }
+          'draft': { class: 'badge-neutral', text: 'Brouillon', iconName: 'file-text' },
+          'scheduled': { class: 'badge-info', text: 'Programmée', iconName: 'calendar' },
+          'live': { class: 'badge-danger', text: 'En cours', iconName: 'circle' },
+          'closed': { class: 'badge-success', text: 'Terminée', iconName: 'check-circle' },
+          'archived': { class: 'badge-neutral', text: 'Archivée', iconName: 'archive' }
         };
         const status = statusMap[m.status] || statusMap['draft'];
 
         document.getElementById('statusBox').innerHTML = `
-          <span class="badge ${status.class}">${status.icon} ${status.text}</span>
+          <span class="badge ${status.class}">${icon(status.iconName, 'icon-sm icon-text')}${status.text}</span>
         `;
       }
     } catch (err) {
@@ -148,7 +148,7 @@
     if (filtered.length === 0) {
       container.innerHTML = `
         <div class="empty-state p-6">
-          <div class="empty-state-icon text-success">✅</div>
+          <div class="empty-state-icon">${icon('check-circle', 'icon-xl icon-success')}</div>
           <div class="empty-state-title">${currentSeverityFilter === 'all' ? 'Aucune anomalie' : 'Aucune anomalie de ce type'}</div>
           <div class="empty-state-description">
             ${currentSeverityFilter === 'all' ? 'Tous les contrôles sont passés avec succès' : 'Filtrez par un autre niveau de sévérité'}
@@ -159,9 +159,9 @@
     }
 
     const severityIcons = {
-      'danger': '🚨',
-      'warning': '⚠️',
-      'info': 'ℹ️'
+      'danger': icon('alert-circle', 'icon-md icon-danger'),
+      'warning': icon('alert-triangle', 'icon-md icon-warning'),
+      'info': icon('info', 'icon-md icon-info')
     };
 
     const severityLabels = {
@@ -173,7 +173,7 @@
     container.innerHTML = filtered.map(a => `
       <div class="anomaly-card ${a.severity || ''}" style="margin-bottom: 0.75rem;">
         <div class="flex items-start gap-3">
-          <span class="text-lg">${severityIcons[a.severity] || '⚠️'}</span>
+          <span class="text-lg">${severityIcons[a.severity] || severityIcons['warning']}</span>
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1">
               <span class="font-semibold">${escapeHtml(a.title || a.type)}</span>
@@ -193,21 +193,21 @@
     if (!statusEl) return;
 
     let statusClass = 'success';
-    let statusIcon = '✅';
+    let statusIconName = 'check-circle';
     let statusText = 'Conforme';
 
     if (dangerCount > 0) {
       statusClass = 'danger';
-      statusIcon = '🚨';
+      statusIconName = 'alert-circle';
       statusText = 'Critique';
     } else if (totalAnomalies > 0) {
       statusClass = 'warning';
-      statusIcon = '⚠️';
+      statusIconName = 'alert-triangle';
       statusText = 'Attention';
     }
 
     statusEl.className = `integrity-stat ${statusClass}`;
-    statusEl.querySelector('.integrity-stat-value').textContent = statusIcon;
+    statusEl.querySelector('.integrity-stat-value').innerHTML = icon(statusIconName, 'icon-lg icon-' + statusClass);
     statusEl.querySelector('.integrity-stat-label').textContent = statusText;
   }
 

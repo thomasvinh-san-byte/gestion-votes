@@ -99,7 +99,7 @@
     } catch (err) {
       membersList.innerHTML = `
         <div class="alert alert-danger">
-          <span>❌</span>
+          <span>${icon('x-circle', 'icon-md icon-danger')}</span>
           <span>Erreur de chargement: ${escapeHtml(err.message)}</span>
         </div>
       `;
