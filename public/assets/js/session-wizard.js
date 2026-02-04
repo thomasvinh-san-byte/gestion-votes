@@ -30,8 +30,7 @@
     '/meetings.htmx.html':   'select',
     '/members.htmx.html':    'members',
     '/operator.htmx.html':   'conduct',
-    '/operator_flow.htmx.html': 'conduct',
-    '/president.htmx.html':  'conduct',
+    '/speaker.htmx.html':    'conduct',
     '/validate.htmx.html':   'validate',
     '/archives.htmx.html':   'validate'
   };
@@ -288,7 +287,7 @@
       var isCurrent = step.num === currentStep;
       var stepClass = isDone ? 'done' : (isCurrent ? 'current' : '');
       var href = step.needsMeeting && !meetingId ? '#' : (step.href + (step.needsMeeting ? mid : ''));
-      var circleContent = isDone ? '✓' : step.icon;
+      var circleContent = isDone ? (typeof icon === 'function' ? icon('check', 'icon-sm') : '✓') : step.icon;
 
       html += '<a href="' + href + '" class="wizard-step ' + stepClass + '" title="' + step.label + '">';
       html += '<div class="wizard-step-circle">' + circleContent + '</div>';
@@ -480,7 +479,7 @@
     // Skip wizard on non-app pages
     var path = window.location.pathname;
     if (path === '/login.html' || path === '/index.html' || path === '/' ||
-        path === '/public.htmx.html' || path === '/paper_redeem.htmx.html') {
+        path === '/public.htmx.html') {
       return;
     }
 

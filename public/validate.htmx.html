@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr" data-page-role="president,operator">
+<html lang="fr" data-page-role="operator">
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
@@ -93,19 +93,19 @@
     <header class="app-header">
       <div class="flex items-center gap-4">
         <div>
-          <h1 class="text-xl font-bold">✅ Validation finale</h1>
+          <h1 class="text-xl font-bold"><svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Validation finale</h1>
           <p class="text-sm text-secondary" id="meetingTitle">Étape finale : vérifier puis valider</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
         <button class="btn btn-secondary" id="btnRefresh">
-          🔄 Actualiser
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
         </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance">
-          ℹ️
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
         </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
-          ☰
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
     </header>
@@ -118,14 +118,14 @@
 
         <!-- Meeting context -->
         <div class="alert alert-info mb-6" id="meetingContext" style="display: none;">
-          <span>📌</span>
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg>
           <span>Séance: <strong id="meetingName">—</strong></span>
         </div>
 
         <!-- Summary Stats -->
         <div class="card mb-6">
           <div class="card-header">
-            <h3 class="card-title">📊 Résumé de la séance</h3>
+            <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg> Résumé de la séance</h3>
           </div>
           <div class="card-body">
             <div class="summary-grid" id="summaryGrid">
@@ -163,7 +163,7 @@
           <div class="card">
             <div class="card-header">
               <div class="flex items-center justify-between">
-                <h3 class="card-title">📋 Checklist pré-validation</h3>
+                <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg> Checklist pré-validation</h3>
                 <span class="badge" id="readyBadge">—</span>
               </div>
             </div>
@@ -175,7 +175,7 @@
                 </div>
               </div>
               <button class="btn btn-secondary w-full mt-4" id="btnRecheck">
-                🔄 Relancer les vérifications
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Relancer les vérifications
               </button>
             </div>
           </div>
@@ -183,7 +183,7 @@
           <!-- Validation Zone -->
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">✍️ Signature & Validation</h3>
+              <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-signature"></use></svg> Signature & Validation</h3>
             </div>
             <div class="card-body">
               <div class="form-group mb-4">
@@ -198,13 +198,13 @@
               </div>
 
               <div class="validation-zone mb-4" id="validationZone">
-                <div class="text-lg font-bold mb-2">⚠️ Action irréversible</div>
+                <div class="text-lg font-bold mb-2"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Action irréversible</div>
                 <div class="text-sm text-secondary mb-4">
                   La validation archive définitivement la séance.<br>
                   <strong>Plus aucune modification ne sera possible.</strong>
                 </div>
                 <button class="btn btn-lg btn-primary" id="btnValidate" disabled>
-                  ✅ Valider et archiver la séance
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Valider et archiver la séance
                 </button>
               </div>
 
@@ -216,20 +216,20 @@
         <!-- Notes -->
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">📌 Notes importantes</h3>
+            <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg> Notes importantes</h3>
           </div>
           <div class="card-body">
             <ul class="space-y-2 text-sm">
               <li class="flex items-start gap-2">
-                <span class="text-warning">⚠️</span>
+                <span class="text-warning"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg></span>
                 <span>La validation <strong>archive définitivement</strong> la séance. Aucune modification ne sera plus possible.</span>
               </li>
               <li class="flex items-start gap-2">
-                <span class="text-info">ℹ️</span>
+                <span class="text-info"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg></span>
                 <span>En cas de "Non prêt", corrigez les points listés (résolutions non closes, totaux incohérents, etc.).</span>
               </li>
               <li class="flex items-start gap-2">
-                <span class="text-success">✅</span>
+                <span class="text-success"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg></span>
                 <span>Après validation, le PV et les exports seront disponibles dans les <a href="/archives.htmx.html" class="text-primary underline">Archives</a>.</span>
               </li>
             </ul>

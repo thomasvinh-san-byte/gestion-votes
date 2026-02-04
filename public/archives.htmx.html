@@ -228,22 +228,22 @@
     <header class="app-header">
       <div class="flex items-center gap-4">
         <div>
-          <h1 class="text-xl font-bold">📚 Archives</h1>
+          <h1 class="text-xl font-bold"><svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg> Archives</h1>
           <p class="text-sm text-secondary">Séances validées et procès-verbaux</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
         <button class="btn btn-secondary" id="btnRefresh">
-          🔄 Actualiser
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
         </button>
         <button class="btn btn-ghost btn-icon" type="button" id="btnExportsModal" title="Exports">
-          📤
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
         </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance">
-          ℹ️
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
         </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
-          ☰
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
     </header>
@@ -283,10 +283,10 @@
                   <option value="">Toutes années</option>
                 </select>
                 <input type="text" class="form-input" id="searchInput"
-                       placeholder="🔍 Rechercher..." style="width: 180px;">
+                       placeholder="Rechercher..." style="width: 180px;">
                 <div class="view-toggle">
-                  <button class="view-toggle-btn active" data-view="cards" title="Vue cartes">📇</button>
-                  <button class="view-toggle-btn" data-view="list" title="Vue liste">📋</button>
+                  <button class="view-toggle-btn active" data-view="cards" title="Vue cartes"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-grid"></use></svg></button>
+                  <button class="view-toggle-btn" data-view="list" title="Vue liste"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg></button>
                 </div>
               </div>
             </div>
@@ -337,8 +337,8 @@
   <div class="modal-backdrop" id="exportsBackdrop" style="display: none;"></div>
   <div class="modal" id="exportsModal" style="display: none;">
     <div class="modal-header">
-      <h3 class="modal-title">📤 Exports</h3>
-      <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseExports">✕</button>
+      <h3 class="modal-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Exports</h3>
+      <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseExports">×</button>
     </div>
     <div class="modal-body">
       <div class="form-group mb-4">
@@ -349,28 +349,28 @@
       </div>
       
       <div class="alert alert-info mb-4">
-        <span>💡</span>
+        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
         <span>Les exports ne sont disponibles que pour les séances validées.</span>
       </div>
-      
+
       <div class="export-grid">
         <button class="btn btn-secondary" id="btnExportPV">
-          📋 PV (HTML)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg> PV (HTML)
         </button>
         <button class="btn btn-secondary" id="btnExportAttendance">
-          👥 Présences (CSV)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Présences (CSV)
         </button>
         <button class="btn btn-secondary" id="btnExportVotes">
-          🗳️ Votes (CSV)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg> Votes (CSV)
         </button>
         <button class="btn btn-secondary" id="btnExportMotions">
-          📌 Résolutions (CSV)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg> Résolutions (CSV)
         </button>
         <button class="btn btn-secondary" id="btnExportMembers">
-          👤 Membres (CSV)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg> Membres (CSV)
         </button>
         <button class="btn btn-secondary" id="btnExportAudit">
-          📜 Audit (CSV)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-scroll"></use></svg> Audit (CSV)
         </button>
       </div>
     </div>

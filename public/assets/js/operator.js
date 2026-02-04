@@ -29,7 +29,6 @@
   const attendanceList = document.getElementById('attendanceList');
   const attSearchInput = document.getElementById('attSearchInput');
   const btnAttAllPresent = document.getElementById('btnAttAllPresent');
-  const btnAttFullView = document.getElementById('btnAttFullView');
 
   // Exports section elements
   const exportsSection = document.getElementById('exportsSection');
@@ -162,21 +161,21 @@
     if (checks.hasAttendance) {
       items.push({ done: true, text: 'Présences pointées' });
     } else {
-      items.push({ done: false, text: 'Pointer les présences', link: `/attendance.htmx.html?meeting_id=${mid}` });
+      items.push({ done: false, text: 'Pointer les présences (onglet Présences)', link: null });
     }
 
     // Check 3: Motions
     if (checks.hasMotions) {
       items.push({ done: true, text: 'Résolutions créées' });
     } else {
-      items.push({ done: false, text: 'Créer des résolutions', link: `/motions.htmx.html?meeting_id=${mid}` });
+      items.push({ done: false, text: 'Créer des résolutions (onglet Résolutions)', link: null });
     }
 
     // Check 4: President assigned (optional for demo)
     if (checks.hasPresident) {
       items.push({ done: true, text: 'Président assigné' });
     } else {
-      items.push({ done: true, text: 'Président: optionnel (bouton 👔)', link: null, optional: true });
+      items.push({ done: true, text: 'Président: optionnel (bouton Rôles)', link: null, optional: true });
     }
 
     // Check 5: Policies (optional for demo - defaults apply)
@@ -520,9 +519,9 @@
         motionsList.innerHTML = `
           <div class="empty-motions">
             <p>Aucune résolution</p>
-            <a href="/motions.htmx.html?meeting_id=${meetingId}" class="btn btn-primary btn-sm mt-4">
+            <button class="btn btn-primary btn-sm mt-4" data-tab-switch="resolutions">
               ${icon('plus', 'icon-sm icon-text')}Créer des résolutions
-            </a>
+            </button>
           </div>
         `;
         return;
@@ -779,7 +778,7 @@
         body.innerHTML = `
           <div style="padding:8px 0;display:flex;flex-direction:column;gap:16px;">
             <div class="form-group">
-              <label class="form-label">👔 Président de séance</label>
+              <label class="form-label">${icon('briefcase', 'icon-sm icon-text')} Président de séance</label>
               <select class="form-input" id="rolesPresident">
                 <option value="">— Aucun —</option>
                 ${users.map(u => `
@@ -813,7 +812,7 @@
               </div>
             </div>
 
-            <button class="btn btn-primary btn-block" id="btnSaveRoles">💾 Enregistrer le président</button>
+            <button class="btn btn-primary btn-block" id="btnSaveRoles">${icon('save', 'icon-sm icon-text')} Enregistrer le président</button>
           </div>
         `;
 
@@ -957,7 +956,7 @@
                 `).join('')}
               </select>
             </div>
-            <button class="btn btn-primary btn-block" id="btnSaveSettings">💾 Enregistrer</button>
+            <button class="btn btn-primary btn-block" id="btnSaveSettings">${icon('save', 'icon-sm icon-text')} Enregistrer</button>
           </div>
         `;
 
@@ -1128,7 +1127,7 @@
               ${motions.length === 0 ? '<div class="text-center p-4 text-muted">Aucune résolution</div>' : ''}
             </div>
 
-            <a href="/motions.htmx.html?meeting_id=${currentMeetingId}" class="btn btn-block btn-secondary">${icon('clipboard-list', 'icon-sm icon-text')}Vue complète</a>
+            <button class="btn btn-block btn-secondary" data-tab-switch="resolutions">${icon('clipboard-list', 'icon-sm icon-text')}Voir toutes les résolutions</button>
           </div>
         `;
 
@@ -1223,7 +1222,7 @@
             <div class="flex items-center justify-between">
               <span class="text-sm text-muted">${members.length} membre(s)</span>
               <div class="flex gap-2">
-                <button class="btn btn-sm btn-secondary" id="btnImportCsv">📥 Import CSV</button>
+                <button class="btn btn-sm btn-secondary" id="btnImportCsv">${icon('download', 'icon-sm icon-text')} Import CSV</button>
                 <button class="btn btn-sm btn-primary" id="btnAddMember">+ Ajouter</button>
               </div>
             </div>
@@ -1245,7 +1244,7 @@
               <p class="text-sm text-muted mb-2">Format CSV: name,email,voting_power (en-têtes requis)</p>
               <input type="file" accept=".csv" id="csvFileInput" class="form-input mb-2">
               <div class="flex gap-2">
-                <button class="btn btn-sm btn-primary" id="btnUploadCsv">📤 Importer</button>
+                <button class="btn btn-sm btn-primary" id="btnUploadCsv">${icon('upload', 'icon-sm icon-text')} Importer</button>
                 <button class="btn btn-sm btn-ghost" id="btnCancelImport">Annuler</button>
               </div>
               <div id="importResult" class="mt-2" style="display:none;"></div>
@@ -1520,14 +1519,7 @@
     });
   }
 
-  if (btnAttFullView) {
-    btnAttFullView.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (currentMeetingId) {
-        window.location.href = `/attendance.htmx.html?meeting_id=${currentMeetingId}`;
-      }
-    });
-  }
+  // btnAttFullView removed - attendance is now in the Présences tab
 
   // Export buttons event listeners
   if (btnExportPV) {

@@ -63,15 +63,11 @@
       : function() { return true; };
 
     const items = [
-      { href: '/operator.htmx.html',    label: 'Opérateur',     req: 'operator',            useMid: true },
-      { href: '/president.htmx.html',   label: 'Président',     req: 'president,operator',  useMid: true },
-      { href: '/motions.htmx.html',     label: 'Résolutions',   req: 'operator',            useMid: true },
-      { href: '/attendance.htmx.html',  label: 'Présences',     req: 'operator',            useMid: true },
-      { href: '/proxies.htmx.html',     label: 'Procurations',  req: 'operator',            useMid: true },
-      { href: '/invitations.htmx.html', label: 'Invitations',   req: 'operator',            useMid: true },
+      { href: '/operator.htmx.html',    label: 'Fiche séance',  req: 'operator',            useMid: true },
+      { href: '/speaker.htmx.html',     label: 'Gestion parole',req: 'operator',            useMid: true },
       { href: '/vote.htmx.html',        label: 'Vote',          req: 'voter,operator',      useMid: true },
       { href: '/trust.htmx.html',       label: 'Contrôle',      req: 'auditor,assessor',    useMid: true },
-      { href: '/report.htmx.html',      label: 'PV / Export',   req: 'operator,president',  useMid: true },
+      { href: '/report.htmx.html',      label: 'PV / Export',   req: 'operator',            useMid: true },
       { sep: true },
       { href: '/meetings.htmx.html',    label: 'Séances',       req: 'viewer',              useMid: false },
       { href: '/members.htmx.html',     label: 'Membres',       req: 'operator',            useMid: false },

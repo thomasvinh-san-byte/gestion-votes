@@ -32,11 +32,9 @@ echo '  </div>';
 echo '  <div class="card-body">';
 
 echo '<div class="toolbar" style="flex-direction:column; align-items:stretch;">';
-echo '  <a class="btn" href="/operator.htmx.html?meeting_id='.h($meetingId).'">🗂️ Fiche séance</a>';
-echo '  <a class="btn" href="/attendance.htmx.html?meeting_id='.h($meetingId).'">👥 Présences</a>';
-echo '  <a class="btn" href="/proxies.htmx.html?meeting_id='.h($meetingId).'">📝 Procurations</a>';
-echo '  <a class="btn" href="/motions.htmx.html?meeting_id='.h($meetingId).'">📌 Résolutions</a>';
-echo '  <a class="btn primary" href="/operator_flow.htmx.html?meeting_id='.h($meetingId).'">▶ Conduite (live)</a>';
+echo '  <a class="btn" href="/operator.htmx.html?meeting_id='.h($meetingId).'"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-folder-open"></use></svg> Fiche séance</a>';
+echo '  <a class="btn" href="/speaker.htmx.html?meeting_id='.h($meetingId).'"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> Gestion parole</a>';
+echo '  <a class="btn" href="/vote.htmx.html?meeting_id='.h($meetingId).'"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg> Vote</a>';
 echo '</div>';
 
 echo '<div style="height:12px;"></div>';

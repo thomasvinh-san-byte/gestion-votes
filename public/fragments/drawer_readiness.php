@@ -21,11 +21,13 @@ $cntAttendance = (int)(db_select_one("SELECT COUNT(*) AS c FROM attendance WHERE
 $ready = ($cntMembers > 0 && $cntRes > 0);
 
 function item(string $label, bool $ok, string $hint=''): string {
-  $icon = $ok ? '✅' : '⬜';
+  $iconSvg = $ok
+    ? '<svg class="icon" style="color:var(--color-success);width:18px;height:18px;" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>'
+    : '<svg class="icon" style="color:var(--color-text-muted);width:18px;height:18px;" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg>';
   $cls = $ok ? '' : 'muted';
   $hintHtml = $hint ? '<div class="tiny muted">'.h($hint).'</div>' : '';
   return "<div style='display:flex; gap:10px; align-items:flex-start; margin:10px 0;'>
-    <div style='width:18px; text-align:center;'>$icon</div>
+    <div style='width:18px; text-align:center;'>$iconSvg</div>
     <div style='min-width:0;'><div class='$cls' style='font-weight:800;'>".h($label)."</div>$hintHtml</div>
   </div>";
 }
