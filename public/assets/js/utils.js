@@ -627,6 +627,7 @@ function setNotif(type, message, duration = 5000) {
 
 /**
  * Create notification container if not exists
+ * Uses aria-live region for screen reader announcements
  */
 function createNotifContainer() {
   let container = document.getElementById('notif_box');
@@ -634,6 +635,10 @@ function createNotifContainer() {
     container = document.createElement('div');
     container.id = 'notif_box';
     container.className = 'toast-container';
+    // ARIA live region for accessibility
+    container.setAttribute('aria-live', 'polite');
+    container.setAttribute('aria-atomic', 'false');
+    container.setAttribute('aria-relevant', 'additions');
     container.style.cssText = `
       position: fixed;
       top: 1rem;
