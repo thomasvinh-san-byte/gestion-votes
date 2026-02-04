@@ -7,6 +7,154 @@
   <meta name="description" content="Administration — AG-VOTE">
   <title>Administration — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    /* State machine visualization */
+    .state-flow-visual {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, var(--color-bg-subtle) 0%, var(--color-surface) 100%);
+      border-radius: var(--radius-lg);
+    }
+
+    .state-node-visual {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.875rem;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .state-node-visual.draft {
+      background: var(--color-neutral-subtle, #f5f5f5);
+      border-color: var(--color-neutral, #9ca3af);
+      color: var(--color-text-secondary);
+    }
+
+    .state-node-visual.scheduled {
+      background: var(--color-info-subtle, #dbeafe);
+      border-color: var(--color-info, #3b82f6);
+      color: var(--color-info);
+    }
+
+    .state-node-visual.frozen {
+      background: var(--color-warning-subtle, #fef3c7);
+      border-color: var(--color-warning, #f59e0b);
+      color: #92400e;
+    }
+
+    .state-node-visual.live {
+      background: var(--color-danger-subtle, #fee2e2);
+      border-color: var(--color-danger, #ef4444);
+      color: var(--color-danger);
+      animation: pulse-live 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-live {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    }
+
+    .state-node-visual.closed {
+      background: var(--color-success-subtle, #dcfce7);
+      border-color: var(--color-success, #22c55e);
+      color: #166534;
+    }
+
+    .state-node-visual.validated {
+      background: #f0fdf4;
+      border-color: #16a34a;
+      color: #15803d;
+    }
+
+    .state-node-visual.archived {
+      background: #f3e8ff;
+      border-color: #9333ea;
+      color: #7e22ce;
+    }
+
+    .state-arrow-visual {
+      font-size: 1.5rem;
+      color: var(--color-text-muted);
+      font-weight: 300;
+    }
+
+    /* Stats cards for system tab */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .stat-card-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .stat-card-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+
+    .stat-card.success .stat-card-value { color: var(--color-success); }
+    .stat-card.warning .stat-card-value { color: var(--color-warning); }
+    .stat-card.danger .stat-card-value { color: var(--color-danger); }
+
+    /* Better policy cards */
+    .policy-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.5rem;
+      background: var(--color-surface);
+      transition: border-color 0.2s;
+    }
+
+    .policy-card:hover {
+      border-color: var(--color-primary);
+    }
+
+    .policy-info {
+      flex: 1;
+    }
+
+    .policy-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .policy-details {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .policy-actions {
+      display: flex;
+      gap: 0.25rem;
+    }
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -239,12 +387,36 @@
           <div class="card mb-4">
             <div class="card-header">
               <h3 class="card-title">Cycle de vie d'une séance</h3>
-              <p class="card-description">Chaque transition requiert un rôle spécifique</p>
+              <p class="card-description">Visualisation des états et transitions possibles</p>
             </div>
             <div class="card-body">
-              <div class="state-flow" id="stateFlow">Chargement...</div>
+              <div class="state-flow-visual" id="stateFlow">Chargement...</div>
             </div>
           </div>
+
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Légende des états</h3></div>
+              <div class="card-body">
+                <div class="flex flex-wrap gap-2">
+                  <span class="state-node-visual draft">Brouillon</span>
+                  <span class="state-node-visual scheduled">Programmée</span>
+                  <span class="state-node-visual frozen">Verrouillée</span>
+                  <span class="state-node-visual live">En cours</span>
+                  <span class="state-node-visual closed">Clôturée</span>
+                  <span class="state-node-visual validated">Validée</span>
+                  <span class="state-node-visual archived">Archivée</span>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Statistiques actuelles</h3></div>
+              <div class="card-body" id="stateStats">
+                <div class="text-center p-4 text-muted">Chargement...</div>
+              </div>
+            </div>
+          </div>
+
           <div class="card">
             <div class="card-header"><h3 class="card-title">Transitions autorisées</h3></div>
             <div class="card-body p-0">

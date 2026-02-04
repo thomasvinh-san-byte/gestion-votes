@@ -4,7 +4,10 @@
 
     const archivesList = document.getElementById('archivesList');
     const searchInput = document.getElementById('searchInput');
+    const yearFilter = document.getElementById('yearFilter');
     let allArchives = [];
+    let currentView = 'cards';
+    let currentYear = '';
 
     // Format date
     function fmtDate(s) {
@@ -30,73 +33,140 @@
             <div class="empty-state-icon">📭</div>
             <div class="empty-state-title">Aucune séance archivée</div>
             <div class="empty-state-description">
-              Les séances validées par le président apparaîtront ici
+              ${currentYear ? 'Aucune archive pour ' + currentYear : 'Les séances validées par le président apparaîtront ici'}
             </div>
           </div>
         `;
         return;
       }
 
+      if (currentView === 'list') {
+        renderListView(items);
+      } else {
+        renderCardView(items);
+      }
+    }
+
+    // Card view rendering
+    function renderCardView(items) {
       archivesList.innerHTML = items.map(m => {
         const id = m.id;
         const title = escapeHtml(m.title || id);
         const president = escapeHtml(m.president_name || '—');
         const archived = fmtDate(m.archived_at || m.validated_at);
         const hasReport = !!m.has_report;
-        const sha = m.report_sha256 ? m.report_sha256.substring(0, 16) + '...' : '—';
-        const reportAt = fmtDate(m.report_generated_at);
+        const sha = m.report_sha256 ? m.report_sha256.substring(0, 12) + '...' : '—';
+        const motionsCount = m.motions_count || m.total_motions || '—';
+        const ballotsCount = m.ballots_count || m.total_ballots || '—';
 
         const pvUrl = `/api/v1/meeting_report.php?meeting_id=${encodeURIComponent(id)}`;
         const auditUrl = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(id)}`;
 
         return `
-          <div class="archive-card">
-            <div class="archive-header">
+          <div class="archive-card-enhanced">
+            <div class="archive-card-header">
               <div>
-                <div class="archive-title">${title}</div>
-                <div class="archive-meta">
-                  <span class="archive-meta-item">
-                    <span>🧑‍⚖️</span>
-                    <span>${president}</span>
-                  </span>
-                  <span class="archive-meta-item">
-                    <span>📅</span>
-                    <span>${archived}</span>
-                  </span>
-                  ${hasReport ? `
-                    <span class="archive-meta-item">
-                      <span>✅</span>
-                      <span>PV disponible</span>
-                    </span>
-                  ` : ''}
+                <div class="font-semibold text-lg">${title}</div>
+                <div class="text-sm text-muted mt-1">
+                  <span>🧑‍⚖️ ${president}</span>
+                  <span class="mx-2">•</span>
+                  <span>📅 ${archived}</span>
                 </div>
               </div>
-              <span class="badge badge-success">Archivée</span>
+              <div class="flex items-center gap-2">
+                ${hasReport
+                  ? '<span class="archive-badge has-pv">✅ PV</span>'
+                  : '<span class="archive-badge no-pv">⏳ PV en attente</span>'}
+                <span class="badge badge-success">Archivée</span>
+              </div>
             </div>
-
-            <div class="archive-footer">
-              <div>
-                ${hasReport ? `
-                  <div class="text-xs text-muted mb-1">SHA-256:</div>
-                  <div class="archive-sha">${sha}</div>
-                ` : `
-                  <span class="text-sm text-muted">PV non généré</span>
-                `}
+            <div class="archive-card-body">
+              <div class="archive-info-grid">
+                <div class="archive-info-item">
+                  <div class="archive-info-value">${motionsCount}</div>
+                  <div class="archive-info-label">Résolutions</div>
+                </div>
+                <div class="archive-info-item">
+                  <div class="archive-info-value">${ballotsCount}</div>
+                  <div class="archive-info-label">Bulletins</div>
+                </div>
+                <div class="archive-info-item">
+                  <div class="archive-info-value">${m.present_count || '—'}</div>
+                  <div class="archive-info-label">Présents</div>
+                </div>
+                <div class="archive-info-item">
+                  <div class="archive-info-value">${m.proxy_count || '0'}</div>
+                  <div class="archive-info-label">Procurations</div>
+                </div>
+              </div>
+            </div>
+            <div class="archive-card-footer">
+              <div class="text-xs text-muted">
+                ${hasReport ? `SHA: <code>${sha}</code>` : 'Intégrité non vérifiée'}
               </div>
               <div class="flex gap-2">
-                ${hasReport ? `
-                  <a class="btn btn-primary" href="${pvUrl}" target="_blank">
-                    📋 Voir le PV
-                  </a>
-                ` : ''}
-                <a class="btn btn-secondary" href="${auditUrl}" target="_blank">
-                  📜 Audit CSV
-                </a>
+                ${hasReport ? `<a class="btn btn-primary btn-sm" href="${pvUrl}" target="_blank">📋 PV</a>` : ''}
+                <a class="btn btn-secondary btn-sm" href="${auditUrl}" target="_blank">📜 Audit</a>
+                <button class="btn btn-ghost btn-sm btn-view-details" data-id="${id}">Détails</button>
               </div>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    // List view rendering
+    function renderListView(items) {
+      archivesList.innerHTML = `
+        <table class="table" style="width:100%">
+          <thead>
+            <tr>
+              <th>Titre</th>
+              <th>Président</th>
+              <th>Date d'archive</th>
+              <th>Résolutions</th>
+              <th>Bulletins</th>
+              <th>PV</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(m => {
+              const id = m.id;
+              const title = escapeHtml(m.title || id);
+              const president = escapeHtml(m.president_name || '—');
+              const archived = fmtDate(m.archived_at || m.validated_at);
+              const hasReport = !!m.has_report;
+              const motionsCount = m.motions_count || m.total_motions || '—';
+              const ballotsCount = m.ballots_count || m.total_ballots || '—';
+
+              const pvUrl = `/api/v1/meeting_report.php?meeting_id=${encodeURIComponent(id)}`;
+              const auditUrl = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(id)}`;
+
+              return `
+                <tr>
+                  <td class="font-medium">${title}</td>
+                  <td>${president}</td>
+                  <td class="text-sm">${archived}</td>
+                  <td class="text-center">${motionsCount}</td>
+                  <td class="text-center">${ballotsCount}</td>
+                  <td class="text-center">
+                    ${hasReport
+                      ? '<span class="text-success">✅</span>'
+                      : '<span class="text-muted">—</span>'}
+                  </td>
+                  <td>
+                    <div class="flex gap-1">
+                      ${hasReport ? `<a class="btn btn-ghost btn-xs" href="${pvUrl}" target="_blank">PV</a>` : ''}
+                      <a class="btn btn-ghost btn-xs" href="${auditUrl}" target="_blank">Audit</a>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
     }
 
     // Load archives
@@ -113,7 +183,6 @@
 
         if (body && (body.data || body.items)) {
           allArchives = body.data?.items || body.items || body.data || [];
-          render(allArchives);
 
           // Update KPIs
           const total = allArchives.length;
@@ -127,6 +196,18 @@
           document.getElementById('kpiWithPV').textContent = withPV;
           document.getElementById('kpiThisYear').textContent = thisYear;
 
+          // Calculate aggregate stats
+          const totalMotions = allArchives.reduce((sum, a) => sum + (parseInt(a.motions_count) || parseInt(a.total_motions) || 0), 0);
+          const totalBallots = allArchives.reduce((sum, a) => sum + (parseInt(a.ballots_count) || parseInt(a.total_ballots) || 0), 0);
+
+          document.getElementById('statTotal').textContent = total;
+          document.getElementById('statWithPV').textContent = withPV;
+          document.getElementById('statMotions').textContent = totalMotions || '—';
+          document.getElementById('statBallots').textContent = totalBallots || '—';
+
+          // Populate year filter
+          populateYearFilter();
+
           // Populate export select
           const exportSelect = document.getElementById('exportMeetingSelect');
           exportSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
@@ -136,6 +217,9 @@
             opt.textContent = a.title || a.id;
             exportSelect.appendChild(opt);
           });
+
+          // Apply filters and render
+          applyFilters();
         } else {
           render([]);
         }
@@ -149,19 +233,109 @@
       }
     }
 
-    // Search filter
-    searchInput.addEventListener('input', () => {
+    // Populate year filter dropdown
+    function populateYearFilter() {
+      const years = new Set();
+      allArchives.forEach(a => {
+        const date = new Date(a.archived_at || a.validated_at);
+        if (!isNaN(date.getTime())) {
+          years.add(date.getFullYear());
+        }
+      });
+
+      const sortedYears = Array.from(years).sort((a, b) => b - a);
+      yearFilter.innerHTML = '<option value="">Toutes années</option>';
+      sortedYears.forEach(year => {
+        const opt = document.createElement('option');
+        opt.value = year;
+        opt.textContent = year;
+        yearFilter.appendChild(opt);
+      });
+    }
+
+    // Apply all filters
+    function applyFilters() {
       const query = searchInput.value.toLowerCase().trim();
-      if (!query) {
-        render(allArchives);
-        return;
+      let filtered = allArchives;
+
+      // Year filter
+      if (currentYear) {
+        filtered = filtered.filter(a => {
+          const date = new Date(a.archived_at || a.validated_at);
+          return date.getFullYear() === parseInt(currentYear);
+        });
       }
 
-      const filtered = allArchives.filter(a =>
-        (a.title || '').toLowerCase().includes(query) ||
-        (a.president_name || '').toLowerCase().includes(query)
-      );
+      // Search filter
+      if (query) {
+        filtered = filtered.filter(a =>
+          (a.title || '').toLowerCase().includes(query) ||
+          (a.president_name || '').toLowerCase().includes(query)
+        );
+      }
+
       render(filtered);
+    }
+
+    // Search filter
+    searchInput.addEventListener('input', applyFilters);
+
+    // Year filter
+    yearFilter.addEventListener('change', () => {
+      currentYear = yearFilter.value;
+      applyFilters();
+    });
+
+    // View toggle
+    document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentView = btn.dataset.view;
+        applyFilters();
+      });
+    });
+
+    // Details button click (delegated)
+    archivesList.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.btn-view-details');
+      if (!btn) return;
+
+      const meetingId = btn.dataset.id;
+      const archive = allArchives.find(a => a.id === meetingId);
+      if (!archive) return;
+
+      // Show details modal
+      Shared.openModal({
+        title: archive.title || 'Détails de la séance',
+        body: `
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div><strong>Président:</strong> ${escapeHtml(archive.president_name || '—')}</div>
+            <div><strong>Date d'archivage:</strong> ${fmtDate(archive.archived_at || archive.validated_at)}</div>
+            <div><strong>Résolutions:</strong> ${archive.motions_count || archive.total_motions || '—'}</div>
+            <div><strong>Bulletins:</strong> ${archive.ballots_count || archive.total_ballots || '—'}</div>
+            <div><strong>Présents:</strong> ${archive.present_count || '—'}</div>
+            <div><strong>Procurations:</strong> ${archive.proxy_count || '0'}</div>
+          </div>
+          ${archive.has_report ? `
+            <div class="alert alert-success mb-4">
+              <span>✅</span>
+              <span>Procès-verbal disponible</span>
+            </div>
+            <div class="text-xs text-muted">
+              <strong>SHA-256:</strong><br>
+              <code style="word-break:break-all">${archive.report_sha256 || '—'}</code>
+            </div>
+          ` : `
+            <div class="alert alert-warning">
+              <span>⏳</span>
+              <span>Procès-verbal non encore généré</span>
+            </div>
+          `}
+        `,
+        confirmText: 'Fermer',
+        hideCancel: true
+      });
     });
 
     // Refresh
