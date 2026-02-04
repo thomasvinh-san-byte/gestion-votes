@@ -302,7 +302,7 @@
           <button class="analytics-tab active" data-tab="participation">Participation</button>
           <button class="analytics-tab" data-tab="motions">Résolutions</button>
           <button class="analytics-tab" data-tab="timing">Temps de vote</button>
-          <button class="analytics-tab" data-tab="voters">Top votants</button>
+          <button class="analytics-tab" data-tab="anomalies">Anomalies</button>
         </div>
 
         <!-- Tab: Participation -->
@@ -381,14 +381,24 @@
           </div>
         </div>
 
-        <!-- Tab: Top voters -->
-        <div class="tab-content" id="tab-voters">
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <h3 class="chart-card-title">Membres les plus actifs</h3>
+        <!-- Tab: Anomalies -->
+        <div class="tab-content" id="tab-anomalies">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">Indicateurs de qualité</h3>
+              </div>
+              <div class="chart-card-body">
+                <div id="anomaliesOverview" class="loading-spinner">Chargement...</div>
+              </div>
             </div>
-            <div class="chart-card-body">
-              <div id="topVotersTable" class="loading-spinner">Chargement...</div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">Séances à vérifier</h3>
+              </div>
+              <div class="chart-card-body">
+                <div id="anomaliesMeetings" class="loading-spinner">Chargement...</div>
+              </div>
             </div>
           </div>
         </div>
@@ -476,7 +486,7 @@
         loadMotions(),
         loadVoteDuration(),
         loadVoteTiming(),
-        loadTopVoters(),
+        loadAnomalies(),
       ]);
     }
 
@@ -755,55 +765,108 @@
       }
     }
 
-    async function loadTopVoters() {
-      const container = document.getElementById('topVotersTable');
+    async function loadAnomalies() {
+      const overviewContainer = document.getElementById('anomaliesOverview');
+      const meetingsContainer = document.getElementById('anomaliesMeetings');
+
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=top_voters&period=${currentPeriod}&limit=20`);
+        const { body } = await api(`/api/v1/analytics.php?type=anomalies&period=${currentPeriod}`);
         const data = body?.data;
         if (!data) throw new Error('Données non disponibles');
 
-        const voters = data.voters || [];
+        const indicators = data.indicators || {};
+        const meetings = data.flagged_meetings || [];
 
-        if (voters.length === 0) {
-          container.innerHTML = '<p class="text-muted text-center p-4">Aucune donnée disponible</p>';
-          return;
-        }
-
-        const maxBallots = Math.max(...voters.map(v => parseInt(v.ballot_count) || 0));
-
-        container.innerHTML = `
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Membre</th>
-                <th>Votes</th>
-                <th>Séances</th>
-                <th>Poids total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${voters.map((v, i) => `
-                <tr>
-                  <td><span class="badge ${i < 3 ? 'badge-primary' : 'badge-muted'}">${i + 1}</span></td>
-                  <td>${escapeHtml(v.full_name || 'Inconnu')}</td>
-                  <td>
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
-                      <div class="progress-bar" style="width:80px;">
-                        <div class="progress-bar-fill primary" style="width:${maxBallots > 0 ? (parseInt(v.ballot_count) / maxBallots * 100) : 0}%"></div>
-                      </div>
-                      <span>${v.ballot_count}</span>
-                    </div>
-                  </td>
-                  <td>${v.meetings_voted}</td>
-                  <td>${parseFloat(v.total_weight || 0).toFixed(1)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+        // Indicateurs de qualité (agrégés, sans identification)
+        overviewContainer.innerHTML = `
+          <div class="anomaly-indicators">
+            <div class="anomaly-item ${indicators.low_participation_count > 0 ? 'warning' : 'ok'}">
+              <div class="anomaly-icon">${indicators.low_participation_count > 0 ? '⚠️' : '✓'}</div>
+              <div class="anomaly-content">
+                <div class="anomaly-label">Participation faible (&lt;50%)</div>
+                <div class="anomaly-value">${indicators.low_participation_count || 0} séance(s)</div>
+              </div>
+            </div>
+            <div class="anomaly-item ${indicators.quorum_issues_count > 0 ? 'warning' : 'ok'}">
+              <div class="anomaly-icon">${indicators.quorum_issues_count > 0 ? '⚠️' : '✓'}</div>
+              <div class="anomaly-content">
+                <div class="anomaly-label">Problèmes de quorum</div>
+                <div class="anomaly-value">${indicators.quorum_issues_count || 0} séance(s)</div>
+              </div>
+            </div>
+            <div class="anomaly-item ${indicators.incomplete_votes_count > 0 ? 'info' : 'ok'}">
+              <div class="anomaly-icon">${indicators.incomplete_votes_count > 0 ? 'ℹ️' : '✓'}</div>
+              <div class="anomaly-content">
+                <div class="anomaly-label">Résolutions sans décision</div>
+                <div class="anomaly-value">${indicators.incomplete_votes_count || 0} résolution(s)</div>
+              </div>
+            </div>
+            <div class="anomaly-item ${indicators.high_proxy_concentration > 0 ? 'warning' : 'ok'}">
+              <div class="anomaly-icon">${indicators.high_proxy_concentration > 0 ? '⚠️' : '✓'}</div>
+              <div class="anomaly-content">
+                <div class="anomaly-label">Concentration procurations (&gt;3/membre)</div>
+                <div class="anomaly-value">${indicators.high_proxy_concentration || 0} cas</div>
+              </div>
+            </div>
+            <div class="anomaly-item ${indicators.abstention_rate > 20 ? 'info' : 'ok'}">
+              <div class="anomaly-icon">${indicators.abstention_rate > 20 ? 'ℹ️' : '✓'}</div>
+              <div class="anomaly-content">
+                <div class="anomaly-label">Taux d'abstention moyen</div>
+                <div class="anomaly-value">${indicators.abstention_rate || 0}%</div>
+              </div>
+            </div>
+            <div class="anomaly-item ${indicators.very_short_votes_count > 0 ? 'info' : 'ok'}">
+              <div class="anomaly-icon">${indicators.very_short_votes_count > 0 ? 'ℹ️' : '✓'}</div>
+              <div class="anomaly-content">
+                <div class="anomaly-label">Votes très courts (&lt;30s)</div>
+                <div class="anomaly-value">${indicators.very_short_votes_count || 0} vote(s)</div>
+              </div>
+            </div>
+          </div>
+          <style>
+            .anomaly-indicators { display: flex; flex-direction: column; gap: 0.75rem; }
+            .anomaly-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-radius: 6px; background: var(--color-bg-subtle); }
+            .anomaly-item.warning { background: #fef3c7; border-left: 3px solid #f59e0b; }
+            .anomaly-item.info { background: #dbeafe; border-left: 3px solid #3b82f6; }
+            .anomaly-item.ok { background: #d1fae5; border-left: 3px solid #10b981; }
+            .anomaly-icon { font-size: 1.25rem; }
+            .anomaly-label { font-size: 0.85rem; color: var(--color-text-muted); }
+            .anomaly-value { font-weight: 600; }
+          </style>
         `;
+
+        // Séances à vérifier
+        if (meetings.length === 0) {
+          meetingsContainer.innerHTML = '<p class="text-muted text-center p-4">Aucune anomalie détectée</p>';
+        } else {
+          meetingsContainer.innerHTML = `
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Séance</th>
+                  <th>Date</th>
+                  <th>Participation</th>
+                  <th>Anomalies</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${meetings.slice(0, 10).map(m => `
+                  <tr>
+                    <td>${escapeHtml(m.title?.substring(0, 25) || 'Séance')}</td>
+                    <td>${m.date ? new Date(m.date).toLocaleDateString('fr-FR') : '-'}</td>
+                    <td>${m.participation_rate || 0}%</td>
+                    <td>
+                      ${m.flags?.map(f => `<span class="badge badge-warning" style="margin-right:0.25rem;">${escapeHtml(f)}</span>`).join('') || '-'}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        }
       } catch (err) {
-        container.innerHTML = `<div class="error-message">Erreur: ${escapeHtml(err.message)}</div>`;
+        overviewContainer.innerHTML = `<div class="error-message">Erreur: ${escapeHtml(err.message)}</div>`;
+        meetingsContainer.innerHTML = '';
       }
     }
 

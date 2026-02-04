@@ -69,6 +69,7 @@
     if (currentMeetingId) {
       if (tabId === 'presences') loadAttendance();
       if (tabId === 'resolutions') loadResolutions();
+      if (tabId === 'parole') loadSpeechQueue();
       if (tabId === 'vote') loadVoteTab();
       if (tabId === 'resultats') loadResults();
     }
@@ -171,7 +172,8 @@
       loadRoles(),
       loadStatusChecklist(),
       loadDashboard(),
-      loadDevices()
+      loadDevices(),
+      loadSpeechQueue()
     ]);
 
     // Log any failures but continue
@@ -1101,6 +1103,231 @@
   }
 
   // =========================================================================
+  // TAB: PAROLE - Speech Queue
+  // =========================================================================
+
+  let speechQueueCache = [];
+  let currentSpeakerCache = null;
+  let speechTimerInterval = null;
+
+  async function loadSpeechQueue() {
+    if (!currentMeetingId) return;
+
+    try {
+      const { body } = await api(`/api/v1/speech_queue.php?meeting_id=${currentMeetingId}`);
+      const data = body?.data || {};
+      currentSpeakerCache = data.speaker || null;
+      speechQueueCache = data.queue || [];
+
+      renderSpeechQueue();
+      renderCurrentSpeaker();
+
+      // Update tab count
+      const countEl = document.getElementById('tabCountSpeech');
+      if (countEl) countEl.textContent = speechQueueCache.length;
+    } catch (err) {
+      console.error('Speech queue error:', err);
+    }
+  }
+
+  function renderCurrentSpeaker() {
+    const noSpeaker = document.getElementById('noSpeakerState');
+    const activeSpeaker = document.getElementById('activeSpeakerState');
+    const btnNext = document.getElementById('btnNextSpeaker');
+
+    if (!noSpeaker || !activeSpeaker) return;
+
+    // Clear any existing timer
+    if (speechTimerInterval) {
+      clearInterval(speechTimerInterval);
+      speechTimerInterval = null;
+    }
+
+    if (!currentSpeakerCache) {
+      noSpeaker.style.display = 'block';
+      activeSpeaker.style.display = 'none';
+      if (btnNext) btnNext.disabled = speechQueueCache.length === 0;
+      return;
+    }
+
+    noSpeaker.style.display = 'none';
+    activeSpeaker.style.display = 'block';
+
+    document.getElementById('currentSpeakerName').textContent = currentSpeakerCache.full_name || '—';
+
+    // Start timer
+    const startTime = currentSpeakerCache.updated_at ? new Date(currentSpeakerCache.updated_at).getTime() : Date.now();
+    updateSpeechTimer(startTime);
+    speechTimerInterval = setInterval(() => updateSpeechTimer(startTime), 1000);
+  }
+
+  function updateSpeechTimer(startTime) {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const minutes = Math.floor(elapsed / 60);
+    const seconds = elapsed % 60;
+    const formatted = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+    const el = document.getElementById('currentSpeakerTime');
+    if (el) el.textContent = formatted;
+  }
+
+  function renderSpeechQueue() {
+    const list = document.getElementById('speechQueueList');
+    if (!list) return;
+
+    if (speechQueueCache.length === 0) {
+      list.innerHTML = '<div class="text-center p-4 text-muted">Aucune demande de parole</div>';
+      return;
+    }
+
+    list.innerHTML = speechQueueCache.map((s, i) => `
+      <div class="speech-queue-item" data-request-id="${s.id}" data-member-id="${s.member_id}">
+        <span class="speech-queue-position">${i + 1}</span>
+        <span class="speech-queue-name">${escapeHtml(s.full_name || '—')}</span>
+        <div class="speech-queue-actions">
+          <button class="btn btn-xs btn-primary btn-grant-speech" data-member-id="${s.member_id}" title="Donner la parole">
+            ${icon('mic', 'icon-xs')}
+          </button>
+          <button class="btn btn-xs btn-ghost btn-remove-speech" data-request-id="${s.id}" title="Retirer">
+            ${icon('x', 'icon-xs')}
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    // Bind grant speech buttons
+    list.querySelectorAll('.btn-grant-speech').forEach(btn => {
+      btn.addEventListener('click', () => grantSpeech(btn.dataset.memberId));
+    });
+
+    // Bind remove buttons
+    list.querySelectorAll('.btn-remove-speech').forEach(btn => {
+      btn.addEventListener('click', () => cancelSpeechRequest(btn.dataset.requestId));
+    });
+  }
+
+  async function grantSpeech(memberId) {
+    try {
+      await api('/api/v1/speech_grant.php', {
+        meeting_id: currentMeetingId,
+        member_id: memberId
+      });
+      setNotif('success', 'Parole accordée');
+      loadSpeechQueue();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function nextSpeaker() {
+    try {
+      await api('/api/v1/speech_next.php', { meeting_id: currentMeetingId });
+      setNotif('success', 'Orateur suivant');
+      loadSpeechQueue();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function endCurrentSpeech() {
+    try {
+      await api('/api/v1/speech_end.php', { meeting_id: currentMeetingId });
+      setNotif('success', 'Parole terminée');
+      loadSpeechQueue();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function cancelSpeechRequest(requestId) {
+    // For now, use the toggle endpoint which cancels if waiting
+    // TODO: add dedicated cancel endpoint if needed
+    try {
+      // Find the member_id for this request
+      const request = speechQueueCache.find(s => s.id === requestId);
+      if (!request) return;
+
+      await api('/api/v1/speech_request.php', {
+        meeting_id: currentMeetingId,
+        member_id: request.member_id
+      });
+      setNotif('success', 'Demande retirée');
+      loadSpeechQueue();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function clearSpeechHistory() {
+    if (!confirm('Vider l\'historique des prises de parole ?')) return;
+    try {
+      await api('/api/v1/speech_clear.php', { meeting_id: currentMeetingId });
+      setNotif('success', 'Historique vidé');
+      loadSpeechQueue();
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  function showAddToQueueModal() {
+    // Show modal to select a member to add to the queue
+    const presentMembers = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
+    const alreadyInQueue = new Set(speechQueueCache.map(s => s.member_id));
+    const available = presentMembers.filter(m => !alreadyInQueue.has(m.member_id) && (!currentSpeakerCache || currentSpeakerCache.member_id !== m.member_id));
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+
+    modal.innerHTML = `
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:400px;width:90%;max-height:80vh;overflow:auto;">
+        <h3 style="margin:0 0 1rem;">${icon('mic', 'icon-sm icon-text')} Ajouter à la file</h3>
+        ${available.length === 0
+          ? '<p class="text-muted">Tous les membres présents sont déjà dans la file.</p>'
+          : `
+            <div class="form-group mb-3">
+              <label class="form-label">Membre</label>
+              <select class="form-input" id="addSpeechSelect">
+                <option value="">— Sélectionner —</option>
+                ${available.map(m => `<option value="${m.member_id}">${escapeHtml(m.full_name || '—')}</option>`).join('')}
+              </select>
+            </div>
+          `
+        }
+        <div class="flex gap-2 justify-end">
+          <button class="btn btn-secondary" id="btnCancelAddSpeech">Annuler</button>
+          ${available.length > 0 ? '<button class="btn btn-primary" id="btnConfirmAddSpeech">Ajouter</button>' : ''}
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    document.getElementById('btnCancelAddSpeech').onclick = () => modal.remove();
+
+    const btnConfirm = document.getElementById('btnConfirmAddSpeech');
+    if (btnConfirm) {
+      btnConfirm.onclick = async () => {
+        const memberId = document.getElementById('addSpeechSelect').value;
+        if (!memberId) {
+          setNotif('error', 'Sélectionnez un membre');
+          return;
+        }
+        try {
+          await api('/api/v1/speech_request.php', {
+            meeting_id: currentMeetingId,
+            member_id: memberId
+          });
+          setNotif('success', 'Membre ajouté à la file');
+          modal.remove();
+          loadSpeechQueue();
+        } catch (err) {
+          setNotif('error', err.message);
+        }
+      };
+    }
+  }
+
+  // =========================================================================
   // TAB: RÉSOLUTIONS - Motions
   // =========================================================================
 
@@ -1801,6 +2028,13 @@
   // Close session button
   document.getElementById('btnCloseSession')?.addEventListener('click', closeSession);
 
+  // Speech queue buttons
+  document.getElementById('btnNextSpeaker')?.addEventListener('click', nextSpeaker);
+  document.getElementById('btnNextSpeakerActive')?.addEventListener('click', nextSpeaker);
+  document.getElementById('btnEndSpeech')?.addEventListener('click', endCurrentSpeech);
+  document.getElementById('btnAddToQueue')?.addEventListener('click', showAddToQueueModal);
+  document.getElementById('btnClearSpeechHistory')?.addEventListener('click', clearSpeechHistory);
+
   initTabs();
   loadMeetings();
 
@@ -1822,6 +2056,11 @@
     loadStatusChecklist();
     loadDashboard();
     loadDevices();
+
+    // Refresh speech queue if on parole tab
+    if (activeTab === 'parole') {
+      loadSpeechQueue();
+    }
 
     // Refresh resolutions to detect motion state changes
     await loadResolutions();
