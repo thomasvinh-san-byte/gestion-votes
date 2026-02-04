@@ -101,17 +101,17 @@
         if (body && body.ok) {
           msgDiv.style.display = 'block';
           msgDiv.className = 'alert alert-success';
-          msgDiv.textContent = '✅ PV envoyé avec succès !';
-          setNotif('success', '📧 Email envoyé');
+          msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} PV envoyé avec succès !`;
+          setNotif('success', 'Email envoyé');
         } else {
           msgDiv.style.display = 'block';
           msgDiv.className = 'alert alert-danger';
-          msgDiv.textContent = `❌ Erreur: ${body?.error || 'Envoi impossible'}`;
+          msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Erreur: ${escapeHtml(body?.error || 'Envoi impossible')}`;
         }
       } catch (err) {
         msgDiv.style.display = 'block';
         msgDiv.className = 'alert alert-danger';
-        msgDiv.textContent = `❌ Erreur: ${err.message}`;
+        msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Erreur: ${escapeHtml(err.message)}`;
       } finally {
         Shared.btnLoading(btn, false);
       }

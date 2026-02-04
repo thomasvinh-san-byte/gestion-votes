@@ -305,7 +305,7 @@
         : { text: meetingStatus, badge: 'badge-muted' };
 
       html += '<div class="wizard-meeting-info">';
-      html += '<span class="wizard-meeting-title">📋 ' + escapeHtmlWizard(meetingTitle) + '</span>';
+      html += '<span class="wizard-meeting-title">' + (typeof icon === 'function' ? icon('clipboard-list', 'icon-sm icon-text') : '') + escapeHtmlWizard(meetingTitle) + '</span>';
       html += '<span class="badge ' + statusInfo.badge + ' wizard-meeting-status">' + statusInfo.text + '</span>';
       html += '</div>';
     }
@@ -314,7 +314,7 @@
     var guardMsg = getGuardMessage(pageStepId, checks, state);
     if (guardMsg) {
       html += '<div class="wizard-guard-message">';
-      html += '<span>⚠️</span><span>' + guardMsg + '</span>';
+      html += '<span>' + (typeof icon === 'function' ? icon('alert-triangle', 'icon-sm icon-warning') : '⚠') + '</span><span>' + guardMsg + '</span>';
       html += '</div>';
     }
 

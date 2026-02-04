@@ -42,13 +42,13 @@
       const zone = document.getElementById('validationZone');
       zone.classList.add('locked');
       zone.innerHTML = `
-        <div class="text-lg font-bold mb-2">✅ Séance déjà validée</div>
+        <div class="text-lg font-bold mb-2">${icon('check-circle', 'icon-md icon-success')} Séance déjà validée</div>
         <div class="text-sm mb-4">
           Cette séance a été validée et archivée.<br>
           Consultez les exports dans les Archives.
         </div>
         <a class="btn btn-primary" href="/archives.htmx.html${currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : ''}">
-          📚 Voir les archives
+          ${icon('archive', 'icon-sm icon-text')}Voir les archives
         </a>
       `;
 
@@ -133,7 +133,7 @@
         return;
       }
 
-      const confirm1 = confirm('⚠️ ATTENTION: Cette action est IRRÉVERSIBLE.\n\nLa séance sera définitivement archivée et plus aucune modification ne sera possible.\n\nContinuer ?');
+      const confirm1 = confirm('ATTENTION: Cette action est IRRÉVERSIBLE.\n\nLa séance sera définitivement archivée et plus aucune modification ne sera possible.\n\nContinuer ?');
       if (!confirm1) return;
 
       const confirm2 = confirm('Dernière confirmation:\n\nVous êtes sur le point de valider et archiver définitivement cette séance.\n\nConfirmer la validation ?');
@@ -150,9 +150,9 @@
         if (body && body.ok) {
           msgDiv.style.display = 'block';
           msgDiv.className = 'alert alert-success';
-          msgDiv.innerHTML = '✅ Séance validée et archivée avec succès !';
+          msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès !`;
 
-          setNotif('success', '✅ Séance validée !');
+          setNotif('success', 'Séance validée !');
 
           showAlreadyValidated();
 
@@ -163,7 +163,7 @@
         } else {
           msgDiv.style.display = 'block';
           msgDiv.className = 'alert alert-danger';
-          msgDiv.innerHTML = `❌ Erreur: ${escapeHtml(body?.error || 'Validation impossible')}`;
+          msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Erreur: ${escapeHtml(body?.error || 'Validation impossible')}`;
           Shared.btnLoading(btn, false);
         }
       } catch (err) {

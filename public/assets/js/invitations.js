@@ -23,7 +23,7 @@
   // Load meeting info
   async function loadMeeting() {
     if (!meetingId) {
-      meetingTitle.textContent = '⚠️ Aucune séance sélectionnée';
+      meetingTitle.innerHTML = `${icon('alert-triangle', 'icon-sm icon-warning')} Aucune séance sélectionnée`;
       return;
     }
 
@@ -83,7 +83,7 @@
     if (filtered.length === 0) {
       membersList.innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">👥</div>
+          <div class="empty-state-icon">${icon('users', 'icon-xl')}</div>
           <h3 class="empty-state-title">Aucun membre</h3>
           <p class="empty-state-description">Aucun membre ne correspond aux critères</p>
         </div>
@@ -177,7 +177,7 @@
       const summary = data.data || data;
       resultArea.innerHTML = `
         <div class="alert alert-success mb-4">
-          <strong>${data.dry_run ? '👁️ Aperçu' : '✅ Envoi terminé'}</strong>
+          <strong>${data.dry_run ? icon('eye', 'icon-sm icon-text') + 'Aperçu' : icon('check-circle', 'icon-sm icon-text') + 'Envoi terminé'}</strong>
         </div>
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div class="p-3 bg-surface rounded-lg border">

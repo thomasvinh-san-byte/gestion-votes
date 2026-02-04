@@ -330,7 +330,7 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', '✅ Vote clôturé');
+        setNotif('success', 'Vote clôturé');
         loadActiveMotion();
       } else {
         setNotif('error', body?.error || 'Erreur');
@@ -368,9 +368,9 @@
       if (body && body.ok) {
         msgDiv.style.display = 'block';
         msgDiv.className = 'alert alert-success';
-        msgDiv.innerHTML = '✅ Séance validée et archivée avec succès !';
+        msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès !`;
 
-        setNotif('success', '✅ Séance validée !');
+        setNotif('success', 'Séance validée !');
 
         // Disable validation
         document.getElementById('btnValidate').disabled = true;
@@ -378,7 +378,7 @@
       } else {
         msgDiv.style.display = 'block';
         msgDiv.className = 'alert alert-danger';
-        msgDiv.innerHTML = `❌ Erreur: ${body?.error || 'Validation impossible'}`;
+        msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Erreur: ${escapeHtml(body?.error || 'Validation impossible')}`;
       }
     } catch (err) {
       setNotif('error', err.message);

@@ -59,7 +59,7 @@
       motionsList.innerHTML = `
         <div class="empty-state-inline">
           <p>Aucune résolution</p>
-          <button class="btn btn-primary btn-sm mt-4" id="btnAddEmpty">➕ Ajouter une résolution</button>
+          <button class="btn btn-primary btn-sm mt-4" id="btnAddEmpty">${icon('plus', 'icon-sm icon-text')}Ajouter une résolution</button>
         </div>
       `;
       document.getElementById('btnAddEmpty')?.addEventListener('click', openModal);
@@ -78,12 +78,12 @@
       let resultHtml = '';
       if (isClosed) {
         const resultClass = m.result === 'adopted' ? 'result-adopted' : (m.result === 'rejected' ? 'result-rejected' : '');
-        const resultLabel = m.result === 'adopted' ? '✓ Adopté' : (m.result === 'rejected' ? '✗ Rejeté' : '—');
+        const resultLabel = m.result === 'adopted' ? `${icon('check', 'icon-sm')} Adopté` : (m.result === 'rejected' ? `${icon('x', 'icon-sm')} Rejeté` : '—');
         resultHtml = `
           <div class="results-inline">
-            <span style="color:var(--color-success)">✓ ${m.votes_for || 0}</span>
-            <span style="color:var(--color-danger)">✗ ${m.votes_against || 0}</span>
-            <span>⚪ ${m.votes_abstain || 0}</span>
+            <span style="color:var(--color-success)">${icon('thumbs-up', 'icon-sm')} ${m.votes_for || 0}</span>
+            <span style="color:var(--color-danger)">${icon('thumbs-down', 'icon-sm')} ${m.votes_against || 0}</span>
+            <span>${icon('minus', 'icon-sm icon-muted')} ${m.votes_abstain || 0}</span>
             <span class="result-badge ${resultClass}">${resultLabel}</span>
           </div>
         `;
@@ -91,12 +91,12 @@
 
       let actionBtn = '';
       if (isPending) {
-        actionBtn = `<button class="btn btn-primary btn-sm btn-open-vote" data-motion-id="${m.id}">Ouvrir</button>`;
+        actionBtn = `<button class="btn btn-primary btn-sm btn-open-vote" data-motion-id="${m.id}">${icon('play', 'icon-sm icon-text')}Ouvrir</button>`;
       } else if (isOpen) {
-        actionBtn = `<button class="btn btn-secondary btn-sm btn-close-vote" data-motion-id="${m.id}">Clôturer</button>`;
+        actionBtn = `<button class="btn btn-secondary btn-sm btn-close-vote" data-motion-id="${m.id}">${icon('square', 'icon-sm icon-text')}Clôturer</button>`;
       }
 
-      const secretBadge = m.secret ? '<span class="badge badge-sm">🔒</span>' : '';
+      const secretBadge = m.secret ? `<span class="badge badge-sm">${icon('lock', 'icon-xs')}</span>` : '';
 
       return `
         <div class="motion-row ${statusClass}">
