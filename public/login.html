@@ -240,7 +240,7 @@
                 var mr = (who.data && who.data.meeting_roles) || [];
                 var isPresident = mr.some(function(r) { return r.role === 'president'; });
                 if (isPresident) {
-                  window.location.href = '/president-dashboard.htmx.html';
+                  window.location.href = '/operator.htmx.html';
                 } else {
                   var role = user.role || 'viewer';
                   var defaultPage = {
@@ -289,7 +289,7 @@
             var mr = (data.data && data.data.meeting_roles) || [];
             var isPresident = mr.some(function(r) { return r.role === 'president'; });
             if (isPresident) {
-              window.location.href = '/president-dashboard.htmx.html';
+              window.location.href = '/operator.htmx.html';
             } else {
               var defaultPage = {
                 admin: '/admin.htmx.html',

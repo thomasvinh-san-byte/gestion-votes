@@ -80,7 +80,7 @@
 
   async function loadMeetings() {
     try {
-      const { body } = await api('/api/v1/meetings_index.php');
+      const { body } = await api('/api/v1/meetings_index.php?active_only=1');
       if (body?.ok && body?.data?.meetings) {
         meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
         body.data.meetings.forEach(m => {

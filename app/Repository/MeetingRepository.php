@@ -85,6 +85,28 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
+     * Liste les séances actives (exclut validated et archived).
+     * Utilisé pour les listes déroulantes de sélection.
+     */
+    public function listActiveByTenant(string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT
+                id, tenant_id, title, description,
+                status::text AS status,
+                scheduled_at, started_at, ended_at,
+                location, quorum_policy_id, vote_policy_id,
+                president_name, convocation_no,
+                created_at, updated_at
+             FROM meetings
+             WHERE tenant_id = :tenant_id
+               AND status NOT IN ('validated', 'archived')
+             ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC",
+            [':tenant_id' => $tenantId]
+        );
+    }
+
+    /**
      * Liste compacte (pour meetings_index.php).
      */
     public function listByTenantCompact(string $tenantId, int $limit = 50): array
@@ -94,6 +116,23 @@ class MeetingRepository extends AbstractRepository
                     created_at, started_at, ended_at, archived_at, validated_at
              FROM meetings
              WHERE tenant_id = :tenant_id
+             ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC
+             LIMIT " . max(1, min($limit, 200)),
+            [':tenant_id' => $tenantId]
+        );
+    }
+
+    /**
+     * Liste compacte des séances actives (exclut validated et archived).
+     */
+    public function listActiveByTenantCompact(string $tenantId, int $limit = 50): array
+    {
+        return $this->selectAll(
+            "SELECT id AS meeting_id, id, title, status::text AS status,
+                    created_at, started_at, ended_at, archived_at, validated_at
+             FROM meetings
+             WHERE tenant_id = :tenant_id
+               AND status NOT IN ('validated', 'archived')
              ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC
              LIMIT " . max(1, min($limit, 200)),
             [':tenant_id' => $tenantId]

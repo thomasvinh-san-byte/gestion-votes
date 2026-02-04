@@ -201,7 +201,7 @@
   async function loadMeetings(){
     const sel = $("#meetingSelect");
     if (!sel) return;
-    const r = await apiGet("/api/v1/meetings_index.php");
+    const r = await apiGet("/api/v1/meetings_index.php?active_only=1");
     const meetings = r?.data?.meetings || [];
     sel.innerHTML = "";
     const opt0 = document.createElement("option");

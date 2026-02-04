@@ -18,26 +18,17 @@
     </a>
   </div>
 
-  <!-- Section operateur -->
+  <!-- Section vote -->
   <div class="nav-section border-t mt-3 pt-3">
-    <!-- Gestion parole : operator+ (contrôle complet) -->
-    <a class="nav-item" href="/speaker.htmx.html" data-page="president-control" data-requires-role="operator">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-mic"></use></svg></span>
-      <span>Gestion parole</span>
-    </a>
     <!-- Vote : rôle de séance voter, ou operator+ -->
-    <a class="nav-item" href="/vote.htmx.html" data-page="vote" data-requires-role="voter,operator">
+    <a class="nav-item" href="/vote.htmx.html" data-page="vote" data-requires-role="voter,operator,president">
       <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-vote"></use></svg></span>
       <span>Vote</span>
     </a>
-  </div>
-
-  <!-- Section president -->
-  <div class="nav-section border-t mt-3 pt-3">
-    <!-- Dashboard Président : vue lecture seule pour president -->
-    <a class="nav-item" href="/president-dashboard.htmx.html" data-page="president" data-requires-role="president">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-gavel"></use></svg></span>
-      <span>Dashboard Pr&eacute;sident</span>
+    <!-- Écran public : projection -->
+    <a class="nav-item" href="/public.htmx.html" data-page="public" data-requires-role="operator">
+      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-monitor"></use></svg></span>
+      <span>&Eacute;cran public</span>
     </a>
   </div>
 
