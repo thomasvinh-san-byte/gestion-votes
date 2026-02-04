@@ -766,11 +766,11 @@
       try {
         // Load users
         const usersRes = await api('/api/v1/admin_users.php');
-        const users = usersRes.body?.items || [];
+        const users = usersRes.body?.data?.items || [];
 
         // Load current meeting roles
         const rolesRes = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`);
-        const currentRoles = rolesRes.body?.items || [];
+        const currentRoles = rolesRes.body?.data?.items || [];
 
         // Find current president
         const currentPresident = currentRoles.find(r => r.role === 'president');
@@ -912,11 +912,11 @@
       try {
         // Load quorum policies
         const qpRes = await api('/api/v1/quorum_policies.php');
-        const quorumPolicies = qpRes.body?.items || [];
+        const quorumPolicies = qpRes.body?.data?.items || [];
 
         // Load vote policies
         const vpRes = await api('/api/v1/vote_policies.php');
-        const votePolicies = vpRes.body?.items || [];
+        const votePolicies = vpRes.body?.data?.items || [];
 
         // Load current settings
         const qsRes = await api(`/api/v1/meeting_quorum_settings.php?meeting_id=${currentMeetingId}`);
@@ -1533,21 +1533,21 @@
   if (btnExportPV) {
     btnExportPV.addEventListener('click', async () => {
       if (!currentMeetingId) return;
-      window.open(`/api/v1/report_pdf.php?meeting_id=${currentMeetingId}`, '_blank');
+      window.open(`/api/v1/meeting_generate_report_pdf.php?meeting_id=${currentMeetingId}&preview=1`, '_blank');
     });
   }
 
   if (btnExportAttendance) {
     btnExportAttendance.addEventListener('click', async () => {
       if (!currentMeetingId) return;
-      window.open(`/api/v1/export_attendance.php?meeting_id=${currentMeetingId}`, '_blank');
+      window.open(`/api/v1/export_attendance_csv.php?meeting_id=${currentMeetingId}`, '_blank');
     });
   }
 
   if (btnExportVotes) {
     btnExportVotes.addEventListener('click', async () => {
       if (!currentMeetingId) return;
-      window.open(`/api/v1/export_votes.php?meeting_id=${currentMeetingId}`, '_blank');
+      window.open(`/api/v1/export_votes_csv.php?meeting_id=${currentMeetingId}`, '_blank');
     });
   }
 
