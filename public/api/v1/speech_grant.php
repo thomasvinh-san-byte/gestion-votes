@@ -14,9 +14,10 @@ try {
     $requestId = trim((string)($data['request_id'] ?? ''));
     if ($meetingId==='') throw new InvalidArgumentException('meeting_id requis');
 
+    $tenantId = api_current_tenant_id();
+
     // If request_id provided but no member_id, resolve member_id from the speech request
     if ($memberId === '' && $requestId !== '') {
-        $tenantId = api_current_tenant_id();
         $repo = new \AgVote\Repository\SpeechRepository();
         $req = $repo->findById($requestId, $tenantId);
         if ($req) {
@@ -24,7 +25,8 @@ try {
         }
     }
 
-    $out = SpeechService::grant($meetingId, $memberId!=='' ? $memberId : null);
+    // Pass tenant context for security validation
+    $out = SpeechService::grant($meetingId, $memberId!=='' ? $memberId : null, $tenantId);
     api_ok($out);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);

@@ -40,9 +40,28 @@ final class SpeechService
         ];
     }
 
-    private static function resolveTenant(string $meetingId): string
+    /**
+     * Resolve tenant from meeting, optionally validating against expected tenant.
+     *
+     * @param string $meetingId Meeting ID
+     * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
+     * @return string The meeting's tenant_id
+     * @throws RuntimeException If meeting not found or tenant mismatch
+     */
+    private static function resolveTenant(string $meetingId, ?string $expectedTenantId = null): string
     {
         $meetingRepo = new MeetingRepository();
+
+        // If we have expected tenant, use secure query
+        if ($expectedTenantId !== null && $expectedTenantId !== '') {
+            $meeting = $meetingRepo->findByIdForTenant($meetingId, $expectedTenantId);
+            if (!$meeting) {
+                throw new RuntimeException('Séance introuvable');
+            }
+            return $expectedTenantId;
+        }
+
+        // Fallback for public endpoints (no tenant context)
         $meeting = $meetingRepo->findById($meetingId);
         if (!$meeting) {
             throw new RuntimeException('Séance introuvable');
@@ -81,13 +100,16 @@ final class SpeechService
 
     /**
      * Toggle request: si déjà waiting -> cancel; sinon -> créer waiting.
+     * @param string $meetingId Meeting ID
+     * @param string $memberId Member ID
+     * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
      * @return array{status: string, request_id: ?string}
      */
-    public static function toggleRequest(string $meetingId, string $memberId): array
+    public static function toggleRequest(string $meetingId, string $memberId, ?string $expectedTenantId = null): array
     {
         self::ensureSchema();
 
-        $tenantId = self::resolveTenant($meetingId);
+        $tenantId = self::resolveTenant($meetingId, $expectedTenantId);
         $repo = new SpeechRepository();
 
         $existing = $repo->findActive($meetingId, $tenantId, $memberId);
@@ -110,12 +132,17 @@ final class SpeechService
         return ['status' => 'waiting', 'request_id' => $id];
     }
 
-    /** Donne la parole: soit au membre fourni, soit au prochain de la file. */
-    public static function grant(string $meetingId, ?string $memberId = null): array
+    /**
+     * Donne la parole: soit au membre fourni, soit au prochain de la file.
+     * @param string $meetingId Meeting ID
+     * @param string|null $memberId Member ID (optional, picks next in queue if null)
+     * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
+     */
+    public static function grant(string $meetingId, ?string $memberId = null, ?string $expectedTenantId = null): array
     {
         self::ensureSchema();
 
-        $tenantId = self::resolveTenant($meetingId);
+        $tenantId = self::resolveTenant($meetingId, $expectedTenantId);
         $repo = new SpeechRepository();
 
         // Terminer l'orateur courant s'il existe
@@ -148,11 +175,16 @@ final class SpeechService
         return self::getQueue($meetingId);
     }
 
-    public static function endCurrent(string $meetingId): array
+    /**
+     * Termine la parole de l'orateur courant.
+     * @param string $meetingId Meeting ID
+     * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
+     */
+    public static function endCurrent(string $meetingId, ?string $expectedTenantId = null): array
     {
         self::ensureSchema();
 
-        $tenantId = self::resolveTenant($meetingId);
+        $tenantId = self::resolveTenant($meetingId, $expectedTenantId);
         $repo = new SpeechRepository();
 
         $cur = $repo->findCurrentSpeaker($meetingId, $tenantId);
@@ -171,11 +203,16 @@ final class SpeechService
         return self::getQueue($meetingId);
     }
 
-    public static function clearHistory(string $meetingId): array
+    /**
+     * Vide l'historique des prises de parole terminées.
+     * @param string $meetingId Meeting ID
+     * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
+     */
+    public static function clearHistory(string $meetingId, ?string $expectedTenantId = null): array
     {
         self::ensureSchema();
 
-        $tenantId = self::resolveTenant($meetingId);
+        $tenantId = self::resolveTenant($meetingId, $expectedTenantId);
         $repo = new SpeechRepository();
 
         $count = $repo->countFinished($meetingId, $tenantId);

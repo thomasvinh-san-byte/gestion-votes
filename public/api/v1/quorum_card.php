@@ -11,12 +11,15 @@ $motionId  = trim((string)($_GET['motion_id'] ?? ''));
 header('Content-Type: text/html; charset=utf-8');
 
 try {
+    // Use tenant context if available for security
+    $tenantId = api_current_tenant_id();
+
     if ($motionId !== '') {
         $r = QuorumEngine::computeForMotion($motionId);
         $title = $r['applies_to']['motion_title'] ?? 'Motion';
         $scope = 'Motion';
     } elseif ($meetingId !== '') {
-        $r = QuorumEngine::computeForMeeting($meetingId);
+        $r = QuorumEngine::computeForMeeting($meetingId, $tenantId);
         $title = null;
         $scope = 'Séance';
     } else {

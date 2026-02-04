@@ -31,14 +31,11 @@ $attendanceRepo = new AttendanceRepository();
 $memberRepo     = new MemberRepository();
 $ballotRepo     = new BallotRepository();
 
-// Meeting
-$meeting = $meetingRepo->findById($meetingId);
+// Meeting - use tenant-isolated query for security
+$meeting = $tenant !== null
+    ? $meetingRepo->findByIdForTenant($meetingId, $tenant)
+    : $meetingRepo->findById($meetingId);
 if (!$meeting) api_fail('meeting_not_found', 404);
-
-if ($tenant !== null && (string)$meeting['tenant_id'] !== (string)$tenant) {
-    // Best-effort tenant isolation
-    api_fail('meeting_not_found', 404);
-}
 
 $checks = [];
 $bad = [];

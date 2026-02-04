@@ -11,7 +11,10 @@ try {
     $data = api_request('POST');
     $meetingId = trim((string)($data['meeting_id'] ?? ''));
     if ($meetingId==='') throw new InvalidArgumentException('meeting_id requis');
-    $out = SpeechService::clearHistory($meetingId);
+
+    // Pass tenant context for security validation
+    $tenantId = api_current_tenant_id();
+    $out = SpeechService::clearHistory($meetingId, $tenantId);
     api_ok($out);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);
