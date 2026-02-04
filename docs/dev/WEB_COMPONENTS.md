@@ -132,54 +132,106 @@ customElements.define('ag-toast', AgToast);
 
 ---
 
-## Composants candidats pour AG-VOTE
+## Composants implémentés
 
-### Priorité haute (usage fréquent)
+Les composants suivants sont disponibles dans `public/assets/js/components/` :
 
-1. **`<ag-kpi>`** — Carte KPI (présents, quorum, votes)
-   ```html
-   <ag-kpi value="42" label="Présents" variant="success"></ag-kpi>
-   ```
+### 1. `<ag-kpi>` — Carte KPI
 
-2. **`<ag-badge>`** — Badge de statut
-   ```html
-   <ag-badge variant="live">En cours</ag-badge>
-   ```
+```html
+<ag-kpi value="42" label="Présents" variant="success" icon="users"></ag-kpi>
+```
 
-3. **`<ag-toast>`** — Notification toast
-   ```html
-   <ag-toast type="success" message="Vote enregistré"></ag-toast>
-   ```
+**Attributs** : `value`, `label`, `variant` (success/warning/danger/primary), `icon`, `size` (sm/md/lg)
 
-4. **`<ag-modal>`** — Modale/Dialog
-   ```html
-   <ag-modal title="Confirmer" open>
-     <p>Êtes-vous sûr ?</p>
-   </ag-modal>
-   ```
+### 2. `<ag-badge>` — Badge de statut
 
-### Priorité moyenne
+```html
+<ag-badge variant="live">En cours</ag-badge>
+<ag-badge variant="success">Validé</ag-badge>
+<ag-badge variant="draft">Brouillon</ag-badge>
+```
 
-5. **`<ag-quorum-bar>`** — Barre de progression quorum
-6. **`<ag-vote-button>`** — Bouton de vote (Pour/Contre/Abstention)
-7. **`<ag-member-card>`** — Carte membre
-8. **`<ag-motion-card>`** — Carte résolution
+**Variantes** : success, warning, danger, live, draft, info, muted
+
+### 3. `<ag-spinner>` — Indicateur de chargement
+
+```html
+<ag-spinner size="md"></ag-spinner>
+<ag-spinner size="lg" variant="primary"></ag-spinner>
+```
+
+**Attributs** : `size` (sm/md/lg/xl), `variant` (primary/muted)
+
+### 4. `<ag-toast>` — Notifications toast
+
+```html
+<!-- Utilisation programmatique (recommandée) -->
+<script>
+AgToast.show('success', 'Vote enregistré !');
+AgToast.show('error', 'Erreur de connexion');
+AgToast.show('info', 'Chargement en cours...', 10000); // 10s
+</script>
+```
+
+**Types** : success, error, warning, info
+
+### 5. `<ag-quorum-bar>` — Barre de progression quorum
+
+```html
+<ag-quorum-bar value="67" threshold="50" label="Quorum atteint"></ag-quorum-bar>
+```
+
+**Attributs** : `value` (0-100), `threshold`, `label`, `show-percentage`
+
+### 6. `<ag-vote-button>` — Boutons de vote
+
+```html
+<ag-vote-button value="for">Pour</ag-vote-button>
+<ag-vote-button value="against">Contre</ag-vote-button>
+<ag-vote-button value="abstain" selected>Abstention</ag-vote-button>
+```
+
+**Attributs** : `value` (for/against/abstain/nsp), `selected`, `disabled`, `size` (md/lg/xl)
+**Événement** : `ag-vote` (detail: { value })
 
 ---
 
-## Implémentation progressive
+## Utilisation
 
-### Étape 1 : Créer le fichier de composants
+### Charger tous les composants
+
+```html
+<script type="module" src="/assets/js/components/index.js"></script>
+```
+
+### Import individuel
+
+```html
+<script type="module">
+  import '/assets/js/components/ag-kpi.js';
+  import '/assets/js/components/ag-badge.js';
+</script>
+```
+
+---
+
+## Architecture
+
+### Structure des fichiers
 
 ```
 public/assets/js/components/
-├── ag-kpi.js
-├── ag-badge.js
-├── ag-toast.js
-└── index.js  # Export tous les composants
+├── index.js          # Point d'entrée - importe tous les composants
+├── ag-kpi.js         # Cartes KPI
+├── ag-badge.js       # Badges de statut
+├── ag-spinner.js     # Indicateurs de chargement
+├── ag-toast.js       # Notifications toast
+├── ag-quorum-bar.js  # Barres de progression quorum
+└── ag-vote-button.js # Boutons de vote
 ```
 
-### Étape 2 : Exemple `ag-kpi.js`
+### Exemple : ag-kpi.js
 
 ```javascript
 /**
@@ -250,39 +302,43 @@ customElements.define('ag-kpi', AgKpi);
 export default AgKpi;
 ```
 
-### Étape 3 : Utiliser dans une page
+### Exemple d'intégration dans une page
 
 ```html
-<!-- Charger les composants -->
-<script type="module" src="/assets/js/components/ag-kpi.js"></script>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+  <!-- Charger les composants -->
+  <script type="module" src="/assets/js/components/index.js"></script>
 
-<!-- Utiliser -->
-<div class="kpi-grid">
-  <ag-kpi value="45" label="Présents" variant="success"></ag-kpi>
-  <ag-kpi value="67%" label="Quorum" variant="primary"></ag-kpi>
-  <ag-kpi value="3" label="Procurations"></ag-kpi>
-</div>
+  <!-- Utiliser -->
+  <div class="kpi-grid">
+    <ag-kpi value="45" label="Présents" variant="success" icon="users"></ag-kpi>
+    <ag-kpi value="67%" label="Quorum" variant="primary"></ag-kpi>
+    <ag-kpi value="3" label="Procurations"></ag-kpi>
+  </div>
+
+  <ag-quorum-bar value="67" threshold="50" label="Quorum"></ag-quorum-bar>
+
+  <div class="vote-buttons">
+    <ag-vote-button value="for">Pour</ag-vote-button>
+    <ag-vote-button value="against">Contre</ag-vote-button>
+    <ag-vote-button value="abstain">Abstention</ag-vote-button>
+  </div>
+
+  <script>
+    // Écouter les votes
+    document.addEventListener('ag-vote', (e) => {
+      console.log('Vote:', e.detail.value);
+      AgToast.show('success', `Vote "${e.detail.value}" enregistré`);
+    });
+  </script>
+</body>
+</html>
 ```
-
----
-
-## Migration progressive
-
-### Phase 1 : Composants "leaf" (sans enfants)
-- `<ag-kpi>`, `<ag-badge>`, `<ag-spinner>`
-- Impact minimal, facile à tester
-
-### Phase 2 : Composants interactifs
-- `<ag-toast>`, `<ag-vote-button>`
-- Gèrent des événements
-
-### Phase 3 : Composants complexes
-- `<ag-modal>`, `<ag-drawer>`
-- Utilisent des slots pour le contenu
-
-### Phase 4 : Composants composés
-- `<ag-motion-card>` qui utilise `<ag-badge>` et `<ag-vote-button>`
-- Composition de composants
 
 ---
 
@@ -310,10 +366,26 @@ export default AgKpi;
 
 ## Conclusion
 
-Les Web Components permettent de :
-1. **Réduire la duplication** — Un composant, plusieurs usages
-2. **Encapsuler les styles** — Pas de conflits CSS
-3. **Standardiser l'interface** — Cohérence visuelle garantie
-4. **Faciliter la maintenance** — Modifier un fichier, pas 22
+Les Web Components d'AG-VOTE apportent :
 
-Pour AG-VOTE, commencer par `<ag-kpi>` et `<ag-badge>` serait un bon point de départ pour évaluer l'approche.
+1. **Réutilisabilité** — Composants utilisables dans toutes les pages
+2. **Encapsulation** — Styles isolés via Shadow DOM
+3. **Standardisation** — Interface cohérente garantie
+4. **Maintenance simplifiée** — Modifier un fichier impacte toutes les pages
+
+### Composants disponibles
+
+| Composant | Fichier | Statut |
+|-----------|---------|--------|
+| `<ag-kpi>` | ag-kpi.js | ✅ Implémenté |
+| `<ag-badge>` | ag-badge.js | ✅ Implémenté |
+| `<ag-spinner>` | ag-spinner.js | ✅ Implémenté |
+| `<ag-toast>` | ag-toast.js | ✅ Implémenté |
+| `<ag-quorum-bar>` | ag-quorum-bar.js | ✅ Implémenté |
+| `<ag-vote-button>` | ag-vote-button.js | ✅ Implémenté |
+
+### Prochaines étapes
+
+- Migration progressive des pages existantes pour utiliser les composants
+- Création de `<ag-modal>` et `<ag-drawer>` si nécessaire
+- Documentation des patterns d'événements

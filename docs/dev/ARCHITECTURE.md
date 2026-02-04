@@ -11,8 +11,10 @@ gestion-votes/
 ├── public/                     Racine web Apache (DocumentRoot)
 │   ├── api/v1/                 118 endpoints REST PHP
 │   ├── assets/
-│   │   ├── css/                3 fichiers CSS (design-system, app, ui)
-│   │   └── js/                 7 fichiers JS (shell, utils, auth-ui, vote, meetings, meeting-context, pv-print)
+│   │   ├── css/                2 fichiers CSS (design-system, app)
+│   │   └── js/
+│   │       ├── components/     6 Web Components (ag-kpi, ag-badge, ag-toast, etc.)
+│   │       └── *.js            7 fichiers JS (shell, utils, auth-ui, vote, meetings, meeting-context, pv-print)
 │   ├── partials/               Composants HTML partages
 │   ├── fragments/              Fragments PHP (drawer, etc.)
 │   ├── exports/                Templates d'export (PV)
@@ -163,12 +165,36 @@ Un utilisateur peut avoir un role systeme (operator) ET un role de seance (presi
 ## Couche frontend
 
 ### Design system CSS
-3 fichiers en cascade :
-1. `design-system.css` — Tokens (couleurs, tailles, espacements)
-2. `ui.css` — Composants (boutons, cartes, badges, formulaires, tableaux, drawers, modales)
-3. `app.css` — Layout applicatif, pages specifiques. Importe ui.css via `@import`.
+2 fichiers en cascade :
+1. `design-system.css` — Tokens (couleurs, tailles, espacements) + composants legacy
+2. `app.css` — Layout applicatif, pages specifiques. Importe design-system.css via `@import`.
 
-Les pages chargent `app.css` qui importe automatiquement `ui.css`.
+Les pages chargent `app.css` qui importe automatiquement le design system complet.
+
+> **Note** : Le fichier `ui.css` a ete fusionne dans `design-system.css` (fevrier 2026).
+
+### Web Components
+Bibliotheque de composants reutilisables dans `public/assets/js/components/` :
+
+| Composant | Fichier | Usage |
+|-----------|---------|-------|
+| `<ag-kpi>` | ag-kpi.js | Cartes KPI (valeur, label, variante, icone) |
+| `<ag-badge>` | ag-badge.js | Badges de statut (success, warning, live, draft) |
+| `<ag-spinner>` | ag-spinner.js | Indicateurs de chargement |
+| `<ag-toast>` | ag-toast.js | Notifications toast avec `AgToast.show()` |
+| `<ag-quorum-bar>` | ag-quorum-bar.js | Barres de progression quorum |
+| `<ag-vote-button>` | ag-vote-button.js | Boutons de vote (pour/contre/abstention) |
+
+**Utilisation** :
+```html
+<script type="module" src="/assets/js/components/index.js"></script>
+
+<ag-kpi value="42" label="Présents" variant="success" icon="users"></ag-kpi>
+<ag-badge variant="live">En direct</ag-badge>
+<ag-vote-button value="for">Pour</ag-vote-button>
+```
+
+Les composants utilisent le Shadow DOM et emettent des evenements personnalises.
 
 ### JavaScript
 7 fichiers avec roles distincts :
