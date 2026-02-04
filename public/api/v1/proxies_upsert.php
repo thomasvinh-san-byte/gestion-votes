@@ -1,5 +1,27 @@
 <?php
-// public/api/v1/proxies_upsert.php
+/**
+ * proxies_upsert.php - Creer ou mettre a jour une procuration
+ *
+ * POST /api/v1/proxies_upsert.php
+ *
+ * Body:
+ *   - meeting_id (UUID, requis): ID de la seance
+ *   - giver_member_id (UUID, requis): ID du mandant
+ *   - receiver_member_id (UUID ou vide): ID du mandataire, vide pour revoquer
+ *   - scope (string, optionnel): "full" par defaut
+ *
+ * Regles de validation:
+ *   - Le mandataire ne peut pas etre le mandant (auto-delegation interdite)
+ *   - Pas de chaines de procurations : si B a deja donne procuration,
+ *     on ne peut pas donner a B (erreur "Chaine de procuration interdite")
+ *   - Plafond : un mandataire ne peut pas recevoir plus de PROXY_MAX_PER_RECEIVER
+ *     procurations (defaut: 99)
+ *
+ * Reponses:
+ *   - 200 OK: { "ok": true, "meeting_id": "...", "proxy": {...} }
+ *   - 200 OK (revocation): { "ok": true, "meeting_id": "...", "revoked": true }
+ *   - 400: Erreur validation (chaine, plafond, tenant...)
+ */
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Service\ProxiesService;
@@ -43,9 +65,11 @@ try {
     }
 
     api_ok([
-        'ok'         => true,
-        'meeting_id' => $meetingId,
-        'proxy'      => $row,
+        'ok'                 => true,
+        'meeting_id'         => $meetingId,
+        'giver_member_id'    => $giverId,
+        'receiver_member_id' => $receiverRaw,
+        'scope'              => $scope ?: 'full',
     ]);
 } catch (Throwable $e) {
     api_fail('proxy_upsert_failed', 400, ['detail' => $e->getMessage()]);

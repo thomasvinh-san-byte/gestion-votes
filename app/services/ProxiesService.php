@@ -11,6 +11,31 @@ use InvalidArgumentException;
  *
  * Contient la logique metier (validations, chaines, plafonds).
  * Delegue tout l'acces donnees a ProxyRepository.
+ *
+ * ## Regles de validation des procurations
+ *
+ * 1. **Anti-auto-delegation** : Un membre ne peut pas se donner procuration a lui-meme.
+ *
+ * 2. **Coherence tenant** : Le mandant (giver), le mandataire (receiver) et la seance
+ *    doivent appartenir au meme tenant.
+ *
+ * 3. **Pas de chaines de procurations** : Si B a deja donne sa procuration a C,
+ *    alors A ne peut pas donner sa procuration a B. Cela evite les chaines A->B->C
+ *    qui permettraient a une seule personne d'accumuler trop de pouvoir de vote.
+ *    Erreur: "Chaine de procuration interdite (le mandataire delegue deja)."
+ *
+ * 4. **Plafond par mandataire** : Un mandataire ne peut recevoir qu'un nombre
+ *    limite de procurations (defaut: 99, configurable via PROXY_MAX_PER_RECEIVER).
+ *    Erreur: "Plafond procurations atteint (max N)."
+ *
+ * ## Exemples
+ *
+ * - A donne procuration a B : OK (si B n'a pas delegue)
+ * - B donne procuration a C : OK
+ * - A veut donner a B apres que B ait delegue a C : REFUSE (chaine interdite)
+ * - A revoque sa procuration : OK (receiver_member_id vide)
+ *
+ * @see PROXY_MAX_PER_RECEIVER Variable d'environnement pour le plafond
  */
 final class ProxiesService
 {
@@ -23,7 +48,21 @@ final class ProxiesService
 
     /**
      * Cree ou remplace la procuration pour un mandant (giver) dans la seance.
-     * Si $receiverMemberId est vide => revocation.
+     *
+     * Si $receiverMemberId est vide => revocation de la procuration existante.
+     *
+     * Validations effectuees:
+     * - giver_member_id doit etre fourni
+     * - giver != receiver (pas d'auto-delegation)
+     * - seance et membres doivent appartenir au meme tenant
+     * - pas de chaine: le receiver ne doit pas deja avoir delegue (voir doc classe)
+     * - plafond: le receiver ne peut pas depasser PROXY_MAX_PER_RECEIVER procurations
+     *
+     * @param string $meetingId ID de la seance
+     * @param string $giverMemberId ID du mandant (celui qui donne sa procuration)
+     * @param string $receiverMemberId ID du mandataire (celui qui recoit), ou vide pour revoquer
+     * @param string|null $tenantId ID du tenant (auto-detecte si null)
+     * @throws InvalidArgumentException Si validation echoue
      */
     public static function upsert(string $meetingId, string $giverMemberId, string $receiverMemberId, ?string $tenantId = null): void
     {
@@ -54,7 +93,9 @@ final class ProxiesService
             throw new InvalidArgumentException('receiver_member_id invalide pour ce tenant');
         }
 
-        // No proxy chains: receiver cannot itself delegate in this meeting (active)
+        // Anti-chaines de procuration: si le receiver a deja donne sa procuration
+        // a quelqu'un d'autre, on ne peut pas lui donner de procuration supplementaire.
+        // Cela empeche les chaines transitives A->B->C qui concentreraient le pouvoir.
         if ($repo->countActiveAsGiver($meetingId, $receiverMemberId) > 0) {
             throw new InvalidArgumentException('Chaîne de procuration interdite (le mandataire délègue déjà).');
         }
