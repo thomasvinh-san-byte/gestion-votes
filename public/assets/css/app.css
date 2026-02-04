@@ -3,11 +3,8 @@
  * Single CSS entrypoint - all pages should include only this file.
  */
 
-/* Import Design System (foundation) */
+/* Import Design System (foundation + legacy compat) */
 @import url("/assets/css/design-system.css");
-
-/* Legacy UI compatibility (will be phased out) */
-@import url("/assets/css/ui.css");
 
 /* Google Fonts - Inter for better readability */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
