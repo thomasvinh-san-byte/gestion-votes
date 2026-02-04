@@ -410,7 +410,6 @@ class MotionRepository extends AbstractRepository
     {
         return $this->selectAll(
             "SELECT
-                mo.id AS motion_id,
                 mo.title,
                 mo.position,
                 mo.opened_at,
@@ -421,12 +420,12 @@ class MotionRepository extends AbstractRepository
                 COALESCE(SUM(CASE WHEN b.value = 'nsp' THEN b.weight ELSE 0 END), 0) AS w_nsp,
                 COALESCE(SUM(b.weight), 0) AS w_total,
                 COALESCE(COUNT(b.id), 0) AS ballots_count,
-                COALESCE(SUM(CASE WHEN b.source = 'manual' THEN 1 ELSE 0 END), 0) AS ballots_manual_count,
-                COALESCE(mo.decision, '') AS decision
+                COALESCE(mo.decision, '') AS decision,
+                COALESCE(mo.decision_reason, '') AS decision_reason
              FROM motions mo
              LEFT JOIN ballots b ON b.motion_id = mo.id
              WHERE mo.meeting_id = ?
-             GROUP BY mo.id, mo.title, mo.position, mo.opened_at, mo.closed_at, mo.decision
+             GROUP BY mo.id, mo.title, mo.position, mo.opened_at, mo.closed_at, mo.decision, mo.decision_reason
              ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC",
             [$meetingId]
         );

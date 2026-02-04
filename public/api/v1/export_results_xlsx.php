@@ -2,10 +2,9 @@
 declare(strict_types=1);
 
 /**
- * Export CSV des résultats des résolutions
+ * Export Excel des résultats des résolutions
  *
- * Génère un fichier CSV avec les résultats de vote de chaque résolution
- * formaté en français pour utilisation directe dans Excel ou autre tableur.
+ * Génère un fichier Excel avec les résultats de vote formatés en français.
  *
  * Disponible uniquement après validation de la séance.
  */
@@ -23,27 +22,25 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
     api_fail('missing_meeting_id', 400);
 }
 
-// Exports autorisés uniquement après validation (exigence conformité)
+// Exports autorisés uniquement après validation
 $meetingRepo = new MeetingRepository();
 $mt = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$mt) api_fail('meeting_not_found', 404);
 if (empty($mt['validated_at'])) api_fail('meeting_not_validated', 409);
 
-// Génération du fichier
-$filename = ExportService::generateFilename('resultats', $mt['title'] ?? '');
-ExportService::initCsvOutput($filename);
-
-$out = ExportService::openCsvOutput();
-
-// En-têtes français
-ExportService::writeCsvRow($out, ExportService::getMotionResultsHeaders());
-
-// Données formatées
 $motionRepo = new MotionRepository();
 $rows = $motionRepo->listResultsExportForMeeting($meetingId);
 
-foreach ($rows as $r) {
-    ExportService::writeCsvRow($out, ExportService::formatMotionResultRow($r));
-}
+// Formater les données
+$formattedRows = array_map([ExportService::class, 'formatMotionResultRow'], $rows);
 
-fclose($out);
+// Génération du fichier
+$filename = ExportService::generateFilename('resultats', $mt['title'] ?? '', 'xlsx');
+ExportService::initXlsxOutput($filename);
+
+$spreadsheet = ExportService::createSpreadsheet(
+    ExportService::getMotionResultsHeaders(),
+    $formattedRows,
+    'Résultats'
+);
+ExportService::outputSpreadsheet($spreadsheet);

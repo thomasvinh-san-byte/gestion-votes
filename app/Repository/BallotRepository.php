@@ -421,21 +421,21 @@ class BallotRepository extends AbstractRepository
         return $this->selectAll(
             "SELECT
                 mo.title AS motion_title,
-                mo.id AS motion_id,
+                mo.position AS motion_position,
                 mb.full_name AS voter_name,
-                b.member_id,
                 b.value::text AS value,
                 b.weight,
                 b.is_proxy_vote,
-                b.proxy_source_member_id,
+                ps.full_name AS proxy_source_name,
                 b.cast_at,
-                COALESCE(b.source, 'tablet') AS source
+                COALESCE(b.source, 'electronic') AS source
              FROM motions mo
              JOIN meetings mt ON mt.id = mo.meeting_id AND mt.id = ?
              LEFT JOIN ballots b ON b.motion_id = mo.id
              LEFT JOIN members mb ON mb.id = b.member_id
+             LEFT JOIN members ps ON ps.id = b.proxy_source_member_id
              WHERE mo.meeting_id = ?
-             ORDER BY mo.opened_at NULLS LAST, mo.created_at ASC, mb.full_name ASC NULLS LAST",
+             ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC, mb.full_name ASC NULLS LAST",
             [$meetingId, $meetingId]
         );
     }
