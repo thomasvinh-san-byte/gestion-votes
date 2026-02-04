@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Aide et FAQ - AG-VOTE">
+  <title>Aide &amp; FAQ — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <style>
+    .help-header {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: 1.5rem;
+    }
+
+    .help-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .help-header-subtitle {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .help-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    .help-search {
+      margin-bottom: 1.5rem;
+    }
+
+    .help-search input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      padding-left: 2.5rem;
+      font-size: 1rem;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface);
+    }
+
+    .help-search-wrapper {
+      position: relative;
+    }
+
+    .help-search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-muted);
+    }
+
+    .help-tabs {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .help-tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+
+    .help-tab:hover {
+      background: var(--color-bg-subtle);
+    }
+
+    .help-tab.active {
+      background: var(--color-primary);
+      color: #fff;
+    }
+
+    .faq-section {
+      margin-bottom: 2rem;
+    }
+
+    .faq-section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--color-primary);
+    }
+
+    .faq-item {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+
+    .faq-question {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+
+    .faq-question:hover {
+      background: var(--color-bg-subtle);
+    }
+
+    .faq-chevron {
+      transition: transform 0.2s;
+      flex-shrink: 0;
+      margin-left: 0.5rem;
+    }
+
+    .faq-item.open .faq-chevron {
+      transform: rotate(90deg);
+    }
+
+    .faq-answer {
+      display: none;
+      padding: 0 1rem 1rem 1rem;
+      font-size: 0.9rem;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    .faq-item.open .faq-answer {
+      display: block;
+    }
+
+    .faq-answer code {
+      background: var(--color-bg-subtle);
+      padding: 0.125rem 0.375rem;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    .faq-answer ul, .faq-answer ol {
+      margin: 0.5rem 0;
+      padding-left: 1.25rem;
+    }
+
+    .faq-answer li {
+      margin-bottom: 0.25rem;
+    }
+
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .quick-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--color-text);
+      transition: all 0.15s;
+    }
+
+    .quick-link:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-subtle);
+    }
+
+    .quick-link-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-bg-subtle);
+      border-radius: 8px;
+    }
+
+    .quick-link-text {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .quick-link-desc {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    .doc-links {
+      background: var(--color-bg-subtle);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-top: 2rem;
+    }
+
+    .doc-links h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .doc-links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .doc-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--color-text);
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+
+    .doc-link:hover {
+      border-color: var(--color-primary);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar" data-include-sidebar data-page="help"></aside>
+
+    <div class="help-header">
+      <h1>Aide &amp; FAQ</h1>
+      <div class="help-header-subtitle">Trouvez rapidement des reponses a vos questions</div>
+    </div>
+
+    <main class="app-main" style="padding: 0;">
+      <div class="help-content">
+        <!-- Quick links -->
+        <div class="quick-links">
+          <a href="/meetings.htmx.html" class="quick-link">
+            <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></div>
+            <div>
+              <div class="quick-link-text">Gerer les seances</div>
+              <div class="quick-link-desc">Creer et gerer vos reunions</div>
+            </div>
+          </a>
+          <a href="/members.htmx.html" class="quick-link">
+            <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-users"></use></svg></div>
+            <div>
+              <div class="quick-link-text">Gerer les membres</div>
+              <div class="quick-link-desc">Membres et groupes</div>
+            </div>
+          </a>
+          <a href="/operator.htmx.html" class="quick-link">
+            <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-file-text"></use></svg></div>
+            <div>
+              <div class="quick-link-text">Conduire une seance</div>
+              <div class="quick-link-desc">Presences, votes, resultats</div>
+            </div>
+          </a>
+          <a href="/trust.htmx.html" class="quick-link">
+            <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-shield-check"></use></svg></div>
+            <div>
+              <div class="quick-link-text">Audit et controle</div>
+              <div class="quick-link-desc">Journal et verifications</div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Search -->
+        <div class="help-search">
+          <div class="help-search-wrapper">
+            <svg class="icon help-search-icon"><use href="/assets/icons.svg#icon-search"></use></svg>
+            <input type="text" id="faqSearch" placeholder="Rechercher dans la FAQ...">
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="help-tabs">
+          <button class="help-tab active" data-tab="all">Tous</button>
+          <button class="help-tab" data-tab="general">General</button>
+          <button class="help-tab" data-tab="operator">Operateur</button>
+          <button class="help-tab" data-tab="vote">Vote</button>
+          <button class="help-tab" data-tab="members">Membres</button>
+          <button class="help-tab" data-tab="security">Securite</button>
+        </div>
+
+        <!-- FAQ Sections -->
+        <div id="faqContent">
+          <!-- General -->
+          <div class="faq-section" data-category="general">
+            <div class="faq-section-title">
+              <svg class="icon"><use href="/assets/icons.svg#icon-info"></use></svg>
+              Questions generales
+            </div>
+
+            <div class="faq-item" data-search="ag-vote application">
+              <div class="faq-question">
+                <span>Qu'est-ce qu'AG-Vote ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                AG-Vote est une application web de gestion de seances de vote formelles (assemblees generales, conseils syndicaux, reunions de copropriete). Elle couvre le cycle complet : preparation, conduite en direct, vote electronique, calcul des resultats, validation et generation des livrables (PV, exports CSV).
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="role permission">
+              <div class="faq-question">
+                <span>Quels sont les differents roles ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                <ul>
+                  <li><strong>Admin</strong> : Gestion complete (utilisateurs, politiques, configuration)</li>
+                  <li><strong>Operator</strong> : Conduite des seances (presences, votes, resultats)</li>
+                  <li><strong>Auditor</strong> : Consultation de l'audit et des verifications</li>
+                  <li><strong>Viewer</strong> : Consultation des archives</li>
+                  <li><strong>President</strong> : Validation des seances (role de seance)</li>
+                  <li><strong>Voter</strong> : Vote electronique (role de seance)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="connexion internet reseau">
+              <div class="faq-question">
+                <span>L'application necessite-t-elle Internet ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Non. AG-Vote fonctionne en reseau local ferme. L'application est auto-hebergee et ne depend d'aucun service externe. Seul l'envoi d'invitations par email necessite une connexion SMTP.
+              </div>
+            </div>
+          </div>
+
+          <!-- Operator -->
+          <div class="faq-section" data-category="operator">
+            <div class="faq-section-title">
+              <svg class="icon"><use href="/assets/icons.svg#icon-file-text"></use></svg>
+              Conduite de seance
+            </div>
+
+            <div class="faq-item" data-search="seance deroulement etapes">
+              <div class="faq-question">
+                <span>Quel est le deroulement type d'une seance ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                <ol>
+                  <li><strong>Preparation</strong> : Creer la seance, ajouter les membres, configurer les resolutions</li>
+                  <li><strong>Ouverture</strong> : Passer la seance en <code>live</code>, pointer les presences</li>
+                  <li><strong>Vote</strong> : Ouvrir chaque resolution, attendre les votes, cloturer</li>
+                  <li><strong>Consolidation</strong> : Verifier les resultats, traiter les anomalies</li>
+                  <li><strong>Validation</strong> : Le president valide, la seance est verrouillee</li>
+                  <li><strong>Livrables</strong> : Generer le PV, exporter les CSV</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="modifier seance validee">
+              <div class="faq-question">
+                <span>Peut-on modifier une seance validee ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Non. Apres validation, la base de donnees est verrouillee par des triggers PostgreSQL. Toute tentative de modification retourne une erreur. C'est une garantie d'integrite juridique.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="panne reseau mode degrade">
+              <div class="faq-question">
+                <span>Que faire en cas de panne reseau pendant un vote ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Utiliser le <strong>mode degrade</strong> : l'operateur saisit manuellement les resultats avec une justification obligatoire. L'incident est trace dans le journal d'audit.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="quorum seuil">
+              <div class="faq-question">
+                <span>Comment fonctionne le quorum ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Le quorum est calcule automatiquement a partir des presences et des procurations. Deux modes :
+                <ul>
+                  <li><strong>Par personnes</strong> : nombre de presents + representes >= seuil</li>
+                  <li><strong>Par poids</strong> : somme des poids (tantiemes) des presents >= seuil</li>
+                </ul>
+                Chaque resolution peut avoir sa propre politique de quorum.
+              </div>
+            </div>
+          </div>
+
+          <!-- Vote -->
+          <div class="faq-section" data-category="vote">
+            <div class="faq-section-title">
+              <svg class="icon"><use href="/assets/icons.svg#icon-vote"></use></svg>
+              Vote electronique
+            </div>
+
+            <div class="faq-item" data-search="vote electronique token">
+              <div class="faq-question">
+                <span>Comment fonctionne le vote electronique ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                <ol>
+                  <li>L'operateur genere des tokens de vote (un par votant)</li>
+                  <li>Chaque votant recoit un lien unique (QR code ou URL)</li>
+                  <li>Le votant accede a la page de vote, choisit son vote et confirme</li>
+                  <li>Le token est consomme (anti-rejeu) - impossible de voter deux fois</li>
+                  <li>Le bulletin est enregistre avec le poids du votant</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="procuration delegation mandataire">
+              <div class="faq-question">
+                <span>Comment fonctionnent les procurations ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Un membre (mandant) peut donner sa procuration a un autre membre (mandataire). Regles :
+                <ul>
+                  <li>Un membre ne peut pas se donner procuration a lui-meme</li>
+                  <li>Pas de chaines : si B a deja delegue a C, A ne peut pas deleguer a B</li>
+                  <li>Plafond configurable de procurations par mandataire</li>
+                </ul>
+                Le mandataire vote pour lui-meme et pour ses mandants.
+              </div>
+            </div>
+          </div>
+
+          <!-- Members -->
+          <div class="faq-section" data-category="members">
+            <div class="faq-section-title">
+              <svg class="icon"><use href="/assets/icons.svg#icon-users"></use></svg>
+              Gestion des membres
+            </div>
+
+            <div class="faq-item" data-search="importer membres csv">
+              <div class="faq-question">
+                <span>Comment importer des membres par CSV ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Allez dans <strong>Membres</strong> > <strong>Import CSV</strong>. Le fichier doit contenir les colonnes :
+                <ul>
+                  <li><code>name</code> ou <code>nom</code> : Nom complet (requis)</li>
+                  <li><code>email</code> : Adresse email (optionnel)</li>
+                  <li><code>voting_power</code> ou <code>ponderation</code> : Poids de vote (defaut: 1)</li>
+                  <li><code>is_active</code> ou <code>actif</code> : Statut actif (defaut: true)</li>
+                  <li><code>groups</code> ou <code>groupes</code> : Noms de groupes separes par <code>|</code></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="groupes membres categories">
+              <div class="faq-question">
+                <span>A quoi servent les groupes de membres ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Les groupes permettent d'organiser les membres par categories (colleges electoraux, departements, etc.). Avantages :
+                <ul>
+                  <li>Filtrage rapide dans la liste des membres</li>
+                  <li>Import CSV avec assignation automatique aux groupes</li>
+                  <li>Visualisation par badges colores</li>
+                  <li>Statistiques par groupe</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="poids vote tantieme">
+              <div class="faq-question">
+                <span>Qu'est-ce que le poids de vote ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Le poids de vote (ou tantiemes) determine l'importance du vote d'un membre. Par defaut, chaque membre a un poids de 1. Utile pour les coproprietes ou le vote est pondere par les tantiemes.
+              </div>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="faq-section" data-category="security">
+            <div class="faq-section-title">
+              <svg class="icon"><use href="/assets/icons.svg#icon-shield-check"></use></svg>
+              Securite et audit
+            </div>
+
+            <div class="faq-item" data-search="authentification cle api">
+              <div class="faq-question">
+                <span>Comment fonctionne l'authentification ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Par cle API. Chaque utilisateur possede une cle unique dont le hash SHA256 est stocke en base. Apres connexion via la page de login, une session est creee. La cle n'est jamais stockee en clair cote serveur.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="audit journal trace">
+              <div class="faq-question">
+                <span>Le journal d'audit est-il infalsifiable ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Oui. Le journal utilise une chaine de hachage SHA256 : chaque evenement inclut le hash de l'evenement precedent. Toute suppression ou modification casse la chaine, rendant la falsification detectable.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="export csv pdf pv">
+              <div class="faq-question">
+                <span>Quels exports sont disponibles ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                <ul>
+                  <li><strong>PV</strong> : Proces-Verbal HTML/PDF (apres validation)</li>
+                  <li><strong>Presences CSV</strong> : Liste des pointages</li>
+                  <li><strong>Votes CSV</strong> : Detail des votes par resolution</li>
+                  <li><strong>Resultats CSV</strong> : Synthese des resultats</li>
+                  <li><strong>Membres CSV</strong> : Registre des membres</li>
+                  <li><strong>Audit CSV</strong> : Journal d'audit complet</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documentation links -->
+        <div class="doc-links">
+          <h3>
+            <svg class="icon"><use href="/assets/icons.svg#icon-file-text"></use></svg>
+            Documentation technique
+          </h3>
+          <div class="doc-links-grid">
+            <a href="/docs/FAQ.md" target="_blank" class="doc-link">
+              <svg class="icon"><use href="/assets/icons.svg#icon-info"></use></svg>
+              FAQ complete
+            </a>
+            <a href="/docs/UTILISATION_LIVE.md" target="_blank" class="doc-link">
+              <svg class="icon"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+              Guide operateur
+            </a>
+            <a href="/docs/API.md" target="_blank" class="doc-link">
+              <svg class="icon"><use href="/assets/icons.svg#icon-link"></use></svg>
+              Reference API
+            </a>
+            <a href="/docs/SECURITY.md" target="_blank" class="doc-link">
+              <svg class="icon"><use href="/assets/icons.svg#icon-shield"></use></svg>
+              Securite
+            </a>
+            <a href="/docs/ARCHITECTURE.md" target="_blank" class="doc-link">
+              <svg class="icon"><use href="/assets/icons.svg#icon-building"></use></svg>
+              Architecture
+            </a>
+            <a href="/docs/INSTALLATION.md" target="_blank" class="doc-link">
+              <svg class="icon"><use href="/assets/icons.svg#icon-download"></use></svg>
+              Installation
+            </a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/assets/js/utils.js"></script>
+  <script src="/assets/js/shared.js"></script>
+  <script src="/assets/js/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    const tabs = document.querySelectorAll('.help-tab');
+    const sections = document.querySelectorAll('.faq-section');
+    const items = document.querySelectorAll('.faq-item');
+    const searchInput = document.getElementById('faqSearch');
+
+    // Tab switching
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        const category = tab.dataset.tab;
+        filterContent(category, searchInput.value);
+      });
+    });
+
+    // FAQ item toggle
+    items.forEach(item => {
+      const question = item.querySelector('.faq-question');
+      question.addEventListener('click', () => {
+        item.classList.toggle('open');
+      });
+    });
+
+    // Search
+    searchInput.addEventListener('input', () => {
+      const activeTab = document.querySelector('.help-tab.active');
+      const category = activeTab ? activeTab.dataset.tab : 'all';
+      filterContent(category, searchInput.value);
+    });
+
+    function filterContent(category, search) {
+      const searchLower = search.toLowerCase();
+
+      sections.forEach(section => {
+        const sectionCategory = section.dataset.category;
+        const matchesCategory = category === 'all' || sectionCategory === category;
+
+        if (!matchesCategory) {
+          section.classList.add('hidden');
+          return;
+        }
+
+        const sectionItems = section.querySelectorAll('.faq-item');
+        let hasVisibleItems = false;
+
+        sectionItems.forEach(item => {
+          const question = item.querySelector('.faq-question span').textContent.toLowerCase();
+          const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+          const searchData = (item.dataset.search || '').toLowerCase();
+          const matchesSearch = !searchLower ||
+            question.includes(searchLower) ||
+            answer.includes(searchLower) ||
+            searchData.includes(searchLower);
+
+          if (matchesSearch) {
+            item.classList.remove('hidden');
+            hasVisibleItems = true;
+          } else {
+            item.classList.add('hidden');
+          }
+        });
+
+        if (hasVisibleItems) {
+          section.classList.remove('hidden');
+        } else {
+          section.classList.add('hidden');
+        }
+      });
+    }
+  })();
+  </script>
+</body>
+</html>
