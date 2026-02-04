@@ -254,7 +254,7 @@
           <option value="">— Séance —</option>
         </select>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
-          ☰
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
     </header>
@@ -262,7 +262,7 @@
     <main class="app-main">
       <!-- No meeting selected -->
       <div id="noMeetingState" class="text-center p-8">
-        <div class="text-4xl mb-4">📊</div>
+        <svg class="icon" style="width:3rem;height:3rem;margin-bottom:1rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
         <h2 class="text-xl font-bold mb-2">Sélectionnez une séance</h2>
         <p class="text-muted">Choisissez une séance pour voir les statistiques en temps réel.</p>
       </div>
@@ -302,7 +302,7 @@
         <div id="voteCard" class="vote-card">
           <h2>Vote en cours</h2>
           <div id="voteContent" class="no-vote">
-            <div class="no-vote-icon">🗳️</div>
+            <div class="no-vote-icon"><svg class="icon" style="width:2rem;height:2rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg></div>
             <div>Aucun vote ouvert</div>
           </div>
         </div>
@@ -499,7 +499,7 @@
           card.classList.remove('active');
           content.innerHTML = `
             <div class="no-vote">
-              <div class="no-vote-icon">🗳️</div>
+              <div class="no-vote-icon"><svg class="icon" style="width:2rem;height:2rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg></div>
               <div>Aucun vote ouvert</div>
             </div>
           `;

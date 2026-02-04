@@ -575,8 +575,8 @@
     modal.innerHTML = `
       <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:80vh;overflow:auto;">
         <div class="flex items-center justify-between mb-4">
-          <h3 style="margin:0;">📱 Gestion des appareils</h3>
-          <button class="btn btn-sm btn-ghost" id="btnCloseDevices">✕</button>
+          <h3 style="margin:0;"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg> Gestion des appareils</h3>
+          <button class="btn btn-sm btn-ghost" id="btnCloseDevices">×</button>
         </div>
         <div id="devicesModalList">
           <div class="text-center p-4"><div class="spinner"></div></div>
@@ -984,7 +984,7 @@
 
     modal.innerHTML = `
       <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:500px;width:90%;">
-        <h3 style="margin:0 0 1rem;">📥 Importer des membres (CSV)</h3>
+        <h3 style="margin:0 0 1rem;"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer des membres (CSV)</h3>
         <p class="text-muted text-sm mb-3">
           Format attendu: <code>nom,email,poids</code> (une ligne par membre).<br>
           L'email et le poids sont optionnels.
@@ -1129,7 +1129,7 @@
         <div class="resolution-section" data-motion-id="${m.id}">
           <div class="resolution-header">
             <div class="resolution-reorder">${reorderBtns}</div>
-            <span class="resolution-chevron">▶</span>
+            <span class="resolution-chevron"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg></span>
             <span style="font-weight:700;margin-right:0.5rem;">${i + 1}.</span>
             <span class="resolution-title">${escapeHtml(m.title)}</span>
             <span class="resolution-status ${statusClass}">${statusText}</span>

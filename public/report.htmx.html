@@ -81,19 +81,19 @@
     <header class="app-header">
       <div class="flex items-center gap-4">
         <div>
-          <h1 class="text-xl font-bold">📋 Procès-verbal</h1>
+          <h1 class="text-xl font-bold"><svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg> Procès-verbal</h1>
           <p class="text-sm text-secondary" id="meetingTitle">Prévisualisation et export</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
         <a class="btn btn-primary" id="btnExportPDF" href="#" target="_blank">
-          📄 Exporter PDF
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg> Exporter PDF
         </a>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance">
-          ℹ️
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
         </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
-          ☰
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
     </header>
@@ -106,30 +106,30 @@
 
         <!-- Meeting context -->
         <div class="alert alert-info mb-6" id="meetingContext" style="display: none;">
-          <span>📌</span>
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg>
           <span>Séance: <strong id="meetingName">—</strong></span>
         </div>
 
         <!-- Warning if not validated -->
         <div class="alert alert-warning mb-6" id="notValidatedWarning" style="display: none;">
-          <span>⚠️</span>
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
           <span>Cette séance n'est pas encore validée. Le PV définitif sera disponible après validation.</span>
         </div>
 
         <!-- Email sending -->
         <div class="card mb-6">
           <div class="card-header">
-            <h3 class="card-title">📧 Envoyer le PV par email</h3>
+            <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Envoyer le PV par email</h3>
           </div>
           <div class="card-body">
             <div class="email-form">
               <div class="form-group flex-1 mb-0">
                 <label class="form-label" for="email">Adresse email</label>
-                <input class="form-input" type="email" id="email" 
+                <input class="form-input" type="email" id="email"
                        placeholder="destinataire@exemple.com">
               </div>
               <button class="btn btn-primary" id="btnSendEmail">
-                📤 Envoyer
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg> Envoyer
               </button>
             </div>
             <div id="emailMsg" class="mt-3" style="display: none;"></div>
@@ -140,9 +140,9 @@
         <div class="card mb-6">
           <div class="card-header">
             <div class="flex items-center justify-between">
-              <h3 class="card-title">👁️ Prévisualisation du PV</h3>
+              <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-eye"></use></svg> Prévisualisation du PV</h3>
               <a class="btn btn-secondary btn-sm" id="btnOpenNewTab" href="#" target="_blank">
-                🔗 Ouvrir dans un nouvel onglet
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg> Ouvrir dans un nouvel onglet
               </a>
             </div>
           </div>
@@ -156,33 +156,33 @@
         <!-- Export buttons -->
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">📥 Autres exports</h3>
+            <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Autres exports</h3>
             <p class="card-description">Disponibles après validation de la séance</p>
           </div>
           <div class="card-body">
             <div class="export-grid">
               <a class="export-btn" id="exportPV" href="#" target="_blank">
-                <span class="export-btn-icon">📋</span>
+                <span class="export-btn-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></span>
                 <span class="export-btn-label">PV (HTML)</span>
               </a>
               <a class="export-btn" id="exportAttendance" href="#" target="_blank">
-                <span class="export-btn-icon">👥</span>
+                <span class="export-btn-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg></span>
                 <span class="export-btn-label">Présences (CSV)</span>
               </a>
               <a class="export-btn" id="exportVotes" href="#" target="_blank">
-                <span class="export-btn-icon">🗳️</span>
+                <span class="export-btn-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg></span>
                 <span class="export-btn-label">Votes (CSV)</span>
               </a>
               <a class="export-btn" id="exportMotions" href="#" target="_blank">
-                <span class="export-btn-icon">📌</span>
+                <span class="export-btn-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg></span>
                 <span class="export-btn-label">Résolutions (CSV)</span>
               </a>
               <a class="export-btn" id="exportMembers" href="#" target="_blank">
-                <span class="export-btn-icon">👤</span>
+                <span class="export-btn-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg></span>
                 <span class="export-btn-label">Membres (CSV)</span>
               </a>
               <a class="export-btn" id="exportAudit" href="#" target="_blank">
-                <span class="export-btn-icon">📜</span>
+                <span class="export-btn-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-scroll"></use></svg></span>
                 <span class="export-btn-label">Audit (CSV)</span>
               </a>
             </div>

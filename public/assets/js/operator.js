@@ -175,7 +175,7 @@
     if (checks.hasPresident) {
       items.push({ done: true, text: 'Président assigné' });
     } else {
-      items.push({ done: true, text: 'Président: optionnel (bouton 👔)', link: null, optional: true });
+      items.push({ done: true, text: 'Président: optionnel (bouton Rôles)', link: null, optional: true });
     }
 
     // Check 5: Policies (optional for demo - defaults apply)
@@ -778,7 +778,7 @@
         body.innerHTML = `
           <div style="padding:8px 0;display:flex;flex-direction:column;gap:16px;">
             <div class="form-group">
-              <label class="form-label">👔 Président de séance</label>
+              <label class="form-label">${icon('briefcase', 'icon-sm icon-text')} Président de séance</label>
               <select class="form-input" id="rolesPresident">
                 <option value="">— Aucun —</option>
                 ${users.map(u => `
@@ -812,7 +812,7 @@
               </div>
             </div>
 
-            <button class="btn btn-primary btn-block" id="btnSaveRoles">💾 Enregistrer le président</button>
+            <button class="btn btn-primary btn-block" id="btnSaveRoles">${icon('save', 'icon-sm icon-text')} Enregistrer le président</button>
           </div>
         `;
 
@@ -956,7 +956,7 @@
                 `).join('')}
               </select>
             </div>
-            <button class="btn btn-primary btn-block" id="btnSaveSettings">💾 Enregistrer</button>
+            <button class="btn btn-primary btn-block" id="btnSaveSettings">${icon('save', 'icon-sm icon-text')} Enregistrer</button>
           </div>
         `;
 
@@ -1222,7 +1222,7 @@
             <div class="flex items-center justify-between">
               <span class="text-sm text-muted">${members.length} membre(s)</span>
               <div class="flex gap-2">
-                <button class="btn btn-sm btn-secondary" id="btnImportCsv">📥 Import CSV</button>
+                <button class="btn btn-sm btn-secondary" id="btnImportCsv">${icon('download', 'icon-sm icon-text')} Import CSV</button>
                 <button class="btn btn-sm btn-primary" id="btnAddMember">+ Ajouter</button>
               </div>
             </div>
@@ -1244,7 +1244,7 @@
               <p class="text-sm text-muted mb-2">Format CSV: name,email,voting_power (en-têtes requis)</p>
               <input type="file" accept=".csv" id="csvFileInput" class="form-input mb-2">
               <div class="flex gap-2">
-                <button class="btn btn-sm btn-primary" id="btnUploadCsv">📤 Importer</button>
+                <button class="btn btn-sm btn-primary" id="btnUploadCsv">${icon('upload', 'icon-sm icon-text')} Importer</button>
                 <button class="btn btn-sm btn-ghost" id="btnCancelImport">Annuler</button>
               </div>
               <div id="importResult" class="mt-2" style="display:none;"></div>

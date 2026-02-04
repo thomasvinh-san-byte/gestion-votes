@@ -96,10 +96,10 @@
       </div>
       <div class="flex items-center gap-2">
         <button class="btn btn-secondary" id="btnRefresh">
-          🔄 Actualiser
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
         </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
-          ☰
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
     </header>
@@ -123,20 +123,20 @@
             <div class="card">
               <div class="card-header">
                 <div class="flex items-center justify-between">
-                  <h3 class="card-title">🎤 Orateur en cours</h3>
+                  <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> Orateur en cours</h3>
                   <span class="badge badge-success badge-dot" id="speakingBadge" style="display: none;">En parole</span>
                 </div>
               </div>
               <div class="card-body">
                 <div id="currentSpeaker">
                   <div class="text-center p-6 text-muted">
-                    <div class="text-3xl mb-2">🔇</div>
+                    <svg class="icon" style="width:2rem;height:2rem;margin-bottom:0.5rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-mic-off"></use></svg>
                     <div>Personne n'a la parole</div>
                   </div>
                 </div>
                 <div class="flex gap-2 mt-4">
                   <button class="btn btn-danger flex-1" id="btnEndSpeech" disabled>
-                    ⏹️ Couper la parole
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Couper la parole
                   </button>
                 </div>
               </div>
@@ -146,7 +146,7 @@
             <div class="card">
               <div class="card-header">
                 <div class="flex items-center justify-between">
-                  <h3 class="card-title">✋ File d'attente</h3>
+                  <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-hand"></use></svg> File d'attente</h3>
                   <span class="badge badge-info" id="queueCount">0</span>
                 </div>
               </div>
@@ -158,10 +158,10 @@
                 </div>
                 <div class="flex gap-2 mt-4">
                   <button class="btn btn-primary flex-1" id="btnNextSpeaker" disabled>
-                    ➡️ Donner au suivant
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg> Donner au suivant
                   </button>
                   <button class="btn btn-ghost" id="btnClearQueue" title="Vider la file">
-                    🗑️
+                    <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
                   </button>
                 </div>
               </div>
@@ -172,7 +172,7 @@
           <div class="card mb-6">
             <div class="card-header">
               <div class="flex items-center justify-between">
-                <h3 class="card-title">🗳️ Résolution en cours</h3>
+                <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg> Résolution en cours</h3>
                 <span class="badge" id="motionBadge">—</span>
               </div>
             </div>
@@ -184,7 +184,7 @@
               </div>
               <div class="flex gap-2 mt-4">
                 <button class="btn btn-lg btn-primary flex-1" id="btnCloseVote" disabled>
-                  ✅ Clôturer le vote
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Clôturer le vote
                 </button>
               </div>
             </div>

@@ -63,7 +63,7 @@
       } else {
         currentDiv.innerHTML = `
           <div class="text-center p-6 text-muted">
-            <div class="text-3xl mb-2">🔇</div>
+            <svg class="icon" style="width:2rem;height:2rem;margin-bottom:0.5rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-mic-off"></use></svg>
             <div>Personne n'a la parole</div>
           </div>
         `;
@@ -181,7 +181,7 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', '🎤 Parole accordée');
+        setNotif('success', 'Parole accordée');
         loadSpeechData();
       } else {
         setNotif('error', body?.error || 'Erreur');
@@ -223,7 +223,7 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', '🎤 Parole au suivant');
+        setNotif('success', 'Parole au suivant');
         loadSpeechData();
       } else {
         setNotif('error', body?.error || 'Erreur');

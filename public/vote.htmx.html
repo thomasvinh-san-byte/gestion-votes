@@ -689,7 +689,7 @@
         // Currently speaking
         btnHand.classList.remove('btn-warning', 'btn-secondary');
         btnHand.classList.add('btn-success');
-        btnHand.textContent = '🎤 En parole';
+        btnHand.innerHTML = '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> En parole';
         btnHand.disabled = true;
         speechStatus.textContent = 'Vous avez la parole';
         speechStatus.classList.remove('badge-neutral', 'badge-warning');
@@ -699,7 +699,7 @@
       } else if (handRaised) {
         btnHand.classList.add('btn-warning');
         btnHand.classList.remove('btn-secondary', 'btn-success');
-        btnHand.textContent = '✋ Main levée';
+        btnHand.innerHTML = '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-hand"></use></svg> Main levée';
         btnHand.disabled = false;
         speechStatus.textContent = 'Demande envoyée';
         speechStatus.classList.remove('badge-neutral', 'badge-success');
@@ -747,7 +747,7 @@
 
             // Show notification when speech is granted
             if (!wasSpeaking && speakingNow) {
-              setNotif('success', '🎤 Vous avez la parole !');
+              setNotif('success', 'Vous avez la parole !');
             }
           }
         }

@@ -32,9 +32,9 @@ echo '  </div>';
 echo '  <div class="card-body">';
 
 echo '<div class="toolbar" style="flex-direction:column; align-items:stretch;">';
-echo '  <a class="btn" href="/operator.htmx.html?meeting_id='.h($meetingId).'">🗂️ Fiche séance</a>';
-echo '  <a class="btn" href="/speaker.htmx.html?meeting_id='.h($meetingId).'">🎙️ Gestion parole</a>';
-echo '  <a class="btn" href="/vote.htmx.html?meeting_id='.h($meetingId).'">🗳️ Vote</a>';
+echo '  <a class="btn" href="/operator.htmx.html?meeting_id='.h($meetingId).'"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-folder-open"></use></svg> Fiche séance</a>';
+echo '  <a class="btn" href="/speaker.htmx.html?meeting_id='.h($meetingId).'"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> Gestion parole</a>';
+echo '  <a class="btn" href="/vote.htmx.html?meeting_id='.h($meetingId).'"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg> Vote</a>';
 echo '</div>';
 
 echo '<div style="height:12px;"></div>';

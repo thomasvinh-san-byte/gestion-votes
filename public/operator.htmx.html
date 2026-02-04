@@ -524,7 +524,7 @@
 
     <!-- Session selector bar -->
     <div class="session-selector">
-      <span>📋</span>
+      <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
       <select class="form-input" id="meetingSelect">
         <option value="">— Sélectionner une séance —</option>
       </select>
@@ -546,7 +546,7 @@
 
       <!-- No meeting state -->
       <div id="noMeetingState" class="no-meeting-state">
-        <span style="font-size: 4rem;">📋</span>
+        <svg class="icon" style="width: 4rem; height: 4rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
         <h2>Sélectionnez une séance</h2>
         <p>Choisissez une séance dans la liste ci-dessus pour accéder à la gestion complète.</p>
         <a href="/meetings.htmx.html" class="btn btn-primary mt-4">Voir toutes les séances</a>
@@ -558,11 +558,11 @@
         <div id="launchBanner" class="settings-section" style="display:none; background: var(--color-success-subtle); border-color: var(--color-success); margin-bottom: 1.5rem;">
           <div class="flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h3 style="margin:0; color: var(--color-success);">🚀 Prêt à lancer la séance</h3>
+              <h3 style="margin:0; color: var(--color-success);"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-rocket"></use></svg> Prêt à lancer la séance</h3>
               <p class="text-muted text-sm mt-1">Tous les prérequis sont remplis. Vous pouvez démarrer le vote.</p>
             </div>
             <button class="btn btn-lg" id="btnLaunchSession" style="background: var(--color-success); color: #fff; font-size: 1rem; padding: 0.75rem 1.5rem;">
-              ▶️ Lancer la séance
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg> Lancer la séance
             </button>
           </div>
         </div>
@@ -570,7 +570,7 @@
         <div class="settings-grid">
           <!-- Membres card -->
           <div class="settings-section">
-            <h3>👥 Membres</h3>
+            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Membres</h3>
             <div class="flex items-center justify-between mb-3">
               <div>
                 <span class="text-3xl font-bold" id="membersCount">0</span>
@@ -588,7 +588,7 @@
 
           <!-- Présences card -->
           <div class="settings-section">
-            <h3>✋ Présences</h3>
+            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-hand"></use></svg> Présences</h3>
             <div class="flex gap-4 mb-3">
               <div class="text-center">
                 <span class="text-2xl font-bold text-success" id="quickPresent">0</span>
@@ -608,13 +608,13 @@
               </div>
             </div>
             <div class="flex gap-2">
-              <button class="btn btn-sm btn-success flex-1" id="btnQuickAllPresent">✓ Tous présents</button>
+              <button class="btn btn-sm btn-success flex-1" id="btnQuickAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
               <button class="btn btn-sm btn-secondary" data-tab-switch="presences">Détails</button>
             </div>
           </div>
 
           <div class="settings-section">
-            <h3>📅 Informations générales</h3>
+            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg> Informations générales</h3>
             <div class="form-group mb-3">
               <label class="form-label">Titre de la séance</label>
               <input type="text" class="form-input" id="settingTitle" placeholder="Ex: Assemblée Générale 2024">
@@ -637,7 +637,7 @@
           </div>
 
           <div class="settings-section">
-            <h3>⚙️ Politiques</h3>
+            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg> Politiques</h3>
             <div class="form-group mb-3">
               <label class="form-label">Politique de quorum</label>
               <select class="form-input" id="settingQuorumPolicy">
@@ -658,12 +658,12 @@
               </select>
             </div>
             <div class="mt-4">
-              <button class="btn btn-primary" id="btnSaveSettings">💾 Enregistrer les paramètres</button>
+              <button class="btn btn-primary" id="btnSaveSettings"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-save"></use></svg> Enregistrer les paramètres</button>
             </div>
           </div>
 
           <div class="settings-section">
-            <h3>👔 Rôles de la séance</h3>
+            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-briefcase"></use></svg> Rôles de la séance</h3>
             <div class="form-group mb-3">
               <label class="form-label">Président</label>
               <select class="form-input" id="settingPresident">
@@ -680,7 +680,7 @@
           </div>
 
           <div class="settings-section">
-            <h3>🔄 État de la séance</h3>
+            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> État de la séance</h3>
             <div id="statusChecklist" class="flex flex-col gap-2 mb-4">
               <!-- Checklist items rendered by JS -->
             </div>
@@ -691,7 +691,7 @@
 
           <!-- Dashboard en direct -->
           <div class="settings-section" id="dashboardCard" style="display:none;">
-            <h3>📊 Dashboard en direct</h3>
+            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg> Dashboard en direct</h3>
             <div class="flex flex-wrap gap-4 mb-3">
               <div class="text-center">
                 <span class="text-2xl font-bold" id="dashPresentCount">-</span>
@@ -711,23 +711,23 @@
             <div id="dashCurrentMotion" class="text-sm text-muted mb-2" style="display:none;">
               Motion: <strong id="dashMotionTitle">—</strong>
               <div class="flex gap-3 mt-1">
-                <span class="text-success">✓ <span id="dashVoteFor">0</span></span>
-                <span class="text-danger">✗ <span id="dashVoteAgainst">0</span></span>
+                <span class="text-success"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> <span id="dashVoteFor">0</span></span>
+                <span class="text-danger"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg> <span id="dashVoteAgainst">0</span></span>
                 <span>○ <span id="dashVoteAbstain">0</span></span>
               </div>
             </div>
             <div id="dashReadySign" class="text-sm" style="display:none;">
-              <span class="badge badge-success">✓ Prêt pour signature</span>
+              <span class="badge badge-success"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Prêt pour signature</span>
             </div>
             <div id="dashNotReadySign" class="text-sm" style="display:none;">
-              <span class="badge badge-warning">⚠ Non prêt</span>
+              <span class="badge badge-warning"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Non prêt</span>
               <ul id="dashReadyReasons" class="text-xs text-muted mt-1" style="margin:0;padding-left:1rem;"></ul>
             </div>
           </div>
 
           <!-- Appareils connectés -->
           <div class="settings-section" id="devicesCard" style="display:none;">
-            <h3>📱 Appareils connectés</h3>
+            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg> Appareils connectés</h3>
             <div class="flex gap-4 mb-3">
               <div class="text-center">
                 <span class="text-2xl font-bold text-success" id="devOnline">0</span>
@@ -749,7 +749,7 @@
             <div id="devicesList" class="flex flex-col gap-1 mb-3" style="max-height:120px;overflow-y:auto;">
               <span class="text-muted text-sm">Aucun appareil</span>
             </div>
-            <button class="btn btn-sm btn-secondary" id="btnManageDevices">🔧 Gérer les appareils</button>
+            <button class="btn btn-sm btn-secondary" id="btnManageDevices"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-sliders"></use></svg> Gérer les appareils</button>
           </div>
         </div>
       </div>
@@ -787,8 +787,8 @@
       <div class="tab-content" id="tab-presences">
         <div class="tab-toolbar">
           <div class="flex gap-2">
-            <button class="btn btn-secondary" id="btnMarkAllPresent">✓ Tous présents</button>
-            <button class="btn btn-secondary" id="btnImportCSV">📥 Import CSV</button>
+            <button class="btn btn-secondary" id="btnMarkAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
+            <button class="btn btn-secondary" id="btnImportCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Import CSV</button>
           </div>
           <input type="text" class="form-input tab-toolbar-search" id="presenceSearch" placeholder="Rechercher un membre...">
         </div>
@@ -821,12 +821,12 @@
       <div class="tab-content" id="tab-vote">
         <div class="tab-toolbar" style="margin-bottom: 1rem;">
           <a href="/public.htmx.html" target="_blank" class="btn btn-secondary" id="btnOpenPublicScreen" data-meeting-link>
-            📺 Écran de projection
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg> Écran de projection
           </a>
         </div>
 
         <div id="noActiveVote" style="text-align: center; padding: 3rem;">
-          <span style="font-size: 3rem;">🗳️</span>
+          <svg class="icon" style="width: 3rem; height: 3rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
           <h3 class="mt-4">Aucun vote en cours</h3>
           <p class="text-muted mb-4">Ouvrez une résolution pour démarrer le vote.</p>
           <div id="quickOpenMotionList" class="mb-4" style="display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;">
@@ -845,12 +845,12 @@
               </div>
             </div>
             <div class="vote-results-live">
-              <span class="for">✓ <span id="liveVoteFor">0</span></span>
-              <span class="against">✗ <span id="liveVoteAgainst">0</span></span>
+              <span class="for"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> <span id="liveVoteFor">0</span></span>
+              <span class="against"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg> <span id="liveVoteAgainst">0</span></span>
               <span class="abstain">○ <span id="liveVoteAbstain">0</span></span>
             </div>
             <div style="margin-top: 1.5rem; display: flex; justify-content: center;">
-              <button class="btn btn-lg btn-warning" id="btnCloseVote" style="padding: 0.75rem 2rem; font-size: 1.1rem;">⏹️ Clôturer le vote</button>
+              <button class="btn btn-lg btn-warning" id="btnCloseVote" style="padding: 0.75rem 2rem; font-size: 1.1rem;"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer le vote</button>
             </div>
           </div>
 
@@ -881,28 +881,28 @@
         <h3 class="mb-4">Exports & Procès-Verbal</h3>
         <div class="exports-grid">
           <a href="#" class="export-card" id="exportPV">
-            <span class="export-icon">📄</span>
+            <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg></span>
             <div class="export-info">
               <h4>Procès-Verbal (PDF)</h4>
               <p>Document officiel de la séance</p>
             </div>
           </a>
           <a href="#" class="export-card" id="exportAttendance">
-            <span class="export-icon">📊</span>
+            <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg></span>
             <div class="export-info">
               <h4>Feuille de présence (CSV)</h4>
               <p>Liste des participants</p>
             </div>
           </a>
           <a href="#" class="export-card" id="exportVotes">
-            <span class="export-icon">📊</span>
+            <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg></span>
             <div class="export-info">
               <h4>Résultats des votes (CSV)</h4>
               <p>Détail par résolution</p>
             </div>
           </a>
           <a href="/report.htmx.html" class="export-card" id="exportReport" data-meeting-link>
-            <span class="export-icon">📋</span>
+            <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></span>
             <div class="export-info">
               <h4>Rapport complet</h4>
               <p>Visualiser en ligne</p>
@@ -917,13 +917,13 @@
 
         <!-- Session Close Section -->
         <div class="settings-section mt-6" id="closeSessionSection" style="background: var(--color-warning-subtle); border-color: var(--color-warning);">
-          <h3 style="border-bottom-color: var(--color-warning);">⏹️ Clôturer la séance</h3>
+          <h3 style="border-bottom-color: var(--color-warning);"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance</h3>
           <p class="text-muted mb-4">Une fois tous les votes terminés, vous pouvez clôturer la séance pour passer à la validation.</p>
           <div id="closeSessionStatus" class="mb-4">
             <!-- Status rendered by JS -->
           </div>
           <button class="btn btn-lg btn-warning" id="btnCloseSession" style="width: 100%;">
-            ⏹️ Clôturer la séance
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance
           </button>
         </div>
       </div>

@@ -233,9 +233,9 @@
 
     <!-- Page header -->
     <div class="page-header">
-      <h1>📋 Séances</h1>
+      <h1><svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg> Séances</h1>
       <div class="page-header-actions">
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">☰</button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg></button>
       </div>
     </div>
 
@@ -265,7 +265,7 @@
 
         <!-- Create card -->
         <div class="create-card">
-          <h3>➕ Nouvelle séance</h3>
+          <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Nouvelle séance</h3>
           <div class="create-form">
             <input class="form-input" type="text" id="meeting_title" placeholder="Titre de la séance (ex: Assemblée Générale 2024)">
             <input class="form-input" type="datetime-local" id="meeting_date" style="max-width: 220px;">
@@ -355,7 +355,7 @@
       if (!filtered || filtered.length === 0) {
         meetingsList.innerHTML = `
           <div class="empty-state" style="grid-column: 1 / -1;">
-            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-icon"><svg class="icon" style="width:3rem;height:3rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></div>
             <h3>Aucune séance</h3>
             <p>Créez une nouvelle séance avec le formulaire ci-dessus.</p>
           </div>
@@ -389,13 +389,13 @@
               <h3 class="meeting-card-title">${title}</h3>
               <div class="meeting-card-meta">
                 <span class="badge ${statusInfo.badge} badge-sm">${statusInfo.text}</span>
-                <span>📅 ${date}</span>
+                <span><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg> ${date}</span>
               </div>
             </div>
             <div class="meeting-card-body">
               <div class="meeting-stats">
-                <span title="Résolutions">📋 ${m.motions_count || 0}</span>
-                <span title="Présents">👥 ${m.attendees_count || 0}</span>
+                <span title="Résolutions"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg> ${m.motions_count || 0}</span>
+                <span title="Présents"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> ${m.attendees_count || 0}</span>
               </div>
               <div class="meeting-card-actions">
                 <a class="btn btn-sm btn-primary" href="/operator.htmx.html?meeting_id=${m.id}">Ouvrir</a>

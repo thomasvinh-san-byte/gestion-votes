@@ -287,7 +287,7 @@
       var isCurrent = step.num === currentStep;
       var stepClass = isDone ? 'done' : (isCurrent ? 'current' : '');
       var href = step.needsMeeting && !meetingId ? '#' : (step.href + (step.needsMeeting ? mid : ''));
-      var circleContent = isDone ? '✓' : step.icon;
+      var circleContent = isDone ? (typeof icon === 'function' ? icon('check', 'icon-sm') : '✓') : step.icon;
 
       html += '<a href="' + href + '" class="wizard-step ' + stepClass + '" title="' + step.label + '">';
       html += '<div class="wizard-step-circle">' + circleContent + '</div>';
