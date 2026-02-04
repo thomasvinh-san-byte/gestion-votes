@@ -1,4 +1,18 @@
 -- database/schema.sql
+-- ============================================================
+-- ATTENTION: Ce fichier est OBSOLETE.
+-- Utilisez plutot: database/schema-master.sql
+--
+-- schema-master.sql consolide ce schema de base + toutes les migrations
+-- et inclut les fonctionnalites supplementaires:
+--   - Systeme email (templates, queue, rappels)
+--   - Groupes de membres
+--   - Slugs pour obfuscation URL
+--   - Donnees de reference pre-peuplees
+--   - Vues utilitaires
+--
+-- Ce fichier est conserve pour compatibilite.
+-- ============================================================
 -- Source de vérité PostgreSQL (compatible endpoints PHP /public/api/v1)
 -- Installation idempotente (psql -f).
 
