@@ -1,12 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
+use AgVote\Core\Security\RateLimiter;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../app/Core/Security/RateLimiter.php';
 
 /**
- * Tests unitaires pour RateLimiter
+ * Unit tests for RateLimiter.
  */
 class RateLimiterTest extends TestCase
 {

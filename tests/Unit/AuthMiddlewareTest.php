@@ -1,12 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
+use AgVote\Core\Security\AuthMiddleware;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../app/Core/Security/AuthMiddleware.php';
 
 /**
- * Tests unitaires pour AuthMiddleware
+ * Unit tests for AuthMiddleware.
  */
 class AuthMiddlewareTest extends TestCase
 {
