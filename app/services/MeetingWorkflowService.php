@@ -134,7 +134,7 @@ final class MeetingWorkflowService
         // If tenantId not provided, try to get it from meeting
         if ($tenantId === '') {
             $meetingRepo = new MeetingRepository();
-            $meeting = db()->fetch("SELECT tenant_id FROM meetings WHERE id = :id", [':id' => $meetingId]);
+            $meeting = $meetingRepo->findById($meetingId);
             $tenantId = $meeting['tenant_id'] ?? '';
         }
         if ($tenantId === '') return false;

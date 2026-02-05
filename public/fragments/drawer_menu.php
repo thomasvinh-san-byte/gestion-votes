@@ -2,24 +2,23 @@
 declare(strict_types=1);
 require __DIR__ . '/_drawer_util.php';
 
+use AgVote\Repository\FragmentRepository;
+
 $meetingId = get_meeting_id();
 if ($meetingId === '') {
   echo '<div class="card pad"><div class="h2">Menu</div><div class="muted">Aucune séance sélectionnée.</div></div>';
   exit;
 }
 
-$meeting = db_select_one("SELECT id, title, status FROM meetings WHERE id = ?", [$meetingId]);
+$repo = new FragmentRepository();
+
+$meeting = $repo->findMeetingForMenu($meetingId);
 if (!$meeting) {
   echo '<div class="card pad"><div class="h2">Menu</div><div class="muted">Séance introuvable.</div></div>';
   exit;
 }
 
-$motions = db_select_all(
-  "SELECT id, title, COALESCE(position, sort_order, 0) AS pos, opened_at, closed_at
-   FROM motions WHERE meeting_id = ?
-   ORDER BY COALESCE(position, sort_order, 0) ASC",
-  [$meetingId]
-);
+$motions = $repo->listMotionsForMenu($meetingId);
 
 echo '<div class="card">';
 echo '  <div class="card-head">';

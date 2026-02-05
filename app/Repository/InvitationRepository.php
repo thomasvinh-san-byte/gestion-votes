@@ -284,6 +284,19 @@ class InvitationRepository extends AbstractRepository
     }
 
     /**
+     * Trouve le tenant_id d'une invitation par son ID.
+     * Utilisé pour le tracking email (pixel/redirect).
+     */
+    public function findTenantById(string $id): ?string
+    {
+        $val = $this->scalar(
+            "SELECT tenant_id FROM invitations WHERE id = :id LIMIT 1",
+            [':id' => $id]
+        );
+        return $val !== null ? (string)$val : null;
+    }
+
+    /**
      * Statistiques d'envoi pour une seance.
      */
     public function getStatsForMeeting(string $meetingId, string $tenantId): array

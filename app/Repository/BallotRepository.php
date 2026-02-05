@@ -98,6 +98,33 @@ class BallotRepository extends AbstractRepository
     }
 
     /**
+     * Insere un ballot depuis un token de vote (tablette/QR code).
+     */
+    public function insertFromToken(
+        string $tenantId,
+        string $meetingId,
+        string $motionId,
+        string $memberId,
+        string $value,
+        float $weight = 1.0,
+        string $source = 'tablet'
+    ): void {
+        $this->execute(
+            "INSERT INTO ballots (tenant_id, meeting_id, motion_id, member_id, value, weight, cast_at, source)
+             VALUES (:tid, :mid, :moid, :uid, :value, :weight, NOW(), :source)",
+            [
+                ':tid' => $tenantId,
+                ':mid' => $meetingId,
+                ':moid' => $motionId,
+                ':uid' => $memberId,
+                ':value' => $value,
+                ':weight' => $weight,
+                ':source' => $source,
+            ]
+        );
+    }
+
+    /**
      * Insere un ballot manuel et retourne son ID.
      */
     public function insertManual(

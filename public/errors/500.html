@@ -43,19 +43,19 @@
   </style>
 </head>
 <body>
-  <div class="error-page">
+  <main class="error-page" role="main">
     <div class="error-card">
-      <div class="error-code">500</div>
-      <h1 class="error-title">Erreur interne du serveur</h1>
+      <div class="error-code" aria-hidden="true">500</div>
+      <h1 class="error-title">Erreur 500 - Erreur interne du serveur</h1>
       <p class="error-desc">
         Une erreur inattendue s'est produite. L'équipe technique a été notifiée.
         Veuillez réessayer dans quelques instants.
       </p>
-      <div class="error-actions">
+      <nav class="error-actions" aria-label="Options">
         <a href="/" class="btn btn-primary">Retour à l'accueil</a>
-        <a href="javascript:location.reload()" class="btn btn-secondary">Réessayer</a>
-      </div>
+        <button type="button" class="btn btn-secondary" onclick="location.reload()">Réessayer</button>
+      </nav>
     </div>
-  </div>
+  </main>
 </body>
 </html>

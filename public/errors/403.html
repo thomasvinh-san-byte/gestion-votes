@@ -44,20 +44,20 @@
   </style>
 </head>
 <body>
-  <div class="error-page">
+  <main class="error-page" role="main">
     <div class="error-card">
-      <div class="error-code">403</div>
-      <h1 class="error-title">Accès refusé</h1>
+      <div class="error-code" aria-hidden="true">403</div>
+      <h1 class="error-title">Erreur 403 - Accès refusé</h1>
       <p class="error-desc">
         Vous n'avez pas les droits nécessaires pour accéder à cette page.
         Contactez un administrateur si vous pensez qu'il s'agit d'une erreur.
       </p>
-      <div class="error-actions">
+      <nav class="error-actions" aria-label="Options">
         <a href="/" class="btn btn-primary">Retour à l'accueil</a>
         <a href="/login.html" class="btn btn-secondary">Changer de compte</a>
         <a href="/meetings.htmx.html" class="btn btn-ghost">Tableau de bord</a>
-      </div>
+      </nav>
     </div>
-  </div>
+  </main>
 </body>
 </html>

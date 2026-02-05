@@ -121,14 +121,18 @@
   </style>
 </head>
 <body>
-  <div class="login-page">
+  <!-- Skip link -->
+  <a href="#loginForm" class="skip-link">Aller au formulaire de connexion</a>
+
+  <main class="login-page" role="main">
     <div class="login-card">
       <div class="login-brand">
         <h1>AG-VOTE</h1>
         <p>Gestion des assemblées délibératives</p>
       </div>
 
-      <form class="login-form" id="loginForm" autocomplete="on">
+      <form class="login-form" id="loginForm" autocomplete="on" aria-labelledby="login-heading">
+        <h2 id="login-heading" class="sr-only">Formulaire de connexion</h2>
         <div>
           <label for="email">Adresse email</label>
           <input type="email" id="email" name="email"
@@ -142,14 +146,16 @@
             <input type="password" id="password" name="password"
                    placeholder="Votre mot de passe"
                    required autocomplete="current-password">
-            <button type="button" class="toggle-visibility" id="togglePassword" title="Afficher/masquer">
+            <button type="button" class="toggle-visibility" id="togglePassword"
+                    aria-label="Afficher le mot de passe"
+                    aria-pressed="false">
               Voir
             </button>
           </div>
         </div>
 
-        <div id="errorBox" class="login-error"></div>
-        <div id="successBox" class="login-success"></div>
+        <div id="errorBox" class="login-error" role="alert" aria-live="assertive"></div>
+        <div id="successBox" class="login-success" role="status" aria-live="polite"></div>
 
         <button type="submit" class="login-btn" id="submitBtn">
           Se connecter
@@ -160,7 +166,7 @@
         <a href="/index.html">Retour à l'accueil</a>
       </div>
     </div>
-  </div>
+  </main>
 
   <script>
   (function() {
@@ -177,9 +183,13 @@
       if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
         toggleBtn.textContent = 'Masquer';
+        toggleBtn.setAttribute('aria-label', 'Masquer le mot de passe');
+        toggleBtn.setAttribute('aria-pressed', 'true');
       } else {
         passwordInput.type = 'password';
         toggleBtn.textContent = 'Voir';
+        toggleBtn.setAttribute('aria-label', 'Afficher le mot de passe');
+        toggleBtn.setAttribute('aria-pressed', 'false');
       }
     });
 

@@ -43,18 +43,18 @@
   </style>
 </head>
 <body>
-  <div class="error-page">
+  <main class="error-page" role="main">
     <div class="error-card">
-      <div class="error-code">404</div>
-      <h1 class="error-title">Page non trouvée</h1>
+      <div class="error-code" aria-hidden="true">404</div>
+      <h1 class="error-title">Erreur 404 - Page non trouvée</h1>
       <p class="error-desc">
         La page que vous cherchez n'existe pas ou a été déplacée.
       </p>
-      <div class="error-actions">
+      <nav class="error-actions" aria-label="Options">
         <a href="/" class="btn btn-primary">Retour à l'accueil</a>
         <a href="/meetings.htmx.html" class="btn btn-secondary">Tableau de bord</a>
-      </div>
+      </nav>
     </div>
-  </div>
+  </main>
 </body>
 </html>

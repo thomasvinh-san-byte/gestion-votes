@@ -2,50 +2,34 @@
 declare(strict_types=1);
 require __DIR__ . '/_drawer_util.php';
 
+use AgVote\Repository\FragmentRepository;
+
 $meetingId = get_meeting_id();
 if ($meetingId === '') {
   http_response_code(204);
   exit;
 }
 
+$tenantId = api_current_tenant_id();
+$repo = new FragmentRepository();
+
 // Open motion
-$motion = db_select_one(
-  "SELECT id, title, opened_at, closed_at
-   FROM motions
-   WHERE tenant_id = ? AND meeting_id = ? AND opened_at IS NOT NULL AND closed_at IS NULL
-   ORDER BY opened_at DESC
-   LIMIT 1",
-  [api_current_tenant_id(), $meetingId]
-);
+$motion = $repo->findOpenMotionWithContext($meetingId, $tenantId);
 
 $motionTitle = $motion ? (string)$motion['title'] : 'Aucune résolution ouverte';
 $motionMeta = $motion ? ('Vote en cours') : '—';
 
 // Expected voters (simple: present+remote)
-$eligible = (int)(db_select_one(
-  "SELECT COUNT(*) AS c FROM members WHERE tenant_id = ? AND meeting_id = ?",
-  [api_current_tenant_id(), $meetingId]
-)['c'] ?? 0);
-
-$currentPresent = (int)(db_select_one(
-  "SELECT COUNT(*) AS c FROM attendance WHERE tenant_id = ? AND meeting_id = ? AND status IN ('present','remote')",
-  [api_current_tenant_id(), $meetingId]
-)['c'] ?? 0);
+$eligible = $repo->countEligibleMembers($meetingId, $tenantId);
+$currentPresent = $repo->countPresentForQuorum($meetingId, $tenantId);
 
 // Quorum required based on meeting.quorum_policy_id threshold if any
-$meeting = db_select_one(
-  "SELECT quorum_policy_id, validated_at FROM meetings WHERE tenant_id = ? AND id = ?",
-  [api_current_tenant_id(), $meetingId]
-);
+$meeting = $repo->findMeetingWithQuorum($meetingId, $tenantId);
 $required = null;
 $quorumReached = null;
 if ($meeting && !empty($meeting['quorum_policy_id'])) {
-  $qp = db_select_one(
-    "SELECT threshold FROM quorum_policies WHERE tenant_id = ? AND id = ?",
-    [api_current_tenant_id(), $meeting['quorum_policy_id']]
-  );
-  if ($qp) {
-    $th = (float)$qp['threshold'];
+  $th = $repo->findQuorumThreshold($meeting['quorum_policy_id'], $tenantId);
+  if ($th !== null) {
     $required = (int)ceil($eligible * $th);
     $quorumReached = ($currentPresent >= $required);
   }
@@ -56,13 +40,7 @@ $counts = ['pour'=>0,'contre'=>0,'abstention'=>0,'blanc'=>0];
 $total = 0;
 
 if ($motion) {
-  $rows = db_select_all(
-    "SELECT value, COUNT(*) AS c
-     FROM ballots
-     WHERE tenant_id = ? AND meeting_id = ? AND motion_id = ?
-     GROUP BY value",
-    [api_current_tenant_id(), $meetingId, $motion['id']]
-  );
+  $rows = $repo->countBallotsByValue($meetingId, $motion['id'], $tenantId);
   foreach ($rows as $r) {
     $v = (string)$r['value'];
     $c = (int)$r['c'];

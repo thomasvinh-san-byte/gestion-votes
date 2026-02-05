@@ -306,10 +306,31 @@ final class FieldBuilder
     public function in(array $values): self { $this->definition['in'] = $values; return $this; }
     public function raw(): self { $this->definition['raw'] = true; return $this; }
 
+    // Méthodes pass-through pour permettre le chaînage de plusieurs champs
+    public function string(string $name): FieldBuilder { return $this->build()->string($name); }
+    public function integer(string $name): FieldBuilder { return $this->build()->integer($name); }
+    public function number(string $name): FieldBuilder { return $this->build()->number($name); }
+    public function boolean(string $name): FieldBuilder { return $this->build()->boolean($name); }
+    public function email(string $name): FieldBuilder { return $this->build()->email($name); }
+    public function uuid(string $name): FieldBuilder { return $this->build()->uuid($name); }
+    public function enum(string $name, array $values): FieldBuilder { return $this->build()->enum($name, $values); }
+    public function array(string $name): FieldBuilder { return $this->build()->array($name); }
+    public function datetime(string $name): FieldBuilder { return $this->build()->datetime($name); }
+
     public function build(): InputValidator
     {
         $this->validator->registerField($this->name, $this->definition);
         return $this->validator;
+    }
+
+    /**
+     * Valide les données en appelant le validateur parent.
+     * Permet d'appeler validate() directement sur la chaîne de FieldBuilder.
+     */
+    public function validate(array $input): ValidationResult
+    {
+        $this->validator->registerField($this->name, $this->definition);
+        return $this->validator->validate($input);
     }
 
     public function __destruct()

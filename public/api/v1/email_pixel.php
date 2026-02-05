@@ -49,17 +49,10 @@ try {
     $invitationRepo = new InvitationRepository();
     $eventRepo = new EmailEventRepository();
 
-    // Recuperer l'invitation pour obtenir le tenant_id
-    $invitation = $invitationRepo->findByToken(''); // On a besoin d'une autre methode
-    // Utilisons une requete directe
-    $pdo = db();
-    $stmt = $pdo->prepare("SELECT tenant_id FROM invitations WHERE id = :id LIMIT 1");
-    $stmt->execute([':id' => $invitationId]);
-    $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+    // Recuperer le tenant_id via repository
+    $tenantId = $invitationRepo->findTenantById($invitationId);
 
-    if ($row) {
-        $tenantId = $row['tenant_id'];
-
+    if ($tenantId !== null) {
         // Incrementer le compteur d'ouvertures
         $invitationRepo->incrementOpenCount($invitationId);
 

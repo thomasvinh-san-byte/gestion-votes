@@ -420,28 +420,31 @@
   </style>
 </head>
 <body>
+  <!-- Skip link -->
+  <a href="#vote-buttons" class="skip-link">Aller aux boutons de vote</a>
+
   <div class="vote-app">
     <!-- Page header -->
-    <div class="page-header">
+    <header class="page-header" role="banner">
       <div>
         <h1 class="page-header-title">Vote</h1>
         <div class="page-header-subtitle">Interface tablette</div>
       </div>
       <div class="page-header-actions">
-        <button class="btn btn-secondary btn-sm" id="btnRefresh">Actualiser</button>
+        <button class="btn btn-secondary btn-sm" id="btnRefresh" aria-label="Actualiser les données">Actualiser</button>
       </div>
-    </div>
+    </header>
 
     <!-- Context bar -->
-    <div class="context-bar">
+    <div class="context-bar" role="region" aria-label="Sélection de séance et votant">
       <div class="form-group">
-        <label class="form-label">Séance</label>
+        <label class="form-label" for="meetingSelect">Séance</label>
         <select class="form-input" id="meetingSelect">
           <option value="">— Chargement —</option>
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Votant</label>
+        <label class="form-label" for="memberSelect">Votant</label>
         <select class="form-input" id="memberSelect">
           <option value="">— Sélectionner votre nom —</option>
         </select>
@@ -449,39 +452,39 @@
     </div>
 
     <!-- Main content -->
-    <main class="vote-main">
+    <main class="vote-main" id="main-content" role="main">
       <!-- Speech panel -->
-      <div class="speech-panel" id="speechBox">
+      <section class="speech-panel" id="speechBox" aria-label="Demande de parole">
         <div class="speech-info">
-          <h4>Demande de parole</h4>
-          <p id="speechHint">Vous pouvez demander la parole</p>
+          <h2>Demande de parole</h2>
+          <p id="speechHint" aria-live="polite">Vous pouvez demander la parole</p>
         </div>
         <div class="flex items-center gap-2">
-          <span class="badge badge-neutral" id="speechStatus">En attente</span>
-          <button class="btn btn-secondary btn-sm" id="btnHand" type="button">Lever la main</button>
+          <span class="badge badge-neutral" id="speechStatus" role="status" aria-live="polite">En attente</span>
+          <button class="btn btn-secondary btn-sm" id="btnHand" type="button" aria-describedby="speechHint">Lever la main</button>
         </div>
-      </div>
+      </section>
 
       <!-- Motion card -->
-      <div class="motion-card" id="motionBox">
+      <section class="motion-card" id="motionBox" aria-label="Résolution en cours" aria-live="polite">
         <div class="motion-number">—</div>
-        <div class="motion-title">En attente d'une résolution</div>
-        <span class="motion-status waiting">Aucun vote en cours</span>
-      </div>
+        <div class="motion-title" id="motionTitle">En attente d'une résolution</div>
+        <span class="motion-status waiting" role="status">Aucun vote en cours</span>
+      </section>
 
       <!-- Vote buttons -->
-      <div class="vote-buttons-container">
-        <div class="vote-buttons">
-          <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled>
-            <span class="vote-btn-icon"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-up"></use></svg></span>
+      <div class="vote-buttons-container" id="vote-buttons">
+        <div class="vote-buttons" role="group" aria-label="Choix de vote">
+          <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled aria-describedby="motionTitle">
+            <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-up"></use></svg></span>
             <span>Pour</span>
           </button>
-          <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="against" disabled>
-            <span class="vote-btn-icon"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-down"></use></svg></span>
+          <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="against" disabled aria-describedby="motionTitle">
+            <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-down"></use></svg></span>
             <span>Contre</span>
           </button>
-          <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstain" disabled>
-            <span class="vote-btn-icon"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-hand"></use></svg></span>
+          <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstain" disabled aria-describedby="motionTitle">
+            <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-hand"></use></svg></span>
             <span>Abstention</span>
           </button>
         </div>
@@ -489,26 +492,26 @@
     </main>
 
     <!-- Footer -->
-    <footer class="vote-footer">
-      <div class="member-info" id="memberInfo">
-        <div class="member-avatar" id="memberAvatar">?</div>
+    <footer class="vote-footer" role="contentinfo">
+      <div class="member-info" id="memberInfo" aria-live="polite">
+        <div class="member-avatar" id="memberAvatar" aria-hidden="true">?</div>
         <div>
           <div class="member-name" id="memberName">Non connecté</div>
           <div class="member-weight" id="memberWeight">—</div>
         </div>
       </div>
-      <div class="connection-status">
-        <div class="connection-dot" id="connectionDot"></div>
+      <div class="connection-status" role="status" aria-live="polite">
+        <div class="connection-dot" id="connectionDot" aria-hidden="true"></div>
         <span class="text-sm text-muted" id="connectionStatus">Connecté</span>
       </div>
     </footer>
   </div>
 
   <!-- Confirmation overlay -->
-  <div class="vote-confirmation" id="confirmationOverlay">
+  <div class="vote-confirmation" id="confirmationOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-hidden="true">
     <div class="vote-confirmation-content">
-      <div class="vote-confirmation-icon" id="confirmIcon"></div>
-      <div class="vote-confirmation-title" id="confirmTitle">Confirmer votre vote</div>
+      <div class="vote-confirmation-icon" id="confirmIcon" aria-hidden="true"></div>
+      <h2 class="vote-confirmation-title" id="confirmTitle">Confirmer votre vote</h2>
       <div class="vote-confirmation-message" id="confirmMessage">
         Vous êtes sur le point de voter <strong id="confirmChoice">POUR</strong>
       </div>
@@ -561,12 +564,15 @@
         confirmIcon.innerHTML = info.icon;
 
         confirmOverlay.classList.add('show');
+        confirmOverlay.setAttribute('aria-hidden', 'false');
+        btnConfirm.focus(); // Focus on confirm button for accessibility
       });
     });
 
     // Cancel
     btnCancel.addEventListener('click', () => {
       confirmOverlay.classList.remove('show');
+      confirmOverlay.setAttribute('aria-hidden', 'true');
       pendingVote = null;
     });
 
@@ -574,6 +580,16 @@
     confirmOverlay.addEventListener('click', (e) => {
       if (e.target === confirmOverlay) {
         confirmOverlay.classList.remove('show');
+        confirmOverlay.setAttribute('aria-hidden', 'true');
+        pendingVote = null;
+      }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && confirmOverlay.classList.contains('show')) {
+        confirmOverlay.classList.remove('show');
+        confirmOverlay.setAttribute('aria-hidden', 'true');
         pendingVote = null;
       }
     });
@@ -596,6 +612,7 @@
         document.querySelector(`[data-choice="${pendingVote}"]`)?.classList.add('selected');
 
         confirmOverlay.classList.remove('show');
+        confirmOverlay.setAttribute('aria-hidden', 'true');
         setNotif('success', `Vote ${choiceInfo[pendingVote].label} enregistré`);
 
         // Disable buttons after vote
