@@ -6,6 +6,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MotionRepository;
 use AgVote\Service\OfficialResultsService;
+use AgVote\WebSocket\EventBroadcaster;
 
 api_require_role(['operator', 'president', 'admin']);
 
@@ -65,6 +66,16 @@ try {
 
     audit_log('motion_closed', 'motion', $motionId, [
         'meeting_id' => (string)$motion['meeting_id'],
+    ]);
+
+    // Broadcast WebSocket event with results
+    EventBroadcaster::motionClosed((string)$motion['meeting_id'], $motionId, [
+        'for' => $o['for'] ?? 0,
+        'against' => $o['against'] ?? 0,
+        'abstain' => $o['abstain'] ?? 0,
+        'total' => $o['total'] ?? 0,
+        'decision' => $o['decision'] ?? 'unknown',
+        'reason' => $o['reason'] ?? null,
     ]);
 
     api_ok([

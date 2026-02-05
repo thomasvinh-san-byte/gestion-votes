@@ -5,6 +5,7 @@ namespace AgVote\Service;
 
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MeetingRepository;
+use AgVote\WebSocket\EventBroadcaster;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -135,6 +136,7 @@ final class AttendancesService
 
         if ($mode === 'absent') {
             $attendanceRepo->deleteByMeetingAndMember($meetingId, $memberId);
+            self::broadcastAttendanceStats($attendanceRepo, $meetingId, $tenantId);
             return ['deleted' => true, 'meeting_id' => $meetingId, 'member_id' => $memberId];
         }
 
@@ -144,6 +146,21 @@ final class AttendancesService
         if (!$row) {
             throw new RuntimeException('Erreur upsert présence');
         }
+
+        self::broadcastAttendanceStats($attendanceRepo, $meetingId, $tenantId);
         return $row;
+    }
+
+    /**
+     * Broadcast attendance stats via WebSocket.
+     */
+    private static function broadcastAttendanceStats(AttendanceRepository $repo, string $meetingId, string $tenantId): void
+    {
+        try {
+            $stats = $repo->getStatsByMode($meetingId, $tenantId);
+            EventBroadcaster::attendanceUpdated($meetingId, $stats);
+        } catch (\Throwable $e) {
+            // Don't fail if broadcast fails
+        }
     }
 }

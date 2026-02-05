@@ -11,6 +11,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Service\MeetingWorkflowService;
+use AgVote\WebSocket\EventBroadcaster;
 
 $input = api_request('POST');
 
@@ -130,6 +131,13 @@ audit_log(
     ],
     $meetingId
 );
+
+// Broadcast WebSocket event for real-time updates
+try {
+    EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), $toStatus, $fromStatus);
+} catch (\Throwable $e) {
+    // Don't fail if broadcast fails
+}
 
 api_ok([
     'meeting_id'      => $meetingId,

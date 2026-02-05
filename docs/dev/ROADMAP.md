@@ -162,29 +162,47 @@ Objectif : Templates email personnalisables, envoi programmé, métriques.
 
 ---
 
-## 6. Fonctionnalités Avancées ⬜ À FAIRE
+## 6. Fonctionnalités Avancées 🔄 En cours
 
 | Priorité | Fonctionnalité | Effort | Statut |
 |----------|----------------|--------|--------|
-| P2 | WebSocket temps réel | 8 jours | ⬜ À faire |
+| P2 | WebSocket temps réel | 8 jours | ✅ Fait |
 | P3 | Séances récurrentes | 5 jours | ⬜ À faire |
 | P3 | Champs personnalisés membres | 6 jours | ⬜ À faire |
-| P4 | Application mobile PWA | 15 jours | ⬜ À faire |
-| P4 | Mode hors-ligne | 12 jours | ⬜ À faire |
+| P4 | Application mobile PWA | 15 jours | ✅ Fait (base) |
+| P4 | Mode hors-ligne | 12 jours | ✅ Fait |
 
-**Total : 46 jours**
+**Complété : 35/46 jours**
 
-### P2 — WebSocket temps réel
-- Serveur Ratchet ou Swoole
-- Événements : motion.opened, vote.cast, attendance.updated
-- Fallback polling si WS indisponible
-- Reconnexion automatique
+### P2 — WebSocket temps réel ✅ TERMINÉ
+**Implémenté le 5 février 2026**
+
+Fichiers créés:
+- `app/WebSocket/Server.php` - Serveur Ratchet avec authentification et rooms
+- `app/WebSocket/EventBroadcaster.php` - Service de broadcast via file queue
+- `bin/websocket-server.php` - Script de démarrage avec signal handling
+- `public/assets/js/websocket-client.js` - Client JS avec reconnexion et polling fallback
+- `config/supervisord-websocket.conf` - Configuration production
+
+Événements temps réel:
+- `motion.opened` - Ouverture d'une résolution
+- `motion.closed` - Clôture avec résultats
+- `vote.cast` - Vote enregistré (tally mis à jour)
+- `attendance.updated` - Présence modifiée
+- `meeting.status_changed` - Transition de statut
+
+Intégrations API:
+- `motions_open.php`, `motions_close.php`
+- `BallotsService::castBallot()`
+- `AttendancesService::upsert()`
+- `meeting_transition.php`
 
 ### P3 — Séances récurrentes
-- Colonne `recurrence_rule` (RRULE)
+- Colonne `recurrence_rule` (RRULE iCalendar RFC 5545)
 - Colonne `parent_meeting_id`
 - Patterns : mensuel, trimestriel, annuel
 - Duplication automatique résolutions
+- Bibliothèque recommandée: `rlanvin/php-rrule`
 
 ### P3 — Champs personnalisés
 - Table `custom_fields`
@@ -192,17 +210,33 @@ Objectif : Templates email personnalisables, envoi programmé, métriques.
 - Types : text, number, date, select, boolean
 - Formulaires dynamiques
 
-### P4 — Application mobile PWA
-- Service Worker cache
-- Manifest installation
-- Push notifications
-- Expérience app-like
+### P4 — Application mobile PWA ✅ BASE TERMINÉE
+**Implémenté le 5 février 2026**
 
-### P4 — Mode hors-ligne
-- Cache données séance
-- Queue votes offline
-- Synchronisation retour réseau
-- Gestion conflits
+Fichiers créés:
+- `public/manifest.json` - Manifest PWA avec shortcuts et icons
+- `public/sw.js` - Service Worker avec stratégies de cache
+
+Stratégies de cache:
+- Cache-first pour assets statiques (CSS, JS, images)
+- Network-first avec cache fallback pour API
+- Stale-while-revalidate pour pages HTML
+
+### P4 — Mode hors-ligne ✅ TERMINÉ
+**Implémenté le 5 février 2026**
+
+Fichiers créés:
+- `public/assets/js/offline-storage.js` - IndexedDB wrapper complet
+- `public/assets/js/conflict-resolver.js` - Résolution de conflits
+- `public/assets/js/components/ag-offline-indicator.js` - Indicateur visuel
+
+Fonctionnalités:
+- Stockage IndexedDB (meetings, motions, members, attendances)
+- Queue d'actions offline avec retry automatique
+- Synchronisation à la reconnexion
+- Résolution de conflits (server-wins, client-wins, merge, manual)
+- UI de résolution de conflits
+- Background sync via Service Worker
 
 ---
 
@@ -238,8 +272,13 @@ Les éléments suivants ne font **PAS** partie de la roadmap :
 | Exports | 4/4 | - | 0/4 |
 | Invitations | 3/3 | - | 0/3 |
 | UI/UX | 4/4 | - | 0/4 |
-| Fonctionnalités | 0/5 | - | 5/5 |
+| Fonctionnalités avancées | 3/5 | - | 2/5 |
 
-**Avancement global : ~65%** (hors fonctionnalités P2-P4)
+**Avancement global : ~88%**
+- WebSocket temps réel : ✅ Terminé
+- Mode hors-ligne : ✅ Terminé
+- PWA base : ✅ Terminé
+- Séances récurrentes : ⬜ Non implémenté (P3)
+- Champs personnalisés : ⬜ Non implémenté (P3)
 
 **Dernière mise à jour** : 5 février 2026
