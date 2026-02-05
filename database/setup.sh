@@ -76,8 +76,8 @@ fi
 # ---------------------------------------------------------------------------
 # Validation des chemins
 # ---------------------------------------------------------------------------
-if [ ! -f "$SCRIPT_DIR/schema.sql" ]; then
-    echo -e "${RED}[ERR]${NC} Fichier introuvable : $SCRIPT_DIR/schema.sql" >&2
+if [ ! -f "$SCRIPT_DIR/schema-master.sql" ]; then
+    echo -e "${RED}[ERR]${NC} Fichier introuvable : $SCRIPT_DIR/schema-master.sql" >&2
     echo "      Vérifiez que le script est lancé depuis la racine du projet." >&2
     exit 1
 fi
@@ -188,7 +188,7 @@ create_user_and_db() {
 # =============================================================================
 apply_schema() {
     info "Application du schéma..."
-    pg_exec < "$SCRIPT_DIR/schema.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
+    pg_exec < "$SCRIPT_DIR/schema-master.sql" 2>&1 | grep -E "^(ERROR|FATAL)" || true
     log "Schéma appliqué"
 
     grant_permissions

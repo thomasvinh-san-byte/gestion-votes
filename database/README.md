@@ -8,6 +8,7 @@ Source de vérité unique pour la base de données AG-VOTE.
 database/
   schema-master.sql       Schéma complet consolidé (recommandé)
   setup.sh                Script d'initialisation automatique
+  setup_demo_az.sh        Script demo A-Z (setup rapide)
   migrations/             Migrations incrémentales (pour mises à jour)
     001_admin_enhancements.sql
     002_rbac_meeting_states.sql
@@ -15,6 +16,7 @@ database/
     004_password_auth.sql
     005_email_system.sql
     006_member_groups.sql
+    007_export_templates.sql
     20260204_add_slugs.sql
   seeds/                  Données de peuplement (numérotées, idempotent)
     01_minimal.sql        Tenant, politiques quorum/vote, users RBAC
@@ -24,25 +26,45 @@ database/
     05_test_simple.sql    Dataset : AG 20 membres, quorum simple
     06_test_weighted.sql  Dataset : copro 100 membres avec tantièmes
     07_test_incidents.sql Dataset : scénarios d'incidents
+    08_demo_az.sql        Dataset : demo A-Z (1 séance, 10 membres, 2 résolutions)
 ```
 
 ## Installation rapide (nouvelle base)
 
-Pour une nouvelle installation, utilisez le script maître consolidé :
+Pour une nouvelle installation, utilisez le script automatique (recommandé) :
 
 ```bash
-# Créer le rôle et la base
-sudo -u postgres createuser agvote --pwprompt
-sudo -u postgres createdb agvote -O agvote
+# Setup complet automatique (crée user, base, schéma, seeds)
+sudo bash database/setup.sh
 
-# Schéma complet (inclut toutes les migrations)
-sudo -u postgres psql -d agvote -f database/schema-master.sql
-
-# Seeds (optionnel)
-PGPASSWORD=xxx psql -U agvote -d agvote -f database/seeds/01_minimal.sql
-PGPASSWORD=xxx psql -U agvote -d agvote -f database/seeds/02_test_users.sql
-PGPASSWORD=xxx psql -U agvote -d agvote -f database/seeds/03_demo.sql
+# OU demo A-Z (setup optimisé pour démonstration)
+sudo bash database/setup_demo_az.sh
 ```
+
+### Installation manuelle
+
+Si vous préférez une installation manuelle :
+
+```bash
+# 1. Créer le rôle et la base (en tant que superuser postgres)
+sudo -u postgres createuser vote_app --pwprompt
+sudo -u postgres createdb vote_app -O vote_app
+
+# 2. Extensions (requiert superuser)
+sudo -u postgres psql -d vote_app -c "CREATE EXTENSION IF NOT EXISTS pgcrypto; CREATE EXTENSION IF NOT EXISTS citext;"
+
+# 3. Schéma complet (en tant que user applicatif)
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f database/schema-master.sql
+
+# 4. Seeds obligatoires
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f database/seeds/01_minimal.sql
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f database/seeds/02_test_users.sql
+
+# 5. Seeds optionnels (données de démo)
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -f database/seeds/03_demo.sql
+```
+
+> **Note** : Les valeurs par défaut sont `vote_app` / `vote_app_dev_2026`. Adaptez selon votre `.env`.
 
 ## Installation automatique
 
@@ -68,14 +90,19 @@ sudo bash database/setup.sh --reset
 Si vous avez déjà une base en production, appliquez les migrations incrémentales :
 
 ```bash
-# Appliquer une migration spécifique
-psql -U agvote -d agvote -f database/migrations/006_member_groups.sql
+# Via le script (recommandé)
+sudo bash database/setup.sh --migrate
 
-# Ou toutes les nouvelles migrations
+# OU manuellement - appliquer une migration spécifique
+PGPASSWORD=$DB_PASS psql -U $DB_USER -d $DB_NAME -h localhost -f database/migrations/006_member_groups.sql
+
+# OU toutes les nouvelles migrations
 for f in database/migrations/*.sql; do
-  psql -U agvote -d agvote -f "$f"
+  PGPASSWORD=$DB_PASS psql -U $DB_USER -d $DB_NAME -h localhost -f "$f"
 done
 ```
+
+> **Note** : Remplacez `$DB_USER`, `$DB_PASS`, `$DB_NAME` par vos valeurs ou sourcez votre `.env`.
 
 ## Contenu du schéma maître
 
@@ -105,6 +132,7 @@ done
 | `03_demo.sql` | non | 1 séance LIVE + 1 DRAFT, 12 membres, 5 motions, présences, proxy |
 | `04_e2e.sql` | non | Séance E2E complète (conseil municipal, 5 résolutions, parcours) |
 | `05-07_test_*.sql` | non | Jeux de données de recette (volume, pondération, incidents) |
+| `08_demo_az.sql` | non | Demo A-Z : 1 séance scheduled, 10 membres, 2 résolutions |
 
 ## Comptes de test
 

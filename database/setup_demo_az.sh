@@ -17,8 +17,8 @@
 #                     → tables creees en tant que vote_app (pas besoin de OWNER TO)
 #
 # Ce script charge UNIQUEMENT ce qui est necessaire pour la demo A-Z :
-#   - schema.sql (toutes les tables)
-#   - migrations 001-004 (idempotent, no-op si schema recent)
+#   - schema-master.sql (toutes les tables + migrations consolidees)
+#   - migrations/*.sql (idempotent, no-op si schema recent)
 #   - 01_minimal.sql (tenant, policies, users RBAC de base)
 #   - 02_test_users.sql (comptes admin/operator/president/auditor/viewer/votant)
 #   - 08_demo_az.sql (seance scheduled + 10 membres + 2 resolutions)
@@ -150,7 +150,7 @@ create_user_and_db() {
 # Phase B : schema (user applicatif)
 apply_schema() {
   info "Phase B : schema..."
-  pg_app -f "$SCRIPT_DIR/schema.sql"
+  pg_app -f "$SCRIPT_DIR/schema-master.sql"
   log "Schema applique"
 }
 
