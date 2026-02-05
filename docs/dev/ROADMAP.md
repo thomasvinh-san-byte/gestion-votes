@@ -62,18 +62,23 @@ Objectif : Éliminer le SQL inline des endpoints, architecture 3 couches propre.
 
 ---
 
-## 2. Refactoring Workflow Opérateur
+## 2. Refactoring Workflow Opérateur ✅ TERMINÉ
 
 Objectif : Centraliser la gestion de séance dans `operator.htmx.html`.
 
 | Phase | Description | Priorité | Statut |
 |-------|-------------|----------|--------|
-| 1.1 | Membres inline dans operator | P1 | ⬜ À faire |
-| 1.2 | Présences inline (pointage rapide) | **P1 Haute** | ⬜ À faire |
-| 1.3 | Résolutions inline (CRUD) | P2 | ⬜ À faire |
-| 2 | Validations pré-freeze (issues_before_transition) | P1 | ⬜ À faire |
-| 3 | Exports post-validation intégrés | P2 | ⬜ À faire |
-| 4 | Simplification navigation sidebar | P3 | ⬜ À faire |
+| 1.1 | Membres inline dans operator | P1 | ✅ Fait |
+| 1.2 | Présences inline (pointage rapide) | **P1 Haute** | ✅ Fait |
+| 1.3 | Résolutions inline (CRUD) | P2 | ✅ Fait |
+| 2 | Validations pré-freeze (issues_before_transition) | P1 | ✅ Fait |
+| 3 | Exports post-validation intégrés | P2 | ✅ Fait |
+| 4 | Simplification navigation sidebar | P3 | ⏭️ Reporté |
+
+**Complété le 5 février 2026**
+- Interface opérateur avec 6 onglets (Paramètres, Résolutions, Présences, Parole, Vote, Résultats)
+- MeetingWorkflowService avec validations pré-transition Helios-style
+- Exports intégrés dans l'onglet Résultats
 
 ### Phase 1.1 — Membres inline
 - Section membres dans operator avec recherche
@@ -111,12 +116,12 @@ Objectif : Support XLSX natif, imports étendus, templates personnalisables.
 
 | Phase | Description | Effort | Statut |
 |-------|-------------|--------|--------|
-| 1 | Support XLSX natif (PhpSpreadsheet) | 3 jours | ⬜ À faire |
-| 2 | Imports étendus (motions, présences, procurations CSV) | 4 jours | ⬜ À faire |
+| 1 | Support XLSX natif (PhpSpreadsheet) | 3 jours | ✅ Fait |
+| 2 | Imports étendus (motions, présences, procurations CSV) | 4 jours | ✅ Fait |
 | 3 | Templates d'export personnalisables | 3 jours | ⬜ À faire |
 | 4 | Rapports agrégés multi-séances | 4 jours | ⬜ À faire |
 
-**Total : 14 jours**
+**Total : 14 jours** — Phases 1-2 complétées le 5 février 2026
 
 ### Phase 1 — XLSX natif
 - Installation PhpSpreadsheet
