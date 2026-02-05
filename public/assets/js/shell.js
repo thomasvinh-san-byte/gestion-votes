@@ -9,6 +9,12 @@
   const customKinds = {};
 
   function getMeetingId(){
+    // Use MeetingContext as single source of truth
+    if (typeof MeetingContext !== 'undefined' && MeetingContext.get()) {
+      return MeetingContext.get();
+    }
+
+    // Fallback chain for pages that load before MeetingContext
     const el = document.querySelector("[data-meeting-id]");
     if (el && el.getAttribute("data-meeting-id")) return el.getAttribute("data-meeting-id");
 

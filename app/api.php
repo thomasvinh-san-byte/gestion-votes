@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/bootstrap.php';
 
+use AgVote\Core\Validation\InputValidator;
+
 // =============================================================================
 // CACHE php://input (ne peut être lu qu'une seule fois)
 // Le CSRF middleware et api_request() en ont tous les deux besoin.
@@ -266,4 +268,60 @@ function api_validate(array $input, InputValidator $validator): array {
         api_fail('validation_failed', 422, ['errors' => $result->errors()]);
     }
     return $result->data();
+}
+
+// =============================================================================
+// FONCTIONS API - TRANSACTIONS
+// =============================================================================
+
+/**
+ * Execute a callback within a database transaction.
+ * Automatically commits on success, rolls back on exception.
+ *
+ * @param callable $fn Function to execute within transaction
+ * @return mixed Return value of the callback
+ * @throws \Throwable Re-throws any exception after rollback
+ */
+function api_transaction(callable $fn): mixed {
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        $result = $fn();
+        $pdo->commit();
+        return $result;
+    } catch (\Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+}
+
+/**
+ * Execute endpoint logic with standardized error handling.
+ * Catches exceptions and returns appropriate API errors.
+ *
+ * @param callable $fn Function containing endpoint logic
+ */
+function api_handle(callable $fn): void {
+    try {
+        $fn();
+    } catch (\InvalidArgumentException $e) {
+        api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);
+    } catch (\RuntimeException $e) {
+        api_fail('business_error', 400, ['detail' => $e->getMessage()]);
+    } catch (\Throwable $e) {
+        error_log("API Error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+        api_fail('internal_error', 500);
+    }
+}
+
+/**
+ * Execute endpoint logic within a transaction with error handling.
+ * Combines api_transaction() and api_handle().
+ *
+ * @param callable $fn Function containing endpoint logic
+ */
+function api_transactional(callable $fn): void {
+    api_handle(function() use ($fn) {
+        api_transaction($fn);
+    });
 }

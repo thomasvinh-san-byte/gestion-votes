@@ -195,7 +195,15 @@
     return r.json();
   }
 
-  function selectedMeetingId(){ return ($("#meetingSelect")?.value || "").trim(); }
+  // Use MeetingContext if available, fallback to select element
+  function selectedMeetingId(){
+    // First try MeetingContext
+    if (typeof MeetingContext !== 'undefined' && MeetingContext.get()) {
+      return MeetingContext.get();
+    }
+    // Fallback to select element for vote.php standalone mode
+    return ($("#meetingSelect")?.value || "").trim();
+  }
   function selectedMemberId(){ return ($("#memberSelect")?.value || "").trim(); }
 
   async function loadMeetings(){
@@ -215,9 +223,19 @@
       opt.textContent = `${when} — ${m.title || "Séance"} [${m.status || "—"}]`;
       sel.appendChild(opt);
     }
+    // Priority: MeetingContext > saved localStorage > first meeting
+    const contextId = (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
     const saved = (localStorage.getItem("public.meeting_id") || "").trim();
-    if (saved && meetings.some(x=>x.meeting_id===saved)) sel.value = saved;
-    else if (meetings.length) sel.value = meetings[0].meeting_id;
+    const initialId = contextId || saved;
+    if (initialId && meetings.some(x=>x.meeting_id===initialId)) {
+      sel.value = initialId;
+    } else if (meetings.length) {
+      sel.value = meetings[0].meeting_id;
+    }
+    // Sync to MeetingContext
+    if (typeof MeetingContext !== 'undefined' && sel.value) {
+      MeetingContext.set(sel.value, { updateUrl: false });
+    }
     localStorage.setItem("public.meeting_id", sel.value || "");
     await loadMembers();
     await refresh();
@@ -363,11 +381,23 @@
   }
 
   function wire(){
-    const urlMeetingId = (new URLSearchParams(location.search).get('meeting_id') || '').trim();
+    // Initialize MeetingContext if available
+    if (typeof MeetingContext !== 'undefined') {
+      MeetingContext.init();
+    }
     if (Utils.bindApiKeyInput) {
       Utils.bindApiKeyInput("public", $("#publicApiKey"), () => loadMeetings().catch(console.error));
     }
-    $("#meetingSelect")?.addEventListener("change", async ()=>{ await loadMembers(); await refresh(); });
+    $("#meetingSelect")?.addEventListener("change", async ()=>{
+      const newId = ($("#meetingSelect")?.value || "").trim();
+      // Sync selection to MeetingContext
+      if (typeof MeetingContext !== 'undefined' && newId) {
+        MeetingContext.set(newId, { updateUrl: false });
+      }
+      localStorage.setItem("public.meeting_id", newId);
+      await loadMembers();
+      await refresh();
+    });
     $("#memberSelect")?.addEventListener("change", refresh);
     $("#btnRefresh")?.addEventListener("click", refresh);
 
@@ -378,20 +408,16 @@
       });
     }
 
-    loadMeetings().then(async () => {
-      if (urlMeetingId) {
-        const sel = $("#meetingSelect");
-        if (sel && [...sel.options].some(o => o.value === urlMeetingId)) {
-          sel.value = urlMeetingId;
-          localStorage.setItem("public.meeting_id", urlMeetingId);
-          await loadMembers();
-          await refresh();
-        }
-      }
-    }).catch((e)=>notify("error", e?.message || String(e)));
+    // Load meetings - MeetingContext will handle URL param and persistence
+    loadMeetings().catch((e)=>notify("error", e?.message || String(e)));
 
-    // Poll current motion + heartbeat
-    setInterval(()=>{ if(!document.hidden) refresh().catch(()=>{}); }, 3000);
+    // Poll current motion (disabled when WebSocket is connected)
+    setInterval(()=>{
+      // Skip polling if WebSocket is connected and authenticated
+      if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
+      if (!document.hidden) refresh().catch(()=>{});
+    }, 3000);
+    // Heartbeat always runs (separate from WebSocket heartbeat)
     setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
   }
 

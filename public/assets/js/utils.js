@@ -190,9 +190,19 @@ window.Utils = window.Utils || {};
   // ==========================================================================
 
   /**
-   * Show toast notification (aliased as Utils.toast for callers)
+   * Show toast notification using unified AgToast system
    */
-  Utils.toast = function(type, message, duration) {
+  Utils.toast = function(type, message, duration = 5000) {
+    // Normalize type
+    const normalizedType = (type === 'danger') ? 'error' : type;
+
+    // Use AgToast directly if available
+    if (typeof AgToast !== 'undefined' && AgToast.show) {
+      AgToast.show(normalizedType, message, duration);
+      return;
+    }
+
+    // Fallback to setNotif
     if (typeof setNotif === 'function') {
       setNotif(type, message, duration);
     } else {
@@ -554,75 +564,24 @@ window.icon = icon;
 
 /**
  * Display notification toast
+ * Uses AgToast web component for unified notification system.
+ *
  * @param {string} type - 'success', 'error', 'warning', 'info'
  * @param {string} message - Message to display
  * @param {number} duration - Auto-dismiss duration in ms (0 = no auto-dismiss)
  */
 function setNotif(type, message, duration = 5000) {
-  const container = document.getElementById('notif_box') || createNotifContainer();
+  // Normalize type (danger -> error for AgToast compatibility)
+  const normalizedType = (type === 'danger') ? 'error' : type;
 
-  // Map types to CSS classes
-  const typeMap = {
-    success: 'toast-success',
-    error: 'toast-danger',
-    danger: 'toast-danger',
-    warning: 'toast-warning',
-    info: 'toast-info',
-  };
-
-  // Create toast element
-  const toast = document.createElement('div');
-  toast.className = `toast ${typeMap[type] || 'toast-info'}`;
-  toast.setAttribute('role', 'alert');
-
-  // Icon based on type
-  const iconMap = {
-    success: 'check-circle',
-    error: 'x-circle',
-    danger: 'x-circle',
-    warning: 'alert-triangle',
-    info: 'info',
-  };
-
-  toast.innerHTML = `
-    <span class="toast-icon">${icon(iconMap[type] || iconMap.info, 'icon-md')}</span>
-    <span class="toast-message">${escapeHtml(message)}</span>
-    <button class="toast-close btn btn-ghost btn-icon btn-sm" aria-label="Fermer">${icon('x', 'icon-sm')}</button>
-  `;
-  
-  // Close button handler
-  const closeBtn = toast.querySelector('.toast-close');
-  closeBtn.addEventListener('click', () => {
-    toast.style.animation = 'slideOutRight 0.3s ease-out forwards';
-    setTimeout(() => toast.remove(), 300);
-  });
-  
-  // Show container if hidden
-  container.classList.remove('hidden');
-  container.style.display = 'flex';
-
-  // Limit to 3 toasts max - remove oldest if needed
-  const MAX_TOASTS = 3;
-  const existingToasts = container.querySelectorAll('.toast');
-  if (existingToasts.length >= MAX_TOASTS) {
-    // Remove oldest toasts (first ones in the container)
-    for (let i = 0; i <= existingToasts.length - MAX_TOASTS; i++) {
-      existingToasts[i].remove();
-    }
+  // Use AgToast if available (preferred modern approach)
+  if (typeof AgToast !== 'undefined' && AgToast.show) {
+    AgToast.show(normalizedType, message, duration);
+    return;
   }
 
-  // Add to container
-  container.appendChild(toast);
-
-  // Auto-dismiss
-  if (duration > 0) {
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.style.animation = 'slideOutRight 0.3s ease-out forwards';
-        setTimeout(() => toast.remove(), 300);
-      }
-    }, duration);
-  }
+  // Fallback: console logging if AgToast not loaded
+  console[type === 'error' || type === 'danger' ? 'error' : 'log']('[toast]', message);
 }
 
 /**

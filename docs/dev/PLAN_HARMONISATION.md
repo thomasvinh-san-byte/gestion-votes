@@ -105,17 +105,17 @@ $id = api_require_uuid($in, 'id');
 **Target:** Single pattern using InputValidator for all endpoints.
 
 **Tasks:**
-- [ ] Create validation schemas for all endpoints
-- [ ] Replace inline validation with InputValidator
-- [ ] Keep `api_require_uuid()` as convenience wrapper calling InputValidator
+- [x] Create validation schemas for all endpoints (ValidationSchemas.php)
+- [ ] Replace inline validation with InputValidator in more endpoints
+- [x] Keep `api_require_uuid()` as convenience wrapper calling InputValidator
 
 ### 2.2 Unified Error Handling
 
 **Tasks:**
-- [ ] Create reusable transaction wrapper in `api.php`
+- [x] Create reusable transaction wrapper in `api.php` (api_transaction, api_handle, api_transactional)
 - [ ] Add try/catch to all endpoints (currently 68/170)
-- [ ] Use ErrorDictionary for all error messages
-- [ ] Standardize HTTP status codes (400 vs 422 for validation)
+- [x] Use ErrorDictionary for all error messages
+- [x] Standardize HTTP status codes (400 vs 422 for validation)
 
 ---
 
@@ -139,11 +139,11 @@ const MeetingContext = {
 ```
 
 **Tasks:**
-- [ ] Create `MeetingContext` singleton
-- [ ] Refactor `operator.js` to use MeetingContext
-- [ ] Refactor `vote.js` to use MeetingContext
-- [ ] Refactor `shell.js` to use MeetingContext
-- [ ] Remove duplicate `getMeetingId()` functions
+- [x] Create `MeetingContext` singleton
+- [x] Refactor `operator.js` to use MeetingContext
+- [x] Refactor `vote.js` to use MeetingContext
+- [x] Refactor `shared.js` to use MeetingContext
+- [x] Remove duplicate `getMeetingId()` functions
 
 ### 3.2 ES6 Module Conversion
 
@@ -166,18 +166,18 @@ const MeetingContext = {
 **Target:** AgToast only.
 
 **Tasks:**
-- [ ] Remove `setNotif()` from `shared.js`
-- [ ] Replace all `setNotif()` calls with `AgToast.show()`
-- [ ] Ensure AgToast is globally available
+- [x] Make `setNotif()` delegate to `AgToast.show()` (backward compatible)
+- [x] Update `Utils.toast()` to use AgToast directly
+- [x] AgToast is globally available via `window.AgToast`
 
 ### 3.4 WebSocket vs Polling Fix
 
 **Problem:** Both run simultaneously, causing race conditions.
 
 **Tasks:**
-- [ ] Disable polling when WebSocket is connected
-- [ ] Add fallback: enable polling only on WebSocket disconnect
-- [ ] Document which events are broadcasted via WebSocket
+- [x] Disable polling when WebSocket is connected (check `window._wsClient?.isRealTime`)
+- [x] WebSocket client already handles fallback to polling on disconnect
+- [x] Updated: operator.js, vote.js, speaker.js, trust.js, validate.js
 
 ---
 

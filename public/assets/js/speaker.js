@@ -472,8 +472,10 @@
     loadSpeechData();
     loadActiveMotion();
 
-    // Polling every 3s
+    // Polling every 3s (disabled when WebSocket is connected)
     pollingInterval = setInterval(() => {
+      // Skip polling if WebSocket is connected and authenticated
+      if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
       loadSpeechData();
       loadActiveMotion();
     }, 3000);

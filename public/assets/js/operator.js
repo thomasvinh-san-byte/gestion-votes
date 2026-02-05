@@ -37,12 +37,17 @@
   const btnExportAttendance = document.getElementById('btnExportAttendance');
   const btnExportVotes = document.getElementById('btnExportVotes');
 
-  let currentMeetingId = null;
+  // Use MeetingContext for meeting_id management
   let currentMeetingStatus = null;
   let currentWizardChecks = {};
   let currentOpenMotion = null;
   let votersCache = [];
   let ballotsCache = {};
+
+  // Helper to get current meeting_id from MeetingContext
+  function getCurrentMeetingId() {
+    return (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
+  }
 
   // Attendance inline state
   let attendanceCache = [];
@@ -64,12 +69,6 @@
     validated: [{ to: 'archived', label: 'Archiver', iconName: 'archive' }],
     archived: []
   };
-
-  // Get meeting_id from URL
-  function getMeetingIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('meeting_id');
-  }
 
   // Update all meeting links with current meeting_id
   function updateMeetingLinks(meetingId) {
@@ -98,11 +97,16 @@
           meetingSelect.appendChild(opt);
         });
 
-        // Pre-select if meeting_id in URL
-        const urlMeetingId = getMeetingIdFromUrl();
-        if (urlMeetingId) {
-          meetingSelect.value = urlMeetingId;
-          loadMeetingContext(urlMeetingId);
+        // Pre-select if meeting_id from MeetingContext
+        const contextMeetingId = getCurrentMeetingId();
+        if (contextMeetingId && Array.from(meetingSelect.options).some(o => o.value === contextMeetingId)) {
+          meetingSelect.value = contextMeetingId;
+          loadMeetingContext(contextMeetingId);
+        } else if (body.data.meetings.length > 0) {
+          // Auto-select first meeting if none in context
+          const firstId = body.data.meetings[0].id;
+          meetingSelect.value = firstId;
+          loadMeetingContext(firstId);
         } else {
           showNoMeeting();
         }
@@ -134,7 +138,7 @@
 
   // Update status alert based on meeting state and wizard checks
   function updateStatusAlert() {
-    if (!statusAlert || !currentMeetingId) {
+    if (!statusAlert || !getCurrentMeetingId()) {
       if (statusAlert) statusAlert.style.display = 'none';
       return;
     }
@@ -147,7 +151,7 @@
 
     // Build checklist
     const checks = currentWizardChecks;
-    const mid = currentMeetingId;
+    const mid = getCurrentMeetingId();
     const items = [];
 
     // Check 1: Members
@@ -241,7 +245,10 @@
       return;
     }
 
-    currentMeetingId = meetingId;
+    // Use MeetingContext to set and persist meeting_id
+    if (typeof MeetingContext !== 'undefined') {
+      MeetingContext.set(meetingId);
+    }
     updateMeetingLinks(meetingId);
     showMeetingContent();
 
@@ -249,11 +256,6 @@
     if (window.Wizard && window.Wizard.selectMeeting) {
       window.Wizard.selectMeeting(meetingId);
     }
-
-    // Update URL
-    const url = new URL(window.location);
-    url.searchParams.set('meeting_id', meetingId);
-    window.history.replaceState({}, '', url);
 
     try {
       // Load meeting details
@@ -402,7 +404,7 @@
   async function updateAttendanceInline(memberId, mode) {
     try {
       const { body } = await api('/api/v1/attendances_upsert.php', {
-        meeting_id: currentMeetingId,
+        meeting_id: getCurrentMeetingId(),
         member_id: memberId,
         mode: mode
       });
@@ -431,7 +433,7 @@
 
   // Bulk mark all as present
   async function markAllPresentInline() {
-    if (!currentMeetingId) return;
+    if (!getCurrentMeetingId()) return;
     if (['validated', 'archived'].includes(currentMeetingStatus)) {
       setNotif('error', 'Séance verrouillée');
       return;
@@ -441,7 +443,7 @@
     Shared.btnLoading(btnAttAllPresent, true);
     try {
       const { body } = await api('/api/v1/attendances_bulk.php', {
-        meeting_id: currentMeetingId,
+        meeting_id: getCurrentMeetingId(),
         mode: 'present'
       });
 
@@ -657,7 +659,7 @@
 
     try {
       const { body } = await api('/api/v1/manual_vote.php', {
-        meeting_id: currentMeetingId,
+        meeting_id: getCurrentMeetingId(),
         motion_id: currentOpenMotion.id,
         member_id: memberId,
         vote: vote,
@@ -683,13 +685,13 @@
     Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/motions_open.php', {
-        meeting_id: currentMeetingId,
+        meeting_id: getCurrentMeetingId(),
         motion_id: motionId
       });
 
       if (body && body.ok) {
         setNotif('success', 'Vote ouvert');
-        loadMotions(currentMeetingId);
+        loadMotions(getCurrentMeetingId());
       } else {
         setNotif('error', getApiError(body));
         Shared.btnLoading(btn, false);
@@ -707,13 +709,13 @@
     Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/motions_close.php', {
-        meeting_id: currentMeetingId,
+        meeting_id: getCurrentMeetingId(),
         motion_id: motionId
       });
 
       if (body && body.ok) {
         setNotif('success', 'Vote clôturé');
-        loadMotions(currentMeetingId);
+        loadMotions(getCurrentMeetingId());
       } else {
         setNotif('error', getApiError(body));
         Shared.btnLoading(btn, false);
@@ -743,13 +745,13 @@
   };
 
   async function doTransition(toStatus) {
-    if (!currentMeetingId) return;
+    if (!getCurrentMeetingId()) return;
 
     const statusLabel = statusLabels[toStatus] || toStatus;
 
     try {
       // 1. Vérifier les prérequis avant transition
-      const checkRes = await api(`/api/v1/meeting_workflow_check.php?meeting_id=${currentMeetingId}&to_status=${toStatus}`);
+      const checkRes = await api(`/api/v1/meeting_workflow_check.php?meeting_id=${getCurrentMeetingId()}&to_status=${toStatus}`);
 
       if (!checkRes.body || !checkRes.body.ok) {
         setNotif('error', getApiError(checkRes.body, 'Erreur de vérification'));
@@ -777,14 +779,14 @@
 
       // 4. Effectuer la transition
       const { body } = await api('/api/v1/meeting_transition.php', {
-        meeting_id: currentMeetingId,
+        meeting_id: getCurrentMeetingId(),
         to_status: toStatus
       });
 
       if (body && body.ok) {
         setNotif('success', `Séance passée en "${statusLabel}"`);
         loadMeetings();
-        loadMeetingContext(currentMeetingId);
+        loadMeetingContext(getCurrentMeetingId());
       } else {
         // Traduire les erreurs courantes
         const errorMessages = {
@@ -805,7 +807,7 @@
   if (window.ShellDrawer && window.ShellDrawer.register) {
     // Roles drawer - assign president/assessors
     window.ShellDrawer.register('roles', 'Rôles de séance', async function(meetingId, body, esc) {
-      if (!currentMeetingId) {
+      if (!getCurrentMeetingId()) {
         body.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>';
         return;
       }
@@ -817,7 +819,7 @@
         const users = usersRes.body?.data?.items || [];
 
         // Load current meeting roles
-        const rolesRes = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`);
+        const rolesRes = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${getCurrentMeetingId()}`);
         const currentRoles = rolesRes.body?.data?.items || [];
 
         // Find current president
@@ -876,14 +878,14 @@
           try {
             const { body: res } = await api('/api/v1/admin_meeting_roles.php', {
               action: 'assign',
-              meeting_id: currentMeetingId,
+              meeting_id: getCurrentMeetingId(),
               user_id: presidentId,
               role: 'president'
             });
 
             if (res?.ok || res?.assigned) {
               setNotif('success', 'Président assigné');
-              loadWizardStatus(currentMeetingId);
+              loadWizardStatus(getCurrentMeetingId());
               updateStatusAlert();
             } else {
               setNotif('error', getApiError(res));
@@ -901,7 +903,7 @@
           try {
             const { body: res } = await api('/api/v1/admin_meeting_roles.php', {
               action: 'assign',
-              meeting_id: currentMeetingId,
+              meeting_id: getCurrentMeetingId(),
               user_id: userId,
               role: 'assessor'
             });
@@ -926,7 +928,7 @@
             try {
               const { body: res } = await api('/api/v1/admin_meeting_roles.php', {
                 action: 'revoke',
-                meeting_id: currentMeetingId,
+                meeting_id: getCurrentMeetingId(),
                 user_id: userId,
                 role: 'assessor'
               });
@@ -951,7 +953,7 @@
 
     // Settings drawer
     window.ShellDrawer.register('settings', 'Réglages de la séance', async function(meetingId, body, esc) {
-      if (!currentMeetingId) {
+      if (!getCurrentMeetingId()) {
         body.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>';
         return;
       }
@@ -967,11 +969,11 @@
         const votePolicies = vpRes.body?.data?.items || [];
 
         // Load current settings
-        const qsRes = await api(`/api/v1/meeting_quorum_settings.php?meeting_id=${currentMeetingId}`);
+        const qsRes = await api(`/api/v1/meeting_quorum_settings.php?meeting_id=${getCurrentMeetingId()}`);
         const currentQuorumPolicy = qsRes.body?.data?.quorum_policy_id || '';
         const currentConvocation = qsRes.body?.data?.convocation_no || 1;
 
-        const vsRes = await api(`/api/v1/meeting_vote_settings.php?meeting_id=${currentMeetingId}`);
+        const vsRes = await api(`/api/v1/meeting_vote_settings.php?meeting_id=${getCurrentMeetingId()}`);
         const currentVotePolicy = vsRes.body?.data?.vote_policy_id || '';
 
         body.innerHTML = `
@@ -1016,13 +1018,13 @@
 
           try {
             await api('/api/v1/meeting_quorum_settings.php', {
-              meeting_id: currentMeetingId,
+              meeting_id: getCurrentMeetingId(),
               quorum_policy_id: qpId,
               convocation_no: conv
             });
 
             await api('/api/v1/meeting_vote_settings.php', {
-              meeting_id: currentMeetingId,
+              meeting_id: getCurrentMeetingId(),
               vote_policy_id: vpId
             });
 
@@ -1039,7 +1041,7 @@
 
     // Quorum drawer
     window.ShellDrawer.register('quorum', 'Statut du quorum', async function(meetingId, body, esc) {
-      if (!meetingId && currentMeetingId) meetingId = currentMeetingId;
+      if (!meetingId && getCurrentMeetingId()) meetingId = getCurrentMeetingId();
       if (!meetingId) {
         body.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>';
         return;
@@ -1083,7 +1085,7 @@
 
     // Transitions drawer
     window.ShellDrawer.register('transitions', 'État de la séance', async function(meetingId, body, esc) {
-      if (!currentMeetingId) {
+      if (!getCurrentMeetingId()) {
         body.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>';
         return;
       }
@@ -1123,14 +1125,14 @@
 
     // Motions drawer - create/manage resolutions
     window.ShellDrawer.register('motions', 'Résolutions', async function(meetingId, body, esc) {
-      if (!currentMeetingId) {
+      if (!getCurrentMeetingId()) {
         body.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>';
         return;
       }
       body.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement...</div>';
 
       try {
-        const { body: res } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${currentMeetingId}`);
+        const { body: res } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${getCurrentMeetingId()}`);
         const motions = res?.data?.motions || [];
 
         const canEdit = !['validated', 'archived'].includes(currentMeetingStatus);
@@ -1204,15 +1206,15 @@
 
             try {
               const { body: createRes } = await api('/api/v1/motions.php', {
-                meeting_id: currentMeetingId,
+                meeting_id: getCurrentMeetingId(),
                 title: title,
                 description: desc || null
               });
 
               if (createRes?.ok !== false && (createRes?.data?.id || createRes?.id)) {
                 setNotif('success', 'Résolution créée');
-                loadMotions(currentMeetingId);
-                loadWizardStatus(currentMeetingId);
+                loadMotions(getCurrentMeetingId());
+                loadWizardStatus(getCurrentMeetingId());
                 updateStatusAlert();
                 // Refresh drawer
                 document.querySelector('[data-drawer="motions"]')?.click();
@@ -1232,13 +1234,13 @@
               try {
                 const { body: delRes } = await api('/api/v1/motions_delete.php', {
                   motion_id: btn.dataset.motionId,
-                  meeting_id: currentMeetingId
+                  meeting_id: getCurrentMeetingId()
                 });
 
                 if (delRes?.ok) {
                   setNotif('success', 'Résolution supprimée');
-                  loadMotions(currentMeetingId);
-                  loadWizardStatus(currentMeetingId);
+                  loadMotions(getCurrentMeetingId());
+                  loadWizardStatus(getCurrentMeetingId());
                   updateStatusAlert();
                   // Refresh drawer
                   document.querySelector('[data-drawer="motions"]')?.click();
@@ -1393,7 +1395,7 @@
               resultDiv.innerHTML = `${icon('check', 'icon-sm icon-text')}${result.imported} importé(s), ${result.skipped} ignoré(s)`;
               setNotif('success', `Import: ${result.imported} membres`);
               // Refresh wizard status
-              loadWizardStatus(currentMeetingId);
+              loadWizardStatus(getCurrentMeetingId());
               updateStatusAlert();
             } else {
               resultDiv.className = 'alert alert-danger';
@@ -1423,7 +1425,7 @@
 
     // Incident drawer - declare incidents
     window.ShellDrawer.register('incident', 'Déclarer un incident', async function(meetingId, body, esc) {
-      if (!currentMeetingId) {
+      if (!getCurrentMeetingId()) {
         body.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>';
         return;
       }
@@ -1507,7 +1509,7 @@
           const { body: res } = await api('/api/v1/vote_incident.php', {
             kind: kindInput.value,
             detail: detailInput.value.trim(),
-            meeting_id: currentMeetingId
+            meeting_id: getCurrentMeetingId()
           });
 
           if (res?.ok || res?.saved) {
@@ -1573,22 +1575,22 @@
   // Export buttons event listeners
   if (btnExportPV) {
     btnExportPV.addEventListener('click', async () => {
-      if (!currentMeetingId) return;
-      window.open(`/api/v1/meeting_generate_report_pdf.php?meeting_id=${currentMeetingId}&preview=1`, '_blank');
+      if (!getCurrentMeetingId()) return;
+      window.open(`/api/v1/meeting_generate_report_pdf.php?meeting_id=${getCurrentMeetingId()}&preview=1`, '_blank');
     });
   }
 
   if (btnExportAttendance) {
     btnExportAttendance.addEventListener('click', async () => {
-      if (!currentMeetingId) return;
-      window.open(`/api/v1/export_attendance_csv.php?meeting_id=${currentMeetingId}`, '_blank');
+      if (!getCurrentMeetingId()) return;
+      window.open(`/api/v1/export_attendance_csv.php?meeting_id=${getCurrentMeetingId()}`, '_blank');
     });
   }
 
   if (btnExportVotes) {
     btnExportVotes.addEventListener('click', async () => {
-      if (!currentMeetingId) return;
-      window.open(`/api/v1/export_votes_csv.php?meeting_id=${currentMeetingId}`, '_blank');
+      if (!getCurrentMeetingId()) return;
+      window.open(`/api/v1/export_votes_csv.php?meeting_id=${getCurrentMeetingId()}`, '_blank');
     });
   }
 
@@ -1691,7 +1693,7 @@
 
   // Send invitations
   async function sendInvitations() {
-    if (!currentMeetingId) return;
+    if (!getCurrentMeetingId()) return;
 
     const templateId = invTemplateSelect?.value || null;
     const recipientsRadio = document.querySelector('input[name="invRecipients"]:checked');
@@ -1709,7 +1711,7 @@
     try {
       const endpoint = isScheduleMode ? '/api/v1/invitations_schedule.php' : '/api/v1/invitations_send_bulk.php';
       const payload = {
-        meeting_id: currentMeetingId,
+        meeting_id: getCurrentMeetingId(),
         only_unsent: onlyUnsent
       };
 
@@ -1730,7 +1732,7 @@
           : `${count} invitation(s) envoyee(s)`;
         setNotif('success', msg);
         hideInvitationsOptions();
-        loadInvitationStats(currentMeetingId);
+        loadInvitationStats(getCurrentMeetingId());
       } else {
         setNotif('error', getApiError(body));
       }
@@ -1770,15 +1772,17 @@
   // Initial load
   loadMeetings();
 
-  // Auto-refresh every 5s
+  // Auto-refresh every 5s (disabled when WebSocket is connected)
   setInterval(async () => {
-    if (currentMeetingId && !document.hidden) {
+    // Skip polling if WebSocket is connected and authenticated
+    if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
+    if (getCurrentMeetingId() && !document.hidden) {
       await Promise.all([
-        loadAttendanceStats(currentMeetingId),
-        loadQuorumStatus(currentMeetingId),
-        loadMotions(currentMeetingId),
-        loadWizardStatus(currentMeetingId),
-        loadInvitationStats(currentMeetingId)
+        loadAttendanceStats(getCurrentMeetingId()),
+        loadQuorumStatus(getCurrentMeetingId()),
+        loadMotions(getCurrentMeetingId()),
+        loadWizardStatus(getCurrentMeetingId()),
+        loadInvitationStats(getCurrentMeetingId())
       ]);
       updateStatusAlert();
     }
@@ -1788,8 +1792,8 @@
   const originalLoadMeetingContext = loadMeetingContext;
   window.addEventListener('load', () => {
     // Override to add invitation stats loading
-    if (currentMeetingId) {
-      loadInvitationStats(currentMeetingId);
+    if (getCurrentMeetingId()) {
+      loadInvitationStats(getCurrentMeetingId());
     }
   });
 

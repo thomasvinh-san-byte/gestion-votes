@@ -180,11 +180,13 @@
 
     document.getElementById('btnRecheck').addEventListener('click', loadChecks);
 
-    // Polling (5s auto-refresh for checks and summary)
+    // Polling (5s auto-refresh for checks and summary, disabled when WebSocket connected)
     let pollingInterval = null;
     function startPolling() {
       if (pollingInterval) return;
       pollingInterval = setInterval(() => {
+        // Skip polling if WebSocket is connected and authenticated
+        if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
         if (!document.hidden && currentMeetingId) {
           loadSummary();
           loadChecks();
