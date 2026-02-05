@@ -1,0 +1,81 @@
+/**
+ * report.css - Report/PV page styles for AG-VOTE.
+ *
+ * Styles for the procès-verbal page including PV preview,
+ * export buttons grid, and email form.
+ */
+
+/* =============================================================================
+   PV PREVIEW
+   ============================================================================= */
+
+.pv-preview {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.pv-preview iframe {
+  width: 100%;
+  height: 70vh;
+  border: none;
+  display: block;
+}
+
+/* =============================================================================
+   EXPORT BUTTONS GRID
+   ============================================================================= */
+
+.export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+.export-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.export-btn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.export-btn-icon {
+  font-size: var(--text-2xl);
+}
+
+.export-btn-label {
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+}
+
+/* =============================================================================
+   EMAIL FORM
+   ============================================================================= */
+
+.email-form {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+}
+
+@media (max-width: 768px) {
+  .email-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
