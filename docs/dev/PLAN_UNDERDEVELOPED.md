@@ -18,7 +18,6 @@ Suite à l'audit fonctionnel complet, l'application AG-Vote est **production-rea
 | P2 | Analytics avancés | Moyen | Moyen | ✅ Fait |
 | P2 | Temps réel (WebSocket) | Moyen | Élevé | À faire |
 | P3 | Multi-langue | Faible | Moyen | À faire |
-| P3 | Séances récurrentes | Faible | Moyen | À faire |
 | P3 | Champs personnalisés | Faible | Moyen | À faire |
 | P4 | Application mobile | Faible | Élevé | À faire |
 | P4 | Mode hors-ligne | Faible | Élevé | À faire |
@@ -253,33 +252,7 @@ public/assets/locales/
 
 ---
 
-### 3.2 Séances récurrentes
-
-**Problème actuel** :
-Chaque séance est créée manuellement.
-
-**Solution proposée** :
-Support des patterns de récurrence (RRULE).
-
-```sql
-ALTER TABLE meetings ADD COLUMN recurrence_rule VARCHAR(255);
--- Exemple: FREQ=MONTHLY;BYDAY=2TH (2ème jeudi du mois)
-
-ALTER TABLE meetings ADD COLUMN parent_meeting_id UUID REFERENCES meetings(id);
--- Pour lier les occurrences
-```
-
-**Fonctionnalités** :
-- Création avec pattern (mensuel, trimestriel, annuel)
-- Duplication automatique des résolutions
-- Modification série/occurrence
-- Affichage dans calendrier
-
-**Effort estimé** : 5 jours
-
----
-
-### 3.3 Champs personnalisés pour membres
+### 3.2 Champs personnalisés pour membres
 
 **Problème actuel** :
 Schéma fixe (nom, email, pouvoir).
@@ -433,7 +406,6 @@ Cache local avec synchronisation.
 ### Sprint 5+ (futur)
 - [ ] WebSocket temps réel
 - [ ] Multi-langue
-- [ ] Séances récurrentes
 - [ ] Champs personnalisés
 
 ---
@@ -448,7 +420,6 @@ Cache local avec synchronisation.
 | Analytics | P2 | 5j | Chart.js |
 | WebSocket | P2 | 8j | Ratchet/Swoole |
 | Multi-langue | P3 | 5j+2j/lang | - |
-| Récurrence | P3 | 5j | - |
 | Champs custom | P3 | 6j | - |
 | App mobile PWA | P4 | 15j | Service Worker |
 | Mode hors-ligne | P4 | 12j | PWA |
@@ -456,7 +427,7 @@ Cache local avec synchronisation.
 | OpenAPI complet | - | 3j | - |
 | 2FA | - | 3j | - |
 
-**Total développement identifié** : ~80 jours
+**Total développement identifié** : ~75 jours
 
 ---
 

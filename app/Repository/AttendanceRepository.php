@@ -119,6 +119,33 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
+     * Statistics par mode de presence (pour WebSocket broadcast).
+     */
+    public function getStatsByMode(string $meetingId, string $tenantId): array
+    {
+        $row = $this->selectOne(
+            "SELECT
+                COUNT(*) FILTER (WHERE mode = 'present')::int AS present,
+                COUNT(*) FILTER (WHERE mode = 'remote')::int AS remote,
+                COUNT(*) FILTER (WHERE mode = 'proxy')::int AS proxy,
+                COUNT(*) FILTER (WHERE mode = 'excused')::int AS excused,
+                COUNT(*) FILTER (WHERE mode IN ('present','remote','proxy'))::int AS total_present,
+                COALESCE(SUM(effective_power) FILTER (WHERE mode IN ('present','remote','proxy')), 0)::float8 AS total_weight
+             FROM attendances
+             WHERE meeting_id = :mid AND tenant_id = :tid AND checked_out_at IS NULL",
+            [':mid' => $meetingId, ':tid' => $tenantId]
+        );
+        return $row ?: [
+            'present' => 0,
+            'remote' => 0,
+            'proxy' => 0,
+            'excused' => 0,
+            'total_present' => 0,
+            'total_weight' => 0.0,
+        ];
+    }
+
+    /**
      * Compte les presences eligibles (present/remote/proxy) pour une seance.
      */
     public function countEligible(string $meetingId): int

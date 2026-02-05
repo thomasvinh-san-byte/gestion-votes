@@ -7,6 +7,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\PolicyRepository;
+use AgVote\WebSocket\EventBroadcaster;
 
 api_require_role('operator');
 
@@ -132,6 +133,14 @@ try {
         'meeting_id' => $meetingId,
         'effective_vote_policy_id' => $effectiveVotePolicyId,
         'effective_quorum_policy_id' => $effectiveQuorumPolicyId,
+    ]);
+
+    // Broadcast WebSocket event
+    EventBroadcaster::motionOpened($meetingId, $motionId, [
+        'title' => $title,
+        'position' => $row['position'] ?? null,
+        'vote_policy_id' => $effectiveVotePolicyId,
+        'quorum_policy_id' => $effectiveQuorumPolicyId,
     ]);
 
     api_ok([

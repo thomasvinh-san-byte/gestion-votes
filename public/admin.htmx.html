@@ -373,7 +373,10 @@
         <div class="admin-panel" id="panel-roles" role="tabpanel" aria-labelledby="tab-roles">
           <div class="card mb-4">
             <div class="card-header">
-              <h3 class="card-title">Matrice des permissions</h3>
+              <h3 class="card-title">
+                Matrice des permissions
+                <ag-popover title="Matrice des permissions" content="S = Rôle système (permanent, lié au compte utilisateur). M = Rôle de séance (temporaire, attribué par séance). Chaque cellule indique si le rôle possède cette permission." position="right"></ag-popover>
+              </h3>
               <p class="card-description">Rôles système (S) et rôles de séance (M)</p>
             </div>
             <div class="card-body" style="overflow-x:auto">
@@ -382,11 +385,23 @@
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div class="card">
-              <div class="card-header"><h3 class="card-title">Rôles système</h3><p class="card-description">Permanents, liés au compte</p></div>
+              <div class="card-header">
+                <h3 class="card-title">
+                  Rôles système
+                  <ag-popover title="Rôles système" content="Rôles permanents attachés au compte utilisateur. Ils définissent les permissions globales : admin (tout accès), operator (gestion des séances), auditor (lecture seule), viewer (accès limité)." position="right"></ag-popover>
+                </h3>
+                <p class="card-description">Permanents, liés au compte</p>
+              </div>
               <div class="card-body" id="systemRolesInfo">Chargement...</div>
             </div>
             <div class="card">
-              <div class="card-header"><h3 class="card-title">Rôles de séance</h3><p class="card-description">Temporaires, attribués par séance</p></div>
+              <div class="card-header">
+                <h3 class="card-title">
+                  Rôles de séance
+                  <ag-popover title="Rôles de séance" content="Rôles temporaires assignés pour une séance spécifique. Président : dirige la séance. Assesseur : assiste au dépouillement. Électeur : peut voter." position="right"></ag-popover>
+                </h3>
+                <p class="card-description">Temporaires, attribués par séance</p>
+              </div>
               <div class="card-body" id="meetingRolesInfo">Chargement...</div>
             </div>
           </div>
@@ -453,7 +468,7 @@
             </div>
             <div class="card-body p-0" id="systemStats">
               <div class="system-stat"><span class="system-stat-label">Base de données</span><span class="system-stat-value" id="statDbStatus">Chargement...</span></div>
-              <div class="system-stat"><span class="system-stat-label">Latence DB</span><span class="system-stat-value" id="statDbLatency">—</span></div>
+              <div class="system-stat"><span class="system-stat-label">Latence DB <ag-popover title="Latence de la base de données" content="Temps de réponse pour une requête simple. Normal : < 10ms. Acceptable : < 50ms. Lent : > 100ms." position="right"></ag-popover></span><span class="system-stat-value" id="statDbLatency">—</span></div>
               <div class="system-stat"><span class="system-stat-label">Connexions actives</span><span class="system-stat-value" id="statDbConnections">—</span></div>
               <div class="system-stat"><span class="system-stat-label">Séances en cours</span><span class="system-stat-value" id="statActiveMeetings">—</span></div>
               <div class="system-stat"><span class="system-stat-label">Total séances</span><span class="system-stat-value" id="statTotalMeetings">—</span></div>
@@ -467,7 +482,13 @@
             <div class="card-header"><h3 class="card-title text-danger">Zone dangereuse</h3></div>
             <div class="card-body">
               <div class="flex items-center justify-between gap-4 p-4 bg-surface rounded-lg border">
-                <div><div class="font-semibold">Réinitialiser les données de démo</div><div class="text-sm text-muted">Supprime toutes les séances et recharge les données de test</div></div>
+                <div>
+                  <div class="font-semibold">
+                    Réinitialiser les données de démo
+                    <ag-popover title="Attention - Action irréversible" content="Cette action supprimera TOUTES les séances, résolutions, votes et présences. Seuls les utilisateurs et la configuration seront conservés. Les données d'exemple seront rechargées." position="top"></ag-popover>
+                  </div>
+                  <div class="text-sm text-muted">Supprime toutes les séances et recharge les données de test</div>
+                </div>
                 <button class="btn btn-danger" id="btnResetDemo">Réinitialiser</button>
               </div>
             </div>
@@ -489,6 +510,7 @@
   </aside>
 
   <!-- Scripts -->
+  <script type="module" src="/assets/js/components/index.js"></script>
   <script src="/assets/js/utils.js"></script>
   <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>

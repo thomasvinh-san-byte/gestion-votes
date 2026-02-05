@@ -15,6 +15,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\AttendanceRepository;
+use AgVote\WebSocket\EventBroadcaster;
 
 api_require_role(['operator', 'admin']);
 
@@ -100,6 +101,14 @@ try {
         'updated' => $updated,
         'total' => $created + $updated,
     ], $meetingId);
+
+    // Broadcast WebSocket event with updated stats
+    try {
+        $stats = $attendanceRepo->getStatsByMode($meetingId, $tenantId);
+        EventBroadcaster::attendanceUpdated($meetingId, $stats);
+    } catch (\Throwable $e) {
+        // Don't fail if broadcast fails
+    }
 
     api_ok([
         'created' => $created,

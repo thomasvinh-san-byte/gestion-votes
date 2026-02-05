@@ -5,6 +5,7 @@ namespace AgVote\Service;
 
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
+use AgVote\WebSocket\EventBroadcaster;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
@@ -154,6 +155,14 @@ if (!empty($context['meeting_validated_at'])) {
                 'is_proxy_vote' => $isProxyVote,
                 'proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
             ]);
+        }
+
+        // Broadcast WebSocket event with updated tally
+        try {
+            $tally = $ballotRepo->getTallyForMotion($tenantId, $meetingId, $motionId);
+            EventBroadcaster::voteCast($meetingId, $motionId, $tally);
+        } catch (Throwable $e) {
+            // Silently fail - don't break the vote if broadcast fails
         }
 
         $row = $ballotRepo->findByMotionAndMember($motionId, $memberId);
