@@ -519,29 +519,34 @@
   </style>
 </head>
 <body>
+  <!-- Skip links -->
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-nav" class="skip-link">Aller à la navigation</a>
+
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
 
     <!-- Session selector bar -->
     <div class="session-selector">
-      <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
-      <select class="form-input" id="meetingSelect">
+      <svg class="icon" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+      <label for="meetingSelect" class="sr-only">Sélectionner une séance</label>
+      <select class="form-input" id="meetingSelect" aria-describedby="meetingStatusBadge">
         <option value="">— Sélectionner une séance —</option>
       </select>
-      <span class="badge" id="meetingStatusBadge">—</span>
+      <span class="badge" id="meetingStatusBadge" aria-live="polite">—</span>
     </div>
 
     <!-- Tabs navigation (shown when meeting selected) -->
-    <nav class="tabs-nav" id="tabsNav" style="display: none;">
-      <button class="tab-btn active" data-tab="parametres">Paramètres</button>
-      <button class="tab-btn" data-tab="resolutions">Résolutions <span class="tab-count" id="tabCountResolutions">0</span></button>
-      <button class="tab-btn" data-tab="presences">Présences <span class="tab-count" id="tabCountPresences">0</span></button>
-      <button class="tab-btn" data-tab="parole">Parole <span class="tab-count" id="tabCountSpeech">0</span></button>
-      <button class="tab-btn" data-tab="vote">Vote en direct</button>
-      <button class="tab-btn" data-tab="resultats">Résultats</button>
+    <nav class="tabs-nav" id="tabsNav" style="display: none;" role="tablist" aria-label="Sections de la séance">
+      <button class="tab-btn active" data-tab="parametres" role="tab" aria-selected="true" aria-controls="tab-parametres" id="tab-btn-parametres">Paramètres</button>
+      <button class="tab-btn" data-tab="resolutions" role="tab" aria-selected="false" aria-controls="tab-resolutions" id="tab-btn-resolutions">Résolutions <span class="tab-count" id="tabCountResolutions" aria-label="résolutions">0</span></button>
+      <button class="tab-btn" data-tab="presences" role="tab" aria-selected="false" aria-controls="tab-presences" id="tab-btn-presences">Présences <span class="tab-count" id="tabCountPresences" aria-label="présences">0</span></button>
+      <button class="tab-btn" data-tab="parole" role="tab" aria-selected="false" aria-controls="tab-parole" id="tab-btn-parole">Parole <span class="tab-count" id="tabCountSpeech" aria-label="demandes">0</span></button>
+      <button class="tab-btn" data-tab="vote" role="tab" aria-selected="false" aria-controls="tab-vote" id="tab-btn-vote">Vote en direct</button>
+      <button class="tab-btn" data-tab="resultats" role="tab" aria-selected="false" aria-controls="tab-resultats" id="tab-btn-resultats">Résultats</button>
     </nav>
 
-    <main class="app-main" style="padding: 0;">
+    <main class="app-main" id="main-content" style="padding: 0;" role="main">
       <!-- Wizard progress bar -->
       <div id="wizard-progress"></div>
 
@@ -554,7 +559,7 @@
       </div>
 
       <!-- Tab: Paramètres -->
-      <div class="tab-content" id="tab-parametres">
+      <div class="tab-content" id="tab-parametres" role="tabpanel" aria-labelledby="tab-btn-parametres" tabindex="0">
         <!-- Launch button - prominently at top when ready -->
         <div id="launchBanner" class="settings-section" style="display:none; background: var(--color-success-subtle); border-color: var(--color-success); margin-bottom: 1.5rem;">
           <div class="flex items-center justify-between gap-4 flex-wrap">
@@ -825,7 +830,7 @@
       </div>
 
       <!-- Tab: Résolutions -->
-      <div class="tab-content" id="tab-resolutions">
+      <div class="tab-content" id="tab-resolutions" role="tabpanel" aria-labelledby="tab-btn-resolutions" tabindex="0">
         <div class="tab-toolbar">
           <button class="btn btn-primary" id="btnAddResolution">+ Nouvelle résolution</button>
           <input type="text" class="form-input tab-toolbar-search" id="resolutionSearch" placeholder="Rechercher une résolution...">
@@ -854,7 +859,7 @@
       </div>
 
       <!-- Tab: Présences -->
-      <div class="tab-content" id="tab-presences">
+      <div class="tab-content" id="tab-presences" role="tabpanel" aria-labelledby="tab-btn-presences" tabindex="0">
         <div class="tab-toolbar">
           <div class="flex gap-2">
             <button class="btn btn-secondary" id="btnMarkAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
@@ -888,7 +893,7 @@
       </div>
 
       <!-- Tab: Parole (file des orateurs) -->
-      <div class="tab-content" id="tab-parole">
+      <div class="tab-content" id="tab-parole" role="tabpanel" aria-labelledby="tab-btn-parole" tabindex="0">
         <div class="charts-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
           <!-- Orateur courant -->
           <div class="settings-section" id="speechCurrentPanel">
@@ -989,7 +994,7 @@
       </div>
 
       <!-- Tab: Vote en direct -->
-      <div class="tab-content" id="tab-vote">
+      <div class="tab-content" id="tab-vote" role="tabpanel" aria-labelledby="tab-btn-vote" tabindex="0">
         <div class="tab-toolbar" style="margin-bottom: 1rem;">
           <a href="/public.htmx.html" target="_blank" class="btn btn-secondary" id="btnOpenPublicScreen" data-meeting-link>
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg> Écran de projection
@@ -1033,7 +1038,7 @@
       </div>
 
       <!-- Tab: Résultats -->
-      <div class="tab-content" id="tab-resultats">
+      <div class="tab-content" id="tab-resultats" role="tabpanel" aria-labelledby="tab-btn-resultats" tabindex="0">
         <div class="results-summary">
           <div class="result-card success">
             <div class="value" id="resultAdopted">0</div>
@@ -1101,10 +1106,10 @@
     </main>
   </div>
 
-  <div class="drawer-backdrop" data-drawer-close></div>
-  <aside class="drawer" id="drawer">
+  <div class="drawer-backdrop" data-drawer-close aria-hidden="true"></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
     <header class="drawer-header">
-      <button data-drawer-close class="btn btn-icon btn-ghost">✕</button>
+      <button data-drawer-close class="btn btn-icon btn-ghost" aria-label="Fermer le panneau">✕</button>
       <h2 class="drawer-title" id="drawerTitle">—</h2>
     </header>
     <div class="drawer-body" id="drawerBody"></div>

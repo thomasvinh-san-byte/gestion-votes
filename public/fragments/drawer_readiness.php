@@ -2,21 +2,25 @@
 declare(strict_types=1);
 require __DIR__ . '/_drawer_util.php';
 
+use AgVote\Repository\FragmentRepository;
+
 $meetingId = get_meeting_id();
 if ($meetingId === '') {
   echo '<div class="card pad"><div class="h2">Readiness</div><div class="muted">Aucune séance sélectionnée.</div></div>';
   exit;
 }
 
-$meeting = db_select_one("SELECT id, title, status, validated_at FROM meetings WHERE id = ?", [$meetingId]);
+$repo = new FragmentRepository();
+
+$meeting = $repo->findMeetingBasics($meetingId);
 if (!$meeting) {
   echo '<div class="card pad"><div class="h2">Readiness</div><div class="muted">Séance introuvable.</div></div>';
   exit;
 }
 
-$cntMembers = (int)(db_select_one("SELECT COUNT(*) AS c FROM members WHERE meeting_id = ?", [$meetingId])['c'] ?? 0);
-$cntRes = (int)(db_select_one("SELECT COUNT(*) AS c FROM motions WHERE meeting_id = ?", [$meetingId])['c'] ?? 0);
-$cntAttendance = (int)(db_select_one("SELECT COUNT(*) AS c FROM attendance WHERE meeting_id = ?", [$meetingId])['c'] ?? 0);
+$cntMembers = $repo->countMembersForMeeting($meetingId);
+$cntRes = $repo->countMotionsForMeeting($meetingId);
+$cntAttendance = $repo->countAttendancesForMeeting($meetingId);
 
 $ready = ($cntMembers > 0 && $cntRes > 0);
 
@@ -48,6 +52,6 @@ echo item("Membres importés", $cntMembers>0, $cntMembers>0 ? "$cntMembers membr
 echo item("Résolutions définies", $cntRes>0, $cntRes>0 ? "$cntRes résolutions" : "Créer au moins 1 résolution");
 echo item("Présences saisies", $cntAttendance>0, $cntAttendance>0 ? "$cntAttendance statuts saisis" : "Recommandé avant le live");
 
-echo '    <div class="callout tiny muted" style="margin-top:12px;">Détails juridiques et justifications : via le panneau “Informations” ou la page concernée.</div>';
+echo '    <div class="callout tiny muted" style="margin-top:12px;">Détails juridiques et justifications : via le panneau "Informations" ou la page concernée.</div>';
 echo '  </div>';
 echo '</div>';

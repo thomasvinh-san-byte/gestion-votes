@@ -2,48 +2,33 @@
 declare(strict_types=1);
 require __DIR__ . '/_drawer_util.php';
 
+use AgVote\Repository\FragmentRepository;
+
 $meetingId = get_meeting_id();
 if ($meetingId === '') {
   echo '<div class="card pad"><div class="h2">Informations</div><div class="muted">Aucune séance sélectionnée.</div></div>';
   exit;
 }
 
-$meeting = db_select_one("SELECT id, title, status, validated_at FROM meetings WHERE id = ?", [$meetingId]);
+$repo = new FragmentRepository();
+
+$meeting = $repo->findMeetingForInfos($meetingId);
 if (!$meeting) {
   echo '<div class="card pad"><div class="h2">Informations</div><div class="muted">Séance introuvable.</div></div>';
   exit;
 }
 
 // Résolution ouverte (vote en cours)
-$openMotion = db_select_one(
-  "SELECT id, title FROM motions WHERE meeting_id = ? AND closed_at IS NULL AND opened_at IS NOT NULL ORDER BY opened_at DESC LIMIT 1",
-  [$meetingId]
-);
+$openMotion = $repo->findOpenMotion($meetingId);
 
 $pendingVotes = null;
 $unusedTokens = null;
 
 if ($openMotion) {
-  $expected = (int)(db_select_one(
-    "SELECT COUNT(*) AS c
-     FROM attendance a
-     WHERE a.meeting_id = ? AND a.status IN ('present','remote')",
-    [$meetingId]
-  )['c'] ?? 0);
-
-  $received = (int)(db_select_one(
-    "SELECT COUNT(*) AS c FROM ballots WHERE motion_id = ?",
-    [$openMotion['id']]
-  )['c'] ?? 0);
-
+  $expected = $repo->countExpectedVoters($meetingId);
+  $received = $repo->countBallotsForMotion($openMotion['id']);
   $pendingVotes = max(0, $expected - $received);
-
-  $unusedTokens = (int)(db_select_one(
-    "SELECT COUNT(*) AS c
-     FROM vote_tokens
-     WHERE meeting_id = ? AND motion_id = ? AND used_at IS NULL AND expires_at > NOW()",
-    [$meetingId, $openMotion['id']]
-  )['c'] ?? 0);
+  $unusedTokens = $repo->countActiveUnusedTokens($meetingId, $openMotion['id']);
 }
 
 echo '<div class="card">';
@@ -68,7 +53,7 @@ if (!$openMotion) {
   echo '  <div class="kpi">';
   echo '    <div class="label">Votes en attente</div>';
   echo '    <div class="value">'.(int)$pendingVotes.'</div>';
-  echo '    <div class="tiny muted">Informatif (n’empêche pas l’action).</div>';
+  echo '    <div class="tiny muted">Informatif (n'empêche pas l'action).</div>';
   echo '  </div>';
   echo '  <div class="kpi">';
   echo '    <div class="label">Tokens non utilisés</div>';
