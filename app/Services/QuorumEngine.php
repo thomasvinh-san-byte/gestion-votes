@@ -1,18 +1,51 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
 
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
 use InvalidArgumentException;
 use RuntimeException;
 
+/**
+ * QuorumEngine - Computes meeting and motion quorum status.
+ *
+ * This service calculates whether quorum requirements are met for meetings
+ * and motions based on configured quorum policies.
+ *
+ * Features:
+ * - Single and double quorum modes
+ * - Evolving threshold based on convocation number
+ * - Support for proxies and remote attendees
+ * - Weight-based and member-count-based calculations
+ * - Late arrival exclusion (for motions opened before member arrived)
+ *
+ * Quorum Modes:
+ * - single: One threshold to meet
+ * - double: Two independent thresholds (both must be met)
+ * - evolving: Different threshold for 2nd convocation
+ *
+ * @package AgVote\Service
+ */
 final class QuorumEngine
 {
+    /**
+     * Compute quorum status for a specific motion.
+     *
+     * Uses motion-level quorum policy if set, otherwise falls back to meeting policy.
+     *
+     * @param string $motionId Motion UUID
+     *
+     * @throws InvalidArgumentException If motion_id is empty
+     * @throws RuntimeException If motion not found
+     *
+     * @return array{applied: bool, met: ?bool, details: array, justification: string, meeting: array, policy?: array}
+     */
     public static function computeForMotion(string $motionId): array
     {
         $motionId = trim($motionId);
@@ -72,6 +105,14 @@ final class QuorumEngine
         ];
     }
 
+    /**
+     * Return a result indicating no quorum policy is applied.
+     *
+     * @param string $meetingId Meeting UUID
+     * @param string $tenantId Tenant UUID
+     *
+     * @return array
+     */
     private static function noPolicy(string $meetingId, string $tenantId): array
     {
         return [
@@ -83,6 +124,17 @@ final class QuorumEngine
         ];
     }
 
+    /**
+     * Internal quorum computation logic.
+     *
+     * @param string $meetingId Meeting UUID
+     * @param string $tenantId Tenant UUID
+     * @param int $convocationNo Convocation number (1 or 2)
+     * @param array $policy Quorum policy configuration
+     * @param string|null $motionOpenedAt Motion opened timestamp (for late arrival exclusion)
+     *
+     * @return array Quorum calculation results
+     */
     private static function computeInternal(string $meetingId, string $tenantId, int $convocationNo, array $policy, $motionOpenedAt): array
     {
         $includeProxies = (bool)($policy['include_proxies'] ?? true);
@@ -145,6 +197,18 @@ final class QuorumEngine
         ];
     }
 
+    /**
+     * Calculate a single quorum ratio block.
+     *
+     * @param string $basis Calculation basis: 'eligible_members' or 'eligible_weight'
+     * @param float $threshold Required threshold (0.0 to 1.0)
+     * @param int $numMembers Number of present members
+     * @param float $numWeight Total weight of present members
+     * @param int $eligibleMembers Total eligible members
+     * @param float $eligibleWeight Total eligible weight
+     *
+     * @return array{configured: bool, met: bool, ratio: float, threshold: float, numerator: float, denominator: float, basis: string}
+     */
     private static function ratioBlock(string $basis, float $threshold, int $numMembers, float $numWeight, int $eligibleMembers, float $eligibleWeight): array
     {
         if ($basis === 'eligible_members') {
@@ -167,6 +231,19 @@ final class QuorumEngine
         ];
     }
 
+    /**
+     * Generate human-readable justification text for quorum result.
+     *
+     * @param string $name Policy name
+     * @param string $mode Quorum mode (single, double, evolving)
+     * @param int $convocationNo Convocation number
+     * @param array $modes Attendance modes counted (present, remote, proxy)
+     * @param array $details Calculation details with primary and optional secondary blocks
+     * @param bool|null $met Whether quorum was met
+     * @param string|null $motionOpenedAt Motion opened timestamp
+     *
+     * @return string Justification text in French
+     */
     private static function justification(string $name, string $mode, int $convocationNo, array $modes, array $details, ?bool $met, $motionOpenedAt): string
     {
         $status = ($met === null) ? 'non applicable' : ($met ? 'atteint' : 'non atteint');

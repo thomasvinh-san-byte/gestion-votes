@@ -1,4 +1,22 @@
+/**
+ * vote.js - Public voting interface for AG-VOTE.
+ *
+ * Provides the voter-facing interface for casting ballots.
+ * Features: meeting/member selection, motion display, vote casting,
+ * device heartbeat, block/kick handling, policy badges.
+ *
+ * @module vote
+ * @requires utils.js
+ * @requires MeetingContext (optional, falls back to select element)
+ */
 (function(){
+  'use strict';
+
+  /**
+   * DOM query shorthand
+   * @param {string} s - CSS selector
+   * @returns {Element|null}
+   */
   const $ = (s) => document.querySelector(s);
 
   // -----------------------------
@@ -7,6 +25,11 @@
   const DEVICE_ROLE = 'voter';
   const HEARTBEAT_URL = '/api/v1/device_heartbeat.php';
 
+  /**
+   * Get or generate a unique device identifier.
+   * Persisted in localStorage for session continuity.
+   * @returns {string} Device UUID
+   */
   function getDeviceId(){
     try {
       const k = 'device.id';
@@ -21,6 +44,10 @@
     }
   }
 
+  /**
+   * Read device battery status using Battery Status API.
+   * @returns {Promise<{level: number, charging: boolean}|null>} Battery info or null if unavailable
+   */
   async function readBattery(){
     try {
       if (!navigator.getBattery) return null;
@@ -34,6 +61,11 @@
     }
   }
 
+  /**
+   * Create or return the blocked device overlay element.
+   * Shown when device is blocked by operator.
+   * @returns {HTMLElement} The overlay element
+   */
   function ensureBlockedOverlay(){
     let el = document.getElementById('blockedOverlay');
     if (el) return el;
@@ -57,6 +89,11 @@
     return el;
   }
 
+  /**
+   * Show or hide the blocked device overlay.
+   * @param {boolean} on - Whether to show the overlay
+   * @param {string} [msg] - Optional message to display
+   */
   function setBlocked(on, msg){
     const ov = ensureBlockedOverlay();
     const m = document.getElementById('blockedMsg');
@@ -66,6 +103,11 @@
     setVoteButtonsEnabled(!on && !!selectedMemberId());
   }
 
+  /**
+   * Send device heartbeat to the server.
+   * Reports device status and receives block/kick commands.
+   * @returns {Promise<void>}
+   */
   async function sendHeartbeat(){
     const meetingId = selectedMeetingId();
     if (!meetingId) return;
@@ -104,6 +146,11 @@
     }
   }
 
+  /**
+   * Display a notification message.
+   * @param {string} type - Notification type: 'success' or 'error'
+   * @param {string} msg - Message to display
+   */
   function notify(type, msg){
     const box = $("#notif_box");
     if (!box) return console[type==="error"?"error":"log"](msg);
@@ -113,6 +160,11 @@
     setTimeout(()=>{ box.style.display = "none"; }, 3000);
   }
 
+  /**
+   * Escape HTML entities in a string.
+   * @param {*} x - Value to escape
+   * @returns {string} Escaped string
+   */
   function escapeHtml(x){ return (window.Utils?.escapeHtml ? Utils.escapeHtml(x) : String(x ?? "")); }
 
   // -----------------------------
@@ -175,14 +227,28 @@
     return `<div class="row" style="gap:6px; flex-wrap:wrap; margin-top:10px;">${badges.join('')}</div>`;
   }
 
-  // Prefer Utils.apiGet/apiPost (loaded from utils.js before this file).
-  // Falls back to minimal local fetch if Utils is unavailable.
+  /**
+   * Perform a GET request to the API.
+   * Uses Utils.apiGet if available, otherwise falls back to fetch.
+   * @param {string} url - API endpoint URL
+   * @returns {Promise<Object>} Parsed JSON response
+   * @throws {Error} If request fails
+   */
   async function apiGet(url){
     if (window.Utils && typeof Utils.apiGet === 'function') return Utils.apiGet(url);
     const r = await fetch(url, { method: 'GET', credentials: 'same-origin' });
     if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'request_failed'); }
     return r.json();
   }
+
+  /**
+   * Perform a POST request to the API.
+   * Uses Utils.apiPost if available, otherwise falls back to fetch.
+   * @param {string} url - API endpoint URL
+   * @param {Object} data - Data to send in request body
+   * @returns {Promise<Object>} Parsed JSON response
+   * @throws {Error} If request fails
+   */
   async function apiPost(url, data){
     if (window.Utils && typeof Utils.apiPost === 'function') return Utils.apiPost(url, data);
     const r = await fetch(url, {
@@ -195,7 +261,11 @@
     return r.json();
   }
 
-  // Use MeetingContext if available, fallback to select element
+  /**
+   * Get the currently selected meeting ID.
+   * Uses MeetingContext if available, falls back to select element.
+   * @returns {string} Meeting ID or empty string
+   */
   function selectedMeetingId(){
     // First try MeetingContext
     if (typeof MeetingContext !== 'undefined' && MeetingContext.get()) {
@@ -204,8 +274,17 @@
     // Fallback to select element for vote.php standalone mode
     return ($("#meetingSelect")?.value || "").trim();
   }
+
+  /**
+   * Get the currently selected member ID from the select element.
+   * @returns {string} Member ID or empty string
+   */
   function selectedMemberId(){ return ($("#memberSelect")?.value || "").trim(); }
 
+  /**
+   * Load available meetings into the meeting select dropdown.
+   * @returns {Promise<void>}
+   */
   async function loadMeetings(){
     const sel = $("#meetingSelect");
     if (!sel) return;
@@ -241,6 +320,11 @@
     await refresh();
   }
 
+  /**
+   * Load members for the selected meeting into the member select dropdown.
+   * Prioritizes present/remote attendees, falls back to all members.
+   * @returns {Promise<void>}
+   */
   async function loadMembers(){
     const meetingId = selectedMeetingId();
     const sel = $("#memberSelect");
@@ -297,6 +381,11 @@
     sel.addEventListener('change', () => updateMemberFromSelect(sel));
   }
 
+  /**
+   * Auto-select the current authenticated user in the member dropdown.
+   * Matches by name or email from window.Auth.user.
+   * @param {HTMLSelectElement} sel - Member select element
+   */
   function autoSelectMember(sel) {
     if (!window.Auth || !window.Auth.user) return;
     const userName = (window.Auth.user.name || '').toLowerCase().trim();
@@ -326,6 +415,11 @@
     }
   }
 
+  /**
+   * Refresh the current motion display.
+   * Fetches the open motion for the selected meeting and updates the UI.
+   * @returns {Promise<void>}
+   */
   async function refresh(){
     const meetingId = selectedMeetingId();
     const memberId = selectedMemberId();
@@ -361,6 +455,10 @@
     }
   }
 
+  /**
+   * Enable or disable vote buttons.
+   * @param {boolean} on - Whether to enable buttons
+   */
   function setVoteButtonsEnabled(on){
     ["#btnFor","#btnAgainst","#btnAbstain","#btnNone"].forEach(id=>{
       const el=$(id);
@@ -368,6 +466,11 @@
     });
   }
 
+  /**
+   * Cast a vote for the current motion.
+   * @param {string} choice - Vote value: 'for', 'against', 'abstain', or 'none'
+   * @returns {Promise<void>}
+   */
   async function cast(choice){
     const memberId = selectedMemberId();
     if (!_currentMotionId || !memberId) return;

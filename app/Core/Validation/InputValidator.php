@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core\Validation;
@@ -6,9 +7,37 @@ namespace AgVote\Core\Validation;
 use DateTimeImmutable;
 
 /**
- * InputValidator - Centralized validation and sanitization
+ * InputValidator - Centralized validation and sanitization.
  *
- * PHP equivalent of Zod/Joi for user input validation.
+ * Provides a fluent, chainable API for validating user input,
+ * similar to JavaScript libraries like Zod or Joi.
+ *
+ * Features:
+ * - Type coercion and validation (string, integer, number, boolean, email, uuid, enum, array, datetime)
+ * - Required/optional fields with default values
+ * - Min/max length and value constraints
+ * - Pattern matching with regex
+ * - Enum validation
+ * - XSS sanitization by default for strings
+ * - Nullable field support
+ *
+ * Usage:
+ * ```php
+ * $result = InputValidator::schema()
+ *     ->uuid('meeting_id')->required()
+ *     ->string('title')->required()->minLength(1)->maxLength(255)
+ *     ->email('email')->optional()
+ *     ->enum('status', ['draft', 'live', 'closed'])->default('draft')
+ *     ->validate($_POST);
+ *
+ * if (!$result->isValid()) {
+ *     return api_fail($result->firstError(), 422);
+ * }
+ *
+ * $data = $result->data();
+ * ```
+ *
+ * @package AgVote\Core\Validation
  */
 final class InputValidator
 {
@@ -285,6 +314,15 @@ final class InputValidator
     }
 }
 
+/**
+ * FieldBuilder - Fluent field definition builder for InputValidator.
+ *
+ * Provides chainable methods to configure validation rules for a single field.
+ * Methods return $this to allow chaining, or the parent validator to define
+ * additional fields.
+ *
+ * @package AgVote\Core\Validation
+ */
 final class FieldBuilder
 {
     private InputValidator $validator;
@@ -343,11 +381,26 @@ final class FieldBuilder
     }
 }
 
+/**
+ * ValidationResult - Result container for InputValidator validation.
+ *
+ * Contains validated data and any validation errors.
+ * Provides helper methods for checking validity and accessing results.
+ *
+ * @package AgVote\Core\Validation
+ */
 final class ValidationResult
 {
+    /** @var array<string, mixed> Validated and sanitized data */
     private array $data;
+
+    /** @var array<string, string> Validation errors by field name */
     private array $errors;
 
+    /**
+     * @param array<string, mixed> $data Validated data
+     * @param array<string, string> $errors Validation errors
+     */
     public function __construct(array $data, array $errors)
     {
         $this->data = $data;

@@ -1,15 +1,32 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
 
-use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
-use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
 use InvalidArgumentException;
 use RuntimeException;
 
+/**
+ * VoteEngine - Computes motion voting results.
+ *
+ * This service handles the calculation of vote results for motions,
+ * including tallying ballots, applying quorum policies, and determining
+ * majority outcomes.
+ *
+ * Features:
+ * - Ballot aggregation by vote value (for, against, abstain, nsp)
+ * - Weight-based voting support
+ * - Quorum verification against configured policies
+ * - Majority calculation with configurable thresholds
+ * - Abstention-as-against option support
+ *
+ * @package AgVote\Service
+ */
 final class VoteEngine
 {
     /**

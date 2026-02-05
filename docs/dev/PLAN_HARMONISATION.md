@@ -242,10 +242,10 @@ const MeetingContext = {
 **Language:** English for all code and documentation.
 
 **Tasks:**
-- [ ] Add JSDoc to all JavaScript files
-- [ ] Complete PHPDoc for under-documented files
-- [ ] Create `CONTRIBUTING.md` with coding conventions
-- [ ] Convert French comments to English
+- [x] Add JSDoc to all JavaScript files (vote.js, shell.js, meeting-context.js, utils.js, shared.js, websocket-client.js)
+- [x] Complete PHPDoc for under-documented files (VoteEngine, QuorumEngine, InputValidator)
+- [x] Create `CONTRIBUTING.md` with coding conventions
+- [x] Convert French comments to English
 
 ### 5.3 Language Harmonization
 

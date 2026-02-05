@@ -1,13 +1,40 @@
-// public/assets/js/shell.js
+/**
+ * shell.js - Application shell with drawer system and mobile navigation.
+ *
+ * Provides:
+ * - Side drawer system with built-in kinds (menu, readiness, infos, anomalies)
+ * - Custom drawer registration for page-specific content
+ * - Mobile hamburger navigation with slide-in sidebar
+ * - Auto-loads auth-ui.js for login/logout banner
+ *
+ * @module shell
+ * @requires MeetingContext (optional)
+ * @requires api (global function)
+ *
+ * @example
+ * // Open a built-in drawer
+ * ShellDrawer.open('menu');
+ *
+ * // Register a custom drawer
+ * ShellDrawer.register('myDrawer', 'My Title', (meetingId, bodyEl, escFn) => {
+ *   bodyEl.innerHTML = 'Content here';
+ * });
+ */
 (function(){
+  'use strict';
+
   const overlay = document.querySelector(".drawer-backdrop, [data-drawer-close]");
   const drawer = document.getElementById("drawer") || document.querySelector(".drawer");
   const dbody = document.getElementById("drawerBody");
   const titleEl = document.getElementById("drawerTitle");
 
-  // Registry for page-specific drawer kinds
+  /** @type {Object.<string, {title: string, render: Function}>} */
   const customKinds = {};
 
+  /**
+   * Get the current meeting ID from MeetingContext or fallback sources.
+   * @returns {string} Meeting ID or empty string
+   */
   function getMeetingId(){
     // Use MeetingContext as single source of truth
     if (typeof MeetingContext !== 'undefined' && MeetingContext.get()) {
@@ -29,10 +56,23 @@
     return "";
   }
 
+  /**
+   * Set the drawer title text.
+   * @param {string} t - Title text
+   */
   function setTitle(t){ if (titleEl) titleEl.textContent = t; }
 
+  /**
+   * Escape HTML entities in a string.
+   * @param {string} s - String to escape
+   * @returns {string} Escaped string
+   */
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+  /**
+   * Open a drawer by kind name.
+   * @param {string} kind - Drawer type: 'menu', 'readiness', 'infos', 'anomalies', or custom registered kind
+   */
   function openDrawer(kind){
     if (!drawer || !dbody) return;
 
@@ -59,7 +99,11 @@
     else { dbody.innerHTML = ""; }
   }
 
-  // ---- Menu drawer (role-aware) ----
+  /**
+   * Render the navigation menu drawer.
+   * Shows role-aware navigation links.
+   * @param {string} meetingId - Current meeting ID
+   */
   function renderMenu(meetingId) {
     const mid = meetingId ? '?meeting_id=' + encodeURIComponent(meetingId) : '';
     const role = (window.Auth && window.Auth.role) || null;
@@ -93,7 +137,12 @@
     dbody.innerHTML = html;
   }
 
-  // ---- Readiness drawer ----
+  /**
+   * Render the readiness check drawer.
+   * Shows meeting preparation status and checklist.
+   * @param {string} meetingId - Current meeting ID
+   * @returns {Promise<void>}
+   */
   async function renderReadiness(meetingId) {
     if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
     dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
@@ -123,7 +172,12 @@
     }
   }
 
-  // ---- Infos drawer ----
+  /**
+   * Render the meeting information drawer.
+   * Shows meeting details: title, status, location, president, dates.
+   * @param {string} meetingId - Current meeting ID
+   * @returns {Promise<void>}
+   */
   async function renderInfos(meetingId) {
     if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
     dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
@@ -152,7 +206,12 @@
     }
   }
 
-  // ---- Anomalies drawer ----
+  /**
+   * Render the anomalies drawer.
+   * Shows detected issues and warnings for the meeting.
+   * @param {string} meetingId - Current meeting ID
+   * @returns {Promise<void>}
+   */
   async function renderAnomalies(meetingId) {
     if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
     dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
@@ -182,6 +241,9 @@
     }
   }
 
+  /**
+   * Close the drawer panel.
+   */
   function closeDrawer(){
     if (!drawer) return;
     drawer.classList.remove("open");
