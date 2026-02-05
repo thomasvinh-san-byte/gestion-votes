@@ -45,6 +45,19 @@ class VoteTokenRepository extends AbstractRepository
     }
 
     /**
+     * Trouve un token valide (non utilise, non expire) par son hash.
+     */
+    public function findValidByHash(string $tokenHash): ?array
+    {
+        return $this->selectOne(
+            "SELECT token_hash, tenant_id, meeting_id, member_id, motion_id, expires_at, used_at
+             FROM vote_tokens
+             WHERE token_hash = :hash AND used_at IS NULL AND expires_at > NOW()",
+            [':hash' => $tokenHash]
+        );
+    }
+
+    /**
      * Marque un token comme consomme (used_at = now()).
      */
     public function consume(string $tokenHash): int
