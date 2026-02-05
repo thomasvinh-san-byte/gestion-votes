@@ -279,6 +279,65 @@ sudo bash database/setup.sh --reset
 
 ## 9. Dépannage
 
+### Checklist de démarrage rapide
+
+Avant de lancer l'application, vérifiez ces points :
+
+```bash
+# 1. PostgreSQL est démarré ?
+pg_isready -h localhost -p 5432
+# Attendu : "localhost:5432 - accepting connections"
+
+# 2. Autoload PHP est à jour ?
+composer dump-autoload
+
+# 3. Base de données initialisée ?
+PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -c "\dt" | head -5
+
+# 4. Lancer le serveur
+php -S 0.0.0.0:8080 -t public
+```
+
+---
+
+### `Class "..." not found` (ex: RateLimiter, AuthMiddleware)
+
+**Cause** : L'autoloader Composer n'est pas synchronisé avec les fichiers PHP.
+
+**Solution** :
+```bash
+composer dump-autoload
+```
+
+> **Quand exécuter ?** Après chaque `git pull`, `git merge`, ou ajout de nouvelles classes PHP.
+
+---
+
+### PostgreSQL non accessible / "Error" dans Statut système
+
+**Symptômes** :
+- Page admin affiche "Error" dans l'onglet Système
+- Les APIs retournent des erreurs 500
+- `pg_isready` retourne "no response"
+
+**Solution** :
+```bash
+# Démarrer PostgreSQL
+sudo systemctl start postgresql
+# ou
+sudo service postgresql start
+
+# Vérifier
+pg_isready -h localhost -p 5432
+```
+
+> **Conseil** : Ajoutez PostgreSQL au démarrage automatique :
+> ```bash
+> sudo systemctl enable postgresql
+> ```
+
+---
+
 ### `fe_sendauth: no password supplied`
 
 1. Vérifier que PostgreSQL est démarré : `pg_isready`
@@ -293,6 +352,8 @@ sudo bash database/setup.sh --reset
    ```
    Puis `sudo service postgresql reload`.
 
+---
+
 ### `relation does not exist`
 
 Le schéma n'a pas été appliqué. Rejouer :
@@ -301,10 +362,29 @@ Le schéma n'a pas été appliqué. Rejouer :
 sudo bash database/setup.sh --schema
 ```
 
+---
+
 ### `invalid_api_key`
 
 Le `APP_SECRET` ne correspond pas aux hash en base.
 Utiliser le secret de dev ou régénérer les hash (section 7).
+
+---
+
+### Pages affichent "Chargement..." en permanence
+
+**Causes possibles** :
+1. PostgreSQL non démarré (voir ci-dessus)
+2. Autoload non synchronisé → `composer dump-autoload`
+3. Non connecté → vérifier `/api/v1/whoami.php` dans la console navigateur
+
+**Diagnostic rapide** :
+```bash
+# Tester une API
+curl -s http://localhost:8080/api/v1/whoami.php | jq .
+```
+
+Si erreur 500, vérifier les logs PHP du serveur.
 
 ---
 

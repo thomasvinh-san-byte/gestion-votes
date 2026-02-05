@@ -335,6 +335,16 @@ reset_db() {
 }
 
 # =============================================================================
+# Régénération autoload Composer
+# =============================================================================
+refresh_autoload() {
+    if command -v composer &>/dev/null && [ -f "$PROJECT_DIR/composer.json" ]; then
+        info "Régénération de l'autoload Composer..."
+        (cd "$PROJECT_DIR" && composer dump-autoload -q 2>/dev/null) && log "Autoload Composer régénéré" || warn "Composer dump-autoload échoué (non critique)"
+    fi
+}
+
+# =============================================================================
 # Vérification finale
 # =============================================================================
 verify() {
@@ -454,6 +464,7 @@ main() {
             ;;
     esac
 
+    refresh_autoload
     verify
 }
 
