@@ -4,14 +4,14 @@ declare(strict_types=1);
 namespace AgVote\Repository;
 
 /**
- * Acces donnees pour les motions (resolutions).
+ * Data access for motions (resolutions).
  *
- * Centralise toutes les requetes SQL de la table motions + ballots associes.
+ * Centralizes all SQL queries for the motions table + associated ballots.
  */
 class MotionRepository extends AbstractRepository
 {
     // =========================================================================
-    // LECTURE
+    // READ
     // =========================================================================
 
     public function findByIdForTenant(string $motionId, string $tenantId): ?array
@@ -23,7 +23,7 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
-     * Trouve une motion par son slug (obfuscation URL).
+     * Finds a motion by its slug (URL obfuscation).
      */
     public function findBySlugForTenant(string $slug, string $tenantId): ?array
     {
@@ -34,21 +34,21 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
-     * Trouve une motion par ID ou slug (support dual).
-     * Détecte automatiquement si l'identifiant est un UUID ou un slug.
+     * Finds a motion by ID or slug (dual support).
+     * Automatically detects if the identifier is a UUID or slug.
      */
     public function findByIdOrSlugForTenant(string $identifier, string $tenantId): ?array
     {
-        // Vérifier si c'est un UUID
+        // Check if it's a UUID
         if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
             return $this->findByIdForTenant($identifier, $tenantId);
         }
-        // Sinon, chercher par slug
+        // Otherwise, search by slug
         return $this->findBySlugForTenant($identifier, $tenantId);
     }
 
     /**
-     * Trouve une motion avec informations de la seance (status, validated_at, policies).
+     * Finds a motion with meeting info (status, validated_at, policies).
      */
     public function findWithMeetingInfo(string $motionId, string $tenantId): ?array
     {
@@ -69,8 +69,8 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
-     * Trouve une motion par ID avec lock FOR UPDATE (pour transactions).
-     * Retourne toutes les colonnes principales avec verrouillage.
+     * Finds a motion by ID with lock FOR UPDATE (for transactions).
+     * Returns all main columns with locking.
      */
     public function findByIdForTenantForUpdate(string $motionId, string $tenantId): ?array
     {
@@ -86,7 +86,7 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
-     * Trouve une motion avec status de la seance (pour override endpoints).
+     * Finds a motion with meeting status (for override endpoints).
      */
     public function findWithMeetingStatus(string $motionId, string $tenantId): ?array
     {
@@ -570,7 +570,7 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
-     * Compte les motions pour une séance donnée.
+     * Counts motions for a given meeting.
      */
     public function countForMeeting(string $meetingId): int
     {

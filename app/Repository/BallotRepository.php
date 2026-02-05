@@ -4,12 +4,12 @@ declare(strict_types=1);
 namespace AgVote\Repository;
 
 /**
- * Acces donnees pour les bulletins de vote (ballots).
+ * Data access for ballots.
  */
 class BallotRepository extends AbstractRepository
 {
     /**
-     * Liste les bulletins d'une motion (pour affichage opérateur).
+     * Lists ballots for a motion (for operator display).
      */
     public function listForMotion(string $motionId): array
     {

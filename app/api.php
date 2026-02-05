@@ -2,10 +2,10 @@
 declare(strict_types=1);
 
 /**
- * api.php - Helpers API avec sécurité intégrée
- * 
- * REMPLACEMENT du api.php existant.
- * Intègre : CSRF validation, Auth RBAC, Rate Limiting.
+ * api.php - API helpers with integrated security
+ *
+ * REPLACEMENT for existing api.php.
+ * Integrates: CSRF validation, Auth RBAC, Rate Limiting.
  */
 
 require __DIR__ . '/bootstrap.php';
@@ -13,15 +13,15 @@ require __DIR__ . '/bootstrap.php';
 use AgVote\Core\Validation\InputValidator;
 
 // =============================================================================
-// CACHE php://input (ne peut être lu qu'une seule fois)
-// Le CSRF middleware et api_request() en ont tous les deux besoin.
+// CACHE php://input (can only be read once)
+// Both CSRF middleware and api_request() need it.
 // =============================================================================
 if (!isset($GLOBALS['__ag_vote_raw_body'])) {
     $GLOBALS['__ag_vote_raw_body'] = file_get_contents('php://input') ?: '';
 }
 
 // =============================================================================
-// FONCTIONS API - RÉPONSES JSON
+// API FUNCTIONS - JSON RESPONSES
 // =============================================================================
 
 function json_ok(array $data = [], int $code = 200): never {
@@ -35,7 +35,7 @@ function json_err(string $error, int $code = 400, array $extra = []): never {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
 
-    // Enrichir avec le message français traduit
+    // Enrich with translated French message
     $enriched = \AgVote\Service\ErrorDictionary::enrichError($error, $extra);
 
     echo json_encode(['ok' => false, 'error' => $error] + $enriched, JSON_UNESCAPED_UNICODE);
@@ -51,7 +51,7 @@ function api_fail(string $error, int $code = 400, array $extra = []): never {
 }
 
 // =============================================================================
-// FONCTIONS API - VALIDATION
+// API FUNCTIONS - VALIDATION
 // =============================================================================
 
 function api_is_uuid(string $v): bool {
@@ -62,7 +62,7 @@ function api_is_uuid(string $v): bool {
 }
 
 /**
- * Vérifie si une chaîne ressemble à un slug (non-UUID, alphanumérique avec tirets).
+ * Checks if a string looks like a slug (non-UUID, alphanumeric with hyphens).
  */
 function api_is_slug(string $v): bool {
     return (bool)preg_match('/^[a-zA-Z0-9][a-zA-Z0-9-]{2,48}[a-zA-Z0-9]$/', $v)
@@ -70,7 +70,7 @@ function api_is_slug(string $v): bool {
 }
 
 /**
- * Vérifie si une chaîne est un identifiant valide (UUID ou slug).
+ * Checks if a string is a valid identifier (UUID or slug).
  */
 function api_is_identifier(string $v): bool {
     return api_is_uuid($v) || api_is_slug($v);
@@ -85,8 +85,8 @@ function api_require_uuid(array $in, string $key): string {
 }
 
 /**
- * Exige un identifiant (UUID ou slug) dans les données d'entrée.
- * Permet une obfuscation URL tout en supportant les anciens UUIDs.
+ * Requires an identifier (UUID or slug) in input data.
+ * Allows URL obfuscation while supporting legacy UUIDs.
  */
 function api_require_identifier(array $in, string $key): string {
     $v = trim((string)($in[$key] ?? ''));
@@ -97,42 +97,42 @@ function api_require_identifier(array $in, string $key): string {
 }
 
 // =============================================================================
-// FONCTIONS API - AUTHENTIFICATION & AUTORISATION
+// API FUNCTIONS - AUTHENTICATION & AUTHORIZATION
 // =============================================================================
 
 /**
- * Exige un rôle pour accéder à la ressource.
- * Valide également le token CSRF pour les requêtes POST/PUT/PATCH/DELETE.
- * 
- * @param string|array $roles Rôle(s) autorisé(s). 'public' = pas d'auth requise.
+ * Requires a role to access the resource.
+ * Also validates CSRF token for POST/PUT/PATCH/DELETE requests.
+ *
+ * @param string|array $roles Allowed role(s). 'public' = no auth required.
  */
 function api_require_role(string|array $roles): void {
     $roles = is_array($roles) ? $roles : [$roles];
     
-    // Validation CSRF pour les requêtes mutantes (sauf si désactivée)
+    // CSRF validation for mutating requests (unless disabled)
     $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
     $csrfEnabled = getenv('CSRF_ENABLED') !== '0';
     
     if ($csrfEnabled && in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-        // Rôle 'public' ou endpoints votant = pas de CSRF (token vote fait office)
+        // 'public' role or voter endpoints = no CSRF (vote token serves as proof)
         if (!in_array('public', $roles, true) && !in_array('voter', $roles, true)) {
             CsrfMiddleware::validate();
         }
     }
 
-    // Vérification du rôle
+    // Role verification
     AuthMiddleware::requireRole($roles);
 }
 
 /**
- * Alias pour compatibilité avec l'ancien système
+ * Alias for backward compatibility
  */
 function require_role(string $role): void {
     api_require_role($role);
 }
 
 /**
- * Alias pour compatibilité avec l'ancien système
+ * Alias for backward compatibility
  */
 function require_any_role(array $roles): void {
     api_require_role($roles);
@@ -146,11 +146,11 @@ function api_require_any_role(string|array $roles): void {
 }
 
 // =============================================================================
-// FONCTIONS API - PARSING REQUÊTE
+// API FUNCTIONS - REQUEST PARSING
 // =============================================================================
 
 /**
- * Parse et valide la requête entrante
+ * Parse and validate incoming request
  */
 function api_request(string $expectedMethod = 'GET'): array {
     $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
@@ -161,7 +161,7 @@ function api_request(string $expectedMethod = 'GET'): array {
         ]);
     }
 
-    // Parse le body JSON ou POST (utilise le cache global)
+    // Parse JSON or POST body (uses global cache)
     $raw = $GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input');
     $data = json_decode($raw ?: '', true);
 
@@ -169,12 +169,12 @@ function api_request(string $expectedMethod = 'GET'): array {
         $data = $_POST;
     }
 
-    // Fusionne avec GET
+    // Merge with GET
     return array_merge($_GET, $data);
 }
 
 // =============================================================================
-// FONCTIONS API - UTILISATEUR COURANT
+// API FUNCTIONS - CURRENT USER
 // =============================================================================
 
 function api_current_user(): ?array {
@@ -194,12 +194,12 @@ function api_current_tenant_id(): string {
 }
 
 // =============================================================================
-// FONCTIONS API - GARDES MÉTIER
+// API FUNCTIONS - BUSINESS GUARDS
 // =============================================================================
 
 /**
- * Vérifie qu'une séance n'est pas validée (interdiction de modification post-validation).
- * Fatal 409 si la séance est validée.
+ * Checks that a meeting is not validated (modification forbidden post-validation).
+ * Fatal 409 if meeting is validated.
  */
 function api_guard_meeting_not_validated(string $meetingId): void {
     if ($meetingId === '') return;
@@ -215,8 +215,8 @@ function api_guard_meeting_not_validated(string $meetingId): void {
 }
 
 /**
- * Vérifie qu'une séance existe et la retourne.
- * Fatal 404 si absente.
+ * Checks that a meeting exists and returns it.
+ * Fatal 404 if not found.
  */
 function api_guard_meeting_exists(string $meetingId): array {
     $mt = db_select_one(
@@ -230,16 +230,16 @@ function api_guard_meeting_exists(string $meetingId): array {
 }
 
 // =============================================================================
-// FONCTIONS API - RATE LIMITING
+// API FUNCTIONS - RATE LIMITING
 // =============================================================================
 
 /**
- * Applique le rate limiting
+ * Apply rate limiting
  */
 function api_rate_limit(string $context, int $maxAttempts = 100, int $windowSeconds = 60): void {
     $identifier = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
     
-    // Si authentifié, utiliser l'user ID
+    // If authenticated, use user ID
     $userId = api_current_user_id();
     if ($userId) {
         $identifier = $userId;
@@ -249,18 +249,18 @@ function api_rate_limit(string $context, int $maxAttempts = 100, int $windowSeco
 }
 
 // =============================================================================
-// FONCTIONS API - VALIDATION AVANCÉE
+// API FUNCTIONS - ADVANCED VALIDATION
 // =============================================================================
 
 /**
- * Crée un validateur pour les entrées
+ * Creates a validator for inputs
  */
 function api_validator(): InputValidator {
     return InputValidator::schema();
 }
 
 /**
- * Valide les entrées et échoue si invalide
+ * Validates inputs and fails if invalid
  */
 function api_validate(array $input, InputValidator $validator): array {
     $result = $validator->validate($input);
@@ -271,7 +271,7 @@ function api_validate(array $input, InputValidator $validator): array {
 }
 
 // =============================================================================
-// FONCTIONS API - TRANSACTIONS
+// API FUNCTIONS - TRANSACTIONS
 // =============================================================================
 
 /**

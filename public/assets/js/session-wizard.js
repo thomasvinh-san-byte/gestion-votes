@@ -1,19 +1,19 @@
 /**
- * session-wizard.js — Wizard de séance AG-VOTE (Diligent Style).
+ * session-wizard.js — AG-VOTE meeting wizard (Diligent Style).
  *
- * Couche intermédiaire entre les pages et l'API :
- *   - État centralisé dans localStorage
- *   - Barre de progression Diligent-style injectée dans la page
- *   - Garde-fous par page (prérequis)
- *   - Polling léger pour notifications inter-pages
+ * Middleware layer between pages and the API:
+ *   - Centralized state in localStorage
+ *   - Diligent-style progress bar injected into the page
+ *   - Page guards (prerequisites)
+ *   - Lightweight polling for cross-page notifications
  *
- * Chargé APRÈS utils.js, shared.js, shell.js, auth-ui.js.
+ * Must be loaded AFTER utils.js, shared.js, shell.js, auth-ui.js.
  */
 (function () {
   'use strict';
 
   // =========================================================================
-  // ÉTAPES DU WIZARD (Diligent workflow)
+  // WIZARD STEPS (Diligent workflow)
   // =========================================================================
 
   var STEPS = [
@@ -73,21 +73,21 @@
   }
 
   // =========================================================================
-  // CHECKS — détermine l'état de complétude
+  // CHECKS — determine completion state
   // =========================================================================
 
   function computeStep(checks) {
-    // Step 0: Séance - Need to select/create a meeting
+    // Step 0: Meeting - Need to select/create a meeting
     if (!checks) return 0;
     if (!checks.meetingId) return 0;
 
-    // Step 1: Membres - Need members in the system
+    // Step 1: Members - Need members in the system
     if (!checks.hasMembers) return 1;
 
-    // Step 2: Présences - Need some attendance (president is optional for demo)
+    // Step 2: Attendance - Need some attendance (president is optional for demo)
     if (!checks.hasAttendance) return 2;
 
-    // Step 3: Résolutions - Need at least one motion
+    // Step 3: Motions - Need at least one motion
     if (!checks.hasMotions || !checks.policiesAssigned) return 3;
 
     var status = checks.meetingStatus || '';
@@ -98,7 +98,7 @@
       return 5; // All votes done, ready for validation
     }
 
-    // Step 5: Validation/Clôture
+    // Step 5: Validation/Closure
     if (status === 'closed' || status === 'validated' || status === 'archived') return 5;
 
     // draft/scheduled/frozen → still preparing attendance/resolutions
@@ -359,7 +359,7 @@
   }
 
   // =========================================================================
-  // POLLING — léger, met à jour l'état wizard
+  // POLLING — lightweight, updates wizard state
   // =========================================================================
 
   async function poll() {

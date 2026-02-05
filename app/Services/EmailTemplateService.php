@@ -8,7 +8,7 @@ use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 
 /**
- * Service pour la gestion des templates email et le rendu des variables.
+ * Service for email template management and variable rendering.
  */
 final class EmailTemplateService
 {
@@ -18,7 +18,7 @@ final class EmailTemplateService
     private string $appUrl;
 
     /**
-     * Liste des variables disponibles avec description.
+     * List of available variables with descriptions.
      */
     public const AVAILABLE_VARIABLES = [
         '{{member_name}}' => 'Nom complet du membre',
@@ -40,7 +40,7 @@ final class EmailTemplateService
     ];
 
     /**
-     * Template HTML par defaut pour les invitations.
+     * Default HTML template for invitations.
      */
     public const DEFAULT_INVITATION_TEMPLATE = <<<'HTML'
 <!doctype html>
@@ -102,7 +102,7 @@ final class EmailTemplateService
 HTML;
 
     /**
-     * Template HTML par defaut pour les rappels.
+     * Default HTML template for reminders.
      */
     public const DEFAULT_REMINDER_TEMPLATE = <<<'HTML'
 <!doctype html>
@@ -163,7 +163,7 @@ HTML;
     }
 
     /**
-     * Collecte toutes les variables pour un membre/seance.
+     * Collects all variables for a member/meeting.
      */
     public function getVariables(
         string $tenantId,
@@ -190,12 +190,12 @@ HTML;
 
         $voteUrl = rtrim($this->appUrl, '/') . "/vote.htmx.html?token=" . rawurlencode($token);
 
-        // Extraction du prenom (premier mot du nom complet)
+        // Extract first name (first word of full name)
         $fullName = (string)($member['full_name'] ?? '');
         $nameParts = explode(' ', trim($fullName));
         $firstName = $nameParts[0] ?? '';
 
-        // Compte des motions
+        // Motion count
         $motionsCount = (int)($this->meetingRepo->countMotions($meetingId) ?? 0);
 
         return [
@@ -219,7 +219,7 @@ HTML;
     }
 
     /**
-     * Rend un template avec les variables fournies.
+     * Renders a template with provided variables.
      */
     public function render(string $templateBody, array $variables): string
     {
@@ -231,7 +231,7 @@ HTML;
     }
 
     /**
-     * Rend un template complet (sujet + corps).
+     * Renders a complete template (subject + body).
      */
     public function renderTemplate(
         string $tenantId,
@@ -258,7 +258,7 @@ HTML;
     }
 
     /**
-     * Previsualise un template avec des donnees de test.
+     * Previews a template with test data.
      */
     public function preview(string $templateBody, ?array $customVariables = null): string
     {
@@ -285,7 +285,7 @@ HTML;
     }
 
     /**
-     * Valide un template et retourne les variables inconnues.
+     * Validates a template and returns unknown variables.
      */
     public function validate(string $templateBody): array
     {
@@ -303,7 +303,7 @@ HTML;
     }
 
     /**
-     * Liste des variables disponibles.
+     * Lists available variables.
      */
     public function listAvailableVariables(): array
     {
@@ -311,13 +311,13 @@ HTML;
     }
 
     /**
-     * Cree les templates par defaut pour un tenant.
+     * Creates default templates for a tenant.
      */
     public function createDefaultTemplates(string $tenantId, ?string $createdBy = null): array
     {
         $created = [];
 
-        // Template invitation par defaut
+        // Default invitation template
         $inv = $this->templateRepo->create(
             $tenantId,
             'Invitation standard',
@@ -330,7 +330,7 @@ HTML;
         );
         if ($inv) $created[] = $inv;
 
-        // Template rappel par defaut
+        // Default reminder template
         $rem = $this->templateRepo->create(
             $tenantId,
             'Rappel standard',
@@ -347,7 +347,7 @@ HTML;
     }
 
     /**
-     * Traduit le statut en francais.
+     * Translates status to French.
      */
     private function translateStatus(string $status): string
     {

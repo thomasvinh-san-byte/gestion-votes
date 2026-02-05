@@ -6,14 +6,14 @@ namespace AgVote\Service;
 use AgVote\Repository\MemberRepository;
 
 /**
- * Service metier pour les membres.
+ * Business service for members.
  *
- * Delegue tout l'acces donnees a MemberRepository.
+ * Delegates all data access to MemberRepository.
  */
 final class MembersService
 {
     /**
-     * Retourne la liste des membres actifs pour un tenant.
+     * Returns the list of active members for a tenant.
      *
      * @param string|null $tenantId
      * @return array<int,array<string,mixed>>
@@ -26,7 +26,7 @@ final class MembersService
     }
 
     /**
-     * Charge un membre par son id.
+     * Loads a member by its id.
      */
     public static function getMember(string $memberId): ?array
     {

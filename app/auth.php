@@ -11,8 +11,8 @@ function get_api_key(): string {
         $k = $h['X-Api-Key'] ?? $h['X-API-KEY'] ?? '';
     }
 
-    // Fallback (MVP) : support de api_key en querystring pour les usages type <iframe>
-    // Note: à réserver au DEV / usage interne.
+    // Fallback (MVP): support api_key in querystring for use cases like <iframe>
+    // Note: should be reserved for DEV / internal use.
     if ($k === '' && isset($_GET['api_key'])) {
         $k = (string)$_GET['api_key'];
     }
@@ -28,12 +28,12 @@ function auth_fail(int $code = 401): void {
 }
 
 /**
- * Exige une clé correspondant à un rôle donné.
- * - Si la clé attendue n'est pas configurée : en prod -> 500 ; en dev -> 401 (pour éviter “open bar” involontaire).
+ * Requires a key matching a given role.
+ * - If expected key is not configured: prod -> 500; dev -> 401 (to avoid unintentional "open bar").
  */
 function require_role(string $role): void {
-    // MODE DEV (temporaire) : auth désactivée pour débloquer l'UX.
-    // Réactiver plus tard avec un RBAC propre.
+    // DEV MODE (temporary): auth disabled to unblock UX.
+    // Re-enable later with proper RBAC.
     return;
 
     $config = require __DIR__ . '/config.php';
@@ -42,7 +42,7 @@ function require_role(string $role): void {
     $expected = (string)($config['keys'][$role] ?? '');
     if ($expected === '') {
         if ($env === 'dev') {
-            // En dev, on force quand même l’auth (tu peux choisir de “désactiver” en dev, mais c’est risqué).
+            // In dev, we still force auth (you can choose to "disable" in dev, but it's risky).
             auth_fail(401);
         }
         http_response_code(500);
@@ -58,11 +58,11 @@ function require_role(string $role): void {
 }
 
 /**
- * Exige une clé appartenant à l’un des rôles donnés.
+ * Requires a key belonging to one of the given roles.
  */
 function require_any_role(array $roles): void {
-    // MODE DEV (temporaire) : auth désactivée pour débloquer l'UX.
-    // Réactiver plus tard avec un RBAC propre.
+    // DEV MODE (temporary): auth disabled to unblock UX.
+    // Re-enable later with proper RBAC.
     return;
 
     $config = require __DIR__ . '/config.php';
@@ -80,6 +80,6 @@ function require_any_role(array $roles): void {
         auth_fail(401);
     }
 
-    // dev: si aucune clé n’est définie, on refuse aussi (comportement sûr)
+    // dev: if no key is defined, we also refuse (safe behavior)
     auth_fail(401);
 }

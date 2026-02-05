@@ -4,12 +4,12 @@ declare(strict_types=1);
 namespace AgVote\Repository;
 
 /**
- * Acces donnees pour les membres.
+ * Data access for members.
  */
 class MemberRepository extends AbstractRepository
 {
     /**
-     * Liste tous les membres (non supprimes) d'un tenant.
+     * Lists all members (not deleted) for a tenant.
      */
     public function listByTenant(string $tenantId): array
     {
@@ -24,7 +24,7 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Liste les membres actifs d'un tenant (avec pouvoir de vote).
+     * Lists active members for a tenant (with voting power).
      */
     public function listActive(string $tenantId): array
     {
@@ -75,10 +75,10 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Cree un membre et retourne son ID.
+     * Creates a member and returns its ID.
      */
     /**
-     * Nombre de membres actifs d'un tenant.
+     * Count of active members for a tenant.
      */
     public function countActive(string $tenantId): int
     {
@@ -89,7 +89,7 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Nombre de membres actifs et non supprimes d'un tenant.
+     * Count of active and not deleted members for a tenant.
      */
     public function countActiveNotDeleted(string $tenantId): int
     {
@@ -100,7 +100,7 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Poids total des membres actifs d'un tenant.
+     * Total weight of active members for a tenant.
      */
     public function sumActiveWeight(string $tenantId): float
     {
@@ -112,7 +112,7 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Liste les IDs des membres actifs d'un tenant.
+     * Lists IDs of active members for a tenant.
      */
     public function listActiveIds(string $tenantId): array
     {
@@ -123,9 +123,9 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Verifie qu'un membre existe pour un tenant.
+     * Checks if a member exists for a tenant.
      */
-    public function existsForTenant(string $memberId, string $tenantId): bool
+    public function existsForTenantById(string $memberId, string $tenantId): bool
     {
         return (bool)$this->scalar(
             "SELECT 1 FROM members WHERE id = :id AND tenant_id = :tid",
@@ -134,7 +134,7 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Nombre de membres non supprimes d'un tenant (pour dashboard eligible count).
+     * Count of non-deleted members for a tenant (for dashboard eligible count).
      */
     public function countNotDeleted(string $tenantId): int
     {
@@ -145,7 +145,7 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Somme vote_weight des membres non supprimes (pour dashboard eligible weight).
+     * Sum of vote_weight for non-deleted members (for dashboard eligible weight).
      */
     public function sumNotDeletedVoteWeight(string $tenantId): int
     {
@@ -156,7 +156,7 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Liste les membres actifs avec email (pour invitations).
+     * Lists active members with email (for invitations).
      */
     public function listActiveWithEmail(string $tenantId): array
     {
@@ -171,7 +171,7 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Trouve un membre actif avec son poids de vote (pour manual_vote).
+     * Finds an active member with voting weight (for manual_vote).
      */
     public function findActiveWithWeight(string $tenantId, string $memberId): ?array
     {
@@ -183,7 +183,7 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Liste les membres actifs pour selection president.
+     * Lists active members for president selection.
      */
     public function listActiveForPresident(string $tenantId): array
     {
@@ -400,7 +400,7 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Liste tous les membres d'un tenant (actifs et inactifs, non supprimés).
+     * Lists all members of a tenant (active and inactive, not deleted).
      */
     public function listAll(string $tenantId): array
     {

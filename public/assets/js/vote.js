@@ -2,7 +2,7 @@
   const $ = (s) => document.querySelector(s);
 
   // -----------------------------
-  // Tech: device heartbeat + block/kick handling
+  // Device heartbeat + block/kick handling
   // -----------------------------
   const DEVICE_ROLE = 'voter';
   const HEARTBEAT_URL = '/api/v1/device_heartbeat.php';
@@ -47,11 +47,11 @@
     el.style.color = '#fff';
     el.innerHTML = `
       <div style="max-width:520px;margin:12vh auto;padding:24px;">
-        <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Accès suspendu</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Access Suspended</div>
         <div id="blockedMsg" style="opacity:0.9;line-height:1.4;">
-          Cet appareil a été temporairement bloqué par l’opérateur.
+          This device has been temporarily blocked by the operator.
         </div>
-        <div style="margin-top:16px;opacity:0.8;font-size:12px;">Reste sur cet écran. L’accès sera rétabli automatiquement après déblocage.</div>
+        <div style="margin-top:16px;opacity:0.8;font-size:12px;">Stay on this screen. Access will be restored automatically after unblock.</div>
       </div>`;
     document.body.appendChild(el);
     return el;
@@ -89,18 +89,18 @@
       const out = await r.json().catch(()=>({}));
       const data = out?.data || {};
       if (data.blocked) {
-        setBlocked(true, data.block_reason || "Cet appareil a été bloqué.");
+        setBlocked(true, data.block_reason || "This device has been blocked.");
       } else {
         setBlocked(false);
       }
 
       // Soft kick: request reload
       if (data.command && data.command.type === 'kick') {
-        notify('error', data.command.message || 'Reconnexion requise.');
+        notify('error', data.command.message || 'Reconnection required.');
         setTimeout(()=>{ location.reload(); }, 800);
       }
     } catch(e){
-      // heartbeat failures are non-blocking
+      // Heartbeat failures are non-blocking
     }
   }
 
@@ -116,7 +116,7 @@
   function escapeHtml(x){ return (window.Utils?.escapeHtml ? Utils.escapeHtml(x) : String(x ?? "")); }
 
   // -----------------------------
-  // Policy labels (visual proof of overrides)
+  // Policy labels (visual indicator of overrides)
   // -----------------------------
   let _currentMotionId = null;
 
@@ -176,7 +176,7 @@
   }
 
   // Prefer Utils.apiGet/apiPost (loaded from utils.js before this file).
-  // Falls back to a minimal local fetch if Utils is somehow unavailable.
+  // Falls back to minimal local fetch if Utils is unavailable.
   async function apiGet(url){
     if (window.Utils && typeof Utils.apiGet === 'function') return Utils.apiGet(url);
     const r = await fetch(url, { method: 'GET', credentials: 'same-origin' });
@@ -214,16 +214,16 @@
     sel.innerHTML = "";
     const opt0 = document.createElement("option");
     opt0.value = "";
-    opt0.textContent = "— Sélectionner une séance —";
+    opt0.textContent = "— Select a meeting —";
     sel.appendChild(opt0);
     for (const m of meetings){
       const opt = document.createElement("option");
       opt.value = m.meeting_id;
       const when = (m.created_at || "").toString().slice(0,10);
-      opt.textContent = `${when} — ${m.title || "Séance"} [${m.status || "—"}]`;
+      opt.textContent = `${when} — ${m.title || "Meeting"} [${m.status || "—"}]`;
       sel.appendChild(opt);
     }
-    // Priority: MeetingContext > saved localStorage > first meeting
+    // Priority: MeetingContext > saved localStorage > first meeting in list
     const contextId = (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
     const saved = (localStorage.getItem("public.meeting_id") || "").trim();
     const initialId = contextId || saved;
@@ -248,7 +248,7 @@
     sel.innerHTML = "";
     const opt0 = document.createElement("option");
     opt0.value = "";
-    opt0.textContent = "— Sélectionner un membre —";
+    opt0.textContent = "— Select a member —";
     sel.appendChild(opt0);
 
     if (!meetingId) return;
@@ -262,7 +262,7 @@
         if (!["present","remote","proxy"].includes(mode)) continue;
         const opt = document.createElement("option");
         opt.value = x.member_id;
-        opt.textContent = `${x.full_name || x.name || "Membre"} (${mode})`;
+        opt.textContent = `${x.full_name || x.name || "Member"} (${mode})`;
         sel.appendChild(opt);
         filled++;
       }
@@ -270,19 +270,19 @@
       // ignore
     }
 
-    // Fallback: si aucune présence saisie, on affiche quand même les membres
+    // Fallback: if no attendance recorded, still display all members
     if (filled === 0) {
       const r = await apiGet("/api/v1/members.php");
       const rows = r?.data?.members || r?.data?.rows || [];
       for (const x of rows){
         const opt = document.createElement("option");
         opt.value = x.id || x.member_id;
-        opt.textContent = x.full_name || x.name || "Membre";
+        opt.textContent = x.full_name || x.name || "Member";
         sel.appendChild(opt);
       }
     }
 
-    // Auto-select: try saved, then try Auth user name matching
+    // Auto-select: try saved value, then try matching Auth user name
     const saved = (localStorage.getItem("public.member_id") || "").trim();
     if (saved && [...sel.options].some(o=>o.value===saved)) {
       sel.value = saved;
@@ -333,7 +333,7 @@
     if (memberId) localStorage.setItem("public.member_id", memberId);
 
     if (!meetingId){
-      $("#motionBox").innerHTML = "<span class='text-muted'>Sélectionnez une séance.</span>";
+      $("#motionBox").innerHTML = "<span class='text-muted'>Select a meeting.</span>";
       setVoteButtonsEnabled(false);
       return;
     }
@@ -344,7 +344,7 @@
       const m = r?.data?.motion;
       if (!m){
         _currentMotionId = null;
-        $("#motionBox").innerHTML = "<span class='text-muted'>Aucune motion ouverte.</span>";
+        $("#motionBox").innerHTML = "<span class='text-muted'>No open motion.</span>";
         setVoteButtonsEnabled(false);
         return;
       }
@@ -374,7 +374,7 @@
 
     try{
       await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
-      notify("success", "Vote enregistré.");
+      notify("success", "Vote recorded.");
     } catch(e){
       notify("error", e?.message || String(e));
     }
@@ -401,14 +401,14 @@
     $("#memberSelect")?.addEventListener("change", refresh);
     $("#btnRefresh")?.addEventListener("click", refresh);
 
-    // Only bind direct cast if no confirmation overlay (vote.htmx.html has its own overlay that calls submitVote)
+    // Only bind direct cast if no confirmation overlay (vote.htmx.html has its own overlay calling submitVote)
     if (!document.getElementById('confirmationOverlay')) {
       document.querySelectorAll("[data-choice]").forEach(btn=>{
         btn.addEventListener("click", ()=>cast(btn.dataset.choice));
       });
     }
 
-    // Load meetings - MeetingContext will handle URL param and persistence
+    // Load meetings - MeetingContext handles URL param and persistence
     loadMeetings().catch((e)=>notify("error", e?.message || String(e)));
 
     // Poll current motion (disabled when WebSocket is connected)
@@ -417,7 +417,7 @@
       if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
       if (!document.hidden) refresh().catch(()=>{});
     }, 3000);
-    // Heartbeat always runs (separate from WebSocket heartbeat)
+    // Heartbeat always runs (separate from WebSocket heartbeat interval)
     setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
   }
 

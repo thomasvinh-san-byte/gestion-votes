@@ -7,35 +7,35 @@ use AgVote\Repository\ProxyRepository;
 use InvalidArgumentException;
 
 /**
- * Service metier pour les procurations.
+ * Business service for proxies.
  *
- * Contient la logique metier (validations, chaines, plafonds).
- * Delegue tout l'acces donnees a ProxyRepository.
+ * Contains business logic (validations, chains, caps).
+ * Delegates all data access to ProxyRepository.
  *
- * ## Regles de validation des procurations
+ * ## Proxy validation rules
  *
- * 1. **Anti-auto-delegation** : Un membre ne peut pas se donner procuration a lui-meme.
+ * 1. **Anti-self-delegation**: A member cannot give proxy to themselves.
  *
- * 2. **Coherence tenant** : Le mandant (giver), le mandataire (receiver) et la seance
- *    doivent appartenir au meme tenant.
+ * 2. **Tenant coherence**: The giver, receiver, and meeting
+ *    must belong to the same tenant.
  *
- * 3. **Pas de chaines de procurations** : Si B a deja donne sa procuration a C,
- *    alors A ne peut pas donner sa procuration a B. Cela evite les chaines A->B->C
- *    qui permettraient a une seule personne d'accumuler trop de pouvoir de vote.
- *    Erreur: "Chaine de procuration interdite (le mandataire delegue deja)."
+ * 3. **No proxy chains**: If B has already given proxy to C,
+ *    then A cannot give proxy to B. This prevents A->B->C chains
+ *    that would allow one person to accumulate too much voting power.
+ *    Error: "Proxy chain forbidden (receiver already delegates)."
  *
- * 4. **Plafond par mandataire** : Un mandataire ne peut recevoir qu'un nombre
- *    limite de procurations (defaut: 99, configurable via PROXY_MAX_PER_RECEIVER).
- *    Erreur: "Plafond procurations atteint (max N)."
+ * 4. **Cap per receiver**: A receiver can only receive a limited
+ *    number of proxies (default: 99, configurable via PROXY_MAX_PER_RECEIVER).
+ *    Error: "Proxy cap reached (max N)."
  *
- * ## Exemples
+ * ## Examples
  *
- * - A donne procuration a B : OK (si B n'a pas delegue)
- * - B donne procuration a C : OK
- * - A veut donner a B apres que B ait delegue a C : REFUSE (chaine interdite)
- * - A revoque sa procuration : OK (receiver_member_id vide)
+ * - A gives proxy to B: OK (if B has not delegated)
+ * - B gives proxy to C: OK
+ * - A wants to give to B after B delegated to C: REFUSED (chain forbidden)
+ * - A revokes their proxy: OK (receiver_member_id empty)
  *
- * @see PROXY_MAX_PER_RECEIVER Variable d'environnement pour le plafond
+ * @see PROXY_MAX_PER_RECEIVER Environment variable for the cap
  */
 final class ProxiesService
 {
@@ -47,22 +47,22 @@ final class ProxiesService
     }
 
     /**
-     * Cree ou remplace la procuration pour un mandant (giver) dans la seance.
+     * Creates or replaces proxy for a giver in the meeting.
      *
-     * Si $receiverMemberId est vide => revocation de la procuration existante.
+     * If $receiverMemberId is empty => revokes existing proxy.
      *
-     * Validations effectuees:
-     * - giver_member_id doit etre fourni
-     * - giver != receiver (pas d'auto-delegation)
-     * - seance et membres doivent appartenir au meme tenant
-     * - pas de chaine: le receiver ne doit pas deja avoir delegue (voir doc classe)
-     * - plafond: le receiver ne peut pas depasser PROXY_MAX_PER_RECEIVER procurations
+     * Validations performed:
+     * - giver_member_id must be provided
+     * - giver != receiver (no self-delegation)
+     * - meeting and members must belong to the same tenant
+     * - no chain: receiver must not already have delegated (see class doc)
+     * - cap: receiver cannot exceed PROXY_MAX_PER_RECEIVER proxies
      *
-     * @param string $meetingId ID de la seance
-     * @param string $giverMemberId ID du mandant (celui qui donne sa procuration)
-     * @param string $receiverMemberId ID du mandataire (celui qui recoit), ou vide pour revoquer
-     * @param string|null $tenantId ID du tenant (auto-detecte si null)
-     * @throws InvalidArgumentException Si validation echoue
+     * @param string $meetingId Meeting ID
+     * @param string $giverMemberId Giver ID (the one giving their proxy)
+     * @param string $receiverMemberId Receiver ID (the one receiving), or empty to revoke
+     * @param string|null $tenantId Tenant ID (auto-detected if null)
+     * @throws InvalidArgumentException If validation fails
      */
     public static function upsert(string $meetingId, string $giverMemberId, string $receiverMemberId, ?string $tenantId = null): void
     {
@@ -82,7 +82,7 @@ final class ProxiesService
             throw new InvalidArgumentException('meeting_id/giver_member_id invalide pour ce tenant');
         }
 
-        // Revocation si receiver vide
+        // Revoke if receiver is empty
         if (trim($receiverMemberId) === '') {
             $repo->revokeForGiver($meetingId, $giverMemberId);
             return;
@@ -93,9 +93,9 @@ final class ProxiesService
             throw new InvalidArgumentException('receiver_member_id invalide pour ce tenant');
         }
 
-        // Anti-chaines de procuration: si le receiver a deja donne sa procuration
-        // a quelqu'un d'autre, on ne peut pas lui donner de procuration supplementaire.
-        // Cela empeche les chaines transitives A->B->C qui concentreraient le pouvoir.
+        // Anti-proxy-chain: if the receiver has already given their proxy
+        // to someone else, we cannot give them additional proxies.
+        // This prevents transitive chains A->B->C that would concentrate power.
         if ($repo->countActiveAsGiver($meetingId, $receiverMemberId) > 0) {
             throw new InvalidArgumentException('Chaîne de procuration interdite (le mandataire délègue déjà).');
         }
@@ -109,7 +109,7 @@ final class ProxiesService
     }
 
     /**
-     * Revoque toutes les procurations actives d'un mandant.
+     * Revokes all active proxies from a giver.
      */
     public static function revoke(string $meetingId, string $giverMemberId): void
     {
@@ -118,7 +118,7 @@ final class ProxiesService
     }
 
     /**
-     * Verifie si une procuration active existe entre un mandant et un mandataire.
+     * Checks if an active proxy exists between a giver and receiver.
      */
     public static function hasActiveProxy(string $meetingId, string $giverMemberId, string $receiverMemberId): bool
     {

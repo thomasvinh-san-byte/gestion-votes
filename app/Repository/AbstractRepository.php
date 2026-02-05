@@ -6,13 +6,13 @@ namespace AgVote\Repository;
 use PDO;
 
 /**
- * Classe de base pour tous les repositories.
+ * Base class for all repositories.
  *
- * Encapsule l'acces PDO et fournit des helpers communs.
- * Chaque repository herite de cette classe et expose
- * des methodes metier typees (findById, listByTenant, etc.).
+ * Encapsulates PDO access and provides common helpers.
+ * Each repository inherits from this class and exposes
+ * typed business methods (findById, listByTenant, etc.).
  *
- * Regle : un repository ne contient AUCUNE logique metier.
+ * Rule: a repository contains NO business logic.
  */
 abstract class AbstractRepository
 {
@@ -24,7 +24,7 @@ abstract class AbstractRepository
     }
 
     /**
-     * Execute une requete et retourne une seule ligne (ou null).
+     * Executes a query and returns a single row (or null).
      */
     protected function selectOne(string $sql, array $params = []): ?array
     {
@@ -35,7 +35,7 @@ abstract class AbstractRepository
     }
 
     /**
-     * Execute une requete et retourne toutes les lignes.
+     * Executes a query and returns all rows.
      */
     protected function selectAll(string $sql, array $params = []): array
     {
@@ -45,7 +45,7 @@ abstract class AbstractRepository
     }
 
     /**
-     * Execute une requete de modification et retourne le nombre de lignes affectees.
+     * Executes a modification query and returns the number of affected rows.
      */
     protected function execute(string $sql, array $params = []): int
     {
@@ -55,7 +55,7 @@ abstract class AbstractRepository
     }
 
     /**
-     * Execute une requete et retourne la premiere colonne de la premiere ligne.
+     * Executes a query and returns the first column of the first row.
      */
     protected function scalar(string $sql, array $params = []): mixed
     {
@@ -65,7 +65,7 @@ abstract class AbstractRepository
     }
 
     /**
-     * Execute un INSERT...RETURNING et retourne la ligne inseree.
+     * Executes an INSERT...RETURNING and returns the inserted row.
      */
     protected function insertReturning(string $sql, array $params = []): ?array
     {
@@ -76,7 +76,7 @@ abstract class AbstractRepository
     }
 
     /**
-     * Genere un UUID v4 via PostgreSQL.
+     * Generates a UUID v4 via PostgreSQL.
      */
     public function generateUuid(): string
     {

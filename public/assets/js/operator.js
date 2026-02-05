@@ -112,7 +112,7 @@
         }
       }
     } catch (err) {
-      setNotif('error', 'Erreur chargement séances: ' + err.message);
+      setNotif('error', 'Error loading meetings: ' + err.message);
     }
   }
 
@@ -156,37 +156,37 @@
 
     // Check 1: Members
     if (checks.hasMembers) {
-      items.push({ done: true, text: 'Membres ajoutés' });
+      items.push({ done: true, text: 'Members added' });
     } else {
-      items.push({ done: false, text: 'Ajouter des membres', link: '/members.htmx.html' });
+      items.push({ done: false, text: 'Add members', link: '/members.htmx.html' });
     }
 
     // Check 2: Attendance
     if (checks.hasAttendance) {
-      items.push({ done: true, text: 'Présences pointées' });
+      items.push({ done: true, text: 'Attendance recorded' });
     } else {
-      items.push({ done: false, text: 'Pointer les présences (onglet Présences)', link: null });
+      items.push({ done: false, text: 'Record attendance (Attendance tab)', link: null });
     }
 
     // Check 3: Motions
     if (checks.hasMotions) {
-      items.push({ done: true, text: 'Résolutions créées' });
+      items.push({ done: true, text: 'Motions created' });
     } else {
-      items.push({ done: false, text: 'Créer des résolutions (onglet Résolutions)', link: null });
+      items.push({ done: false, text: 'Create motions (Motions tab)', link: null });
     }
 
     // Check 4: President assigned (optional for demo)
     if (checks.hasPresident) {
-      items.push({ done: true, text: 'Président assigné' });
+      items.push({ done: true, text: 'President assigned' });
     } else {
-      items.push({ done: true, text: 'Président: optionnel (bouton Rôles)', link: null, optional: true });
+      items.push({ done: true, text: 'President: optional (Roles button)', link: null, optional: true });
     }
 
     // Check 5: Policies (optional for demo - defaults apply)
     if (checks.policiesAssigned) {
-      items.push({ done: true, text: 'Politiques configurées' });
+      items.push({ done: true, text: 'Policies configured' });
     } else {
-      items.push({ done: true, text: 'Politiques: défauts appliqués', link: null, optional: true });
+      items.push({ done: true, text: 'Policies: defaults applied', link: null, optional: true });
     }
 
     // Render checklist
@@ -203,12 +203,12 @@
 
     // Update title based on status
     const titles = {
-      draft: { title: 'Séance en brouillon', desc: 'Planifiez la séance pour continuer.' },
-      scheduled: { title: 'Séance planifiée', desc: 'Gelez la séance quand les présences sont finalisées.' },
-      frozen: { title: 'Séance gelée', desc: 'Tout est prêt. Ouvrez la séance pour démarrer les votes.' },
-      closed: { title: 'Séance clôturée', desc: 'La séance est terminée. Validez pour archiver.' },
-      validated: { title: 'Séance validée', desc: 'La séance est verrouillée.' },
-      archived: { title: 'Séance archivée', desc: 'Consultation uniquement.' }
+      draft: { title: 'Meeting in draft', desc: 'Schedule the meeting to continue.' },
+      scheduled: { title: 'Meeting scheduled', desc: 'Freeze the meeting when attendance is finalized.' },
+      frozen: { title: 'Meeting frozen', desc: 'All ready. Open the meeting to start voting.' },
+      closed: { title: 'Meeting closed', desc: 'The meeting is finished. Validate to archive.' },
+      validated: { title: 'Meeting validated', desc: 'The meeting is locked.' },
+      archived: { title: 'Meeting archived', desc: 'Read-only access.' }
     };
     const info = titles[currentMeetingStatus] || titles.draft;
     document.getElementById('statusAlertTitle').textContent = info.title;
@@ -288,7 +288,7 @@
       updateStatusAlert();
 
     } catch (err) {
-      setNotif('error', 'Erreur: ' + err.message);
+      setNotif('error', 'Error: ' + err.message);
     }
   }
 
@@ -366,7 +366,7 @@
     const isLocked = ['validated', 'archived'].includes(currentMeetingStatus);
 
     if (filtered.length === 0) {
-      attendanceList.innerHTML = `<div class="att-empty">${attSearchTerm ? 'Aucun résultat' : 'Aucun membre'}</div>`;
+      attendanceList.innerHTML = `<div class="att-empty">${attSearchTerm ? 'No results' : 'No members'}</div>`;
       return;
     }
 
@@ -435,10 +435,10 @@
   async function markAllPresentInline() {
     if (!getCurrentMeetingId()) return;
     if (['validated', 'archived'].includes(currentMeetingStatus)) {
-      setNotif('error', 'Séance verrouillée');
+      setNotif('error', 'Meeting locked');
       return;
     }
-    if (!confirm('Marquer tous les membres comme présents ?')) return;
+    if (!confirm('Mark all members as present?')) return;
 
     Shared.btnLoading(btnAttAllPresent, true);
     try {
@@ -458,7 +458,7 @@
         currentWizardChecks.hasAttendance = true;
         updateStatusAlert();
 
-        setNotif('success', 'Tous marqués présents');
+        setNotif('success', 'All marked present');
       } else {
         setNotif('error', getApiError(body));
       }
@@ -578,7 +578,7 @@
 
     } catch (err) {
       console.error('Motions error:', err);
-      motionsList.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+      motionsList.innerHTML = '<div class="text-center p-4 text-muted">Loading error</div>';
     }
   }
 
@@ -621,7 +621,7 @@
   // Render voter list
   function renderVoterList() {
     if (votersCache.length === 0) {
-      voterList.innerHTML = '<div class="text-center p-2 text-muted">Aucun membre présent</div>';
+      voterList.innerHTML = '<div class="text-center p-2 text-muted">No members present</div>';
       return;
     }
 
@@ -655,7 +655,7 @@
   async function castManualVote(memberId, vote) {
     if (!currentOpenMotion) return;
 
-    const justification = 'Vote opérateur manuel';
+    const justification = 'Manual operator vote';
 
     try {
       const { body } = await api('/api/v1/manual_vote.php', {
@@ -670,7 +670,7 @@
         ballotsCache[memberId] = vote;
         renderVoterList();
         loadBallots(currentOpenMotion.id);
-        setNotif('success', 'Vote enregistré');
+        setNotif('success', 'Vote recorded');
       } else {
         setNotif('error', getApiError(body));
       }
@@ -690,7 +690,7 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', 'Vote ouvert');
+        setNotif('success', 'Vote opened');
         loadMotions(getCurrentMeetingId());
       } else {
         setNotif('error', getApiError(body));
@@ -704,7 +704,7 @@
 
   // Close vote from list
   async function closeVoteFromList(motionId) {
-    if (!confirm('Clôturer ce vote ?')) return;
+    if (!confirm('Close this vote?')) return;
     const btn = motionsList.querySelector(`.btn-close[data-motion-id="${motionId}"]`);
     Shared.btnLoading(btn, true);
     try {
@@ -714,7 +714,7 @@
       });
 
       if (body && body.ok) {
-        setNotif('success', 'Vote clôturé');
+        setNotif('success', 'Vote closed');
         loadMotions(getCurrentMeetingId());
       } else {
         setNotif('error', getApiError(body));
@@ -733,15 +733,15 @@
     }
   });
 
-  // Labels français pour les statuts
+  // Status labels
   const statusLabels = {
-    draft: 'Brouillon',
-    scheduled: 'Programmée',
-    frozen: 'Figée',
-    live: 'En cours',
-    closed: 'Clôturée',
-    validated: 'Validée',
-    archived: 'Archivée'
+    draft: 'Draft',
+    scheduled: 'Scheduled',
+    frozen: 'Frozen',
+    live: 'Live',
+    closed: 'Closed',
+    validated: 'Validated',
+    archived: 'Archived'
   };
 
   async function doTransition(toStatus) {
@@ -750,52 +750,52 @@
     const statusLabel = statusLabels[toStatus] || toStatus;
 
     try {
-      // 1. Vérifier les prérequis avant transition
+      // 1. Check prerequisites before transition
       const checkRes = await api(`/api/v1/meeting_workflow_check.php?meeting_id=${getCurrentMeetingId()}&to_status=${toStatus}`);
 
       if (!checkRes.body || !checkRes.body.ok) {
-        setNotif('error', getApiError(checkRes.body, 'Erreur de vérification'));
+        setNotif('error', getApiError(checkRes.body, 'Verification error'));
         return;
       }
 
       const { can_proceed, issues, warnings } = checkRes.body.data;
 
-      // 2. Si des issues bloquantes existent, afficher et bloquer
+      // 2. If blocking issues exist, display and block
       if (issues && issues.length > 0) {
         const issuesList = issues.map(i => `• ${i}`).join('\n');
-        alert(`Impossible de passer en "${statusLabel}"\n\nProblèmes à résoudre :\n${issuesList}`);
-        setNotif('error', `${issues.length} problème(s) bloquant(s)`);
+        alert(`Cannot transition to "${statusLabel}"\n\nIssues to resolve:\n${issuesList}`);
+        setNotif('error', `${issues.length} blocking issue(s)`);
         return;
       }
 
-      // 3. Si des warnings existent, demander confirmation explicite
-      let confirmMessage = `Passer la séance en "${statusLabel}" ?`;
+      // 3. If warnings exist, ask for explicit confirmation
+      let confirmMessage = `Transition meeting to "${statusLabel}"?`;
       if (warnings && warnings.length > 0) {
         const warningsList = warnings.map(w => `• ${w}`).join('\n');
-        confirmMessage = `Passer la séance en "${statusLabel}" ?\n\nAvertissements :\n${warningsList}\n\nVoulez-vous continuer malgré ces avertissements ?`;
+        confirmMessage = `Transition meeting to "${statusLabel}"?\n\nWarnings:\n${warningsList}\n\nContinue despite these warnings?`;
       }
 
       if (!confirm(confirmMessage)) return;
 
-      // 4. Effectuer la transition
+      // 4. Execute the transition
       const { body } = await api('/api/v1/meeting_transition.php', {
         meeting_id: getCurrentMeetingId(),
         to_status: toStatus
       });
 
       if (body && body.ok) {
-        setNotif('success', `Séance passée en "${statusLabel}"`);
+        setNotif('success', `Meeting transitioned to "${statusLabel}"`);
         loadMeetings();
         loadMeetingContext(getCurrentMeetingId());
       } else {
-        // Traduire les erreurs courantes
+        // Translate common errors
         const errorMessages = {
-          'workflow_issues': 'Prérequis non remplis pour cette transition',
-          'invalid_transition': 'Transition non autorisée depuis l\'état actuel',
-          'meeting_not_found': 'Séance introuvable',
-          'meeting_already_validated': 'Séance déjà validée (modification interdite)',
+          'workflow_issues': 'Prerequisites not met for this transition',
+          'invalid_transition': 'Transition not allowed from current state',
+          'meeting_not_found': 'Meeting not found',
+          'meeting_already_validated': 'Meeting already validated (modification forbidden)',
         };
-        const errorMsg = errorMessages[body?.error] || body?.error || 'Erreur lors de la transition';
+        const errorMsg = errorMessages[body?.error] || body?.error || 'Transition error';
         setNotif('error', errorMsg);
       }
     } catch (err) {
@@ -1570,7 +1570,7 @@
     });
   }
 
-  // btnAttFullView removed - attendance is now in the Présences tab
+  // btnAttFullView removed - attendance is now in the Attendance tab
 
   // Export buttons event listeners
   if (btnExportPV) {

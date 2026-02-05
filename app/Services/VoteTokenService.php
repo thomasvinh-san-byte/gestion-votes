@@ -9,13 +9,13 @@ use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * VoteTokenService — Gestion des tokens de vote (vote_tokens table).
+ * VoteTokenService - Vote token management (vote_tokens table).
  *
- * Flux:
- *  1. generate() crée un token aléatoire, stocke son hash SHA-256 en BDD.
- *  2. Le token brut est transmis au votant (QR, lien, etc.).
- *  3. validate() vérifie le hash, l'expiration et le non-usage.
- *  4. consume() marque le token comme utilisé.
+ * Flow:
+ *  1. generate() creates a random token, stores its SHA-256 hash in DB.
+ *  2. The raw token is sent to the voter (QR, link, etc.).
+ *  3. validate() verifies the hash, expiration and non-usage.
+ *  4. consume() marks the token as used.
  */
 final class VoteTokenService
 {
@@ -23,7 +23,7 @@ final class VoteTokenService
     private const DEFAULT_TTL_SECONDS = 3600; // 1h
 
     /**
-     * Génère un token de vote et persiste son hash.
+     * Generates a vote token and persists its hash.
      *
      * @return array{token: string, token_hash: string, expires_at: string}
      */
@@ -41,7 +41,7 @@ final class VoteTokenService
             throw new InvalidArgumentException('meeting_id, member_id et motion_id sont obligatoires');
         }
 
-        // Résoudre le tenant
+        // Resolve tenant
         $meetingRepo = new MeetingRepository();
         $meeting = $meetingRepo->findById($meetingId);
         if (!$meeting) {
@@ -49,7 +49,7 @@ final class VoteTokenService
         }
         $tenantId = (string)$meeting['tenant_id'];
 
-        // Générer le token brut (hex) et son hash SHA-256
+        // Generate raw token (hex) and its SHA-256 hash
         $tokenRaw  = bin2hex(random_bytes(self::TOKEN_BYTES));
         $tokenHash = hash('sha256', $tokenRaw);
 
@@ -67,7 +67,7 @@ final class VoteTokenService
     }
 
     /**
-     * Valide un token : existe, non expiré, non utilisé.
+     * Validates a token: exists, not expired, not used.
      *
      * @return array{valid: bool, token_hash: string, meeting_id?: string, member_id?: string, motion_id?: string, reason?: string}
      */
@@ -106,7 +106,7 @@ final class VoteTokenService
     }
 
     /**
-     * Marque un token comme utilisé (consommé).
+     * Marks a token as used (consumed).
      */
     public static function consume(string $token): bool
     {
@@ -124,7 +124,7 @@ final class VoteTokenService
     }
 
     /**
-     * Révoque tous les tokens non utilisés pour une motion donnée.
+     * Revokes all unused tokens for a given motion.
      */
     public static function revokeForMotion(string $motionId): int
     {

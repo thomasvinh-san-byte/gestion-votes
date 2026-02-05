@@ -1,8 +1,8 @@
 /**
- * utils.js - Utilitaires JS avec support CSRF intégré
- * 
- * REMPLACE ou AUGMENTE le utils.js existant.
- * Ajoute le support CSRF automatique aux appels API.
+ * utils.js - JS utilities with built-in CSRF support
+ *
+ * REPLACES or EXTENDS the existing utils.js.
+ * Adds automatic CSRF support to API calls.
  */
 
 window.Utils = window.Utils || {};
@@ -31,7 +31,7 @@ window.Utils = window.Utils || {};
   }
 
   // ==========================================================================
-  // HTTP HELPERS (AVEC CSRF)
+  // HTTP HELPERS (WITH CSRF)
   // ==========================================================================
 
   function buildHeaders(extra = {}) {
@@ -94,7 +94,7 @@ window.Utils = window.Utils || {};
   };
 
   // ==========================================================================
-  // HELPERS EXISTANTS (conservés)
+  // EXISTING HELPERS (preserved)
   // ==========================================================================
 
   Utils.escapeHtml = function(str) {
@@ -172,7 +172,7 @@ window.Utils = window.Utils || {};
   // HTMX INTEGRATION
   // ==========================================================================
 
-  // Auto-configure HTMX pour envoyer le CSRF token
+  // Auto-configure HTMX to send CSRF token
   document.body.addEventListener('htmx:configRequest', function(e) {
     const token = getCsrfToken();
     if (token) {
@@ -180,7 +180,7 @@ window.Utils = window.Utils || {};
     }
   });
 
-  // Re-init CSRF après HTMX swap
+  // Re-init CSRF after HTMX swap
   document.body.addEventListener('htmx:afterSwap', function() {
     Utils.initCsrfForms();
   });
@@ -230,12 +230,12 @@ window.Utils = window.Utils || {};
 
   /**
    * Humanize error messages from API
-   * Préfère 'message' (message français traduit) sur 'error' (code technique)
+   * Prefers 'message' (translated message) over 'error' (technical code)
    */
   Utils.humanizeError = function(err) {
-    if (!err) return 'Erreur inconnue';
+    if (!err) return 'Unknown error';
     if (typeof err === 'string') return err;
-    // Priorité: message > detail > error > stringify
+    // Priority: message > detail > error > stringify
     return err.message || err.detail || err.error || JSON.stringify(err);
   };
 
@@ -245,9 +245,9 @@ window.Utils = window.Utils || {};
    * @param {string} fallback - Default message if no error found
    * @returns {string} Human-readable error message
    */
-  Utils.getApiError = function(body, fallback = 'Une erreur est survenue') {
+  Utils.getApiError = function(body, fallback = 'An error occurred') {
     if (!body) return fallback;
-    // Priorité: message (FR traduit) > detail > error (code)
+    // Priority: message (translated) > detail > error (code)
     return body.message || body.detail || body.error || fallback;
   };
 
@@ -277,7 +277,7 @@ window.Utils = window.Utils || {};
       return { valid: true }; // Empty is valid (not required)
     }
     if (!Utils.isValidEmail(email)) {
-      return { valid: false, error: 'Format email invalide' };
+      return { valid: false, error: 'Invalid email format' };
     }
     return { valid: true };
   };
@@ -334,7 +334,7 @@ window.Utils = window.Utils || {};
     const lines = content.trim().split(/\r?\n/).filter(l => l.trim() !== '');
 
     if (lines.length === 0) {
-      return { headers: [], rows: [], errors: ['Fichier CSV vide'] };
+      return { headers: [], rows: [], errors: ['Empty CSV file'] };
     }
 
     // Parse header row
@@ -364,15 +364,15 @@ window.Utils = window.Utils || {};
       const power = row['voting_power'] || row['poids'] || row['weight'] || '';
 
       if (!name) {
-        errors.push(`Ligne ${lineNum}: nom manquant`);
+        errors.push(`Line ${lineNum}: missing name`);
       }
 
       if (email && !Utils.isValidEmail(email)) {
-        errors.push(`Ligne ${lineNum}: email invalide (${email})`);
+        errors.push(`Line ${lineNum}: invalid email (${email})`);
       }
 
       if (power && isNaN(parseFloat(power))) {
-        errors.push(`Ligne ${lineNum}: pouvoir de vote invalide (${power})`);
+        errors.push(`Line ${lineNum}: invalid voting power (${power})`);
       }
 
       rows.push({
@@ -437,7 +437,7 @@ window.Utils = window.Utils || {};
     const { rows, errors } = parsed;
 
     if (rows.length === 0) {
-      return '<div class="text-muted p-4 text-center">Aucune donnée à importer</div>';
+      return '<div class="text-muted p-4 text-center">No data to import</div>';
     }
 
     let html = '';
@@ -445,24 +445,24 @@ window.Utils = window.Utils || {};
     // Show errors if any
     if (errors.length > 0) {
       html += '<div class="alert alert-warning mb-4">';
-      html += '<strong>Attention :</strong>';
+      html += '<strong>Warning:</strong>';
       html += '<ul class="mb-0 mt-2">';
       errors.slice(0, 5).forEach(err => {
         html += `<li>${Utils.escapeHtml(err)}</li>`;
       });
       if (errors.length > 5) {
-        html += `<li>... et ${errors.length - 5} autre(s) erreur(s)</li>`;
+        html += `<li>... and ${errors.length - 5} other error(s)</li>`;
       }
       html += '</ul></div>';
     }
 
     // Summary
-    html += `<div class="mb-4"><strong>${rows.length}</strong> membre(s) à importer</div>`;
+    html += `<div class="mb-4"><strong>${rows.length}</strong> member(s) to import</div>`;
 
     // Preview table
     html += '<div class="table-container" style="max-height:300px;overflow:auto;">';
     html += '<table class="table table-sm">';
-    html += '<thead><tr><th>#</th><th>Nom</th><th>Email</th><th>Poids</th></tr></thead>';
+    html += '<thead><tr><th>#</th><th>Name</th><th>Email</th><th>Weight</th></tr></thead>';
     html += '<tbody>';
 
     const displayRows = rows.slice(0, maxRows);
@@ -477,7 +477,7 @@ window.Utils = window.Utils || {};
     });
 
     if (rows.length > maxRows) {
-      html += `<tr><td colspan="4" class="text-center text-muted">... et ${rows.length - maxRows} autre(s)</td></tr>`;
+      html += `<tr><td colspan="4" class="text-center text-muted">... and ${rows.length - maxRows} other(s)</td></tr>`;
     }
 
     html += '</tbody></table></div>';
@@ -485,7 +485,7 @@ window.Utils = window.Utils || {};
     return html;
   };
 
-  // Init au chargement
+  // Init on load
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', Utils.initCsrfForms);
   } else {
@@ -679,12 +679,12 @@ function log(...args) {
 
 /**
  * Extract error message from API response body
- * Préfère 'message' (FR traduit) sur 'error' (code technique)
+ * Prefers 'message' (translated) over 'error' (technical code)
  * @param {object} body - API response body
  * @param {string} fallback - Default message if no error found
  * @returns {string} Human-readable error message
  */
-function getApiError(body, fallback = 'Une erreur est survenue') {
+function getApiError(body, fallback = 'An error occurred') {
   if (!body) return fallback;
   return body.message || body.detail || body.error || fallback;
 }

@@ -10,11 +10,11 @@ use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * Consolidation "officielle" d'un résultat de motion.
+ * "Official" consolidation of motion results.
  *
- * Règle MVP :
- * - Si un comptage manuel est saisi (manual_total > 0), il fait foi.
- * - Sinon, on calcule via e-vote (ballots) avec VoteEngine.
+ * MVP Rule:
+ * - If manual count is entered (manual_total > 0), it takes precedence.
+ * - Otherwise, calculate via e-vote (ballots) with VoteEngine.
  */
 final class MeetingResultsService
 {
@@ -45,13 +45,13 @@ final class MeetingResultsService
 
         $tenantId = (string)$motion['tenant_id'];
 
-        // Comptage manuel (on assimile à un "poids")
+        // Manual count (treated as "weight")
         $manualFor     = (int)($motion['manual_for'] ?? 0);
         $manualAgainst = (int)($motion['manual_against'] ?? 0);
         $manualAbstain = (int)($motion['manual_abstain'] ?? 0);
         $manualTotal   = (int)($motion['manual_total'] ?? 0);
 
-        // Par sécurité, on reconstruit le total exprimé depuis les champs si incohérent.
+        // For safety, rebuild expressed total from fields if inconsistent.
         $expressedWeight = $manualFor + $manualAgainst + $manualAbstain;
         if ($manualTotal > 0 && $expressedWeight <= 0) {
             $expressedWeight = $manualTotal;
@@ -69,7 +69,7 @@ final class MeetingResultsService
             $quorumPolicy = $policyRepo->findQuorumPolicy((string)$motion['quorum_policy_id']);
         }
 
-        // Résoudre la politique de vote: motion-level > meeting-level
+        // Resolve vote policy: motion-level > meeting-level
         $appliedVotePolicyId = !empty($motion['vote_policy_id'])
             ? (string)$motion['vote_policy_id']
             : (!empty($motion['meeting_vote_policy_id']) ? (string)$motion['meeting_vote_policy_id'] : '');
@@ -107,7 +107,7 @@ final class MeetingResultsService
             $quorumDenominator = $denominator;
         }
 
-        // Majorité
+        // Majority
         $adopted           = null;
         $majorityRatio     = null;
         $majorityThreshold = null;
@@ -122,7 +122,7 @@ final class MeetingResultsService
             if ($majorityBase === 'eligible') {
                 $baseTotal = $eligibleWeight;
             } else {
-                // expressed/present → on se base sur l'exprimé manuel
+                // expressed/present -> use manual expressed count
                 $baseTotal = $expressedWeightF;
             }
 

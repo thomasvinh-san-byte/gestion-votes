@@ -1,12 +1,12 @@
 /**
- * auth-ui.js — Authentification client-side, enforcement par page, sidebar role-aware.
+ * auth-ui.js — Client-side authentication, per-page enforcement, role-aware sidebar.
  *
- * Charge /api/v1/whoami.php et:
- *   1. Affiche la barre d'acces (connexion/deconnexion)
- *   2. Verifie le role requis par la page (data-page-role sur <html> ou <body>)
- *   3. Masque les elements [data-requires-role] non accessibles
- *   4. Filtre la sidebar selon le role
- *   5. Expose window.Auth pour les scripts page-specifiques
+ * Loads /api/v1/whoami.php and:
+ *   1. Displays the access bar (login/logout)
+ *   2. Checks the role required by the page (data-page-role on <html> or <body>)
+ *   3. Hides [data-requires-role] elements that are not accessible
+ *   4. Filters the sidebar by role
+ *   5. Exposes window.Auth for page-specific scripts
  */
 (function () {
   'use strict';
@@ -72,7 +72,7 @@
   }
 
   // =========================================================================
-  // ROLE LABELS (French)
+  // ROLE LABELS (UI display)
   // =========================================================================
 
   var ROLE_LABELS = {
@@ -193,10 +193,10 @@
     var role = window.Auth.role;
     var meetingRoles = window.Auth.meetingRoles || [];
 
-    // Auth disabled (dev mode) → allow everything
+    // Auth disabled (dev mode) - allow everything
     if (!window.Auth.enabled) return;
 
-    // Not logged in → redirect to login
+    // Not logged in - redirect to login
     if (!window.Auth.user) {
       window.location.href = '/login.html?redirect=' +
         encodeURIComponent(window.location.pathname + window.location.search);
@@ -206,7 +206,7 @@
     // Check access
     if (hasAccess(pageRole, role, meetingRoles)) return; // OK
 
-    // Access denied → replace main content
+    // Access denied - replace main content
     var main = document.querySelector('.app-main') || document.querySelector('main') || document.body;
     var roleLabel = ROLE_LABELS[role] || role;
     var requiredLabels = pageRole.split(',').map(function (r) {

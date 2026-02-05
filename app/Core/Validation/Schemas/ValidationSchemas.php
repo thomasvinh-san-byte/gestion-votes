@@ -15,7 +15,7 @@ use AgVote\Core\Validation\InputValidator;
 final class ValidationSchemas
 {
     /**
-     * Schéma pour création/mise à jour de séance (meeting)
+     * Schema for meeting creation/update
      */
     public static function meeting(): InputValidator
     {
@@ -76,7 +76,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour création/mise à jour de motion (résolution)
+     * Schema for motion creation/update
      */
     public static function motion(): InputValidator
     {
@@ -119,7 +119,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour création/mise à jour de membre
+     * Schema for member creation/update
      */
     public static function member(): InputValidator
     {
@@ -157,7 +157,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour enregistrement de vote (ballot)
+     * Schema for ballot registration
      */
     public static function ballot(): InputValidator
     {
@@ -195,7 +195,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour enregistrement de présence (attendance)
+     * Schema for attendance registration
      */
     public static function attendance(): InputValidator
     {
@@ -224,7 +224,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour création de procuration (proxy)
+     * Schema for proxy creation
      */
     public static function proxy(): InputValidator
     {
@@ -257,7 +257,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour politique de quorum
+     * Schema for quorum policy
      */
     public static function quorumPolicy(): InputValidator
     {
@@ -313,7 +313,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour politique de vote
+     * Schema for vote policy
      */
     public static function votePolicy(): InputValidator
     {
@@ -346,7 +346,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour validation de séance (par président)
+     * Schema for meeting validation (by president)
      */
     public static function meetingValidation(): InputValidator
     {
@@ -371,7 +371,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour saisie manuelle (mode dégradé)
+     * Schema for manual input (degraded mode)
      */
     public static function degradedTally(): InputValidator
     {
@@ -409,7 +409,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour création d'incident
+     * Schema for incident creation
      */
     public static function incident(): InputValidator
     {
@@ -450,7 +450,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour création d'utilisateur (RBAC)
+     * Schema for user creation (RBAC)
      */
     public static function user(): InputValidator
     {
@@ -479,7 +479,7 @@ final class ValidationSchemas
     }
 
     /**
-     * Schéma pour demande de parole (speech)
+     * Schema for speech request
      */
     public static function speechRequest(): InputValidator
     {

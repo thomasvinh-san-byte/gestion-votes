@@ -18,7 +18,7 @@ final class RateLimiter
     }
 
     /**
-     * Vérifie et incrémente le compteur de rate limit
+     * Checks and increments the rate limit counter
      */
     public static function check(
         string $context,

@@ -10,8 +10,8 @@ use AgVote\Repository\ReminderScheduleRepository;
 use AgVote\Repository\MemberRepository;
 
 /**
- * Service pour la gestion de la file d'attente des emails.
- * Peut etre execute en tant que worker cron.
+ * Service for managing the email sending queue.
+ * Can be executed as a cron worker.
  */
 final class EmailQueueService
 {
@@ -37,7 +37,7 @@ final class EmailQueueService
     }
 
     /**
-     * Traite un lot d'emails de la file d'attente.
+     * Processes a batch of emails from the queue.
      *
      * @return array{processed:int,sent:int,failed:int,errors:array}
      */
@@ -112,7 +112,7 @@ final class EmailQueueService
     }
 
     /**
-     * Programme les emails d'invitation pour une seance.
+     * Schedules invitation emails for a meeting.
      */
     public function scheduleInvitations(
         string $tenantId,
@@ -127,10 +127,10 @@ final class EmailQueueService
             'errors' => [],
         ];
 
-        // Membres actifs avec email
+        // Active members with email
         $members = $this->memberRepo->listActiveWithEmail($tenantId);
 
-        // Template par defaut si non specifie
+        // Default template if not specified
         if (!$templateId) {
             $defaultTemplate = (new \AgVote\Repository\EmailTemplateRepository())
                 ->findDefault($tenantId, 'invitation');
@@ -146,7 +146,7 @@ final class EmailQueueService
                 continue;
             }
 
-            // Verifier si deja envoye
+            // Check if already sent
             if ($onlyUnsent) {
                 $status = $this->invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId);
                 if ($status === 'sent') {
@@ -155,10 +155,10 @@ final class EmailQueueService
                 }
             }
 
-            // Generer token
+            // Generate token
             $token = bin2hex(random_bytes(16));
 
-            // Creer/maj invitation
+            // Create/update invitation
             $this->invitationRepo->upsertBulk(
                 $tenantId,
                 $meetingId,
@@ -169,7 +169,7 @@ final class EmailQueueService
                 null
             );
 
-            // Recuperer l'invitation ID
+            // Retrieve invitation ID
             $invitation = $this->invitationRepo->findByMeetingAndMember($meetingId, $memberId);
             $invitationId = $invitation['id'] ?? null;
 
@@ -183,7 +183,7 @@ final class EmailQueueService
                     $token
                 );
                 if (!$rendered['ok']) {
-                    // Fallback au template par defaut du service
+                    // Fallback to service default template
                     $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, $token);
                     $subject = $this->templateService->render('Invitation de vote - {{meeting_title}}', $variables);
                     $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
@@ -197,7 +197,7 @@ final class EmailQueueService
                 $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
             }
 
-            // Ajouter a la file
+            // Add to queue
             $queued = $this->queueRepo->enqueue(
                 $tenantId,
                 $email,
@@ -230,7 +230,7 @@ final class EmailQueueService
     }
 
     /**
-     * Traite les rappels programmes.
+     * Processes scheduled reminders.
      */
     public function processReminders(): array
     {
@@ -245,19 +245,19 @@ final class EmailQueueService
         foreach ($dueReminders as $reminder) {
             $result['processed']++;
 
-            // Programme les emails pour cette seance
+            // Schedule emails for this meeting
             $scheduled = $this->scheduleInvitations(
                 $reminder['tenant_id'],
                 $reminder['meeting_id'],
                 $reminder['template_id'],
-                null, // Envoi immediat
-                false // Envoyer a tous (rappel)
+                null, // Immediate send
+                false // Send to all (reminder)
             );
 
             $result['sent'] += $scheduled['scheduled'];
             $result['errors'] = array_merge($result['errors'], $scheduled['errors']);
 
-            // Marquer comme execute
+            // Mark as executed
             $this->reminderRepo->markExecuted($reminder['id']);
         }
 
@@ -265,7 +265,7 @@ final class EmailQueueService
     }
 
     /**
-     * Envoie immediat d'invitations (sans passer par la file).
+     * Immediate invitation sending (bypassing queue).
      */
     public function sendInvitationsNow(
         string $tenantId,
@@ -325,7 +325,7 @@ final class EmailQueueService
                 $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
             }
 
-            // Envoyer
+            // Send
             $sendResult = $this->mailer->send($email, $subject, $bodyHtml);
 
             if ($sendResult['ok']) {
@@ -359,7 +359,7 @@ final class EmailQueueService
     }
 
     /**
-     * Statistiques de la file d'attente.
+     * Queue statistics.
      */
     public function getQueueStats(string $tenantId): array
     {
@@ -367,7 +367,7 @@ final class EmailQueueService
     }
 
     /**
-     * Annule tous les emails programmes pour une seance.
+     * Cancels all scheduled emails for a meeting.
      */
     public function cancelMeetingEmails(string $meetingId): int
     {
@@ -375,7 +375,7 @@ final class EmailQueueService
     }
 
     /**
-     * Nettoie les anciens emails.
+     * Cleans up old emails.
      */
     public function cleanup(int $daysToKeep = 30): int
     {

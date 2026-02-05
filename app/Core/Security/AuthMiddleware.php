@@ -33,7 +33,7 @@ final class AuthMiddleware
     // CONSTANTS
     // =========================================================================
 
-    /** Rôles système avec niveau hiérarchique */
+    /** System roles with hierarchy level */
     private const SYSTEM_ROLES = [
         'admin'    => 100,
         'operator' => 80,
@@ -41,10 +41,10 @@ final class AuthMiddleware
         'viewer'   => 10,
     ];
 
-    /** Rôles de séance (pas de hiérarchie, permissions distinctes) */
+    /** Meeting roles (no hierarchy, distinct permissions) */
     private const MEETING_ROLES = ['president', 'assessor', 'voter'];
 
-    /** Niveaux hiérarchiques pour TOUS les rôles (système + séance) */
+    /** Hierarchy levels for ALL roles (system + meeting) */
     private const ROLE_HIERARCHY = [
         'admin'     => 100,
         'operator'  => 80,
@@ -58,11 +58,11 @@ final class AuthMiddleware
     ];
 
     /**
-     * Matrice des permissions par rôle (système ET séance)
-     * Format: 'resource:action' => [roles autorisés]
+     * Permission matrix by role (system AND meeting)
+     * Format: 'resource:action' => [allowed roles]
      */
     private const PERMISSIONS = [
-        // Meetings - cycle de vie
+        // Meetings - lifecycle
         'meeting:create'       => ['admin', 'operator'],
         'meeting:read'         => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor', 'voter'],
         'meeting:update'       => ['admin', 'operator'],
@@ -127,15 +127,15 @@ final class AuthMiddleware
     ];
 
     /**
-     * Alias de rôles pour compatibilité ascendante.
-     * Les anciens noms de rôles sont mappés vers des rôles système ou séance.
+     * Role aliases for backward compatibility.
+     * Old role names are mapped to system or meeting roles.
      */
     private const ROLE_ALIASES = [
         'trust'    => 'assessor',
         'readonly' => 'viewer',
     ];
 
-    /** Transitions d'état autorisées : from => [to => required_role] */
+    /** Allowed state transitions: from => [to => required_role] */
     private const STATE_TRANSITIONS = [
         'draft'     => ['scheduled' => 'operator', 'frozen' => 'president'],
         'scheduled' => ['frozen' => 'president', 'draft' => 'admin'],
@@ -175,9 +175,9 @@ final class AuthMiddleware
     // =========================================================================
 
     /**
-     * Définit le contexte de séance pour la résolution des rôles.
-     * Doit être appelé avant can() / requireRole() quand on vérifie
-     * des permissions liées à une séance spécifique.
+     * Sets the meeting context for role resolution.
+     * Must be called before can() / requireRole() when checking
+     * permissions related to a specific meeting.
      */
     public static function setMeetingContext(?string $meetingId): void
     {
@@ -188,10 +188,10 @@ final class AuthMiddleware
     }
 
     /**
-     * Retourne les rôles de séance de l'utilisateur courant
-     * pour la séance en contexte.
+     * Returns the meeting roles of the current user
+     * for the meeting in context.
      *
-     * @return string[] ex: ['president'], ['assessor', 'voter'], []
+     * @return string[] e.g.: ['president'], ['assessor', 'voter'], []
      */
     public static function getMeetingRoles(?string $meetingId = null): array
     {
@@ -205,7 +205,7 @@ final class AuthMiddleware
             return [];
         }
 
-        // Cache pour le meeting courant
+        // Cache for current meeting
         if ($mid === self::$currentMeetingId && self::$currentMeetingRoles !== null) {
             return self::$currentMeetingRoles;
         }
@@ -230,10 +230,10 @@ final class AuthMiddleware
     }
 
     /**
-     * Retourne tous les rôles effectifs de l'utilisateur courant.
-     * = rôle système + rôles de séance (si contexte défini)
+     * Returns all effective roles of the current user.
+     * = system role + meeting roles (if context is set)
      *
-     * @return string[] ex: ['operator', 'president']
+     * @return string[] e.g.: ['operator', 'president']
      */
     public static function getEffectiveRoles(?string $meetingId = null): array
     {
@@ -253,7 +253,7 @@ final class AuthMiddleware
     // =========================================================================
 
     /**
-     * Normalise un nom de rôle (minuscule + alias).
+     * Normalizes a role name (lowercase + alias).
      */
     private static function normalizeRole(string $role): string
     {
@@ -262,7 +262,7 @@ final class AuthMiddleware
     }
 
     /**
-     * Vérifie si un rôle est un rôle de séance.
+     * Checks if a role is a meeting role.
      */
     public static function isMeetingRole(string $role): bool
     {
@@ -270,7 +270,7 @@ final class AuthMiddleware
     }
 
     /**
-     * Vérifie si un rôle est un rôle système.
+     * Checks if a role is a system role.
      */
     public static function isSystemRole(string $role): bool
     {
@@ -282,15 +282,15 @@ final class AuthMiddleware
     // =========================================================================
 
     /**
-     * Exige un rôle pour accéder à la ressource.
+     * Requires a role to access the resource.
      *
-     * Vérifie à la fois le rôle système ET les rôles de séance.
-     * Si un rôle demandé est un rôle de séance (president, assessor, voter),
-     * on vérifie dans meeting_roles pour la séance en contexte.
+     * Checks both system role AND meeting roles.
+     * If a requested role is a meeting role (president, assessor, voter),
+     * checks in meeting_roles for the meeting in context.
      */
     public static function requireRole(string|array $roles, bool $strict = true): bool
     {
-        // Bypass si auth désactivée (DEV uniquement) - handled in authenticate()
+        // Bypass if auth disabled (DEV only) - handled in authenticate()
         if (!self::isEnabled()) {
             self::authenticate(); // Sets dev-user as admin
             return true;
@@ -299,7 +299,7 @@ final class AuthMiddleware
         $roles = is_array($roles) ? $roles : [$roles];
         $roles = array_map([self::class, 'normalizeRole'], $roles);
 
-        // Rôle 'public' = pas d'auth requise
+        // 'public' role = no auth required
         if (in_array('public', $roles, true)) {
             return true;
         }
@@ -314,20 +314,20 @@ final class AuthMiddleware
 
         $systemRole = self::normalizeRole((string)($user['role'] ?? 'anonymous'));
 
-        // Admin a tous les droits
+        // Admin has all rights
         if ($systemRole === 'admin') {
             return true;
         }
 
-        // Vérifier le rôle système direct
+        // Check direct system role
         if (in_array($systemRole, $roles, true)) {
             return true;
         }
 
-        // Vérifier par hiérarchie système
+        // Check by system hierarchy
         $userLevel = self::ROLE_HIERARCHY[$systemRole] ?? 0;
         foreach ($roles as $requiredRole) {
-            // Ne pas utiliser la hiérarchie pour les rôles de séance
+            // Do not use hierarchy for meeting roles
             if (self::isMeetingRole($requiredRole)) {
                 continue;
             }
@@ -337,7 +337,7 @@ final class AuthMiddleware
             }
         }
 
-        // Vérifier les rôles de séance (si contexte défini)
+        // Check meeting roles (if context is set)
         $meetingRoles = self::getMeetingRoles();
         foreach ($roles as $requiredRole) {
             if (in_array($requiredRole, $meetingRoles, true)) {
@@ -365,7 +365,7 @@ final class AuthMiddleware
             return self::$currentUser;
         }
 
-        // Bypass si auth désactivée (DEV uniquement)
+        // Bypass if auth disabled (DEV only)
         if (!self::isEnabled()) {
             self::$currentUser = [
                 'id' => 'dev-user',
@@ -405,8 +405,8 @@ final class AuthMiddleware
     // =========================================================================
 
     /**
-     * Vérifie si l'utilisateur courant a une permission spécifique.
-     * Résout les permissions via : rôle système + rôles séance.
+     * Checks if the current user has a specific permission.
+     * Resolves permissions via: system role + meeting roles.
      */
     public static function can(string $permission, ?string $meetingId = null): bool
     {
@@ -417,19 +417,19 @@ final class AuthMiddleware
 
         $systemRole = self::normalizeRole((string)($user['role'] ?? 'anonymous'));
 
-        // Admin a toutes les permissions
+        // Admin has all permissions
         if ($systemRole === 'admin') {
             return true;
         }
 
         $allowedRoles = self::PERMISSIONS[$permission] ?? [];
 
-        // Check rôle système
+        // Check system role
         if (in_array($systemRole, $allowedRoles, true)) {
             return true;
         }
 
-        // Check hiérarchie système
+        // Check system hierarchy
         $userLevel = self::ROLE_HIERARCHY[$systemRole] ?? 0;
         foreach ($allowedRoles as $allowedRole) {
             if (self::isMeetingRole($allowedRole)) {
@@ -440,7 +440,7 @@ final class AuthMiddleware
             }
         }
 
-        // Check rôles séance
+        // Check meeting roles
         $meetingRoles = self::getMeetingRoles($meetingId);
         foreach ($meetingRoles as $mr) {
             if (in_array($mr, $allowedRoles, true)) {
@@ -452,7 +452,7 @@ final class AuthMiddleware
     }
 
     /**
-     * Exige une permission spécifique
+     * Requires a specific permission
      */
     public static function requirePermission(string $permission, ?string $meetingId = null): void
     {
@@ -485,7 +485,7 @@ final class AuthMiddleware
         return $user ? (string)($user['id'] ?? null) : null;
     }
 
-    /** Retourne le rôle SYSTÈME de l'utilisateur courant */
+    /** Returns the SYSTEM role of the current user */
     public static function getCurrentRole(): string
     {
         $user = self::getCurrentUser();
@@ -533,9 +533,9 @@ final class AuthMiddleware
     // =========================================================================
 
     /**
-     * Vérifie si la transition d'état est autorisée.
-     * Les transitions 'president' requièrent le meeting_role 'president'
-     * OU le rôle système 'admin'.
+     * Checks if the state transition is allowed.
+     * 'president' transitions require meeting_role 'president'
+     * OR system role 'admin'.
      */
     public static function canTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): bool
     {
@@ -547,7 +547,7 @@ final class AuthMiddleware
         $requiredRole = $allowed[$toStatus];
         $systemRole = self::getCurrentRole();
 
-        // Admin peut tout faire
+        // Admin can do everything
         if ($systemRole === 'admin') {
             return true;
         }
@@ -821,7 +821,7 @@ final class AuthMiddleware
     {
         $secret = defined('APP_SECRET') ? APP_SECRET : getenv('APP_SECRET');
 
-        // Validation stricte : secret requis si auth activée ou production
+        // Strict validation: secret required if auth enabled or production
         if (!$secret || $secret === 'change-me-in-prod' || strlen($secret) < 32) {
             if (self::isEnabled()) {
                 throw new \RuntimeException(
@@ -829,7 +829,7 @@ final class AuthMiddleware
                     'Generate one with: php -r "echo bin2hex(random_bytes(32));"'
                 );
             }
-            // En mode dev uniquement, log un warning
+            // In dev mode only, log a warning
             error_log('[WARNING] Using insecure APP_SECRET in dev mode. Do NOT use in production.');
             return 'dev-secret-not-for-production-' . str_repeat('x', 32);
         }

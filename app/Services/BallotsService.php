@@ -21,7 +21,7 @@ final class BallotsService
     }
 
     /**
-     * Enregistre ou met à jour un bulletin pour une motion donnée.
+     * Records or updates a ballot for a given motion.
      *
      * @param array<string,mixed> $data
      * @return array<string,mixed>
@@ -41,7 +41,7 @@ final class BallotsService
             throw new InvalidArgumentException('Valeur de vote invalide (for/against/abstain/nsp attendue)');
         }
 
-        // Charger motion + meeting + tenant
+        // Load motion + meeting + tenant
         $motionRepo = new MotionRepository();
         $context = $motionRepo->findWithBallotContext($motionId);
 
@@ -67,7 +67,7 @@ if (!empty($context['meeting_validated_at'])) {
         $isProxyVote = (bool)($data['is_proxy_vote'] ?? false);
         $proxyVoterId = trim((string)($data['proxy_source_member_id'] ?? ''));
 
-        // Charger le membre "représenté" (celui dont le vote est compté)
+        // Load the represented member (the one whose vote is counted)
         $member = MembersService::getMember($memberId);
         if (!$member) {
             throw new RuntimeException('Membre inconnu');
@@ -81,10 +81,10 @@ if (!empty($context['meeting_validated_at'])) {
             throw new RuntimeException('Membre inactif, vote impossible');
         }
 
-        // Éligibilité au vote (MVP):
-        // - Vote "direct": le membre doit être présent (present/remote) sur la séance.
-        // - Vote par procuration: le mandataire doit être présent (present/remote) et une procuration active doit exister.
-        //   Le mandant (member_id) peut être absent.
+        // Vote eligibility (MVP):
+        // - "Direct" vote: member must be present (present/remote) at the meeting.
+        // - Proxy vote: proxy holder must be present (present/remote) and an active proxy must exist.
+        //   The giver (member_id) may be absent.
         $meetingId = (string)$context['meeting_id'];
 
         $weight = (float)($member['voting_power'] ?? 1.0);
@@ -92,8 +92,8 @@ if (!empty($context['meeting_validated_at'])) {
             $weight = 0.0;
         }
 
-        // Vote par procuration (MVP)
-        // Convention: member_id = mandant (vote compté), proxy_source_member_id = mandataire (celui qui vote)
+        // Proxy vote (MVP)
+        // Convention: member_id = giver (vote counted), proxy_source_member_id = proxy holder (the one voting)
         if ($isProxyVote) {
             if ($proxyVoterId === '' || !self::isUuid($proxyVoterId)) {
                 throw new InvalidArgumentException('proxy_source_member_id est obligatoire (UUID) pour un vote par procuration');
@@ -110,8 +110,8 @@ if (!empty($context['meeting_validated_at'])) {
                 throw new RuntimeException('Mandataire inactif, vote impossible');
             }
 
-            // Le mandataire doit être physiquement "présent" (present/remote) pour voter.
-            // On exclut le mode 'proxy' pour éviter les chaînes de procurations.
+            // The proxy holder must be physically "present" (present/remote) to vote.
+            // We exclude 'proxy' mode to avoid proxy chains.
             $proxyModeOk = false;
             try {
                 $proxyModeOk = AttendancesService::isPresentDirect($meetingId, $proxyVoterId, $tenantId);
@@ -122,14 +122,14 @@ if (!empty($context['meeting_validated_at'])) {
                 throw new RuntimeException('Mandataire non enregistré comme présent, vote par procuration impossible');
             }
 
-            // Vérifie qu'une procuration active existe pour cette séance
+            // Verify an active proxy exists for this meeting
             if (!ProxiesService::hasActiveProxy($meetingId, $memberId, $proxyVoterId)) {
                 throw new RuntimeException('Aucune procuration active ne permet à ce mandataire de voter pour ce membre');
             }
         } else {
-            // Vote direct: le membre doit être présent (present/remote) sur la séance.
-            // Note: AttendancesService compte aussi 'proxy'; on ne le souhaite pas ici.
-            // On vérifie donc explicitement les modes present/remote.
+            // Direct vote: member must be present (present/remote) at the meeting.
+            // Note: AttendancesService also counts 'proxy'; we don't want that here.
+            // So we explicitly check for present/remote modes.
             if (!AttendancesService::isPresentDirect($meetingId, $memberId, $tenantId)) {
                 throw new RuntimeException('Membre non enregistré comme présent, vote impossible');
             }

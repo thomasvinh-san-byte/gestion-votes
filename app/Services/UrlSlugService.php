@@ -4,31 +4,31 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 /**
- * Service de génération de slugs pour obfuscation des URLs.
+ * URL slug generation service for URL obfuscation.
  *
- * Génère des identifiants courts et opaques pour remplacer les UUIDs
- * dans les URLs publiques, améliorant la lisibilité et la sécurité.
+ * Generates short and opaque identifiers to replace UUIDs
+ * in public URLs, improving readability and security.
  */
 class UrlSlugService
 {
     /**
-     * Caractères utilisés pour l'encodage base62.
-     * Évite les caractères ambigus (0/O, 1/l/I) et les caractères spéciaux URL.
+     * Characters used for base62 encoding.
+     * Avoids ambiguous characters (0/O, 1/l/I) and URL special characters.
      */
     private const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
 
     /**
-     * Longueur par défaut des slugs générés.
+     * Default length of generated slugs.
      */
     private const DEFAULT_LENGTH = 8;
 
     /**
-     * Génère un slug court et opaque à partir d'un UUID.
-     * Le slug est déterministe : même UUID = même slug.
+     * Generates a short and opaque slug from a UUID.
+     * The slug is deterministic: same UUID = same slug.
      */
     public static function fromUuid(string $uuid): string
     {
-        // Supprimer les tirets et convertir en bytes
+        // Remove dashes and convert to bytes
         $hex = str_replace('-', '', $uuid);
         $bytes = hex2bin($hex);
         if ($bytes === false) {
@@ -38,7 +38,7 @@ class UrlSlugService
     }
 
     /**
-     * Génère un slug aléatoire cryptographiquement sécurisé.
+     * Generates a cryptographically secure random slug.
      */
     public static function generateRandom(int $length = self::DEFAULT_LENGTH): string
     {
@@ -47,19 +47,19 @@ class UrlSlugService
     }
 
     /**
-     * Génère un slug lisible à partir d'un titre.
-     * Format: "titre-slug-xxxx" où xxxx est un suffixe unique.
+     * Generates a readable slug from a title.
+     * Format: "title-slug-xxxx" where xxxx is a unique suffix.
      */
     public static function fromTitle(string $title, string $uuid): string
     {
-        // Normaliser le titre
+        // Normalize the title
         $slug = self::normalizeForSlug($title);
 
-        // Ajouter un suffixe unique basé sur l'UUID
+        // Add a unique suffix based on the UUID
         $suffix = self::fromUuid($uuid);
         $suffix = substr($suffix, 0, 4);
 
-        // Limiter la longueur totale
+        // Limit total length
         if (strlen($slug) > 40) {
             $slug = substr($slug, 0, 40);
         }
@@ -68,28 +68,28 @@ class UrlSlugService
     }
 
     /**
-     * Génère un token opaque pour les invitations.
-     * Plus court et lisible qu'un hex de 32 caractères.
+     * Generates an opaque token for invitations.
+     * Shorter and more readable than a 32-character hex.
      */
     public static function generateInvitationToken(): string
     {
-        // 12 caractères en base62 = ~71 bits d'entropie (suffisant pour invitations)
+        // 12 characters in base62 = ~71 bits of entropy (sufficient for invitations)
         return self::generateRandom(12);
     }
 
     /**
-     * Génère un token pour les URLs de vote.
-     * Format court mais avec hash pour vérification.
+     * Generates a token for voting URLs.
+     * Short format but with hash for verification.
      */
     public static function generateVoteUrlToken(string $meetingId, string $motionId, string $memberId): array
     {
-        // Token public court (affiché dans l'URL)
+        // Short public token (displayed in URL)
         $publicToken = self::generateRandom(10);
 
-        // Token de vérification (stocké hashé en base)
+        // Verification token (stored hashed in database)
         $verificationToken = bin2hex(random_bytes(16));
 
-        // Hash pour stockage
+        // Hash for storage
         $hash = hash('sha256', $verificationToken);
 
         return [
@@ -100,14 +100,14 @@ class UrlSlugService
     }
 
     /**
-     * Encode des bytes en chaîne base62.
+     * Encodes bytes to a base62 string.
      */
     private static function encodeBytes(string $bytes, int $maxLength): string
     {
         $alphabet = self::ALPHABET;
         $base = strlen($alphabet);
 
-        // Convertir les bytes en nombre entier (big int)
+        // Convert bytes to integer (big int)
         $num = gmp_import($bytes);
 
         $result = '';
@@ -121,7 +121,7 @@ class UrlSlugService
             }
         }
 
-        // Padding si nécessaire
+        // Padding if necessary
         while (strlen($result) < $maxLength) {
             $result = $alphabet[0] . $result;
         }
@@ -130,23 +130,23 @@ class UrlSlugService
     }
 
     /**
-     * Normalise une chaîne pour créer un slug lisible.
+     * Normalizes a string to create a readable slug.
      */
     private static function normalizeForSlug(string $text): string
     {
-        // Translittération des accents
+        // Transliterate accented characters
         $text = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text);
         if ($text === false) {
             $text = '';
         }
 
-        // Convertir en minuscules
+        // Convert to lowercase
         $text = strtolower($text);
 
-        // Remplacer les caractères non-alphanumériques par des tirets
+        // Replace non-alphanumeric characters with dashes
         $text = preg_replace('/[^a-z0-9]+/', '-', $text);
 
-        // Supprimer les tirets en début/fin et les tirets multiples
+        // Remove leading/trailing dashes and multiple dashes
         $text = trim($text, '-');
         $text = preg_replace('/-+/', '-', $text);
 
@@ -154,7 +154,7 @@ class UrlSlugService
     }
 
     /**
-     * Vérifie si une chaîne ressemble à un UUID.
+     * Checks if a string looks like a UUID.
      */
     public static function isUuid(string $str): bool
     {
@@ -162,11 +162,11 @@ class UrlSlugService
     }
 
     /**
-     * Vérifie si une chaîne ressemble à un slug.
+     * Checks if a string looks like a slug.
      */
     public static function isSlug(string $str): bool
     {
-        // Un slug contient des lettres/chiffres et éventuellement des tirets
+        // A slug contains letters/numbers and optionally dashes
         return preg_match('/^[a-zA-Z0-9-]{4,50}$/', $str) === 1 && !self::isUuid($str);
     }
 }

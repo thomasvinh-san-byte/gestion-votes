@@ -13,7 +13,7 @@ use RuntimeException;
 final class VoteEngine
 {
     /**
-     * Calcule les résultats d'une motion à partir des bulletins et des policies.
+     * Computes motion results from ballots and policies.
      *
      * @param string $motionId
      * @return array<string,mixed>
@@ -35,7 +35,7 @@ final class VoteEngine
         $tenantId   = (string)$motion['tenant_id'];
         $meetingId  = (string)$motion['meeting_id'];
 
-        // Agréger les bulletins par valeur
+        // Aggregate ballots by value
         $ballotRepo = new BallotRepository();
         $rows = $ballotRepo->tallyByMotion($motionId);
 
@@ -63,12 +63,12 @@ final class VoteEngine
             + $tallies['against']['weight']
             + $tallies['abstain']['weight'];
 
-        // Électeurs éligibles (par tenant)
+        // Eligible voters (by tenant)
         $memberRepo = new MemberRepository();
         $eligibleMembers = $memberRepo->countActive($tenantId);
         $eligibleWeight  = $memberRepo->sumActiveWeight($tenantId);
 
-        // Charger policies éventuelles
+        // Load policies if any
         $policyRepo = new PolicyRepository();
 
         $quorumPolicy = null;
@@ -76,7 +76,7 @@ final class VoteEngine
             $quorumPolicy = $policyRepo->findQuorumPolicy((string)$motion['quorum_policy_id']);
         }
 
-        // Résoudre la politique de vote: motion-level > meeting-level
+        // Resolve vote policy: motion-level > meeting-level
         $appliedVotePolicyId = !empty($motion['vote_policy_id'])
             ? (string)$motion['vote_policy_id']
             : (!empty($motion['meeting_vote_policy_id']) ? (string)$motion['meeting_vote_policy_id'] : '');
@@ -86,7 +86,7 @@ final class VoteEngine
             $votePolicy = $policyRepo->findVotePolicy($appliedVotePolicyId);
         }
 
-        // Calcul du quorum
+        // Quorum calculation
         $quorumMet         = null;
         $quorumRatio       = null;
         $quorumThreshold   = null;
@@ -111,7 +111,7 @@ final class VoteEngine
             $quorumDenominator = $denominator;
         }
 
-        // Calcul de la majorité
+        // Majority calculation
         $adopted           = null;
         $majorityRatio     = null;
         $majorityThreshold = null;
@@ -154,7 +154,7 @@ final class VoteEngine
             }
         }
 
-        // Statut global lisible
+        // Human-readable global status
         $decisionStatus = 'no_votes';
         $decisionReason = null;
 

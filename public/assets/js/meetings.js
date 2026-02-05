@@ -1,32 +1,32 @@
 /**
- * GESTION DES SÉANCES
- * Chargement, affichage, sélection des séances.
+ * MEETING MANAGEMENT
+ * Loading, display, selection of meetings.
  */
 
 /**
- * Une séance est dite "active" si elle n'est pas archivée.
+ * A meeting is "active" if it is not archived.
  */
 function isActiveMeeting(m) {
     return m.status !== 'archived';
 }
 
 /**
- * Une séance est dans l'historique si elle est close ou archivée.
+ * A meeting is in history if it is closed or archived.
  */
 function isHistoryMeeting(m) {
     return m.status === 'closed' || m.status === 'archived';
 }
 
 /**
- * Charge les séances depuis l’API.
+ * Load meetings from the API.
  */
 async function loadMeetings() {
     setLoading(true);
     try {
         const { status, body } = await api("/api/v1/meetings.php");
         if (!body || !body.ok) {
-            setNotif('error', "Erreur chargement séances : " + (body?.error || status));
-            log("Erreur load meetings: " + JSON.stringify(body));
+            setNotif('error', "Error loading meetings: " + (body?.error || status));
+            log("Error load meetings: " + JSON.stringify(body));
             return;
         }
         state.meetings = body.data.meetings || [];
@@ -38,7 +38,7 @@ async function loadMeetings() {
 }
 
 /**
- * Met à jour les listes des séances (actives / historiques).
+ * Update the meeting lists (active / history).
  */
 function renderMeetingsLists() {
     const activeDiv  = document.getElementById("active_meetings_list");
@@ -52,9 +52,9 @@ function renderMeetingsLists() {
     const actives = state.meetings.filter(isActiveMeeting);
     const history = state.meetings.filter(isHistoryMeeting);
 
-    // Séances actives
+    // Active meetings
     if (!actives.length) {
-        activeDiv.textContent = "Pas de séance active.";
+        activeDiv.textContent = "No active meeting.";
     } else {
         actives.forEach(m => {
             const el = createMeetingElement(m, true);
@@ -62,9 +62,9 @@ function renderMeetingsLists() {
         });
     }
 
-    // Historique
+    // History
     if (!history.length) {
-        historyDiv.textContent = "Aucune séance dans l’historique.";
+        historyDiv.textContent = "No meetings in history.";
     } else {
         history.forEach(m => {
             const el = createMeetingElement(m, false);
@@ -75,7 +75,7 @@ function renderMeetingsLists() {
 
 
 /**
- * Crée un élément DOM pour une séance.
+ * Create a DOM element for a meeting.
  */
 function createMeetingElement(m, isActive) {
     const el = document.createElement("div");
@@ -95,10 +95,10 @@ function createMeetingElement(m, isActive) {
 
     if (!isActive) {
         if (m.validated_by) {
-            const date = m.validated_at ? new Date(m.validated_at).toLocaleString() : 'date inconnue';
-            html += `<br><span class="text-muted">Validée par ${escapeHtml(m.validated_by)} le ${date}</span>`;
+            const date = m.validated_at ? new Date(m.validated_at).toLocaleString() : 'unknown date';
+            html += `<br><span class="text-muted">Validated by ${escapeHtml(m.validated_by)} on ${date}</span>`;
         } else {
-            html += `<br><span class="text-muted">Non validée</span>`;
+            html += `<br><span class="text-muted">Not validated</span>`;
         }
     }
 
@@ -127,13 +127,13 @@ function createMeetingElement(m, isActive) {
 }
 
 /**
- * Remplit le <select> des séances actives.
+ * Populate the <select> with active meetings.
  */
 function fillMeetingSelect() {
     const sel = document.getElementById("meeting_select");
     if (!sel) return;
     const previous = sel.value;
-    sel.innerHTML = '<option value="">– Sélectionner une séance –</option>';
+    sel.innerHTML = '<option value="">– Select a meeting –</option>';
 
     state.meetings.forEach(m => {
         if (!isActiveMeeting(m)) return;
@@ -146,7 +146,7 @@ function fillMeetingSelect() {
 }
 
 /**
- * Handler <select> des séances.
+ * Handler for meetings <select>.
  */
 function onMeetingChange() {
     const sel = document.getElementById("meeting_select");
@@ -156,7 +156,7 @@ function onMeetingChange() {
 }
 
 /**
- * Sélectionne une séance et charge ODJ + résolutions.
+ * Select a meeting and load agenda + motions.
  */
 async function selectMeeting(id) {
     state.currentMeetingId = id;

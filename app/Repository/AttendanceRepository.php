@@ -4,16 +4,16 @@ declare(strict_types=1);
 namespace AgVote\Repository;
 
 /**
- * Acces donnees pour les presences (attendances).
+ * Data access for attendance records.
  */
 class AttendanceRepository extends AbstractRepository
 {
     // =========================================================================
-    // LECTURE
+    // READ
     // =========================================================================
 
     /**
-     * Verifie si un membre est present (present/remote/proxy, non checked_out).
+     * Checks if a member is present (present/remote/proxy, not checked_out).
      */
     public function isPresent(string $meetingId, string $memberId, string $tenantId): bool
     {
@@ -29,7 +29,7 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
-     * Verifie si un membre est present directement (present/remote uniquement).
+     * Checks if a member is present directly (present/remote only).
      */
     public function isPresentDirect(string $meetingId, string $memberId, string $tenantId): bool
     {
@@ -45,7 +45,7 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
-     * Liste les presences d'une seance avec infos membre.
+     * Lists attendance records for a meeting with member info.
      */
     public function listForMeeting(string $meetingId, string $tenantId): array
     {
@@ -64,7 +64,7 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
-     * Resume (nb + poids) des presents pour une seance.
+     * Summary (count + weight) of attendees for a meeting.
      */
     public function summaryForMeeting(string $meetingId, string $tenantId): array
     {
@@ -85,7 +85,7 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
-     * Liste presences pour rapport (avec infos membre).
+     * Lists attendance for report (with member info).
      */
     public function listForReport(string $meetingId, string $tenantId): array
     {
@@ -296,8 +296,8 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
-     * Export CSV: presences avec infos membre et procurations.
-     * Note: Isolation tenant renforcée sur tous les JOINs pour éviter cross-tenant leaks.
+     * CSV export: attendance with member info and proxies.
+     * Note: Reinforced tenant isolation on all JOINs to avoid cross-tenant leaks.
      */
     public function listExportForMeeting(string $meetingId): array
     {

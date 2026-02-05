@@ -139,7 +139,7 @@ final class InputValidator
 
         $value = trim((string)$value);
 
-        // Sanitize XSS par défaut
+        // Sanitize XSS by default
         if (!($def['raw'] ?? false)) {
             $value = htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         }
@@ -310,7 +310,7 @@ final class FieldBuilder
     public function in(array $values): self { $this->definition['in'] = $values; return $this; }
     public function raw(): self { $this->definition['raw'] = true; return $this; }
 
-    // Méthodes pass-through pour permettre le chaînage de plusieurs champs
+    // Pass-through methods to allow chaining multiple fields
     public function string(string $name): FieldBuilder { return $this->build()->string($name); }
     public function integer(string $name): FieldBuilder { return $this->build()->integer($name); }
     public function number(string $name): FieldBuilder { return $this->build()->number($name); }
@@ -328,8 +328,8 @@ final class FieldBuilder
     }
 
     /**
-     * Valide les données en appelant le validateur parent.
-     * Permet d'appeler validate() directement sur la chaîne de FieldBuilder.
+     * Validates data by calling the parent validator.
+     * Allows calling validate() directly on the FieldBuilder chain.
      */
     public function validate(array $input): ValidationResult
     {
