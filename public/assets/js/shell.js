@@ -215,6 +215,97 @@
 
   window.ShellDrawer = { open: openDrawer, close: closeDrawer, register: registerKind };
 
+  // ==========================================================================
+  // Mobile Navigation
+  // ==========================================================================
+
+  const sidebar = document.querySelector('.app-sidebar');
+
+  // Create mobile nav toggle button
+  const mobileNavToggle = document.createElement('button');
+  mobileNavToggle.className = 'mobile-nav-toggle';
+  mobileNavToggle.setAttribute('aria-label', 'Ouvrir le menu de navigation');
+  mobileNavToggle.setAttribute('aria-expanded', 'false');
+  mobileNavToggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>';
+  document.body.appendChild(mobileNavToggle);
+
+  // Create mobile close button (added to sidebar when opened)
+  function createMobileCloseBtn() {
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'mobile-close';
+    closeBtn.setAttribute('aria-label', 'Fermer le menu');
+    closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+    return closeBtn;
+  }
+
+  function openMobileNav() {
+    if (!sidebar) return;
+    sidebar.classList.add('mobile-open');
+    mobileNavToggle.setAttribute('aria-expanded', 'true');
+    mobileNavToggle.setAttribute('aria-label', 'Fermer le menu de navigation');
+
+    // Add close button
+    let closeBtn = sidebar.querySelector('.mobile-close');
+    if (!closeBtn) {
+      closeBtn = createMobileCloseBtn();
+      sidebar.insertBefore(closeBtn, sidebar.firstChild);
+      closeBtn.addEventListener('click', closeMobileNav);
+    }
+
+    // Focus trap - focus first focusable element
+    const firstFocusable = sidebar.querySelector('a, button');
+    if (firstFocusable) firstFocusable.focus();
+
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMobileNav() {
+    if (!sidebar) return;
+    sidebar.classList.remove('mobile-open');
+    mobileNavToggle.setAttribute('aria-expanded', 'false');
+    mobileNavToggle.setAttribute('aria-label', 'Ouvrir le menu de navigation');
+
+    // Restore body scroll
+    document.body.style.overflow = '';
+
+    // Return focus to toggle button
+    mobileNavToggle.focus();
+  }
+
+  mobileNavToggle.addEventListener('click', function() {
+    if (sidebar && sidebar.classList.contains('mobile-open')) {
+      closeMobileNav();
+    } else {
+      openMobileNav();
+    }
+  });
+
+  // Close mobile nav on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && sidebar && sidebar.classList.contains('mobile-open')) {
+      closeMobileNav();
+    }
+  });
+
+  // Close mobile nav when clicking a link
+  if (sidebar) {
+    sidebar.addEventListener('click', function(e) {
+      if (e.target.matches('a') && sidebar.classList.contains('mobile-open')) {
+        closeMobileNav();
+      }
+    });
+  }
+
+  // Close on resize if no longer mobile
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 768 && sidebar && sidebar.classList.contains('mobile-open')) {
+      closeMobileNav();
+    }
+  });
+
+  window.MobileNav = { open: openMobileNav, close: closeMobileNav };
+
   // Auto-load auth UI banner (login/logout + role visibility)
   const authScript = document.createElement('script');
   authScript.src = '/assets/js/auth-ui.js';

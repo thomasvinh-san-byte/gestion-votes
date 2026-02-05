@@ -1799,6 +1799,255 @@ textarea:focus-visible,
   }
 }
 
+/* ─── Small phones (< 480px) ─── */
+@media (max-width: 480px) {
+  :root {
+    --text-base: 0.9375rem; /* 15px for better readability on small screens */
+  }
+
+  /* Ensure touch-friendly minimum target size */
+  .btn,
+  .nav-item,
+  button,
+  a.btn,
+  select,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Improve form inputs for mobile */
+  .form-input,
+  .form-select,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  select,
+  textarea {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: var(--space-3);
+  }
+
+  /* Full width buttons on small screens */
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn.btn-icon,
+  .btn.btn-sm {
+    width: auto;
+  }
+
+  /* Stack form groups */
+  .form-row,
+  .input-row {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .form-row > *,
+  .input-row > * {
+    flex: 1 1 100%;
+  }
+
+  /* Compact page header */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  /* Compact result cards */
+  .result-card {
+    padding: var(--space-3);
+  }
+
+  .result-card .value {
+    font-size: 1.5rem;
+  }
+
+  /* Stack exports grid */
+  .exports-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Mobile navigation toggle ─── */
+.mobile-nav-toggle {
+  display: none;
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: var(--z-fixed);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.mobile-nav-toggle:active {
+  transform: scale(0.95);
+}
+
+.mobile-nav-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 768px) {
+  .mobile-nav-toggle {
+    display: flex;
+  }
+
+  /* Mobile sidebar overlay */
+  .app-sidebar.mobile-open {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-modal);
+    background: var(--color-surface);
+    flex-direction: column;
+    overflow-y: auto;
+    animation: slideInLeft var(--duration-normal) var(--ease-out);
+  }
+
+  @keyframes slideInLeft {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .app-sidebar.mobile-open .mobile-close {
+    display: flex;
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-subtle);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+}
+
+/* ─── Touch-friendly improvements ─── */
+@media (pointer: coarse) {
+  /* Larger touch targets */
+  .btn {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .nav-item {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  /* Increase checkbox/radio hit area */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Increase spacing between interactive elements */
+  .flex.gap-2,
+  .row.gap-2 {
+    gap: var(--space-3);
+  }
+
+  /* Disable hover effects on touch devices (they can cause sticky states) */
+  .btn:hover,
+  .nav-item:hover,
+  .card:hover {
+    /* Rely on active/focus states instead */
+  }
+}
+
+/* ─── Safe area insets for notched devices ─── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .vote-footer,
+  .app-footer,
+  .mobile-nav-toggle {
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  }
+
+  .app-sidebar.mobile-open {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ─── Responsive tables ─── */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  /* Stack table rows on mobile */
+  .table-stack tbody tr {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .table-stack thead {
+    display: none;
+  }
+
+  .table-stack td {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-2) 0;
+    border: none;
+  }
+
+  .table-stack td::before {
+    content: attr(data-label);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-muted);
+    margin-right: var(--space-4);
+  }
+}
+
+/* ─── Landscape orientation adjustments ─── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .vote-btn {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .vote-btn-icon {
+    font-size: 1.5rem;
+  }
+
+  .vote-buttons {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+  }
+}
+
 /* =============================================================================
    11. PRINT
    ============================================================================= */
