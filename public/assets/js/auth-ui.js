@@ -121,9 +121,18 @@
 
     b.querySelector('#auth-logout-btn').addEventListener('click', async function () {
       try {
+        // Fetch CSRF token first
+        var csrfResp = await fetch('/api/v1/auth_csrf.php', { credentials: 'same-origin' });
+        var csrfData = await csrfResp.json();
+        var csrfToken = csrfData.data ? csrfData.data.token : (csrfData.token || '');
+
         await fetch('/api/v1/auth_logout.php', {
           method: 'POST',
-          credentials: 'same-origin'
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken
+          }
         });
       } catch (e) { /* best effort */ }
       window.Auth.user = null;

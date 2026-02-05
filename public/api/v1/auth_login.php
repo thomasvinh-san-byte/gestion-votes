@@ -130,6 +130,9 @@ $_SESSION['auth_user'] = [
     'logged_in_at' => date('c'),
 ];
 
+// Initialize session timeout tracking
+$_SESSION['auth_last_activity'] = time();
+
 // Audit
 audit_log('user_login', 'user', $user['id'], [
     'method' => $authMethod,

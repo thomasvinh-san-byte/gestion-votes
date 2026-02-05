@@ -5,13 +5,20 @@ declare(strict_types=1);
  * auth_logout.php - Déconnexion utilisateur (destruction session)
  *
  * POST /api/v1/auth_logout.php
+ *
+ * Requires CSRF token validation for security.
  */
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Core\Security\CsrfMiddleware;
+
 if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     api_fail('method_not_allowed', 405);
 }
+
+// Validate CSRF token to prevent forced logout attacks
+CsrfMiddleware::validate();
 
 // Audit avant destruction
 $userId = api_current_user_id();

@@ -620,7 +620,7 @@ CREATE TABLE IF NOT EXISTS ballots (
   source text,
   cast_at timestamptz NOT NULL DEFAULT now(),
   is_proxy_vote boolean DEFAULT false,
-  proxy_source_member_id uuid REFERENCES members(id),
+  proxy_source_member_id uuid REFERENCES members(id) ON DELETE SET NULL,
   UNIQUE (motion_id, member_id)
 );
 

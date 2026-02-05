@@ -45,10 +45,41 @@ try {
         $scheduledAt = $input['scheduled_at'] ?? null;
         $location    = trim($input['location'] ?? '');
 
+        // Input validation
         if ($title === '') {
             api_fail('missing_title', 422, [
                 'detail' => 'Le titre de la séance est obligatoire.',
             ]);
+        }
+
+        if (mb_strlen($title) > 200) {
+            api_fail('title_too_long', 422, [
+                'detail' => 'Le titre ne peut pas dépasser 200 caractères.',
+            ]);
+        }
+
+        if (mb_strlen($description) > 5000) {
+            api_fail('description_too_long', 422, [
+                'detail' => 'La description ne peut pas dépasser 5000 caractères.',
+            ]);
+        }
+
+        if (mb_strlen($location) > 500) {
+            api_fail('location_too_long', 422, [
+                'detail' => 'Le lieu ne peut pas dépasser 500 caractères.',
+            ]);
+        }
+
+        if ($scheduledAt !== null && $scheduledAt !== '') {
+            $dt = \DateTime::createFromFormat('Y-m-d\TH:i:s', $scheduledAt)
+               ?: \DateTime::createFromFormat('Y-m-d H:i:s', $scheduledAt)
+               ?: \DateTime::createFromFormat('Y-m-d\TH:i', $scheduledAt)
+               ?: \DateTime::createFromFormat('Y-m-d', $scheduledAt);
+            if (!$dt) {
+                api_fail('invalid_scheduled_at', 422, [
+                    'detail' => 'Format de date invalide. Utilisez YYYY-MM-DD ou YYYY-MM-DDTHH:MM:SS.',
+                ]);
+            }
         }
 
         $id = $repo->generateUuid();

@@ -7,6 +7,14 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MemberRepository;
 
+// Block this endpoint in production environments
+$env = getenv('APP_ENV') ?: 'dev';
+if (in_array($env, ['production', 'prod'], true)) {
+    api_fail('endpoint_disabled', 403, [
+        'detail' => 'Cet endpoint de développement est désactivé en production.',
+    ]);
+}
+
 try {
     api_require_role('operator');
     $in = api_request('POST');
