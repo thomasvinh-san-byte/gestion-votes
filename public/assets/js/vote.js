@@ -333,7 +333,7 @@
     if (memberId) localStorage.setItem("public.member_id", memberId);
 
     if (!meetingId){
-      $("#motionBox").innerHTML = "<span class='muted'>Sélectionnez une séance.</span>";
+      $("#motionBox").innerHTML = "<span class='text-muted'>Sélectionnez une séance.</span>";
       setVoteButtonsEnabled(false);
       return;
     }
@@ -344,19 +344,19 @@
       const m = r?.data?.motion;
       if (!m){
         _currentMotionId = null;
-        $("#motionBox").innerHTML = "<span class='muted'>Aucune motion ouverte.</span>";
+        $("#motionBox").innerHTML = "<span class='text-muted'>Aucune motion ouverte.</span>";
         setVoteButtonsEnabled(false);
         return;
       }
       _currentMotionId = m.id || m.motion_id || null;
       $("#motionBox").innerHTML = `
         <div><strong>${escapeHtml(m.title || "Motion")}</strong></div>
-        <div class='muted tiny'>${escapeHtml(m.description || "")}</div>
+        <div class='text-muted text-xs'>${escapeHtml(m.description || "")}</div>
         ${motionMetaBadges(m)}
       `;
       setVoteButtonsEnabled(!!memberId);
     } catch(e){
-      $("#motionBox").innerHTML = `<span class='muted'>Erreur: ${escapeHtml(e?.message || String(e))}</span>`;
+      $("#motionBox").innerHTML = `<span class='text-muted'>Erreur: ${escapeHtml(e?.message || String(e))}</span>`;
       setVoteButtonsEnabled(false);
     }
   }

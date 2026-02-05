@@ -91,14 +91,14 @@ function createMeetingElement(m, isActive) {
 
     let html = `<strong>${escapeHtml(m.title)}</strong>`;
     html += ` <span class="pill status-${m.status}">${m.status}</span>`;
-    html += `<br><span class="muted">${m.id}</span>`;
+    html += `<br><span class="text-muted">${m.id}</span>`;
 
     if (!isActive) {
         if (m.validated_by) {
             const date = m.validated_at ? new Date(m.validated_at).toLocaleString() : 'date inconnue';
-            html += `<br><span class="muted">Validée par ${escapeHtml(m.validated_by)} le ${date}</span>`;
+            html += `<br><span class="text-muted">Validée par ${escapeHtml(m.validated_by)} le ${date}</span>`;
         } else {
-            html += `<br><span class="muted">Non validée</span>`;
+            html += `<br><span class="text-muted">Non validée</span>`;
         }
     }
 

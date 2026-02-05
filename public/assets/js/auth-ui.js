@@ -104,7 +104,7 @@
     b.innerHTML =
       '<div>' +
       '  <strong>Accès</strong> ' +
-      '  <span class="muted" id="auth-status" style="font-size:12px;">...</span>' +
+      '  <span class="text-muted" id="auth-status" style="font-size:12px;">...</span>' +
       '</div>' +
       '<div style="display:flex;gap:8px;align-items:center;">' +
       '  <span id="auth-roles-badge" style="font-size:11px;display:none;"></span>' +

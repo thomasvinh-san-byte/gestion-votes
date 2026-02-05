@@ -12,7 +12,7 @@
     <div class="top print-hide">
       <div>
         <div class="k">Procès-verbal</div>
-        <div class="muted tiny" id="pvMeta">Chargement…</div>
+        <div class="text-muted text-xs" id="pvMeta">Chargement…</div>
       </div>
       <div class="controls">
         <button class="btn primary" id="btnPrint" type="button">Imprimer</button>
@@ -25,11 +25,11 @@
         <div class="row">
           <div>
             <div class="k" style="font-size:16px;">Résumé</div>
-            <div class="muted">Statut : <span id="pvStatus" class="pill">—</span></div>
+            <div class="text-muted">Statut : <span id="pvStatus" class="pill">—</span></div>
           </div>
           <div class="controls">
-            <div class="muted tiny">Présents : <strong id="pvPresent">—</strong></div>
-            <div class="muted tiny">Quorum : <strong id="pvQuorum">—</strong></div>
+            <div class="text-muted text-xs">Présents : <strong id="pvPresent">—</strong></div>
+            <div class="text-muted text-xs">Quorum : <strong id="pvQuorum">—</strong></div>
           </div>
         </div>
       </section>
@@ -40,7 +40,7 @@
         <div style="overflow:auto;">
           <table style="width:100%; border-collapse:collapse;">
             <thead>
-              <tr class="muted tiny">
+              <tr class="text-muted text-xs">
                 <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border-color);">Nom</th>
                 <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border-color);">Prénom</th>
                 <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border-color);">Statut</th>
@@ -54,7 +54,7 @@
 
       <section class="card">
         <div class="k" style="font-size:16px;">Résolutions</div>
-        <div class="muted tiny">Résultats figés si les motions sont clôturées.</div>
+        <div class="text-muted text-xs">Résultats figés si les motions sont clôturées.</div>
         <div class="hr"></div>
         <div id="pvMotions" style="display:grid; gap:10px;"></div>
       </section>
@@ -64,11 +64,11 @@
         <div class="hr"></div>
         <div class="grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap:18px;">
           <div>
-            <div class="muted tiny">Président</div>
+            <div class="text-muted text-xs">Président</div>
             <div style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:8px;">Signature</div>
           </div>
           <div>
-            <div class="muted tiny">Secrétaire / Opérateur</div>
+            <div class="text-muted text-xs">Secrétaire / Opérateur</div>
             <div style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:8px;">Signature</div>
           </div>
         </div>
