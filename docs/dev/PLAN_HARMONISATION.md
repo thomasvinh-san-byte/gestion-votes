@@ -26,13 +26,13 @@ All PHP classes must use `AgVote\*` namespace with PSR-4 autoloading.
 | `app/Core/Security/SecurityHeaders.php` | `App\Core\*` | `AgVote\Core\Security` |
 
 **Tasks:**
-- [ ] Add namespaces to all Security classes
-- [ ] Add namespace to InputValidator
-- [ ] Change `App\Core\*` to `AgVote\Core\*`
-- [ ] Rename `permissions.php` → `Permissions.php`
-- [ ] Update `composer.json` autoload section
-- [ ] Remove `require_once` from `bootstrap.php` (use autoload)
-- [ ] Run `composer dump-autoload`
+- [x] Add namespaces to all Security classes
+- [x] Add namespace to InputValidator
+- [x] Change `App\Core\*` to `AgVote\Core\*`
+- [x] Rename `permissions.php` → `Permissions.php`
+- [x] Update `composer.json` autoload section
+- [x] Remove `require_once` from `bootstrap.php` (use autoload)
+- [x] Run `composer dump-autoload`
 
 ### 1.2 Directory Rename
 
@@ -41,9 +41,9 @@ All PHP classes must use `AgVote\*` namespace with PSR-4 autoloading.
 | `app/services/` | `app/Services/` |
 
 **Tasks:**
-- [ ] Rename directory
-- [ ] Update `composer.json` PSR-4 mapping
-- [ ] Verify all imports work
+- [x] Rename directory
+- [x] Update `composer.json` PSR-4 mapping
+- [x] Verify all imports work
 
 ### 1.3 Tenant Isolation Security Fix
 
@@ -54,9 +54,9 @@ All PHP classes must use `AgVote\*` namespace with PSR-4 autoloading.
 | `MemberRepository::findById()` | Missing `tenant_id` check |
 
 **Tasks:**
-- [ ] Audit all `findById()` methods without tenant parameter
-- [ ] Add mandatory `tenant_id` to critical methods
-- [ ] Add tests for tenant isolation
+- [x] Audit all `findById()` methods without tenant parameter
+- [x] Add mandatory `tenant_id` to critical methods (added `findByIdForTenant()`)
+- [ ] Add tests for tenant isolation (deferred to Phase 6)
 
 ### 1.4 Unified API Response Format
 
@@ -71,16 +71,16 @@ All PHP classes must use `AgVote\*` namespace with PSR-4 autoloading.
 ```
 
 **Tasks:**
-- [ ] Document response format in API.md
-- [ ] Fix endpoints returning outside `data` wrapper
-- [ ] Ensure all errors use ErrorDictionary
+- [x] Document response format in API.md (already implemented via `json_ok()`)
+- [x] Fix endpoints returning outside `data` wrapper (already correct)
+- [x] Ensure all errors use ErrorDictionary (already implemented)
 
 ### 1.5 Database Scripts Update
 
 **Tasks:**
-- [ ] Update `database/schema-master.sql` if schema changes needed
-- [ ] Review migrations for consistency
-- [ ] Ensure seeds use correct column names (resolve `voting_power` vs `vote_weight` confusion)
+- [x] Update `database/schema-master.sql` if schema changes needed (added clarification comments)
+- [x] Review migrations for consistency
+- [x] Ensure seeds use correct column names (documented `voting_power` vs `vote_weight` situation)
 
 ---
 

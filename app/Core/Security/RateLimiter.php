@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
 
+namespace AgVote\Core\Security;
+
 /**
- * RateLimiter - Protection contre les attaques par force brute
+ * RateLimiter - Brute force attack protection
  */
 final class RateLimiter
 {

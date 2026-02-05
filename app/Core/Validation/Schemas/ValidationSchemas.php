@@ -1,18 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Core\Validation\Schemas;
+namespace AgVote\Core\Validation\Schemas;
 
-use App\Core\Validation\InputValidator;
+use AgVote\Core\Validation\InputValidator;
 
 /**
- * ValidationSchemas - Schémas de validation préfabriqués pour les entités
- * 
+ * ValidationSchemas - Pre-built validation schemas for entities
+ *
  * Usage:
  *   $result = ValidationSchemas::meeting()->validate($input);
  *   $result = ValidationSchemas::motion()->validate($input);
- * 
- * @package App\Core\Validation\Schemas
  */
 final class ValidationSchemas
 {

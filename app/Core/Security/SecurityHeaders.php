@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Core\Security;
+namespace AgVote\Core\Security;
 
 /**
- * SecurityHeaders - Headers HTTP de sécurité
- * 
- * Implémente les headers recommandés OWASP :
+ * SecurityHeaders - HTTP security headers
+ *
+ * Implements OWASP-recommended headers:
  * - Content-Security-Policy (CSP)
  * - Strict-Transport-Security (HSTS)
  * - X-Frame-Options
@@ -14,8 +14,6 @@ namespace App\Core\Security;
  * - X-XSS-Protection
  * - Referrer-Policy
  * - Permissions-Policy
- * 
- * @package App\Core\Security
  */
 final class SecurityHeaders
 {

@@ -1,10 +1,14 @@
 <?php
 declare(strict_types=1);
 
+namespace AgVote\Core\Validation;
+
+use DateTimeImmutable;
+
 /**
- * InputValidator - Validation et sanitization centralisée
- * 
- * Équivalent PHP de Zod/Joi pour la validation des entrées utilisateur.
+ * InputValidator - Centralized validation and sanitization
+ *
+ * PHP equivalent of Zod/Joi for user input validation.
  */
 final class InputValidator
 {

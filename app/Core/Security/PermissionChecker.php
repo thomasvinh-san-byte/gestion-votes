@@ -3,11 +3,13 @@ declare(strict_types=1);
 
 namespace AgVote\Core\Security;
 
+use AgVote\Repository\UserRepository;
+
 /**
- * PermissionChecker - Service de verification des permissions RBAC.
+ * PermissionChecker - RBAC permission verification service.
  *
- * Encapsule la logique de permissions dans un service testable.
- * Delegue au AuthMiddleware existant mais fournit une API plus propre.
+ * Encapsulates permission logic in a testable service.
+ * Delegates to AuthMiddleware but provides a cleaner API.
  */
 class PermissionChecker
 {
@@ -17,10 +19,9 @@ class PermissionChecker
 
     public function __construct()
     {
-        $config = require __DIR__ . '/permissions.php';
-        $this->permissions = $config['permissions'] ?? [];
-        $this->transitions = $config['transitions'] ?? [];
-        $this->roleHierarchy = $config['hierarchy'] ?? [];
+        $this->permissions = Permissions::PERMISSIONS;
+        $this->transitions = Permissions::TRANSITIONS;
+        $this->roleHierarchy = Permissions::HIERARCHY;
     }
 
     /**
@@ -199,7 +200,7 @@ class PermissionChecker
         }
 
         try {
-            $repo = new \AgVote\Repository\UserRepository();
+            $repo = new UserRepository();
             $tenantId = $user['tenant_id'] ?? $this->getDefaultTenantId();
             return $repo->listUserRolesForMeeting($tenantId, $meetingId, $user['id']);
         } catch (\Throwable $e) {

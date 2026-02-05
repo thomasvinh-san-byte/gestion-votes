@@ -10,9 +10,12 @@
     },
     "autoload": {
         "psr-4": {
+            "AgVote\\": "app/",
             "AgVote\\Repository\\": "app/Repository/",
-            "AgVote\\Service\\": "app/services/",
+            "AgVote\\Service\\": "app/Services/",
             "AgVote\\Core\\": "app/Core/",
+            "AgVote\\Core\\Security\\": "app/Core/Security/",
+            "AgVote\\Core\\Validation\\": "app/Core/Validation/",
             "AgVote\\WebSocket\\": "app/WebSocket/"
         }
     }

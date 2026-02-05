@@ -30,24 +30,22 @@ if (file_exists($envFile)) {
 }
 
 // =============================================================================
-// 1. AUTOLOADING COMPOSANTS SÉCURITÉ
+// 1. AUTOLOADING (PSR-4 via Composer)
 // =============================================================================
 
-require_once __DIR__ . '/Core/Security/CsrfMiddleware.php';
-require_once __DIR__ . '/Core/Security/AuthMiddleware.php';
-require_once __DIR__ . '/Core/Security/RateLimiter.php';
-require_once __DIR__ . '/Core/Validation/InputValidator.php';
-
-// Composer autoload si disponible
 $autoload = __DIR__ . '/../vendor/autoload.php';
 if (file_exists($autoload)) {
     require_once $autoload;
 } else {
-    // Fallback PSR-4 autoloader (fonctionne sans composer install)
+    // Fallback PSR-4 autoloader (works without composer install)
     spl_autoload_register(function (string $class): void {
         $map = [
-            'AgVote\\Repository\\' => __DIR__ . '/Repository/',
-            'AgVote\\Service\\'    => __DIR__ . '/services/',
+            'AgVote\\Core\\Security\\'    => __DIR__ . '/Core/Security/',
+            'AgVote\\Core\\Validation\\'  => __DIR__ . '/Core/Validation/',
+            'AgVote\\Core\\'              => __DIR__ . '/Core/',
+            'AgVote\\Repository\\'        => __DIR__ . '/Repository/',
+            'AgVote\\Service\\'           => __DIR__ . '/Services/',
+            'AgVote\\WebSocket\\'         => __DIR__ . '/WebSocket/',
         ];
         foreach ($map as $prefix => $dir) {
             $len = strlen($prefix);
@@ -61,6 +59,11 @@ if (file_exists($autoload)) {
         }
     });
 }
+
+// Import namespaced classes
+use AgVote\Core\Security\CsrfMiddleware;
+use AgVote\Core\Security\AuthMiddleware;
+use AgVote\Core\Security\RateLimiter;
 
 // =============================================================================
 // 2. CONFIGURATION

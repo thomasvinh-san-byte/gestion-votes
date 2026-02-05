@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
 
+namespace AgVote\Core\Security;
+
 /**
- * CsrfMiddleware - Protection CSRF conforme OWASP
+ * CsrfMiddleware - OWASP-compliant CSRF Protection
  * 
  * Implémente le pattern Synchronizer Token avec support HTMX.
  */

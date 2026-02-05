@@ -1,23 +1,31 @@
 <?php
 declare(strict_types=1);
 
+namespace AgVote\Core\Security;
+
+use AgVote\Repository\UserRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\MemberRepository;
+use RuntimeException;
+
 /**
- * AuthMiddleware - Authentification et Autorisation RBAC à deux niveaux
+ * AuthMiddleware - Authentication and RBAC Authorization (two-level)
  *
- * Modèle de rôles :
- *   NIVEAU SYSTÈME (users.role) — permanent, lié au compte utilisateur
- *     admin    = Super-administrateur plateforme
- *     operator = Opérateur (gestion opérationnelle)
- *     auditor  = Auditeur (conformité, lecture)
- *     viewer   = Observateur (lecture seule)
+ * Role model:
+ *   SYSTEM LEVEL (users.role) - permanent, tied to user account
+ *     admin    = Platform super-administrator
+ *     operator = Operator (operational management)
+ *     auditor  = Auditor (compliance, read-only)
+ *     viewer   = Observer (read-only)
  *
- *   NIVEAU SÉANCE (meeting_roles) — temporaire, attribué par séance
- *     president = Président de séance (gouvernance)
- *     assessor  = Assesseur/Scrutateur (co-contrôle)
- *     voter     = Électeur (vote)
+ *   MEETING LEVEL (meeting_roles) - temporary, assigned per meeting
+ *     president = Meeting president (governance)
+ *     assessor  = Assessor/Scrutineer (co-control)
+ *     voter     = Voter (voting)
  *
- * Résolution des permissions :
- *   permissions_effectives = permissions(system_role) ∪ permissions(meeting_roles)
+ * Permission resolution:
+ *   effective_permissions = permissions(system_role) ∪ permissions(meeting_roles)
  */
 final class AuthMiddleware
 {
@@ -203,7 +211,7 @@ final class AuthMiddleware
         }
 
         try {
-            $repo = new \AgVote\Repository\UserRepository();
+            $repo = new UserRepository();
             $roles = $repo->listUserRolesForMeeting(
                 $user['tenant_id'] ?? self::getDefaultTenantId(),
                 $mid,
@@ -512,7 +520,7 @@ final class AuthMiddleware
         $tenantId = $user['tenant_id'] ?? self::getDefaultTenantId();
 
         try {
-            $repo = new \AgVote\Repository\MeetingRepository();
+            $repo = new MeetingRepository();
             return $repo->findByIdForTenant($meetingId, $tenantId) !== null;
         } catch (\Throwable $e) {
             error_log("Meeting access check error: " . $e->getMessage());
@@ -705,7 +713,7 @@ final class AuthMiddleware
         $hash = hash_hmac('sha256', $apiKey, $secret);
 
         try {
-            $repo = new \AgVote\Repository\UserRepository();
+            $repo = new UserRepository();
             $row = $repo->findByApiKeyHashGlobal($hash);
 
             if (!$row) {
@@ -799,9 +807,9 @@ final class AuthMiddleware
 
         try {
             return match($resourceType) {
-                'meeting' => (new \AgVote\Repository\MeetingRepository())->isOwnedByUser($resourceId, $userId),
-                'motion'  => (new \AgVote\Repository\MotionRepository())->isOwnedByUser($resourceId, $userId),
-                'member'  => (new \AgVote\Repository\MemberRepository())->isOwnedByUser($resourceId, $userId),
+                'meeting' => (new MeetingRepository())->isOwnedByUser($resourceId, $userId),
+                'motion'  => (new MotionRepository())->isOwnedByUser($resourceId, $userId),
+                'member'  => (new MemberRepository())->isOwnedByUser($resourceId, $userId),
                 default   => false,
             };
         } catch (\Throwable $e) {

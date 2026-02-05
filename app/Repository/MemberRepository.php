@@ -42,7 +42,29 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Trouve un membre par son ID.
+     * Find a member by ID for a specific tenant.
+     */
+    public function findByIdForTenant(string $id, string $tenantId): ?array
+    {
+        return $this->selectOne(
+            "SELECT * FROM members WHERE id = :id AND tenant_id = :tenant_id AND deleted_at IS NULL",
+            [':id' => $id, ':tenant_id' => $tenantId]
+        );
+    }
+
+    /**
+     * Check if a member exists for a tenant.
+     */
+    public function existsForTenant(string $id, string $tenantId): bool
+    {
+        return (bool)$this->scalar(
+            "SELECT 1 FROM members WHERE id = :id AND tenant_id = :tenant_id AND deleted_at IS NULL",
+            [':id' => $id, ':tenant_id' => $tenantId]
+        );
+    }
+
+    /**
+     * @deprecated Use findByIdForTenant() instead for tenant isolation.
      */
     public function findById(string $id): ?array
     {
