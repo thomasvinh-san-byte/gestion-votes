@@ -1,0 +1,232 @@
+/**
+ * email-templates.css - Email templates management page styles.
+ *
+ * Contains styles for template cards, editor modal, and variables helper.
+ */
+
+/* =============================================================================
+   MAIN CONTENT
+   ============================================================================= */
+
+.app-main.email-templates-main {
+  padding: 1.5rem;
+}
+
+/* =============================================================================
+   TEMPLATES GRID
+   ============================================================================= */
+
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+/* =============================================================================
+   TEMPLATE CARD
+   ============================================================================= */
+
+.template-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.template-card.is-default {
+  border-color: var(--color-primary);
+}
+
+.template-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.template-card-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.template-card-type {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: var(--color-bg-subtle);
+}
+
+.template-card-type.invitation {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.template-card-type.reminder {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+}
+
+.template-card-type.confirmation {
+  background: var(--color-info-subtle);
+  color: var(--color-info);
+}
+
+.template-card-body {
+  padding: 1rem;
+}
+
+.template-card-subject {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.template-card-preview {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  max-height: 60px;
+  overflow: hidden;
+}
+
+.template-card-footer {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+}
+
+/* =============================================================================
+   EDITOR MODAL
+   ============================================================================= */
+
+.template-editor {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.template-editor.active {
+  display: flex;
+}
+
+.template-editor-content {
+  background: var(--color-surface);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1000px;
+  max-height: 90vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+}
+
+.template-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.template-editor-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .template-editor-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.template-editor-form {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.template-editor-preview {
+  border-left: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-header {
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.preview-frame {
+  flex: 1;
+  border: none;
+  background: white;
+}
+
+.template-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* =============================================================================
+   VARIABLES HELPER
+   ============================================================================= */
+
+.variables-section {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-bg-subtle);
+  border-radius: 8px;
+}
+
+.variables-section h4 {
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.variable-tag {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  margin: 0.125rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: monospace;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.variable-tag:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.variable-tag:active {
+  transform: scale(0.95);
+}
+
+/* =============================================================================
+   EMPTY STATE
+   ============================================================================= */
+
+.email-templates-empty .icon-xl {
+  width: 4rem;
+  height: 4rem;
+}

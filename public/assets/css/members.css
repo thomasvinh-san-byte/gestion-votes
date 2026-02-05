@@ -1,0 +1,630 @@
+/**
+ * members.css - Members page specific styles.
+ *
+ * Contains styles for member management, groups, and import functionality.
+ */
+
+/* =============================================================================
+   PAGE HEADER - DILIGENT STYLE
+   ============================================================================= */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.page-header-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+.page-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* =============================================================================
+   STATS BAR
+   ============================================================================= */
+
+.stats-bar {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.stat-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  text-align: center;
+  min-width: 100px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-top: 0.125rem;
+}
+
+.stat-item.total .stat-value {
+  color: var(--color-primary);
+}
+
+.stat-item.active .stat-value {
+  color: var(--color-success);
+}
+
+.stat-item.inactive .stat-value {
+  color: var(--color-text-muted);
+}
+
+/* =============================================================================
+   GROUP BADGES
+   ============================================================================= */
+
+.group-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.group-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 0.25rem;
+}
+
+.member-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+/* =============================================================================
+   GROUPS MANAGEMENT SECTION
+   ============================================================================= */
+
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.group-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.group-card:hover {
+  border-color: var(--color-primary);
+}
+
+.group-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.group-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.group-details {
+  min-width: 0;
+}
+
+.group-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.group-actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.create-group-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.create-group-form .form-group {
+  flex: 1;
+}
+
+.create-group-form .form-group-color {
+  flex: 0.5;
+}
+
+.color-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+input[type="color"] {
+  width: 36px;
+  height: 36px;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* =============================================================================
+   GROUP FILTER TABS
+   ============================================================================= */
+
+.group-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.group-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-surface);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.group-filter:hover {
+  border-color: var(--color-primary);
+}
+
+.group-filter.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.group-filter .group-color-dot {
+  width: 8px;
+  height: 8px;
+}
+
+/* =============================================================================
+   CHECKBOX LIST FOR GROUPS IN MODAL
+   ============================================================================= */
+
+.groups-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  background: var(--color-bg-subtle);
+  border-radius: 6px;
+}
+
+.group-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem;
+}
+
+.group-checkbox-item input[type="checkbox"] {
+  margin: 0;
+}
+
+/* =============================================================================
+   CONTENT AREA
+   ============================================================================= */
+
+.page-content {
+  padding: 1.5rem;
+}
+
+/* Members page main content no padding */
+.app-main.members-main {
+  padding: 0;
+}
+
+/* =============================================================================
+   ADD MEMBER CARD
+   ============================================================================= */
+
+.create-card {
+  background: var(--color-surface);
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.create-card h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.create-form {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr auto auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+@media (max-width: 900px) {
+  .create-form {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* =============================================================================
+   IMPORT CARD
+   ============================================================================= */
+
+.import-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.import-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.import-card-desc {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.upload-zone {
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.upload-zone:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.upload-zone-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.upload-zone-text {
+  font-weight: 500;
+}
+
+.upload-zone-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+.file-name-text {
+  align-self: center;
+}
+
+/* =============================================================================
+   FILTER TABS
+   ============================================================================= */
+
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-tab {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-tab:hover {
+  border-color: var(--color-primary);
+}
+
+.filter-tab.active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+/* =============================================================================
+   TOOLBAR
+   ============================================================================= */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 250px;
+  max-width: 400px;
+}
+
+/* =============================================================================
+   SECTION HEADER
+   ============================================================================= */
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.section-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* =============================================================================
+   MEMBERS GRID
+   ============================================================================= */
+
+.members-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.75rem;
+}
+
+.member-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: all 0.15s;
+}
+
+.member-card:hover {
+  border-color: var(--color-primary);
+}
+
+.member-card.is-active {
+  border-left: 4px solid var(--color-success);
+}
+
+.member-card.is-inactive {
+  opacity: 0.6;
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.member-card.is-active .member-avatar {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.member-details {
+  min-width: 0;
+}
+
+.member-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.member-actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.member-action-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.member-action-btn:hover {
+  background: var(--color-bg-subtle);
+}
+
+.member-action-btn.danger:hover {
+  background: var(--color-danger-subtle);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* =============================================================================
+   EMPTY STATE
+   ============================================================================= */
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--color-bg-subtle);
+  border-radius: 8px;
+  grid-column: 1 / -1;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* =============================================================================
+   COLLAPSIBLE SECTIONS
+   ============================================================================= */
+
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+  transition: all 0.15s;
+}
+
+.collapsible-header:hover {
+  border-color: var(--color-primary);
+}
+
+.collapsible-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collapsible-chevron {
+  transition: transform 0.2s;
+}
+
+.collapsible-section.expanded .collapsible-chevron {
+  transform: rotate(90deg);
+}
+
+.collapsible-content {
+  display: none;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+
+.collapsible-section.expanded .collapsible-content {
+  display: block;
+}
+
+/* =============================================================================
+   LOADING STATE
+   ============================================================================= */
+
+.members-loading {
+  grid-column: 1 / -1;
+}
