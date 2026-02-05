@@ -44,6 +44,9 @@ final class AuthMiddleware
     /** Meeting roles (no hierarchy, distinct permissions) */
     private const MEETING_ROLES = ['president', 'assessor', 'voter'];
 
+    /** Session timeout in seconds (30 minutes) */
+    private const SESSION_TIMEOUT = 1800;
+
     /** Hierarchy levels for ALL roles (system + meeting) */
     private const ROLE_HIERARCHY = [
         'admin'     => 100,
@@ -392,6 +395,25 @@ final class AuthMiddleware
                 @session_start();
             }
             if (!empty($_SESSION['auth_user'])) {
+                // Check session timeout
+                $lastActivity = $_SESSION['auth_last_activity'] ?? 0;
+                $now = time();
+
+                if ($lastActivity > 0 && ($now - $lastActivity) > self::SESSION_TIMEOUT) {
+                    // Session expired - destroy it
+                    error_log(sprintf(
+                        'SESSION_EXPIRED | user_id=%s | idle=%ds',
+                        $_SESSION['auth_user']['id'] ?? 'unknown',
+                        $now - $lastActivity
+                    ));
+                    $_SESSION = [];
+                    session_destroy();
+                    return null;
+                }
+
+                // Update last activity timestamp
+                $_SESSION['auth_last_activity'] = $now;
+
                 self::$currentUser = $_SESSION['auth_user'];
                 return self::$currentUser;
             }
