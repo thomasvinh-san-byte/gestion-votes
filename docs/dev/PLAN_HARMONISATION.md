@@ -199,9 +199,9 @@ const MeetingContext = {
 ```
 
 **Tasks:**
-- [ ] Remove `.btn.{variant}` rules from CSS
-- [ ] Update HTML using legacy syntax
-- [ ] Document official variants
+- [x] Remove `.btn.{variant}` rules from CSS
+- [x] Update HTML using legacy syntax
+- [x] Document official variants
 
 ### 4.2 Typography Scale
 
@@ -221,9 +221,9 @@ const MeetingContext = {
 ```
 
 **Tasks:**
-- [ ] Remove legacy typography classes
-- [ ] Update HTML using legacy classes
-- [ ] Document typography scale
+- [x] Remove legacy typography classes (.muted, .tiny, .h1, .h2, .h3)
+- [x] Update HTML/JS using legacy classes
+- [x] Document typography scale
 
 ---
 
@@ -232,9 +232,10 @@ const MeetingContext = {
 ### 5.1 Linter Configurations
 
 **Tasks:**
-- [ ] Create `.eslintrc.json` with standard rules
-- [ ] Create `.prettierrc.json` for formatting
-- [ ] Create `.editorconfig` for editor consistency
+- [x] Create `.eslintrc.json` with standard rules
+- [x] Create `.stylelintrc.json` for CSS linting
+- [x] Create `.php-cs-fixer.dist.php` for PHP formatting
+- [x] Create `.editorconfig` for editor consistency
 
 ### 5.2 Documentation
 
@@ -251,9 +252,9 @@ const MeetingContext = {
 **Decision:** All code, comments, and documentation in English.
 
 **Tasks:**
-- [ ] Convert French comments to English (PHP)
-- [ ] Convert French comments to English (JS)
-- [ ] Keep French only for user-facing strings (UI labels, error messages)
+- [x] Convert French comments to English (PHP)
+- [x] Convert French comments to English (JS)
+- [x] Keep French only for user-facing strings (UI labels, error messages)
 
 ---
 
@@ -325,6 +326,6 @@ Phase 6 (Tests)
 - [ ] Single source of truth for `meeting_id`
 - [ ] All JS files are ES6 modules
 - [ ] Single notification system (AgToast)
-- [ ] No legacy CSS syntax
-- [ ] All comments in English
+- [x] No legacy CSS syntax
+- [x] All comments in English
 - [ ] 30%+ test coverage
