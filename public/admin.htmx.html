@@ -90,13 +90,13 @@
           <div class="card mb-4">
             <div class="card-body">
               <div class="flex items-center gap-4 flex-wrap">
-                <div class="form-group" style="min-width: 200px;">
+                <div class="form-group form-group-search">
                   <label class="form-label">Rechercher</label>
                   <input class="form-input" type="text" id="searchUser" placeholder="Nom ou email...">
                 </div>
-                <div class="form-group">
+                <div class="form-group form-group-filter">
                   <label class="form-label">Filtrer par rôle</label>
-                  <select class="form-input" id="filterRole" style="min-width:150px">
+                  <select class="form-input" id="filterRole">
                     <option value="">Tous les rôles</option>
                     <option value="admin">Administrateur</option>
                     <option value="operator">Opérateur</option>
@@ -104,7 +104,7 @@
                     <option value="viewer">Observateur</option>
                   </select>
                 </div>
-                <div class="text-sm text-muted" style="margin-left:auto;" id="usersCount">— utilisateurs</div>
+                <div class="text-sm text-muted users-count" id="usersCount">— utilisateurs</div>
               </div>
             </div>
           </div>
@@ -121,7 +121,7 @@
                     <th>Rôles séance</th>
                     <th>Actif</th>
                     <th>Mot de passe</th>
-                    <th style="width:200px">Actions</th>
+                    <th class="table-col-actions">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="usersTableBody">
@@ -170,7 +170,7 @@
             <div class="card-body p-0">
               <table class="users-table">
                 <thead>
-                  <tr><th>Séance</th><th>Utilisateur</th><th>Rôle</th><th style="width:100px">Actions</th></tr>
+                  <tr><th>Séance</th><th>Utilisateur</th><th>Rôle</th><th class="table-col-actions-sm">Actions</th></tr>
                 </thead>
                 <tbody id="meetingRolesBody">
                   <tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr>
@@ -220,7 +220,7 @@
               </h3>
               <p class="card-description">Rôles système (S) et rôles de séance (M)</p>
             </div>
-            <div class="card-body" style="overflow-x:auto">
+            <div class="card-body card-body-scroll">
               <div id="permMatrix">Chargement...</div>
             </div>
           </div>

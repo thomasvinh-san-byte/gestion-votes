@@ -378,3 +378,109 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+/* =============================================================================
+   OPERATOR MAIN CONTENT (no padding override)
+   ============================================================================= */
+
+[data-page-role="operator"] .app-main {
+  padding: 0;
+}
+
+/* =============================================================================
+   ICON SIZE VARIANTS
+   ============================================================================= */
+
+.icon-xl {
+  width: 4rem;
+  height: 4rem;
+}
+
+.icon-3x {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* =============================================================================
+   LAUNCH SESSION BUTTON
+   ============================================================================= */
+
+.btn-launch {
+  background: var(--color-success);
+  color: #fff;
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+}
+
+.btn-launch:hover {
+  background: var(--color-success-dark, #16a34a);
+}
+
+/* =============================================================================
+   SPEAKER SECTION
+   ============================================================================= */
+
+.speaker-box {
+  min-height: 100px;
+}
+
+.speaker-avatar-active {
+  background: var(--color-primary);
+  color: #fff;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.speech-queue-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* =============================================================================
+   VOTE SECTION
+   ============================================================================= */
+
+.no-vote-state {
+  text-align: center;
+  padding: 3rem;
+}
+
+.quick-motion-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.vote-controls-wrapper {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-close-vote {
+  padding: 0.75rem 2rem;
+  font-size: 1.1rem;
+}
+
+/* =============================================================================
+   ADD RESOLUTION FORM
+   ============================================================================= */
+
+.add-resolution-form {
+  margin-top: 1rem;
+}
+
+/* =============================================================================
+   READY REASONS LIST
+   ============================================================================= */
+
+.ready-reasons-list {
+  margin: 0;
+  padding-left: 1rem;
+}

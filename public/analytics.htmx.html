@@ -7,254 +7,8 @@
   <meta name="description" content="Tableaux de bord et analytics - AG-VOTE">
   <title>Analytics — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/analytics.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <style>
-    /* Page header */
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.5rem;
-      background: var(--color-surface);
-      border-bottom: 1px solid var(--color-border);
-    }
-
-    .page-header h1 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .page-header-actions {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    /* Content area */
-    .page-content {
-      padding: 1.5rem;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    /* Period selector */
-    .period-selector {
-      display: flex;
-      gap: 0.25rem;
-      padding: 0.25rem;
-      background: var(--color-bg-subtle);
-      border-radius: 6px;
-    }
-
-    .period-btn {
-      padding: 0.5rem 1rem;
-      border: none;
-      background: transparent;
-      border-radius: 4px;
-      cursor: pointer;
-      color: var(--color-text-muted);
-      font-size: 0.85rem;
-      transition: all 0.15s;
-    }
-
-    .period-btn:hover {
-      color: var(--color-text);
-    }
-
-    .period-btn.active {
-      background: var(--color-surface);
-      color: var(--color-primary);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-
-    /* Overview cards */
-    .overview-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .overview-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      padding: 1.25rem;
-    }
-
-    .overview-card-label {
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 0.5rem;
-    }
-
-    .overview-card-value {
-      font-size: 2rem;
-      font-weight: 700;
-      line-height: 1;
-    }
-
-    .overview-card-value.success { color: var(--color-success); }
-    .overview-card-value.primary { color: var(--color-primary); }
-    .overview-card-value.warning { color: var(--color-warning); }
-
-    .overview-card-sub {
-      font-size: 0.8rem;
-      color: var(--color-text-muted);
-      margin-top: 0.5rem;
-    }
-
-    /* Charts section */
-    .charts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    @media (max-width: 900px) {
-      .charts-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .chart-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .chart-card-header {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--color-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .chart-card-title {
-      font-weight: 600;
-      font-size: 1rem;
-      margin: 0;
-    }
-
-    .chart-card-body {
-      padding: 1.25rem;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 280px;
-    }
-
-    /* Tables */
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    .data-table th,
-    .data-table td {
-      padding: 0.75rem 1rem;
-      text-align: left;
-      border-bottom: 1px solid var(--color-border);
-    }
-
-    .data-table th {
-      font-weight: 600;
-      color: var(--color-text-muted);
-      font-size: 0.75rem;
-      text-transform: uppercase;
-    }
-
-    .data-table tr:hover td {
-      background: var(--color-bg-subtle);
-    }
-
-    .data-table tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    /* Loading / Error states */
-    .loading-spinner {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 3rem;
-      color: var(--color-text-muted);
-    }
-
-    .error-message {
-      padding: 1.5rem;
-      text-align: center;
-      color: var(--color-danger);
-    }
-
-    /* Tabs */
-    .analytics-tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 1px solid var(--color-border);
-      padding-bottom: 0.5rem;
-    }
-
-    .analytics-tab {
-      padding: 0.75rem 1.25rem;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      font-size: 0.9rem;
-      color: var(--color-text-muted);
-      border-radius: 6px 6px 0 0;
-      transition: all 0.15s;
-    }
-
-    .analytics-tab:hover {
-      color: var(--color-text);
-      background: var(--color-bg-subtle);
-    }
-
-    .analytics-tab.active {
-      color: var(--color-primary);
-      background: var(--color-primary-subtle);
-      font-weight: 600;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    /* Progress bar */
-    .progress-bar {
-      height: 8px;
-      background: var(--color-bg-subtle);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width 0.3s;
-    }
-
-    .progress-bar-fill.success { background: var(--color-success); }
-    .progress-bar-fill.danger { background: var(--color-danger); }
-    .progress-bar-fill.primary { background: var(--color-primary); }
-  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -279,16 +33,16 @@
       </div>
     </div>
 
-    <main class="app-main" style="padding: 0;">
+    <main class="app-main analytics-main">
       <div class="page-content">
         <div id="notif_box" class="alert hidden mb-4"></div>
 
         <!-- Privacy notice -->
-        <div class="alert alert-info mb-4" style="display:flex;align-items:center;gap:0.75rem;">
+        <div class="alert alert-info mb-4 privacy-notice">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
           <span>
             Ces statistiques sont <strong>agrégées</strong> et ne révèlent pas les votes individuels.
-            <a href="/docs/ANALYTICS_ETHICS.md" target="_blank" style="margin-left:0.5rem;">En savoir plus</a>
+            <a href="/docs/ANALYTICS_ETHICS.md" target="_blank">En savoir plus</a>
           </span>
         </div>
 
@@ -526,7 +280,7 @@
           <div class="overview-card">
             <div class="overview-card-label">Participation moyenne</div>
             <div class="overview-card-value success">${avgRate}%</div>
-            <div class="progress-bar" style="margin-top:0.5rem;">
+            <div class="progress-bar mt-2">
               <div class="progress-bar-fill success" style="width:${avgRate}%"></div>
             </div>
           </div>
@@ -606,8 +360,8 @@
                     <td>${m.present} / ${m.eligible}</td>
                     <td>${m.proxy}</td>
                     <td>
-                      <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <div class="progress-bar" style="width:60px;">
+                      <div class="table-progress-cell">
+                        <div class="progress-bar table-progress-bar">
                           <div class="progress-bar-fill ${m.rate >= 50 ? 'success' : 'warning'}" style="width:${m.rate}%"></div>
                         </div>
                         <span>${m.rate}%</span>
@@ -823,16 +577,6 @@
               </div>
             </div>
           </div>
-          <style>
-            .anomaly-indicators { display: flex; flex-direction: column; gap: 0.75rem; }
-            .anomaly-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-radius: 6px; background: var(--color-bg-subtle); }
-            .anomaly-item.warning { background: #fef3c7; border-left: 3px solid #f59e0b; }
-            .anomaly-item.info { background: #dbeafe; border-left: 3px solid #3b82f6; }
-            .anomaly-item.ok { background: #d1fae5; border-left: 3px solid #10b981; }
-            .anomaly-icon { font-size: 1.25rem; }
-            .anomaly-label { font-size: 0.85rem; color: var(--color-text-muted); }
-            .anomaly-value { font-weight: 600; }
-          </style>
         `;
 
         // Séances à vérifier
@@ -856,7 +600,7 @@
                     <td>${m.date ? new Date(m.date).toLocaleDateString('fr-FR') : '-'}</td>
                     <td>${m.participation_rate || 0}%</td>
                     <td>
-                      ${m.flags?.map(f => `<span class="badge badge-warning" style="margin-right:0.25rem;">${escapeHtml(f)}</span>`).join('') || '-'}
+                      ${m.flags?.map(f => `<span class="badge badge-warning anomaly-flag">${escapeHtml(f)}</span>`).join('') || '-'}
                     </td>
                   </tr>
                 `).join('')}

@@ -1,0 +1,449 @@
+/**
+ * vote.css - Vote interface page styles.
+ *
+ * Tablet-optimized voting interface with large touch targets.
+ */
+
+/* =============================================================================
+   FULL HEIGHT APP FOR TABLETS
+   ============================================================================= */
+
+[data-page-role*="voter"] html,
+[data-page-role*="voter"] body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.vote-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-bg);
+}
+
+/* =============================================================================
+   PAGE HEADER
+   ============================================================================= */
+
+.vote-app .page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.page-header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.page-header-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.page-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* =============================================================================
+   CONTEXT BAR
+   ============================================================================= */
+
+.context-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.context-bar .form-group {
+  margin: 0;
+}
+
+.context-bar .form-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+/* =============================================================================
+   MAIN CONTENT
+   ============================================================================= */
+
+.vote-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+/* =============================================================================
+   SPEECH PANEL
+   ============================================================================= */
+
+.speech-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.speech-panel.speaking {
+  border-color: var(--color-success);
+  background: var(--color-success-subtle);
+}
+
+.speech-info h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.speech-info p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* =============================================================================
+   MOTION CARD
+   ============================================================================= */
+
+.motion-card {
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.motion-card.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.motion-card.waiting {
+  border-color: var(--color-warning);
+  background: var(--color-warning-subtle);
+}
+
+.motion-number {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.motion-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.motion-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.motion-status.open {
+  background: var(--color-success);
+  color: white;
+}
+
+.motion-status.closed {
+  background: var(--color-text-muted);
+  color: white;
+}
+
+.motion-status.waiting {
+  background: var(--color-warning);
+  color: white;
+}
+
+/* =============================================================================
+   VOTE BUTTONS
+   ============================================================================= */
+
+.vote-buttons-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.vote-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.vote-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.vote-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.vote-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.vote-btn-icon {
+  font-size: 3rem;
+}
+
+.vote-btn-for {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+}
+
+.vote-btn-for:hover:not(:disabled) {
+  box-shadow: 0 15px 50px rgba(16, 185, 129, 0.5);
+}
+
+.vote-btn-against {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
+}
+
+.vote-btn-against:hover:not(:disabled) {
+  box-shadow: 0 15px 50px rgba(239, 68, 68, 0.5);
+}
+
+.vote-btn-abstain {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+  box-shadow: 0 10px 40px rgba(107, 114, 128, 0.4);
+}
+
+.vote-btn-abstain:hover:not(:disabled) {
+  box-shadow: 0 15px 50px rgba(107, 114, 128, 0.5);
+}
+
+.vote-btn.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  color: currentColor;
+  border-radius: 50%;
+  font-size: 1rem;
+}
+
+/* =============================================================================
+   FOOTER
+   ============================================================================= */
+
+.vote-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.member-avatar {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.member-name {
+  font-weight: 600;
+}
+
+.member-weight {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.connection-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-success);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.connection-dot.offline {
+  background: var(--color-danger);
+  animation: none;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* =============================================================================
+   CONFIRMATION OVERLAY
+   ============================================================================= */
+
+.vote-confirmation {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.vote-confirmation.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.vote-confirmation-content {
+  background: var(--color-surface);
+  border-radius: 16px;
+  padding: 2.5rem;
+  text-align: center;
+  max-width: 450px;
+  width: 100%;
+  transform: scale(0.95);
+  transition: transform 0.2s;
+}
+
+.vote-confirmation.show .vote-confirmation-content {
+  transform: scale(1);
+}
+
+.vote-confirmation-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.vote-confirmation-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.vote-confirmation-message {
+  color: var(--color-text-secondary);
+  margin-bottom: 2rem;
+}
+
+.vote-confirmation-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.vote-confirmation-buttons .btn {
+  min-width: 140px;
+  padding: 1rem 1.5rem;
+  font-size: 1.1rem;
+}
+
+/* =============================================================================
+   RESPONSIVE
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .vote-buttons {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .vote-btn {
+    padding: 1.5rem;
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .vote-btn-icon {
+    font-size: 2rem;
+  }
+
+  .context-bar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-height: 900px) {
+  .vote-btn {
+    padding: 4rem 2rem;
+  }
+}
