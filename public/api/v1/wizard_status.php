@@ -1,10 +1,12 @@
 <?php
 // public/api/v1/wizard_status.php
-// Endpoint léger pour le polling du wizard de séance.
-// Retourne l'état synthétique d'une séance en un seul appel.
+// Endpoint leger pour le polling du wizard de seance.
+// Retourne l'etat synthetique d'une seance en un seul appel.
 declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
+
+use AgVote\Repository\WizardRepository;
 
 api_require_role('viewer'); // any authenticated user
 
@@ -14,61 +16,34 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
 }
 
 $tenantId = api_current_tenant_id();
-$pdo = db();
+$wizardRepo = new WizardRepository();
 
 try {
     // Meeting basics
-    $meeting = $pdo->prepare(
-        "SELECT id, title, status, vote_policy_id, quorum_policy_id, current_motion_id
-         FROM meetings WHERE id = :id AND tenant_id = :tid"
-    );
-    $meeting->execute([':id' => $meetingId, ':tid' => $tenantId]);
-    $m = $meeting->fetch(\PDO::FETCH_ASSOC);
+    $m = $wizardRepo->getMeetingBasics($meetingId, $tenantId);
 
     if (!$m) {
         api_fail('meeting_not_found', 404);
     }
 
     // Members count: enrolled in this meeting (via attendances table)
-    $members = $pdo->prepare(
-        "SELECT COUNT(*) FROM attendances WHERE meeting_id = :mid"
-    );
-    $members->execute([':mid' => $meetingId]);
-    $membersCount = (int)$members->fetchColumn();
+    $membersCount = $wizardRepo->countAttendances($meetingId);
 
     // Fallback: if no attendances yet, count all active members for tenant
     if ($membersCount === 0) {
-        $membersAll = $pdo->prepare("SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true");
-        $membersAll->execute([':tid' => $tenantId]);
-        $membersCount = (int)$membersAll->fetchColumn();
+        $membersCount = $wizardRepo->countActiveMembers($tenantId);
     }
 
-    // Attendance: present count (any mode except absent/null)
-    $att = $pdo->prepare(
-        "SELECT COUNT(*) FROM attendances WHERE meeting_id = :mid AND mode IN ('present','remote','proxy')"
-    );
-    $att->execute([':mid' => $meetingId]);
-    $presentCount = (int)$att->fetchColumn();
+    // Attendance: present count (present, remote, proxy)
+    $presentCount = $wizardRepo->countPresentAttendances($meetingId);
 
     // Motions counts
-    $motions = $pdo->prepare(
-        "SELECT COUNT(*) AS total,
-                SUM(CASE WHEN closed_at IS NOT NULL THEN 1 ELSE 0 END) AS closed
-         FROM motions WHERE meeting_id = :mid"
-    );
-    $motions->execute([':mid' => $meetingId]);
-    $mc = $motions->fetch(\PDO::FETCH_ASSOC);
-    $motionsTotal = (int)($mc['total'] ?? 0);
-    $motionsClosed = (int)($mc['closed'] ?? 0);
+    $motionsCounts = $wizardRepo->getMotionsCounts($meetingId);
+    $motionsTotal = $motionsCounts['total'];
+    $motionsClosed = $motionsCounts['closed'];
 
     // President assigned?
-    $pres = $pdo->prepare(
-        "SELECT 1 FROM meeting_roles
-         WHERE meeting_id = :mid AND role = 'president' AND revoked_at IS NULL
-         LIMIT 1"
-    );
-    $pres->execute([':mid' => $meetingId]);
-    $hasPresident = (bool)$pres->fetchColumn();
+    $hasPresident = $wizardRepo->hasPresident($meetingId);
 
     // Quorum — simplified check
     $quorumMet = false;
@@ -78,11 +53,9 @@ try {
         // Default threshold 0 (no quorum required) if no policy
         $quorumMet = $ratio > 0;
         if ($m['quorum_policy_id']) {
-            $qp = $pdo->prepare("SELECT threshold FROM quorum_policies WHERE id = :id");
-            $qp->execute([':id' => $m['quorum_policy_id']]);
-            $threshold = $qp->fetchColumn();
-            if ($threshold !== false) {
-                $quorumMet = $ratio >= (float)$threshold;
+            $threshold = $wizardRepo->getQuorumThreshold($m['quorum_policy_id']);
+            if ($threshold !== null) {
+                $quorumMet = $ratio >= $threshold;
             }
         }
     }

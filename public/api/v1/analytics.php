@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
-use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
-use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\BallotRepository;
+use AgVote\Repository\AnalyticsRepository;
 
 api_require_role('operator');
 
@@ -21,11 +18,8 @@ $type = trim($_GET['type'] ?? 'overview');
 $period = trim($_GET['period'] ?? 'year');
 $limit = min(100, max(1, (int)($_GET['limit'] ?? 20)));
 
-$meetingRepo = new MeetingRepository();
 $memberRepo = new MemberRepository();
-$attRepo = new AttendanceRepository();
-$motionRepo = new MotionRepository();
-$ballotRepo = new BallotRepository();
+$analyticsRepo = new AnalyticsRepository();
 
 // Determine date range based on period
 $dateFrom = match($period) {
@@ -38,13 +32,13 @@ $dateFrom = match($period) {
 
 try {
     $data = match($type) {
-        'overview' => getOverview($tenantId, $meetingRepo, $memberRepo, $motionRepo, $ballotRepo),
-        'participation' => getParticipation($tenantId, $dateFrom, $meetingRepo, $attRepo, $memberRepo, $limit),
-        'motions' => getMotionsStats($tenantId, $dateFrom, $meetingRepo, $motionRepo, $limit),
-        'vote_duration' => getVoteDuration($tenantId, $dateFrom, $motionRepo, $limit),
-        'proxies' => getProxiesStats($tenantId, $dateFrom, $meetingRepo, $limit),
-        'anomalies' => getAnomalies($tenantId, $dateFrom, $memberRepo, $limit),
-        'vote_timing' => getVoteTimingDistribution($tenantId, $dateFrom, $ballotRepo),
+        'overview' => getOverview($tenantId, $memberRepo, $analyticsRepo),
+        'participation' => getParticipation($tenantId, $dateFrom, $memberRepo, $analyticsRepo, $limit),
+        'motions' => getMotionsStats($tenantId, $dateFrom, $analyticsRepo, $limit),
+        'vote_duration' => getVoteDuration($tenantId, $dateFrom, $analyticsRepo, $limit),
+        'proxies' => getProxiesStats($tenantId, $dateFrom, $analyticsRepo, $limit),
+        'anomalies' => getAnomalies($tenantId, $dateFrom, $analyticsRepo, $limit),
+        'vote_timing' => getVoteTimingDistribution($tenantId, $dateFrom, $analyticsRepo),
         default => api_fail('invalid_type', 400),
     };
 
@@ -59,61 +53,30 @@ try {
  */
 function getOverview(
     string $tenantId,
-    MeetingRepository $meetingRepo,
     MemberRepository $memberRepo,
-    MotionRepository $motionRepo,
-    BallotRepository $ballotRepo
+    AnalyticsRepository $analyticsRepo
 ): array {
-    $db = \AgVote\Database\Connection::getInstance()->getPdo();
-
-    // Compteurs globaux
-    $totalMeetings = (int)($db->query(
-        "SELECT COUNT(*) FROM meetings WHERE tenant_id = " . $db->quote($tenantId)
-    )->fetchColumn() ?? 0);
-
+    $totalMeetings = $analyticsRepo->countMeetings($tenantId);
     $totalMembers = $memberRepo->countNotDeleted($tenantId);
-    $totalMotions = (int)($db->query(
-        "SELECT COUNT(*) FROM motions WHERE tenant_id = " . $db->quote($tenantId)
-    )->fetchColumn() ?? 0);
+    $totalMotions = $analyticsRepo->countMotions($tenantId);
+    $totalBallots = $analyticsRepo->countBallots($tenantId);
 
-    $totalBallots = (int)($db->query(
-        "SELECT COUNT(*) FROM ballots b
-         JOIN motions m ON m.id = b.motion_id
-         WHERE m.tenant_id = " . $db->quote($tenantId)
-    )->fetchColumn() ?? 0);
+    // Seances par statut
+    $statusRows = $analyticsRepo->getMeetingsByStatus($tenantId);
+    $meetingsByStatus = [];
+    foreach ($statusRows as $row) {
+        $meetingsByStatus[$row['status']] = (int)$row['count'];
+    }
 
-    // Séances par statut
-    $meetingsByStatus = $db->query(
-        "SELECT status::text, COUNT(*) as count
-         FROM meetings WHERE tenant_id = " . $db->quote($tenantId) . "
-         GROUP BY status"
-    )->fetchAll(\PDO::FETCH_KEY_PAIR);
+    // Motions adoptees vs rejetees
+    $decisionRows = $analyticsRepo->getMotionDecisions($tenantId);
+    $motionDecisions = [];
+    foreach ($decisionRows as $row) {
+        $motionDecisions[$row['decision']] = (int)$row['count'];
+    }
 
-    // Motions adoptées vs rejetées
-    $motionDecisions = $db->query(
-        "SELECT
-            COALESCE(decision, 'pending') as decision,
-            COUNT(*) as count
-         FROM motions WHERE tenant_id = " . $db->quote($tenantId) . "
-         GROUP BY decision"
-    )->fetchAll(\PDO::FETCH_KEY_PAIR);
-
-    // Participation moyenne (dernière année)
-    $avgParticipation = $db->query(
-        "SELECT
-            AVG(CASE WHEN eligible > 0 THEN present::float / eligible * 100 ELSE 0 END) as avg_rate
-         FROM (
-            SELECT
-                a.meeting_id,
-                COUNT(CASE WHEN a.mode IN ('present', 'remote') THEN 1 END) as present,
-                (SELECT COUNT(*) FROM members WHERE tenant_id = " . $db->quote($tenantId) . " AND is_active = true) as eligible
-            FROM attendances a
-            JOIN meetings m ON m.id = a.meeting_id
-            WHERE m.tenant_id = " . $db->quote($tenantId) . "
-              AND m.started_at > NOW() - INTERVAL '1 year'
-            GROUP BY a.meeting_id
-         ) sub"
-    )->fetchColumn();
+    // Participation moyenne
+    $avgParticipation = $analyticsRepo->getAverageParticipationRate($tenantId);
 
     return [
         'totals' => [
@@ -124,43 +87,21 @@ function getOverview(
         ],
         'meetings_by_status' => $meetingsByStatus,
         'motion_decisions' => $motionDecisions,
-        'avg_participation_rate' => round((float)($avgParticipation ?? 0), 1),
+        'avg_participation_rate' => $avgParticipation,
     ];
 }
 
 /**
- * Statistiques de participation par séance
+ * Statistiques de participation par seance
  */
 function getParticipation(
     string $tenantId,
     string $dateFrom,
-    MeetingRepository $meetingRepo,
-    AttendanceRepository $attRepo,
     MemberRepository $memberRepo,
+    AnalyticsRepository $analyticsRepo,
     int $limit
 ): array {
-    $db = \AgVote\Database\Connection::getInstance()->getPdo();
-
-    $stmt = $db->prepare(
-        "SELECT
-            m.id,
-            m.title,
-            m.started_at,
-            COUNT(CASE WHEN a.mode IN ('present', 'remote') THEN 1 END) as present_count,
-            COUNT(CASE WHEN a.mode = 'proxy' THEN 1 END) as proxy_count,
-            COUNT(a.id) as total_attendees
-         FROM meetings m
-         LEFT JOIN attendances a ON a.meeting_id = m.id
-         WHERE m.tenant_id = :tid
-           AND m.started_at IS NOT NULL
-           AND m.started_at >= :from
-         GROUP BY m.id, m.title, m.started_at
-         ORDER BY m.started_at DESC
-         LIMIT :lim"
-    );
-    $stmt->execute([':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]);
-    $meetings = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
+    $meetings = $analyticsRepo->getParticipationByMeeting($tenantId, $dateFrom, $limit);
     $eligibleCount = $memberRepo->countNotDeleted($tenantId);
 
     $participation = [];
@@ -181,7 +122,6 @@ function getParticipation(
         ];
     }
 
-    // Inverser pour avoir l'ordre chronologique
     return [
         'eligible_count' => $eligibleCount,
         'meetings' => array_reverse($participation),
@@ -189,53 +129,16 @@ function getParticipation(
 }
 
 /**
- * Statistiques des motions (adoptées/rejetées)
+ * Statistiques des motions (adoptees/rejetees)
  */
 function getMotionsStats(
     string $tenantId,
     string $dateFrom,
-    MeetingRepository $meetingRepo,
-    MotionRepository $motionRepo,
+    AnalyticsRepository $analyticsRepo,
     int $limit
 ): array {
-    $db = \AgVote\Database\Connection::getInstance()->getPdo();
-
-    // Stats par séance
-    $stmt = $db->prepare(
-        "SELECT
-            m.id as meeting_id,
-            m.title as meeting_title,
-            m.started_at,
-            COUNT(mo.id) as total_motions,
-            COUNT(CASE WHEN mo.decision = 'adopted' THEN 1 END) as adopted,
-            COUNT(CASE WHEN mo.decision = 'rejected' THEN 1 END) as rejected,
-            COUNT(CASE WHEN mo.decision IS NULL OR mo.decision = '' THEN 1 END) as pending
-         FROM meetings m
-         LEFT JOIN motions mo ON mo.meeting_id = m.id
-         WHERE m.tenant_id = :tid
-           AND m.started_at IS NOT NULL
-           AND m.started_at >= :from
-         GROUP BY m.id, m.title, m.started_at
-         HAVING COUNT(mo.id) > 0
-         ORDER BY m.started_at DESC
-         LIMIT :lim"
-    );
-    $stmt->execute([':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]);
-    $byMeeting = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-    // Totaux
-    $totals = $db->prepare(
-        "SELECT
-            COUNT(*) as total,
-            COUNT(CASE WHEN decision = 'adopted' THEN 1 END) as adopted,
-            COUNT(CASE WHEN decision = 'rejected' THEN 1 END) as rejected
-         FROM motions mo
-         JOIN meetings m ON m.id = mo.meeting_id
-         WHERE m.tenant_id = :tid
-           AND m.started_at >= :from"
-    );
-    $totals->execute([':tid' => $tenantId, ':from' => $dateFrom]);
-    $summary = $totals->fetch(\PDO::FETCH_ASSOC);
+    $byMeeting = $analyticsRepo->getMotionsStatsByMeeting($tenantId, $dateFrom, $limit);
+    $summary = $analyticsRepo->getMotionsTotals($tenantId, $dateFrom);
 
     return [
         'summary' => [
@@ -251,35 +154,15 @@ function getMotionsStats(
 }
 
 /**
- * Durée moyenne des votes
+ * Duree moyenne des votes
  */
 function getVoteDuration(
     string $tenantId,
     string $dateFrom,
-    MotionRepository $motionRepo,
+    AnalyticsRepository $analyticsRepo,
     int $limit
 ): array {
-    $db = \AgVote\Database\Connection::getInstance()->getPdo();
-
-    $stmt = $db->prepare(
-        "SELECT
-            mo.id,
-            mo.title,
-            mo.opened_at,
-            mo.closed_at,
-            EXTRACT(EPOCH FROM (mo.closed_at - mo.opened_at)) as duration_seconds,
-            m.title as meeting_title
-         FROM motions mo
-         JOIN meetings m ON m.id = mo.meeting_id
-         WHERE m.tenant_id = :tid
-           AND mo.opened_at IS NOT NULL
-           AND mo.closed_at IS NOT NULL
-           AND mo.opened_at >= :from
-         ORDER BY mo.closed_at DESC
-         LIMIT :lim"
-    );
-    $stmt->execute([':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]);
-    $motions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    $motions = $analyticsRepo->getVoteDurations($tenantId, $dateFrom, $limit);
 
     $durations = [];
     $totalSeconds = 0;
@@ -334,45 +217,11 @@ function getVoteDuration(
 function getProxiesStats(
     string $tenantId,
     string $dateFrom,
-    MeetingRepository $meetingRepo,
+    AnalyticsRepository $analyticsRepo,
     int $limit
 ): array {
-    $db = \AgVote\Database\Connection::getInstance()->getPdo();
-
-    $stmt = $db->prepare(
-        "SELECT
-            m.id as meeting_id,
-            m.title,
-            m.started_at,
-            COUNT(p.id) as proxy_count,
-            COUNT(DISTINCT p.receiver_member_id) as distinct_receivers,
-            MAX(receiver_counts.count) as max_per_receiver
-         FROM meetings m
-         LEFT JOIN proxies p ON p.meeting_id = m.id AND p.revoked_at IS NULL
-         LEFT JOIN (
-            SELECT meeting_id, receiver_member_id, COUNT(*) as count
-            FROM proxies
-            WHERE revoked_at IS NULL
-            GROUP BY meeting_id, receiver_member_id
-         ) receiver_counts ON receiver_counts.meeting_id = m.id
-         WHERE m.tenant_id = :tid
-           AND m.started_at IS NOT NULL
-           AND m.started_at >= :from
-         GROUP BY m.id, m.title, m.started_at
-         ORDER BY m.started_at DESC
-         LIMIT :lim"
-    );
-    $stmt->execute([':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]);
-    $byMeeting = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-    // Total
-    $total = $db->prepare(
-        "SELECT COUNT(*) FROM proxies p
-         JOIN meetings m ON m.id = p.meeting_id
-         WHERE m.tenant_id = :tid AND m.started_at >= :from"
-    );
-    $total->execute([':tid' => $tenantId, ':from' => $dateFrom]);
-    $totalCount = (int)$total->fetchColumn();
+    $byMeeting = $analyticsRepo->getProxiesStatsByMeeting($tenantId, $dateFrom, $limit);
+    $totalCount = $analyticsRepo->countProxies($tenantId, $dateFrom);
 
     return [
         'total_proxies' => $totalCount,
@@ -381,130 +230,27 @@ function getProxiesStats(
 }
 
 /**
- * Détection d'anomalies (statistiques agrégées, RGPD-compliant)
+ * Detection d'anomalies (statistiques agregees, RGPD-compliant)
  *
- * Ne révèle JAMAIS l'identité des membres individuels.
- * Signale uniquement des indicateurs agrégés pour améliorer la qualité des processus.
+ * Ne revele JAMAIS l'identite des membres individuels.
+ * Signale uniquement des indicateurs agreges pour ameliorer la qualite des processus.
  */
 function getAnomalies(
     string $tenantId,
     string $dateFrom,
-    MemberRepository $memberRepo,
+    AnalyticsRepository $analyticsRepo,
     int $limit
 ): array {
-    $db = \AgVote\Database\Connection::getInstance()->getPdo();
+    $lowParticipationCount = $analyticsRepo->countLowParticipationMeetings($tenantId, $dateFrom);
+    $quorumIssuesCount = $analyticsRepo->countQuorumIssues($tenantId, $dateFrom);
+    $incompleteVotesCount = $analyticsRepo->countIncompleteVotes($tenantId, $dateFrom);
+    $highProxyConcentrationCount = $analyticsRepo->countHighProxyConcentration($tenantId, $dateFrom);
+    $abstentionRateValue = $analyticsRepo->getAbstentionRate($tenantId, $dateFrom);
+    $veryShortVotesCount = $analyticsRepo->countVeryShortVotes($tenantId, $dateFrom);
 
-    // 1. Séances avec participation faible (<50%)
-    $lowParticipation = $db->prepare(
-        "SELECT COUNT(*) FROM (
-            SELECT m.id,
-                COUNT(CASE WHEN a.mode IN ('present', 'remote', 'proxy') THEN 1 END) as attended,
-                (SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true) as eligible
-            FROM meetings m
-            LEFT JOIN attendances a ON a.meeting_id = m.id
-            WHERE m.tenant_id = :tid2
-              AND m.started_at IS NOT NULL
-              AND m.started_at >= :from
-            GROUP BY m.id
-            HAVING eligible > 0 AND (attended::float / eligible) < 0.5
-        ) sub"
-    );
-    $lowParticipation->execute([':tid' => $tenantId, ':tid2' => $tenantId, ':from' => $dateFrom]);
-    $lowParticipationCount = (int)$lowParticipation->fetchColumn();
+    $meetings = $analyticsRepo->getFlaggedMeetings($tenantId, $dateFrom, $limit);
 
-    // 2. Séances avec problèmes de quorum (résolutions votées sans quorum)
-    $quorumIssues = $db->prepare(
-        "SELECT COUNT(DISTINCT m.id) FROM meetings m
-         JOIN motions mo ON mo.meeting_id = m.id
-         WHERE m.tenant_id = :tid
-           AND m.started_at >= :from
-           AND mo.decision IS NOT NULL
-           AND mo.quorum_reached = false"
-    );
-    $quorumIssues->execute([':tid' => $tenantId, ':from' => $dateFrom]);
-    $quorumIssuesCount = (int)$quorumIssues->fetchColumn();
-
-    // 3. Résolutions ouvertes mais jamais fermées (incomplètes)
-    $incompleteVotes = $db->prepare(
-        "SELECT COUNT(*) FROM motions mo
-         JOIN meetings m ON m.id = mo.meeting_id
-         WHERE m.tenant_id = :tid
-           AND mo.opened_at IS NOT NULL
-           AND mo.closed_at IS NULL
-           AND mo.opened_at >= :from"
-    );
-    $incompleteVotes->execute([':tid' => $tenantId, ':from' => $dateFrom]);
-    $incompleteVotesCount = (int)$incompleteVotes->fetchColumn();
-
-    // 4. Concentration des procurations (>3 par membre récepteur) - COMPTAGE ANONYME
-    $highProxyConcentration = $db->prepare(
-        "SELECT COUNT(*) FROM (
-            SELECT p.receiver_member_id, COUNT(*) as proxy_count
-            FROM proxies p
-            JOIN meetings m ON m.id = p.meeting_id
-            WHERE m.tenant_id = :tid
-              AND m.started_at >= :from
-              AND p.revoked_at IS NULL
-            GROUP BY p.receiver_member_id
-            HAVING COUNT(*) > 3
-        ) sub"
-    );
-    $highProxyConcentration->execute([':tid' => $tenantId, ':from' => $dateFrom]);
-    $highProxyConcentrationCount = (int)$highProxyConcentration->fetchColumn();
-
-    // 5. Taux d'abstention moyen
-    $abstentionRate = $db->prepare(
-        "SELECT
-            CASE WHEN COUNT(*) > 0
-                THEN ROUND(COUNT(CASE WHEN b.value = 'abstain' THEN 1 END)::numeric / COUNT(*) * 100, 1)
-                ELSE 0
-            END as rate
-         FROM ballots b
-         JOIN motions mo ON mo.id = b.motion_id
-         JOIN meetings m ON m.id = mo.meeting_id
-         WHERE m.tenant_id = :tid
-           AND b.created_at >= :from"
-    );
-    $abstentionRate->execute([':tid' => $tenantId, ':from' => $dateFrom]);
-    $abstentionRateValue = (float)$abstentionRate->fetchColumn();
-
-    // 6. Votes très courts (<30 secondes)
-    $veryShortVotes = $db->prepare(
-        "SELECT COUNT(*) FROM motions mo
-         JOIN meetings m ON m.id = mo.meeting_id
-         WHERE m.tenant_id = :tid
-           AND mo.opened_at IS NOT NULL
-           AND mo.closed_at IS NOT NULL
-           AND mo.opened_at >= :from
-           AND EXTRACT(EPOCH FROM (mo.closed_at - mo.opened_at)) < 30"
-    );
-    $veryShortVotes->execute([':tid' => $tenantId, ':from' => $dateFrom]);
-    $veryShortVotesCount = (int)$veryShortVotes->fetchColumn();
-
-    // 7. Séances flaggées avec détails (sans identifier les membres)
-    $flaggedMeetings = $db->prepare(
-        "SELECT
-            m.id,
-            m.title,
-            m.started_at as date,
-            COUNT(CASE WHEN a.mode IN ('present', 'remote', 'proxy') THEN 1 END) as attended,
-            (SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true) as eligible,
-            COUNT(DISTINCT CASE WHEN mo.decision IS NOT NULL AND mo.quorum_reached = false THEN mo.id END) as quorum_issues,
-            COUNT(DISTINCT CASE WHEN mo.opened_at IS NOT NULL AND mo.closed_at IS NULL THEN mo.id END) as incomplete
-         FROM meetings m
-         LEFT JOIN attendances a ON a.meeting_id = m.id
-         LEFT JOIN motions mo ON mo.meeting_id = m.id
-         WHERE m.tenant_id = :tid2
-           AND m.started_at IS NOT NULL
-           AND m.started_at >= :from
-         GROUP BY m.id, m.title, m.started_at
-         ORDER BY m.started_at DESC
-         LIMIT :lim"
-    );
-    $flaggedMeetings->execute([':tid' => $tenantId, ':tid2' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]);
-    $meetings = $flaggedMeetings->fetchAll(\PDO::FETCH_ASSOC);
-
-    // Construire la liste des séances avec flags
+    // Construire la liste des seances avec flags
     $flaggedList = [];
     foreach ($meetings as $m) {
         $flags = [];
@@ -547,28 +293,14 @@ function getAnomalies(
 }
 
 /**
- * Distribution des temps de réponse (délai entre ouverture et vote)
+ * Distribution des temps de reponse (delai entre ouverture et vote)
  */
 function getVoteTimingDistribution(
     string $tenantId,
     string $dateFrom,
-    BallotRepository $ballotRepo
+    AnalyticsRepository $analyticsRepo
 ): array {
-    $db = \AgVote\Database\Connection::getInstance()->getPdo();
-
-    $stmt = $db->prepare(
-        "SELECT
-            EXTRACT(EPOCH FROM (b.created_at - mo.opened_at)) as response_seconds
-         FROM ballots b
-         JOIN motions mo ON mo.id = b.motion_id
-         JOIN meetings m ON m.id = mo.meeting_id
-         WHERE m.tenant_id = :tid
-           AND mo.opened_at IS NOT NULL
-           AND b.created_at >= :from
-           AND b.created_at >= mo.opened_at"
-    );
-    $stmt->execute([':tid' => $tenantId, ':from' => $dateFrom]);
-    $times = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+    $timesRows = $analyticsRepo->getVoteTimingDistribution($tenantId, $dateFrom);
 
     // Distribution par tranches
     $distribution = [
@@ -581,9 +313,11 @@ function getVoteTimingDistribution(
     ];
 
     $totalSeconds = 0;
-    foreach ($times as $s) {
-        $s = (float)$s;
+    $count = 0;
+    foreach ($timesRows as $row) {
+        $s = (float)$row['response_seconds'];
         $totalSeconds += $s;
+        $count++;
         if ($s < 10) $distribution['0-10s']++;
         elseif ($s < 30) $distribution['10-30s']++;
         elseif ($s < 60) $distribution['30s-1m']++;
@@ -592,7 +326,6 @@ function getVoteTimingDistribution(
         else $distribution['5m+']++;
     }
 
-    $count = count($times);
     $avgSeconds = $count > 0 ? $totalSeconds / $count : 0;
 
     return [
@@ -604,7 +337,7 @@ function getVoteTimingDistribution(
 }
 
 /**
- * Formate une durée en secondes
+ * Formate une duree en secondes
  */
 function formatDuration(float $seconds): string {
     if ($seconds < 60) {
