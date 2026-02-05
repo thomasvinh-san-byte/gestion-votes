@@ -1,4 +1,4 @@
-# 🔄 GUIDE DE MIGRATION SÉCURITÉ AG-VOTE
+# Guide de migration sécurité — AG-VOTE
 
 ## Vue d'ensemble
 

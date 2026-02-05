@@ -1,4 +1,4 @@
-# Reference API — AG-Vote
+# Référence API — AG-Vote
 
 ## Conventions
 
@@ -6,12 +6,12 @@ Base URL : `/api/v1/`
 
 ### Authentification
 
-- Header : `X-Api-Key: <cle>`
-- Ou session PHP (apres connexion via `auth_login.php`)
+- Header : `X-Api-Key: <clé>`
+- Ou session PHP (après connexion via `auth_login.php`)
 
-### Format de reponse
+### Format de réponse
 
-Succes :
+Succès :
 
 ```json
 {"ok": true, "data": {...}}
@@ -27,117 +27,117 @@ Erreur :
 
 | Code | Signification |
 |------|---------------|
-| 200  | Succes |
-| 400  | Requete invalide |
-| 403  | Acces refuse (role insuffisant) |
+| 200  | Succès |
+| 400  | Requête invalide |
+| 403  | Accès refusé (rôle insuffisant) |
 | 404  | Ressource introuvable |
-| 405  | Methode non autorisee |
-| 409  | Conflit (seance validee, motion deja ouverte, etc.) |
-| 422  | Parametre manquant ou invalide |
+| 405  | Méthode non autorisée |
+| 409  | Conflit (séance validée, motion déjà ouverte, etc.) |
+| 422  | Paramètre manquant ou invalide |
 | 429  | Rate limit atteint |
 | 500  | Erreur serveur |
 
-### Roles
+### Rôles
 
-- Roles systeme : `admin`, `operator`, `auditor`, `viewer`
-- Roles de seance : `president`, `assessor`, `voter`
+- Rôles système : `admin`, `operator`, `auditor`, `viewer`
+- Rôles de séance : `president`, `assessor`, `voter`
 - `public` = pas d'authentification requise
 
 ---
 
 ## Authentification
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `auth_login.php` | POST | public | Connexion par cle API. Cree une session PHP. Body : `{"api_key": "..."}` |
-| `auth_logout.php` | POST | tout role | Deconnexion. Detruit la session. |
-| `whoami.php` | GET | tout role | Retourne l'utilisateur courant (id, email, role). |
+| `auth_login.php` | POST | public | Connexion par clé API. Crée une session PHP. Body : `{"api_key": "..."}` |
+| `auth_logout.php` | POST | tout rôle | Déconnexion. Détruit la session. |
+| `whoami.php` | GET | tout rôle | Retourne l'utilisateur courant (id, email, rôle). |
 | `ping.php` | GET | public | Health check. Retourne `{"ok": true, "ts": "ISO8601"}`. |
 
 ---
 
-## Seances (Meetings)
+## Séances (Meetings)
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `meetings.php` | GET | operator | Liste des seances du tenant. |
-| `meetings.php` | POST | operator | Creer une seance. Body : `{"title": "...", "scheduled_at": "..."}` |
-| `meetings_index.php` | GET | operator | Liste paginee des seances. |
-| `meetings_update.php` | POST | operator | Modifier une seance (titre, statut, lieu). |
-| `meetings_archive.php` | GET | operator | Liste des seances archivees. |
-| `meeting_status.php` | GET | public | Statut de la seance en cours (live). |
-| `meeting_status_for_meeting.php` | GET | auditor | Statut detaille d'une seance. `?meeting_id=UUID` |
-| `meeting_summary.php` | GET | operator | Resume (presences, votes, proxies, incidents). |
-| `meeting_stats.php` | GET | operator | Statistiques detaillees. |
-| `meeting_transition.php` | POST | operator | Transition d'etat (draft>scheduled>live, etc.). |
-| `meeting_ready_check.php` | GET | auditor | Checklist de preparation. |
-| `meeting_validate.php` | POST | president/admin | Valider et verrouiller la seance. |
-| `meeting_consolidate.php` | POST | auditor | Consolider les resultats. |
+| `meetings.php` | GET | operator | Liste des séances du tenant. |
+| `meetings.php` | POST | operator | Créer une séance. Body : `{"title": "...", "scheduled_at": "..."}` |
+| `meetings_index.php` | GET | operator | Liste paginée des séances. |
+| `meetings_update.php` | POST | operator | Modifier une séance (titre, statut, lieu). |
+| `meetings_archive.php` | GET | operator | Liste des séances archivées. |
+| `meeting_status.php` | GET | public | Statut de la séance en cours (live). |
+| `meeting_status_for_meeting.php` | GET | auditor | Statut détaillé d'une séance. `?meeting_id=UUID` |
+| `meeting_summary.php` | GET | operator | Résumé (présences, votes, proxies, incidents). |
+| `meeting_stats.php` | GET | operator | Statistiques détaillées. |
+| `meeting_transition.php` | POST | operator | Transition d'état (draft>scheduled>live, etc.). |
+| `meeting_ready_check.php` | GET | auditor | Checklist de préparation. |
+| `meeting_validate.php` | POST | president/admin | Valider et verrouiller la séance. |
+| `meeting_consolidate.php` | POST | auditor | Consolider les résultats. |
 | `meeting_reset_demo.php` | POST | admin | Reset demo (dev uniquement). |
 
 ---
 
-## Resolutions (Motions)
+## Résolutions (Motions)
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `motions.php` | POST | operator | Creer/modifier une resolution. |
-| `motions_for_meeting.php` | GET | public | Liste des resolutions d'une seance. |
-| `motions_open.php` | POST | operator | Ouvrir le vote sur une resolution. |
-| `motions_close.php` | POST | operator | Cloturer le vote. |
-| `motion_delete.php` | POST | operator | Supprimer une resolution (draft uniquement). |
-| `motion_vote_override.php` | POST | operator/president | Surcharge manuelle du resultat. |
+| `motions.php` | POST | operator | Créer/modifier une résolution. |
+| `motions_for_meeting.php` | GET | public | Liste des résolutions d'une séance. |
+| `motions_open.php` | POST | operator | Ouvrir le vote sur une résolution. |
+| `motions_close.php` | POST | operator | Clôturer le vote. |
+| `motion_delete.php` | POST | operator | Supprimer une résolution (draft uniquement). |
+| `motion_vote_override.php` | POST | operator/president | Surcharge manuelle du résultat. |
 | `motion_quorum_override.php` | POST | operator/president | Surcharge manuelle du quorum. |
-| `current_motion.php` | GET | public | Resolution actuellement ouverte au vote. |
+| `current_motion.php` | GET | public | Résolution actuellement ouverte au vote. |
 
 ---
 
-## Presences (Attendances)
+## Présences (Attendances)
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `attendances.php` | GET | public | Liste des presences. `?meeting_id=UUID` |
+| `attendances.php` | GET | public | Liste des présences. `?meeting_id=UUID` |
 | `attendances_bulk.php` | POST | operator | Pointage en masse. Body : `{"meeting_id": "...", "member_ids": [...], "mode": "present"}` |
-| `attendances_upsert.php` | POST | operator | Creer/modifier une presence individuelle. |
+| `attendances_upsert.php` | POST | operator | Créer/modifier une présence individuelle. |
 
 ---
 
 ## Procurations (Proxies)
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
 | `proxies.php` | GET | public | Liste des procurations. `?meeting_id=UUID` |
-| `proxies_upsert.php` | POST | operator | Creer/modifier une procuration. |
-| `proxies_delete.php` | POST | operator | Revoquer une procuration. |
+| `proxies_upsert.php` | POST | operator | Créer/modifier une procuration. |
+| `proxies_delete.php` | POST | operator | Révoquer une procuration. |
 
 ---
 
-## Vote electronique
+## Vote électronique
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `vote_tokens_generate.php` | POST | operator | Generer des tokens de vote pour une motion. |
+| `vote_tokens_generate.php` | POST | operator | Générer des tokens de vote pour une motion. |
 | `ballots_cast.php` | POST | public | Voter. Body : `{"token": "...", "value": "for\|against\|abstain"}` |
-| `ballots_result.php` | GET | public | Resultats en cours d'une motion. `?motion_id=UUID` |
-| `manual_vote.php` | POST | operator | Vote manuel (mode degrade). |
-| `degraded_tally.php` | POST | operator/auditor | Saisie manuelle du decompte. |
+| `ballots_result.php` | GET | public | Résultats en cours d'une motion. `?motion_id=UUID` |
+| `manual_vote.php` | POST | operator | Vote manuel (mode dégradé). |
+| `degraded_tally.php` | POST | operator/auditor | Saisie manuelle du décompte. |
 
 ---
 
 ## Vote papier
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `paper_ballot_issue.php` | POST | operator | Emettre un bulletin papier (code unique). |
+| `paper_ballot_issue.php` | POST | operator | Émettre un bulletin papier (code unique). |
 | `paper_ballot_redeem.php` | POST | public | Utiliser un bulletin papier. |
 
 ---
 
 ## Membres
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `members.php` | GET/POST | operator | Lister/creer des membres. |
+| `members.php` | GET/POST | operator | Lister/créer des membres. |
 | `members_import_csv.php` | POST | operator | Import CSV de membres. |
 | `members_export.php` | GET | operator | Export des membres. |
 | `members_export_csv.php` | GET | operator | Export CSV des membres. |
@@ -146,9 +146,9 @@ Erreur :
 
 ## Invitations
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `invitations_create.php` | POST | operator | Creer une invitation (token). |
+| `invitations_create.php` | POST | operator | Créer une invitation (token). |
 | `invitations_list.php` | GET | operator | Lister les invitations. |
 | `invitations_send_bulk.php` | POST | operator | Envoyer les invitations par email. |
 | `invitations_redeem.php` | POST | public | Utiliser une invitation. |
@@ -157,69 +157,69 @@ Erreur :
 
 ## Ordres du jour (Agendas)
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `agendas.php` | GET/POST | operator | Gerer les points de l'ordre du jour. |
-| `agendas_for_meeting.php` | GET | public | Lister les points pour une seance. |
+| `agendas.php` | GET/POST | operator | Gérer les points de l'ordre du jour. |
+| `agendas_for_meeting.php` | GET | public | Lister les points pour une séance. |
 
 ---
 
-## Quorum & Politiques
+## Quorum et politiques
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
 | `quorum_status.php` | GET | public | Statut du quorum. |
 | `quorum_policies.php` | GET | public | Politiques de quorum disponibles. |
 | `quorum_motions_list.php` | GET | operator | Motions avec statut quorum. |
-| `quorum_card.php` | GET | operator | Carte resumee du quorum. |
+| `quorum_card.php` | GET | operator | Carte résumée du quorum. |
 | `vote_policies.php` | GET | public | Politiques de vote disponibles. |
-| `meeting_quorum_settings.php` | GET/POST | operator | Configurer le quorum de la seance. |
+| `meeting_quorum_settings.php` | GET/POST | operator | Configurer le quorum de la séance. |
 | `meeting_vote_settings.php` | GET/POST | operator | Configurer la politique de vote. |
-| `meeting_late_rules.php` | GET/POST | operator | Regles de vote tardif. |
+| `meeting_late_rules.php` | GET/POST | operator | Règles de vote tardif. |
 
 ---
 
-## Exports & Rapports
+## Exports et rapports
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `meeting_report.php` | GET | auditor | Recuperer le rapport HTML de la seance. |
-| `meeting_generate_report.php` | POST | operator | Generer le rapport HTML. |
-| `meeting_generate_report_pdf.php` | POST | operator/auditor | Generer le rapport PDF. |
+| `meeting_report.php` | GET | auditor | Récupérer le rapport HTML de la séance. |
+| `meeting_generate_report.php` | POST | operator | Générer le rapport HTML. |
+| `meeting_generate_report_pdf.php` | POST | operator/auditor | Générer le rapport PDF. |
 | `export_pv_html.php` | GET | operator | Exporter le PV en HTML. |
-| `export_attendance_csv.php` | GET | operator | Exporter les presences CSV. |
+| `export_attendance_csv.php` | GET | operator | Exporter les présences CSV. |
 | `export_votes_csv.php` | GET | operator | Exporter les votes CSV. |
 | `export_members_csv.php` | GET | operator | Exporter les membres CSV. |
-| `export_motions_results_csv.php` | GET | operator/auditor | Exporter les resultats CSV. |
+| `export_motions_results_csv.php` | GET | operator/auditor | Exporter les résultats CSV. |
 | `export_ballots_audit_csv.php` | GET | operator | Exporter l'audit des bulletins CSV. |
-| `archives_list.php` | GET | public | Liste des seances archivees. |
+| `archives_list.php` | GET | public | Liste des séances archivées. |
 
 ---
 
-## Audit & Controle
+## Audit et contrôle
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `audit_log.php` | GET | auditor/admin | Journal d'audit pagine. |
+| `audit_log.php` | GET | auditor/admin | Journal d'audit paginé. |
 | `audit_export.php` | GET | auditor | Exporter le journal d'audit complet. |
-| `meeting_audit.php` | GET | auditor | Audit d'une seance specifique. |
-| `meeting_audit_events.php` | GET | auditor | Evenements d'audit detailles. |
-| `trust_overview.php` | GET | auditor | Vue d'ensemble controle & sante. |
-| `trust_anomalies.php` | GET | auditor | Anomalies detectees. |
-| `trust_checks.php` | GET | auditor | Verifications de conformite. |
-| `operator_anomalies.php` | GET | operator | Anomalies live pour l'operateur. |
-| `operator_audit_events.php` | GET | operator | Fil d'audit operateur. |
+| `meeting_audit.php` | GET | auditor | Audit d'une séance spécifique. |
+| `meeting_audit_events.php` | GET | auditor | Événements d'audit détaillés. |
+| `trust_overview.php` | GET | auditor | Vue d'ensemble contrôle et santé. |
+| `trust_anomalies.php` | GET | auditor | Anomalies détectées. |
+| `trust_checks.php` | GET | auditor | Vérifications de conformité. |
+| `operator_anomalies.php` | GET | operator | Anomalies live pour l'opérateur. |
+| `operator_audit_events.php` | GET | operator | Fil d'audit opérateur. |
 
 ---
 
 ## Administration
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `admin_users.php` | GET/POST | admin | CRUD utilisateurs systeme. |
-| `admin_roles.php` | GET | admin | Lister les permissions par role. |
-| `admin_meeting_roles.php` | GET/POST | admin/operator | Assigner des roles de seance (president, assessor, voter). |
-| `admin_system_status.php` | GET | admin | Sante systeme (DB, disque, echecs auth). |
+| `admin_users.php` | GET/POST | admin | CRUD utilisateurs système. |
+| `admin_roles.php` | GET | admin | Lister les permissions par rôle. |
+| `admin_meeting_roles.php` | GET/POST | admin/operator | Assigner des rôles de séance (president, assessor, voter). |
+| `admin_system_status.php` | GET | admin | Santé système (DB, disque, échecs auth). |
 | `admin_quorum_policies.php` | GET/POST | admin | CRUD politiques de quorum. |
 | `admin_vote_policies.php` | GET/POST | admin | CRUD politiques de vote. |
 | `admin_reset_demo.php` | POST | admin | Reset demo. |
@@ -228,10 +228,10 @@ Erreur :
 
 ## Notifications
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `notifications_list.php` | GET | operator | Liste des notifications paginee. |
-| `notifications_recent.php` | GET | operator | Notifications recentes. |
+| `notifications_list.php` | GET | operator | Liste des notifications paginée. |
+| `notifications_recent.php` | GET | operator | Notifications récentes. |
 | `notifications_mark_read.php` | POST | operator | Marquer une notification comme lue. |
 | `notifications_mark_all_read.php` | POST | operator | Marquer toutes comme lues. |
 | `notifications_clear.php` | POST | operator | Supprimer les notifications. |
@@ -240,7 +240,7 @@ Erreur :
 
 ## Prise de parole (Speech)
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
 | `speech_queue.php` | GET | operator | File d'attente. |
 | `speech_current.php` | GET | operator | Intervenant actuel. |
@@ -254,39 +254,39 @@ Erreur :
 
 ## Appareils (Devices)
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
 | `device_heartbeat.php` | POST | public | Signal de vie tablette. |
-| `devices_list.php` | GET | operator | Liste des appareils connectes. |
+| `devices_list.php` | GET | operator | Liste des appareils connectés. |
 | `device_block.php` | POST | operator | Bloquer un appareil. |
-| `device_unblock.php` | POST | operator | Debloquer un appareil. |
-| `device_kick.php` | POST | operator | Deconnecter un appareil. |
+| `device_unblock.php` | POST | operator | Débloquer un appareil. |
+| `device_kick.php` | POST | operator | Déconnecter un appareil. |
 
 ---
 
-## Ecran public
+## Écran public
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
-| `projector_state.php` | GET | public | Etat actuel pour l'ecran de projection. |
-| `dashboard.php` | GET | operator | Donnees du tableau de bord. |
+| `projector_state.php` | GET | public | État actuel pour l'écran de projection. |
+| `dashboard.php` | GET | operator | Données du tableau de bord. |
 
 ---
 
 ## Urgences
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
 | `emergency_panel.php` | GET | operator | Panneau d'urgence. |
-| `emergency_procedures.php` | GET | operator | Procedures d'urgence disponibles. |
+| `emergency_procedures.php` | GET | operator | Procédures d'urgence disponibles. |
 | `emergency_check_toggle.php` | POST | operator | Cocher un point de la checklist urgence. |
-| `vote_incident.php` | POST | operator | Declarer un incident de vote. |
+| `vote_incident.php` | POST | operator | Déclarer un incident de vote. |
 
 ---
 
-## Developpement
+## Développement
 
-| Endpoint | Methode | Role | Description |
+| Endpoint | Méthode | Rôle | Description |
 |----------|---------|------|-------------|
 | `dev_seed_members.php` | POST | admin | Injecter des membres de test. |
-| `dev_seed_attendances.php` | POST | admin | Injecter des presences de test. |
+| `dev_seed_attendances.php` | POST | admin | Injecter des présences de test. |
