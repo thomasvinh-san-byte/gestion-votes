@@ -19,19 +19,22 @@
 
 ---
 
-## 1. Migration MVC
+## 1. Migration MVC ✅ TERMINÉE
 
 Objectif : Éliminer le SQL inline des endpoints, architecture 3 couches propre.
 
 | Phase | Description | Effort | Statut |
 |-------|-------------|--------|--------|
-| 1 | Domaines simples (Members, Proxies, Invitations) | 3 jours | ⬜ À faire |
-| 2 | Meetings + Motions (29 endpoints) | 8 jours | ⬜ À faire |
-| 3 | Moteurs calcul (QuorumEngine, VoteEngine) | 4 jours | ⬜ À faire |
-| 4 | Domaines secondaires (55 endpoints) | 11 jours | ⬜ À faire |
-| 5 | Nettoyage + validation | 2 jours | ⬜ À faire |
+| 1 | Domaines simples (Members, Proxies, Invitations) | 3 jours | ✅ Fait |
+| 2 | Meetings + Motions (29 endpoints) | 8 jours | ✅ Fait |
+| 3 | Moteurs calcul (QuorumEngine, VoteEngine) | 4 jours | ✅ Fait |
+| 4 | Domaines secondaires (55 endpoints) | 11 jours | ✅ Fait |
+| 5 | Nettoyage + validation | 2 jours | ✅ Fait |
 
-**Total : 28 jours**
+**Total : 28 jours** → **Complété le 5 février 2026**
+- 24 repositories (AbstractRepository + 23 concrets)
+- 0 SQL inline dans les endpoints API
+- Nouveaux repos : AnalyticsRepository, WizardRepository
 
 ### Détail Phase 1 — Domaines simples
 - `MemberRepository` : CRUD membres, import CSV
