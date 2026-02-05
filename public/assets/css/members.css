@@ -280,22 +280,8 @@ input[type="color"] {
 }
 
 /* =============================================================================
-   ADD MEMBER CARD
+   ADD MEMBER FORM (overrides pages.css .create-form)
    ============================================================================= */
-
-.create-card {
-  background: var(--color-surface);
-  border: 2px dashed var(--color-border);
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.create-card h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  font-weight: 600;
-}
 
 .create-form {
   display: grid;
