@@ -1849,7 +1849,7 @@
       `;
     }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>';
 
-    // Export links (preview=1 permet de générer un brouillon si séance non validée)
+    // Export links (preview=1 generates a draft if meeting not validated)
     document.getElementById('exportPV').href = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${currentMeetingId}&preview=1`;
     document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${currentMeetingId}`;
     document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${currentMeetingId}`;

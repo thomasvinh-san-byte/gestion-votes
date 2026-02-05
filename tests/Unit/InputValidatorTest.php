@@ -1,12 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
+use AgVote\Core\Validation\InputValidator;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../app/Core/Validation/InputValidator.php';
 
 /**
- * Tests unitaires pour InputValidator
+ * Unit tests for InputValidator.
  */
 class InputValidatorTest extends TestCase
 {

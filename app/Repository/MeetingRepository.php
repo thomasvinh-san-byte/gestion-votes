@@ -4,17 +4,20 @@ declare(strict_types=1);
 namespace AgVote\Repository;
 
 /**
- * Acces donnees pour les seances (meetings).
+ * Data access for meetings.
  *
- * Toutes les requetes SQL concernant la table meetings sont centralisees ici.
- * Aucune logique metier (transitions, validations) — uniquement du CRUD.
+ * All SQL queries for the meetings table are centralized here.
+ * No business logic (transitions, validations) - only CRUD.
  */
 class MeetingRepository extends AbstractRepository
 {
     // =========================================================================
-    // LECTURE
+    // READ
     // =========================================================================
 
+    /**
+     * @deprecated Use findByIdForTenant() instead for tenant isolation.
+     */
     public function findById(string $id): ?array
     {
         return $this->selectOne(
@@ -40,7 +43,7 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
-     * Trouve une séance par son slug (obfuscation URL).
+     * Finds a meeting by its slug (URL obfuscation).
      */
     public function findBySlugForTenant(string $slug, string $tenantId): ?array
     {
@@ -51,21 +54,21 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
-     * Trouve une séance par ID ou slug (support dual).
-     * Détecte automatiquement si l'identifiant est un UUID ou un slug.
+     * Finds a meeting by ID or slug (dual support).
+     * Automatically detects if the identifier is a UUID or slug.
      */
     public function findByIdOrSlugForTenant(string $identifier, string $tenantId): ?array
     {
-        // Vérifier si c'est un UUID
+        // Check if it's a UUID
         if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
             return $this->findByIdForTenant($identifier, $tenantId);
         }
-        // Sinon, chercher par slug
+        // Otherwise, search by slug
         return $this->findBySlugForTenant($identifier, $tenantId);
     }
 
     /**
-     * Liste toutes les seances d'un tenant (pour meetings.php GET).
+     * Lists all meetings for a tenant (for meetings.php GET).
      */
     public function listByTenant(string $tenantId): array
     {
@@ -85,8 +88,8 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
-     * Liste les séances actives (exclut validated et archived).
-     * Utilisé pour les listes déroulantes de sélection.
+     * Lists active meetings (excludes validated and archived).
+     * Used for selection dropdowns.
      */
     public function listActiveByTenant(string $tenantId): array
     {
@@ -107,7 +110,7 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
-     * Liste compacte (pour meetings_index.php).
+     * Compact list (for meetings_index.php).
      */
     public function listByTenantCompact(string $tenantId, int $limit = 50): array
     {
@@ -123,7 +126,7 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
-     * Liste compacte des séances actives (exclut validated et archived).
+     * Compact list of active meetings (excludes validated and archived).
      */
     public function listActiveByTenantCompact(string $tenantId, int $limit = 50): array
     {
@@ -140,7 +143,7 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
-     * Liste les seances archivees/fermees (pour meetings_archive.php).
+     * Lists archived/closed meetings (for meetings_archive.php).
      */
     public function listArchived(string $tenantId, string $from = '', string $to = ''): array
     {

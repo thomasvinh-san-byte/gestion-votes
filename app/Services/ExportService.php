@@ -4,21 +4,21 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 /**
- * ExportService - Service centralisé pour les exports
+ * ExportService - Centralized service for exports
  *
- * Gère le formatage des données pour les utilisateurs non-techniques :
- * - Labels en français
- * - Dates au format français
- * - Traduction des valeurs (modes, décisions, etc.)
- * - Pas d'identifiants techniques (UUIDs)
+ * Handles data formatting for non-technical users:
+ * - French labels
+ * - French date format
+ * - Value translation (modes, decisions, etc.)
+ * - No technical identifiers (UUIDs)
  */
 final class ExportService
 {
     // ========================================================================
-    // TRADUCTIONS DES VALEURS
+    // VALUE TRANSLATIONS
     // ========================================================================
 
-    /** Modes de présence */
+    /** Attendance modes */
     public const ATTENDANCE_MODES = [
         'present' => 'Présent',
         'remote' => 'À distance',
@@ -28,7 +28,7 @@ final class ExportService
         '' => 'Non renseigné',
     ];
 
-    /** Décisions de vote */
+    /** Vote decisions */
     public const DECISIONS = [
         'adopted' => 'Adoptée',
         'rejected' => 'Rejetée',
@@ -37,7 +37,7 @@ final class ExportService
         '' => 'Non décidée',
     ];
 
-    /** Choix de vote */
+    /** Vote choices */
     public const VOTE_CHOICES = [
         'for' => 'Pour',
         'against' => 'Contre',
@@ -47,7 +47,7 @@ final class ExportService
         '' => 'Non exprimé',
     ];
 
-    /** Statuts de séance */
+    /** Meeting statuses */
     public const MEETING_STATUSES = [
         'draft' => 'Brouillon',
         'scheduled' => 'Programmée',
@@ -58,7 +58,7 @@ final class ExportService
         'archived' => 'Archivée',
     ];
 
-    /** Sources de vote */
+    /** Vote sources */
     public const VOTE_SOURCES = [
         'electronic' => 'Électronique',
         'manual' => 'Manuel',
@@ -67,7 +67,7 @@ final class ExportService
         '' => 'Non spécifié',
     ];
 
-    /** Booléens */
+    /** Booleans */
     public const BOOLEANS = [
         true => 'Oui',
         false => 'Non',
@@ -78,11 +78,11 @@ final class ExportService
     ];
 
     // ========================================================================
-    // FORMATAGE DES VALEURS
+    // VALUE FORMATTING
     // ========================================================================
 
     /**
-     * Traduit un mode de présence
+     * Translates an attendance mode
      */
     public static function translateAttendanceMode(?string $mode): string
     {
@@ -91,7 +91,7 @@ final class ExportService
     }
 
     /**
-     * Traduit une décision
+     * Translates a decision
      */
     public static function translateDecision(?string $decision): string
     {
@@ -100,7 +100,7 @@ final class ExportService
     }
 
     /**
-     * Traduit un choix de vote
+     * Translates a vote choice
      */
     public static function translateVoteChoice(?string $choice): string
     {
@@ -109,7 +109,7 @@ final class ExportService
     }
 
     /**
-     * Traduit un statut de séance
+     * Translates a meeting status
      */
     public static function translateMeetingStatus(?string $status): string
     {
@@ -118,7 +118,7 @@ final class ExportService
     }
 
     /**
-     * Traduit une source de vote
+     * Translates a vote source
      */
     public static function translateVoteSource(?string $source): string
     {
@@ -127,7 +127,7 @@ final class ExportService
     }
 
     /**
-     * Traduit un booléen
+     * Translates a boolean
      */
     public static function translateBoolean($value): string
     {
@@ -139,11 +139,11 @@ final class ExportService
     }
 
     /**
-     * Formate une date au format français
+     * Formats a date in French format
      *
-     * @param string|null $datetime Date ISO 8601 ou timestamp
-     * @param bool $includeTime Inclure l'heure
-     * @return string Date formatée (ex: "15/01/2024" ou "15/01/2024 14:30")
+     * @param string|null $datetime ISO 8601 date or timestamp
+     * @param bool $includeTime Include time
+     * @return string Formatted date (e.g., "15/01/2024" or "15/01/2024 14:30")
      */
     public static function formatDate(?string $datetime, bool $includeTime = true): string
     {
@@ -163,7 +163,7 @@ final class ExportService
     }
 
     /**
-     * Formate une heure uniquement
+     * Formats time only
      */
     public static function formatTime(?string $datetime): string
     {
@@ -180,8 +180,8 @@ final class ExportService
     }
 
     /**
-     * Formate un nombre (pouvoir de vote, poids, etc.)
-     * Affiche les entiers sans décimales, les décimaux avec jusqu'à 4 chiffres
+     * Formats a number (voting power, weight, etc.)
+     * Displays integers without decimals, decimals with up to 4 digits
      */
     public static function formatNumber($value, int $decimals = 2): string
     {
@@ -191,18 +191,18 @@ final class ExportService
 
         $num = (float)$value;
 
-        // Si c'est un entier, pas de décimales
+        // If integer, no decimals
         if (abs($num - round($num)) < 0.000001) {
             return number_format((int)round($num), 0, ',', ' ');
         }
 
-        // Sinon, afficher avec décimales et supprimer les zéros trailing
+        // Otherwise, display with decimals and remove trailing zeros
         $formatted = number_format($num, $decimals, ',', ' ');
         return rtrim(rtrim($formatted, '0'), ',');
     }
 
     /**
-     * Formate un pourcentage
+     * Formats a percentage
      */
     public static function formatPercent($value): string
     {
@@ -217,7 +217,7 @@ final class ExportService
     // ========================================================================
 
     /**
-     * Initialise un export CSV avec BOM UTF-8 pour Excel
+     * Initializes a CSV export with UTF-8 BOM for Excel
      */
     public static function initCsvOutput(string $filename): void
     {
@@ -228,7 +228,7 @@ final class ExportService
     }
 
     /**
-     * Crée un handle de sortie CSV avec BOM UTF-8
+     * Creates a CSV output handle with UTF-8 BOM
      *
      * @return resource
      */
@@ -240,7 +240,7 @@ final class ExportService
     }
 
     /**
-     * Écrit une ligne CSV
+     * Writes a CSV row
      *
      * @param resource $handle
      * @param array $row
@@ -252,7 +252,7 @@ final class ExportService
     }
 
     /**
-     * Génère un nom de fichier pour l'export
+     * Generates a filename for export
      */
     public static function generateFilename(string $type, string $meetingTitle = '', string $extension = 'csv'): string
     {
@@ -268,7 +268,7 @@ final class ExportService
             default => $type,
         };
 
-        // Nettoyer le titre pour le nom de fichier
+        // Clean title for filename
         if ($meetingTitle !== '') {
             $cleanTitle = self::sanitizeFilename($meetingTitle);
             $prefix .= '_' . $cleanTitle;
@@ -279,26 +279,26 @@ final class ExportService
     }
 
     /**
-     * Nettoie une chaîne pour l'utiliser dans un nom de fichier
+     * Sanitizes a string for use in a filename
      */
     public static function sanitizeFilename(string $str): string
     {
-        // Remplacer les accents
+        // Replace accents
         $str = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $str);
-        // Garder uniquement lettres, chiffres, tirets
+        // Keep only letters, numbers, hyphens
         $str = preg_replace('/[^a-z0-9\-_]/i', '_', $str);
-        // Éviter les underscores multiples
+        // Avoid multiple underscores
         $str = preg_replace('/_+/', '_', $str);
-        // Limiter la longueur
+        // Limit length
         return substr(trim($str, '_'), 0, 50);
     }
 
     // ========================================================================
-    // HELPERS POUR LES EXPORTS SPÉCIFIQUES
+    // HELPERS FOR SPECIFIC EXPORTS
     // ========================================================================
 
     /**
-     * Prépare une ligne d'export pour les présences
+     * Prepares an export row for attendance
      */
     public static function formatAttendanceRow(array $row): array
     {
@@ -314,7 +314,7 @@ final class ExportService
     }
 
     /**
-     * Prépare une ligne d'export pour les votes
+     * Prepares an export row for votes
      */
     public static function formatVoteRow(array $row): array
     {
@@ -332,7 +332,7 @@ final class ExportService
     }
 
     /**
-     * Prépare une ligne d'export pour les membres
+     * Prepares an export row for members
      */
     public static function formatMemberRow(array $row): array
     {
@@ -349,7 +349,7 @@ final class ExportService
     }
 
     /**
-     * Prépare une ligne d'export pour les résolutions
+     * Prepares an export row for motions/resolutions
      */
     public static function formatMotionResultRow(array $row): array
     {
@@ -370,7 +370,7 @@ final class ExportService
     }
 
     /**
-     * Prépare une ligne d'export pour les procurations
+     * Prepares an export row for proxies
      */
     public static function formatProxyRow(array $row): array
     {
@@ -384,7 +384,7 @@ final class ExportService
     }
 
     // ========================================================================
-    // EN-TÊTES CSV POUR CHAQUE TYPE D'EXPORT
+    // CSV HEADERS FOR EACH EXPORT TYPE
     // ========================================================================
 
     public static function getAttendanceHeaders(): array
@@ -463,20 +463,20 @@ final class ExportService
     // ========================================================================
 
     /**
-     * Crée un classeur Excel avec une feuille de données
+     * Creates an Excel workbook with a data sheet
      *
-     * @param array $headers En-têtes des colonnes
-     * @param array $rows Données (tableau de tableaux)
-     * @param string $sheetTitle Titre de la feuille
+     * @param array $headers Column headers
+     * @param array $rows Data (array of arrays)
+     * @param string $sheetTitle Sheet title
      * @return \PhpOffice\PhpSpreadsheet\Spreadsheet
      */
     public static function createSpreadsheet(array $headers, array $rows, string $sheetTitle = 'Données'): \PhpOffice\PhpSpreadsheet\Spreadsheet
     {
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle(mb_substr($sheetTitle, 0, 31)); // Excel limite à 31 caractères
+        $sheet->setTitle(mb_substr($sheetTitle, 0, 31)); // Excel limits to 31 characters
 
-        // En-têtes
+        // Headers
         $colIndex = 1;
         foreach ($headers as $header) {
             $cell = $sheet->getCellByColumnAndRow($colIndex, 1);
@@ -488,7 +488,7 @@ final class ExportService
             $colIndex++;
         }
 
-        // Données
+        // Data
         $rowIndex = 2;
         foreach ($rows as $row) {
             $colIndex = 1;
@@ -504,14 +504,14 @@ final class ExportService
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // Figer la première ligne
+        // Freeze first row
         $sheet->freezePane('A2');
 
         return $spreadsheet;
     }
 
     /**
-     * Ajoute une feuille à un classeur existant
+     * Adds a sheet to an existing workbook
      */
     public static function addSheet(
         \PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet,
@@ -522,7 +522,7 @@ final class ExportService
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle(mb_substr($sheetTitle, 0, 31));
 
-        // En-têtes
+        // Headers
         $colIndex = 1;
         foreach ($headers as $header) {
             $cell = $sheet->getCellByColumnAndRow($colIndex, 1);
@@ -534,7 +534,7 @@ final class ExportService
             $colIndex++;
         }
 
-        // Données
+        // Data
         $rowIndex = 2;
         foreach ($rows as $row) {
             $colIndex = 1;
@@ -545,17 +545,17 @@ final class ExportService
             $rowIndex++;
         }
 
-        // Auto-dimensionner les colonnes
+        // Auto-size columns
         foreach (range('A', $sheet->getHighestColumn()) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // Figer la première ligne
+        // Freeze first row
         $sheet->freezePane('A2');
     }
 
     /**
-     * Initialise les headers HTTP pour un export XLSX
+     * Initializes HTTP headers for XLSX export
      */
     public static function initXlsxOutput(string $filename): void
     {
@@ -566,7 +566,7 @@ final class ExportService
     }
 
     /**
-     * Envoie un classeur Excel au navigateur
+     * Sends an Excel workbook to the browser
      */
     public static function outputSpreadsheet(\PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet): void
     {
@@ -575,12 +575,12 @@ final class ExportService
     }
 
     /**
-     * Crée un export complet multi-feuilles pour une séance
+     * Creates a complete multi-sheet export for a meeting
      *
-     * @param array $meeting Données de la séance
-     * @param array $attendanceRows Données de présence
-     * @param array $motionRows Résultats des résolutions
-     * @param array $voteRows Votes individuels (optionnel)
+     * @param array $meeting Meeting data
+     * @param array $attendanceRows Attendance data
+     * @param array $motionRows Motion results
+     * @param array $voteRows Individual votes (optional)
      * @return \PhpOffice\PhpSpreadsheet\Spreadsheet
      */
     public static function createFullExportSpreadsheet(
@@ -589,7 +589,7 @@ final class ExportService
         array $motionRows,
         array $voteRows = []
     ): \PhpOffice\PhpSpreadsheet\Spreadsheet {
-        // Feuille résumé
+        // Summary sheet
         $summaryHeaders = ['Information', 'Valeur'];
         $summaryData = [
             ['Séance', $meeting['title'] ?? ''],
@@ -609,15 +609,15 @@ final class ExportService
 
         $spreadsheet = self::createSpreadsheet($summaryHeaders, $summaryData, 'Résumé');
 
-        // Feuille présences
+        // Attendance sheet
         $attendanceFormatted = array_map([self::class, 'formatAttendanceRow'], $attendanceRows);
         self::addSheet($spreadsheet, self::getAttendanceHeaders(), $attendanceFormatted, 'Émargement');
 
-        // Feuille résolutions
+        // Motions sheet
         $motionsFormatted = array_map([self::class, 'formatMotionResultRow'], $motionRows);
         self::addSheet($spreadsheet, self::getMotionResultsHeaders(), $motionsFormatted, 'Résolutions');
 
-        // Feuille votes (si fournie)
+        // Votes sheet (if provided)
         if (!empty($voteRows)) {
             $votesFormatted = [];
             foreach ($voteRows as $r) {
@@ -630,7 +630,7 @@ final class ExportService
             }
         }
 
-        // Revenir à la première feuille
+        // Return to first sheet
         $spreadsheet->setActiveSheetIndex(0);
 
         return $spreadsheet;

@@ -8,9 +8,9 @@ use AgVote\Repository\NotificationRepository;
 
 /**
  * NotificationsService (MVP)
- * - Stocke des notifications contextualisées par meeting
- * - Pensé pour du polling (since_id)
- * - Anti-spam best-effort: dédoublonnage sur une fenêtre courte
+ * - Stores contextual notifications per meeting
+ * - Designed for polling (since_id)
+ * - Best-effort anti-spam: deduplication within a short window
  */
 final class NotificationsService
 {
@@ -20,8 +20,8 @@ final class NotificationsService
     }
 
     /**
-     * Émet des notifications quand l'état de readiness change (sans spam).
-     * @param array<string,mixed> $validation Retour de MeetingValidator::canBeValidated
+     * Emits notifications when readiness state changes (without spam).
+     * @param array<string,mixed> $validation Return from MeetingValidator::canBeValidated
      */
     public static function emitReadinessTransitions(string $meetingId, array $validation): void
     {
@@ -52,13 +52,13 @@ final class NotificationsService
             sort($prevCodes);
         }
 
-        // Upsert d'état (avant d'émettre pour éviter doubles sur appels concurrents)
+        // State upsert (before emitting to avoid duplicates on concurrent calls)
         $notifRepo->upsertValidationState($meetingId, $tenantId, $ready, json_encode($codes, JSON_UNESCAPED_UNICODE));
 
-        // Premier passage: on initialise sans bruit.
+        // First pass: initialize silently.
         if ($prevReady === null) return;
 
-        // Transition globale
+        // Global transition
         if ($prevReady === false && $ready === true) {
             self::emit($meetingId, 'info', 'readiness_ready', 'Séance prête à validation du Président.', ['operator','trust'], [
                 'action_label' => 'Aller à la validation',
@@ -67,14 +67,14 @@ final class NotificationsService
             return;
         }
         if ($prevReady === true && $ready === false) {
-            // On ne spamme pas avec tout le détail ici: les "raisons" suivent via notifications par code (ci-dessous).
+            // Don't spam with all details here: "reasons" follow via per-code notifications (below).
             self::emit($meetingId, 'warn', 'readiness_not_ready', 'Séance n\'est plus prête à être validée.', ['operator','trust'], [
                 'action_label' => 'Voir les blocages',
                 'action_url' => '/operator.htmx.html',
             ]);
         }
 
-        // Diff des codes (blocages) : on notifie uniquement les ajouts / résolutions
+        // Code diff (blockers): only notify additions / resolutions
         $added = array_values(array_diff($codes, $prevCodes));
         $removed = array_values(array_diff($prevCodes, $codes));
 
@@ -93,7 +93,7 @@ final class NotificationsService
      */
     private static function readinessTemplate(string $code, bool $added): array
     {
-        // Par défaut: blocage opérateur + président (trust)
+        // Default: blocker for operator + president (trust)
         $aud = ['operator','trust'];
 
         switch ($code) {
@@ -171,15 +171,15 @@ final class NotificationsService
 
         $notifRepo = new NotificationRepository();
 
-        // Dédoublonnage best-effort: même code + même message + même meeting dans les 10 dernières secondes
+        // Best-effort deduplication: same code + message + meeting in last 10 seconds
         $recent = $notifRepo->countRecentDuplicates($meetingId, $code, $message);
         if ($recent > 0) return;
 
-        // Normaliser audience: pas de doublons / pas de vide
+        // Normalize audience: no duplicates / no empty values
         $aud = array_values(array_unique(array_filter(array_map('strval', $audience), fn($x) => trim($x) !== '')));
         if (!$aud) $aud = ['operator', 'trust'];
 
-        // Array literal robuste: {"operator","trust"}
+        // Robust array literal: {"operator","trust"}
         $audLiteral = '{' . implode(',', array_map(function(string $x): string {
             $x = str_replace('"', '""', $x);
             return '"' . $x . '"';
@@ -199,7 +199,7 @@ final class NotificationsService
     }
 
     /**
-     * Dernières notifications (pour initialiser l'UI) — ordre DESC (plus récent d'abord).
+     * Recent notifications (for UI initialization) - DESC order (most recent first).
      * @return array<int,array<string,mixed>>
      */
     public static function recent(string $meetingId, string $audience = 'operator', int $limit = 80): array

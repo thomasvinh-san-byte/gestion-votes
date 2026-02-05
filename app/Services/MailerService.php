@@ -4,11 +4,11 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 /**
- * MailerService - SMTP socket (STARTTLS/SSL) sans dépendance externe.
+ * MailerService - SMTP socket (STARTTLS/SSL) without external dependencies.
  *
  * Support:
  * - tls: 'starttls' (587), 'ssl' (465), 'none'
- * - auth: LOGIN (user/pass) si user est défini
+ * - auth: LOGIN (user/pass) if user is defined
  */
 final class MailerService
 {
@@ -105,7 +105,7 @@ final class MailerService
             }
         }
 
-        // AUTH (si user défini)
+        // AUTH (if user is defined)
         if ($user !== '') {
             $auth = $this->cmd($fp, "AUTH LOGIN");
             $debug['auth_login'] = $auth;
@@ -210,7 +210,7 @@ final class MailerService
 
     private function writeData($fp, string $message): void
     {
-        // Dot-stuffing: toute ligne commençant par "." doit être préfixée
+        // Dot-stuffing: any line starting with "." must be prefixed
         $message = preg_replace('/\r\n\./', "\r\n..", $message);
         fwrite($fp, $message);
         fwrite($fp, "\r\n.\r\n");

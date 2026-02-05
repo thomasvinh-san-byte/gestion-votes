@@ -174,6 +174,9 @@ CREATE TABLE IF NOT EXISTS members (
   name text,
   email citext,
   role text,
+  -- NOTE: vote_weight is legacy, voting_power is the new standard.
+  -- Code uses COALESCE(voting_power, vote_weight, 1.0) for compatibility.
+  -- Future migration will unify to voting_power only.
   vote_weight numeric(12,4) NOT NULL DEFAULT 1.0,
   voting_power numeric(12,4),
   is_active boolean NOT NULL DEFAULT true,

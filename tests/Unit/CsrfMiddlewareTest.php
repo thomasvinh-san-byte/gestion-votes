@@ -1,12 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
+use AgVote\Core\Security\CsrfMiddleware;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../app/Core/Security/CsrfMiddleware.php';
 
 /**
- * Tests unitaires pour CsrfMiddleware
+ * Unit tests for CsrfMiddleware.
  */
 class CsrfMiddlewareTest extends TestCase
 {

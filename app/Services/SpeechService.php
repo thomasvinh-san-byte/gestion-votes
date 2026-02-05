@@ -9,9 +9,9 @@ use AgVote\Repository\SpeechRepository;
 use RuntimeException;
 
 /**
- * SpeechService — gestion de la parole (main levée).
+ * SpeechService - Speech management (raise hand).
  *
- * Table attendue: speech_requests
+ * Expected table: speech_requests
  *  - id (uuid), tenant_id, meeting_id, member_id
  *  - status: waiting|speaking|finished|cancelled
  *  - created_at, updated_at
@@ -99,7 +99,7 @@ final class SpeechService
     }
 
     /**
-     * Toggle request: si déjà waiting -> cancel; sinon -> créer waiting.
+     * Toggle request: if already waiting -> cancel; otherwise -> create waiting.
      * @param string $meetingId Meeting ID
      * @param string $memberId Member ID
      * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
@@ -133,7 +133,7 @@ final class SpeechService
     }
 
     /**
-     * Donne la parole: soit au membre fourni, soit au prochain de la file.
+     * Grants speech: either to the provided member, or to the next in queue.
      * @param string $meetingId Meeting ID
      * @param string|null $memberId Member ID (optional, picks next in queue if null)
      * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
@@ -145,7 +145,7 @@ final class SpeechService
         $tenantId = self::resolveTenant($meetingId, $expectedTenantId);
         $repo = new SpeechRepository();
 
-        // Terminer l'orateur courant s'il existe
+        // End current speaker if any
         $repo->finishAllSpeaking($meetingId, $tenantId);
 
         if ($memberId) {
@@ -157,7 +157,7 @@ final class SpeechService
                 return self::getQueue($meetingId);
             }
 
-            // speaking direct
+            // Direct speaking
             $id = api_uuid4();
             $repo->insert($id, $tenantId, $meetingId, $memberId, 'speaking');
             audit_log('speech_granted_direct', 'meeting', $meetingId, array_merge(self::memberPayload($memberId), ['request_id' => $id]));
@@ -176,7 +176,7 @@ final class SpeechService
     }
 
     /**
-     * Termine la parole de l'orateur courant.
+     * Ends the current speaker's speech.
      * @param string $meetingId Meeting ID
      * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
      */
@@ -204,7 +204,7 @@ final class SpeechService
     }
 
     /**
-     * Vide l'historique des prises de parole terminées.
+     * Clears the history of finished speech requests.
      * @param string $meetingId Meeting ID
      * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
      */

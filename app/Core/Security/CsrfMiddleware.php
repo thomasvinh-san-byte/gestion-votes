@@ -1,20 +1,22 @@
 <?php
 declare(strict_types=1);
 
+namespace AgVote\Core\Security;
+
 /**
- * CsrfMiddleware - Protection CSRF conforme OWASP
- * 
- * Implémente le pattern Synchronizer Token avec support HTMX.
+ * CsrfMiddleware - OWASP-compliant CSRF Protection
+ *
+ * Implements the Synchronizer Token pattern with HTMX support.
  */
 final class CsrfMiddleware
 {
     private const TOKEN_NAME = 'csrf_token';
     private const TOKEN_HEADER = 'X-CSRF-Token';
     private const TOKEN_LENGTH = 32;
-    private const TOKEN_LIFETIME = 3600; // 1 heure
+    private const TOKEN_LIFETIME = 3600; // 1 hour
 
     /**
-     * Initialise la protection CSRF
+     * Initializes CSRF protection
      */
     public static function init(): void
     {
@@ -66,7 +68,7 @@ final class CsrfMiddleware
     }
 
     /**
-     * Génère un champ hidden pour formulaire
+     * Generates a hidden field for forms
      */
     public static function field(): string
     {
@@ -78,13 +80,13 @@ final class CsrfMiddleware
     }
 
     /**
-     * Valide le token CSRF pour les requêtes mutantes
+     * Validates CSRF token for mutating requests
      */
     public static function validate(bool $strict = true): bool
     {
         $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
-        // Méthodes safe - pas de validation CSRF
+        // Safe methods - no CSRF validation
         if (in_array($method, ['GET', 'HEAD', 'OPTIONS'], true)) {
             return true;
         }
@@ -141,7 +143,7 @@ final class CsrfMiddleware
             return trim((string)$_POST[self::TOKEN_NAME]);
         }
 
-        // 4. JSON body (utilise le cache global pour eviter de consommer php://input)
+        // 4. JSON body (uses global cache to avoid consuming php://input)
         $rawBody = $GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input');
         if ($rawBody) {
             $json = json_decode($rawBody, true);
@@ -173,7 +175,7 @@ final class CsrfMiddleware
     }
 
     /**
-     * Meta tag pour récupération JS
+     * Meta tag for JS retrieval
      */
     public static function metaTag(): string
     {
@@ -184,7 +186,7 @@ final class CsrfMiddleware
     }
 
     /**
-     * Code JS pour HTMX et fetch
+     * JS code for HTMX and fetch
      */
     public static function jsSnippet(): string
     {
@@ -194,12 +196,12 @@ final class CsrfMiddleware
 (function(){
   const csrfToken = '{$token}';
   
-  // HTMX: ajoute le header CSRF
+  // HTMX: adds CSRF header
   document.body.addEventListener('htmx:configRequest', function(e) {
     e.detail.headers['X-CSRF-Token'] = csrfToken;
   });
 
-  // Wrapper fetch sécurisé
+  // Secure fetch wrapper
   window.secureFetch = function(url, options = {}) {
     options.headers = options.headers || {};
     options.headers['X-CSRF-Token'] = csrfToken;
@@ -207,7 +209,7 @@ final class CsrfMiddleware
     return fetch(url, options);
   };
 
-  // Expose pour usage manuel
+  // Expose for manual use
   window.CSRF = { token: csrfToken, header: 'X-CSRF-Token', name: 'csrf_token' };
 })();
 </script>

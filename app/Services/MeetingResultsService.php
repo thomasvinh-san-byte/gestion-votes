@@ -4,21 +4,24 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 use AgVote\Repository\MotionRepository;
-use AgVote\Repository\BallotRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\MemberRepository;
 use InvalidArgumentException;
 use RuntimeException;
 
-final class VoteEngine
+/**
+ * "Official" consolidation of motion results.
+ *
+ * MVP Rule:
+ * - If manual count is entered (manual_total > 0), it takes precedence.
+ * - Otherwise, calculate via e-vote (ballots) with VoteEngine.
+ */
+final class MeetingResultsService
 {
     /**
-     * Calcule les résultats d'une motion à partir des bulletins et des policies.
-     *
-     * @param string $motionId
-     * @return array<string,mixed>
+     * @return array<string,mixed> Format compatible (subset) de VoteEngine::computeMotionResult()
      */
-    public static function computeMotionResult(string $motionId): array
+    public static function officialMotionResult(string $motionId): array
     {
         $motionId = trim($motionId);
         if ($motionId === '') {
@@ -26,49 +29,39 @@ final class VoteEngine
         }
 
         $motionRepo = new MotionRepository();
-        $motion = $motionRepo->findWithVoteContext($motionId);
+        $motion = $motionRepo->findWithOfficialContext($motionId);
 
         if (!$motion) {
             throw new RuntimeException('Motion introuvable');
         }
 
-        $tenantId   = (string)$motion['tenant_id'];
-        $meetingId  = (string)$motion['meeting_id'];
-
-        // Agréger les bulletins par valeur
-        $ballotRepo = new BallotRepository();
-        $rows = $ballotRepo->tallyByMotion($motionId);
-
-        $tallies = [
-            'for'     => ['count' => 0, 'weight' => 0.0],
-            'against' => ['count' => 0, 'weight' => 0.0],
-            'abstain' => ['count' => 0, 'weight' => 0.0],
-            'nsp'     => ['count' => 0, 'weight' => 0.0],
-        ];
-
-        foreach ($rows as $row) {
-            $value = (string)$row['value'];
-            if (!isset($tallies[$value])) {
-                continue;
-            }
-            $tallies[$value]['count']  = (int)$row['count'];
-            $tallies[$value]['weight'] = (float)$row['weight'];
+        $hasManual = ((int)($motion['manual_total'] ?? 0)) > 0;
+        if (!$hasManual) {
+            // e-vote (ballots)
+            $res = VoteEngine::computeMotionResult($motionId);
+            $res['official_source'] = 'evote';
+            return $res;
         }
 
-        $expressedMembers = $tallies['for']['count']
-            + $tallies['against']['count']
-            + $tallies['abstain']['count'];
+        $tenantId = (string)$motion['tenant_id'];
 
-        $expressedWeight = $tallies['for']['weight']
-            + $tallies['against']['weight']
-            + $tallies['abstain']['weight'];
+        // Manual count (treated as "weight")
+        $manualFor     = (int)($motion['manual_for'] ?? 0);
+        $manualAgainst = (int)($motion['manual_against'] ?? 0);
+        $manualAbstain = (int)($motion['manual_abstain'] ?? 0);
+        $manualTotal   = (int)($motion['manual_total'] ?? 0);
 
-        // Électeurs éligibles (par tenant)
+        // For safety, rebuild expressed total from fields if inconsistent.
+        $expressedWeight = $manualFor + $manualAgainst + $manualAbstain;
+        if ($manualTotal > 0 && $expressedWeight <= 0) {
+            $expressedWeight = $manualTotal;
+        }
+
         $memberRepo = new MemberRepository();
         $eligibleMembers = $memberRepo->countActive($tenantId);
         $eligibleWeight  = $memberRepo->sumActiveWeight($tenantId);
 
-        // Charger policies éventuelles
+        // Policies
         $policyRepo = new PolicyRepository();
 
         $quorumPolicy = null;
@@ -76,7 +69,7 @@ final class VoteEngine
             $quorumPolicy = $policyRepo->findQuorumPolicy((string)$motion['quorum_policy_id']);
         }
 
-        // Résoudre la politique de vote: motion-level > meeting-level
+        // Resolve vote policy: motion-level > meeting-level
         $appliedVotePolicyId = !empty($motion['vote_policy_id'])
             ? (string)$motion['vote_policy_id']
             : (!empty($motion['meeting_vote_policy_id']) ? (string)$motion['meeting_vote_policy_id'] : '');
@@ -86,12 +79,15 @@ final class VoteEngine
             $votePolicy = $policyRepo->findVotePolicy($appliedVotePolicyId);
         }
 
-        // Calcul du quorum
+        // Quorum
         $quorumMet         = null;
         $quorumRatio       = null;
         $quorumThreshold   = null;
-        $quorumDenominator = null;
         $quorumBasis       = null;
+        $quorumDenominator = null;
+
+        $expressedMembers = $manualTotal > 0 ? $manualTotal : ($manualFor + $manualAgainst + $manualAbstain);
+        $expressedWeightF = (float)$expressedWeight;
 
         if ($quorumPolicy) {
             $quorumBasis     = (string)$quorumPolicy['denominator'];
@@ -102,16 +98,16 @@ final class VoteEngine
                 $numerator   = $expressedMembers;
             } else {
                 $denominator = $eligibleWeight > 0 ? $eligibleWeight : 0.0001;
-                $numerator   = $expressedWeight;
+                $numerator   = $expressedWeightF;
             }
 
-            $ratio        = $denominator > 0 ? $numerator / $denominator : 0.0;
-            $quorumMet    = $ratio >= $quorumThreshold;
-            $quorumRatio  = $ratio;
+            $ratio             = $denominator > 0 ? $numerator / $denominator : 0.0;
+            $quorumMet         = $ratio >= $quorumThreshold;
+            $quorumRatio       = $ratio;
             $quorumDenominator = $denominator;
         }
 
-        // Calcul de la majorité
+        // Majority
         $adopted           = null;
         $majorityRatio     = null;
         $majorityThreshold = null;
@@ -123,46 +119,37 @@ final class VoteEngine
             $majorityThreshold = (float)$votePolicy['threshold'];
             $abstAsAgainst     = (bool)$votePolicy['abstention_as_against'];
 
-            if ($majorityBase === 'expressed') {
-                $baseTotal = $expressedWeight;
-            } elseif ($majorityBase === 'eligible') {
+            if ($majorityBase === 'eligible') {
                 $baseTotal = $eligibleWeight;
-            } elseif ($majorityBase === 'present') {
-                $baseTotal = $expressedWeight;
             } else {
-                $baseTotal = $expressedWeight;
+                // expressed/present -> use manual expressed count
+                $baseTotal = $expressedWeightF;
             }
 
-            $forWeight     = $tallies['for']['weight'];
-            $againstWeight = $tallies['against']['weight'];
-            $abstainWeight = $tallies['abstain']['weight'];
+            $forW     = (float)$manualFor;
+            $againstW = (float)$manualAgainst;
+            $abstW    = (float)$manualAbstain;
 
-            $effectiveAgainst = $againstWeight + ($abstAsAgainst ? $abstainWeight : 0.0);
+            $den = $baseTotal > 0 ? $baseTotal : 0.0001;
+            $majorityRatio = $forW / $den;
 
-            $denominator = $baseTotal > 0 ? $baseTotal : 0.0001;
-            $ratio       = $forWeight / $denominator;
-
-            $majorityRatio = $ratio;
-
-            if ($baseTotal <= 0.0 || $expressedWeight <= 0.0) {
+            if ($baseTotal <= 0.0 || $expressedWeightF <= 0.0) {
                 $adopted = false;
             } else {
-                $adopted = $ratio >= $majorityThreshold;
+                $adopted = $majorityRatio >= $majorityThreshold;
                 if ($quorumMet === false) {
                     $adopted = false;
                 }
             }
         }
 
-        // Statut global lisible
         $decisionStatus = 'no_votes';
         $decisionReason = null;
 
-        $hasVotes = ($expressedMembers + $tallies['nsp']['count']) > 0;
-
+        $hasVotes = ($manualTotal > 0) || ($expressedWeightF > 0);
         if (!$hasVotes) {
             $decisionStatus = 'no_votes';
-            $decisionReason = 'Aucun bulletin enregistré pour cette motion.';
+            $decisionReason = 'Aucun comptage manuel.';
         } elseif ($quorumPolicy && $quorumMet === false) {
             $decisionStatus = 'no_quorum';
             $decisionReason = 'Quorum non atteint.';
@@ -178,23 +165,29 @@ final class VoteEngine
         }
 
         return [
+            'official_source' => 'manual',
             'motion' => [
-                'id'               => $motion['motion_id'],
-                'title'            => $motion['motion_title'],
-                'meeting_id'       => $meetingId,
+                'id'               => (string)$motion['id'],
+                'title'            => (string)$motion['title'],
+                'meeting_id'       => (string)$motion['meeting_id'],
                 'tenant_id'        => $tenantId,
                 'vote_policy_id'   => $appliedVotePolicyId,
                 'quorum_policy_id' => $motion['quorum_policy_id'],
                 'secret'           => (bool)$motion['secret'],
             ],
-            'tallies' => $tallies,
+            'tallies' => [
+                'for'     => ['count' => $manualFor,     'weight' => (float)$manualFor],
+                'against' => ['count' => $manualAgainst, 'weight' => (float)$manualAgainst],
+                'abstain' => ['count' => $manualAbstain, 'weight' => (float)$manualAbstain],
+                'nsp'     => ['count' => 0,              'weight' => 0.0],
+            ],
             'eligible' => [
                 'members' => $eligibleMembers,
                 'weight'  => $eligibleWeight,
             ],
             'expressed' => [
                 'members' => $expressedMembers,
-                'weight'  => $expressedWeight,
+                'weight'  => $expressedWeightF,
             ],
             'quorum' => [
                 'applied'     => (bool)$quorumPolicy,

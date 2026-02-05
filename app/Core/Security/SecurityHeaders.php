@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Core\Security;
+namespace AgVote\Core\Security;
 
 /**
- * SecurityHeaders - Headers HTTP de sécurité
- * 
- * Implémente les headers recommandés OWASP :
+ * SecurityHeaders - HTTP security headers
+ *
+ * Implements OWASP-recommended headers:
  * - Content-Security-Policy (CSP)
  * - Strict-Transport-Security (HSTS)
  * - X-Frame-Options
@@ -14,12 +14,10 @@ namespace App\Core\Security;
  * - X-XSS-Protection
  * - Referrer-Policy
  * - Permissions-Policy
- * 
- * @package App\Core\Security
  */
 final class SecurityHeaders
 {
-    /** @var array Configuration par défaut */
+    /** @var array Default configuration */
     private static array $defaults = [
         'csp' => [
             'default-src' => ["'self'"],
@@ -34,7 +32,7 @@ final class SecurityHeaders
             'object-src' => ["'none'"],
         ],
         'hsts' => [
-            'max-age' => 31536000, // 1 an
+            'max-age' => 31536000, // 1 year
             'includeSubDomains' => true,
             'preload' => false,
         ],
@@ -53,11 +51,11 @@ final class SecurityHeaders
     /** @var array Configuration active */
     private static array $config = [];
 
-    /** @var bool Headers déjà envoyés */
+    /** @var bool Headers already sent */
     private static bool $sent = false;
 
     /**
-     * Configure les headers (à appeler avant send())
+     * Configures headers (call before send())
      */
     public static function configure(array $config): void
     {
@@ -65,7 +63,7 @@ final class SecurityHeaders
     }
 
     /**
-     * Envoie tous les headers de sécurité
+     * Sends all security headers
      */
     public static function send(): void
     {
@@ -80,7 +78,7 @@ final class SecurityHeaders
             self::sendCsp($config['csp']);
         }
 
-        // Strict-Transport-Security (HTTPS uniquement)
+        // Strict-Transport-Security (HTTPS only)
         if (!empty($config['hsts']) && self::isHttps()) {
             self::sendHsts($config['hsts']);
         }
@@ -95,7 +93,7 @@ final class SecurityHeaders
             header('X-Content-Type-Options: ' . $config['content_type_options']);
         }
 
-        // X-XSS-Protection (legacy, mais encore utile pour vieux navigateurs)
+        // X-XSS-Protection (legacy, but still useful for old browsers)
         if (!empty($config['xss_protection'])) {
             header('X-XSS-Protection: ' . $config['xss_protection']);
         }
@@ -170,7 +168,7 @@ final class SecurityHeaders
     }
 
     /**
-     * Détecte si la connexion est HTTPS
+     * Detects if the connection is HTTPS
      */
     private static function isHttps(): bool
     {
@@ -179,7 +177,7 @@ final class SecurityHeaders
             return true;
         }
 
-        // Derrière un proxy (X-Forwarded-Proto)
+        // Behind a proxy (X-Forwarded-Proto)
         if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
             return true;
         }
@@ -193,7 +191,7 @@ final class SecurityHeaders
     }
 
     /**
-     * Headers spécifiques pour les réponses API JSON
+     * Specific headers for JSON API responses
      */
     public static function sendApiHeaders(): void
     {
@@ -204,7 +202,7 @@ final class SecurityHeaders
     }
 
     /**
-     * Headers spécifiques pour les téléchargements de fichiers
+     * Specific headers for file downloads
      */
     public static function sendDownloadHeaders(string $filename, string $mimeType = 'application/octet-stream'): void
     {
@@ -217,7 +215,7 @@ final class SecurityHeaders
     }
 
     /**
-     * Headers pour empêcher la mise en cache
+     * Headers to prevent caching
      */
     public static function sendNoCacheHeaders(): void
     {
@@ -228,9 +226,9 @@ final class SecurityHeaders
     }
 
     /**
-     * Ajoute un nonce CSP pour scripts inline
-     * 
-     * @return string Le nonce généré
+     * Adds a CSP nonce for inline scripts
+     *
+     * @return string The generated nonce
      */
     public static function generateNonce(): string
     {
@@ -265,7 +263,7 @@ final class SecurityHeaders
     }
 
     /**
-     * Génère un attribut nonce pour les balises script/style
+     * Generates a nonce attribute for script/style tags
      */
     public static function nonceAttr(): string
     {

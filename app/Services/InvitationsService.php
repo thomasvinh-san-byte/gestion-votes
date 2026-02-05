@@ -8,9 +8,9 @@ use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * Service metier pour les invitations.
+ * Business service for invitations.
  *
- * Delegue tout l'acces donnees a InvitationRepository.
+ * Delegates all data access to InvitationRepository.
  */
 final class InvitationsService
 {
@@ -22,8 +22,8 @@ final class InvitationsService
     }
 
     /**
-     * Cree ou regenere un token pour (meeting_id, member_id).
-     * Retour: invitation row (id, token, status).
+     * Creates or regenerates a token for (meeting_id, member_id).
+     * Returns: invitation row (id, token, status).
      */
     public static function createOrRotate(string $meetingId, string $memberId, ?string $email = null, ?string $tenantId = null): array
     {
@@ -51,7 +51,7 @@ final class InvitationsService
     }
 
     /**
-     * Consomme un token et retourne meeting_id + member_id (usage public).
+     * Consumes a token and returns meeting_id + member_id (public use).
      */
     public static function redeem(string $token): array
     {
@@ -63,7 +63,7 @@ final class InvitationsService
         $row = $repo->findByToken($token);
         if (!$row) throw new RuntimeException('token_invalide');
 
-        // Marque "accepted" best-effort
+        // Mark "accepted" best-effort
         $repo->markAccepted((string)$row['id']);
 
         return [

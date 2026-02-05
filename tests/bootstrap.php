@@ -28,7 +28,7 @@ putenv('APP_ENV=testing');
 putenv('APP_DEBUG=1');
 putenv('APP_AUTH_ENABLED=0');
 
-// Charger les composants de sécurité
+// Load security components (with namespaces)
 require_once PROJECT_ROOT . '/app/Core/Security/CsrfMiddleware.php';
 require_once PROJECT_ROOT . '/app/Core/Security/AuthMiddleware.php';
 require_once PROJECT_ROOT . '/app/Core/Security/RateLimiter.php';
@@ -36,7 +36,10 @@ require_once PROJECT_ROOT . '/app/Core/Security/PermissionChecker.php';
 require_once PROJECT_ROOT . '/app/Core/Validation/InputValidator.php';
 require_once PROJECT_ROOT . '/app/Core/Logger.php';
 
-// Configurer le RateLimiter pour les tests
+// Use namespaced classes
+use AgVote\Core\Security\RateLimiter;
+
+// Configure RateLimiter for tests
 RateLimiter::configure([
     'storage_dir' => sys_get_temp_dir() . '/ag-vote-test-ratelimit',
 ]);

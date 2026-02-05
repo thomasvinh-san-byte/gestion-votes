@@ -426,11 +426,13 @@
     }
   });
 
-  // Polling (10s auto-refresh for anomaly detection)
+  // Polling (10s auto-refresh for anomaly detection, disabled when WebSocket connected)
   let pollingInterval = null;
   function startPolling() {
     if (pollingInterval) return;
     pollingInterval = setInterval(() => {
+      // Skip polling if WebSocket is connected and authenticated
+      if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
       if (!document.hidden && currentMeetingId) {
         loadMeetingData(currentMeetingId);
       }

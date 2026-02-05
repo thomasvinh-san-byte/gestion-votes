@@ -10,19 +10,19 @@ use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * Gestion des présences (check-in) par séance.
+ * Attendance (check-in) management per meeting.
  *
- * Objectif MVP:
- * - Un membre est "présent" si une ligne attendances existe (mode present/remote/proxy)
- * - Un membre est "absent" si aucune ligne n'existe
- * - effective_power est figé au moment du check-in (voting_power du membre)
+ * MVP Goals:
+ * - A member is "present" if an attendance row exists (mode present/remote/proxy)
+ * - A member is "absent" if no row exists
+ * - effective_power is frozen at check-in time (member's voting_power)
  */
 final class AttendancesService
 {
     /**
-     * Indique si un membre est "présent" (mode present/remote/proxy, non checked_out) pour une séance.
+     * Indicates if a member is "present" (mode present/remote/proxy, not checked_out) for a meeting.
      *
-     * Utilisé pour l'éligibilité au vote (public).
+     * Used for vote eligibility (public).
      */
     public static function isPresent(string $meetingId, string $memberId, ?string $tenantId = null): bool
     {
@@ -38,9 +38,9 @@ final class AttendancesService
     }
 
     /**
-     * Indique si un membre est présent "directement" (present/remote uniquement).
+     * Indicates if a member is present "directly" (present/remote only).
      *
-     * Recommandé pour contrôler l'éligibilité au vote afin d'éviter les chaînes de procuration.
+     * Recommended for controlling vote eligibility to avoid proxy chains.
      */
     public static function isPresentDirect(string $meetingId, string $memberId, ?string $tenantId = null): bool
     {
@@ -56,7 +56,7 @@ final class AttendancesService
     }
 
     /**
-     * Liste les présences d'une séance avec infos membre.
+     * Lists attendance records for a meeting with member info.
      *
      * @return array<int,array<string,mixed>>
      */
@@ -73,7 +73,7 @@ final class AttendancesService
     }
 
     /**
-     * Résumé (nb + poids) de la séance pour les modes présents.
+     * Summary (count + weight) of meeting for present modes.
      *
      * @return array{present_count:int,present_weight:float}
      */
@@ -90,11 +90,11 @@ final class AttendancesService
     }
 
     /**
-     * Upsert présence.
-     * - mode: present|remote|proxy => upsert actif (checked_out_at NULL)
-     * - mode: absent => suppression (MVP)
+     * Upsert attendance.
+     * - mode: present|remote|proxy => active upsert (checked_out_at NULL)
+     * - mode: absent => deletion (MVP)
      *
-     * @return array<string,mixed> ligne présence (ou {deleted:true})
+     * @return array<string,mixed> attendance row (or {deleted:true})
      */
     public static function upsert(string $meetingId, string $memberId, string $mode, ?string $notes = null): array
     {
@@ -113,7 +113,7 @@ final class AttendancesService
 
         $tenantId = (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
 
-        // Vérifier meeting appartient au tenant
+        // Verify meeting belongs to tenant
         $meetingRepo = new MeetingRepository();
         $meeting = $meetingRepo->findById($meetingId);
         if (!$meeting) {
@@ -126,7 +126,7 @@ final class AttendancesService
             throw new RuntimeException('Séance archivée : présence non modifiable');
         }
 
-        // Charger membre + pouvoir de vote
+        // Load member + voting power
         $member = MembersService::getMember($memberId);
         if ((string)$member['tenant_id'] !== $tenantId) {
             throw new RuntimeException('Membre hors tenant');

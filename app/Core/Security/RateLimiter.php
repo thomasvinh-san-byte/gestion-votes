@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
 
+namespace AgVote\Core\Security;
+
 /**
- * RateLimiter - Protection contre les attaques par force brute
+ * RateLimiter - Brute force attack protection
  */
 final class RateLimiter
 {
@@ -16,7 +18,7 @@ final class RateLimiter
     }
 
     /**
-     * Vérifie et incrémente le compteur de rate limit
+     * Checks and increments the rate limit counter
      */
     public static function check(
         string $context,

@@ -284,8 +284,8 @@ class InvitationRepository extends AbstractRepository
     }
 
     /**
-     * Trouve le tenant_id d'une invitation par son ID.
-     * Utilisé pour le tracking email (pixel/redirect).
+     * Finds the tenant_id of an invitation by its ID.
+     * Used for email tracking (pixel/redirect).
      */
     public function findTenantById(string $id): ?string
     {

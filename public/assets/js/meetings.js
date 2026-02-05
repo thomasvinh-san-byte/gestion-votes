@@ -1,167 +1,370 @@
 /**
- * GESTION DES SÉANCES
- * Chargement, affichage, sélection des séances.
+ * meetings.js - Meetings page logic for AG-VOTE.
+ *
+ * Handles meeting list display, creation, filtering, and calendar view.
+ * Uses PageComponents for reusable UI functionality.
+ *
+ * @module meetings
+ * @requires utils.js (api, escapeHtml, setNotif)
+ * @requires shared.js (Shared.MEETING_STATUS_MAP, Shared.btnLoading)
+ * @requires page-components.js (PageComponents)
  */
+(function() {
+  'use strict';
 
-/**
- * Une séance est dite "active" si elle n'est pas archivée.
- */
-function isActiveMeeting(m) {
-    return m.status !== 'archived';
-}
+  // ==========================================================================
+  // STATE
+  // ==========================================================================
 
-/**
- * Une séance est dans l'historique si elle est close ou archivée.
- */
-function isHistoryMeeting(m) {
-    return m.status === 'closed' || m.status === 'archived';
-}
+  let allMeetings = [];
+  let currentFilter = 'all';
+  let filterManager = null;
+  let viewToggle = null;
+  let calendarView = null;
+  let dataGrid = null;
 
-/**
- * Charge les séances depuis l’API.
- */
-async function loadMeetings() {
-    setLoading(true);
+  // ==========================================================================
+  // DOM ELEMENTS
+  // ==========================================================================
+
+  const titleInput = document.getElementById('meeting_title');
+  const dateInput = document.getElementById('meeting_date');
+  const createBtn = document.getElementById('create_meeting_btn');
+  const meetingsList = document.getElementById('meetingsList');
+  const meetingsCount = document.getElementById('meetingsCount');
+
+  // ==========================================================================
+  // STATS
+  // ==========================================================================
+
+  /**
+   * Update stats bar with meeting counts.
+   * @param {Array} meetings - All meetings
+   */
+  function updateStats(meetings) {
+    const live = meetings.filter(m => m.status === 'live').length;
+    const scheduled = meetings.filter(m => ['scheduled', 'frozen'].includes(m.status)).length;
+    const draft = meetings.filter(m => m.status === 'draft').length;
+
+    const statLive = document.getElementById('statLive');
+    const statScheduled = document.getElementById('statScheduled');
+    const statDraft = document.getElementById('statDraft');
+    const statTotal = document.getElementById('statTotal');
+
+    if (statLive) statLive.textContent = live;
+    if (statScheduled) statScheduled.textContent = scheduled;
+    if (statDraft) statDraft.textContent = draft;
+    if (statTotal) statTotal.textContent = meetings.length;
+  }
+
+  // ==========================================================================
+  // FILTERING
+  // ==========================================================================
+
+  /**
+   * Filter meetings based on current filter.
+   * @param {Array} meetings - All meetings
+   * @param {string} filter - Filter value
+   * @returns {Array} Filtered meetings
+   */
+  function filterMeetings(meetings, filter) {
+    if (filter === 'all') return meetings;
+    if (filter === 'live') return meetings.filter(m => m.status === 'live');
+    if (filter === 'scheduled') return meetings.filter(m => ['scheduled', 'frozen'].includes(m.status));
+    if (filter === 'draft') return meetings.filter(m => m.status === 'draft');
+    if (filter === 'archived') return meetings.filter(m => ['closed', 'validated', 'archived'].includes(m.status));
+    return meetings;
+  }
+
+  /**
+   * Sort meetings by status and date.
+   * @param {Object} a - First meeting
+   * @param {Object} b - Second meeting
+   * @returns {number} Sort order
+   */
+  function sortMeetings(a, b) {
+    const statusOrder = { live: 0, frozen: 1, scheduled: 2, draft: 3, closed: 4, validated: 5, archived: 6 };
+    const orderA = statusOrder[a.status] ?? 99;
+    const orderB = statusOrder[b.status] ?? 99;
+    if (orderA !== orderB) return orderA - orderB;
+    return new Date(b.created_at) - new Date(a.created_at);
+  }
+
+  // ==========================================================================
+  // RENDERING
+  // ==========================================================================
+
+  /**
+   * Render a single meeting card.
+   * @param {Object} m - Meeting data
+   * @returns {string} HTML string
+   */
+  function renderMeetingCard(m) {
+    const title = escapeHtml(m.title || '(sans titre)');
+    const statusInfo = Shared.MEETING_STATUS_MAP[m.status] || Shared.MEETING_STATUS_MAP['draft'];
+    const isLive = m.status === 'live';
+    const isDraft = m.status === 'draft';
+    const cardClass = isLive ? 'is-live' : (isDraft ? 'is-draft' : '');
+
+    const date = m.scheduled_at
+      ? new Date(m.scheduled_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '—';
+
+    return `
+      <div class="meeting-card ${cardClass}" data-search-text="${escapeHtml((m.title || '') + ' ' + (m.status || ''))}">
+        <div class="meeting-card-header">
+          <h3 class="meeting-card-title">${title}</h3>
+          <div class="meeting-card-meta">
+            <span class="badge ${statusInfo.badge} badge-sm">${statusInfo.text}</span>
+            <span>
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
+              ${date}
+            </span>
+          </div>
+        </div>
+        <div class="meeting-card-body">
+          <div class="meeting-stats">
+            <span title="Résolutions">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+              ${m.motions_count || 0}
+            </span>
+            <span title="Présents">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+              ${m.attendees_count || 0}
+            </span>
+          </div>
+          <div class="meeting-card-actions">
+            <a class="btn btn-sm btn-primary" href="/operator.htmx.html?meeting_id=${m.id}">Ouvrir</a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render meetings grid.
+   * @param {Array} meetings - Meetings to render
+   */
+  function renderMeetings(meetings) {
+    const filtered = filterMeetings(meetings, currentFilter);
+    const sorted = [...filtered].sort(sortMeetings);
+
+    if (meetingsCount) {
+      meetingsCount.textContent = `${sorted.length} séance${sorted.length > 1 ? 's' : ''}`;
+    }
+
+    if (!meetingsList) return;
+
+    if (sorted.length === 0) {
+      meetingsList.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <div class="empty-state-icon">
+            <svg class="icon" style="width:3rem;height:3rem;" aria-hidden="true">
+              <use href="/assets/icons.svg#icon-clipboard-list"></use>
+            </svg>
+          </div>
+          <h3>Aucune séance</h3>
+          <p>Créez une nouvelle séance avec le formulaire ci-dessus.</p>
+        </div>
+      `;
+      return;
+    }
+
+    meetingsList.innerHTML = sorted.map(renderMeetingCard).join('');
+  }
+
+  // ==========================================================================
+  // DATA LOADING
+  // ==========================================================================
+
+  /**
+   * Fetch meetings from API.
+   */
+  async function fetchMeetings() {
+    if (meetingsList) {
+      meetingsList.innerHTML = '<div class="text-center p-6 text-muted" style="grid-column: 1 / -1;">Chargement...</div>';
+    }
+
     try {
-        const { status, body } = await api("/api/v1/meetings.php");
-        if (!body || !body.ok) {
-            setNotif('error', "Erreur chargement séances : " + (body?.error || status));
-            log("Erreur load meetings: " + JSON.stringify(body));
-            return;
-        }
-        state.meetings = body.data.meetings || [];
-        renderMeetingsLists();
-        fillMeetingSelect();
-    } finally {
-        setLoading(false);
+      const { body } = await api('/api/v1/meetings_index.php');
+      allMeetings = body?.data?.meetings || [];
+      updateStats(allMeetings);
+      renderMeetings(allMeetings);
+
+      // Update calendar if active
+      if (calendarView) {
+        calendarView.setEvents(filterMeetings(allMeetings, currentFilter));
+      }
+    } catch (err) {
+      if (meetingsList) {
+        meetingsList.innerHTML = `
+          <div class="alert alert-danger" style="grid-column: 1 / -1;">
+            Erreur: ${escapeHtml(err.message)}
+          </div>
+        `;
+      }
     }
-}
+  }
 
-/**
- * Met à jour les listes des séances (actives / historiques).
- */
-function renderMeetingsLists() {
-    const activeDiv  = document.getElementById("active_meetings_list");
-    const historyDiv = document.getElementById("history_meetings_list");
+  // ==========================================================================
+  // MEETING CREATION
+  // ==========================================================================
 
-    if (!activeDiv || !historyDiv) return;
-
-    activeDiv.innerHTML  = "";
-    historyDiv.innerHTML = "";
-
-    const actives = state.meetings.filter(isActiveMeeting);
-    const history = state.meetings.filter(isHistoryMeeting);
-
-    // Séances actives
-    if (!actives.length) {
-        activeDiv.textContent = "Pas de séance active.";
-    } else {
-        actives.forEach(m => {
-            const el = createMeetingElement(m, true);
-            activeDiv.appendChild(el);
-        });
+  /**
+   * Create a new meeting.
+   */
+  async function createMeeting() {
+    const title = titleInput?.value.trim();
+    if (!title) {
+      setNotif('error', 'Le titre est requis');
+      titleInput?.focus();
+      return;
     }
 
-    // Historique
-    if (!history.length) {
-        historyDiv.textContent = "Aucune séance dans l’historique.";
-    } else {
-        history.forEach(m => {
-            const el = createMeetingElement(m, false);
-            historyDiv.appendChild(el);
-        });
-    }
-}
+    const scheduled_at = dateInput?.value || null;
 
+    Shared.btnLoading(createBtn, true);
+    try {
+      const { body } = await api('/api/v1/meetings.php', { title, scheduled_at });
 
-/**
- * Crée un élément DOM pour une séance.
- */
-function createMeetingElement(m, isActive) {
-    const el = document.createElement("div");
-    el.className = "item" + (m.id === state.currentMeetingId ? " active" : "");
-    el.onclick = () => selectMeeting(m.id);
-    el.tabIndex = 0;
-    el.addEventListener("keypress", (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            selectMeeting(m.id);
-        }
-    });
+      if (body && body.ok) {
+        setNotif('success', 'Séance créée');
+        if (titleInput) titleInput.value = '';
+        if (dateInput) dateInput.value = '';
 
-    let html = `<strong>${escapeHtml(m.title)}</strong>`;
-    html += ` <span class="pill status-${m.status}">${m.status}</span>`;
-    html += `<br><span class="muted">${m.id}</span>`;
-
-    if (!isActive) {
-        if (m.validated_by) {
-            const date = m.validated_at ? new Date(m.validated_at).toLocaleString() : 'date inconnue';
-            html += `<br><span class="muted">Validée par ${escapeHtml(m.validated_by)} le ${date}</span>`;
+        // Redirect to operator page
+        const mid = body.data?.meeting_id;
+        if (mid) {
+          window.location.href = `/operator.htmx.html?meeting_id=${mid}`;
         } else {
-            html += `<br><span class="muted">Non validée</span>`;
+          fetchMeetings();
         }
+      } else {
+        setNotif('error', body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(createBtn, false);
     }
+  }
 
-    el.innerHTML = html;
+  // ==========================================================================
+  // INITIALIZATION
+  // ==========================================================================
 
-    if (isActive) {
-        const actions = document.createElement("div");
-        actions.style.marginTop = "4px";
-
-        const btnRename = document.createElement("button");
-        btnRename.textContent = "Renommer";
-        btnRename.className = "small secondary";
-        btnRename.onclick = (ev) => { ev.stopPropagation(); renameMeeting(m.id); };
-
-        const btnArchive = document.createElement("button");
-        btnArchive.textContent = "Archiver";
-        btnArchive.className = "small";
-        btnArchive.onclick = (ev) => { ev.stopPropagation(); archiveMeeting(m.id); };
-
-        actions.appendChild(btnRename);
-        actions.appendChild(btnArchive);
-        el.appendChild(actions);
-    }
-
-    return el;
-}
-
-/**
- * Remplit le <select> des séances actives.
- */
-function fillMeetingSelect() {
-    const sel = document.getElementById("meeting_select");
-    if (!sel) return;
-    const previous = sel.value;
-    sel.innerHTML = '<option value="">– Sélectionner une séance –</option>';
-
-    state.meetings.forEach(m => {
-        if (!isActiveMeeting(m)) return;
-        const opt = document.createElement("option");
-        opt.value = m.id;
-        opt.textContent = m.title;
-        if (m.id === previous || m.id === state.currentMeetingId) opt.selected = true;
-        sel.appendChild(opt);
+  function init() {
+    // Initialize filter manager
+    filterManager = new PageComponents.FilterManager({
+      containerSelector: '.filter-tabs',
+      defaultFilter: 'all',
+      onChange: function(filter) {
+        currentFilter = filter;
+        renderMeetings(allMeetings);
+        if (calendarView) {
+          calendarView.setEvents(filterMeetings(allMeetings, currentFilter));
+        }
+      }
     });
-}
 
-/**
- * Handler <select> des séances.
- */
-function onMeetingChange() {
-    const sel = document.getElementById("meeting_select");
-    if (!sel) return;
-    const id = sel.value;
-    if (id) selectMeeting(id);
-}
+    // Initialize view toggle
+    viewToggle = new PageComponents.ViewToggle({
+      containerSelector: '.view-toggle',
+      defaultView: 'grid',
+      views: {
+        grid: {
+          element: '#meetingsList',
+          onActivate: function() {}
+        },
+        calendar: {
+          element: '#calendarContainer',
+          onActivate: function() {
+            if (calendarView) {
+              calendarView.render();
+            }
+          }
+        }
+      }
+    });
 
-/**
- * Sélectionne une séance et charge ODJ + résolutions.
- */
-async function selectMeeting(id) {
-    state.currentMeetingId = id;
-    state.currentAgendaId = null;
-    state.currentMotion = null;
-    renderMeetingsLists();
-    await loadAgendasAndMotions();
-}
+    // Initialize calendar view
+    calendarView = new PageComponents.CalendarView({
+      container: '#calendarGrid',
+      titleElement: '#calendarTitle',
+      events: [],
+      onEventClick: function(event) {
+        window.location.href = '/operator.htmx.html?meeting_id=' + event.id;
+      }
+    });
+
+    // Calendar navigation buttons
+    const calendarPrev = document.getElementById('calendarPrev');
+    const calendarNext = document.getElementById('calendarNext');
+    const calendarToday = document.getElementById('calendarToday');
+
+    if (calendarPrev) {
+      calendarPrev.addEventListener('click', function() {
+        calendarView.prevMonth();
+      });
+    }
+    if (calendarNext) {
+      calendarNext.addEventListener('click', function() {
+        calendarView.nextMonth();
+      });
+    }
+    if (calendarToday) {
+      calendarToday.addEventListener('click', function() {
+        calendarView.today();
+      });
+    }
+
+    // Create meeting button
+    if (createBtn) {
+      createBtn.addEventListener('click', createMeeting);
+    }
+
+    // Enter key in title input
+    if (titleInput) {
+      titleInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') createMeeting();
+      });
+    }
+
+    // Initial data load
+    fetchMeetings();
+  }
+
+  // ==========================================================================
+  // LEGACY EXPORTS (for backward compatibility)
+  // ==========================================================================
+
+  /**
+   * A meeting is "active" if it is not archived.
+   */
+  function isActiveMeeting(m) {
+    return m.status !== 'archived';
+  }
+
+  /**
+   * A meeting is in history if it is closed or archived.
+   */
+  function isHistoryMeeting(m) {
+    return m.status === 'closed' || m.status === 'archived';
+  }
+
+  // Export for legacy usage
+  window.MeetingsPage = {
+    fetchMeetings: fetchMeetings,
+    renderMeetings: renderMeetings,
+    isActiveMeeting: isActiveMeeting,
+    isHistoryMeeting: isHistoryMeeting
+  };
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();

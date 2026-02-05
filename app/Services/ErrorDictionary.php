@@ -4,19 +4,19 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 /**
- * ErrorDictionary - Dictionnaire des messages d'erreur en français
+ * ErrorDictionary - French error message dictionary
  *
- * Centralise les traductions des codes d'erreur API pour offrir
- * des messages utilisateur lisibles et cohérents.
+ * Centralizes API error code translations to provide
+ * readable and consistent user messages.
  */
 final class ErrorDictionary
 {
     /**
-     * Messages d'erreur en français
+     * Error messages in French
      * Format: code => message
      */
     private const MESSAGES = [
-        // Authentification & Autorisation
+        // Authentication & Authorization
         'unauthorized' => 'Vous devez être connecté pour accéder à cette ressource.',
         'forbidden' => 'Vous n\'avez pas les droits nécessaires pour cette action.',
         'invalid_token' => 'Token d\'authentification invalide ou expiré.',
@@ -24,14 +24,14 @@ final class ErrorDictionary
         'csrf_failed' => 'Jeton de sécurité invalide. Veuillez rafraîchir la page.',
         'role_required' => 'Cette action nécessite un rôle spécifique.',
 
-        // Validation générale
+        // General validation
         'validation_failed' => 'Les données soumises sont invalides.',
         'missing_required_field' => 'Un champ obligatoire est manquant.',
         'invalid_request' => 'La requête est mal formée ou incomplète.',
         'missing_or_invalid_uuid' => 'Un identifiant requis est manquant ou invalide.',
         'method_not_allowed' => 'Cette méthode HTTP n\'est pas autorisée pour cette ressource.',
 
-        // Séances (Meetings)
+        // Meetings
         'missing_meeting_id' => 'Identifiant de séance requis.',
         'meeting_not_found' => 'Séance introuvable.',
         'meeting_validated' => 'Cette séance est validée et ne peut plus être modifiée.',
@@ -44,7 +44,7 @@ final class ErrorDictionary
         'meeting_not_closed' => 'La séance n\'est pas clôturée.',
         'meeting_invalid_transition' => 'Cette transition de statut n\'est pas autorisée.',
 
-        // Résolutions (Motions)
+        // Motions
         'missing_motion_id' => 'Identifiant de résolution requis.',
         'motion_not_found' => 'Résolution introuvable.',
         'motion_already_opened' => 'Cette résolution est déjà ouverte au vote.',
@@ -61,7 +61,7 @@ final class ErrorDictionary
         'member_already_exists' => 'Un membre avec cet email existe déjà.',
         'invalid_email' => 'Adresse email invalide.',
 
-        // Présences (Attendance)
+        // Attendance
         'member_not_present' => 'Ce membre n\'est pas enregistré comme présent.',
         'member_already_present' => 'Ce membre est déjà enregistré comme présent.',
         'invalid_attendance_mode' => 'Mode de présence invalide.',
@@ -76,7 +76,7 @@ final class ErrorDictionary
         'voting_closed' => 'Le vote est fermé.',
         'not_eligible' => 'Vous n\'êtes pas éligible au vote.',
 
-        // Procurations (Proxies)
+        // Proxies
         'proxy_not_found' => 'Procuration introuvable.',
         'proxy_limit_exceeded' => 'Le nombre maximum de procurations est atteint.',
         'proxy_self_delegate' => 'Vous ne pouvez pas vous déléguer à vous-même.',
@@ -84,27 +84,27 @@ final class ErrorDictionary
         'proxy_chain_forbidden' => 'Les chaînes de procurations ne sont pas autorisées.',
         'invalid_proxy' => 'Procuration invalide.',
 
-        // Politiques (Policies)
+        // Policies
         'policy_not_found' => 'Politique de vote ou de quorum introuvable.',
         'quorum_not_met' => 'Le quorum n\'est pas atteint.',
         'invalid_policy' => 'Configuration de politique invalide.',
 
-        // Exports & Rapports
+        // Exports & Reports
         'export_failed' => 'L\'export a échoué.',
         'report_generation_failed' => 'La génération du rapport a échoué.',
         'email_send_failed' => 'L\'envoi de l\'email a échoué.',
 
-        // Tenant / Organisation
+        // Tenant / Organization
         'tenant_not_found' => 'Organisation introuvable.',
         'invalid_tenant' => 'Organisation invalide.',
 
-        // Erreurs système
+        // System errors
         'internal_error' => 'Une erreur interne est survenue. Veuillez réessayer.',
         'database_error' => 'Erreur de base de données. Veuillez réessayer.',
         'service_unavailable' => 'Service temporairement indisponible.',
         'maintenance_mode' => 'Le système est en maintenance.',
 
-        // Erreurs métier génériques
+        // Generic business errors
         'business_error' => 'L\'opération n\'a pas pu être effectuée.',
         'conflict' => 'Conflit avec l\'état actuel de la ressource.',
         'precondition_failed' => 'Une condition préalable n\'est pas remplie.',
@@ -113,7 +113,7 @@ final class ErrorDictionary
     ];
 
     /**
-     * Retourne le message français pour un code d'erreur
+     * Returns the French message for an error code
      */
     public static function getMessage(string $code): string
     {
@@ -121,7 +121,7 @@ final class ErrorDictionary
     }
 
     /**
-     * Génère un message par défaut pour les codes non mappés
+     * Generates a default message for unmapped codes
      */
     private static function getDefaultMessage(string $code): string
     {
@@ -132,7 +132,7 @@ final class ErrorDictionary
     }
 
     /**
-     * Vérifie si un code d'erreur a un message défini
+     * Checks if an error code has a defined message
      */
     public static function hasMessage(string $code): bool
     {
@@ -148,11 +148,11 @@ final class ErrorDictionary
     }
 
     /**
-     * Enrichit une réponse d'erreur avec le message traduit
+     * Enriches an error response with the translated message
      *
-     * @param string $code Code d'erreur
-     * @param array $extra Données supplémentaires (peut contenir 'detail')
-     * @return array Réponse enrichie avec 'message'
+     * @param string $code Error code
+     * @param array $extra Additional data (may contain 'detail')
+     * @return array Response enriched with 'message'
      */
     public static function enrichError(string $code, array $extra = []): array
     {

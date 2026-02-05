@@ -1,0 +1,49 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "script"
+  },
+  "globals": {
+    "htmx": "readonly",
+    "MeetingContext": "readonly",
+    "Utils": "readonly",
+    "Shared": "readonly",
+    "AgToast": "readonly",
+    "api": "readonly",
+    "setNotif": "readonly",
+    "setLoading": "readonly",
+    "escapeHtml": "readonly",
+    "getApiError": "readonly",
+    "icon": "readonly",
+    "log": "readonly",
+    "formatDate": "readonly",
+    "getParam": "readonly",
+    "isValidEmail": "readonly",
+    "parseCSV": "readonly"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-console": "off",
+    "semi": ["error", "always"],
+    "quotes": ["warn", "single", { "avoidEscape": true }],
+    "indent": ["warn", 2, { "SwitchCase": 1 }],
+    "no-trailing-spaces": "warn",
+    "eol-last": ["warn", "always"],
+    "comma-dangle": ["warn", "always-multiline"],
+    "no-multiple-empty-lines": ["warn", { "max": 2, "maxEOF": 1 }],
+    "no-var": "warn",
+    "prefer-const": "warn",
+    "eqeqeq": ["warn", "smart"]
+  },
+  "ignorePatterns": [
+    "vendor/**",
+    "vendor_bak/**",
+    "node_modules/**",
+    "*.min.js"
+  ]
+}

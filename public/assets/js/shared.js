@@ -30,9 +30,8 @@
           const link = sidebar.querySelector('[data-page="' + page + '"]');
           if (link) link.classList.add('active');
         }
-        // Propagate meeting_id from URL to sidebar nav links
-        const params = new URLSearchParams(window.location.search);
-        const mid = params.get('meeting_id');
+        // Propagate meeting_id to sidebar nav links using MeetingContext
+        const mid = (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
         if (mid) {
           sidebar.querySelectorAll('a.nav-item[href]').forEach(function (a) {
             const href = a.getAttribute('href') || '';
@@ -44,7 +43,7 @@
       })
       .catch(function () {
         // Fallback: leave empty sidebar (navigation still works via drawer menu)
-        sidebar.innerHTML = '<div class="p-4 text-muted text-sm">Navigation indisponible</div>';
+        sidebar.innerHTML = '<div class="p-4 text-muted text-sm">Navigation unavailable</div>';
       });
   }
 

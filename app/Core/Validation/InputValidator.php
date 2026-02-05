@@ -1,10 +1,43 @@
 <?php
+
 declare(strict_types=1);
 
+namespace AgVote\Core\Validation;
+
+use DateTimeImmutable;
+
 /**
- * InputValidator - Validation et sanitization centralisée
- * 
- * Équivalent PHP de Zod/Joi pour la validation des entrées utilisateur.
+ * InputValidator - Centralized validation and sanitization.
+ *
+ * Provides a fluent, chainable API for validating user input,
+ * similar to JavaScript libraries like Zod or Joi.
+ *
+ * Features:
+ * - Type coercion and validation (string, integer, number, boolean, email, uuid, enum, array, datetime)
+ * - Required/optional fields with default values
+ * - Min/max length and value constraints
+ * - Pattern matching with regex
+ * - Enum validation
+ * - XSS sanitization by default for strings
+ * - Nullable field support
+ *
+ * Usage:
+ * ```php
+ * $result = InputValidator::schema()
+ *     ->uuid('meeting_id')->required()
+ *     ->string('title')->required()->minLength(1)->maxLength(255)
+ *     ->email('email')->optional()
+ *     ->enum('status', ['draft', 'live', 'closed'])->default('draft')
+ *     ->validate($_POST);
+ *
+ * if (!$result->isValid()) {
+ *     return api_fail($result->firstError(), 422);
+ * }
+ *
+ * $data = $result->data();
+ * ```
+ *
+ * @package AgVote\Core\Validation
  */
 final class InputValidator
 {
@@ -135,7 +168,7 @@ final class InputValidator
 
         $value = trim((string)$value);
 
-        // Sanitize XSS par défaut
+        // Sanitize XSS by default
         if (!($def['raw'] ?? false)) {
             $value = htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         }
@@ -281,6 +314,15 @@ final class InputValidator
     }
 }
 
+/**
+ * FieldBuilder - Fluent field definition builder for InputValidator.
+ *
+ * Provides chainable methods to configure validation rules for a single field.
+ * Methods return $this to allow chaining, or the parent validator to define
+ * additional fields.
+ *
+ * @package AgVote\Core\Validation
+ */
 final class FieldBuilder
 {
     private InputValidator $validator;
@@ -306,7 +348,7 @@ final class FieldBuilder
     public function in(array $values): self { $this->definition['in'] = $values; return $this; }
     public function raw(): self { $this->definition['raw'] = true; return $this; }
 
-    // Méthodes pass-through pour permettre le chaînage de plusieurs champs
+    // Pass-through methods to allow chaining multiple fields
     public function string(string $name): FieldBuilder { return $this->build()->string($name); }
     public function integer(string $name): FieldBuilder { return $this->build()->integer($name); }
     public function number(string $name): FieldBuilder { return $this->build()->number($name); }
@@ -324,8 +366,8 @@ final class FieldBuilder
     }
 
     /**
-     * Valide les données en appelant le validateur parent.
-     * Permet d'appeler validate() directement sur la chaîne de FieldBuilder.
+     * Validates data by calling the parent validator.
+     * Allows calling validate() directly on the FieldBuilder chain.
      */
     public function validate(array $input): ValidationResult
     {
@@ -339,11 +381,26 @@ final class FieldBuilder
     }
 }
 
+/**
+ * ValidationResult - Result container for InputValidator validation.
+ *
+ * Contains validated data and any validation errors.
+ * Provides helper methods for checking validity and accessing results.
+ *
+ * @package AgVote\Core\Validation
+ */
 final class ValidationResult
 {
+    /** @var array<string, mixed> Validated and sanitized data */
     private array $data;
+
+    /** @var array<string, string> Validation errors by field name */
     private array $errors;
 
+    /**
+     * @param array<string, mixed> $data Validated data
+     * @param array<string, string> $errors Validation errors
+     */
     public function __construct(array $data, array $errors)
     {
         $this->data = $data;

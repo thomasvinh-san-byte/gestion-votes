@@ -2,14 +2,14 @@
 declare(strict_types=1);
 
 /**
- * bootstrap.php - Point d'entrée unifié avec sécurité intégrée
- * 
- * REMPLACEMENT du bootstrap.php existant.
- * Intègre : Config, PDO, CSRF, Auth RBAC, Rate Limiting, Headers sécurité.
+ * bootstrap.php - Unified entry point with integrated security
+ *
+ * REPLACEMENT for existing bootstrap.php.
+ * Integrates: Config, PDO, CSRF, Auth RBAC, Rate Limiting, Security Headers.
  */
 
 // =============================================================================
-// 0. CHARGEMENT .env (dotenv minimal)
+// 0. LOADING .env (minimal dotenv)
 // =============================================================================
 
 $envFile = __DIR__ . '/../.env';
@@ -30,24 +30,22 @@ if (file_exists($envFile)) {
 }
 
 // =============================================================================
-// 1. AUTOLOADING COMPOSANTS SÉCURITÉ
+// 1. AUTOLOADING (PSR-4 via Composer)
 // =============================================================================
 
-require_once __DIR__ . '/Core/Security/CsrfMiddleware.php';
-require_once __DIR__ . '/Core/Security/AuthMiddleware.php';
-require_once __DIR__ . '/Core/Security/RateLimiter.php';
-require_once __DIR__ . '/Core/Validation/InputValidator.php';
-
-// Composer autoload si disponible
 $autoload = __DIR__ . '/../vendor/autoload.php';
 if (file_exists($autoload)) {
     require_once $autoload;
 } else {
-    // Fallback PSR-4 autoloader (fonctionne sans composer install)
+    // Fallback PSR-4 autoloader (works without composer install)
     spl_autoload_register(function (string $class): void {
         $map = [
-            'AgVote\\Repository\\' => __DIR__ . '/Repository/',
-            'AgVote\\Service\\'    => __DIR__ . '/services/',
+            'AgVote\\Core\\Security\\'    => __DIR__ . '/Core/Security/',
+            'AgVote\\Core\\Validation\\'  => __DIR__ . '/Core/Validation/',
+            'AgVote\\Core\\'              => __DIR__ . '/Core/',
+            'AgVote\\Repository\\'        => __DIR__ . '/Repository/',
+            'AgVote\\Service\\'           => __DIR__ . '/Services/',
+            'AgVote\\WebSocket\\'         => __DIR__ . '/WebSocket/',
         ];
         foreach ($map as $prefix => $dir) {
             $len = strlen($prefix);
@@ -62,19 +60,24 @@ if (file_exists($autoload)) {
     });
 }
 
+// Import namespaced classes
+use AgVote\Core\Security\CsrfMiddleware;
+use AgVote\Core\Security\AuthMiddleware;
+use AgVote\Core\Security\RateLimiter;
+
 // =============================================================================
 // 2. CONFIGURATION
 // =============================================================================
 
 $config = require __DIR__ . '/config.php';
 
-// Secret applicatif
+// Application secret
 if (!defined('APP_SECRET')) {
     $secret = getenv('APP_SECRET') ?: ($config['app_secret'] ?? 'change-me-in-prod');
     define('APP_SECRET', $secret);
 }
 
-// Validation du secret en production
+// Secret validation in production
 $isProduction = in_array(getenv('APP_ENV') ?: ($config['env'] ?? 'dev'), ['production', 'prod'], true);
 $authEnabled = getenv('APP_AUTH_ENABLED') === '1' || strtolower((string)getenv('APP_AUTH_ENABLED')) === 'true';
 
@@ -87,7 +90,7 @@ if ($isProduction || $authEnabled) {
     }
 }
 
-// Tenant par défaut
+// Default tenant
 if (!defined('DEFAULT_TENANT_ID')) {
     $tid = getenv('DEFAULT_TENANT_ID') ?: (getenv('TENANT_ID') ?: ($config['default_tenant_id'] ?? 'aaaaaaaa-1111-2222-3333-444444444444'));
     define('DEFAULT_TENANT_ID', $tid);
@@ -99,7 +102,7 @@ $env = (string)($config['env'] ?? 'dev');
 $debug = (bool)($config['debug'] ?? false);
 
 // =============================================================================
-// 3. GESTION ERREURS
+// 3. ERROR HANDLING
 // =============================================================================
 
 if ($env === 'production' || $env === 'prod') {
@@ -128,20 +131,20 @@ set_exception_handler(function (\Throwable $e) use ($debug) {
 });
 
 // =============================================================================
-// 4. HEADERS SÉCURITÉ
+// 4. SECURITY HEADERS
 // =============================================================================
 
-// CSP + autres headers sécurité
+// CSP + other security headers
 if (!headers_sent()) {
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     
-    // CSP (permissif pour HTMX/CDN)
+    // CSP (permissive for HTMX/CDN)
     header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'self'; form-action 'self'");
     
-    // HSTS en HTTPS
+    // HSTS in HTTPS
     if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
         header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
     }
@@ -171,7 +174,7 @@ if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
 }
 
 // =============================================================================
-// 6. CONNEXION BASE DE DONNÉES
+// 6. DATABASE CONNECTION
 // =============================================================================
 
 $dsn  = (string)($config['db']['dsn']  ?? '');
@@ -203,7 +206,7 @@ try {
 }
 
 // =============================================================================
-// 7. INITIALISATION SÉCURITÉ
+// 7. SECURITY INITIALIZATION
 // =============================================================================
 
 RateLimiter::configure([
@@ -213,12 +216,12 @@ RateLimiter::configure([
 AuthMiddleware::init(['debug' => $debug]);
 
 // =============================================================================
-// 8. HELPERS BASE DE DONNÉES
+// 8. DATABASE HELPERS
 // =============================================================================
 
 function db(): PDO { global $pdo; return $pdo; }
 
-/** @deprecated Utiliser un Repository a la place. */
+/** @deprecated Use a Repository instead. */
 function db_select_one(string $sql, array $params = []): ?array {
     $st = db()->prepare($sql);
     $st->execute($params);
@@ -226,36 +229,36 @@ function db_select_one(string $sql, array $params = []): ?array {
     return $row === false ? null : $row;
 }
 
-/** @deprecated Alias de db_select_one(). Utiliser un Repository. */
+/** @deprecated Alias for db_select_one(). Use a Repository. */
 function db_one(string $sql, array $params = []): ?array {
     return db_select_one($sql, $params);
 }
 
-/** @deprecated Utiliser un Repository a la place. */
+/** @deprecated Use a Repository instead. */
 function db_select_all(string $sql, array $params = []): array {
     $st = db()->prepare($sql);
     $st->execute($params);
     return $st->fetchAll();
 }
 
-/** @deprecated Alias de db_select_all(). Utiliser un Repository. */
+/** @deprecated Alias for db_select_all(). Use a Repository. */
 function db_all(string $sql, array $params = []): array {
     return db_select_all($sql, $params);
 }
 
-/** @deprecated Utiliser un Repository a la place. */
+/** @deprecated Use a Repository instead. */
 function db_execute(string $sql, array $params = []): int {
     $st = db()->prepare($sql);
     $st->execute($params);
     return $st->rowCount();
 }
 
-/** @deprecated Alias de db_execute(). Utiliser un Repository. */
+/** @deprecated Alias for db_execute(). Use a Repository. */
 function db_exec(string $sql, array $params = []): int {
     return db_execute($sql, $params);
 }
 
-/** @deprecated Utiliser un Repository a la place. */
+/** @deprecated Use a Repository instead. */
 function db_scalar(string $sql, array $params = []): mixed {
     $st = db()->prepare($sql);
     $st->execute($params);
@@ -278,7 +281,7 @@ function audit_log(
         $userRole = AuthMiddleware::getCurrentRole();
         $tenantId = AuthMiddleware::getCurrentTenantId();
 
-        // Vérifie si la table existe avec les bonnes colonnes
+        // Check if table exists with correct columns
         $sql = "INSERT INTO audit_events 
                 (tenant_id, meeting_id, actor_user_id, actor_role, action, resource_type, resource_id, payload, created_at)
                 VALUES (:tid, :mid, :uid, :role, :action, :rtype, :rid, :payload::jsonb, NOW())";
@@ -299,7 +302,7 @@ function audit_log(
 }
 
 // =============================================================================
-// 10. HELPERS UUID
+// 10. UUID HELPERS
 // =============================================================================
 
 function api_uuid4(): string {

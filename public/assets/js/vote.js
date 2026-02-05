@@ -1,12 +1,35 @@
+/**
+ * vote.js - Public voting interface for AG-VOTE.
+ *
+ * Provides the voter-facing interface for casting ballots.
+ * Features: meeting/member selection, motion display, vote casting,
+ * device heartbeat, block/kick handling, policy badges.
+ *
+ * @module vote
+ * @requires utils.js
+ * @requires MeetingContext (optional, falls back to select element)
+ */
 (function(){
+  'use strict';
+
+  /**
+   * DOM query shorthand
+   * @param {string} s - CSS selector
+   * @returns {Element|null}
+   */
   const $ = (s) => document.querySelector(s);
 
   // -----------------------------
-  // Tech: device heartbeat + block/kick handling
+  // Device heartbeat + block/kick handling
   // -----------------------------
   const DEVICE_ROLE = 'voter';
   const HEARTBEAT_URL = '/api/v1/device_heartbeat.php';
 
+  /**
+   * Get or generate a unique device identifier.
+   * Persisted in localStorage for session continuity.
+   * @returns {string} Device UUID
+   */
   function getDeviceId(){
     try {
       const k = 'device.id';
@@ -21,6 +44,10 @@
     }
   }
 
+  /**
+   * Read device battery status using Battery Status API.
+   * @returns {Promise<{level: number, charging: boolean}|null>} Battery info or null if unavailable
+   */
   async function readBattery(){
     try {
       if (!navigator.getBattery) return null;
@@ -34,6 +61,11 @@
     }
   }
 
+  /**
+   * Create or return the blocked device overlay element.
+   * Shown when device is blocked by operator.
+   * @returns {HTMLElement} The overlay element
+   */
   function ensureBlockedOverlay(){
     let el = document.getElementById('blockedOverlay');
     if (el) return el;
@@ -47,16 +79,21 @@
     el.style.color = '#fff';
     el.innerHTML = `
       <div style="max-width:520px;margin:12vh auto;padding:24px;">
-        <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Accès suspendu</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Access Suspended</div>
         <div id="blockedMsg" style="opacity:0.9;line-height:1.4;">
-          Cet appareil a été temporairement bloqué par l’opérateur.
+          This device has been temporarily blocked by the operator.
         </div>
-        <div style="margin-top:16px;opacity:0.8;font-size:12px;">Reste sur cet écran. L’accès sera rétabli automatiquement après déblocage.</div>
+        <div style="margin-top:16px;opacity:0.8;font-size:12px;">Stay on this screen. Access will be restored automatically after unblock.</div>
       </div>`;
     document.body.appendChild(el);
     return el;
   }
 
+  /**
+   * Show or hide the blocked device overlay.
+   * @param {boolean} on - Whether to show the overlay
+   * @param {string} [msg] - Optional message to display
+   */
   function setBlocked(on, msg){
     const ov = ensureBlockedOverlay();
     const m = document.getElementById('blockedMsg');
@@ -66,6 +103,11 @@
     setVoteButtonsEnabled(!on && !!selectedMemberId());
   }
 
+  /**
+   * Send device heartbeat to the server.
+   * Reports device status and receives block/kick commands.
+   * @returns {Promise<void>}
+   */
   async function sendHeartbeat(){
     const meetingId = selectedMeetingId();
     if (!meetingId) return;
@@ -89,21 +131,26 @@
       const out = await r.json().catch(()=>({}));
       const data = out?.data || {};
       if (data.blocked) {
-        setBlocked(true, data.block_reason || "Cet appareil a été bloqué.");
+        setBlocked(true, data.block_reason || "This device has been blocked.");
       } else {
         setBlocked(false);
       }
 
       // Soft kick: request reload
       if (data.command && data.command.type === 'kick') {
-        notify('error', data.command.message || 'Reconnexion requise.');
+        notify('error', data.command.message || 'Reconnection required.');
         setTimeout(()=>{ location.reload(); }, 800);
       }
     } catch(e){
-      // heartbeat failures are non-blocking
+      // Heartbeat failures are non-blocking
     }
   }
 
+  /**
+   * Display a notification message.
+   * @param {string} type - Notification type: 'success' or 'error'
+   * @param {string} msg - Message to display
+   */
   function notify(type, msg){
     const box = $("#notif_box");
     if (!box) return console[type==="error"?"error":"log"](msg);
@@ -113,10 +160,15 @@
     setTimeout(()=>{ box.style.display = "none"; }, 3000);
   }
 
+  /**
+   * Escape HTML entities in a string.
+   * @param {*} x - Value to escape
+   * @returns {string} Escaped string
+   */
   function escapeHtml(x){ return (window.Utils?.escapeHtml ? Utils.escapeHtml(x) : String(x ?? "")); }
 
   // -----------------------------
-  // Policy labels (visual proof of overrides)
+  // Policy labels (visual indicator of overrides)
   // -----------------------------
   let _currentMotionId = null;
 
@@ -175,14 +227,28 @@
     return `<div class="row" style="gap:6px; flex-wrap:wrap; margin-top:10px;">${badges.join('')}</div>`;
   }
 
-  // Prefer Utils.apiGet/apiPost (loaded from utils.js before this file).
-  // Falls back to a minimal local fetch if Utils is somehow unavailable.
+  /**
+   * Perform a GET request to the API.
+   * Uses Utils.apiGet if available, otherwise falls back to fetch.
+   * @param {string} url - API endpoint URL
+   * @returns {Promise<Object>} Parsed JSON response
+   * @throws {Error} If request fails
+   */
   async function apiGet(url){
     if (window.Utils && typeof Utils.apiGet === 'function') return Utils.apiGet(url);
     const r = await fetch(url, { method: 'GET', credentials: 'same-origin' });
     if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'request_failed'); }
     return r.json();
   }
+
+  /**
+   * Perform a POST request to the API.
+   * Uses Utils.apiPost if available, otherwise falls back to fetch.
+   * @param {string} url - API endpoint URL
+   * @param {Object} data - Data to send in request body
+   * @returns {Promise<Object>} Parsed JSON response
+   * @throws {Error} If request fails
+   */
   async function apiPost(url, data){
     if (window.Utils && typeof Utils.apiPost === 'function') return Utils.apiPost(url, data);
     const r = await fetch(url, {
@@ -195,9 +261,30 @@
     return r.json();
   }
 
-  function selectedMeetingId(){ return ($("#meetingSelect")?.value || "").trim(); }
+  /**
+   * Get the currently selected meeting ID.
+   * Uses MeetingContext if available, falls back to select element.
+   * @returns {string} Meeting ID or empty string
+   */
+  function selectedMeetingId(){
+    // First try MeetingContext
+    if (typeof MeetingContext !== 'undefined' && MeetingContext.get()) {
+      return MeetingContext.get();
+    }
+    // Fallback to select element for vote.php standalone mode
+    return ($("#meetingSelect")?.value || "").trim();
+  }
+
+  /**
+   * Get the currently selected member ID from the select element.
+   * @returns {string} Member ID or empty string
+   */
   function selectedMemberId(){ return ($("#memberSelect")?.value || "").trim(); }
 
+  /**
+   * Load available meetings into the meeting select dropdown.
+   * @returns {Promise<void>}
+   */
   async function loadMeetings(){
     const sel = $("#meetingSelect");
     if (!sel) return;
@@ -206,23 +293,38 @@
     sel.innerHTML = "";
     const opt0 = document.createElement("option");
     opt0.value = "";
-    opt0.textContent = "— Sélectionner une séance —";
+    opt0.textContent = "— Select a meeting —";
     sel.appendChild(opt0);
     for (const m of meetings){
       const opt = document.createElement("option");
       opt.value = m.meeting_id;
       const when = (m.created_at || "").toString().slice(0,10);
-      opt.textContent = `${when} — ${m.title || "Séance"} [${m.status || "—"}]`;
+      opt.textContent = `${when} — ${m.title || "Meeting"} [${m.status || "—"}]`;
       sel.appendChild(opt);
     }
+    // Priority: MeetingContext > saved localStorage > first meeting in list
+    const contextId = (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
     const saved = (localStorage.getItem("public.meeting_id") || "").trim();
-    if (saved && meetings.some(x=>x.meeting_id===saved)) sel.value = saved;
-    else if (meetings.length) sel.value = meetings[0].meeting_id;
+    const initialId = contextId || saved;
+    if (initialId && meetings.some(x=>x.meeting_id===initialId)) {
+      sel.value = initialId;
+    } else if (meetings.length) {
+      sel.value = meetings[0].meeting_id;
+    }
+    // Sync to MeetingContext
+    if (typeof MeetingContext !== 'undefined' && sel.value) {
+      MeetingContext.set(sel.value, { updateUrl: false });
+    }
     localStorage.setItem("public.meeting_id", sel.value || "");
     await loadMembers();
     await refresh();
   }
 
+  /**
+   * Load members for the selected meeting into the member select dropdown.
+   * Prioritizes present/remote attendees, falls back to all members.
+   * @returns {Promise<void>}
+   */
   async function loadMembers(){
     const meetingId = selectedMeetingId();
     const sel = $("#memberSelect");
@@ -230,7 +332,7 @@
     sel.innerHTML = "";
     const opt0 = document.createElement("option");
     opt0.value = "";
-    opt0.textContent = "— Sélectionner un membre —";
+    opt0.textContent = "— Select a member —";
     sel.appendChild(opt0);
 
     if (!meetingId) return;
@@ -244,7 +346,7 @@
         if (!["present","remote","proxy"].includes(mode)) continue;
         const opt = document.createElement("option");
         opt.value = x.member_id;
-        opt.textContent = `${x.full_name || x.name || "Membre"} (${mode})`;
+        opt.textContent = `${x.full_name || x.name || "Member"} (${mode})`;
         sel.appendChild(opt);
         filled++;
       }
@@ -252,19 +354,19 @@
       // ignore
     }
 
-    // Fallback: si aucune présence saisie, on affiche quand même les membres
+    // Fallback: if no attendance recorded, still display all members
     if (filled === 0) {
       const r = await apiGet("/api/v1/members.php");
       const rows = r?.data?.members || r?.data?.rows || [];
       for (const x of rows){
         const opt = document.createElement("option");
         opt.value = x.id || x.member_id;
-        opt.textContent = x.full_name || x.name || "Membre";
+        opt.textContent = x.full_name || x.name || "Member";
         sel.appendChild(opt);
       }
     }
 
-    // Auto-select: try saved, then try Auth user name matching
+    // Auto-select: try saved value, then try matching Auth user name
     const saved = (localStorage.getItem("public.member_id") || "").trim();
     if (saved && [...sel.options].some(o=>o.value===saved)) {
       sel.value = saved;
@@ -279,6 +381,11 @@
     sel.addEventListener('change', () => updateMemberFromSelect(sel));
   }
 
+  /**
+   * Auto-select the current authenticated user in the member dropdown.
+   * Matches by name or email from window.Auth.user.
+   * @param {HTMLSelectElement} sel - Member select element
+   */
   function autoSelectMember(sel) {
     if (!window.Auth || !window.Auth.user) return;
     const userName = (window.Auth.user.name || '').toLowerCase().trim();
@@ -308,6 +415,11 @@
     }
   }
 
+  /**
+   * Refresh the current motion display.
+   * Fetches the open motion for the selected meeting and updates the UI.
+   * @returns {Promise<void>}
+   */
   async function refresh(){
     const meetingId = selectedMeetingId();
     const memberId = selectedMemberId();
@@ -315,7 +427,7 @@
     if (memberId) localStorage.setItem("public.member_id", memberId);
 
     if (!meetingId){
-      $("#motionBox").innerHTML = "<span class='muted'>Sélectionnez une séance.</span>";
+      $("#motionBox").innerHTML = "<span class='text-muted'>Select a meeting.</span>";
       setVoteButtonsEnabled(false);
       return;
     }
@@ -326,23 +438,27 @@
       const m = r?.data?.motion;
       if (!m){
         _currentMotionId = null;
-        $("#motionBox").innerHTML = "<span class='muted'>Aucune motion ouverte.</span>";
+        $("#motionBox").innerHTML = "<span class='text-muted'>No open motion.</span>";
         setVoteButtonsEnabled(false);
         return;
       }
       _currentMotionId = m.id || m.motion_id || null;
       $("#motionBox").innerHTML = `
         <div><strong>${escapeHtml(m.title || "Motion")}</strong></div>
-        <div class='muted tiny'>${escapeHtml(m.description || "")}</div>
+        <div class='text-muted text-xs'>${escapeHtml(m.description || "")}</div>
         ${motionMetaBadges(m)}
       `;
       setVoteButtonsEnabled(!!memberId);
     } catch(e){
-      $("#motionBox").innerHTML = `<span class='muted'>Erreur: ${escapeHtml(e?.message || String(e))}</span>`;
+      $("#motionBox").innerHTML = `<span class='text-muted'>Erreur: ${escapeHtml(e?.message || String(e))}</span>`;
       setVoteButtonsEnabled(false);
     }
   }
 
+  /**
+   * Enable or disable vote buttons.
+   * @param {boolean} on - Whether to enable buttons
+   */
   function setVoteButtonsEnabled(on){
     ["#btnFor","#btnAgainst","#btnAbstain","#btnNone"].forEach(id=>{
       const el=$(id);
@@ -350,48 +466,61 @@
     });
   }
 
+  /**
+   * Cast a vote for the current motion.
+   * @param {string} choice - Vote value: 'for', 'against', 'abstain', or 'none'
+   * @returns {Promise<void>}
+   */
   async function cast(choice){
     const memberId = selectedMemberId();
     if (!_currentMotionId || !memberId) return;
 
     try{
       await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
-      notify("success", "Vote enregistré.");
+      notify("success", "Vote recorded.");
     } catch(e){
       notify("error", e?.message || String(e));
     }
   }
 
   function wire(){
-    const urlMeetingId = (new URLSearchParams(location.search).get('meeting_id') || '').trim();
+    // Initialize MeetingContext if available
+    if (typeof MeetingContext !== 'undefined') {
+      MeetingContext.init();
+    }
     if (Utils.bindApiKeyInput) {
       Utils.bindApiKeyInput("public", $("#publicApiKey"), () => loadMeetings().catch(console.error));
     }
-    $("#meetingSelect")?.addEventListener("change", async ()=>{ await loadMembers(); await refresh(); });
+    $("#meetingSelect")?.addEventListener("change", async ()=>{
+      const newId = ($("#meetingSelect")?.value || "").trim();
+      // Sync selection to MeetingContext
+      if (typeof MeetingContext !== 'undefined' && newId) {
+        MeetingContext.set(newId, { updateUrl: false });
+      }
+      localStorage.setItem("public.meeting_id", newId);
+      await loadMembers();
+      await refresh();
+    });
     $("#memberSelect")?.addEventListener("change", refresh);
     $("#btnRefresh")?.addEventListener("click", refresh);
 
-    // Only bind direct cast if no confirmation overlay (vote.htmx.html has its own overlay that calls submitVote)
+    // Only bind direct cast if no confirmation overlay (vote.htmx.html has its own overlay calling submitVote)
     if (!document.getElementById('confirmationOverlay')) {
       document.querySelectorAll("[data-choice]").forEach(btn=>{
         btn.addEventListener("click", ()=>cast(btn.dataset.choice));
       });
     }
 
-    loadMeetings().then(async () => {
-      if (urlMeetingId) {
-        const sel = $("#meetingSelect");
-        if (sel && [...sel.options].some(o => o.value === urlMeetingId)) {
-          sel.value = urlMeetingId;
-          localStorage.setItem("public.meeting_id", urlMeetingId);
-          await loadMembers();
-          await refresh();
-        }
-      }
-    }).catch((e)=>notify("error", e?.message || String(e)));
+    // Load meetings - MeetingContext handles URL param and persistence
+    loadMeetings().catch((e)=>notify("error", e?.message || String(e)));
 
-    // Poll current motion + heartbeat
-    setInterval(()=>{ if(!document.hidden) refresh().catch(()=>{}); }, 3000);
+    // Poll current motion (disabled when WebSocket is connected)
+    setInterval(()=>{
+      // Skip polling if WebSocket is connected and authenticated
+      if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
+      if (!document.hidden) refresh().catch(()=>{});
+    }, 3000);
+    // Heartbeat always runs (separate from WebSocket heartbeat interval)
     setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
   }
 

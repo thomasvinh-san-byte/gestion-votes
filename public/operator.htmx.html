@@ -7,516 +7,7 @@
   <meta name="description" content="Console opérateur - AG-VOTE">
   <title>Fiche séance — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
-  <style>
-    /* Override grid for this page - add session selector and tabs nav rows */
-    .app-shell {
-      grid-template-rows: auto auto 1fr;
-      grid-template-areas:
-        "sidebar session"
-        "sidebar tabs"
-        "sidebar main";
-    }
-
-    .session-selector {
-      grid-area: session;
-    }
-
-    .tabs-nav {
-      grid-area: tabs;
-    }
-
-    @media (max-width: 768px) {
-      .app-shell {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-          "session"
-          "tabs"
-          "main";
-      }
-    }
-    /* Meeting header bar - Diligent style */
-    .meeting-header-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 1.5rem;
-      background: var(--color-surface);
-      border-bottom: 1px solid var(--color-border);
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .meeting-header-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .meeting-header-left .back-btn {
-      color: var(--color-text-muted);
-      font-size: 1.25rem;
-      text-decoration: none;
-    }
-
-    .meeting-header-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin: 0;
-    }
-
-    .meeting-header-subtitle {
-      font-size: 0.85rem;
-      color: var(--color-text-muted);
-      margin: 0;
-    }
-
-    .meeting-header-saved {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.25rem 0.75rem;
-      background: var(--color-bg-subtle);
-      border-radius: 99px;
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-    }
-
-    .meeting-header-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .status-dropdown {
-      position: relative;
-    }
-
-    .status-dropdown-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      cursor: pointer;
-    }
-
-    /* Tabs navigation - Diligent style */
-    .tabs-nav {
-      display: flex;
-      gap: 0;
-      background: var(--color-surface);
-      border-bottom: 1px solid var(--color-border);
-      padding: 0 1.5rem;
-      overflow-x: auto;
-    }
-
-    .tab-btn {
-      padding: 0.875rem 1.25rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--color-text-muted);
-      background: transparent;
-      border: none;
-      border-bottom: 3px solid transparent;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s;
-    }
-
-    .tab-btn:hover {
-      color: var(--color-text);
-      background: var(--color-bg-subtle);
-    }
-
-    .tab-btn.active {
-      color: var(--color-primary);
-      border-bottom-color: var(--color-primary);
-    }
-
-    .tab-btn .tab-count {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 20px;
-      height: 20px;
-      padding: 0 6px;
-      margin-left: 0.5rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: var(--color-bg-subtle);
-      border-radius: 10px;
-    }
-
-    .tab-btn.active .tab-count {
-      background: var(--color-primary);
-      color: #fff;
-    }
-
-    /* Tab content */
-    .tab-content {
-      display: none;
-      padding: 1.5rem;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    /* Session selector (top bar) */
-    .session-selector {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem 1.5rem;
-      background: var(--color-bg-subtle);
-      border-bottom: 1px solid var(--color-border);
-    }
-
-    .session-selector select {
-      min-width: 300px;
-    }
-
-    /* Two column layout for settings */
-    .settings-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-    }
-
-    @media (max-width: 768px) {
-      .settings-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .settings-section {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      padding: 1.5rem;
-    }
-
-    .settings-section h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin: 0 0 1rem 0;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--color-border);
-    }
-
-    /* Collapsible resolution sections */
-    .resolution-section {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      margin-bottom: 1rem;
-      overflow: hidden;
-    }
-
-    .resolution-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem 1.25rem;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    .resolution-header:hover {
-      background: var(--color-bg-subtle);
-    }
-
-    .resolution-chevron {
-      transition: transform 0.2s;
-      color: var(--color-text-muted);
-    }
-
-    .resolution-section.expanded .resolution-chevron {
-      transform: rotate(90deg);
-    }
-
-    .resolution-title {
-      flex: 1;
-      font-weight: 500;
-    }
-
-    .resolution-status {
-      padding: 0.25rem 0.75rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-
-    .resolution-status.pending { background: var(--color-bg-subtle); color: var(--color-text-muted); }
-    .resolution-status.open { background: var(--color-warning-subtle); color: var(--color-warning); }
-    .resolution-status.closed { background: var(--color-success-subtle); color: var(--color-success); }
-
-    .resolution-body {
-      display: none;
-      padding: 1rem 1.25rem;
-      border-top: 1px solid var(--color-border);
-      background: var(--color-bg-subtle);
-    }
-
-    .resolution-section.expanded .resolution-body {
-      display: block;
-    }
-
-    .resolution-content {
-      font-size: 0.9rem;
-      line-height: 1.6;
-    }
-
-    .resolution-content strong {
-      display: block;
-      margin-top: 1rem;
-      margin-bottom: 0.25rem;
-    }
-
-    .resolution-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--color-border);
-    }
-
-    .resolution-reorder {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      margin-right: 0.5rem;
-    }
-
-    .resolution-reorder .btn {
-      padding: 0.1rem 0.4rem;
-      font-size: 0.7rem;
-      line-height: 1;
-      min-width: auto;
-    }
-
-    .resolution-reorder .btn:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-
-    .resolution-edit-btns {
-      display: flex;
-      gap: 0.25rem;
-    }
-
-    .resolution-edit-btns .btn {
-      padding: 0.25rem 0.5rem;
-    }
-
-    /* Attendance grid */
-    .attendance-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 0.5rem;
-    }
-
-    .attendance-card {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
-    }
-
-    .attendance-card.present { border-left: 3px solid var(--color-success); }
-    .attendance-card.remote { border-left: 3px solid var(--color-info, #3b82f6); }
-    .attendance-card.excused { border-left: 3px solid var(--color-warning); }
-    .attendance-card.absent { border-left: 3px solid var(--color-text-muted); opacity: 0.6; }
-
-    .attendance-name {
-      flex: 1;
-      font-size: 0.9rem;
-    }
-
-    .attendance-mode-btns {
-      display: flex;
-      gap: 0.25rem;
-    }
-
-    .mode-btn {
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      cursor: pointer;
-      background: var(--color-surface);
-      transition: all 0.15s;
-    }
-
-    .mode-btn:hover { background: var(--color-bg-subtle); }
-    .mode-btn.active.present { background: var(--color-success); color: #fff; border-color: transparent; }
-    .mode-btn.active.remote { background: var(--color-info, #3b82f6); color: #fff; border-color: transparent; }
-    .mode-btn.active.excused { background: var(--color-warning); color: #fff; border-color: transparent; }
-    .mode-btn.active.absent { background: var(--color-text-muted); color: #fff; border-color: transparent; }
-
-    /* Results section */
-    .results-summary {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .result-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      padding: 1.5rem;
-      text-align: center;
-    }
-
-    .result-card .value {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .result-card .label {
-      font-size: 0.85rem;
-      color: var(--color-text-muted);
-    }
-
-    .result-card.success .value { color: var(--color-success); }
-    .result-card.danger .value { color: var(--color-danger); }
-
-    /* Vote panel (live) */
-    .vote-live-panel {
-      background: var(--color-warning-subtle);
-      border: 2px solid var(--color-warning);
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .vote-live-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-    }
-
-    .vote-live-title {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-
-    .vote-live-title .pulse {
-      width: 8px;
-      height: 8px;
-      background: var(--color-warning);
-      border-radius: 50%;
-      animation: blink-dot 2s ease-in-out infinite;
-    }
-
-    @keyframes blink-dot {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
-    .vote-results-live {
-      display: flex;
-      gap: 2rem;
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-
-    .vote-results-live .for { color: var(--color-success); }
-    .vote-results-live .against { color: var(--color-danger); }
-    .vote-results-live .abstain { color: var(--color-text-muted); }
-
-    /* Exports section */
-    .exports-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-    }
-
-    .export-card {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem 1.25rem;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      text-decoration: none;
-      color: var(--color-text);
-      transition: all 0.15s;
-    }
-
-    .export-card:hover {
-      border-color: var(--color-primary);
-      background: var(--color-bg-subtle);
-    }
-
-    .export-icon {
-      font-size: 1.5rem;
-    }
-
-    .export-info h4 {
-      margin: 0;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .export-info p {
-      margin: 0.25rem 0 0;
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-    }
-
-    /* No meeting state */
-    .no-meeting-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 4rem 2rem;
-      text-align: center;
-    }
-
-    .no-meeting-state h2 {
-      margin: 1rem 0 0.5rem;
-    }
-
-    .no-meeting-state p {
-      color: var(--color-text-muted);
-      max-width: 400px;
-    }
-
-    /* Toolbar */
-    .tab-toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    .tab-toolbar-search {
-      flex: 1;
-      min-width: 200px;
-      max-width: 300px;
-    }
-  </style>
+  <link rel="stylesheet" href="/assets/css/operator.css">
 </head>
 <body>
   <!-- Skip links -->
@@ -561,10 +52,10 @@
       <!-- Tab: Paramètres -->
       <div class="tab-content" id="tab-parametres" role="tabpanel" aria-labelledby="tab-btn-parametres" tabindex="0">
         <!-- Launch button - prominently at top when ready -->
-        <div id="launchBanner" class="settings-section" style="display:none; background: var(--color-success-subtle); border-color: var(--color-success); margin-bottom: 1.5rem;">
+        <div id="launchBanner" class="settings-section launch-banner" style="display:none;">
           <div class="flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h3 style="margin:0; color: var(--color-success);"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-rocket"></use></svg> Prêt à lancer la séance</h3>
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-rocket"></use></svg> Prêt à lancer la séance</h3>
               <p class="text-muted text-sm mt-1">Tous les prérequis sont remplis. Vous pouvez démarrer le vote.</p>
             </div>
             <button class="btn btn-lg" id="btnLaunchSession" style="background: var(--color-success); color: #fff; font-size: 1rem; padding: 0.75rem 1.5rem;">
@@ -583,7 +74,7 @@
                 <span class="text-muted ml-2">membres inscrits</span>
               </div>
             </div>
-            <div id="membersList" class="flex flex-col gap-1 mb-3" style="max-height: 150px; overflow-y: auto;">
+            <div id="membersList" class="members-list-compact mb-3">
               <!-- Rendered by JS -->
             </div>
             <div class="flex gap-2">
@@ -595,22 +86,22 @@
           <!-- Présences card -->
           <div class="settings-section">
             <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-hand"></use></svg> Présences</h3>
-            <div class="flex gap-4 mb-3">
-              <div class="text-center">
-                <span class="text-2xl font-bold text-success" id="quickPresent">0</span>
-                <div class="text-xs text-muted">Présents</div>
+            <div class="quick-counts mb-3">
+              <div class="quick-count">
+                <span class="quick-count-value success" id="quickPresent">0</span>
+                <div class="quick-count-label">Présents</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold text-info" id="quickRemote">0</span>
-                <div class="text-xs text-muted">Distants</div>
+              <div class="quick-count">
+                <span class="quick-count-value info" id="quickRemote">0</span>
+                <div class="quick-count-label">Distants</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold text-warning" id="quickExcused">0</span>
-                <div class="text-xs text-muted">Excusés</div>
+              <div class="quick-count">
+                <span class="quick-count-value warning" id="quickExcused">0</span>
+                <div class="quick-count-label">Excusés</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold text-muted" id="quickAbsent">0</span>
-                <div class="text-xs text-muted">Absents</div>
+              <div class="quick-count">
+                <span class="quick-count-value muted" id="quickAbsent">0</span>
+                <div class="quick-count-label">Absents</div>
               </div>
             </div>
             <div class="flex gap-2">
@@ -622,22 +113,22 @@
           <!-- Invitations card -->
           <div class="settings-section" id="invitationsCard">
             <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Invitations</h3>
-            <div class="flex gap-4 mb-3">
-              <div class="text-center">
-                <span class="text-2xl font-bold" id="invTotal">0</span>
-                <div class="text-xs text-muted">Total</div>
+            <div class="quick-counts mb-3">
+              <div class="quick-count">
+                <span class="quick-count-value" id="invTotal">0</span>
+                <div class="quick-count-label">Total</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold text-success" id="invSent">0</span>
-                <div class="text-xs text-muted">Envoyées</div>
+              <div class="quick-count">
+                <span class="quick-count-value success" id="invSent">0</span>
+                <div class="quick-count-label">Envoyées</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold text-info" id="invOpened">0</span>
-                <div class="text-xs text-muted">Ouvertes</div>
+              <div class="quick-count">
+                <span class="quick-count-value info" id="invOpened">0</span>
+                <div class="quick-count-label">Ouvertes</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold text-danger" id="invBounced">0</span>
-                <div class="text-xs text-muted">Échecs</div>
+              <div class="quick-count">
+                <span class="quick-count-value" style="color: var(--color-danger);" id="invBounced">0</span>
+                <div class="quick-count-label">Échecs</div>
               </div>
             </div>
             <div id="invEngagement" class="text-sm text-muted mb-3" style="display:none;">
@@ -648,19 +139,19 @@
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
                 Envoyer les invitations
               </button>
-              <ag-popover title="Programmer l'envoi" content="Planifiez l'envoi automatique des invitations à une date et heure précises. Utile pour envoyer les convocations en respectant le délai légal." position="top">
+              <ag-popover title="Programmer l'envoi" content="Planifiez l'envoi automatique des invitations à une date et heure précises." position="top">
                 <button slot="trigger" class="btn btn-sm btn-secondary" id="btnScheduleInvitations">
                   <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
                 </button>
               </ag-popover>
-              <ag-popover title="Templates d'email" content="Personnalisez le contenu des emails envoyés : convocations, rappels, confirmations. Utilisez des variables comme {nom}, {date_seance}." position="top">
+              <ag-popover title="Templates d'email" content="Personnalisez le contenu des emails envoyés." position="top">
                 <a slot="trigger" href="/email-templates.htmx.html" class="btn btn-sm btn-secondary">
                   <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
                 </a>
               </ag-popover>
             </div>
             <!-- Invitations options (hidden by default) -->
-            <div id="invitationsOptions" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--color-border);">
+            <div id="invitationsOptions" class="invitations-options" style="display:none;">
               <div class="form-group mb-3">
                 <label class="form-label">Template</label>
                 <select class="form-input" id="invTemplateSelect">
@@ -720,7 +211,7 @@
             <div class="form-group mb-3">
               <label class="form-label">
                 Politique de quorum
-                <ag-popover title="Politique de quorum" content="Définit le nombre minimum de participants requis pour que la séance soit valide. Par exemple : majorité simple (50%+1), deux tiers, ou un nombre fixe de membres." position="right"></ag-popover>
+                <ag-popover title="Politique de quorum" content="Définit le nombre minimum de participants requis pour que la séance soit valide." position="right"></ag-popover>
               </label>
               <select class="form-input" id="settingQuorumPolicy">
                 <option value="">— Aucune —</option>
@@ -729,7 +220,7 @@
             <div class="form-group mb-3">
               <label class="form-label">
                 Politique de vote
-                <ag-popover title="Politique de vote" content="Détermine comment les votes sont comptabilisés pour chaque résolution. Exemples : majorité simple, majorité absolue, majorité qualifiée (2/3), unanimité." position="right"></ag-popover>
+                <ag-popover title="Politique de vote" content="Détermine comment les votes sont comptabilisés pour chaque résolution." position="right"></ag-popover>
               </label>
               <select class="form-input" id="settingVotePolicy">
                 <option value="">— Aucune —</option>
@@ -738,7 +229,7 @@
             <div class="form-group">
               <label class="form-label">
                 Convocation
-                <ag-popover title="Numéro de convocation" content="En 1ère convocation, le quorum statutaire s'applique. En 2ème convocation (si la 1ère n'a pas atteint le quorum), les délibérations sont souvent valides quel que soit le nombre de présents." position="right"></ag-popover>
+                <ag-popover title="Numéro de convocation" content="En 1ère convocation, le quorum statutaire s'applique." position="right"></ag-popover>
               </label>
               <select class="form-input" id="settingConvocation">
                 <option value="1">1ère convocation</option>
@@ -755,7 +246,7 @@
             <div class="form-group mb-3">
               <label class="form-label">
                 Président
-                <ag-popover title="Président de séance" content="Dirige la séance, accorde la parole aux participants, et proclame les résultats des votes. Il peut également voter en cas d'égalité selon les statuts." position="right"></ag-popover>
+                <ag-popover title="Président de séance" content="Dirige la séance, accorde la parole aux participants." position="right"></ag-popover>
               </label>
               <select class="form-input" id="settingPresident">
                 <option value="">— Non assigné —</option>
@@ -764,9 +255,9 @@
             <div class="form-group">
               <label class="form-label">
                 Assesseurs
-                <ag-popover title="Assesseurs" content="Assistent le président dans le dépouillement des votes et la vérification des procédures. Généralement au nombre de deux, ils contresignent le procès-verbal." position="right"></ag-popover>
+                <ag-popover title="Assesseurs" content="Assistent le président dans le dépouillement des votes." position="right"></ag-popover>
               </label>
-              <div id="assessorsList" class="flex flex-col gap-2 mb-2">
+              <div id="assessorsList" class="assessors-list mb-2">
                 <span class="text-muted text-sm">Aucun assesseur</span>
               </div>
               <button class="btn btn-sm btn-secondary" id="btnAddAssessor">+ Ajouter un assesseur</button>
@@ -775,10 +266,10 @@
 
           <div class="settings-section">
             <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> État de la séance</h3>
-            <div id="statusChecklist" class="flex flex-col gap-2 mb-4">
+            <div id="statusChecklist" class="status-checklist mb-4">
               <!-- Checklist items rendered by JS -->
             </div>
-            <div id="statusActions" class="flex flex-wrap gap-2">
+            <div id="statusActions" class="status-actions">
               <!-- Transition buttons rendered by JS -->
             </div>
           </div>
@@ -786,20 +277,20 @@
           <!-- Dashboard en direct -->
           <div class="settings-section" id="dashboardCard" style="display:none;">
             <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg> Dashboard en direct</h3>
-            <div class="flex flex-wrap gap-4 mb-3">
-              <div class="text-center">
-                <span class="text-2xl font-bold" id="dashPresentCount">-</span>
+            <div class="quick-counts mb-3">
+              <div class="quick-count">
+                <span class="quick-count-value" id="dashPresentCount">-</span>
                 <span class="text-muted">/</span>
                 <span id="dashEligibleCount">-</span>
-                <div class="text-xs text-muted">Présents</div>
+                <div class="quick-count-label">Présents</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold" id="dashProxyCount">0</span>
-                <div class="text-xs text-muted">Procurations</div>
+              <div class="quick-count">
+                <span class="quick-count-value" id="dashProxyCount">0</span>
+                <div class="quick-count-label">Procurations</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold" id="dashOpenMotions">0</span>
-                <div class="text-xs text-muted">Motions ouvertes</div>
+              <div class="quick-count">
+                <span class="quick-count-value" id="dashOpenMotions">0</span>
+                <div class="quick-count-label">Motions ouvertes</div>
               </div>
             </div>
             <div id="dashCurrentMotion" class="text-sm text-muted mb-2" style="display:none;">
@@ -822,25 +313,25 @@
           <!-- Appareils connectés -->
           <div class="settings-section" id="devicesCard" style="display:none;">
             <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg> Appareils connectés</h3>
-            <div class="flex gap-4 mb-3">
-              <div class="text-center">
-                <span class="text-2xl font-bold text-success" id="devOnline">0</span>
-                <div class="text-xs text-muted">En ligne</div>
+            <div class="quick-counts mb-3">
+              <div class="quick-count">
+                <span class="quick-count-value success" id="devOnline">0</span>
+                <div class="quick-count-label">En ligne</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold text-warning" id="devStale">0</span>
-                <div class="text-xs text-muted">Inactifs</div>
+              <div class="quick-count">
+                <span class="quick-count-value warning" id="devStale">0</span>
+                <div class="quick-count-label">Inactifs</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold text-muted" id="devOffline">0</span>
-                <div class="text-xs text-muted">Hors ligne</div>
+              <div class="quick-count">
+                <span class="quick-count-value muted" id="devOffline">0</span>
+                <div class="quick-count-label">Hors ligne</div>
               </div>
-              <div class="text-center">
-                <span class="text-2xl font-bold text-danger" id="devBlocked">0</span>
-                <div class="text-xs text-muted">Bloqués</div>
+              <div class="quick-count">
+                <span class="quick-count-value" style="color: var(--color-danger);" id="devBlocked">0</span>
+                <div class="quick-count-label">Bloqués</div>
               </div>
             </div>
-            <div id="devicesList" class="flex flex-col gap-1 mb-3" style="max-height:120px;overflow-y:auto;">
+            <div id="devicesList" class="devices-list mb-3">
               <span class="text-muted text-sm">Aucun appareil</span>
             </div>
             <button class="btn btn-sm btn-secondary" id="btnManageDevices"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-sliders"></use></svg> Gérer les appareils</button>
@@ -913,7 +404,7 @@
 
       <!-- Tab: Parole (file des orateurs) -->
       <div class="tab-content" id="tab-parole" role="tabpanel" aria-labelledby="tab-btn-parole" tabindex="0">
-        <div class="charts-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div class="charts-grid">
           <!-- Orateur courant -->
           <div class="settings-section" id="speechCurrentPanel">
             <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> Orateur courant</h3>
@@ -966,50 +457,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Style pour la file d'attente -->
-        <style>
-          .speech-queue-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 6px;
-            margin-bottom: 0.5rem;
-          }
-          .speech-queue-item:hover {
-            border-color: var(--color-primary);
-          }
-          .speech-queue-position {
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--color-bg-subtle);
-            border-radius: 50%;
-            font-size: 0.85rem;
-            font-weight: 600;
-          }
-          .speech-queue-name {
-            flex: 1;
-            font-weight: 500;
-          }
-          .speech-queue-actions {
-            display: flex;
-            gap: 0.25rem;
-          }
-          .speech-queue-item.speaking {
-            background: var(--color-warning-subtle);
-            border-color: var(--color-warning);
-          }
-          .speech-queue-item.speaking .speech-queue-position {
-            background: var(--color-warning);
-            color: #fff;
-          }
-        </style>
       </div>
 
       <!-- Tab: Vote en direct -->
@@ -1111,8 +558,8 @@
         </div>
 
         <!-- Session Close Section -->
-        <div class="settings-section mt-6" id="closeSessionSection" style="background: var(--color-warning-subtle); border-color: var(--color-warning);">
-          <h3 style="border-bottom-color: var(--color-warning);"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance</h3>
+        <div class="settings-section close-session-section" id="closeSessionSection">
+          <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance</h3>
           <p class="text-muted mb-4">Une fois tous les votes terminés, vous pouvez clôturer la séance pour passer à la validation.</p>
           <div id="closeSessionStatus" class="mb-4">
             <!-- Status rendered by JS -->
@@ -1138,6 +585,7 @@
   <script src="/assets/js/utils.js"></script>
   <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/page-components.js"></script>
   <script src="/assets/js/session-wizard.js"></script>
   <script src="/assets/js/operator-tabs.js"></script>
 </body>

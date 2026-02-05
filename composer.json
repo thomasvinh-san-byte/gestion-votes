@@ -6,13 +6,17 @@
         "react/event-loop": "^1.5"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.5"
+        "phpunit/phpunit": "^10.5",
+        "friendsofphp/php-cs-fixer": "^3.0"
     },
     "autoload": {
         "psr-4": {
+            "AgVote\\": "app/",
             "AgVote\\Repository\\": "app/Repository/",
-            "AgVote\\Service\\": "app/services/",
+            "AgVote\\Service\\": "app/Services/",
             "AgVote\\Core\\": "app/Core/",
+            "AgVote\\Core\\Security\\": "app/Core/Security/",
+            "AgVote\\Core\\Validation\\": "app/Core/Validation/",
             "AgVote\\WebSocket\\": "app/WebSocket/"
         }
     }

@@ -93,7 +93,7 @@
         <div class="row" style="align-items:flex-start;">
           <div style="flex:1;">
             <div class="k" style="font-size:14px;">${t}</div>
-            <div class="muted tiny" style="white-space:pre-wrap; margin-top:4px;">${d}</div>
+            <div class="text-muted text-xs" style="white-space:pre-wrap; margin-top:4px;">${d}</div>
           </div>
           <div class="controls" style="flex-direction:column; align-items:flex-end; gap:6px;">
             ${pill(st)}

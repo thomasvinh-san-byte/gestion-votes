@@ -9,15 +9,15 @@ use AgVote\Repository\MotionRepository;
 /**
  * MeetingValidator
  *
- * Objectif: centraliser la logique "prêt à valider / signer".
+ * Purpose: centralize "ready to validate / sign" logic.
  *
- * Règles (cahier des charges v1.0):
- * - aucune motion ouverte
- * - toutes les motions fermées ont un résultat exploitable:
- *    - soit un comptage manuel cohérent (manual_total > 0 et somme == total)
- *    - soit au moins un bulletin e-vote (ballots)
- * - le Président (nom) est renseigné
- * - (optionnel) consolidation effectuée: official_source présent sur toutes les motions fermées
+ * Rules (specification v1.0):
+ * - no open motions
+ * - all closed motions have usable results:
+ *    - either a consistent manual count (manual_total > 0 and sum == total)
+ *    - or at least one e-vote ballot
+ * - president (name) is set
+ * - (optional) consolidation done: official_source present on all closed motions
  */
 
 final class MeetingValidator
@@ -60,7 +60,7 @@ final class MeetingValidator
         $closed = $meetingRepo->countClosedMotions($meetingId);
         $consolidated = $motionRepo->countConsolidatedMotions($meetingId);
 
-        // On exige la consolidation dès qu'il y a au moins une motion fermée.
+        // Consolidation is required when there is at least one closed motion.
         $needsConsolidation = $closed > 0;
         $consolidationDone = (!$needsConsolidation) || ($consolidated >= $closed);
         if ($needsConsolidation && !$consolidationDone) {

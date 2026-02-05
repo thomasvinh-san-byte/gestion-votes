@@ -1,19 +1,23 @@
 <?php
-/**
- * Configuration des permissions RBAC pour AG-Vote.
- *
- * Ce fichier centralise toutes les regles de permissions.
- * Format: 'resource:action' => [roles autorises]
- *
- * Roles systeme: admin, operator, auditor, viewer
- * Roles seance: president, assessor, voter
- */
+declare(strict_types=1);
 
-return [
-    // =========================================================================
-    // HIERARCHIE DES ROLES
-    // =========================================================================
-    'hierarchy' => [
+namespace AgVote\Core\Security;
+
+/**
+ * Permissions - RBAC permissions configuration for AG-Vote.
+ *
+ * Centralizes all permission rules.
+ * Format: 'resource:action' => [authorized roles]
+ *
+ * System roles: admin, operator, auditor, viewer
+ * Meeting roles: president, assessor, voter
+ */
+final class Permissions
+{
+    /**
+     * Role hierarchy levels.
+     */
+    public const HIERARCHY = [
         'admin'     => 100,
         'operator'  => 80,
         'president' => 70,
@@ -23,15 +27,13 @@ return [
         'viewer'    => 5,
         'public'    => 3,
         'anonymous' => 0,
-    ],
+    ];
 
-    // =========================================================================
-    // PERMISSIONS PAR RESSOURCE
-    // =========================================================================
-    'permissions' => [
-        // -----------------------------------------------------------------
-        // MEETINGS - Cycle de vie
-        // -----------------------------------------------------------------
+    /**
+     * Permissions by resource.
+     */
+    public const PERMISSIONS = [
+        // Meetings - Lifecycle
         'meeting:create'       => ['admin', 'operator'],
         'meeting:read'         => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor', 'voter'],
         'meeting:update'       => ['admin', 'operator'],
@@ -44,9 +46,7 @@ return [
         'meeting:archive'      => ['admin', 'operator'],
         'meeting:assign_roles' => ['admin', 'operator'],
 
-        // -----------------------------------------------------------------
-        // MOTIONS - Resolutions
-        // -----------------------------------------------------------------
+        // Motions - Resolutions
         'motion:create' => ['admin', 'operator'],
         'motion:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor', 'voter'],
         'motion:update' => ['admin', 'operator'],
@@ -54,70 +54,54 @@ return [
         'motion:open'   => ['admin', 'operator'],
         'motion:close'  => ['admin', 'operator', 'president'],
 
-        // -----------------------------------------------------------------
-        // VOTES
-        // -----------------------------------------------------------------
+        // Votes
         'vote:cast'   => ['admin', 'operator', 'voter'],
         'vote:read'   => ['admin', 'operator', 'auditor', 'president', 'assessor'],
         'vote:manual' => ['admin', 'operator'],
 
-        // -----------------------------------------------------------------
-        // MEMBERS - Gestion des membres
-        // -----------------------------------------------------------------
+        // Members
         'member:create' => ['admin', 'operator'],
         'member:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
         'member:update' => ['admin', 'operator'],
         'member:delete' => ['admin'],
         'member:import' => ['admin', 'operator'],
 
-        // -----------------------------------------------------------------
-        // ATTENDANCE - Presences
-        // -----------------------------------------------------------------
+        // Attendance
         'attendance:create' => ['admin', 'operator'],
         'attendance:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
         'attendance:update' => ['admin', 'operator'],
 
-        // -----------------------------------------------------------------
-        // PROXIES - Procurations
-        // -----------------------------------------------------------------
+        // Proxies
         'proxy:create' => ['admin', 'operator'],
         'proxy:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
         'proxy:delete' => ['admin', 'operator'],
 
-        // -----------------------------------------------------------------
-        // SPEECH - Demandes de parole
-        // -----------------------------------------------------------------
+        // Speech
         'speech:request' => ['admin', 'operator', 'president', 'voter'],
         'speech:grant'   => ['admin', 'operator', 'president'],
         'speech:end'     => ['admin', 'operator', 'president'],
 
-        // -----------------------------------------------------------------
-        // AUDIT
-        // -----------------------------------------------------------------
+        // Audit
         'audit:read'   => ['admin', 'auditor', 'president', 'assessor'],
         'audit:export' => ['admin', 'auditor', 'president'],
 
-        // -----------------------------------------------------------------
-        // ADMIN
-        // -----------------------------------------------------------------
+        // Admin
         'admin:users'    => ['admin'],
         'admin:policies' => ['admin'],
         'admin:system'   => ['admin'],
         'admin:roles'    => ['admin'],
 
-        // -----------------------------------------------------------------
-        // REPORTS
-        // -----------------------------------------------------------------
+        // Reports
         'report:generate' => ['admin', 'operator', 'president'],
         'report:read'     => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
         'report:export'   => ['admin', 'operator', 'auditor', 'president'],
-    ],
+    ];
 
-    // =========================================================================
-    // TRANSITIONS D'ETAT DES SEANCES
-    // Format: from => [to => required_role]
-    // =========================================================================
-    'transitions' => [
+    /**
+     * Meeting state transitions.
+     * Format: from => [to => required_role]
+     */
+    public const TRANSITIONS = [
         'draft' => [
             'scheduled' => 'operator',
             'frozen'    => 'president',
@@ -139,12 +123,12 @@ return [
         'validated' => [
             'archived' => 'admin',
         ],
-    ],
+    ];
 
-    // =========================================================================
-    // LABELS
-    // =========================================================================
-    'labels' => [
+    /**
+     * Labels for roles and statuses (French UI).
+     */
+    public const LABELS = [
         'roles' => [
             'admin'     => 'Administrateur',
             'operator'  => 'Operateur',
@@ -163,5 +147,50 @@ return [
             'validated' => 'Validee',
             'archived'  => 'Archivee',
         ],
-    ],
-];
+    ];
+
+    /**
+     * Get all configuration as array (for backward compatibility).
+     */
+    public static function getConfig(): array
+    {
+        return [
+            'hierarchy'   => self::HIERARCHY,
+            'permissions' => self::PERMISSIONS,
+            'transitions' => self::TRANSITIONS,
+            'labels'      => self::LABELS,
+        ];
+    }
+
+    /**
+     * Get role hierarchy.
+     */
+    public static function getHierarchy(): array
+    {
+        return self::HIERARCHY;
+    }
+
+    /**
+     * Get permissions.
+     */
+    public static function getPermissions(): array
+    {
+        return self::PERMISSIONS;
+    }
+
+    /**
+     * Get transitions.
+     */
+    public static function getTransitions(): array
+    {
+        return self::TRANSITIONS;
+    }
+
+    /**
+     * Get labels.
+     */
+    public static function getLabels(): array
+    {
+        return self::LABELS;
+    }
+}
