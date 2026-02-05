@@ -7,11 +7,11 @@
   <!-- Section : Gestion des séances -->
   <div class="nav-section" role="group" aria-labelledby="nav-section-seances">
     <span class="nav-section-title" id="nav-section-seances">Gestion</span>
-    <a class="nav-item" href="/meetings.htmx.html" data-page="meetings" data-requires-role="viewer">
+    <a class="nav-item" href="/meetings.htmx.html" data-page="meetings" data-requires-role="admin,operator,auditor,viewer">
       <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></span>
       <span>S&eacute;ances</span>
     </a>
-    <a class="nav-item" href="/operator.htmx.html" data-page="operator" data-requires-role="operator">
+    <a class="nav-item" href="/operator.htmx.html" data-page="operator" data-requires-role="admin,operator">
       <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-file-text"></use></svg></span>
       <span>Fiche s&eacute;ance</span>
     </a>
@@ -20,11 +20,11 @@
   <!-- Section : Vote et projection -->
   <div class="nav-section" role="group" aria-labelledby="nav-section-vote">
     <span class="nav-section-title" id="nav-section-vote">Vote</span>
-    <a class="nav-item" href="/vote.htmx.html" data-page="vote" data-requires-role="voter,operator,president">
+    <a class="nav-item" href="/vote.htmx.html" data-page="vote" data-requires-role="admin,operator,president,voter">
       <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-vote"></use></svg></span>
       <span>Voter</span>
     </a>
-    <a class="nav-item" href="/public.htmx.html" data-page="public" data-requires-role="operator">
+    <a class="nav-item" href="/public.htmx.html" data-page="public" data-requires-role="admin,operator">
       <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-monitor"></use></svg></span>
       <span>Projection</span>
     </a>
@@ -33,15 +33,15 @@
   <!-- Section : Consultation et analyse -->
   <div class="nav-section" role="group" aria-labelledby="nav-section-consultation">
     <span class="nav-section-title" id="nav-section-consultation">Consultation</span>
-    <a class="nav-item" href="/analytics.htmx.html" data-page="analytics" data-requires-role="operator">
+    <a class="nav-item" href="/analytics.htmx.html" data-page="analytics" data-requires-role="admin,operator,auditor">
       <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-bar-chart"></use></svg></span>
       <span>Statistiques</span>
     </a>
-    <a class="nav-item" href="/archives.htmx.html" data-page="archives" data-requires-role="viewer">
+    <a class="nav-item" href="/archives.htmx.html" data-page="archives" data-requires-role="admin,operator,auditor,viewer">
       <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-archive"></use></svg></span>
       <span>Archives</span>
     </a>
-    <a class="nav-item" href="/trust.htmx.html" data-page="trust" data-requires-role="auditor,assessor">
+    <a class="nav-item" href="/trust.htmx.html" data-page="trust" data-requires-role="admin,auditor,assessor">
       <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-shield-check"></use></svg></span>
       <span>Audit</span>
     </a>
@@ -50,7 +50,7 @@
   <!-- Section : Administration -->
   <div class="nav-section" role="group" aria-labelledby="nav-section-admin">
     <span class="nav-section-title" id="nav-section-admin">Administration</span>
-    <a class="nav-item" href="/members.htmx.html" data-page="members" data-requires-role="operator">
+    <a class="nav-item" href="/members.htmx.html" data-page="members" data-requires-role="admin,operator">
       <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-users"></use></svg></span>
       <span>Membres</span>
     </a>
