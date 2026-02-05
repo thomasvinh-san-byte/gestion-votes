@@ -625,7 +625,10 @@
               <input class="form-input" type="email" id="mEmail" placeholder="jean@exemple.com">
             </div>
             <div class="form-group">
-              <label for="mPower">Poids (voix)</label>
+              <label for="mPower">
+                Poids (voix)
+                <ag-popover title="Poids de vote" content="Nombre de voix que ce membre représente. La valeur par défaut est 1. Pour une pondération, utilisez un nombre supérieur (ex: 2 = 2 voix). Affecte le calcul du quorum et les résultats des votes." position="top"></ag-popover>
+              </label>
               <input class="form-input" type="number" id="mPower" value="1" min="0" step="1">
             </div>
             <div class="form-group">
@@ -645,7 +648,10 @@
         <!-- Groups management section (collapsible) -->
         <div class="collapsible-section" id="groupsSection">
           <div class="collapsible-header" onclick="toggleSection('groupsSection')">
-            <h3><span>Groupes de membres</span></h3>
+            <h3>
+              <span>Groupes de membres</span>
+              <ag-popover title="Groupes de membres" content="Catégorisez vos membres par collèges électoraux, départements, ou tout autre critère. Les groupes facilitent le filtrage et permettent d'obtenir des statistiques par catégorie." position="right" trigger="click"></ag-popover>
+            </h3>
             <svg class="icon collapsible-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
           </div>
           <div class="collapsible-content">
@@ -680,6 +686,7 @@
           <div class="collapsible-content">
             <div class="import-card-desc">
               Colonnes: <code>name</code>, <code>email</code>, <code>voting_power</code>, <code>is_active</code>, <code>groups</code> (optionnel, noms séparés par |)
+              <ag-popover title="Format du fichier CSV" content="Exemple de ligne : Jean Dupont,jean@exemple.com,1,true,Collège A|Cadres. Les groupes non existants seront créés automatiquement." position="right" trigger="click"></ag-popover>
             </div>
             <div class="upload-zone" id="uploadZone">
               <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;">
@@ -740,6 +747,7 @@
   </aside>
 
   <!-- Scripts -->
+  <script type="module" src="/assets/js/components/index.js"></script>
   <script src="/assets/js/utils.js"></script>
   <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>

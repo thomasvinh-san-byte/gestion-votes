@@ -648,12 +648,16 @@
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
                 Envoyer les invitations
               </button>
-              <button class="btn btn-sm btn-secondary" id="btnScheduleInvitations" title="Programmer l'envoi">
-                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
-              </button>
-              <a href="/email-templates.htmx.html" class="btn btn-sm btn-secondary" title="Gérer les templates">
-                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
-              </a>
+              <ag-popover title="Programmer l'envoi" content="Planifiez l'envoi automatique des invitations à une date et heure précises. Utile pour envoyer les convocations en respectant le délai légal." position="top">
+                <button slot="trigger" class="btn btn-sm btn-secondary" id="btnScheduleInvitations">
+                  <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+                </button>
+              </ag-popover>
+              <ag-popover title="Templates d'email" content="Personnalisez le contenu des emails envoyés : convocations, rappels, confirmations. Utilisez des variables comme {nom}, {date_seance}." position="top">
+                <a slot="trigger" href="/email-templates.htmx.html" class="btn btn-sm btn-secondary">
+                  <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
+                </a>
+              </ag-popover>
             </div>
             <!-- Invitations options (hidden by default) -->
             <div id="invitationsOptions" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--color-border);">
@@ -714,19 +718,28 @@
           <div class="settings-section">
             <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg> Politiques</h3>
             <div class="form-group mb-3">
-              <label class="form-label">Politique de quorum</label>
+              <label class="form-label">
+                Politique de quorum
+                <ag-popover title="Politique de quorum" content="Définit le nombre minimum de participants requis pour que la séance soit valide. Par exemple : majorité simple (50%+1), deux tiers, ou un nombre fixe de membres." position="right"></ag-popover>
+              </label>
               <select class="form-input" id="settingQuorumPolicy">
                 <option value="">— Aucune —</option>
               </select>
             </div>
             <div class="form-group mb-3">
-              <label class="form-label">Politique de vote</label>
+              <label class="form-label">
+                Politique de vote
+                <ag-popover title="Politique de vote" content="Détermine comment les votes sont comptabilisés pour chaque résolution. Exemples : majorité simple, majorité absolue, majorité qualifiée (2/3), unanimité." position="right"></ag-popover>
+              </label>
               <select class="form-input" id="settingVotePolicy">
                 <option value="">— Aucune —</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Convocation</label>
+              <label class="form-label">
+                Convocation
+                <ag-popover title="Numéro de convocation" content="En 1ère convocation, le quorum statutaire s'applique. En 2ème convocation (si la 1ère n'a pas atteint le quorum), les délibérations sont souvent valides quel que soit le nombre de présents." position="right"></ag-popover>
+              </label>
               <select class="form-input" id="settingConvocation">
                 <option value="1">1ère convocation</option>
                 <option value="2">2ème convocation</option>
@@ -740,13 +753,19 @@
           <div class="settings-section">
             <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-briefcase"></use></svg> Rôles de la séance</h3>
             <div class="form-group mb-3">
-              <label class="form-label">Président</label>
+              <label class="form-label">
+                Président
+                <ag-popover title="Président de séance" content="Dirige la séance, accorde la parole aux participants, et proclame les résultats des votes. Il peut également voter en cas d'égalité selon les statuts." position="right"></ag-popover>
+              </label>
               <select class="form-input" id="settingPresident">
                 <option value="">— Non assigné —</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Assesseurs</label>
+              <label class="form-label">
+                Assesseurs
+                <ag-popover title="Assesseurs" content="Assistent le président dans le dépouillement des votes et la vérification des procédures. Généralement au nombre de deux, ils contresignent le procès-verbal." position="right"></ag-popover>
+              </label>
               <div id="assessorsList" class="flex flex-col gap-2 mb-2">
                 <span class="text-muted text-sm">Aucun assesseur</span>
               </div>
@@ -1115,6 +1134,7 @@
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
 
+  <script type="module" src="/assets/js/components/index.js"></script>
   <script src="/assets/js/utils.js"></script>
   <script src="/assets/js/shared.js"></script>
   <script src="/assets/js/shell.js"></script>

@@ -35,6 +35,34 @@
   border-radius: var(--radius-full);
 }
 
+/* ─── Navigation Sidebar Sections ─── */
+.nav-section {
+  margin-top: var(--space-4);
+}
+
+.nav-section:first-child {
+  margin-top: 0;
+}
+
+.nav-section-title {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: var(--space-1) var(--space-3);
+  margin-bottom: var(--space-1);
+}
+
+/* Disabled nav item (no permission) */
+.nav-item.disabled,
+.nav-item[aria-disabled="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 /* ─── Page Header ─── */
 .page-header {
   display: flex;

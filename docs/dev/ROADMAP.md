@@ -62,7 +62,7 @@ Objectif : Centraliser la gestion de séance dans `operator.htmx.html`.
 | 1.3 | Résolutions inline (CRUD) | P2 | ✅ Fait |
 | 2 | Validations pré-freeze (issues_before_transition) | P1 | ✅ Fait |
 | 3 | Exports post-validation intégrés | P2 | ✅ Fait |
-| 4 | Simplification navigation sidebar | P3 | ⏭️ Reporté |
+| 4 | Simplification navigation sidebar | P3 | ✅ Fait |
 
 **Complété le 5 février 2026**
 - Interface opérateur avec 6 onglets (Paramètres, Résolutions, Présences, Parole, Vote, Résultats)
@@ -167,7 +167,6 @@ Objectif : Templates email personnalisables, envoi programmé, métriques.
 | Priorité | Fonctionnalité | Effort | Statut |
 |----------|----------------|--------|--------|
 | P2 | WebSocket temps réel | 8 jours | ✅ Fait |
-| P3 | Séances récurrentes | 5 jours | ⬜ À faire |
 | P3 | Champs personnalisés membres | 6 jours | ⬜ À faire |
 | P4 | Application mobile PWA | 15 jours | ✅ Fait (base) |
 | P4 | Mode hors-ligne | 12 jours | ✅ Fait |
@@ -196,13 +195,6 @@ Intégrations API:
 - `BallotsService::castBallot()`
 - `AttendancesService::upsert()`
 - `meeting_transition.php`
-
-### P3 — Séances récurrentes
-- Colonne `recurrence_rule` (RRULE iCalendar RFC 5545)
-- Colonne `parent_meeting_id`
-- Patterns : mensuel, trimestriel, annuel
-- Duplication automatique résolutions
-- Bibliothèque recommandée: `rlanvin/php-rrule`
 
 ### P3 — Champs personnalisés
 - Table `custom_fields`
@@ -268,17 +260,16 @@ Les éléments suivants ne font **PAS** partie de la roadmap :
 | Catégorie | Complété | En cours | À faire |
 |-----------|----------|----------|---------|
 | Migration MVC | 5/5 | - | 0/5 |
-| Workflow Opérateur | 5/6 | - | 1/6 (reporté) |
+| Workflow Opérateur | 6/6 | - | 0/6 |
 | Exports | 4/4 | - | 0/4 |
 | Invitations | 3/3 | - | 0/3 |
 | UI/UX | 4/4 | - | 0/4 |
-| Fonctionnalités avancées | 3/5 | - | 2/5 |
+| Fonctionnalités avancées | 3/4 | - | 1/4 |
 
-**Avancement global : ~88%**
+**Avancement global : ~90%**
 - WebSocket temps réel : ✅ Terminé
 - Mode hors-ligne : ✅ Terminé
 - PWA base : ✅ Terminé
-- Séances récurrentes : ⬜ Non implémenté (P3)
 - Champs personnalisés : ⬜ Non implémenté (P3)
 
 **Dernière mise à jour** : 5 février 2026
