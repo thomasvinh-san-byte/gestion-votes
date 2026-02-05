@@ -17,7 +17,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\AggregateReportRepository;
-use AgVote\Services\ExportService;
+use AgVote\Service\ExportService;
 
 api_require_role(['operator', 'admin', 'auditor']);
 

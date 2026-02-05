@@ -53,7 +53,7 @@ if (!$openMotion) {
   echo '  <div class="kpi">';
   echo '    <div class="label">Votes en attente</div>';
   echo '    <div class="value">'.(int)$pendingVotes.'</div>';
-  echo '    <div class="tiny muted">Informatif (n'empêche pas l'action).</div>';
+  echo '    <div class="tiny muted">Informatif (n\'empêche pas l\'action).</div>';
   echo '  </div>';
   echo '  <div class="kpi">';
   echo '    <div class="label">Tokens non utilisés</div>';
