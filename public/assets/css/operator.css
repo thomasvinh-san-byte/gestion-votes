@@ -1,0 +1,380 @@
+/**
+ * operator.css - Operator page specific styles.
+ *
+ * Contains styles specific to the operator console that are not shared
+ * with other pages.
+ */
+
+/* =============================================================================
+   OPERATOR PAGE GRID LAYOUT
+   ============================================================================= */
+
+/* Override grid for operator page - add session selector and tabs nav rows */
+[data-page-role="operator"] .app-shell {
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    "sidebar session"
+    "sidebar tabs"
+    "sidebar main";
+}
+
+[data-page-role="operator"] .session-selector {
+  grid-area: session;
+}
+
+[data-page-role="operator"] .tabs-nav {
+  grid-area: tabs;
+}
+
+@media (max-width: 768px) {
+  [data-page-role="operator"] .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "session"
+      "tabs"
+      "main";
+  }
+}
+
+/* =============================================================================
+   MEETING HEADER BAR
+   ============================================================================= */
+
+.meeting-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.meeting-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.meeting-header-left .back-btn {
+  color: var(--color-text-muted);
+  font-size: 1.25rem;
+  text-decoration: none;
+}
+
+.meeting-header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.meeting-header-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.meeting-header-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: var(--color-bg-subtle);
+  border-radius: 99px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.meeting-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* =============================================================================
+   STATUS DROPDOWN
+   ============================================================================= */
+
+.status-dropdown {
+  position: relative;
+}
+
+.status-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+/* =============================================================================
+   RESOLUTION REORDER BUTTONS
+   ============================================================================= */
+
+.resolution-reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: 0.5rem;
+}
+
+.resolution-reorder .btn {
+  padding: 0.1rem 0.4rem;
+  font-size: 0.7rem;
+  line-height: 1;
+  min-width: auto;
+}
+
+.resolution-reorder .btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.resolution-edit-btns {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.resolution-edit-btns .btn {
+  padding: 0.25rem 0.5rem;
+}
+
+/* =============================================================================
+   LAUNCH BANNER
+   ============================================================================= */
+
+.launch-banner {
+  background: var(--color-success-subtle);
+  border: 1px solid var(--color-success);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.launch-banner h3 {
+  margin: 0;
+  color: var(--color-success);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* =============================================================================
+   DASHBOARD CARDS (live mode)
+   ============================================================================= */
+
+.dashboard-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.dashboard-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* =============================================================================
+   INVITATIONS CARD
+   ============================================================================= */
+
+.invitations-options {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* =============================================================================
+   DEVICES LIST
+   ============================================================================= */
+
+.devices-list {
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.device-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.device-item:last-child {
+  border-bottom: none;
+}
+
+.device-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.device-status.online {
+  background: var(--color-success);
+}
+
+.device-status.stale {
+  background: var(--color-warning);
+}
+
+.device-status.offline {
+  background: var(--color-text-muted);
+}
+
+.device-status.blocked {
+  background: var(--color-danger);
+}
+
+/* =============================================================================
+   CLOSE SESSION SECTION
+   ============================================================================= */
+
+.close-session-section {
+  background: var(--color-warning-subtle);
+  border: 1px solid var(--color-warning);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.close-session-section h3 {
+  border-bottom-color: var(--color-warning);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* =============================================================================
+   QUICK COUNTS (presence summary)
+   ============================================================================= */
+
+.quick-counts {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.quick-count {
+  text-align: center;
+}
+
+.quick-count-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.quick-count-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.quick-count-value.success {
+  color: var(--color-success);
+}
+
+.quick-count-value.info {
+  color: var(--color-info);
+}
+
+.quick-count-value.warning {
+  color: var(--color-warning);
+}
+
+.quick-count-value.muted {
+  color: var(--color-text-muted);
+}
+
+/* =============================================================================
+   MEMBERS LIST (compact)
+   ============================================================================= */
+
+.members-list-compact {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.member-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+}
+
+.member-list-item .member-avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 0.65rem;
+}
+
+/* =============================================================================
+   ASSESSORS LIST
+   ============================================================================= */
+
+.assessors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.assessor-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--color-bg-subtle);
+  border-radius: 4px;
+}
+
+/* =============================================================================
+   STATUS CHECKLIST
+   ============================================================================= */
+
+.status-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.status-checklist-item.passed {
+  color: var(--color-success);
+}
+
+.status-checklist-item.failed {
+  color: var(--color-danger);
+}
+
+.status-checklist-item.pending {
+  color: var(--color-text-muted);
+}
+
+/* =============================================================================
+   STATUS ACTIONS
+   ============================================================================= */
+
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
