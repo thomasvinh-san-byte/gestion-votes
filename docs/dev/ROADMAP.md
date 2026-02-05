@@ -147,17 +147,25 @@ Objectif : Support XLSX natif, imports étendus, templates personnalisables.
 
 ---
 
-## 4. Invitations
+## 4. Invitations ✅ TERMINÉ (Backend)
 
 Objectif : Templates email personnalisables, envoi programmé, métriques.
 
 | Phase | Description | Effort | Statut |
 |-------|-------------|--------|--------|
-| 1 | Templates email personnalisables (15 variables) | 4 jours | ⬜ À faire |
-| 2 | Envoi programmé + rappels automatiques | 5 jours | ⬜ À faire |
-| 3 | Métriques et suivi (ouvertures, clics) | 3 jours | ⬜ À faire |
+| 1 | Templates email personnalisables (16 variables) | 4 jours | ✅ Backend fait |
+| 2 | Envoi programmé + rappels automatiques | 5 jours | ✅ Backend fait |
+| 3 | Métriques et suivi (ouvertures, clics) | 3 jours | ✅ Backend fait |
 
-**Total : 12 jours**
+**Total : 12 jours** — Backend 100% complet, UIs manquantes (intégrées dans UI/UX)
+
+**Implémenté:**
+- EmailTemplateRepository, EmailQueueRepository, ReminderScheduleRepository, EmailEventRepository
+- EmailTemplateService (16 variables, preview, validation)
+- EmailQueueService (processQueue, scheduleInvitations, processReminders)
+- 7 endpoints API (templates, scheduling, reminders, stats, tracking)
+- Worker script process_email_queue.php (cron-ready)
+- Pixel tracking + redirect tracking
 
 ### Phase 1 — Templates personnalisables
 - Table `email_templates`
