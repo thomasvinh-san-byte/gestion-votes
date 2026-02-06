@@ -184,8 +184,15 @@
         color: #fff;
         box-shadow: 0 0 0 4px var(--color-primary-subtle, rgba(59,130,246,0.2));
       }
-      .wizard-step:hover .wizard-step-circle {
+      .wizard-stepper:not(.wizard-readonly) .wizard-step:hover .wizard-step-circle {
         transform: scale(1.05);
+      }
+      /* Read-only mode on operator page */
+      .wizard-readonly .wizard-step {
+        cursor: default;
+      }
+      .wizard-readonly .wizard-step:hover .wizard-step-circle {
+        transform: none;
       }
       .wizard-step-label {
         margin-top: 0.5rem;
@@ -278,30 +285,40 @@
     var pagePath = window.location.pathname;
     var pageStepId = PAGE_STEP_MAP[pagePath] || null;
 
+    // On operator page, wizard is read-only (just shows progress)
+    var isOperatorPage = window.location.pathname === '/operator.htmx.html';
+
     // Build stepper HTML
-    var html = '<div class="wizard-stepper">';
+    var html = '<div class="wizard-stepper' + (isOperatorPage ? ' wizard-readonly' : '') + '">';
 
     for (var i = 0; i < STEPS.length; i++) {
       var step = STEPS[i];
       var isDone = step.num < currentStep;
       var isCurrent = step.num === currentStep;
       var stepClass = isDone ? 'done' : (isCurrent ? 'current' : '');
-      // Build URL with meeting_id and tab parameters
-      var href = '#';
-      if (!step.needsMeeting || meetingId) {
-        href = step.href;
-        var params = [];
-        if (step.needsMeeting && meetingId) params.push('meeting_id=' + encodeURIComponent(meetingId));
-        if (step.tab) params.push('tab=' + step.tab);
-        if (params.length > 0) href += '?' + params.join('&');
-      }
       var circleContent = isDone ? (typeof icon === 'function' ? icon('check', 'icon-sm') : '✓') : step.icon;
 
-      var tabAttr = step.tab ? ' data-wizard-tab="' + step.tab + '"' : '';
-      html += '<a href="' + href + '" class="wizard-step ' + stepClass + '"' + tabAttr + ' title="' + step.label + '">';
-      html += '<div class="wizard-step-circle">' + circleContent + '</div>';
-      html += '<div class="wizard-step-label">' + step.shortLabel + '</div>';
-      html += '</a>';
+      if (isOperatorPage) {
+        // Read-only: use span instead of link
+        html += '<span class="wizard-step ' + stepClass + '" title="' + step.label + '">';
+        html += '<div class="wizard-step-circle">' + circleContent + '</div>';
+        html += '<div class="wizard-step-label">' + step.shortLabel + '</div>';
+        html += '</span>';
+      } else {
+        // Interactive: use link
+        var href = '#';
+        if (!step.needsMeeting || meetingId) {
+          href = step.href;
+          var params = [];
+          if (step.needsMeeting && meetingId) params.push('meeting_id=' + encodeURIComponent(meetingId));
+          if (step.tab) params.push('tab=' + step.tab);
+          if (params.length > 0) href += '?' + params.join('&');
+        }
+        html += '<a href="' + href + '" class="wizard-step ' + stepClass + '" title="' + step.label + '">';
+        html += '<div class="wizard-step-circle">' + circleContent + '</div>';
+        html += '<div class="wizard-step-label">' + step.shortLabel + '</div>';
+        html += '</a>';
+      }
     }
 
     html += '</div>';
@@ -327,25 +344,6 @@
     }
 
     container.innerHTML = html;
-
-    // Intercept clicks on wizard steps when already on operator page
-    // to avoid full page reload - just switch tabs
-    if (window.location.pathname === '/operator.htmx.html') {
-      container.querySelectorAll('[data-wizard-tab]').forEach(function(link) {
-        link.addEventListener('click', function(e) {
-          var tab = link.getAttribute('data-wizard-tab');
-          // Check if switchTab function exists (from operator-tabs.js)
-          if (tab && typeof window.switchTab === 'function') {
-            e.preventDefault();
-            window.switchTab(tab);
-            // Update URL without reload
-            var url = new URL(window.location);
-            url.searchParams.set('tab', tab);
-            window.history.pushState({}, '', url);
-          }
-        });
-      });
-    }
   }
 
   function escapeHtmlWizard(text) {
