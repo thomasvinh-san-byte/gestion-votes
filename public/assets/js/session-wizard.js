@@ -17,12 +17,12 @@
   // =========================================================================
 
   var STEPS = [
-    { id: 'select',     num: 0, label: 'Séance',        shortLabel: 'Séance',     href: '/meetings.htmx.html',    icon: '1', needsMeeting: false },
-    { id: 'members',    num: 1, label: 'Membres',       shortLabel: 'Membres',    href: '/members.htmx.html',     icon: '2', needsMeeting: false },
-    { id: 'attendance', num: 2, label: 'Présences',     shortLabel: 'Présences',  href: '/operator.htmx.html',    icon: '3', needsMeeting: true },
-    { id: 'resolutions',num: 3, label: 'Résolutions',   shortLabel: 'Résolutions',href: '/operator.htmx.html',    icon: '4', needsMeeting: true },
-    { id: 'conduct',    num: 4, label: 'Vote',          shortLabel: 'Vote',       href: '/operator.htmx.html',    icon: '5', needsMeeting: true },
-    { id: 'validate',   num: 5, label: 'Validation',    shortLabel: 'Clôture',    href: '/operator.htmx.html',    icon: '6', needsMeeting: true }
+    { id: 'select',     num: 0, label: 'Séance',        shortLabel: 'Séance',     href: '/meetings.htmx.html',    icon: '1', needsMeeting: false, tab: null },
+    { id: 'members',    num: 1, label: 'Membres',       shortLabel: 'Membres',    href: '/members.htmx.html',     icon: '2', needsMeeting: false, tab: null },
+    { id: 'attendance', num: 2, label: 'Présences',     shortLabel: 'Présences',  href: '/operator.htmx.html',    icon: '3', needsMeeting: true, tab: 'presences' },
+    { id: 'resolutions',num: 3, label: 'Résolutions',   shortLabel: 'Résolutions',href: '/operator.htmx.html',    icon: '4', needsMeeting: true, tab: 'resolutions' },
+    { id: 'conduct',    num: 4, label: 'Vote',          shortLabel: 'Vote',       href: '/operator.htmx.html',    icon: '5', needsMeeting: true, tab: 'vote' },
+    { id: 'validate',   num: 5, label: 'Validation',    shortLabel: 'Clôture',    href: '/operator.htmx.html',    icon: '6', needsMeeting: true, tab: 'resultats' }
   ];
 
   // Map page paths to wizard step ids
@@ -184,8 +184,15 @@
         color: #fff;
         box-shadow: 0 0 0 4px var(--color-primary-subtle, rgba(59,130,246,0.2));
       }
-      .wizard-step:hover .wizard-step-circle {
+      .wizard-stepper:not(.wizard-readonly) .wizard-step:hover .wizard-step-circle {
         transform: scale(1.05);
+      }
+      /* Read-only mode on operator page */
+      .wizard-readonly .wizard-step {
+        cursor: default;
+      }
+      .wizard-readonly .wizard-step:hover .wizard-step-circle {
+        transform: none;
       }
       .wizard-step-label {
         margin-top: 0.5rem;
@@ -278,21 +285,40 @@
     var pagePath = window.location.pathname;
     var pageStepId = PAGE_STEP_MAP[pagePath] || null;
 
+    // On operator page, wizard is read-only (just shows progress)
+    var isOperatorPage = window.location.pathname === '/operator.htmx.html';
+
     // Build stepper HTML
-    var html = '<div class="wizard-stepper">';
+    var html = '<div class="wizard-stepper' + (isOperatorPage ? ' wizard-readonly' : '') + '">';
 
     for (var i = 0; i < STEPS.length; i++) {
       var step = STEPS[i];
       var isDone = step.num < currentStep;
       var isCurrent = step.num === currentStep;
       var stepClass = isDone ? 'done' : (isCurrent ? 'current' : '');
-      var href = step.needsMeeting && !meetingId ? '#' : (step.href + (step.needsMeeting ? mid : ''));
       var circleContent = isDone ? (typeof icon === 'function' ? icon('check', 'icon-sm') : '✓') : step.icon;
 
-      html += '<a href="' + href + '" class="wizard-step ' + stepClass + '" title="' + step.label + '">';
-      html += '<div class="wizard-step-circle">' + circleContent + '</div>';
-      html += '<div class="wizard-step-label">' + step.shortLabel + '</div>';
-      html += '</a>';
+      if (isOperatorPage) {
+        // Read-only: use span instead of link
+        html += '<span class="wizard-step ' + stepClass + '" title="' + step.label + '">';
+        html += '<div class="wizard-step-circle">' + circleContent + '</div>';
+        html += '<div class="wizard-step-label">' + step.shortLabel + '</div>';
+        html += '</span>';
+      } else {
+        // Interactive: use link
+        var href = '#';
+        if (!step.needsMeeting || meetingId) {
+          href = step.href;
+          var params = [];
+          if (step.needsMeeting && meetingId) params.push('meeting_id=' + encodeURIComponent(meetingId));
+          if (step.tab) params.push('tab=' + step.tab);
+          if (params.length > 0) href += '?' + params.join('&');
+        }
+        html += '<a href="' + href + '" class="wizard-step ' + stepClass + '" title="' + step.label + '">';
+        html += '<div class="wizard-step-circle">' + circleContent + '</div>';
+        html += '<div class="wizard-step-label">' + step.shortLabel + '</div>';
+        html += '</a>';
+      }
     }
 
     html += '</div>';

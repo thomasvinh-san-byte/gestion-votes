@@ -144,7 +144,12 @@
   function showMeetingContent() {
     noMeetingState.style.display = 'none';
     tabsNav.style.display = 'flex';
-    switchTab('parametres');
+    // Check for tab parameter in URL (from wizard navigation)
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedTab = urlParams.get('tab');
+    const validTabs = ['parametres', 'resolutions', 'presences', 'procurations', 'parole', 'vote', 'resultats'];
+    const tabToShow = (requestedTab && validTabs.includes(requestedTab)) ? requestedTab : 'parametres';
+    switchTab(tabToShow);
   }
 
   function updateHeader(meeting) {
@@ -1159,9 +1164,12 @@
 
     // Update stats
     const uniqueReceivers = new Set(activeProxies.map(p => p.receiver_member_id));
-    document.getElementById('proxyStatActive')?.textContent && (document.getElementById('proxyStatActive').textContent = activeProxies.length);
-    document.getElementById('proxyStatGivers')?.textContent && (document.getElementById('proxyStatGivers').textContent = activeProxies.length);
-    document.getElementById('proxyStatReceivers')?.textContent && (document.getElementById('proxyStatReceivers').textContent = uniqueReceivers.size);
+    const proxyStatActiveEl = document.getElementById('proxyStatActive');
+    const proxyStatGiversEl = document.getElementById('proxyStatGivers');
+    const proxyStatReceiversEl = document.getElementById('proxyStatReceivers');
+    if (proxyStatActiveEl) proxyStatActiveEl.textContent = activeProxies.length;
+    if (proxyStatGiversEl) proxyStatGiversEl.textContent = activeProxies.length;
+    if (proxyStatReceiversEl) proxyStatReceiversEl.textContent = uniqueReceivers.size;
 
     // Update tab count
     const tabCount = document.getElementById('tabCountProxies');
@@ -2404,6 +2412,9 @@
   document.getElementById('btnEndSpeech')?.addEventListener('click', endCurrentSpeech);
   document.getElementById('btnAddToQueue')?.addEventListener('click', showAddToQueueModal);
   document.getElementById('btnClearSpeechHistory')?.addEventListener('click', clearSpeechHistory);
+
+  // Expose switchTab globally for wizard navigation
+  window.switchTab = switchTab;
 
   initTabs();
   loadMeetings();
