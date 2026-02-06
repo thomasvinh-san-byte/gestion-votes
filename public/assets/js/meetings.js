@@ -104,19 +104,48 @@
     const statusInfo = Shared.MEETING_STATUS_MAP[m.status] || Shared.MEETING_STATUS_MAP['draft'];
     const isLive = m.status === 'live';
     const isDraft = m.status === 'draft';
-    const cardClass = isLive ? 'is-live' : (isDraft ? 'is-draft' : '');
+    const isScheduled = m.status === 'scheduled' || m.status === 'frozen';
+    const isArchived = ['closed', 'validated', 'archived'].includes(m.status);
 
+    let cardClass = '';
+    if (isLive) cardClass = 'is-live';
+    else if (isDraft) cardClass = 'is-draft';
+    else if (isArchived) cardClass = 'is-archived';
+
+    // Format date nicely
     const date = m.scheduled_at
-      ? new Date(m.scheduled_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+      ? new Date(m.scheduled_at).toLocaleDateString('fr-FR', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        })
       : '—';
 
+    // Badge with dot indicator for live status
+    const badgeClass = isLive
+      ? `${statusInfo.badge} badge-sm badge-dot`
+      : `${statusInfo.badge} badge-sm`;
+
+    // Button variant based on status
+    const btnClass = isLive
+      ? 'btn btn-sm btn-success'
+      : (isDraft ? 'btn btn-sm btn-secondary' : 'btn btn-sm btn-primary');
+    const btnText = isLive ? 'Rejoindre' : 'Ouvrir';
+
+    // Motions and attendees with labels
+    const motionsCount = m.motions_count || 0;
+    const attendeesCount = m.attendees_count || 0;
+    const motionsLabel = motionsCount === 1 ? 'résolution' : 'résolutions';
+    const attendeesLabel = attendeesCount === 1 ? 'présent' : 'présents';
+
     return `
-      <div class="meeting-card ${cardClass}" data-search-text="${escapeHtml((m.title || '') + ' ' + (m.status || ''))}">
+      <div class="meeting-card ${cardClass}" data-meeting-id="${m.id}" data-search-text="${escapeHtml((m.title || '') + ' ' + (m.status || ''))}">
         <div class="meeting-card-header">
           <h3 class="meeting-card-title">${title}</h3>
           <div class="meeting-card-meta">
-            <span class="badge ${statusInfo.badge} badge-sm">${statusInfo.text}</span>
-            <span>
+            <span class="badge ${badgeClass}">${statusInfo.text}</span>
+            <span class="meeting-date">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
               ${date}
             </span>
@@ -124,17 +153,20 @@
         </div>
         <div class="meeting-card-body">
           <div class="meeting-stats">
-            <span title="Résolutions">
+            <span title="${motionsCount} ${motionsLabel}">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
-              ${m.motions_count || 0}
+              <strong>${motionsCount}</strong> ${motionsLabel}
             </span>
-            <span title="Présents">
+            <span title="${attendeesCount} ${attendeesLabel}">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-              ${m.attendees_count || 0}
+              <strong>${attendeesCount}</strong> ${attendeesLabel}
             </span>
           </div>
           <div class="meeting-card-actions">
-            <a class="btn btn-sm btn-primary" href="/operator.htmx.html?meeting_id=${m.id}">Ouvrir</a>
+            <a class="${btnClass}" href="/operator.htmx.html?meeting_id=${m.id}">
+              ${isLive ? '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>' : ''}
+              ${btnText}
+            </a>
           </div>
         </div>
       </div>
