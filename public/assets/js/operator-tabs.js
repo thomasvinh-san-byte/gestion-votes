@@ -2318,6 +2318,80 @@
     }
   }
 
+  /**
+   * Apply unanimity vote - set all present/remote voters to the same vote
+   * @param {'for'|'against'|'abstain'} voteType - The vote type to apply to all voters
+   */
+  async function applyUnanimity(voteType) {
+    if (!currentOpenMotion) {
+      setNotif('error', 'Aucun vote en cours');
+      return;
+    }
+
+    const voteLabels = { for: 'Pour', against: 'Contre', abstain: 'Abstention' };
+    const voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
+
+    if (voters.length === 0) {
+      setNotif('error', 'Aucun votant présent');
+      return;
+    }
+
+    if (!confirm(`Enregistrer "${voteLabels[voteType]}" pour ${voters.length} votant(s) ?`)) {
+      return;
+    }
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    // Show loading state
+    const btns = ['btnUnanimityFor', 'btnUnanimityAgainst', 'btnUnanimityAbstain']
+      .map(id => document.getElementById(id))
+      .filter(Boolean);
+    btns.forEach(btn => btn.disabled = true);
+
+    try {
+      // Process votes in parallel batches for speed
+      const batchSize = 5;
+      for (let i = 0; i < voters.length; i += batchSize) {
+        const batch = voters.slice(i, i + batchSize);
+        const results = await Promise.allSettled(
+          batch.map(voter =>
+            api('/api/v1/manual_vote.php', {
+              meeting_id: currentMeetingId,
+              motion_id: currentOpenMotion.id,
+              member_id: voter.member_id,
+              vote: voteType,
+              justification: `Unanimité opérateur: ${voteLabels[voteType]}`
+            })
+          )
+        );
+
+        results.forEach((result, idx) => {
+          if (result.status === 'fulfilled' && result.value.body?.ok) {
+            successCount++;
+            ballotsCache[batch[idx].member_id] = voteType;
+          } else {
+            errorCount++;
+          }
+        });
+      }
+
+      // Refresh display
+      await loadBallots(currentOpenMotion.id);
+      renderManualVoteList();
+
+      if (errorCount === 0) {
+        setNotif('success', `Unanimité "${voteLabels[voteType]}" appliquée (${successCount} votes)`);
+      } else {
+        setNotif('warning', `${successCount} votes enregistrés, ${errorCount} erreur(s)`);
+      }
+    } catch (err) {
+      setNotif('error', 'Erreur: ' + err.message);
+    } finally {
+      btns.forEach(btn => btn.disabled = false);
+    }
+  }
+
   async function openVote(motionId) {
     try {
       const openResult = await api('/api/v1/motions_open.php', { meeting_id: currentMeetingId, motion_id: motionId });
@@ -2541,6 +2615,11 @@
   document.getElementById('btnCloseVote')?.addEventListener('click', () => {
     if (currentOpenMotion) closeVote(currentOpenMotion.id);
   });
+
+  // Unanimity buttons
+  document.getElementById('btnUnanimityFor')?.addEventListener('click', () => applyUnanimity('for'));
+  document.getElementById('btnUnanimityAgainst')?.addEventListener('click', () => applyUnanimity('against'));
+  document.getElementById('btnUnanimityAbstain')?.addEventListener('click', () => applyUnanimity('abstain'));
 
   // Settings save
   document.getElementById('btnSaveSettings')?.addEventListener('click', saveGeneralSettings);
