@@ -529,13 +529,29 @@
       const president = roles.find(r => r.role === 'president');
       const assessors = roles.filter(r => r.role === 'assessor');
 
-      // President select
+      // President select - support both native select and ag-searchable-select
       const presSelect = document.getElementById('settingPresident');
-      presSelect.innerHTML = '<option value="">— Non assigné —</option>';
-      usersCache.forEach(u => {
-        const selected = president?.user_id === u.id ? 'selected' : '';
-        presSelect.innerHTML += `<option value="${u.id}" ${selected}>${escapeHtml(u.name || u.email)}</option>`;
-      });
+      const isSearchable = presSelect && presSelect.tagName.toLowerCase() === 'ag-searchable-select';
+
+      if (isSearchable) {
+        // Use ag-searchable-select API
+        const options = usersCache.map(u => ({
+          value: u.id,
+          label: u.name || u.email || 'Utilisateur',
+          sublabel: u.email || ''
+        }));
+        presSelect.setOptions(options);
+        if (president?.user_id) {
+          presSelect.value = president.user_id;
+        }
+      } else {
+        // Fallback to native select
+        presSelect.innerHTML = '<option value="">— Non assigné —</option>';
+        usersCache.forEach(u => {
+          const selected = president?.user_id === u.id ? 'selected' : '';
+          presSelect.innerHTML += `<option value="${u.id}" ${selected}>${escapeHtml(u.name || u.email)}</option>`;
+        });
+      }
 
       // Assessors list
       renderAssessors(assessors);
@@ -876,9 +892,18 @@
   }
 
   async function savePresident() {
-    const presidentId = document.getElementById('settingPresident').value;
     const presSelect = document.getElementById('settingPresident');
-    const presidentName = presSelect.options[presSelect.selectedIndex]?.text || '';
+    const presidentId = presSelect.value;
+    const isSearchable = presSelect && presSelect.tagName.toLowerCase() === 'ag-searchable-select';
+
+    // Get president name - support both native select and ag-searchable-select
+    let presidentName = '';
+    if (isSearchable) {
+      const selectedOpt = presSelect.selectedOption;
+      presidentName = selectedOpt?.label || '';
+    } else {
+      presidentName = presSelect.options[presSelect.selectedIndex]?.text || '';
+    }
 
     try {
       if (presidentId) {
