@@ -70,7 +70,10 @@
     if (currentMeetingId) {
       if (tabId === 'presences') {
         loadAttendance();
+      }
+      if (tabId === 'procurations') {
         loadProxies();
+        loadAttendance(); // Need attendance for proxy modal
       }
       if (tabId === 'resolutions') loadResolutions();
       if (tabId === 'parole') loadSpeechQueue();
@@ -1142,25 +1145,47 @@
     const list = document.getElementById('proxyList');
     if (!list) return;
 
+    const searchTerm = (document.getElementById('proxySearch')?.value || '').toLowerCase();
     const activeProxies = proxiesCache.filter(p => !p.revoked_at);
 
-    if (activeProxies.length === 0) {
-      list.innerHTML = '<div class="text-center p-4 text-muted">Aucune procuration</div>';
+    // Filter by search term
+    let filtered = activeProxies;
+    if (searchTerm) {
+      filtered = activeProxies.filter(p =>
+        (p.giver_name || '').toLowerCase().includes(searchTerm) ||
+        (p.receiver_name || '').toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Update stats
+    const uniqueReceivers = new Set(activeProxies.map(p => p.receiver_member_id));
+    document.getElementById('proxyStatActive')?.textContent && (document.getElementById('proxyStatActive').textContent = activeProxies.length);
+    document.getElementById('proxyStatGivers')?.textContent && (document.getElementById('proxyStatGivers').textContent = activeProxies.length);
+    document.getElementById('proxyStatReceivers')?.textContent && (document.getElementById('proxyStatReceivers').textContent = uniqueReceivers.size);
+
+    // Update tab count
+    const tabCount = document.getElementById('tabCountProxies');
+    if (tabCount) tabCount.textContent = activeProxies.length;
+
+    if (filtered.length === 0) {
+      list.innerHTML = searchTerm
+        ? '<div class="text-center p-4 text-muted">Aucune procuration ne correspond à la recherche</div>'
+        : '<div class="text-center p-4 text-muted">Aucune procuration</div>';
       return;
     }
 
     const isLocked = ['validated', 'archived'].includes(currentMeetingStatus);
 
-    list.innerHTML = activeProxies.map(p => `
+    list.innerHTML = filtered.map(p => `
       <div class="proxy-item" data-proxy-id="${p.id}" data-giver-id="${p.giver_member_id}">
         <div class="proxy-item-info">
           <span class="proxy-giver">${escapeHtml(p.giver_name || '—')}</span>
-          <span class="proxy-arrow">${icon('arrow-right', 'icon-xs')}</span>
+          <span class="proxy-arrow">${icon('arrow-right', 'icon-sm')}</span>
           <span class="proxy-receiver">${escapeHtml(p.receiver_name || '—')}</span>
         </div>
         ${!isLocked ? `
-          <button class="btn btn-xs btn-ghost text-danger btn-revoke-proxy" data-giver-id="${p.giver_member_id}" title="Révoquer">
-            ${icon('x', 'icon-xs')}
+          <button class="btn btn-sm btn-ghost text-danger btn-revoke-proxy" data-giver-id="${p.giver_member_id}" title="Révoquer">
+            ${icon('x', 'icon-sm')}
           </button>
         ` : ''}
       </div>
@@ -1288,6 +1313,126 @@
         }
       } catch (err) {
         setNotif('error', err.message);
+      }
+    };
+  }
+
+  // Import proxies from CSV modal
+  function showImportProxiesCSVModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+
+    modal.innerHTML = `
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:90vh;overflow:auto;">
+        <h3 style="margin:0 0 1rem;">${icon('download', 'icon-sm icon-text')} Importer des procurations (CSV)</h3>
+        <p class="text-muted text-sm mb-3">
+          Format attendu: <code>giver_email,receiver_email</code> (en-tête requis).<br>
+          Les emails doivent correspondre aux membres existants.
+        </p>
+        <div class="form-group mb-3">
+          <label class="form-label">Fichier CSV</label>
+          <input type="file" class="form-input" id="csvProxyFileInput" accept=".csv,.txt">
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Ou coller le contenu</label>
+          <textarea class="form-input" id="csvProxyTextInput" rows="4" placeholder="giver_email,receiver_email\nabsent@exemple.com,present@exemple.com"></textarea>
+        </div>
+        <div id="csvProxyPreviewContainer" style="display:none;" class="mb-4"></div>
+        <div class="flex gap-2 justify-end">
+          <button class="btn btn-secondary" id="btnCancelProxyImport">Annuler</button>
+          <button class="btn btn-outline" id="btnPreviewProxyCSV">Aperçu</button>
+          <button class="btn btn-primary" id="btnConfirmProxyImport" disabled>Importer</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const previewContainer = document.getElementById('csvProxyPreviewContainer');
+    const btnPreview = document.getElementById('btnPreviewProxyCSV');
+    const btnConfirm = document.getElementById('btnConfirmProxyImport');
+
+    async function getCSVContent() {
+      const fileInput = document.getElementById('csvProxyFileInput');
+      const textInput = document.getElementById('csvProxyTextInput');
+      let csvContent = textInput.value.trim();
+
+      if (fileInput.files.length > 0) {
+        csvContent = await fileInput.files[0].text();
+      }
+      return csvContent;
+    }
+
+    btnPreview.onclick = async () => {
+      const csvContent = await getCSVContent();
+      if (!csvContent) {
+        setNotif('error', 'Aucun contenu à prévisualiser');
+        return;
+      }
+
+      const parsed = Utils.parseCSV(csvContent);
+      let html = '<div style="max-height:200px;overflow:auto;"><table class="table table-sm"><thead><tr><th>Mandant</th><th>Mandataire</th></tr></thead><tbody>';
+      let validCount = 0;
+
+      for (const row of parsed.rows) {
+        const giver = row.giver_email || row[Object.keys(row)[0]] || '';
+        const receiver = row.receiver_email || row[Object.keys(row)[1]] || '';
+        if (giver && receiver) {
+          html += '<tr><td>' + escapeHtml(giver) + '</td><td>' + escapeHtml(receiver) + '</td></tr>';
+          validCount++;
+        }
+      }
+
+      html += '</tbody></table></div>';
+      html += '<p class="text-sm text-muted mt-2">' + validCount + ' procuration(s) trouvée(s)</p>';
+
+      previewContainer.innerHTML = html;
+      previewContainer.style.display = 'block';
+      btnConfirm.disabled = validCount === 0;
+    };
+
+    document.getElementById('csvProxyFileInput').onchange = () => btnPreview.click();
+    document.getElementById('btnCancelProxyImport').onclick = () => modal.remove();
+
+    btnConfirm.onclick = async () => {
+      const csvContent = await getCSVContent();
+      if (!csvContent) {
+        setNotif('error', 'Aucun contenu à importer');
+        return;
+      }
+
+      try {
+        btnConfirm.disabled = true;
+        btnConfirm.textContent = 'Import en cours...';
+
+        const formData = new FormData();
+        formData.append('meeting_id', currentMeetingId);
+        formData.append('csv_content', csvContent);
+
+        const resp = await fetch('/api/v1/proxies_import_csv.php', {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+          const count = data.data?.imported || data.imported || 0;
+          setNotif('success', count + ' procuration(s) importée(s)');
+          modal.remove();
+          await loadProxies();
+          renderAttendance();
+          updateQuickStats();
+        } else {
+          setNotif('error', data.error || 'Erreur import');
+          btnConfirm.disabled = false;
+          btnConfirm.textContent = 'Importer';
+        }
+      } catch (err) {
+        setNotif('error', err.message);
+        btnConfirm.disabled = false;
+        btnConfirm.textContent = 'Importer';
       }
     };
   }
@@ -1565,7 +1710,18 @@
     const isLive = currentMeetingStatus === 'live';
     const totalCount = motionsCache.length;
 
-    list.innerHTML = filtered.map((m, i) => {
+    // Build header hint
+    const headerHint = filtered.length > 0 ? `
+      <div class="resolutions-list-header">
+        <div class="hint">
+          ${icon('mouse-pointer', 'icon-sm')}
+          <span>Cliquez sur une résolution pour voir les détails</span>
+        </div>
+        <span>${filtered.length} résolution${filtered.length > 1 ? 's' : ''}</span>
+      </div>
+    ` : '';
+
+    list.innerHTML = headerHint + (filtered.map((m, i) => {
       const isOpen = !!(m.opened_at && !m.closed_at);
       const isClosed = !!m.closed_at;
       const statusClass = isOpen ? 'open' : (isClosed ? 'closed' : 'pending');
@@ -1629,7 +1785,7 @@
           </div>
         </div>
       `;
-    }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>';
+    }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>');
 
     // Bind collapsible (only on chevron/title, not buttons)
     list.querySelectorAll('.resolution-header').forEach(header => {
@@ -2178,6 +2334,12 @@
 
   // Add proxy button
   document.getElementById('btnAddProxy')?.addEventListener('click', showAddProxyModal);
+
+  // Proxy search
+  document.getElementById('proxySearch')?.addEventListener('input', renderProxies);
+
+  // Import proxies CSV button
+  document.getElementById('btnImportProxiesCSV')?.addEventListener('click', showImportProxiesCSVModal);
 
   // Resolution search
   document.getElementById('resolutionSearch')?.addEventListener('input', renderResolutions);
