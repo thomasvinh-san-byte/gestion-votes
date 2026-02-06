@@ -1384,18 +1384,22 @@
 
           <div class="form-group mb-3">
             <label class="form-label">Mandant (qui donne procuration)</label>
-            <select class="form-input" id="proxyGiverSelect" ${potentialGivers.length === 0 ? 'disabled' : ''}>
-              <option value="">— Sélectionner un membre absent —</option>
-              ${potentialGivers.map(m => `<option value="${m.member_id}">${escapeHtml(m.full_name || '—')}</option>`).join('')}
-            </select>
+            <ag-searchable-select
+              id="proxyGiverSelect"
+              placeholder="Rechercher un membre absent..."
+              empty-text="Aucun membre trouvé"
+              ${potentialGivers.length === 0 ? 'disabled' : ''}
+            ></ag-searchable-select>
           </div>
 
           <div class="form-group mb-3">
             <label class="form-label">Mandataire (qui vote à sa place)</label>
-            <select class="form-input" id="proxyReceiverSelect" ${potentialReceivers.length === 0 ? 'disabled' : ''}>
-              <option value="">— Sélectionner un membre présent —</option>
-              ${potentialReceivers.map(m => `<option value="${m.member_id}">${escapeHtml(m.full_name || '—')} (${m.mode === 'present' ? 'Présent' : 'Distant'})</option>`).join('')}
-            </select>
+            <ag-searchable-select
+              id="proxyReceiverSelect"
+              placeholder="Rechercher un membre présent..."
+              empty-text="Aucun membre trouvé"
+              ${potentialReceivers.length === 0 ? 'disabled' : ''}
+            ></ag-searchable-select>
           </div>
 
           <div class="flex gap-2 justify-end">
@@ -1407,6 +1411,28 @@
 
       document.body.appendChild(modal);
       modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+      // Initialize searchable selects with options
+      const giverSelect = document.getElementById('proxyGiverSelect');
+      const receiverSelect = document.getElementById('proxyReceiverSelect');
+
+      if (giverSelect && giverSelect.setOptions) {
+        const giverOptions = potentialGivers.map(m => ({
+          value: m.member_id,
+          label: m.full_name || '—',
+          sublabel: m.email || ''
+        }));
+        giverSelect.setOptions(giverOptions);
+      }
+
+      if (receiverSelect && receiverSelect.setOptions) {
+        const receiverOptions = potentialReceivers.map(m => ({
+          value: m.member_id,
+          label: m.full_name || '—',
+          sublabel: (m.email || '') + (m.mode === 'present' ? ' — Présent' : ' — Distant')
+        }));
+        receiverSelect.setOptions(receiverOptions);
+      }
 
       const btnCancel = document.getElementById('btnCancelProxy');
       const btnConfirm = document.getElementById('btnConfirmProxy');
