@@ -96,8 +96,8 @@
                 <div class="quick-count-label">Distants</div>
               </div>
               <div class="quick-count">
-                <span class="quick-count-value warning" id="quickExcused">0</span>
-                <div class="quick-count-label">Excusés</div>
+                <span class="quick-count-value warning" id="quickProxy">0</span>
+                <div class="quick-count-label">Procurations</div>
               </div>
               <div class="quick-count">
                 <span class="quick-count-value muted" id="quickAbsent">0</span>
@@ -388,8 +388,8 @@
             <div class="label">Distants</div>
           </div>
           <div class="result-card">
-            <div class="value" id="presStatExcused">0</div>
-            <div class="label">Excusés</div>
+            <div class="value" id="presStatProxy">0</div>
+            <div class="label">Procurations</div>
           </div>
           <div class="result-card">
             <div class="value" id="presStatAbsent">0</div>
@@ -397,8 +397,21 @@
           </div>
         </div>
 
+        <h3 class="mb-4"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Membres</h3>
         <div class="attendance-grid" id="attendanceGrid">
           <!-- Rendered by JS -->
+        </div>
+
+        <!-- Proxy management section -->
+        <div class="settings-section mt-6" id="proxySection">
+          <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user-check"></use></svg> Procurations</h3>
+          <p class="text-muted text-sm mb-4">Les membres ayant une procuration peuvent faire voter un mandataire présent à leur place.</p>
+          <div class="flex gap-2 mb-4">
+            <button class="btn btn-sm btn-primary" id="btnAddProxy">+ Nouvelle procuration</button>
+          </div>
+          <div id="proxyList" class="proxy-list">
+            <!-- Rendered by JS -->
+          </div>
         </div>
       </div>
 
