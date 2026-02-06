@@ -25,6 +25,7 @@ import './ag-toast.js';
 import './ag-quorum-bar.js';
 import './ag-vote-button.js';
 import './ag-popover.js';
+import './ag-searchable-select.js';
 
 // Export for programmatic use
 export { default as AgKpi } from './ag-kpi.js';
@@ -34,10 +35,11 @@ export { default as AgToast } from './ag-toast.js';
 export { default as AgQuorumBar } from './ag-quorum-bar.js';
 export { default as AgVoteButton } from './ag-vote-button.js';
 export { default as AgPopover } from './ag-popover.js';
+export { default as AgSearchableSelect } from './ag-searchable-select.js';
 
 // Log registration in development
 if (window.location.hostname === 'localhost') {
   console.log('[AG-VOTE] Web Components registered:', [
-    'ag-kpi', 'ag-badge', 'ag-spinner', 'ag-toast', 'ag-quorum-bar', 'ag-vote-button', 'ag-popover'
+    'ag-kpi', 'ag-badge', 'ag-spinner', 'ag-toast', 'ag-quorum-bar', 'ag-vote-button', 'ag-popover', 'ag-searchable-select'
   ]);
 }

@@ -143,6 +143,163 @@ window.Utils = window.Utils || {};
   };
 
   // ==========================================================================
+  // FUZZY SEARCH UTILITIES
+  // ==========================================================================
+
+  /**
+   * Fuzzy search algorithm
+   * Returns a score (higher = better match) or -1 for no match
+   * @param {string} pattern - Search pattern
+   * @param {string} str - String to search in
+   * @returns {{score: number, matches: Array<[number, number]>}} Score and match ranges
+   */
+  Utils.fuzzyMatch = function(pattern, str) {
+    if (!pattern) return { score: 1, matches: [] };
+    if (!str) return { score: -1, matches: [] };
+
+    pattern = pattern.toLowerCase();
+    str = str.toLowerCase();
+
+    // Exact match bonus
+    if (str === pattern) {
+      const idx = 0;
+      return { score: 100, matches: [[idx, pattern.length]] };
+    }
+    if (str.includes(pattern)) {
+      const idx = str.indexOf(pattern);
+      return {
+        score: 50 + (pattern.length / str.length) * 30,
+        matches: [[idx, idx + pattern.length]]
+      };
+    }
+
+    // Fuzzy matching with consecutive character bonus
+    let patternIdx = 0;
+    let score = 0;
+    let consecutiveBonus = 0;
+    let lastMatchIdx = -2;
+    const matches = [];
+
+    for (let i = 0; i < str.length && patternIdx < pattern.length; i++) {
+      if (str[i] === pattern[patternIdx]) {
+        // Consecutive match bonus
+        if (i === lastMatchIdx + 1) {
+          consecutiveBonus += 5;
+        } else {
+          consecutiveBonus = 0;
+        }
+
+        // Word boundary bonus
+        const isWordStart = i === 0 || /[\s\-_.,@]/.test(str[i - 1]);
+        const wordBonus = isWordStart ? 10 : 0;
+
+        score += 1 + consecutiveBonus + wordBonus;
+        matches.push([i, i + 1]);
+        lastMatchIdx = i;
+        patternIdx++;
+      }
+    }
+
+    // All pattern characters must be found
+    if (patternIdx !== pattern.length) {
+      return { score: -1, matches: [] };
+    }
+
+    // Normalize score by pattern length
+    score = score / pattern.length;
+
+    return { score, matches: Utils.mergeMatchRanges(matches) };
+  };
+
+  /**
+   * Merge adjacent match ranges
+   * @param {Array<[number, number]>} matches - Array of [start, end] pairs
+   * @returns {Array<[number, number]>} Merged ranges
+   */
+  Utils.mergeMatchRanges = function(matches) {
+    if (!matches.length) return [];
+    const sorted = matches.sort((a, b) => a[0] - b[0]);
+    const merged = [sorted[0]];
+    for (let i = 1; i < sorted.length; i++) {
+      const last = merged[merged.length - 1];
+      if (sorted[i][0] <= last[1]) {
+        last[1] = Math.max(last[1], sorted[i][1]);
+      } else {
+        merged.push(sorted[i]);
+      }
+    }
+    return merged;
+  };
+
+  /**
+   * Highlight matched characters in text with <mark> tags
+   * @param {string} text - Original text
+   * @param {Array<[number, number]>} matches - Match ranges from fuzzyMatch
+   * @returns {string} HTML string with highlighted matches
+   */
+  Utils.highlightMatches = function(text, matches) {
+    if (!matches || !matches.length || !text) {
+      return Utils.escapeHtml(text || '');
+    }
+
+    let result = '';
+    let lastEnd = 0;
+
+    for (const [start, end] of matches) {
+      result += Utils.escapeHtml(text.substring(lastEnd, start));
+      result += '<mark>' + Utils.escapeHtml(text.substring(start, end)) + '</mark>';
+      lastEnd = end;
+    }
+    result += Utils.escapeHtml(text.substring(lastEnd));
+
+    return result;
+  };
+
+  /**
+   * Filter and sort an array of items by fuzzy matching against specified fields
+   * @param {Array} items - Array of items to filter
+   * @param {string} pattern - Search pattern
+   * @param {Array<string>} fields - Fields to search in (e.g., ['name', 'email'])
+   * @returns {Array} Filtered and sorted items with _score and _matches properties
+   */
+  Utils.fuzzyFilter = function(items, pattern, fields) {
+    if (!pattern || !pattern.trim()) {
+      return items.map(item => ({ ...item, _score: 1, _matches: {} }));
+    }
+
+    const results = [];
+    for (const item of items) {
+      let bestScore = -1;
+      const fieldMatches = {};
+
+      for (const field of fields) {
+        const value = item[field];
+        if (value && typeof value === 'string') {
+          const match = Utils.fuzzyMatch(pattern, value);
+          if (match.score > 0) {
+            fieldMatches[field] = match.matches;
+            if (match.score > bestScore) {
+              bestScore = match.score;
+            }
+          }
+        }
+      }
+
+      if (bestScore > 0) {
+        results.push({
+          ...item,
+          _score: bestScore,
+          _matches: fieldMatches
+        });
+      }
+    }
+
+    // Sort by score (descending)
+    results.sort((a, b) => b._score - a._score);
+    return results;
+  };
+
+  // ==========================================================================
   // CSRF HELPERS
   // ==========================================================================
 

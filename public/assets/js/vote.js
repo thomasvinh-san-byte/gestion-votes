@@ -282,7 +282,17 @@
   function selectedMemberId(){ return ($("#memberSelect")?.value || "").trim(); }
 
   /**
+   * Check if element is an ag-searchable-select component.
+   * @param {Element} el - DOM element to check
+   * @returns {boolean} True if element is a searchable select
+   */
+  function isSearchableSelect(el) {
+    return el && el.tagName && el.tagName.toLowerCase() === 'ag-searchable-select';
+  }
+
+  /**
    * Load available meetings into the meeting select dropdown.
+   * Supports both native select and ag-searchable-select component.
    * @returns {Promise<void>}
    */
   async function loadMeetings(){
@@ -290,18 +300,35 @@
     if (!sel) return;
     const r = await apiGet("/api/v1/meetings_index.php?active_only=1");
     const meetings = r?.data?.meetings || [];
-    sel.innerHTML = "";
-    const opt0 = document.createElement("option");
-    opt0.value = "";
-    opt0.textContent = "— Select a meeting —";
-    sel.appendChild(opt0);
-    for (const m of meetings){
-      const opt = document.createElement("option");
-      opt.value = m.meeting_id;
-      const when = (m.created_at || "").toString().slice(0,10);
-      opt.textContent = `${when} — ${m.title || "Meeting"} [${m.status || "—"}]`;
-      sel.appendChild(opt);
+
+    if (isSearchableSelect(sel)) {
+      // Use ag-searchable-select API
+      const options = meetings.map(m => {
+        const when = (m.created_at || "").toString().slice(0,10);
+        const statusLabel = m.status ? ` [${m.status}]` : '';
+        return {
+          value: m.meeting_id,
+          label: m.title || "Séance",
+          sublabel: `${when}${statusLabel}`
+        };
+      });
+      sel.setOptions(options);
+    } else {
+      // Fallback to native select
+      sel.innerHTML = "";
+      const opt0 = document.createElement("option");
+      opt0.value = "";
+      opt0.textContent = "— Select a meeting —";
+      sel.appendChild(opt0);
+      for (const m of meetings){
+        const opt = document.createElement("option");
+        opt.value = m.meeting_id;
+        const when = (m.created_at || "").toString().slice(0,10);
+        opt.textContent = `${when} — ${m.title || "Meeting"} [${m.status || "—"}]`;
+        sel.appendChild(opt);
+      }
     }
+
     // Priority: MeetingContext > saved localStorage > first meeting in list
     const contextId = (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
     const saved = (localStorage.getItem("public.meeting_id") || "").trim();
@@ -323,31 +350,53 @@
   /**
    * Load members for the selected meeting into the member select dropdown.
    * Prioritizes present/remote attendees, falls back to all members.
+   * Supports both native select and ag-searchable-select component.
    * @returns {Promise<void>}
    */
   async function loadMembers(){
     const meetingId = selectedMeetingId();
     const sel = $("#memberSelect");
     if (!sel) return;
-    sel.innerHTML = "";
-    const opt0 = document.createElement("option");
-    opt0.value = "";
-    opt0.textContent = "— Select a member —";
-    sel.appendChild(opt0);
 
-    if (!meetingId) return;
+    const useSearchable = isSearchableSelect(sel);
+    const memberOptions = [];
+
+    if (!useSearchable) {
+      sel.innerHTML = "";
+      const opt0 = document.createElement("option");
+      opt0.value = "";
+      opt0.textContent = "— Select a member —";
+      sel.appendChild(opt0);
+    }
+
+    if (!meetingId) {
+      if (useSearchable) sel.setOptions([]);
+      return;
+    }
 
     let filled = 0;
     try {
       const r = await apiGet(`/api/v1/attendances.php?meeting_id=${encodeURIComponent(meetingId)}`);
       const rows = r?.data?.attendances || [];
+      const modeLabels = { present: 'Présent', remote: 'À distance', proxy: 'Procuration' };
+
       for (const x of rows){
         const mode = (x.mode || "");
         if (!["present","remote","proxy"].includes(mode)) continue;
-        const opt = document.createElement("option");
-        opt.value = x.member_id;
-        opt.textContent = `${x.full_name || x.name || "Member"} (${mode})`;
-        sel.appendChild(opt);
+
+        if (useSearchable) {
+          memberOptions.push({
+            value: x.member_id,
+            label: x.full_name || x.name || "Membre",
+            sublabel: modeLabels[mode] || mode,
+            group: x.group_name || null
+          });
+        } else {
+          const opt = document.createElement("option");
+          opt.value = x.member_id;
+          opt.textContent = `${x.full_name || x.name || "Member"} (${mode})`;
+          sel.appendChild(opt);
+        }
         filled++;
       }
     } catch(e) {
@@ -359,21 +408,38 @@
       const r = await apiGet("/api/v1/members.php");
       const rows = r?.data?.members || r?.data?.rows || [];
       for (const x of rows){
-        const opt = document.createElement("option");
-        opt.value = x.id || x.member_id;
-        opt.textContent = x.full_name || x.name || "Member";
-        sel.appendChild(opt);
+        if (useSearchable) {
+          memberOptions.push({
+            value: x.id || x.member_id,
+            label: x.full_name || x.name || "Membre",
+            sublabel: x.email || null,
+            group: x.group_name || null
+          });
+        } else {
+          const opt = document.createElement("option");
+          opt.value = x.id || x.member_id;
+          opt.textContent = x.full_name || x.name || "Member";
+          sel.appendChild(opt);
+        }
       }
+    }
+
+    if (useSearchable) {
+      sel.setOptions(memberOptions);
     }
 
     // Auto-select: try saved value, then try matching Auth user name
     const saved = (localStorage.getItem("public.member_id") || "").trim();
-    if (saved && [...sel.options].some(o=>o.value===saved)) {
+    const allValues = useSearchable
+      ? memberOptions.map(o => String(o.value))
+      : [...sel.options].map(o => o.value);
+
+    if (saved && allValues.includes(saved)) {
       sel.value = saved;
     } else if (window.Auth && window.Auth.user) {
-      autoSelectMember(sel);
+      autoSelectMember(sel, useSearchable ? memberOptions : null);
     } else if (window.Auth && window.Auth.ready) {
-      window.Auth.ready.then(() => autoSelectMember(sel));
+      window.Auth.ready.then(() => autoSelectMember(sel, useSearchable ? memberOptions : null));
     }
 
     // Update member display in footer
@@ -384,29 +450,63 @@
   /**
    * Auto-select the current authenticated user in the member dropdown.
    * Matches by name or email from window.Auth.user.
-   * @param {HTMLSelectElement} sel - Member select element
+   * Supports both native select and ag-searchable-select component.
+   * @param {HTMLSelectElement|AgSearchableSelect} sel - Member select element
+   * @param {Array|null} optionsArray - Options array for searchable select (null for native)
    */
-  function autoSelectMember(sel) {
+  function autoSelectMember(sel, optionsArray) {
     if (!window.Auth || !window.Auth.user) return;
     const userName = (window.Auth.user.name || '').toLowerCase().trim();
     const userEmail = (window.Auth.user.email || '').toLowerCase().trim();
     if (!userName && !userEmail) return;
 
-    for (const opt of sel.options) {
-      if (!opt.value) continue;
-      const text = opt.textContent.toLowerCase();
-      if ((userName && text.includes(userName)) || (userEmail && text.includes(userEmail))) {
-        sel.value = opt.value;
-        localStorage.setItem("public.member_id", opt.value);
-        updateMemberFromSelect(sel);
-        break;
+    if (optionsArray) {
+      // ag-searchable-select
+      for (const opt of optionsArray) {
+        const label = (opt.label || '').toLowerCase();
+        const sublabel = (opt.sublabel || '').toLowerCase();
+        if ((userName && label.includes(userName)) ||
+            (userEmail && (label.includes(userEmail) || sublabel.includes(userEmail)))) {
+          sel.value = opt.value;
+          localStorage.setItem("public.member_id", opt.value);
+          updateMemberFromSelect(sel);
+          break;
+        }
+      }
+    } else {
+      // Native select
+      for (const opt of sel.options) {
+        if (!opt.value) continue;
+        const text = opt.textContent.toLowerCase();
+        if ((userName && text.includes(userName)) || (userEmail && text.includes(userEmail))) {
+          sel.value = opt.value;
+          localStorage.setItem("public.member_id", opt.value);
+          updateMemberFromSelect(sel);
+          break;
+        }
       }
     }
   }
 
+  /**
+   * Update member display in footer from select element.
+   * Supports both native select and ag-searchable-select component.
+   * @param {HTMLSelectElement|AgSearchableSelect} sel - Member select element
+   */
   function updateMemberFromSelect(sel) {
-    const opt = sel.options[sel.selectedIndex];
-    if (typeof window.updateMemberDisplay === 'function') {
+    if (typeof window.updateMemberDisplay !== 'function') return;
+
+    if (isSearchableSelect(sel)) {
+      // ag-searchable-select
+      const selectedOpt = sel.selectedOption;
+      if (selectedOpt) {
+        window.updateMemberDisplay({ name: selectedOpt.label });
+      } else {
+        window.updateMemberDisplay(null);
+      }
+    } else {
+      // Native select
+      const opt = sel.options[sel.selectedIndex];
       if (opt && opt.value) {
         window.updateMemberDisplay({ name: opt.textContent.split('(')[0].trim() });
       } else {

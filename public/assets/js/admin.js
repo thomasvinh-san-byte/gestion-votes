@@ -47,12 +47,17 @@
 
   function filterAndRenderUsers() {
     const searchInput = document.getElementById('searchUser');
-    const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const search = searchInput ? searchInput.value.trim() : '';
 
-    if (search) {
+    if (search && window.Utils && Utils.fuzzyFilter) {
+      // Use fuzzy search for better matching
+      _users = Utils.fuzzyFilter(_allUsers, search, ['name', 'email']);
+    } else if (search) {
+      // Fallback to simple includes
+      const searchLower = search.toLowerCase();
       _users = _allUsers.filter(function(u) {
-        return (u.name || '').toLowerCase().includes(search) ||
-               (u.email || '').toLowerCase().includes(search);
+        return (u.name || '').toLowerCase().includes(searchLower) ||
+               (u.email || '').toLowerCase().includes(searchLower);
       });
     } else {
       _users = _allUsers;
@@ -60,7 +65,7 @@
 
     const countEl = document.getElementById('usersCount');
     if (countEl) {
-      countEl.textContent = _users.length + ' user' + (_users.length !== 1 ? 's' : '');
+      countEl.textContent = _users.length + ' utilisateur' + (_users.length !== 1 ? 's' : '');
     }
 
     renderUsersTable(_users);
@@ -248,18 +253,42 @@
   // ═══════════════════════════════════════════════════════
   let _meetings = [];
 
+  /**
+   * Check if element is an ag-searchable-select component.
+   * @param {Element} el - DOM element to check
+   * @returns {boolean} True if element is a searchable select
+   */
+  function isSearchableSelect(el) {
+    return el && el.tagName && el.tagName.toLowerCase() === 'ag-searchable-select';
+  }
+
   async function loadMeetingSelects() {
     try {
       const r = await api('/api/v1/meetings.php?active_only=1');
       if (r.body && r.body.ok && r.body.data) {
         _meetings = r.body.data.meetings || r.body.data.items || [];
         const meetingSel = document.getElementById('mrMeeting');
-        meetingSel.innerHTML = '<option value="">— Sélectionner —</option>' +
-          _meetings.map(function(m) {
-            const statusMap = Shared.MEETING_STATUS_MAP || {};
+        const statusMap = Shared.MEETING_STATUS_MAP || {};
+
+        if (isSearchableSelect(meetingSel)) {
+          // Use ag-searchable-select API
+          const options = _meetings.map(function(m) {
             const st = (statusMap[m.status] || {}).text || m.status;
-            return '<option value="' + m.id + '">' + escapeHtml(m.title) + ' (' + escapeHtml(st) + ')</option>';
-          }).join('');
+            return {
+              value: m.id,
+              label: m.title || 'Séance',
+              sublabel: st
+            };
+          });
+          meetingSel.setOptions(options);
+        } else {
+          // Fallback to native select
+          meetingSel.innerHTML = '<option value="">— Sélectionner —</option>' +
+            _meetings.map(function(m) {
+              const st = (statusMap[m.status] || {}).text || m.status;
+              return '<option value="' + m.id + '">' + escapeHtml(m.title) + ' (' + escapeHtml(st) + ')</option>';
+            }).join('');
+        }
       }
     } catch(e) { console.error('loadMeetingSelects', e); }
 
@@ -269,10 +298,24 @@
       if (r2.body && r2.body.ok && r2.body.data) {
         const users = r2.body.data.items || [];
         const userSel = document.getElementById('mrUser');
-        userSel.innerHTML = '<option value="">— Select —</option>' +
-          users.filter(function(u) { return u.is_active; }).map(function(u) {
-            return '<option value="' + u.id + '">' + escapeHtml(u.name) + ' (' + escapeHtml(roleLabelsSystem[u.role] || u.role) + ')</option>';
-          }).join('');
+
+        if (isSearchableSelect(userSel)) {
+          // Use ag-searchable-select API
+          const options = users.filter(function(u) { return u.is_active; }).map(function(u) {
+            return {
+              value: u.id,
+              label: u.name || 'Utilisateur',
+              sublabel: u.email + ' — ' + (roleLabelsSystem[u.role] || u.role)
+            };
+          });
+          userSel.setOptions(options);
+        } else {
+          // Fallback to native select
+          userSel.innerHTML = '<option value="">— Select —</option>' +
+            users.filter(function(u) { return u.is_active; }).map(function(u) {
+              return '<option value="' + u.id + '">' + escapeHtml(u.name) + ' (' + escapeHtml(roleLabelsSystem[u.role] || u.role) + ')</option>';
+            }).join('');
+        }
       }
     } catch(e) { console.error('loadUserSelect', e); }
   }

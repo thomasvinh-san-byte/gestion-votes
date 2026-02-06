@@ -143,11 +143,19 @@
               <div class="inline-form">
                 <div class="form-group">
                   <label class="form-label">Séance</label>
-                  <select class="form-input" id="mrMeeting"><option value="">Chargement…</option></select>
+                  <ag-searchable-select
+                    id="mrMeeting"
+                    placeholder="Rechercher une séance..."
+                    empty-text="Aucune séance trouvée"
+                  ></ag-searchable-select>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Utilisateur</label>
-                  <select class="form-input" id="mrUser"><option value="">Chargement…</option></select>
+                  <ag-searchable-select
+                    id="mrUser"
+                    placeholder="Rechercher un utilisateur..."
+                    empty-text="Aucun utilisateur trouvé"
+                  ></ag-searchable-select>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Rôle</label>
