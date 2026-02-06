@@ -1231,98 +1231,112 @@
   }
 
   function showAddProxyModal() {
-    // Get list of members who can give proxy (not already present and not already giving)
-    const giverIds = new Set(proxiesCache.filter(p => !p.revoked_at).map(p => p.giver_member_id));
-    const presentIds = new Set(attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').map(a => a.member_id));
-
-    // Givers: members who are absent and don't already have a proxy
-    const potentialGivers = attendanceCache.filter(a =>
-      !presentIds.has(a.member_id) && !giverIds.has(a.member_id)
-    );
-
-    // Receivers: members who are present or remote
-    const potentialReceivers = attendanceCache.filter(a =>
-      a.mode === 'present' || a.mode === 'remote'
-    );
-
-    const modal = document.createElement('div');
-    modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
-
-    modal.innerHTML = `
-      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:500px;width:90%;">
-        <h3 style="margin:0 0 1rem;">${icon('user-check', 'icon-sm icon-text')} Nouvelle procuration</h3>
-        <p class="text-muted text-sm mb-4">Le mandant (absent) donne procuration au mandataire (présent) pour voter à sa place.</p>
-
-        ${potentialGivers.length === 0 ? `
-          <div class="alert alert-warning mb-4">${icon('info', 'icon-sm icon-text')} Tous les membres absents ont déjà une procuration ou sont présents.</div>
-        ` : ''}
-
-        ${potentialReceivers.length === 0 ? `
-          <div class="alert alert-warning mb-4">${icon('info', 'icon-sm icon-text')} Aucun membre présent pour recevoir une procuration.</div>
-        ` : ''}
-
-        <div class="form-group mb-3">
-          <label class="form-label">Mandant (qui donne procuration)</label>
-          <select class="form-input" id="proxyGiverSelect" ${potentialGivers.length === 0 ? 'disabled' : ''}>
-            <option value="">— Sélectionner un membre absent —</option>
-            ${potentialGivers.map(m => `<option value="${m.member_id}">${escapeHtml(m.full_name || '—')}</option>`).join('')}
-          </select>
-        </div>
-
-        <div class="form-group mb-3">
-          <label class="form-label">Mandataire (qui vote à sa place)</label>
-          <select class="form-input" id="proxyReceiverSelect" ${potentialReceivers.length === 0 ? 'disabled' : ''}>
-            <option value="">— Sélectionner un membre présent —</option>
-            ${potentialReceivers.map(m => `<option value="${m.member_id}">${escapeHtml(m.full_name || '—')} (${m.mode === 'present' ? 'Présent' : 'Distant'})</option>`).join('')}
-          </select>
-        </div>
-
-        <div class="flex gap-2 justify-end">
-          <button class="btn btn-secondary" id="btnCancelProxy">Annuler</button>
-          <button class="btn btn-primary" id="btnConfirmProxy" ${potentialGivers.length === 0 || potentialReceivers.length === 0 ? 'disabled' : ''}>Créer la procuration</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-    document.getElementById('btnCancelProxy').onclick = () => modal.remove();
-
-    document.getElementById('btnConfirmProxy').onclick = async () => {
-      const giverId = document.getElementById('proxyGiverSelect').value;
-      const receiverId = document.getElementById('proxyReceiverSelect').value;
-
-      if (!giverId || !receiverId) {
-        setNotif('error', 'Veuillez sélectionner le mandant et le mandataire');
+    try {
+      // Check if data is loaded
+      if (!attendanceCache || attendanceCache.length === 0) {
+        setNotif('warning', 'Données de présence non chargées. Veuillez sélectionner une séance.');
         return;
       }
 
-      if (giverId === receiverId) {
-        setNotif('error', 'Le mandant et le mandataire doivent être différents');
-        return;
-      }
+      // Get list of members who can give proxy (not already present and not already giving)
+      const giverIds = new Set(proxiesCache.filter(p => !p.revoked_at).map(p => p.giver_member_id));
+      const presentIds = new Set(attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').map(a => a.member_id));
 
-      try {
-        const { body } = await api('/api/v1/proxies_upsert.php', {
-          meeting_id: currentMeetingId,
-          giver_member_id: giverId,
-          receiver_member_id: receiverId
-        });
+      // Givers: members who are absent and don't already have a proxy
+      const potentialGivers = attendanceCache.filter(a =>
+        !presentIds.has(a.member_id) && !giverIds.has(a.member_id)
+      );
 
-        if (body?.ok) {
-          setNotif('success', 'Procuration créée');
-          modal.remove();
-          await loadProxies();
-          renderAttendance();
-          updateQuickStats();
-        } else {
-          setNotif('error', getApiError(body, 'Erreur lors de la création'));
+      // Receivers: members who are present or remote
+      const potentialReceivers = attendanceCache.filter(a =>
+        a.mode === 'present' || a.mode === 'remote'
+      );
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-backdrop';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+
+      modal.innerHTML = `
+        <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:500px;width:90%;">
+          <h3 style="margin:0 0 1rem;">${icon('user-check', 'icon-sm icon-text')} Nouvelle procuration</h3>
+          <p class="text-muted text-sm mb-4">Le mandant (absent) donne procuration au mandataire (présent) pour voter à sa place.</p>
+
+          ${potentialGivers.length === 0 ? `
+            <div class="alert alert-warning mb-4">${icon('info', 'icon-sm icon-text')} Tous les membres absents ont déjà une procuration ou sont présents.</div>
+          ` : ''}
+
+          ${potentialReceivers.length === 0 ? `
+            <div class="alert alert-warning mb-4">${icon('info', 'icon-sm icon-text')} Aucun membre présent pour recevoir une procuration.</div>
+          ` : ''}
+
+          <div class="form-group mb-3">
+            <label class="form-label">Mandant (qui donne procuration)</label>
+            <select class="form-input" id="proxyGiverSelect" ${potentialGivers.length === 0 ? 'disabled' : ''}>
+              <option value="">— Sélectionner un membre absent —</option>
+              ${potentialGivers.map(m => `<option value="${m.member_id}">${escapeHtml(m.full_name || '—')}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">Mandataire (qui vote à sa place)</label>
+            <select class="form-input" id="proxyReceiverSelect" ${potentialReceivers.length === 0 ? 'disabled' : ''}>
+              <option value="">— Sélectionner un membre présent —</option>
+              ${potentialReceivers.map(m => `<option value="${m.member_id}">${escapeHtml(m.full_name || '—')} (${m.mode === 'present' ? 'Présent' : 'Distant'})</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="flex gap-2 justify-end">
+            <button class="btn btn-secondary" id="btnCancelProxy">Annuler</button>
+            <button class="btn btn-primary" id="btnConfirmProxy" ${potentialGivers.length === 0 || potentialReceivers.length === 0 ? 'disabled' : ''}>Créer la procuration</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+      const btnCancel = document.getElementById('btnCancelProxy');
+      const btnConfirm = document.getElementById('btnConfirmProxy');
+
+      if (btnCancel) btnCancel.onclick = () => modal.remove();
+      if (btnConfirm) btnConfirm.onclick = async () => {
+        const giverId = document.getElementById('proxyGiverSelect').value;
+        const receiverId = document.getElementById('proxyReceiverSelect').value;
+
+        if (!giverId || !receiverId) {
+          setNotif('error', 'Veuillez sélectionner le mandant et le mandataire');
+          return;
         }
-      } catch (err) {
-        setNotif('error', err.message);
-      }
-    };
+
+        if (giverId === receiverId) {
+          setNotif('error', 'Le mandant et le mandataire doivent être différents');
+          return;
+        }
+
+        try {
+          const { body } = await api('/api/v1/proxies_upsert.php', {
+            meeting_id: currentMeetingId,
+            giver_member_id: giverId,
+            receiver_member_id: receiverId
+          });
+
+          if (body?.ok) {
+            setNotif('success', 'Procuration créée');
+            modal.remove();
+            await loadProxies();
+            renderAttendance();
+            updateQuickStats();
+          } else {
+            setNotif('error', getApiError(body, 'Erreur lors de la création'));
+          }
+        } catch (err) {
+          setNotif('error', err.message);
+        }
+      };
+    } catch (err) {
+      console.error('Error in showAddProxyModal:', err);
+      setNotif('error', 'Erreur lors de l\'ouverture du formulaire: ' + err.message);
+    }
   }
 
   // Import proxies from CSV modal
