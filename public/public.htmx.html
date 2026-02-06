@@ -266,11 +266,21 @@ async function loadResults(motionId, reveal = true) {
 
     animateBars(forPct, againstPct, abstainPct, forCount, againstCount, abstainCount, forWeight, againstWeight, abstainWeight);
 
-    // Decision
+    // Decision - transform technical status to user-friendly labels
     const decisionEl = document.getElementById('decision_value');
-    decisionEl.textContent = decision.status || '—';
+    const statusLabels = {
+      'Adopte': 'Adopté',
+      'Rejete': 'Rejeté',
+      'no_votes': 'En attente',
+      'pending': 'En cours'
+    };
+    const statusText = statusLabels[decision.status] || decision.status || '—';
+    decisionEl.textContent = statusText;
     decisionEl.className = 'decision-value ' + (decision.status === 'Adopte' ? 'adopted' : decision.status === 'Rejete' ? 'rejected' : 'pending');
-    document.getElementById('decision_detail').textContent = decision.reason || '';
+
+    // Hide technical reason for no_votes status
+    const reasonText = decision.status === 'no_votes' ? '' : (decision.reason || '');
+    document.getElementById('decision_detail').textContent = reasonText;
 
     // Quorum
     const quorumEl = document.getElementById('quorum_value');
