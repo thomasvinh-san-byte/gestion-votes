@@ -1370,7 +1370,7 @@
       modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
 
       modal.innerHTML = `
-        <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:500px;width:90%;" role="document">
+        <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem 1.75rem;max-width:500px;width:90%;" role="document">
           <h3 id="addProxyModalTitle" style="margin:0 0 1rem;">${icon('user-check', 'icon-sm icon-text')} Nouvelle procuration</h3>
           <p class="text-muted text-sm mb-4">Le mandant (absent) donne procuration au mandataire (présent) pour voter à sa place.</p>
 
