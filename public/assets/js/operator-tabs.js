@@ -1164,9 +1164,12 @@
 
     // Update stats
     const uniqueReceivers = new Set(activeProxies.map(p => p.receiver_member_id));
-    document.getElementById('proxyStatActive')?.textContent && (document.getElementById('proxyStatActive').textContent = activeProxies.length);
-    document.getElementById('proxyStatGivers')?.textContent && (document.getElementById('proxyStatGivers').textContent = activeProxies.length);
-    document.getElementById('proxyStatReceivers')?.textContent && (document.getElementById('proxyStatReceivers').textContent = uniqueReceivers.size);
+    const proxyStatActiveEl = document.getElementById('proxyStatActive');
+    const proxyStatGiversEl = document.getElementById('proxyStatGivers');
+    const proxyStatReceiversEl = document.getElementById('proxyStatReceivers');
+    if (proxyStatActiveEl) proxyStatActiveEl.textContent = activeProxies.length;
+    if (proxyStatGiversEl) proxyStatGiversEl.textContent = activeProxies.length;
+    if (proxyStatReceiversEl) proxyStatReceiversEl.textContent = uniqueReceivers.size;
 
     // Update tab count
     const tabCount = document.getElementById('tabCountProxies');
