@@ -46,6 +46,76 @@
   };
 
   // =========================================================================
+  // MODAL UTILITIES
+  // =========================================================================
+
+  /**
+   * Create a standardized modal with proper ARIA attributes and styling.
+   * @param {Object} options - Modal configuration
+   * @param {string} options.id - Unique ID for the modal
+   * @param {string} options.title - Modal title (for ARIA)
+   * @param {string} options.content - HTML content for modal body
+   * @param {string} [options.maxWidth='500px'] - Max width of modal
+   * @param {boolean} [options.closeOnBackdrop=true] - Close when clicking backdrop
+   * @returns {HTMLElement} The modal element
+   */
+  function createModal({ id, title, content, maxWidth = '500px', closeOnBackdrop = true }) {
+    const modalId = id || 'modal-' + Date.now();
+    const titleId = modalId + '-title';
+
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'modal-backdrop';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', titleId);
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;';
+
+    modal.innerHTML = `
+      <div class="modal-content" style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:${maxWidth};width:90%;max-height:90vh;overflow:auto;" role="document">
+        ${content}
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close on backdrop click
+    if (closeOnBackdrop) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+      });
+    }
+
+    // Close on Escape key
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && document.body.contains(modal)) {
+        modal.remove();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+
+    // Focus trap - keep focus inside modal
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+
+    return modal;
+  }
+
+  /**
+   * Remove modal from DOM
+   * @param {HTMLElement|string} modal - Modal element or ID
+   */
+  function closeModal(modal) {
+    const el = typeof modal === 'string' ? document.getElementById(modal) : modal;
+    if (el) el.remove();
+  }
+
+  // =========================================================================
   // TAB NAVIGATION
   // =========================================================================
 
@@ -251,11 +321,14 @@
   async function addMemberQuick() {
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'addMemberModalTitle');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;';
 
     modal.innerHTML = `
-      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:400px;width:90%;">
-        <h3 style="margin:0 0 1rem;">Ajouter un membre</h3>
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:400px;width:90%;" role="document">
+        <h3 id="addMemberModalTitle" style="margin:0 0 1rem;">Ajouter un membre</h3>
         <div class="form-group mb-3">
           <label class="form-label">Nom complet</label>
           <input type="text" class="form-input" id="newMemberName" placeholder="Nom Prénom">
@@ -273,8 +346,11 @@
 
     document.body.appendChild(modal);
 
-    document.getElementById('btnCancelMember').onclick = () => modal.remove();
-    document.getElementById('btnConfirmMember').onclick = async () => {
+    const btnCancel = document.getElementById('btnCancelMember');
+    const btnConfirm = document.getElementById('btnConfirmMember');
+
+    btnCancel.onclick = () => modal.remove();
+    btnConfirm.onclick = async () => {
       const name = document.getElementById('newMemberName').value.trim();
       const email = document.getElementById('newMemberEmail').value.trim();
 
@@ -282,6 +358,12 @@
         setNotif('error', 'Le nom est requis');
         return;
       }
+
+      // Disable buttons during async operation
+      btnConfirm.disabled = true;
+      btnCancel.disabled = true;
+      const originalText = btnConfirm.textContent;
+      btnConfirm.textContent = 'Ajout...';
 
       try {
         await api('/api/v1/members.php', {
@@ -296,6 +378,9 @@
         loadStatusChecklist();
       } catch (err) {
         setNotif('error', err.message);
+        btnConfirm.disabled = false;
+        btnCancel.disabled = false;
+        btnConfirm.textContent = originalText;
       }
     };
   }
@@ -586,7 +671,7 @@
   function showDeviceManagementModal() {
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;';
 
     modal.innerHTML = `
       <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:80vh;overflow:auto;">
@@ -840,7 +925,7 @@
     // Show modal or prompt for user selection
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;';
 
     const availableUsers = usersCache.filter(u => {
       // Exclude current president
@@ -1010,7 +1095,7 @@
   function showImportCSVModal() {
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;';
 
     modal.innerHTML = `
       <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:90vh;overflow:auto;">
@@ -1254,11 +1339,14 @@
 
       const modal = document.createElement('div');
       modal.className = 'modal-backdrop';
-      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', 'addProxyModalTitle');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;';
 
       modal.innerHTML = `
-        <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:500px;width:90%;">
-          <h3 style="margin:0 0 1rem;">${icon('user-check', 'icon-sm icon-text')} Nouvelle procuration</h3>
+        <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:500px;width:90%;" role="document">
+          <h3 id="addProxyModalTitle" style="margin:0 0 1rem;">${icon('user-check', 'icon-sm icon-text')} Nouvelle procuration</h3>
           <p class="text-muted text-sm mb-4">Le mandant (absent) donne procuration au mandataire (présent) pour voter à sa place.</p>
 
           ${potentialGivers.length === 0 ? `
@@ -1313,6 +1401,12 @@
           return;
         }
 
+        // Disable buttons during async operation
+        btnConfirm.disabled = true;
+        btnCancel.disabled = true;
+        const originalText = btnConfirm.textContent;
+        btnConfirm.textContent = 'Création...';
+
         try {
           const { body } = await api('/api/v1/proxies_upsert.php', {
             meeting_id: currentMeetingId,
@@ -1328,9 +1422,15 @@
             updateQuickStats();
           } else {
             setNotif('error', getApiError(body, 'Erreur lors de la création'));
+            btnConfirm.disabled = false;
+            btnCancel.disabled = false;
+            btnConfirm.textContent = originalText;
           }
         } catch (err) {
           setNotif('error', err.message);
+          btnConfirm.disabled = false;
+          btnCancel.disabled = false;
+          btnConfirm.textContent = originalText;
         }
       };
     } catch (err) {
@@ -1341,13 +1441,26 @@
 
   // Import proxies from CSV modal
   function showImportProxiesCSVModal() {
+    // Validate that meeting is selected and data is loaded
+    if (!currentMeetingId) {
+      setNotif('warning', 'Veuillez sélectionner une séance.');
+      return;
+    }
+    if (!attendanceCache || attendanceCache.length === 0) {
+      setNotif('warning', 'Données de présence non chargées. Veuillez patienter ou recharger la page.');
+      return;
+    }
+
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'importProxiesModalTitle');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;';
 
     modal.innerHTML = `
-      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:90vh;overflow:auto;">
-        <h3 style="margin:0 0 1rem;">${icon('download', 'icon-sm icon-text')} Importer des procurations (CSV)</h3>
+      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:90vh;overflow:auto;" role="document">
+        <h3 id="importProxiesModalTitle" style="margin:0 0 1rem;">${icon('download', 'icon-sm icon-text')} Importer des procurations (CSV)</h3>
         <p class="text-muted text-sm mb-3">
           Format attendu: <code>giver_email,receiver_email</code> (en-tête requis).<br>
           Les emails doivent correspondre aux membres existants.
@@ -1648,7 +1761,7 @@
 
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;';
 
     modal.innerHTML = `
       <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:400px;width:90%;max-height:80vh;overflow:auto;">
@@ -1879,7 +1992,7 @@
 
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:center;justify-content:center;';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;';
 
     modal.innerHTML = `
       <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:80vh;overflow:auto;">
