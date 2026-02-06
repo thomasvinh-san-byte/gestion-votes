@@ -58,7 +58,7 @@
     });
   }
 
-  function switchTab(tabId) {
+  async function switchTab(tabId) {
     tabButtons.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabId);
     });
@@ -69,16 +69,16 @@
     // Reload data when switching to certain tabs
     if (currentMeetingId) {
       if (tabId === 'presences') {
-        loadAttendance();
+        await loadAttendance();
       }
       if (tabId === 'procurations') {
-        loadProxies();
-        loadAttendance(); // Need attendance for proxy modal
+        await loadProxies();
+        await loadAttendance(); // Need attendance for proxy modal
       }
-      if (tabId === 'resolutions') loadResolutions();
-      if (tabId === 'parole') loadSpeechQueue();
-      if (tabId === 'vote') loadVoteTab();
-      if (tabId === 'resultats') loadResults();
+      if (tabId === 'resolutions') await loadResolutions();
+      if (tabId === 'parole') await loadSpeechQueue();
+      if (tabId === 'vote') await loadVoteTab();
+      if (tabId === 'resultats') await loadResults();
     }
   }
 
@@ -1826,8 +1826,8 @@
         try {
           await api('/api/v1/motion_delete.php', { motion_id: btn.dataset.motionId, meeting_id: currentMeetingId });
           setNotif('success', 'Résolution supprimée');
-          loadResolutions();
-          loadStatusChecklist();
+          await loadResolutions();
+          await loadStatusChecklist();
         } catch (err) {
           setNotif('error', err.message);
         }
@@ -1909,7 +1909,7 @@
         if (body?.ok === true) {
           setNotif('success', 'Résolution mise à jour');
           modal.remove();
-          loadResolutions();
+          await loadResolutions();
         } else {
           setNotif('error', getApiError(body, 'Erreur lors de la mise à jour'));
         }
@@ -1976,8 +1976,8 @@
         document.getElementById('addResolutionForm').style.display = 'none';
         document.getElementById('newResolutionTitle').value = '';
         document.getElementById('newResolutionDesc').value = '';
-        loadResolutions();
-        loadStatusChecklist();
+        await loadResolutions();
+        await loadStatusChecklist();
         checkLaunchReady();
       } else {
         setNotif('error', getApiError(body, 'Erreur lors de la création'));
@@ -2161,8 +2161,8 @@
       await api('/api/v1/motions_close.php', { meeting_id: currentMeetingId, motion_id: motionId });
       setNotif('success', 'Vote clôturé');
       currentOpenMotion = null;
-      loadResolutions();
-      loadVoteTab();
+      await loadResolutions();
+      await loadVoteTab();
     } catch (err) {
       setNotif('error', err.message);
     }

@@ -591,7 +591,7 @@ class MotionRepository extends AbstractRepository
         string $id,
         string $tenantId,
         string $meetingId,
-        string $agendaId,
+        ?string $agendaId,
         string $title,
         string $description,
         bool $secret,
@@ -600,12 +600,12 @@ class MotionRepository extends AbstractRepository
     ): void {
         $this->execute(
             "INSERT INTO motions (id, tenant_id, meeting_id, agenda_id, title, description, secret, vote_policy_id, quorum_policy_id, created_at)
-             VALUES (:id, :tid, :mid, :aid, :title, :desc, :secret, NULLIF(:vpid,'')::uuid, NULLIF(:qpid,'')::uuid, now())",
+             VALUES (:id, :tid, :mid, NULLIF(:aid,'')::uuid, :title, :desc, :secret, NULLIF(:vpid,'')::uuid, NULLIF(:qpid,'')::uuid, now())",
             [
                 ':id' => $id,
                 ':tid' => $tenantId,
                 ':mid' => $meetingId,
-                ':aid' => $agendaId,
+                ':aid' => $agendaId ?? '',
                 ':title' => $title,
                 ':desc' => $description,
                 ':secret' => $secret ? 't' : 'f',
