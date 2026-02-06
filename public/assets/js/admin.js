@@ -252,9 +252,9 @@
     try {
       const r = await api('/api/v1/meetings.php?active_only=1');
       if (r.body && r.body.ok && r.body.data) {
-        _meetings = r.body.data.items || r.body.data || [];
+        _meetings = r.body.data.meetings || r.body.data.items || [];
         const meetingSel = document.getElementById('mrMeeting');
-        meetingSel.innerHTML = '<option value="">— All meetings —</option>' +
+        meetingSel.innerHTML = '<option value="">— Sélectionner —</option>' +
           _meetings.map(function(m) {
             const statusMap = Shared.MEETING_STATUS_MAP || {};
             const st = (statusMap[m.status] || {}).text || m.status;
