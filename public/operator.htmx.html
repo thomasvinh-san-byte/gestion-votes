@@ -32,6 +32,7 @@
       <button class="tab-btn active" data-tab="parametres" role="tab" aria-selected="true" aria-controls="tab-parametres" id="tab-btn-parametres">Paramètres</button>
       <button class="tab-btn" data-tab="resolutions" role="tab" aria-selected="false" aria-controls="tab-resolutions" id="tab-btn-resolutions">Résolutions <span class="tab-count" id="tabCountResolutions" aria-label="résolutions">0</span></button>
       <button class="tab-btn" data-tab="presences" role="tab" aria-selected="false" aria-controls="tab-presences" id="tab-btn-presences">Présences <span class="tab-count" id="tabCountPresences" aria-label="présences">0</span></button>
+      <button class="tab-btn" data-tab="procurations" role="tab" aria-selected="false" aria-controls="tab-procurations" id="tab-btn-procurations">Procurations <span class="tab-count" id="tabCountProxies" aria-label="procurations">0</span></button>
       <button class="tab-btn" data-tab="parole" role="tab" aria-selected="false" aria-controls="tab-parole" id="tab-btn-parole">Parole <span class="tab-count" id="tabCountSpeech" aria-label="demandes">0</span></button>
       <button class="tab-btn" data-tab="vote" role="tab" aria-selected="false" aria-controls="tab-vote" id="tab-btn-vote">Vote en direct</button>
       <button class="tab-btn" data-tab="resultats" role="tab" aria-selected="false" aria-controls="tab-resultats" id="tab-btn-resultats">Résultats</button>
@@ -401,17 +402,43 @@
         <div class="attendance-grid" id="attendanceGrid">
           <!-- Rendered by JS -->
         </div>
+      </div>
 
-        <!-- Proxy management section -->
-        <div class="settings-section mt-6" id="proxySection">
-          <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user-check"></use></svg> Procurations</h3>
-          <p class="text-muted text-sm mb-4">Les membres ayant une procuration peuvent faire voter un mandataire présent à leur place.</p>
-          <div class="flex gap-2 mb-4">
-            <button class="btn btn-sm btn-primary" id="btnAddProxy">+ Nouvelle procuration</button>
+      <!-- Tab: Procurations -->
+      <div class="tab-content" id="tab-procurations" role="tabpanel" aria-labelledby="tab-btn-procurations" tabindex="0">
+        <div class="tab-toolbar">
+          <div class="flex gap-2">
+            <button class="btn btn-primary" id="btnAddProxy"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Nouvelle procuration</button>
+            <button class="btn btn-secondary" id="btnImportProxiesCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer CSV</button>
           </div>
-          <div id="proxyList" class="proxy-list">
-            <!-- Rendered by JS -->
+          <input type="text" class="form-input tab-toolbar-search" id="proxySearch" placeholder="Rechercher une procuration...">
+        </div>
+
+        <div class="results-summary mb-6">
+          <div class="result-card">
+            <div class="value" id="proxyStatActive">0</div>
+            <div class="label">Procurations actives</div>
           </div>
+          <div class="result-card">
+            <div class="value" id="proxyStatGivers">0</div>
+            <div class="label">Mandants</div>
+          </div>
+          <div class="result-card">
+            <div class="value" id="proxyStatReceivers">0</div>
+            <div class="label">Mandataires</div>
+          </div>
+        </div>
+
+        <!-- Proxy list header -->
+        <div class="proxy-list-header">
+          <div class="hint">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+            <span>Les mandants absents donnent procuration aux mandataires présents pour voter à leur place.</span>
+          </div>
+        </div>
+
+        <div id="proxyList" class="proxy-list">
+          <!-- Rendered by JS -->
         </div>
       </div>
 
