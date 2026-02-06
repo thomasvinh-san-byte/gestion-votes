@@ -166,18 +166,21 @@ try {
                 'secret' => $secret,
             ];
         } else {
-            // Créer la résolution
+            // Créer la résolution avec UUID généré
+            $motionId = $motionRepo->generateUuid();
             $motionRepo->create(
+                $motionId,
                 $tenantId,
                 $meetingId,
                 null, // agenda_id
                 $title,
-                $description,
+                $description ?? '',
                 $secret,
                 null, // vote_policy_id
-                null, // quorum_policy_id
-                $position
+                null  // quorum_policy_id
             );
+            // Mettre à jour la position séparément
+            $motionRepo->updatePosition($motionId, $tenantId, $position);
         }
 
         $imported++;
