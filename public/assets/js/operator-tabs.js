@@ -1109,6 +1109,7 @@
   let speechQueueCache = [];
   let currentSpeakerCache = null;
   let speechTimerInterval = null;
+  let previousQueueIds = new Set();
 
   async function loadSpeechQueue() {
     if (!currentMeetingId) return;
@@ -1117,7 +1118,21 @@
       const { body } = await api(`/api/v1/speech_queue.php?meeting_id=${currentMeetingId}`);
       const data = body?.data || {};
       currentSpeakerCache = data.speaker || null;
-      speechQueueCache = data.queue || [];
+      const newQueue = data.queue || [];
+
+      // Detect new hand-raise requests
+      const newQueueIds = new Set(newQueue.map(r => r.id));
+      for (const req of newQueue) {
+        if (!previousQueueIds.has(req.id)) {
+          // New request detected - show notification
+          const name = req.member_name || req.full_name || 'Un membre';
+          setNotif('info', `🖐️ ${name} demande la parole`);
+          break; // Only one notification per poll
+        }
+      }
+      previousQueueIds = newQueueIds;
+
+      speechQueueCache = newQueue;
 
       renderSpeechQueue();
       renderCurrentSpeaker();
@@ -2057,10 +2072,8 @@
     loadDashboard();
     loadDevices();
 
-    // Refresh speech queue if on parole tab
-    if (activeTab === 'parole') {
-      loadSpeechQueue();
-    }
+    // Always refresh speech queue to detect new hand-raise requests
+    loadSpeechQueue();
 
     // Refresh resolutions to detect motion state changes
     await loadResolutions();
