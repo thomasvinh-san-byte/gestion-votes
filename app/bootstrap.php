@@ -65,6 +65,17 @@ use AgVote\Core\Security\CsrfMiddleware;
 use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Core\Security\RateLimiter;
 
+// Create global class aliases so api.php and other files can use short names
+if (!class_exists('CsrfMiddleware', false)) {
+    class_alias(CsrfMiddleware::class, 'CsrfMiddleware');
+}
+if (!class_exists('AuthMiddleware', false)) {
+    class_alias(AuthMiddleware::class, 'AuthMiddleware');
+}
+if (!class_exists('RateLimiter', false)) {
+    class_alias(RateLimiter::class, 'RateLimiter');
+}
+
 // =============================================================================
 // 2. CONFIGURATION
 // =============================================================================
