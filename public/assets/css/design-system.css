@@ -1537,6 +1537,15 @@ h4, .h4 {
 .overflow-x-auto { overflow-x: auto; }
 .overflow-y-auto { overflow-y: auto; }
 
+/* Focus ring safe padding
+ * Use on containers with interactive elements that have focus rings (box-shadow: 0 0 0 3px)
+ * This ensures focus rings don't get clipped by overflow:hidden on parent elements
+ */
+.focus-ring-safe {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 /* Truncate */
 .truncate {
   overflow: hidden;
