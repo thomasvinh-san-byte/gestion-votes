@@ -17,12 +17,12 @@
   // =========================================================================
 
   var STEPS = [
-    { id: 'select',     num: 0, label: 'Séance',        shortLabel: 'Séance',     href: '/meetings.htmx.html',    icon: '1', needsMeeting: false },
-    { id: 'members',    num: 1, label: 'Membres',       shortLabel: 'Membres',    href: '/members.htmx.html',     icon: '2', needsMeeting: false },
-    { id: 'attendance', num: 2, label: 'Présences',     shortLabel: 'Présences',  href: '/operator.htmx.html',    icon: '3', needsMeeting: true },
-    { id: 'resolutions',num: 3, label: 'Résolutions',   shortLabel: 'Résolutions',href: '/operator.htmx.html',    icon: '4', needsMeeting: true },
-    { id: 'conduct',    num: 4, label: 'Vote',          shortLabel: 'Vote',       href: '/operator.htmx.html',    icon: '5', needsMeeting: true },
-    { id: 'validate',   num: 5, label: 'Validation',    shortLabel: 'Clôture',    href: '/operator.htmx.html',    icon: '6', needsMeeting: true }
+    { id: 'select',     num: 0, label: 'Séance',        shortLabel: 'Séance',     href: '/meetings.htmx.html',    icon: '1', needsMeeting: false, tab: null },
+    { id: 'members',    num: 1, label: 'Membres',       shortLabel: 'Membres',    href: '/members.htmx.html',     icon: '2', needsMeeting: false, tab: null },
+    { id: 'attendance', num: 2, label: 'Présences',     shortLabel: 'Présences',  href: '/operator.htmx.html',    icon: '3', needsMeeting: true, tab: 'presences' },
+    { id: 'resolutions',num: 3, label: 'Résolutions',   shortLabel: 'Résolutions',href: '/operator.htmx.html',    icon: '4', needsMeeting: true, tab: 'resolutions' },
+    { id: 'conduct',    num: 4, label: 'Vote',          shortLabel: 'Vote',       href: '/operator.htmx.html',    icon: '5', needsMeeting: true, tab: 'vote' },
+    { id: 'validate',   num: 5, label: 'Validation',    shortLabel: 'Clôture',    href: '/operator.htmx.html',    icon: '6', needsMeeting: true, tab: 'resultats' }
   ];
 
   // Map page paths to wizard step ids
@@ -286,10 +286,19 @@
       var isDone = step.num < currentStep;
       var isCurrent = step.num === currentStep;
       var stepClass = isDone ? 'done' : (isCurrent ? 'current' : '');
-      var href = step.needsMeeting && !meetingId ? '#' : (step.href + (step.needsMeeting ? mid : ''));
+      // Build URL with meeting_id and tab parameters
+      var href = '#';
+      if (!step.needsMeeting || meetingId) {
+        href = step.href;
+        var params = [];
+        if (step.needsMeeting && meetingId) params.push('meeting_id=' + encodeURIComponent(meetingId));
+        if (step.tab) params.push('tab=' + step.tab);
+        if (params.length > 0) href += '?' + params.join('&');
+      }
       var circleContent = isDone ? (typeof icon === 'function' ? icon('check', 'icon-sm') : '✓') : step.icon;
 
-      html += '<a href="' + href + '" class="wizard-step ' + stepClass + '" title="' + step.label + '">';
+      var tabAttr = step.tab ? ' data-wizard-tab="' + step.tab + '"' : '';
+      html += '<a href="' + href + '" class="wizard-step ' + stepClass + '"' + tabAttr + ' title="' + step.label + '">';
       html += '<div class="wizard-step-circle">' + circleContent + '</div>';
       html += '<div class="wizard-step-label">' + step.shortLabel + '</div>';
       html += '</a>';
@@ -318,6 +327,25 @@
     }
 
     container.innerHTML = html;
+
+    // Intercept clicks on wizard steps when already on operator page
+    // to avoid full page reload - just switch tabs
+    if (window.location.pathname === '/operator.htmx.html') {
+      container.querySelectorAll('[data-wizard-tab]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          var tab = link.getAttribute('data-wizard-tab');
+          // Check if switchTab function exists (from operator-tabs.js)
+          if (tab && typeof window.switchTab === 'function') {
+            e.preventDefault();
+            window.switchTab(tab);
+            // Update URL without reload
+            var url = new URL(window.location);
+            url.searchParams.set('tab', tab);
+            window.history.pushState({}, '', url);
+          }
+        });
+      });
+    }
   }
 
   function escapeHtmlWizard(text) {

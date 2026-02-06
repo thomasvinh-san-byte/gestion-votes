@@ -144,7 +144,12 @@
   function showMeetingContent() {
     noMeetingState.style.display = 'none';
     tabsNav.style.display = 'flex';
-    switchTab('parametres');
+    // Check for tab parameter in URL (from wizard navigation)
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedTab = urlParams.get('tab');
+    const validTabs = ['parametres', 'resolutions', 'presences', 'procurations', 'parole', 'vote', 'resultats'];
+    const tabToShow = (requestedTab && validTabs.includes(requestedTab)) ? requestedTab : 'parametres';
+    switchTab(tabToShow);
   }
 
   function updateHeader(meeting) {
@@ -2404,6 +2409,9 @@
   document.getElementById('btnEndSpeech')?.addEventListener('click', endCurrentSpeech);
   document.getElementById('btnAddToQueue')?.addEventListener('click', showAddToQueueModal);
   document.getElementById('btnClearSpeechHistory')?.addEventListener('click', clearSpeechHistory);
+
+  // Expose switchTab globally for wizard navigation
+  window.switchTab = switchTab;
 
   initTabs();
   loadMeetings();
