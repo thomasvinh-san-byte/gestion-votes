@@ -405,20 +405,20 @@
 }
 
 .role-badge.admin     { background: var(--color-danger-subtle); color: var(--color-danger); }
-.role-badge.operator  { background: var(--color-info-subtle); color: var(--color-info-text); }
+.role-badge.operator  { background: var(--color-primary-subtle); color: var(--color-primary); }
 .role-badge.auditor   { background: var(--color-warning-subtle); color: var(--color-warning-text); }
 .role-badge.viewer    { background: var(--color-success-subtle); color: var(--color-success-text); }
-.role-badge.president { background: #faf5ff; color: #7c3aed; }
-.role-badge.assessor  { background: #fff7ed; color: #c2410c; }
-.role-badge.voter     { background: var(--color-info-subtle); color: var(--color-info); }
+.role-badge.president { background: #f7f5f0; color: #5c4a28; }
+.role-badge.assessor  { background: #f5f2ed; color: #6b5a42; }
+.role-badge.voter     { background: var(--color-info-subtle); color: var(--color-info-text); }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .role-badge.president { background: rgba(124, 58, 237, 0.15); color: #a78bfa; }
-  :root:not([data-theme="light"]) .role-badge.assessor  { background: rgba(194, 65, 12, 0.15); color: #fb923c; }
+  :root:not([data-theme="light"]) .role-badge.president { background: rgba(92, 74, 40, 0.2); color: #c4b89a; }
+  :root:not([data-theme="light"]) .role-badge.assessor  { background: rgba(107, 90, 66, 0.2); color: #bfac8f; }
 }
 
-[data-theme="dark"] .role-badge.president { background: rgba(124, 58, 237, 0.15); color: #a78bfa; }
-[data-theme="dark"] .role-badge.assessor  { background: rgba(194, 65, 12, 0.15); color: #fb923c; }
+[data-theme="dark"] .role-badge.president { background: rgba(92, 74, 40, 0.2); color: #c4b89a; }
+[data-theme="dark"] .role-badge.assessor  { background: rgba(107, 90, 66, 0.2); color: #bfac8f; }
 
 /* Meeting role tag (used inside user tables) */
 .meeting-role-tag {
