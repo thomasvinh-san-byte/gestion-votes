@@ -127,90 +127,12 @@ class AgSearchableSelect extends HTMLElement {
   }
 
   // ==========================================================================
-  // FUZZY SEARCH IMPLEMENTATION
+  // FUZZY SEARCH (delegates to Utils.fuzzyMatch)
   // ==========================================================================
 
   /**
-   * Fuzzy search algorithm
-   * Returns a score (higher = better match) or -1 for no match
-   */
-  fuzzyMatch(pattern, str) {
-    if (!pattern) return { score: 1, matches: [] };
-    if (!str) return { score: -1, matches: [] };
-
-    pattern = pattern.toLowerCase();
-    str = str.toLowerCase();
-
-    // Exact match bonus
-    if (str === pattern) return { score: 100, matches: this.getExactMatches(str, pattern) };
-    if (str.includes(pattern)) {
-      const idx = str.indexOf(pattern);
-      return {
-        score: 50 + (pattern.length / str.length) * 30,
-        matches: [[idx, idx + pattern.length]]
-      };
-    }
-
-    // Fuzzy matching with consecutive character bonus
-    let patternIdx = 0;
-    let score = 0;
-    let consecutiveBonus = 0;
-    let lastMatchIdx = -2;
-    const matches = [];
-
-    for (let i = 0; i < str.length && patternIdx < pattern.length; i++) {
-      if (str[i] === pattern[patternIdx]) {
-        // Consecutive match bonus
-        if (i === lastMatchIdx + 1) {
-          consecutiveBonus += 5;
-        } else {
-          consecutiveBonus = 0;
-        }
-
-        // Word boundary bonus
-        const isWordStart = i === 0 || /[\s\-_.,]/.test(str[i - 1]);
-        const wordBonus = isWordStart ? 10 : 0;
-
-        score += 1 + consecutiveBonus + wordBonus;
-        matches.push([i, i + 1]);
-        lastMatchIdx = i;
-        patternIdx++;
-      }
-    }
-
-    // All pattern characters must be found
-    if (patternIdx !== pattern.length) {
-      return { score: -1, matches: [] };
-    }
-
-    // Normalize score by pattern length
-    score = score / pattern.length;
-
-    return { score, matches: this.mergeMatches(matches) };
-  }
-
-  getExactMatches(str, pattern) {
-    const idx = str.toLowerCase().indexOf(pattern.toLowerCase());
-    return idx >= 0 ? [[idx, idx + pattern.length]] : [];
-  }
-
-  mergeMatches(matches) {
-    if (!matches.length) return [];
-    const sorted = matches.sort((a, b) => a[0] - b[0]);
-    const merged = [sorted[0]];
-    for (let i = 1; i < sorted.length; i++) {
-      const last = merged[merged.length - 1];
-      if (sorted[i][0] <= last[1]) {
-        last[1] = Math.max(last[1], sorted[i][1]);
-      } else {
-        merged.push(sorted[i]);
-      }
-    }
-    return merged;
-  }
-
-  /**
    * Filter and sort options by search term
+   * Uses global Utils.fuzzyMatch for consistency across the app
    */
   filterOptions(searchTerm) {
     if (!searchTerm || !searchTerm.trim()) {
@@ -218,12 +140,14 @@ class AgSearchableSelect extends HTMLElement {
       return;
     }
 
+    const fuzzyMatch = window.Utils?.fuzzyMatch || this._fallbackFuzzyMatch.bind(this);
+
     const results = [];
     for (const option of this._options) {
       // Match against label and sublabel
-      const labelMatch = this.fuzzyMatch(searchTerm, option.label);
+      const labelMatch = fuzzyMatch(searchTerm, option.label);
       const sublabelMatch = option.sublabel
-        ? this.fuzzyMatch(searchTerm, option.sublabel)
+        ? fuzzyMatch(searchTerm, option.sublabel)
         : { score: -1, matches: [] };
 
       const bestScore = Math.max(labelMatch.score, sublabelMatch.score);
@@ -244,9 +168,46 @@ class AgSearchableSelect extends HTMLElement {
   }
 
   /**
+   * Fallback fuzzy match if Utils not loaded (standalone usage)
+   */
+  _fallbackFuzzyMatch(pattern, str) {
+    if (!pattern) return { score: 1, matches: [] };
+    if (!str) return { score: -1, matches: [] };
+
+    const p = pattern.toLowerCase();
+    const s = str.toLowerCase();
+
+    if (s.includes(p)) {
+      const idx = s.indexOf(p);
+      return { score: 50 + (p.length / s.length) * 30, matches: [[idx, idx + p.length]] };
+    }
+
+    let patternIdx = 0, score = 0, lastIdx = -2;
+    const matches = [];
+
+    for (let i = 0; i < s.length && patternIdx < p.length; i++) {
+      if (s[i] === p[patternIdx]) {
+        score += 1 + (i === lastIdx + 1 ? 5 : 0) + (i === 0 || /[\s\-_.,@]/.test(s[i - 1]) ? 10 : 0);
+        matches.push([i, i + 1]);
+        lastIdx = i;
+        patternIdx++;
+      }
+    }
+
+    if (patternIdx !== p.length) return { score: -1, matches: [] };
+    return { score: score / p.length, matches };
+  }
+
+  /**
    * Highlight matched characters in text
    */
   highlightMatches(text, matches) {
+    // Use Utils if available
+    if (window.Utils?.highlightMatches) {
+      return window.Utils.highlightMatches(text, matches);
+    }
+
+    // Fallback
     if (!matches || !matches.length || !text) {
       return this.escapeHtml(text || '');
     }
@@ -310,7 +271,7 @@ class AgSearchableSelect extends HTMLElement {
         .select-trigger:focus-within {
           outline: none;
           border-color: var(--color-primary, #5a7a5b);
-          box-shadow: 0 0 0 3px rgba(90, 122, 91, 0.15);
+          box-shadow: 0 0 0 2px rgba(90, 122, 91, 0.15);
         }
         .select-trigger.open {
           border-color: var(--color-primary, #5a7a5b);
@@ -372,17 +333,20 @@ class AgSearchableSelect extends HTMLElement {
 
         .search-input {
           width: 100%;
+          max-width: 100%;
           padding: 0.5rem 0.75rem 0.5rem 2rem;
           border: 1px solid var(--color-border, #d5dbd2);
           border-radius: var(--radius-sm, 6px);
           font-size: 0.875rem;
           background: var(--color-bg-subtle, #f5f7f4);
           transition: border-color 0.15s;
+          box-sizing: border-box;
         }
         .search-input:focus {
           outline: none;
           border-color: var(--color-primary, #5a7a5b);
           background: var(--color-surface, #ffffff);
+          box-shadow: none; /* No additional ring to prevent overflow */
         }
         .search-input::placeholder {
           color: var(--color-text-muted, #7a8275);
