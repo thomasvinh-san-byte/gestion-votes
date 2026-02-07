@@ -170,7 +170,7 @@ function show(id, visible) {
 
 // Animate bars
 function animateBars(forPct, againstPct, abstainPct, forCount, againstCount, abstainCount, forWeight, againstWeight, abstainWeight) {
-  const maxHeight = 200; // max bar height in px
+  const maxHeight = 140; // max bar height in px (matches CSS .bar-wrapper height - margin)
 
   // Update percentages and counts
   document.getElementById('pct_for').textContent = forPct.toFixed(0) + '%';
