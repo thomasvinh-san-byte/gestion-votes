@@ -712,6 +712,7 @@ h4, .h4 {
 .form-select,
 .form-textarea {
   width: 100%;
+  max-width: 100%; /* Prevent overflow */
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
@@ -720,6 +721,7 @@ h4, .h4 {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  box-sizing: border-box;
 }
 
 .form-input:hover,
@@ -733,7 +735,7 @@ h4, .h4 {
 .form-textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+  box-shadow: 0 0 0 2px var(--color-primary-subtle);
 }
 
 .form-input::placeholder,
@@ -749,7 +751,7 @@ h4, .h4 {
 
 .form-input.is-error:focus,
 .form-select.is-error:focus {
-  box-shadow: 0 0 0 3px var(--color-danger-subtle);
+  box-shadow: 0 0 0 2px var(--color-danger-subtle);
 }
 
 /* Validation states */
@@ -761,7 +763,7 @@ h4, .h4 {
 
 .form-input.is-invalid:focus,
 .form-select.is-invalid:focus {
-  box-shadow: 0 0 0 3px var(--color-danger-subtle);
+  box-shadow: 0 0 0 2px var(--color-danger-subtle);
 }
 
 .form-input.is-valid,
@@ -772,7 +774,7 @@ h4, .h4 {
 
 .form-input.is-valid:focus,
 .form-select.is-valid:focus {
-  box-shadow: 0 0 0 3px var(--color-success-subtle);
+  box-shadow: 0 0 0 2px var(--color-success-subtle);
 }
 
 .validation-error {
@@ -948,7 +950,10 @@ h4, .h4 {
 
 .modal-body {
   padding: var(--space-5);
+  padding-left: calc(var(--space-5) + 2px); /* Extra padding for focus rings */
+  padding-right: calc(var(--space-5) + 2px);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .modal-footer {
@@ -2248,7 +2253,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   background: var(--color-bg-subtle);
 }
 .modal-title { font-weight: 950; letter-spacing: -.01em; }
-.modal-body { padding: 14px; }
+.modal-body { padding: 14px 16px; overflow-x: hidden; }
 .modal-actions {
   padding: 14px;
   border-top: 1px solid var(--color-border);
