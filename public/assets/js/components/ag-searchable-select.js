@@ -258,12 +258,13 @@ class AgSearchableSelect extends HTMLElement {
           min-height: 2.5rem;
           padding: 0.5rem 2.5rem 0.5rem 0.75rem;
           background: var(--color-surface, #ffffff);
-          border: 1px solid var(--color-border, #d5dbd2);
+          border: 2px solid var(--color-border, #d5dbd2);
           border-radius: var(--radius-md, 8px);
           cursor: pointer;
-          transition: border-color 0.15s, box-shadow 0.15s;
+          transition: border-color 0.15s, background-color 0.15s;
           font-size: 0.875rem;
           color: var(--color-text, #4e5340);
+          box-sizing: border-box;
         }
         .select-trigger:hover {
           border-color: var(--color-border-hover, #a0a897);
@@ -271,7 +272,8 @@ class AgSearchableSelect extends HTMLElement {
         .select-trigger:focus-within {
           outline: none;
           border-color: var(--color-primary, #5a7a5b);
-          box-shadow: 0 0 0 2px rgba(90, 122, 91, 0.15);
+          background-color: var(--color-surface, #ffffff);
+          /* No box-shadow - border change is the focus indicator */
         }
         .select-trigger.open {
           border-color: var(--color-primary, #5a7a5b);

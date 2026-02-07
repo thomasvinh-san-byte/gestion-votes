@@ -202,14 +202,14 @@
   flex: 0 1 auto;
   width: 100%;
   max-width: 280px;
-  min-width: 0; /* Prevent flex overflow */
+  min-width: 0;
   padding: 0.5rem 0.875rem;
   padding-left: 2.25rem;
   border-radius: 8px;
   background: var(--color-bg-subtle) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a8477' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 0.75rem center;
   background-size: 14px 14px;
-  border: 1px solid var(--color-border);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  border: 2px solid var(--color-border);
+  transition: border-color 0.15s;
   font-size: 0.875rem;
   box-sizing: border-box;
 }
@@ -223,7 +223,6 @@
   outline: none;
   border-color: var(--color-primary);
   background-color: var(--color-surface);
-  box-shadow: 0 0 0 2px var(--color-primary-subtle);
 }
 
 /* =============================================================================
