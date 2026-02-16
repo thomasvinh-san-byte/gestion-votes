@@ -129,19 +129,27 @@ try {
 
     db()->commit();
 
-    audit_log('motion_opened', 'motion', $motionId, [
-        'meeting_id' => $meetingId,
-        'effective_vote_policy_id' => $effectiveVotePolicyId,
-        'effective_quorum_policy_id' => $effectiveQuorumPolicyId,
-    ]);
+    // Post-commit side-effects: wrap so failures don't mask the success
+    try {
+        audit_log('motion_opened', 'motion', $motionId, [
+            'meeting_id' => $meetingId,
+            'effective_vote_policy_id' => $effectiveVotePolicyId,
+            'effective_quorum_policy_id' => $effectiveQuorumPolicyId,
+        ]);
+    } catch (Throwable $auditErr) {
+        error_log('[motions_open] audit_log failed after commit: ' . $auditErr->getMessage());
+    }
 
-    // Broadcast WebSocket event
-    EventBroadcaster::motionOpened($meetingId, $motionId, [
-        'title' => $title,
-        'position' => $row['position'] ?? null,
-        'vote_policy_id' => $effectiveVotePolicyId,
-        'quorum_policy_id' => $effectiveQuorumPolicyId,
-    ]);
+    try {
+        EventBroadcaster::motionOpened($meetingId, $motionId, [
+            'title' => $title,
+            'position' => $row['position'] ?? null,
+            'vote_policy_id' => $effectiveVotePolicyId,
+            'quorum_policy_id' => $effectiveQuorumPolicyId,
+        ]);
+    } catch (Throwable $wsErr) {
+        error_log('[motions_open] EventBroadcaster failed after commit: ' . $wsErr->getMessage());
+    }
 
     api_ok([
         'meeting_id' => $meetingId,

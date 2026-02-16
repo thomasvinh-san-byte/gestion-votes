@@ -2419,7 +2419,11 @@
     }
   }
 
+  let _openingVote = false;
+
   async function openVote(motionId) {
+    if (_openingVote) return;
+    _openingVote = true;
     try {
       const openResult = await api('/api/v1/motions_open.php', { meeting_id: currentMeetingId, motion_id: motionId });
 
@@ -2444,11 +2448,21 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      _openingVote = false;
     }
   }
 
+  let _closingVote = false;
+
   async function closeVote(motionId) {
+    if (_closingVote) return; // Guard against double-click
     if (!confirm('Clôturer ce vote ?')) return;
+
+    _closingVote = true;
+    // Disable all close-vote buttons during the operation
+    document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote').forEach(b => b.disabled = true);
+
     try {
       await api('/api/v1/motions_close.php', { meeting_id: currentMeetingId, motion_id: motionId });
       setNotif('success', 'Vote clôturé');
@@ -2460,6 +2474,9 @@
       announce('Vote clôturé.');
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      _closingVote = false;
+      document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote').forEach(b => b.disabled = false);
     }
   }
 
@@ -3161,8 +3178,8 @@
   loadMeetings();
 
   // Auto-refresh - adaptive polling
-  const POLL_FAST = 2000;  // 2s when vote is active
-  const POLL_SLOW = 5000;  // 5s otherwise
+  const POLL_FAST = 3000;  // 3s when vote is active (was 2s — reduced chatter)
+  const POLL_SLOW = 6000;  // 6s otherwise
 
   async function autoPoll() {
     if (!currentMeetingId || document.hidden) {
@@ -3170,20 +3187,22 @@
       return;
     }
 
-    const wasVoteActive = !!previousOpenMotionId;
     const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
     const onVoteTab = activeTab === 'vote';
 
-    // Always refresh these
-    loadStatusChecklist();
-    loadDashboard();
-    loadDevices();
-
-    // Always refresh speech queue to detect new hand-raise requests
+    // Always refresh resolutions to detect motion state changes
     loadSpeechQueue();
-
-    // Refresh resolutions to detect motion state changes
     await loadResolutions();
+
+    // In setup mode, also refresh dashboard/checklist/devices (not needed in exec)
+    if (currentMode === 'setup') {
+      loadStatusChecklist();
+      loadDashboard();
+      loadDevices();
+    } else {
+      // In exec mode, only refresh devices (for counts)
+      loadDevices();
+    }
 
     const isVoteActive = !!currentOpenMotion;
     const currentMotionId = currentOpenMotion?.id || null;
@@ -3201,12 +3220,22 @@
 
     previousOpenMotionId = currentMotionId;
 
-    // If vote is active or on vote tab, refresh ballot counts
-    if (isVoteActive || onVoteTab) {
-      if (currentOpenMotion) {
-        await loadBallots(currentOpenMotion.id);
-        loadVoteTab();
+    // If vote is active, refresh ballot counts (once — no duplicate)
+    if (isVoteActive && currentOpenMotion) {
+      await loadBallots(currentOpenMotion.id);
+      // Update vote tab display without calling loadBallots again
+      if (currentMode === 'setup' && onVoteTab) {
+        const noVote = document.getElementById('noActiveVote');
+        const panel = document.getElementById('activeVotePanel');
+        const title = document.getElementById('activeVoteTitle');
+        if (noVote) noVote.style.display = 'none';
+        if (panel) panel.style.display = 'block';
+        if (title) title.textContent = currentOpenMotion.title;
+        renderManualVoteList();
       }
+    } else if (onVoteTab) {
+      // No active vote but on vote tab — refresh quick-open list
+      loadVoteTab();
     }
 
     // Refresh bimodal UI
