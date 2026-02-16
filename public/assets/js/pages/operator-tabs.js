@@ -11,6 +11,20 @@
   const tabsNav = document.getElementById('tabsNav');
   const noMeetingState = document.getElementById('noMeetingState');
 
+  // Meeting bar elements
+  const healthChip = document.getElementById('healthChip');
+  const healthScore = document.getElementById('healthScore');
+  const healthHint = document.getElementById('healthHint');
+  const barClock = document.getElementById('barClock');
+  const contextHint = document.getElementById('contextHint');
+  const btnModeSetup = document.getElementById('btnModeSetup');
+  const btnModeExec = document.getElementById('btnModeExec');
+  const btnPrimary = document.getElementById('btnPrimary');
+  const meetingBarActions = document.getElementById('meetingBarActions');
+  const viewSetup = document.getElementById('viewSetup');
+  const viewExec = document.getElementById('viewExec');
+  const srAnnounce = document.getElementById('srAnnounce');
+
   // Tab elements
   const tabButtons = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
@@ -27,6 +41,7 @@
   let usersCache = [];
   let policiesCache = { quorum: [], vote: [] };
   let proxiesCache = [];  // Cache for proxies
+  let currentMode = 'setup'; // 'setup' | 'exec'
 
   // Transitions (icons are added dynamically via icon() function)
   const TRANSITIONS = {
@@ -207,19 +222,31 @@
     noMeetingState.style.display = 'flex';
     tabsNav.style.display = 'none';
     tabContents.forEach(c => c.classList.remove('active'));
+    if (meetingBarActions) meetingBarActions.hidden = true;
+    if (viewSetup) viewSetup.hidden = true;
+    if (viewExec) viewExec.hidden = true;
+    if (healthChip) healthChip.hidden = true;
     currentMeetingId = null;
     currentMeeting = null;
+    currentMode = 'setup';
   }
 
   function showMeetingContent() {
     noMeetingState.style.display = 'none';
-    tabsNav.style.display = 'flex';
-    // Check for tab parameter in URL (from wizard navigation)
-    const urlParams = new URLSearchParams(window.location.search);
-    const requestedTab = urlParams.get('tab');
-    const validTabs = ['parametres', 'resolutions', 'presences', 'procurations', 'parole', 'vote', 'resultats'];
-    const tabToShow = (requestedTab && validTabs.includes(requestedTab)) ? requestedTab : 'parametres';
-    switchTab(tabToShow);
+    if (meetingBarActions) meetingBarActions.hidden = false;
+
+    // Auto-select mode based on meeting status
+    const initialMode = (currentMeetingStatus === 'live') ? 'exec' : 'setup';
+    setMode(initialMode);
+
+    // If in setup mode, show the right tab
+    if (initialMode === 'setup') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedTab = urlParams.get('tab');
+      const validTabs = ['parametres', 'resolutions', 'presences', 'procurations', 'parole', 'vote', 'resultats'];
+      const tabToShow = (requestedTab && validTabs.includes(requestedTab)) ? requestedTab : 'parametres';
+      switchTab(tabToShow);
+    }
   }
 
   function updateHeader(meeting) {
@@ -270,11 +297,16 @@
     updateQuickStats();
     checkLaunchReady();
 
+    // Update bimodal UI
+    renderConformityChecklist();
+    refreshAlerts();
+    if (currentMode === 'exec') refreshExecView();
+
     // Initialize motion tracking state to avoid false notifications on page load
     initializePreviousMotionState();
 
-    // If a vote is already open, switch to vote tab
-    if (currentOpenMotion && currentMeetingStatus === 'live') {
+    // If a vote is already open and in setup, switch to vote tab
+    if (currentOpenMotion && currentMeetingStatus === 'live' && currentMode === 'setup') {
       switchTab('vote');
     }
   }
@@ -442,8 +474,9 @@
       }
 
       setNotif('success', 'Séance lancée !');
-      switchTab('vote');
-      loadMeetingContext(currentMeetingId);
+      await loadMeetingContext(currentMeetingId);
+      setMode('exec');
+      announce('Séance lancée — mode exécution activé.');
     } catch (err) {
       setNotif('error', err.message);
     }
@@ -2402,8 +2435,13 @@
       // Must await loadResolutions so currentOpenMotion is set before switching tabs
       await loadResolutions();
 
-      switchTab('vote');
-      await loadVoteTab();
+      if (currentMode === 'exec') {
+        await loadBallots(currentOpenMotion.id);
+        refreshExecView();
+      } else {
+        switchTab('vote');
+        await loadVoteTab();
+      }
     } catch (err) {
       setNotif('error', err.message);
     }
@@ -2415,8 +2453,11 @@
       await api('/api/v1/motions_close.php', { meeting_id: currentMeetingId, motion_id: motionId });
       setNotif('success', 'Vote clôturé');
       currentOpenMotion = null;
+      ballotsCache = {};
       await loadResolutions();
       await loadVoteTab();
+      if (currentMode === 'exec') refreshExecView();
+      announce('Vote clôturé.');
     } catch (err) {
       setNotif('error', err.message);
     }
@@ -2537,8 +2578,11 @@
       });
       if (body?.ok) {
         setNotif('success', 'Séance clôturée');
-        loadMeetingContext(currentMeetingId);
+        await loadMeetingContext(currentMeetingId);
         loadMeetings();
+        setMode('setup');
+        switchTab('resultats');
+        announce('Séance clôturée.');
       } else {
         setNotif('error', getApiError(body, 'Erreur lors de la clôture'));
       }
@@ -2571,6 +2615,434 @@
     } catch (err) {
       setNotif('error', err.message);
     }
+  }
+
+  // =========================================================================
+  // MODE SWITCH (Préparation / Exécution)
+  // =========================================================================
+
+  function setMode(mode) {
+    currentMode = mode;
+
+    // Update button states
+    if (btnModeSetup) {
+      btnModeSetup.classList.toggle('active', mode === 'setup');
+      btnModeSetup.setAttribute('aria-pressed', String(mode === 'setup'));
+    }
+    if (btnModeExec) {
+      btnModeExec.classList.toggle('active', mode === 'exec');
+      btnModeExec.setAttribute('aria-pressed', String(mode === 'exec'));
+    }
+
+    // Toggle views
+    if (mode === 'setup') {
+      if (viewSetup) viewSetup.hidden = false;
+      if (viewExec) viewExec.hidden = true;
+      tabsNav.style.display = 'flex';
+    } else {
+      if (viewSetup) viewSetup.hidden = true;
+      if (viewExec) viewExec.hidden = false;
+      tabsNav.style.display = 'none';
+      refreshExecView();
+    }
+
+    updatePrimaryButton();
+    updateContextHint();
+    announce(mode === 'setup' ? 'Mode préparation activé' : 'Mode exécution activé');
+  }
+
+  function updatePrimaryButton() {
+    if (!btnPrimary) return;
+
+    if (!currentMeetingId) {
+      btnPrimary.disabled = true;
+      btnPrimary.textContent = 'Ouvrir la séance';
+      btnPrimary.onclick = null;
+      return;
+    }
+
+    if (currentMode === 'setup') {
+      if (['draft', 'scheduled', 'frozen'].includes(currentMeetingStatus)) {
+        const score = getConformityScore();
+        btnPrimary.disabled = score < 3;
+        btnPrimary.textContent = 'Ouvrir la séance';
+        btnPrimary.onclick = launchSession;
+      } else if (currentMeetingStatus === 'live') {
+        btnPrimary.disabled = false;
+        btnPrimary.textContent = 'Passer en exécution';
+        btnPrimary.onclick = () => setMode('exec');
+      } else {
+        btnPrimary.disabled = true;
+        btnPrimary.textContent = 'Séance terminée';
+        btnPrimary.onclick = null;
+      }
+    } else {
+      // Exec mode
+      if (currentOpenMotion) {
+        btnPrimary.disabled = false;
+        btnPrimary.textContent = 'Voir le vote';
+        btnPrimary.onclick = () => {
+          const el = document.getElementById('execVoteCard');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        };
+      } else {
+        btnPrimary.disabled = false;
+        btnPrimary.textContent = 'Préparation';
+        btnPrimary.onclick = () => setMode('setup');
+      }
+    }
+  }
+
+  function updateContextHint() {
+    if (!contextHint) return;
+
+    if (!currentMeetingId) {
+      contextHint.textContent = 'Sélectionnez une séance…';
+      return;
+    }
+
+    if (currentMode === 'setup') {
+      const score = getConformityScore();
+      if (currentMeetingStatus === 'live') {
+        contextHint.textContent = 'Séance en cours — basculez en exécution.';
+      } else if (score >= 4) {
+        contextHint.textContent = 'Séance prête — vous pouvez lancer.';
+      } else {
+        contextHint.textContent = 'Préparez la séance (' + score + '/4 pré-requis validés).';
+      }
+    } else {
+      if (currentOpenMotion) {
+        contextHint.textContent = 'Vote en cours : ' + (currentOpenMotion.title || '');
+      } else if (currentMeetingStatus === 'live') {
+        contextHint.textContent = 'Séance en cours — aucun vote ouvert.';
+      } else {
+        contextHint.textContent = 'Mode exécution.';
+      }
+    }
+  }
+
+  function announce(msg) {
+    if (srAnnounce) srAnnounce.textContent = msg;
+  }
+
+  // =========================================================================
+  // CLOCK
+  // =========================================================================
+
+  function startClock() {
+    function tick() {
+      const now = new Date();
+      if (barClock) {
+        barClock.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      }
+    }
+    tick();
+    setInterval(tick, 30000);
+  }
+
+  // =========================================================================
+  // CONFORMITY CHECKLIST
+  // =========================================================================
+
+  function getConformityScore() {
+    let score = 0;
+    // 1. Members
+    if (membersCache.length > 0) score++;
+    // 2. Attendance
+    if (attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote')) score++;
+    // 3. Convocations (optional — always counts)
+    score++;
+    // 4. Rules & presidency
+    const hasQuorum = !!(currentMeeting && currentMeeting.quorum_policy_id);
+    const presEl = document.getElementById('settingPresident');
+    const hasPresident = !!(presEl && presEl.value);
+    if (hasQuorum || hasPresident) score++;
+    return score;
+  }
+
+  function renderConformityChecklist() {
+    const checklist = document.getElementById('conformityChecklist');
+    if (!checklist) return;
+
+    const hasMembers = membersCache.length > 0;
+    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+    const hasPresent = presentCount > 0;
+    const activeProxies = proxiesCache.filter(p => !p.revoked_at).length;
+    const hasQuorum = !!(currentMeeting && currentMeeting.quorum_policy_id);
+    const presEl = document.getElementById('settingPresident');
+    const hasPresident = !!(presEl && presEl.value);
+    const hasRules = hasQuorum || hasPresident;
+
+    const steps = [
+      {
+        key: 'members',
+        label: 'Registre des membres',
+        done: hasMembers,
+        status: hasMembers ? membersCache.length + ' membre(s)' : 'à faire'
+      },
+      {
+        key: 'attendance',
+        label: 'Présences & procurations',
+        done: hasPresent,
+        status: hasPresent
+          ? presentCount + ' présent(s)' + (activeProxies ? ', ' + activeProxies + ' proc.' : '')
+          : 'à faire'
+      },
+      {
+        key: 'convocations',
+        label: 'Convocations',
+        done: true,
+        optional: true,
+        status: 'optionnel'
+      },
+      {
+        key: 'rules',
+        label: 'Règlement & présidence',
+        done: hasRules,
+        status: hasRules
+          ? (hasPresident ? 'président assigné' : 'politiques configurées')
+          : 'à faire'
+      }
+    ];
+
+    const score = steps.filter(s => s.done).length;
+
+    checklist.innerHTML = steps.map(s => {
+      const doneClass = s.done ? 'done' : '';
+      const optClass = s.optional ? 'optional' : '';
+      const iconClass = s.done ? 'done' : 'pending';
+      return '<div class="conformity-item ' + doneClass + ' ' + optClass + '" data-step="' + s.key + '">'
+        + '<span class="conformity-icon ' + iconClass + '"></span>'
+        + '<span class="conformity-label">' + s.label + '</span>'
+        + '<span class="conformity-status">' + s.status + '</span>'
+        + '</div>';
+    }).join('');
+
+    // Update score display
+    const setupScoreEl = document.getElementById('setupScore');
+    if (setupScoreEl) setupScoreEl.textContent = score + '/4';
+
+    // Update health chip
+    updateHealthChip(score);
+
+    // Update primary button and context
+    updatePrimaryButton();
+    updateContextHint();
+  }
+
+  function updateHealthChip(score) {
+    if (!healthChip) return;
+
+    if (!currentMeetingId) {
+      healthChip.hidden = true;
+      return;
+    }
+
+    healthChip.hidden = false;
+    if (healthScore) healthScore.textContent = score + '/4';
+    if (healthHint) healthHint.textContent = 'pré-requis';
+
+    const dot = healthChip.querySelector('.health-dot');
+    if (dot) {
+      dot.classList.remove('ok', 'warn', 'danger');
+      if (score >= 4) dot.classList.add('ok');
+      else if (score >= 2) dot.classList.add('warn');
+      else dot.classList.add('danger');
+    }
+  }
+
+  // =========================================================================
+  // ALERTS
+  // =========================================================================
+
+  function collectAlerts() {
+    const alerts = [];
+
+    if (!currentMeetingId) return alerts;
+
+    // Conformity check
+    const score = getConformityScore();
+    if (score < 4) {
+      alerts.push({
+        title: 'Préparation incomplète',
+        message: score + '/4 pré-requis validés.',
+        severity: score < 2 ? 'critical' : 'warning'
+      });
+    }
+
+    // Quorum check (when live)
+    if (currentMeetingStatus === 'live' && currentMeeting && currentMeeting.quorum_policy_id) {
+      const present = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+      const proxyActive = proxiesCache.filter(p => !p.revoked_at).length;
+      const total = present + proxyActive;
+      if (membersCache.length > 0 && total < Math.ceil(membersCache.length / 2)) {
+        alerts.push({
+          title: 'Quorum potentiellement non atteint',
+          message: total + ' votants / ' + membersCache.length + ' membres.',
+          severity: 'warning'
+        });
+      }
+    }
+
+    // Open vote with no votes
+    if (currentOpenMotion) {
+      const totalBallots = Object.keys(ballotsCache).length;
+      if (totalBallots === 0) {
+        alerts.push({
+          title: 'Aucun vote enregistré',
+          message: 'Le vote « ' + (currentOpenMotion.title || '') + ' » est ouvert mais aucun bulletin reçu.',
+          severity: 'info'
+        });
+      }
+    }
+
+    return alerts;
+  }
+
+  function renderAlertsPanel(targetId, countId) {
+    const target = document.getElementById(targetId);
+    const countEl = document.getElementById(countId);
+    if (!target) return;
+
+    const alerts = collectAlerts();
+    if (countEl) countEl.textContent = alerts.length;
+
+    if (alerts.length === 0) {
+      target.innerHTML = '<div class="alert-empty">Aucune alerte.</div>';
+      return;
+    }
+
+    target.innerHTML = alerts.map(a =>
+      '<div class="alert-item ' + a.severity + '">'
+      + '<div class="alert-item-title">' + escapeHtml(a.title) + '</div>'
+      + '<div class="alert-item-message">' + escapeHtml(a.message) + '</div>'
+      + '</div>'
+    ).join('');
+  }
+
+  function refreshAlerts() {
+    renderAlertsPanel('setupAlertsList', 'setupAlertCount');
+    renderAlertsPanel('execAlertsList', 'execAlertCount');
+  }
+
+  // =========================================================================
+  // EXECUTION VIEW
+  // =========================================================================
+
+  function refreshExecView() {
+    refreshExecVote();
+    refreshExecSpeech();
+    refreshExecDevices();
+    refreshExecManualVotes();
+    refreshAlerts();
+  }
+
+  function refreshExecVote() {
+    const titleEl = document.getElementById('execVoteTitle');
+    const forEl = document.getElementById('execVoteFor');
+    const againstEl = document.getElementById('execVoteAgainst');
+    const abstainEl = document.getElementById('execVoteAbstain');
+    const liveBadge = document.getElementById('execLiveBadge');
+    const btnClose = document.getElementById('execBtnCloseVote');
+
+    if (currentOpenMotion) {
+      if (titleEl) titleEl.textContent = currentOpenMotion.title;
+      if (liveBadge) liveBadge.style.display = '';
+      if (btnClose) { btnClose.disabled = false; btnClose.style.display = ''; }
+
+      let fc = 0, ac = 0, ab = 0;
+      Object.values(ballotsCache).forEach(v => {
+        if (v === 'for') fc++;
+        else if (v === 'against') ac++;
+        else if (v === 'abstain') ab++;
+      });
+
+      if (forEl) forEl.textContent = fc;
+      if (againstEl) againstEl.textContent = ac;
+      if (abstainEl) abstainEl.textContent = ab;
+    } else {
+      if (titleEl) titleEl.textContent = 'Aucun vote en cours';
+      if (liveBadge) liveBadge.style.display = 'none';
+      if (forEl) forEl.textContent = '—';
+      if (againstEl) againstEl.textContent = '—';
+      if (abstainEl) abstainEl.textContent = '—';
+      if (btnClose) { btnClose.disabled = true; btnClose.style.display = 'none'; }
+    }
+  }
+
+  function refreshExecSpeech() {
+    const speakerInfo = document.getElementById('execSpeakerInfo');
+    const queueList = document.getElementById('execSpeechQueue');
+
+    if (speakerInfo) {
+      speakerInfo.innerHTML = currentSpeakerCache
+        ? '<strong>' + escapeHtml(currentSpeakerCache.full_name || '—') + '</strong> a la parole'
+        : '<span class="text-muted">Aucun orateur</span>';
+    }
+
+    if (queueList) {
+      if (speechQueueCache.length === 0) {
+        queueList.innerHTML = '<span class="text-muted text-sm">File vide</span>';
+      } else {
+        queueList.innerHTML = speechQueueCache.slice(0, 5).map(function(s, i) {
+          return '<div class="text-sm">' + (i + 1) + '. ' + escapeHtml(s.full_name || '—') + '</div>';
+        }).join('');
+        if (speechQueueCache.length > 5) {
+          queueList.innerHTML += '<div class="text-sm text-muted">+ ' + (speechQueueCache.length - 5) + ' autres</div>';
+        }
+      }
+    }
+  }
+
+  function refreshExecDevices() {
+    const devOnlineEl = document.getElementById('devOnline');
+    const devStaleEl = document.getElementById('devStale');
+    const execOnline = document.getElementById('execDevOnline');
+    const execStale = document.getElementById('execDevStale');
+
+    if (execOnline && devOnlineEl) execOnline.textContent = devOnlineEl.textContent;
+    if (execStale && devStaleEl) execStale.textContent = devStaleEl.textContent;
+  }
+
+  function refreshExecManualVotes() {
+    const list = document.getElementById('execManualVoteList');
+    if (!list) return;
+
+    if (!currentOpenMotion) {
+      list.innerHTML = '<span class="text-muted text-sm">Aucun vote actif</span>';
+      return;
+    }
+
+    const searchInput = document.getElementById('execManualSearch');
+    const searchTerm = (searchInput ? searchInput.value : '').toLowerCase();
+    let voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
+
+    if (searchTerm) {
+      voters = voters.filter(v => (v.full_name || '').toLowerCase().includes(searchTerm));
+    }
+
+    list.innerHTML = voters.slice(0, 20).map(function(v) {
+      const vote = ballotsCache[v.member_id];
+      return '<div class="exec-manual-vote-row" data-member-id="' + v.member_id + '">'
+        + '<span class="text-sm">' + escapeHtml(v.full_name || '—') + '</span>'
+        + '<div class="flex gap-1">'
+        + '<button class="btn btn-xs ' + (vote === 'for' ? 'btn-success' : 'btn-ghost') + '" data-vote="for" title="Pour">P</button>'
+        + '<button class="btn btn-xs ' + (vote === 'against' ? 'btn-danger' : 'btn-ghost') + '" data-vote="against" title="Contre">C</button>'
+        + '<button class="btn btn-xs ' + (vote === 'abstain' ? 'btn-warning' : 'btn-ghost') + '" data-vote="abstain" title="Abstention">A</button>'
+        + '</div></div>';
+    }).join('') || '<span class="text-muted text-sm">Aucun votant</span>';
+
+    // Bind vote buttons
+    list.querySelectorAll('[data-vote]').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const row = btn.closest('[data-member-id]');
+        const memberId = row.dataset.memberId;
+        const voteType = btn.dataset.vote;
+        if (ballotsCache[memberId] === voteType) return;
+        await castManualVote(memberId, voteType);
+        refreshExecManualVotes();
+      });
+    });
   }
 
   // =========================================================================
@@ -2664,10 +3136,28 @@
   document.getElementById('btnAddToQueue')?.addEventListener('click', showAddToQueueModal);
   document.getElementById('btnClearSpeechHistory')?.addEventListener('click', clearSpeechHistory);
 
+  // Mode switch buttons
+  btnModeSetup?.addEventListener('click', () => setMode('setup'));
+  btnModeExec?.addEventListener('click', () => setMode('exec'));
+
+  // Meeting bar refresh
+  document.getElementById('btnBarRefresh')?.addEventListener('click', () => {
+    if (currentMeetingId) loadAllData();
+  });
+
+  // Exec view: close vote button
+  document.getElementById('execBtnCloseVote')?.addEventListener('click', () => {
+    if (currentOpenMotion) closeVote(currentOpenMotion.id);
+  });
+
+  // Exec view: manual vote search
+  document.getElementById('execManualSearch')?.addEventListener('input', refreshExecManualVotes);
+
   // Expose switchTab globally for wizard navigation
   window.switchTab = switchTab;
 
   initTabs();
+  startClock();
   loadMeetings();
 
   // Auto-refresh - adaptive polling
@@ -2700,9 +3190,13 @@
 
     // Detect if a new vote was opened (not by us, e.g. from another tab/device)
     if (isVoteActive && currentMotionId !== previousOpenMotionId) {
-      // A new vote was opened - switch to vote tab automatically
       setNotif('info', `Vote ouvert: ${currentOpenMotion.title}`);
-      switchTab('vote');
+      if (currentMode === 'exec') {
+        await loadBallots(currentOpenMotion.id);
+        refreshExecView();
+      } else {
+        switchTab('vote');
+      }
     }
 
     previousOpenMotionId = currentMotionId;
@@ -2714,6 +3208,11 @@
         loadVoteTab();
       }
     }
+
+    // Refresh bimodal UI
+    renderConformityChecklist();
+    refreshAlerts();
+    if (currentMode === 'exec') refreshExecView();
 
     // Schedule next poll
     const interval = isVoteActive ? POLL_FAST : POLL_SLOW;

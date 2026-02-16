@@ -1,6 +1,7 @@
 /**
  * operator.css - Operator page specific styles.
  *
+ * Bimodal console: Setup (tabs) / Execution (3-column grid).
  * Contains styles specific to the operator console that are not shared
  * with other pages. Enhanced with modern "library" UI design.
  */
@@ -9,17 +10,18 @@
    OPERATOR PAGE GRID LAYOUT
    ============================================================================= */
 
-/* Override grid for operator page - add session selector and tabs nav rows */
+/* Override grid for operator page - add meeting bar and tabs nav rows */
 [data-page-role="operator"] .app-shell {
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto 1fr;
   grid-template-areas:
-    "sidebar session"
+    "sidebar meetingbar"
+    "sidebar meetingbar-actions"
     "sidebar tabs"
     "sidebar main";
 }
 
-[data-page-role="operator"] .session-selector {
-  grid-area: session;
+[data-page-role="operator"] .meeting-bar {
+  grid-area: meetingbar / meetingbar / meetingbar-actions / meetingbar-actions;
 }
 
 [data-page-role="operator"] .tabs-nav {
@@ -30,33 +32,64 @@
   [data-page-role="operator"] .app-shell {
     grid-template-columns: 1fr;
     grid-template-areas:
-      "session"
+      "meetingbar"
+      "meetingbar-actions"
       "tabs"
       "main";
   }
 }
 
 /* =============================================================================
-   SESSION SELECTOR BAR - Enhanced
+   MEETING BAR - Enriched session selector
    ============================================================================= */
 
-.session-selector {
+.meeting-bar {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
+  flex-direction: column;
   background: linear-gradient(180deg, #ffffff 0%, var(--color-bg) 100%);
   border-bottom: 1px solid var(--color-border);
 }
 
-.session-selector .icon {
+.meeting-bar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.meeting-bar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 1.5rem 0.75rem;
+  border-top: 1px solid var(--color-border-subtle);
+  flex-wrap: wrap;
+}
+
+.meeting-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.meeting-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.meeting-bar .icon {
   color: var(--color-primary);
   opacity: 0.8;
 }
 
-.session-selector select {
-  min-width: 320px;
-  padding: 0.625rem 1rem;
+.meeting-bar select {
+  min-width: 280px;
+  padding: 0.5rem 0.875rem;
   font-weight: 500;
   border-radius: 8px;
   background: var(--color-surface);
@@ -64,20 +97,398 @@
   transition: all 0.15s ease;
 }
 
-.session-selector select:hover {
+.meeting-bar select:hover {
   border-color: var(--color-primary);
 }
 
-.session-selector select:focus {
+.meeting-bar select:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-subtle);
 }
 
-.session-selector .badge {
+.meeting-bar .badge {
   padding: 0.375rem 0.875rem;
   font-size: 0.8rem;
   font-weight: 600;
   border-radius: 20px;
+}
+
+/* Meeting bar chip (health, clock, score) */
+.meeting-bar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3rem 0.75rem;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 99px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.meeting-bar-chip strong {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Health dot */
+.health-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.health-dot.ok { background: var(--color-success); }
+.health-dot.warn { background: var(--color-warning); }
+.health-dot.danger { background: var(--color-danger); }
+
+/* Context hint */
+.context-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* =============================================================================
+   MODE SWITCH - Segmented control (Préparation / Exécution)
+   ============================================================================= */
+
+.mode-switch {
+  display: inline-flex;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.mode-switch-btn {
+  padding: 0.375rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.mode-switch-btn:hover {
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.mode-switch-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+/* =============================================================================
+   SETUP DASHBOARD - Checklist + Alerts above tabs
+   ============================================================================= */
+
+.setup-dashboard {
+  padding: 1.25rem 1.5rem 0;
+}
+
+.setup-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.setup-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.setup-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.setup-card-header h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.setup-card-body {
+  padding: 1rem 1.25rem;
+}
+
+/* =============================================================================
+   CONFORMITY CHECKLIST - Replaces wizard on operator page
+   ============================================================================= */
+
+.conformity-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conformity-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--color-bg-subtle);
+  border-radius: 8px;
+  border-left: 3px solid var(--color-border);
+  transition: all 0.15s ease;
+}
+
+.conformity-item.done {
+  background: var(--color-success-subtle);
+  border-left-color: var(--color-success);
+}
+
+.conformity-item.optional {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.conformity-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.conformity-icon.pending {
+  background: var(--color-bg-subtle);
+  border: 2px solid var(--color-border);
+}
+
+.conformity-icon.done {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.conformity-label {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.conformity-status {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.conformity-item.done .conformity-status {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+/* =============================================================================
+   ALERTS LIST - Shared between setup and exec
+   ============================================================================= */
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  font-size: 0.875rem;
+}
+
+.alert-item.info { border-left-color: var(--color-info); }
+.alert-item.warning { border-left-color: var(--color-warning); background: var(--color-warning-subtle); }
+.alert-item.critical { border-left-color: var(--color-danger); background: var(--color-danger-subtle); }
+
+.alert-item-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.alert-item-message {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.125rem;
+}
+
+.alert-empty {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* =============================================================================
+   EXECUTION VIEW - 3-column grid
+   ============================================================================= */
+
+#viewExec {
+  padding: 1.25rem;
+}
+
+.exec-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.exec-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+
+.exec-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.exec-card-header h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.exec-card-body {
+  padding: 1.25rem;
+}
+
+/* Live badge */
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  background: var(--color-danger);
+  color: #fff;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.live-badge .pulse {
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Exec vote card */
+.exec-vote-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.exec-vote-kpis {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.exec-kpi {
+  text-align: center;
+  flex: 1;
+  padding: 0.75rem;
+  background: var(--color-bg-subtle);
+  border-radius: 8px;
+}
+
+.exec-kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  display: block;
+}
+
+.exec-kpi-label {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-top: 0.25rem;
+}
+
+.exec-kpi.for .exec-kpi-value { color: var(--color-success); }
+.exec-kpi.against .exec-kpi-value { color: var(--color-danger); }
+.exec-kpi.abstain .exec-kpi-value { color: var(--color-text-muted); }
+
+.exec-vote-actions {
+  display: flex;
+  justify-content: center;
+}
+
+/* Exec sub-cards (parole, devices, manual vote) */
+.exec-subcard {
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.exec-subcard:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.exec-subcard:first-child {
+  padding-top: 0;
+}
+
+.exec-subcard h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.exec-device-counts {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+.exec-manual-vote-list {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+@media (max-width: 1100px) {
+  .exec-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* =============================================================================
@@ -307,46 +718,6 @@
 .quick-count-value.info { color: var(--color-info); }
 .quick-count-value.warning { color: var(--color-warning); }
 .quick-count-value.muted { color: var(--color-text-muted); }
-
-/* =============================================================================
-   LAUNCH BANNER - Enhanced
-   ============================================================================= */
-
-.launch-banner {
-  background: linear-gradient(135deg, var(--color-success-subtle) 0%, #ffffff 100%);
-  border: 1px solid var(--color-success);
-  border-left: 4px solid var(--color-success);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.launch-banner h3 {
-  margin: 0;
-  border: none;
-  padding: 0;
-  color: var(--color-success);
-  font-size: 1.1rem;
-}
-
-.launch-banner h3 .icon {
-  color: var(--color-success);
-}
-
-.btn-launch {
-  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-hover) 100%);
-  color: #fff;
-  font-size: 1rem;
-  padding: 0.875rem 1.75rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(90, 122, 91, 0.3);
-  transition: all 0.2s ease;
-}
-
-.btn-launch:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(90, 122, 91, 0.4);
-}
 
 /* =============================================================================
    ATTENDANCE GRID - Modern Cards
@@ -646,7 +1017,8 @@
   font-weight: 600;
 }
 
-.vote-live-title .pulse {
+.vote-live-title .pulse,
+.pulse {
   width: 10px;
   height: 10px;
   background: var(--color-warning);
@@ -1244,62 +1616,6 @@
 }
 
 /* =============================================================================
-   MEETING HEADER BAR
-   ============================================================================= */
-
-.meeting-header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.meeting-header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.meeting-header-left .back-btn {
-  color: var(--color-text-muted);
-  font-size: 1.25rem;
-  text-decoration: none;
-}
-
-.meeting-header-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.meeting-header-subtitle {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  margin: 0;
-}
-
-.meeting-header-saved {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 0.875rem;
-  background: var(--color-bg-subtle);
-  border-radius: 99px;
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-}
-
-.meeting-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-}
-
-/* =============================================================================
    INVITATIONS CARD - Enhanced
    ============================================================================= */
 
@@ -1401,88 +1717,16 @@
 }
 
 /* =============================================================================
-   WIZARD PROGRESS BAR - Modern Stepper
-   ============================================================================= */
-
-#wizard-progress {
-  padding: 1.25rem 1.5rem;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.wizard-stepper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.wizard-step {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  position: relative;
-}
-
-.wizard-step-number {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-bg-subtle);
-  border: 2px solid var(--color-border);
-  border-radius: 50%;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.wizard-step-label {
-  font-weight: 500;
-}
-
-.wizard-step-connector {
-  width: 40px;
-  height: 2px;
-  background: var(--color-border);
-}
-
-.wizard-step.completed .wizard-step-number {
-  background: var(--color-success);
-  border-color: var(--color-success);
-  color: #fff;
-}
-
-.wizard-step.completed .wizard-step-connector {
-  background: var(--color-success);
-}
-
-.wizard-step.active {
-  color: var(--color-primary);
-}
-
-.wizard-step.active .wizard-step-number {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
-}
-
-.wizard-step.active .wizard-step-label {
-  font-weight: 600;
-}
-
-/* =============================================================================
    RESPONSIVE ADJUSTMENTS
    ============================================================================= */
 
 @media (max-width: 1024px) {
   .settings-grid {
     gap: 1.25rem;
+  }
+
+  .setup-dashboard-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1518,9 +1762,20 @@
     font-size: 0.85rem;
   }
 
-  .session-selector select {
+  .meeting-bar select {
     min-width: auto;
     width: 100%;
+  }
+
+  .meeting-bar-top,
+  .meeting-bar-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .meeting-bar-left,
+  .meeting-bar-right {
+    justify-content: space-between;
   }
 
   .attendance-grid {
@@ -1548,12 +1803,12 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .wizard-step-label {
-    display: none;
+  .setup-dashboard {
+    padding: 1rem;
   }
 
-  .wizard-step-connector {
-    width: 24px;
+  .setup-dashboard-grid {
+    grid-template-columns: 1fr;
   }
 }
 

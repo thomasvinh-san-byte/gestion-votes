@@ -17,17 +17,47 @@
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
 
-    <!-- Session selector bar -->
-    <div class="session-selector">
-      <svg class="icon" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
-      <label for="meetingSelect" class="sr-only">Sélectionner une séance</label>
-      <select class="form-input" id="meetingSelect" aria-describedby="meetingStatusBadge">
-        <option value="">— Sélectionner une séance —</option>
-      </select>
-      <span class="badge" id="meetingStatusBadge" aria-live="polite">—</span>
-    </div>
+    <!-- Meeting bar (replaces session-selector) -->
+    <section class="meeting-bar" aria-label="Barre de séance">
+      <div class="meeting-bar-top">
+        <div class="meeting-bar-left">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+          <label for="meetingSelect" class="sr-only">Sélectionner une séance</label>
+          <select class="form-input" id="meetingSelect" aria-describedby="meetingStatusBadge">
+            <option value="">— Sélectionner une séance —</option>
+          </select>
+          <span class="badge" id="meetingStatusBadge" aria-live="polite">—</span>
+          <span class="meeting-bar-chip" id="healthChip" hidden>
+            <span class="health-dot"></span>
+            <strong id="healthScore">—</strong>
+            <span id="healthHint" class="text-muted">pré-requis</span>
+          </span>
+        </div>
+        <div class="meeting-bar-right">
+          <span class="meeting-bar-chip"><strong id="barClock">--:--</strong></span>
+          <button class="btn btn-sm btn-secondary" id="btnBarRefresh" title="Actualiser les données">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
+          </button>
+        </div>
+      </div>
+      <div class="meeting-bar-actions" id="meetingBarActions" hidden>
+        <div class="meeting-bar-left">
+          <span class="context-hint" id="contextHint">Préparez la séance avant de la lancer.</span>
+          <div class="mode-switch" id="modeSwitch" role="group" aria-label="Mode de la console">
+            <button class="mode-switch-btn active" id="btnModeSetup" aria-pressed="true">Préparation</button>
+            <button class="mode-switch-btn" id="btnModeExec" aria-pressed="false">Exécution</button>
+          </div>
+        </div>
+        <div class="meeting-bar-right">
+          <button class="btn btn-sm btn-primary" id="btnPrimary" disabled>Ouvrir la séance</button>
+          <a class="btn btn-sm btn-secondary" id="btnProjector" href="/public.htmx.html" target="_blank" data-meeting-link>
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg> Projection
+          </a>
+        </div>
+      </div>
+    </section>
 
-    <!-- Tabs navigation (shown when meeting selected) -->
+    <!-- Tabs navigation (shown in setup mode when meeting selected) -->
     <nav class="tabs-nav" id="tabsNav" style="display: none;" role="tablist" aria-label="Sections de la séance">
       <button class="tab-btn active" data-tab="parametres" role="tab" aria-selected="true" aria-controls="tab-parametres" id="tab-btn-parametres">Paramètres</button>
       <button class="tab-btn" data-tab="resolutions" role="tab" aria-selected="false" aria-controls="tab-resolutions" id="tab-btn-resolutions">Résolutions <span class="tab-count" id="tabCountResolutions" aria-label="résolutions">0</span></button>
@@ -39,8 +69,8 @@
     </nav>
 
     <main class="app-main" id="main-content" role="main">
-      <!-- Wizard progress bar -->
-      <div id="wizard-progress"></div>
+      <!-- SR announcements -->
+      <div class="sr-only" id="srAnnounce" aria-live="polite"></div>
 
       <!-- No meeting state -->
       <div id="noMeetingState" class="no-meeting-state">
@@ -50,589 +80,727 @@
         <a href="/meetings.htmx.html" class="btn btn-primary mt-4">Voir toutes les séances</a>
       </div>
 
-      <!-- Tab: Paramètres -->
-      <div class="tab-content" id="tab-parametres" role="tabpanel" aria-labelledby="tab-btn-parametres" tabindex="0">
-        <!-- Launch button - prominently at top when ready -->
-        <div id="launchBanner" class="settings-section launch-banner" style="display:none;">
-          <div class="flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-rocket"></use></svg> Prêt à lancer la séance</h3>
-              <p class="text-muted text-sm mt-1">Tous les prérequis sont remplis. Vous pouvez démarrer le vote.</p>
+      <!-- ================================================================
+           VIEW: SETUP (Préparation) — dashboard + checklist + tabs
+           ================================================================ -->
+      <section id="viewSetup" hidden aria-label="Mode préparation">
+
+        <!-- Setup dashboard: checklist + alerts above the tabs -->
+        <div class="setup-dashboard">
+          <div class="setup-dashboard-grid">
+            <!-- Conformity checklist -->
+            <div class="setup-card">
+              <div class="setup-card-header">
+                <h2>Préparation</h2>
+                <span class="meeting-bar-chip"><strong id="setupScore">0/4</strong> validés</span>
+              </div>
+              <div class="setup-card-body">
+                <div class="conformity-checklist" id="conformityChecklist">
+                  <div class="conformity-item" data-step="members">
+                    <span class="conformity-icon pending"></span>
+                    <span class="conformity-label">Registre des membres</span>
+                    <span class="conformity-status">à faire</span>
+                  </div>
+                  <div class="conformity-item" data-step="attendance">
+                    <span class="conformity-icon pending"></span>
+                    <span class="conformity-label">Présences &amp; procurations</span>
+                    <span class="conformity-status">à faire</span>
+                  </div>
+                  <div class="conformity-item" data-step="convocations">
+                    <span class="conformity-icon pending"></span>
+                    <span class="conformity-label">Convocations</span>
+                    <span class="conformity-status">optionnel</span>
+                  </div>
+                  <div class="conformity-item" data-step="rules">
+                    <span class="conformity-icon pending"></span>
+                    <span class="conformity-label">Règlement &amp; présidence</span>
+                    <span class="conformity-status">à faire</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <button class="btn btn-lg btn-launch" id="btnLaunchSession">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg> Lancer la séance
+
+            <!-- Alerts panel -->
+            <div class="setup-card">
+              <div class="setup-card-header">
+                <h2>Alertes</h2>
+                <span class="meeting-bar-chip"><strong id="setupAlertCount">0</strong> actives</span>
+              </div>
+              <div class="setup-card-body">
+                <div id="setupAlertsList" class="alerts-list">
+                  <div class="alert-empty">Aucune alerte.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Existing tabs content (wrapped in viewSetup) -->
+
+        <!-- Tab: Paramètres -->
+        <div class="tab-content" id="tab-parametres" role="tabpanel" aria-labelledby="tab-btn-parametres" tabindex="0">
+          <div class="settings-grid">
+            <!-- Membres card -->
+            <div class="settings-section">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Membres</h3>
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <span class="text-3xl font-bold" id="membersCount">0</span>
+                  <span class="text-muted ml-2">membres inscrits</span>
+                </div>
+              </div>
+              <div id="membersList" class="members-list-compact mb-3">
+                <!-- Rendered by JS -->
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-sm btn-primary flex-1" id="btnAddMember">+ Ajouter un membre</button>
+                <a href="/members.htmx.html" class="btn btn-sm btn-secondary">Gérer</a>
+              </div>
+            </div>
+
+            <!-- Présences card -->
+            <div class="settings-section">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-hand"></use></svg> Présences</h3>
+              <div class="quick-counts mb-3">
+                <div class="quick-count">
+                  <span class="quick-count-value success" id="quickPresent">0</span>
+                  <div class="quick-count-label">Présents</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value info" id="quickRemote">0</span>
+                  <div class="quick-count-label">Distants</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value warning" id="quickProxy">0</span>
+                  <div class="quick-count-label">Procurations</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value muted" id="quickAbsent">0</span>
+                  <div class="quick-count-label">Absents</div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-sm btn-success flex-1" id="btnQuickAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
+                <button class="btn btn-sm btn-secondary" data-tab-switch="presences">Détails</button>
+              </div>
+            </div>
+
+            <!-- Invitations card -->
+            <div class="settings-section" id="invitationsCard">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Invitations</h3>
+              <div class="quick-counts mb-3">
+                <div class="quick-count">
+                  <span class="quick-count-value" id="invTotal">0</span>
+                  <div class="quick-count-label">Total</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value success" id="invSent">0</span>
+                  <div class="quick-count-label">Envoyées</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value info" id="invOpened">0</span>
+                  <div class="quick-count-label">Ouvertes</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value text-danger" id="invBounced">0</span>
+                  <div class="quick-count-label">Échecs</div>
+                </div>
+              </div>
+              <div id="invEngagement" class="text-sm text-muted mb-3" style="display:none;">
+                Taux ouverture: <strong id="invOpenRate">0%</strong>
+              </div>
+              <div class="flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-primary flex-1" id="btnSendInvitations">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
+                  Envoyer les invitations
+                </button>
+                <ag-popover title="Programmer l'envoi" content="Planifiez l'envoi automatique des invitations à une date et heure précises." position="top">
+                  <button slot="trigger" class="btn btn-sm btn-secondary" id="btnScheduleInvitations">
+                    <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+                  </button>
+                </ag-popover>
+                <ag-popover title="Templates d'email" content="Personnalisez le contenu des emails envoyés." position="top">
+                  <a slot="trigger" href="/email-templates.htmx.html" class="btn btn-sm btn-secondary">
+                    <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
+                  </a>
+                </ag-popover>
+              </div>
+              <!-- Invitations options (hidden by default) -->
+              <div id="invitationsOptions" class="invitations-options" style="display:none;">
+                <div class="form-group mb-3">
+                  <label class="form-label">Template</label>
+                  <select class="form-input" id="invTemplateSelect">
+                    <option value="">Template par défaut</option>
+                  </select>
+                </div>
+                <div class="form-group mb-3">
+                  <label class="form-label">Destinataires</label>
+                  <div class="flex flex-col gap-1">
+                    <label class="flex items-center gap-2">
+                      <input type="radio" name="invRecipients" value="unsent" checked> Non encore invités
+                    </label>
+                    <label class="flex items-center gap-2">
+                      <input type="radio" name="invRecipients" value="all"> Tous les membres
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group mb-3" id="scheduleGroup" style="display:none;">
+                  <label class="form-label">Date/heure d'envoi</label>
+                  <input type="datetime-local" class="form-input" id="invScheduleAt">
+                </div>
+                <div class="flex gap-2">
+                  <button class="btn btn-sm btn-success" id="btnConfirmSend">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
+                    Confirmer l'envoi
+                  </button>
+                  <button class="btn btn-sm btn-secondary" id="btnCancelSend">Annuler</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg> Informations générales</h3>
+              <div class="form-group mb-3">
+                <label class="form-label">Titre de la séance</label>
+                <input type="text" class="form-input" id="settingTitle" placeholder="Ex: Assemblée Générale 2024">
+              </div>
+              <div class="form-group mb-3">
+                <label class="form-label">Type de consultation</label>
+                <div class="flex flex-col gap-2">
+                  <label class="flex items-center gap-2">
+                    <input type="radio" name="meetingType" value="ordinary" checked> Assemblée générale ordinaire
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input type="radio" name="meetingType" value="extraordinary"> Assemblée générale extraordinaire
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date de la séance</label>
+                <input type="date" class="form-input" id="settingDate">
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg> Politiques</h3>
+              <div class="form-group mb-3">
+                <label class="form-label">
+                  Politique de quorum
+                  <ag-popover title="Politique de quorum" content="Définit le nombre minimum de participants requis pour que la séance soit valide." position="right"></ag-popover>
+                </label>
+                <select class="form-input" id="settingQuorumPolicy">
+                  <option value="">— Aucune —</option>
+                </select>
+              </div>
+              <div class="form-group mb-3">
+                <label class="form-label">
+                  Politique de vote
+                  <ag-popover title="Politique de vote" content="Détermine comment les votes sont comptabilisés pour chaque résolution." position="right"></ag-popover>
+                </label>
+                <select class="form-input" id="settingVotePolicy">
+                  <option value="">— Aucune —</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  Convocation
+                  <ag-popover title="Numéro de convocation" content="En 1ère convocation, le quorum statutaire s'applique." position="right"></ag-popover>
+                </label>
+                <select class="form-input" id="settingConvocation">
+                  <option value="1">1ère convocation</option>
+                  <option value="2">2ème convocation</option>
+                </select>
+              </div>
+              <div class="mt-4">
+                <button class="btn btn-primary" id="btnSaveSettings"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-save"></use></svg> Enregistrer les paramètres</button>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-briefcase"></use></svg> Rôles de la séance</h3>
+              <div class="form-group mb-3">
+                <label class="form-label">
+                  Président
+                  <ag-popover title="Président de séance" content="Dirige la séance, accorde la parole aux participants." position="right"></ag-popover>
+                </label>
+                <ag-searchable-select
+                  id="settingPresident"
+                  placeholder="Rechercher un utilisateur..."
+                  empty-text="Aucun utilisateur trouvé"
+                ></ag-searchable-select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  Assesseurs
+                  <ag-popover title="Assesseurs" content="Assistent le président dans le dépouillement des votes." position="right"></ag-popover>
+                </label>
+                <div id="assessorsList" class="assessors-list mb-2">
+                  <span class="text-muted text-sm">Aucun assesseur</span>
+                </div>
+                <button class="btn btn-sm btn-secondary" id="btnAddAssessor">+ Ajouter un assesseur</button>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> État de la séance</h3>
+              <div id="statusChecklist" class="status-checklist mb-4">
+                <!-- Checklist items rendered by JS -->
+              </div>
+              <div id="statusActions" class="status-actions">
+                <!-- Transition buttons rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Dashboard en direct -->
+            <div class="settings-section" id="dashboardCard" style="display:none;">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg> Dashboard en direct</h3>
+              <div class="quick-counts mb-3">
+                <div class="quick-count">
+                  <span class="quick-count-value" id="dashPresentCount">-</span>
+                  <span class="text-muted">/</span>
+                  <span id="dashEligibleCount">-</span>
+                  <div class="quick-count-label">Présents</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value" id="dashProxyCount">0</span>
+                  <div class="quick-count-label">Procurations</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value" id="dashOpenMotions">0</span>
+                  <div class="quick-count-label">Motions ouvertes</div>
+                </div>
+              </div>
+              <div id="dashCurrentMotion" class="text-sm text-muted mb-2" style="display:none;">
+                Motion: <strong id="dashMotionTitle">—</strong>
+                <div class="flex gap-3 mt-1">
+                  <span class="text-success"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> <span id="dashVoteFor">0</span></span>
+                  <span class="text-danger"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg> <span id="dashVoteAgainst">0</span></span>
+                  <span>&#9675; <span id="dashVoteAbstain">0</span></span>
+                </div>
+              </div>
+              <div id="dashReadySign" class="text-sm" style="display:none;">
+                <span class="badge badge-success"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Prêt pour signature</span>
+              </div>
+              <div id="dashNotReadySign" class="text-sm" style="display:none;">
+                <span class="badge badge-warning"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Non prêt</span>
+                <ul id="dashReadyReasons" class="text-xs text-muted mt-1 ready-reasons-list"></ul>
+              </div>
+            </div>
+
+            <!-- Appareils connectés -->
+            <div class="settings-section" id="devicesCard" style="display:none;">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg> Appareils connectés</h3>
+              <div class="quick-counts mb-3">
+                <div class="quick-count">
+                  <span class="quick-count-value success" id="devOnline">0</span>
+                  <div class="quick-count-label">En ligne</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value warning" id="devStale">0</span>
+                  <div class="quick-count-label">Inactifs</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value muted" id="devOffline">0</span>
+                  <div class="quick-count-label">Hors ligne</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value text-danger" id="devBlocked">0</span>
+                  <div class="quick-count-label">Bloqués</div>
+                </div>
+              </div>
+              <div id="devicesList" class="devices-list mb-3">
+                <span class="text-muted text-sm">Aucun appareil</span>
+              </div>
+              <button class="btn btn-sm btn-secondary" id="btnManageDevices"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-sliders"></use></svg> Gérer les appareils</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Résolutions -->
+        <div class="tab-content" id="tab-resolutions" role="tabpanel" aria-labelledby="tab-btn-resolutions" tabindex="0">
+          <div class="tab-toolbar">
+            <button class="btn btn-primary" id="btnAddResolution">+ Nouvelle résolution</button>
+            <input type="text" class="form-input tab-toolbar-search" id="resolutionSearch" placeholder="Rechercher une résolution...">
+          </div>
+
+          <div id="resolutionsList">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Add resolution form (hidden by default) -->
+          <div id="addResolutionForm" class="settings-section add-resolution-form" style="display: none;">
+            <h3>Nouvelle résolution</h3>
+            <div class="form-group mb-3">
+              <label class="form-label">Titre</label>
+              <input type="text" class="form-input" id="newResolutionTitle" placeholder="Ex: Approbation des comptes 2023">
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label">Description / Texte complet</label>
+              <textarea class="form-input" id="newResolutionDesc" rows="6" placeholder="Considérant que..."></textarea>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-primary" id="btnConfirmResolution">Créer la résolution</button>
+              <button class="btn btn-secondary" id="btnCancelResolution">Annuler</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Présences -->
+        <div class="tab-content" id="tab-presences" role="tabpanel" aria-labelledby="tab-btn-presences" tabindex="0">
+          <div class="tab-toolbar">
+            <div class="flex gap-2">
+              <button class="btn btn-secondary" id="btnMarkAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
+              <button class="btn btn-secondary" id="btnImportCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importation CSV</button>
+            </div>
+            <input type="text" class="form-input tab-toolbar-search" id="presenceSearch" placeholder="Rechercher un membre...">
+          </div>
+
+          <div class="results-summary mb-6">
+            <div class="result-card">
+              <div class="value" id="presStatPresent">0</div>
+              <div class="label">Présents</div>
+            </div>
+            <div class="result-card">
+              <div class="value" id="presStatRemote">0</div>
+              <div class="label">Distants</div>
+            </div>
+            <div class="result-card">
+              <div class="value" id="presStatProxy">0</div>
+              <div class="label">Procurations</div>
+            </div>
+            <div class="result-card">
+              <div class="value" id="presStatAbsent">0</div>
+              <div class="label">Absents</div>
+            </div>
+          </div>
+
+          <h3 class="mb-4"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Membres</h3>
+          <div class="attendance-grid" id="attendanceGrid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Tab: Procurations -->
+        <div class="tab-content" id="tab-procurations" role="tabpanel" aria-labelledby="tab-btn-procurations" tabindex="0">
+          <div class="tab-toolbar">
+            <div class="flex gap-2">
+              <button class="btn btn-primary" id="btnAddProxy"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Nouvelle procuration</button>
+              <button class="btn btn-secondary" id="btnImportProxiesCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer CSV</button>
+            </div>
+            <input type="text" class="form-input tab-toolbar-search" id="proxySearch" placeholder="Rechercher une procuration...">
+          </div>
+
+          <div class="results-summary mb-6">
+            <div class="result-card">
+              <div class="value" id="proxyStatActive">0</div>
+              <div class="label">Procurations actives</div>
+            </div>
+            <div class="result-card">
+              <div class="value" id="proxyStatGivers">0</div>
+              <div class="label">Mandants</div>
+            </div>
+            <div class="result-card">
+              <div class="value" id="proxyStatReceivers">0</div>
+              <div class="label">Mandataires</div>
+            </div>
+          </div>
+
+          <!-- Proxy list header -->
+          <div class="proxy-list-header">
+            <div class="hint">
+              <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+              <span>Les mandants absents donnent procuration aux mandataires présents pour voter à leur place.</span>
+            </div>
+          </div>
+
+          <div id="proxyList" class="proxy-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Tab: Parole (file des orateurs) -->
+        <div class="tab-content" id="tab-parole" role="tabpanel" aria-labelledby="tab-btn-parole" tabindex="0">
+          <div class="charts-grid">
+            <!-- Orateur courant -->
+            <div class="settings-section" id="speechCurrentPanel">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> Orateur courant</h3>
+              <div id="currentSpeakerBox" class="speaker-box">
+                <div class="text-center p-4 text-muted" id="noSpeakerState">
+                  <p>Aucun orateur</p>
+                  <button class="btn btn-primary mt-2" id="btnNextSpeaker" disabled>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-skip-forward"></use></svg>
+                    Prochain orateur
+                  </button>
+                </div>
+                <div id="activeSpeakerState" style="display:none;">
+                  <div class="flex items-center gap-4 mb-4">
+                    <div class="avatar avatar-lg speaker-avatar-active">
+                      <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg>
+                    </div>
+                    <div>
+                      <div class="text-lg font-bold" id="currentSpeakerName">—</div>
+                      <div class="text-muted" id="currentSpeakerTime">00:00</div>
+                    </div>
+                  </div>
+                  <div class="flex gap-2 justify-center">
+                    <button class="btn btn-warning" id="btnEndSpeech">
+                      <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg>
+                      Terminer
+                    </button>
+                    <button class="btn btn-primary" id="btnNextSpeakerActive">
+                      <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-skip-forward"></use></svg>
+                      Prochain
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- File d'attente -->
+            <div class="settings-section">
+              <h3 class="flex items-center justify-between">
+                <span><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg> File d'attente</span>
+                <button class="btn btn-sm btn-secondary" id="btnAddToQueue">+ Ajouter</button>
+              </h3>
+              <div id="speechQueueList" class="speech-queue-list">
+                <div class="text-center p-4 text-muted">Aucune demande de parole</div>
+              </div>
+              <div class="mt-3 flex justify-end">
+                <button class="btn btn-sm btn-ghost text-muted" id="btnClearSpeechHistory" title="Vider l'historique">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
+                  Vider historique
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Vote en direct -->
+        <div class="tab-content" id="tab-vote" role="tabpanel" aria-labelledby="tab-btn-vote" tabindex="0">
+          <div class="tab-toolbar mb-4">
+            <a href="/public.htmx.html" target="_blank" class="btn btn-secondary" id="btnOpenPublicScreen" data-meeting-link>
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg> Écran de projection
+            </a>
+          </div>
+
+          <div id="noActiveVote" class="no-vote-state">
+            <svg class="icon icon-3x" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
+            <h3 class="mt-4">Aucun vote en cours</h3>
+            <p class="text-muted mb-4">Ouvrez une résolution pour démarrer le vote.</p>
+            <div id="quickOpenMotionList" class="mb-4 quick-motion-list">
+              <!-- Filled by JS with available motions to open -->
+            </div>
+            <button class="btn btn-secondary" data-tab-switch="resolutions">Voir toutes les résolutions</button>
+          </div>
+
+          <div id="activeVotePanel" style="display: none;">
+            <div class="vote-live-panel">
+              <div class="vote-live-header">
+                <div class="vote-live-title">
+                  <span class="pulse"></span>
+                  <span>Vote en cours: </span>
+                  <strong id="activeVoteTitle">—</strong>
+                </div>
+              </div>
+              <div class="vote-results-live">
+                <span class="for"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> <span id="liveVoteFor">0</span></span>
+                <span class="against"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg> <span id="liveVoteAgainst">0</span></span>
+                <span class="abstain">&#9675; <span id="liveVoteAbstain">0</span></span>
+              </div>
+              <div class="vote-controls-wrapper">
+                <button class="btn btn-lg btn-warning btn-close-vote" id="btnCloseVote"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer le vote</button>
+              </div>
+            </div>
+
+            <div class="unanimity-actions mb-4">
+              <h3 class="mb-3">Actions rapides</h3>
+              <div class="flex gap-3 flex-wrap">
+                <button class="btn btn-success" id="btnUnanimityFor">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Unanimité Pour
+                </button>
+                <button class="btn btn-secondary" id="btnUnanimityAgainst">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg> Tous Contre
+                </button>
+                <button class="btn btn-secondary" id="btnUnanimityAbstain">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-minus"></use></svg> Tous Abstention
+                </button>
+              </div>
+            </div>
+
+            <h3 class="mb-4">Votes manuels (opérateur)</h3>
+            <div id="manualVoteList" class="attendance-grid">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Résultats -->
+        <div class="tab-content" id="tab-resultats" role="tabpanel" aria-labelledby="tab-btn-resultats" tabindex="0">
+          <div class="results-summary">
+            <div class="result-card success">
+              <div class="value" id="resultAdopted">0</div>
+              <div class="label">Résolutions adoptées</div>
+            </div>
+            <div class="result-card danger">
+              <div class="value" id="resultRejected">0</div>
+              <div class="label">Résolutions rejetées</div>
+            </div>
+            <div class="result-card">
+              <div class="value" id="resultTotal">0</div>
+              <div class="label">Total résolutions</div>
+            </div>
+          </div>
+
+          <h3 class="mb-4">Exports & Procès-Verbal</h3>
+          <div class="exports-grid">
+            <a href="#" class="export-card" id="exportPV">
+              <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg></span>
+              <div class="export-info">
+                <h4>Procès-Verbal (PDF)</h4>
+                <p>Document officiel de la séance</p>
+              </div>
+            </a>
+            <a href="#" class="export-card" id="exportAttendance">
+              <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg></span>
+              <div class="export-info">
+                <h4>Feuille de présence (CSV)</h4>
+                <p>Liste des participants</p>
+              </div>
+            </a>
+            <a href="#" class="export-card" id="exportVotes">
+              <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg></span>
+              <div class="export-info">
+                <h4>Résultats des votes (CSV)</h4>
+                <p>Détail par résolution</p>
+              </div>
+            </a>
+            <a href="/report.htmx.html" class="export-card" id="exportReport" data-meeting-link>
+              <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></span>
+              <div class="export-info">
+                <h4>Rapport complet</h4>
+                <p>Visualiser en ligne</p>
+              </div>
+            </a>
+          </div>
+
+          <h3 class="mt-6 mb-4">Détail des résolutions</h3>
+          <div id="resultsDetailList">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Session Close Section -->
+          <div class="settings-section close-session-section" id="closeSessionSection">
+            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance</h3>
+            <p class="text-muted mb-4">Une fois tous les votes terminés, vous pouvez clôturer la séance pour passer à la validation.</p>
+            <div id="closeSessionStatus" class="mb-4">
+              <!-- Status rendered by JS -->
+            </div>
+            <button class="btn btn-lg btn-warning w-full" id="btnCloseSession">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance
             </button>
           </div>
         </div>
 
-        <div class="settings-grid">
-          <!-- Membres card -->
-          <div class="settings-section">
-            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Membres</h3>
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <span class="text-3xl font-bold" id="membersCount">0</span>
-                <span class="text-muted ml-2">membres inscrits</span>
-              </div>
-            </div>
-            <div id="membersList" class="members-list-compact mb-3">
-              <!-- Rendered by JS -->
-            </div>
-            <div class="flex gap-2">
-              <button class="btn btn-sm btn-primary flex-1" id="btnAddMember">+ Ajouter un membre</button>
-              <a href="/members.htmx.html" class="btn btn-sm btn-secondary">Gérer</a>
-            </div>
-          </div>
+      </section><!-- /viewSetup -->
 
-          <!-- Présences card -->
-          <div class="settings-section">
-            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-hand"></use></svg> Présences</h3>
-            <div class="quick-counts mb-3">
-              <div class="quick-count">
-                <span class="quick-count-value success" id="quickPresent">0</span>
-                <div class="quick-count-label">Présents</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value info" id="quickRemote">0</span>
-                <div class="quick-count-label">Distants</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value warning" id="quickProxy">0</span>
-                <div class="quick-count-label">Procurations</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value muted" id="quickAbsent">0</span>
-                <div class="quick-count-label">Absents</div>
-              </div>
+      <!-- ================================================================
+           VIEW: EXECUTION — 3-column grid
+           ================================================================ -->
+      <section id="viewExec" hidden aria-label="Mode exécution">
+        <div class="exec-grid">
+          <!-- Col 1: Vote en cours -->
+          <div class="exec-card" id="execVoteCard">
+            <div class="exec-card-header">
+              <h2>Vote en cours</h2>
+              <span class="live-badge" id="execLiveBadge" hidden><span class="pulse"></span> LIVE</span>
             </div>
-            <div class="flex gap-2">
-              <button class="btn btn-sm btn-success flex-1" id="btnQuickAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
-              <button class="btn btn-sm btn-secondary" data-tab-switch="presences">Détails</button>
-            </div>
-          </div>
-
-          <!-- Invitations card -->
-          <div class="settings-section" id="invitationsCard">
-            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Invitations</h3>
-            <div class="quick-counts mb-3">
-              <div class="quick-count">
-                <span class="quick-count-value" id="invTotal">0</span>
-                <div class="quick-count-label">Total</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value success" id="invSent">0</span>
-                <div class="quick-count-label">Envoyées</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value info" id="invOpened">0</span>
-                <div class="quick-count-label">Ouvertes</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value text-danger" id="invBounced">0</span>
-                <div class="quick-count-label">Échecs</div>
-              </div>
-            </div>
-            <div id="invEngagement" class="text-sm text-muted mb-3" style="display:none;">
-              Taux ouverture: <strong id="invOpenRate">0%</strong>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-              <button class="btn btn-sm btn-primary flex-1" id="btnSendInvitations">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
-                Envoyer les invitations
-              </button>
-              <ag-popover title="Programmer l'envoi" content="Planifiez l'envoi automatique des invitations à une date et heure précises." position="top">
-                <button slot="trigger" class="btn btn-sm btn-secondary" id="btnScheduleInvitations">
-                  <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
-                </button>
-              </ag-popover>
-              <ag-popover title="Templates d'email" content="Personnalisez le contenu des emails envoyés." position="top">
-                <a slot="trigger" href="/email-templates.htmx.html" class="btn btn-sm btn-secondary">
-                  <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
-                </a>
-              </ag-popover>
-            </div>
-            <!-- Invitations options (hidden by default) -->
-            <div id="invitationsOptions" class="invitations-options" style="display:none;">
-              <div class="form-group mb-3">
-                <label class="form-label">Template</label>
-                <select class="form-input" id="invTemplateSelect">
-                  <option value="">Template par défaut</option>
-                </select>
-              </div>
-              <div class="form-group mb-3">
-                <label class="form-label">Destinataires</label>
-                <div class="flex flex-col gap-1">
-                  <label class="flex items-center gap-2">
-                    <input type="radio" name="invRecipients" value="unsent" checked> Non encore invités
-                  </label>
-                  <label class="flex items-center gap-2">
-                    <input type="radio" name="invRecipients" value="all"> Tous les membres
-                  </label>
+            <div class="exec-card-body">
+              <div id="execNoVote" class="text-center p-4 text-muted">
+                <p>Aucun vote ouvert.</p>
+                <div id="execQuickOpenList" class="quick-motion-list mt-4">
+                  <!-- Filled by JS -->
                 </div>
               </div>
-              <div class="form-group mb-3" id="scheduleGroup" style="display:none;">
-                <label class="form-label">Date/heure d'envoi</label>
-                <input type="datetime-local" class="form-input" id="invScheduleAt">
-              </div>
-              <div class="flex gap-2">
-                <button class="btn btn-sm btn-success" id="btnConfirmSend">
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
-                  Confirmer l'envoi
-                </button>
-                <button class="btn btn-sm btn-secondary" id="btnCancelSend">Annuler</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="settings-section">
-            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg> Informations générales</h3>
-            <div class="form-group mb-3">
-              <label class="form-label">Titre de la séance</label>
-              <input type="text" class="form-input" id="settingTitle" placeholder="Ex: Assemblée Générale 2024">
-            </div>
-            <div class="form-group mb-3">
-              <label class="form-label">Type de consultation</label>
-              <div class="flex flex-col gap-2">
-                <label class="flex items-center gap-2">
-                  <input type="radio" name="meetingType" value="ordinary" checked> Assemblée générale ordinaire
-                </label>
-                <label class="flex items-center gap-2">
-                  <input type="radio" name="meetingType" value="extraordinary"> Assemblée générale extraordinaire
-                </label>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Date de la séance</label>
-              <input type="date" class="form-input" id="settingDate">
-            </div>
-          </div>
-
-          <div class="settings-section">
-            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg> Politiques</h3>
-            <div class="form-group mb-3">
-              <label class="form-label">
-                Politique de quorum
-                <ag-popover title="Politique de quorum" content="Définit le nombre minimum de participants requis pour que la séance soit valide." position="right"></ag-popover>
-              </label>
-              <select class="form-input" id="settingQuorumPolicy">
-                <option value="">— Aucune —</option>
-              </select>
-            </div>
-            <div class="form-group mb-3">
-              <label class="form-label">
-                Politique de vote
-                <ag-popover title="Politique de vote" content="Détermine comment les votes sont comptabilisés pour chaque résolution." position="right"></ag-popover>
-              </label>
-              <select class="form-input" id="settingVotePolicy">
-                <option value="">— Aucune —</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">
-                Convocation
-                <ag-popover title="Numéro de convocation" content="En 1ère convocation, le quorum statutaire s'applique." position="right"></ag-popover>
-              </label>
-              <select class="form-input" id="settingConvocation">
-                <option value="1">1ère convocation</option>
-                <option value="2">2ème convocation</option>
-              </select>
-            </div>
-            <div class="mt-4">
-              <button class="btn btn-primary" id="btnSaveSettings"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-save"></use></svg> Enregistrer les paramètres</button>
-            </div>
-          </div>
-
-          <div class="settings-section">
-            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-briefcase"></use></svg> Rôles de la séance</h3>
-            <div class="form-group mb-3">
-              <label class="form-label">
-                Président
-                <ag-popover title="Président de séance" content="Dirige la séance, accorde la parole aux participants." position="right"></ag-popover>
-              </label>
-              <ag-searchable-select
-                id="settingPresident"
-                placeholder="Rechercher un utilisateur..."
-                empty-text="Aucun utilisateur trouvé"
-              ></ag-searchable-select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">
-                Assesseurs
-                <ag-popover title="Assesseurs" content="Assistent le président dans le dépouillement des votes." position="right"></ag-popover>
-              </label>
-              <div id="assessorsList" class="assessors-list mb-2">
-                <span class="text-muted text-sm">Aucun assesseur</span>
-              </div>
-              <button class="btn btn-sm btn-secondary" id="btnAddAssessor">+ Ajouter un assesseur</button>
-            </div>
-          </div>
-
-          <div class="settings-section">
-            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> État de la séance</h3>
-            <div id="statusChecklist" class="status-checklist mb-4">
-              <!-- Checklist items rendered by JS -->
-            </div>
-            <div id="statusActions" class="status-actions">
-              <!-- Transition buttons rendered by JS -->
-            </div>
-          </div>
-
-          <!-- Dashboard en direct -->
-          <div class="settings-section" id="dashboardCard" style="display:none;">
-            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg> Dashboard en direct</h3>
-            <div class="quick-counts mb-3">
-              <div class="quick-count">
-                <span class="quick-count-value" id="dashPresentCount">-</span>
-                <span class="text-muted">/</span>
-                <span id="dashEligibleCount">-</span>
-                <div class="quick-count-label">Présents</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value" id="dashProxyCount">0</span>
-                <div class="quick-count-label">Procurations</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value" id="dashOpenMotions">0</span>
-                <div class="quick-count-label">Motions ouvertes</div>
-              </div>
-            </div>
-            <div id="dashCurrentMotion" class="text-sm text-muted mb-2" style="display:none;">
-              Motion: <strong id="dashMotionTitle">—</strong>
-              <div class="flex gap-3 mt-1">
-                <span class="text-success"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> <span id="dashVoteFor">0</span></span>
-                <span class="text-danger"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg> <span id="dashVoteAgainst">0</span></span>
-                <span>○ <span id="dashVoteAbstain">0</span></span>
-              </div>
-            </div>
-            <div id="dashReadySign" class="text-sm" style="display:none;">
-              <span class="badge badge-success"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Prêt pour signature</span>
-            </div>
-            <div id="dashNotReadySign" class="text-sm" style="display:none;">
-              <span class="badge badge-warning"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Non prêt</span>
-              <ul id="dashReadyReasons" class="text-xs text-muted mt-1 ready-reasons-list"></ul>
-            </div>
-          </div>
-
-          <!-- Appareils connectés -->
-          <div class="settings-section" id="devicesCard" style="display:none;">
-            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg> Appareils connectés</h3>
-            <div class="quick-counts mb-3">
-              <div class="quick-count">
-                <span class="quick-count-value success" id="devOnline">0</span>
-                <div class="quick-count-label">En ligne</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value warning" id="devStale">0</span>
-                <div class="quick-count-label">Inactifs</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value muted" id="devOffline">0</span>
-                <div class="quick-count-label">Hors ligne</div>
-              </div>
-              <div class="quick-count">
-                <span class="quick-count-value text-danger" id="devBlocked">0</span>
-                <div class="quick-count-label">Bloqués</div>
-              </div>
-            </div>
-            <div id="devicesList" class="devices-list mb-3">
-              <span class="text-muted text-sm">Aucun appareil</span>
-            </div>
-            <button class="btn btn-sm btn-secondary" id="btnManageDevices"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-sliders"></use></svg> Gérer les appareils</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: Résolutions -->
-      <div class="tab-content" id="tab-resolutions" role="tabpanel" aria-labelledby="tab-btn-resolutions" tabindex="0">
-        <div class="tab-toolbar">
-          <button class="btn btn-primary" id="btnAddResolution">+ Nouvelle résolution</button>
-          <input type="text" class="form-input tab-toolbar-search" id="resolutionSearch" placeholder="Rechercher une résolution...">
-        </div>
-
-        <div id="resolutionsList">
-          <!-- Rendered by JS -->
-        </div>
-
-        <!-- Add resolution form (hidden by default) -->
-        <div id="addResolutionForm" class="settings-section add-resolution-form" style="display: none;">
-          <h3>Nouvelle résolution</h3>
-          <div class="form-group mb-3">
-            <label class="form-label">Titre</label>
-            <input type="text" class="form-input" id="newResolutionTitle" placeholder="Ex: Approbation des comptes 2023">
-          </div>
-          <div class="form-group mb-3">
-            <label class="form-label">Description / Texte complet</label>
-            <textarea class="form-input" id="newResolutionDesc" rows="6" placeholder="Considérant que..."></textarea>
-          </div>
-          <div class="flex gap-2">
-            <button class="btn btn-primary" id="btnConfirmResolution">Créer la résolution</button>
-            <button class="btn btn-secondary" id="btnCancelResolution">Annuler</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: Présences -->
-      <div class="tab-content" id="tab-presences" role="tabpanel" aria-labelledby="tab-btn-presences" tabindex="0">
-        <div class="tab-toolbar">
-          <div class="flex gap-2">
-            <button class="btn btn-secondary" id="btnMarkAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
-            <button class="btn btn-secondary" id="btnImportCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importation CSV</button>
-          </div>
-          <input type="text" class="form-input tab-toolbar-search" id="presenceSearch" placeholder="Rechercher un membre...">
-        </div>
-
-        <div class="results-summary mb-6">
-          <div class="result-card">
-            <div class="value" id="presStatPresent">0</div>
-            <div class="label">Présents</div>
-          </div>
-          <div class="result-card">
-            <div class="value" id="presStatRemote">0</div>
-            <div class="label">Distants</div>
-          </div>
-          <div class="result-card">
-            <div class="value" id="presStatProxy">0</div>
-            <div class="label">Procurations</div>
-          </div>
-          <div class="result-card">
-            <div class="value" id="presStatAbsent">0</div>
-            <div class="label">Absents</div>
-          </div>
-        </div>
-
-        <h3 class="mb-4"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Membres</h3>
-        <div class="attendance-grid" id="attendanceGrid">
-          <!-- Rendered by JS -->
-        </div>
-      </div>
-
-      <!-- Tab: Procurations -->
-      <div class="tab-content" id="tab-procurations" role="tabpanel" aria-labelledby="tab-btn-procurations" tabindex="0">
-        <div class="tab-toolbar">
-          <div class="flex gap-2">
-            <button class="btn btn-primary" id="btnAddProxy"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Nouvelle procuration</button>
-            <button class="btn btn-secondary" id="btnImportProxiesCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer CSV</button>
-          </div>
-          <input type="text" class="form-input tab-toolbar-search" id="proxySearch" placeholder="Rechercher une procuration...">
-        </div>
-
-        <div class="results-summary mb-6">
-          <div class="result-card">
-            <div class="value" id="proxyStatActive">0</div>
-            <div class="label">Procurations actives</div>
-          </div>
-          <div class="result-card">
-            <div class="value" id="proxyStatGivers">0</div>
-            <div class="label">Mandants</div>
-          </div>
-          <div class="result-card">
-            <div class="value" id="proxyStatReceivers">0</div>
-            <div class="label">Mandataires</div>
-          </div>
-        </div>
-
-        <!-- Proxy list header -->
-        <div class="proxy-list-header">
-          <div class="hint">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
-            <span>Les mandants absents donnent procuration aux mandataires présents pour voter à leur place.</span>
-          </div>
-        </div>
-
-        <div id="proxyList" class="proxy-list">
-          <!-- Rendered by JS -->
-        </div>
-      </div>
-
-      <!-- Tab: Parole (file des orateurs) -->
-      <div class="tab-content" id="tab-parole" role="tabpanel" aria-labelledby="tab-btn-parole" tabindex="0">
-        <div class="charts-grid">
-          <!-- Orateur courant -->
-          <div class="settings-section" id="speechCurrentPanel">
-            <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> Orateur courant</h3>
-            <div id="currentSpeakerBox" class="speaker-box">
-              <div class="text-center p-4 text-muted" id="noSpeakerState">
-                <p>Aucun orateur</p>
-                <button class="btn btn-primary mt-2" id="btnNextSpeaker" disabled>
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-skip-forward"></use></svg>
-                  Prochain orateur
-                </button>
-              </div>
-              <div id="activeSpeakerState" style="display:none;">
-                <div class="flex items-center gap-4 mb-4">
-                  <div class="avatar avatar-lg speaker-avatar-active">
-                    <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg>
+              <div id="execActiveVote" hidden>
+                <div class="exec-vote-title" id="execVoteTitle">—</div>
+                <div class="exec-vote-kpis">
+                  <div class="exec-kpi for">
+                    <span class="exec-kpi-value" id="execVoteFor">0</span>
+                    <span class="exec-kpi-label">Pour</span>
                   </div>
-                  <div>
-                    <div class="text-lg font-bold" id="currentSpeakerName">—</div>
-                    <div class="text-muted" id="currentSpeakerTime">00:00</div>
+                  <div class="exec-kpi against">
+                    <span class="exec-kpi-value" id="execVoteAgainst">0</span>
+                    <span class="exec-kpi-label">Contre</span>
+                  </div>
+                  <div class="exec-kpi abstain">
+                    <span class="exec-kpi-value" id="execVoteAbstain">0</span>
+                    <span class="exec-kpi-label">Abstention</span>
                   </div>
                 </div>
-                <div class="flex gap-2 justify-center">
-                  <button class="btn btn-warning" id="btnEndSpeech">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg>
-                    Terminer
-                  </button>
-                  <button class="btn btn-primary" id="btnNextSpeakerActive">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-skip-forward"></use></svg>
-                    Prochain
+                <div class="exec-vote-actions">
+                  <button class="btn btn-warning" id="execBtnCloseVote">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer le vote
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- File d'attente -->
-          <div class="settings-section">
-            <h3 class="flex items-center justify-between">
-              <span><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg> File d'attente</span>
-              <button class="btn btn-sm btn-secondary" id="btnAddToQueue">+ Ajouter</button>
-            </h3>
-            <div id="speechQueueList" class="speech-queue-list">
-              <div class="text-center p-4 text-muted">Aucune demande de parole</div>
+          <!-- Col 2: Files & opérations -->
+          <div class="exec-card" id="execOpsCard">
+            <div class="exec-card-header">
+              <h2>Files &amp; opérations</h2>
             </div>
-            <div class="mt-3 flex justify-end">
-              <button class="btn btn-sm btn-ghost text-muted" id="btnClearSpeechHistory" title="Vider l'historique">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
-                Vider historique
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: Vote en direct -->
-      <div class="tab-content" id="tab-vote" role="tabpanel" aria-labelledby="tab-btn-vote" tabindex="0">
-        <div class="tab-toolbar mb-4">
-          <a href="/public.htmx.html" target="_blank" class="btn btn-secondary" id="btnOpenPublicScreen" data-meeting-link>
-            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg> Écran de projection
-          </a>
-        </div>
-
-        <div id="noActiveVote" class="no-vote-state">
-          <svg class="icon icon-3x" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
-          <h3 class="mt-4">Aucun vote en cours</h3>
-          <p class="text-muted mb-4">Ouvrez une résolution pour démarrer le vote.</p>
-          <div id="quickOpenMotionList" class="mb-4 quick-motion-list">
-            <!-- Filled by JS with available motions to open -->
-          </div>
-          <button class="btn btn-secondary" data-tab-switch="resolutions">Voir toutes les résolutions</button>
-        </div>
-
-        <div id="activeVotePanel" style="display: none;">
-          <div class="vote-live-panel">
-            <div class="vote-live-header">
-              <div class="vote-live-title">
-                <span class="pulse"></span>
-                <span>Vote en cours: </span>
-                <strong id="activeVoteTitle">—</strong>
+            <div class="exec-card-body">
+              <!-- Parole sub-card -->
+              <div class="exec-subcard">
+                <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> Parole</h3>
+                <div id="execSpeakerInfo" class="text-sm text-muted">Aucun orateur</div>
+                <div id="execSpeechQueue" class="text-sm text-muted mt-2">File vide</div>
+              </div>
+              <!-- Appareils sub-card -->
+              <div class="exec-subcard">
+                <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg> Appareils</h3>
+                <div class="exec-device-counts">
+                  <span class="text-success"><strong id="execDevOnline">0</strong> en ligne</span>
+                  <span class="text-warning"><strong id="execDevStale">0</strong> inactifs</span>
+                </div>
+              </div>
+              <!-- Votes manuels sub-card -->
+              <div class="exec-subcard">
+                <h3>Vote manuel rapide</h3>
+                <div id="execManualVoteSearch" class="mb-2">
+                  <input type="text" class="form-input form-input-sm" id="execManualSearch" placeholder="Rechercher un votant...">
+                </div>
+                <div id="execManualVoteList" class="exec-manual-vote-list">
+                  <span class="text-muted text-sm">Sélectionnez un vote pour afficher les votants.</span>
+                </div>
               </div>
             </div>
-            <div class="vote-results-live">
-              <span class="for"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> <span id="liveVoteFor">0</span></span>
-              <span class="against"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg> <span id="liveVoteAgainst">0</span></span>
-              <span class="abstain">○ <span id="liveVoteAbstain">0</span></span>
-            </div>
-            <div class="vote-controls-wrapper">
-              <button class="btn btn-lg btn-warning btn-close-vote" id="btnCloseVote"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer le vote</button>
-            </div>
           </div>
 
-          <div class="unanimity-actions mb-4">
-            <h3 class="mb-3">Actions rapides</h3>
-            <div class="flex gap-3 flex-wrap">
-              <button class="btn btn-success" id="btnUnanimityFor">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Unanimité Pour
-              </button>
-              <button class="btn btn-secondary" id="btnUnanimityAgainst">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg> Tous Contre
-              </button>
-              <button class="btn btn-secondary" id="btnUnanimityAbstain">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-minus"></use></svg> Tous Abstention
-              </button>
+          <!-- Col 3: Alertes -->
+          <div class="exec-card" id="execAlertsCard">
+            <div class="exec-card-header">
+              <h2>Alertes</h2>
+              <span class="meeting-bar-chip"><strong id="execAlertCount">0</strong> actives</span>
             </div>
-          </div>
-
-          <h3 class="mb-4">Votes manuels (opérateur)</h3>
-          <div id="manualVoteList" class="attendance-grid">
-            <!-- Rendered by JS -->
+            <div class="exec-card-body">
+              <div id="execAlertsList" class="alerts-list">
+                <div class="alert-empty">Aucune alerte.</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </section><!-- /viewExec -->
 
-      <!-- Tab: Résultats -->
-      <div class="tab-content" id="tab-resultats" role="tabpanel" aria-labelledby="tab-btn-resultats" tabindex="0">
-        <div class="results-summary">
-          <div class="result-card success">
-            <div class="value" id="resultAdopted">0</div>
-            <div class="label">Résolutions adoptées</div>
-          </div>
-          <div class="result-card danger">
-            <div class="value" id="resultRejected">0</div>
-            <div class="label">Résolutions rejetées</div>
-          </div>
-          <div class="result-card">
-            <div class="value" id="resultTotal">0</div>
-            <div class="label">Total résolutions</div>
-          </div>
-        </div>
-
-        <h3 class="mb-4">Exports & Procès-Verbal</h3>
-        <div class="exports-grid">
-          <a href="#" class="export-card" id="exportPV">
-            <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg></span>
-            <div class="export-info">
-              <h4>Procès-Verbal (PDF)</h4>
-              <p>Document officiel de la séance</p>
-            </div>
-          </a>
-          <a href="#" class="export-card" id="exportAttendance">
-            <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg></span>
-            <div class="export-info">
-              <h4>Feuille de présence (CSV)</h4>
-              <p>Liste des participants</p>
-            </div>
-          </a>
-          <a href="#" class="export-card" id="exportVotes">
-            <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg></span>
-            <div class="export-info">
-              <h4>Résultats des votes (CSV)</h4>
-              <p>Détail par résolution</p>
-            </div>
-          </a>
-          <a href="/report.htmx.html" class="export-card" id="exportReport" data-meeting-link>
-            <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></span>
-            <div class="export-info">
-              <h4>Rapport complet</h4>
-              <p>Visualiser en ligne</p>
-            </div>
-          </a>
-        </div>
-
-        <h3 class="mt-6 mb-4">Détail des résolutions</h3>
-        <div id="resultsDetailList">
-          <!-- Rendered by JS -->
-        </div>
-
-        <!-- Session Close Section -->
-        <div class="settings-section close-session-section" id="closeSessionSection">
-          <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance</h3>
-          <p class="text-muted mb-4">Une fois tous les votes terminés, vous pouvez clôturer la séance pour passer à la validation.</p>
-          <div id="closeSessionStatus" class="mb-4">
-            <!-- Status rendered by JS -->
-          </div>
-          <button class="btn btn-lg btn-warning w-full" id="btnCloseSession">
-            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance
-          </button>
-        </div>
-      </div>
     </main>
   </div>
 
   <div class="drawer-backdrop" data-drawer-close aria-hidden="true"></div>
   <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
     <header class="drawer-header">
-      <button data-drawer-close class="btn btn-icon btn-ghost" aria-label="Fermer le panneau">✕</button>
+      <button data-drawer-close class="btn btn-icon btn-ghost" aria-label="Fermer le panneau">&#10005;</button>
       <h2 class="drawer-title" id="drawerTitle">—</h2>
     </header>
     <div class="drawer-body" id="drawerBody"></div>
@@ -643,7 +811,6 @@
   <script src="/assets/js/core/shared.js"></script>
   <script src="/assets/js/core/shell.js"></script>
   <script src="/assets/js/core/page-components.js"></script>
-  <script src="/assets/js/services/session-wizard.js"></script>
   <script src="/assets/js/pages/operator-tabs.js"></script>
 </body>
 </html>
