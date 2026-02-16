@@ -65,26 +65,56 @@
 
       <!-- Motion card -->
       <section class="motion-card" id="motionBox" aria-label="Résolution en cours" aria-live="polite">
-        <div class="motion-number">—</div>
-        <div class="motion-title" id="motionTitle">En attente d'une résolution</div>
-        <span class="motion-status waiting" role="status">Aucun vote en cours</span>
+        <div class="motion-card-header">
+          <h2 class="motion-card-label">Résolution en cours</h2>
+          <div class="motion-meta" id="motionMeta">
+            <span class="motion-pill" id="motionNo"></span>
+            <span class="motion-pill" id="motionPhase">En attente</span>
+          </div>
+        </div>
+        <div class="motion-card-body" id="motionBody">
+          <h3 class="motion-title" id="motionTitle">En attente d'une résolution</h3>
+          <p class="motion-sub" id="motionSub"></p>
+          <div class="motion-badges" id="motionBadges"></div>
+          <details class="reso-details" id="resoDetails" hidden>
+            <summary>
+              <span>Voir le texte de la résolution</span>
+              <span class="reso-note" id="resoNote"></span>
+            </summary>
+            <div class="reso-text" id="resoText" aria-label="Texte intégral"></div>
+          </details>
+        </div>
       </section>
 
-      <!-- Vote buttons -->
-      <div class="vote-buttons-container" id="vote-buttons">
-        <div class="vote-buttons" role="group" aria-label="Choix de vote">
-          <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled aria-describedby="motionTitle">
-            <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-up"></use></svg></span>
-            <span>Pour</span>
-          </button>
-          <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="against" disabled aria-describedby="motionTitle">
-            <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-down"></use></svg></span>
-            <span>Contre</span>
-          </button>
-          <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstain" disabled aria-describedby="motionTitle">
-            <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-hand"></use></svg></span>
-            <span>Abstention</span>
-          </button>
+      <!-- Vote section -->
+      <div class="vote-section" id="vote-buttons">
+        <div class="vote-section-header">
+          <h2 class="vote-section-label">Vote</h2>
+          <div class="vote-section-meta">
+            <span class="motion-pill" id="voteStatus">Non voté</span>
+          </div>
+        </div>
+        <div class="vote-section-body">
+          <div class="vote-buttons" role="group" aria-label="Choix de vote">
+            <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled aria-describedby="motionTitle">
+              <span class="vote-btn-kbd" aria-hidden="true">1</span>
+              <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-up"></use></svg></span>
+              <span>Pour</span>
+              <span class="vote-btn-hint">Confirmation requise</span>
+            </button>
+            <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="against" disabled aria-describedby="motionTitle">
+              <span class="vote-btn-kbd" aria-hidden="true">2</span>
+              <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-down"></use></svg></span>
+              <span>Contre</span>
+              <span class="vote-btn-hint">Confirmation requise</span>
+            </button>
+            <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstain" disabled aria-describedby="motionTitle">
+              <span class="vote-btn-kbd" aria-hidden="true">3</span>
+              <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-hand"></use></svg></span>
+              <span>Abstention</span>
+              <span class="vote-btn-hint">Confirmation requise</span>
+            </button>
+          </div>
         </div>
       </div>
     </main>
@@ -98,22 +128,40 @@
           <div class="member-weight" id="memberWeight">—</div>
         </div>
       </div>
-      <div class="connection-status" role="status" aria-live="polite">
-        <div class="connection-dot" id="connectionDot" aria-hidden="true"></div>
-        <span class="text-sm text-muted" id="connectionStatus">Connecté</span>
+      <div class="footer-status" role="status" aria-live="polite">
+        <span class="footer-chip" id="voteReceipt" hidden>—</span>
+        <span class="footer-chip">
+          <span class="connection-dot" id="connectionDot" aria-hidden="true"></span>
+          <span id="connectionStatus">Connecté</span>
+        </span>
       </div>
     </footer>
   </div>
 
-  <!-- Confirmation overlay -->
+  <!-- Confirmation overlay (bottom sheet) -->
   <div class="vote-confirmation" id="confirmationOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-hidden="true">
-    <div class="vote-confirmation-content">
-      <div class="vote-confirmation-icon" id="confirmIcon" aria-hidden="true"></div>
-      <h2 class="vote-confirmation-title" id="confirmTitle">Confirmer votre vote</h2>
-      <div class="vote-confirmation-message" id="confirmMessage">
-        Vous êtes sur le point de voter <strong id="confirmChoice">POUR</strong>
+    <div class="confirm-sheet">
+      <div class="confirm-sheet-header">
+        <strong id="confirmTitle">Confirmer votre vote</strong>
       </div>
-      <div class="vote-confirmation-buttons">
+      <div class="confirm-sheet-body">
+        <div class="confirm-box">
+          <div class="confirm-choice" id="confirmChoice">CHOIX</div>
+          <div class="confirm-meta" id="confirmMeta">
+            <span>Séance : <span id="cMeeting">—</span></span>
+            <span>Votant : <span id="cMember">—</span></span>
+            <span>Résolution : <span id="cMotion">—</span></span>
+          </div>
+        </div>
+        <details class="reso-details" id="confirmResoDetails" hidden>
+          <summary>
+            <span>Revoir le texte (recommandé)</span>
+            <span class="reso-note">anti-erreur</span>
+          </summary>
+          <div class="reso-text" id="confirmResoText"></div>
+        </details>
+      </div>
+      <div class="confirm-sheet-actions">
         <button class="btn btn-secondary" id="btnCancel">Annuler</button>
         <button class="btn btn-primary" id="btnConfirm">Confirmer</button>
       </div>
@@ -136,60 +184,95 @@
     const voteButtons = document.querySelectorAll('.vote-btn');
     const confirmOverlay = document.getElementById('confirmationOverlay');
     const confirmChoice = document.getElementById('confirmChoice');
-    const confirmIcon = document.getElementById('confirmIcon');
     const btnCancel = document.getElementById('btnCancel');
     const btnConfirm = document.getElementById('btnConfirm');
     let pendingVote = null;
+    let hasVoted = false;
 
-    // Choice labels and icons (SVG)
-    const svgIcon = (name) => `<svg class="icon icon-lg" style="vertical-align: middle;"><use href="/assets/icons.svg#icon-${name}"></use></svg>`;
+    // Choice labels
     const choiceInfo = {
-      'for': { label: 'POUR', icon: svgIcon('thumbs-up'), color: 'var(--color-success)' },
-      'against': { label: 'CONTRE', icon: svgIcon('thumbs-down'), color: 'var(--color-danger)' },
-      'abstain': { label: 'ABSTENTION', icon: svgIcon('hand'), color: 'var(--color-text-muted)' }
+      'for': { label: 'POUR', color: 'var(--color-success)' },
+      'against': { label: 'CONTRE', color: 'var(--color-danger)' },
+      'abstain': { label: 'ABSTENTION', color: 'var(--color-text-muted)' }
     };
+
+    // Populate confirmation context
+    function fillConfirmContext(choice) {
+      const info = choiceInfo[choice];
+      confirmChoice.textContent = info.label;
+      confirmChoice.style.color = info.color;
+
+      // Meeting name
+      const meetSel = document.getElementById('meetingSelect');
+      const cMeeting = document.getElementById('cMeeting');
+      if (cMeeting) {
+        cMeeting.textContent = meetSel?.selectedOption?.label || meetSel?.options?.[meetSel.selectedIndex]?.textContent || '—';
+      }
+
+      // Member name
+      const memSel = document.getElementById('memberSelect');
+      const cMember = document.getElementById('cMember');
+      if (cMember) {
+        cMember.textContent = memSel?.selectedOption?.label || memSel?.options?.[memSel.selectedIndex]?.textContent || '—';
+      }
+
+      // Motion title
+      const cMotion = document.getElementById('cMotion');
+      if (cMotion) {
+        cMotion.textContent = document.getElementById('motionTitle')?.textContent || '—';
+      }
+
+      // Copy resolution text to confirmation if available
+      const resoText = document.getElementById('resoText');
+      const confirmResoDetails = document.getElementById('confirmResoDetails');
+      const confirmResoText = document.getElementById('confirmResoText');
+      if (resoText && confirmResoDetails && confirmResoText) {
+        const hasText = (resoText.textContent || '').trim().length > 0;
+        confirmResoDetails.hidden = !hasText;
+        if (hasText) {
+          confirmResoText.textContent = resoText.textContent;
+        }
+      }
+    }
 
     // Vote button click -> show confirmation
     voteButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         if (btn.disabled) return;
-
         pendingVote = btn.dataset.choice;
-        const info = choiceInfo[pendingVote];
-
-        confirmChoice.textContent = info.label;
-        confirmChoice.style.color = info.color;
-        confirmIcon.innerHTML = info.icon;
-
+        fillConfirmContext(pendingVote);
         confirmOverlay.classList.add('show');
         confirmOverlay.setAttribute('aria-hidden', 'false');
-        btnConfirm.focus(); // Focus on confirm button for accessibility
+        btnConfirm.focus();
       });
     });
 
-    // Cancel
-    btnCancel.addEventListener('click', () => {
+    // Keyboard shortcuts (1/2/3)
+    document.addEventListener('keydown', (e) => {
+      if (confirmOverlay.classList.contains('show')) return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      if (e.key === '1') document.getElementById('btnFor')?.click();
+      if (e.key === '2') document.getElementById('btnAgainst')?.click();
+      if (e.key === '3') document.getElementById('btnAbstain')?.click();
+    });
+
+    function closeConfirm() {
       confirmOverlay.classList.remove('show');
       confirmOverlay.setAttribute('aria-hidden', 'true');
       pendingVote = null;
-    });
+    }
+
+    // Cancel
+    btnCancel.addEventListener('click', closeConfirm);
 
     // Click outside to cancel
     confirmOverlay.addEventListener('click', (e) => {
-      if (e.target === confirmOverlay) {
-        confirmOverlay.classList.remove('show');
-        confirmOverlay.setAttribute('aria-hidden', 'true');
-        pendingVote = null;
-      }
+      if (e.target === confirmOverlay) closeConfirm();
     });
 
     // Close on Escape key
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && confirmOverlay.classList.contains('show')) {
-        confirmOverlay.classList.remove('show');
-        confirmOverlay.setAttribute('aria-hidden', 'true');
-        pendingVote = null;
-      }
+      if (e.key === 'Escape' && confirmOverlay.classList.contains('show')) closeConfirm();
     });
 
     // Confirm vote
@@ -200,17 +283,35 @@
       btnConfirm.innerHTML = '<span class="spinner spinner-sm"></span> Envoi...';
 
       try {
-        // The actual vote submission is handled by vote.js
         if (typeof submitVote === 'function') {
           await submitVote(pendingVote);
         }
+
+        hasVoted = true;
 
         // Mark selected button
         voteButtons.forEach(b => b.classList.remove('selected'));
         document.querySelector(`[data-choice="${pendingVote}"]`)?.classList.add('selected');
 
-        confirmOverlay.classList.remove('show');
-        confirmOverlay.setAttribute('aria-hidden', 'true');
+        // Update vote status
+        const statusEl = document.getElementById('voteStatus');
+        if (statusEl) {
+          statusEl.textContent = 'Voté';
+          statusEl.classList.add('voted');
+        }
+
+        // Update receipt in footer
+        const receipt = document.getElementById('voteReceipt');
+        if (receipt) {
+          const now = new Date();
+          const hh = String(now.getHours()).padStart(2, '0');
+          const mm = String(now.getMinutes()).padStart(2, '0');
+          const ss = String(now.getSeconds()).padStart(2, '0');
+          receipt.textContent = `${hh}:${mm}:${ss} \u2022 ${choiceInfo[pendingVote].label}`;
+          receipt.hidden = false;
+        }
+
+        closeConfirm();
         setNotif('success', `Vote ${choiceInfo[pendingVote].label} enregistré`);
 
         // Disable buttons after vote

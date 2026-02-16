@@ -516,6 +516,70 @@
   }
 
   /**
+   * Update the motion card UI with structured data.
+   * Uses dedicated elements instead of replacing innerHTML of the entire card.
+   * @param {Object|null} m - Motion data object or null
+   */
+  function updateMotionCard(m) {
+    const title = $("#motionTitle");
+    const sub = $("#motionSub");
+    const badges = $("#motionBadges");
+    const noEl = $("#motionNo");
+    const phaseEl = $("#motionPhase");
+    const resoDetails = $("#resoDetails");
+    const resoText = $("#resoText");
+    const resoNote = $("#resoNote");
+    const card = $("#motionBox");
+
+    if (!m) {
+      if (title) title.textContent = 'En attente d\u2019une résolution';
+      if (sub) sub.textContent = '';
+      if (badges) badges.innerHTML = '';
+      if (noEl) { noEl.textContent = ''; noEl.style.display = 'none'; }
+      if (phaseEl) phaseEl.textContent = 'En attente';
+      if (resoDetails) resoDetails.hidden = true;
+      if (card) { card.classList.remove('active'); card.classList.add('waiting'); }
+      return;
+    }
+
+    if (card) { card.classList.add('active'); card.classList.remove('waiting'); }
+    if (title) title.textContent = m.title || 'Résolution';
+    if (sub) sub.textContent = m.description || '';
+
+    // Motion number pill
+    if (noEl) {
+      if (m.position) {
+        noEl.textContent = '#' + m.position;
+        noEl.style.display = '';
+      } else {
+        noEl.textContent = '';
+        noEl.style.display = 'none';
+      }
+    }
+
+    // Phase pill
+    if (phaseEl) {
+      phaseEl.textContent = m.secret ? 'SECRET' : 'OUVERT';
+      phaseEl.className = 'motion-pill' + (m.secret ? ' pill-danger' : ' pill-success');
+    }
+
+    // Policy badges
+    if (badges) badges.innerHTML = motionMetaBadges(m);
+
+    // Resolution body text
+    if (resoDetails && resoText) {
+      const bodyText = m.body || '';
+      if (bodyText.trim()) {
+        resoText.textContent = bodyText;
+        resoDetails.hidden = false;
+        if (resoNote) resoNote.textContent = 'scroll';
+      } else {
+        resoDetails.hidden = true;
+      }
+    }
+  }
+
+  /**
    * Refresh the current motion display.
    * Fetches the open motion for the selected meeting and updates the UI.
    * @returns {Promise<void>}
@@ -527,7 +591,7 @@
     if (memberId) localStorage.setItem("public.member_id", memberId);
 
     if (!meetingId){
-      $("#motionBox").innerHTML = "<span class='text-muted'>Select a meeting.</span>";
+      updateMotionCard(null);
       setVoteButtonsEnabled(false);
       return;
     }
@@ -538,19 +602,17 @@
       const m = r?.data?.motion;
       if (!m){
         _currentMotionId = null;
-        $("#motionBox").innerHTML = "<span class='text-muted'>No open motion.</span>";
+        updateMotionCard(null);
         setVoteButtonsEnabled(false);
         return;
       }
       _currentMotionId = m.id || m.motion_id || null;
-      $("#motionBox").innerHTML = `
-        <div><strong>${escapeHtml(m.title || "Motion")}</strong></div>
-        <div class='text-muted text-xs'>${escapeHtml(m.description || "")}</div>
-        ${motionMetaBadges(m)}
-      `;
+      updateMotionCard(m);
       setVoteButtonsEnabled(!!memberId);
     } catch(e){
-      $("#motionBox").innerHTML = `<span class='text-muted'>Erreur: ${escapeHtml(e?.message || String(e))}</span>`;
+      updateMotionCard(null);
+      const title = $("#motionTitle");
+      if (title) title.textContent = 'Erreur: ' + (e?.message || String(e));
       setVoteButtonsEnabled(false);
     }
   }

@@ -119,7 +119,7 @@ class MotionRepository extends AbstractRepository
     public function findCurrentOpen(string $meetingId, string $tenantId): ?array
     {
         return $this->selectOne(
-            "SELECT id, agenda_id, title, description, secret,
+            "SELECT id, agenda_id, title, description, body, secret, position,
                     vote_policy_id, quorum_policy_id, opened_at, closed_at
              FROM motions
              WHERE tenant_id = :tid AND meeting_id = :mid
