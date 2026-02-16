@@ -452,30 +452,6 @@ class AgSearchableSelect extends HTMLElement {
           border-radius: 2px;
         }
 
-        /* Keyboard hint */
-        .keyboard-hint {
-          display: none;
-          padding: 0.375rem 0.75rem;
-          background: var(--color-bg-subtle, #f5f7f4);
-          border-top: 1px solid var(--color-border, #d5dbd2);
-          font-size: 0.6875rem;
-          color: var(--color-text-muted, #7a8275);
-          gap: 0.75rem;
-        }
-        @media (hover: hover) {
-          .keyboard-hint {
-            display: flex;
-          }
-        }
-        .keyboard-hint kbd {
-          display: inline-block;
-          padding: 0.125rem 0.375rem;
-          background: var(--color-surface, #fff);
-          border: 1px solid var(--color-border, #d5dbd2);
-          border-radius: 3px;
-          font-family: inherit;
-          font-size: 0.625rem;
-        }
       </style>
 
       <div class="select-container">
@@ -501,11 +477,6 @@ class AgSearchableSelect extends HTMLElement {
             <input type="text" class="search-input" placeholder="${this.escapeHtml(placeholder)}" autocomplete="off" />
           </div>
           <div class="options-list"></div>
-          <div class="keyboard-hint">
-            <span><kbd>↑↓</kbd> naviguer</span>
-            <span><kbd>Enter</kbd> sélectionner</span>
-            <span><kbd>Esc</kbd> fermer</span>
-          </div>
         </div>
       </div>
 
