@@ -60,7 +60,10 @@ if (!file_exists($filePath) || !is_file($filePath)) {
 
     $parsedown = new Parsedown();
     $parsedown->setSafeMode(true);
+    // Parsedown 1.7 triggers PHP 8.4 deprecation warnings (implicit nullable params)
+    $prevLevel = error_reporting(E_ALL & ~E_DEPRECATED);
     $htmlContent = $parsedown->text($markdown);
+    error_reporting($prevLevel);
 
     // ─── Extract title from first H1 ───
     $title = $page;
@@ -154,10 +157,8 @@ $docNames = [
 
     <main class="app-main doc-main">
       <div class="doc-layout">
-        <!-- Sidebar: Table of Contents + Doc Index -->
+        <!-- LEFT: Doc Index -->
         <aside class="doc-sidebar">
-          <?= $toc ?>
-
           <nav class="doc-index" aria-label="Index des documents">
             <h4>Documentation</h4>
 <?php foreach ($categories as $catName => $catDocs): ?>
@@ -179,10 +180,17 @@ $docNames = [
           </nav>
         </aside>
 
-        <!-- Main content: rendered Markdown -->
+        <!-- CENTER: rendered Markdown -->
         <article class="doc-content prose">
           <?= $htmlContent ?>
         </article>
+
+        <!-- RIGHT: Table of Contents (sticky) -->
+<?php if ($toc): ?>
+        <aside class="doc-toc-rail" aria-label="Sommaire">
+          <?= $toc ?>
+        </aside>
+<?php endif; ?>
       </div>
     </main>
   </div>
