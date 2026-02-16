@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Documentation - AG-VOTE">
+  <title>Documentation — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/docs.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar" data-include-sidebar data-page="help"></aside>
+
+    <div class="page-header">
+      <h1>
+        <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
+        <span id="docTitle">Documentation</span>
+      </h1>
+      <div class="page-header-actions">
+        <a href="/help.htmx.html" class="btn btn-ghost">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
+          Retour à l'aide
+        </a>
+      </div>
+    </div>
+
+    <main class="app-main docs-main">
+      <div class="page-content">
+        <div id="notif_box" class="alert hidden mb-4"></div>
+
+        <!-- Breadcrumb -->
+        <nav class="docs-breadcrumb" id="breadcrumb">
+          <a href="/help.htmx.html">Aide</a>
+          <span class="breadcrumb-sep">/</span>
+          <span id="breadcrumbCurrent">Documentation</span>
+        </nav>
+
+        <!-- Document content -->
+        <article class="docs-article" id="docContent">
+          <div class="loading-spinner">Chargement du document...</div>
+        </article>
+
+        <!-- Table of contents (generated from headings) -->
+        <aside class="docs-toc" id="docToc">
+          <div class="docs-toc-title">Sur cette page</div>
+          <nav id="tocNav"></nav>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- Drawer -->
+  <div id="drawerOverlay" class="drawer-backdrop" data-drawer-close></div>
+  <aside id="drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div id="drawerTitle" class="font-semibold">Menu</div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close title="Fermer">✕</button>
+    </div>
+    <div id="drawerBody" class="drawer-body"></div>
+  </aside>
+
+  <script src="/assets/js/core/utils.js"></script>
+  <script src="/assets/js/core/shared.js"></script>
+  <script src="/assets/js/core/shell.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // Document titles mapping
+    const DOC_TITLES = {
+      'ANALYTICS_ETHICS': 'Éthique des Analytics',
+      'FAQ': 'Foire aux questions',
+      'README': 'Documentation',
+      'INSTALLATION': 'Guide d\'installation',
+      'ARCHITECTURE': 'Architecture',
+      'API': 'Documentation API',
+      'SECURITY': 'Sécurité',
+      'MIGRATION': 'Migration',
+      'TESTS': 'Tests',
+      'UTILISATION_LIVE': 'Utilisation en direct',
+      'RECETTE_DEMO': 'Recette de démonstration',
+      'AUDIT_RAPPORT': 'Rapport d\'audit',
+      'CONFORMITE_CDC': 'Conformité au cahier des charges',
+      'WEB_COMPONENTS': 'Composants Web',
+    };
+
+    // Configure marked
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+      headerIds: true,
+      mangle: false,
+    });
+
+    // Get document path from URL
+    function getDocPath() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('file') || 'docs/README.md';
+    }
+
+    // Extract title from path
+    function getTitleFromPath(path) {
+      const filename = path.split('/').pop().replace('.md', '');
+      return DOC_TITLES[filename] || filename.replace(/_/g, ' ');
+    }
+
+    // Generate table of contents from headings
+    function generateTOC(container) {
+      const headings = container.querySelectorAll('h2, h3');
+      const tocNav = document.getElementById('tocNav');
+      const tocContainer = document.getElementById('docToc');
+
+      if (headings.length < 3) {
+        tocContainer.style.display = 'none';
+        return;
+      }
+
+      let tocHtml = '<ul class="docs-toc-list">';
+      headings.forEach((heading, index) => {
+        const id = heading.id || `heading-${index}`;
+        heading.id = id;
+        const level = heading.tagName === 'H2' ? '' : 'toc-sub';
+        tocHtml += `<li class="${level}"><a href="#${id}">${heading.textContent}</a></li>`;
+      });
+      tocHtml += '</ul>';
+      tocNav.innerHTML = tocHtml;
+
+      // Highlight current section on scroll
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const link = tocNav.querySelector(`a[href="#${entry.target.id}"]`);
+          if (link) {
+            link.classList.toggle('active', entry.isIntersecting);
+          }
+        });
+      }, { rootMargin: '-20% 0px -70% 0px' });
+
+      headings.forEach(h => observer.observe(h));
+    }
+
+    // Load and render document
+    async function loadDocument() {
+      const docPath = getDocPath();
+      const container = document.getElementById('docContent');
+      const title = getTitleFromPath(docPath);
+
+      // Update page title and breadcrumb
+      document.getElementById('docTitle').textContent = title;
+      document.getElementById('breadcrumbCurrent').textContent = title;
+      document.title = `${title} — AG-VOTE`;
+
+      try {
+        // Fetch markdown file
+        const response = await fetch(`/${docPath}`);
+        if (!response.ok) {
+          throw new Error(`Document non trouvé (${response.status})`);
+        }
+
+        const markdown = await response.text();
+
+        // Check if it's actually markdown (not HTML error page)
+        if (markdown.trim().startsWith('<!') || markdown.trim().startsWith('<html')) {
+          throw new Error('Document non trouvé');
+        }
+
+        // Render markdown
+        const html = marked.parse(markdown);
+        container.innerHTML = `<div class="markdown-body">${html}</div>`;
+
+        // Generate TOC
+        generateTOC(container);
+
+        // Make links to other .md files use the viewer
+        container.querySelectorAll('a[href$=".md"]').forEach(link => {
+          const href = link.getAttribute('href');
+          if (href && !href.startsWith('http')) {
+            // Resolve relative path
+            const basePath = docPath.split('/').slice(0, -1).join('/');
+            let fullPath = href;
+            if (href.startsWith('./')) {
+              fullPath = basePath + '/' + href.substring(2);
+            } else if (href.startsWith('../')) {
+              const parts = basePath.split('/');
+              parts.pop();
+              fullPath = parts.join('/') + '/' + href.substring(3);
+            } else if (!href.startsWith('/')) {
+              fullPath = basePath ? basePath + '/' + href : href;
+            } else {
+              fullPath = href.substring(1);
+            }
+            link.href = `/docs.htmx.html?file=${encodeURIComponent(fullPath)}`;
+          }
+        });
+
+        // Add copy button to code blocks
+        container.querySelectorAll('pre').forEach(pre => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'code-block-wrapper';
+          pre.parentNode.insertBefore(wrapper, pre);
+          wrapper.appendChild(pre);
+
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'code-copy-btn';
+          copyBtn.innerHTML = '<svg class="icon" width="16" height="16"><use href="/assets/icons.svg#icon-copy"></use></svg>';
+          copyBtn.title = 'Copier';
+          copyBtn.onclick = () => {
+            const code = pre.querySelector('code')?.textContent || pre.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+              copyBtn.innerHTML = '<svg class="icon" width="16" height="16"><use href="/assets/icons.svg#icon-check"></use></svg>';
+              setTimeout(() => {
+                copyBtn.innerHTML = '<svg class="icon" width="16" height="16"><use href="/assets/icons.svg#icon-copy"></use></svg>';
+              }, 2000);
+            });
+          };
+          wrapper.appendChild(copyBtn);
+        });
+
+      } catch (err) {
+        container.innerHTML = `
+          <div class="docs-error">
+            <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+            <h2>Document non disponible</h2>
+            <p>${escapeHtml(err.message)}</p>
+            <a href="/help.htmx.html" class="btn btn-primary mt-4">Retour à l'aide</a>
+          </div>
+        `;
+        document.getElementById('docToc').style.display = 'none';
+      }
+    }
+
+    // Initialize
+    loadDocument();
+  })();
+  </script>
+</body>
+</html>
