@@ -16,6 +16,9 @@ node_modules/
 /storage/
 /cache/
 
+# Archives
+*.zip
+
 # OS
 .DS_Store
 Thumbs.db
