@@ -613,13 +613,15 @@
   }
 
   .vote-btn {
-    padding: 1.5rem;
+    padding: 2rem 1.5rem;
     flex-direction: row;
     justify-content: center;
+    font-size: 1.75rem;
+    min-height: 80px;
   }
 
   .vote-btn-icon {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
 
   .vote-btn-kbd {
@@ -638,8 +640,50 @@
     grid-template-columns: 1fr;
   }
 
+  .confirm-sheet-actions .btn {
+    padding: 1.25rem 1.5rem;
+    font-size: 1.125rem;
+    min-height: 56px;
+  }
+
+  .confirm-choice {
+    font-size: 1.5rem;
+  }
+
   .reso-text {
     max-height: 140px;
+  }
+
+  .vote-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
+
+/* Tablet landscape (768px-1024px) — larger touch targets */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .vote-btn {
+    padding: 3.5rem 2rem;
+    font-size: 1.75rem;
+    border-radius: 20px;
+    gap: 1rem;
+  }
+
+  .vote-btn-icon {
+    font-size: 3.5rem;
+  }
+
+  .vote-btn.selected::after {
+    width: 34px;
+    height: 34px;
+    font-size: 1.25rem;
+  }
+
+  .confirm-sheet-actions .btn {
+    padding: 1.125rem 1.5rem;
+    font-size: 1.125rem;
+    min-height: 52px;
   }
 }
 

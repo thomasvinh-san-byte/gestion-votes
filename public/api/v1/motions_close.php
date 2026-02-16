@@ -64,19 +64,28 @@ try {
 
     db()->commit();
 
-    audit_log('motion_closed', 'motion', $motionId, [
-        'meeting_id' => (string)$motion['meeting_id'],
-    ]);
+    // Post-commit side-effects: wrap in try-catch so a failure here
+    // does NOT return 500 when the motion was already successfully closed.
+    try {
+        audit_log('motion_closed', 'motion', $motionId, [
+            'meeting_id' => (string)$motion['meeting_id'],
+        ]);
+    } catch (Throwable $auditErr) {
+        error_log('[motions_close] audit_log failed after commit: ' . $auditErr->getMessage());
+    }
 
-    // Broadcast WebSocket event with results
-    EventBroadcaster::motionClosed((string)$motion['meeting_id'], $motionId, [
-        'for' => $o['for'] ?? 0,
-        'against' => $o['against'] ?? 0,
-        'abstain' => $o['abstain'] ?? 0,
-        'total' => $o['total'] ?? 0,
-        'decision' => $o['decision'] ?? 'unknown',
-        'reason' => $o['reason'] ?? null,
-    ]);
+    try {
+        EventBroadcaster::motionClosed((string)$motion['meeting_id'], $motionId, [
+            'for' => $o['for'] ?? 0,
+            'against' => $o['against'] ?? 0,
+            'abstain' => $o['abstain'] ?? 0,
+            'total' => $o['total'] ?? 0,
+            'decision' => $o['decision'] ?? 'unknown',
+            'reason' => $o['reason'] ?? null,
+        ]);
+    } catch (Throwable $wsErr) {
+        error_log('[motions_close] EventBroadcaster failed after commit: ' . $wsErr->getMessage());
+    }
 
     api_ok([
         'meeting_id'       => (string)$motion['meeting_id'],
