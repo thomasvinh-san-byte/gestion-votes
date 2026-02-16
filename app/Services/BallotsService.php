@@ -136,28 +136,39 @@ if (!empty($context['meeting_validated_at'])) {
         }
 
         $ballotRepo = new BallotRepository();
-        $ballotRepo->castBallot(
-            $tenantId,
-            $motionId,
-            $memberId,
-            $value,
-            $weight,
-            $isProxyVote,
-            $isProxyVote ? $proxyVoterId : null
-        );
 
-        if (function_exists('audit_log')) {
-            audit_log('ballot_cast', 'motion', $motionId, [
-                'meeting_id' => $context['meeting_id'],
-                'member_id'  => $memberId,
-                'value'      => $value,
-                'weight'     => $weight,
-                'is_proxy_vote' => $isProxyVote,
-                'proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
-            ]);
+        // Wrap ballot insert + audit log in a transaction for atomicity
+        $pdo = \db();
+        $pdo->beginTransaction();
+        try {
+            $ballotRepo->castBallot(
+                $tenantId,
+                $motionId,
+                $memberId,
+                $value,
+                $weight,
+                $isProxyVote,
+                $isProxyVote ? $proxyVoterId : null
+            );
+
+            if (function_exists('audit_log')) {
+                audit_log('ballot_cast', 'motion', $motionId, [
+                    'meeting_id' => $context['meeting_id'],
+                    'member_id'  => $memberId,
+                    'value'      => $value,
+                    'weight'     => $weight,
+                    'is_proxy_vote' => $isProxyVote,
+                    'proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
+                ]);
+            }
+
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
         }
 
-        // Broadcast WebSocket event with updated tally
+        // Broadcast WebSocket event with updated tally (outside transaction)
         try {
             $tally = $ballotRepo->getTallyForMotion($tenantId, $meetingId, $motionId);
             EventBroadcaster::voteCast($meetingId, $motionId, $tally);

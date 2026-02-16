@@ -31,17 +31,16 @@ $meeting = $repo->findByIdForTenant($meetingId, $tenant);
 if (!$meeting) api_fail('meeting_not_found', 404);
 
 try {
-  $pvHtml = MeetingReportService::renderHtml($meetingId, true);
+  // Wrap report generation + validation + PV storage in a single transaction
+  api_transaction(function () use ($repo, $meetingId, $tenant) {
+    $pvHtml = MeetingReportService::renderHtml($meetingId, true);
 
-  // Marque validée
-  $repo->markValidated($meetingId, $tenant);
+    // Marque validée
+    $repo->markValidated($meetingId, $tenant);
 
-  // Stocke le PV HTML dans meeting_reports
-  try {
+    // Stocke le PV HTML dans meeting_reports
     $repo->storePVHtml($meetingId, $pvHtml);
-  } catch (Throwable $e) {
-    error_log("meeting_validate: could not store PV: " . $e->getMessage());
-  }
+  });
 
   api_ok(['meeting_id'=>$meetingId, 'status'=>'validated']);
 } catch (Throwable $e) {
