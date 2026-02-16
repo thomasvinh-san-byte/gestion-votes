@@ -78,31 +78,47 @@
   }
 
   function renderUsersTable(users) {
-    const tbody = document.getElementById('usersTableBody');
+    var container = document.getElementById('usersTableBody');
     if (!users.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-muted">No users found</td></tr>';
+      container.innerHTML = '<div class="text-center p-4 text-muted">Aucun utilisateur trouvé</div>';
       return;
     }
-    tbody.innerHTML = users.map(function(u) {
-      const meetingTags = (u.meeting_roles || []).map(function(mr) {
+    container.innerHTML = users.map(function(u) {
+      var meetingTags = (u.meeting_roles || []).map(function(mr) {
         return '<span class="meeting-role-tag"><span class="role-badge ' + escapeHtml(mr.role) + '">' +
           escapeHtml(allRoleLabels[mr.role] || mr.role) + '</span> ' +
           escapeHtml(mr.meeting_title || '') + '</span>';
       }).join(' ');
 
-      return '<tr data-user-id="' + u.id + '">' +
-        '<td><strong>' + escapeHtml(u.name || '') + '</strong></td>' +
-        '<td>' + escapeHtml(u.email || '') + '</td>' +
-        '<td><span class="role-badge ' + escapeHtml(u.role) + '">' + escapeHtml(roleLabelsSystem[u.role] || u.role) + '</span></td>' +
-        '<td>' + (meetingTags || '<span class="text-muted">—</span>') + '</td>' +
-        '<td>' + (u.is_active ? '<span class="text-success">Oui</span>' : '<span class="text-danger">Non</span>') + '</td>' +
-        '<td>' + (u.has_password ? '<span class="text-success">Oui</span>' : '<span class="text-muted">Non</span>') + '</td>' +
-        '<td class="flex gap-1 flex-wrap">' +
+      var initials = (u.name || '?').split(' ').map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+      var activeClass = u.is_active ? 'is-active' : 'is-inactive';
+      var statusDot = u.is_active
+        ? '<span class="user-status-dot active" title="Actif"></span>'
+        : '<span class="user-status-dot" title="Inactif"></span>';
+      var pwIcon = u.has_password
+        ? '<span class="user-pw-dot has-pw" title="Mot de passe défini"></span>'
+        : '<span class="user-pw-dot" title="Sans mot de passe"></span>';
+
+      return '<div class="user-row ' + activeClass + '" data-user-id="' + u.id + '">' +
+        '<div class="user-avatar">' + initials + '</div>' +
+        '<div class="user-row-body">' +
+          '<div class="user-row-main">' +
+            '<span class="user-row-name">' + escapeHtml(u.name || '') + '</span>' +
+            '<span class="user-row-email">' + escapeHtml(u.email || '') + '</span>' +
+          '</div>' +
+          '<div class="user-row-meta">' +
+            '<span class="role-badge ' + escapeHtml(u.role) + '">' + escapeHtml(roleLabelsSystem[u.role] || u.role) + '</span>' +
+            (meetingTags ? ' ' + meetingTags : '') +
+            statusDot + pwIcon +
+          '</div>' +
+        '</div>' +
+        '<div class="user-row-actions">' +
           '<button class="btn btn-ghost btn-xs btn-edit-user" data-id="' + u.id + '">Modifier</button>' +
           '<button class="btn btn-ghost btn-xs btn-toggle-user" data-id="' + u.id + '" data-active="' + (u.is_active ? '1' : '0') + '">' + (u.is_active ? 'Désactiver' : 'Activer') + '</button>' +
           '<button class="btn btn-ghost btn-xs btn-password-user" data-id="' + u.id + '" data-name="' + escapeHtml(u.name || '') + '">Mot de passe</button>' +
           '<button class="btn btn-ghost btn-xs btn-danger-text btn-delete-user" data-id="' + u.id + '" data-name="' + escapeHtml(u.name || '') + '">Supprimer</button>' +
-        '</td></tr>';
+        '</div>' +
+      '</div>';
     }).join('');
   }
 

@@ -229,9 +229,10 @@
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
             </button>
             <select class="form-input pagination-size" id="paginSize" aria-label="Membres par page">
-              <option value="20">20 / page</option>
-              <option value="50">50 / page</option>
-              <option value="100">100 / page</option>
+              <option value="12">12 / page</option>
+              <option value="24">24 / page</option>
+              <option value="48">48 / page</option>
+              <option value="96">96 / page</option>
             </select>
           </nav>
         </section>
@@ -296,7 +297,7 @@
     let currentFilter = 'all';
     let currentGroupFilter = null; // null = all groups
     let currentPage = 1;
-    let pageSize = 20;
+    let pageSize = 12;
 
     const paginPrev = document.getElementById('paginPrev');
     const paginNext = document.getElementById('paginNext');
@@ -698,30 +699,25 @@
         const vp = formatVotingPower(m.voting_power);
 
         return `
-          <article class="member-card ${cardClass}" data-member-id="${m.id}" aria-label="${escapeHtml(name)}">
-            <div class="member-card-top">
-              <div class="member-avatar">${initials}</div>
-              <div class="member-card-identity">
+          <article class="member-card ${cardClass}" data-member-id="${m.id}" onclick="openMemberDetail('${m.id}')" aria-label="${escapeHtml(name)}">
+            <div class="member-avatar">${initials}</div>
+            <div class="member-card-body">
+              <div class="member-card-main">
                 <h3 class="member-name">${escapeHtml(name)}</h3>
-                <p class="member-role">Poids : <strong>${vp}</strong> voix ${m.email ? '— <span class="text-muted">' + escapeHtml(m.email) + '</span>' : ''}</p>
+                ${m.email ? '<span class="member-email">' + escapeHtml(m.email) + '</span>' : ''}
+              </div>
+              <div class="member-card-meta">
+                <span class="member-weight" title="Poids de vote">${vp} voix</span>
+                ${statusBadge}
+                ${groupBadges}
               </div>
             </div>
-            <div class="member-card-tags">
-              ${statusBadge}
-              ${groupBadges}
-            </div>
             <div class="member-card-actions">
-              <button class="member-link-btn" onclick="openMemberDetail('${m.id}')" aria-label="Fiche de ${escapeHtml(name)}">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg>
-                Fiche
+              <button class="member-action-icon" onclick="event.stopPropagation(); editMember('${m.id}')" title="Modifier" aria-label="Modifier ${escapeHtml(name)}">
+                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
               </button>
-              <button class="member-link-btn" onclick="editMember('${m.id}')" aria-label="Modifier ${escapeHtml(name)}">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
-                Modifier
-              </button>
-              <button class="member-link-btn danger" onclick="deleteMember('${m.id}')" aria-label="Supprimer ${escapeHtml(name)}">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
-                Suppr.
+              <button class="member-action-icon danger" onclick="event.stopPropagation(); deleteMember('${m.id}')" title="Supprimer" aria-label="Supprimer ${escapeHtml(name)}">
+                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
               </button>
             </div>
           </article>
