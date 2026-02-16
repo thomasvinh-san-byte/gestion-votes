@@ -20,34 +20,41 @@
 
     <main class="app-main help-main">
       <div class="help-content">
-        <!-- Quick links -->
+        <!-- Quick links (role-based visibility) -->
         <div class="quick-links">
-          <a href="/meetings.htmx.html" class="quick-link">
+          <a href="/meetings.htmx.html" class="quick-link" data-required-role="admin,operator">
             <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></div>
             <div>
               <div class="quick-link-text">Gérer les séances</div>
               <div class="quick-link-desc">Créer et gérer vos réunions</div>
             </div>
           </a>
-          <a href="/members.htmx.html" class="quick-link">
+          <a href="/members.htmx.html" class="quick-link" data-required-role="admin,operator">
             <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-users"></use></svg></div>
             <div>
               <div class="quick-link-text">Gérer les membres</div>
               <div class="quick-link-desc">Membres et groupes</div>
             </div>
           </a>
-          <a href="/operator.htmx.html" class="quick-link">
+          <a href="/operator.htmx.html" class="quick-link" data-required-role="admin,operator">
             <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-file-text"></use></svg></div>
             <div>
               <div class="quick-link-text">Conduire une séance</div>
               <div class="quick-link-desc">Présences, votes, résultats</div>
             </div>
           </a>
-          <a href="/trust.htmx.html" class="quick-link">
+          <a href="/trust.htmx.html" class="quick-link" data-required-role="admin,auditor,assessor">
             <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-shield-check"></use></svg></div>
             <div>
               <div class="quick-link-text">Audit et contrôle</div>
               <div class="quick-link-desc">Journal et vérifications</div>
+            </div>
+          </a>
+          <a href="/vote.htmx.html" class="quick-link" data-required-role="voter,president,admin,operator">
+            <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-vote"></use></svg></div>
+            <div>
+              <div class="quick-link-text">Voter</div>
+              <div class="quick-link-desc">Accéder à l'interface de vote</div>
             </div>
           </a>
         </div>
@@ -60,14 +67,14 @@
           </div>
         </div>
 
-        <!-- Tabs -->
+        <!-- Tabs (role-based visibility) -->
         <div class="help-tabs">
           <button class="help-tab active" data-tab="all">Tous</button>
           <button class="help-tab" data-tab="general">Général</button>
-          <button class="help-tab" data-tab="operator">Opérateur</button>
+          <button class="help-tab" data-tab="operator" data-required-role="admin,operator">Opérateur</button>
           <button class="help-tab" data-tab="vote">Vote</button>
-          <button class="help-tab" data-tab="members">Membres</button>
-          <button class="help-tab" data-tab="security">Sécurité</button>
+          <button class="help-tab" data-tab="members" data-required-role="admin,operator">Membres</button>
+          <button class="help-tab" data-tab="security" data-required-role="admin,auditor,assessor">Sécurité</button>
         </div>
 
         <!-- FAQ Sections -->
@@ -118,7 +125,7 @@
           </div>
 
           <!-- Operator -->
-          <div class="faq-section" data-category="operator">
+          <div class="faq-section" data-category="operator" data-required-role="admin,operator">
             <div class="faq-section-title">
               <svg class="icon"><use href="/assets/icons.svg#icon-file-text"></use></svg>
               Conduite de séance
@@ -218,7 +225,7 @@
           </div>
 
           <!-- Members -->
-          <div class="faq-section" data-category="members">
+          <div class="faq-section" data-category="members" data-required-role="admin,operator">
             <div class="faq-section-title">
               <svg class="icon"><use href="/assets/icons.svg#icon-users"></use></svg>
               Gestion des membres
@@ -269,7 +276,7 @@
           </div>
 
           <!-- Security -->
-          <div class="faq-section" data-category="security">
+          <div class="faq-section" data-category="security" data-required-role="admin,auditor,assessor">
             <div class="faq-section-title">
               <svg class="icon"><use href="/assets/icons.svg#icon-shield-check"></use></svg>
               Sécurité et audit
@@ -354,6 +361,7 @@
   <script src="/assets/js/core/utils.js"></script>
   <script src="/assets/js/core/shared.js"></script>
   <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/pages/auth-ui.js"></script>
 
   <script>
   (function() {
@@ -364,7 +372,67 @@
     const items = document.querySelectorAll('.faq-item');
     const searchInput = document.getElementById('faqSearch');
 
-    // Tab switching
+    // =========================================================================
+    // ROLE-BASED VISIBILITY
+    // =========================================================================
+
+    /**
+     * Check if user has access to a required role.
+     * Uses window.Auth from auth-ui.js.
+     */
+    function hasAccess(requiredRoles) {
+      if (!requiredRoles) return true;
+
+      // If auth is not loaded yet or disabled, show everything
+      if (!window.Auth || !window.Auth.enabled) return true;
+
+      // Use Auth.hasAccess if available
+      if (window.Auth.hasAccess) {
+        return window.Auth.hasAccess(
+          requiredRoles,
+          window.Auth.role,
+          window.Auth.meetingRoles || []
+        );
+      }
+
+      // Fallback: simple role check
+      const role = window.Auth.role;
+      if (!role) return false;
+      if (role === 'admin') return true;
+
+      const roles = requiredRoles.split(',').map(r => r.trim());
+      return roles.includes(role);
+    }
+
+    /**
+     * Apply role-based visibility to elements with data-required-role.
+     */
+    function applyRoleVisibility() {
+      document.querySelectorAll('[data-required-role]').forEach(el => {
+        const required = el.getAttribute('data-required-role');
+        if (!hasAccess(required)) {
+          el.style.display = 'none';
+        } else {
+          el.style.display = '';
+        }
+      });
+
+      // If active tab is hidden, switch to "Tous"
+      const activeTab = document.querySelector('.help-tab.active');
+      if (activeTab && activeTab.style.display === 'none') {
+        const allTab = document.querySelector('.help-tab[data-tab="all"]');
+        if (allTab) {
+          tabs.forEach(t => t.classList.remove('active'));
+          allTab.classList.add('active');
+          filterContent('all', searchInput.value);
+        }
+      }
+    }
+
+    // =========================================================================
+    // TAB SWITCHING
+    // =========================================================================
+
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active'));
@@ -375,7 +443,10 @@
       });
     });
 
-    // FAQ item toggle
+    // =========================================================================
+    // FAQ ITEM TOGGLE
+    // =========================================================================
+
     items.forEach(item => {
       const question = item.querySelector('.faq-question');
       question.addEventListener('click', () => {
@@ -383,7 +454,10 @@
       });
     });
 
-    // Search
+    // =========================================================================
+    // SEARCH
+    // =========================================================================
+
     searchInput.addEventListener('input', () => {
       const activeTab = document.querySelector('.help-tab.active');
       const category = activeTab ? activeTab.dataset.tab : 'all';
@@ -397,7 +471,11 @@
         const sectionCategory = section.dataset.category;
         const matchesCategory = category === 'all' || sectionCategory === category;
 
-        if (!matchesCategory) {
+        // Check role access for section
+        const requiredRole = section.getAttribute('data-required-role');
+        const hasRoleAccess = hasAccess(requiredRole);
+
+        if (!matchesCategory || !hasRoleAccess) {
           section.classList.add('hidden');
           return;
         }
@@ -428,6 +506,18 @@
           section.classList.add('hidden');
         }
       });
+    }
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+
+    // Wait for Auth to be ready before applying visibility
+    if (window.Auth && window.Auth.ready) {
+      window.Auth.ready.then(applyRoleVisibility);
+    } else {
+      // Fallback: apply after a short delay
+      setTimeout(applyRoleVisibility, 500);
     }
   })();
   </script>
