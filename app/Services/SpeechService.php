@@ -204,6 +204,43 @@ final class SpeechService
     }
 
     /**
+     * Cancel a specific speech request by ID.
+     * Only cancels requests with 'waiting' status.
+     *
+     * @param string $meetingId Meeting ID
+     * @param string $requestId Speech request ID
+     * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
+     * @return array{speaker: ?array<string,mixed>, queue: array<int,array<string,mixed>>}
+     * @throws RuntimeException If request not found or not cancellable
+     */
+    public static function cancelRequest(string $meetingId, string $requestId, ?string $expectedTenantId = null): array
+    {
+        self::ensureSchema();
+
+        $tenantId = self::resolveTenant($meetingId, $expectedTenantId);
+        $repo = new SpeechRepository();
+
+        $req = $repo->findById($requestId, $tenantId);
+        if (!$req) {
+            throw new RuntimeException('Demande de parole introuvable');
+        }
+        if ((string)$req['meeting_id'] !== $meetingId) {
+            throw new RuntimeException('Demande de parole introuvable');
+        }
+        if ((string)$req['status'] !== 'waiting') {
+            throw new RuntimeException('Seules les demandes en attente peuvent être annulées');
+        }
+
+        $repo->updateStatus($requestId, $tenantId, 'cancelled');
+        audit_log('speech_cancelled', 'meeting', $meetingId, array_merge(
+            self::memberPayload((string)$req['member_id']),
+            ['request_id' => $requestId]
+        ));
+
+        return self::getQueue($meetingId);
+    }
+
+    /**
      * Clears the history of finished speech requests.
      * @param string $meetingId Meeting ID
      * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
