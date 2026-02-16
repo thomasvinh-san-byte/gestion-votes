@@ -11,12 +11,17 @@
 
 declare(strict_types=1);
 
+// Parsedown 1.7 has implicit nullable params incompatible with PHP 8.4+
+// Suppress deprecation warnings for this lightweight page (no app bootstrap)
+$_prevErrorLevel = error_reporting(E_ALL & ~E_DEPRECATED);
+
 // ─── Bootstrap (lightweight, no DB needed) ───
 $docsRoot = __DIR__ . '/docs';
 
 // ─── Autoload ───
 $autoload = dirname(__DIR__) . '/vendor/autoload.php';
 if (!file_exists($autoload)) {
+    error_reporting($_prevErrorLevel);
     http_response_code(500);
     echo 'Erreur : vendor/autoload.php introuvable. Exécutez composer install.';
     exit;
@@ -60,10 +65,7 @@ if (!file_exists($filePath) || !is_file($filePath)) {
 
     $parsedown = new Parsedown();
     $parsedown->setSafeMode(true);
-    // Parsedown 1.7 triggers PHP 8.4 deprecation warnings (implicit nullable params)
-    $prevLevel = error_reporting(E_ALL & ~E_DEPRECATED);
     $htmlContent = $parsedown->text($markdown);
-    error_reporting($prevLevel);
 
     // ─── Extract title from first H1 ───
     $title = $page;
@@ -97,6 +99,9 @@ if (!file_exists($filePath) || !is_file($filePath)) {
         $toc .= '</ul></nav>';
     }
 }
+
+// Restore error reporting now that Parsedown work is done
+error_reporting($_prevErrorLevel);
 
 // ─── Build the document index for the sidebar ───
 $docIndex = [];

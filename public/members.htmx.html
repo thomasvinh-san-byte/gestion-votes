@@ -131,8 +131,14 @@
             </div>
             <div class="collapsible-content">
               <div class="import-card-desc">
-                Colonnes: <code>name</code>, <code>email</code>, <code>voting_power</code>, <code>is_active</code>, <code>groups</code> (optionnel, noms séparés par |)
-                <ag-popover title="Format du fichier CSV" content="Exemple de ligne : Jean Dupont,jean@exemple.com,1,true,Collège A|Cadres. Les groupes non existants seront créés automatiquement." position="right" trigger="click"></ag-popover>
+                Colonnes : <code>nom</code>, <code>email</code>, <code>ponderation</code>, <code>actif</code>, <code>groupes</code> (séparés par <code>|</code>). Séparateur <code>;</code> ou <code>,</code> auto-détecté.
+                <ag-popover title="Format du fichier CSV" content="Exemple : Jean Dupont;jean@exemple.com;1;oui;Collège A|Cadres. Les groupes non existants seront créés automatiquement. Colonnes alternatives acceptées : name, full_name, voting_power, is_active, groups, college, categorie…" position="right" trigger="click"></ag-popover>
+              </div>
+              <div class="import-template-link">
+                <a href="/assets/modele_import_membres.csv" download class="btn btn-ghost btn-sm">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                  Télécharger le modèle CSV
+                </a>
               </div>
               <div class="upload-zone" id="uploadZone">
                 <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;">
@@ -147,7 +153,7 @@
                 <button class="btn btn-secondary" id="btnSeed">Générer fictifs</button>
                 <span class="text-sm text-muted file-name-text" id="fileName">Aucun fichier sélectionné</span>
               </div>
-              <pre id="importOut" class="mt-4 p-3 bg-subtle rounded-md text-sm font-mono" style="display: none;"></pre>
+              <div id="importOut" class="import-result" style="display: none;"></div>
             </div>
           </div>
         </div>
@@ -223,9 +229,10 @@
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
             </button>
             <select class="form-input pagination-size" id="paginSize" aria-label="Membres par page">
-              <option value="20">20 / page</option>
-              <option value="50">50 / page</option>
-              <option value="100">100 / page</option>
+              <option value="12">12 / page</option>
+              <option value="24">24 / page</option>
+              <option value="48">48 / page</option>
+              <option value="96">96 / page</option>
             </select>
           </nav>
         </section>
@@ -290,7 +297,7 @@
     let currentFilter = 'all';
     let currentGroupFilter = null; // null = all groups
     let currentPage = 1;
-    let pageSize = 20;
+    let pageSize = 12;
 
     const paginPrev = document.getElementById('paginPrev');
     const paginNext = document.getElementById('paginNext');
@@ -692,30 +699,25 @@
         const vp = formatVotingPower(m.voting_power);
 
         return `
-          <article class="member-card ${cardClass}" data-member-id="${m.id}" aria-label="${escapeHtml(name)}">
-            <div class="member-card-top">
-              <div class="member-avatar">${initials}</div>
-              <div class="member-card-identity">
+          <article class="member-card ${cardClass}" data-member-id="${m.id}" onclick="openMemberDetail('${m.id}')" aria-label="${escapeHtml(name)}">
+            <div class="member-avatar">${initials}</div>
+            <div class="member-card-body">
+              <div class="member-card-main">
                 <h3 class="member-name">${escapeHtml(name)}</h3>
-                <p class="member-role">Poids : <strong>${vp}</strong> voix ${m.email ? '— <span class="text-muted">' + escapeHtml(m.email) + '</span>' : ''}</p>
+                ${m.email ? '<span class="member-email">' + escapeHtml(m.email) + '</span>' : ''}
+              </div>
+              <div class="member-card-meta">
+                <span class="member-weight" title="Poids de vote">${vp} voix</span>
+                ${statusBadge}
+                ${groupBadges}
               </div>
             </div>
-            <div class="member-card-tags">
-              ${statusBadge}
-              ${groupBadges}
-            </div>
             <div class="member-card-actions">
-              <button class="member-link-btn" onclick="openMemberDetail('${m.id}')" aria-label="Fiche de ${escapeHtml(name)}">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg>
-                Fiche
+              <button class="member-action-icon" onclick="event.stopPropagation(); editMember('${m.id}')" title="Modifier" aria-label="Modifier ${escapeHtml(name)}">
+                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
               </button>
-              <button class="member-link-btn" onclick="editMember('${m.id}')" aria-label="Modifier ${escapeHtml(name)}">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
-                Modifier
-              </button>
-              <button class="member-link-btn danger" onclick="deleteMember('${m.id}')" aria-label="Supprimer ${escapeHtml(name)}">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
-                Suppr.
+              <button class="member-action-icon danger" onclick="event.stopPropagation(); deleteMember('${m.id}')" title="Supprimer" aria-label="Supprimer ${escapeHtml(name)}">
+                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
               </button>
             </div>
           </article>
@@ -1013,18 +1015,36 @@
 
         importOut.style.display = 'block';
         if (body?.ok) {
-          importOut.textContent = `Import réussi: ${body.data?.imported || 0} membres importés`;
-          importOut.className = 'mt-4 p-3 rounded-md text-sm font-mono alert alert-success';
-          setNotif('success', 'Import terminé');
+          const d = body.data || {};
+          const imported = d.imported || 0;
+          const skipped = d.skipped || 0;
+          const errors = d.errors || [];
+
+          let html = `<div class="import-summary import-summary-ok">
+            <strong>${imported} membre${imported > 1 ? 's' : ''} importé${imported > 1 ? 's' : ''}</strong>`;
+          if (skipped) html += ` — ${skipped} ligne${skipped > 1 ? 's' : ''} ignorée${skipped > 1 ? 's' : ''}`;
+          html += '</div>';
+
+          if (errors.length) {
+            html += '<div class="import-errors"><div class="import-errors-title">Lignes en erreur :</div><ul>';
+            errors.forEach(e => {
+              html += `<li>Ligne ${e.line || '?'} : ${escapeHtml(e.error || e.message || 'Erreur')}</li>`;
+            });
+            html += '</ul></div>';
+          }
+
+          importOut.innerHTML = html;
+          importOut.className = 'import-result';
+          setNotif('success', `Import terminé : ${imported} membres`);
           await fetchMembers();
         } else {
-          importOut.textContent = body?.error || 'Erreur import';
-          importOut.className = 'mt-4 p-3 rounded-md text-sm font-mono alert alert-danger';
+          importOut.innerHTML = `<div class="import-summary import-summary-err">${escapeHtml(body?.error || body?.detail || 'Erreur import')}</div>`;
+          importOut.className = 'import-result';
         }
       } catch (err) {
         importOut.style.display = 'block';
-        importOut.textContent = err.message;
-        importOut.className = 'mt-4 p-3 rounded-md text-sm font-mono alert alert-danger';
+        importOut.innerHTML = `<div class="import-summary import-summary-err">${escapeHtml(err.message)}</div>`;
+        importOut.className = 'import-result';
       } finally {
         Shared.btnLoading(btnImport, false);
         csvFile.value = '';
