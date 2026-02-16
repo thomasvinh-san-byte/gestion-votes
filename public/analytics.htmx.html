@@ -20,17 +20,6 @@
         <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
         Tableaux de bord
       </h1>
-      <div class="page-header-actions">
-        <div class="period-selector">
-          <button class="period-btn" data-period="month">Mois</button>
-          <button class="period-btn" data-period="quarter">Trimestre</button>
-          <button class="period-btn active" data-period="year">Année</button>
-          <button class="period-btn" data-period="all">Tout</button>
-        </div>
-        <button class="btn btn-ghost btn-icon" id="refreshBtn" title="Actualiser">
-          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh"></use></svg>
-        </button>
-      </div>
     </div>
 
     <main class="app-main analytics-main">
@@ -49,6 +38,19 @@
         <!-- Overview cards -->
         <div class="overview-grid" id="overviewCards">
           <div class="loading-spinner">Chargement...</div>
+        </div>
+
+        <!-- Charts controls -->
+        <div class="charts-controls">
+          <div class="period-selector">
+            <button class="period-btn" data-period="month">Mois</button>
+            <button class="period-btn" data-period="quarter">Trimestre</button>
+            <button class="period-btn active" data-period="year">Année</button>
+            <button class="period-btn" data-period="all">Tout</button>
+          </div>
+          <button class="btn btn-ghost btn-icon" id="refreshBtn" title="Actualiser">
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh"></use></svg>
+          </button>
         </div>
 
         <!-- Tabs -->
