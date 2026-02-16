@@ -214,6 +214,20 @@
           <div class="members-grid" id="membersList">
             <div class="text-center p-6 text-muted members-loading">Chargement...</div>
           </div>
+          <nav class="pagination" id="pagination" aria-label="Pagination des membres">
+            <button class="pagination-btn" id="paginPrev" type="button" disabled aria-label="Page précédente">
+              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-left"></use></svg>
+            </button>
+            <span class="pagination-info" id="paginInfo">Page 1 / 1</span>
+            <button class="pagination-btn" id="paginNext" type="button" disabled aria-label="Page suivante">
+              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+            </button>
+            <select class="form-input pagination-size" id="paginSize" aria-label="Membres par page">
+              <option value="20">20 / page</option>
+              <option value="50">50 / page</option>
+              <option value="100">100 / page</option>
+            </select>
+          </nav>
         </section>
 
       </div>
@@ -275,6 +289,13 @@
     let memberGroups = {}; // memberId -> [groupIds]
     let currentFilter = 'all';
     let currentGroupFilter = null; // null = all groups
+    let currentPage = 1;
+    let pageSize = 20;
+
+    const paginPrev = document.getElementById('paginPrev');
+    const paginNext = document.getElementById('paginNext');
+    const paginInfo = document.getElementById('paginInfo');
+    const paginSizeSelect = document.getElementById('paginSize');
 
     // Format voting power (avoid showing 1.0000, show 1 for integers)
     function formatVotingPower(vp) {
@@ -419,6 +440,7 @@
 
     window.filterByGroup = function(groupId) {
       currentGroupFilter = groupId;
+      currentPage = 1;
       renderGroupFilters();
       renderMembers(allMembers);
       updateFiltersHint();
@@ -629,11 +651,21 @@
     // RENDER MEMBERS
     // ==========================================
 
+    function updatePagination(totalFiltered) {
+      const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+      if (currentPage > totalPages) currentPage = totalPages;
+      paginPrev.disabled = currentPage <= 1;
+      paginNext.disabled = currentPage >= totalPages;
+      paginInfo.textContent = `Page ${currentPage} / ${totalPages}`;
+    }
+
     function renderMembers(members) {
       const search = searchInput.value.trim();
       const filtered = sortMembers(filterMembers(members, currentFilter, search, currentGroupFilter));
       const n = filtered.length;
       membersCount.textContent = `${n} membre${n > 1 ? 's' : ''}`;
+
+      updatePagination(n);
 
       if (!n) {
         membersList.innerHTML = `
@@ -646,7 +678,10 @@
         return;
       }
 
-      membersList.innerHTML = filtered.map(m => {
+      const start = (currentPage - 1) * pageSize;
+      const paged = filtered.slice(start, start + pageSize);
+
+      membersList.innerHTML = paged.map(m => {
         const name = m.full_name || m.name || '—';
         const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
         const cardClass = m.is_active ? 'is-active' : 'is-inactive';
@@ -902,6 +937,7 @@
         filterChips.forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
         currentFilter = chip.dataset.filter;
+        currentPage = 1;
         renderMembers(allMembers);
         updateFiltersHint();
       });
@@ -909,12 +945,26 @@
 
     // Search
     searchInput.addEventListener('input', () => {
+      currentPage = 1;
       renderMembers(allMembers);
       updateFiltersHint();
     });
 
     // Sort
     sortSelect.addEventListener('change', () => {
+      renderMembers(allMembers);
+    });
+
+    // Pagination
+    paginPrev.addEventListener('click', () => {
+      if (currentPage > 1) { currentPage--; renderMembers(allMembers); }
+    });
+    paginNext.addEventListener('click', () => {
+      currentPage++; renderMembers(allMembers);
+    });
+    paginSizeSelect.addEventListener('change', () => {
+      pageSize = parseInt(paginSizeSelect.value) || 20;
+      currentPage = 1;
       renderMembers(allMembers);
     });
 
