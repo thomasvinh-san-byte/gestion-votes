@@ -22,9 +22,15 @@
 <main class="projection-main">
   <!-- Motion title -->
   <section class="motion-section">
+    <div class="motion-number" id="motion_number"></div>
     <h1 class="motion-title" id="motion_title">—</h1>
     <p class="motion-subtitle" id="motion_sub"></p>
   </section>
+
+  <!-- Resolution text -->
+  <div class="resolution-box" id="resolution_box">
+    <div class="resolution-text" id="resolution_text"></div>
+  </div>
 
   <!-- Waiting state -->
   <div class="waiting-state" id="waiting_state">
@@ -121,7 +127,10 @@
   <div class="error-box" id="error_box"></div>
 </main>
 
-<footer class="projection-footer">AG-VOTE</footer>
+<footer class="projection-footer">
+  <span class="footer-brand">AG-VOTE</span>
+  <span class="footer-update" id="footer_update"></span>
+</footer>
 
 <div class="sr-only" id="sr_alert" aria-live="assertive" aria-atomic="true"></div>
 
@@ -299,6 +308,41 @@ async function loadResults(motionId, reveal = true) {
   }
 }
 
+// Update resolution text box
+function updateResolution(motionData) {
+  const box = document.getElementById('resolution_box');
+  const text = document.getElementById('resolution_text');
+  const num = document.getElementById('motion_number');
+
+  if (!motionData) {
+    show('resolution_box', false);
+    if (num) num.textContent = '';
+    return;
+  }
+
+  // Motion number
+  if (num) {
+    num.textContent = motionData.position ? 'Resolution n\u00b0' + motionData.position : '';
+  }
+
+  // Resolution body text
+  const content = motionData.body || motionData.description || '';
+  if (content) {
+    text.textContent = content;
+    show('resolution_box', true);
+  } else {
+    show('resolution_box', false);
+  }
+}
+
+// Update footer timestamp
+function updateTimestamp() {
+  const el = document.getElementById('footer_update');
+  if (el) {
+    el.textContent = 'Mis \u00e0 jour : ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+}
+
 // Refresh screen
 async function refresh() {
   const badge = document.getElementById('badge');
@@ -323,7 +367,9 @@ async function refresh() {
         show('chart_container', false);
         show('decision_section', false);
         show('secret_block', false);
+        updateResolution(null);
         resetBars();
+        updateTimestamp();
         return;
       }
       throw new Error(data.error || 'Erreur inconnue');
@@ -341,6 +387,7 @@ async function refresh() {
       motion.textContent = s.motion.title || 'Resolution';
       sub.textContent = s.motion.secret ? 'Vote secret' : '';
       show('waiting_state', false);
+      updateResolution(s.motion);
 
       if (currentMotionId !== s.motion.id) {
         resetBars();
@@ -356,6 +403,7 @@ async function refresh() {
       motion.textContent = s.motion.title || 'Resolution';
       sub.textContent = 'Resultat final';
       show('waiting_state', false);
+      updateResolution(s.motion);
 
       if (currentMotionId !== s.motion.id) {
         resetBars();
@@ -374,9 +422,12 @@ async function refresh() {
       show('chart_container', false);
       show('decision_section', false);
       show('secret_block', false);
+      updateResolution(null);
       currentMotionId = null;
       resetBars();
     }
+
+    updateTimestamp();
 
   } catch (e) {
     console.error('refresh error:', e);

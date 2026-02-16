@@ -138,8 +138,11 @@
               .then(function(who) {
                 var mr = (who.data && who.data.meeting_roles) || [];
                 var isPresident = mr.some(function(r) { return r.role === 'president'; });
+                var isVoter = mr.some(function(r) { return r.role === 'voter'; });
                 if (isPresident) {
                   window.location.href = '/operator.htmx.html';
+                } else if (isVoter) {
+                  window.location.href = '/vote.htmx.html';
                 } else {
                   var role = user.role || 'viewer';
                   var defaultPage = {
@@ -187,8 +190,11 @@
             }
             var mr = (data.data && data.data.meeting_roles) || [];
             var isPresident = mr.some(function(r) { return r.role === 'president'; });
+            var isVoter = mr.some(function(r) { return r.role === 'voter'; });
             if (isPresident) {
               window.location.href = '/operator.htmx.html';
+            } else if (isVoter) {
+              window.location.href = '/vote.htmx.html';
             } else {
               var defaultPage = {
                 admin: '/admin.htmx.html',

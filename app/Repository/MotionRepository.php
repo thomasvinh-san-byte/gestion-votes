@@ -499,12 +499,12 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
-     * Trouve la motion ouverte pour le projecteur (id, title, secret, opened_at).
+     * Trouve la motion ouverte pour le projecteur.
      */
     public function findOpenForProjector(string $meetingId): ?array
     {
         return $this->selectOne(
-            "SELECT id, title, secret, opened_at
+            "SELECT id, title, description, body, secret, position, opened_at
              FROM motions
              WHERE meeting_id = :meeting_id
                AND opened_at IS NOT NULL
@@ -516,12 +516,12 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
-     * Trouve la derniere motion fermee pour le projecteur (id, title, secret, closed_at).
+     * Trouve la derniere motion fermee pour le projecteur.
      */
     public function findLastClosedForProjector(string $meetingId): ?array
     {
         return $this->selectOne(
-            "SELECT id, title, secret, closed_at
+            "SELECT id, title, description, body, secret, position, closed_at
              FROM motions
              WHERE meeting_id = :meeting_id
                AND closed_at IS NOT NULL
