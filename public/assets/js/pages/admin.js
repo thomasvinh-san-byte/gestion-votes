@@ -92,12 +92,12 @@
 
       var initials = (u.name || '?').split(' ').map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
       var activeClass = u.is_active ? 'is-active' : 'is-inactive';
-      var statusDot = u.is_active
-        ? '<span class="user-status-dot active" title="Actif"></span>'
-        : '<span class="user-status-dot" title="Inactif"></span>';
-      var pwIcon = u.has_password
-        ? '<span class="user-pw-dot has-pw" title="Mot de passe défini"></span>'
-        : '<span class="user-pw-dot" title="Sans mot de passe"></span>';
+      var statusBadge = u.is_active
+        ? '<span class="user-status-badge active">Actif</span>'
+        : '<span class="user-status-badge">Inactif</span>';
+      var pwBadge = u.has_password
+        ? '<span class="user-pw-badge has-pw">MdP</span>'
+        : '<span class="user-pw-badge">Sans MdP</span>';
 
       return '<div class="user-row ' + activeClass + '" data-user-id="' + u.id + '">' +
         '<div class="user-avatar">' + initials + '</div>' +
@@ -109,7 +109,7 @@
           '<div class="user-row-meta">' +
             '<span class="role-badge ' + escapeHtml(u.role) + '">' + escapeHtml(roleLabelsSystem[u.role] || u.role) + '</span>' +
             (meetingTags ? ' ' + meetingTags : '') +
-            statusDot + pwIcon +
+            statusBadge + pwBadge +
           '</div>' +
         '</div>' +
         '<div class="user-row-actions">' +

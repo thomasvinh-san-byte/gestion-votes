@@ -36,16 +36,22 @@ try {
     if ($open) {
         $phase = 'active';
         $motion = [
-            'id'     => (string)$open['id'],
-            'title'  => (string)$open['title'],
-            'secret' => (bool)$open['secret'],
+            'id'          => (string)$open['id'],
+            'title'       => (string)$open['title'],
+            'description' => (string)($open['description'] ?? ''),
+            'body'        => (string)($open['body'] ?? ''),
+            'secret'      => (bool)$open['secret'],
+            'position'    => $open['position'] !== null ? (int)$open['position'] : null,
         ];
     } elseif ($closed) {
         $phase = 'closed';
         $motion = [
-            'id'     => (string)$closed['id'],
-            'title'  => (string)$closed['title'],
-            'secret' => (bool)$closed['secret'],
+            'id'          => (string)$closed['id'],
+            'title'       => (string)$closed['title'],
+            'description' => (string)($closed['description'] ?? ''),
+            'body'        => (string)($closed['body'] ?? ''),
+            'secret'      => (bool)$closed['secret'],
+            'position'    => $closed['position'] !== null ? (int)$closed['position'] : null,
         ];
     }
 

@@ -197,7 +197,11 @@
   function enforcePageRole() {
     var pageRole = document.documentElement.getAttribute('data-page-role') ||
                    document.body.getAttribute('data-page-role');
-    if (!pageRole) return; // No restriction on this page
+    if (!pageRole) {
+      // Even without page role, enforce voter confinement
+      enforceVoterConfinement(window.Auth.role, window.Auth.meetingRoles);
+      return;
+    }
 
     var role = window.Auth.role;
     var meetingRoles = window.Auth.meetingRoles || [];
@@ -213,7 +217,11 @@
     }
 
     // Check access
-    if (hasAccess(pageRole, role, meetingRoles)) return; // OK
+    if (hasAccess(pageRole, role, meetingRoles)) {
+      // Voter confinement: voters can only access vote + public pages
+      enforceVoterConfinement(role, meetingRoles);
+      return; // OK
+    }
 
     // Access denied - replace main content
     var main = document.querySelector('.app-main') || document.querySelector('main') || document.body;
@@ -235,6 +243,42 @@
       '    <a href="/login.html" class="btn btn-primary">Changer de compte</a>' +
       '  </div>' +
       '</div>';
+  }
+
+  // =========================================================================
+  // VOTER CONFINEMENT
+  // =========================================================================
+
+  /**
+   * Voters (meeting role only, no elevated system role) are confined to
+   * /vote.htmx.html and /public.htmx.html. Redirect elsewhere → vote page.
+   */
+  function enforceVoterConfinement(systemRole, meetingRoles) {
+    if (!meetingRoles || !meetingRoles.length) return;
+
+    // Only confine users whose highest system role is viewer (or lower)
+    var level = SYSTEM_ROLE_LEVEL[systemRole] || 0;
+    if (level > SYSTEM_ROLE_LEVEL.viewer) return; // operator/admin/auditor → no confinement
+
+    // Check if user has voter meeting role
+    var isVoter = meetingRoles.some(function(mr) { return mr.role === 'voter'; });
+    if (!isVoter) return;
+
+    // President and assessor are not confined
+    var hasGovRole = meetingRoles.some(function(mr) {
+      return mr.role === 'president' || mr.role === 'assessor';
+    });
+    if (hasGovRole) return;
+
+    // Allowed pages for voters
+    var path = window.location.pathname;
+    var allowed = ['/vote.htmx.html', '/public.htmx.html'];
+    for (var i = 0; i < allowed.length; i++) {
+      if (path === allowed[i]) return;
+    }
+
+    // Redirect to vote page
+    window.location.href = '/vote.htmx.html' + window.location.search;
   }
 
   // =========================================================================
