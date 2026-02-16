@@ -20,7 +20,10 @@
         <div class="page-header-subtitle">Gestion des participants et pondération</div>
       </div>
       <div class="page-header-actions">
-        <a class="btn btn-secondary" href="/api/v1/members_export_csv.php" target="_blank">Exporter CSV</a>
+        <a class="btn btn-secondary" href="/api/v1/members_export_csv.php" target="_blank">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+          Exporter CSV
+        </a>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" aria-label="Menu"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg></button>
       </div>
     </div>
@@ -46,12 +49,16 @@
     </div>
 
     <main class="app-main members-main">
-      <div class="page-content">
-        <div id="notif_box" class="alert hidden mb-4"></div>
+      <div id="notif_box" class="alert hidden mb-4" style="margin: 1rem 1.5rem 0;"></div>
 
+      <!-- Management panels (collapsible, above the two-column layout) -->
+      <div class="members-management">
         <!-- Create member card -->
         <div class="create-card">
-          <h3>Ajouter un membre</h3>
+          <h3>
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user-plus"></use></svg>
+            Ajouter un membre
+          </h3>
           <div class="create-form">
             <div class="form-group">
               <label for="mName">Nom complet *</label>
@@ -82,96 +89,147 @@
           </div>
         </div>
 
-        <!-- Groups management section (collapsible) -->
-        <div class="collapsible-section" id="groupsSection">
-          <div class="collapsible-header" onclick="toggleSection('groupsSection')">
-            <h3>
-              <span>Groupes de membres</span>
-              <ag-popover title="Groupes de membres" content="Catégorisez vos membres par collèges électoraux, départements, ou tout autre critère. Les groupes facilitent le filtrage et permettent d'obtenir des statistiques par catégorie." position="right" trigger="click"></ag-popover>
-            </h3>
-            <svg class="icon collapsible-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
-          </div>
-          <div class="collapsible-content">
-            <p class="text-sm text-muted mb-4">Organisez vos membres par catégories, collèges électoraux, départements, etc.</p>
-
-            <!-- Create group form -->
-            <div class="create-group-form">
-              <div class="form-group">
-                <label for="groupName">Nom du groupe</label>
-                <input class="form-input" type="text" id="groupName" placeholder="Ex: Collège A, Cadres...">
+        <!-- Collapsible panels row -->
+        <div class="mgmt-panels-row">
+          <!-- Groups management section (collapsible) -->
+          <div class="collapsible-section" id="groupsSection">
+            <div class="collapsible-header" onclick="toggleSection('groupsSection')">
+              <h3>
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+                <span>Groupes de membres</span>
+                <ag-popover title="Groupes de membres" content="Catégorisez vos membres par collèges électoraux, départements, ou tout autre critère. Les groupes facilitent le filtrage et permettent d'obtenir des statistiques par catégorie." position="right" trigger="click"></ag-popover>
+              </h3>
+              <svg class="icon collapsible-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+            </div>
+            <div class="collapsible-content">
+              <p class="text-sm text-muted mb-4">Organisez vos membres par catégories, collèges électoraux, départements, etc.</p>
+              <div class="create-group-form">
+                <div class="form-group">
+                  <label for="groupName">Nom du groupe</label>
+                  <input class="form-input" type="text" id="groupName" placeholder="Ex: Collège A, Cadres...">
+                </div>
+                <div class="form-group form-group-color">
+                  <label for="groupColor">Couleur</label>
+                  <input type="color" id="groupColor" value="#6366f1">
+                </div>
+                <button class="btn btn-primary" id="btnCreateGroup">Créer groupe</button>
               </div>
-              <div class="form-group form-group-color">
-                <label for="groupColor">Couleur</label>
-                <input type="color" id="groupColor" value="#6366f1">
+              <div class="groups-grid" id="groupsList">
+                <div class="text-muted text-sm">Chargement...</div>
               </div>
-              <button class="btn btn-primary" id="btnCreateGroup">Créer groupe</button>
             </div>
+          </div>
 
-            <!-- Groups list -->
-            <div class="groups-grid" id="groupsList">
-              <div class="text-muted text-sm">Chargement...</div>
+          <!-- Import section (collapsible) -->
+          <div class="collapsible-section" id="importSection">
+            <div class="collapsible-header" onclick="toggleSection('importSection')">
+              <h3>
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
+                <span>Importation CSV</span>
+              </h3>
+              <svg class="icon collapsible-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+            </div>
+            <div class="collapsible-content">
+              <div class="import-card-desc">
+                Colonnes: <code>name</code>, <code>email</code>, <code>voting_power</code>, <code>is_active</code>, <code>groups</code> (optionnel, noms séparés par |)
+                <ag-popover title="Format du fichier CSV" content="Exemple de ligne : Jean Dupont,jean@exemple.com,1,true,Collège A|Cadres. Les groupes non existants seront créés automatiquement." position="right" trigger="click"></ag-popover>
+              </div>
+              <div class="upload-zone" id="uploadZone">
+                <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;">
+                <div class="upload-zone-icon">
+                  <svg class="icon" style="width:2rem;height:2rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
+                </div>
+                <div class="upload-zone-text">Glisser un fichier CSV ici</div>
+                <div class="upload-zone-hint">ou cliquer pour sélectionner</div>
+              </div>
+              <div class="flex gap-2 mt-4">
+                <button class="btn btn-primary" id="btnImport" disabled>Importer</button>
+                <button class="btn btn-secondary" id="btnSeed">Générer fictifs</button>
+                <span class="text-sm text-muted file-name-text" id="fileName">Aucun fichier sélectionné</span>
+              </div>
+              <pre id="importOut" class="mt-4 p-3 bg-subtle rounded-md text-sm font-mono" style="display: none;"></pre>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Import section (collapsible) -->
-        <div class="collapsible-section" id="importSection">
-          <div class="collapsible-header" onclick="toggleSection('importSection')">
-            <h3><span>Importation CSV</span></h3>
-            <svg class="icon collapsible-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+      <!-- Two-column layout: filters sidebar + results grid -->
+      <div class="members-layout">
+
+        <!-- LEFT: Search & Filters panel -->
+        <aside class="members-filters-panel" aria-label="Recherche et filtres">
+          <div class="filters-panel-header">
+            <h2>Recherche</h2>
+            <span class="filters-hint" id="activeFiltersHint">0 filtre</span>
           </div>
-          <div class="collapsible-content">
-            <div class="import-card-desc">
-              Colonnes: <code>name</code>, <code>email</code>, <code>voting_power</code>, <code>is_active</code>, <code>groups</code> (optionnel, noms séparés par |)
-              <ag-popover title="Format du fichier CSV" content="Exemple de ligne : Jean Dupont,jean@exemple.com,1,true,Collège A|Cadres. Les groupes non existants seront créés automatiquement." position="right" trigger="click"></ag-popover>
+          <div class="filters-panel-body">
+            <!-- Search -->
+            <div class="field">
+              <label for="searchInput">Nom, email…</label>
+              <div class="search-input-wrap">
+                <svg class="icon search-input-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-search"></use></svg>
+                <input class="form-input search-input-field" type="search" id="searchInput" placeholder="Rechercher un membre...">
+              </div>
             </div>
-            <div class="upload-zone" id="uploadZone">
-              <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;">
-              <div class="upload-zone-icon"></div>
-              <div class="upload-zone-text">Glisser un fichier CSV ici</div>
-              <div class="upload-zone-hint">ou cliquer pour sélectionner</div>
+
+            <!-- Status filter -->
+            <div class="field">
+              <label>Statut</label>
+              <div class="filter-chips" role="group" aria-label="Filtrer par statut">
+                <button class="filter-chip active" data-filter="all">Tous</button>
+                <button class="filter-chip" data-filter="active">Actifs</button>
+                <button class="filter-chip" data-filter="inactive">Inactifs</button>
+              </div>
             </div>
-            <div class="flex gap-2 mt-4">
-              <button class="btn btn-primary" id="btnImport" disabled>Importer</button>
-              <button class="btn btn-secondary" id="btnSeed">Générer fictifs</button>
-              <span class="text-sm text-muted file-name-text" id="fileName">Aucun fichier sélectionné</span>
+
+            <!-- Group filters -->
+            <div class="field" id="groupFiltersField" style="display: none;">
+              <label>Groupes</label>
+              <div class="filter-chips filter-chips-col" id="groupFilters" role="group" aria-label="Filtrer par groupe">
+                <!-- Populated by JavaScript -->
+              </div>
             </div>
-            <pre id="importOut" class="mt-4 p-3 bg-subtle rounded-md text-sm font-mono" style="display: none;"></pre>
+
+            <!-- Sort -->
+            <div class="field">
+              <label for="sortSelect">Trier par</label>
+              <select class="form-input" id="sortSelect">
+                <option value="nameAsc">Nom (A → Z)</option>
+                <option value="nameDesc">Nom (Z → A)</option>
+                <option value="powerDesc">Poids (décroissant)</option>
+                <option value="powerAsc">Poids (croissant)</option>
+              </select>
+            </div>
           </div>
-        </div>
+        </aside>
 
-        <!-- Filter tabs -->
-        <div class="filter-tabs">
-          <button class="filter-tab active" data-filter="all">Tous</button>
-          <button class="filter-tab" data-filter="active">Actifs</button>
-          <button class="filter-tab" data-filter="inactive">Inactifs</button>
-        </div>
-
-        <!-- Group filters -->
-        <div class="group-filters" id="groupFilters">
-          <!-- Populated by JavaScript -->
-        </div>
-
-        <!-- Toolbar -->
-        <div class="toolbar">
-          <div class="search-box">
-            <input type="text" class="form-input" id="searchInput" placeholder="Rechercher un membre...">
+        <!-- RIGHT: Results -->
+        <section class="members-results" aria-label="Résultats">
+          <div class="results-meta">
+            <div class="results-meta-left">
+              <span class="results-count" id="membersCount">0 membre</span>
+              <span class="results-subtitle" id="resultsSubtitle">Affichage de l'ensemble des membres</span>
+            </div>
           </div>
-        </div>
+          <div class="members-grid" id="membersList">
+            <div class="text-center p-6 text-muted members-loading">Chargement...</div>
+          </div>
+        </section>
 
-        <!-- Section header -->
-        <div class="section-header">
-          <span class="section-title">Liste des membres</span>
-          <span class="text-sm text-muted" id="membersCount">0 membres</span>
-        </div>
-
-        <!-- Members grid -->
-        <div class="members-grid" id="membersList">
-          <div class="text-center p-6 text-muted members-loading">Chargement...</div>
-        </div>
       </div>
     </main>
   </div>
+
+  <!-- Member detail dialog -->
+  <dialog id="memberDetailDialog" aria-labelledby="memberDetailTitle">
+    <div class="dialog-header">
+      <h3 id="memberDetailTitle">Fiche membre</h3>
+      <button class="btn btn-ghost btn-icon btn-sm" id="closeMemberDetail" type="button" aria-label="Fermer">
+        <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg>
+      </button>
+    </div>
+    <div class="dialog-body" id="memberDetailBody"></div>
+  </dialog>
 
   <!-- Drawer -->
   <div class="drawer-backdrop" data-drawer-close></div>
@@ -198,13 +256,19 @@
     const searchInput = document.getElementById('searchInput');
     const membersList = document.getElementById('membersList');
     const membersCount = document.getElementById('membersCount');
-    const filterTabs = document.querySelectorAll('.filter-tab');
+    const resultsSubtitle = document.getElementById('resultsSubtitle');
+    const filterChips = document.querySelectorAll('.filter-chip[data-filter]');
     const uploadZone = document.getElementById('uploadZone');
     const csvFile = document.getElementById('csvFile');
     const btnImport = document.getElementById('btnImport');
     const fileName = document.getElementById('fileName');
     const groupsList = document.getElementById('groupsList');
     const groupFilters = document.getElementById('groupFilters');
+    const groupFiltersField = document.getElementById('groupFiltersField');
+    const sortSelect = document.getElementById('sortSelect');
+    const activeFiltersHint = document.getElementById('activeFiltersHint');
+    const memberDetailDialog = document.getElementById('memberDetailDialog');
+    const memberDetailBody = document.getElementById('memberDetailBody');
 
     let allMembers = [];
     let allGroups = [];
@@ -224,12 +288,24 @@
       section.classList.toggle('expanded');
     };
 
+    // Update active filters count hint
+    function updateFiltersHint() {
+      let n = 0;
+      if (searchInput.value.trim()) n++;
+      if (currentFilter !== 'all') n++;
+      if (currentGroupFilter) n++;
+      activeFiltersHint.textContent = n + (n > 1 ? ' filtres' : ' filtre');
+
+      resultsSubtitle.textContent = n > 0
+        ? 'Filtré selon vos critères'
+        : 'Affichage de l\'ensemble des membres';
+    }
+
     // Update stats
     function updateStats(members) {
       const total = members.length;
       const active = members.filter(m => m.is_active).length;
       const inactive = total - active;
-      // Parse voting_power as float to avoid string concatenation
       const power = members.filter(m => m.is_active).reduce((sum, m) => {
         const vp = parseFloat(m.voting_power) || 1;
         return sum + vp;
@@ -238,7 +314,6 @@
       document.getElementById('kpiTotal').textContent = total;
       document.getElementById('kpiActive').textContent = active;
       document.getElementById('kpiInactive').textContent = inactive;
-      // Format as integer if whole number, otherwise show 2 decimals
       document.getElementById('kpiPower').textContent = Number.isInteger(power) ? power : power.toFixed(2);
     }
 
@@ -260,7 +335,6 @@
         );
       }
 
-      // Filter by group
       if (groupId) {
         filtered = filtered.filter(m => {
           const groups = memberGroups[m.id] || [];
@@ -271,11 +345,24 @@
       return filtered;
     }
 
+    // Sort members
+    function sortMembers(members) {
+      const v = sortSelect.value;
+      const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+      const copy = [...members];
+
+      if (v === 'nameAsc') copy.sort((a, b) => norm(a.full_name || a.name).localeCompare(norm(b.full_name || b.name)));
+      if (v === 'nameDesc') copy.sort((a, b) => norm(b.full_name || b.name).localeCompare(norm(a.full_name || a.name)));
+      if (v === 'powerDesc') copy.sort((a, b) => (parseFloat(b.voting_power) || 1) - (parseFloat(a.voting_power) || 1));
+      if (v === 'powerAsc') copy.sort((a, b) => (parseFloat(a.voting_power) || 1) - (parseFloat(b.voting_power) || 1));
+
+      return copy;
+    }
+
     // ==========================================
     // GROUPS MANAGEMENT
     // ==========================================
 
-    // Fetch all groups
     async function fetchGroups() {
       try {
         const { body } = await api('/api/v1/member_groups.php');
@@ -288,7 +375,6 @@
       }
     }
 
-    // Render groups list
     function renderGroups() {
       if (!allGroups.length) {
         groupsList.innerHTML = '<div class="text-muted text-sm">Aucun groupe créé</div>';
@@ -312,17 +398,18 @@
       `).join('');
     }
 
-    // Render group filter tabs
     function renderGroupFilters() {
       if (!allGroups.length) {
         groupFilters.innerHTML = '';
+        groupFiltersField.style.display = 'none';
         return;
       }
 
-      const allBtn = `<button class="group-filter ${!currentGroupFilter ? 'active' : ''}" onclick="filterByGroup(null)">Tous les groupes</button>`;
+      groupFiltersField.style.display = '';
+      const allBtn = `<button class="filter-chip ${!currentGroupFilter ? 'active' : ''}" onclick="filterByGroup(null)">Tous les groupes</button>`;
       const groupBtns = allGroups.map(g => `
-        <button class="group-filter ${currentGroupFilter === g.id ? 'active' : ''}" onclick="filterByGroup('${g.id}')">
-          <span class="group-color-dot" style="background-color: ${escapeHtml(g.color || '#6366f1')}"></span>
+        <button class="filter-chip ${currentGroupFilter === g.id ? 'active' : ''}" onclick="filterByGroup('${g.id}')">
+          <span class="group-color-dot-sm" style="background-color: ${escapeHtml(g.color || '#6366f1')}"></span>
           ${escapeHtml(g.name)}
         </button>
       `).join('');
@@ -330,14 +417,13 @@
       groupFilters.innerHTML = allBtn + groupBtns;
     }
 
-    // Filter by group
     window.filterByGroup = function(groupId) {
       currentGroupFilter = groupId;
       renderGroupFilters();
       renderMembers(allMembers);
+      updateFiltersHint();
     };
 
-    // Create group
     document.getElementById('btnCreateGroup').addEventListener('click', async () => {
       const name = document.getElementById('groupName').value.trim();
       const color = document.getElementById('groupColor').value || '#6366f1';
@@ -367,7 +453,6 @@
       }
     });
 
-    // Edit group
     window.editGroup = function(groupId) {
       const group = allGroups.find(g => g.id === groupId);
       if (!group) return;
@@ -423,7 +508,6 @@
       });
     };
 
-    // Delete group
     window.deleteGroup = async function(groupId) {
       const group = allGroups.find(g => g.id === groupId);
       if (!group) return;
@@ -448,7 +532,6 @@
       }
     };
 
-    // Get member's groups for rendering
     function getMemberGroupBadges(memberId) {
       const groups = memberGroups[memberId] || [];
       if (!groups.length) return '';
@@ -463,14 +546,8 @@
       }).join('');
     }
 
-    // Fetch member groups (for each member)
     async function fetchMemberGroups() {
-      // We'll fetch groups for all members in parallel (or use a bulk endpoint if available)
       memberGroups = {};
-
-      // For now, we'll fetch from member data if it includes groups
-      // Otherwise this would need a separate API call per member
-      // Let's check if members include groups data
       for (const m of allMembers) {
         if (m.groups) {
           memberGroups[m.id] = m.groups.map(g => g.id);
@@ -478,18 +555,92 @@
       }
     }
 
-    // Render members
+    // ==========================================
+    // MEMBER DETAIL DIALOG
+    // ==========================================
+
+    window.openMemberDetail = function(memberId) {
+      const m = allMembers.find(x => x.id === memberId);
+      if (!m) return;
+
+      const name = m.full_name || m.name || '—';
+      const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+      const groupBadges = getMemberGroupBadges(m.id);
+
+      memberDetailBody.innerHTML = `
+        <div class="detail-header-row">
+          <div class="detail-avatar ${m.is_active ? 'is-active' : ''}">${initials}</div>
+          <div>
+            <div class="detail-name">${escapeHtml(name)}</div>
+            <div class="detail-status">${m.is_active
+              ? '<span class="badge badge-success badge-sm">Actif</span>'
+              : '<span class="badge badge-neutral badge-sm">Inactif</span>'}</div>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-field">
+            <div class="detail-label">Email</div>
+            <div class="detail-value">${m.email
+              ? '<a href="mailto:' + encodeURIComponent(m.email) + '">' + escapeHtml(m.email) + '</a>'
+              : '<span class="text-muted">Non renseigné</span>'}</div>
+          </div>
+          <div class="detail-field">
+            <div class="detail-label">Poids de vote</div>
+            <div class="detail-value detail-value-mono">${formatVotingPower(m.voting_power)}</div>
+          </div>
+          <div class="detail-field">
+            <div class="detail-label">Identifiant</div>
+            <div class="detail-value detail-value-mono" style="font-size: 0.75rem;">${escapeHtml(m.id)}</div>
+          </div>
+          ${groupBadges ? `
+          <div class="detail-field detail-field-full">
+            <div class="detail-label">Groupes</div>
+            <div class="detail-value"><div class="member-groups">${groupBadges}</div></div>
+          </div>` : ''}
+        </div>
+        <div class="detail-actions">
+          <button class="btn btn-primary btn-sm" onclick="editMember('${m.id}'); memberDetailDialog.close();">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
+            Modifier
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="toggleActive('${m.id}', ${!m.is_active}); memberDetailDialog.close();">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-${m.is_active ? 'pause' : 'play'}"></use></svg>
+            ${m.is_active ? 'Désactiver' : 'Activer'}
+          </button>
+          ${m.email ? `<a class="btn btn-ghost btn-sm" href="mailto:${encodeURIComponent(m.email)}">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
+            Contacter
+          </a>` : ''}
+        </div>
+      `;
+
+      if (typeof memberDetailDialog.showModal === 'function') memberDetailDialog.showModal();
+      else memberDetailDialog.setAttribute('open', 'open');
+    };
+
+    document.getElementById('closeMemberDetail').addEventListener('click', () => memberDetailDialog.close());
+    memberDetailDialog.addEventListener('click', (e) => {
+      const r = memberDetailDialog.getBoundingClientRect();
+      const inside = r.top <= e.clientY && e.clientY <= r.bottom && r.left <= e.clientX && e.clientX <= r.right;
+      if (!inside) memberDetailDialog.close();
+    });
+
+    // ==========================================
+    // RENDER MEMBERS
+    // ==========================================
+
     function renderMembers(members) {
       const search = searchInput.value.trim();
-      const filtered = filterMembers(members, currentFilter, search, currentGroupFilter);
-      membersCount.textContent = `${filtered.length} membre${filtered.length > 1 ? 's' : ''}`;
+      const filtered = sortMembers(filterMembers(members, currentFilter, search, currentGroupFilter));
+      const n = filtered.length;
+      membersCount.textContent = `${n} membre${n > 1 ? 's' : ''}`;
 
-      if (!filtered.length) {
+      if (!n) {
         membersList.innerHTML = `
           <div class="empty-state">
-            <div class="empty-state-icon"></div>
+            <svg class="icon" style="width:3rem;height:3rem;opacity:0.3;" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
             <h3>Aucun membre</h3>
-            <p>Ajoutez des membres avec le formulaire ci-dessus.</p>
+            <p>Ajoutez des membres avec le formulaire ci-dessus ou importez un fichier CSV.</p>
           </div>
         `;
         return;
@@ -497,44 +648,50 @@
 
       membersList.innerHTML = filtered.map(m => {
         const name = m.full_name || m.name || '—';
-        const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+        const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
         const cardClass = m.is_active ? 'is-active' : 'is-inactive';
         const statusBadge = m.is_active
           ? '<span class="badge badge-success badge-sm">Actif</span>'
           : '<span class="badge badge-neutral badge-sm">Inactif</span>';
         const groupBadges = getMemberGroupBadges(m.id);
+        const vp = formatVotingPower(m.voting_power);
 
         return `
-          <div class="member-card ${cardClass}" data-member-id="${m.id}">
-            <div class="member-info">
+          <article class="member-card ${cardClass}" data-member-id="${m.id}" aria-label="${escapeHtml(name)}">
+            <div class="member-card-top">
               <div class="member-avatar">${initials}</div>
-              <div class="member-details">
-                <div class="member-name">${escapeHtml(name)}</div>
-                <div class="member-meta">
-                  <span>Poids: ${formatVotingPower(m.voting_power)}</span>
-                  ${m.email ? `<span>${escapeHtml(m.email)}</span>` : ''}
-                </div>
-                ${groupBadges ? `<div class="member-groups">${groupBadges}</div>` : ''}
+              <div class="member-card-identity">
+                <h3 class="member-name">${escapeHtml(name)}</h3>
+                <p class="member-role">Poids : <strong>${vp}</strong> voix ${m.email ? '— <span class="text-muted">' + escapeHtml(m.email) + '</span>' : ''}</p>
               </div>
             </div>
-            <div class="member-actions">
+            <div class="member-card-tags">
               ${statusBadge}
-              <button class="member-action-btn" onclick="editMember('${m.id}')" title="Modifier">
-                <svg class="icon"><use href="/assets/icons.svg#icon-edit"></use></svg>
+              ${groupBadges}
+            </div>
+            <div class="member-card-actions">
+              <button class="member-link-btn" onclick="openMemberDetail('${m.id}')" aria-label="Fiche de ${escapeHtml(name)}">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg>
+                Fiche
               </button>
-              <button class="member-action-btn" onclick="toggleActive('${m.id}', ${!m.is_active})" title="${m.is_active ? 'Désactiver' : 'Activer'}">
-                <svg class="icon"><use href="/assets/icons.svg#icon-${m.is_active ? 'pause' : 'play'}"></use></svg>
+              <button class="member-link-btn" onclick="editMember('${m.id}')" aria-label="Modifier ${escapeHtml(name)}">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
+                Modifier
               </button>
-              <button class="member-action-btn danger" onclick="deleteMember('${m.id}')" title="Supprimer">
-                <svg class="icon"><use href="/assets/icons.svg#icon-trash"></use></svg>
+              <button class="member-link-btn danger" onclick="deleteMember('${m.id}')" aria-label="Supprimer ${escapeHtml(name)}">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
+                Suppr.
               </button>
             </div>
-          </div>
+          </article>
         `;
       }).join('');
     }
 
-    // Load members
+    // ==========================================
+    // DATA LOADING
+    // ==========================================
+
     async function fetchMembers() {
       membersList.innerHTML = '<div class="text-center p-6 text-muted members-loading">Chargement...</div>';
 
@@ -549,7 +706,10 @@
       }
     }
 
-    // Create member
+    // ==========================================
+    // CREATE MEMBER
+    // ==========================================
+
     document.getElementById('btnCreate').addEventListener('click', async () => {
       const full_name = document.getElementById('mName').value.trim();
       const email = document.getElementById('mEmail').value.trim();
@@ -590,7 +750,10 @@
       }
     });
 
-    // Toggle active status
+    // ==========================================
+    // MEMBER ACTIONS
+    // ==========================================
+
     window.toggleActive = async function(memberId, newStatus) {
       const member = allMembers.find(m => m.id === memberId);
       if (!member) return;
@@ -616,7 +779,6 @@
       }
     };
 
-    // Delete member
     window.deleteMember = async function(memberId) {
       if (!confirm('Supprimer ce membre ?')) return;
 
@@ -634,7 +796,6 @@
       }
     };
 
-    // Edit member
     window.editMember = function(memberId) {
       const member = allMembers.find(m => m.id === memberId);
       if (!member) return;
@@ -642,7 +803,6 @@
       const name = member.full_name || member.name || '';
       const currentMemberGroups = memberGroups[memberId] || [];
 
-      // Build groups checkboxes
       let groupsHtml = '';
       if (allGroups.length) {
         groupsHtml = `
@@ -691,7 +851,6 @@
           const newPower = parseInt(modal.querySelector('#editMemberPower').value) || 1;
           const newActive = modal.querySelector('#editMemberActive').checked;
 
-          // Get selected groups
           const selectedGroups = Array.from(modal.querySelectorAll('input[name="memberGroup"]:checked')).map(cb => cb.value);
 
           if (!newName) {
@@ -700,7 +859,6 @@
           }
 
           try {
-            // Update member
             const { body } = await api('/api/v1/members.php', {
               member_id: memberId,
               full_name: newName,
@@ -714,7 +872,6 @@
               return false;
             }
 
-            // Update groups if changed
             const groupsChanged = JSON.stringify(selectedGroups.sort()) !== JSON.stringify(currentMemberGroups.sort());
             if (groupsChanged) {
               await api('/api/v1/member_group_assignments.php', {
@@ -735,18 +892,29 @@
       });
     };
 
-    // Filter tabs
-    filterTabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        filterTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentFilter = tab.dataset.filter;
+    // ==========================================
+    // EVENT LISTENERS
+    // ==========================================
+
+    // Filter chips (status)
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        filterChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        currentFilter = chip.dataset.filter;
         renderMembers(allMembers);
+        updateFiltersHint();
       });
     });
 
     // Search
     searchInput.addEventListener('input', () => {
+      renderMembers(allMembers);
+      updateFiltersHint();
+    });
+
+    // Sort
+    sortSelect.addEventListener('change', () => {
       renderMembers(allMembers);
     });
 
@@ -754,14 +922,14 @@
     uploadZone.addEventListener('click', () => csvFile.click());
     uploadZone.addEventListener('dragover', (e) => {
       e.preventDefault();
-      uploadZone.style.borderColor = 'var(--color-primary)';
+      uploadZone.classList.add('dragover');
     });
     uploadZone.addEventListener('dragleave', () => {
-      uploadZone.style.borderColor = '';
+      uploadZone.classList.remove('dragover');
     });
     uploadZone.addEventListener('drop', (e) => {
       e.preventDefault();
-      uploadZone.style.borderColor = '';
+      uploadZone.classList.remove('dragover');
       if (e.dataTransfer.files.length) {
         csvFile.files = e.dataTransfer.files;
         handleFileSelect();
@@ -838,17 +1006,19 @@
       }
     });
 
-    // Enter key on name field
+    // Enter key shortcuts
     document.getElementById('mName').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') document.getElementById('btnCreate').click();
     });
 
-    // Enter key on group name field
     document.getElementById('groupName').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') document.getElementById('btnCreateGroup').click();
     });
 
-    // Initial load
+    // ==========================================
+    // INIT
+    // ==========================================
+
     fetchGroups();
     fetchMembers();
   })();
