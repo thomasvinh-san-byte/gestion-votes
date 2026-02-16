@@ -1,0 +1,5 @@
+nom;email;ponderation;actif;groupes
+Jean Dupont;jean.dupont@exemple.com;1;oui;Collège A
+Marie Martin;marie.martin@exemple.com;1;oui;Collège B
+Pierre Durand;pierre.durand@exemple.com;2;oui;Collège A|Bureau
+Sophie Bernard;;1;oui;Collège B

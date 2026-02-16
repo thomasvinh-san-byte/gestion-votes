@@ -1,0 +1,6 @@
+nom;email;ponderation;actif;groupes
+Alice Moreau;alice@test.com;1;oui;Collège A
+;bob@test.com;1;oui;Collège B
+A;invalide;1;oui;
+Claire Petit;claire@test.com;abc;oui;Collège A
+David Roux;david@test.com;2;oui;Bureau

@@ -1,0 +1,4 @@
+prenom;nom_famille;email;ponderation;actif
+Alice;Moreau;alice@test.com;1;oui
+Bob;Lefèvre;bob@test.com;2;oui
+Claire;Petit;claire@test.com;1;non

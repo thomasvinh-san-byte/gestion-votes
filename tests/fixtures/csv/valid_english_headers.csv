@@ -1,0 +1,4 @@
+full_name,email,voting_power,is_active,groups
+Alice Moreau,alice@test.com,1,true,Group A
+Bob Lefèvre,bob@test.com,3,true,Group B|Board
+Claire Petit,claire@test.com,1,false,Group A

@@ -1,0 +1,6 @@
+nom;email;ponderation;actif;groupes
+Alice Moreau;alice@test.com;1;oui;Collège A
+Bob Lefèvre;bob@test.com;3;oui;Collège B|Bureau
+Claire Petit;claire@test.com;1;non;Collège A
+David Roux;david@test.com;2;oui;Collège B
+Émilie Garnier;;1;oui;Bureau
