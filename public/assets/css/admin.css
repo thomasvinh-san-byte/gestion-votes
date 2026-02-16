@@ -33,27 +33,27 @@
 }
 
 .state-node-visual.draft {
-  background: var(--color-neutral-subtle, #f5f5f5);
-  border-color: var(--color-neutral, #9ca3af);
+  background: var(--color-neutral-subtle);
+  border-color: var(--color-neutral);
   color: var(--color-text-secondary);
 }
 
 .state-node-visual.scheduled {
-  background: var(--color-info-subtle, #dbeafe);
-  border-color: var(--color-info, #3b82f6);
-  color: var(--color-info);
+  background: var(--color-info-subtle);
+  border-color: var(--color-info);
+  color: var(--color-info-text);
 }
 
 .state-node-visual.frozen {
-  background: var(--color-warning-subtle, #fef3c7);
-  border-color: var(--color-warning, #f59e0b);
-  color: #92400e;
+  background: var(--color-warning-subtle);
+  border-color: var(--color-warning);
+  color: var(--color-warning-text);
 }
 
 .state-node-visual.live {
-  background: var(--color-danger-subtle, #fee2e2);
-  border-color: var(--color-danger, #ef4444);
-  color: var(--color-danger);
+  background: var(--color-danger-subtle);
+  border-color: var(--color-danger);
+  color: var(--color-danger-text);
 }
 
 .state-node-visual.live::before {

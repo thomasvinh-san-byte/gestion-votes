@@ -196,6 +196,11 @@ table {
   --color-info-subtle: #eef2ee;
   --color-info-text: #3a4a3a;
 
+  --color-neutral: var(--brand-warm-gray);
+  --color-neutral-hover: #7a746a;
+  --color-neutral-subtle: var(--color-bg-subtle);
+  --color-neutral-text: var(--brand-ebony-2);
+
   /* ─── Shadows ─── */
   --shadow-xs: 0 1px 2px 0 rgb(61 57 41 / 0.05);
   --shadow-sm: 0 1px 3px 0 rgb(61 57 41 / 0.07), 0 1px 2px -1px rgb(61 57 41 / 0.05);
@@ -259,6 +264,8 @@ table {
     --color-warning-subtle: rgba(168, 139, 90, 0.20);
     --color-danger-subtle: rgba(154, 80, 80, 0.20);
     --color-info-subtle: rgba(106, 122, 106, 0.20);
+    --color-neutral: #8a8477;
+    --color-neutral-subtle: rgba(138, 132, 119, 0.15);
   }
 }
 
@@ -281,6 +288,8 @@ table {
   --color-primary: #8fa585;
   --color-primary-hover: #a3b69a;
   --color-primary-subtle: rgba(143, 165, 133, 0.15);
+  --color-neutral: #8a8477;
+  --color-neutral-subtle: rgba(138, 132, 119, 0.15);
 }
 
 /* =============================================================================

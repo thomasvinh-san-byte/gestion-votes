@@ -29,6 +29,18 @@ return [
     'admin'    => getenv('API_KEY_ADMIN')    ?: '',
   ],
 
+  // SMTP (for MailerService)
+  'smtp' => [
+    'host'       => getenv('MAIL_HOST') ?: '',
+    'port'       => (int)(getenv('MAIL_PORT') ?: 587),
+    'tls'        => getenv('MAIL_TLS') ?: 'starttls',
+    'user'       => getenv('MAIL_USER') ?: '',
+    'pass'       => getenv('MAIL_PASS') ?: '',
+    'from_email' => getenv('MAIL_FROM') ?: 'noreply@example.com',
+    'from_name'  => getenv('MAIL_FROM_NAME') ?: 'AG-VOTE',
+    'timeout'    => (int)(getenv('MAIL_TIMEOUT') ?: 10),
+  ],
+
   // Tenant (mono-tenant MVP). Override via TENANT_ID if needed.
   'default_tenant_id' => getenv('TENANT_ID') ?: 'aaaaaaaa-1111-2222-3333-444444444444',
 ];

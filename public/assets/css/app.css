@@ -408,17 +408,9 @@
 .role-badge.operator  { background: var(--color-primary-subtle); color: var(--color-primary); }
 .role-badge.auditor   { background: var(--color-warning-subtle); color: var(--color-warning-text); }
 .role-badge.viewer    { background: var(--color-success-subtle); color: var(--color-success-text); }
-.role-badge.president { background: #f7f5f0; color: #5c4a28; }
-.role-badge.assessor  { background: #f5f2ed; color: #6b5a42; }
+.role-badge.president { background: var(--color-warning-subtle); color: var(--color-warning-text); }
+.role-badge.assessor  { background: var(--color-neutral-subtle); color: var(--color-neutral-text); }
 .role-badge.voter     { background: var(--color-info-subtle); color: var(--color-info-text); }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .role-badge.president { background: rgba(92, 74, 40, 0.2); color: #c4b89a; }
-  :root:not([data-theme="light"]) .role-badge.assessor  { background: rgba(107, 90, 66, 0.2); color: #bfac8f; }
-}
-
-[data-theme="dark"] .role-badge.president { background: rgba(92, 74, 40, 0.2); color: #c4b89a; }
-[data-theme="dark"] .role-badge.assessor  { background: rgba(107, 90, 66, 0.2); color: #bfac8f; }
 
 /* Meeting role tag (used inside user tables) */
 .meeting-role-tag {

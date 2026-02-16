@@ -1775,16 +1775,10 @@
   }
 
   async function cancelSpeechRequest(requestId) {
-    // For now, use the toggle endpoint which cancels if waiting
-    // TODO: add dedicated cancel endpoint if needed
     try {
-      // Find the member_id for this request
-      const request = speechQueueCache.find(s => s.id === requestId);
-      if (!request) return;
-
-      await api('/api/v1/speech_request.php', {
+      await api('/api/v1/speech_cancel.php', {
         meeting_id: currentMeetingId,
-        member_id: request.member_id
+        request_id: requestId
       });
       setNotif('success', 'Demande retirée');
       loadSpeechQueue();
