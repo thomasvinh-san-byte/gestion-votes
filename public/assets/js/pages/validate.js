@@ -1,24 +1,24 @@
-/** validate.js — Meeting validation page for AG-VOTE. Must be loaded AFTER utils.js, shared.js and shell.js. */
+/** validate.js — Page de validation de séance pour AG-VOTE. Doit être chargé APRÈS utils.js, shared.js et shell.js. */
 (function() {
     'use strict';
 
     let currentMeetingId = null;
     let isReady = false;
 
-    // Get meeting_id from URL
+    // Récupérer le meeting_id depuis l'URL
     function getMeetingIdFromUrl() {
       const params = new URLSearchParams(window.location.search);
       return params.get('meeting_id');
     }
 
-    // Check meeting ID
+    // Vérifier l'identifiant de séance
     currentMeetingId = getMeetingIdFromUrl();
     if (!currentMeetingId) {
-      setNotif('error', 'No meeting selected');
+      setNotif('error', 'Aucune séance sélectionnée');
       setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
     }
 
-    // Load meeting info
+    // Charger les informations de la séance
     async function loadMeetingInfo() {
       try {
         const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
@@ -27,35 +27,35 @@
           document.getElementById('meetingName').textContent = body.data.title;
           Shared.show(document.getElementById('meetingContext'), 'flex');
 
-          // Check if already validated
+          // Vérifier si déjà validée
           if (body.data.status === 'archived' || body.data.validated_at) {
             showAlreadyValidated();
           }
         }
       } catch (err) {
-        console.error('Meeting info error:', err);
+        console.error('Erreur info séance :', err);
       }
     }
 
-    // Show already validated state
+    // Afficher l'état déjà validée
     function showAlreadyValidated() {
       const zone = document.getElementById('validationZone');
       zone.classList.add('locked');
       zone.innerHTML = `
-        <div class="text-lg font-bold mb-2">${icon('check-circle', 'icon-md icon-success')} Meeting already validated</div>
+        <div class="text-lg font-bold mb-2">${icon('check-circle', 'icon-md icon-success')} Séance déjà validée</div>
         <div class="text-sm mb-4">
-          This meeting has been validated and archived.<br>
-          View exports in the Archives.
+          Cette séance a été validée et archivée.<br>
+          Consultez les exports dans les Archives.
         </div>
         <a class="btn btn-primary" href="/archives.htmx.html${currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : ''}">
-          ${icon('archive', 'icon-sm icon-text')}View archives
+          ${icon('archive', 'icon-sm icon-text')}Voir les archives
         </a>
       `;
 
       document.getElementById('presidentName').disabled = true;
     }
 
-    // Load summary
+    // Charger le résumé
     async function loadSummary() {
       try {
         const { body } = await api(`/api/v1/meeting_summary.php?meeting_id=${currentMeetingId}`);
@@ -70,11 +70,11 @@
           document.getElementById('sumBallots').textContent = s.ballots_count ?? '—';
         }
       } catch (err) {
-        console.error('Summary error:', err);
+        console.error('Erreur résumé :', err);
       }
     }
 
-    // Load readiness checks
+    // Charger les vérifications de conformité
     async function loadChecks() {
       const checksList = document.getElementById('checksList');
       const badge = document.getElementById('readyBadge');
@@ -83,7 +83,7 @@
       checksList.innerHTML = `
         <div class="text-center p-4">
           <div class="spinner"></div>
-          <div class="mt-2 text-muted">Verification in progress...</div>
+          <div class="mt-2 text-muted">Vérification en cours...</div>
         </div>
       `;
 
@@ -95,7 +95,7 @@
           isReady = body.data.ready;
 
           badge.className = `badge ${isReady ? 'badge-success' : 'badge-danger'}`;
-          badge.textContent = isReady ? 'Ready' : 'Not ready';
+          badge.textContent = isReady ? 'Prêt' : 'Non prêt';
 
           checksList.innerHTML = checks.map(check => `
             <div class="check-item ${check.passed ? 'pass' : 'fail'}">
@@ -112,31 +112,31 @@
       } catch (err) {
         checksList.innerHTML = `
           <div class="alert alert-danger">
-            Verification error: ${escapeHtml(err.message)}
+            Erreur de vérification : ${escapeHtml(err.message)}
           </div>
         `;
       }
     }
 
-    // Validate meeting
+    // Valider la séance
     document.getElementById('btnValidate').addEventListener('click', async () => {
       const presidentName = document.getElementById('presidentName').value.trim();
       const msgDiv = document.getElementById('validateMsg');
 
       if (!presidentName) {
-        setNotif('error', 'President name is required');
+        setNotif('error', 'Le nom du président est requis');
         return;
       }
 
       if (!isReady) {
-        setNotif('error', 'The meeting is not ready to be validated');
+        setNotif('error', 'La séance n\'est pas prête à être validée');
         return;
       }
 
-      const confirm1 = confirm('WARNING: This action is IRREVERSIBLE.\n\nThe meeting will be permanently archived and no further modifications will be possible.\n\nContinue?');
+      const confirm1 = confirm('ATTENTION : Cette action est IRRÉVERSIBLE.\n\nLa séance sera définitivement archivée et aucune modification ultérieure ne sera possible.\n\nContinuer ?');
       if (!confirm1) return;
 
-      const confirm2 = confirm('Final confirmation:\n\nYou are about to validate and permanently archive this meeting.\n\nConfirm validation?');
+      const confirm2 = confirm('Confirmation finale :\n\nVous êtes sur le point de valider et d\'archiver définitivement cette séance.\n\nConfirmer la validation ?');
       if (!confirm2) return;
 
       const btn = document.getElementById('btnValidate');
@@ -150,20 +150,20 @@
         if (body && body.ok) {
           Shared.show(msgDiv, 'block');
           msgDiv.className = 'alert alert-success';
-          msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Meeting validated and archived successfully!`;
+          msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès !`;
 
-          setNotif('success', 'Meeting validated!');
+          setNotif('success', 'Séance validée !');
 
           showAlreadyValidated();
 
-          // Redirect to archives after 3s
+          // Redirection vers les archives après 3s
           setTimeout(() => {
             window.location.href = '/archives.htmx.html' + (currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : '');
           }, 3000);
         } else {
           Shared.show(msgDiv, 'block');
           msgDiv.className = 'alert alert-danger';
-          msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Error: ${escapeHtml(body?.error || 'Validation failed')}`;
+          msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Erreur : ${escapeHtml(body?.error || 'Échec de la validation')}`;
           Shared.btnLoading(btn, false);
         }
       } catch (err) {
@@ -172,7 +172,7 @@
       }
     });
 
-    // Refresh
+    // Actualiser
     document.getElementById('btnRefresh').addEventListener('click', () => {
       loadSummary();
       loadChecks();
@@ -180,12 +180,12 @@
 
     document.getElementById('btnRecheck').addEventListener('click', loadChecks);
 
-    // Polling (5s auto-refresh for checks and summary, disabled when WebSocket connected)
+    // Interrogation périodique (actualisation auto 5s pour vérifications et résumé, désactivée quand WebSocket connecté)
     let pollingInterval = null;
     function startPolling() {
       if (pollingInterval) return;
       pollingInterval = setInterval(() => {
-        // Skip polling if WebSocket is connected and authenticated
+        // Ignorer l'interrogation si le WebSocket est connecté et authentifié
         if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
         if (!document.hidden && currentMeetingId) {
           loadSummary();
@@ -195,7 +195,7 @@
     }
     window.addEventListener('beforeunload', () => { if (pollingInterval) clearInterval(pollingInterval); });
 
-    // Initialize
+    // Initialiser
     if (currentMeetingId) {
       loadMeetingInfo();
       loadSummary();

@@ -79,11 +79,11 @@
     el.style.color = '#fff';
     el.innerHTML = `
       <div style="max-width:520px;margin:12vh auto;padding:24px;">
-        <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Access Suspended</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Accès suspendu</div>
         <div id="blockedMsg" style="opacity:0.9;line-height:1.4;">
-          This device has been temporarily blocked by the operator.
+          Cet appareil a été temporairement bloqué par l'opérateur.
         </div>
-        <div style="margin-top:16px;opacity:0.8;font-size:12px;">Stay on this screen. Access will be restored automatically after unblock.</div>
+        <div style="margin-top:16px;opacity:0.8;font-size:12px;">Restez sur cet écran. L'accès sera rétabli automatiquement.</div>
       </div>`;
     document.body.appendChild(el);
     return el;
@@ -131,14 +131,14 @@
       const out = await r.json().catch(()=>({}));
       const data = out?.data || {};
       if (data.blocked) {
-        setBlocked(true, data.block_reason || "This device has been blocked.");
+        setBlocked(true, data.block_reason || "Cet appareil a été bloqué.");
       } else {
         setBlocked(false);
       }
 
       // Soft kick: request reload
       if (data.command && data.command.type === 'kick') {
-        notify('error', data.command.message || 'Reconnection required.');
+        notify('error', data.command.message || 'Reconnexion requise.');
         setTimeout(()=>{ location.reload(); }, 800);
       }
     } catch(e){
@@ -318,13 +318,13 @@
       sel.innerHTML = "";
       const opt0 = document.createElement("option");
       opt0.value = "";
-      opt0.textContent = "— Select a meeting —";
+      opt0.textContent = "— Sélectionner une séance —";
       sel.appendChild(opt0);
       for (const m of meetings){
         const opt = document.createElement("option");
         opt.value = m.meeting_id;
         const when = (m.created_at || "").toString().slice(0,10);
-        opt.textContent = `${when} — ${m.title || "Meeting"} [${m.status || "—"}]`;
+        opt.textContent = `${when} — ${m.title || "Séance"} [${m.status || "—"}]`;
         sel.appendChild(opt);
       }
     }
@@ -365,7 +365,7 @@
       sel.innerHTML = "";
       const opt0 = document.createElement("option");
       opt0.value = "";
-      opt0.textContent = "— Select a member —";
+      opt0.textContent = "— Sélectionner un votant —";
       sel.appendChild(opt0);
     }
 
@@ -394,7 +394,7 @@
         } else {
           const opt = document.createElement("option");
           opt.value = x.member_id;
-          opt.textContent = `${x.full_name || x.name || "Member"} (${mode})`;
+          opt.textContent = `${x.full_name || x.name || "Membre"} (${mode})`;
           sel.appendChild(opt);
         }
         filled++;
@@ -418,7 +418,7 @@
         } else {
           const opt = document.createElement("option");
           opt.value = x.id || x.member_id;
-          opt.textContent = x.full_name || x.name || "Member";
+          opt.textContent = x.full_name || x.name || "Membre";
           sel.appendChild(opt);
         }
       }
@@ -639,7 +639,7 @@
 
     try{
       await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
-      notify("success", "Vote recorded.");
+      notify("success", "Vote enregistré.");
     } catch(e){
       notify("error", e?.message || String(e));
     }

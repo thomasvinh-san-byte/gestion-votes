@@ -468,7 +468,8 @@
           to_status: status
         });
         if (!body?.ok) {
-          setNotif('error', body?.error || `Erreur passage vers ${status}`);
+          const _sl = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
+          setNotif('error', body?.error || `Erreur passage vers ${_sl[status] || status}`);
           return;
         }
       }
@@ -778,7 +779,7 @@
                 ? `<button class="btn btn-xs btn-success btn-unblock" data-device="${dev.device_id}">Débloquer</button>`
                 : `<button class="btn btn-xs btn-warning btn-block" data-device="${dev.device_id}">Bloquer</button>`
               }
-              <button class="btn btn-xs btn-secondary btn-kick" data-device="${dev.device_id}">Kick</button>
+              <button class="btn btn-xs btn-secondary btn-kick" data-device="${dev.device_id}">Reconnecter</button>
             </div>
           </div>
         `;
@@ -2311,7 +2312,8 @@
         if (currentVote === newVote) return;
 
         // Confirm if correcting existing vote
-        if (currentVote && !confirm(`Modifier le vote de "${currentVote}" vers "${newVote}" ?`)) {
+        const _vl = { for: 'Pour', against: 'Contre', abstain: 'Abstention' };
+        if (currentVote && !confirm(`Modifier le vote de "${_vl[currentVote] || currentVote}" vers "${_vl[newVote] || newVote}" ?`)) {
           return;
         }
 
@@ -2621,7 +2623,9 @@
   // =========================================================================
 
   async function doTransition(toStatus) {
-    if (!confirm(`Changer l'état vers "${toStatus}" ?`)) return;
+    const statusLabels = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
+    const statusLabel = statusLabels[toStatus] || toStatus;
+    if (!confirm(`Changer l'état vers "${statusLabel}" ?`)) return;
     try {
       const { body } = await api('/api/v1/meeting_transition.php', {
         meeting_id: currentMeetingId,
@@ -2631,7 +2635,7 @@
         if (body.warnings?.length) {
           body.warnings.forEach(w => setNotif('warning', w.msg));
         }
-        setNotif('success', `Séance passée en "${toStatus}"`);
+        setNotif('success', `Séance passée en "${statusLabel}"`);
         loadMeetingContext(currentMeetingId);
         loadMeetings();
       } else {

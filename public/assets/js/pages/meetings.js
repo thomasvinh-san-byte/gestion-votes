@@ -188,17 +188,12 @@
     if (!meetingsList) return;
 
     if (sorted.length === 0) {
-      meetingsList.innerHTML = `
-        <div class="empty-state" style="grid-column: 1 / -1;">
-          <div class="empty-state-icon">
-            <svg class="icon" style="width:3rem;height:3rem;" aria-hidden="true">
-              <use href="/assets/icons.svg#icon-clipboard-list"></use>
-            </svg>
-          </div>
-          <h3>Aucune séance</h3>
-          <p>Créez une nouvelle séance avec le formulaire ci-dessus.</p>
-        </div>
-      `;
+      meetingsList.innerHTML = Shared.emptyState({
+        icon: 'meetings',
+        title: 'Aucune séance',
+        description: 'Commencez par créer une nouvelle séance avec le formulaire ci-dessus. Renseignez un titre et une date, puis cliquez sur « Créer la séance ».',
+        actionHtml: '<div style="grid-column:1/-1;"></div>'
+      });
       return;
     }
 
