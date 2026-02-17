@@ -95,13 +95,13 @@ class AgKpi extends HTMLElement {
 
         /* Color variants */
         :host([variant="primary"]) .kpi-value { color: var(--color-primary, #4e5340); }
-        :host([variant="success"]) .kpi-value { color: var(--color-success, #5a7a5b); }
+        :host([variant="success"]) .kpi-value { color: var(--color-success, #16a34a); }
         :host([variant="warning"]) .kpi-value { color: var(--color-warning, #b8915a); }
         :host([variant="danger"]) .kpi-value { color: var(--color-danger, #a05252); }
         :host([variant="info"]) .kpi-value { color: var(--color-info, #5a8a9a); }
 
         :host([variant="primary"]) .kpi-icon { color: var(--color-primary, #4e5340); }
-        :host([variant="success"]) .kpi-icon { color: var(--color-success, #5a7a5b); }
+        :host([variant="success"]) .kpi-icon { color: var(--color-success, #16a34a); }
         :host([variant="warning"]) .kpi-icon { color: var(--color-warning, #b8915a); }
         :host([variant="danger"]) .kpi-icon { color: var(--color-danger, #a05252); }
         :host([variant="info"]) .kpi-icon { color: var(--color-info, #5a8a9a); }

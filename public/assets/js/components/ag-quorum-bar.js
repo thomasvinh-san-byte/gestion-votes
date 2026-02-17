@@ -104,7 +104,7 @@ class AgQuorumBar extends HTMLElement {
           border-radius: 9999px;
           transition: width 0.5s ease-out;
         }
-        .quorum-fill.reached { background: var(--color-success, #5a7a5b); }
+        .quorum-fill.reached { background: var(--color-success, #16a34a); }
         .quorum-fill.partial { background: var(--color-warning, #b8915a); }
         .quorum-fill.critical { background: var(--color-danger, #a05252); }
         .quorum-threshold {
@@ -137,7 +137,7 @@ class AgQuorumBar extends HTMLElement {
         .quorum-current {
           font-weight: 600;
         }
-        .quorum-current.reached { color: var(--color-success, #5a7a5b); }
+        .quorum-current.reached { color: var(--color-success, #16a34a); }
         .quorum-current.partial { color: var(--color-warning, #b8915a); }
         .quorum-current.critical { color: var(--color-danger, #a05252); }
       </style>

@@ -372,31 +372,31 @@
 .vote-btn-for {
   background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-hover) 100%);
   color: white;
-  box-shadow: 0 10px 40px rgb(90 122 91 / 0.4);
+  box-shadow: 0 10px 40px rgb(22 163 74 / 0.3);
 }
 
 .vote-btn-for:hover:not(:disabled) {
-  box-shadow: 0 15px 50px rgb(90 122 91 / 0.5);
+  box-shadow: 0 15px 50px rgb(22 163 74 / 0.4);
 }
 
 .vote-btn-against {
   background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-hover) 100%);
   color: white;
-  box-shadow: 0 10px 40px rgb(154 80 80 / 0.4);
+  box-shadow: 0 10px 40px rgb(220 38 38 / 0.3);
 }
 
 .vote-btn-against:hover:not(:disabled) {
-  box-shadow: 0 15px 50px rgb(154 80 80 / 0.5);
+  box-shadow: 0 15px 50px rgb(220 38 38 / 0.4);
 }
 
 .vote-btn-abstain {
-  background: linear-gradient(135deg, var(--color-text-muted) 0%, var(--brand-ebony-2) 100%);
+  background: linear-gradient(135deg, var(--color-neutral) 0%, var(--color-neutral-hover) 100%);
   color: white;
-  box-shadow: 0 10px 40px rgb(138 132 119 / 0.4);
+  box-shadow: 0 10px 40px rgb(100 116 139 / 0.3);
 }
 
 .vote-btn-abstain:hover:not(:disabled) {
-  box-shadow: 0 15px 50px rgb(138 132 119 / 0.5);
+  box-shadow: 0 15px 50px rgb(100 116 139 / 0.4);
 }
 
 .vote-btn-kbd {

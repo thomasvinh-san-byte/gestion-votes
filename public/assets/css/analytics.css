@@ -80,7 +80,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   cursor: pointer;
   color: var(--color-text-muted);
   font-size: 0.85rem;
-  transition: all 0.15s;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
 .period-btn:hover {
@@ -322,7 +322,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   font-size: 0.9rem;
   color: var(--color-text-muted);
   border-radius: 6px 6px 0 0;
-  transition: all 0.15s;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
 .analytics-tab:hover {

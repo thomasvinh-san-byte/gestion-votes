@@ -128,30 +128,30 @@ class AgVoteButton extends HTMLElement {
 
         /* Value variants */
         :host([value="for"]) button {
-          background: linear-gradient(135deg, #5a7a5b 0%, #4a664b 100%);
+          background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
           color: white;
-          box-shadow: 0 10px 30px rgba(90, 122, 91, 0.35);
+          box-shadow: 0 10px 30px rgba(22, 163, 74, 0.35);
         }
         :host([value="for"]) button:hover:not(:disabled) {
-          box-shadow: 0 14px 40px rgba(90, 122, 91, 0.45);
+          box-shadow: 0 14px 40px rgba(22, 163, 74, 0.45);
         }
 
         :host([value="against"]) button {
-          background: linear-gradient(135deg, #a05252 0%, #8b4040 100%);
+          background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
           color: white;
-          box-shadow: 0 10px 30px rgba(160, 82, 82, 0.35);
+          box-shadow: 0 10px 30px rgba(220, 38, 38, 0.35);
         }
         :host([value="against"]) button:hover:not(:disabled) {
-          box-shadow: 0 14px 40px rgba(160, 82, 82, 0.45);
+          box-shadow: 0 14px 40px rgba(220, 38, 38, 0.45);
         }
 
         :host([value="abstain"]) button {
-          background: linear-gradient(135deg, #697268 0%, #4e5340 100%);
+          background: linear-gradient(135deg, #64748b 0%, #475569 100%);
           color: white;
-          box-shadow: 0 10px 30px rgba(78, 83, 64, 0.35);
+          box-shadow: 0 10px 30px rgba(100, 116, 139, 0.35);
         }
         :host([value="abstain"]) button:hover:not(:disabled) {
-          box-shadow: 0 14px 40px rgba(78, 83, 64, 0.45);
+          box-shadow: 0 14px 40px rgba(100, 116, 139, 0.45);
         }
 
         :host([value="nsp"]) button {

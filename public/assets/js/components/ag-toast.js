@@ -82,7 +82,7 @@ class AgToast extends HTMLElement {
           gap: 0.75rem;
           padding: 0.75rem 1rem;
           background: var(--color-surface, #ffffff);
-          border: 1px solid var(--color-border, #d5dbd2);
+          border: 1px solid var(--color-border, #e2e8f0);
           border-radius: var(--radius-md, 12px);
           box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1));
           font-size: 0.875rem;
@@ -98,7 +98,7 @@ class AgToast extends HTMLElement {
         }
         .toast-message {
           flex: 1;
-          color: var(--color-text, #4e5340);
+          color: var(--color-text, #0f172a);
         }
         .toast-close {
           display: flex;
@@ -116,7 +116,7 @@ class AgToast extends HTMLElement {
         }
         .toast-close:hover {
           opacity: 1;
-          background: var(--color-bg-subtle, #e2e8dd);
+          background: var(--color-bg-subtle, #f1f5f9);
         }
         .toast-close svg {
           width: 1rem;
@@ -128,28 +128,28 @@ class AgToast extends HTMLElement {
 
         /* Type variants */
         :host([type="success"]) .toast {
-          border-left: 4px solid var(--color-success, #5a7a5b);
+          border-left: 4px solid var(--color-success, #16a34a);
         }
         :host([type="success"]) .toast-icon {
-          color: var(--color-success, #5a7a5b);
+          color: var(--color-success, #16a34a);
         }
         :host([type="error"]) .toast {
-          border-left: 4px solid var(--color-danger, #a05252);
+          border-left: 4px solid var(--color-danger, #dc2626);
         }
         :host([type="error"]) .toast-icon {
-          color: var(--color-danger, #a05252);
+          color: var(--color-danger, #dc2626);
         }
         :host([type="warning"]) .toast {
-          border-left: 4px solid var(--color-warning, #b8915a);
+          border-left: 4px solid var(--color-warning, #d97706);
         }
         :host([type="warning"]) .toast-icon {
-          color: var(--color-warning, #b8915a);
+          color: var(--color-warning, #d97706);
         }
         :host([type="info"]) .toast {
-          border-left: 4px solid var(--color-info, #5a8a9a);
+          border-left: 4px solid var(--color-info, #2563eb);
         }
         :host([type="info"]) .toast-icon {
-          color: var(--color-info, #5a8a9a);
+          color: var(--color-info, #2563eb);
         }
 
         @keyframes slideIn {
