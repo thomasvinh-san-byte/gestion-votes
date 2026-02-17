@@ -8,6 +8,7 @@
     "8080": { "label": "AG-VOTE", "onAutoForward": "openBrowser" },
     "8081": { "label": "WebSocket" }
   },
+  "shutdownAction": "stopCompose",
   "postStartCommand": "echo 'AG-VOTE ready'",
   "customizations": {
     "vscode": {
@@ -15,6 +16,10 @@
         "bmewburn.vscode-intelephense-client",
         "ms-azuretools.vscode-docker"
       ]
+    },
+    "codespaces": {
+      "defaultIdleTimeout": 5,
+      "defaultRetentionPeriod": 0
     }
   }
 }
