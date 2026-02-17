@@ -3,6 +3,22 @@ set -e
 
 echo "=== AG-VOTE : Initialisation ==="
 
+# ---------------------------------------------------------------------------
+# Normalize env vars (Render/cloud sets DB_HOST etc., PHP app needs DB_DSN)
+# ---------------------------------------------------------------------------
+: "${DB_HOST:=db}"
+: "${DB_PORT:=5432}"
+: "${DB_DATABASE:=vote_app}"
+: "${DB_USERNAME:=${DB_USER:-vote_app}}"
+: "${DB_PASSWORD:=${DB_PASS:-vote_app_dev_2026}}"
+
+# Expose for PHP (app/config.php reads DB_DSN, DB_USER, DB_PASS)
+export DB_USER="${DB_USERNAME}"
+export DB_PASS="${DB_PASSWORD}"
+if [ -z "$DB_DSN" ]; then
+  export DB_DSN="pgsql:host=${DB_HOST};port=${DB_PORT};dbname=${DB_DATABASE}"
+fi
+
 # Wait for PostgreSQL to be ready
 echo "Attente de PostgreSQL..."
 until pg_isready -h "${DB_HOST:-db}" -p "${DB_PORT:-5432}" -U "${DB_USERNAME:-vote_app}" -q 2>/dev/null; do
