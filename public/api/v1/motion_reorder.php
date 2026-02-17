@@ -39,10 +39,10 @@ try {
         api_fail('meeting_not_found', 404);
     }
 
-    // Don't allow reorder on validated/archived meetings
+    // Don't allow reorder on live/closed/validated/archived meetings
     $status = $meeting['status'] ?? '';
-    if (in_array($status, ['validated', 'archived'], true)) {
-        api_fail('meeting_locked', 409, ['detail' => 'Impossible de modifier une séance validée ou archivée.']);
+    if (in_array($status, ['live', 'closed', 'validated', 'archived'], true)) {
+        api_fail('meeting_locked', 409, ['detail' => 'Impossible de réordonner les résolutions d\'une séance en cours, clôturée, validée ou archivée.']);
     }
 
     // Reorder

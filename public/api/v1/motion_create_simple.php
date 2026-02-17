@@ -41,6 +41,8 @@ try {
         api_fail('meeting_not_found', 404, ['detail' => 'Séance non trouvée.']);
     }
 
+    api_guard_meeting_not_validated($meetingId);
+
     // Wrap agenda + motion creation in a single transaction
     $result = api_transaction(function () use ($meetingId, $tenantId, $title, $description, $secret) {
         // Get or create default agenda for this meeting

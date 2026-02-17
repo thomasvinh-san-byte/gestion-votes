@@ -73,7 +73,7 @@
     el.id = 'blockedOverlay';
     el.style.position = 'fixed';
     el.style.inset = '0';
-    el.style.zIndex = '9999';
+    el.style.zIndex = '800'; // matches --z-toast from design system
     Shared.hide(el);
     el.style.background = 'rgba(15, 23, 42, 0.94)';
     el.style.color = '#fff';
@@ -249,11 +249,14 @@
    * @returns {Promise<Object>} Parsed JSON response
    * @throws {Error} If request fails
    */
-  async function apiPost(url, data){
-    if (window.Utils && typeof Utils.apiPost === 'function') return Utils.apiPost(url, data);
+  async function apiPost(url, data, extraHeaders){
+    if (window.Utils && typeof Utils.apiPost === 'function') {
+      return Utils.apiPost(url, data, extraHeaders ? { headers: extraHeaders } : {});
+    }
+    const headers = { 'Content-Type': 'application/json', ...(extraHeaders || {}) };
     const r = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       credentials: 'same-origin',
       body: JSON.stringify(data)
     });
@@ -710,11 +713,14 @@
       throw new Error('Vous êtes hors ligne. Vérifiez votre connexion.');
     }
 
+    // Stable idempotency key for retries (same key across all attempts)
+    const idempotencyKey = `${_currentMotionId}:${memberId}:${Date.now()}`;
+
     const MAX_RETRIES = 2;
     let lastErr = null;
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
+        await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice }, { 'X-Idempotency-Key': idempotencyKey });
         notify("success", "Vote enregistré.");
         return; // success — exit
       } catch(e) {
@@ -764,13 +770,19 @@
     loadMeetings().catch((e)=>notify("error", e?.message || String(e)));
 
     // Poll current motion (disabled when WebSocket is connected)
-    setInterval(()=>{
+    const _motionPollTimer = setInterval(()=>{
       // Skip polling if WebSocket is connected and authenticated
       if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
       if (!document.hidden) refresh().catch(()=>{});
     }, 3000);
     // Heartbeat always runs (separate from WebSocket heartbeat interval)
-    setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
+    const _heartbeatTimer = setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
+
+    // Cleanup on page unload to prevent memory leaks
+    window.addEventListener('pagehide', ()=>{
+      clearInterval(_motionPollTimer);
+      clearInterval(_heartbeatTimer);
+    });
   }
 
   // Expose cast as global submitVote for vote.htmx.html confirmation overlay

@@ -42,6 +42,13 @@ try {
     // MVP: receiver_member_id vide => révoque
     if ($receiverRaw === '') {
         ProxiesService::revoke($meetingId, $giverId);
+
+        if (function_exists('audit_log')) {
+            audit_log('proxy_revoked', 'meeting', $meetingId, [
+                'giver_member_id' => $giverId,
+            ]);
+        }
+
         api_ok([
             'ok'         => true,
             'meeting_id' => $meetingId,

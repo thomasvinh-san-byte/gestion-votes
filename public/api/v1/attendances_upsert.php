@@ -15,6 +15,8 @@ try {
     $mode      = trim((string)($data['mode'] ?? ''));
     $notes     = isset($data['notes']) ? (string)$data['notes'] : null;
 
+    api_guard_meeting_not_validated($meetingId);
+
     $row = AttendancesService::upsert($meetingId, $memberId, $mode, $notes);
 
     api_ok(['attendance' => $row]);

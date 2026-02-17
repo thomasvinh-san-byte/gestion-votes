@@ -6,6 +6,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MotionRepository;
 use AgVote\Service\OfficialResultsService;
+use AgVote\Service\VoteTokenService;
 use AgVote\WebSocket\EventBroadcaster;
 
 api_require_role(['operator', 'president', 'admin']);
@@ -66,6 +67,12 @@ try {
 
     // Post-commit side-effects: wrap in try-catch so a failure here
     // does NOT return 500 when the motion was already successfully closed.
+    try {
+        VoteTokenService::revokeForMotion($motionId);
+    } catch (Throwable $tokenErr) {
+        error_log('[motions_close] token revocation failed after commit: ' . $tokenErr->getMessage());
+    }
+
     try {
         audit_log('motion_closed', 'motion', $motionId, [
             'meeting_id' => (string)$motion['meeting_id'],

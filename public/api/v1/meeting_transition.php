@@ -57,12 +57,19 @@ AuthMiddleware::requireTransition($fromStatus, $toStatus, $meetingId);
 $forceTransition = filter_var($input['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
 $workflowCheck = MeetingWorkflowService::issuesBeforeTransition($meetingId, api_current_tenant_id(), $toStatus);
 
+// Only admin may force-bypass workflow guards
+if ($forceTransition && api_current_role() !== 'admin') {
+    api_fail('force_requires_admin', 403, [
+        'detail' => 'Seul un administrateur peut forcer une transition.',
+    ]);
+}
+
 if (!$workflowCheck['can_proceed'] && !$forceTransition) {
     api_fail('workflow_issues', 422, [
         'detail' => 'Transition bloquée par des pré-requis',
         'issues' => $workflowCheck['issues'],
         'warnings' => $workflowCheck['warnings'],
-        'hint' => 'Corrigez les issues ou passez force=true pour ignorer (non recommandé)',
+        'hint' => 'Corrigez les issues ou passez force=true pour ignorer (admin uniquement)',
     ]);
 }
 
@@ -120,17 +127,15 @@ switch ($toStatus) {
 $repo->updateFields($meetingId, api_current_tenant_id(), $fields);
 
 // Audit
-audit_log(
-    'meeting.transition',
-    'meeting',
-    $meetingId,
-    [
-        'from_status' => $fromStatus,
-        'to_status'   => $toStatus,
-        'title'       => $meeting['title'],
-    ],
-    $meetingId
-);
+$auditData = [
+    'from_status' => $fromStatus,
+    'to_status'   => $toStatus,
+    'title'       => $meeting['title'],
+];
+if ($forceTransition) {
+    $auditData['forced'] = true;
+}
+audit_log('meeting.transition', 'meeting', $meetingId, $auditData, $meetingId);
 
 // Broadcast WebSocket event for real-time updates
 try {

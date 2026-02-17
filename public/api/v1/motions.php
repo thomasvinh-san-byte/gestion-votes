@@ -44,6 +44,8 @@ try {
     $agenda = $motionRepo->findAgendaWithMeeting($agendaId, api_current_tenant_id());
     if (!$agenda) api_fail('agenda_not_found', 404);
 
+    api_guard_meeting_not_validated((string)$agenda['meeting_id']);
+
     // Validate policies belong to tenant if provided
     if ($votePolicyId !== '') {
         if (!$meetingRepo->votePolicyExists($votePolicyId, api_current_tenant_id())) {

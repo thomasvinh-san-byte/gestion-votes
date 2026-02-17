@@ -377,6 +377,11 @@
   transform: scale(0.97);
 }
 
+.vote-btn:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
 .vote-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -735,6 +740,35 @@
     flex-direction: column;
     gap: 0.5rem;
     text-align: center;
+  }
+}
+
+/* Small phones — stack header and confirmation */
+@media (max-width: 480px) {
+  .vote-app .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .vote-main {
+    padding: 1rem;
+  }
+
+  .confirm-sheet {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .vote-footer {
+    padding: 0.75rem 1rem;
+  }
+
+  .member-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
   }
 }
 
