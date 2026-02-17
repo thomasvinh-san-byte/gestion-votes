@@ -43,9 +43,9 @@ sudo chmod a+r /etc/apt/keyrings/docker.gpg
 # Ajouter le dépôt Docker
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-  https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") \
+https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # Installer Docker
 sudo apt update
