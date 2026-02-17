@@ -43,6 +43,12 @@
   let proxiesCache = [];  // Cache for proxies
   let currentMode = 'setup'; // 'setup' | 'exec'
 
+  // Safe DOM text setter — avoids null reference errors if element is missing
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
   // Transitions (icons are added dynamically via icon() function)
   const TRANSITIONS = {
     draft: [{ to: 'scheduled', label: 'Planifier', iconName: 'calendar' }],
@@ -94,20 +100,27 @@
 
     document.body.appendChild(modal);
 
+    // Centralized destroy function — removes element AND cleans up listener
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && document.body.contains(modal)) {
+        destroyModal();
+      }
+    };
+
+    function destroyModal() {
+      document.removeEventListener('keydown', handleEscape);
+      if (document.body.contains(modal)) modal.remove();
+    }
+    modal._destroy = destroyModal;
+
     // Close on backdrop click
     if (closeOnBackdrop) {
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.remove();
+        if (e.target === modal) destroyModal();
       });
     }
 
     // Close on Escape key
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && document.body.contains(modal)) {
-        modal.remove();
-        document.removeEventListener('keydown', handleEscape);
-      }
-    };
     document.addEventListener('keydown', handleEscape);
 
     // Focus trap - keep focus inside modal
@@ -122,12 +135,16 @@
   }
 
   /**
-   * Remove modal from DOM
+   * Remove modal from DOM and clean up event listeners
    * @param {HTMLElement|string} modal - Modal element or ID
    */
   function closeModal(modal) {
     const el = typeof modal === 'string' ? document.getElementById(modal) : modal;
-    if (el) el.remove();
+    if (el && el._destroy) {
+      el._destroy();
+    } else if (el) {
+      el.remove();
+    }
   }
 
   // =========================================================================
@@ -323,12 +340,12 @@
       membersCache = body?.data?.members || [];
       renderMembersCard();
     } catch (err) {
-      console.error('Members error:', err);
+      console.warn('loadMembers:', err.message);
     }
   }
 
   function renderMembersCard() {
-    document.getElementById('membersCount').textContent = membersCache.length;
+    setText('membersCount', membersCache.length);
 
     const list = document.getElementById('membersList');
     if (membersCache.length === 0) {
@@ -351,16 +368,12 @@
   }
 
   async function addMemberQuick() {
-    const modal = document.createElement('div');
-    modal.className = 'modal-backdrop';
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-labelledby', 'addMemberModalTitle');
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
-
-    modal.innerHTML = `
-      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:400px;width:90%;" role="document">
-        <h3 id="addMemberModalTitle" style="margin:0 0 1rem;">Ajouter un membre</h3>
+    const modal = createModal({
+      id: 'addMemberModal',
+      title: 'Ajouter un membre',
+      maxWidth: '400px',
+      content: `
+        <h3 id="addMemberModal-title" style="margin:0 0 1rem;">Ajouter un membre</h3>
         <div class="form-group mb-3">
           <label class="form-label">Nom complet</label>
           <input type="text" class="form-input" id="newMemberName" placeholder="Nom Prénom">
@@ -373,15 +386,13 @@
           <button class="btn btn-secondary" id="btnCancelMember">Annuler</button>
           <button class="btn btn-primary" id="btnConfirmMember">Ajouter</button>
         </div>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
+      `
+    });
 
     const btnCancel = document.getElementById('btnCancelMember');
     const btnConfirm = document.getElementById('btnConfirmMember');
 
-    btnCancel.onclick = () => modal.remove();
+    btnCancel.onclick = () => closeModal(modal);
     btnConfirm.onclick = async () => {
       const name = document.getElementById('newMemberName').value.trim();
       const email = document.getElementById('newMemberEmail').value.trim();
@@ -391,7 +402,6 @@
         return;
       }
 
-      // Disable buttons during async operation
       btnConfirm.disabled = true;
       btnCancel.disabled = true;
       const originalText = btnConfirm.textContent;
@@ -404,7 +414,7 @@
           email: email || null
         });
         setNotif('success', 'Membre ajouté');
-        modal.remove();
+        closeModal(modal);
         loadMembers();
         loadAttendance();
         loadStatusChecklist();
@@ -427,11 +437,10 @@
     const proxyCount = proxiesCache.filter(p => !p.revoked_at).length;
     const absent = attendanceCache.filter(a => !a.mode || a.mode === 'absent').length;
 
-    document.getElementById('quickPresent').textContent = present;
-    document.getElementById('quickRemote').textContent = remote;
-    const quickProxyEl = document.getElementById('quickProxy');
-    if (quickProxyEl) quickProxyEl.textContent = proxyCount;
-    document.getElementById('quickAbsent').textContent = absent;
+    setText('quickPresent', present);
+    setText('quickRemote', remote);
+    setText('quickProxy', proxyCount);
+    setText('quickAbsent', absent);
   }
 
   function checkLaunchReady() {
@@ -455,23 +464,20 @@
     if (!confirm('Lancer la séance et ouvrir les votes ?')) return;
 
     try {
-      // Transition through required states: draft → scheduled → frozen → live
-      const transitions = [];
-      if (currentMeetingStatus === 'draft') transitions.push('scheduled', 'frozen', 'live');
-      else if (currentMeetingStatus === 'scheduled') transitions.push('frozen', 'live');
-      else if (currentMeetingStatus === 'frozen') transitions.push('live');
-      else transitions.push('live');
+      // Atomic launch: single API call handles all transitions (draft→scheduled→frozen→live)
+      const { body } = await api('/api/v1/meeting_launch.php', {
+        meeting_id: currentMeetingId
+      });
 
-      for (const status of transitions) {
-        const { body } = await api('/api/v1/meeting_transition.php', {
-          meeting_id: currentMeetingId,
-          to_status: status
-        });
-        if (!body?.ok) {
-          const _sl = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
-          setNotif('error', body?.error || `Erreur passage vers ${_sl[status] || status}`);
-          return;
-        }
+      if (!body?.ok) {
+        setNotif('error', getApiError(body, 'Erreur lors du lancement'));
+        // Reload to reflect any partial state change
+        await loadMeetingContext(currentMeetingId);
+        return;
+      }
+
+      if (body.data?.warnings?.length) {
+        body.data.warnings.forEach(w => setNotif('warning', w.msg || w));
       }
 
       setNotif('success', 'Séance lancée !');
@@ -480,6 +486,8 @@
       announce('Séance lancée — mode exécution activé.');
     } catch (err) {
       setNotif('error', err.message);
+      // Reload to see current state after potential partial failure
+      await loadMeetingContext(currentMeetingId);
     }
   }
 
@@ -547,7 +555,7 @@
         document.getElementById('settingConvocation').value = currentMeeting.convocation_no || 1;
       }
     } catch (err) {
-      console.error('Policies error:', err);
+      console.warn('loadPolicies:', err.message);
     }
   }
 
@@ -590,7 +598,7 @@
       // Assessors list
       renderAssessors(assessors);
     } catch (err) {
-      console.error('Roles error:', err);
+      console.warn('loadRoles:', err.message);
     }
   }
 
@@ -652,10 +660,10 @@
       if (card) Shared.show(card, 'block');
 
       // Attendance
-      document.getElementById('dashPresentCount').textContent = d.attendance?.present_count ?? '-';
-      document.getElementById('dashEligibleCount').textContent = d.attendance?.eligible_count ?? '-';
-      document.getElementById('dashProxyCount').textContent = d.proxies?.count ?? 0;
-      document.getElementById('dashOpenMotions').textContent = d.openable_motions?.length ?? 0;
+      setText('dashPresentCount', d.attendance?.present_count ?? '-');
+      setText('dashEligibleCount', d.attendance?.eligible_count ?? '-');
+      setText('dashProxyCount', d.proxies?.count ?? 0);
+      setText('dashOpenMotions', d.openable_motions?.length ?? 0);
 
       // Current motion
       const motionDiv = document.getElementById('dashCurrentMotion');
@@ -678,7 +686,7 @@
         document.getElementById('dashReadyReasons').innerHTML = ready.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('');
       }
     } catch (err) {
-      console.error('Dashboard error:', err);
+      console.warn('loadDashboard:', err.message);
     }
   }
 
@@ -696,10 +704,10 @@
       if (card) Shared.show(card, 'block');
 
       const counts = data.counts || {};
-      document.getElementById('devOnline').textContent = counts.online ?? 0;
-      document.getElementById('devStale').textContent = counts.stale ?? 0;
-      document.getElementById('devOffline').textContent = counts.offline ?? 0;
-      document.getElementById('devBlocked').textContent = counts.blocked ?? 0;
+      setText('devOnline', counts.online ?? 0);
+      setText('devStale', counts.stale ?? 0);
+      setText('devOffline', counts.offline ?? 0);
+      setText('devBlocked', counts.blocked ?? 0);
 
       // Device list (show first 5)
       const items = data.items || [];
@@ -722,7 +730,7 @@
         }
       }
     } catch (err) {
-      console.error('Devices error:', err);
+      console.warn('loadDevices:', err.message);
     }
   }
 
@@ -870,7 +878,7 @@
       document.getElementById('tabCountResolutions').textContent = d.motions_total || 0;
       document.getElementById('tabCountPresences').textContent = d.present_count || 0;
     } catch (err) {
-      console.error('Checklist error:', err);
+      console.warn('loadStatusChecklist:', err.message);
     }
   }
 
@@ -1050,7 +1058,7 @@
       attendanceCache = body?.data?.attendances || [];
       renderAttendance();
     } catch (err) {
-      console.error('Attendance error:', err);
+      console.warn('loadAttendance:', err.message);
     }
   }
 
@@ -1060,12 +1068,11 @@
     const proxyCount = proxiesCache.filter(p => !p.revoked_at).length;
     const absent = attendanceCache.filter(a => !a.mode || a.mode === 'absent').length;
 
-    document.getElementById('presStatPresent').textContent = present;
-    document.getElementById('presStatRemote').textContent = remote;
-    const proxyStatEl = document.getElementById('presStatProxy');
-    if (proxyStatEl) proxyStatEl.textContent = proxyCount;
-    document.getElementById('presStatAbsent').textContent = absent;
-    document.getElementById('tabCountPresences').textContent = present + remote + proxyCount;
+    setText('presStatPresent', present);
+    setText('presStatRemote', remote);
+    setText('presStatProxy', proxyCount);
+    setText('presStatAbsent', absent);
+    setText('tabCountPresences', present + remote + proxyCount);
 
     const searchTerm = (document.getElementById('presenceSearch')?.value || '').toLowerCase();
     let filtered = attendanceCache;
@@ -1126,6 +1133,14 @@
   }
 
   async function updateAttendance(memberId, mode) {
+    const m = attendanceCache.find(a => String(a.member_id) === String(memberId));
+    const prevMode = m ? m.mode : undefined;
+
+    // Optimistic update for instant feedback
+    if (m) m.mode = mode;
+    renderAttendance();
+    updateQuickStats();
+
     try {
       const { body } = await api('/api/v1/attendances_upsert.php', {
         meeting_id: currentMeetingId,
@@ -1133,16 +1148,20 @@
         mode: mode
       });
       if (body?.ok === true) {
-        const m = attendanceCache.find(a => String(a.member_id) === String(memberId));
-        if (m) m.mode = mode;
-        renderAttendance();
         loadStatusChecklist();
-        updateQuickStats();
         checkLaunchReady();
       } else {
+        // Rollback on API error
+        if (m) m.mode = prevMode;
+        renderAttendance();
+        updateQuickStats();
         setNotif('error', getApiError(body, 'Erreur de mise à jour'));
       }
     } catch (err) {
+      // Rollback on network error
+      if (m) m.mode = prevMode;
+      renderAttendance();
+      updateQuickStats();
       setNotif('error', err.message);
     }
   }
@@ -1294,7 +1313,7 @@
       proxiesCache = body?.data?.proxies || body?.proxies || [];
       renderProxies();
     } catch (err) {
-      console.error('Proxies error:', err);
+      console.warn('loadProxies:', err.message);
     }
   }
 
@@ -1704,7 +1723,7 @@
       const countEl = document.getElementById('tabCountSpeech');
       if (countEl) countEl.textContent = speechQueueCache.length;
     } catch (err) {
-      console.error('Speech queue error:', err);
+      console.warn('loadSpeechQueue:', err.message);
     }
   }
 
@@ -1841,18 +1860,16 @@
   }
 
   function showAddToQueueModal() {
-    // Show modal to select a member to add to the queue
     const presentMembers = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
     const alreadyInQueue = new Set(speechQueueCache.map(s => s.member_id));
     const available = presentMembers.filter(m => !alreadyInQueue.has(m.member_id) && (!currentSpeakerCache || currentSpeakerCache.member_id !== m.member_id));
 
-    const modal = document.createElement('div');
-    modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
-
-    modal.innerHTML = `
-      <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:400px;width:90%;max-height:80vh;overflow:auto;">
-        <h3 style="margin:0 0 1rem;">${icon('mic', 'icon-sm icon-text')} Ajouter à la file</h3>
+    const modal = createModal({
+      id: 'addToQueueModal',
+      title: 'Ajouter à la file',
+      maxWidth: '400px',
+      content: `
+        <h3 id="addToQueueModal-title" style="margin:0 0 1rem;">${icon('mic', 'icon-sm icon-text')} Ajouter à la file</h3>
         ${available.length === 0
           ? '<p class="text-muted">Tous les membres présents sont déjà dans la file.</p>'
           : `
@@ -1869,12 +1886,10 @@
           <button class="btn btn-secondary" id="btnCancelAddSpeech">Annuler</button>
           ${available.length > 0 ? '<button class="btn btn-primary" id="btnConfirmAddSpeech">Ajouter</button>' : ''}
         </div>
-      </div>
-    `;
+      `
+    });
 
-    document.body.appendChild(modal);
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-    document.getElementById('btnCancelAddSpeech').onclick = () => modal.remove();
+    document.getElementById('btnCancelAddSpeech').onclick = () => closeModal(modal);
 
     const btnConfirm = document.getElementById('btnConfirmAddSpeech');
     if (btnConfirm) {
@@ -1890,7 +1905,7 @@
             member_id: memberId
           });
           setNotif('success', 'Membre ajouté à la file');
-          modal.remove();
+          closeModal(modal);
           loadSpeechQueue();
         } catch (err) {
           setNotif('error', err.message);
@@ -1911,7 +1926,7 @@
       renderResolutions();
       document.getElementById('tabCountResolutions').textContent = motionsCache.length;
     } catch (err) {
-      console.error('Resolutions error:', err);
+      console.warn('loadResolutions:', err.message);
     }
   }
 
@@ -2272,11 +2287,11 @@
         else if (b.value === 'against') againstCount++;
         else if (b.value === 'abstain') abstainCount++;
       });
-      document.getElementById('liveVoteFor').textContent = forCount;
-      document.getElementById('liveVoteAgainst').textContent = againstCount;
-      document.getElementById('liveVoteAbstain').textContent = abstainCount;
+      setText('liveVoteFor', forCount);
+      setText('liveVoteAgainst', againstCount);
+      setText('liveVoteAbstain', abstainCount);
     } catch (err) {
-      console.error('Ballots error:', err);
+      console.warn('loadBallots:', err.message);
     }
   }
 
@@ -2436,17 +2451,12 @@
     }
   }
 
-  let _openingVote = false;
-
   async function openVote(motionId) {
-    if (_openingVote) return;
-    _openingVote = true;
-
-    // Disable open-vote buttons and show spinner
-    const openBtns = document.querySelectorAll(`.btn-open-vote[data-motion-id="${motionId}"]`);
+    // Disable ALL open-vote buttons and quick-open buttons to prevent any double-click
+    const openBtns = document.querySelectorAll('.btn-open-vote, .btn-quick-open');
     openBtns.forEach(btn => {
       btn.disabled = true;
-      btn.dataset.origHtml = btn.innerHTML;
+      btn.dataset.origHtml = btn.dataset.origHtml || btn.innerHTML;
       btn.innerHTML = '<span class="spinner spinner-sm"></span> Ouverture…';
     });
 
@@ -2454,19 +2464,20 @@
       const openResult = await api('/api/v1/motions_open.php', { meeting_id: currentMeetingId, motion_id: motionId });
 
       if (!openResult.body?.ok) {
-        // Prefer detail message over error code for user-friendly display
         const errorMsg = getApiError(openResult.body, 'Erreur ouverture vote');
         setNotif('error', errorMsg);
+        // Re-render to restore buttons on error only
+        await loadResolutions();
         return;
       }
 
       setNotif('success', 'Vote ouvert');
 
-      // Must await loadResolutions so currentOpenMotion is set before switching tabs
+      // loadResolutions will re-render the list with fresh buttons (old disabled ones are replaced)
       await loadResolutions();
 
       if (currentMode === 'exec') {
-        await loadBallots(currentOpenMotion.id);
+        if (currentOpenMotion) await loadBallots(currentOpenMotion.id);
         refreshExecView();
       } else {
         switchTab('vote');
@@ -2474,27 +2485,19 @@
       }
     } catch (err) {
       setNotif('error', err.message);
-    } finally {
-      _openingVote = false;
-      openBtns.forEach(btn => {
-        btn.disabled = false;
-        btn.innerHTML = btn.dataset.origHtml || btn.innerHTML;
-      });
+      // Re-render to restore buttons on error
+      await loadResolutions();
     }
   }
 
-  let _closingVote = false;
-
   async function closeVote(motionId) {
-    if (_closingVote) return; // Guard against double-click
     if (!confirm('Clôturer ce vote ?')) return;
 
-    _closingVote = true;
     // Disable all close-vote buttons during the operation and show spinner
     const closeBtns = document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote');
     closeBtns.forEach(b => {
       b.disabled = true;
-      b.dataset.origHtml = b.innerHTML;
+      b.dataset.origHtml = b.dataset.origHtml || b.innerHTML;
       b.innerHTML = '<span class="spinner spinner-sm"></span> Clôture…';
     });
 
@@ -2503,18 +2506,15 @@
       setNotif('success', 'Vote clôturé');
       currentOpenMotion = null;
       ballotsCache = {};
+      // loadResolutions + loadVoteTab will re-render with fresh buttons
       await loadResolutions();
       await loadVoteTab();
       if (currentMode === 'exec') refreshExecView();
       announce('Vote clôturé.');
     } catch (err) {
       setNotif('error', err.message);
-    } finally {
-      _closingVote = false;
-      closeBtns.forEach(b => {
-        b.disabled = false;
-        b.innerHTML = b.dataset.origHtml || b.innerHTML;
-      });
+      // Re-render to restore buttons on error
+      await loadResolutions();
     }
   }
 
@@ -2527,9 +2527,9 @@
     const adopted = closed.filter(m => (m.votes_for || 0) > (m.votes_against || 0)).length;
     const rejected = closed.length - adopted;
 
-    document.getElementById('resultAdopted').textContent = adopted;
-    document.getElementById('resultRejected').textContent = rejected;
-    document.getElementById('resultTotal').textContent = motionsCache.length;
+    setText('resultAdopted', adopted);
+    setText('resultRejected', rejected);
+    setText('resultTotal', motionsCache.length);
 
     const list = document.getElementById('resultsDetailList');
     list.innerHTML = motionsCache.map((m, i) => {
@@ -2966,15 +2966,18 @@
       });
     }
 
-    // Quorum check (when live)
+    // Quorum check (when live) — use configured threshold from policy
     if (currentMeetingStatus === 'live' && currentMeeting && currentMeeting.quorum_policy_id) {
       const present = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
       const proxyActive = proxiesCache.filter(p => !p.revoked_at).length;
       const total = present + proxyActive;
-      if (membersCache.length > 0 && total < Math.ceil(membersCache.length / 2)) {
+      const policy = policiesCache.quorum.find(p => p.id === currentMeeting.quorum_policy_id);
+      const threshold = policy?.threshold ? parseFloat(policy.threshold) : 0.5;
+      const required = Math.ceil(membersCache.length * threshold);
+      if (membersCache.length > 0 && total < required) {
         alerts.push({
           title: 'Quorum potentiellement non atteint',
-          message: total + ' votants / ' + membersCache.length + ' membres.',
+          message: total + ' votants / ' + required + ' requis (' + Math.round(threshold * 100) + '%).',
           severity: 'warning'
         });
       }
@@ -3033,7 +3036,9 @@
       const proxyActive = proxiesCache.filter(p => !p.revoked_at).length;
       const currentVoters = present + proxyActive;
       const totalMembers = membersCache.length;
-      const required = Math.ceil(totalMembers / 2); // default quorum
+      const policy = policiesCache.quorum.find(p => p.id === (currentMeeting?.quorum_policy_id));
+      const threshold = policy?.threshold ? parseFloat(policy.threshold) : 0.5;
+      const required = Math.ceil(totalMembers * threshold);
       qBar.setAttribute('current', currentVoters);
       qBar.setAttribute('required', required);
       qBar.setAttribute('total', totalMembers);
@@ -3312,85 +3317,114 @@
   startClock();
   loadMeetings();
 
-  // Auto-refresh - adaptive polling
+  // Auto-refresh - adaptive polling with cancellable timer
   const POLL_FAST = 5000;  // 5s when vote is active
-  const POLL_SLOW = 15000; // 15s otherwise (reduced from 6s to limit server load)
+  const POLL_SLOW = 15000; // 15s otherwise
+  let pollTimer = null;
+  let pollRunning = false;
+  let newVoteDebounceTimer = null;
+
+  function schedulePoll(ms) {
+    if (pollTimer) clearTimeout(pollTimer);
+    pollTimer = setTimeout(autoPoll, ms);
+  }
 
   async function autoPoll() {
+    pollTimer = null;
+
     if (!currentMeetingId || document.hidden) {
-      setTimeout(autoPoll, POLL_SLOW);
+      schedulePoll(POLL_SLOW);
       return;
     }
 
-    const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
-    const onVoteTab = activeTab === 'vote';
+    // Prevent overlapping poll cycles
+    if (pollRunning) return;
+    pollRunning = true;
 
-    // Always refresh resolutions to detect motion state changes
-    loadSpeechQueue();
-    await loadResolutions();
+    try {
+      const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
+      const onVoteTab = activeTab === 'vote';
 
-    // In setup mode, also refresh dashboard/checklist/devices (not needed in exec)
-    if (currentMode === 'setup') {
-      loadStatusChecklist();
-      loadDashboard();
-      loadDevices();
-    } else {
-      // In exec mode, only refresh devices (for counts)
-      loadDevices();
-    }
+      // Always refresh resolutions to detect motion state changes
+      loadSpeechQueue();
+      await loadResolutions();
 
-    const isVoteActive = !!currentOpenMotion;
-    const currentMotionId = currentOpenMotion?.id || null;
-
-    // Detect if a new vote was opened (not by us, e.g. from another tab/device)
-    if (isVoteActive && currentMotionId !== previousOpenMotionId) {
-      setNotif('info', `Vote ouvert: ${currentOpenMotion.title}`);
-      if (currentMode === 'exec') {
-        await loadBallots(currentOpenMotion.id);
-        refreshExecView();
+      // In setup mode, also refresh dashboard/checklist/devices (not needed in exec)
+      if (currentMode === 'setup') {
+        loadStatusChecklist();
+        loadDashboard();
+        loadDevices();
       } else {
-        switchTab('vote');
+        loadDevices();
       }
-    }
 
-    previousOpenMotionId = currentMotionId;
+      const isVoteActive = !!currentOpenMotion;
+      const currentMotionId = currentOpenMotion?.id || null;
 
-    // If vote is active, refresh ballot counts (once — no duplicate)
-    if (isVoteActive && currentOpenMotion) {
-      await loadBallots(currentOpenMotion.id);
-      // Update vote tab display without calling loadBallots again
-      if (currentMode === 'setup' && onVoteTab) {
-        const noVote = document.getElementById('noActiveVote');
-        const panel = document.getElementById('activeVotePanel');
-        const title = document.getElementById('activeVoteTitle');
-        if (noVote) Shared.hide(noVote);
-        if (panel) Shared.show(panel, 'block');
-        if (title) title.textContent = currentOpenMotion.title;
-        renderManualVoteList();
+      // Detect if a new vote was opened (not by us) — debounced
+      if (isVoteActive && currentMotionId !== previousOpenMotionId) {
+        if (newVoteDebounceTimer) clearTimeout(newVoteDebounceTimer);
+        const motionTitle = currentOpenMotion.title;
+        newVoteDebounceTimer = setTimeout(() => {
+          setNotif('info', `Vote ouvert: ${motionTitle}`);
+          if (currentMode === 'exec') {
+            loadBallots(currentOpenMotion.id).then(() => refreshExecView());
+          } else {
+            switchTab('vote');
+          }
+        }, 500);
       }
-    } else if (onVoteTab) {
-      // No active vote but on vote tab — refresh quick-open list
-      loadVoteTab();
+
+      previousOpenMotionId = currentMotionId;
+
+      // If vote is active, refresh ballot counts
+      if (isVoteActive && currentOpenMotion) {
+        await loadBallots(currentOpenMotion.id);
+        if (currentMode === 'setup' && onVoteTab) {
+          const noVote = document.getElementById('noActiveVote');
+          const panel = document.getElementById('activeVotePanel');
+          const title = document.getElementById('activeVoteTitle');
+          if (noVote) Shared.hide(noVote);
+          if (panel) Shared.show(panel, 'block');
+          if (title) title.textContent = currentOpenMotion.title;
+          renderManualVoteList();
+        }
+      } else if (onVoteTab) {
+        loadVoteTab();
+      }
+
+      // Refresh bimodal UI
+      renderConformityChecklist();
+      refreshAlerts();
+      if (currentMode === 'exec') refreshExecView();
+
+      // Schedule next poll
+      const interval = isVoteActive ? POLL_FAST : POLL_SLOW;
+      schedulePoll(interval);
+    } catch (err) {
+      console.warn('autoPoll error:', err);
+      schedulePoll(POLL_SLOW);
+    } finally {
+      pollRunning = false;
     }
-
-    // Refresh bimodal UI
-    renderConformityChecklist();
-    refreshAlerts();
-    if (currentMode === 'exec') refreshExecView();
-
-    // Schedule next poll
-    const interval = isVoteActive ? POLL_FAST : POLL_SLOW;
-    setTimeout(autoPoll, interval);
   }
 
-  // Refresh immediately when tab becomes visible again
+  // Refresh immediately when tab becomes visible — using schedulePoll to avoid stacking
   document.addEventListener('visibilitychange', function() {
     if (!document.hidden && currentMeetingId) {
-      autoPoll();
+      schedulePoll(100); // near-immediate but cancels any existing timer
     }
   });
 
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', function() {
+    if (pollTimer) clearTimeout(pollTimer);
+    if (newVoteDebounceTimer) clearTimeout(newVoteDebounceTimer);
+    if (speechTimerInterval) clearInterval(speechTimerInterval);
+    if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+  });
+
   // Start polling after initial load
-  setTimeout(autoPoll, POLL_SLOW);
+  schedulePoll(POLL_SLOW);
 
 })();

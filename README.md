@@ -6,6 +6,25 @@ Assemblées générales, conseils syndicaux, réunions formelles — préparatio
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/thomasvinh-san-byte/gestion-votes?quickstart=1)
 
+## Prérequis
+
+L'application tourne dans **Docker**, ce qui évite d'installer PHP, PostgreSQL ou Nginx manuellement.
+
+| Système | Ce qu'il faut installer |
+|---------|------------------------|
+| **macOS** | [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) — télécharger, glisser dans Applications, lancer. Choisir *Apple Chip* (M1–M4) ou *Intel* selon votre Mac. Détails : [guide complet](docs/INSTALL_MAC.md) |
+| **Windows** | [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/) — installer, activer WSL 2 si proposé, relancer |
+| **Linux** | Docker Engine + Docker Compose — voir [guide Linux](docs/DOCKER_INSTALL.md) |
+
+Vérifier que tout est prêt :
+
+```bash
+docker --version          # Docker version 27.x.x
+docker compose version    # Docker Compose version v2.x.x
+```
+
+> Si `docker` n'est pas reconnu après installation, fermez et rouvrez votre terminal.
+
 ## Démarrage rapide
 
 ```bash
@@ -15,9 +34,11 @@ cp .env.example .env
 docker compose up -d
 ```
 
+Premier lancement : 3–5 min (téléchargement des images). Les suivants : ~5 secondes.
+
 Ouvrir **http://localhost:8080** — compte test : `admin@ag-vote.local` / `Admin2026!`
 
-> Ou cliquer sur **Open in GitHub Codespaces** ci-dessus pour lancer directement dans le navigateur.
+> Ou cliquer sur **Open in GitHub Codespaces** ci-dessus pour lancer directement dans le navigateur, sans rien installer.
 
 ## Fonctionnalités
 
