@@ -220,16 +220,36 @@ Créés automatiquement par les seeds (si `LOAD_DEMO_DATA=1`) :
 
 ---
 
-## 7. Accès réseau (LAN)
+## 7. Accès réseau (LAN / VM)
 
-Par défaut, les ports écoutent sur `0.0.0.0` (toutes les interfaces).
-Depuis un autre poste du réseau local :
+Les ports HTTP et WebSocket écoutent sur **`0.0.0.0`** (toutes les interfaces).
+L'application est donc accessible depuis n'importe quelle machine du réseau local ou depuis l'hôte d'une VM.
+
+### Depuis une VM (VirtualBox, VMware, Proxmox…)
+
+Vérifiez le mode réseau de la VM :
+
+| Mode réseau | Accès depuis l'hôte | Configuration |
+|---|---|---|
+| **Bridge** (recommandé) | `http://<IP_VM>:8080` | Aucune — la VM obtient sa propre IP sur le LAN |
+| **NAT + port forwarding** | `http://localhost:8080` | Rediriger le port 8080 du host vers le port 8080 de la VM |
+| **Host-only** | `http://<IP_VM>:8080` | L'IP est sur le réseau host-only (ex : 192.168.56.x) |
+
+Trouver l'IP de la VM :
+
+```bash
+ip -4 addr show | grep -oP '(?<=inet\s)\d+\.\d+\.\d+\.\d+' | grep -v 127.0.0.1
+```
+
+### Depuis un autre poste du réseau local
 
 ```
 http://192.168.1.50:8080/login.html
 ```
 
-Penser à mettre à jour `CORS_ALLOWED_ORIGINS` dans `.env` :
+### Configurer les origines CORS
+
+Penser à mettre à jour `CORS_ALLOWED_ORIGINS` dans `.env` avec l'IP ou le hostname utilisé :
 
 ```bash
 CORS_ALLOWED_ORIGINS=http://localhost:8080,http://192.168.1.50:8080
@@ -244,9 +264,19 @@ docker compose restart app
 ### Firewall (optionnel)
 
 ```bash
+# Debian/Ubuntu (ufw)
 sudo ufw allow 8080/tcp comment "AG-VOTE HTTP"
 sudo ufw allow 8081/tcp comment "AG-VOTE WebSocket"
+
+# Ou avec iptables
+sudo iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 8081 -j ACCEPT
 ```
+
+### PostgreSQL : accès restreint
+
+Par défaut, le port PostgreSQL (5433) n'est exposé que sur `127.0.0.1` (localhost).
+Il n'est **pas** accessible depuis le réseau. C'est voulu pour la sécurité.
 
 ---
 
