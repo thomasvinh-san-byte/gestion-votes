@@ -4,11 +4,11 @@ Application web de gestion de séances de vote avec vote électronique sécuris�
 
 Assemblées générales, conseils syndicaux, réunions formelles — préparation, conduite en direct, vote, résultats, PV.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/thomasvinh-san-byte/gestion-votes)
+**Démo en ligne : https://ag-vote.onrender.com/**
 
-> **Voir la démo en 1 clic** : cliquer sur **Deploy to Render** ci-dessus. Render crée l'app + la base de données automatiquement (~5 min). Vous obtenez une URL directe vers la démo, sans rien installer.
->
 > Compte test : `admin@ag-vote.local` / `Admin2026!`
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/thomasvinh-san-byte/gestion-votes)
 
 ## Prérequis
 
