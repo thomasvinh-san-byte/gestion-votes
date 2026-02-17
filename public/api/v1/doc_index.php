@@ -1,0 +1,49 @@
+<?php
+// public/api/v1/doc_index.php
+// Returns the documentation index (list of available docs by category).
+// No authentication required — documentation is public.
+declare(strict_types=1);
+
+header('Content-Type: application/json; charset=utf-8');
+
+$docsRoot = dirname(__DIR__, 3) . '/docs';
+
+$categories = [
+    'Utilisateur' => ['FAQ', 'UTILISATION_LIVE', 'RECETTE_DEMO', 'ANALYTICS_ETHICS'],
+    'Technique'   => ['dev/INSTALLATION', 'dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
+    'Conformité'  => ['dev/CONFORMITE_CDC', 'dev/AUDIT_RAPPORT', 'dev/MIGRATION', 'dev/WEB_COMPONENTS'],
+];
+
+$labels = [
+    'FAQ' => 'FAQ',
+    'UTILISATION_LIVE' => 'Guide opérateur',
+    'RECETTE_DEMO' => 'Démo guidée',
+    'ANALYTICS_ETHICS' => 'Éthique & RGPD',
+    'dev/INSTALLATION' => 'Installation',
+    'dev/ARCHITECTURE' => 'Architecture',
+    'dev/API' => 'Référence API',
+    'dev/SECURITY' => 'Sécurité',
+    'dev/TESTS' => 'Tests',
+    'dev/CONFORMITE_CDC' => 'Conformité CDC',
+    'dev/AUDIT_RAPPORT' => 'Rapport d\'audit',
+    'dev/MIGRATION' => 'Migrations',
+    'dev/WEB_COMPONENTS' => 'Web Components',
+];
+
+$result = [];
+foreach ($categories as $catName => $docs) {
+    $items = [];
+    foreach ($docs as $doc) {
+        if (file_exists($docsRoot . '/' . $doc . '.md')) {
+            $items[] = [
+                'page' => $doc,
+                'label' => $labels[$doc] ?? basename($doc),
+            ];
+        }
+    }
+    if ($items) {
+        $result[] = ['category' => $catName, 'items' => $items];
+    }
+}
+
+echo json_encode(['ok' => true, 'data' => $result]);

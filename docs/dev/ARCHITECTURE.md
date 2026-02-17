@@ -30,8 +30,8 @@ gestion-votes/
 │   │   └── bus/                Event bus (publish, stream)
 │   ├── assets/
 │   │   ├── css/                19 fichiers CSS (design-system, app, pages)
-│   │   └── js/
-│   │       ├── components/     10 Web Components (ag-kpi, ag-badge, ag-toast, etc.)
+│   │   └── js/                 32 fichiers JS total
+│   │       ├── components/     10 fichiers (9 Web Components + index.js)
 │   │       ├── core/           4 fichiers (utils, shared, shell, page-components)
 │   │       ├── pages/          12 fichiers (admin, vote, operator-tabs, login, etc.)
 │   │       └── services/       6 fichiers (websocket-client, offline-storage, etc.)
@@ -39,7 +39,7 @@ gestion-votes/
 │   ├── fragments/              7 fragments PHP (drawers, OOB)
 │   ├── exports/                Templates d'export (PV)
 │   ├── errors/                 Pages 403, 404, 500
-│   ├── *.htmx.html             13 pages applicatives
+│   ├── *.htmx.html             14 pages applicatives
 │   ├── index.html              Page d'accueil
 │   └── login.html              Page de connexion
 ├── app/                        Code backend (hors webroot)
@@ -47,7 +47,7 @@ gestion-votes/
 │   ├── bootstrap.php           Initialisation (DB, .env, constantes)
 │   ├── config.php              Configuration applicative
 │   ├── auth.php                Auth utilities (aliases rétrocompatibilité)
-│   ├── Repository/             26 repositories (AbstractRepository, etc.)
+│   ├── Repository/             27 repositories (AbstractRepository + 26 métier)
 │   ├── Services/               22 services métier (namespace AgVote\Service)
 │   ├── Core/
 │   │   ├── Security/           AuthMiddleware, CsrfMiddleware, RateLimiter, SecurityHeaders, Permissions
@@ -55,7 +55,7 @@ gestion-votes/
 │   ├── WebSocket/              EventBroadcaster, Server
 │   └── Templates/              Layout.php + templates email
 ├── database/
-│   ├── schema-master.sql       Schéma DDL unifié (35+ tables, triggers, index)
+│   ├── schema-master.sql       Schéma DDL unifié (36 tables, triggers, index)
 │   ├── setup.sh                Script d'initialisation automatique
 │   ├── seeds/                  Seeds numérotés (01-08, idempotent)
 │   ├── migrations/             10 migrations (001-008 + datées)
@@ -218,7 +218,7 @@ Un utilisateur peut avoir un rôle système (operator) ET un rôle de séance (p
 Les composants utilisent le Shadow DOM et émettent des événements personnalisés.
 
 ### JavaScript
-37 fichiers organisés en 4 dossiers :
+32 fichiers organisés en 4 dossiers :
 
 **core/** — Utilitaires partagés :
 - `utils.js` — Fonctions utilitaires (apiGet, apiPost, formatDate, getMeetingId, setNotif)
@@ -237,18 +237,18 @@ Les composants utilisent le Shadow DOM et émettent des événements personnalis
 - `session-wizard.js` — Assistant de création de séance
 - `speaker.js` — Gestion de la file d'intervenants
 
-### Pattern HTMX
-Les pages .htmx.html utilisent HTMX pour le rendu dynamique :
-- `hx-get` / `hx-post` pour les appels API
-- `hx-target` pour l'injection de fragments
-- `hx-trigger` pour les événements (load, revealed, every Ns)
-- Les fragments PHP dans `public/fragments/` génèrent du HTML partiel
+### Pattern SPA léger
+Les pages `.htmx.html` sont des single-page applications légères utilisant du vanilla JS :
+- Les appels API se font via `fetch()` (encapsulés dans `apiGet()`, `apiPost()` de `core/utils.js`)
+- Le rendu DOM est géré par JavaScript natif (innerHTML, createElement, etc.)
+- HTMX est chargé par 2 pages (trust, vote) pour un usage futur, mais les attributs `hx-*` ne sont pas utilisés actuellement
+- Les fragments PHP dans `public/fragments/` génèrent du HTML partiel (drawers, OOB updates)
 
 ---
 
 ## Base de données
 
-### Tables principales (35+)
+### Tables principales (36)
 
 **Domaine métier :**
 - `meetings` — Séances avec machine à états (draft > scheduled > frozen > live > closed > validated > archived)
@@ -339,4 +339,5 @@ Chaque transition est contrôlée par rôle et enregistrée dans `meeting_state_
 - **Nommage SQL** : snake_case, tables au pluriel, colonnes explicites
 - **Nommage JS** : camelCase, IIFE pour isolation
 - **Pas de framework** : Code applicatif direct, pas d'ORM
-- **Pas de dépendances front** : Vanilla JS + HTMX uniquement
+- **Pas de dépendances front** : Vanilla JS uniquement (HTMX chargé mais non utilisé)
+- **PWA** : manifest.json + sw.js pour installation et mode hors-ligne

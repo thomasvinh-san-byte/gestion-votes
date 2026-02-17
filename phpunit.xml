@@ -19,7 +19,15 @@
     <coverage processUncoveredFiles="true">
         <include>
             <directory suffix=".php">app/Core</directory>
+            <directory suffix=".php">app/Services</directory>
+            <directory suffix=".php">app/Repository</directory>
+            <directory suffix=".php">app/WebSocket</directory>
+            <directory suffix=".php">app/Templates</directory>
         </include>
+        <exclude>
+            <file>app/api.php</file>
+            <file>app/bootstrap.php</file>
+        </exclude>
         <report>
             <html outputDirectory="coverage-report"/>
             <text outputFile="php://stdout" showUncoveredFiles="true"/>
