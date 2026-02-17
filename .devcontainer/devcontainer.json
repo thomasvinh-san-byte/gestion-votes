@@ -1,0 +1,25 @@
+{
+  "name": "AG-VOTE",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/var/www/html",
+  "forwardPorts": [8080, 8081],
+  "portsAttributes": {
+    "8080": { "label": "AG-VOTE", "onAutoForward": "openBrowser" },
+    "8081": { "label": "WebSocket" }
+  },
+  "shutdownAction": "stopCompose",
+  "postStartCommand": "echo 'AG-VOTE ready'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "ms-azuretools.vscode-docker"
+      ]
+    },
+    "codespaces": {
+      "defaultIdleTimeout": 5,
+      "defaultRetentionPeriod": 0
+    }
+  }
+}
