@@ -41,52 +41,57 @@ try {
         api_fail('meeting_not_found', 404, ['detail' => 'Séance non trouvée.']);
     }
 
-    // Get or create default agenda for this meeting
-    $agendaRepo = new AgendaRepository();
-    $agendas = $agendaRepo->listForMeetingCompact($meetingId);
+    // Wrap agenda + motion creation in a single transaction
+    $result = api_transaction(function () use ($meetingId, $tenantId, $title, $description, $secret) {
+        // Get or create default agenda for this meeting
+        $agendaRepo = new AgendaRepository();
+        $agendas = $agendaRepo->listForMeetingCompact($meetingId);
 
-    $agendaId = null;
-    if (empty($agendas)) {
-        // Create default agenda
-        $agendaId = $agendaRepo->generateUuid();
-        $agendaRepo->create($agendaId, $tenantId, $meetingId, 1, 'Ordre du jour');
-        audit_log('agenda_created', 'agenda', $agendaId, [
+        $agendaId = null;
+        if (empty($agendas)) {
+            // Create default agenda
+            $agendaId = $agendaRepo->generateUuid();
+            $agendaRepo->create($agendaId, $tenantId, $meetingId, 1, 'Ordre du jour');
+            audit_log('agenda_created', 'agenda', $agendaId, [
+                'meeting_id' => $meetingId,
+                'title' => 'Ordre du jour',
+                'auto_created' => true
+            ]);
+        } else {
+            // Use first/main agenda
+            $agendaId = $agendas[0]['agenda_id'];
+        }
+
+        // Create motion
+        $motionRepo = new MotionRepository();
+        $motionId = $motionRepo->generateUuid();
+
+        $motionRepo->create(
+            $motionId,
+            $tenantId,
+            $meetingId,
+            $agendaId,
+            $title,
+            $description,
+            $secret,
+            null, // vote_policy_id
+            null  // quorum_policy_id
+        );
+
+        audit_log('motion_created', 'motion', $motionId, [
             'meeting_id' => $meetingId,
-            'title' => 'Ordre du jour',
-            'auto_created' => true
+            'agenda_id' => $agendaId,
+            'title' => $title,
+            'secret' => $secret,
+            'created_via' => 'simple_endpoint'
         ]);
-    } else {
-        // Use first/main agenda
-        $agendaId = $agendas[0]['agenda_id'];
-    }
 
-    // Create motion
-    $motionRepo = new MotionRepository();
-    $motionId = $motionRepo->generateUuid();
-
-    $motionRepo->create(
-        $motionId,
-        $tenantId,
-        $meetingId,
-        $agendaId,
-        $title,
-        $description,
-        $secret,
-        null, // vote_policy_id
-        null  // quorum_policy_id
-    );
-
-    audit_log('motion_created', 'motion', $motionId, [
-        'meeting_id' => $meetingId,
-        'agenda_id' => $agendaId,
-        'title' => $title,
-        'secret' => $secret,
-        'created_via' => 'simple_endpoint'
-    ]);
+        return ['motion_id' => $motionId, 'agenda_id' => $agendaId];
+    });
 
     api_ok([
-        'motion_id' => $motionId,
-        'agenda_id' => $agendaId,
+        'motion_id' => $result['motion_id'],
+        'agenda_id' => $result['agenda_id'],
         'created' => true
     ]);
 

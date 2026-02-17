@@ -258,28 +258,21 @@ class AttendanceRepository extends AbstractRepository
 
     /**
      * Upsert simplifie pour bulk (mode seul, sans effective_power).
+     * Uses ON CONFLICT to avoid race conditions between concurrent requests.
      * @return bool true si cree, false si mis a jour
      */
     public function upsertMode(string $meetingId, string $memberId, string $mode, string $tenantId): bool
     {
-        $existing = $this->selectOne(
-            "SELECT id FROM attendances WHERE meeting_id = :mid AND member_id = :uid",
-            [':mid' => $meetingId, ':uid' => $memberId]
-        );
-        $now = date('c');
-        if ($existing) {
-            $this->execute(
-                "UPDATE attendances SET mode = :mode, updated_at = :now WHERE id = :id",
-                [':mode' => $mode, ':now' => $now, ':id' => $existing['id']]
-            );
-            return false;
-        }
-        $this->execute(
+        $row = $this->insertReturning(
             "INSERT INTO attendances (id, tenant_id, meeting_id, member_id, mode, created_at, updated_at)
-             VALUES (gen_random_uuid(), :tid, :mid, :uid, :mode, :now, :now2)",
-            [':tid' => $tenantId, ':mid' => $meetingId, ':uid' => $memberId, ':mode' => $mode, ':now' => $now, ':now2' => $now]
+             VALUES (gen_random_uuid(), :tid, :mid, :uid, :mode, now(), now())
+             ON CONFLICT (tenant_id, meeting_id, member_id) DO UPDATE SET
+               mode = EXCLUDED.mode, updated_at = now()
+             RETURNING (xmax = 0) AS inserted",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':uid' => $memberId, ':mode' => $mode]
         );
-        return true;
+        // xmax = 0 means the row was freshly inserted (not updated)
+        return (bool)($row['inserted'] ?? false);
     }
 
     /**

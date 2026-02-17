@@ -675,7 +675,12 @@ function parseCSV(content, options) {
  * @param {object} data - Data to POST (null for GET)
  * @returns {Promise<{status: number, body: object}>}
  */
-async function api(url, data = null, method = null) {
+/**
+ * Default timeout for API calls (15 seconds)
+ */
+const API_TIMEOUT_MS = 15000;
+
+async function api(url, data = null, method = null, timeoutMs = API_TIMEOUT_MS) {
   const hasBody = data !== null;
   const httpMethod = method || (hasBody ? 'POST' : 'GET');
 
@@ -689,19 +694,30 @@ async function api(url, data = null, method = null) {
     if (token) headers['X-CSRF-Token'] = token;
   }
 
+  // AbortController for timeout
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
     const response = await fetch(url, {
       method: httpMethod,
       headers,
       credentials: 'same-origin',
       body: hasBody ? JSON.stringify(data) : undefined,
+      signal: controller.signal,
     });
-    
+
     const body = await response.json().catch(() => ({}));
     return { status: response.status, body };
   } catch (err) {
+    if (err.name === 'AbortError') {
+      console.error('API Timeout:', url);
+      return { status: 0, body: { ok: false, error: 'timeout', message: 'La requête a expiré (délai dépassé)' } };
+    }
     console.error('API Error:', err);
     return { status: 0, body: { ok: false, error: 'network_error', message: err.message } };
+  } finally {
+    clearTimeout(timer);
   }
 }
 

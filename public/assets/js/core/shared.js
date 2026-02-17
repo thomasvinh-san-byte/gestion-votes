@@ -101,7 +101,7 @@
   }
 
   /**
-   * Set a button's loading state with spinner + disabled.
+   * Set a button's loading state with spinner + disabled + aria-busy.
    * @param {HTMLButtonElement} btn
    * @param {boolean} loading
    */
@@ -110,12 +110,14 @@
     if (loading) {
       btn.disabled = true;
       btn.classList.add('loading');
+      btn.setAttribute('aria-busy', 'true');
       btn._prevHtml = btn.innerHTML;
       const label = btn.textContent.trim();
       btn.innerHTML = '<span class="spinner spinner-sm"></span> <span>' + label + '</span>';
     } else {
       btn.disabled = false;
       btn.classList.remove('loading');
+      btn.removeAttribute('aria-busy');
       if (btn._prevHtml) {
         btn.innerHTML = btn._prevHtml;
         delete btn._prevHtml;

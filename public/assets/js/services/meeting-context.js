@@ -182,6 +182,20 @@ const MeetingContext = (function() {
     });
   }
 
+  // ─── Cross-tab synchronization ──────────────────────────
+  // Listen for localStorage changes from other tabs to stay in sync.
+
+  window.addEventListener('storage', function(e) {
+    if (e.key !== STORAGE_KEY) return;
+    const newId = e.newValue || null;
+    if (newId !== _meetingId) {
+      const oldId = _meetingId;
+      _meetingId = newId;
+      _propagateToLinks(_meetingId);
+      _notifyListeners(oldId, _meetingId);
+    }
+  });
+
   // ─── Auto-initialize on DOMContentLoaded ───────────────
 
   if (document.readyState === 'loading') {

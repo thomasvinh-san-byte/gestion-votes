@@ -522,6 +522,11 @@ h4, .h4 {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+  filter: grayscale(30%);
+}
+
+.btn[aria-busy="true"] {
+  cursor: wait;
 }
 
 /* Button variants */
