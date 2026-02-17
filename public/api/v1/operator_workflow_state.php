@@ -7,6 +7,7 @@ use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
+use AgVote\Repository\PolicyRepository;
 use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
 
@@ -53,7 +54,16 @@ foreach ($attRows as $r) {
   }
 }
 
+// Load quorum threshold from configured policy (fallback to 50%)
 $quorumThreshold = 0.5;
+$quorumPolicyId = $meeting['quorum_policy_id'] ?? null;
+if ($quorumPolicyId) {
+    $policyRepo = new PolicyRepository();
+    $quorumPolicy = $policyRepo->findQuorumPolicyForTenant($quorumPolicyId, $tenant);
+    if ($quorumPolicy && isset($quorumPolicy['threshold'])) {
+        $quorumThreshold = (float)$quorumPolicy['threshold'];
+    }
+}
 $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
 $quorumOk = $presentCount > 0 && $quorumRatio >= $quorumThreshold;
 
