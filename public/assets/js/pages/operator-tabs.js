@@ -219,8 +219,8 @@
   }
 
   function showNoMeeting() {
-    noMeetingState.style.display = 'flex';
-    tabsNav.style.display = 'none';
+    Shared.show(noMeetingState, 'flex');
+    Shared.hide(tabsNav);
     tabContents.forEach(c => c.classList.remove('active'));
     if (meetingBarActions) meetingBarActions.hidden = true;
     if (viewSetup) viewSetup.hidden = true;
@@ -232,7 +232,7 @@
   }
 
   function showMeetingContent() {
-    noMeetingState.style.display = 'none';
+    Shared.hide(noMeetingState);
     if (meetingBarActions) meetingBarActions.hidden = false;
 
     // Auto-select mode based on meeting status
@@ -445,9 +445,9 @@
     const canLaunch = ['draft', 'scheduled', 'frozen'].includes(currentMeetingStatus);
 
     if (hasMembers && hasAttendance && hasMotions && canLaunch) {
-      banner.style.display = 'block';
+      Shared.show(banner, 'block');
     } else {
-      banner.style.display = 'none';
+      Shared.hide(banner);
     }
   }
 
@@ -606,13 +606,19 @@
       return `
         <div class="flex items-center justify-between gap-2 p-2 bg-subtle rounded">
           <span>${escapeHtml(name)}</span>
-          <button class="btn btn-sm btn-ghost text-danger" onclick="removeAssessor('${a.user_id}')" title="Retirer">✕</button>
+          <button class="btn btn-sm btn-ghost text-danger" data-remove-assessor="${escapeHtml(a.user_id)}" title="Retirer" aria-label="Retirer ${escapeHtml(name)}">&#10005;</button>
         </div>
       `;
     }).join('');
   }
 
-  window.removeAssessor = async function(userId) {
+  // Delegated handler for assessor removal (replaces inline onclick)
+  document.addEventListener('click', async function(e) {
+    const btn = e.target.closest('[data-remove-assessor]');
+    if (!btn) return;
+    const userId = btn.getAttribute('data-remove-assessor');
+    if (!userId || !confirm('Retirer cet assesseur ?')) return;
+    btn.disabled = true;
     try {
       await api('/api/v1/admin_meeting_roles.php', {
         action: 'revoke',
@@ -624,8 +630,10 @@
       loadRoles();
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      btn.disabled = false;
     }
-  };
+  });
 
   // =========================================================================
   // DASHBOARD & DEVICES WIDGETS
@@ -640,7 +648,7 @@
 
       // Show card
       const card = document.getElementById('dashboardCard');
-      if (card) card.style.display = 'block';
+      if (card) Shared.show(card, 'block');
 
       // Attendance
       document.getElementById('dashPresentCount').textContent = d.attendance?.present_count ?? '-';
@@ -651,20 +659,20 @@
       // Current motion
       const motionDiv = document.getElementById('dashCurrentMotion');
       if (d.current_motion) {
-        motionDiv.style.display = 'block';
+        Shared.show(motionDiv, 'block');
         document.getElementById('dashMotionTitle').textContent = d.current_motion.title || '—';
         const votes = d.current_motion_votes || {};
         document.getElementById('dashVoteFor').textContent = votes.weight_for ?? 0;
         document.getElementById('dashVoteAgainst').textContent = votes.weight_against ?? 0;
         document.getElementById('dashVoteAbstain').textContent = votes.weight_abstain ?? 0;
       } else {
-        motionDiv.style.display = 'none';
+        Shared.hide(motionDiv);
       }
 
       // Ready to sign
       const ready = d.ready_to_sign || {};
-      document.getElementById('dashReadySign').style.display = ready.can ? 'block' : 'none';
-      document.getElementById('dashNotReadySign').style.display = ready.can ? 'none' : 'block';
+      if (ready.can) { Shared.show(document.getElementById('dashReadySign'), 'block'); } else { Shared.hide(document.getElementById('dashReadySign')); }
+      if (ready.can) { Shared.hide(document.getElementById('dashNotReadySign')); } else { Shared.show(document.getElementById('dashNotReadySign'), 'block'); }
       if (!ready.can && ready.reasons?.length) {
         document.getElementById('dashReadyReasons').innerHTML = ready.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('');
       }
@@ -684,7 +692,7 @@
 
       // Show card
       const card = document.getElementById('devicesCard');
-      if (card) card.style.display = 'block';
+      if (card) Shared.show(card, 'block');
 
       const counts = data.counts || {};
       document.getElementById('devOnline').textContent = counts.online ?? 0;
@@ -1213,7 +1221,7 @@
       const previewHtml = Utils.generateCSVPreview(parsedData);
 
       previewContainer.innerHTML = previewHtml;
-      previewContainer.style.display = 'block';
+      Shared.show(previewContainer, 'block');
 
       // Enable import button if we have valid rows
       const hasValidRows = parsedData.rows.some(r => r.name);
@@ -1607,7 +1615,7 @@
       html += '<p class="text-sm text-muted mt-2">' + validCount + ' procuration(s) trouvée(s)</p>';
 
       previewContainer.innerHTML = html;
-      previewContainer.style.display = 'block';
+      Shared.show(previewContainer, 'block');
       btnConfirm.disabled = validCount === 0;
     };
 
@@ -1713,14 +1721,14 @@
     }
 
     if (!currentSpeakerCache) {
-      noSpeaker.style.display = 'block';
-      activeSpeaker.style.display = 'none';
+      Shared.show(noSpeaker, 'block');
+      Shared.hide(activeSpeaker);
       if (btnNext) btnNext.disabled = speechQueueCache.length === 0;
       return;
     }
 
-    noSpeaker.style.display = 'none';
-    activeSpeaker.style.display = 'block';
+    Shared.hide(noSpeaker);
+    Shared.show(activeSpeaker, 'block');
 
     document.getElementById('currentSpeakerName').textContent = currentSpeakerCache.full_name || '—';
 
@@ -2186,7 +2194,7 @@
 
       if (body?.ok === true) {
         setNotif('success', 'Résolution créée');
-        document.getElementById('addResolutionForm').style.display = 'none';
+        Shared.hide(document.getElementById('addResolutionForm'));
         document.getElementById('newResolutionTitle').value = '';
         document.getElementById('newResolutionDesc').value = '';
         await loadResolutions();
@@ -2206,14 +2214,14 @@
 
   async function loadVoteTab() {
     if (!currentOpenMotion) {
-      document.getElementById('noActiveVote').style.display = 'block';
-      document.getElementById('activeVotePanel').style.display = 'none';
+      Shared.show(document.getElementById('noActiveVote'), 'block');
+      Shared.hide(document.getElementById('activeVotePanel'));
       renderQuickOpenList();
       return;
     }
 
-    document.getElementById('noActiveVote').style.display = 'none';
-    document.getElementById('activeVotePanel').style.display = 'block';
+    Shared.hide(document.getElementById('noActiveVote'));
+    Shared.show(document.getElementById('activeVotePanel'), 'block');
     document.getElementById('activeVoteTitle').textContent = currentOpenMotion.title;
 
     await loadBallots(currentOpenMotion.id);
@@ -2539,10 +2547,10 @@
 
     // Only show for live sessions
     if (currentMeetingStatus !== 'live') {
-      section.style.display = 'none';
+      Shared.hide(section);
       return;
     }
-    section.style.display = 'block';
+    Shared.show(section, 'block');
 
     // Check readiness
     const total = motionsCache.length;
@@ -2655,11 +2663,11 @@
     if (mode === 'setup') {
       if (viewSetup) viewSetup.hidden = false;
       if (viewExec) viewExec.hidden = true;
-      tabsNav.style.display = 'flex';
+      Shared.show(tabsNav, 'flex');
     } else {
       if (viewSetup) viewSetup.hidden = true;
       if (viewExec) viewExec.hidden = false;
-      tabsNav.style.display = 'none';
+      Shared.hide(tabsNav);
       refreshExecView();
     }
 
@@ -2964,8 +2972,8 @@
 
     if (currentOpenMotion) {
       if (titleEl) titleEl.textContent = currentOpenMotion.title;
-      if (liveBadge) liveBadge.style.display = '';
-      if (btnClose) { btnClose.disabled = false; btnClose.style.display = ''; }
+      if (liveBadge) Shared.show(liveBadge);
+      if (btnClose) { btnClose.disabled = false; Shared.show(btnClose); }
 
       let fc = 0, ac = 0, ab = 0;
       Object.values(ballotsCache).forEach(v => {
@@ -2979,11 +2987,11 @@
       if (abstainEl) abstainEl.textContent = ab;
     } else {
       if (titleEl) titleEl.textContent = 'Aucun vote en cours';
-      if (liveBadge) liveBadge.style.display = 'none';
+      if (liveBadge) Shared.hide(liveBadge);
       if (forEl) forEl.textContent = '—';
       if (againstEl) againstEl.textContent = '—';
       if (abstainEl) abstainEl.textContent = '—';
-      if (btnClose) { btnClose.disabled = true; btnClose.style.display = 'none'; }
+      if (btnClose) { btnClose.disabled = true; Shared.hide(btnClose); }
     }
   }
 
@@ -3087,10 +3095,10 @@
   // Resolution search
   document.getElementById('resolutionSearch')?.addEventListener('input', renderResolutions);
   document.getElementById('btnAddResolution')?.addEventListener('click', () => {
-    document.getElementById('addResolutionForm').style.display = 'block';
+    Shared.show(document.getElementById('addResolutionForm'), 'block');
   });
   document.getElementById('btnCancelResolution')?.addEventListener('click', () => {
-    document.getElementById('addResolutionForm').style.display = 'none';
+    Shared.hide(document.getElementById('addResolutionForm'));
   });
   document.getElementById('btnConfirmResolution')?.addEventListener('click', createResolution);
 
@@ -3178,8 +3186,8 @@
   loadMeetings();
 
   // Auto-refresh - adaptive polling
-  const POLL_FAST = 3000;  // 3s when vote is active (was 2s — reduced chatter)
-  const POLL_SLOW = 6000;  // 6s otherwise
+  const POLL_FAST = 5000;  // 5s when vote is active
+  const POLL_SLOW = 15000; // 15s otherwise (reduced from 6s to limit server load)
 
   async function autoPoll() {
     if (!currentMeetingId || document.hidden) {
@@ -3228,8 +3236,8 @@
         const noVote = document.getElementById('noActiveVote');
         const panel = document.getElementById('activeVotePanel');
         const title = document.getElementById('activeVoteTitle');
-        if (noVote) noVote.style.display = 'none';
-        if (panel) panel.style.display = 'block';
+        if (noVote) Shared.hide(noVote);
+        if (panel) Shared.show(panel, 'block');
         if (title) title.textContent = currentOpenMotion.title;
         renderManualVoteList();
       }
@@ -3247,6 +3255,13 @@
     const interval = isVoteActive ? POLL_FAST : POLL_SLOW;
     setTimeout(autoPoll, interval);
   }
+
+  // Refresh immediately when tab becomes visible again
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && currentMeetingId) {
+      autoPoll();
+    }
+  });
 
   // Start polling after initial load
   setTimeout(autoPoll, POLL_SLOW);

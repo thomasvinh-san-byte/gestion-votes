@@ -346,14 +346,14 @@
     const backdrop = document.getElementById('exportsBackdrop');
 
     function openExportsModal() {
-      modal.style.display = 'block';
-      backdrop.style.display = 'block';
+      Shared.show(modal, 'block');
+      Shared.show(backdrop, 'block');
       document.body.style.overflow = 'hidden';
     }
 
     function closeExportsModal() {
-      modal.style.display = 'none';
-      backdrop.style.display = 'none';
+      Shared.hide(modal);
+      Shared.hide(backdrop);
       document.body.style.overflow = '';
     }
 

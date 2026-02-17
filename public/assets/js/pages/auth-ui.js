@@ -95,21 +95,29 @@
 
     b = document.createElement('div');
     b.id = 'auth-banner';
-    b.style.cssText =
-      'position:sticky;top:0;z-index:20;background:var(--color-surface,#fff);' +
-      'border-bottom:1px solid var(--color-border,#eee);padding:8px 16px;' +
-      'display:flex;align-items:center;justify-content:space-between;gap:12px;' +
-      'flex-wrap:wrap;font-size:13px;';
+    b.className = 'auth-banner';
+    b.setAttribute('role', 'banner');
+    b.setAttribute('aria-label', 'Barre d\'identification');
 
     b.innerHTML =
-      '<div>' +
-      '  <strong>Accès</strong> ' +
-      '  <span class="text-muted" id="auth-status" style="font-size:12px;">...</span>' +
+      '<div class="auth-banner-left">' +
+      '  <span class="auth-banner-avatar" id="auth-avatar" aria-hidden="true">?</span>' +
+      '  <div class="auth-banner-info">' +
+      '    <span class="auth-banner-name" id="auth-user-name">...</span>' +
+      '    <span class="auth-banner-role" id="auth-user-role"></span>' +
+      '  </div>' +
+      '  <span id="auth-roles-badge" class="auth-banner-meeting-badge" style="display:none;"></span>' +
       '</div>' +
-      '<div style="display:flex;gap:8px;align-items:center;">' +
-      '  <span id="auth-roles-badge" style="font-size:11px;display:none;"></span>' +
-      '  <button class="btn btn-sm" id="auth-login-btn" style="font-size:12px;">Se connecter</button>' +
-      '  <button class="btn btn-sm" id="auth-logout-btn" style="display:none;font-size:12px;">Déconnexion</button>' +
+      '<div class="auth-banner-right">' +
+      '  <a href="/" class="btn btn-ghost btn-sm" id="auth-home-btn" aria-label="Retour \u00e0 l\'accueil">' +
+      '    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-home"></use></svg>' +
+      '    <span class="auth-btn-label">Accueil</span>' +
+      '  </a>' +
+      '  <button class="btn btn-ghost btn-sm" id="auth-login-btn">Se connecter</button>' +
+      '  <button class="btn btn-ghost btn-sm auth-logout-btn" id="auth-logout-btn" style="display:none;">' +
+      '    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-log-out"></use></svg>' +
+      '    <span class="auth-btn-label">D\u00e9connexion</span>' +
+      '  </button>' +
       '</div>';
 
     document.body.prepend(b);
@@ -121,7 +129,6 @@
 
     b.querySelector('#auth-logout-btn').addEventListener('click', async function () {
       try {
-        // Fetch CSRF token first
         var csrfResp = await fetch('/api/v1/auth_csrf.php', { credentials: 'same-origin' });
         var csrfData = await csrfResp.json();
         var csrfToken = csrfData.data ? csrfData.data.token : (csrfData.token || '');
@@ -138,7 +145,10 @@
       window.Auth.user = null;
       window.Auth.role = null;
       window.Auth.meetingRoles = [];
-      window.location.href = '/login.html';
+      if (typeof MeetingContext !== 'undefined') {
+        try { MeetingContext.clear(); } catch (e) {}
+      }
+      window.location.href = '/';
     });
 
     return b;
@@ -146,11 +156,47 @@
 
   function setStatus(text, type, isLoggedIn) {
     var b = ensureBanner();
-    var s = b.querySelector('#auth-status');
-    s.textContent = '\u2014 ' + text;
-    b.style.borderBottomColor = (type === 'danger') ? '#f3b3b3' : 'var(--color-border,#eee)';
-    b.querySelector('#auth-login-btn').style.display = isLoggedIn ? 'none' : '';
-    b.querySelector('#auth-logout-btn').style.display = isLoggedIn ? '' : 'none';
+    isLoggedIn ? Shared.hide(b.querySelector('#auth-login-btn')) : Shared.show(b.querySelector('#auth-login-btn'));
+    isLoggedIn ? Shared.show(b.querySelector('#auth-logout-btn')) : Shared.hide(b.querySelector('#auth-logout-btn'));
+    isLoggedIn ? Shared.show(b.querySelector('#auth-home-btn')) : Shared.hide(b.querySelector('#auth-home-btn'));
+
+    if (type === 'danger') {
+      b.classList.add('auth-banner--disconnected');
+    } else {
+      b.classList.remove('auth-banner--disconnected');
+    }
+  }
+
+  /**
+   * Populate the banner with user identity (avatar, name, role).
+   */
+  function setUserIdentity(user, systemRole, meetingRoles) {
+    var nameEl = document.getElementById('auth-user-name');
+    var roleEl = document.getElementById('auth-user-role');
+    var avatarEl = document.getElementById('auth-avatar');
+
+    if (!user) {
+      if (nameEl) nameEl.textContent = 'Non connect\u00e9';
+      if (roleEl) roleEl.textContent = '';
+      if (avatarEl) avatarEl.textContent = '?';
+      return;
+    }
+
+    var displayName = user.name || user.email || 'Utilisateur';
+    if (nameEl) nameEl.textContent = displayName;
+
+    var roleLabel = ROLE_LABELS[systemRole] || systemRole || '';
+    if (roleEl) roleEl.textContent = roleLabel;
+
+    // Avatar initials
+    if (avatarEl) {
+      var initials = displayName.split(' ')
+        .map(function (w) { return w.charAt(0); })
+        .join('')
+        .substring(0, 2)
+        .toUpperCase();
+      avatarEl.textContent = initials || '?';
+    }
   }
 
   function showMeetingRolesBadge(meetingRoles) {
@@ -160,15 +206,13 @@
     var labels = meetingRoles.map(function (mr) {
       return (ROLE_LABELS[mr.role] || mr.role);
     });
-    // Deduplicate
     var unique = [];
     for (var i = 0; i < labels.length; i++) {
       if (unique.indexOf(labels[i]) === -1) unique.push(labels[i]);
     }
     if (unique.length) {
-      badge.textContent = 'Séance : ' + unique.join(', ');
-      badge.style.display = '';
-      badge.style.cssText += 'background:var(--color-primary-subtle,#e8eadf);padding:2px 8px;border-radius:4px;';
+      badge.textContent = unique.join(', ');
+      Shared.show(badge);
     }
   }
 
@@ -182,7 +226,7 @@
 
     document.querySelectorAll('[data-requires-role]').forEach(function (el) {
       var req = el.getAttribute('data-requires-role');
-      el.style.display = hasAccess(req, role, meetingRoles) ? '' : 'none';
+      hasAccess(req, role, meetingRoles) ? Shared.show(el) : Shared.hide(el);
     });
   }
 
@@ -293,7 +337,7 @@
     var meetingRoles = window.Auth.meetingRoles || [];
 
     sidebar.querySelectorAll('[data-requires-role]').forEach(function (el) {
-      el.style.display = hasAccess(el.getAttribute('data-requires-role'), role, meetingRoles) ? '' : 'none';
+      hasAccess(el.getAttribute('data-requires-role'), role, meetingRoles) ? Shared.show(el) : Shared.hide(el);
     });
   }
 
@@ -317,13 +361,14 @@
       window.Auth.meetingRoles = meetingRoles;
 
       if (!authEnabled) {
-        setStatus('auth désactivée (dev)', 'ok', false);
+        setStatus('auth d\u00e9sactiv\u00e9e (dev)', 'ok', false);
+        setUserIdentity(null, null, []);
       } else if (!user) {
-        setStatus('Non connecté', 'danger', false);
+        setStatus('Non connect\u00e9', 'danger', false);
+        setUserIdentity(null, null, []);
       } else {
-        var label = (user.name || user.email || 'utilisateur');
-        var roleLabel = ROLE_LABELS[user.role] || user.role;
-        setStatus(label + ' (' + roleLabel + ')', 'ok', true);
+        setStatus('', 'ok', true);
+        setUserIdentity(user, user.role, meetingRoles);
         showMeetingRolesBadge(meetingRoles);
       }
 

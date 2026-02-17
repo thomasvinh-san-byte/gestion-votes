@@ -194,6 +194,31 @@
   }
 
   // =========================================================================
+  // SKELETON LOADING
+  // =========================================================================
+
+  /**
+   * Render skeleton loading rows inside a container.
+   * @param {HTMLElement} container - Target element to fill
+   * @param {number} [rows=4] - Number of skeleton rows
+   * @param {number} [cols=3] - Number of cells per row
+   */
+  function skeletonTable(container, rows, cols) {
+    if (!container) return;
+    rows = rows || 4;
+    cols = cols || 3;
+    var html = '';
+    for (var r = 0; r < rows; r++) {
+      html += '<div class="skeleton-row">';
+      for (var c = 0; c < cols; c++) {
+        html += '<div class="skeleton skeleton-cell"></div>';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  // =========================================================================
   // SHOW / HIDE UTILITIES
   // =========================================================================
 
@@ -230,7 +255,8 @@
     btnLoading: btnLoading,
     openModal: openModal,
     show: show,
-    hide: hide
+    hide: hide,
+    skeletonTable: skeletonTable
   };
 
 })();

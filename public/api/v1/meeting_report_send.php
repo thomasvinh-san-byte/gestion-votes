@@ -19,8 +19,9 @@ if ($meetingId === '' || $toEmail === '') api_fail('missing_meeting_or_email', 4
 
 global $config;
 
+$tenantId = api_current_tenant_id();
 $repo = new MeetingRepository();
-$meeting = $repo->findById($meetingId);
+$meeting = $repo->findByIdForTenant($meetingId, $tenantId);
 $meetingTitle = (string)(($meeting['title'] ?? '') ?: $meetingId);
 
 $appUrl = (string)(($config['app']['url'] ?? '') ?: 'http://localhost:8080');

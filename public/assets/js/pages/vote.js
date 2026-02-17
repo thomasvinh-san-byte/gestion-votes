@@ -74,7 +74,7 @@
     el.style.position = 'fixed';
     el.style.inset = '0';
     el.style.zIndex = '9999';
-    el.style.display = 'none';
+    Shared.hide(el);
     el.style.background = 'rgba(15, 23, 42, 0.94)';
     el.style.color = '#fff';
     el.innerHTML = `
@@ -98,7 +98,7 @@
     const ov = ensureBlockedOverlay();
     const m = document.getElementById('blockedMsg');
     if (m && msg) m.textContent = msg;
-    ov.style.display = on ? 'block' : 'none';
+    on ? Shared.show(ov, 'block') : Shared.hide(ov);
     // Disable buttons when blocked
     setVoteButtonsEnabled(!on && !!selectedMemberId());
   }
@@ -155,9 +155,9 @@
     const box = $("#notif_box");
     if (!box) return console[type==="error"?"error":"log"](msg);
     box.className = "notif " + (type === "error" ? "error" : "success");
-    box.style.display = "block";
+    Shared.show(box, 'block');
     box.textContent = msg;
-    setTimeout(()=>{ box.style.display = "none"; }, 3000);
+    setTimeout(()=>{ Shared.hide(box); }, 3000);
   }
 
   /**
@@ -535,7 +535,7 @@
       if (title) title.textContent = 'En attente d\u2019une résolution';
       if (sub) sub.textContent = '';
       if (badges) badges.innerHTML = '';
-      if (noEl) { noEl.textContent = ''; noEl.style.display = 'none'; }
+      if (noEl) { noEl.textContent = ''; Shared.hide(noEl); }
       if (phaseEl) phaseEl.textContent = 'En attente';
       if (resoDetails) resoDetails.hidden = true;
       if (card) { card.classList.remove('active'); card.classList.add('waiting'); }
@@ -550,10 +550,10 @@
     if (noEl) {
       if (m.position) {
         noEl.textContent = '#' + m.position;
-        noEl.style.display = '';
+        Shared.show(noEl);
       } else {
         noEl.textContent = '';
-        noEl.style.display = 'none';
+        Shared.hide(noEl);
       }
     }
 

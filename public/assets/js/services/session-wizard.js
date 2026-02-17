@@ -36,7 +36,7 @@
   };
 
   var STORAGE_KEY = 'ag_vote_wizard';
-  var POLL_INTERVAL = 5000; // 5 seconds
+  var POLL_INTERVAL = 15000; // 15 seconds (reduced from 5s to limit server load)
   var pollTimer = null;
   var lastPollData = null;
 

@@ -250,10 +250,10 @@
 
         if (el) {
           if (id === viewId) {
-            el.style.display = '';
+            Shared.show(el);
             el.classList.add('active');
           } else {
-            el.style.display = 'none';
+            Shared.hide(el);
             el.classList.remove('active');
           }
         }
@@ -576,7 +576,7 @@
       items.forEach(item => {
         const text = (item.getAttribute(this.searchAttribute) || item.textContent || '').toLowerCase();
         const matches = !query || text.includes(query);
-        item.style.display = matches ? '' : 'none';
+        matches ? Shared.show(item) : Shared.hide(item);
         if (matches) visibleCount++;
       });
 

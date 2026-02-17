@@ -275,7 +275,7 @@
     if (!file) return;
 
     const out = document.getElementById('importOut');
-    out.style.display = 'block';
+    Shared.show(out, 'block');
     out.textContent = 'Import en cours...';
 
     Shared.btnLoading(btnImport, true);

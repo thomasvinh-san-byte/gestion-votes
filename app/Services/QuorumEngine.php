@@ -80,14 +80,10 @@ final class QuorumEngine
         $meetingId = trim($meetingId);
         if ($meetingId === '') throw new InvalidArgumentException('meeting_id obligatoire');
 
-        $meetingRepo = new MeetingRepository();
+        $expectedTenantId = $expectedTenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
 
-        // Use tenant-isolated query if tenant context is provided
-        if ($expectedTenantId !== null && $expectedTenantId !== '') {
-            $row = $meetingRepo->findByIdForTenant($meetingId, $expectedTenantId);
-        } else {
-            $row = $meetingRepo->findById($meetingId);
-        }
+        $meetingRepo = new MeetingRepository();
+        $row = $meetingRepo->findByIdForTenant($meetingId, $expectedTenantId);
         if (!$row) throw new RuntimeException('Séance introuvable');
 
         $policyId = (string)($row['quorum_policy_id'] ?? '');

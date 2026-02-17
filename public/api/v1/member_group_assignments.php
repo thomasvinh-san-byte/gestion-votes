@@ -82,8 +82,8 @@ function handleAssign(
     }
 
     // Verifier que le membre existe et appartient au tenant
-    $member = $memberRepo->findById($memberId);
-    if (!$member || (string) $member['tenant_id'] !== $tenantId) {
+    $member = $memberRepo->findByIdForTenant($memberId, $tenantId);
+    if (!$member) {
         api_fail('member_not_found', 404);
     }
 
@@ -131,8 +131,8 @@ function handleUnassign(
     }
 
     // Verifier que le membre existe et appartient au tenant
-    $member = $memberRepo->findById($memberId);
-    if (!$member || (string) $member['tenant_id'] !== $tenantId) {
+    $member = $memberRepo->findByIdForTenant($memberId, $tenantId);
+    if (!$member) {
         api_fail('member_not_found', 404);
     }
 
@@ -183,8 +183,8 @@ function handleSetMemberGroups(
     }
 
     // Verifier que le membre existe et appartient au tenant
-    $member = $memberRepo->findById($memberId);
-    if (!$member || (string) $member['tenant_id'] !== $tenantId) {
+    $member = $memberRepo->findByIdForTenant($memberId, $tenantId);
+    if (!$member) {
         api_fail('member_not_found', 404);
     }
 
@@ -262,8 +262,8 @@ function handleBulkAssign(
             continue; // Ignorer les IDs invalides
         }
 
-        $member = $memberRepo->findById($memberId);
-        if ($member && (string) $member['tenant_id'] === $tenantId) {
+        $member = $memberRepo->findByIdForTenant($memberId, $tenantId);
+        if ($member) {
             $validMemberIds[] = $memberId;
         }
     }

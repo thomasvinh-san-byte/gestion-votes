@@ -32,9 +32,7 @@ $memberRepo     = new MemberRepository();
 $ballotRepo     = new BallotRepository();
 
 // Meeting - use tenant-isolated query for security
-$meeting = $tenant !== null
-    ? $meetingRepo->findByIdForTenant($meetingId, $tenant)
-    : $meetingRepo->findById($meetingId);
+$meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
 if (!$meeting) api_fail('meeting_not_found', 404);
 
 $checks = [];

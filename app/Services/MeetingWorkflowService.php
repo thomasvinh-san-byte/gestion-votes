@@ -128,16 +128,10 @@ final class MeetingWorkflowService
     /**
      * Check if meeting has a president assigned.
      */
-    public static function hasPresident(string $meetingId, string $tenantId = ''): bool
+    public static function hasPresident(string $meetingId, string $tenantId): bool
     {
-        $userRepo = new UserRepository();
-        // If tenantId not provided, try to get it from meeting
-        if ($tenantId === '') {
-            $meetingRepo = new MeetingRepository();
-            $meeting = $meetingRepo->findById($meetingId);
-            $tenantId = $meeting['tenant_id'] ?? '';
-        }
         if ($tenantId === '') return false;
+        $userRepo = new UserRepository();
         return $userRepo->findExistingPresident($tenantId, $meetingId) !== null;
     }
 

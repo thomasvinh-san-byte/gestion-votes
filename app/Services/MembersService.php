@@ -26,11 +26,15 @@ final class MembersService
     }
 
     /**
-     * Loads a member by its id.
+     * Loads a member by its id for a given tenant.
+     *
+     * @param string $memberId
+     * @param string|null $tenantId Falls back to global tenant if omitted.
      */
-    public static function getMember(string $memberId): ?array
+    public static function getMember(string $memberId, ?string $tenantId = null): ?array
     {
+        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
         $repo = new MemberRepository();
-        return $repo->findById($memberId);
+        return $repo->findByIdForTenant($memberId, $tenantId);
     }
 }

@@ -115,20 +115,17 @@ final class AttendancesService
 
         // Verify meeting belongs to tenant
         $meetingRepo = new MeetingRepository();
-        $meeting = $meetingRepo->findById($meetingId);
+        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             throw new RuntimeException('Séance introuvable');
-        }
-        if ((string)$meeting['tenant_id'] !== $tenantId) {
-            throw new RuntimeException('Séance hors tenant');
         }
         if ((string)$meeting['status'] === 'archived') {
             throw new RuntimeException('Séance archivée : présence non modifiable');
         }
 
         // Load member + voting power
-        $member = MembersService::getMember($memberId);
-        if ((string)$member['tenant_id'] !== $tenantId) {
+        $member = MembersService::getMember($memberId, $tenantId);
+        if (!$member) {
             throw new RuntimeException('Membre hors tenant');
         }
 
