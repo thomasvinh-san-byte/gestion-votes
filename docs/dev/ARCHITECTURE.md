@@ -55,7 +55,7 @@ gestion-votes/
 │   ├── WebSocket/              EventBroadcaster, Server
 │   └── Templates/              Layout.php + templates email
 ├── database/
-│   ├── schema-master.sql       Schéma DDL unifié (35+ tables, triggers, index)
+│   ├── schema-master.sql       Schéma DDL unifié (36 tables, triggers, index)
 │   ├── setup.sh                Script d'initialisation automatique
 │   ├── seeds/                  Seeds numérotés (01-08, idempotent)
 │   ├── migrations/             10 migrations (001-008 + datées)
@@ -248,7 +248,7 @@ Les pages `.htmx.html` sont des single-page applications légères utilisant du 
 
 ## Base de données
 
-### Tables principales (35+)
+### Tables principales (36)
 
 **Domaine métier :**
 - `meetings` — Séances avec machine à états (draft > scheduled > frozen > live > closed > validated > archived)
