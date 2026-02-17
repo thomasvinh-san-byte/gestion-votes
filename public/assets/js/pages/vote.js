@@ -249,11 +249,14 @@
    * @returns {Promise<Object>} Parsed JSON response
    * @throws {Error} If request fails
    */
-  async function apiPost(url, data){
-    if (window.Utils && typeof Utils.apiPost === 'function') return Utils.apiPost(url, data);
+  async function apiPost(url, data, extraHeaders){
+    if (window.Utils && typeof Utils.apiPost === 'function') {
+      return Utils.apiPost(url, data, extraHeaders ? { headers: extraHeaders } : {});
+    }
+    const headers = { 'Content-Type': 'application/json', ...(extraHeaders || {}) };
     const r = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       credentials: 'same-origin',
       body: JSON.stringify(data)
     });
@@ -710,11 +713,14 @@
       throw new Error('Vous êtes hors ligne. Vérifiez votre connexion.');
     }
 
+    // Stable idempotency key for retries (same key across all attempts)
+    const idempotencyKey = `${_currentMotionId}:${memberId}:${Date.now()}`;
+
     const MAX_RETRIES = 2;
     let lastErr = null;
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
+        await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice }, { 'X-Idempotency-Key': idempotencyKey });
         notify("success", "Vote enregistré.");
         return; // success — exit
       } catch(e) {

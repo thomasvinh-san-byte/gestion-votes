@@ -113,20 +113,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Marque le token utilisé
-    $tokenRepo->consume($hash);
+    // Resolve actual member weight
+    $memberRepo = new \AgVote\Repository\MemberRepository();
+    $member = $memberRepo->findByIdForTenant($row['member_id'], $ctx['tenant_id']);
+    $weight = (float)($member['voting_power'] ?? 1.0);
+    if ($weight < 0) $weight = 0.0;
 
-    // Enregistre le ballot (tenant_id vient du contexte motion)
-    $ballotRepo = new BallotRepository();
-    $ballotRepo->insertFromToken(
-        $ctx['tenant_id'],
-        $row['meeting_id'],
-        $row['motion_id'],
-        $row['member_id'],
-        $dbVote,
-        1.0,
-        'tablet'
-    );
+    // Atomic: consume token + insert ballot in one transaction
+    $pdo = \db();
+    $pdo->beginTransaction();
+    try {
+        $consumed = $tokenRepo->consume($hash);
+        if ($consumed === 0) {
+            // Token was already consumed (race condition / double-click)
+            $pdo->rollBack();
+            http_response_code(409);
+            echo "Token déjà utilisé";
+            exit;
+        }
+
+        $ballotRepo = new BallotRepository();
+        $ballotRepo->insertFromToken(
+            $ctx['tenant_id'],
+            $row['meeting_id'],
+            $row['motion_id'],
+            $row['member_id'],
+            $dbVote,
+            $weight,
+            'tablet'
+        );
+
+        $pdo->commit();
+    } catch (\Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
 
     echo "Vote enregistré";
     exit;

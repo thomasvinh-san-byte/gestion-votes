@@ -145,14 +145,18 @@ if (!empty($context['meeting_validated_at'])) {
             );
 
             if (function_exists('audit_log')) {
-                audit_log('ballot_cast', 'motion', $motionId, [
+                $auditData = [
                     'meeting_id' => $context['meeting_id'],
                     'member_id'  => $memberId,
                     'value'      => $value,
                     'weight'     => $weight,
                     'is_proxy_vote' => $isProxyVote,
                     'proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
-                ]);
+                ];
+                if (!empty($data['_idempotency_key'])) {
+                    $auditData['idempotency_key'] = (string)$data['_idempotency_key'];
+                }
+                audit_log('ballot_cast', 'motion', $motionId, $auditData);
             }
 
             $pdo->commit();

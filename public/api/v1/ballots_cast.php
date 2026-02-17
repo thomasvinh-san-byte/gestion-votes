@@ -9,6 +9,16 @@ use AgVote\Service\BallotsService;
 try {
     api_require_role('public');
     $data = api_request('POST');
+
+    // Idempotency: the underlying castBallot uses UPSERT (ON CONFLICT DO UPDATE)
+    // so duplicate submissions for the same (motion_id, member_id) are safe —
+    // the ballot is updated rather than duplicated.
+    // The X-Idempotency-Key header is logged for audit traceability.
+    $idempotencyKey = $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] ?? null;
+    if ($idempotencyKey) {
+        $data['_idempotency_key'] = $idempotencyKey;
+    }
+
     $ballot = BallotsService::castBallot($data);
 
     api_ok(['ballot' => $ballot], 201);

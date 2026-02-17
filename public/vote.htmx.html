@@ -286,15 +286,6 @@
       motionTitleObserver.observe(motionTitleEl, { childList: true, characterData: true, subtree: true });
     }
 
-    // Keyboard shortcuts (1/2/3)
-    document.addEventListener('keydown', (e) => {
-      if (confirmOverlay.classList.contains('show')) return;
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
-      if (e.key === '1') document.getElementById('btnFor')?.click();
-      if (e.key === '2') document.getElementById('btnAgainst')?.click();
-      if (e.key === '3') document.getElementById('btnAbstain')?.click();
-    });
-
     function closeConfirm() {
       confirmOverlay.classList.remove('show');
       confirmOverlay.setAttribute('aria-hidden', 'true');
