@@ -1,0 +1,52 @@
+# =============================================================================
+# AG-VOTE — Render Blueprint (one-click deploy)
+# =============================================================================
+# Cliquer sur "Deploy to Render" crée automatiquement :
+#   - Un service web Docker (l'app PHP/Nginx)
+#   - Une base PostgreSQL
+#   - Toute la configuration réseau entre les deux
+# =============================================================================
+
+services:
+  - type: web
+    name: ag-vote
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: ag-vote-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ag-vote-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: ag-vote-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: ag-vote-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: ag-vote-db
+          property: password
+      - key: LOAD_DEMO_DATA
+        value: "1"
+      - key: APP_ENV
+        value: demo
+      - key: APP_DEBUG
+        value: "0"
+      - key: APP_AUTH_ENABLED
+        value: "0"
+      - key: CSRF_ENABLED
+        value: "0"
+
+databases:
+  - name: ag-vote-db
+    databaseName: vote_app
+    user: vote_app
+    plan: free
