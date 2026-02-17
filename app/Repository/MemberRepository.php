@@ -64,20 +64,6 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * @deprecated Use findByIdForTenant() instead for tenant isolation.
-     */
-    public function findById(string $id): ?array
-    {
-        return $this->selectOne(
-            "SELECT * FROM members WHERE id = :id",
-            [':id' => $id]
-        );
-    }
-
-    /**
-     * Creates a member and returns its ID.
-     */
-    /**
      * Count of active members for a tenant.
      */
     public function countActive(string $tenantId): int

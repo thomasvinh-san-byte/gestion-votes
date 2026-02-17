@@ -113,7 +113,9 @@
           <div class="card">
             <div class="card-body p-0">
               <div class="users-list" id="usersTableBody">
-                <div class="text-center p-4 text-muted">Chargement...</div>
+                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
               </div>
             </div>
           </div>
@@ -179,7 +181,7 @@
         <!-- TAB 3 : POLITIQUES                         -->
         <!-- ═══════════════════════════════════════════ -->
         <div class="admin-panel" id="panel-policies" role="tabpanel" aria-labelledby="tab-policies">
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Quorum policies -->
             <div class="card">
               <div class="card-header">
@@ -188,7 +190,7 @@
                   <button class="btn btn-primary btn-sm" id="btnAddQuorum">Ajouter</button>
                 </div>
               </div>
-              <div class="card-body" id="quorumList"><div class="text-center p-4 text-muted">Chargement...</div></div>
+              <div class="card-body" id="quorumList"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
             </div>
             <!-- Vote policies -->
             <div class="card">
@@ -198,7 +200,7 @@
                   <button class="btn btn-primary btn-sm" id="btnAddVote">Ajouter</button>
                 </div>
               </div>
-              <div class="card-body" id="voteList"><div class="text-center p-4 text-muted">Chargement...</div></div>
+              <div class="card-body" id="voteList"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
             </div>
           </div>
         </div>
@@ -219,7 +221,7 @@
               <div id="permMatrix">Chargement...</div>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">
@@ -257,7 +259,7 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div class="card">
               <div class="card-header"><h3 class="card-title">Légende des états</h3></div>
               <div class="card-body">

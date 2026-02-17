@@ -12,7 +12,8 @@ try {
     $meetingId = trim((string)($data['meeting_id'] ?? ''));
     $memberId = trim((string)($data['member_id'] ?? ''));
     if ($meetingId===''||$memberId==='') throw new InvalidArgumentException('meeting_id et member_id requis');
-    $out = SpeechService::toggleRequest($meetingId,$memberId);
+    $tenantId = api_current_tenant_id();
+    $out = SpeechService::toggleRequest($meetingId,$memberId,$tenantId);
     api_ok($out);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);

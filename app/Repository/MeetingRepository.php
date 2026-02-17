@@ -15,17 +15,6 @@ class MeetingRepository extends AbstractRepository
     // READ
     // =========================================================================
 
-    /**
-     * @deprecated Use findByIdForTenant() instead for tenant isolation.
-     */
-    public function findById(string $id): ?array
-    {
-        return $this->selectOne(
-            "SELECT * FROM meetings WHERE id = :id",
-            [':id' => $id]
-        );
-    }
-
     public function findByIdForTenant(string $id, string $tenantId): ?array
     {
         return $this->selectOne(

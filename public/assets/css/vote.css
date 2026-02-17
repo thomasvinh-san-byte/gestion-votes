@@ -326,7 +326,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
-  max-width: 900px;
+  max-width: min(900px, 100%);
   margin: 0 auto;
   width: 100%;
 }
@@ -358,6 +358,11 @@
   opacity: 0.4;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Selected button stays visible even when disabled after voting */
+.vote-btn.selected:disabled {
+  opacity: 0.85;
 }
 
 .vote-btn-icon {
@@ -408,7 +413,7 @@
 }
 
 .vote-btn-hint {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   opacity: 0.6;
   text-transform: none;

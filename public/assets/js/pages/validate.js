@@ -25,7 +25,7 @@
         if (body && body.ok && body.data) {
           document.getElementById('meetingTitle').textContent = body.data.title;
           document.getElementById('meetingName').textContent = body.data.title;
-          document.getElementById('meetingContext').style.display = 'flex';
+          Shared.show(document.getElementById('meetingContext'), 'flex');
 
           // Check if already validated
           if (body.data.status === 'archived' || body.data.validated_at) {
@@ -148,7 +148,7 @@
         });
 
         if (body && body.ok) {
-          msgDiv.style.display = 'block';
+          Shared.show(msgDiv, 'block');
           msgDiv.className = 'alert alert-success';
           msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Meeting validated and archived successfully!`;
 
@@ -161,7 +161,7 @@
             window.location.href = '/archives.htmx.html' + (currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : '');
           }, 3000);
         } else {
-          msgDiv.style.display = 'block';
+          Shared.show(msgDiv, 'block');
           msgDiv.className = 'alert alert-danger';
           msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Error: ${escapeHtml(body?.error || 'Validation failed')}`;
           Shared.btnLoading(btn, false);

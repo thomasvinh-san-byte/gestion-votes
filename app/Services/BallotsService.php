@@ -68,13 +68,9 @@ if (!empty($context['meeting_validated_at'])) {
         $proxyVoterId = trim((string)($data['proxy_source_member_id'] ?? ''));
 
         // Load the represented member (the one whose vote is counted)
-        $member = MembersService::getMember($memberId);
+        $member = MembersService::getMember($memberId, $tenantId);
         if (!$member) {
             throw new RuntimeException('Membre inconnu');
-        }
-
-        if ((string)$member['tenant_id'] !== $tenantId) {
-            throw new RuntimeException('Le membre ne fait pas partie de ce tenant');
         }
 
         if (!($member['is_active'] ?? false)) {
@@ -99,12 +95,9 @@ if (!empty($context['meeting_validated_at'])) {
                 throw new InvalidArgumentException('proxy_source_member_id est obligatoire (UUID) pour un vote par procuration');
             }
 
-            $proxyVoter = MembersService::getMember($proxyVoterId);
+            $proxyVoter = MembersService::getMember($proxyVoterId, $tenantId);
             if (!$proxyVoter) {
                 throw new RuntimeException('Mandataire inconnu');
-            }
-            if ((string)$proxyVoter['tenant_id'] !== $tenantId) {
-                throw new RuntimeException('Le mandataire ne fait pas partie de ce tenant');
             }
             if (!($proxyVoter['is_active'] ?? false)) {
                 throw new RuntimeException('Mandataire inactif, vote impossible');

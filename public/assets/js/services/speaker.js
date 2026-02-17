@@ -113,7 +113,7 @@
         // Start/update the timer with the speaker's start time
         startTimer(speaker.started_at);
 
-        speakingBadge.style.display = 'inline-flex';
+        Shared.show(speakingBadge, 'inline-flex');
         speakingBadge.innerHTML = `<span class="pulse-dot"></span> En cours`;
         btnEnd.disabled = false;
       } else {
@@ -127,7 +127,7 @@
             ${queueCount > 0 ? `<div class="text-sm mt-2">${queueCount} personne(s) en attente</div>` : ''}
           </div>
         `;
-        speakingBadge.style.display = 'none';
+        Shared.hide(speakingBadge);
         btnEnd.disabled = true;
       }
 
@@ -360,7 +360,7 @@
 
     // Hide panels
     const panelSpeech = document.getElementById('panelSpeech');
-    if (panelSpeech) panelSpeech.style.display = 'none';
+    if (panelSpeech) Shared.hide(panelSpeech);
 
     // Insert selector card
     const selectorDiv = document.createElement('div');

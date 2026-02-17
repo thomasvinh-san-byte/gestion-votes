@@ -172,8 +172,8 @@ HTML;
         string $token,
         ?string $tenantName = null
     ): array {
-        $meeting = $this->meetingRepo->findById($meetingId);
-        $member = $this->memberRepo->findById($memberId);
+        $meeting = $this->meetingRepo->findByIdForTenant($meetingId, $tenantId);
+        $member = $this->memberRepo->findByIdForTenant($memberId, $tenantId);
 
         $meetingDate = '';
         $meetingTime = '';

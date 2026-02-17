@@ -31,7 +31,8 @@ final class VoteTokenService
         string $meetingId,
         string $memberId,
         string $motionId,
-        int $ttlSeconds = self::DEFAULT_TTL_SECONDS
+        int $ttlSeconds = self::DEFAULT_TTL_SECONDS,
+        ?string $tenantId = null
     ): array {
         $meetingId = trim($meetingId);
         $memberId  = trim($memberId);
@@ -42,12 +43,12 @@ final class VoteTokenService
         }
 
         // Resolve tenant
+        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $meetingRepo = new MeetingRepository();
-        $meeting = $meetingRepo->findById($meetingId);
+        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             throw new RuntimeException('Séance introuvable');
         }
-        $tenantId = (string)$meeting['tenant_id'];
 
         // Generate raw token (hex) and its SHA-256 hash
         $tokenRaw  = bin2hex(random_bytes(self::TOKEN_BYTES));

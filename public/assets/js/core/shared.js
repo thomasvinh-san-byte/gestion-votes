@@ -194,6 +194,55 @@
   }
 
   // =========================================================================
+  // SKELETON LOADING
+  // =========================================================================
+
+  /**
+   * Render skeleton loading rows inside a container.
+   * @param {HTMLElement} container - Target element to fill
+   * @param {number} [rows=4] - Number of skeleton rows
+   * @param {number} [cols=3] - Number of cells per row
+   */
+  function skeletonTable(container, rows, cols) {
+    if (!container) return;
+    rows = rows || 4;
+    cols = cols || 3;
+    var html = '';
+    for (var r = 0; r < rows; r++) {
+      html += '<div class="skeleton-row">';
+      for (var c = 0; c < cols; c++) {
+        html += '<div class="skeleton skeleton-cell"></div>';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  // =========================================================================
+  // SHOW / HIDE UTILITIES
+  // =========================================================================
+
+  /**
+   * Show an element (remove hidden class and inline display:none).
+   * @param {HTMLElement} el
+   * @param {string} [display] - Optional display value (default: '')
+   */
+  function show(el, display) {
+    if (!el) return;
+    el.classList.remove('hidden');
+    el.style.display = display || '';
+  }
+
+  /**
+   * Hide an element using the hidden class.
+   * @param {HTMLElement} el
+   */
+  function hide(el) {
+    if (!el) return;
+    el.style.display = 'none';
+  }
+
+  // =========================================================================
   // EXPORTS
   // =========================================================================
 
@@ -204,7 +253,10 @@
     MEETING_STATUS_MAP: MEETING_STATUS_MAP,
     getInitials: getInitials,
     btnLoading: btnLoading,
-    openModal: openModal
+    openModal: openModal,
+    show: show,
+    hide: hide,
+    skeletonTable: skeletonTable
   };
 
 })();

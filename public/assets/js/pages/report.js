@@ -76,12 +76,12 @@
         if (body && body.ok && body.data) {
           document.getElementById('meetingTitle').textContent = body.data.title;
           document.getElementById('meetingName').textContent = body.data.title;
-          document.getElementById('meetingContext').style.display = 'flex';
+          Shared.show(document.getElementById('meetingContext'), 'flex');
 
           // Check validation status - disable exports if not validated
           const isValidated = body.data.status === 'validated' || body.data.status === 'archived';
           if (!isValidated) {
-            document.getElementById('notValidatedWarning').style.display = 'flex';
+            Shared.show(document.getElementById('notValidatedWarning'), 'flex');
             disableExports();
           }
         }
@@ -96,7 +96,7 @@
       const msgDiv = document.getElementById('emailMsg');
 
       if (!email) {
-        msgDiv.style.display = 'block';
+        Shared.show(msgDiv, 'block');
         msgDiv.className = 'alert alert-danger';
         msgDiv.textContent = 'Veuillez saisir une adresse email';
         return;
@@ -111,17 +111,17 @@
         });
 
         if (body && body.ok) {
-          msgDiv.style.display = 'block';
+          Shared.show(msgDiv, 'block');
           msgDiv.className = 'alert alert-success';
           msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} PV envoyé avec succès !`;
           setNotif('success', 'Email envoyé');
         } else {
-          msgDiv.style.display = 'block';
+          Shared.show(msgDiv, 'block');
           msgDiv.className = 'alert alert-danger';
           msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Erreur: ${escapeHtml(body?.error || 'Envoi impossible')}`;
         }
       } catch (err) {
-        msgDiv.style.display = 'block';
+        Shared.show(msgDiv, 'block');
         msgDiv.className = 'alert alert-danger';
         msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Erreur: ${escapeHtml(err.message)}`;
       } finally {

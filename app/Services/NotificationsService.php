@@ -23,14 +23,14 @@ final class NotificationsService
      * Emits notifications when readiness state changes (without spam).
      * @param array<string,mixed> $validation Return from MeetingValidator::canBeValidated
      */
-    public static function emitReadinessTransitions(string $meetingId, array $validation): void
+    public static function emitReadinessTransitions(string $meetingId, array $validation, ?string $tenantId = null): void
     {
         self::ensureSchema();
 
+        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $meetingRepo = new MeetingRepository();
-        $row = $meetingRepo->findById($meetingId);
+        $row = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$row) return;
-        $tenantId = (string)$row['tenant_id'];
 
         $notifRepo = new NotificationRepository();
 
@@ -63,7 +63,7 @@ final class NotificationsService
             self::emit($meetingId, 'info', 'readiness_ready', 'Séance prête à validation du Président.', ['operator','trust'], [
                 'action_label' => 'Aller à la validation',
                 'action_url' => '/trust.htmx.html',
-            ]);
+            ], $tenantId);
             return;
         }
         if ($prevReady === true && $ready === false) {
@@ -71,7 +71,7 @@ final class NotificationsService
             self::emit($meetingId, 'warn', 'readiness_not_ready', 'Séance n\'est plus prête à être validée.', ['operator','trust'], [
                 'action_label' => 'Voir les blocages',
                 'action_url' => '/operator.htmx.html',
-            ]);
+            ], $tenantId);
         }
 
         // Code diff (blockers): only notify additions / resolutions
@@ -80,11 +80,11 @@ final class NotificationsService
 
         foreach ($added as $code) {
             $tpl = self::readinessTemplate($code, true);
-            self::emit($meetingId, $tpl['severity'], 'readiness_' . $code, $tpl['message'], $tpl['audience'], $tpl['data']);
+            self::emit($meetingId, $tpl['severity'], 'readiness_' . $code, $tpl['message'], $tpl['audience'], $tpl['data'], $tenantId);
         }
         foreach ($removed as $code) {
             $tpl = self::readinessTemplate($code, false);
-            self::emit($meetingId, $tpl['severity'], 'readiness_' . $code . '_resolved', $tpl['message'], $tpl['audience'], $tpl['data']);
+            self::emit($meetingId, $tpl['severity'], 'readiness_' . $code . '_resolved', $tpl['message'], $tpl['audience'], $tpl['data'], $tenantId);
         }
     }
 
@@ -160,14 +160,15 @@ final class NotificationsService
         string $code,
         string $message,
         array $audience = ['operator', 'trust'],
-        array $data = []
+        array $data = [],
+        ?string $tenantId = null
     ): void {
         self::ensureSchema();
 
+        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $meetingRepo = new MeetingRepository();
-        $row = $meetingRepo->findById($meetingId);
+        $row = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$row) return;
-        $tenantId = (string)$row['tenant_id'];
 
         $notifRepo = new NotificationRepository();
 
