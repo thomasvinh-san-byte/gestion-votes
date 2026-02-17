@@ -9,7 +9,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     api_fail('method_not_allowed', 405);
 }
 
-require_any_role(['operator','admin','trust']);
+api_require_role(['operator','admin','trust']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '') {

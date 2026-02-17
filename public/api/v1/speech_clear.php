@@ -7,7 +7,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Service\SpeechService;
 
 try {
-    api_require_any_role(['operator','trust','president','admin']);
+    api_require_role(['operator','trust','president','admin']);
     $data = api_request('POST');
     $meetingId = trim((string)($data['meeting_id'] ?? ''));
     if ($meetingId==='') throw new InvalidArgumentException('meeting_id requis');

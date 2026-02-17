@@ -4,7 +4,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Service\ProxiesService;
 
-api_require_any_role(['operator', 'trust', 'admin']);
+api_require_role(['operator', 'trust', 'admin']);
 
 $q = api_request('GET');
 $meetingId = api_require_uuid($q, 'meeting_id');

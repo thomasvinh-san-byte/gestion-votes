@@ -9,7 +9,7 @@ use AgVote\Repository\VoteTokenRepository;
 
 api_request('GET');
 // Accessible opérateur & admin (Tech panel)
-api_require_any_role(['operator','admin']);
+api_require_role(['operator','admin']);
 
 $serverTime = date('c');
 
