@@ -701,6 +701,25 @@
 }
 
 /* =============================================================================
+   MEETINGS TOOLBAR (search + sort)
+   ============================================================================= */
+
+.meetings-toolbar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.meetings-toolbar .form-group-search {
+  flex: 1;
+}
+
+.meetings-toolbar .form-group {
+  margin: 0;
+}
+
+/* =============================================================================
    MEETINGS GRID & CARDS
    ============================================================================= */
 
