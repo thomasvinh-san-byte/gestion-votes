@@ -10,7 +10,8 @@ $docsRoot = dirname(__DIR__, 3) . '/docs';
 
 $categories = [
     'Utilisateur' => ['FAQ', 'UTILISATION_LIVE', 'RECETTE_DEMO', 'ANALYTICS_ETHICS'],
-    'Technique'   => ['dev/INSTALLATION', 'dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
+    'Installation' => ['INSTALL_MAC', 'DOCKER_INSTALL', 'dev/INSTALLATION'],
+    'Technique'   => ['dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
     'Conformité'  => ['dev/CONFORMITE_CDC', 'dev/AUDIT_RAPPORT', 'dev/MIGRATION', 'dev/WEB_COMPONENTS'],
 ];
 
@@ -19,7 +20,9 @@ $labels = [
     'UTILISATION_LIVE' => 'Guide opérateur',
     'RECETTE_DEMO' => 'Démo guidée',
     'ANALYTICS_ETHICS' => 'Éthique & RGPD',
-    'dev/INSTALLATION' => 'Installation',
+    'INSTALL_MAC' => 'Installation macOS',
+    'DOCKER_INSTALL' => 'Installation Docker (Linux)',
+    'dev/INSTALLATION' => 'Installation (développeur)',
     'dev/ARCHITECTURE' => 'Architecture',
     'dev/API' => 'Référence API',
     'dev/SECURITY' => 'Sécurité',
