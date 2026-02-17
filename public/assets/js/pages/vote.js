@@ -580,6 +580,65 @@
   }
 
   /**
+   * Update the motion progress stepper ("Resolution X of Y").
+   * Shows the current motion index and total count.
+   * @param {Object|null} data - API response data containing motion_index and total_motions
+   * @param {Object|null} motion - Current motion object (may contain position info)
+   */
+  function updateMotionProgress(data, motion) {
+    const progressEl = $("#motionProgress");
+    const progressText = $("#motionProgressText");
+    if (!progressEl || !progressText) return;
+
+    const index = data?.motion_index ?? motion?.position ?? null;
+    const total = data?.total_motions ?? null;
+
+    if (index && total) {
+      progressText.textContent = index + ' / ' + total;
+      Shared.show(progressEl);
+    } else if (index) {
+      progressText.textContent = '#' + index;
+      Shared.show(progressEl);
+    } else {
+      progressText.textContent = '\u2014';
+      Shared.hide(progressEl);
+    }
+  }
+
+  /**
+   * Update the non-identifying vote participation indicator.
+   * Shows what percentage of eligible voters have cast a ballot.
+   * @param {Object|null} data - API response data with participation info
+   */
+  function updateVoteParticipation(data) {
+    const container = $("#voteParticipation");
+    const fill = $("#voteParticipationFill");
+    const text = $("#voteParticipationText");
+    if (!container || !fill || !text) return;
+
+    // Try to extract participation percentage from various possible API fields
+    let pct = data?.participation_pct ?? null;
+
+    if (pct === null) {
+      const cast = data?.votes_cast ?? data?.ballots_cast ?? null;
+      const eligible = data?.eligible_count ?? data?.total_eligible ?? null;
+      if (cast !== null && eligible !== null && eligible > 0) {
+        pct = Math.round((cast / eligible) * 100);
+      }
+    }
+
+    if (pct !== null && data?.motion) {
+      fill.style.width = Math.min(pct, 100) + '%';
+      text.textContent = pct + '% ont voté';
+      Shared.show(container);
+    } else {
+      fill.style.width = '0%';
+      text.textContent = '0% ont voté';
+      Shared.hide(container);
+    }
+  }
+
+  /**
    * Refresh the current motion display.
    * Fetches the open motion for the selected meeting and updates the UI.
    * @returns {Promise<void>}
@@ -592,6 +651,8 @@
 
     if (!meetingId){
       updateMotionCard(null);
+      updateMotionProgress(null, null);
+      updateVoteParticipation(null);
       setVoteButtonsEnabled(false);
       return;
     }
@@ -599,18 +660,25 @@
     try{
       await ensurePolicyMaps(meetingId);
       const r = await apiGet(`/api/v1/current_motion.php?meeting_id=${encodeURIComponent(meetingId)}`);
-      const m = r?.data?.motion;
+      const d = r?.data;
+      const m = d?.motion;
       if (!m){
         _currentMotionId = null;
         updateMotionCard(null);
+        updateMotionProgress(null, null);
+        updateVoteParticipation(null);
         setVoteButtonsEnabled(false);
         return;
       }
       _currentMotionId = m.id || m.motion_id || null;
       updateMotionCard(m);
+      updateMotionProgress(d, m);
+      updateVoteParticipation(d);
       setVoteButtonsEnabled(!!memberId);
     } catch(e){
       updateMotionCard(null);
+      updateMotionProgress(null, null);
+      updateVoteParticipation(null);
       const title = $("#motionTitle");
       if (title) title.textContent = 'Erreur: ' + (e?.message || String(e));
       setVoteButtonsEnabled(false);
@@ -637,12 +705,31 @@
     const memberId = selectedMemberId();
     if (!_currentMotionId || !memberId) return;
 
-    try{
-      await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
-      notify("success", "Vote enregistré.");
-    } catch(e){
-      notify("error", e?.message || String(e));
+    // Check offline before attempting
+    if (!navigator.onLine) {
+      throw new Error('Vous êtes hors ligne. Vérifiez votre connexion.');
     }
+
+    const MAX_RETRIES = 2;
+    let lastErr = null;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
+        notify("success", "Vote enregistré.");
+        return; // success — exit
+      } catch(e) {
+        lastErr = e;
+        const isNetwork = !navigator.onLine || (e && /fetch|network|timeout|load/i.test(e.message));
+        if (isNetwork && attempt < MAX_RETRIES) {
+          // Wait before retry (exponential backoff: 1s, 2s)
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        break; // non-retryable or exhausted retries
+      }
+    }
+    // All retries failed — propagate to caller so buttons are re-enabled
+    throw lastErr || new Error('Échec de l\'envoi du vote');
   }
 
   function wire(){

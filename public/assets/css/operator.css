@@ -1717,6 +1717,120 @@
 }
 
 /* =============================================================================
+   EXECUTION KPI STRIP - Top metrics bar in exec mode
+   ============================================================================= */
+
+.exec-kpi-strip {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-xs);
+  align-items: center;
+}
+
+.exec-kpi-strip-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.exec-kpi-strip-item:not(:last-child) {
+  border-right: 1px solid var(--color-border-subtle);
+  padding-right: 1rem;
+}
+
+.kpi-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: none;
+}
+
+.kpi-compact .kpi-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.kpi-compact .kpi-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Exec participation row */
+.exec-participation-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--color-bg-subtle);
+  border-radius: 8px;
+}
+
+.exec-participation-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.exec-participation-row .progress {
+  flex: 1;
+}
+
+.exec-participation-pct {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 3rem;
+  text-align: right;
+}
+
+@media (max-width: 1100px) {
+  .exec-kpi-strip {
+    flex-wrap: wrap;
+  }
+
+  .exec-kpi-strip-item {
+    flex: 1 1 45%;
+    border-right: none !important;
+    padding-right: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .exec-kpi-strip {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .exec-kpi-strip-item {
+    flex: 1 1 100%;
+    border-right: none !important;
+    padding-right: 0 !important;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding-bottom: 0.75rem;
+  }
+
+  .exec-kpi-strip-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+/* =============================================================================
    RESPONSIVE ADJUSTMENTS
    ============================================================================= */
 

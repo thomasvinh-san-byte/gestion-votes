@@ -18,6 +18,10 @@
 
   let allMeetings = [];
   let currentFilter = 'all';
+  let currentSearchText = '';
+  let currentSortMode = 'status';
+  let currentPage = 1;
+  var MEETINGS_PER_PAGE = 12;
   let filterManager = null;
   let viewToggle = null;
   let calendarView = null;
@@ -55,6 +59,32 @@
     if (statScheduled) statScheduled.textContent = scheduled;
     if (statDraft) statDraft.textContent = draft;
     if (statTotal) statTotal.textContent = meetings.length;
+
+    // Total resolutions across all meetings
+    const totalResolutions = meetings.reduce(function(sum, m) {
+      return sum + (m.motions_count || m.resolution_count || 0);
+    }, 0);
+    const statResolutions = document.getElementById('statResolutions');
+    if (statResolutions) statResolutions.textContent = totalResolutions;
+
+    // Average participation rate
+    var participationValues = [];
+    meetings.forEach(function(m) {
+      if (m.participation_rate != null) {
+        participationValues.push(parseFloat(m.participation_rate));
+      } else if (m.attendees_count != null && m.total_members != null && m.total_members > 0) {
+        participationValues.push((m.attendees_count / m.total_members) * 100);
+      }
+    });
+    var statAvgParticipation = document.getElementById('statAvgParticipation');
+    if (statAvgParticipation) {
+      if (participationValues.length > 0) {
+        var avg = participationValues.reduce(function(s, v) { return s + v; }, 0) / participationValues.length;
+        statAvgParticipation.textContent = Math.round(avg) + '%';
+      } else {
+        statAvgParticipation.textContent = '\u2014';
+      }
+    }
   }
 
   // ==========================================================================
@@ -77,17 +107,45 @@
   }
 
   /**
-   * Sort meetings by status and date.
+   * Sort meetings based on the current sort mode.
    * @param {Object} a - First meeting
    * @param {Object} b - Second meeting
    * @returns {number} Sort order
    */
   function sortMeetings(a, b) {
+    if (currentSortMode === 'date_desc') {
+      var dateA = a.scheduled_at || a.created_at || '';
+      var dateB = b.scheduled_at || b.created_at || '';
+      return new Date(dateB) - new Date(dateA);
+    }
+    if (currentSortMode === 'date_asc') {
+      var dateA2 = a.scheduled_at || a.created_at || '';
+      var dateB2 = b.scheduled_at || b.created_at || '';
+      return new Date(dateA2) - new Date(dateB2);
+    }
+    if (currentSortMode === 'title') {
+      return (a.title || '').localeCompare(b.title || '', 'fr');
+    }
+    // Default: sort by status then date
     const statusOrder = { live: 0, frozen: 1, scheduled: 2, draft: 3, closed: 4, validated: 5, archived: 6 };
     const orderA = statusOrder[a.status] ?? 99;
     const orderB = statusOrder[b.status] ?? 99;
     if (orderA !== orderB) return orderA - orderB;
     return new Date(b.created_at) - new Date(a.created_at);
+  }
+
+  /**
+   * Filter meetings by search text.
+   * @param {Array} meetings - Meetings to filter
+   * @param {string} searchText - Search query
+   * @returns {Array} Filtered meetings
+   */
+  function searchMeetings(meetings, searchText) {
+    if (!searchText) return meetings;
+    var lower = searchText.toLowerCase();
+    return meetings.filter(function(m) {
+      return (m.title || '').toLowerCase().indexOf(lower) !== -1;
+    });
   }
 
   // ==========================================================================
@@ -174,12 +232,13 @@
   }
 
   /**
-   * Render meetings grid.
+   * Render meetings grid with search, sort, and pagination.
    * @param {Array} meetings - Meetings to render
    */
   function renderMeetings(meetings) {
     const filtered = filterMeetings(meetings, currentFilter);
-    const sorted = [...filtered].sort(sortMeetings);
+    const searched = searchMeetings(filtered, currentSearchText);
+    const sorted = [...searched].sort(sortMeetings);
 
     if (meetingsCount) {
       meetingsCount.textContent = `${sorted.length} séance${sorted.length > 1 ? 's' : ''}`;
@@ -191,13 +250,41 @@
       meetingsList.innerHTML = Shared.emptyState({
         icon: 'meetings',
         title: 'Aucune séance',
-        description: 'Commencez par créer une nouvelle séance avec le formulaire ci-dessus. Renseignez un titre et une date, puis cliquez sur « Créer la séance ».',
+        description: currentSearchText
+          ? 'Aucune séance ne correspond à votre recherche.'
+          : 'Commencez par créer une nouvelle séance avec le formulaire ci-dessus. Renseignez un titre et une date, puis cliquez sur « Créer la séance ».',
         actionHtml: '<div style="grid-column:1/-1;"></div>'
       });
       return;
     }
 
-    meetingsList.innerHTML = sorted.map(renderMeetingCard).join('');
+    // Pagination: show first N * currentPage items
+    var visibleCount = currentPage * MEETINGS_PER_PAGE;
+    var visible = sorted.slice(0, visibleCount);
+    var hasMore = sorted.length > visibleCount;
+
+    var html = visible.map(renderMeetingCard).join('');
+
+    if (hasMore) {
+      var remaining = sorted.length - visibleCount;
+      html += '<div style="grid-column:1/-1; text-align:center; padding:1rem 0;">' +
+        '<button class="btn btn-secondary" id="meetingsShowMore">' +
+        'Afficher plus (' + remaining + ' restante' + (remaining > 1 ? 's' : '') + ')' +
+        '</button></div>';
+    }
+
+    meetingsList.innerHTML = html;
+
+    // Wire up "Show more" button
+    if (hasMore) {
+      var showMoreBtn = document.getElementById('meetingsShowMore');
+      if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', function() {
+          currentPage++;
+          renderMeetings(allMeetings);
+        });
+      }
+    }
   }
 
   // ==========================================================================
@@ -342,6 +429,30 @@
     if (calendarToday) {
       calendarToday.addEventListener('click', function() {
         calendarView.today();
+      });
+    }
+
+    // Search input
+    var meetingsSearchInput = document.getElementById('meetingsSearch');
+    if (meetingsSearchInput) {
+      var searchTimeout = null;
+      meetingsSearchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+          currentSearchText = meetingsSearchInput.value.trim();
+          currentPage = 1;
+          renderMeetings(allMeetings);
+        }, 250);
+      });
+    }
+
+    // Sort select
+    var meetingsSortSelect = document.getElementById('meetingsSort');
+    if (meetingsSortSelect) {
+      meetingsSortSelect.addEventListener('change', function() {
+        currentSortMode = meetingsSortSelect.value;
+        currentPage = 1;
+        renderMeetings(allMeetings);
       });
     }
 

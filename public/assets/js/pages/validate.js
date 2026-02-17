@@ -68,6 +68,26 @@
           document.getElementById('sumAdopted').textContent = s.adopted_count ?? '—';
           document.getElementById('sumRejected').textContent = s.rejected_count ?? '—';
           document.getElementById('sumBallots').textContent = s.ballots_count ?? '—';
+
+          // Quorum status
+          const quorumEl = document.getElementById('sumQuorum');
+          if (s.quorum_reached != null) {
+            quorumEl.textContent = s.quorum_reached ? 'Atteint' : 'Non atteint';
+            quorumEl.className = 'summary-value ' + (s.quorum_reached ? 'text-success' : 'text-danger');
+          } else {
+            quorumEl.textContent = '—';
+            quorumEl.className = 'summary-value';
+          }
+
+          // Session duration
+          const durationEl = document.getElementById('sumDuration');
+          if (s.duration_minutes != null) {
+            const hours = Math.floor(s.duration_minutes / 60);
+            const mins = s.duration_minutes % 60;
+            durationEl.textContent = hours > 0 ? hours + 'h ' + String(mins).padStart(2, '0') + 'min' : mins + 'min';
+          } else {
+            durationEl.textContent = '—';
+          }
         }
       } catch (err) {
         console.error('Erreur résumé :', err);
@@ -118,13 +138,55 @@
       }
     }
 
-    // Valider la séance
-    document.getElementById('btnValidate').addEventListener('click', async () => {
+    // Validation modal elements
+    const validateModal = document.getElementById('validateModal');
+    const confirmCheckbox = document.getElementById('confirmIrreversible');
+    const btnModalConfirm = document.getElementById('btnModalConfirm');
+    const btnModalCancel = document.getElementById('btnModalCancel');
+
+    // Enable/disable confirm button based on checkbox
+    if (confirmCheckbox && btnModalConfirm) {
+      confirmCheckbox.addEventListener('change', () => {
+        btnModalConfirm.disabled = !confirmCheckbox.checked;
+      });
+    }
+
+    // Close modal helper
+    function closeValidateModal() {
+      if (validateModal) validateModal.hidden = true;
+      if (confirmCheckbox) confirmCheckbox.checked = false;
+      if (btnModalConfirm) btnModalConfirm.disabled = true;
+    }
+
+    // Cancel button
+    if (btnModalCancel) {
+      btnModalCancel.addEventListener('click', closeValidateModal);
+    }
+
+    // Backdrop click closes modal
+    if (validateModal) {
+      validateModal.addEventListener('click', (e) => {
+        if (e.target === validateModal) closeValidateModal();
+      });
+      // Escape key closes modal
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !validateModal.hidden) closeValidateModal();
+      });
+    }
+
+    // Step 1: btnValidate opens the modal (replaces native confirm())
+    document.getElementById('btnValidate').addEventListener('click', () => {
       const presidentName = document.getElementById('presidentName').value.trim();
-      const msgDiv = document.getElementById('validateMsg');
 
       if (!presidentName) {
         setNotif('error', 'Le nom du président est requis');
+        return;
+      }
+
+      // Validate pattern: letters, spaces, hyphens, apostrophes only
+      const namePattern = /^[A-Za-zÀ-ÿ\s\-'.]{2,100}$/;
+      if (!namePattern.test(presidentName)) {
+        setNotif('error', 'Le nom du président ne doit contenir que des lettres, espaces, tirets et apostrophes (2 à 100 caractères)');
         return;
       }
 
@@ -133,44 +195,54 @@
         return;
       }
 
-      const confirm1 = confirm('ATTENTION : Cette action est IRRÉVERSIBLE.\n\nLa séance sera définitivement archivée et aucune modification ultérieure ne sera possible.\n\nContinuer ?');
-      if (!confirm1) return;
-
-      const confirm2 = confirm('Confirmation finale :\n\nVous êtes sur le point de valider et d\'archiver définitivement cette séance.\n\nConfirmer la validation ?');
-      if (!confirm2) return;
-
-      const btn = document.getElementById('btnValidate');
-      Shared.btnLoading(btn, true);
-      try {
-        const { body } = await api('/api/v1/meeting_validate.php', {
-          meeting_id: currentMeetingId,
-          president_name: presidentName
-        });
-
-        if (body && body.ok) {
-          Shared.show(msgDiv, 'block');
-          msgDiv.className = 'alert alert-success';
-          msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès !`;
-
-          setNotif('success', 'Séance validée !');
-
-          showAlreadyValidated();
-
-          // Redirection vers les archives après 3s
-          setTimeout(() => {
-            window.location.href = '/archives.htmx.html' + (currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : '');
-          }, 3000);
-        } else {
-          Shared.show(msgDiv, 'block');
-          msgDiv.className = 'alert alert-danger';
-          msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Erreur : ${escapeHtml(body?.error || 'Échec de la validation')}`;
-          Shared.btnLoading(btn, false);
-        }
-      } catch (err) {
-        setNotif('error', err.message);
-        Shared.btnLoading(btn, false);
+      // Show modal instead of confirm()
+      if (validateModal) {
+        validateModal.hidden = false;
+        if (confirmCheckbox) confirmCheckbox.focus();
       }
     });
+
+    // Step 2: Modal confirm button performs the actual validation
+    if (btnModalConfirm) {
+      btnModalConfirm.addEventListener('click', async () => {
+        const presidentName = document.getElementById('presidentName').value.trim();
+        const msgDiv = document.getElementById('validateMsg');
+
+        closeValidateModal();
+
+        const btn = document.getElementById('btnValidate');
+        Shared.btnLoading(btn, true);
+        try {
+          const { body } = await api('/api/v1/meeting_validate.php', {
+            meeting_id: currentMeetingId,
+            president_name: presidentName
+          });
+
+          if (body && body.ok) {
+            Shared.show(msgDiv, 'block');
+            msgDiv.className = 'alert alert-success';
+            msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès !`;
+
+            setNotif('success', 'Séance validée !');
+
+            showAlreadyValidated();
+
+            // Redirection vers les archives après 3s
+            setTimeout(() => {
+              window.location.href = '/archives.htmx.html' + (currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : '');
+            }, 3000);
+          } else {
+            Shared.show(msgDiv, 'block');
+            msgDiv.className = 'alert alert-danger';
+            msgDiv.innerHTML = `${icon('x-circle', 'icon-md icon-danger')} Erreur : ${escapeHtml(body?.error || 'Échec de la validation')}`;
+            Shared.btnLoading(btn, false);
+          }
+        } catch (err) {
+          setNotif('error', err.message);
+          Shared.btnLoading(btn, false);
+        }
+      });
+    }
 
     // Actualiser
     document.getElementById('btnRefresh').addEventListener('click', () => {

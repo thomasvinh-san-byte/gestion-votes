@@ -370,3 +370,58 @@
 .card-body-scroll {
   overflow-x: auto;
 }
+
+/* =============================================================================
+   HEALTH KPI STRIP (system tab)
+   ============================================================================= */
+
+.admin-health-strip {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.admin-health-kpi {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.admin-health-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.admin-health-icon.success { color: var(--color-success); }
+.admin-health-icon.warning { color: var(--color-warning); }
+.admin-health-icon.danger { color: var(--color-danger); }
+.admin-health-icon.primary { color: var(--color-primary); }
+
+.admin-health-value {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.admin-health-label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 768px) {
+  .admin-health-strip {
+    flex-wrap: wrap;
+  }
+  .admin-health-kpi {
+    flex: 1 1 45%;
+  }
+}

@@ -2380,11 +2380,15 @@
     let successCount = 0;
     let errorCount = 0;
 
-    // Show loading state
+    // Show loading state with spinner
     const btns = ['btnUnanimityFor', 'btnUnanimityAgainst', 'btnUnanimityAbstain']
       .map(id => document.getElementById(id))
       .filter(Boolean);
-    btns.forEach(btn => btn.disabled = true);
+    btns.forEach(btn => {
+      btn.disabled = true;
+      btn.dataset.origHtml = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner spinner-sm"></span> Traitement…';
+    });
 
     try {
       // Process votes in parallel batches for speed
@@ -2425,7 +2429,10 @@
     } catch (err) {
       setNotif('error', 'Erreur: ' + err.message);
     } finally {
-      btns.forEach(btn => btn.disabled = false);
+      btns.forEach(btn => {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.origHtml || btn.innerHTML;
+      });
     }
   }
 
@@ -2434,6 +2441,15 @@
   async function openVote(motionId) {
     if (_openingVote) return;
     _openingVote = true;
+
+    // Disable open-vote buttons and show spinner
+    const openBtns = document.querySelectorAll(`.btn-open-vote[data-motion-id="${motionId}"]`);
+    openBtns.forEach(btn => {
+      btn.disabled = true;
+      btn.dataset.origHtml = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner spinner-sm"></span> Ouverture…';
+    });
+
     try {
       const openResult = await api('/api/v1/motions_open.php', { meeting_id: currentMeetingId, motion_id: motionId });
 
@@ -2460,6 +2476,10 @@
       setNotif('error', err.message);
     } finally {
       _openingVote = false;
+      openBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.origHtml || btn.innerHTML;
+      });
     }
   }
 
@@ -2470,8 +2490,13 @@
     if (!confirm('Clôturer ce vote ?')) return;
 
     _closingVote = true;
-    // Disable all close-vote buttons during the operation
-    document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote').forEach(b => b.disabled = true);
+    // Disable all close-vote buttons during the operation and show spinner
+    const closeBtns = document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote');
+    closeBtns.forEach(b => {
+      b.disabled = true;
+      b.dataset.origHtml = b.innerHTML;
+      b.innerHTML = '<span class="spinner spinner-sm"></span> Clôture…';
+    });
 
     try {
       await api('/api/v1/motions_close.php', { meeting_id: currentMeetingId, motion_id: motionId });
@@ -2486,7 +2511,10 @@
       setNotif('error', err.message);
     } finally {
       _closingVote = false;
-      document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote').forEach(b => b.disabled = false);
+      closeBtns.forEach(b => {
+        b.disabled = false;
+        b.innerHTML = b.dataset.origHtml || b.innerHTML;
+      });
     }
   }
 
@@ -2673,6 +2701,7 @@
       if (viewExec) viewExec.hidden = false;
       Shared.hide(tabsNav);
       refreshExecView();
+      startSessionTimer();
     }
 
     updatePrimaryButton();
@@ -2767,6 +2796,44 @@
     }
     tick();
     setInterval(tick, 30000);
+  }
+
+  // Session elapsed timer
+  let sessionTimerInterval = null;
+
+  function startSessionTimer() {
+    if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+    const el = document.getElementById('execSessionTimer');
+    if (!el) return;
+
+    // Use the meeting's opened_at if live, otherwise show --:--
+    if (currentMeetingStatus !== 'live' || !currentMeeting) {
+      el.textContent = '--:--';
+      return;
+    }
+
+    const startedAt = currentMeeting.opened_at || currentMeeting.started_at;
+    if (!startedAt) {
+      el.textContent = '00:00';
+      return;
+    }
+
+    const startTime = new Date(startedAt).getTime();
+
+    function updateTimer() {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const hours = Math.floor(elapsed / 3600);
+      const minutes = Math.floor((elapsed % 3600) / 60);
+      const seconds = elapsed % 60;
+      if (hours > 0) {
+        el.textContent = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+      } else {
+        el.textContent = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+      }
+    }
+
+    updateTimer();
+    sessionTimerInterval = setInterval(updateTimer, 1000);
   }
 
   // =========================================================================
@@ -2958,7 +3025,63 @@
   // EXECUTION VIEW
   // =========================================================================
 
+  function refreshExecKPIs() {
+    // Quorum bar
+    const qBar = document.getElementById('execQuorumBar');
+    if (qBar) {
+      const present = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+      const proxyActive = proxiesCache.filter(p => !p.revoked_at).length;
+      const currentVoters = present + proxyActive;
+      const totalMembers = membersCache.length;
+      const required = Math.ceil(totalMembers / 2); // default quorum
+      qBar.setAttribute('current', currentVoters);
+      qBar.setAttribute('required', required);
+      qBar.setAttribute('total', totalMembers);
+    }
+
+    // Participation %
+    const partEl = document.getElementById('execParticipation');
+    if (partEl && currentOpenMotion) {
+      const totalBallots = Object.keys(ballotsCache).length;
+      const eligible = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length +
+                       proxiesCache.filter(p => !p.revoked_at).length;
+      const pct = eligible > 0 ? Math.round((totalBallots / eligible) * 100) : 0;
+      partEl.textContent = pct + '%';
+      partEl.style.color = pct >= 75 ? 'var(--color-success)' : pct >= 50 ? 'var(--color-warning)' : 'var(--color-text-muted)';
+    } else if (partEl) {
+      partEl.textContent = '—';
+      partEl.style.color = '';
+    }
+
+    // Motions progress
+    const doneEl = document.getElementById('execMotionsDone');
+    const totalEl = document.getElementById('execMotionsTotal');
+    if (doneEl && totalEl) {
+      const closed = motionsCache.filter(m => m.closed_at).length;
+      doneEl.textContent = closed;
+      totalEl.textContent = motionsCache.length;
+    }
+
+    // Vote participation bar in exec
+    const barFill = document.getElementById('execVoteParticipationBar');
+    const barPct = document.getElementById('execVoteParticipationPct');
+    if (barFill && barPct) {
+      if (currentOpenMotion) {
+        const totalBallots = Object.keys(ballotsCache).length;
+        const eligible = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length +
+                         proxiesCache.filter(p => !p.revoked_at).length;
+        const pct = eligible > 0 ? Math.round((totalBallots / eligible) * 100) : 0;
+        barFill.style.width = pct + '%';
+        barPct.textContent = pct + '%';
+      } else {
+        barFill.style.width = '0%';
+        barPct.textContent = '—';
+      }
+    }
+  }
+
   function refreshExecView() {
+    refreshExecKPIs();
     refreshExecVote();
     refreshExecSpeech();
     refreshExecDevices();

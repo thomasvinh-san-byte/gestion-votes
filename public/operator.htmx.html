@@ -707,6 +707,30 @@
            VIEW: EXECUTION — 3-column grid
            ================================================================ -->
       <section id="viewExec" hidden aria-label="Mode exécution">
+        <!-- Exec KPI strip -->
+        <div class="exec-kpi-strip">
+          <div class="exec-kpi-strip-item">
+            <ag-quorum-bar id="execQuorumBar" current="0" required="0" total="0" label="Quorum" show-values></ag-quorum-bar>
+          </div>
+          <div class="exec-kpi-strip-item">
+            <div class="kpi kpi-compact">
+              <span class="kpi-label">Participation</span>
+              <span class="kpi-value" id="execParticipation">—</span>
+            </div>
+          </div>
+          <div class="exec-kpi-strip-item">
+            <div class="kpi kpi-compact">
+              <span class="kpi-label">Durée séance</span>
+              <span class="kpi-value" id="execSessionTimer">00:00</span>
+            </div>
+          </div>
+          <div class="exec-kpi-strip-item">
+            <div class="kpi kpi-compact">
+              <span class="kpi-label">Résolutions</span>
+              <span class="kpi-value"><span id="execMotionsDone">0</span>/<span id="execMotionsTotal">0</span></span>
+            </div>
+          </div>
+        </div>
         <div class="exec-grid">
           <!-- Col 1: Vote en cours -->
           <div class="exec-card" id="execVoteCard">
@@ -736,6 +760,13 @@
                     <span class="exec-kpi-value" id="execVoteAbstain">0</span>
                     <span class="exec-kpi-label">Abstention</span>
                   </div>
+                </div>
+                <div class="exec-participation-row">
+                  <span class="exec-participation-label">Participation</span>
+                  <div class="progress">
+                    <div class="progress-bar success" id="execVoteParticipationBar" style="width: 0%"></div>
+                  </div>
+                  <span class="exec-participation-pct" id="execVoteParticipationPct">0%</span>
                 </div>
                 <div class="exec-vote-actions">
                   <button class="btn btn-warning" id="execBtnCloseVote">

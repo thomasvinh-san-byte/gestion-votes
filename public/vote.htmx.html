@@ -49,6 +49,12 @@
       </div>
     </div>
 
+    <!-- Offline banner -->
+    <div class="offline-banner" id="offlineBanner" role="alert" hidden>
+      <svg class="icon icon-text" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+      <span>Hors ligne — Vérifiez votre connexion avant de voter</span>
+    </div>
+
     <!-- Main content -->
     <main class="vote-main" id="main-content" role="main">
       <!-- Speech panel -->
@@ -70,6 +76,10 @@
           <div class="motion-meta" id="motionMeta">
             <span class="motion-pill" id="motionNo"></span>
             <span class="motion-pill" id="motionPhase">En attente</span>
+            <span class="motion-pill motion-progress" id="motionProgress" hidden>
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-layers"></use></svg>
+              <span id="motionProgressText">—</span>
+            </span>
           </div>
         </div>
         <div class="motion-card-body" id="motionBody">
@@ -115,6 +125,12 @@
               <span class="vote-btn-hint">Confirmation requise</span>
             </button>
           </div>
+          <div class="vote-participation" id="voteParticipation" hidden>
+            <div class="vote-participation-bar">
+              <div class="vote-participation-fill" id="voteParticipationFill" style="width: 0%"></div>
+            </div>
+            <span class="vote-participation-text" id="voteParticipationText">0% ont voté</span>
+          </div>
         </div>
       </div>
     </main>
@@ -153,10 +169,10 @@
             <span>Résolution : <span id="cMotion">—</span></span>
           </div>
         </div>
-        <details class="reso-details" id="confirmResoDetails" hidden>
+        <details class="reso-details" id="confirmResoDetails" open hidden>
           <summary>
-            <span>Revoir le texte (recommandé)</span>
-            <span class="reso-note">anti-erreur</span>
+            <span>Texte de la résolution</span>
+            <span class="reso-note">vérifiez avant de confirmer</span>
           </summary>
           <div class="reso-text" id="confirmResoText"></div>
         </details>
@@ -236,6 +252,7 @@
     }
 
     let _triggerBtn = null; // track which button opened the overlay for focus restore
+    let _overlayMotionId = null; // track motion ID when overlay was opened
 
     // Vote button click -> show confirmation
     voteButtons.forEach(btn => {
@@ -243,12 +260,30 @@
         if (btn.disabled) return;
         _triggerBtn = btn;
         pendingVote = btn.dataset.choice;
+        // Capture current motion ID for change detection
+        _overlayMotionId = document.getElementById('motionTitle')?.textContent || null;
         fillConfirmContext(pendingVote);
         confirmOverlay.classList.add('show');
         confirmOverlay.setAttribute('aria-hidden', 'false');
         btnConfirm.focus();
       });
     });
+
+    // Watch for resolution changes while confirmation overlay is open
+    const motionTitleObserver = new MutationObserver(() => {
+      if (!confirmOverlay.classList.contains('show') || !_overlayMotionId) return;
+      const currentTitle = document.getElementById('motionTitle')?.textContent || null;
+      if (currentTitle && currentTitle !== _overlayMotionId && currentTitle !== 'En attente d\u2019une résolution') {
+        // Resolution changed while voting!
+        closeConfirm();
+        setNotif('error', 'La résolution a changé pendant votre vote. Veuillez revoter.');
+        _overlayMotionId = null;
+      }
+    });
+    const motionTitleEl = document.getElementById('motionTitle');
+    if (motionTitleEl) {
+      motionTitleObserver.observe(motionTitleEl, { childList: true, characterData: true, subtree: true });
+    }
 
     // Keyboard shortcuts (1/2/3)
     document.addEventListener('keydown', (e) => {
@@ -306,9 +341,11 @@
       btnConfirm.disabled = true;
       btnConfirm.innerHTML = '<span class="spinner spinner-sm"></span> Envoi...';
 
+      const votingChoice = pendingVote; // capture before async
+
       try {
         if (typeof submitVote === 'function') {
-          await submitVote(pendingVote);
+          await submitVote(votingChoice);
         }
 
         hasVoted = true;
@@ -318,7 +355,7 @@
           b.classList.remove('selected');
           b.setAttribute('aria-pressed', 'false');
         });
-        const selectedBtn = document.querySelector(`[data-choice="${pendingVote}"]`);
+        const selectedBtn = document.querySelector(`[data-choice="${votingChoice}"]`);
         if (selectedBtn) {
           selectedBtn.classList.add('selected');
           selectedBtn.setAttribute('aria-pressed', 'true');
@@ -338,21 +375,28 @@
           const hh = String(now.getHours()).padStart(2, '0');
           const mm = String(now.getMinutes()).padStart(2, '0');
           const ss = String(now.getSeconds()).padStart(2, '0');
-          receipt.textContent = `${hh}:${mm}:${ss} \u2022 ${choiceInfo[pendingVote].label}`;
+          receipt.textContent = `${hh}:${mm}:${ss} \u2022 ${choiceInfo[votingChoice].label}`;
           receipt.hidden = false;
         }
 
         closeConfirm();
-        setNotif('success', `Vote ${choiceInfo[pendingVote].label} enregistré`);
+        setNotif('success', `Vote ${choiceInfo[votingChoice].label} enregistré`);
 
-        // Disable buttons after vote
+        // Disable buttons after successful vote only
         voteButtons.forEach(b => b.disabled = true);
-      } catch (err) {
-        setNotif('error', 'Erreur: ' + err.message);
-      } finally {
-        btnConfirm.disabled = false;
-        btnConfirm.innerHTML = 'Confirmer';
         pendingVote = null;
+      } catch (err) {
+        // Vote failed — re-enable confirm so user can retry
+        setNotif('error', 'Erreur: ' + (err.message || 'Échec de l\'envoi'));
+        btnConfirm.disabled = false;
+        btnConfirm.innerHTML = 'Réessayer';
+        // Do NOT clear pendingVote — let user retry from the overlay
+        return;
+      } finally {
+        if (hasVoted) {
+          btnConfirm.disabled = false;
+          btnConfirm.innerHTML = 'Confirmer';
+        }
       }
     });
 
@@ -360,13 +404,22 @@
     function updateConnectionStatus(online) {
       const dot = document.getElementById('connectionDot');
       const status = document.getElementById('connectionStatus');
+      const banner = document.getElementById('offlineBanner');
 
       if (online) {
         dot.classList.remove('offline');
         status.textContent = 'Connecté';
+        if (banner) banner.hidden = true;
+        // Re-enable vote buttons if a motion is active
+        if (!hasVoted) {
+          voteButtons.forEach(b => b.disabled = false);
+        }
       } else {
         dot.classList.add('offline');
         status.textContent = 'Hors ligne';
+        if (banner) banner.hidden = false;
+        // Disable vote buttons while offline
+        voteButtons.forEach(b => b.disabled = true);
       }
     }
 

@@ -50,6 +50,14 @@
         <div class="stat-value" id="kpiPower">0</div>
         <div class="stat-label">Voix totales</div>
       </div>
+      <div class="stat-item">
+        <span class="stat-value" id="kpiAvgPower">—</span>
+        <span class="stat-label">Pouvoir moyen</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="kpiEmailCoverage">—</span>
+        <span class="stat-label">Couv. email</span>
+      </div>
     </div>
 
     <main class="app-main members-main">
@@ -350,6 +358,29 @@
       document.getElementById('kpiActive').textContent = active;
       document.getElementById('kpiInactive').textContent = inactive;
       document.getElementById('kpiPower').textContent = Number.isInteger(power) ? power : power.toFixed(2);
+
+      // Average voting power per active member
+      var kpiAvgPower = document.getElementById('kpiAvgPower');
+      if (kpiAvgPower) {
+        if (active > 0) {
+          var avg = power / active;
+          kpiAvgPower.textContent = Number.isInteger(avg) ? avg : avg.toFixed(2);
+        } else {
+          kpiAvgPower.textContent = '\u2014';
+        }
+      }
+
+      // Email coverage (members with email / total members)
+      var kpiEmailCoverage = document.getElementById('kpiEmailCoverage');
+      if (kpiEmailCoverage) {
+        if (total > 0) {
+          var withEmail = members.filter(function(m) { return m.email; }).length;
+          var pct = Math.round((withEmail / total) * 100);
+          kpiEmailCoverage.textContent = pct + '%';
+        } else {
+          kpiEmailCoverage.textContent = '\u2014';
+        }
+      }
     }
 
     // Filter members

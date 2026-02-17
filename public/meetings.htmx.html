@@ -47,6 +47,14 @@
         <div class="stat-value" id="statTotal">0</div>
         <div class="stat-label">Total</div>
       </div>
+      <div class="stat-item">
+        <span class="stat-value" id="statResolutions">0</span>
+        <span class="stat-label">Résolutions</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="statAvgParticipation">—</span>
+        <span class="stat-label">Participation moy.</span>
+      </div>
     </div>
 
     <main class="app-main" id="main-content" style="padding: 0;" role="main">
@@ -73,6 +81,21 @@
           <button class="filter-tab" data-filter="scheduled">Planifiées</button>
           <button class="filter-tab" data-filter="draft">Brouillons</button>
           <button class="filter-tab" data-filter="archived">Archives</button>
+        </div>
+
+        <!-- Search and Sort -->
+        <div class="meetings-toolbar">
+          <div class="form-group form-group-search">
+            <input class="form-input" type="search" id="meetingsSearch" placeholder="Rechercher par titre..." aria-label="Rechercher une séance">
+          </div>
+          <div class="form-group">
+            <select class="form-input form-input-sm" id="meetingsSort" aria-label="Trier par">
+              <option value="status">Trier par statut</option>
+              <option value="date_desc">Date (récent d'abord)</option>
+              <option value="date_asc">Date (ancien d'abord)</option>
+              <option value="title">Titre A-Z</option>
+            </select>
+          </div>
         </div>
 
         <!-- Section header -->

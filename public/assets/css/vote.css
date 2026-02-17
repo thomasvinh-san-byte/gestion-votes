@@ -70,10 +70,32 @@
 }
 
 .context-bar .form-label {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
   margin-bottom: 0.25rem;
+}
+
+/* =============================================================================
+   OFFLINE BANNER
+   ============================================================================= */
+
+.offline-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-danger);
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.offline-banner[hidden] {
+  display: none;
 }
 
 /* =============================================================================
@@ -154,7 +176,7 @@
 
 .motion-card-label {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
@@ -172,14 +194,15 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.25rem 0.625rem;
+  padding: 0.375rem 0.75rem;
   border-radius: 100px;
   border: 2px solid var(--color-border);
   background: var(--color-surface);
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 800;
   white-space: nowrap;
   color: var(--color-text);
+  min-height: 32px;
 }
 
 .motion-pill.pill-success {
@@ -296,7 +319,7 @@
 
 .vote-section-label {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
@@ -355,7 +378,7 @@
 }
 
 .vote-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none;
 }
@@ -413,7 +436,7 @@
 }
 
 .vote-btn-hint {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 700;
   opacity: 0.6;
   text-transform: none;
@@ -434,6 +457,53 @@
   color: currentColor;
   border-radius: 50%;
   font-size: 1rem;
+}
+
+/* =============================================================================
+   MOTION PROGRESS PILL
+   ============================================================================= */
+
+.motion-progress {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* =============================================================================
+   VOTE PARTICIPATION INDICATOR (NON-IDENTIFYING)
+   ============================================================================= */
+
+.vote-participation {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  background: var(--color-bg-subtle);
+  border-radius: 8px;
+  margin-top: 0.75rem;
+}
+
+.vote-participation-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.vote-participation-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.vote-participation-text {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /* =============================================================================
@@ -489,14 +559,15 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.375rem 0.625rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 100px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--color-text-muted);
   white-space: nowrap;
+  min-height: 36px;
 }
 
 .connection-dot {
@@ -560,7 +631,7 @@
 .confirm-sheet-header strong {
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--color-text-muted);
 }
 
@@ -585,7 +656,7 @@
 }
 
 .confirm-meta {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--color-text-muted);
   display: flex;
@@ -605,6 +676,7 @@
   padding: 0.875rem 1.25rem;
   font-size: 1rem;
   font-weight: 700;
+  min-height: 48px;
 }
 
 /* =============================================================================
