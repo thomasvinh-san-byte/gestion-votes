@@ -7,46 +7,45 @@
   <meta name="description" content="Documentation - AG-VOTE">
   <title>Documentation — AG-VOTE</title>
   <link rel="stylesheet" href="/assets/css/app.css">
-  <link rel="stylesheet" href="/assets/css/docs.css">
+  <link rel="stylesheet" href="/assets/css/doc.css">
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
 </head>
 <body>
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="help"></aside>
 
-    <div class="page-header">
-      <h1>
-        <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
-        <span id="docTitle">Documentation</span>
-      </h1>
-      <div class="page-header-actions">
-        <a href="/help.htmx.html" class="btn btn-ghost">
-          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
-          Retour à l'aide
-        </a>
+    <div class="doc-page-header">
+      <div class="doc-breadcrumb">
+        <a href="/help.htmx.html">Aide</a>
+        <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+        <span id="breadcrumbDir" style="display:none"></span>
+        <svg class="icon icon-xs" id="breadcrumbDirSep" aria-hidden="true" style="display:none"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+        <span id="breadcrumbCurrent">Documentation</span>
       </div>
+      <h1 id="docTitle">Documentation</h1>
     </div>
 
-    <main class="app-main docs-main">
-      <div class="page-content">
-        <div id="notif_box" class="alert hidden mb-4"></div>
+    <main class="app-main doc-main">
+      <div class="doc-layout">
+        <!-- LEFT: Doc Index -->
+        <aside class="doc-sidebar">
+          <nav class="doc-index" id="docIndex" aria-label="Index des documents">
+            <h4>Documentation</h4>
+            <div class="text-muted text-sm" style="padding:0.5rem">Chargement...</div>
+          </nav>
+        </aside>
 
-        <!-- Breadcrumb -->
-        <nav class="docs-breadcrumb" id="breadcrumb">
-          <a href="/help.htmx.html">Aide</a>
-          <span class="breadcrumb-sep">/</span>
-          <span id="breadcrumbCurrent">Documentation</span>
-        </nav>
-
-        <!-- Document content -->
-        <article class="docs-article" id="docContent">
-          <div class="loading-spinner">Chargement du document...</div>
+        <!-- CENTER: rendered Markdown -->
+        <article class="doc-content prose" id="docContent">
+          <div style="text-align:center;padding:3rem;color:var(--color-text-muted)">Chargement du document...</div>
         </article>
 
-        <!-- Table of contents (generated from headings) -->
-        <aside class="docs-toc" id="docToc">
-          <div class="docs-toc-title">Sur cette page</div>
-          <nav id="tocNav"></nav>
+        <!-- RIGHT: Table of Contents (sticky) -->
+        <aside class="doc-toc-rail" id="docTocRail" aria-label="Sommaire" style="display:none">
+          <nav class="doc-toc">
+            <h4>Sommaire</h4>
+            <ul id="tocList"></ul>
+          </nav>
         </aside>
       </div>
     </main>
@@ -57,7 +56,7 @@
   <aside id="drawer" class="drawer" aria-hidden="true">
     <div class="drawer-header">
       <div id="drawerTitle" class="font-semibold">Menu</div>
-      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close title="Fermer">✕</button>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close title="Fermer">&#10005;</button>
     </div>
     <div id="drawerBody" class="drawer-body"></div>
   </aside>
@@ -66,13 +65,17 @@
   <script type="module" src="/assets/js/components/index.js"></script>
   <script src="/assets/js/core/shared.js"></script>
   <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/pages/auth-ui.js"></script>
 
   <script>
   (function() {
     'use strict';
 
-    // Document titles mapping
-    const DOC_TITLES = {
+    // =========================================================================
+    // CONFIGURATION
+    // =========================================================================
+
+    var DOC_TITLES = {
       'ANALYTICS_ETHICS': 'Éthique des Analytics',
       'FAQ': 'Foire aux questions',
       'README': 'Documentation',
@@ -87,153 +90,252 @@
       'AUDIT_RAPPORT': 'Rapport d\'audit',
       'CONFORMITE_CDC': 'Conformité au cahier des charges',
       'WEB_COMPONENTS': 'Composants Web',
+      'DOCKER_INSTALL': 'Installation Docker',
     };
 
-    // Configure marked
-    marked.setOptions({
-      breaks: true,
-      gfm: true,
-      headerIds: true,
-      mangle: false,
-    });
+    // =========================================================================
+    // HELPERS
+    // =========================================================================
 
-    // Get document path from URL
-    function getDocPath() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('file') || 'docs/README.md';
+    function esc(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // Extract title from path
-    function getTitleFromPath(path) {
-      const filename = path.split('/').pop().replace('.md', '');
+    function getDocPage() {
+      var params = new URLSearchParams(window.location.search);
+      var file = params.get('file') || 'docs/README.md';
+      // Normalize: strip leading "docs/" and trailing ".md"
+      return file.replace(/^docs\//, '').replace(/\.md$/i, '');
+    }
+
+    function getTitleFromPage(page) {
+      var filename = page.split('/').pop();
       return DOC_TITLES[filename] || filename.replace(/_/g, ' ');
     }
 
-    // Generate table of contents from headings
-    function generateTOC(container) {
-      const headings = container.querySelectorAll('h2, h3');
-      const tocNav = document.getElementById('tocNav');
-      const tocContainer = document.getElementById('docToc');
+    // =========================================================================
+    // DOC INDEX (sidebar)
+    // =========================================================================
+
+    function loadDocIndex(currentPage) {
+      var container = document.getElementById('docIndex');
+
+      fetch('/api/v1/doc_index.php')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.ok || !data.data) throw new Error('Index unavailable');
+
+          var html = '<h4>Documentation</h4>';
+          data.data.forEach(function(cat) {
+            html += '<div class="doc-index-section">';
+            html += '<div class="doc-index-title">' + esc(cat.category) + '</div>';
+            html += '<ul>';
+            cat.items.forEach(function(item) {
+              var isActive = (item.page === currentPage) ? ' class="active"' : '';
+              html += '<li' + isActive + '><a href="/docs.htmx.html?file=docs/'
+                + encodeURIComponent(item.page) + '.md">'
+                + esc(item.label) + '</a></li>';
+            });
+            html += '</ul></div>';
+          });
+          container.innerHTML = html;
+        })
+        .catch(function() {
+          container.innerHTML = '<h4>Documentation</h4><p class="text-muted text-sm" style="padding:0.5rem">Index non disponible</p>';
+        });
+    }
+
+    // =========================================================================
+    // TOC GENERATION
+    // =========================================================================
+
+    function generateTOC(contentEl) {
+      var headings = contentEl.querySelectorAll('h2, h3');
+      var tocRail = document.getElementById('docTocRail');
+      var tocList = document.getElementById('tocList');
 
       if (headings.length < 3) {
-        tocContainer.style.display = 'none';
+        tocRail.style.display = 'none';
         return;
       }
 
-      let tocHtml = '<ul class="docs-toc-list">';
-      headings.forEach((heading, index) => {
-        const id = heading.id || `heading-${index}`;
+      var html = '';
+      headings.forEach(function(heading, index) {
+        var id = heading.id || 'heading-' + index;
         heading.id = id;
-        const level = heading.tagName === 'H2' ? '' : 'toc-sub';
-        tocHtml += `<li class="${level}"><a href="#${id}">${heading.textContent}</a></li>`;
+        var cls = heading.tagName === 'H3' ? ' class="toc-sub"' : '';
+        html += '<li' + cls + '><a href="#' + id + '">' + esc(heading.textContent) + '</a></li>';
       });
-      tocHtml += '</ul>';
-      tocNav.innerHTML = tocHtml;
+      tocList.innerHTML = html;
+      tocRail.style.display = '';
 
-      // Highlight current section on scroll
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          const link = tocNav.querySelector(`a[href="#${entry.target.id}"]`);
-          if (link) {
-            link.classList.toggle('active', entry.isIntersecting);
+      // Scroll spy
+      var tocLinks = tocList.querySelectorAll('a');
+      var headingEls = [];
+      tocLinks.forEach(function(link) {
+        var el = document.getElementById(link.getAttribute('href').slice(1));
+        if (el) headingEls.push({ el: el, link: link });
+      });
+
+      function updateActive() {
+        var scrollTop = window.scrollY + 120;
+        var current = null;
+        for (var i = headingEls.length - 1; i >= 0; i--) {
+          if (headingEls[i].el.offsetTop <= scrollTop) {
+            current = headingEls[i];
+            break;
+          }
+        }
+        tocLinks.forEach(function(l) { l.classList.remove('active'); });
+        if (current) current.link.classList.add('active');
+      }
+
+      window.addEventListener('scroll', updateActive, { passive: true });
+      updateActive();
+
+      // Smooth scroll on click
+      tocLinks.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          var target = document.getElementById(this.getAttribute('href').slice(1));
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            history.replaceState(null, '', this.getAttribute('href'));
           }
         });
-      }, { rootMargin: '-20% 0px -70% 0px' });
-
-      headings.forEach(h => observer.observe(h));
+      });
     }
 
-    // Load and render document
-    async function loadDocument() {
-      const docPath = getDocPath();
-      const container = document.getElementById('docContent');
-      const title = getTitleFromPath(docPath);
+    // =========================================================================
+    // INTERNAL LINK REWRITING
+    // =========================================================================
 
-      // Update page title and breadcrumb
+    function rewriteLinks(contentEl, currentPage) {
+      var currentDir = currentPage.split('/').slice(0, -1).join('/');
+
+      contentEl.querySelectorAll('a').forEach(function(link) {
+        var href = link.getAttribute('href');
+        if (!href) return;
+
+        // Rewrite .md links to use the viewer
+        if (href.match(/\.md$/i) && !href.match(/^https?:\/\//)) {
+          var resolved = href;
+          if (href.startsWith('./')) {
+            resolved = (currentDir ? currentDir + '/' : '') + href.substring(2);
+          } else if (href.startsWith('../')) {
+            var parts = currentDir ? currentDir.split('/') : [];
+            parts.pop();
+            resolved = (parts.length ? parts.join('/') + '/' : '') + href.substring(3);
+          } else if (!href.startsWith('/') && currentDir) {
+            resolved = currentDir + '/' + href;
+          } else if (href.startsWith('/')) {
+            resolved = href.substring(1);
+          }
+          // Ensure docs/ prefix for the viewer URL
+          if (!resolved.startsWith('docs/')) {
+            resolved = 'docs/' + resolved;
+          }
+          link.setAttribute('href', '/docs.htmx.html?file=' + encodeURIComponent(resolved));
+          link.removeAttribute('target');
+          return;
+        }
+
+        // External links open in new tab
+        if (href.match(/^https?:\/\//)) {
+          link.setAttribute('target', '_blank');
+          link.setAttribute('rel', 'noopener');
+        }
+      });
+    }
+
+    // =========================================================================
+    // CODE BLOCK COPY BUTTONS
+    // =========================================================================
+
+    function addCopyButtons(contentEl) {
+      contentEl.querySelectorAll('pre').forEach(function(pre) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        var copyBtn = document.createElement('button');
+        copyBtn.className = 'code-copy-btn';
+        copyBtn.textContent = 'Copier';
+        copyBtn.title = 'Copier le code';
+        copyBtn.addEventListener('click', function() {
+          var code = pre.querySelector('code');
+          var text = code ? code.textContent : pre.textContent;
+          navigator.clipboard.writeText(text).then(function() {
+            copyBtn.textContent = 'Copié !';
+            setTimeout(function() { copyBtn.textContent = 'Copier'; }, 2000);
+          });
+        });
+        wrapper.appendChild(copyBtn);
+      });
+    }
+
+    // =========================================================================
+    // LOAD DOCUMENT
+    // =========================================================================
+
+    function loadDocument() {
+      var page = getDocPage();
+      var title = getTitleFromPage(page);
+      var container = document.getElementById('docContent');
+
+      // Update page chrome
       document.getElementById('docTitle').textContent = title;
       document.getElementById('breadcrumbCurrent').textContent = title;
-      document.title = `${title} — AG-VOTE`;
+      document.title = title + ' — Documentation AG-VOTE';
 
-      try {
-        // Fetch markdown file
-        const response = await fetch(`/${docPath}`);
-        if (!response.ok) {
-          throw new Error(`Document non trouvé (${response.status})`);
-        }
-
-        const markdown = await response.text();
-
-        // Check if it's actually markdown (not HTML error page)
-        if (markdown.trim().startsWith('<!') || markdown.trim().startsWith('<html')) {
-          throw new Error('Document non trouvé');
-        }
-
-        // Render markdown
-        const html = marked.parse(markdown);
-        container.innerHTML = `<div class="markdown-body">${html}</div>`;
-
-        // Generate TOC
-        generateTOC(container);
-
-        // Make links to other .md files use the viewer
-        container.querySelectorAll('a[href$=".md"]').forEach(link => {
-          const href = link.getAttribute('href');
-          if (href && !href.startsWith('http')) {
-            // Resolve relative path
-            const basePath = docPath.split('/').slice(0, -1).join('/');
-            let fullPath = href;
-            if (href.startsWith('./')) {
-              fullPath = basePath + '/' + href.substring(2);
-            } else if (href.startsWith('../')) {
-              const parts = basePath.split('/');
-              parts.pop();
-              fullPath = parts.join('/') + '/' + href.substring(3);
-            } else if (!href.startsWith('/')) {
-              fullPath = basePath ? basePath + '/' + href : href;
-            } else {
-              fullPath = href.substring(1);
-            }
-            link.href = `/docs.htmx.html?file=${encodeURIComponent(fullPath)}`;
-          }
-        });
-
-        // Add copy button to code blocks
-        container.querySelectorAll('pre').forEach(pre => {
-          const wrapper = document.createElement('div');
-          wrapper.className = 'code-block-wrapper';
-          pre.parentNode.insertBefore(wrapper, pre);
-          wrapper.appendChild(pre);
-
-          const copyBtn = document.createElement('button');
-          copyBtn.className = 'code-copy-btn';
-          copyBtn.innerHTML = '<svg class="icon" width="16" height="16"><use href="/assets/icons.svg#icon-copy"></use></svg>';
-          copyBtn.title = 'Copier';
-          copyBtn.onclick = () => {
-            const code = pre.querySelector('code')?.textContent || pre.textContent;
-            navigator.clipboard.writeText(code).then(() => {
-              copyBtn.innerHTML = '<svg class="icon" width="16" height="16"><use href="/assets/icons.svg#icon-check"></use></svg>';
-              setTimeout(() => {
-                copyBtn.innerHTML = '<svg class="icon" width="16" height="16"><use href="/assets/icons.svg#icon-copy"></use></svg>';
-              }, 2000);
-            });
-          };
-          wrapper.appendChild(copyBtn);
-        });
-
-      } catch (err) {
-        container.innerHTML = `
-          <div class="docs-error">
-            <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
-            <h2>Document non disponible</h2>
-            <p>${escapeHtml(err.message)}</p>
-            <a href="/help.htmx.html" class="btn btn-primary mt-4">Retour à l'aide</a>
-          </div>
-        `;
-        document.getElementById('docToc').style.display = 'none';
+      // Show directory in breadcrumb if nested
+      var dirParts = page.split('/');
+      if (dirParts.length > 1) {
+        document.getElementById('breadcrumbDir').textContent = dirParts.slice(0, -1).join('/');
+        document.getElementById('breadcrumbDir').style.display = '';
+        document.getElementById('breadcrumbDirSep').style.display = '';
       }
+
+      // Load sidebar index
+      loadDocIndex(page);
+
+      // Fetch markdown via PHP API (reliable, no symlink dependency)
+      fetch('/api/v1/doc_content.php?page=' + encodeURIComponent(page))
+        .then(function(resp) {
+          if (!resp.ok) {
+            throw new Error(resp.status === 404
+              ? 'Document non trouvé : ' + page + '.md'
+              : 'Erreur serveur (' + resp.status + ')');
+          }
+          return resp.text();
+        })
+        .then(function(markdown) {
+          // Render markdown with marked
+          var html = marked.parse(markdown);
+          container.innerHTML = '<div class="prose">' + html + '</div>';
+
+          // Post-processing
+          generateTOC(container);
+          rewriteLinks(container, page);
+          addCopyButtons(container);
+        })
+        .catch(function(err) {
+          container.innerHTML =
+            '<div class="doc-not-found">' +
+            '<h2>Document non disponible</h2>' +
+            '<p>' + esc(err.message) + '</p>' +
+            '<a href="/help.htmx.html" class="btn btn-primary">Retour à l\'aide</a>' +
+            '</div>';
+          document.getElementById('docTocRail').style.display = 'none';
+        });
     }
 
-    // Initialize
+    // =========================================================================
+    // INIT
+    // =========================================================================
+
     loadDocument();
   })();
   </script>
