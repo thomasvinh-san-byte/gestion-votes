@@ -1,5 +1,10 @@
 FROM php:8.3-fpm-alpine
 
+LABEL org.opencontainers.image.title="AG-VOTE" \
+      org.opencontainers.image.description="Application de gestion de votes en assemblée générale" \
+      org.opencontainers.image.source="https://github.com/thomasvinh-san-byte/gestion-votes" \
+      org.opencontainers.image.licenses="MIT"
+
 # System dependencies
 RUN apk add --no-cache \
     nginx supervisor postgresql-dev libpng-dev libjpeg-turbo-dev \
@@ -36,7 +41,11 @@ RUN chown -R www-data:www-data /var/www \
     && chown -R www-data:www-data /tmp/ag-vote \
     && chmod +x /var/www/deploy/entrypoint.sh
 
-EXPOSE 8080
+# HTTP + WebSocket
+EXPOSE 8080 8081
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD curl -f http://127.0.0.1:8080/ || exit 1
 
 ENTRYPOINT ["/var/www/deploy/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+docs/
+*.md
+LICENSE
+
+# Tests
+tests/
+phpunit.xml
+phpunit.xml.dist
+.php-cs-fixer.php
+.php-cs-fixer.cache
+
+# Dev & IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment (injected at runtime, not baked into image)
+.env
+.env.local
+
+# CI
+.github/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+/tmp/
