@@ -238,6 +238,17 @@
 
         kpi.textContent = `${passed}/${total}`;
 
+        // Display integrity hash if available
+        const hash = body.data.hash || body.data.checksum || null;
+        const hashEl = document.getElementById('integrityHash');
+        const hashValueEl = document.getElementById('integrityHashValue');
+        if (hash && hashEl && hashValueEl) {
+          hashValueEl.textContent = hash;
+          hashEl.hidden = false;
+        } else if (hashEl) {
+          hashEl.hidden = true;
+        }
+
         // Update integrity checks class based on pass rate
         const integrityChecksEl = document.getElementById('integrityChecks');
         if (integrityChecksEl) {

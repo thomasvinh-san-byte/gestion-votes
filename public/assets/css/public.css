@@ -563,6 +563,31 @@ body.projection-body {
 }
 
 /* =============================================================================
+   MOTION COUNTER & VOTER TOTAL KPIs
+   ============================================================================= */
+
+.motion-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(255,255,255,0.15);
+  border-radius: 99px;
+  font-size: clamp(0.875rem, 2vw, 1.25rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.voter-total {
+  display: block;
+  text-align: center;
+  font-size: clamp(0.875rem, 2vw, 1.125rem);
+  color: var(--color-text-muted);
+  margin-top: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================================
    RESPONSIVE
    ============================================================================= */
 

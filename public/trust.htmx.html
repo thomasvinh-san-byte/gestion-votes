@@ -28,6 +28,9 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <button class="btn btn-sm btn-secondary" id="btnExportTrust">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Exporter le rapport
+        </button>
         <button class="btn btn-secondary" id="btnRefresh">
           <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
         </button>
@@ -100,6 +103,13 @@
                 <div class="integrity-stat-value" id="kpiPresent">—</div>
                 <div class="integrity-stat-label">Présents</div>
               </div>
+            </div>
+            <div class="integrity-hash" id="integrityHash" hidden>
+              <span class="integrity-hash-label">Empreinte d'intégrité</span>
+              <code class="integrity-hash-value" id="integrityHashValue">—</code>
+              <button class="btn btn-xs btn-ghost" id="btnCopyHash" title="Copier l'empreinte">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-copy"></use></svg>
+              </button>
             </div>
           </div>
         </div>

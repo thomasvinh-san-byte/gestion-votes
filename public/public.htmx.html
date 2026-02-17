@@ -375,6 +375,11 @@ async function refresh() {
         show('secret_block', false);
         updateResolution(null);
         resetBars();
+        // Hide KPIs when no meeting
+        var mcEl = document.getElementById('motionCounter');
+        if (mcEl) mcEl.hidden = true;
+        var vtEl = document.getElementById('voterTotal');
+        if (vtEl) vtEl.hidden = true;
         updateTimestamp();
         return;
       }
@@ -385,6 +390,33 @@ async function refresh() {
     err.classList.remove('visible');
     meet.textContent = s.meeting_title || '';
     MEETING_ID = s.meeting_id;
+
+    // --- KPI: Motion counter ---
+    const motionCounterEl = document.getElementById('motionCounter');
+    const motionCounterText = document.getElementById('motionCounterText');
+    if (motionCounterEl && motionCounterText) {
+      const motionIndex = s.motion_index ?? s.motion?.position ?? null;
+      const totalMotions = s.total_motions ?? s.motions_count ?? null;
+      if (motionIndex != null && totalMotions != null) {
+        motionCounterText.textContent = 'R\u00e9solution ' + motionIndex + ' / ' + totalMotions;
+        motionCounterEl.hidden = false;
+      } else {
+        motionCounterEl.hidden = true;
+      }
+    }
+
+    // --- KPI: Voter total ---
+    const voterTotalEl = document.getElementById('voterTotal');
+    const voterTotalText = document.getElementById('voterTotalText');
+    if (voterTotalEl && voterTotalText) {
+      const voterCount = s.eligible_count ?? s.voter_count ?? null;
+      if (voterCount != null) {
+        voterTotalText.textContent = voterCount + ' votant' + (voterCount !== 1 ? 's' : '');
+        voterTotalEl.hidden = false;
+      } else {
+        voterTotalEl.hidden = true;
+      }
+    }
 
     if (s.phase === 'active' && s.motion?.id) {
       // Vote in progress
