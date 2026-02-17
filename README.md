@@ -1,25 +1,47 @@
 # AG-Vote — Gestion des votes
 
-Application web de gestion de **seances de vote avec vote electronique securise**, concue pour un usage operationnel reel (assemblees generales, conseils syndicaux, reunions formelles).
+Application web de gestion de **séances de vote avec vote électronique sécurisé**, conçue pour un usage opérationnel réel (assemblées générales, conseils syndicaux, réunions formelles).
 
-Le produit couvre l'integralite du cycle de vie d'une seance :
-**preparation > conduite en live > consolidation > validation > production des livrables (PV, exports).**
+Le produit couvre l'intégralité du cycle de vie d'une séance :
+**préparation → conduite en live → consolidation → validation → production des livrables (PV, exports).**
 
 ---
 
-## Objectifs du produit
+## Démarrage rapide (Docker)
 
-- Permettre la **conduite fluide d'une seance de vote** avec ou sans vote electronique
-- Garantir des **resultats juridiquement defendables** (dans le perimetre CDC defini)
-- Offrir une **tracabilite complete** des actions et incidents
-- Rendre la seance **testable et rejouable** (seed, reset, audit)
-- Fournir des **livrables exploitables** (PV, CSV) apres validation
+### Prérequis
 
-Le projet est volontairement :
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (macOS / Windows) ou Docker Engine (Linux)
 
-- **PostgreSQL-first** (DB = source de verite)
-- **Simple cote front** (HTML + HTMX, pas de SPA)
-- **Strict sur les regles metier** (garde-fous, verrouillage)
+### Lancer en 4 commandes
+
+```bash
+git clone https://github.com/thomasvinh-san-byte/gestion-votes.git
+cd gestion-votes
+cp .env.example .env
+docker compose up -d
+```
+
+Ouvrir **http://localhost:8080** dans le navigateur.
+
+> Premier lancement : 3–5 min (build de l'image). Les suivants : ~5 sec.
+
+### Image pré-construite (ghcr.io)
+
+```bash
+docker pull ghcr.io/thomasvinh-san-byte/gestion-votes:main
+```
+
+### Comptes de test
+
+| Rôle | Email | Mot de passe |
+|------|-------|-------------|
+| Admin | `admin@ag-vote.local` | `Admin2026!` |
+| Opérateur | `operator@ag-vote.local` | `Operator2026!` |
+| Président | `president@ag-vote.local` | `President2026!` |
+| Votant | `votant@ag-vote.local` | `Votant2026!` |
+| Auditeur | `auditor@ag-vote.local` | `Auditor2026!` |
+| Observateur | `viewer@ag-vote.local` | `Viewer2026!` |
 
 ---
 
@@ -27,146 +49,105 @@ Le projet est volontairement :
 
 | Composant | Technologie |
 |-----------|-------------|
-| Backend | PHP 8.3+, PDO PostgreSQL |
-| Frontend | HTML, HTMX, JavaScript vanilla |
-| Base de donnees | PostgreSQL 16+ |
-| Authentification | Cle API + session PHP |
-| Serveur | Apache 2.4+ avec mod_rewrite |
+| Backend | PHP 8.3, 22 services, 27 repositories |
+| API REST | 153 endpoints (public/api/v1/) |
+| Frontend | HTML, JavaScript vanilla, Web Components |
+| Base de données | PostgreSQL 16 (36 tables) |
+| Temps réel | WebSocket (PHP natif) |
+| Conteneurisation | Docker, Nginx, PHP-FPM, Supervisord |
+| CI/CD | GitHub Actions → ghcr.io |
 
 ---
 
-## Demarrage rapide
+## Objectifs du produit
 
-### 1. Prerequis
-
-- PHP >= 8.3 avec extensions : `pdo_pgsql`, `mbstring`, `json`, `session`
-- PostgreSQL >= 16
-- Apache 2.4+ (ou serveur PHP integre pour le dev)
-
-### 2. Installation
-
-```bash
-# Cloner le projet
-git clone <url> gestion-votes
-cd gestion-votes
-
-# Installer les dependances systeme (Ubuntu/Debian)
-sudo bash scripts/install-deps.sh
-
-# Initialiser la base de donnees (role + schema + migrations + seeds + .env)
-sudo bash database/setup.sh
-```
-
-Ou sans donnees de demo : `sudo bash database/setup.sh --no-demo`
-
-### 3. Lancer le serveur de dev
-
-```bash
-php -S 0.0.0.0:8080 -t public
-```
-
-### 4. Se connecter
-
-Ouvrir `http://localhost:8080/login.html` avec les identifiants de test :
-
-| Role | Email | Mot de passe |
-|------|-------|-------------|
-| admin | `admin@ag-vote.local` | `Admin2026!` |
-| operator | `operator@ag-vote.local` | `Operator2026!` |
-| president | `president@ag-vote.local` | `President2026!` |
-| votant | `votant@ag-vote.local` | `Votant2026!` |
-
-Comptes crees par `database/seeds/02_test_users.sql`.
-
-Voir [docs/INSTALLATION.md](docs/INSTALLATION.md) pour l'installation complete.
+- Permettre la **conduite fluide d'une séance de vote** avec ou sans vote électronique
+- Garantir des **résultats juridiquement défendables** (dans le périmètre CDC défini)
+- Offrir une **traçabilité complète** des actions et incidents
+- Rendre la séance **testable et rejouable** (seed, reset, audit)
+- Fournir des **livrables exploitables** (PV, CSV) après validation
 
 ---
 
-## Roles utilisateurs
+## Rôles utilisateurs
 
-Le systeme distingue deux types de roles :
+### Rôles système (permanents)
 
-### Roles systeme (permanents)
-
-| Role | Acces | Description |
+| Rôle | Accès | Description |
 |------|-------|-------------|
-| **admin** | Total | Gestion des utilisateurs, politiques, configuration systeme |
-| **operator** | Conduite | Pilotage des seances, gestion presences, ouverture/fermeture votes |
-| **auditor** | Lecture audit | Controle des anomalies, journal d'audit, conformite |
-| **viewer** | Lecture seule | Consultation des archives et resultats |
+| **admin** | Total | Gestion des utilisateurs, politiques, configuration système |
+| **operator** | Conduite | Pilotage des séances, gestion présences, ouverture/fermeture votes |
+| **auditor** | Lecture audit | Contrôle des anomalies, journal d'audit, conformité |
+| **viewer** | Lecture seule | Consultation des archives et résultats |
 
-### Roles de seance (par reunion)
+### Rôles de séance (par réunion)
 
-| Role | Acces | Description |
+| Rôle | Accès | Description |
 |------|-------|-------------|
-| **president** | Decision | Cloture les votes, valide la seance, engage la responsabilite juridique |
-| **assessor** | Support | Assiste l'operateur, verifie la conformite |
+| **president** | Décision | Clôture les votes, valide la séance, engage la responsabilité juridique |
+| **assessor** | Support | Assiste l'opérateur, vérifie la conformité |
 | **voter** | Vote | Exprime son vote via tablette ou mobile |
 
 ---
 
-## Interfaces principales
+## Interfaces (14 pages)
 
-| Interface | URL | Role cible |
+| Interface | URL | Rôle cible |
 |-----------|-----|------------|
 | Accueil | `/index.html` | Tous |
 | Connexion | `/login.html` | Tous |
-| Tableau de bord | `/meetings.htmx.html` | operator |
-| Console operateur | `/operator.htmx.html` | operator |
-| Flux operateur | `/operator_flow.htmx.html` | operator |
-| Cockpit president | `/president.htmx.html` | president |
-| Controle & audit | `/trust.htmx.html` | auditor |
-| Administration | `/admin.htmx.html` | admin |
-| Resolutions | `/motions.htmx.html` | operator |
-| Presences | `/attendance.htmx.html` | operator |
+| Séances | `/meetings.htmx.html` | operator |
+| Console opérateur | `/operator.htmx.html` | operator |
 | Membres | `/members.htmx.html` | operator |
-| Procurations | `/proxies.htmx.html` | operator |
-| Invitations | `/invitations.htmx.html` | operator |
+| Modèles email | `/email-templates.htmx.html` | operator |
 | Vote (tablette) | `/vote.htmx.html` | voter |
 | Validation | `/validate.htmx.html` | president |
 | PV / Exports | `/report.htmx.html` | operator |
+| Contrôle & audit | `/trust.htmx.html` | auditor |
+| Administration | `/admin.htmx.html` | admin |
+| Analytics | `/analytics.htmx.html` | admin |
 | Archives | `/archives.htmx.html` | viewer |
-| Ecran public | `/public.htmx.html` | public |
-| Vote papier | `/paper_redeem.htmx.html` | public |
+| Écran public | `/public.htmx.html` | public |
+| Aide & FAQ | `/help.htmx.html` | Tous |
+| Documentation | `/docs.htmx.html` | Tous |
 
 ---
 
-## Fonctionnalites principales
+## Fonctionnalités principales
 
-### Gestion de seance
-- Creation et pilotage de seances avec machine a etats (`draft > scheduled > frozen > live > closed > validated > archived`)
-- Ordre du jour et resolutions
-- Transitions controlees par role
+### Gestion de séance
+- Création et pilotage avec machine à états (`draft → scheduled → frozen → live → closed → validated → archived`)
+- Ordre du jour et résolutions
+- Transitions contrôlées par rôle
 
-### Presences & procurations
-- Pointage present / distant / absent / excuse
-- Procurations avec controle de plafond
-- Impact automatique sur quorum et ponderation
+### Présences & procurations
+- Pointage présent / distant / absent / excusé
+- Procurations avec contrôle de plafond
+- Impact automatique sur quorum et pondération
 
-### Vote electronique
-- Vote par **token unique** (QR / lien tablette)
-- Anti-rejeu (token consomme une seule fois)
-- Confirmation obligatoire cote votant
-- Support du **mode degrade** (vote manuel justifie)
-- Vote papier avec code a usage unique
+### Vote électronique
+- Vote par **token unique** (QR code / lien tablette)
+- Anti-rejeu (token consommé une seule fois)
+- Confirmation obligatoire côté votant
+- Support du **mode dégradé** (vote manuel justifié)
 
 ### Calculs automatiques
-- Ponderation (tantiemes / poids)
-- Quorum global et par resolution (politiques configurables)
-- Majorite ponderee avec politiques de seuil
-- Resultat juridique explicite par resolution
+- Pondération (tantièmes / poids)
+- Quorum global et par résolution (politiques configurables)
+- Majorité pondérée avec politiques de seuil
+- Résultat juridique explicite par résolution
 
-### Controle & tracabilite
-- Journal d'audit append-only avec chaine de hachage SHA256
-- Declaration d'incidents (reseau, materiel, decision exceptionnelle)
-- Detection automatique d'anomalies
-- Actions manuelles tracees avec justification
+### Contrôle & traçabilité
+- Journal d'audit append-only avec chaîne de hachage SHA256
+- Déclaration d'incidents (réseau, matériel, décision exceptionnelle)
+- Détection automatique d'anomalies
+- Actions manuelles tracées avec justification
 
-### Post-seance
-- Validation finale par le president
-- **Verrouillage complet** de la base apres validation (HTTP 409)
-- Generation de PV (HTML + PDF)
-- Exports CSV (presences, votes, resultats, audit)
+### Post-séance
+- Validation finale par le président
+- **Verrouillage complet** de la base après validation (HTTP 409)
+- Génération de PV (HTML + PDF)
+- Exports CSV (présences, votes, résultats, audit)
 
 ---
 
@@ -174,32 +155,56 @@ Le systeme distingue deux types de roles :
 
 ```
 gestion-votes/
-+-- public/                  Racine web (DocumentRoot Apache)
-|   +-- api/v1/              118 endpoints REST (PHP)
-|   +-- assets/css/          Feuilles de style
-|   +-- assets/js/           JavaScript client
-|   +-- partials/            Composants HTML reutilisables
-|   +-- errors/              Pages d'erreur 404/500
-|   +-- *.htmx.html          Pages applicatives
-|   +-- .htaccess            Routage et securite Apache
-+-- app/                     Code backend
-|   +-- api.php              Point d'entree API (fonctions helpers)
-|   +-- bootstrap.php        Initialisation applicative
-|   +-- services/            17 services metier
-|   +-- Core/Security/       AuthMiddleware, CSRF, RateLimiter
-|   +-- Core/Validation/     Validation des entrees
-+-- database/
-|   +-- schema.sql           Schema PostgreSQL (35+ tables)
-|   +-- setup.sh             Script d'initialisation automatique
-|   +-- migrations/          Migrations incrementales
-|   +-- seeds/               Seeds numerotes (01-07)
-+-- docs/                    Documentation complete
-+-- .env                     Configuration environnement
-+-- .env.production          Template production
-+-- PRODUCTION.md            Checklist deploiement
+├── public/                  Racine web (DocumentRoot Nginx)
+│   ├── api/v1/              153 endpoints REST (PHP)
+│   ├── assets/css/          Feuilles de style
+│   ├── assets/js/           JavaScript client + Web Components
+│   ├── assets/icons.svg     Sprite SVG (92 icônes)
+│   ├── partials/            Composants HTML réutilisables
+│   └── *.htmx.html          14 pages applicatives
+├── app/                     Code backend
+│   ├── api.php              Point d'entrée API (helpers)
+│   ├── bootstrap.php        Initialisation applicative
+│   ├── Services/            22 services métier
+│   ├── Repository/          27 repositories (accès données)
+│   ├── Core/Security/       AuthMiddleware, CSRF, RateLimiter
+│   ├── Core/Validation/     Validation des entrées
+│   └── Templates/           Templates email
+├── database/
+│   ├── schema-master.sql    Schéma PostgreSQL (36 tables)
+│   ├── setup.sh             Script d'initialisation
+│   ├── migrations/          Migrations incrémentales
+│   └── seeds/               Seeds numérotées (01-07)
+├── deploy/                  Configuration Docker
+│   ├── nginx.conf           Configuration Nginx
+│   ├── php-fpm.conf         Configuration PHP-FPM
+│   ├── supervisord.conf     Orchestration des processus
+│   └── entrypoint.sh        Script de démarrage conteneur
+├── docs/                    Documentation complète
+├── docker-compose.yml       Orchestration des services
+├── Dockerfile               Build de l'image applicative
+└── .env.example             Template de configuration
 ```
 
-Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) pour le detail technique.
+---
+
+## Installation
+
+| Plateforme | Guide |
+|------------|-------|
+| **macOS** (Intel / Apple Silicon) | [docs/INSTALL_MAC.md](docs/INSTALL_MAC.md) |
+| **Linux** (Debian / Ubuntu) | [docs/DOCKER_INSTALL.md](docs/DOCKER_INSTALL.md) |
+| **Développeur** (sans Docker) | [docs/dev/INSTALLATION.md](docs/dev/INSTALLATION.md) |
+
+### Installation sans Docker (développement)
+
+```bash
+# Prérequis : PHP 8.3+, PostgreSQL 16+
+git clone https://github.com/thomasvinh-san-byte/gestion-votes.git
+cd gestion-votes
+sudo bash database/setup.sh
+php -S 0.0.0.0:8080 -t public
+```
 
 ---
 
@@ -207,38 +212,40 @@ Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) pour le detail technique.
 
 | Document | Description |
 |----------|-------------|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Architecture technique, patterns, conventions |
-| [API.md](docs/API.md) | Reference complete des 118 endpoints |
-| [INSTALLATION.md](docs/INSTALLATION.md) | Installation complete sur Linux |
-| [UTILISATION_LIVE.md](docs/UTILISATION_LIVE.md) | Guide operationnel jour J |
-| [RECETTE_DEMO.md](docs/RECETTE_DEMO.md) | Scenario de demonstration (~10 min) |
-| [SECURITY.md](docs/SECURITY.md) | Securite, authentification, audit |
-| [CONFORMITE_CDC.md](docs/CONFORMITE_CDC.md) | Cadre juridique, garanties, limites |
-| [FAQ.md](docs/FAQ.md) | Questions frequentes |
-| [PRODUCTION.md](PRODUCTION.md) | Checklist deploiement production |
-| [cahier_des_charges.md](docs/cahier_des_charges.md) | Specifications fonctionnelles v1.1 |
+| [FAQ](docs/FAQ.md) | Questions fréquentes |
+| [Guide opérateur](docs/UTILISATION_LIVE.md) | Conduite d'une séance en direct |
+| [Démo guidée](docs/RECETTE_DEMO.md) | Scénario de démonstration (~10 min) |
+| [Installation macOS](docs/INSTALL_MAC.md) | Guide pas-à-pas pour Mac |
+| [Installation Docker](docs/DOCKER_INSTALL.md) | Déploiement Docker sur Linux |
+| [Architecture](docs/dev/ARCHITECTURE.md) | Architecture technique, patterns, conventions |
+| [API](docs/dev/API.md) | Référence des 153 endpoints |
+| [Sécurité](docs/dev/SECURITY.md) | Authentification, audit, RGPD |
+| [Conformité CDC](docs/dev/CONFORMITE_CDC.md) | Cadre juridique, garanties, limites |
+| [Tests](docs/dev/TESTS.md) | Stratégie de tests |
+
+La documentation est aussi consultable en ligne dans l'application : `/docs.htmx.html`
 
 ---
 
-## Conformite & cadre CDC
+## Conformité & cadre CDC
 
-Le systeme couvre notamment :
+Le système couvre notamment :
 
 - Identification du votant par token unique
-- Unicite du vote (anti-rejeu)
-- Ponderation et quorum
-- Tracabilite complete (audit, incidents, actions manuelles)
+- Unicité du vote (anti-rejeu)
+- Pondération et quorum
+- Traçabilité complète (audit, incidents, actions manuelles)
 - Calculs rejouables depuis les bulletins
-- Verrouillage total apres validation
+- Verrouillage total après validation
 - PV et exports uniquement post-validation
 
-Les limites connues (assumees et documentees) sont detaillees dans [CONFORMITE_CDC.md](docs/CONFORMITE_CDC.md).
+Les limites connues sont détaillées dans [CONFORMITE_CDC.md](docs/dev/CONFORMITE_CDC.md).
 
 ---
 
 ## Philosophie du projet
 
-- **Clarte > complexite**
-- **DB comme source de verite**
+- **Clarté > complexité**
+- **DB comme source de vérité**
 - **Moins de magie, plus d'audit**
-- **Ce qui n'est pas couvert est explicitement documente**
+- **Ce qui n'est pas couvert est explicitement documenté**
