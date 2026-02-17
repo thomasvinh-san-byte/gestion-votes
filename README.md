@@ -5,7 +5,6 @@ Application web de gestion de séances de vote avec vote électronique sécuris�
 Assemblées générales, conseils syndicaux, réunions formelles — préparation, conduite en direct, vote, résultats, PV.
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/thomasvinh-san-byte/gestion-votes)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/thomasvinh-san-byte/gestion-votes?quickstart=1)
 
 > **Voir la démo en 1 clic** : cliquer sur **Deploy to Render** ci-dessus. Render crée l'app + la base de données automatiquement (~5 min). Vous obtenez une URL directe vers la démo, sans rien installer.
 >
@@ -42,8 +41,6 @@ docker compose up -d
 Premier lancement : 3–5 min (téléchargement des images). Les suivants : ~5 secondes.
 
 Ouvrir **http://localhost:8080** — compte test : `admin@ag-vote.local` / `Admin2026!`
-
-> Ou cliquer sur **Open in GitHub Codespaces** ci-dessus pour lancer directement dans le navigateur, sans rien installer.
 
 ## Fonctionnalités
 
