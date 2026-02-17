@@ -96,19 +96,19 @@
         </div>
         <div class="vote-section-body">
           <div class="vote-buttons" role="group" aria-label="Choix de vote">
-            <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled aria-describedby="motionTitle">
+            <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled aria-pressed="false" aria-describedby="motionTitle">
               <span class="vote-btn-kbd" aria-hidden="true">1</span>
               <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-up"></use></svg></span>
               <span>Pour</span>
               <span class="vote-btn-hint">Confirmation requise</span>
             </button>
-            <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="against" disabled aria-describedby="motionTitle">
+            <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="against" disabled aria-pressed="false" aria-describedby="motionTitle">
               <span class="vote-btn-kbd" aria-hidden="true">2</span>
               <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-down"></use></svg></span>
               <span>Contre</span>
               <span class="vote-btn-hint">Confirmation requise</span>
             </button>
-            <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstain" disabled aria-describedby="motionTitle">
+            <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstain" disabled aria-pressed="false" aria-describedby="motionTitle">
               <span class="vote-btn-kbd" aria-hidden="true">3</span>
               <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-hand"></use></svg></span>
               <span>Abstention</span>
@@ -235,10 +235,13 @@
       }
     }
 
+    let _triggerBtn = null; // track which button opened the overlay for focus restore
+
     // Vote button click -> show confirmation
     voteButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         if (btn.disabled) return;
+        _triggerBtn = btn;
         pendingVote = btn.dataset.choice;
         fillConfirmContext(pendingVote);
         confirmOverlay.classList.add('show');
@@ -260,7 +263,28 @@
       confirmOverlay.classList.remove('show');
       confirmOverlay.setAttribute('aria-hidden', 'true');
       pendingVote = null;
+      // Restore focus to triggering button
+      if (_triggerBtn && !_triggerBtn.disabled) {
+        _triggerBtn.focus();
+      }
+      _triggerBtn = null;
     }
+
+    // Focus trap inside confirmation overlay
+    confirmOverlay.addEventListener('keydown', (e) => {
+      if (e.key !== 'Tab') return;
+      const focusable = confirmOverlay.querySelectorAll('button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
 
     // Cancel
     btnCancel.addEventListener('click', closeConfirm);
@@ -289,9 +313,16 @@
 
         hasVoted = true;
 
-        // Mark selected button
-        voteButtons.forEach(b => b.classList.remove('selected'));
-        document.querySelector(`[data-choice="${pendingVote}"]`)?.classList.add('selected');
+        // Mark selected button + update aria-pressed
+        voteButtons.forEach(b => {
+          b.classList.remove('selected');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        const selectedBtn = document.querySelector(`[data-choice="${pendingVote}"]`);
+        if (selectedBtn) {
+          selectedBtn.classList.add('selected');
+          selectedBtn.setAttribute('aria-pressed', 'true');
+        }
 
         // Update vote status
         const statusEl = document.getElementById('voteStatus');

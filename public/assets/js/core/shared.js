@@ -194,6 +194,30 @@
   }
 
   // =========================================================================
+  // SHOW / HIDE UTILITIES
+  // =========================================================================
+
+  /**
+   * Show an element (remove hidden class and inline display:none).
+   * @param {HTMLElement} el
+   * @param {string} [display] - Optional display value (default: '')
+   */
+  function show(el, display) {
+    if (!el) return;
+    el.classList.remove('hidden');
+    el.style.display = display || '';
+  }
+
+  /**
+   * Hide an element using the hidden class.
+   * @param {HTMLElement} el
+   */
+  function hide(el) {
+    if (!el) return;
+    el.style.display = 'none';
+  }
+
+  // =========================================================================
   // EXPORTS
   // =========================================================================
 
@@ -204,7 +228,9 @@
     MEETING_STATUS_MAP: MEETING_STATUS_MAP,
     getInitials: getInitials,
     btnLoading: btnLoading,
-    openModal: openModal
+    openModal: openModal,
+    show: show,
+    hide: hide
   };
 
 })();
