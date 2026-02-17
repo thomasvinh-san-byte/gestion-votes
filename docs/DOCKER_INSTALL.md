@@ -107,9 +107,26 @@ services:
 cp .env.example .env
 ```
 
-Ouvrir `.env` et adapter **au minimum** ces valeurs :
+### Mode test (par défaut)
+
+Le `.env.example` est configuré **sans authentification** (`APP_AUTH_ENABLED=0`, `CSRF_ENABLED=0`).
+C'est le mode adapté pour tester l'application. Aucune modification n'est nécessaire pour un premier lancement :
 
 ```bash
+cp .env.example .env
+# Prêt — aucune autre modification requise pour le test
+```
+
+### Mode production
+
+Pour un déploiement réel, ouvrir `.env` et adapter ces valeurs :
+
+```bash
+# Activer l'authentification et la protection CSRF
+APP_AUTH_ENABLED=1
+CSRF_ENABLED=1
+RATE_LIMIT_ENABLED=1
+
 # OBLIGATOIRE en production — générer un secret unique
 APP_SECRET=$(openssl rand -hex 32)
 
@@ -128,6 +145,9 @@ Commande rapide pour générer le `.env` de production :
 
 ```bash
 cp .env.example .env
+sed -i "s/APP_AUTH_ENABLED=0/APP_AUTH_ENABLED=1/" .env
+sed -i "s/CSRF_ENABLED=0/CSRF_ENABLED=1/" .env
+sed -i "s/RATE_LIMIT_ENABLED=0/RATE_LIMIT_ENABLED=1/" .env
 sed -i "s/APP_ENV=development/APP_ENV=production/" .env
 sed -i "s/APP_DEBUG=1/APP_DEBUG=0/" .env
 sed -i "s/APP_SECRET=.*/APP_SECRET=$(openssl rand -hex 32)/" .env
