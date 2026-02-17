@@ -83,6 +83,21 @@
           <button class="filter-tab" data-filter="archived">Archives</button>
         </div>
 
+        <!-- Search and Sort -->
+        <div class="meetings-toolbar">
+          <div class="form-group form-group-search">
+            <input class="form-input" type="search" id="meetingsSearch" placeholder="Rechercher par titre..." aria-label="Rechercher une séance">
+          </div>
+          <div class="form-group">
+            <select class="form-input form-input-sm" id="meetingsSort" aria-label="Trier par">
+              <option value="status">Trier par statut</option>
+              <option value="date_desc">Date (récent d'abord)</option>
+              <option value="date_asc">Date (ancien d'abord)</option>
+              <option value="title">Titre A-Z</option>
+            </select>
+          </div>
+        </div>
+
         <!-- Section header -->
         <div class="section-header">
           <span class="section-title">Liste des séances</span>

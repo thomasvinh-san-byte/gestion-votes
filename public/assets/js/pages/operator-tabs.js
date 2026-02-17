@@ -2380,11 +2380,15 @@
     let successCount = 0;
     let errorCount = 0;
 
-    // Show loading state
+    // Show loading state with spinner
     const btns = ['btnUnanimityFor', 'btnUnanimityAgainst', 'btnUnanimityAbstain']
       .map(id => document.getElementById(id))
       .filter(Boolean);
-    btns.forEach(btn => btn.disabled = true);
+    btns.forEach(btn => {
+      btn.disabled = true;
+      btn.dataset.origHtml = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner spinner-sm"></span> Traitement…';
+    });
 
     try {
       // Process votes in parallel batches for speed
@@ -2425,7 +2429,10 @@
     } catch (err) {
       setNotif('error', 'Erreur: ' + err.message);
     } finally {
-      btns.forEach(btn => btn.disabled = false);
+      btns.forEach(btn => {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.origHtml || btn.innerHTML;
+      });
     }
   }
 
@@ -2434,6 +2441,15 @@
   async function openVote(motionId) {
     if (_openingVote) return;
     _openingVote = true;
+
+    // Disable open-vote buttons and show spinner
+    const openBtns = document.querySelectorAll(`.btn-open-vote[data-motion-id="${motionId}"]`);
+    openBtns.forEach(btn => {
+      btn.disabled = true;
+      btn.dataset.origHtml = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner spinner-sm"></span> Ouverture…';
+    });
+
     try {
       const openResult = await api('/api/v1/motions_open.php', { meeting_id: currentMeetingId, motion_id: motionId });
 
@@ -2460,6 +2476,10 @@
       setNotif('error', err.message);
     } finally {
       _openingVote = false;
+      openBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.origHtml || btn.innerHTML;
+      });
     }
   }
 
@@ -2470,8 +2490,13 @@
     if (!confirm('Clôturer ce vote ?')) return;
 
     _closingVote = true;
-    // Disable all close-vote buttons during the operation
-    document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote').forEach(b => b.disabled = true);
+    // Disable all close-vote buttons during the operation and show spinner
+    const closeBtns = document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote');
+    closeBtns.forEach(b => {
+      b.disabled = true;
+      b.dataset.origHtml = b.innerHTML;
+      b.innerHTML = '<span class="spinner spinner-sm"></span> Clôture…';
+    });
 
     try {
       await api('/api/v1/motions_close.php', { meeting_id: currentMeetingId, motion_id: motionId });
@@ -2486,7 +2511,10 @@
       setNotif('error', err.message);
     } finally {
       _closingVote = false;
-      document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote').forEach(b => b.disabled = false);
+      closeBtns.forEach(b => {
+        b.disabled = false;
+        b.innerHTML = b.dataset.origHtml || b.innerHTML;
+      });
     }
   }
 

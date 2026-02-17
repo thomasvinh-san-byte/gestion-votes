@@ -128,19 +128,21 @@
                   Nom du président
                 </label>
                 <input class="form-input" type="text" id="presidentName"
-                       placeholder="Ex: Jean Dupont" required>
+                       placeholder="Ex: Jean Dupont" required
+                       pattern="[A-Za-zÀ-ÿ\s\-'.]{2,100}"
+                       title="Lettres, espaces, tirets et apostrophes uniquement (2 à 100 caractères)">
                 <p class="form-helper">
                   Ce nom apparaîtra sur le procès-verbal officiel
                 </p>
               </div>
 
-              <div class="validation-zone mb-4" id="validationZone">
+              <div class="validation-zone validation-zone-danger mb-4" id="validationZone">
                 <div class="text-lg font-bold mb-2"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Action irréversible</div>
                 <div class="text-sm text-secondary mb-4">
                   La validation archive définitivement la séance.<br>
                   <strong>Plus aucune modification ne sera possible.</strong>
                 </div>
-                <button class="btn btn-lg btn-primary" id="btnValidate" disabled>
+                <button class="btn btn-lg btn-danger" id="btnValidate" disabled>
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Valider et archiver la séance
                 </button>
               </div>
@@ -174,6 +176,35 @@
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Validation confirmation modal -->
+  <div class="validate-modal-backdrop" id="validateModal" role="dialog" aria-modal="true" aria-labelledby="validateModalTitle" hidden>
+    <div class="validate-modal">
+      <div class="validate-modal-header">
+        <h3 id="validateModalTitle">
+          <svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+          Confirmation de validation
+        </h3>
+      </div>
+      <div class="validate-modal-body">
+        <div class="validate-modal-warning">
+          <strong>ATTENTION : Cette action est IRRÉVERSIBLE.</strong>
+          <p>La séance sera définitivement archivée et aucune modification ultérieure ne sera possible.</p>
+        </div>
+        <label class="validate-modal-checkbox">
+          <input type="checkbox" id="confirmIrreversible">
+          <span>Je comprends que cette action est irréversible et que plus aucune modification ne sera possible.</span>
+        </label>
+      </div>
+      <div class="validate-modal-actions">
+        <button class="btn btn-secondary" id="btnModalCancel" type="button">Annuler</button>
+        <button class="btn btn-danger btn-lg" id="btnModalConfirm" type="button" disabled>
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+          Confirmer la validation
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Drawer -->

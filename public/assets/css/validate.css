@@ -59,9 +59,120 @@
   text-align: center;
 }
 
+.validation-zone.validation-zone-danger {
+  background: linear-gradient(135deg, var(--color-danger-subtle) 0%, var(--color-surface) 100%);
+  border: 2px dashed var(--color-danger);
+}
+
 .validation-zone.locked {
   background: var(--color-danger-subtle);
   border-color: var(--color-danger);
+  border-style: solid;
+}
+
+/* =============================================================================
+   VALIDATION CONFIRMATION MODAL
+   ============================================================================= */
+
+.validate-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.validate-modal-backdrop[hidden] {
+  display: none;
+}
+
+.validate-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.validate-modal-header {
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-danger-subtle);
+  border-bottom: 2px solid var(--color-danger);
+}
+
+.validate-modal-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-danger-text);
+}
+
+.validate-modal-body {
+  padding: var(--space-6);
+}
+
+.validate-modal-warning {
+  padding: var(--space-4);
+  background: var(--color-danger-subtle);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-5);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.validate-modal-warning strong {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--color-danger-text);
+}
+
+.validate-modal-warning p {
+  margin: 0;
+  color: var(--color-danger-text);
+  opacity: 0.85;
+}
+
+.validate-modal-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  padding: var(--space-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color 0.15s;
+}
+
+.validate-modal-checkbox:has(input:checked) {
+  border-color: var(--color-danger);
+  background: var(--color-danger-subtle);
+}
+
+.validate-modal-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--color-danger);
+}
+
+.validate-modal-actions {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  justify-content: flex-end;
+}
+
+.validate-modal-actions .btn {
+  min-height: 44px;
 }
 
 /* =============================================================================

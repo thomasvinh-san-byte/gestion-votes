@@ -123,7 +123,7 @@ body.projection-body {
 }
 
 .motion-title {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: var(--font-extrabold);
   line-height: var(--leading-tight);
   margin-bottom: var(--space-2);
@@ -161,7 +161,7 @@ body.projection-body {
   color: var(--color-text);
   white-space: pre-wrap;
   overflow-y: auto;
-  max-height: 200px;
+  max-height: none;
 }
 
 /* =============================================================================
@@ -588,6 +588,101 @@ body.projection-body {
 }
 
 /* =============================================================================
+   PROJECTION CONTROLS
+   ============================================================================= */
+
+.projection-controls {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.projection-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.projection-btn:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+/* =============================================================================
+   DARK THEME FOR PROJECTION
+   ============================================================================= */
+
+body.projection-body.projection-dark {
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-border: #334155;
+  --color-bg-subtle: #1e293b;
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+body.projection-dark .projection-header {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.projection-dark .projection-footer {
+  border-color: #334155;
+}
+
+body.projection-dark .resolution-box {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.projection-dark .decision-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.projection-dark .secret-block {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* =============================================================================
+   REDUCED MOTION
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transition: none;
+  }
+  .bar-label-top {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+  .status-badge.live::before {
+    animation: none;
+  }
+  .clock-hand-hour,
+  .clock-hand-minute,
+  .clock-hand-second {
+    animation: none;
+  }
+  .participation-fill {
+    transition: none;
+  }
+}
+
+/* =============================================================================
    RESPONSIVE
    ============================================================================= */
 
@@ -632,7 +727,7 @@ body.projection-body {
   }
 
   .resolution-text {
-    max-height: 120px;
+    max-height: 300px;
   }
 
   .projection-footer {

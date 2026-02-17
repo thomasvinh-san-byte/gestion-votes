@@ -746,6 +746,25 @@
       html += '</tbody></table>';
       document.getElementById('permMatrix').innerHTML = html;
 
+      // Permission matrix search filtering
+      const permSearchEl = document.getElementById('permSearch');
+      if (permSearchEl) {
+        permSearchEl.addEventListener('input', function() {
+          const query = this.value.toLowerCase().trim();
+          const rows = document.querySelectorAll('#permMatrix table tbody tr');
+          rows.forEach(function(row) {
+            const text = row.textContent.toLowerCase();
+            // Always show group header rows (they have colspan)
+            const isGroupHeader = row.querySelector('td[colspan]');
+            if (isGroupHeader) {
+              row.style.display = '';
+              return;
+            }
+            row.style.display = (!query || text.includes(query)) ? '' : 'none';
+          });
+        });
+      }
+
     } catch (e) { console.error('loadRoles', e); }
   }
 

@@ -18,6 +18,10 @@
 
   let allMeetings = [];
   let currentFilter = 'all';
+  let currentSearchText = '';
+  let currentSortMode = 'status';
+  let currentPage = 1;
+  var MEETINGS_PER_PAGE = 12;
   let filterManager = null;
   let viewToggle = null;
   let calendarView = null;

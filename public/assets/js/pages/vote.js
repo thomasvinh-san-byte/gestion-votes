@@ -705,12 +705,31 @@
     const memberId = selectedMemberId();
     if (!_currentMotionId || !memberId) return;
 
-    try{
-      await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
-      notify("success", "Vote enregistré.");
-    } catch(e){
-      notify("error", e?.message || String(e));
+    // Check offline before attempting
+    if (!navigator.onLine) {
+      throw new Error('Vous êtes hors ligne. Vérifiez votre connexion.');
     }
+
+    const MAX_RETRIES = 2;
+    let lastErr = null;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice });
+        notify("success", "Vote enregistré.");
+        return; // success — exit
+      } catch(e) {
+        lastErr = e;
+        const isNetwork = !navigator.onLine || (e && /fetch|network|timeout|load/i.test(e.message));
+        if (isNetwork && attempt < MAX_RETRIES) {
+          // Wait before retry (exponential backoff: 1s, 2s)
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        break; // non-retryable or exhausted retries
+      }
+    }
+    // All retries failed — propagate to caller so buttons are re-enabled
+    throw lastErr || new Error('Échec de l\'envoi du vote');
   }
 
   function wire(){

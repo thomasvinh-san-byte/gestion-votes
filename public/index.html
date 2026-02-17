@@ -22,11 +22,14 @@
           <span class="brand-logo">AG-VOTE</span>
         </a>
       </div>
-      <nav class="landing-nav" aria-label="Navigation principale">
+      <nav class="landing-nav" id="landingNav" aria-label="Navigation principale">
         <a href="/meetings.htmx.html" class="btn btn-ghost">Tableau de bord</a>
         <a href="/admin.htmx.html" class="btn btn-ghost">Administration</a>
         <a href="/login.html" class="btn btn-primary">Connexion</a>
       </nav>
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="landingNav">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
     </header>
 
     <!-- Hero -->
@@ -57,6 +60,21 @@
         </p>
       </div>
       <div class="roles-grid animate-stagger">
+        <article class="role-card">
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path><path d="m9 13 2 2 4-4"></path></svg>
+          </div>
+          <h3 class="role-title">Votant (Tablette)</h3>
+          <p class="role-desc">
+            Interface simplifiée pour tablette tactile. Exprimez votre vote en toute sécurité
+            avec confirmation visuelle immédiate.
+          </p>
+          <a href="/vote.htmx.html" class="role-link">
+            <span>Accéder à l'interface</span>
+            <span>→</span>
+          </a>
+        </article>
+
         <article class="role-card">
           <div class="role-icon">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -98,21 +116,6 @@
             Documentez les incidents pour l'audit.
           </p>
           <a href="/trust.htmx.html" class="role-link">
-            <span>Accéder à l'interface</span>
-            <span>→</span>
-          </a>
-        </article>
-
-        <article class="role-card">
-          <div class="role-icon">
-            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path><path d="m9 13 2 2 4-4"></path></svg>
-          </div>
-          <h3 class="role-title">Votant (Tablette)</h3>
-          <p class="role-desc">
-            Interface simplifiée pour tablette tactile. Exprimez votre vote en toute sécurité
-            avec confirmation visuelle immédiate.
-          </p>
-          <a href="/vote.htmx.html" class="role-link">
             <span>Accéder à l'interface</span>
             <span>→</span>
           </a>
@@ -234,5 +237,17 @@
       </nav>
     </footer>
   </div>
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var nav = document.getElementById('landingNav');
+  if (btn && nav) {
+    btn.addEventListener('click', function() {
+      var expanded = nav.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(expanded));
+    });
+  }
+})();
+</script>
 </body>
 </html>
