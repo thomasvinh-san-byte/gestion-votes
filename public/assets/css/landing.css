@@ -52,7 +52,7 @@
   text-align: center;
   padding: calc(var(--header-height) + var(--space-8)) var(--space-6) var(--space-12);
   background:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79, 70, 229, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79, 70, 229, 0.12) 0%, transparent 50%),
     var(--color-bg);
 }
 

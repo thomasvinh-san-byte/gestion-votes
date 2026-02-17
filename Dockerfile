@@ -1,0 +1,42 @@
+FROM php:8.3-fpm-alpine
+
+# System dependencies
+RUN apk add --no-cache \
+    nginx supervisor postgresql-dev libpng-dev libjpeg-turbo-dev \
+    freetype-dev libzip-dev icu-dev oniguruma-dev curl postgresql-client
+
+# PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        pdo_pgsql pgsql gd zip intl mbstring opcache
+
+# Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
+
+# Dependencies (cached layer)
+COPY composer.json composer.lock* ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress 2>/dev/null || \
+    composer install --no-dev --no-interaction --no-progress
+
+# Application
+COPY . .
+
+# Config files
+COPY deploy/nginx.conf /etc/nginx/http.d/default.conf
+COPY deploy/php-fpm.conf /usr/local/etc/php-fpm.d/zz-custom.conf
+COPY deploy/supervisord.conf /etc/supervisord.conf
+COPY deploy/php.ini /usr/local/etc/php/conf.d/99-custom.ini
+
+# Permissions & directories
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 755 /var/www/public \
+    && mkdir -p /tmp/ag-vote /var/log/nginx /var/run/nginx \
+    && chown -R www-data:www-data /tmp/ag-vote \
+    && chmod +x /var/www/deploy/entrypoint.sh
+
+EXPOSE 8080
+
+ENTRYPOINT ["/var/www/deploy/entrypoint.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

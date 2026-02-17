@@ -47,8 +47,13 @@
         <div id="successBox" class="login-success" role="status" aria-live="polite"></div>
 
         <button type="submit" class="login-btn" id="submitBtn">
-          Se connecter
+          <span class="login-btn-text">Se connecter</span>
+          <span class="login-spinner" id="loginSpinner" aria-hidden="true"></span>
         </button>
+
+        <div class="login-forgot">
+          <a href="#" onclick="alert('Contactez votre administrateur pour réinitialiser votre mot de passe.');return false;">Mot de passe oublié ?</a>
+        </div>
       </form>
 
       <div class="login-footer">
@@ -66,6 +71,8 @@
     const successBox = document.getElementById('successBox');
     const submitBtn = document.getElementById('submitBtn');
     const toggleBtn = document.getElementById('togglePassword');
+    const spinner = document.getElementById('loginSpinner');
+    const btnText = submitBtn.querySelector('.login-btn-text');
 
     // Toggle password visibility
     toggleBtn.addEventListener('click', function() {
@@ -106,7 +113,8 @@
       }
 
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Connexion...';
+      btnText.textContent = 'Connexion...';
+      spinner.style.display = 'inline-block';
       errorBox.classList.remove('visible');
       successBox.classList.remove('visible');
 
@@ -124,7 +132,8 @@
           var user = data.user || (data.data && data.data.user) || {};
           var roleLabel = { admin: 'Administrateur', operator: 'Opérateur', auditor: 'Auditeur', viewer: 'Observateur' };
           showSuccess('Connecté en tant que ' + (user.name || user.email || '') + ' (' + (roleLabel[user.role] || user.role) + ')');
-          submitBtn.textContent = 'Connecté';
+          btnText.textContent = 'Connecté';
+          spinner.style.display = 'none';
 
           setTimeout(function() {
             var redirect = new URLSearchParams(location.search).get('redirect');
@@ -160,12 +169,10 @@
           }, 600);
         } else {
           var detail = data.detail || data.error || 'Email ou mot de passe incorrect.';
-          if (data.debug && data.debug.message) {
-            detail += ' — ' + data.debug.message + ' (' + (data.debug.file || '') + ':' + (data.debug.line || '') + ')';
-          }
           showError(detail);
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Se connecter';
+          btnText.textContent = 'Se connecter';
+          spinner.style.display = 'none';
         }
       } catch (err) {
         showError('Erreur réseau. Vérifiez votre connexion.');

@@ -250,7 +250,7 @@
   background: var(--color-surface);
   font-size: 0.8rem;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
   white-space: nowrap;
 }
 
@@ -444,7 +444,7 @@
   background: transparent;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
   color: var(--color-text-muted);
 }
 
@@ -665,7 +665,7 @@ input[type="color"] {
   padding: 1.5rem;
   text-align: center;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color 0.15s, background-color 0.15s;
 }
 
 .upload-zone:hover,
@@ -698,7 +698,7 @@ input[type="color"] {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
 .collapsible-header:hover {
@@ -877,7 +877,7 @@ dialog#memberDetailDialog::backdrop {
   border-radius: 6px;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
 .member-action-btn:hover {
@@ -914,7 +914,7 @@ dialog#memberDetailDialog::backdrop {
   border-radius: 8px;
   background: var(--color-surface);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
 .pagination-btn:hover:not(:disabled) {
