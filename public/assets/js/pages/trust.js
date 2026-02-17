@@ -437,6 +437,75 @@
     }
   });
 
+  // Copy integrity hash to clipboard
+  document.getElementById('btnCopyHash')?.addEventListener('click', () => {
+    const hashValue = document.getElementById('integrityHashValue')?.textContent;
+    if (hashValue && hashValue !== '—') {
+      navigator.clipboard.writeText(hashValue).then(() => {
+        setNotif('success', 'Empreinte copiée dans le presse-papiers');
+      }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = hashValue;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setNotif('success', 'Empreinte copiée dans le presse-papiers');
+      });
+    }
+  });
+
+  // Export trust/integrity report
+  document.getElementById('btnExportTrust')?.addEventListener('click', () => {
+    if (!currentMeetingId) {
+      setNotif('error', 'Sélectionnez d\'abord une séance');
+      return;
+    }
+
+    // Gather current page data into a text report
+    const meetingTitle = document.getElementById('meetingTitle')?.textContent || 'Séance';
+    const checksKpi = document.getElementById('kpiChecks')?.textContent || '—';
+    const anomaliesKpi = document.getElementById('kpiAnomalies')?.textContent || '0';
+    const motionsKpi = document.getElementById('kpiMotions')?.textContent || '—';
+    const ballotsKpi = document.getElementById('kpiBallots')?.textContent || '—';
+    const presentKpi = document.getElementById('kpiPresent')?.textContent || '—';
+    const hashValue = document.getElementById('integrityHashValue')?.textContent || '—';
+
+    const anomaliesText = currentAnomalies.map(a =>
+      `  [${(a.severity || 'info').toUpperCase()}] ${a.title || a.type}: ${a.message || a.description}`
+    ).join('\n') || '  Aucune anomalie détectée';
+
+    const report = [
+      '=== RAPPORT D\'INTÉGRITÉ — AG-VOTE ===',
+      '',
+      `Séance: ${meetingTitle}`,
+      `Date du rapport: ${new Date().toLocaleString('fr-FR')}`,
+      `Empreinte d'intégrité: ${hashValue}`,
+      '',
+      '--- Indicateurs ---',
+      `Contrôles OK: ${checksKpi}`,
+      `Anomalies: ${anomaliesKpi}`,
+      `Résolutions: ${motionsKpi}`,
+      `Bulletins: ${ballotsKpi}`,
+      `Présents: ${presentKpi}`,
+      '',
+      '--- Anomalies ---',
+      anomaliesText,
+      '',
+      '=== FIN DU RAPPORT ==='
+    ].join('\n');
+
+    const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.download = `rapport-integrite-${currentMeetingId}.txt`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
+
   // Polling (10s auto-refresh for anomaly detection, disabled when WebSocket connected)
   let pollingInterval = null;
   function startPolling() {
