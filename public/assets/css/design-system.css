@@ -727,6 +727,7 @@ h4, .h4 {
 .form-textarea:focus {
   outline: none;
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--ring-color);
 }
 
 .form-input::placeholder,
@@ -743,6 +744,7 @@ h4, .h4 {
 .form-input.is-error:focus,
 .form-select.is-error:focus {
   border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
 }
 
 /* Validation states */
@@ -755,6 +757,7 @@ h4, .h4 {
 .form-input.is-invalid:focus,
 .form-select.is-invalid:focus {
   border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
 }
 
 .form-input.is-valid,
@@ -766,6 +769,7 @@ h4, .h4 {
 .form-input.is-valid:focus,
 .form-select.is-valid:focus {
   border-color: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
 }
 
 .validation-error {
@@ -967,6 +971,11 @@ h4, .h4 {
 .drawer-backdrop.open {
   opacity: 1;
   visibility: visible;
+}
+
+/* Prevent body scroll when drawer is open */
+body:has(.drawer-backdrop.open) {
+  overflow: hidden;
 }
 
 .drawer {

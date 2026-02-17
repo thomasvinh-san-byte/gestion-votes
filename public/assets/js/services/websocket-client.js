@@ -40,6 +40,10 @@ class AgVoteWebSocket {
     this.pollingTimer = null;
     this.lastPollTimestamp = null;
 
+    // Event deduplication
+    this._seenEventIds = new Set();
+    this._maxSeenEvents = 500;
+
     // Heartbeat
     this.heartbeatInterval = options.heartbeatInterval || 30000;
     this.heartbeatTimer = null;
@@ -266,6 +270,16 @@ class AgVoteWebSocket {
         break;
 
       default:
+        // Deduplicate events by ID if present
+        if (data.event_id) {
+          if (this._seenEventIds.has(data.event_id)) return;
+          this._seenEventIds.add(data.event_id);
+          // Trim oldest entries when set grows too large
+          if (this._seenEventIds.size > this._maxSeenEvents) {
+            const arr = [...this._seenEventIds];
+            this._seenEventIds = new Set(arr.slice(-Math.floor(this._maxSeenEvents / 2)));
+          }
+        }
         // Emit to listeners
         this._emit(type, data.data || data);
     }
@@ -387,6 +401,11 @@ class AgVoteWebSocket {
           const data = await response.json();
           if (data.events) {
             data.events.forEach((event) => {
+              // Deduplicate polled events
+              if (event.event_id) {
+                if (this._seenEventIds.has(event.event_id)) return;
+                this._seenEventIds.add(event.event_id);
+              }
               this._emit(event.type, event.data);
             });
           }

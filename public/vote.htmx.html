@@ -204,6 +204,7 @@
     const btnConfirm = document.getElementById('btnConfirm');
     let pendingVote = null;
     let hasVoted = false;
+    let _isSubmitting = false; // Guard against double-submission
 
     // Choice labels
     const choiceInfo = {
@@ -298,6 +299,10 @@
       confirmOverlay.classList.remove('show');
       confirmOverlay.setAttribute('aria-hidden', 'true');
       pendingVote = null;
+      _isSubmitting = false;
+      btnConfirm.disabled = false;
+      btnCancel.disabled = false;
+      btnConfirm.innerHTML = 'Confirmer';
       // Restore focus to triggering button
       if (_triggerBtn && !_triggerBtn.disabled) {
         _triggerBtn.focus();
@@ -336,9 +341,19 @@
 
     // Confirm vote
     btnConfirm.addEventListener('click', async () => {
-      if (!pendingVote) return;
+      if (!pendingVote || _isSubmitting) return;
 
+      // Verify motion hasn't changed since overlay opened
+      const currentTitle = document.getElementById('motionTitle')?.textContent || null;
+      if (_overlayMotionId && currentTitle && currentTitle !== _overlayMotionId && currentTitle !== 'En attente d\u2019une résolution') {
+        closeConfirm();
+        setNotif('error', 'La résolution a changé. Veuillez revoter.');
+        return;
+      }
+
+      _isSubmitting = true;
       btnConfirm.disabled = true;
+      btnCancel.disabled = true;
       btnConfirm.innerHTML = '<span class="spinner spinner-sm"></span> Envoi...';
 
       const votingChoice = pendingVote; // capture before async
@@ -389,12 +404,15 @@
         // Vote failed — re-enable confirm so user can retry
         setNotif('error', 'Erreur: ' + (err.message || 'Échec de l\'envoi'));
         btnConfirm.disabled = false;
+        btnCancel.disabled = false;
         btnConfirm.innerHTML = 'Réessayer';
         // Do NOT clear pendingVote — let user retry from the overlay
         return;
       } finally {
+        _isSubmitting = false;
         if (hasVoted) {
           btnConfirm.disabled = false;
+          btnCancel.disabled = false;
           btnConfirm.innerHTML = 'Confirmer';
         }
       }
@@ -558,12 +576,18 @@
     }
 
     // Start polling
-    setInterval(() => {
+    const _speechPollTimer = setInterval(() => {
       if (!document.hidden) pollSpeechStatus();
     }, 3000);
 
     // Initial poll
     setTimeout(pollSpeechStatus, 1000);
+
+    // Cleanup on page unload to prevent memory leaks
+    window.addEventListener('pagehide', () => {
+      clearInterval(_speechPollTimer);
+      if (motionTitleObserver) motionTitleObserver.disconnect();
+    });
   })();
   </script>
 </body>

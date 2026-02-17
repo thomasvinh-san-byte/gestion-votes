@@ -66,11 +66,11 @@
               <div class="inline-form" id="createUserForm">
                 <div class="form-group">
                   <label class="form-label">Nom *</label>
-                  <input class="form-input" type="text" id="newName" placeholder="Jean Dupont" required>
+                  <input class="form-input" type="text" id="newName" placeholder="Jean Dupont" required maxlength="255">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Email *</label>
-                  <input class="form-input" type="email" id="newEmail" placeholder="jean@example.com" required>
+                  <input class="form-input" type="email" id="newEmail" placeholder="jean@example.com" required maxlength="320">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Mot de passe *</label>
@@ -116,7 +116,7 @@
           <!-- Users list -->
           <div class="card">
             <div class="card-body p-0">
-              <div class="users-list" id="usersTableBody">
+              <div class="users-list" id="usersTableBody" aria-busy="true" aria-label="Liste des utilisateurs">
                 <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
                 <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
                 <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
@@ -171,7 +171,7 @@
             <div class="card-body p-0">
               <table class="users-table">
                 <thead>
-                  <tr><th>Séance</th><th>Utilisateur</th><th>Rôle</th><th class="table-col-actions-sm">Actions</th></tr>
+                  <tr><th scope="col">Séance</th><th scope="col">Utilisateur</th><th scope="col">Rôle</th><th scope="col" class="table-col-actions-sm">Actions</th></tr>
                 </thead>
                 <tbody id="meetingRolesBody">
                   <tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr>
@@ -225,7 +225,7 @@
               <div class="mb-3">
                 <input class="form-input" type="search" id="permSearch" placeholder="Filtrer les permissions..." aria-label="Filtrer les permissions">
               </div>
-              <div id="permMatrix">Chargement...</div>
+              <div id="permMatrix" aria-live="polite" aria-busy="true">Chargement...</div>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -293,7 +293,7 @@
             <div class="card-header"><h3 class="card-title">Transitions autorisées</h3></div>
             <div class="card-body p-0">
               <table class="users-table" id="transitionsTable">
-                <thead><tr><th>De</th><th>Vers</th><th>Rôle requis</th><th>Description</th></tr></thead>
+                <thead><tr><th scope="col">De</th><th scope="col">Vers</th><th scope="col">Rôle requis</th><th scope="col">Description</th></tr></thead>
                 <tbody id="transitionsBody"><tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr></tbody>
               </table>
             </div>

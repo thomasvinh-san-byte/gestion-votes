@@ -73,7 +73,7 @@
     el.id = 'blockedOverlay';
     el.style.position = 'fixed';
     el.style.inset = '0';
-    el.style.zIndex = '9999';
+    el.style.zIndex = '800'; // matches --z-toast from design system
     Shared.hide(el);
     el.style.background = 'rgba(15, 23, 42, 0.94)';
     el.style.color = '#fff';
@@ -764,13 +764,19 @@
     loadMeetings().catch((e)=>notify("error", e?.message || String(e)));
 
     // Poll current motion (disabled when WebSocket is connected)
-    setInterval(()=>{
+    const _motionPollTimer = setInterval(()=>{
       // Skip polling if WebSocket is connected and authenticated
       if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
       if (!document.hidden) refresh().catch(()=>{});
     }, 3000);
     // Heartbeat always runs (separate from WebSocket heartbeat interval)
-    setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
+    const _heartbeatTimer = setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
+
+    // Cleanup on page unload to prevent memory leaks
+    window.addEventListener('pagehide', ()=>{
+      clearInterval(_motionPollTimer);
+      clearInterval(_heartbeatTimer);
+    });
   }
 
   // Expose cast as global submitVote for vote.htmx.html confirmation overlay
