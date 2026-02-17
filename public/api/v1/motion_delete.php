@@ -16,6 +16,8 @@ try {
     $motion = $repo->findByIdForTenant($motionId, api_current_tenant_id());
     if (!$motion) api_fail('motion_not_found', 404);
 
+    api_guard_meeting_not_validated((string)$motion['meeting_id']);
+
     if (!empty($motion['opened_at']) && empty($motion['closed_at'])) {
         api_fail('motion_open_locked', 409, ['detail' => 'Motion ouverte : suppression interdite.']);
     }

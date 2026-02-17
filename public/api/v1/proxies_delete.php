@@ -32,7 +32,9 @@ $tenantId = api_current_tenant_id();
 $meetingRepo = new MeetingRepository();
 $proxyRepo = new ProxyRepository();
 
-// Verifier que la seance existe et n'est pas archivee
+// Verifier que la seance existe et n'est pas validee/archivee
+api_guard_meeting_not_validated($meetingId);
+
 $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
 
 if (!$meeting) {

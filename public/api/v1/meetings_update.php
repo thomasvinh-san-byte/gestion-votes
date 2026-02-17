@@ -24,9 +24,16 @@ if ($meetingId === '' || !api_is_uuid($meetingId)) {
 }
 
 $title  = array_key_exists('title', $input) ? trim((string)$input['title']) : null;
-$status = array_key_exists('status', $input) ? trim((string)$input['status']) : null;
 $presidentName = array_key_exists('president_name', $input) ? trim((string)$input['president_name']) : null;
 $scheduledAt = array_key_exists('scheduled_at', $input) ? trim((string)$input['scheduled_at']) : null;
+
+// Status transitions must go through meeting_transition.php (proper state machine
+// with role checks, workflow guards, and complete state coverage).
+if (array_key_exists('status', $input)) {
+    api_fail('status_via_transition', 400, [
+        'detail' => 'Les transitions de statut doivent passer par /api/v1/meeting_transition.php.',
+    ]);
+}
 
 if ($title !== null) {
     $len = mb_strlen($title);
@@ -38,13 +45,6 @@ if ($presidentName !== null && mb_strlen($presidentName) > 200) {
     api_fail('president_name_too_long', 400, ['detail' => 'Nom du président trop long (200 max).']);
 }
 
-if ($status !== null) {
-    $allowed = ['draft','scheduled','live','closed','archived'];
-    if (!in_array($status, $allowed, true)) {
-        api_fail('invalid_status', 400, ['detail' => 'Statut invalide.', 'allowed' => $allowed]);
-    }
-}
-
 $repo = new MeetingRepository();
 $current = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$current) api_fail('meeting_not_found', 404);
@@ -54,32 +54,9 @@ if ($currentStatus === 'archived') {
     api_fail('meeting_archived_locked', 409, ['detail' => 'Séance archivée : modification interdite.']);
 }
 
-if ($status !== null) {
-    $allowedTransitions = [
-        'draft'     => ['scheduled','live','closed'],
-        'scheduled' => ['live','closed'],
-        'live'      => ['closed'],
-        'closed'    => ['archived'],
-        'archived'  => [],
-    ];
-
-    $next = $status;
-    if (!isset($allowedTransitions[$currentStatus]) || !in_array($next, $allowedTransitions[$currentStatus], true)) {
-        api_fail('invalid_transition', 409, [
-            'detail' => 'Transition de statut interdite.',
-            'current' => $currentStatus,
-            'next' => $next,
-            'allowed_next' => $allowedTransitions[$currentStatus] ?? [],
-        ]);
-    }
-}
-
 $fields = [];
 if ($title !== null) {
     $fields['title'] = $title;
-}
-if ($status !== null) {
-    $fields['status'] = $status;
 }
 if ($presidentName !== null) {
     $fields['president_name'] = $presidentName;
@@ -95,9 +72,7 @@ if (!$fields) {
 $updated = $repo->updateFields($meetingId, api_current_tenant_id(), $fields);
 
 audit_log('meeting_updated', 'meeting', $meetingId, [
-    'fields' => array_keys($input),
-    'from_status' => $currentStatus,
-    'to_status' => $status,
+    'fields' => array_keys($fields),
 ]);
 
 api_ok(['updated' => $updated > 0, 'meeting_id' => $meetingId]);
