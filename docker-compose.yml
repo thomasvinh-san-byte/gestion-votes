@@ -18,7 +18,9 @@ services:
     ports:
       - "0.0.0.0:${APP_PORT:-8080}:8080"     # HTTP  (accessible depuis le réseau)
       - "0.0.0.0:${WS_PORT:-8081}:8081"      # WebSocket
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       # Override DB_DSN pour pointer vers le service "db" du compose
       DB_DSN: "pgsql:host=db;port=5432;dbname=${DB_DATABASE:-vote_app}"
