@@ -62,9 +62,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Tableau de bord",
-      "short_name": "Dashboard",
-      "url": "/dashboard.php",
+      "name": "Séances",
+      "short_name": "Séances",
+      "url": "/meetings.htmx.html",
       "icons": [{"src": "/assets/images/icon-96.png", "sizes": "96x96"}]
     },
     {
@@ -74,22 +74,7 @@
       "icons": [{"src": "/assets/images/icon-96.png", "sizes": "96x96"}]
     }
   ],
-  "screenshots": [
-    {
-      "src": "/assets/images/screenshot-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Console opérateur"
-    },
-    {
-      "src": "/assets/images/screenshot-mobile.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Interface de vote mobile"
-    }
-  ],
+  "screenshots": [],
   "related_applications": [],
   "prefer_related_applications": false
 }

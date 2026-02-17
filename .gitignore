@@ -15,6 +15,7 @@ node_modules/
 *.log
 /storage/
 /cache/
+/coverage-report/
 
 # Archives
 *.zip
