@@ -131,13 +131,13 @@
     const email = document.getElementById('newEmail').value.trim();
     const role = document.getElementById('newRole').value;
     const password = document.getElementById('newPassword').value;
-    if (!name || !email) { setNotif('error', 'Name and email required'); return; }
-    if (!password || password.length < 8) { setNotif('error', 'Password required (min. 8 characters)'); return; }
+    if (!name || !email) { setNotif('error', 'Nom et e-mail requis'); return; }
+    if (!password || password.length < 8) { setNotif('error', 'Mot de passe requis (min. 8 caractères)'); return; }
     Shared.btnLoading(btn, true);
     try {
       const r = await api('/api/v1/admin_users.php', {action:'create', name:name, email:email, role:role, password:password});
       if (r.body && r.body.ok) {
-        setNotif('success', 'User created');
+        setNotif('success', 'Utilisateur créé');
         document.getElementById('newName').value = '';
         document.getElementById('newEmail').value = '';
         document.getElementById('newPassword').value = '';
@@ -157,8 +157,8 @@
     btn = e.target.closest('.btn-toggle-user');
     if (btn) {
       const active = btn.dataset.active === '1' ? 0 : 1;
-      const label = active ? 'activate' : 'deactivate';
-      if (!confirm('Do you want to ' + label + ' this user?')) return;
+      const label = active ? 'activer' : 'désactiver';
+      if (!confirm('Voulez-vous ' + label + ' cet utilisateur ?')) return;
       Shared.btnLoading(btn, true);
       try {
         await api('/api/v1/admin_users.php', {action:'toggle', user_id:btn.dataset.id, is_active:active});
@@ -174,25 +174,25 @@
       const userId = btn.dataset.id;
       const userName = btn.dataset.name || '';
       Shared.openModal({
-        title: 'Set password — ' + userName,
+        title: 'Définir le mot de passe — ' + userName,
         body:
           '<div class="form-group mb-4">' +
-            '<label class="form-label">New password</label>' +
-            '<input class="form-input" type="password" id="setPassword" placeholder="Min. 8 characters" autocomplete="new-password">' +
+            '<label class="form-label">Nouveau mot de passe</label>' +
+            '<input class="form-input" type="password" id="setPassword" placeholder="Min. 8 caractères" autocomplete="new-password">' +
           '</div>' +
           '<div class="form-group">' +
-            '<label class="form-label">Confirm password</label>' +
-            '<input class="form-input" type="password" id="confirmPassword" placeholder="Confirm the password" autocomplete="new-password">' +
+            '<label class="form-label">Confirmer le mot de passe</label>' +
+            '<input class="form-input" type="password" id="confirmPassword" placeholder="Confirmer le mot de passe" autocomplete="new-password">' +
           '</div>',
-        confirmText: 'Save',
+        confirmText: 'Enregistrer',
         onConfirm: function(modal) {
           const pw = modal.querySelector('#setPassword').value;
           const confirm = modal.querySelector('#confirmPassword').value;
-          if (!pw || pw.length < 8) { setNotif('error', 'Password must be at least 8 characters'); return false; }
-          if (pw !== confirm) { setNotif('error', 'Passwords do not match'); return false; }
+          if (!pw || pw.length < 8) { setNotif('error', 'Le mot de passe doit contenir au moins 8 caractères'); return false; }
+          if (pw !== confirm) { setNotif('error', 'Les mots de passe ne correspondent pas'); return false; }
           api('/api/v1/admin_users.php', {action:'set_password', user_id:userId, password:pw})
             .then(function(r) {
-              if (r.body && r.body.ok) { setNotif('success', 'Password set'); loadUsers(); }
+              if (r.body && r.body.ok) { setNotif('success', 'Mot de passe défini'); loadUsers(); }
               else { setNotif('error', getApiError(r.body)); }
             })
             .catch(function(err) { setNotif('error', err.message); });
@@ -204,16 +204,16 @@
     // Delete user
     btn = e.target.closest('.btn-delete-user');
     if (btn) {
-      const userName = btn.dataset.name || 'this user';
-      if (!confirm('Permanently delete ' + userName + '?\nThis action is irreversible.')) return;
+      const userName = btn.dataset.name || 'cet utilisateur';
+      if (!confirm('Supprimer définitivement ' + userName + ' ?\nCette action est irréversible.')) return;
       Shared.btnLoading(btn, true);
       try {
         const r = await api('/api/v1/admin_users.php', {action:'delete', user_id:btn.dataset.id});
         if (r.body && r.body.ok) {
-          setNotif('success', 'User deleted');
+          setNotif('success', 'Utilisateur supprimé');
           loadUsers();
         } else {
-          setNotif('error', getApiError(r.body, 'Error during deletion'));
+          setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
         }
       } catch(err) { setNotif('error', err.message); }
       finally { Shared.btnLoading(btn, false); }
@@ -232,29 +232,29 @@
       }).join('');
 
       Shared.openModal({
-        title: 'Edit user',
+        title: 'Modifier l\'utilisateur',
         body:
           '<div class="form-group mb-4">' +
-            '<label class="form-label">Name</label>' +
+            '<label class="form-label">Nom</label>' +
             '<input class="form-input" type="text" id="editName" value="' + escapeHtml(user.name || '') + '">' +
           '</div>' +
           '<div class="form-group mb-4">' +
-            '<label class="form-label">Email</label>' +
+            '<label class="form-label">E-mail</label>' +
             '<input class="form-input" type="email" id="editEmail" value="' + escapeHtml(user.email || '') + '">' +
           '</div>' +
           '<div class="form-group">' +
-            '<label class="form-label">System role</label>' +
+            '<label class="form-label">Rôle système</label>' +
             '<select class="form-input" id="editRole">' + roleOptions + '</select>' +
           '</div>',
-        confirmText: 'Save',
+        confirmText: 'Enregistrer',
         onConfirm: function(modal) {
           const newName = modal.querySelector('#editName').value.trim();
           const newEmail = modal.querySelector('#editEmail').value.trim();
           const newRole = modal.querySelector('#editRole').value;
-          if (!newName || !newEmail) { setNotif('error', 'Name and email required'); return false; }
+          if (!newName || !newEmail) { setNotif('error', 'Nom et e-mail requis'); return false; }
           api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole})
             .then(function(r) {
-              if (r.body && r.body.ok) { setNotif('success', 'User updated'); loadUsers(); }
+              if (r.body && r.body.ok) { setNotif('success', 'Utilisateur mis à jour'); loadUsers(); }
               else { setNotif('error', getApiError(r.body)); }
             })
             .catch(function(err) { setNotif('error', err.message); });
@@ -327,7 +327,7 @@
           userSel.setOptions(options);
         } else {
           // Fallback to native select
-          userSel.innerHTML = '<option value="">— Select —</option>' +
+          userSel.innerHTML = '<option value="">— Sélectionner —</option>' +
             users.filter(function(u) { return u.is_active; }).map(function(u) {
               return '<option value="' + u.id + '">' + escapeHtml(u.name) + ' (' + escapeHtml(roleLabelsSystem[u.role] || u.role) + ')</option>';
             }).join('');
@@ -339,7 +339,7 @@
   async function loadMeetingRoles() {
     const meetingId = document.getElementById('mrMeeting').value;
     const tbody = document.getElementById('meetingRolesBody');
-    tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Loading...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr>';
 
     try {
       const url = '/api/v1/admin_meeting_roles.php' + (meetingId ? '?meeting_id=' + meetingId : '');
@@ -347,7 +347,7 @@
       if (r.body && r.body.ok && r.body.data) {
         const items = r.body.data.items || [];
         if (!items.length) {
-          tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">No roles assigned</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Aucun rôle attribué</td></tr>';
           return;
         }
         tbody.innerHTML = items.map(function(row) {
@@ -365,7 +365,7 @@
         }).join('');
       }
     } catch(e) {
-      tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Loading error</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Erreur de chargement</td></tr>';
     }
   }
 
@@ -378,12 +378,12 @@
     const meetingId = document.getElementById('mrMeeting').value;
     const userId = document.getElementById('mrUser').value;
     const role = document.getElementById('mrRole').value;
-    if (!meetingId || !userId) { setNotif('error', 'Meeting and user required'); return; }
+    if (!meetingId || !userId) { setNotif('error', 'Séance et utilisateur requis'); return; }
     Shared.btnLoading(btn, true);
     try {
       const r = await api('/api/v1/admin_meeting_roles.php', {action:'assign', meeting_id:meetingId, user_id:userId, role:role});
       if (r.body && r.body.ok) {
-        setNotif('success', 'Role assigned');
+        setNotif('success', 'Rôle attribué');
         loadMeetingRoles();
         loadUsers(); // refresh meeting roles column in users table
       } else {
@@ -397,7 +397,7 @@
   document.getElementById('meetingRolesBody').addEventListener('click', async function(e) {
     const btn = e.target.closest('.btn-revoke-role');
     if (!btn) return;
-    if (!confirm('Revoke this meeting role?')) return;
+    if (!confirm('Révoquer ce rôle de séance ?')) return;
     Shared.btnLoading(btn, true);
     try {
       const r = await api('/api/v1/admin_meeting_roles.php', {
@@ -407,7 +407,7 @@
         role: btn.dataset.role
       });
       if (r.body && r.body.ok) {
-        setNotif('success', 'Role revoked');
+        setNotif('success', 'Rôle révoqué');
         loadMeetingRoles();
         loadUsers();
       } else {
@@ -435,7 +435,7 @@
   function renderQuorumList(items) {
     const el = document.getElementById('quorumList');
     if (!items.length) {
-      el.innerHTML = '<div class="text-center text-muted">No quorum policies</div>';
+      el.innerHTML = '<div class="text-center text-muted">Aucune politique de quorum</div>';
       return;
     }
     el.innerHTML = items.map(function(p) {
@@ -444,10 +444,10 @@
           '<div class="policy-name">' + escapeHtml(p.name) + '</div>' +
           '<div class="policy-details">' +
             escapeHtml(p.description || '') +
-            (p.mode ? ' | mode: ' + escapeHtml(p.mode) : '') +
-            ' | threshold: ' + Math.round((p.threshold||0)*100) + '%' +
-            (p.include_proxies ? ' | proxies' : '') +
-            (p.count_remote ? ' | remote' : '') +
+            (p.mode ? ' | mode : ' + escapeHtml(p.mode) : '') +
+            ' | seuil : ' + Math.round((p.threshold||0)*100) + '%' +
+            (p.include_proxies ? ' | procurations' : '') +
+            (p.count_remote ? ' | distants' : '') +
           '</div>' +
         '</div>' +
         '<div class="policy-actions">' +
@@ -473,10 +473,10 @@
     }).join('');
 
     Shared.openModal({
-      title: isEdit ? 'Edit quorum policy' : 'New quorum policy',
+      title: isEdit ? 'Modifier la politique de quorum' : 'Nouvelle politique de quorum',
       body:
         '<div class="form-group mb-3">' +
-          '<label class="form-label">Name</label>' +
+          '<label class="form-label">Nom</label>' +
           '<input class="form-input" type="text" id="qpName" value="' + escapeHtml(p.name || '') + '">' +
         '</div>' +
         '<div class="form-group mb-3">' +
@@ -488,21 +488,21 @@
           '<select class="form-input" id="qpMode">' + modeOptions + '</select>' +
         '</div>' +
         '<div class="form-group mb-3">' +
-          '<label class="form-label">Denominator</label>' +
+          '<label class="form-label">Dénominateur</label>' +
           '<select class="form-input" id="qpDen">' + denOptions + '</select>' +
         '</div>' +
         '<div class="form-group mb-3">' +
-          '<label class="form-label">Threshold (0 to 1)</label>' +
+          '<label class="form-label">Seuil (0 à 1)</label>' +
           '<input class="form-input" type="number" id="qpThreshold" min="0" max="1" step="0.01" value="' + (p.threshold != null ? p.threshold : '0.5') + '">' +
         '</div>' +
         '<div class="flex gap-4 mb-3">' +
-          '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpProxies"' + (p.include_proxies ? ' checked' : '') + '> Include proxies</label>' +
-          '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpRemote"' + (p.count_remote ? ' checked' : '') + '> Count remote</label>' +
+          '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpProxies"' + (p.include_proxies ? ' checked' : '') + '> Inclure les procurations</label>' +
+          '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpRemote"' + (p.count_remote ? ' checked' : '') + '> Compter les distants</label>' +
         '</div>',
-      confirmText: isEdit ? 'Save' : 'Create',
+      confirmText: isEdit ? 'Enregistrer' : 'Créer',
       onConfirm: function(modal) {
         const name = modal.querySelector('#qpName').value.trim();
-        if (!name) { setNotif('error', 'Name required'); return false; }
+        if (!name) { setNotif('error', 'Nom requis'); return false; }
         const payload = {
           name: name,
           description: modal.querySelector('#qpDesc').value.trim(),
@@ -515,7 +515,7 @@
         if (isEdit) payload.id = p.id;
         api('/api/v1/admin_quorum_policies.php', payload)
           .then(function(r) {
-            if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Policy updated' : 'Policy created'); loadQuorumPolicies(); }
+            if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadQuorumPolicies(); }
             else { setNotif('error', getApiError(r.body)); }
           })
           .catch(function(err) { setNotif('error', err.message); });
@@ -536,16 +536,16 @@
     // Delete
     btn = e.target.closest('.btn-delete-quorum');
     if (btn) {
-      const name = btn.dataset.name || 'this policy';
-      if (!confirm('Delete policy "' + name + '"?\nThis action is irreversible.')) return;
+      const name = btn.dataset.name || 'cette politique';
+      if (!confirm('Supprimer la politique « ' + name + ' » ?\nCette action est irréversible.')) return;
       Shared.btnLoading(btn, true);
       try {
         const r = await api('/api/v1/admin_quorum_policies.php', {action:'delete', id:btn.dataset.id});
         if (r.body && r.body.ok) {
-          setNotif('success', 'Policy deleted');
+          setNotif('success', 'Politique supprimée');
           loadQuorumPolicies();
         } else {
-          setNotif('error', getApiError(r.body, 'Error during deletion'));
+          setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
         }
       } catch(err) { setNotif('error', err.message); }
       finally { Shared.btnLoading(btn, false); }
@@ -570,7 +570,7 @@
   function renderVoteList(items) {
     const el = document.getElementById('voteList');
     if (!items.length) {
-      el.innerHTML = '<div class="text-center text-muted">No vote policies</div>';
+      el.innerHTML = '<div class="text-center text-muted">Aucune politique de vote</div>';
       return;
     }
     el.innerHTML = items.map(function(p) {
@@ -579,9 +579,9 @@
           '<div class="policy-name">' + escapeHtml(p.name) + '</div>' +
           '<div class="policy-details">' +
             escapeHtml(p.description || '') +
-            (p.base ? ' | base: ' + escapeHtml(p.base) : '') +
-            ' | threshold: ' + Math.round((p.threshold||0)*100) + '%' +
-            (p.abstention_as_against ? ' | abstention=against' : '') +
+            (p.base ? ' | base : ' + escapeHtml(p.base) : '') +
+            ' | seuil : ' + Math.round((p.threshold||0)*100) + '%' +
+            (p.abstention_as_against ? ' | abstention=contre' : '') +
           '</div>' +
         '</div>' +
         '<div class="policy-actions">' +
@@ -602,10 +602,10 @@
     }).join('');
 
     Shared.openModal({
-      title: isEdit ? 'Edit vote policy' : 'New vote policy',
+      title: isEdit ? 'Modifier la politique de vote' : 'Nouvelle politique de vote',
       body:
         '<div class="form-group mb-3">' +
-          '<label class="form-label">Name</label>' +
+          '<label class="form-label">Nom</label>' +
           '<input class="form-input" type="text" id="vpName" value="' + escapeHtml(p.name || '') + '">' +
         '</div>' +
         '<div class="form-group mb-3">' +
@@ -613,21 +613,21 @@
           '<input class="form-input" type="text" id="vpDesc" value="' + escapeHtml(p.description || '') + '">' +
         '</div>' +
         '<div class="form-group mb-3">' +
-          '<label class="form-label">Calculation base</label>' +
+          '<label class="form-label">Base de calcul</label>' +
           '<select class="form-input" id="vpBase">' + baseOptions + '</select>' +
         '</div>' +
         '<div class="form-group mb-3">' +
-          '<label class="form-label">Threshold (0 to 1)</label>' +
+          '<label class="form-label">Seuil (0 à 1)</label>' +
           '<input class="form-input" type="number" id="vpThreshold" min="0" max="1" step="0.01" value="' + (p.threshold != null ? p.threshold : '0.5') + '">' +
         '</div>' +
         '<label class="flex items-center gap-2 text-sm">' +
           '<input type="checkbox" id="vpAbstention"' + (p.abstention_as_against ? ' checked' : '') + '>' +
-          ' Count abstentions as against' +
+          ' Compter les abstentions comme contre' +
         '</label>',
-      confirmText: isEdit ? 'Save' : 'Create',
+      confirmText: isEdit ? 'Enregistrer' : 'Créer',
       onConfirm: function(modal) {
         const name = modal.querySelector('#vpName').value.trim();
-        if (!name) { setNotif('error', 'Name required'); return false; }
+        if (!name) { setNotif('error', 'Nom requis'); return false; }
         const payload = {
           name: name,
           description: modal.querySelector('#vpDesc').value.trim(),
@@ -638,7 +638,7 @@
         if (isEdit) payload.id = p.id;
         api('/api/v1/admin_vote_policies.php', payload)
           .then(function(r) {
-            if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Policy updated' : 'Policy created'); loadVotePolicies(); }
+            if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadVotePolicies(); }
             else { setNotif('error', getApiError(r.body)); }
           })
           .catch(function(err) { setNotif('error', err.message); });
@@ -659,16 +659,16 @@
     // Delete
     btn = e.target.closest('.btn-delete-vote');
     if (btn) {
-      const name = btn.dataset.name || 'this policy';
-      if (!confirm('Delete policy "' + name + '"?\nThis action is irreversible.')) return;
+      const name = btn.dataset.name || 'cette politique';
+      if (!confirm('Supprimer la politique « ' + name + ' » ?\nCette action est irréversible.')) return;
       Shared.btnLoading(btn, true);
       try {
         const r = await api('/api/v1/admin_vote_policies.php', {action:'delete', id:btn.dataset.id});
         if (r.body && r.body.ok) {
-          setNotif('success', 'Policy deleted');
+          setNotif('success', 'Politique supprimée');
           loadVotePolicies();
         } else {
-          setNotif('error', getApiError(r.body, 'Error during deletion'));
+          setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
         }
       } catch(err) { setNotif('error', err.message); }
       finally { Shared.btnLoading(btn, false); }
@@ -689,7 +689,7 @@
         const cnt = (d.users_by_system_role || []).find(function(x) { return x.role === e[0]; });
         return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
           '<span class="role-badge ' + e[0] + '">' + escapeHtml(e[1]) + '</span>' +
-          '<span class="text-sm text-muted">' + ((cnt && cnt.count) || 0) + ' user(s)</span></div>';
+          '<span class="text-sm text-muted">' + ((cnt && cnt.count) || 0) + ' utilisateur(s)</span></div>';
       }).join('');
       document.getElementById('systemRolesInfo').innerHTML = sysInfo;
 
@@ -698,7 +698,7 @@
         const cnt = (d.meeting_role_counts || []).find(function(x) { return x.role === e[0]; });
         return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
           '<span class="role-badge ' + e[0] + '">' + escapeHtml(e[1]) + '</span>' +
-          '<span class="text-sm text-muted">' + ((cnt && cnt.users) || 0) + ' person(s), ' + ((cnt && cnt.meetings) || 0) + ' meeting(s)</span></div>';
+          '<span class="text-sm text-muted">' + ((cnt && cnt.users) || 0) + ' personne(s), ' + ((cnt && cnt.meetings) || 0) + ' séance(s)</span></div>';
       }).join('');
       document.getElementById('meetingRolesInfo').innerHTML = mtgInfo;
 
@@ -726,7 +726,7 @@
         (perms[role] || []).forEach(function(p) { permsByRole[role][p.permission] = true; });
       });
 
-      let html = '<table class="perm-matrix"><thead><tr><th>Permission</th>';
+      let html = '<table class="perm-matrix"><thead><tr><th>Droit</th>';
       roleOrder.forEach(function(role) {
         const isSys = !!roleLabelsSystem[role];
         html += '<th><span class="role-badge ' + role + '">' + escapeHtml(allRoleLabels[role] || role) + '</span><br><span class="text-xs text-muted">' + (isSys ? 'S' : 'M') + '</span></th>';
@@ -842,18 +842,18 @@
         document.getElementById('statPhpVersion').textContent = s.php_version || '—';
         document.getElementById('statMemory').textContent = s.memory_usage || '—';
         document.getElementById('systemStatus').className = 'badge badge-success badge-dot';
-        document.getElementById('systemStatus').textContent = 'Online';
+        document.getElementById('systemStatus').textContent = 'En ligne';
       } else {
-        document.getElementById('statDbStatus').textContent = 'Error';
+        document.getElementById('statDbStatus').textContent = 'Erreur';
         document.getElementById('statDbStatus').className = 'system-stat-value text-danger';
         document.getElementById('systemStatus').className = 'badge badge-danger';
-        document.getElementById('systemStatus').textContent = 'Error';
+        document.getElementById('systemStatus').textContent = 'Erreur';
       }
     } catch (e) {
-      document.getElementById('statDbStatus').textContent = 'Offline';
+      document.getElementById('statDbStatus').textContent = 'Hors ligne';
       document.getElementById('statDbStatus').className = 'system-stat-value text-danger';
       document.getElementById('systemStatus').className = 'badge badge-danger';
-      document.getElementById('systemStatus').textContent = 'Error';
+      document.getElementById('systemStatus').textContent = 'Erreur';
     }
   }
 
@@ -861,12 +861,12 @@
   // RESET DEMO
   // ═══════════════════════════════════════════════════════
   document.getElementById('btnResetDemo').addEventListener('click', async function() {
-    if (!confirm('This action will delete ALL data and reset the demo. Continue?')) return;
+    if (!confirm('Cette action supprimera TOUTES les données et réinitialisera la démo. Continuer ?')) return;
     const btn = this;
     Shared.btnLoading(btn, true);
     try {
       const r = await api('/api/v1/admin_reset_demo.php', {});
-      if (r.body && r.body.ok) { setNotif('success', 'Demo data reset'); refreshAll(); }
+      if (r.body && r.body.ok) { setNotif('success', 'Données de démo réinitialisées'); refreshAll(); }
       else { setNotif('error', getApiError(r.body)); }
     } catch(e) { setNotif('error', e.message); }
     finally { Shared.btnLoading(btn, false); }

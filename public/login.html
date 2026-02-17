@@ -52,7 +52,8 @@
         </button>
 
         <div class="login-forgot">
-          <a href="#" onclick="alert('Contactez votre administrateur pour réinitialiser votre mot de passe.');return false;">Mot de passe oublié ?</a>
+          <a href="#" id="forgotLink">Mot de passe oublié ?</a>
+          <div class="login-forgot-msg" id="forgotMsg" role="status" aria-live="polite"></div>
         </div>
       </form>
 
@@ -177,8 +178,17 @@
       } catch (err) {
         showError('Erreur réseau. Vérifiez votre connexion.');
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Se connecter';
+        btnText.textContent = 'Se connecter';
+        spinner.style.display = 'none';
       }
+    });
+
+    // Forgot password — inline message instead of alert()
+    document.getElementById('forgotLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      var msg = document.getElementById('forgotMsg');
+      msg.textContent = 'Contactez votre administrateur pour réinitialiser votre mot de passe.';
+      msg.classList.add('visible');
     });
 
     // Auto-check : si deja connecte, rediriger selon le role

@@ -151,6 +151,20 @@
   text-decoration: underline;
 }
 
+.login-forgot-msg {
+  display: none;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-info-subtle, #eff6ff);
+  color: var(--color-info, #2563eb);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.login-forgot-msg.visible {
+  display: block;
+}
+
 /* =============================================================================
    STATUS MESSAGES
    ============================================================================= */

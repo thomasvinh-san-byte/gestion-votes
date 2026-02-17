@@ -10,6 +10,10 @@
   <link rel="stylesheet" href="/assets/css/validate.css">
 </head>
 <body>
+  <!-- Skip links -->
+  <a href="#summaryGrid" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-nav" class="skip-link">Aller à la navigation</a>
+
   <div class="app-shell">
         <!-- Sidebar -->
     <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
@@ -115,8 +119,8 @@
                 <label class="form-label form-label-required" for="presidentName">
                   Nom du président
                 </label>
-                <input class="form-input" type="text" id="presidentName" 
-                       placeholder="Ex: Jean Dupont">
+                <input class="form-input" type="text" id="presidentName"
+                       placeholder="Ex: Jean Dupont" required>
                 <p class="form-helper">
                   Ce nom apparaîtra sur le procès-verbal officiel
                 </p>
@@ -166,7 +170,7 @@
 
   <!-- Drawer -->
   <div class="drawer-backdrop" data-drawer-close></div>
-  <aside class="drawer" id="drawer">
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Panneau latéral">
     <div class="drawer-header">
       <div id="drawerTitle" class="font-semibold">Menu</div>
       <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close aria-label="Fermer le panneau">✕</button>
