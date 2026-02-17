@@ -3,13 +3,19 @@
   "dockerComposeFile": "../docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/var/www/html",
+
+  "initializeCommand": "cp -n .env.example .env 2>/dev/null || true",
+
   "forwardPorts": [8080, 8081],
   "portsAttributes": {
     "8080": { "label": "AG-VOTE", "onAutoForward": "openBrowser" },
-    "8081": { "label": "WebSocket" }
+    "8081": { "label": "WebSocket", "onAutoForward": "silent" }
   },
+
   "shutdownAction": "stopCompose",
-  "postStartCommand": "echo 'AG-VOTE ready'",
+
+  "postStartCommand": "echo '✅ AG-VOTE prêt — ouvrez l onglet Ports → 8080'",
+
   "customizations": {
     "vscode": {
       "extensions": [
