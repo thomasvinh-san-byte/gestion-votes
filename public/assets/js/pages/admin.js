@@ -843,6 +843,37 @@
         document.getElementById('statMemory').textContent = s.memory_usage || '—';
         document.getElementById('systemStatus').className = 'badge badge-success badge-dot';
         document.getElementById('systemStatus').textContent = 'En ligne';
+
+        // --- Health KPI strip updates ---
+        // Color-code latency
+        var latencyText = s.db_latency_ms != null ? s.db_latency_ms + ' ms' : '—';
+        var latencyVal = parseFloat(latencyText);
+        var latencyDot = document.getElementById('healthLatencyDot');
+        var latencyDisplay = document.getElementById('healthLatencyValue');
+        if (latencyDot && latencyDisplay) {
+          latencyDisplay.textContent = latencyText;
+          if (latencyVal < 50) { latencyDot.className = 'admin-health-icon success'; }
+          else if (latencyVal < 200) { latencyDot.className = 'admin-health-icon warning'; }
+          else { latencyDot.className = 'admin-health-icon danger'; }
+        }
+
+        // Color-code memory
+        var memoryText = s.memory_usage || '—';
+        var memoryDot = document.getElementById('healthMemoryDot');
+        var memoryDisplay = document.getElementById('healthMemoryValue');
+        if (memoryDot && memoryDisplay) {
+          memoryDisplay.textContent = memoryText;
+          var memPct = parseFloat(memoryText);
+          if (memPct < 70) { memoryDot.className = 'admin-health-icon success'; }
+          else if (memPct < 90) { memoryDot.className = 'admin-health-icon warning'; }
+          else { memoryDot.className = 'admin-health-icon danger'; }
+        }
+
+        // Active meetings count
+        var meetingsDisplay = document.getElementById('healthMeetingsValue');
+        if (meetingsDisplay) {
+          meetingsDisplay.textContent = s.active_meetings || '0';
+        }
       } else {
         document.getElementById('statDbStatus').textContent = 'Erreur';
         document.getElementById('statDbStatus').className = 'system-stat-value text-danger';

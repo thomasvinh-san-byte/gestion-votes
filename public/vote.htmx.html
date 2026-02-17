@@ -70,6 +70,10 @@
           <div class="motion-meta" id="motionMeta">
             <span class="motion-pill" id="motionNo"></span>
             <span class="motion-pill" id="motionPhase">En attente</span>
+            <span class="motion-pill motion-progress" id="motionProgress" hidden>
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-layers"></use></svg>
+              <span id="motionProgressText">—</span>
+            </span>
           </div>
         </div>
         <div class="motion-card-body" id="motionBody">
@@ -114,6 +118,12 @@
               <span>Abstention</span>
               <span class="vote-btn-hint">Confirmation requise</span>
             </button>
+          </div>
+          <div class="vote-participation" id="voteParticipation" hidden>
+            <div class="vote-participation-bar">
+              <div class="vote-participation-fill" id="voteParticipationFill" style="width: 0%"></div>
+            </div>
+            <span class="vote-participation-text" id="voteParticipationText">0% ont voté</span>
           </div>
         </div>
       </div>

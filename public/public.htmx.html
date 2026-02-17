@@ -14,6 +14,9 @@
 <header class="projection-header">
   <div class="header-left">
     <span class="status-badge off" id="badge">hors seance</span>
+    <span class="motion-counter" id="motionCounter" hidden>
+      <span id="motionCounterText">— / —</span>
+    </span>
     <span class="meeting-title" id="meeting_title">Aucune seance</span>
   </div>
   <div class="clock" id="clock">--:--</div>
@@ -121,6 +124,9 @@
         <div class="decision-detail" id="quorum_detail"></div>
       </div>
     </div>
+    <span class="voter-total" id="voterTotal" hidden>
+      <span id="voterTotalText">0 votants</span>
+    </span>
   </section>
 
   <!-- Error -->

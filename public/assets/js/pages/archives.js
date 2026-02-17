@@ -196,6 +196,31 @@
           document.getElementById('kpiWithPV').textContent = withPV;
           document.getElementById('kpiThisYear').textContent = thisYear;
 
+          // Average participation rate
+          const participationRates = allArchives
+            .map(a => parseFloat(a.participation_rate))
+            .filter(v => !isNaN(v));
+          const avgParticipation = participationRates.length > 0
+            ? Math.round(participationRates.reduce((sum, v) => sum + v, 0) / participationRates.length)
+            : null;
+          document.getElementById('kpiAvgParticipation').textContent =
+            avgParticipation != null ? avgParticipation + ' %' : '—';
+
+          // Date range (period)
+          const dates = allArchives
+            .map(a => new Date(a.archived_at || a.validated_at))
+            .filter(d => !isNaN(d.getTime()))
+            .sort((a, b) => a - b);
+          if (dates.length > 0) {
+            const fmt = d => d.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+            const minDate = fmt(dates[0]);
+            const maxDate = fmt(dates[dates.length - 1]);
+            document.getElementById('kpiDateRange').textContent =
+              minDate === maxDate ? minDate : minDate + ' — ' + maxDate;
+          } else {
+            document.getElementById('kpiDateRange').textContent = '—';
+          }
+
           // Calculate aggregate stats
           const totalMotions = allArchives.reduce((sum, a) => sum + (parseInt(a.motions_count) || parseInt(a.total_motions) || 0), 0);
           const totalBallots = allArchives.reduce((sum, a) => sum + (parseInt(a.ballots_count) || parseInt(a.total_ballots) || 0), 0);

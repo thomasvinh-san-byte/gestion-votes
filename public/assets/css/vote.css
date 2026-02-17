@@ -437,6 +437,53 @@
 }
 
 /* =============================================================================
+   MOTION PROGRESS PILL
+   ============================================================================= */
+
+.motion-progress {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* =============================================================================
+   VOTE PARTICIPATION INDICATOR (NON-IDENTIFYING)
+   ============================================================================= */
+
+.vote-participation {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  background: var(--color-bg-subtle);
+  border-radius: 8px;
+  margin-top: 0.75rem;
+}
+
+.vote-participation-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.vote-participation-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.vote-participation-text {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================================
    FOOTER
    ============================================================================= */
 

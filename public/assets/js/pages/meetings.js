@@ -55,6 +55,32 @@
     if (statScheduled) statScheduled.textContent = scheduled;
     if (statDraft) statDraft.textContent = draft;
     if (statTotal) statTotal.textContent = meetings.length;
+
+    // Total resolutions across all meetings
+    const totalResolutions = meetings.reduce(function(sum, m) {
+      return sum + (m.motions_count || m.resolution_count || 0);
+    }, 0);
+    const statResolutions = document.getElementById('statResolutions');
+    if (statResolutions) statResolutions.textContent = totalResolutions;
+
+    // Average participation rate
+    var participationValues = [];
+    meetings.forEach(function(m) {
+      if (m.participation_rate != null) {
+        participationValues.push(parseFloat(m.participation_rate));
+      } else if (m.attendees_count != null && m.total_members != null && m.total_members > 0) {
+        participationValues.push((m.attendees_count / m.total_members) * 100);
+      }
+    });
+    var statAvgParticipation = document.getElementById('statAvgParticipation');
+    if (statAvgParticipation) {
+      if (participationValues.length > 0) {
+        var avg = participationValues.reduce(function(s, v) { return s + v; }, 0) / participationValues.length;
+        statAvgParticipation.textContent = Math.round(avg) + '%';
+      } else {
+        statAvgParticipation.textContent = '\u2014';
+      }
+    }
   }
 
   // ==========================================================================

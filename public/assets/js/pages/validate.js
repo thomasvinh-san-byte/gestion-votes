@@ -68,6 +68,26 @@
           document.getElementById('sumAdopted').textContent = s.adopted_count ?? '—';
           document.getElementById('sumRejected').textContent = s.rejected_count ?? '—';
           document.getElementById('sumBallots').textContent = s.ballots_count ?? '—';
+
+          // Quorum status
+          const quorumEl = document.getElementById('sumQuorum');
+          if (s.quorum_reached != null) {
+            quorumEl.textContent = s.quorum_reached ? 'Atteint' : 'Non atteint';
+            quorumEl.className = 'summary-value ' + (s.quorum_reached ? 'text-success' : 'text-danger');
+          } else {
+            quorumEl.textContent = '—';
+            quorumEl.className = 'summary-value';
+          }
+
+          // Session duration
+          const durationEl = document.getElementById('sumDuration');
+          if (s.duration_minutes != null) {
+            const hours = Math.floor(s.duration_minutes / 60);
+            const mins = s.duration_minutes % 60;
+            durationEl.textContent = hours > 0 ? hours + 'h ' + String(mins).padStart(2, '0') + 'min' : mins + 'min';
+          } else {
+            durationEl.textContent = '—';
+          }
         }
       } catch (err) {
         console.error('Erreur résumé :', err);
