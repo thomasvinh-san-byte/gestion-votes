@@ -24,43 +24,51 @@ AG-Vote est une application PHP 8.3+ / PostgreSQL 16+ / HTMX pour la gestion de 
 
 ```
 gestion-votes/
-├── public/                     Racine web Apache (DocumentRoot)
-│   ├── api/v1/                 118 endpoints REST PHP
+├── public/                     Racine web (Nginx DocumentRoot)
+│   ├── api/
+│   │   ├── v1/                 148 endpoints REST PHP
+│   │   └── bus/                Event bus (publish, stream)
 │   ├── assets/
-│   │   ├── css/                2 fichiers CSS (design-system, app)
+│   │   ├── css/                19 fichiers CSS (design-system, app, pages)
 │   │   └── js/
-│   │       ├── components/     6 Web Components (ag-kpi, ag-badge, ag-toast, etc.)
-│   │       └── *.js            7 fichiers JS (shell, utils, auth-ui, vote, meetings, meeting-context, pv-print)
-│   ├── partials/               Composants HTML partagés
-│   ├── fragments/              Fragments PHP (drawer, etc.)
+│   │       ├── components/     10 Web Components (ag-kpi, ag-badge, ag-toast, etc.)
+│   │       ├── core/           4 fichiers (utils, shared, shell, page-components)
+│   │       ├── pages/          12 fichiers (admin, vote, operator-tabs, login, etc.)
+│   │       └── services/       6 fichiers (websocket-client, offline-storage, etc.)
+│   ├── partials/               Composants HTML partagés (sidebar, topbar)
+│   ├── fragments/              7 fragments PHP (drawers, OOB)
 │   ├── exports/                Templates d'export (PV)
-│   ├── errors/                 Pages 404, 500
-│   ├── *.htmx.html             22 pages applicatives
-│   ├── favicon.svg             Icône du site
-│   └── .htaccess               Routage, sécurité, cache, compression
+│   ├── errors/                 Pages 403, 404, 500
+│   ├── *.htmx.html             13 pages applicatives
+│   ├── index.html              Page d'accueil
+│   └── login.html              Page de connexion
 ├── app/                        Code backend (hors webroot)
 │   ├── api.php                 Point d'entrée API — fonctions canoniques
 │   ├── bootstrap.php           Initialisation (DB, .env, constantes)
 │   ├── config.php              Configuration applicative
-│   ├── auth.php                Legacy auth (désactivé, conservé)
-│   ├── services/               17 services métier
+│   ├── auth.php                Auth utilities (aliases rétrocompatibilité)
+│   ├── Repository/             26 repositories (AbstractRepository, etc.)
+│   ├── Services/               22 services métier (namespace AgVote\Service)
 │   ├── Core/
-│   │   ├── Security/           AuthMiddleware, CsrfMiddleware, RateLimiter, SecurityHeaders
+│   │   ├── Security/           AuthMiddleware, CsrfMiddleware, RateLimiter, SecurityHeaders, Permissions
 │   │   └── Validation/         InputValidator, ValidationSchemas
-│   ├── templates/              Templates email
-│   └── .htaccess               Deny all (défense en profondeur)
+│   ├── WebSocket/              EventBroadcaster, Server
+│   └── Templates/              Layout.php + templates email
 ├── database/
-│   ├── schema.sql              Schéma DDL complet (35+ tables, triggers, index)
+│   ├── schema-master.sql       Schéma DDL unifié (35+ tables, triggers, index)
 │   ├── setup.sh                Script d'initialisation automatique
-│   ├── seeds/                  Seeds numérotés (01-07, idempotent)
-│   ├── migrations/             Migrations incrémentales
-│   └── .htaccess               Deny all
+│   ├── seeds/                  Seeds numérotés (01-08, idempotent)
+│   ├── migrations/             10 migrations (001-008 + datées)
+│   └── setup_demo_az.sh        Script démo A-Z
+├── deploy/                     Configuration Docker (entrypoint, nginx, php-fpm, supervisord)
+├── bin/                        Scripts exécutables (websocket-server.php)
 ├── config/                     Configuration avancée
 ├── docs/                       Documentation
-├── tests/                      Tests unitaires (PHPUnit)
-├── .env                        Variables d'environnement
-├── .env.production             Template production
-└── .htaccess                   Protection racine (.env, vendor, app, database)
+├── tests/                      Tests (Unit/, Integration/, e2e/)
+├── Dockerfile                  Image Docker (PHP 8.3 + Nginx + supervisord)
+├── docker-compose.yml          Orchestration (app + PostgreSQL)
+├── .env.example                Template variables d'environnement
+└── composer.json               Dépendances PHP
 ```
 
 ---
@@ -187,16 +195,13 @@ Un utilisateur peut avoir un rôle système (operator) ET un rôle de séance (p
 ## Couche frontend
 
 ### Design system CSS
-2 fichiers en cascade :
-1. `design-system.css` — Tokens (couleurs, tailles, espacements) + composants legacy
-2. `app.css` — Layout applicatif, pages spécifiques. Importe design-system.css via `@import`.
-
-Les pages chargent `app.css` qui importe automatiquement le design system complet.
-
-> **Note** : Le fichier `ui.css` a été fusionné dans `design-system.css` (février 2026).
+19 fichiers CSS, organisés par page/domaine :
+- `design-system.css` — Tokens (couleurs, tailles, espacements) + composants de base
+- `app.css` — Layout applicatif global, importe design-system.css via `@import`
+- `admin.css`, `operator.css`, `vote.css`, `login.css`, etc. — Styles spécifiques par page
 
 ### Web Components
-Bibliothèque de composants réutilisables dans `public/assets/js/components/` :
+10 composants réutilisables dans `public/assets/js/components/` :
 
 | Composant | Fichier | Usage |
 |-----------|---------|-------|
@@ -206,27 +211,31 @@ Bibliothèque de composants réutilisables dans `public/assets/js/components/` :
 | `<ag-toast>` | ag-toast.js | Notifications toast avec `AgToast.show()` |
 | `<ag-quorum-bar>` | ag-quorum-bar.js | Barres de progression quorum |
 | `<ag-vote-button>` | ag-vote-button.js | Boutons de vote (pour/contre/abstention) |
-
-**Utilisation** :
-```html
-<script type="module" src="/assets/js/components/index.js"></script>
-
-<ag-kpi value="42" label="Présents" variant="success" icon="users"></ag-kpi>
-<ag-badge variant="live">En direct</ag-badge>
-<ag-vote-button value="for">Pour</ag-vote-button>
-```
+| `<ag-popover>` | ag-popover.js | Popovers contextuels |
+| `<ag-searchable-select>` | ag-searchable-select.js | Select avec recherche |
+| `<ag-offline-indicator>` | ag-offline-indicator.js | Indicateur mode hors-ligne |
 
 Les composants utilisent le Shadow DOM et émettent des événements personnalisés.
 
 ### JavaScript
-7 fichiers avec rôles distincts :
+37 fichiers organisés en 4 dossiers :
+
+**core/** — Utilitaires partagés :
 - `utils.js` — Fonctions utilitaires (apiGet, apiPost, formatDate, getMeetingId, setNotif)
-- `shell.js` — Framework drawer (navigation, readiness, infos, anomalies). Charge automatiquement `auth-ui.js`.
-- `auth-ui.js` — Bannière d'authentification (login/logout, affichage rôle)
+- `shell.js` — Framework drawer (navigation, readiness, infos, anomalies)
+- `shared.js` — Fonctions partagées entre pages
+- `page-components.js` — Composants de page réutilisables
+
+**pages/** — Logique spécifique par page :
+- `login.js`, `admin.js`, `vote.js`, `operator-tabs.js`, `meetings.js`, `members.js`, `archives.js`, `report.js`, `trust.js`, `validate.js`, `auth-ui.js`, `pv-print.js`
+
+**services/** — Services JS métier :
+- `websocket-client.js` — Client WebSocket avec reconnexion
+- `offline-storage.js` — Stockage hors-ligne (IndexedDB)
+- `conflict-resolver.js` — Résolution de conflits de sync
 - `meeting-context.js` — Contexte de séance réactif
-- `meetings.js` — Page tableau de bord séances
-- `vote.js` — Interface de vote tablette
-- `pv-print.js` — Mise en page PV pour impression
+- `session-wizard.js` — Assistant de création de séance
+- `speaker.js` — Gestion de la file d'intervenants
 
 ### Pattern HTMX
 Les pages .htmx.html utilisent HTMX pour le rendu dynamique :
@@ -276,7 +285,7 @@ Chaque transition est contrôlée par rôle et enregistrée dans `meeting_state_
 
 ---
 
-## Services métier (app/services/ — namespace AgVote\Service)
+## Services métier (app/Services/ — namespace AgVote\Service)
 
 | Service | Responsabilité |
 |---------|---------------|
@@ -288,12 +297,20 @@ Chaque transition est contrôlée par rôle et enregistrée dans `meeting_state_
 | VoteTokenService | Génération/validation/consommation des tokens de vote |
 | NotificationsService | Notifications temps réel (blocking/warn/info) |
 | MeetingReportService | Génération du PV (HTML) |
+| MeetingResultsService | Résultats consolidés par séance |
 | OfficialResultsService | Consolidation officielle des résultats |
 | MeetingValidator | Vérification pré-validation (tous votes clos, pas d'anomalies) |
+| MeetingWorkflowService | Machine à états des séances |
 | SpeechService | File d'attente des intervenants |
 | InvitationsService | Tokens d'invitation (email, QR) |
 | MembersService | Gestion du registre des membres |
 | MailerService | Envoi d'emails |
+| EmailQueueService | File d'attente d'emails |
+| EmailTemplateService | Templates d'email personnalisables |
+| ExportService | Exports CSV/XLSX/HTML |
+| ImportService | Imports CSV/XLSX (membres, motions, présences) |
+| UrlSlugService | Génération de slugs pour URLs opaques |
+| ErrorDictionary | Messages d'erreur localisés |
 
 ---
 

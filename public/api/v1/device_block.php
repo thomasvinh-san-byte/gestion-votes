@@ -7,7 +7,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\DeviceRepository;
 
 header('Content-Type: application/json; charset=utf-8');
-require_any_role(['OPERATOR','ADMIN']);
+api_require_role(['operator', 'admin']);
 
 $in = json_decode(file_get_contents('php://input') ?: '[]', true);
 if (!is_array($in)) $in = [];

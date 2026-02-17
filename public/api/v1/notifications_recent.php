@@ -6,7 +6,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Service\NotificationsService;
 
 // Operator/Trust: lecture des notifications.
-require_any_role(['operator','trust']);
+api_require_role(['operator','trust']);
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 if ($meetingId === '') api_fail('missing_meeting_id', 400);

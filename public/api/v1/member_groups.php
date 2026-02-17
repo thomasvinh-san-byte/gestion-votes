@@ -24,7 +24,7 @@ use AgVote\Repository\MemberGroupRepository;
 $method = $_SERVER['REQUEST_METHOD'];
 
 // Authentification requise pour tous les endpoints
-api_require_any_role(['operator', 'admin']);
+api_require_role(['operator', 'admin']);
 
 $tenantId = api_current_tenant_id();
 $repo = new MemberGroupRepository();

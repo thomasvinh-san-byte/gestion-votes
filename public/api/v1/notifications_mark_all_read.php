@@ -5,7 +5,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Service\NotificationsService;
 
-require_any_role(['operator','trust']);
+api_require_role(['operator','trust']);
 
 $in = json_input();
 $meetingId = trim((string)($in['meeting_id'] ?? ''));

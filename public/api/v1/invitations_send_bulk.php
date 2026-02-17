@@ -85,7 +85,7 @@ foreach ($members as $m) {
   // template variables expected: $meetingTitle, $memberName, $voteUrl, $appUrl
   $voteUrl = $voteUrlVar;
   $appUrl = $appUrlVar;
-  include __DIR__ . '/../../../app/templates/email_invitation.php';
+  include __DIR__ . '/../../../app/Templates/email_invitation.php';
   $html = ob_get_clean();
 
   $subject = "Invitation de vote – " . $meetingTitleLocal;

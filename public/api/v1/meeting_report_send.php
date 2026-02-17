@@ -32,7 +32,7 @@ if (!$mailer->isConfigured()) api_fail('smtp_not_configured', 400);
 
 // Render HTML template
 ob_start();
-include __DIR__ . '/../../../app/templates/email_report.php';
+include __DIR__ . '/../../../app/Templates/email_report.php';
 $html = ob_get_clean();
 
 $subject = "PV / Résultats – " . $meetingTitle;

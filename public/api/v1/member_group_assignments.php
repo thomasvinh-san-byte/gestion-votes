@@ -21,7 +21,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\MemberGroupRepository;
 use AgVote\Repository\MemberRepository;
 
-api_require_any_role(['operator', 'admin']);
+api_require_role(['operator', 'admin']);
 
 $method = $_SERVER['REQUEST_METHOD'];
 $tenantId = api_current_tenant_id();

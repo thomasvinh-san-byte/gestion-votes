@@ -16,8 +16,8 @@ services:
     container_name: agvote-app
     restart: unless-stopped
     ports:
-      - "${APP_PORT:-8080}:8080"     # HTTP
-      - "${WS_PORT:-8081}:8081"      # WebSocket
+      - "0.0.0.0:${APP_PORT:-8080}:8080"     # HTTP  (accessible depuis le réseau)
+      - "0.0.0.0:${WS_PORT:-8081}:8081"      # WebSocket
     env_file: .env
     environment:
       # Override DB_DSN pour pointer vers le service "db" du compose
@@ -54,7 +54,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "${DB_EXTERNAL_PORT:-5433}:5432"   # 5433 pour ne pas entrer en conflit avec un PG local
+      - "127.0.0.1:${DB_EXTERNAL_PORT:-5433}:5432"   # localhost uniquement (pas exposé au réseau)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-vote_app} -d ${DB_DATABASE:-vote_app}"]
       interval: 10s
