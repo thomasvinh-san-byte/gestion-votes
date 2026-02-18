@@ -108,7 +108,7 @@ $docIndex = [];
 $categories = [
     'Utilisateur' => ['FAQ', 'UTILISATION_LIVE', 'RECETTE_DEMO', 'ANALYTICS_ETHICS'],
     'Technique'   => ['dev/INSTALLATION', 'dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
-    'Conformité'  => ['dev/CONFORMITE_CDC', 'dev/AUDIT_RAPPORT', 'dev/MIGRATION', 'dev/WEB_COMPONENTS'],
+    'Conformité'  => ['dev/MIGRATION', 'dev/WEB_COMPONENTS'],
 ];
 
 // Friendly names for doc files
@@ -123,13 +123,9 @@ $docNames = [
     'dev/API' => 'Référence API',
     'dev/SECURITY' => 'Sécurité',
     'dev/TESTS' => 'Tests',
-    'dev/CONFORMITE_CDC' => 'Conformité CDC',
-    'dev/AUDIT_RAPPORT' => 'Rapport d\'audit',
     'dev/MIGRATION' => 'Migrations',
     'dev/WEB_COMPONENTS' => 'Web Components',
-    'dev/PLAN_HARMONISATION' => 'Plan harmonisation',
     'dev/cahier_des_charges' => 'Cahier des charges',
-    'AUDIT_REPORT_2026-02-06' => 'Audit 2026-02-06',
 ];
 ?>
 <!doctype html>

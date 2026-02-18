@@ -111,36 +111,180 @@
 }
 
 /* =============================================================================
-   SPEECH PANEL
+   SPEECH PANEL — Demande de parole
+   3 etats : inactif (neutre) → raised (ambre) → speaking (vert)
    ============================================================================= */
 
 .speech-panel {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border: 2px solid var(--color-border);
+  border-radius: 16px;
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 1.25rem;
+  transition: border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
 }
 
+/* --- State: main levee (waiting) --- */
+.speech-panel.raised {
+  border-color: var(--color-warning);
+  background: var(--color-warning-subtle);
+  box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.10);
+}
+
+/* --- State: en parole (speaking) --- */
 .speech-panel.speaking {
   border-color: var(--color-success);
   background: var(--color-success-subtle);
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.10);
 }
 
-.speech-info h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 0.95rem;
-  font-weight: 600;
+/* --- Button wrapper (relative for badge positioning) --- */
+.speech-btn-wrap {
+  position: relative;
+  flex-shrink: 0;
 }
 
-.speech-info p {
-  margin: 0;
-  font-size: 0.85rem;
+/* --- Hand button (hero element) --- */
+.speech-hand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  cursor: pointer;
+  transition: transform 0.15s, background-color 0.25s, border-color 0.25s, box-shadow 0.25s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.speech-hand-btn:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.speech-hand-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.speech-hand-btn:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.speech-hand-btn:disabled {
+  cursor: default;
+}
+
+/* Button: raised state (amber glow + pulse) */
+.speech-hand-btn[aria-pressed="true"] {
+  background: var(--color-warning);
+  border-color: var(--color-warning);
+  box-shadow: 0 4px 20px rgba(234, 179, 8, 0.40);
+  animation: hand-glow 2s ease-in-out infinite;
+}
+
+.speech-hand-btn[aria-pressed="true"] .speech-hand-icon {
+  color: #fff;
+}
+
+/* Button: speaking state (green, no animation) */
+.speech-panel.speaking .speech-hand-btn {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  box-shadow: 0 4px 20px rgba(22, 163, 74, 0.35);
+  animation: none;
+}
+
+.speech-panel.speaking .speech-hand-icon {
+  color: #fff;
+}
+
+/* Hand icon */
+.speech-hand-icon {
   color: var(--color-text-muted);
+  transition: color 0.25s;
+  display: flex;
+  font-size: 2rem;
+}
+
+.icon-xl {
+  width: 2rem;
+  height: 2rem;
+}
+
+@keyframes hand-glow {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(234, 179, 8, 0.40);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 6px 28px rgba(234, 179, 8, 0.60);
+    transform: scale(1.04);
+  }
+}
+
+/* --- Queue position badge (notification-style, on top-right of button) --- */
+.speech-count-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 13px;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+  pointer-events: none;
+  z-index: 1;
+  animation: badge-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+/* --- Info zone (label + hint) --- */
+.speech-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.speech-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.speech-panel.raised .speech-label {
+  color: var(--color-warning-text);
+}
+
+.speech-panel.speaking .speech-label {
+  color: var(--color-success-text);
+}
+
+.speech-hint {
+  margin: 0;
+  font-size: 0.825rem;
+  color: var(--color-text-muted);
+  line-height: 1.3;
 }
 
 /* =============================================================================

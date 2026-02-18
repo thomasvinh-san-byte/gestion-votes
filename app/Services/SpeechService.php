@@ -73,7 +73,7 @@ final class SpeechService
         return ['speaker' => $speaker ?: null, 'queue' => $queue];
     }
 
-    /** @return array{status: string, request_id: ?string} */
+    /** @return array{status: string, request_id: ?string, position: ?int, queue_size: int} */
     public static function getMyStatus(string $meetingId, string $memberId, ?string $tenantId = null): array
     {
         self::ensureSchema();
@@ -83,10 +83,23 @@ final class SpeechService
         $repo = new SpeechRepository();
 
         $row = $repo->findActive($meetingId, $tenantId, $memberId);
+        $queue = $repo->listWaiting($meetingId, $tenantId);
+        $queueSize = count($queue);
 
-        if (!$row) return ['status' => 'none', 'request_id' => null];
+        if (!$row) return ['status' => 'none', 'request_id' => null, 'position' => null, 'queue_size' => $queueSize];
 
-        return ['status' => (string)$row['status'], 'request_id' => (string)$row['id']];
+        $status = (string)$row['status'];
+        $position = null;
+        if ($status === 'waiting') {
+            foreach ($queue as $i => $q) {
+                if ((string)$q['member_id'] === $memberId) {
+                    $position = $i + 1; // 1-indexed
+                    break;
+                }
+            }
+        }
+
+        return ['status' => $status, 'request_id' => (string)$row['id'], 'position' => $position, 'queue_size' => $queueSize];
     }
 
     /**

@@ -12,7 +12,7 @@ $categories = [
     'Utilisateur' => ['FAQ', 'UTILISATION_LIVE', 'RECETTE_DEMO', 'ANALYTICS_ETHICS'],
     'Installation' => ['INSTALL_MAC', 'DOCKER_INSTALL', 'dev/INSTALLATION'],
     'Technique'   => ['dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
-    'Conformité'  => ['dev/CONFORMITE_CDC', 'dev/AUDIT_RAPPORT', 'dev/MIGRATION', 'dev/WEB_COMPONENTS'],
+    'Conformité'  => ['dev/MIGRATION', 'dev/WEB_COMPONENTS'],
 ];
 
 $labels = [
@@ -27,8 +27,6 @@ $labels = [
     'dev/API' => 'Référence API',
     'dev/SECURITY' => 'Sécurité',
     'dev/TESTS' => 'Tests',
-    'dev/CONFORMITE_CDC' => 'Conformité CDC',
-    'dev/AUDIT_RAPPORT' => 'Rapport d\'audit',
     'dev/MIGRATION' => 'Migrations',
     'dev/WEB_COMPONENTS' => 'Web Components',
 ];

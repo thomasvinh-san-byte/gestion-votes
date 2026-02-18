@@ -429,6 +429,6 @@
 
   // Auto-load auth UI banner (login/logout + role visibility)
   const authScript = document.createElement('script');
-  authScript.src = '/assets/js/auth-ui.js';
+  authScript.src = '/assets/js/pages/auth-ui.js';
   document.head.appendChild(authScript);
 })();

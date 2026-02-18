@@ -459,6 +459,17 @@
           </div>
         </div>
 
+        <!-- Launch banner (shown when all prerequisites are met) -->
+        <div id="launchBanner" class="launch-banner" style="display:none;">
+          <div class="launch-banner-content">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
+            <span>Tous les pré-requis sont remplis. Vous pouvez lancer la séance.</span>
+          </div>
+          <button class="btn btn-success" id="btnLaunchSession">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg> Lancer la séance
+          </button>
+        </div>
+
         <!-- Existing tabs content (wrapped in advancedMode) -->
 
         <!-- Tab: Paramètres -->
@@ -592,10 +603,10 @@
                 <label class="form-label">Type de consultation</label>
                 <div class="flex flex-col gap-2">
                   <label class="flex items-center gap-2">
-                    <input type="radio" name="meetingType" value="ordinary" checked> Assemblée générale ordinaire
+                    <input type="radio" name="meetingType" value="ag_ordinaire" checked> Assemblée générale ordinaire
                   </label>
                   <label class="flex items-center gap-2">
-                    <input type="radio" name="meetingType" value="extraordinary"> Assemblée générale extraordinaire
+                    <input type="radio" name="meetingType" value="ag_extraordinaire"> Assemblée générale extraordinaire
                   </label>
                 </div>
               </div>

@@ -35,6 +35,11 @@ function json_err(string $error, int $code = 400, array $extra = []): never {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
 
+    // In production, strip internal error details from 5xx responses to avoid leaking DB/stack info
+    if (($_ENV['APP_ENV'] ?? 'demo') === 'production' && $code >= 500) {
+        unset($extra['detail']);
+    }
+
     // Enrich with translated French message
     $enriched = \AgVote\Service\ErrorDictionary::enrichError($error, $extra);
 
