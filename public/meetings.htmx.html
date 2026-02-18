@@ -65,12 +65,32 @@
         <div class="create-card">
           <h3>
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
-            Nouvelle séance
+            Préparer une nouvelle séance
           </h3>
           <div class="create-form">
-            <input class="form-input" type="text" id="meeting_title" placeholder="Titre de la séance (ex: Assemblée Générale 2024)" required>
-            <input class="form-input" type="date" id="meeting_date" style="max-width: 160px;">
-            <button class="btn btn-primary" id="create_meeting_btn">Créer la séance</button>
+            <div class="form-group" style="flex: 1; min-width: 200px;">
+              <label class="form-label" for="meeting_title">Titre de la séance</label>
+              <input class="form-input" type="text" id="meeting_title" placeholder="Ex : Assemblée Générale 2024" required>
+            </div>
+            <div class="form-group" style="min-width: 160px;">
+              <label class="form-label" for="meeting_date">Date prévue <span class="text-muted text-sm">(facultatif)</span></label>
+              <input class="form-input" type="date" id="meeting_date">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Type</label>
+              <div class="flex gap-3">
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="radio" name="meetingTypeCreate" value="ordinary" checked> AG ordinaire
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="radio" name="meetingTypeCreate" value="extraordinary"> AG extraordinaire
+                </label>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="create_meeting_btn" style="align-self: flex-end;">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+              Préparer la séance
+            </button>
           </div>
         </div>
 
