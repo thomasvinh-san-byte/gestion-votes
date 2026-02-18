@@ -317,13 +317,14 @@
                   <select class="form-input" id="wizQuorumPolicy">
                     <option value="">— Aucun quorum —</option>
                   </select>
-                  <p class="text-sm text-muted mt-1">Si le quorum n'est pas atteint, le vote ne peut pas avoir lieu.</p>
+                  <p class="text-sm text-muted mt-1" id="wizQuorumHint">Si le quorum n'est pas atteint, le vote ne peut pas avoir lieu.</p>
                 </div>
                 <div class="form-group mb-4">
                   <label class="form-label" for="wizVotePolicy">Majorité requise pour adopter une résolution</label>
                   <select class="form-input" id="wizVotePolicy">
-                    <option value="">— Majorité par défaut —</option>
+                    <option value="">— Majorité simple (par défaut) —</option>
                   </select>
+                  <p class="text-sm text-muted mt-1" id="wizVoteHint"></p>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Type de convocation</label>
@@ -1186,6 +1187,40 @@
     </header>
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
+
+  <!-- Launch confirmation modal -->
+  <div class="modal-backdrop" id="launchModal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="launchModalTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
+        <h3 id="launchModalTitle">Lancer la séance</h3>
+      </div>
+      <div class="modal-body">
+        <div id="launchModalMeetingTitle" class="text-lg font-bold mb-4"></div>
+        <div class="launch-modal-summary" id="launchModalSummary">
+          <!-- Filled by JS -->
+        </div>
+        <div class="launch-modal-warning mt-4">
+          <svg class="icon icon-text icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+          <div>
+            <strong>Une fois lancée :</strong>
+            <ul class="mt-1 text-sm">
+              <li>La liste des membres sera gelée</li>
+              <li>Les résolutions ne pourront plus être modifiées</li>
+              <li>Les votes pourront commencer</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="launchModalCancel">Annuler</button>
+        <button class="btn btn-success" id="launchModalConfirm">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
+          Confirmer le lancement
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="/assets/js/components/index.js"></script>
   <script src="/assets/js/core/utils.js"></script>

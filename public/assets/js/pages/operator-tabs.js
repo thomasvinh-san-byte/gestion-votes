@@ -468,8 +468,54 @@
     }
   }
 
+  function showLaunchModal() {
+    const modal = document.getElementById('launchModal');
+    if (!modal) { launchSessionConfirmed(); return; }
+
+    // Fill meeting title
+    const titleEl = document.getElementById('launchModalMeetingTitle');
+    if (titleEl) titleEl.textContent = currentMeeting?.title || 'Séance';
+
+    // Build summary
+    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+    const remoteCount = attendanceCache.filter(a => a.mode === 'remote').length;
+    const proxyCount = proxiesCache.length;
+    const motionCount = motionsCache.length;
+    const hasPresident = currentMeeting?.president_name || '';
+
+    let dateText = '—';
+    if (currentMeeting?.scheduled_at) {
+      try {
+        dateText = new Date(currentMeeting.scheduled_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      } catch (e) { dateText = currentMeeting.scheduled_at; }
+    }
+
+    const summary = document.getElementById('launchModalSummary');
+    if (summary) {
+      summary.innerHTML = `
+        <div class="summary-line"><span class="summary-label">Date</span><span class="summary-value">${escapeHtml(dateText)}</span></div>
+        <div class="summary-line"><span class="summary-label">Membres</span><span class="summary-value">${membersCache.length} inscrits</span></div>
+        <div class="summary-line"><span class="summary-label">Présents</span><span class="summary-value">${presentCount}${remoteCount > 0 ? ' (dont ' + remoteCount + ' à distance)' : ''}${proxyCount > 0 ? ' + ' + proxyCount + ' procuration' + (proxyCount > 1 ? 's' : '') : ''}</span></div>
+        <div class="summary-line"><span class="summary-label">Résolutions</span><span class="summary-value">${motionCount} à voter</span></div>
+        ${hasPresident ? '<div class="summary-line"><span class="summary-label">Président</span><span class="summary-value">' + escapeHtml(hasPresident) + '</span></div>' : ''}
+      `;
+    }
+
+    modal.style.display = 'flex';
+    document.getElementById('launchModalConfirm')?.focus();
+  }
+
+  function hideLaunchModal() {
+    const modal = document.getElementById('launchModal');
+    if (modal) modal.style.display = 'none';
+  }
+
   async function launchSession() {
-    if (!confirm('Lancer la séance et ouvrir les votes ?')) return;
+    showLaunchModal();
+  }
+
+  async function launchSessionConfirmed() {
+    hideLaunchModal();
 
     try {
       // Atomic launch: single API call handles all transitions (draft→scheduled→frozen→live)
@@ -498,6 +544,13 @@
       await loadMeetingContext(currentMeetingId);
     }
   }
+
+  // Launch modal event listeners
+  document.getElementById('launchModalCancel')?.addEventListener('click', hideLaunchModal);
+  document.getElementById('launchModalConfirm')?.addEventListener('click', launchSessionConfirmed);
+  document.getElementById('launchModal')?.addEventListener('click', function(e) {
+    if (e.target === this) hideLaunchModal();
+  });
 
   // =========================================================================
   // TAB: PARAMÈTRES - Settings
@@ -3774,22 +3827,39 @@
     // Populate policy dropdowns from cache
     const qSelect = document.getElementById('wizQuorumPolicy');
     const vSelect = document.getElementById('wizVotePolicy');
+    const qHint = document.getElementById('wizQuorumHint');
+    const vHint = document.getElementById('wizVoteHint');
 
-    if (qSelect && policiesCache.quorum.length > 0) {
-      const currentVal = qSelect.value;
-      qSelect.innerHTML = '<option value="">— Aucun quorum —</option>' +
-        policiesCache.quorum.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
-      // Restore current meeting's quorum policy
-      if (currentMeeting?.quorum_policy_id) qSelect.value = currentMeeting.quorum_policy_id;
-      else if (currentVal) qSelect.value = currentVal;
+    if (qSelect) {
+      if (policiesCache.quorum.length > 0) {
+        const currentVal = qSelect.value;
+        qSelect.innerHTML = '<option value="">— Aucun quorum —</option>' +
+          policiesCache.quorum.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
+        if (currentMeeting?.quorum_policy_id) qSelect.value = currentMeeting.quorum_policy_id;
+        else if (currentVal) qSelect.value = currentVal;
+        qSelect.disabled = false;
+        if (qHint) qHint.innerHTML = 'Si le quorum n\'est pas atteint, le vote ne peut pas avoir lieu.';
+      } else {
+        qSelect.innerHTML = '<option value="">— Aucun quorum —</option>';
+        qSelect.disabled = false;
+        if (qHint) qHint.innerHTML = 'Aucune politique de quorum créée. <a href="/admin.htmx.html#policies" target="_blank" class="text-primary">Créer une politique</a> (optionnel — vous pouvez continuer sans).';
+      }
     }
 
-    if (vSelect && policiesCache.vote.length > 0) {
-      const currentVal = vSelect.value;
-      vSelect.innerHTML = '<option value="">— Majorité par défaut —</option>' +
-        policiesCache.vote.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
-      if (currentMeeting?.vote_policy_id) vSelect.value = currentMeeting.vote_policy_id;
-      else if (currentVal) vSelect.value = currentVal;
+    if (vSelect) {
+      if (policiesCache.vote.length > 0) {
+        const currentVal = vSelect.value;
+        vSelect.innerHTML = '<option value="">— Majorité simple (par défaut) —</option>' +
+          policiesCache.vote.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
+        if (currentMeeting?.vote_policy_id) vSelect.value = currentMeeting.vote_policy_id;
+        else if (currentVal) vSelect.value = currentVal;
+        vSelect.disabled = false;
+        if (vHint) vHint.innerHTML = '';
+      } else {
+        vSelect.innerHTML = '<option value="">— Majorité simple (par défaut) —</option>';
+        vSelect.disabled = false;
+        if (vHint) vHint.innerHTML = 'Aucune politique de vote personnalisée. La majorité simple (50%+1) sera appliquée.';
+      }
     }
 
     // Set convocation radio
@@ -3816,12 +3886,28 @@
     const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
     const hasMotions = motionsCache.length > 0;
     const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+    const remoteCount = attendanceCache.filter(a => a.mode === 'remote').length;
     const proxyCount = proxiesCache.length;
+    const hasDate = !!(currentMeeting?.scheduled_at);
+    const hasPresident = !!(currentMeeting?.president_user_id || currentMeeting?.president_name);
+    const hasQuorumPolicy = !!(currentMeeting?.quorum_policy_id);
+    const presidentName = currentMeeting?.president_name || '';
+
+    // Format date for display
+    let dateText = 'Date non renseignée';
+    if (hasDate) {
+      try {
+        dateText = new Date(currentMeeting.scheduled_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      } catch (e) { dateText = currentMeeting.scheduled_at; }
+    }
 
     const checks = [
+      { ok: hasDate, text: dateText, warn: !hasDate },
       { ok: hasMembers, text: membersCache.length + ' membre' + (membersCache.length > 1 ? 's' : '') + ' inscrit' + (membersCache.length > 1 ? 's' : '') },
-      { ok: hasAttendance, text: presentCount + ' présent' + (presentCount > 1 ? 's' : '') + (proxyCount > 0 ? ' · ' + proxyCount + ' procuration' + (proxyCount > 1 ? 's' : '') : '') },
+      { ok: hasAttendance, text: presentCount + ' présent' + (presentCount > 1 ? 's' : '') + (remoteCount > 0 ? ' dont ' + remoteCount + ' à distance' : '') + (proxyCount > 0 ? ' · ' + proxyCount + ' procuration' + (proxyCount > 1 ? 's' : '') : '') },
       { ok: hasMotions, text: motionsCache.length + ' résolution' + (motionsCache.length > 1 ? 's' : '') + ' à voter' },
+      { ok: hasQuorumPolicy, text: hasQuorumPolicy ? 'Quorum configuré' : 'Aucun quorum configuré', warn: !hasQuorumPolicy, optional: true },
+      { ok: hasPresident, text: hasPresident ? 'Président : ' + escapeHtml(presidentName || 'assigné') : 'Aucun président désigné', warn: !hasPresident, optional: true },
       { ok: true, text: 'Invitations non envoyées', warn: true, optional: true }
     ];
 
