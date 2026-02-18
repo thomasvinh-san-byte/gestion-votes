@@ -1094,37 +1094,6 @@ body:has(.drawer-backdrop.open) {
   border-width: 4px;
 }
 
-/* ─── Breadcrumbs ─── */
-.breadcrumbs {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  padding: var(--space-2) 0;
-  margin-bottom: var(--space-4);
-}
-
-.breadcrumbs a {
-  color: var(--color-text-muted);
-  text-decoration: none;
-}
-
-.breadcrumbs a:hover {
-  color: var(--color-primary);
-}
-
-.breadcrumbs-separator {
-  color: var(--color-border-strong);
-  font-size: var(--text-xs);
-  user-select: none;
-}
-
-.breadcrumbs-current {
-  color: var(--color-text);
-  font-weight: var(--font-medium);
-}
-
 /* ─── Empty States ─── */
 .empty-state {
   display: flex;
