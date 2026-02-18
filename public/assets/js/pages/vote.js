@@ -807,7 +807,17 @@
     // Only bind direct cast if no confirmation overlay (vote.htmx.html has its own overlay calling submitVote)
     if (!document.getElementById('confirmationOverlay')) {
       document.querySelectorAll("[data-choice]").forEach(btn=>{
-        btn.addEventListener("click", ()=>cast(btn.dataset.choice));
+        btn.addEventListener("click", async ()=>{
+          const allBtns = document.querySelectorAll("[data-choice]");
+          allBtns.forEach(b => b.disabled = true);
+          try {
+            await cast(btn.dataset.choice);
+          } catch(e) {
+            notify("error", e?.message || String(e));
+          } finally {
+            allBtns.forEach(b => b.disabled = false);
+          }
+        });
       });
     }
 

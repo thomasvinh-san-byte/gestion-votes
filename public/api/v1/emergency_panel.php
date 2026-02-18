@@ -3,6 +3,8 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\EmergencyProcedureRepository;
 
+api_require_role('operator');
+
 header('Content-Type: text/html; charset=utf-8');
 
 $aud = trim((string)($_GET['audience'] ?? 'operator'));

@@ -26,10 +26,10 @@ $manualRepo = new ManualActionRepository();
 $pb = $ballotRepo->findUnusedPaperBallotByHash($hash);
 if (!$pb) api_fail('paper_ballot_not_found_or_used', 404);
 
-$ballotRepo->markPaperBallotUsed($pb['id']);
-
-// Journal mode dégradé (append-only)
+db()->beginTransaction();
 try {
+  $ballotRepo->markPaperBallotUsed($pb['id']);
+
   $manualRepo->createPaperBallotAction(
     $pb['tenant_id'],
     $pb['meeting_id'],
@@ -37,8 +37,11 @@ try {
     $vote,
     $just
   );
+
+  db()->commit();
 } catch (Throwable $e) {
-  // best-effort
+  db()->rollBack();
+  api_fail('paper_ballot_redeem_failed', 500, ['detail' => 'Erreur lors de l\'enregistrement du vote papier.']);
 }
 
 if (function_exists('audit_log')) {

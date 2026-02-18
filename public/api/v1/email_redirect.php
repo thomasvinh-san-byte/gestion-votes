@@ -31,7 +31,14 @@ if ($targetUrl === '') {
 // Valider l'URL (eviter les redirections malveillantes)
 $parsedUrl = parse_url($targetUrl);
 if (!$parsedUrl || !isset($parsedUrl['scheme']) || !in_array($parsedUrl['scheme'], ['http', 'https'], true)) {
-    // URL invalide, rediriger vers le fallback
+    header('Location: ' . $fallbackUrl, true, 302);
+    exit;
+}
+
+// Validate host matches APP_URL to prevent open redirect
+$allowedHost = parse_url($fallbackUrl, PHP_URL_HOST) ?: 'localhost';
+$targetHost = $parsedUrl['host'] ?? '';
+if ($targetHost !== '' && $targetHost !== $allowedHost) {
     header('Location: ' . $fallbackUrl, true, 302);
     exit;
 }

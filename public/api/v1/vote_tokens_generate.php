@@ -45,23 +45,30 @@ $createdCount = 0;
 
 $voteTokenRepo = new VoteTokenRepository();
 
-foreach ($voters as $v) {
-  $raw = api_uuid4();
-  $hash = hash_hmac('sha256', $raw, APP_SECRET);
+db()->beginTransaction();
+try {
+  foreach ($voters as $v) {
+    $raw = api_uuid4();
+    $hash = hash_hmac('sha256', $raw, APP_SECRET);
 
-  // Idempotent: keep one token per (member,motion) by deleting previous unused tokens
-  $voteTokenRepo->deleteUnusedByMotionAndMember($meetingId, $motionId, $v['member_id']);
+    // Idempotent: keep one token per (member,motion) by deleting previous unused tokens
+    $voteTokenRepo->deleteUnusedByMotionAndMember($meetingId, $motionId, $v['member_id']);
 
-  $voteTokenRepo->insert($hash, $tenant, $meetingId, $v['member_id'], $motionId, $expiresAt);
+    $voteTokenRepo->insert($hash, $tenant, $meetingId, $v['member_id'], $motionId, $expiresAt);
 
-  $createdCount++;
+    $createdCount++;
 
-  $generated[] = [
-    'member_id'   => $v['member_id'],
-    'member_name' => $v['member_name'],
-    'token'       => $raw,
-    'url'         => "/vote.php?token=" . $raw,
-  ];
+    $generated[] = [
+      'member_id'   => $v['member_id'],
+      'member_name' => $v['member_name'],
+      'token'       => $raw,
+      'url'         => "/vote.php?token=" . $raw,
+    ];
+  }
+  db()->commit();
+} catch (\Throwable $e) {
+  db()->rollBack();
+  api_fail('token_generation_failed', 500, ['detail' => 'Erreur lors de la génération des tokens.']);
 }
 
 if (function_exists('audit_log')) {
