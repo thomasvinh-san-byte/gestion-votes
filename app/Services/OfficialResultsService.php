@@ -379,22 +379,30 @@ final class OfficialResultsService
         $motionRepo = new MotionRepository();
         $motions = $motionRepo->listClosedForMeeting($meetingId);
 
-        $updated = 0;
-        foreach ($motions as $m) {
-            $mid = (string)$m['id'];
-            $o = self::computeOfficialTallies($mid);
+        $pdo = \db();
+        $pdo->beginTransaction();
+        try {
+            $updated = 0;
+            foreach ($motions as $m) {
+                $mid = (string)$m['id'];
+                $o = self::computeOfficialTallies($mid);
 
-            $motionRepo->updateOfficialResults(
-                $mid,
-                $o['source'],
-                $o['for'],
-                $o['against'],
-                $o['abstain'],
-                $o['total'],
-                $o['decision'],
-                $o['reason']
-            );
-            $updated++;
+                $motionRepo->updateOfficialResults(
+                    $mid,
+                    $o['source'],
+                    $o['for'],
+                    $o['against'],
+                    $o['abstain'],
+                    $o['total'],
+                    $o['decision'],
+                    $o['reason']
+                );
+                $updated++;
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
         }
 
         return ['updated' => $updated];

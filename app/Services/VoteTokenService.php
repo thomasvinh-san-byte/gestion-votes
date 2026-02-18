@@ -125,6 +125,45 @@ final class VoteTokenService
     }
 
     /**
+     * Atomic validate-and-consume: validates the token and marks it used in a single
+     * UPDATE query, eliminating the TOCTOU race between validate() and consume().
+     *
+     * @return array{valid: bool, token_hash: string, meeting_id?: string, member_id?: string, motion_id?: string, reason?: string}
+     */
+    public static function validateAndConsume(string $token): array
+    {
+        $token = trim($token);
+        if ($token === '') {
+            return ['valid' => false, 'token_hash' => '', 'reason' => 'token_empty'];
+        }
+
+        $tokenHash = hash('sha256', $token);
+
+        $tokenRepo = new VoteTokenRepository();
+        $row = $tokenRepo->consumeIfValid($tokenHash);
+
+        if (!$row) {
+            // Token not found, already used, or expired — check which
+            $existing = $tokenRepo->findByHash($tokenHash);
+            if (!$existing) {
+                return ['valid' => false, 'token_hash' => $tokenHash, 'reason' => 'token_not_found'];
+            }
+            if ($existing['used_at'] !== null) {
+                return ['valid' => false, 'token_hash' => $tokenHash, 'reason' => 'token_already_used'];
+            }
+            return ['valid' => false, 'token_hash' => $tokenHash, 'reason' => 'token_expired'];
+        }
+
+        return [
+            'valid'      => true,
+            'token_hash' => $tokenHash,
+            'meeting_id' => (string)$row['meeting_id'],
+            'member_id'  => (string)$row['member_id'],
+            'motion_id'  => (string)$row['motion_id'],
+        ];
+    }
+
+    /**
      * Revokes all unused tokens for a given motion.
      */
     public static function revokeForMotion(string $motionId): int

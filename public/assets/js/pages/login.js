@@ -36,9 +36,19 @@
     errorBox.classList.remove('visible');
   }
 
+  function isSafeRedirect(url) {
+    if (!url || typeof url !== 'string') return false;
+    if (url[0] !== '/' || url[1] === '/') return false;
+    try {
+      var decoded = decodeURIComponent(url);
+      if (/^\s*(javascript|data|vbscript)\s*:/i.test(decoded)) return false;
+    } catch (_) { return false; }
+    return true;
+  }
+
   function redirectByRole(user, meetingRoles) {
     var redirect = new URLSearchParams(location.search).get('redirect');
-    if (redirect) {
+    if (redirect && isSafeRedirect(redirect)) {
       window.location.href = redirect;
       return;
     }

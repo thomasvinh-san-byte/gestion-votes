@@ -389,6 +389,14 @@ class MeetingRepository extends AbstractRepository
         );
     }
 
+    private const UPDATABLE_FIELDS = [
+        'title', 'description', 'status', 'scheduled_at', 'started_at', 'ended_at',
+        'location', 'quorum_policy_id', 'vote_policy_id', 'convocation_no',
+        'president_name', 'president_member_id', 'president_source',
+        'current_motion_id', 'late_rule_quorum', 'late_rule_vote',
+        'ready_to_sign', 'validated_at', 'validated_by_user_id', 'archived_at',
+    ];
+
     /**
      * Met a jour dynamiquement des champs d'une seance.
      *
@@ -401,8 +409,11 @@ class MeetingRepository extends AbstractRepository
         $sets = [];
         $params = [':tid' => $tenantId, ':id' => $meetingId];
         foreach ($fields as $col => $val) {
+            if (!in_array($col, self::UPDATABLE_FIELDS, true)) {
+                throw new \InvalidArgumentException("Colonne non autorisée : {$col}");
+            }
             $param = ':f_' . $col;
-            $sets[] = "{$col} = {$param}";
+            $sets[] = "\"{$col}\" = {$param}";
             $params[$param] = $val;
         }
         $sets[] = "updated_at = now()";

@@ -141,7 +141,7 @@ final class MeetingWorkflowService
     public static function quorumMet(string $meetingId, string $tenantId): bool
     {
         try {
-            $result = QuorumEngine::compute($meetingId, $tenantId);
+            $result = QuorumEngine::computeForMeeting($meetingId, $tenantId);
             return $result['met'] ?? false;
         } catch (\Throwable $e) {
             return true; // On error, don't block

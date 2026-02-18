@@ -97,6 +97,22 @@ class ProxyRepository extends AbstractRepository
     }
 
     /**
+     * Same as countActiveAsGiver but with FOR UPDATE lock (for use within transactions).
+     */
+    public function countActiveAsGiverForUpdate(string $meetingId, string $memberId): int
+    {
+        $rows = $this->selectAll(
+            "SELECT id FROM proxies
+             WHERE meeting_id = :meeting_id
+               AND giver_member_id = :member_id
+               AND revoked_at IS NULL
+             FOR UPDATE",
+            [':meeting_id' => $meetingId, ':member_id' => $memberId]
+        );
+        return count($rows);
+    }
+
+    /**
      * Compte les procurations actives recues par un mandataire (pour le plafond).
      */
     public function countActiveAsReceiver(string $meetingId, string $memberId): int
@@ -108,6 +124,22 @@ class ProxyRepository extends AbstractRepository
                AND revoked_at IS NULL",
             [':meeting_id' => $meetingId, ':member_id' => $memberId]
         ) ?? 0);
+    }
+
+    /**
+     * Same as countActiveAsReceiver but with FOR UPDATE lock (for use within transactions).
+     */
+    public function countActiveAsReceiverForUpdate(string $meetingId, string $memberId): int
+    {
+        $rows = $this->selectAll(
+            "SELECT id FROM proxies
+             WHERE meeting_id = :meeting_id
+               AND receiver_member_id = :member_id
+               AND revoked_at IS NULL
+             FOR UPDATE",
+            [':meeting_id' => $meetingId, ':member_id' => $memberId]
+        );
+        return count($rows);
     }
 
     /**
