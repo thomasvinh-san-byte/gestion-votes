@@ -7,6 +7,8 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
 
+api_require_role('public');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     api_fail('method_not_allowed', 405);
 }
@@ -65,5 +67,5 @@ try {
 
 } catch (PDOException $e) {
     error_log('Database error in projector_state.php: ' . $e->getMessage());
-    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
+    api_fail('database_error', 500);
 }

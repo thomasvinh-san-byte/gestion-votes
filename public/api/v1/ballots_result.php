@@ -6,6 +6,8 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Service\VoteEngine;
 
+api_require_role('public');
+
 try {
     $params = api_request('GET');
     $motionId = trim((string)($params['motion_id'] ?? ''));

@@ -104,7 +104,12 @@ class Server implements MessageComponentInterface
     }
 
     /**
-     * Authentifie une connexion avec un token API.
+     * Authentifie une connexion avec un token HMAC signe.
+     *
+     * Le token est genere cote PHP (voir ws_auth_token()) :
+     *   base64( tenant_id:user_id:timestamp:hmac_sha256(secret, tenant_id|user_id|timestamp) )
+     *
+     * Validite : 5 minutes (300 secondes).
      */
     protected function handleAuthenticate(ConnectionInterface $conn, array $data): void
     {
@@ -119,12 +124,46 @@ class Server implements MessageComponentInterface
             return;
         }
 
-        // Verification simplifiee - en production, valider le token via API
-        // Pour l'instant, on fait confiance au tenant_id fourni
+        // Decode and validate HMAC token
+        $decoded = base64_decode($token, true);
+        if ($decoded === false) {
+            $conn->send(json_encode(['type' => 'auth_error', 'message' => 'Invalid token format']));
+            return;
+        }
+
+        $parts = explode(':', $decoded, 4);
+        if (count($parts) !== 4) {
+            $conn->send(json_encode(['type' => 'auth_error', 'message' => 'Malformed token']));
+            return;
+        }
+
+        [$tokenTenant, $tokenUser, $tokenTs, $tokenHmac] = $parts;
+
+        // Verify tenant_id matches
+        if ($tokenTenant !== $tenantId) {
+            $conn->send(json_encode(['type' => 'auth_error', 'message' => 'Tenant mismatch']));
+            return;
+        }
+
+        // Verify timestamp (max 5 minutes old)
+        $age = time() - (int) $tokenTs;
+        if ($age < 0 || $age > 300) {
+            $conn->send(json_encode(['type' => 'auth_error', 'message' => 'Token expired']));
+            return;
+        }
+
+        // Verify HMAC signature
+        $secret = getenv('APP_SECRET') ?: '';
+        $expected = hash_hmac('sha256', "{$tokenTenant}|{$tokenUser}|{$tokenTs}", $secret);
+        if (!hash_equals($expected, $tokenHmac)) {
+            $conn->send(json_encode(['type' => 'auth_error', 'message' => 'Invalid signature']));
+            return;
+        }
+
         $info = $this->clients[$conn];
         $info['authenticated'] = true;
         $info['tenant_id'] = $tenantId;
-        $info['user_id'] = $data['user_id'] ?? null;
+        $info['user_id'] = $tokenUser ?: null;
         $this->clients[$conn] = $info;
 
         // Rejoindre automatiquement la room tenant

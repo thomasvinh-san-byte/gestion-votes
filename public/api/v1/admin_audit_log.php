@@ -25,8 +25,8 @@ $q        = trim((string)($_GET['q'] ?? ''));
 $where  = "WHERE tenant_id = ?";
 $params = [$tenantId];
 
-// Only admin-prefixed actions
-$where .= " AND action LIKE 'admin.%'";
+// Only admin-prefixed actions (admin.user.*, admin_quorum_policy_*, etc.)
+$where .= " AND (action LIKE 'admin.%' OR action LIKE 'admin\\_%')";
 
 // Optional action filter
 if ($action !== '') {
@@ -115,7 +115,7 @@ foreach ($events as $e) {
 // Distinct action types for filter dropdown
 $actionTypes = [];
 $stmtActions = db()->prepare(
-    "SELECT DISTINCT action FROM audit_events WHERE tenant_id = ? AND action LIKE 'admin.%' ORDER BY action"
+    "SELECT DISTINCT action FROM audit_events WHERE tenant_id = ? AND (action LIKE 'admin.%' OR action LIKE 'admin\\_%') ORDER BY action"
 );
 $stmtActions->execute([$tenantId]);
 foreach ($stmtActions->fetchAll(\PDO::FETCH_ASSOC) as $row) {

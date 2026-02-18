@@ -8,8 +8,9 @@ use AgVote\Repository\DeviceRepository;
 
 header('Content-Type: application/json; charset=utf-8');
 
-// Heartbeat is typically called by voter/projector clients.
-// Auth is intentionally not enforced here in DEV mode; in prod you may gate it.
+// Heartbeat: enforce auth in production, allow public in dev
+api_require_role('public');
+
 $raw = file_get_contents('php://input');
 $in = json_decode($raw ?: '[]', true);
 if (!is_array($in)) $in = [];

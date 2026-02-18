@@ -17,7 +17,7 @@
 | 8 | P3-3 | Opérateur | Vote manuel justification non éditable | Haute | Faible | DONE |
 | 9 | P3-4 | Opérateur | Pas d'annulation de vote manuel | Haute | Moyen | DONE |
 | 10 | P4-2 | Votants | Raccourcis clavier 1/2/3 affichés mais inopérants | Haute | Faible | DONE |
-| 11 | P4-3 | Votants | Pas de queue offline pour les votes | Haute | Élevé | DEFERRED |
+| 11 | P4-3 | Votants | Pas de queue offline pour les votes | Haute | Élevé | DROPPED |
 | 12 | P4-4 | Votants | Procuration sans indication claire | Haute | Faible | DONE |
 | 13 | P2-3 | Président | "Clôturer le vote" vs "Clôturer la séance" confusion | Haute | Faible | DONE |
 | 14 | P2-4 | Président | Clôture scrutin sans confirmation modale | Haute | Faible | DONE |
@@ -39,15 +39,15 @@
 | 30 | P6-4 | Auditeur | Sévérité anomalies par couleur seulement | Moyenne | Faible | DONE |
 | 31 | P6-5 | Auditeur | Auto-refresh perd les filtres | Moyenne | Faible | DONE |
 | 32 | P7-4 | Admin | Assignation rôles un par un | Moyenne | Moyen | DONE |
-| 33 | P7-5 | Admin | Éditeur templates sans coloration | Moyenne | Élevé | DEFERRED |
+| 33 | P7-5 | Admin | Éditeur templates sans coloration | Moyenne | Élevé | DROPPED |
 | 34 | P7-6 | Admin | prompt() natif pour duplication | Moyenne | Faible | DONE |
 | 35 | P2-6 | Président | Onglets inutiles visibles | Basse | Faible | DONE |
-| 36 | P3-7 | Opérateur | File parole non réordonnable | Basse | Moyen | DEFERRED |
-| 37 | P3-8 | Opérateur | Timer parole côté client | Basse | Moyen | DEFERRED |
+| 36 | P3-7 | Opérateur | File parole non réordonnable | Basse | Moyen | DROPPED |
+| 37 | P3-8 | Opérateur | Timer parole côté client | Basse | Moyen | DROPPED |
 | 38 | P4-8 | Votants | Reçu vote non persistant | Basse | Faible | DONE |
 | 39 | P5-5 | Post-séance | Pas de dé-archivage admin | Basse | Élevé | DONE |
 | 40 | P6-6 | Auditeur | Export audit texte brut seulement | Basse | Moyen | DONE |
-| 41 | P7-7 | Admin | Machine à états : visualisation confuse | Basse | Moyen | DEFERRED |
+| 41 | P7-7 | Admin | Machine à états : visualisation confuse | Basse | Moyen | DROPPED |
 | 42 | P7-8 | Admin | KPI santé sans seuils documentés | Basse | Faible | DONE |
 
 ---
@@ -133,12 +133,12 @@ Interface complète (6 onglets) mais sans garde-fous suffisants et sans audit de
 | Statut | Nombre | Description |
 |--------|--------|-------------|
 | DONE | 37/42 | Corrigés (frontend + backend) |
-| DEFERRED | 5/42 | Reportés (effort élevé ou complexité architecturale) |
+| DROPPED | 5/42 | Abandonnés (hors périmètre) |
 
-### Items DEFERRED (reportés)
+### Items DROPPED (abandonnés — hors périmètre)
 
-- **P4-3** (Haute) — Queue offline : nécessite un Service Worker complet avec IndexedDB et synchronisation différée — architecture significative
-- **P7-5** (Moyenne) — Coloration syntaxique : nécessite l'intégration d'une bibliothèque externe (CodeMirror/Monaco) — effort élevé
-- **P3-7** (Basse) — Réordonnancement file parole : nécessite drag-and-drop + persistance serveur
-- **P7-7** (Basse) — Visualisation machine à états : nécessite une bibliothèque de graphes (d3/dagre) pour les flèches
-- **P3-8** (Basse) — Timer parole serveur : nécessite synchronisation temps serveur via WebSocket
+- **P4-3** (Haute) — Queue offline : Service Worker + IndexedDB + sync différée — architecture lourde, MVP suffisant
+- **P7-5** (Moyenne) — Coloration syntaxique : CodeMirror/Monaco — bibliothèque externe hors scope
+- **P3-7** (Basse) — Réordonnancement file parole : drag-drop + persistance serveur — usage marginal
+- **P7-7** (Basse) — Visualisation machine à états : graphe SVG d3/dagre — cosmétique
+- **P3-8** (Basse) — Timer parole serveur : sync WebSocket temps réel — YAGNI

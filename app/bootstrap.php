@@ -152,8 +152,8 @@ if (!headers_sent()) {
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     
-    // CSP (permissive for HTMX/CDN)
-    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'self'; form-action 'self'");
+    // CSP (permissive for HTMX/CDN, allows WebSocket via ws:/wss:)
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data: blob:; connect-src 'self' ws: wss:; frame-ancestors 'self'; form-action 'self'");
     
     // HSTS in HTTPS
     if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
@@ -321,4 +321,21 @@ function api_uuid4(): string {
     $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
     $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+// =============================================================================
+// 11. WEBSOCKET AUTH TOKEN
+// =============================================================================
+
+/**
+ * Generate an HMAC-signed token for WebSocket authentication.
+ * Token format: base64( tenant_id:user_id:timestamp:hmac )
+ * Valid for 5 minutes. Verified in app/WebSocket/Server.php.
+ */
+function ws_auth_token(?string $tenantId = null, ?string $userId = null): string {
+    $tenantId = $tenantId ?: (AuthMiddleware::getCurrentTenantId() ?: DEFAULT_TENANT_ID);
+    $userId = $userId ?: (AuthMiddleware::getCurrentUserId() ?: '');
+    $ts = (string) time();
+    $hmac = hash_hmac('sha256', "{$tenantId}|{$userId}|{$ts}", APP_SECRET);
+    return base64_encode("{$tenantId}:{$userId}:{$ts}:{$hmac}");
 }

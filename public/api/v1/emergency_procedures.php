@@ -3,6 +3,8 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\EmergencyProcedureRepository;
 
+api_require_role('operator');
+
 $q = api_request('GET');
 $aud = trim((string)($q['audience'] ?? 'operator'));
 $meetingId = trim((string)($q['meeting_id'] ?? ''));

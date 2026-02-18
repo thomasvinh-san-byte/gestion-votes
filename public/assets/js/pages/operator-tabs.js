@@ -961,7 +961,7 @@
           <div class="flex items-center justify-between p-3 border-b" style="border-color:var(--color-border);">
             <div>
               <div class="font-medium">${statusIcon} ${escapeHtml(dev.device_id.slice(0, 12))}...</div>
-              <div class="text-xs text-muted">${dev.role || 'inconnu'} • ${dev.ip || '—'} ${battery}</div>
+              <div class="text-xs text-muted">${escapeHtml(dev.role || 'inconnu')} • ${escapeHtml(dev.ip || '—')} ${battery}</div>
               ${blocked ? `<div class="text-xs text-danger">${icon('ban', 'icon-xs icon-text')}Bloqué: ${escapeHtml(dev.block_reason || '')}</div>` : ''}
             </div>
             <div class="flex gap-1">
@@ -1490,10 +1490,12 @@
         const formData = new FormData();
         formData.append('csv_content', csvContent);
 
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || (window.CSRF && window.CSRF.token) || '';
         const resp = await fetch('/api/v1/members_import_csv.php', {
           method: 'POST',
           body: formData,
-          credentials: 'same-origin'
+          credentials: 'same-origin',
+          headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {}
         });
         const data = await resp.json();
 
@@ -1886,10 +1888,12 @@
         formData.append('meeting_id', currentMeetingId);
         formData.append('csv_content', csvContent);
 
+        const csrfTok = document.querySelector('meta[name="csrf-token"]')?.content || (window.CSRF && window.CSRF.token) || '';
         const resp = await fetch('/api/v1/proxies_import_csv.php', {
           method: 'POST',
           body: formData,
-          credentials: 'same-origin'
+          credentials: 'same-origin',
+          headers: csrfTok ? { 'X-CSRF-Token': csrfTok } : {}
         });
         const data = await resp.json();
 

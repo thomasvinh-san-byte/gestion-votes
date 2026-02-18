@@ -1,6 +1,8 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
 
+api_require_role('public');
+
 $in = api_request('POST');
 
 $kind = trim((string)($in['kind'] ?? 'network'));

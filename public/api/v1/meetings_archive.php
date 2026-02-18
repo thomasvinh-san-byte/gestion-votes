@@ -20,5 +20,6 @@ try {
     $rows = $repo->listArchived(api_current_tenant_id(), $from, $to);
     api_ok(['meetings' => $rows]);
 } catch (PDOException $e) {
-    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
+    error_log('meetings_archive.php: ' . $e->getMessage());
+    api_fail('database_error', 500);
 }

@@ -5,6 +5,8 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Service\QuorumEngine;
 
+api_require_role('public');
+
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 $motionId  = trim((string)($_GET['motion_id'] ?? ''));
 

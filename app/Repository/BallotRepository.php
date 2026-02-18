@@ -219,7 +219,7 @@ class BallotRepository extends AbstractRepository
     public function findByMotionAndMember(string $motionId, string $memberId): ?array
     {
         return $this->selectOne(
-            "SELECT motion_id, member_id, value, weight, cast_at, is_proxy_vote, proxy_source_member_id
+            "SELECT motion_id, member_id, value, weight, cast_at, is_proxy_vote, proxy_source_member_id, COALESCE(source, 'tablet') AS source
              FROM ballots
              WHERE motion_id = :mid AND member_id = :mem",
             [':mid' => $motionId, ':mem' => $memberId]
