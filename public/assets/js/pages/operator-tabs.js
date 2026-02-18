@@ -2472,6 +2472,7 @@
       }
 
       setNotif('success', 'Vote ouvert');
+      announce('Vote ouvert.');
 
       // loadResolutions will re-render the list with fresh buttons (old disabled ones are replaced)
       await loadResolutions();
@@ -2664,8 +2665,18 @@
           body.warnings.forEach(w => setNotif('warning', w.msg));
         }
         setNotif('success', `Séance passée en "${statusLabel}"`);
-        loadMeetingContext(currentMeetingId);
+        await loadMeetingContext(currentMeetingId);
         loadMeetings();
+
+        // Auto-switch mode based on new status
+        if (toStatus === 'live') {
+          setMode('exec');
+          announce('Séance en cours — mode exécution activé.');
+        } else if (['closed', 'validated', 'archived'].includes(toStatus)) {
+          setMode('setup');
+          switchTab('resultats');
+          announce(`Séance ${statusLabel}.`);
+        }
       } else {
         setNotif('error', getApiError(body));
       }
@@ -2679,6 +2690,10 @@
   // =========================================================================
 
   function setMode(mode) {
+    // Prevent entering exec mode if meeting is not live
+    if (mode === 'exec' && currentMeetingStatus !== 'live') {
+      mode = 'setup';
+    }
     currentMode = mode;
 
     // Update button states
@@ -2689,6 +2704,8 @@
     if (btnModeExec) {
       btnModeExec.classList.toggle('active', mode === 'exec');
       btnModeExec.setAttribute('aria-pressed', String(mode === 'exec'));
+      // Disable exec button when meeting is not live
+      btnModeExec.disabled = currentMeetingStatus !== 'live';
     }
 
     // Toggle views
@@ -3101,8 +3118,14 @@
     const abstainEl = document.getElementById('execVoteAbstain');
     const liveBadge = document.getElementById('execLiveBadge');
     const btnClose = document.getElementById('execBtnCloseVote');
+    const noVotePanel = document.getElementById('execNoVote');
+    const activeVotePanel = document.getElementById('execActiveVote');
 
     if (currentOpenMotion) {
+      // Show active vote, hide no-vote placeholder
+      if (noVotePanel) Shared.hide(noVotePanel);
+      if (activeVotePanel) activeVotePanel.hidden = false;
+
       if (titleEl) titleEl.textContent = currentOpenMotion.title;
       if (liveBadge) Shared.show(liveBadge);
       if (btnClose) { btnClose.disabled = false; Shared.show(btnClose); }
@@ -3118,13 +3141,44 @@
       if (againstEl) againstEl.textContent = ac;
       if (abstainEl) abstainEl.textContent = ab;
     } else {
-      if (titleEl) titleEl.textContent = 'Aucun vote en cours';
+      // Show no-vote placeholder with quick-open buttons, hide active vote
+      if (noVotePanel) Shared.show(noVotePanel, 'block');
+      if (activeVotePanel) activeVotePanel.hidden = true;
+
       if (liveBadge) Shared.hide(liveBadge);
-      if (forEl) forEl.textContent = '—';
-      if (againstEl) againstEl.textContent = '—';
-      if (abstainEl) abstainEl.textContent = '—';
       if (btnClose) { btnClose.disabled = true; Shared.hide(btnClose); }
+
+      renderExecQuickOpenList();
     }
+  }
+
+  function renderExecQuickOpenList() {
+    const list = document.getElementById('execQuickOpenList');
+    if (!list) return;
+
+    const isLive = currentMeetingStatus === 'live';
+    const openableMotions = motionsCache.filter(m => !m.opened_at && !m.closed_at);
+
+    if (!isLive || openableMotions.length === 0) {
+      list.innerHTML = isLive
+        ? '<p class="text-muted text-sm">Aucune résolution en attente</p>'
+        : '<p class="text-muted text-sm">La séance doit être en cours pour ouvrir un vote</p>';
+      return;
+    }
+
+    list.innerHTML = openableMotions.slice(0, 5).map((m, i) => `
+      <button class="btn btn-primary btn-quick-open" data-motion-id="${m.id}">
+        ${icon('play', 'icon-sm icon-text')}${i + 1}. ${escapeHtml(m.title.length > 30 ? m.title.substring(0, 30) + '...' : m.title)}
+      </button>
+    `).join('');
+
+    if (openableMotions.length > 5) {
+      list.innerHTML += `<span class="text-muted text-sm">+ ${openableMotions.length - 5} autres</span>`;
+    }
+
+    list.querySelectorAll('.btn-quick-open').forEach(btn => {
+      btn.addEventListener('click', () => openVote(btn.dataset.motionId));
+    });
   }
 
   function refreshExecSpeech() {
@@ -3367,6 +3421,7 @@
         const motionTitle = currentOpenMotion.title;
         newVoteDebounceTimer = setTimeout(() => {
           setNotif('info', `Vote ouvert: ${motionTitle}`);
+          announce(`Vote ouvert : ${motionTitle}`);
           if (currentMode === 'exec') {
             loadBallots(currentOpenMotion.id).then(() => refreshExecView());
           } else {
