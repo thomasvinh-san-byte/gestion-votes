@@ -118,9 +118,13 @@
     const deviceId = getDeviceId();
     const bat = await readBattery();
     try {
+      const hbHeaders = { 'Content-Type': 'application/json' };
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+                     || (window.Utils?.csrfToken ? Utils.csrfToken() : null);
+      if (csrfToken) hbHeaders['X-CSRF-Token'] = csrfToken;
       const r = await fetch(HEARTBEAT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: hbHeaders,
         credentials: 'same-origin',
         body: JSON.stringify({
           meeting_id: meetingId,
@@ -465,7 +469,10 @@
 
     // Update member display in footer
     updateMemberFromSelect(sel);
-    sel.addEventListener('change', () => updateMemberFromSelect(sel));
+    if (!sel._memberChangeWired) {
+      sel._memberChangeWired = true;
+      sel.addEventListener('change', () => updateMemberFromSelect(sel));
+    }
   }
 
   /**

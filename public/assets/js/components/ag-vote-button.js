@@ -28,7 +28,6 @@ class AgVoteButton extends HTMLElement {
 
   connectedCallback() {
     this.render();
-    this.shadowRoot.querySelector('button').addEventListener('click', () => this.handleClick());
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -176,6 +175,7 @@ class AgVoteButton extends HTMLElement {
         <span><slot>${labelMap[value] || value}</slot></span>
       </button>
     `;
+    this.shadowRoot.querySelector('button').addEventListener('click', () => this.handleClick());
   }
 }
 
