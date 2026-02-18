@@ -517,7 +517,7 @@
     }
 
     // Type de consultation (stored in description or metadata)
-    const meetingType = currentMeeting.meeting_type || 'ordinary';
+    const meetingType = currentMeeting.meeting_type || 'ag_ordinaire';
     document.querySelectorAll('input[name="meetingType"]').forEach(radio => {
       radio.checked = radio.value === meetingType;
     });
@@ -897,7 +897,7 @@
   async function saveGeneralSettings() {
     const title = document.getElementById('settingTitle').value.trim();
     const scheduledAt = document.getElementById('settingDate').value;
-    const meetingType = document.querySelector('input[name="meetingType"]:checked')?.value || 'ordinary';
+    const meetingType = document.querySelector('input[name="meetingType"]:checked')?.value || 'ag_ordinaire';
 
     if (!title) {
       setNotif('error', 'Le titre est obligatoire');
