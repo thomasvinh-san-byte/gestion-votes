@@ -3,6 +3,8 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Service\QuorumEngine;
 
+api_require_role('operator');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     api_fail('method_not_allowed', 405);
 }

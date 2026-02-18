@@ -5,7 +5,6 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Service\AttendancesService;
-use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MeetingRepository;
 
 try {
@@ -29,25 +28,9 @@ try {
     $list = AttendancesService::listForMeeting($meetingId, $tenantId);
     $summary = AttendancesService::summaryForMeeting($meetingId, $tenantId);
 
-    // Debug: if no attendances, check if members exist at all
-    $debug = null;
-    if (empty($list)) {
-        $memberRepo = new MemberRepository();
-        $allMembers = $memberRepo->listByTenant($tenantId);
-        $debug = [
-            'tenant_id' => $tenantId,
-            'meeting_id' => $meetingId,
-            'members_count' => count($allMembers),
-            'hint' => count($allMembers) > 0
-                ? 'Members exist but query returned empty - check meeting_id validity'
-                : 'No members found for this tenant_id'
-        ];
-    }
-
     api_ok([
         'attendances' => $list,
         'summary' => $summary,
-        'debug' => $debug,
     ]);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);

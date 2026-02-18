@@ -16,6 +16,9 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Service\EmailQueueService;
 
 api_require_role('operator');
+
+try {
+
 $input = api_request('POST');
 
 $meetingId = trim((string)($input['meeting_id'] ?? ''));
@@ -69,3 +72,11 @@ api_ok([
     'scheduled_at' => $scheduledAt ?? 'immediate',
     'errors' => $result['errors'],
 ]);
+
+} catch (PDOException $e) {
+    error_log("Database error in invitations_schedule.php: " . $e->getMessage());
+    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log("Unexpected error in invitations_schedule.php: " . $e->getMessage());
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
+}

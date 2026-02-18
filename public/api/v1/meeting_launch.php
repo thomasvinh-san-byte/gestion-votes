@@ -14,9 +14,9 @@ use AgVote\Repository\MeetingRepository;
 use AgVote\Service\MeetingWorkflowService;
 use AgVote\WebSocket\EventBroadcaster;
 
-$input = api_request('POST');
-
 api_require_role(['operator', 'president', 'admin']);
+
+$input = api_request('POST');
 
 $meetingId = api_require_uuid($input, 'meeting_id');
 
@@ -128,5 +128,6 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    throw $e;
+    error_log("Error in meeting_launch.php: " . $e->getMessage());
+    api_fail('launch_failed', 500, ['detail' => $e->getMessage()]);
 }

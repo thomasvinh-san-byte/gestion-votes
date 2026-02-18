@@ -204,7 +204,7 @@ class ConflictAwareSyncManager {
       const conflictCheck = await this.resolver.detectConflict(action, serverState);
 
       if (conflictCheck.hasConflict) {
-        console.log('[ConflictSync] Conflict detected:', conflictCheck);
+        if (window.AG_DEBUG) console.log('[ConflictSync] Conflict detected:', conflictCheck);
         result.conflict = conflictCheck;
 
         // Resolve based on action type
@@ -332,7 +332,7 @@ class ConflictAwareSyncManager {
 
     try {
       const pending = await this.storage.getPendingActions();
-      console.log(`[ConflictSync] Processing ${pending.length} pending actions`);
+      if (window.AG_DEBUG) console.log(`[ConflictSync] Processing ${pending.length} pending actions`);
 
       for (const action of pending) {
         const result = await this.syncAction(action);

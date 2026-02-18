@@ -70,31 +70,31 @@ try {
     );
 
     db()->commit();
+    audit_log('manual_tally_set', 'motion', $motionId, [
+        'meeting_id' => $meetingId,
+        'tally' => ['total'=>$total,'for'=>$for,'against'=>$against,'abstain'=>$abstain],
+        'justification' => $justification,
+    ]);
+
+    NotificationsService::emit(
+        $meetingId,
+        'warn',
+        'degraded_manual_tally',
+        "Mode dégradé: comptage manuel saisi pour \"" . ((string)$row['motion_title']) . "\".",
+        ['operator','trust'],
+        ['motion_id' => $motionId]
+    );
+
+    api_ok([
+        'meeting_id' => $meetingId,
+        'motion_id' => $motionId,
+        'manual_total' => $total,
+        'manual_for' => $for,
+        'manual_against' => $against,
+        'manual_abstain' => $abstain,
+    ]);
 } catch (Throwable $e) {
-    db()->rollBack();
+    if (db()->inTransaction()) db()->rollBack();
+    error_log("Error in degraded_tally.php: " . $e->getMessage());
     api_fail('degraded_tally_failed', 500, ['detail' => $e->getMessage()]);
 }
-
-audit_log('manual_tally_set', 'motion', $motionId, [
-    'meeting_id' => $meetingId,
-    'tally' => ['total'=>$total,'for'=>$for,'against'=>$against,'abstain'=>$abstain],
-    'justification' => $justification,
-]);
-
-NotificationsService::emit(
-    $meetingId,
-    'warn',
-    'degraded_manual_tally',
-    "Mode dégradé: comptage manuel saisi pour \"" . ((string)$row['motion_title']) . "\".",
-    ['operator','trust'],
-    ['motion_id' => $motionId]
-);
-
-api_ok([
-    'meeting_id' => $meetingId,
-    'motion_id' => $motionId,
-    'manual_total' => $total,
-    'manual_for' => $for,
-    'manual_against' => $against,
-    'manual_abstain' => $abstain,
-]);

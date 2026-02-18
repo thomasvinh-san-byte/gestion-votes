@@ -11,6 +11,8 @@ use AgVote\Repository\BallotRepository;
 
 api_require_role('operator');
 
+try {
+
 $meetingId = isset($_GET['meeting_id']) ? (string)$_GET['meeting_id'] : '';
 $tenantId  = (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
 
@@ -122,3 +124,11 @@ if ($meetingId !== '') {
 }
 
 api_ok($data);
+
+} catch (PDOException $e) {
+    error_log("Database error in dashboard.php: " . $e->getMessage());
+    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log("Unexpected error in dashboard.php: " . $e->getMessage());
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
+}

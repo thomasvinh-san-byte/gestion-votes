@@ -8,6 +8,8 @@ use AgVote\Repository\MeetingRepository;
 use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
 
+api_require_role('operator');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     api_fail('method_not_allowed', 405);
 }
@@ -59,8 +61,7 @@ try {
         'ready_to_sign'        => $readyToSign,
         'sign_status'          => $signStatus,
         'sign_message'         => $signMessage,
-        // Pour l'instant : pas de RBAC fin, donc on laisse true
-        'can_current_user_validate' => true,
+        'can_current_user_validate' => in_array(api_current_role(), ['president', 'admin'], true),
     ]);
 
     api_ok($response);
@@ -68,4 +69,7 @@ try {
 } catch (PDOException $e) {
     error_log("Database error in meeting_status.php: " . $e->getMessage());
     api_fail('database_error', 500, ['detail' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log("Unexpected error in meeting_status.php: " . $e->getMessage());
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
 }

@@ -6,6 +6,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MemberGroupRepository;
+use AgVote\Core\Validation\Schemas\ValidationSchemas;
 
 api_require_role('operator');
 
@@ -33,18 +34,18 @@ try {
         $input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
         if (!is_array($input)) $input = $_POST;
 
-        $full_name = trim($input['full_name'] ?? '');
-        if ($full_name === '') {
-            api_fail('missing_full_name', 422, ['detail' => 'Le nom complet est requis.']);
+        // Normalize legacy field name
+        if (isset($input['vote_weight']) && !isset($input['voting_power'])) {
+            $input['voting_power'] = $input['vote_weight'];
         }
 
-        $email = trim($input['email'] ?? '');
-        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            api_fail('invalid_email', 422, ['detail' => 'Format d\'email invalide.']);
-        }
+        $v = ValidationSchemas::member()->validate($input);
+        $v->failIfInvalid();
 
-        $voting_power = (float)($input['voting_power'] ?? $input['vote_weight'] ?? 1);
-        $is_active = ($input['is_active'] ?? true) !== false;
+        $full_name    = $v->get('full_name');
+        $email        = $v->get('email', '');
+        $voting_power = $v->get('voting_power', 1);
+        $is_active    = $v->get('is_active', true);
         $id = api_uuid4();
 
         $repo->create($id, $tenantId, $full_name, $email, $voting_power, $is_active);
@@ -67,18 +68,18 @@ try {
             api_fail('member_not_found', 404, ['detail' => 'Membre introuvable.']);
         }
 
-        $full_name = trim($input['full_name'] ?? '');
-        if ($full_name === '') {
-            api_fail('missing_full_name', 422, ['detail' => 'Le nom complet est requis.']);
+        // Normalize legacy field name
+        if (isset($input['vote_weight']) && !isset($input['voting_power'])) {
+            $input['voting_power'] = $input['vote_weight'];
         }
 
-        $email = trim($input['email'] ?? '');
-        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            api_fail('invalid_email', 422, ['detail' => 'Format d\'email invalide.']);
-        }
+        $v = ValidationSchemas::member()->validate($input);
+        $v->failIfInvalid();
 
-        $voting_power = (float)($input['voting_power'] ?? $input['vote_weight'] ?? 1);
-        $is_active = ($input['is_active'] ?? true) !== false;
+        $full_name    = $v->get('full_name');
+        $email        = $v->get('email', '');
+        $voting_power = $v->get('voting_power', 1);
+        $is_active    = $v->get('is_active', true);
 
         $repo->updateImport($id, $full_name, $email ?: null, $voting_power, $is_active);
 

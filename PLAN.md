@@ -1,198 +1,199 @@
-# Plan de mise en oeuvre — Console Opérateur bimodale
+# Plan de mise en oeuvre — Durcissement API & qualité
 
-Refactoring de `operator.htmx.html` + `operator-tabs.js` + `operator.css`
-pour aligner la console opérateur sur le wireframe (mode Préparation / Exécution).
+Suite au refactoring de la console opérateur (terminé), ce plan couvre le
+durcissement sécurité, la validation centralisée, et la qualité générale du backend.
 
-**Statut : TERMINÉ** — toutes les phases sont implémentées.
-
----
-
-## Phase 0 — Nettoyage préalable ✅
-
-### 0.1 Supprimer `operator.js` legacy ✅
-- `operator.js` supprimé ; seul `operator-tabs.js` est chargé.
-
-### 0.2 Retirer le wizard de la page opérateur ✅
-- Pas de `<div id="wizard-progress">` ni de `<script>` session-wizard dans operator.
-- `session-wizard.js` : code `isOperatorPage` supprimé, skip explicite dans `init()`,
-  entrée operator retirée de `PAGE_STEP_MAP`, styles `.wizard-readonly` supprimés.
-- Le wizard continue de fonctionner sur les autres pages (meetings, members).
+**Statut : EN COURS**
 
 ---
 
-## Phase 1 — Nouvelle barre de séance (meeting bar) ✅
+## Phase A — Sécurité des routes API (priorité haute)
 
-### 1.1 HTML ✅
-Meeting bar avec 2 lignes :
-- **Ligne 1** : sélecteur séance + badge statut + chip santé + horloge + bouton Actualiser
-- **Ligne 2** : context hint + mode switch (Préparation/Exécution) + bouton principal + lien Projection
+### A.1 Ajouter `api_require_role()` aux 4 routes non protégées
+| Route | Rôle(s) requis | Justification |
+|-------|---------------|---------------|
+| `quorum_policies.php` | `operator` | Lecture des politiques de quorum |
+| `vote_policies.php` | `operator` | Lecture des politiques de vote |
+| `meeting_status.php` | `operator` | Statut détaillé + compteurs de la séance |
+| `quorum_status.php` | `operator` | Statut du quorum (données sensibles) |
 
-### 1.2 CSS ✅
-- `.meeting-bar`, `.meeting-bar-top`, `.meeting-bar-actions`, `.meeting-bar-chip`
-- `.health-dot` (3 états : ok, warn, danger)
-- `.mode-switch` (segmented control avec `.active`)
-- `.context-hint` (italique, muted)
-- Grid layout : `grid-template-rows: auto auto auto 1fr`
+Pattern à suivre : `api_require_role('operator');` en top-level, avant tout `try {}`.
 
-### 1.3 JS ✅
-- Horloge `tick()` (setInterval 30s, format HH:MM)
-- `btnBarRefresh` → `loadAllData()`
-- `btnProjector` → lien vers `/public.htmx.html?meeting_id=…`
-- `updateHealthChip()` basé sur le score de conformité
-- `updateContextHint()` selon le mode et l'état
+### A.2 Corriger le RBAC hardcodé dans `meeting_status.php`
+- Remplacer `'can_current_user_validate' => true` (ligne 63) par un vrai check.
+- Utiliser `api_current_user_role()` pour vérifier si le rôle est `president` ou `admin`.
+
+### A.3 Supprimer la fuite de données debug dans `attendances.php`
+- Retirer le champ `'debug' => $debug` de la réponse `api_ok()` (ligne 50).
+- Supprimer le bloc de construction `$debug` (lignes 33-45).
+
+### A.4 Séparer `.env` de `.env.example`
+- `.env.example` : valeurs par défaut sûres (`APP_AUTH_ENABLED=1`, `CSRF_ENABLED=1`, `RATE_LIMIT_ENABLED=1`).
+- `.env` : déjà dans `.gitignore`, supprimer le fichier tracké du dépôt avec `git rm --cached`.
+- Ajouter un commentaire dans `.env.example` : `# Copier en .env et adapter les valeurs`.
 
 ---
 
-## Phase 2 — Mode switch (Préparation / Exécution) ✅
+## Phase B — InputValidator dans les routes principales
 
-### 2.1 Variable d'état ✅
-```js
-let currentMode = 'setup'; // 'setup' | 'exec'
+### B.1 Routes cibles (6 routes à haute fréquence)
+| Route | Schéma existant | Méthodes HTTP |
+|-------|----------------|---------------|
+| `meetings.php` | `ValidationSchemas::meeting()` | POST, PUT |
+| `members.php` | `ValidationSchemas::member()` | POST, PUT/PATCH |
+| `motions.php` | `ValidationSchemas::motion()` | POST |
+| `agendas.php` | — (créer `ValidationSchemas::agenda()`) | POST |
+| `attendances.php` | `ValidationSchemas::attendance()` | GET (query params) |
+| `admin_quorum_policies.php` | `ValidationSchemas::quorumPolicy()` | POST (create/update) |
+| `admin_vote_policies.php` | `ValidationSchemas::votePolicy()` | POST (create/update) |
+
+### B.2 Harmoniser les limites entre schémas et routes
+| Champ | Route actuelle | Schéma | Décision |
+|-------|---------------|--------|----------|
+| `meetings.title` | max 200 | max 255 | → 255 (schéma gagne) |
+| `motions.title` | max 80 | max 500 | → 500 (schéma gagne) |
+| `agendas.title` | max 40 | — | → créer schéma avec max 100 |
+
+### B.3 Pattern de migration par route
+```php
+// AVANT (ad-hoc) :
+$title = trim($input['title'] ?? '');
+if ($title === '') api_fail('missing_title', 422, [...]);
+if (mb_strlen($title) > 200) api_fail('title_too_long', 422, [...]);
+
+// APRÈS (InputValidator) :
+$result = ValidationSchemas::meeting()->validate($input);
+$result->failIfInvalid();
+$title = $result->get('title');
 ```
 
-### 2.2 Fonction `setMode(mode)` ✅
-- Guard : empêche l'entrée en mode exec si la séance n'est pas `live`
-- Met à jour `aria-pressed` sur les boutons
-- Désactive `btnModeExec` quand la séance n'est pas live
-- Bascule la visibilité : `viewSetup` ↔ `viewExec`, masque/affiche `tabsNav`
-- Appelle `updatePrimaryButton()`, `updateContextHint()`, `announce()`
-- En mode exec : `refreshExecView()` + `startSessionTimer()`
-
-### 2.3 HTML — Enveloppes de vue ✅
-- `<section id="viewSetup">` contient le dashboard + les 7 onglets
-- `<section id="viewExec">` contient la grille 3 colonnes + KPI strip
-
-### 2.4 Bascule automatique ✅
-- `launchSession()` → `setMode('exec')`
-- Au chargement, si `meetingStatus === 'live'` → `setMode('exec')`
-- Polling détecte un nouveau vote → notification + bascule vers onglet vote ou refresh exec
-
----
-
-## Phase 3 — Vue Préparation restructurée ✅
-
-### 3.1 Dashboard de synthèse ✅
-Grille 2 colonnes au-dessus des onglets : checklist conformité + panneau alertes.
-
-### 3.2 Checklist de conformité ✅
-4 étapes avec score 0-4 :
-
-| # | Étape | Condition | Implémentation |
-|---|-------|-----------|----------------|
-| 1 | Registre des membres | `membersCache.length > 0` | `getConformityScore()` |
-| 2 | Présences & procurations | Au moins 1 présent/distant | `attendanceCache` |
-| 3 | Convocations | Toujours validé (optionnel) | score++ |
-| 4 | Règlement & présidence | Policy ou président assigné | `currentMeeting.quorum_policy_id` |
-
-- `renderConformityChecklist()` rend les items avec état (done/pending/optional)
-- `updateHealthChip()` met à jour le chip santé dans la meeting bar
-- `btnPrimary` activé si score ≥ 3
-
-### 3.3 Panneau d'alertes ✅
-- `renderAlertsPanel(targetId, countId)` réutilisable (setup + exec)
-- Sources : checklist incomplète, quorum non atteint, appareils inactifs, vote sans bulletins
-
-### 3.4 Onglets ✅
-7 onglets conservés : Paramètres, Résolutions, Présences, Procurations, Parole, Vote, Résultats.
-
----
-
-## Phase 4 — Vue Exécution (grille 3 colonnes) ✅
-
-### 4.1 HTML ✅
-- KPI strip : quorum bar, participation %, durée séance, résolutions X/Y
-- Grille 3 colonnes : Vote en cours | Files & opérations | Alertes
-- Vote : titre + KPIs (pour/contre/abstention) + barre participation + bouton clôturer
-- Opérations : parole (orateur + file), appareils (en ligne/inactifs), votes manuels (recherche + P/C/A)
-- Toggle `#execNoVote` / `#execActiveVote` selon qu'un vote est ouvert
-- `renderExecQuickOpenList()` : boutons d'ouverture rapide dans le panel no-vote
-
-### 4.2 CSS ✅
-- `.exec-grid` : `grid-template-columns: 1.25fr 1fr 1fr`
-- `.exec-card`, `.exec-subcard`, `.exec-kpi`, `.live-badge`
-- `.exec-kpi-strip` avec séparateurs
-- `.exec-participation-row` avec barre de progression
-- `.exec-manual-vote-row` avec boutons P/C/A
-
-### 4.3 JS ✅
-- `refreshExecView()` → `refreshExecKPIs()`, `refreshExecVote()`, `refreshExecSpeech()`,
-  `refreshExecDevices()`, `refreshExecManualVotes()`, `refreshAlerts()`
-- `refreshExecVote()` toggle `execNoVote`/`execActiveVote` et les compteurs
-- `renderExecQuickOpenList()` affiche les résolutions ouvrables
-- Votes manuels avec recherche et binding des boutons
-- Timer séance basé sur `opened_at`
-
----
-
-## Phase 5 — Masquer les onglets en mode Exécution ✅
-
-### 5.1 Visibilité ✅
-Géré dans `setMode()` :
-- `mode === 'exec'` : `viewSetup.hidden = true`, `viewExec.hidden = false`, `tabsNav` masqué
-- `mode === 'setup'` : `viewSetup.hidden = false`, `viewExec.hidden = true`, `tabsNav` affiché
-
-Le setup-dashboard est contenu dans `#viewSetup`, donc automatiquement masqué en exec.
-
-### 5.2 Grid layout CSS ✅
-```css
-[data-page-role="operator"] .app-shell {
-  grid-template-rows: auto auto auto 1fr;
-  grid-template-areas:
-    "sidebar meetingbar"
-    "sidebar meetingbar-actions"
-    "sidebar tabs"
-    "sidebar main";
+### B.4 Créer `ValidationSchemas::agenda()`
+```php
+public static function agenda(): InputValidator {
+    return InputValidator::schema()
+        ->uuid('meeting_id')->required()
+        ->string('title')->required()->minLength(1)->maxLength(100)
+        ->integer('position')->optional()->min(0);
 }
 ```
 
 ---
 
-## Phase 6 — Polish et intégration ✅
+## Phase C — Try/catch et gestion d'erreurs (priorité moyenne)
 
-### 6.1 Transitions automatiques ✅
-- `launchSession()` → `setMode('exec')` + annonce
-- Au chargement, si `live` → `setMode('exec')` via `showMeetingContent()`
-- `closeSession()` → `setMode('setup')` + `switchTab('resultats')`
-- `doTransition()` : auto-switch selon le nouveau statut
-  (live → exec, closed/validated/archived → setup + resultats)
+### C.1 Ajouter try/catch aux routes sans protection
+| Route | Lignes à wraper |
+|-------|----------------|
+| `dashboard.php` | Tout le corps après `api_require_role()` |
+| `admin_quorum_policies.php` | Tout le corps après `api_require_role()` |
+| `admin_vote_policies.php` | Tout le corps après `api_require_role()` |
+| `invitations_schedule.php` | Tout le corps après `api_require_role()` |
 
-### 6.2 Bouton principal contextuel ✅
-- Pas de séance → disabled, "Ouvrir la séance"
-- Setup + prêt (score ≥ 3) → "Ouvrir la séance" → `launchSession()`
-- Setup + live → "Passer en exécution" → `setMode('exec')`
-- Setup + terminé → disabled, "Séance terminée"
-- Exec + vote ouvert → "Voir le vote" → scroll vers `execVoteCard`
-- Exec + pas de vote → "Préparation" → `setMode('setup')`
-- `btnModeExec` désactivé si la séance n'est pas `live`
+Pattern :
+```php
+try {
+    // corps existant
+} catch (PDOException $e) {
+    error_log("Database error in <file>.php: " . $e->getMessage());
+    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log("Unexpected error in <file>.php: " . $e->getMessage());
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
+}
+```
 
-### 6.3 `aria-live` et annonces ✅
-- `<div class="sr-only" id="srAnnounce" aria-live="polite">`
-- `announce()` pour : changement de mode, séance lancée, vote ouvert (manuel + polling),
-  vote clôturé, transitions d'état
+### C.2 Compléter les try/catch partiels
+| Route | Correction |
+|-------|-----------|
+| `meeting_validate.php` | Englober `$repo->findByIdForTenant()` dans le try existant |
+| `degraded_tally.php` | Englober `audit_log()` + `NotificationsService::emit()` + `api_ok()` dans le try |
 
-### 6.4 Responsive ✅
-- `< 1100px` : exec-grid → 1 colonne, KPI strip → wrap
-- `< 980px` : sidebar masquée sur la page opérateur, meeting bar full-width
-- `< 768px` : tabs-nav scroll horizontal, meeting bar empilée, attendance grid 1 col
-- `< 480px` : tailles réduites pour quick-counts et results
+### C.3 Corriger `meeting_launch.php`
+- Remplacer `throw $e` (ligne 131) par `api_fail('launch_failed', 500, ['detail' => $e->getMessage()])`.
+- Inverser l'ordre : `api_require_role()` AVANT `api_request('POST')`.
 
 ---
 
-## Fichiers modifiés
+## Phase D — Tests MailerService & EmailQueueService (priorité moyenne)
 
-| Fichier | Rôle |
-|---------|------|
-| `public/operator.htmx.html` | Structure HTML bimodale (meeting bar, viewSetup, viewExec) |
-| `public/assets/js/pages/operator-tabs.js` | Logique JS (3 430 lignes) : tabs, mode switch, exec view, polling |
-| `public/assets/css/operator.css` | Styles opérateur (1 984 lignes) : meeting bar, exec grid, responsive |
-| `public/assets/js/services/session-wizard.js` | Wizard nettoyé (skip operator, code mort supprimé) |
+### D.1 `tests/Unit/MailerServiceTest.php`
+- `testIsConfiguredReturnsFalseWithEmptyConfig()`
+- `testIsConfiguredReturnsTrueWithValidConfig()`
+- `testSanitizeHeaderRemovesNewlines()`
+- `testBuildMessageContainsRequiredHeaders()`
+- `testSendReturnsErrorWhenNotConfigured()`
 
-## Ce qui n'a PAS changé
+### D.2 `tests/Unit/EmailQueueServiceTest.php`
+- `testScheduleInvitationsRequiresValidMeetingId()`
+- `testProcessQueueHandlesEmptyQueue()`
+- `testGetQueueStatsReturnsExpectedShape()`
 
-- Les 7 onglets (Paramètres, Résolutions, Présences, Procurations, Parole, Vote, Résultats)
-- La logique métier existante (API calls, caches, state machine)
-- Le wizard sur les AUTRES pages (meetings, members)
-- La sidebar globale
-- Les composants web (`ag-searchable-select`, `ag-popover`, `ag-toast`)
-- Le drawer system (conservé pour les modales secondaires)
-- Les imports CSV, les exports, le système de rôles
+(Tests unitaires sans SMTP réel — mock ou vérification de la logique interne.)
+
+---
+
+## Phase E — Nettoyage console.log frontend (priorité moyenne)
+
+### E.1 Stratégie
+Remplacer les `console.log` par un guard conditionnel. Ne PAS supprimer les logs —
+les garder utiles en dev, silencieux en prod.
+
+### E.2 Fichiers concernés
+| Fichier | Occurrences | Action |
+|---------|------------|--------|
+| `sw.js` | 8 | Garder — Service Worker, utile pour le debug |
+| `websocket-client.js` | 9 | Guard `if (this.debug)` (propriété existante ?) |
+| `offline-storage.js` | 9 | Guard `if (window.AG_DEBUG)` |
+| `conflict-resolver.js` | 2 | Guard `if (window.AG_DEBUG)` |
+| `utils.js` | 1 | Déjà dans une fonction utilitaire — OK |
+| `components/index.js` | 1 | Déjà gardé par `hostname === 'localhost'` — OK |
+
+### E.3 Implémentation
+Ajouter en haut de `utils.js` :
+```js
+window.AG_DEBUG = window.AG_DEBUG ??
+  (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+```
+Puis dans chaque fichier, remplacer `console.log('[PREFIX]', ...)` par
+`if (window.AG_DEBUG) console.log('[PREFIX]', ...)`.
+
+---
+
+## Ordre d'exécution
+
+1. **Phase A** (sécurité) — impact immédiat, changements simples
+2. **Phase B** (InputValidator) — le plus gros chantier, route par route
+3. **Phase C** (try/catch) — mécanique, peut se faire en parallèle de B
+4. **Phase D** (tests) — nouveaux fichiers, pas de régression
+5. **Phase E** (console.log) — cosmétique, en dernier
+
+---
+
+## Fichiers à modifier
+
+| Fichier | Phases |
+|---------|--------|
+| `public/api/v1/quorum_policies.php` | A.1, C.1 |
+| `public/api/v1/vote_policies.php` | A.1, C.1 |
+| `public/api/v1/meeting_status.php` | A.1, A.2 |
+| `public/api/v1/quorum_status.php` | A.1 |
+| `public/api/v1/attendances.php` | A.3 |
+| `.env.example` | A.4 |
+| `public/api/v1/meetings.php` | B.1 |
+| `public/api/v1/members.php` | B.1 |
+| `public/api/v1/motions.php` | B.1 |
+| `public/api/v1/agendas.php` | B.1 |
+| `public/api/v1/admin_quorum_policies.php` | B.1, C.1 |
+| `public/api/v1/admin_vote_policies.php` | B.1, C.1 |
+| `app/Core/Validation/Schemas/ValidationSchemas.php` | B.2, B.4 |
+| `public/api/v1/dashboard.php` | C.1 |
+| `public/api/v1/invitations_schedule.php` | C.1 |
+| `public/api/v1/meeting_validate.php` | C.2 |
+| `public/api/v1/degraded_tally.php` | C.2 |
+| `public/api/v1/meeting_launch.php` | C.3 |
+| `tests/Unit/MailerServiceTest.php` | D.1 (nouveau) |
+| `tests/Unit/EmailQueueServiceTest.php` | D.2 (nouveau) |
+| `public/assets/js/core/utils.js` | E.3 |
+| `public/assets/js/services/websocket-client.js` | E.2 |
+| `public/assets/js/services/offline-storage.js` | E.2 |
+| `public/assets/js/services/conflict-resolver.js` | E.2 |

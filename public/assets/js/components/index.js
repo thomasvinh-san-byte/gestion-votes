@@ -38,7 +38,7 @@ export { default as AgPopover } from './ag-popover.js';
 export { default as AgSearchableSelect } from './ag-searchable-select.js';
 
 // Log registration in development
-if (window.location.hostname === 'localhost') {
+if (window.AG_DEBUG) {
   console.log('[AG-VOTE] Web Components registered:', [
     'ag-kpi', 'ag-badge', 'ag-spinner', 'ag-toast', 'ag-quorum-bar', 'ag-vote-button', 'ag-popover', 'ag-searchable-select'
   ]);
