@@ -3,7 +3,9 @@
 -- =============================================================================
 -- 1. Audit hash chain: scope per-meeting to reduce contention + FOR UPDATE
 -- 2. Invitation tokens: migrate raw tokens to hash-only storage
--- 3. Populate token_hash for existing invitations with raw tokens
+-- 3. Missing CHECK constraints on motions, ballots, members
+-- 4. Missing indexes for common query patterns
+-- 5. NOT NULL on vote_tokens critical FKs
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -62,16 +64,80 @@ CREATE INDEX IF NOT EXISTS idx_audit_tenant_chain
 -- ---------------------------------------------------------------------------
 -- 2. Migrate invitation tokens: populate token_hash from raw tokens
 -- ---------------------------------------------------------------------------
+BEGIN;
+
 UPDATE invitations
 SET token_hash = encode(digest(token, 'sha256'), 'hex'),
     token = NULL
 WHERE token IS NOT NULL
   AND token_hash IS NULL;
 
--- ---------------------------------------------------------------------------
--- 3. Clear any remaining raw tokens where hash already exists
--- ---------------------------------------------------------------------------
 UPDATE invitations
 SET token = NULL
 WHERE token IS NOT NULL
   AND token_hash IS NOT NULL;
+
+COMMIT;
+
+-- ---------------------------------------------------------------------------
+-- 3. Missing CHECK constraints
+-- ---------------------------------------------------------------------------
+DO $$ BEGIN
+  ALTER TABLE motions ADD CONSTRAINT motions_status_check
+    CHECK (status IS NULL OR status IN ('draft','open','closed'));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE motions ADD CONSTRAINT motions_decision_check
+    CHECK (decision IS NULL OR decision IN ('adopted','rejected'));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE ballots ADD CONSTRAINT ballots_weight_positive
+    CHECK (weight >= 0);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE ballots ADD CONSTRAINT ballots_source_check
+    CHECK (source IS NULL OR source IN ('tablet','manual','electronic','paper'));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE members ADD CONSTRAINT members_voting_power_positive
+    CHECK (voting_power IS NULL OR voting_power >= 0);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- 4. Missing indexes for common query patterns
+-- ---------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_ballots_tenant_meeting_motion
+  ON ballots(tenant_id, meeting_id, motion_id);
+
+CREATE INDEX IF NOT EXISTS idx_motions_meeting_closed
+  ON motions(meeting_id, closed_at) WHERE closed_at IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_members_user_id
+  ON members(user_id) WHERE user_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_invitations_meeting_member
+  ON invitations(meeting_id, member_id);
+
+CREATE INDEX IF NOT EXISTS idx_vote_tokens_member_motion
+  ON vote_tokens(meeting_id, motion_id, member_id) WHERE used_at IS NULL;
+
+-- ---------------------------------------------------------------------------
+-- 5. NOT NULL on vote_tokens critical FKs
+-- ---------------------------------------------------------------------------
+DO $$ BEGIN
+  ALTER TABLE vote_tokens ALTER COLUMN tenant_id SET NOT NULL;
+  ALTER TABLE vote_tokens ALTER COLUMN meeting_id SET NOT NULL;
+  ALTER TABLE vote_tokens ALTER COLUMN member_id SET NOT NULL;
+  ALTER TABLE vote_tokens ALTER COLUMN motion_id SET NOT NULL;
+EXCEPTION WHEN others THEN
+  RAISE NOTICE 'vote_tokens NOT NULL constraints: %', SQLERRM;
+END $$;

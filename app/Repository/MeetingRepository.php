@@ -894,10 +894,10 @@ class MeetingRepository extends AbstractRepository
     public function listProxyCeilingViolations(string $tenantId, string $meetingId, int $maxPerReceiver): array
     {
         return $this->selectAll(
-            "SELECT proxy_id, COUNT(*) AS c
+            "SELECT receiver_member_id, COUNT(*) AS c
              FROM proxies
              WHERE tenant_id = :tid AND meeting_id = :mid AND revoked_at IS NULL
-             GROUP BY proxy_id
+             GROUP BY receiver_member_id
              HAVING COUNT(*) > :mx
              ORDER BY c DESC",
             [':tid' => $tenantId, ':mid' => $meetingId, ':mx' => $maxPerReceiver]
@@ -1052,8 +1052,11 @@ class MeetingRepository extends AbstractRepository
      */
     public function isOwnedByUser(string $meetingId, string $userId): bool
     {
+        // Check if user belongs to the same tenant as the meeting
         return (bool)$this->scalar(
-            "SELECT 1 FROM meetings WHERE id = :id AND created_by_user_id = :uid",
+            "SELECT 1 FROM meetings m
+             JOIN users u ON u.tenant_id = m.tenant_id
+             WHERE m.id = :id AND u.id = :uid",
             [':id' => $meetingId, ':uid' => $userId]
         );
     }

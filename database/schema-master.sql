@@ -183,7 +183,8 @@ CREATE TABLE IF NOT EXISTS members (
   deleted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT members_vote_weight_positive CHECK (vote_weight >= 0)
+  CONSTRAINT members_vote_weight_positive CHECK (vote_weight >= 0),
+  CONSTRAINT members_voting_power_positive CHECK (voting_power IS NULL OR voting_power >= 0)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS ux_members_tenant_full_name ON members(tenant_id, full_name);
@@ -431,7 +432,9 @@ CREATE TABLE IF NOT EXISTS motions (
   manual_abstain integer,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT motions_times_ok CHECK (closed_at IS NULL OR opened_at IS NULL OR closed_at >= opened_at)
+  CONSTRAINT motions_times_ok CHECK (closed_at IS NULL OR opened_at IS NULL OR closed_at >= opened_at),
+  CONSTRAINT motions_status_check CHECK (status IS NULL OR status IN ('draft','open','closed')),
+  CONSTRAINT motions_decision_check CHECK (decision IS NULL OR decision IN ('adopted','rejected'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_motions_meeting ON motions(tenant_id, meeting_id);
@@ -621,7 +624,9 @@ CREATE TABLE IF NOT EXISTS ballots (
   cast_at timestamptz NOT NULL DEFAULT now(),
   is_proxy_vote boolean DEFAULT false,
   proxy_source_member_id uuid REFERENCES members(id) ON DELETE SET NULL,
-  UNIQUE (motion_id, member_id)
+  UNIQUE (motion_id, member_id),
+  CONSTRAINT ballots_weight_positive CHECK (weight >= 0),
+  CONSTRAINT ballots_source_check CHECK (source IS NULL OR source IN ('tablet','manual','electronic','paper'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_ballots_tenant_meeting ON ballots(tenant_id, meeting_id);
@@ -673,11 +678,25 @@ CREATE OR REPLACE FUNCTION audit_events_compute_hash() RETURNS trigger AS $$
 DECLARE
   prev bytea;
 BEGIN
-  SELECT this_hash INTO prev
-  FROM audit_events
-  WHERE tenant_id = NEW.tenant_id
-  ORDER BY created_at DESC
-  LIMIT 1;
+  -- Scope chain per meeting when available, else per tenant.
+  -- FOR UPDATE serializes chain computation to prevent forks.
+  IF NEW.meeting_id IS NOT NULL THEN
+    SELECT this_hash INTO prev
+    FROM audit_events
+    WHERE tenant_id = NEW.tenant_id
+      AND meeting_id = NEW.meeting_id
+    ORDER BY created_at DESC, id DESC
+    LIMIT 1
+    FOR UPDATE;
+  ELSE
+    SELECT this_hash INTO prev
+    FROM audit_events
+    WHERE tenant_id = NEW.tenant_id
+      AND meeting_id IS NULL
+    ORDER BY created_at DESC, id DESC
+    LIMIT 1
+    FOR UPDATE;
+  END IF;
 
   NEW.prev_hash := prev;
   NEW.this_hash := digest(
@@ -698,6 +717,17 @@ DROP TRIGGER IF EXISTS trg_audit_hash ON audit_events;
 CREATE TRIGGER trg_audit_hash
   BEFORE INSERT ON audit_events
   FOR EACH ROW EXECUTE FUNCTION audit_events_compute_hash();
+
+-- Indexes for per-meeting and per-tenant chain lookup
+CREATE INDEX IF NOT EXISTS idx_audit_meeting_chain
+  ON audit_events(tenant_id, meeting_id, created_at DESC, id DESC)
+  WHERE meeting_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_audit_tenant_chain
+  ON audit_events(tenant_id, created_at DESC, id DESC)
+  WHERE meeting_id IS NULL;
+-- Index for ballot tally queries (tenant + meeting + motion)
+CREATE INDEX IF NOT EXISTS idx_ballots_tenant_meeting_motion
+  ON ballots(tenant_id, meeting_id, motion_id);
 
 -- ============================================================
 -- TABLE: email_queue

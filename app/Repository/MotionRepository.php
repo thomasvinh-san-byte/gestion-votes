@@ -901,8 +901,12 @@ class MotionRepository extends AbstractRepository
      */
     public function isOwnedByUser(string $motionId, string $userId): bool
     {
+        // Check if user belongs to the same tenant as the motion
         return (bool)$this->scalar(
-            "SELECT 1 FROM motions WHERE id = :id AND created_by_user_id = :uid",
+            "SELECT 1 FROM motions mo
+             JOIN meetings m ON m.id = mo.meeting_id
+             JOIN users u ON u.tenant_id = m.tenant_id
+             WHERE mo.id = :id AND u.id = :uid",
             [':id' => $motionId, ':uid' => $userId]
         );
     }
