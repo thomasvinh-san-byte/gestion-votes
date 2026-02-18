@@ -228,7 +228,7 @@
               <!-- Invitations options (hidden by default) -->
               <div id="invitationsOptions" class="invitations-options" style="display:none;">
                 <div class="form-group mb-3">
-                  <label class="form-label">Template</label>
+                  <label class="form-label" for="invTemplateSelect">Template</label>
                   <select class="form-input" id="invTemplateSelect">
                     <option value="">Template par défaut</option>
                   </select>
@@ -245,7 +245,7 @@
                   </div>
                 </div>
                 <div class="form-group mb-3" id="scheduleGroup" style="display:none;">
-                  <label class="form-label">Date/heure d'envoi</label>
+                  <label class="form-label" for="invScheduleAt">Date/heure d'envoi</label>
                   <input type="datetime-local" class="form-input" id="invScheduleAt">
                 </div>
                 <div class="flex gap-2">
@@ -420,7 +420,7 @@
         <div class="tab-content" id="tab-resolutions" role="tabpanel" aria-labelledby="tab-btn-resolutions" tabindex="0">
           <div class="tab-toolbar">
             <button class="btn btn-primary" id="btnAddResolution">+ Nouvelle résolution</button>
-            <input type="text" class="form-input tab-toolbar-search" id="resolutionSearch" placeholder="Rechercher une résolution...">
+            <input type="text" class="form-input tab-toolbar-search" id="resolutionSearch" placeholder="Rechercher une résolution..." aria-label="Rechercher une résolution">
           </div>
 
           <div id="resolutionsList">
@@ -452,7 +452,7 @@
               <button class="btn btn-secondary" id="btnMarkAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
               <button class="btn btn-secondary" id="btnImportCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importation CSV</button>
             </div>
-            <input type="text" class="form-input tab-toolbar-search" id="presenceSearch" placeholder="Rechercher un membre...">
+            <input type="text" class="form-input tab-toolbar-search" id="presenceSearch" placeholder="Rechercher un membre..." aria-label="Rechercher un membre">
           </div>
 
           <div class="results-summary mb-6">
@@ -487,7 +487,7 @@
               <button class="btn btn-primary" id="btnAddProxy"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Nouvelle procuration</button>
               <button class="btn btn-secondary" id="btnImportProxiesCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer CSV</button>
             </div>
-            <input type="text" class="form-input tab-toolbar-search" id="proxySearch" placeholder="Rechercher une procuration...">
+            <input type="text" class="form-input tab-toolbar-search" id="proxySearch" placeholder="Rechercher une procuration..." aria-label="Rechercher une procuration">
           </div>
 
           <div class="results-summary mb-6">
@@ -801,7 +801,7 @@
               <div class="exec-subcard">
                 <h3>Vote manuel rapide</h3>
                 <div id="execManualVoteSearch" class="mb-2">
-                  <input type="text" class="form-input form-input-sm" id="execManualSearch" placeholder="Rechercher un votant...">
+                  <input type="text" class="form-input form-input-sm" id="execManualSearch" placeholder="Rechercher un votant..." aria-label="Rechercher un votant">
                 </div>
                 <div id="execManualVoteList" class="exec-manual-vote-list">
                   <span class="text-muted text-sm">Sélectionnez un vote pour afficher les votants.</span>

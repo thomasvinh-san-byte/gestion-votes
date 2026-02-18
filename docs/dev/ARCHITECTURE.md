@@ -31,10 +31,10 @@ gestion-votes/
 │   ├── assets/
 │   │   ├── css/                19 fichiers CSS (design-system, app, pages)
 │   │   └── js/                 32 fichiers JS total
-│   │       ├── components/     10 fichiers (9 Web Components + index.js)
+│   │       ├── components/     9 fichiers (8 Web Components + index.js)
 │   │       ├── core/           4 fichiers (utils, shared, shell, page-components)
-│   │       ├── pages/          12 fichiers (admin, vote, operator-tabs, login, etc.)
-│   │       └── services/       6 fichiers (websocket-client, offline-storage, etc.)
+│   │       ├── pages/          11 fichiers (admin, vote, operator-tabs, login, etc.)
+│   │       └── services/       1 fichier (meeting-context)
 │   ├── partials/               Composants HTML partagés (sidebar, topbar)
 │   ├── fragments/              7 fragments PHP (drawers, OOB)
 │   ├── exports/                Templates d'export (PV)
@@ -50,7 +50,7 @@ gestion-votes/
 │   ├── Repository/             27 repositories (AbstractRepository + 26 métier)
 │   ├── Services/               22 services métier (namespace AgVote\Service)
 │   ├── Core/
-│   │   ├── Security/           AuthMiddleware, CsrfMiddleware, RateLimiter, SecurityHeaders, Permissions
+│   │   ├── Security/           AuthMiddleware, CsrfMiddleware, RateLimiter, Permissions
 │   │   └── Validation/         InputValidator, ValidationSchemas
 │   ├── WebSocket/              EventBroadcaster, Server
 │   └── Templates/              Layout.php + templates email
@@ -201,7 +201,7 @@ Un utilisateur peut avoir un rôle système (operator) ET un rôle de séance (p
 - `admin.css`, `operator.css`, `vote.css`, `login.css`, etc. — Styles spécifiques par page
 
 ### Web Components
-10 composants réutilisables dans `public/assets/js/components/` :
+8 composants réutilisables dans `public/assets/js/components/` :
 
 | Composant | Fichier | Usage |
 |-----------|---------|-------|
@@ -213,12 +213,11 @@ Un utilisateur peut avoir un rôle système (operator) ET un rôle de séance (p
 | `<ag-vote-button>` | ag-vote-button.js | Boutons de vote (pour/contre/abstention) |
 | `<ag-popover>` | ag-popover.js | Popovers contextuels |
 | `<ag-searchable-select>` | ag-searchable-select.js | Select avec recherche |
-| `<ag-offline-indicator>` | ag-offline-indicator.js | Indicateur mode hors-ligne |
 
 Les composants utilisent le Shadow DOM et émettent des événements personnalisés.
 
 ### JavaScript
-32 fichiers organisés en 4 dossiers :
+16 fichiers organisés en 3 dossiers :
 
 **core/** — Utilitaires partagés :
 - `utils.js` — Fonctions utilitaires (apiGet, apiPost, formatDate, getMeetingId, setNotif)
@@ -227,15 +226,10 @@ Les composants utilisent le Shadow DOM et émettent des événements personnalis
 - `page-components.js` — Composants de page réutilisables
 
 **pages/** — Logique spécifique par page :
-- `login.js`, `admin.js`, `vote.js`, `operator-tabs.js`, `meetings.js`, `members.js`, `archives.js`, `report.js`, `trust.js`, `validate.js`, `auth-ui.js`, `pv-print.js`
+- `login.js`, `admin.js`, `vote.js`, `operator-tabs.js`, `meetings.js`, `archives.js`, `report.js`, `trust.js`, `validate.js`, `auth-ui.js`, `pv-print.js`
 
 **services/** — Services JS métier :
-- `websocket-client.js` — Client WebSocket avec reconnexion
-- `offline-storage.js` — Stockage hors-ligne (IndexedDB)
-- `conflict-resolver.js` — Résolution de conflits de sync
 - `meeting-context.js` — Contexte de séance réactif
-- `session-wizard.js` — Assistant de création de séance
-- `speaker.js` — Gestion de la file d'intervenants
 
 ### Pattern SPA léger
 Les pages `.htmx.html` sont des single-page applications légères utilisant du vanilla JS :
@@ -297,7 +291,6 @@ Chaque transition est contrôlée par rôle et enregistrée dans `meeting_state_
 | VoteTokenService | Génération/validation/consommation des tokens de vote |
 | NotificationsService | Notifications temps réel (blocking/warn/info) |
 | MeetingReportService | Génération du PV (HTML) |
-| MeetingResultsService | Résultats consolidés par séance |
 | OfficialResultsService | Consolidation officielle des résultats |
 | MeetingValidator | Vérification pré-validation (tous votes clos, pas d'anomalies) |
 | MeetingWorkflowService | Machine à états des séances |
@@ -309,7 +302,6 @@ Chaque transition est contrôlée par rôle et enregistrée dans `meeting_state_
 | EmailTemplateService | Templates d'email personnalisables |
 | ExportService | Exports CSV/XLSX/HTML |
 | ImportService | Imports CSV/XLSX (membres, motions, présences) |
-| UrlSlugService | Génération de slugs pour URLs opaques |
 | ErrorDictionary | Messages d'erreur localisés |
 
 ---

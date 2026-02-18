@@ -207,22 +207,48 @@
     backdrop.appendChild(modal);
     document.body.appendChild(backdrop);
 
-    // Focus first input if any
-    const firstInput = modal.querySelector('input, select, textarea');
-    if (firstInput) setTimeout(function () { firstInput.focus(); }, 50);
+    // Save previously focused element to restore on close
+    var previousFocus = document.activeElement;
+
+    // Focus first input, or confirm button as fallback
+    var firstInput = modal.querySelector('input, select, textarea');
+    var focusTarget = firstInput || modal.querySelector('.modal-confirm-btn');
+    if (focusTarget) setTimeout(function () { focusTarget.focus(); }, 50);
 
     function close() {
       backdrop.classList.remove('open');
-      setTimeout(function () { backdrop.remove(); }, 200);
+      document.removeEventListener('keydown', keyHandler);
+      setTimeout(function () {
+        backdrop.remove();
+        // Restore focus to the element that opened the modal
+        if (previousFocus && previousFocus.focus) {
+          try { previousFocus.focus(); } catch (e) { /* element may be gone */ }
+        }
+      }, 200);
     }
+
+    // Focus trap: cycle Tab within modal
+    function keyHandler(e) {
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key !== 'Tab') return;
+      var focusable = modal.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      if (focusable.length === 0) return;
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener('keydown', keyHandler);
 
     modal.querySelector('.modal-close-btn').addEventListener('click', close);
     modal.querySelector('.modal-cancel-btn').addEventListener('click', close);
     backdrop.addEventListener('click', function (e) {
       if (e.target === backdrop) close();
-    });
-    document.addEventListener('keydown', function handler(e) {
-      if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
     });
 
     modal.querySelector('.modal-confirm-btn').addEventListener('click', function () {

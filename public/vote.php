@@ -89,7 +89,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title>Confirmer votre vote</title>
             <link rel="stylesheet" href="/assets/css/app.css">
-            <link rel="stylesheet" href="/assets/css/ui-kit.css">
         </head>
         <body style="padding:18px;">
             <div class="card" style="max-width:520px;margin:0 auto;padding:16px;">
