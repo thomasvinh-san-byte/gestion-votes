@@ -85,8 +85,8 @@
             </div>
             <div class="form-group">
               <label for="mPower">
-                Poids (voix)
-                <ag-popover title="Poids de vote" content="Nombre de voix que ce membre représente. La valeur par défaut est 1. Pour une pondération, utilisez un nombre supérieur (ex: 2 = 2 voix). Affecte le calcul du quorum et les résultats des votes." position="top"></ag-popover>
+                Nombre de voix
+                <ag-popover title="Nombre de voix" content="Nombre de voix que ce membre représente. La valeur par défaut est 1. Pour une pondération, utilisez un nombre supérieur (ex: 2 = 2 voix). Affecte le calcul du quorum et les résultats des votes." position="top"></ag-popover>
               </label>
               <input class="form-input" type="number" id="mPower" value="1" min="0" step="1">
             </div>
@@ -104,72 +104,67 @@
           </div>
         </div>
 
-        <!-- Collapsible panels row -->
+        <!-- Management tabs -->
         <div class="mgmt-panels-row">
-          <!-- Groups management section (collapsible) -->
-          <div class="collapsible-section" id="groupsSection">
-            <div class="collapsible-header" onclick="toggleSection('groupsSection')">
-              <h3>
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-                <span>Groupes de membres</span>
-                <ag-popover title="Groupes de membres" content="Catégorisez vos membres par collèges électoraux, départements, ou tout autre critère. Les groupes facilitent le filtrage et permettent d'obtenir des statistiques par catégorie." position="right" trigger="click"></ag-popover>
-              </h3>
-              <svg class="icon collapsible-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+          <div class="mgmt-tabs" role="tablist" aria-label="Gestion des membres">
+            <button class="mgmt-tab active" role="tab" aria-selected="true" aria-controls="groupsPanel" data-mgmt-tab="groups">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+              Groupes
+            </button>
+            <button class="mgmt-tab" role="tab" aria-selected="false" aria-controls="importPanel" data-mgmt-tab="import">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
+              Importation CSV
+            </button>
+          </div>
+
+          <!-- Groups tab panel -->
+          <div class="mgmt-tab-panel" id="groupsPanel" role="tabpanel">
+            <p class="text-sm text-muted mb-4">
+              Organisez vos membres par catégories, collèges électoraux, départements, etc.
+              <ag-popover title="Groupes de membres" content="Catégorisez vos membres par collèges électoraux, départements, ou tout autre critère. Les groupes facilitent le filtrage et permettent d'obtenir des statistiques par catégorie." position="right" trigger="click"></ag-popover>
+            </p>
+            <div class="create-group-form">
+              <div class="form-group">
+                <label for="groupName">Nom du groupe</label>
+                <input class="form-input" type="text" id="groupName" placeholder="Ex: Collège A, Cadres...">
+              </div>
+              <div class="form-group form-group-color">
+                <label for="groupColor">Couleur</label>
+                <input type="color" id="groupColor" value="#6366f1">
+              </div>
+              <button class="btn btn-primary" id="btnCreateGroup">Créer groupe</button>
             </div>
-            <div class="collapsible-content">
-              <p class="text-sm text-muted mb-4">Organisez vos membres par catégories, collèges électoraux, départements, etc.</p>
-              <div class="create-group-form">
-                <div class="form-group">
-                  <label for="groupName">Nom du groupe</label>
-                  <input class="form-input" type="text" id="groupName" placeholder="Ex: Collège A, Cadres...">
-                </div>
-                <div class="form-group form-group-color">
-                  <label for="groupColor">Couleur</label>
-                  <input type="color" id="groupColor" value="#6366f1">
-                </div>
-                <button class="btn btn-primary" id="btnCreateGroup">Créer groupe</button>
-              </div>
-              <div class="groups-grid" id="groupsList">
-                <div class="text-muted text-sm">Chargement...</div>
-              </div>
+            <div class="groups-grid" id="groupsList">
+              <div class="text-muted text-sm">Chargement...</div>
             </div>
           </div>
 
-          <!-- Import section (collapsible) -->
-          <div class="collapsible-section" id="importSection">
-            <div class="collapsible-header" onclick="toggleSection('importSection')">
-              <h3>
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
-                <span>Importation CSV</span>
-              </h3>
-              <svg class="icon collapsible-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+          <!-- Import tab panel -->
+          <div class="mgmt-tab-panel" id="importPanel" role="tabpanel" style="display: none;">
+            <div class="import-card-desc">
+              Colonnes : <code>nom</code>, <code>email</code>, <code>ponderation</code>, <code>actif</code>, <code>groupes</code> (séparés par <code>|</code>). Séparateur <code>;</code> ou <code>,</code> auto-détecté.
+              <ag-popover title="Format du fichier CSV" content="Exemple : Jean Dupont;jean@exemple.com;1;oui;Collège A|Cadres. Les groupes non existants seront créés automatiquement. Colonnes alternatives acceptées : name, full_name, voting_power, is_active, groups, college, categorie…" position="right" trigger="click"></ag-popover>
             </div>
-            <div class="collapsible-content">
-              <div class="import-card-desc">
-                Colonnes : <code>nom</code>, <code>email</code>, <code>ponderation</code>, <code>actif</code>, <code>groupes</code> (séparés par <code>|</code>). Séparateur <code>;</code> ou <code>,</code> auto-détecté.
-                <ag-popover title="Format du fichier CSV" content="Exemple : Jean Dupont;jean@exemple.com;1;oui;Collège A|Cadres. Les groupes non existants seront créés automatiquement. Colonnes alternatives acceptées : name, full_name, voting_power, is_active, groups, college, categorie…" position="right" trigger="click"></ag-popover>
-              </div>
-              <div class="import-template-link">
-                <a href="/assets/modele_import_membres.csv" download class="btn btn-ghost btn-sm">
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
-                  Télécharger le modèle CSV
-                </a>
-              </div>
-              <div class="upload-zone" id="uploadZone">
-                <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;" aria-label="Importer un fichier CSV">
-                <div class="upload-zone-icon">
-                  <svg class="icon" style="width:2rem;height:2rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
-                </div>
-                <div class="upload-zone-text">Glisser un fichier CSV ici</div>
-                <div class="upload-zone-hint">ou cliquer pour sélectionner</div>
-              </div>
-              <div class="flex gap-2 mt-4">
-                <button class="btn btn-primary" id="btnImport" disabled>Importer</button>
-                <button class="btn btn-secondary" id="btnSeed">Générer fictifs</button>
-                <span class="text-sm text-muted file-name-text" id="fileName">Aucun fichier sélectionné</span>
-              </div>
-              <div id="importOut" class="import-result" style="display: none;"></div>
+            <div class="import-template-link">
+              <a href="/assets/modele_import_membres.csv" download class="btn btn-ghost btn-sm">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                Télécharger le modèle CSV
+              </a>
             </div>
+            <div class="upload-zone" id="uploadZone">
+              <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;" aria-label="Importer un fichier CSV">
+              <div class="upload-zone-icon">
+                <svg class="icon" style="width:2rem;height:2rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
+              </div>
+              <div class="upload-zone-text">Glisser un fichier CSV ici</div>
+              <div class="upload-zone-hint">ou cliquer pour sélectionner</div>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button class="btn btn-primary" id="btnImport" disabled>Importer</button>
+              <button class="btn btn-secondary" id="btnSeed">Générer fictifs</button>
+              <span class="text-sm text-muted file-name-text" id="fileName">Aucun fichier sélectionné</span>
+            </div>
+            <div id="importOut" class="import-result" style="display: none;"></div>
           </div>
         </div>
       </div>
@@ -217,8 +212,8 @@
               <select class="form-input" id="sortSelect">
                 <option value="nameAsc">Nom (A → Z)</option>
                 <option value="nameDesc">Nom (Z → A)</option>
-                <option value="powerDesc">Poids (décroissant)</option>
-                <option value="powerAsc">Poids (croissant)</option>
+                <option value="powerDesc">Nombre de voix (décroissant)</option>
+                <option value="powerAsc">Nombre de voix (croissant)</option>
               </select>
             </div>
           </div>
@@ -327,11 +322,17 @@
       return Number.isInteger(val) ? val : val.toFixed(2).replace(/\.?0+$/, '');
     }
 
-    // Toggle collapsible section
-    window.toggleSection = function(sectionId) {
-      const section = document.getElementById(sectionId);
-      section.classList.toggle('expanded');
-    };
+    // Management tabs switching
+    document.querySelectorAll('.mgmt-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.mgmt-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+        document.querySelectorAll('.mgmt-tab-panel').forEach(p => { p.style.display = 'none'; });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        const panelId = tab.getAttribute('aria-controls');
+        if (panelId) document.getElementById(panelId).style.display = '';
+      });
+    });
 
     // Update active filters count hint
     function updateFiltersHint() {
@@ -654,7 +655,7 @@
               : '<span class="text-muted">Non renseigné</span>'}</div>
           </div>
           <div class="detail-field">
-            <div class="detail-label">Poids de vote</div>
+            <div class="detail-label">Nombre de voix</div>
             <div class="detail-value detail-value-mono">${formatVotingPower(m.voting_power)}</div>
           </div>
           <div class="detail-field">
@@ -910,7 +911,7 @@
             <input class="form-input" type="email" id="editMemberEmail" value="${escapeHtml(member.email || '')}" placeholder="jean@exemple.com">
           </div>
           <div class="form-group mb-3">
-            <label class="form-label">Poids (voix)</label>
+            <label class="form-label">Nombre de voix</label>
             <input class="form-input" type="number" id="editMemberPower" value="${member.voting_power || 1}" min="0" step="1">
           </div>
           <div class="form-group mb-3">

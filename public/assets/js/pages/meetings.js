@@ -252,7 +252,7 @@
         title: 'Aucune séance',
         description: currentSearchText
           ? 'Aucune séance ne correspond à votre recherche.'
-          : 'Commencez par créer une nouvelle séance avec le formulaire ci-dessus. Renseignez un titre et une date, puis cliquez sur « Créer la séance ».',
+          : 'Commencez par préparer une nouvelle séance avec le formulaire ci-dessus. Renseignez un titre, puis cliquez sur « Préparer la séance ».',
         actionHtml: '<div style="grid-column:1/-1;"></div>'
       });
       return;
@@ -336,13 +336,15 @@
     }
 
     const scheduled_at = dateInput?.value || null;
+    const meetingTypeRadio = document.querySelector('input[name="meetingTypeCreate"]:checked');
+    const meeting_type = meetingTypeRadio ? meetingTypeRadio.value : 'ordinary';
 
     Shared.btnLoading(createBtn, true);
     try {
-      const { body } = await api('/api/v1/meetings.php', { title, scheduled_at });
+      const { body } = await api('/api/v1/meetings.php', { title, scheduled_at, meeting_type });
 
       if (body && body.ok) {
-        setNotif('success', 'Séance créée');
+        setNotif('success', 'Séance créée — passons à la préparation');
         if (titleInput) titleInput.value = '';
         if (dateInput) dateInput.value = '';
 

@@ -653,52 +653,48 @@ input[type="color"] {
 .file-name-text { align-self: center; }
 
 /* =============================================================================
-   COLLAPSIBLE SECTIONS
+   MANAGEMENT TABS
    ============================================================================= */
 
-.collapsible-header {
+.mgmt-tabs {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.875rem 1rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  gap: 0;
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: 1rem;
+}
+
+.mgmt-tab {
+  padding: 0.625rem 1rem;
+  border: none;
+  background: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-}
-
-.collapsible-header:hover {
-  border-color: var(--color-primary);
-}
-
-.collapsible-header h3 {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
 }
 
-.collapsible-chevron { transition: transform 0.2s; }
-
-.collapsible-section.expanded .collapsible-chevron {
-  transform: rotate(90deg);
+.mgmt-tab:hover {
+  color: var(--color-text);
 }
 
-.collapsible-content {
-  display: none;
+.mgmt-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.mgmt-tab-panel {
   padding: 1rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-top: none;
   border-radius: 0 0 8px 8px;
-  margin-top: -0.25rem;
-}
-
-.collapsible-section.expanded .collapsible-content {
-  display: block;
 }
 
 /* =============================================================================
