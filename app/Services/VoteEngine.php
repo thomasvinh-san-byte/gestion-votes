@@ -118,13 +118,17 @@ final class VoteEngine
                 $denominator = max(1, $eligibleMembers);
                 $numerator   = $expressedMembers;
             } else {
-                $denominator = $eligibleWeight > 0 ? $eligibleWeight : 0.0001;
+                $denominator = $eligibleWeight;
                 $numerator   = $expressedWeight;
             }
 
-            $ratio        = $denominator > 0 ? $numerator / $denominator : 0.0;
-            $quorumMet    = $ratio >= $quorumThreshold;
-            $quorumRatio  = $ratio;
+            if ($denominator <= 0) {
+                $quorumMet = false;
+                $quorumRatio = 0.0;
+            } else {
+                $quorumRatio = $numerator / $denominator;
+                $quorumMet = $quorumRatio >= $quorumThreshold;
+            }
             $quorumDenominator = $denominator;
         }
 
@@ -154,17 +158,12 @@ final class VoteEngine
             $againstWeight = $tallies['against']['weight'];
             $abstainWeight = $tallies['abstain']['weight'];
 
-            $effectiveAgainst = $againstWeight + ($abstAsAgainst ? $abstainWeight : 0.0);
-
-            $denominator = $baseTotal > 0 ? $baseTotal : 0.0001;
-            $ratio       = $forWeight / $denominator;
-
-            $majorityRatio = $ratio;
-
             if ($baseTotal <= 0.0 || $expressedWeight <= 0.0) {
+                $majorityRatio = 0.0;
                 $adopted = false;
             } else {
-                $adopted = $ratio >= $majorityThreshold;
+                $majorityRatio = $forWeight / $baseTotal;
+                $adopted = $majorityRatio >= $majorityThreshold;
                 if ($quorumMet === false) {
                     $adopted = false;
                 }
