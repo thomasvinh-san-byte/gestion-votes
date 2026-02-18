@@ -40,41 +40,62 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // =============================================================================
-// VALIDATION FICHIER
+// VALIDATION FICHIER OU CONTENU CSV
 // =============================================================================
 
-// Accept both 'file' and 'csv_file' field names
+// Support 3 modes:
+// 1. File upload via $_FILES['file'] or $_FILES['csv_file']
+// 2. csv_content as FormData text field ($_POST['csv_content'])
+// 3. csv_content as JSON body field
 $file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
-if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
-    api_fail('upload_error', 400, ['detail' => 'Fichier manquant ou erreur upload.']);
+$csvContent = $_POST['csv_content'] ?? null;
+
+// Try JSON body if no FormData
+if (!$file && !$csvContent) {
+    $jsonBody = json_decode(file_get_contents('php://input'), true);
+    $csvContent = $jsonBody['csv_content'] ?? null;
 }
 
-// Extension
-$ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-if ($ext !== 'csv') {
-    api_fail('invalid_file_type', 400, ['detail' => 'Seuls les fichiers CSV sont acceptés.']);
-}
+if ($file && $file['error'] === UPLOAD_ERR_OK) {
+    // ── Mode fichier ──
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if ($ext !== 'csv') {
+        api_fail('invalid_file_type', 400, ['detail' => 'Seuls les fichiers CSV sont acceptés.']);
+    }
 
-// Taille (max 5MB)
-if ($file['size'] > 5 * 1024 * 1024) {
-    api_fail('file_too_large', 400, ['detail' => 'Max 5 MB.']);
-}
+    if ($file['size'] > 5 * 1024 * 1024) {
+        api_fail('file_too_large', 400, ['detail' => 'Max 5 MB.']);
+    }
 
-// MIME type
-$finfo = new finfo(FILEINFO_MIME_TYPE);
-$mime = $finfo->file($file['tmp_name']);
-if (!in_array($mime, ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'], true)) {
-    api_fail('invalid_mime_type', 400, ['detail' => "Type non autorisé: {$mime}"]);
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->file($file['tmp_name']);
+    if (!in_array($mime, ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'], true)) {
+        api_fail('invalid_mime_type', 400, ['detail' => "Type non autorisé: {$mime}"]);
+    }
+
+    $handle = fopen($file['tmp_name'], 'r');
+    if (!$handle) {
+        api_fail('file_read_error', 500);
+    }
+} elseif ($csvContent && is_string($csvContent) && strlen($csvContent) > 0) {
+    // ── Mode contenu texte (FormData ou JSON) ──
+    if (strlen($csvContent) > 5 * 1024 * 1024) {
+        api_fail('file_too_large', 400, ['detail' => 'Max 5 MB.']);
+    }
+
+    $tmpFile = tmpfile();
+    fwrite($tmpFile, $csvContent);
+    rewind($tmpFile);
+    $handle = $tmpFile;
+} else {
+    api_fail('upload_error', 400, [
+        'detail' => 'Fichier CSV manquant. Envoyez un fichier (file/csv_file) ou le contenu texte (csv_content).',
+    ]);
 }
 
 // =============================================================================
 // PARSING CSV
 // =============================================================================
-
-$handle = fopen($file['tmp_name'], 'r');
-if (!$handle) {
-    api_fail('file_read_error', 500);
-}
 
 // Détecte séparateur
 $firstLine = fgets($handle);
