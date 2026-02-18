@@ -27,6 +27,7 @@
             <option value="">— Sélectionner une séance —</option>
           </select>
           <span class="badge" id="meetingStatusBadge" aria-live="polite">—</span>
+          <span class="meeting-bar-chip" id="userRoleBadge" hidden aria-live="polite" style="font-weight:600;"></span>
           <span class="meeting-bar-chip" id="healthChip" hidden>
             <span class="health-dot"></span>
             <strong id="healthScore">—</strong>
@@ -137,13 +138,17 @@
               <div class="assistant-section">
                 <h3>Ajout rapide</h3>
                 <div class="flex gap-3 flex-wrap items-end">
-                  <div class="form-group" style="flex:1; min-width:180px;">
+                  <div class="form-group" style="flex:2; min-width:180px;">
                     <label class="form-label" for="wizAddMemberName">Nom complet</label>
                     <input type="text" class="form-input" id="wizAddMemberName" placeholder="Nom Prénom">
                   </div>
-                  <div class="form-group" style="flex:1; min-width:180px;">
+                  <div class="form-group" style="flex:2; min-width:180px;">
                     <label class="form-label" for="wizAddMemberEmail">Email <span class="text-muted text-sm">(facultatif)</span></label>
                     <input type="email" class="form-input" id="wizAddMemberEmail" placeholder="email@exemple.com">
+                  </div>
+                  <div class="form-group" style="flex:0 0 100px;">
+                    <label class="form-label" for="wizAddMemberPower">Voix</label>
+                    <input type="number" class="form-input" id="wizAddMemberPower" value="1" min="1" step="1">
                   </div>
                   <button class="btn btn-primary" id="wizBtnAddMember">
                     <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Ajouter
@@ -159,6 +164,16 @@
                   <p>Glisser un fichier CSV ici ou <label for="wizCsvFile" class="text-primary" style="cursor:pointer; text-decoration:underline;">choisir un fichier</label></p>
                   <input type="file" id="wizCsvFile" accept=".csv,.txt" style="display:none;">
                   <p class="text-sm text-muted">Format : nom, email, nombre_de_voix</p>
+                </div>
+                <div class="flex gap-3 mt-3 flex-wrap">
+                  <a href="/assets/modele_import_membres.csv" download class="btn btn-sm btn-ghost">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                    Modèle vierge CSV
+                  </a>
+                  <a href="/assets/demo_membres_ag.csv" download class="btn btn-sm btn-ghost">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                    Exemple avec 25 membres (démo)
+                  </a>
                 </div>
               </div>
 
@@ -303,13 +318,14 @@
                   <select class="form-input" id="wizQuorumPolicy">
                     <option value="">— Aucun quorum —</option>
                   </select>
-                  <p class="text-sm text-muted mt-1">Si le quorum n'est pas atteint, le vote ne peut pas avoir lieu.</p>
+                  <p class="text-sm text-muted mt-1" id="wizQuorumHint">Si le quorum n'est pas atteint, le vote ne peut pas avoir lieu.</p>
                 </div>
                 <div class="form-group mb-4">
                   <label class="form-label" for="wizVotePolicy">Majorité requise pour adopter une résolution</label>
                   <select class="form-input" id="wizVotePolicy">
-                    <option value="">— Majorité par défaut —</option>
+                    <option value="">— Majorité simple (par défaut) —</option>
                   </select>
+                  <p class="text-sm text-muted mt-1" id="wizVoteHint"></p>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Type de convocation</label>
@@ -943,7 +959,7 @@
                 <span class="abstain">&#9675; <span id="liveVoteAbstain">0</span></span>
               </div>
               <div class="vote-controls-wrapper">
-                <button class="btn btn-lg btn-warning btn-close-vote" id="btnCloseVote"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer le vote</button>
+                <button class="btn btn-lg btn-warning btn-close-vote" id="btnCloseVote"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Terminer le scrutin</button>
               </div>
             </div>
 
@@ -963,6 +979,16 @@
             </div>
 
             <h3 class="mb-4">Votes manuels (opérateur)</h3>
+            <div class="flex gap-3 mb-3 flex-wrap" style="align-items:flex-end;">
+              <div class="form-group" style="flex:1;min-width:200px;margin:0;">
+                <label class="form-label" for="manualVoteSearch">Rechercher un votant</label>
+                <input type="text" class="form-input form-input-sm" id="manualVoteSearch" placeholder="Nom du membre…" aria-label="Rechercher un votant">
+              </div>
+              <div class="form-group" style="flex:1;min-width:200px;margin:0;">
+                <label class="form-label" for="manualVoteJustification">Justification</label>
+                <input type="text" class="form-input form-input-sm" id="manualVoteJustification" value="Vote opérateur manuel" placeholder="Raison du vote manuel…" aria-label="Justification du vote">
+              </div>
+            </div>
             <div id="manualVoteList" class="attendance-grid">
               <!-- Rendered by JS -->
             </div>
@@ -1106,7 +1132,7 @@
                 </div>
                 <div class="exec-vote-actions">
                   <button class="btn btn-warning" id="execBtnCloseVote">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer le vote
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Terminer le scrutin
                   </button>
                 </div>
               </div>
@@ -1172,6 +1198,40 @@
     </header>
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
+
+  <!-- Launch confirmation modal -->
+  <div class="modal-backdrop" id="launchModal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="launchModalTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
+        <h3 id="launchModalTitle">Lancer la séance</h3>
+      </div>
+      <div class="modal-body">
+        <div id="launchModalMeetingTitle" class="text-lg font-bold mb-4"></div>
+        <div class="launch-modal-summary" id="launchModalSummary">
+          <!-- Filled by JS -->
+        </div>
+        <div class="launch-modal-warning mt-4">
+          <svg class="icon icon-text icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+          <div>
+            <strong>Une fois lancée :</strong>
+            <ul class="mt-1 text-sm">
+              <li>La liste des membres sera gelée</li>
+              <li>Les résolutions ne pourront plus être modifiées</li>
+              <li>Les votes pourront commencer</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="launchModalCancel">Annuler</button>
+        <button class="btn btn-success" id="launchModalConfirm">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
+          Confirmer le lancement
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="/assets/js/components/index.js"></script>
   <script src="/assets/js/core/utils.js"></script>

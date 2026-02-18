@@ -48,7 +48,8 @@
         <!-- Meeting context -->
         <div class="alert alert-info mb-6" id="meetingContext" style="display: none;">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg>
-          <span>Séance: <strong id="meetingName">—</strong></span>
+          <span>Séance : <strong id="meetingName">—</strong></span>
+          <span id="meetingDateCtx" class="text-muted" style="margin-left:0.5rem;"></span>
         </div>
 
         <!-- Summary Stats -->
@@ -125,14 +126,14 @@
             <div class="card-body">
               <div class="form-group mb-4">
                 <label class="form-label form-label-required" for="presidentName">
-                  Nom du président
+                  Signature du président (apparaîtra sur le PV)
                 </label>
                 <input class="form-input" type="text" id="presidentName"
-                       placeholder="Ex: Jean Dupont" required
-                       pattern="[A-Za-zÀ-ÿ\s\-'.]{2,100}"
-                       title="Lettres, espaces, tirets et apostrophes uniquement (2 à 100 caractères)">
+                       placeholder="Ex : Jean Dupont" required
+                       pattern="[A-Za-zÀ-ÿ0-9\s\-'.,()]{2,100}"
+                       title="Nom, prénom et éventuel titre (2 à 100 caractères)">
                 <p class="form-helper">
-                  Ce nom apparaîtra sur le procès-verbal officiel
+                  Ce nom apparaîtra sur le procès-verbal officiel comme signataire
                 </p>
               </div>
 
@@ -196,6 +197,10 @@
           <input type="checkbox" id="confirmIrreversible">
           <span>Je comprends que cette action est irréversible et que plus aucune modification ne sera possible.</span>
         </label>
+        <div class="form-group mt-4">
+          <label class="form-label" for="confirmText">Tapez <strong>VALIDER</strong> pour confirmer</label>
+          <input class="form-input" type="text" id="confirmText" placeholder="VALIDER" autocomplete="off" spellcheck="false">
+        </div>
       </div>
       <div class="validate-modal-actions">
         <button class="btn btn-secondary" id="btnModalCancel" type="button">Annuler</button>

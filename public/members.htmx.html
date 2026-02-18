@@ -145,10 +145,14 @@
               Colonnes : <code>nom</code>, <code>email</code>, <code>ponderation</code>, <code>actif</code>, <code>groupes</code> (séparés par <code>|</code>). Séparateur <code>;</code> ou <code>,</code> auto-détecté.
               <ag-popover title="Format du fichier CSV" content="Exemple : Jean Dupont;jean@exemple.com;1;oui;Collège A|Cadres. Les groupes non existants seront créés automatiquement. Colonnes alternatives acceptées : name, full_name, voting_power, is_active, groups, college, categorie…" position="right" trigger="click"></ag-popover>
             </div>
-            <div class="import-template-link">
+            <div class="import-template-link flex gap-3 flex-wrap">
               <a href="/assets/modele_import_membres.csv" download class="btn btn-ghost btn-sm">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
-                Télécharger le modèle CSV
+                Modèle vierge CSV
+              </a>
+              <a href="/assets/demo_membres_ag.csv" download class="btn btn-ghost btn-sm">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                Exemple avec 25 membres (démo)
               </a>
             </div>
             <div class="upload-zone" id="uploadZone">

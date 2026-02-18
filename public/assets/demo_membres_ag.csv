@@ -1,0 +1,26 @@
+nom;email;ponderation;actif;groupes
+Laurent Moreau;laurent.moreau@demo-ag.fr;1;oui;Bureau|Collège A
+Catherine Petit;catherine.petit@demo-ag.fr;1;oui;Bureau|Collège A
+François Leroy;francois.leroy@demo-ag.fr;1;oui;Bureau
+Isabelle Roux;isabelle.roux@demo-ag.fr;1;oui;Collège A
+Philippe Garcia;philippe.garcia@demo-ag.fr;2;oui;Collège A
+Nathalie Fournier;nathalie.fournier@demo-ag.fr;1;oui;Collège A
+Jean-Marc Girard;jean-marc.girard@demo-ag.fr;1;oui;Collège A
+Martine Bonnet;martine.bonnet@demo-ag.fr;3;oui;Collège B
+Thomas Lambert;thomas.lambert@demo-ag.fr;1;oui;Collège B
+Hélène Fontaine;helene.fontaine@demo-ag.fr;1;oui;Collège B
+Alain Rousseau;alain.rousseau@demo-ag.fr;2;oui;Collège B
+Sophie Vincent;sophie.vincent@demo-ag.fr;1;oui;Collège B
+David Muller;david.muller@demo-ag.fr;1;oui;Collège B
+Sandrine Lefevre;sandrine.lefevre@demo-ag.fr;1;oui;Collège C
+Michel Dupuis;michel.dupuis@demo-ag.fr;5;oui;Collège C
+Brigitte Simon;brigitte.simon@demo-ag.fr;1;oui;Collège C
+Nicolas Laurent;nicolas.laurent@demo-ag.fr;2;oui;Collège C
+Véronique Michel;;1;oui;Collège C
+Éric Lefebvre;eric.lefebvre@demo-ag.fr;1;oui;Collège C
+Anne-Marie David;anne-marie.david@demo-ag.fr;1;oui;Collège A
+Christophe Robert;christophe.robert@demo-ag.fr;3;oui;Collège B
+Patricia Blanc;patricia.blanc@demo-ag.fr;1;oui;Collège A
+Stéphane Guérin;;2;oui;Collège C
+Monique Perrin;monique.perrin@demo-ag.fr;1;oui;Collège B
+Jacques Morel;jacques.morel@demo-ag.fr;1;oui;Bureau|Collège A

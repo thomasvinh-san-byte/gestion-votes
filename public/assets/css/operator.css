@@ -2185,6 +2185,76 @@
 .assistant-member-name {
   flex: 1;
   font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assistant-member-email {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assistant-member-power {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-subtle);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.assistant-member-actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.assistant-member-row:hover .assistant-member-actions {
+  opacity: 1;
+}
+
+/* Always visible on touch devices */
+@media (hover: none) {
+  .assistant-member-actions {
+    opacity: 1;
+  }
+}
+
+.btn-icon-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-icon-sm:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
+.btn-icon-sm.danger:hover {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+
+.btn-icon-sm .icon {
+  width: 14px;
+  height: 14px;
 }
 
 /* --- Legend --- */
@@ -2320,6 +2390,19 @@
   .assistant-import-zone {
     padding: 1.25rem;
   }
+
+  .assistant-member-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .assistant-member-email {
+    display: none;
+  }
+
+  .assistant-member-actions {
+    opacity: 1;
+  }
 }
 
 /* =============================================================================
@@ -2345,6 +2428,103 @@
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--color-success);
+}
+
+/* =============================================================================
+   LAUNCH CONFIRMATION MODAL
+   ============================================================================= */
+
+#launchModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-modal-backdrop, 400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+#launchModal .modal-dialog {
+  background: var(--color-surface);
+  border-radius: 12px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+#launchModal .modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem 1.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+#launchModal .modal-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+#launchModal .modal-body {
+  padding: 1.25rem 1.5rem;
+}
+
+#launchModal .modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 0.75rem 1.5rem 1.25rem;
+}
+
+.launch-modal-summary {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.launch-modal-summary .summary-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.launch-modal-summary .summary-label {
+  color: var(--color-text-muted);
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.launch-modal-summary .summary-value {
+  font-weight: 500;
+}
+
+.launch-modal-warning {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: var(--color-warning-subtle);
+  border: 1px solid var(--color-warning);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--color-warning-text, var(--color-text));
+}
+
+.launch-modal-warning ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.launch-modal-warning .icon {
+  flex-shrink: 0;
+  color: var(--color-warning);
+  margin-top: 2px;
 }
 
 /* =============================================================================

@@ -78,12 +78,16 @@
     el.style.background = 'rgba(15, 23, 42, 0.94)';
     el.style.color = '#fff';
     el.innerHTML = `
-      <div style="max-width:520px;margin:12vh auto;padding:24px;">
-        <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Accès suspendu</div>
-        <div id="blockedMsg" style="opacity:0.9;line-height:1.4;">
+      <div style="max-width:520px;margin:12vh auto;padding:24px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:16px;" aria-hidden="true">&#9888;</div>
+        <div style="font-size:20px;font-weight:700;margin-bottom:12px;">Accès suspendu</div>
+        <div id="blockedMsg" style="opacity:0.9;line-height:1.5;font-size:15px;">
           Cet appareil a été temporairement bloqué par l'opérateur.
         </div>
-        <div style="margin-top:16px;opacity:0.8;font-size:12px;">Restez sur cet écran. L'accès sera rétabli automatiquement.</div>
+        <div style="margin-top:20px;opacity:0.7;font-size:13px;line-height:1.5;">
+          Restez sur cet écran. L'accès sera rétabli automatiquement.<br>
+          Si le problème persiste, adressez-vous à l'opérateur de séance.
+        </div>
       </div>`;
     document.body.appendChild(el);
     return el;
@@ -377,6 +381,7 @@
       return;
     }
 
+    _memberAttendance = {};
     let filled = 0;
     try {
       const r = await apiGet(`/api/v1/attendances.php?meeting_id=${encodeURIComponent(meetingId)}`);
@@ -386,6 +391,13 @@
       for (const x of rows){
         const mode = (x.mode || "");
         if (!["present","remote","proxy"].includes(mode)) continue;
+
+        // Store attendance info for proxy display
+        _memberAttendance[x.member_id] = {
+          mode,
+          weight: x.vote_weight || x.weight || null,
+          proxyFor: x.proxy_holder_name || x.proxy_for || null
+        };
 
         if (useSearchable) {
           memberOptions.push({
@@ -502,25 +514,36 @@
    * Supports both native select and ag-searchable-select component.
    * @param {HTMLSelectElement|AgSearchableSelect} sel - Member select element
    */
+  // Map member_id → attendance mode for proxy display
+  let _memberAttendance = {};
+
   function updateMemberFromSelect(sel) {
     if (typeof window.updateMemberDisplay !== 'function') return;
 
+    let memberName = null;
+    let memberId = null;
+
     if (isSearchableSelect(sel)) {
-      // ag-searchable-select
       const selectedOpt = sel.selectedOption;
       if (selectedOpt) {
-        window.updateMemberDisplay({ name: selectedOpt.label });
-      } else {
-        window.updateMemberDisplay(null);
+        memberName = selectedOpt.label;
+        memberId = selectedOpt.value || sel.value;
       }
     } else {
-      // Native select
       const opt = sel.options[sel.selectedIndex];
       if (opt && opt.value) {
-        window.updateMemberDisplay({ name: opt.textContent.split('(')[0].trim() });
-      } else {
-        window.updateMemberDisplay(null);
+        memberName = opt.textContent.split('(')[0].trim();
+        memberId = opt.value;
       }
+    }
+
+    if (memberName) {
+      const att = _memberAttendance[memberId];
+      const mode = att?.mode || null;
+      const weight = att?.weight || null;
+      window.updateMemberDisplay({ name: memberName, weight, mode, proxyFor: att?.proxyFor || null });
+    } else {
+      window.updateMemberDisplay(null);
     }
   }
 
@@ -699,7 +722,7 @@
    * @param {boolean} on - Whether to enable buttons
    */
   function setVoteButtonsEnabled(on){
-    ["#btnFor","#btnAgainst","#btnAbstain","#btnNone"].forEach(id=>{
+    ["#btnFor","#btnAgainst","#btnAbstain","#btnBlanc","#btnNone"].forEach(id=>{
       const el=$(id);
       if (el) el.disabled = !on;
     });
@@ -710,6 +733,17 @@
    * @param {string} choice - Vote value: 'for', 'against', 'abstain', or 'none'
    * @returns {Promise<void>}
    */
+  // User-friendly error messages for 409 and known API errors
+  const ERROR_MESSAGES = {
+    'already_voted': 'Vous avez déjà voté pour cette résolution.',
+    'motion_not_open': 'Le vote pour cette résolution est fermé.',
+    'meeting_validated': 'Cette séance a déjà été validée et archivée.',
+    'motion_not_found': 'Résolution introuvable. Elle a peut-être été supprimée.',
+    'member_not_found': 'Votant non reconnu. Vérifiez votre sélection.',
+    'not_authorized': 'Vous n\'êtes pas autorisé à voter.',
+    'invalid_vote': 'Choix de vote invalide.'
+  };
+
   async function cast(choice){
     const memberId = selectedMemberId();
     if (!_currentMotionId || !memberId) return;
@@ -731,7 +765,12 @@
         return; // success — exit
       } catch(e) {
         lastErr = e;
-        const isNetwork = !navigator.onLine || (e && /fetch|network|timeout|load/i.test(e.message));
+        // Parse known error codes from API for user-friendly messages
+        const errCode = e?.message || '';
+        if (ERROR_MESSAGES[errCode]) {
+          throw new Error(ERROR_MESSAGES[errCode]);
+        }
+        const isNetwork = !navigator.onLine || (e && /fetch|network|timeout|load/i.test(errCode));
         if (isNetwork && attempt < MAX_RETRIES) {
           // Wait before retry (exponential backoff: 1s, 2s)
           await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));

@@ -491,9 +491,9 @@
 
 .vote-buttons {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
-  max-width: min(900px, 100%);
+  max-width: min(1100px, 100%);
   margin: 0 auto;
   width: 100%;
 }
@@ -569,6 +569,16 @@
 
 .vote-btn-abstain:hover:not(:disabled) {
   box-shadow: 0 15px 50px rgb(100 116 139 / 0.4);
+}
+
+.vote-btn-blanc {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+  color: white;
+  box-shadow: 0 10px 40px rgb(148 163 184 / 0.3);
+}
+
+.vote-btn-blanc:hover:not(:disabled) {
+  box-shadow: 0 15px 50px rgb(148 163 184 / 0.4);
 }
 
 .vote-btn-kbd {
@@ -813,6 +823,26 @@
   flex-wrap: wrap;
 }
 
+.confirm-irreversible-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  margin: 0 1rem;
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-warning-text, #92400e);
+  line-height: 1.4;
+}
+
+.confirm-irreversible-warning .icon {
+  flex-shrink: 0;
+  color: var(--color-warning);
+}
+
 .confirm-sheet-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -834,7 +864,7 @@
 
 @media (max-width: 768px) {
   .vote-buttons {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
 

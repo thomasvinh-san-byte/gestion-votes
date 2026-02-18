@@ -25,6 +25,12 @@
         if (body && body.ok && body.data) {
           document.getElementById('meetingTitle').textContent = body.data.title;
           document.getElementById('meetingName').textContent = body.data.title;
+          // P2-7: Show date in context bar
+          const dateCtx = document.getElementById('meetingDateCtx');
+          if (dateCtx && body.data.scheduled_at) {
+            const d = new Date(body.data.scheduled_at);
+            dateCtx.textContent = '— ' + d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+          }
           Shared.show(document.getElementById('meetingContext'), 'flex');
 
           // Vérifier si déjà validée
@@ -117,15 +123,24 @@
           badge.className = `badge ${isReady ? 'badge-success' : 'badge-danger'}`;
           badge.textContent = isReady ? 'Prêt' : 'Non prêt';
 
-          checksList.innerHTML = checks.map(check => `
-            <div class="check-item ${check.passed ? 'pass' : 'fail'}">
-              <div class="check-icon">${check.passed ? icon('check', 'icon-sm icon-success') : icon('x', 'icon-sm icon-danger')}</div>
-              <div>
-                <div class="font-medium">${escapeHtml(check.label)}</div>
-                ${check.detail ? `<div class="text-xs opacity-75">${escapeHtml(check.detail)}</div>` : ''}
+          checksList.innerHTML = checks.map(check => {
+            // P5-3: Add remediation link for failed checks
+            let remedLink = '';
+            if (!check.passed && currentMeetingId) {
+              const opUrl = `/operator.htmx.html?meeting_id=${encodeURIComponent(currentMeetingId)}`;
+              remedLink = `<a href="${opUrl}" class="text-xs text-primary" style="display:inline-flex;align-items:center;gap:0.25rem;margin-top:0.25rem">${icon('external-link', 'icon-xs icon-text')} Corriger dans l'opérateur</a>`;
+            }
+            return `
+              <div class="check-item ${check.passed ? 'pass' : 'fail'}">
+                <div class="check-icon">${check.passed ? icon('check', 'icon-sm icon-success') : icon('x', 'icon-sm icon-danger')}</div>
+                <div>
+                  <div class="font-medium">${escapeHtml(check.label)}</div>
+                  ${check.detail ? `<div class="text-xs opacity-75">${escapeHtml(check.detail)}</div>` : ''}
+                  ${remedLink}
+                </div>
               </div>
-            </div>
-          `).join('');
+            `;
+          }).join('');
 
           btnValidate.disabled = !isReady;
         }
@@ -144,17 +159,24 @@
     const btnModalConfirm = document.getElementById('btnModalConfirm');
     const btnModalCancel = document.getElementById('btnModalCancel');
 
-    // Enable/disable confirm button based on checkbox
-    if (confirmCheckbox && btnModalConfirm) {
-      confirmCheckbox.addEventListener('change', () => {
-        btnModalConfirm.disabled = !confirmCheckbox.checked;
-      });
+    // P5-1: Enable confirm button only when checkbox is checked AND "VALIDER" typed
+    const confirmText = document.getElementById('confirmText');
+
+    function updateModalConfirmState() {
+      if (!btnModalConfirm) return;
+      const checkOk = confirmCheckbox && confirmCheckbox.checked;
+      const textOk = confirmText && confirmText.value.trim() === 'VALIDER';
+      btnModalConfirm.disabled = !(checkOk && textOk);
     }
+
+    if (confirmCheckbox) confirmCheckbox.addEventListener('change', updateModalConfirmState);
+    if (confirmText) confirmText.addEventListener('input', updateModalConfirmState);
 
     // Close modal helper
     function closeValidateModal() {
       if (validateModal) validateModal.hidden = true;
       if (confirmCheckbox) confirmCheckbox.checked = false;
+      if (confirmText) confirmText.value = '';
       if (btnModalConfirm) btnModalConfirm.disabled = true;
     }
 
@@ -183,10 +205,10 @@
         return;
       }
 
-      // Validate pattern: letters, spaces, hyphens, apostrophes only
-      const namePattern = /^[A-Za-zÀ-ÿ\s\-'.]{2,100}$/;
+      // Validate pattern: letters, numbers, spaces, hyphens, apostrophes, periods, commas, parentheses
+      const namePattern = /^[A-Za-zÀ-ÿ0-9\s\-'.,()]{2,100}$/;
       if (!namePattern.test(presidentName)) {
-        setNotif('error', 'Le nom du président ne doit contenir que des lettres, espaces, tirets et apostrophes (2 à 100 caractères)');
+        setNotif('error', 'Le nom doit contenir entre 2 et 100 caractères (lettres, chiffres, espaces, tirets, apostrophes)');
         return;
       }
 

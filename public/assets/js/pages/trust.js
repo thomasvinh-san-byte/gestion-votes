@@ -4,6 +4,7 @@
 
   let currentMeetingId = null;
   let currentAnomalies = [];
+  let currentAuditEntries = [];
   let currentSeverityFilter = 'all';
   const meetingSelect = document.getElementById('meetingSelect');
 
@@ -376,37 +377,69 @@
     try {
       const { body } = await api(`/api/v1/audit_log.php?meeting_id=${meetingId}&limit=50`);
 
-      const container = document.getElementById('auditLog');
-
-      if (body && body.ok && body.data && Array.isArray(body.data.events) && body.data.events.length > 0) {
-        container.innerHTML = body.data.events.map(entry => {
-          const time = entry.timestamp || entry.created_at;
-          const detail = entry.message || entry.detail || '';
-          const actionLabel = entry.action_label || entry.action;
-          return `
-            <div class="audit-entry">
-              <div class="audit-time">${formatDate(time)}</div>
-              <div class="audit-content">
-                <div class="audit-action">${escapeHtml(actionLabel)}</div>
-                ${detail ? `<div class="audit-detail">${escapeHtml(detail)}</div>` : ''}
-              </div>
-              <div>
-                <span class="badge badge-neutral">${escapeHtml(entry.actor || 'système')}</span>
-              </div>
-            </div>
-          `;
-        }).join('');
+      if (body && body.ok && body.data && Array.isArray(body.data.events)) {
+        currentAuditEntries = body.data.events;
       } else {
-        container.innerHTML = `
-          <div class="text-center p-6 text-muted">
-            Aucune entrée d'audit pour cette séance
-          </div>
-        `;
+        currentAuditEntries = [];
       }
+      renderAuditLog();
     } catch (err) {
+      currentAuditEntries = [];
+      renderAuditLog();
       console.error('Audit error:', err);
     }
   }
+
+  // P6-2: Render audit log with filter support
+  function renderAuditLog() {
+    const container = document.getElementById('auditLog');
+    const filterInput = document.getElementById('auditLogFilter');
+    const query = (filterInput ? filterInput.value : '').toLowerCase().trim();
+
+    let entries = currentAuditEntries;
+    if (query) {
+      entries = entries.filter(entry => {
+        const text = [
+          entry.action_label || entry.action || '',
+          entry.message || entry.detail || '',
+          entry.actor || ''
+        ].join(' ').toLowerCase();
+        return text.includes(query);
+      });
+    }
+
+    if (entries.length === 0) {
+      container.innerHTML = `
+        <div class="text-center p-6 text-muted">
+          ${currentAuditEntries.length === 0
+            ? 'Aucune entrée d\'audit pour cette séance'
+            : 'Aucun résultat pour « ' + escapeHtml(query) + ' »'}
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = entries.map(entry => {
+      const time = entry.timestamp || entry.created_at;
+      const detail = entry.message || entry.detail || '';
+      const actionLabel = entry.action_label || entry.action;
+      return `
+        <div class="audit-entry">
+          <div class="audit-time">${formatDate(time)}</div>
+          <div class="audit-content">
+            <div class="audit-action">${escapeHtml(actionLabel)}</div>
+            ${detail ? `<div class="audit-detail">${escapeHtml(detail)}</div>` : ''}
+          </div>
+          <div>
+            <span class="badge badge-neutral">${escapeHtml(entry.actor || 'système')}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // P6-2: Filter audit log on input
+  document.getElementById('auditLogFilter')?.addEventListener('input', renderAuditLog);
 
   // Export audit log
   document.getElementById('btnExportAudit').addEventListener('click', () => {
@@ -417,6 +450,7 @@
 
     const url = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}&format=csv`;
     window.open(url, '_blank');
+    setNotif('success', 'Export CSV du journal d\'audit lancé');
   });
 
   // Event listeners
@@ -504,6 +538,7 @@
     link.href = URL.createObjectURL(blob);
     link.click();
     URL.revokeObjectURL(link.href);
+    setNotif('success', 'Rapport d\'intégrité téléchargé');
   });
 
   // Polling (10s auto-refresh for anomaly detection, disabled when WebSocket connected)

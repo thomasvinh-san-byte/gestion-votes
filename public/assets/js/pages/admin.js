@@ -124,6 +124,39 @@
 
   document.getElementById('filterRole').addEventListener('change', loadUsers);
 
+  // P7-3: Password strength indicator
+  var newPasswordInput = document.getElementById('newPassword');
+  if (newPasswordInput) {
+    newPasswordInput.addEventListener('input', function() {
+      var pw = this.value;
+      var strengthEl = document.getElementById('passwordStrength');
+      var fillEl = document.getElementById('passwordStrengthFill');
+      var textEl = document.getElementById('passwordStrengthText');
+      if (!strengthEl || !fillEl || !textEl) return;
+
+      if (!pw) { strengthEl.hidden = true; return; }
+      strengthEl.hidden = false;
+
+      var score = 0;
+      if (pw.length >= 8) score++;
+      if (pw.length >= 12) score++;
+      if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+      if (/\d/.test(pw)) score++;
+      if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+      var levels = [
+        { cls: 'weak', text: 'Faible', color: 'var(--color-danger)' },
+        { cls: 'fair', text: 'Moyen', color: 'var(--color-warning)' },
+        { cls: 'good', text: 'Bon', color: 'var(--color-primary)' },
+        { cls: 'strong', text: 'Fort', color: 'var(--color-success)' }
+      ];
+      var level = score <= 1 ? 0 : score <= 2 ? 1 : score <= 3 ? 2 : 3;
+      fillEl.className = 'password-strength-fill ' + levels[level].cls;
+      textEl.textContent = levels[level].text;
+      textEl.style.color = levels[level].color;
+    });
+  }
+
   // Create user
   document.getElementById('btnCreateUser').addEventListener('click', async function() {
     const btn = this;
@@ -158,13 +191,20 @@
     if (btn) {
       const active = btn.dataset.active === '1' ? 0 : 1;
       const label = active ? 'activer' : 'désactiver';
-      if (!confirm('Voulez-vous ' + label + ' cet utilisateur ?')) return;
-      Shared.btnLoading(btn, true);
-      try {
-        await api('/api/v1/admin_users.php', {action:'toggle', user_id:btn.dataset.id, is_active:active});
-        loadUsers();
-      } catch(err) { setNotif('error', err.message); }
-      finally { Shared.btnLoading(btn, false); }
+      const toggleBtn = btn;
+      Shared.openModal({
+        title: (active ? 'Activer' : 'Désactiver') + ' l\'utilisateur',
+        body: '<p>Voulez-vous ' + label + ' cet utilisateur ?</p>',
+        confirmText: active ? 'Activer' : 'Désactiver',
+        onConfirm: async function() {
+          Shared.btnLoading(toggleBtn, true);
+          try {
+            await api('/api/v1/admin_users.php', {action:'toggle', user_id:toggleBtn.dataset.id, is_active:active});
+            loadUsers();
+          } catch(err) { setNotif('error', err.message); }
+          finally { Shared.btnLoading(toggleBtn, false); }
+        }
+      });
       return;
     }
 
@@ -205,18 +245,27 @@
     btn = e.target.closest('.btn-delete-user');
     if (btn) {
       const userName = btn.dataset.name || 'cet utilisateur';
-      if (!confirm('Supprimer définitivement ' + userName + ' ?\nCette action est irréversible.')) return;
-      Shared.btnLoading(btn, true);
-      try {
-        const r = await api('/api/v1/admin_users.php', {action:'delete', user_id:btn.dataset.id});
-        if (r.body && r.body.ok) {
-          setNotif('success', 'Utilisateur supprimé');
-          loadUsers();
-        } else {
-          setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
+      const delBtn = btn;
+      Shared.openModal({
+        title: 'Supprimer l\'utilisateur',
+        body: '<div class="alert alert-danger mb-3"><strong>Action irréversible</strong></div>' +
+          '<p>Supprimer définitivement <strong>' + escapeHtml(userName) + '</strong> ?</p>',
+        confirmText: 'Supprimer',
+        confirmClass: 'btn btn-danger',
+        onConfirm: async function() {
+          Shared.btnLoading(delBtn, true);
+          try {
+            var r = await api('/api/v1/admin_users.php', {action:'delete', user_id:delBtn.dataset.id});
+            if (r.body && r.body.ok) {
+              setNotif('success', 'Utilisateur supprimé');
+              loadUsers();
+            } else {
+              setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
+            }
+          } catch(err) { setNotif('error', err.message); }
+          finally { Shared.btnLoading(delBtn, false); }
         }
-      } catch(err) { setNotif('error', err.message); }
-      finally { Shared.btnLoading(btn, false); }
+      });
       return;
     }
 
@@ -394,27 +443,36 @@
   });
 
   // Revoke role (delegated)
-  document.getElementById('meetingRolesBody').addEventListener('click', async function(e) {
+  document.getElementById('meetingRolesBody').addEventListener('click', function(e) {
     const btn = e.target.closest('.btn-revoke-role');
     if (!btn) return;
-    if (!confirm('Révoquer ce rôle de séance ?')) return;
-    Shared.btnLoading(btn, true);
-    try {
-      const r = await api('/api/v1/admin_meeting_roles.php', {
-        action: 'revoke',
-        meeting_id: btn.dataset.meetingId,
-        user_id: btn.dataset.userId,
-        role: btn.dataset.role
-      });
-      if (r.body && r.body.ok) {
-        setNotif('success', 'Rôle révoqué');
-        loadMeetingRoles();
-        loadUsers();
-      } else {
-        setNotif('error', getApiError(r.body));
+    const revokeBtn = btn;
+    const roleName = allRoleLabels[btn.dataset.role] || btn.dataset.role;
+    Shared.openModal({
+      title: 'Révoquer le rôle',
+      body: '<p>Révoquer le rôle <strong>' + escapeHtml(roleName) + '</strong> de cet utilisateur pour cette séance ?</p>',
+      confirmText: 'Révoquer',
+      confirmClass: 'btn btn-danger',
+      onConfirm: async function() {
+        Shared.btnLoading(revokeBtn, true);
+        try {
+          var r = await api('/api/v1/admin_meeting_roles.php', {
+            action: 'revoke',
+            meeting_id: revokeBtn.dataset.meetingId,
+            user_id: revokeBtn.dataset.userId,
+            role: revokeBtn.dataset.role
+          });
+          if (r.body && r.body.ok) {
+            setNotif('success', 'Rôle révoqué');
+            loadMeetingRoles();
+            loadUsers();
+          } else {
+            setNotif('error', getApiError(r.body));
+          }
+        } catch(err) { setNotif('error', err.message); }
+        finally { Shared.btnLoading(revokeBtn, false); }
       }
-    } catch(e) { setNotif('error', e.message); }
-    finally { Shared.btnLoading(btn, false); }
+    });
   });
 
   // ═══════════════════════════════════════════════════════
@@ -537,18 +595,27 @@
     btn = e.target.closest('.btn-delete-quorum');
     if (btn) {
       const name = btn.dataset.name || 'cette politique';
-      if (!confirm('Supprimer la politique « ' + name + ' » ?\nCette action est irréversible.')) return;
-      Shared.btnLoading(btn, true);
-      try {
-        const r = await api('/api/v1/admin_quorum_policies.php', {action:'delete', id:btn.dataset.id});
-        if (r.body && r.body.ok) {
-          setNotif('success', 'Politique supprimée');
-          loadQuorumPolicies();
-        } else {
-          setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
+      const delBtn = btn;
+      Shared.openModal({
+        title: 'Supprimer la politique de quorum',
+        body: '<div class="alert alert-danger mb-3"><strong>Action irréversible</strong></div>' +
+          '<p>Supprimer la politique « <strong>' + escapeHtml(name) + '</strong> » ?</p>',
+        confirmText: 'Supprimer',
+        confirmClass: 'btn btn-danger',
+        onConfirm: async function() {
+          Shared.btnLoading(delBtn, true);
+          try {
+            var r = await api('/api/v1/admin_quorum_policies.php', {action:'delete', id:delBtn.dataset.id});
+            if (r.body && r.body.ok) {
+              setNotif('success', 'Politique supprimée');
+              loadQuorumPolicies();
+            } else {
+              setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
+            }
+          } catch(err) { setNotif('error', err.message); }
+          finally { Shared.btnLoading(delBtn, false); }
         }
-      } catch(err) { setNotif('error', err.message); }
-      finally { Shared.btnLoading(btn, false); }
+      });
     }
   });
 
@@ -660,18 +727,27 @@
     btn = e.target.closest('.btn-delete-vote');
     if (btn) {
       const name = btn.dataset.name || 'cette politique';
-      if (!confirm('Supprimer la politique « ' + name + ' » ?\nCette action est irréversible.')) return;
-      Shared.btnLoading(btn, true);
-      try {
-        const r = await api('/api/v1/admin_vote_policies.php', {action:'delete', id:btn.dataset.id});
-        if (r.body && r.body.ok) {
-          setNotif('success', 'Politique supprimée');
-          loadVotePolicies();
-        } else {
-          setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
+      const delBtn = btn;
+      Shared.openModal({
+        title: 'Supprimer la politique de vote',
+        body: '<div class="alert alert-danger mb-3"><strong>Action irréversible</strong></div>' +
+          '<p>Supprimer la politique « <strong>' + escapeHtml(name) + '</strong> » ?</p>',
+        confirmText: 'Supprimer',
+        confirmClass: 'btn btn-danger',
+        onConfirm: async function() {
+          Shared.btnLoading(delBtn, true);
+          try {
+            var r = await api('/api/v1/admin_vote_policies.php', {action:'delete', id:delBtn.dataset.id});
+            if (r.body && r.body.ok) {
+              setNotif('success', 'Politique supprimée');
+              loadVotePolicies();
+            } else {
+              setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
+            }
+          } catch(err) { setNotif('error', err.message); }
+          finally { Shared.btnLoading(delBtn, false); }
         }
-      } catch(err) { setNotif('error', err.message); }
-      finally { Shared.btnLoading(btn, false); }
+      });
     }
   });
 
@@ -864,28 +940,42 @@
         document.getElementById('systemStatus').textContent = 'En ligne';
 
         // --- Health KPI strip updates ---
-        // Color-code latency
+        // Color-code latency with accessible labels
         var latencyText = s.db_latency_ms != null ? s.db_latency_ms + ' ms' : '—';
         var latencyVal = parseFloat(latencyText);
         var latencyDot = document.getElementById('healthLatencyDot');
         var latencyDisplay = document.getElementById('healthLatencyValue');
         if (latencyDot && latencyDisplay) {
           latencyDisplay.textContent = latencyText;
-          if (latencyVal < 50) { latencyDot.className = 'admin-health-icon success'; }
-          else if (latencyVal < 200) { latencyDot.className = 'admin-health-icon warning'; }
-          else { latencyDot.className = 'admin-health-icon danger'; }
+          if (latencyVal < 50) {
+            latencyDot.className = 'admin-health-icon success';
+            latencyDot.setAttribute('aria-label', 'Bonne latence');
+          } else if (latencyVal < 200) {
+            latencyDot.className = 'admin-health-icon warning';
+            latencyDot.setAttribute('aria-label', 'Latence moyenne');
+          } else {
+            latencyDot.className = 'admin-health-icon danger';
+            latencyDot.setAttribute('aria-label', 'Latence élevée');
+          }
         }
 
-        // Color-code memory
+        // Color-code memory with accessible labels
         var memoryText = s.memory_usage || '—';
         var memoryDot = document.getElementById('healthMemoryDot');
         var memoryDisplay = document.getElementById('healthMemoryValue');
         if (memoryDot && memoryDisplay) {
           memoryDisplay.textContent = memoryText;
           var memPct = parseFloat(memoryText);
-          if (memPct < 70) { memoryDot.className = 'admin-health-icon success'; }
-          else if (memPct < 90) { memoryDot.className = 'admin-health-icon warning'; }
-          else { memoryDot.className = 'admin-health-icon danger'; }
+          if (memPct < 70) {
+            memoryDot.className = 'admin-health-icon success';
+            memoryDot.setAttribute('aria-label', 'Mémoire normale');
+          } else if (memPct < 90) {
+            memoryDot.className = 'admin-health-icon warning';
+            memoryDot.setAttribute('aria-label', 'Mémoire élevée');
+          } else {
+            memoryDot.className = 'admin-health-icon danger';
+            memoryDot.setAttribute('aria-label', 'Mémoire critique');
+          }
         }
 
         // Active meetings count
@@ -908,18 +998,39 @@
   }
 
   // ═══════════════════════════════════════════════════════
-  // RESET DEMO
+  // RESET DEMO — P7-1: Strong confirmation modal
   // ═══════════════════════════════════════════════════════
-  document.getElementById('btnResetDemo').addEventListener('click', async function() {
-    if (!confirm('Cette action supprimera TOUTES les données et réinitialisera la démo. Continuer ?')) return;
+  document.getElementById('btnResetDemo').addEventListener('click', function() {
     const btn = this;
-    Shared.btnLoading(btn, true);
-    try {
-      const r = await api('/api/v1/admin_reset_demo.php', {});
-      if (r.body && r.body.ok) { setNotif('success', 'Données de démo réinitialisées'); refreshAll(); }
-      else { setNotif('error', getApiError(r.body)); }
-    } catch(e) { setNotif('error', e.message); }
-    finally { Shared.btnLoading(btn, false); }
+    Shared.openModal({
+      title: 'Réinitialisation complète des données',
+      body:
+        '<div class="alert alert-danger mb-4">' +
+          '<strong>ATTENTION : Cette action est IRRÉVERSIBLE.</strong><br>' +
+          'Toutes les séances, résolutions, votes et présences seront <strong>définitivement supprimés</strong>.<br>' +
+          'Seuls les utilisateurs et la configuration seront conservés.' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label class="form-label">Tapez <strong>REINITIALISER</strong> pour confirmer</label>' +
+          '<input class="form-input" type="text" id="resetConfirmText" placeholder="REINITIALISER" autocomplete="off" spellcheck="false">' +
+        '</div>',
+      confirmText: 'Réinitialiser',
+      confirmClass: 'btn btn-danger',
+      onConfirm: async function(modal) {
+        var text = modal.querySelector('#resetConfirmText').value.trim();
+        if (text !== 'REINITIALISER') {
+          setNotif('error', 'Tapez exactement REINITIALISER pour confirmer');
+          return false;
+        }
+        Shared.btnLoading(btn, true);
+        try {
+          var r = await api('/api/v1/admin_reset_demo.php', {});
+          if (r.body && r.body.ok) { setNotif('success', 'Données de démo réinitialisées'); refreshAll(); }
+          else { setNotif('error', getApiError(r.body)); }
+        } catch(e) { setNotif('error', e.message); }
+        finally { Shared.btnLoading(btn, false); }
+      }
+    });
   });
 
   // ═══════════════════════════════════════════════════════

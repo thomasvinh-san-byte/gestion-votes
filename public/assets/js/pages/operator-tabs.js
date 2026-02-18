@@ -334,6 +334,113 @@
     if (currentOpenMotion && currentMeetingStatus === 'live' && currentMode === 'setup') {
       switchTab('vote');
     }
+
+    // P2-1/P2-2/P2-6: Adapt UI based on user's role
+    applyRoleAwareUI();
+  }
+
+  // =========================================================================
+  // ROLE-AWARE UI (P2-1, P2-2, P2-6)
+  // =========================================================================
+
+  /**
+   * Detect the user's effective role for the current meeting and adapt the UI:
+   * - Show role badge in the meeting bar
+   * - Disable/tooltip buttons the user cannot use
+   * - Hide irrelevant tabs for non-operators
+   */
+  function applyRoleAwareUI() {
+    const roleBadge = document.getElementById('userRoleBadge');
+    if (!roleBadge) return;
+
+    const auth = window.Auth || {};
+    const systemRole = auth.role;
+    const meetingRoles = auth.meetingRoles || [];
+    const LABELS = auth.ROLE_LABELS || { admin: 'Administrateur', operator: 'Opérateur', president: 'Président', assessor: 'Assesseur' };
+
+    // Determine the effective role for this meeting
+    const meetingRole = meetingRoles.find(mr => String(mr.meeting_id) === String(currentMeetingId));
+    const effectiveMeetingRole = meetingRole ? meetingRole.role : null;
+
+    // Priority: meeting role > system role
+    let displayRole = '';
+    let roleColor = '';
+    const isAdmin = systemRole === 'admin';
+    const isOperator = systemRole === 'operator' || isAdmin;
+    const isPresident = effectiveMeetingRole === 'president';
+    const isAssessor = effectiveMeetingRole === 'assessor';
+
+    if (isAdmin) {
+      displayRole = LABELS.admin || 'Administrateur';
+      roleColor = 'var(--color-danger, #dc2626)';
+    } else if (isOperator && isPresident) {
+      displayRole = (LABELS.operator || 'Opérateur') + ' + ' + (LABELS.president || 'Président');
+      roleColor = 'var(--color-primary, #0066cc)';
+    } else if (isOperator) {
+      displayRole = LABELS.operator || 'Opérateur';
+      roleColor = 'var(--color-primary, #0066cc)';
+    } else if (isPresident) {
+      displayRole = LABELS.president || 'Président';
+      roleColor = 'var(--color-warning, #f59e0b)';
+    } else if (isAssessor) {
+      displayRole = LABELS.assessor || 'Assesseur';
+      roleColor = 'var(--color-text-muted)';
+    } else if (systemRole) {
+      displayRole = LABELS[systemRole] || systemRole;
+      roleColor = 'var(--color-text-muted)';
+    }
+
+    // P2-1: Show role badge
+    if (displayRole) {
+      roleBadge.innerHTML = icon('user', 'icon-sm icon-text') + ' ' + escapeHtml(displayRole);
+      roleBadge.style.color = roleColor;
+      roleBadge.hidden = false;
+    } else {
+      roleBadge.hidden = true;
+    }
+
+    // P2: If user is president (not operator/admin), 100% lecture seule
+    const isRestrictedPresident = isPresident && !isOperator;
+
+    if (isRestrictedPresident) {
+      // Hide prep mode switches (president doesn't prepare)
+      const prepModeSwitch = document.getElementById('prepModeSwitch');
+      if (prepModeSwitch) prepModeSwitch.hidden = true;
+      const modeSwitch = document.getElementById('modeSwitch');
+      if (modeSwitch) modeSwitch.hidden = true;
+
+      // Hide "Paramètres" tab
+      const paramTab = document.querySelector('[data-tab="parametres"]');
+      if (paramTab) paramTab.style.display = 'none';
+
+      // Hide primary action button (Ouvrir la séance, etc.)
+      if (btnPrimary) btnPrimary.style.display = 'none';
+
+      // Disable ALL buttons and inputs inside tab contents (full read-only)
+      document.querySelectorAll('.tab-content button, .tab-content input, .tab-content select, .tab-content textarea').forEach(el => {
+        el.disabled = true;
+        el.title = el.title || 'Consultation uniquement — Président';
+      });
+
+      // Also disable exec view buttons
+      document.querySelectorAll('#viewExec button, #viewExec input, #viewExec select').forEach(el => {
+        el.disabled = true;
+        el.title = el.title || 'Consultation uniquement — Président';
+      });
+
+      // Update context hint to show supervision mode
+      const hint = document.getElementById('contextHint');
+      if (hint) {
+        hint.innerHTML = icon('eye', 'icon-sm icon-text') + ' <strong>Mode supervision</strong> — Consultation uniquement';
+      }
+
+      // Allow the Actualiser and Projection buttons (read-only actions)
+      const allowedBtns = ['btnBarRefresh', 'btnProjector', 'btnRecheck'];
+      allowedBtns.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) { btn.disabled = false; btn.title = ''; }
+      });
+    }
   }
 
   // =========================================================================
@@ -468,8 +575,54 @@
     }
   }
 
+  function showLaunchModal() {
+    const modal = document.getElementById('launchModal');
+    if (!modal) { launchSessionConfirmed(); return; }
+
+    // Fill meeting title
+    const titleEl = document.getElementById('launchModalMeetingTitle');
+    if (titleEl) titleEl.textContent = currentMeeting?.title || 'Séance';
+
+    // Build summary
+    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+    const remoteCount = attendanceCache.filter(a => a.mode === 'remote').length;
+    const proxyCount = proxiesCache.length;
+    const motionCount = motionsCache.length;
+    const hasPresident = currentMeeting?.president_name || '';
+
+    let dateText = '—';
+    if (currentMeeting?.scheduled_at) {
+      try {
+        dateText = new Date(currentMeeting.scheduled_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      } catch (e) { dateText = currentMeeting.scheduled_at; }
+    }
+
+    const summary = document.getElementById('launchModalSummary');
+    if (summary) {
+      summary.innerHTML = `
+        <div class="summary-line"><span class="summary-label">Date</span><span class="summary-value">${escapeHtml(dateText)}</span></div>
+        <div class="summary-line"><span class="summary-label">Membres</span><span class="summary-value">${membersCache.length} inscrits</span></div>
+        <div class="summary-line"><span class="summary-label">Présents</span><span class="summary-value">${presentCount}${remoteCount > 0 ? ' (dont ' + remoteCount + ' à distance)' : ''}${proxyCount > 0 ? ' + ' + proxyCount + ' procuration' + (proxyCount > 1 ? 's' : '') : ''}</span></div>
+        <div class="summary-line"><span class="summary-label">Résolutions</span><span class="summary-value">${motionCount} à voter</span></div>
+        ${hasPresident ? '<div class="summary-line"><span class="summary-label">Président</span><span class="summary-value">' + escapeHtml(hasPresident) + '</span></div>' : ''}
+      `;
+    }
+
+    modal.style.display = 'flex';
+    document.getElementById('launchModalConfirm')?.focus();
+  }
+
+  function hideLaunchModal() {
+    const modal = document.getElementById('launchModal');
+    if (modal) modal.style.display = 'none';
+  }
+
   async function launchSession() {
-    if (!confirm('Lancer la séance et ouvrir les votes ?')) return;
+    showLaunchModal();
+  }
+
+  async function launchSessionConfirmed() {
+    hideLaunchModal();
 
     try {
       // Atomic launch: single API call handles all transitions (draft→scheduled→frozen→live)
@@ -498,6 +651,13 @@
       await loadMeetingContext(currentMeetingId);
     }
   }
+
+  // Launch modal event listeners
+  document.getElementById('launchModalCancel')?.addEventListener('click', hideLaunchModal);
+  document.getElementById('launchModalConfirm')?.addEventListener('click', launchSessionConfirmed);
+  document.getElementById('launchModal')?.addEventListener('click', function(e) {
+    if (e.target === this) hideLaunchModal();
+  });
 
   // =========================================================================
   // TAB: PARAMÈTRES - Settings
@@ -634,7 +794,21 @@
     const btn = e.target.closest('[data-remove-assessor]');
     if (!btn) return;
     const userId = btn.getAttribute('data-remove-assessor');
-    if (!userId || !confirm('Retirer cet assesseur ?')) return;
+    if (!userId) return;
+    const confirmed = await new Promise(resolve => {
+      const m = createModal({
+        id: 'removeAssessorModal',
+        title: 'Retirer l\'assesseur',
+        content: `<p>Retirer cet assesseur de la séance ?</p>
+          <div class="flex gap-3 justify-end mt-4">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-danger" data-action="confirm">Retirer</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    });
+    if (!confirmed) return;
     btn.disabled = true;
     try {
       await api('/api/v1/admin_meeting_roles.php', {
@@ -816,12 +990,33 @@
     }
   }
 
-  async function blockDevice(deviceId, modal) {
-    const reason = prompt('Raison du blocage (optionnel):') || 'Bloqué par opérateur';
+  async function blockDevice(deviceId, parentModal) {
+    const reason = await new Promise(resolve => {
+      const m = createModal({
+        id: 'blockDeviceReasonModal',
+        title: 'Bloquer l\'appareil',
+        content: `
+          <div class="form-group mb-4">
+            <label class="form-label">Raison du blocage (optionnel)</label>
+            <input class="form-input" type="text" id="blockDeviceReason" placeholder="Ex : comportement suspect" maxlength="200">
+          </div>
+          <div class="flex gap-3 justify-end">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-danger" data-action="confirm">Bloquer</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(null); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => {
+        const val = m.querySelector('#blockDeviceReason').value.trim();
+        closeModal(m);
+        resolve(val || 'Bloqué par opérateur');
+      });
+    });
+    if (reason === null) return;
     try {
       await api('/api/v1/device_block.php', { device_id: deviceId, reason });
       setNotif('success', 'Appareil bloqué');
-      loadDevicesModal(modal);
+      loadDevicesModal(parentModal);
       loadDevices();
     } catch (err) {
       setNotif('error', err.message);
@@ -1175,7 +1370,20 @@
   }
 
   async function markAllPresent() {
-    if (!confirm('Marquer tous présents ?')) return;
+    const confirmed = await new Promise(resolve => {
+      const m = createModal({
+        id: 'markAllPresentModal',
+        title: 'Marquer tous présents',
+        content: `<p>Marquer tous les membres comme <strong>présents</strong> ?</p>
+          <div class="flex gap-3 justify-end mt-4">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">Confirmer</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    });
+    if (!confirmed) return;
     try {
       await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
       attendanceCache.forEach(m => m.mode = 'present');
@@ -1196,7 +1404,7 @@
         <h3 style="margin:0 0 1rem;"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer des membres (CSV)</h3>
         <p class="text-muted text-sm mb-3">
           Format attendu: <code>name,email,voting_power</code> (en-tête requis).<br>
-          L'email et le poids sont optionnels.
+          L'email et le nombre de voix sont optionnels.
         </p>
         <div class="form-group mb-3">
           <label class="form-label">Fichier CSV</label>
@@ -1387,7 +1595,20 @@
   }
 
   async function revokeProxy(giverId) {
-    if (!confirm('Révoquer cette procuration ?')) return;
+    const confirmed = await new Promise(resolve => {
+      const m = createModal({
+        id: 'revokeProxyModal',
+        title: 'Révoquer la procuration',
+        content: `<p>Révoquer cette procuration ?</p>
+          <div class="flex gap-3 justify-end mt-4">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-danger" data-action="confirm">Révoquer</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    });
+    if (!confirmed) return;
 
     try {
       const { body } = await api('/api/v1/proxies_upsert.php', {
@@ -1857,7 +2078,20 @@
   }
 
   async function clearSpeechHistory() {
-    if (!confirm('Vider l\'historique des prises de parole ?')) return;
+    const confirmed = await new Promise(resolve => {
+      const m = createModal({
+        id: 'clearSpeechModal',
+        title: 'Vider l\'historique',
+        content: `<p>Vider l'historique des prises de parole ?</p>
+          <div class="flex gap-3 justify-end mt-4">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-danger" data-action="confirm">Vider</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    });
+    if (!confirmed) return;
     try {
       await api('/api/v1/speech_clear.php', { meeting_id: currentMeetingId });
       setNotif('success', 'Historique vidé');
@@ -1977,7 +2211,7 @@
       if (isLive && !isOpen && !isClosed) {
         voteActions = `<button class="btn btn-sm btn-primary btn-open-vote" data-motion-id="${m.id}">${icon('play', 'icon-sm icon-text')}Ouvrir</button>`;
       } else if (isLive && isOpen) {
-        voteActions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${m.id}">${icon('square', 'icon-sm icon-text')}Clôturer</button>`;
+        voteActions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${m.id}">${icon('square', 'icon-sm icon-text')}Terminer</button>`;
       }
 
       // Edit actions (only for pending resolutions)
@@ -2067,9 +2301,28 @@
     list.querySelectorAll('.btn-delete-motion').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (!confirm('Supprimer cette résolution ?')) return;
+        const motionId = btn.dataset.motionId;
+        const motion = motionsCache.find(m => String(m.id) === String(motionId));
+        const title = motion ? escapeHtml(motion.title || '—') : 'cette résolution';
+        const ok = await new Promise(resolve => {
+          const modal = createModal({
+            id: 'deleteMotionModal',
+            title: 'Supprimer la résolution',
+            content: `
+              <h3 id="deleteMotionModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('trash-2', 'icon-sm icon-text')} Supprimer ?</h3>
+              <p style="margin:0 0 1.5rem;">Résolution : <strong>${title}</strong></p>
+              <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+                <button class="btn btn-danger" data-action="confirm">${icon('trash-2', 'icon-sm icon-text')} Supprimer</button>
+              </div>
+            `
+          });
+          modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+          modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+        });
+        if (!ok) return;
         try {
-          await api('/api/v1/motion_delete.php', { motion_id: btn.dataset.motionId, meeting_id: currentMeetingId });
+          await api('/api/v1/motion_delete.php', { motion_id: motionId, meeting_id: currentMeetingId });
           setNotif('success', 'Résolution supprimée');
           await loadResolutions();
           await loadStatusChecklist();
@@ -2304,7 +2557,13 @@
   }
 
   function renderManualVoteList() {
-    const voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
+    // P3-5: Filtrage par recherche
+    const searchInput = document.getElementById('manualVoteSearch');
+    const searchTerm = (searchInput ? searchInput.value : '').toLowerCase();
+    let voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
+    if (searchTerm) {
+      voters = voters.filter(v => (v.full_name || '').toLowerCase().includes(searchTerm));
+    }
     const list = document.getElementById('manualVoteList');
 
     // Allow vote correction - buttons are never disabled, but show current vote
@@ -2334,10 +2593,28 @@
         // Skip if clicking same vote
         if (currentVote === newVote) return;
 
-        // Confirm if correcting existing vote
+        // Confirm if correcting existing vote via modal
         const _vl = { for: 'Pour', against: 'Contre', abstain: 'Abstention' };
-        if (currentVote && !confirm(`Modifier le vote de "${_vl[currentVote] || currentVote}" vers "${_vl[newVote] || newVote}" ?`)) {
-          return;
+        if (currentVote) {
+          const ok = await new Promise(resolve => {
+            const memberName = card.querySelector('.attendance-name')?.textContent || '—';
+            const modal = createModal({
+              id: 'correctVoteModal',
+              title: 'Modifier le vote',
+              content: `
+                <h3 id="correctVoteModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Modifier le vote ?</h3>
+                <p style="margin:0 0 0.5rem;">Membre : <strong>${escapeHtml(memberName)}</strong></p>
+                <p style="margin:0 0 1.5rem;">De <strong>${_vl[currentVote] || currentVote}</strong> vers <strong>${_vl[newVote] || newVote}</strong></p>
+                <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                  <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+                  <button class="btn btn-primary" data-action="confirm">Modifier</button>
+                </div>
+              `
+            });
+            modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+            modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+          });
+          if (!ok) return;
         }
 
         await castManualVote(memberId, newVote);
@@ -2356,13 +2633,17 @@
       return;
     }
 
+    // P3-3: Lire la justification depuis le champ éditable
+    const justifInput = document.getElementById('manualVoteJustification');
+    const justification = (justifInput ? justifInput.value.trim() : '') || 'Vote opérateur manuel';
+
     try {
       const { body } = await api('/api/v1/manual_vote.php', {
         meeting_id: currentMeetingId,
         motion_id: currentOpenMotion.id,
         member_id: memberId,
         vote: vote,
-        justification: 'Vote opérateur manuel'
+        justification: justification
       });
 
       if (body?.ok === true) {
@@ -2372,9 +2653,15 @@
         setNotif('success', 'Vote enregistré');
       } else {
         setNotif('error', getApiError(body, 'Erreur lors du vote'));
+        // P3-6: Refresh auto pour resynchroniser l'état après erreur
+        if (currentOpenMotion) await loadBallots(currentOpenMotion.id);
+        renderManualVoteList();
       }
     } catch (err) {
       setNotif('error', err.message);
+      // P3-6: Refresh auto pour resynchroniser après erreur réseau
+      if (currentOpenMotion) await loadBallots(currentOpenMotion.id);
+      renderManualVoteList();
     }
   }
 
@@ -2389,6 +2676,7 @@
     }
 
     const voteLabels = { for: 'Pour', against: 'Contre', abstain: 'Abstention' };
+    const voteColors = { for: 'var(--color-success)', against: 'var(--color-danger)', abstain: 'var(--color-text-muted)' };
     const voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
 
     if (voters.length === 0) {
@@ -2396,9 +2684,30 @@
       return;
     }
 
-    if (!confirm(`Enregistrer "${voteLabels[voteType]}" pour ${voters.length} votant(s) ?`)) {
-      return;
-    }
+    // P3-2: Modale de confirmation au lieu de confirm()
+    const alreadyVoted = voters.filter(v => ballotsCache[v.member_id]).length;
+    const motionTitle = currentOpenMotion ? escapeHtml(currentOpenMotion.title || '—') : '—';
+
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'unanimityConfirmModal',
+        title: 'Confirmer le vote unanime',
+        content: `
+          <h3 id="unanimityConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('alert-triangle', 'icon-sm icon-text')} Vote unanime</h3>
+          <p style="margin:0 0 0.5rem;">Résolution : <strong>${motionTitle}</strong></p>
+          <p style="margin:0 0 0.5rem;">Vote : <strong style="color:${voteColors[voteType]}">${voteLabels[voteType]}</strong> pour <strong>${voters.length}</strong> votant(s)</p>
+          ${alreadyVoted > 0 ? `<p style="margin:0 0 0.5rem;color:var(--color-warning);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} ${alreadyVoted} votant(s) ont déjà voté — leur vote existant sera conservé.</p>` : ''}
+          <p style="margin:0 0 1.5rem;color:var(--color-text-muted);font-size:0.875rem;">Cette action enregistrera un vote manuel pour chaque votant présent ou à distance.</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">Confirmer (${voters.length} votes)</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
 
     let successCount = 0;
     let errorCount = 0;
@@ -2460,6 +2769,29 @@
   }
 
   async function openVote(motionId) {
+    // P3-1: Confirmation modale avant ouverture
+    const motion = motionsCache.find(m => String(m.id) === String(motionId));
+    const motionTitle = motion ? escapeHtml(motion.title || '—') : 'cette résolution';
+
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'openVoteConfirmModal',
+        title: 'Confirmer l\'ouverture du vote',
+        content: `
+          <h3 id="openVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('alert-triangle', 'icon-sm icon-text')} Ouvrir le vote ?</h3>
+          <p style="margin:0 0 0.5rem;">Résolution : <strong>${motionTitle}</strong></p>
+          <p style="margin:0 0 1.5rem;color:var(--color-text-muted);font-size:0.875rem;">Le vote sera immédiatement accessible à tous les votants. Un seul vote peut être ouvert à la fois.</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">${icon('play', 'icon-sm icon-text')} Ouvrir le vote</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
+
     // Disable ALL open-vote buttons and quick-open buttons to prevent any double-click
     const openBtns = document.querySelectorAll('.btn-open-vote, .btn-quick-open');
     openBtns.forEach(btn => {
@@ -2474,7 +2806,6 @@
       if (!openResult.body?.ok) {
         const errorMsg = getApiError(openResult.body, 'Erreur ouverture vote');
         setNotif('error', errorMsg);
-        // Re-render to restore buttons on error only
         await loadResolutions();
         return;
       }
@@ -2482,7 +2813,6 @@
       setNotif('success', 'Vote ouvert');
       announce('Vote ouvert.');
 
-      // loadResolutions will re-render the list with fresh buttons (old disabled ones are replaced)
       await loadResolutions();
 
       if (currentMode === 'exec') {
@@ -2494,13 +2824,43 @@
       }
     } catch (err) {
       setNotif('error', err.message);
-      // Re-render to restore buttons on error
       await loadResolutions();
     }
   }
 
   async function closeVote(motionId) {
-    if (!confirm('Clôturer ce vote ?')) return;
+    // P2-4 / P3: Modale de confirmation avec récapitulatif au lieu de confirm()
+    const motion = motionsCache.find(m => String(m.id) === String(motionId));
+    const motionTitle = motion ? escapeHtml(motion.title || '—') : 'ce vote';
+    const vFor = parseInt(document.getElementById('liveVoteFor')?.textContent || '0', 10);
+    const vAgainst = parseInt(document.getElementById('liveVoteAgainst')?.textContent || '0', 10);
+    const vAbstain = parseInt(document.getElementById('liveVoteAbstain')?.textContent || '0', 10);
+    const vTotal = vFor + vAgainst + vAbstain;
+
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'closeVoteConfirmModal',
+        title: 'Terminer le scrutin',
+        content: `
+          <h3 id="closeVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('square', 'icon-sm icon-text')} Terminer le scrutin ?</h3>
+          <p style="margin:0 0 0.75rem;">Résolution : <strong>${motionTitle}</strong></p>
+          <div style="display:flex;gap:1rem;margin:0 0 1rem;font-size:0.9375rem;">
+            <span style="color:var(--color-success);">${icon('check', 'icon-sm icon-text')} ${vFor}</span>
+            <span style="color:var(--color-danger);">${icon('x', 'icon-sm icon-text')} ${vAgainst}</span>
+            <span style="color:var(--color-text-muted);">&#9675; ${vAbstain}</span>
+            <span class="text-muted">&mdash; ${vTotal} vote(s)</span>
+          </div>
+          <p style="margin:0 0 1.5rem;color:var(--color-warning);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} Les résultats seront figés définitivement. Plus aucun vote ne sera accepté.</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-warning" data-action="confirm">${icon('square', 'icon-sm icon-text')} Terminer le scrutin</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
 
     // Disable all close-vote buttons during the operation and show spinner
     const closeBtns = document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote');
@@ -2515,14 +2875,12 @@
       setNotif('success', 'Vote clôturé');
       currentOpenMotion = null;
       ballotsCache = {};
-      // loadResolutions + loadVoteTab will re-render with fresh buttons
       await loadResolutions();
       await loadVoteTab();
       if (currentMode === 'exec') refreshExecView();
       announce('Vote clôturé.');
     } catch (err) {
       setNotif('error', err.message);
-      // Re-render to restore buttons on error
       await loadResolutions();
     }
   }
@@ -2627,13 +2985,38 @@
     }
 
     const pending = motionsCache.filter(m => !m.opened_at && !m.closed_at);
+    const closed = motionsCache.filter(m => m.closed_at).length;
+    const total = motionsCache.length;
+    const meetingTitle = currentMeeting ? escapeHtml(currentMeeting.title || '') : '';
+    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+
+    let warningHtml = '';
     if (pending.length > 0) {
-      if (!confirm(`Attention: ${pending.length} résolution(s) n'ont pas été votées. Clôturer quand même ?`)) {
-        return;
-      }
-    } else if (!confirm('Clôturer la séance ? Cette action est irréversible.')) {
-      return;
+      warningHtml = `<p style="margin:0 0 0.75rem;color:var(--color-warning);">${icon('alert-triangle', 'icon-sm icon-text')} <strong>${pending.length} résolution(s)</strong> n'ont pas encore été votées.</p>`;
     }
+
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'closeSessionConfirmModal',
+        title: 'Clôturer la séance',
+        content: `
+          <h3 id="closeSessionConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('square', 'icon-sm icon-text')} Clôturer la séance ?</h3>
+          ${meetingTitle ? `<p style="margin:0 0 0.5rem;"><strong>${meetingTitle}</strong></p>` : ''}
+          <div style="margin:0 0 0.75rem;font-size:0.9375rem;color:var(--color-text-muted);">
+            ${icon('users', 'icon-sm icon-text')} ${presentCount} présent(s) &mdash; ${icon('check-circle', 'icon-sm icon-text')} ${closed}/${total} résolution(s) votée(s)
+          </div>
+          ${warningHtml}
+          <p style="margin:0 0 1.5rem;color:var(--color-danger);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} Cette action est irréversible. La séance passera en statut « clôturée ».</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-danger" data-action="confirm">${icon('square', 'icon-sm icon-text')} Clôturer la séance</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
 
     try {
       const { body } = await api('/api/v1/meeting_transition.php', {
@@ -2662,7 +3045,23 @@
   async function doTransition(toStatus) {
     const statusLabels = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
     const statusLabel = statusLabels[toStatus] || toStatus;
-    if (!confirm(`Changer l'état vers "${statusLabel}" ?`)) return;
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'transitionConfirmModal',
+        title: 'Confirmer le changement d\'état',
+        content: `
+          <h3 id="transitionConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Changer l'état ?</h3>
+          <p style="margin:0 0 1.5rem;">La séance passera en statut <strong>« ${statusLabel} »</strong>.</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">Confirmer</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
     try {
       const { body } = await api('/api/v1/meeting_transition.php', {
         meeting_id: currentMeetingId,
@@ -3328,7 +3727,20 @@
 
   // Quick all present
   document.getElementById('btnQuickAllPresent')?.addEventListener('click', async () => {
-    if (!confirm('Marquer tous les membres comme présents ?')) return;
+    const confirmed = await new Promise(resolve => {
+      const m = createModal({
+        id: 'quickAllPresentModal',
+        title: 'Marquer tous présents',
+        content: `<p>Marquer <strong>tous les membres</strong> comme présents ?</p>
+          <div class="flex gap-3 justify-end mt-4">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">Confirmer</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    });
+    if (!confirmed) return;
     try {
       await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
       attendanceCache.forEach(m => m.mode = 'present');
@@ -3376,6 +3788,9 @@
   document.getElementById('execBtnCloseVote')?.addEventListener('click', () => {
     if (currentOpenMotion) closeVote(currentOpenMotion.id);
   });
+
+  // Setup view: manual vote search (P3-5)
+  document.getElementById('manualVoteSearch')?.addEventListener('input', renderManualVoteList);
 
   // Exec view: manual vote search
   document.getElementById('execManualSearch')?.addEventListener('input', refreshExecManualVotes);
@@ -3469,28 +3884,135 @@
     }
 
     list.innerHTML = membersCache.map(m => `
-      <div class="assistant-member-row">
+      <div class="assistant-member-row" data-member-id="${m.id}">
         <span class="assistant-member-name">${escapeHtml(m.full_name || '—')}</span>
-        <span class="text-sm text-muted">${escapeHtml(m.email || '')}</span>
-        <span class="text-sm text-muted">${m.voting_power || 1} voix</span>
+        <span class="text-sm text-muted assistant-member-email">${escapeHtml(m.email || '')}</span>
+        <span class="assistant-member-power">${m.voting_power || 1} voix</span>
+        <div class="assistant-member-actions">
+          <button class="btn-icon-sm" title="Modifier" data-wiz-edit="${m.id}">
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
+          </button>
+          <button class="btn-icon-sm danger" title="Retirer" data-wiz-delete="${m.id}">
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
+          </button>
+        </div>
       </div>
     `).join('');
+
+    // Bind edit/delete handlers
+    list.querySelectorAll('[data-wiz-edit]').forEach(btn => {
+      btn.addEventListener('click', () => wizEditMember(btn.dataset.wizEdit));
+    });
+    list.querySelectorAll('[data-wiz-delete]').forEach(btn => {
+      btn.addEventListener('click', () => wizDeleteMember(btn.dataset.wizDelete));
+    });
+  }
+
+  function wizEditMember(memberId) {
+    const m = membersCache.find(x => x.id === memberId);
+    if (!m) return;
+
+    Shared.openModal({
+      title: 'Modifier le membre',
+      body: `
+        <div class="form-group mb-3">
+          <label class="form-label">Nom complet *</label>
+          <input class="form-input" type="text" id="wizEditName" value="${escapeHtml(m.full_name || m.name || '')}" placeholder="Nom Prénom">
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Email <span class="text-muted text-sm">(facultatif)</span></label>
+          <input class="form-input" type="email" id="wizEditEmail" value="${escapeHtml(m.email || '')}" placeholder="email@exemple.com">
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Nombre de voix</label>
+          <input class="form-input" type="number" id="wizEditPower" value="${m.voting_power || 1}" min="1" step="1">
+        </div>
+      `,
+      confirmText: 'Enregistrer',
+      onConfirm: async function(modal) {
+        const newName = modal.querySelector('#wizEditName').value.trim();
+        const newEmail = modal.querySelector('#wizEditEmail').value.trim();
+        const newPower = parseInt(modal.querySelector('#wizEditPower').value) || 1;
+
+        if (!newName) { setNotif('error', 'Le nom est requis'); return false; }
+
+        try {
+          const { body } = await api('/api/v1/members.php', {
+            member_id: memberId,
+            full_name: newName,
+            email: newEmail || null,
+            voting_power: newPower,
+            is_active: true
+          }, 'PATCH');
+
+          if (body?.ok) {
+            setNotif('success', 'Membre modifié');
+            await loadMembers();
+            renderWizMembers();
+            return true;
+          } else {
+            setNotif('error', getApiError(body, 'Erreur'));
+            return false;
+          }
+        } catch (err) {
+          setNotif('error', err.message);
+          return false;
+        }
+      }
+    });
+  }
+
+  async function wizDeleteMember(memberId) {
+    const m = membersCache.find(x => x.id === memberId);
+    if (!m) return;
+    const name = m.full_name || m.name || 'ce membre';
+
+    Shared.openModal({
+      title: 'Retirer un membre',
+      body: `<p>Retirer <strong>${escapeHtml(name)}</strong> de la liste des membres ?</p>
+             <p class="text-sm text-muted">Cette action supprime le membre du registre.</p>`,
+      confirmText: 'Retirer',
+      danger: true,
+      onConfirm: async function() {
+        try {
+          const { body } = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
+          if (body?.ok) {
+            setNotif('success', name + ' retiré');
+            await loadMembers();
+            await loadAttendance();
+            renderWizMembers();
+            return true;
+          } else {
+            setNotif('error', getApiError(body, 'Erreur'));
+            return false;
+          }
+        } catch (err) {
+          setNotif('error', err.message);
+          return false;
+        }
+      }
+    });
   }
 
   async function wizAddMember() {
     const nameInput = document.getElementById('wizAddMemberName');
     const emailInput = document.getElementById('wizAddMemberEmail');
+    const powerInput = document.getElementById('wizAddMemberPower');
     const name = nameInput?.value?.trim();
     if (!name) { setNotif('error', 'Le nom est requis'); nameInput?.focus(); return; }
+
+    const voting_power = parseInt(powerInput?.value) || 1;
 
     try {
       await api('/api/v1/members.php', {
         action: 'create',
         full_name: name,
-        email: emailInput?.value?.trim() || null
+        email: emailInput?.value?.trim() || null,
+        voting_power: voting_power
       });
       if (nameInput) nameInput.value = '';
       if (emailInput) emailInput.value = '';
+      if (powerInput) powerInput.value = '1';
       nameInput?.focus();
       await loadMembers();
       renderWizMembers();
@@ -3667,22 +4189,39 @@
     // Populate policy dropdowns from cache
     const qSelect = document.getElementById('wizQuorumPolicy');
     const vSelect = document.getElementById('wizVotePolicy');
+    const qHint = document.getElementById('wizQuorumHint');
+    const vHint = document.getElementById('wizVoteHint');
 
-    if (qSelect && policiesCache.quorum.length > 0) {
-      const currentVal = qSelect.value;
-      qSelect.innerHTML = '<option value="">— Aucun quorum —</option>' +
-        policiesCache.quorum.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
-      // Restore current meeting's quorum policy
-      if (currentMeeting?.quorum_policy_id) qSelect.value = currentMeeting.quorum_policy_id;
-      else if (currentVal) qSelect.value = currentVal;
+    if (qSelect) {
+      if (policiesCache.quorum.length > 0) {
+        const currentVal = qSelect.value;
+        qSelect.innerHTML = '<option value="">— Aucun quorum —</option>' +
+          policiesCache.quorum.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
+        if (currentMeeting?.quorum_policy_id) qSelect.value = currentMeeting.quorum_policy_id;
+        else if (currentVal) qSelect.value = currentVal;
+        qSelect.disabled = false;
+        if (qHint) qHint.innerHTML = 'Si le quorum n\'est pas atteint, le vote ne peut pas avoir lieu.';
+      } else {
+        qSelect.innerHTML = '<option value="">— Aucun quorum —</option>';
+        qSelect.disabled = false;
+        if (qHint) qHint.innerHTML = 'Aucune politique de quorum créée. <a href="/admin.htmx.html#policies" target="_blank" class="text-primary">Créer une politique</a> (optionnel — vous pouvez continuer sans).';
+      }
     }
 
-    if (vSelect && policiesCache.vote.length > 0) {
-      const currentVal = vSelect.value;
-      vSelect.innerHTML = '<option value="">— Majorité par défaut —</option>' +
-        policiesCache.vote.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
-      if (currentMeeting?.vote_policy_id) vSelect.value = currentMeeting.vote_policy_id;
-      else if (currentVal) vSelect.value = currentVal;
+    if (vSelect) {
+      if (policiesCache.vote.length > 0) {
+        const currentVal = vSelect.value;
+        vSelect.innerHTML = '<option value="">— Majorité simple (par défaut) —</option>' +
+          policiesCache.vote.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
+        if (currentMeeting?.vote_policy_id) vSelect.value = currentMeeting.vote_policy_id;
+        else if (currentVal) vSelect.value = currentVal;
+        vSelect.disabled = false;
+        if (vHint) vHint.innerHTML = '';
+      } else {
+        vSelect.innerHTML = '<option value="">— Majorité simple (par défaut) —</option>';
+        vSelect.disabled = false;
+        if (vHint) vHint.innerHTML = 'Aucune politique de vote personnalisée. La majorité simple (50%+1) sera appliquée.';
+      }
     }
 
     // Set convocation radio
@@ -3709,12 +4248,28 @@
     const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
     const hasMotions = motionsCache.length > 0;
     const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+    const remoteCount = attendanceCache.filter(a => a.mode === 'remote').length;
     const proxyCount = proxiesCache.length;
+    const hasDate = !!(currentMeeting?.scheduled_at);
+    const hasPresident = !!(currentMeeting?.president_user_id || currentMeeting?.president_name);
+    const hasQuorumPolicy = !!(currentMeeting?.quorum_policy_id);
+    const presidentName = currentMeeting?.president_name || '';
+
+    // Format date for display
+    let dateText = 'Date non renseignée';
+    if (hasDate) {
+      try {
+        dateText = new Date(currentMeeting.scheduled_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      } catch (e) { dateText = currentMeeting.scheduled_at; }
+    }
 
     const checks = [
+      { ok: hasDate, text: dateText, warn: !hasDate },
       { ok: hasMembers, text: membersCache.length + ' membre' + (membersCache.length > 1 ? 's' : '') + ' inscrit' + (membersCache.length > 1 ? 's' : '') },
-      { ok: hasAttendance, text: presentCount + ' présent' + (presentCount > 1 ? 's' : '') + (proxyCount > 0 ? ' · ' + proxyCount + ' procuration' + (proxyCount > 1 ? 's' : '') : '') },
+      { ok: hasAttendance, text: presentCount + ' présent' + (presentCount > 1 ? 's' : '') + (remoteCount > 0 ? ' dont ' + remoteCount + ' à distance' : '') + (proxyCount > 0 ? ' · ' + proxyCount + ' procuration' + (proxyCount > 1 ? 's' : '') : '') },
       { ok: hasMotions, text: motionsCache.length + ' résolution' + (motionsCache.length > 1 ? 's' : '') + ' à voter' },
+      { ok: hasQuorumPolicy, text: hasQuorumPolicy ? 'Quorum configuré' : 'Aucun quorum configuré', warn: !hasQuorumPolicy, optional: true },
+      { ok: hasPresident, text: hasPresident ? 'Président : ' + escapeHtml(presidentName || 'assigné') : 'Aucun président désigné', warn: !hasPresident, optional: true },
       { ok: true, text: 'Invitations non envoyées', warn: true, optional: true }
     ];
 

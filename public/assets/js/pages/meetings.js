@@ -336,6 +336,12 @@
     }
 
     const scheduled_at = dateInput?.value || null;
+    if (!scheduled_at) {
+      setNotif('error', 'La date de la séance est requise');
+      dateInput?.focus();
+      return;
+    }
+
     const meetingTypeRadio = document.querySelector('input[name="meetingTypeCreate"]:checked');
     const meeting_type = meetingTypeRadio ? meetingTypeRadio.value : 'ordinary';
 
