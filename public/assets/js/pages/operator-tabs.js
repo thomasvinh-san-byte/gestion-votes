@@ -399,38 +399,47 @@
       roleBadge.hidden = true;
     }
 
-    // P2-2 & P2-6: If user is president (not operator/admin), restrict UI
+    // P2: If user is president (not operator/admin), 100% lecture seule
     const isRestrictedPresident = isPresident && !isOperator;
-    const restrictedMessage = 'Action réservée aux opérateurs';
 
     if (isRestrictedPresident) {
-      // Hide prep mode switch (president doesn't prepare)
+      // Hide prep mode switches (president doesn't prepare)
       const prepModeSwitch = document.getElementById('prepModeSwitch');
       if (prepModeSwitch) prepModeSwitch.hidden = true;
+      const modeSwitch = document.getElementById('modeSwitch');
+      if (modeSwitch) modeSwitch.hidden = true;
 
-      // P2-6: Hide "Paramètres" tab (president can't edit settings)
+      // Hide "Paramètres" tab
       const paramTab = document.querySelector('[data-tab="parametres"]');
       if (paramTab) paramTab.style.display = 'none';
 
-      // Disable action buttons with tooltip
-      const restrictedBtns = [
-        'btnAddResolution', 'btnConfirmResolution', 'btnMarkAllPresent',
-        'btnImportCSV', 'btnAddProxy', 'btnImportProxiesCSV'
-      ];
-      restrictedBtns.forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-          btn.disabled = true;
-          btn.title = restrictedMessage;
-          btn.setAttribute('aria-label', (btn.textContent || '').trim() + ' (' + restrictedMessage + ')');
-        }
+      // Hide primary action button (Ouvrir la séance, etc.)
+      if (btnPrimary) btnPrimary.style.display = 'none';
+
+      // Disable ALL buttons and inputs inside tab contents (full read-only)
+      document.querySelectorAll('.tab-content button, .tab-content input, .tab-content select, .tab-content textarea').forEach(el => {
+        el.disabled = true;
+        el.title = el.title || 'Consultation uniquement — Président';
       });
 
-      // Update context hint
+      // Also disable exec view buttons
+      document.querySelectorAll('#viewExec button, #viewExec input, #viewExec select').forEach(el => {
+        el.disabled = true;
+        el.title = el.title || 'Consultation uniquement — Président';
+      });
+
+      // Update context hint to show supervision mode
       const hint = document.getElementById('contextHint');
-      if (hint && currentMeetingStatus !== 'live') {
-        hint.innerHTML = icon('user', 'icon-sm icon-text') + ' Mode supervision — Président de séance';
+      if (hint) {
+        hint.innerHTML = icon('eye', 'icon-sm icon-text') + ' <strong>Mode supervision</strong> — Consultation uniquement';
       }
+
+      // Allow the Actualiser and Projection buttons (read-only actions)
+      const allowedBtns = ['btnBarRefresh', 'btnProjector', 'btnRecheck'];
+      allowedBtns.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) { btn.disabled = false; btn.title = ''; }
+      });
     }
   }
 
