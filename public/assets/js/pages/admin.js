@@ -1213,10 +1213,14 @@
 
         // Pagination
         var pagination = document.getElementById('adminAuditPagination');
-        pagination.style.display = 'flex';
-        document.getElementById('adminAuditCount').textContent = (d.offset + 1) + '-' + Math.min(d.offset + d.events.length, d.total) + ' sur ' + d.total;
-        document.getElementById('adminAuditPrev').disabled = d.offset === 0;
-        document.getElementById('adminAuditNext').disabled = (d.offset + _auditLimit) >= d.total;
+        if (d.total > 0) {
+          pagination.style.display = 'flex';
+          document.getElementById('adminAuditCount').textContent = (d.offset + 1) + '-' + Math.min(d.offset + d.events.length, d.total) + ' sur ' + d.total;
+          document.getElementById('adminAuditPrev').disabled = d.offset === 0;
+          document.getElementById('adminAuditNext').disabled = (d.offset + _auditLimit) >= d.total;
+        } else {
+          pagination.style.display = 'none';
+        }
       }
     } catch(e) {
       list.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';

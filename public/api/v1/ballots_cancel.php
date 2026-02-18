@@ -44,8 +44,18 @@ try {
         api_fail('motion_not_found', 404);
     }
 
-    // Guard: cannot cancel if meeting is validated
-    api_guard_meeting_not_validated($motion['meeting_id']);
+    // Guard: check validated status BEFORE continuing transaction
+    // api_guard calls api_fail() which exits, so check manually
+    $meetingId = $motion['meeting_id'];
+    $mt = db()->prepare("SELECT validated_at FROM meetings WHERE tenant_id = :tid AND id = :mid");
+    $mt->execute([':tid' => $tenantId, ':mid' => $meetingId]);
+    $mtRow = $mt->fetch(\PDO::FETCH_ASSOC);
+    if ($mtRow && !empty($mtRow['validated_at'])) {
+        db()->rollBack();
+        api_fail('meeting_validated', 409, [
+            'detail' => 'Séance validée : modification interdite (séance figée).'
+        ]);
+    }
 
     // Guard: cannot cancel on a closed motion (results are already computed)
     if (!empty($motion['closed_at'])) {
