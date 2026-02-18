@@ -47,54 +47,10 @@
       });
   }
 
-  // =========================================================================
-  // BREADCRUMBS
-  // =========================================================================
-
-  var PAGE_BREADCRUMBS = {
-    meetings:   { section: 'Gestion', label: 'Séances' },
-    operator:   { section: 'Gestion', label: 'Fiche séance' },
-    vote:       { section: 'Vote', label: 'Voter' },
-    public:     { section: 'Vote', label: 'Projection' },
-    analytics:  { section: 'Consultation', label: 'Statistiques' },
-    archives:   { section: 'Consultation', label: 'Archives' },
-    trust:      { section: 'Consultation', label: 'Audit' },
-    members:    { section: 'Administration', label: 'Membres' },
-    admin:      { section: 'Administration', label: 'Configuration' },
-    help:       { section: 'Aide', label: 'Guide & FAQ' },
-    report:     { section: 'Consultation', label: 'Rapport' },
-    validate:   { section: 'Gestion', label: 'Validation' },
-    docs:       { section: 'Aide', label: 'Documentation' }
-  };
-
-  function initBreadcrumbs() {
-    var sidebar = document.querySelector('[data-include-sidebar]');
-    if (!sidebar) return;
-    var pageKey = sidebar.getAttribute('data-page') || '';
-    if (!pageKey || !PAGE_BREADCRUMBS[pageKey]) return;
-
-    var info = PAGE_BREADCRUMBS[pageKey];
-    var main = document.querySelector('.app-main');
-    if (!main) return;
-
-    var bc = document.createElement('nav');
-    bc.className = 'breadcrumbs';
-    bc.setAttribute('aria-label', 'Fil d\'Ariane');
-    bc.innerHTML =
-      '<a href="/">AG-VOTE</a>' +
-      '<span class="breadcrumbs-separator" aria-hidden="true">/</span>' +
-      '<span>' + info.section + '</span>' +
-      '<span class="breadcrumbs-separator" aria-hidden="true">/</span>' +
-      '<span class="breadcrumbs-current" aria-current="page">' + info.label + '</span>';
-
-    main.insertBefore(bc, main.firstChild);
-  }
-
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { initSidebar(); initBreadcrumbs(); });
+    document.addEventListener('DOMContentLoaded', function () { initSidebar(); });
   } else {
     initSidebar();
-    initBreadcrumbs();
   }
 
   // =========================================================================

@@ -16,48 +16,51 @@
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="meetings"></aside>
 
-    <!-- Page header -->
-    <div class="page-header-bar">
-      <h1>
-        <svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
-        Séances
-      </h1>
-      <div class="page-header-actions">
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="menu" title="Menu">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">
+            <svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+            Séances
+          </h1>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
-    </div>
-
-    <!-- Stats bar -->
-    <div class="stats-bar">
-      <div class="stat-item live">
-        <div class="stat-value" id="statLive">0</div>
-        <div class="stat-label">En cours</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value" id="statScheduled">0</div>
-        <div class="stat-label">Planifiées</div>
-      </div>
-      <div class="stat-item draft">
-        <div class="stat-value" id="statDraft">0</div>
-        <div class="stat-label">Brouillons</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value" id="statTotal">0</div>
-        <div class="stat-label">Total</div>
-      </div>
-      <div class="stat-item">
-        <span class="stat-value" id="statResolutions">0</span>
-        <span class="stat-label">Résolutions</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-value" id="statAvgParticipation">—</span>
-        <span class="stat-label">Participation moy.</span>
-      </div>
-    </div>
+    </header>
 
     <main class="app-main" id="main-content" style="padding: 0;" role="main">
+      <!-- Stats bar -->
+      <div class="stats-bar">
+        <div class="stat-item live">
+          <div class="stat-value" id="statLive">0</div>
+          <div class="stat-label">En cours</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="statScheduled">0</div>
+          <div class="stat-label">Planifiées</div>
+        </div>
+        <div class="stat-item draft">
+          <div class="stat-value" id="statDraft">0</div>
+          <div class="stat-label">Brouillons</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="statResolutions">0</span>
+          <span class="stat-label">Résolutions</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="statAvgParticipation">—</span>
+          <span class="stat-label">Participation moy.</span>
+        </div>
+      </div>
       <div class="page-content">
         <div id="notif_box" class="alert hidden mb-4"></div>
 
@@ -157,6 +160,7 @@
   <script type="module" src="/assets/js/components/index.js"></script>
   <script src="/assets/js/core/shared.js"></script>
   <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/services/meeting-context.js"></script>
   <script src="/assets/js/core/page-components.js"></script>
   <script src="/assets/js/pages/meetings.js"></script>
 </body>

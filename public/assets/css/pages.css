@@ -6,190 +6,11 @@
  */
 
 /* =============================================================================
-   PAGE HEADER BAR (used in meetings, operator, etc.)
-   ============================================================================= */
-
-.page-header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.page-header-bar h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.page-header-bar .page-header-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* =============================================================================
-   STATS BAR (used in meetings, operator, etc.)
-   ============================================================================= */
-
-.stats-bar {
-  display: flex;
-  gap: 2rem;
-  padding: 1rem 1.5rem;
-  background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.stats-bar .stat-item {
-  text-align: center;
-}
-
-.stats-bar .stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.stats-bar .stat-label {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-}
-
-.stats-bar .stat-item.live .stat-value {
-  color: var(--color-success);
-}
-
-.stats-bar .stat-item.draft .stat-value {
-  color: var(--color-text-muted);
-}
-
-/* =============================================================================
    PAGE CONTENT AREA
    ============================================================================= */
 
 .page-content {
   padding: 1.5rem;
-}
-
-/* =============================================================================
-   CREATE CARD (dashed border card for new item creation)
-   ============================================================================= */
-
-.create-card {
-  background: var(--color-surface);
-  border: 2px dashed var(--color-border);
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.create-card h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.create-form {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.create-form input {
-  flex: 1;
-  min-width: 250px;
-}
-
-/* =============================================================================
-   SECTION HEADER
-   ============================================================================= */
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.section-title {
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-/* =============================================================================
-   FILTER TABS
-   ============================================================================= */
-
-.filter-tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.filter-tab {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-surface);
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
-}
-
-.filter-tab:hover {
-  border-color: var(--color-primary);
-}
-
-.filter-tab.active {
-  background: var(--color-primary);
-  color: #fff;
-  border-color: var(--color-primary);
-}
-
-/* =============================================================================
-   VIEW TOGGLE (grid/calendar/list views)
-   ============================================================================= */
-
-.view-toggle {
-  display: flex;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  background: var(--color-bg-subtle);
-  border-radius: 6px;
-}
-
-.view-toggle-btn {
-  padding: 0.5rem 0.75rem;
-  border: none;
-  background: transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.85rem;
-}
-
-.view-toggle-btn:hover {
-  color: var(--color-text);
-}
-
-.view-toggle-btn.active {
-  background: var(--color-surface);
-  color: var(--color-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* =============================================================================
@@ -887,7 +708,7 @@
 }
 
 /* =============================================================================
-   CREATE CARD IMPROVEMENTS
+   CREATE CARD (dashed border card for new item creation)
    ============================================================================= */
 
 .create-card {
@@ -949,7 +770,7 @@
 }
 
 /* =============================================================================
-   STATS BAR IMPROVEMENTS
+   STATS BAR (used in meetings, operator, etc.)
    ============================================================================= */
 
 .stats-bar {
@@ -1006,7 +827,7 @@
 }
 
 /* =============================================================================
-   FILTER TABS IMPROVEMENTS
+   FILTER TABS
    ============================================================================= */
 
 .filter-tabs {
@@ -1061,7 +882,7 @@
 }
 
 /* =============================================================================
-   SECTION HEADER IMPROVEMENTS
+   SECTION HEADER
    ============================================================================= */
 
 .section-header {
@@ -1082,7 +903,7 @@
 }
 
 /* =============================================================================
-   VIEW TOGGLE IMPROVEMENTS
+   VIEW TOGGLE (grid/calendar/list views)
    ============================================================================= */
 
 .view-toggle {
@@ -1120,7 +941,7 @@
 }
 
 /* =============================================================================
-   EMPTY STATE IMPROVEMENTS
+   EMPTY STATE
    ============================================================================= */
 
 .empty-state {

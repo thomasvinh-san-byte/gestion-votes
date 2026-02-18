@@ -2,7 +2,7 @@
  * shell.js - Application shell with drawer system and mobile navigation.
  *
  * Provides:
- * - Side drawer system with built-in kinds (menu, readiness, infos, anomalies)
+ * - Side drawer system with built-in kinds (context, readiness, infos, anomalies)
  * - Custom drawer registration for page-specific content
  * - Mobile hamburger navigation with slide-in sidebar
  * - Auto-loads auth-ui.js for login/logout banner
@@ -13,7 +13,7 @@
  *
  * @example
  * // Open a built-in drawer
- * ShellDrawer.open('menu');
+ * ShellDrawer.open('context');
  *
  * // Register a custom drawer
  * ShellDrawer.register('myDrawer', 'My Title', (meetingId, bodyEl, escFn) => {
@@ -86,8 +86,8 @@
     const meetingId = getMeetingId();
 
     // Built-in kinds
-    if (kind === "readiness") { setTitle("Préparation"); renderReadiness(meetingId); }
-    else if (kind === "menu") { setTitle("Navigation"); renderMenu(meetingId); }
+    if (kind === "context") { setTitle("Séance en cours"); renderContext(meetingId); }
+    else if (kind === "readiness") { setTitle("Préparation"); renderReadiness(meetingId); }
     else if (kind === "infos" || kind === "info") { setTitle("Informations séance"); renderInfos(meetingId); }
     else if (kind === "anomalies") { setTitle("Anomalies"); renderAnomalies(meetingId); }
     // Page-registered kinds
@@ -100,41 +100,94 @@
   }
 
   /**
-   * Render the navigation menu drawer.
-   * Shows role-aware navigation links.
+   * Render the contextual session drawer.
+   * Combines meeting info, readiness checks and anomalies in a single view.
    * @param {string} meetingId - Current meeting ID
+   * @returns {Promise<void>}
    */
-  function renderMenu(meetingId) {
-    const mid = meetingId ? '?meeting_id=' + encodeURIComponent(meetingId) : '';
-    const role = (window.Auth && window.Auth.role) || null;
-    const mr = (window.Auth && window.Auth.meetingRoles) || [];
-    const check = (window.Auth && window.Auth.hasAccess)
-      ? function(r) { return window.Auth.hasAccess(r, role, mr); }
-      : function() { return true; };
-
-    const items = [
-      { href: '/operator.htmx.html',    label: 'Fiche séance',  req: 'operator',            useMid: true },
-      { href: '/speaker.htmx.html',     label: 'Gestion parole',req: 'operator',            useMid: true },
-      { href: '/vote.htmx.html',        label: 'Vote',          req: 'voter,operator',      useMid: true },
-      { href: '/trust.htmx.html',       label: 'Contrôle',      req: 'auditor,assessor',    useMid: true },
-      { href: '/report.htmx.html',      label: 'PV / Export',   req: 'operator',            useMid: true },
-      { sep: true },
-      { href: '/meetings.htmx.html',    label: 'Séances',       req: 'viewer',              useMid: false },
-      { href: '/members.htmx.html',     label: 'Membres',       req: 'operator',            useMid: false },
-      { href: '/archives.htmx.html',    label: 'Archives',      req: 'viewer',              useMid: false },
-      { href: '/admin.htmx.html',       label: 'Admin',         req: 'admin',               useMid: false }
-    ];
-
-    let html = '<nav style="display:flex;flex-direction:column;gap:6px;padding:4px 0;">';
-    for (let i = 0; i < items.length; i++) {
-      const it = items[i];
-      if (it.sep) { html += '<hr style="border-color:var(--color-border,#ddd);margin:4px 0;">'; continue; }
-      if (!check(it.req)) continue;
-      const url = it.href + (it.useMid ? mid : '');
-      html += '<a href="' + url + '" class="btn btn-ghost" style="justify-content:flex-start;">' + it.label + '</a>';
+  async function renderContext(meetingId) {
+    if (!meetingId) {
+      dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance pour voir le tableau de bord.</div>';
+      return;
     }
-    html += '</nav>';
-    dbody.innerHTML = html;
+    dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
+
+    var sections = [];
+
+    // --- Info séance ---
+    try {
+      var res = await window.api('/api/v1/meetings.php?id=' + meetingId);
+      var b = res.body;
+      if (b && b.ok && b.data) {
+        var m = b.data;
+        var statusClass = m.status === 'live' ? 'badge-success' : (m.status === 'draft' ? 'badge-neutral' : 'badge-warning');
+        sections.push(
+          '<div style="margin-bottom:16px;">' +
+            '<div style="font-size:11px;text-transform:uppercase;color:var(--color-text-muted,#888);letter-spacing:.3px;margin-bottom:6px;font-weight:600;">Informations</div>' +
+            '<div style="font-weight:600;margin-bottom:4px;">' + esc(m.title) + '</div>' +
+            '<div style="display:flex;gap:10px;align-items:center;margin-bottom:4px;">' +
+              '<span class="badge ' + statusClass + '">' + esc(m.status) + '</span>' +
+              (m.location ? '<span class="text-sm text-muted">' + esc(m.location) + '</span>' : '') +
+            '</div>' +
+            (m.president_name ? '<div class="text-sm"><span class="text-muted">Président :</span> ' + esc(m.president_name) + '</div>' : '') +
+          '</div>'
+        );
+      }
+    } catch(e) { /* silently skip section */ }
+
+    // --- Readiness checks ---
+    try {
+      var res2 = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + meetingId);
+      var b2 = res2.body;
+      if (b2 && b2.ok && b2.data) {
+        var d = b2.data;
+        var checks = d.checks || [];
+        if (checks.length > 0) {
+          sections.push(
+            '<div style="margin-bottom:16px;">' +
+              '<div style="font-size:11px;text-transform:uppercase;color:var(--color-text-muted,#888);letter-spacing:.3px;margin-bottom:6px;font-weight:600;">Check-list</div>' +
+              '<div class="badge ' + (d.ready ? 'badge-success' : 'badge-warning') + '" style="margin-bottom:8px;">' +
+                (d.ready ? 'Prêt' : 'Non prêt') +
+              '</div>' +
+              checks.map(function(c) {
+                return '<div style="display:flex;align-items:center;gap:8px;padding:3px 0;">' +
+                  '<span>' + (c.passed ? icon('check-circle', 'icon-sm icon-success') : icon('x-circle', 'icon-sm icon-danger')) + '</span>' +
+                  '<span class="text-sm">' + esc(c.label || '') + '</span>' +
+                '</div>';
+              }).join('') +
+            '</div>'
+          );
+        }
+      }
+    } catch(e) { /* silently skip section */ }
+
+    // --- Anomalies ---
+    try {
+      var res3 = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + meetingId);
+      var b3 = res3.body;
+      if (b3 && b3.ok && b3.data) {
+        var items = b3.data.anomalies || b3.data.items || [];
+        if (items.length > 0) {
+          sections.push(
+            '<div style="margin-bottom:16px;">' +
+              '<div style="font-size:11px;text-transform:uppercase;color:var(--color-text-muted,#888);letter-spacing:.3px;margin-bottom:6px;font-weight:600;">Anomalies</div>' +
+              items.map(function(a) {
+                return '<div style="padding:8px 10px;border-radius:6px;background:var(--color-bg-warning,#fff3cd);border-left:3px solid var(--color-warning,#e6a800);margin-bottom:6px;">' +
+                  '<div style="font-weight:600;font-size:12px;color:var(--color-danger,#a05252);">' + esc(a.code || a.severity || 'Anomalie') + '</div>' +
+                  '<div class="text-sm">' + esc(a.message || a.detail || '') + '</div>' +
+                '</div>';
+              }).join('') +
+            '</div>'
+          );
+        }
+      }
+    } catch(e) { /* silently skip section */ }
+
+    if (sections.length === 0) {
+      dbody.innerHTML = '<div style="padding:16px;text-align:center;" class="text-muted">Aucune information disponible.</div>';
+    } else {
+      dbody.innerHTML = '<div style="padding:4px 0;">' + sections.join('') + '</div>';
+    }
   }
 
   /**
