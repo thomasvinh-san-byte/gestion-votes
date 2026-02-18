@@ -454,7 +454,7 @@
 
       document.getElementById('memberName').textContent = member.name || 'Membre';
       document.getElementById('memberWeight').textContent =
-        member.weight ? `Poids: ${member.weight}` : '—';
+        member.weight ? `${member.weight} voix` : '—';
       document.getElementById('memberAvatar').textContent =
         (member.name || '?').charAt(0).toUpperCase();
     };
