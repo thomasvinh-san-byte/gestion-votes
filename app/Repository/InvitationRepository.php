@@ -20,7 +20,7 @@ class InvitationRepository extends AbstractRepository
               i.member_id,
               m.full_name AS member_name,
               i.email,
-              i.token,
+              CASE WHEN i.token_hash IS NOT NULL THEN '***' ELSE NULL END AS token,
               i.status,
               i.sent_at,
               i.responded_at,
@@ -54,6 +54,7 @@ class InvitationRepository extends AbstractRepository
 
     /**
      * Cree ou met a jour une invitation (UPSERT).
+     * Stocke le token_hash (SHA-256) au lieu du token brut pour la securite.
      */
     public function upsert(
         string $tenantId,
@@ -63,13 +64,15 @@ class InvitationRepository extends AbstractRepository
         string $token,
         string $status = 'pending'
     ): void {
+        $tokenHash = hash('sha256', $token);
         $this->execute(
-            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token, status, updated_at)
-             VALUES (:tenant_id, :meeting_id, :member_id, :email, :token, :status, now())
+            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token_hash, status, updated_at)
+             VALUES (:tenant_id, :meeting_id, :member_id, :email, :token_hash, :status, now())
              ON CONFLICT (tenant_id, meeting_id, member_id)
              DO UPDATE SET
                email = EXCLUDED.email,
-               token = EXCLUDED.token,
+               token_hash = EXCLUDED.token_hash,
+               token = NULL,
                status = EXCLUDED.status,
                updated_at = now(),
                responded_at = NULL",
@@ -78,7 +81,7 @@ class InvitationRepository extends AbstractRepository
                 ':meeting_id' => $meetingId,
                 ':member_id' => $memberId,
                 ':email' => $email,
-                ':token' => $token,
+                ':token_hash' => $tokenHash,
                 ':status' => $status,
             ]
         );
@@ -98,10 +101,26 @@ class InvitationRepository extends AbstractRepository
     }
 
     /**
-     * Trouve une invitation par token.
+     * Trouve une invitation par token (via hash lookup).
+     * Cherche d'abord par token_hash, fallback sur token brut pour la retro-compatibilite.
      */
     public function findByToken(string $token): ?array
     {
+        $tokenHash = hash('sha256', $token);
+
+        // Lookup par hash (securise)
+        $row = $this->selectOne(
+            "SELECT id, meeting_id, member_id, status
+             FROM invitations
+             WHERE token_hash = :hash
+             LIMIT 1",
+            [':hash' => $tokenHash]
+        );
+        if ($row) {
+            return $row;
+        }
+
+        // Fallback: lookup par token brut (anciennes invitations non migrees)
         return $this->selectOne(
             "SELECT id, meeting_id, member_id, status
              FROM invitations
@@ -113,6 +132,7 @@ class InvitationRepository extends AbstractRepository
 
     /**
      * UPSERT specifique pour l'envoi d'invitation (status=sent, sent_at, COALESCE email).
+     * Stocke le token_hash au lieu du token brut.
      */
     public function upsertSent(
         string $tenantId,
@@ -121,11 +141,13 @@ class InvitationRepository extends AbstractRepository
         ?string $email,
         string $token
     ): void {
+        $tokenHash = hash('sha256', $token);
         $this->execute(
-            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token, status, sent_at, updated_at)
-             VALUES (:tenant_id, :meeting_id, :member_id, :email, :token, 'sent', now(), now())
+            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token_hash, status, sent_at, updated_at)
+             VALUES (:tenant_id, :meeting_id, :member_id, :email, :token_hash, 'sent', now(), now())
              ON CONFLICT (tenant_id, meeting_id, member_id)
-             DO UPDATE SET token = EXCLUDED.token,
+             DO UPDATE SET token_hash = EXCLUDED.token_hash,
+                           token = NULL,
                            email = COALESCE(EXCLUDED.email, invitations.email),
                            status = 'sent',
                            sent_at = now(),
@@ -135,7 +157,7 @@ class InvitationRepository extends AbstractRepository
                 ':meeting_id' => $meetingId,
                 ':member_id' => $memberId,
                 ':email' => $email,
-                ':token' => $token,
+                ':token_hash' => $tokenHash,
             ]
         );
     }
@@ -154,6 +176,7 @@ class InvitationRepository extends AbstractRepository
 
     /**
      * Upsert pour envoi en masse (avec status et sent_at parametrables).
+     * Stocke le token_hash au lieu du token brut.
      */
     public function upsertBulk(
         string $tenantId,
@@ -164,18 +187,20 @@ class InvitationRepository extends AbstractRepository
         string $status,
         ?string $sentAt
     ): void {
+        $tokenHash = hash('sha256', $token);
         $this->execute(
-            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token, status, sent_at, updated_at)
-             VALUES (:tid, :mid, :uid, :email, :token, :status, :sent_at, now())
+            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token_hash, status, sent_at, updated_at)
+             VALUES (:tid, :mid, :uid, :email, :token_hash, :status, :sent_at, now())
              ON CONFLICT (tenant_id, meeting_id, member_id)
-             DO UPDATE SET token=EXCLUDED.token,
+             DO UPDATE SET token_hash=EXCLUDED.token_hash,
+                           token=NULL,
                            email=COALESCE(EXCLUDED.email, invitations.email),
                            status=EXCLUDED.status,
                            sent_at=EXCLUDED.sent_at,
                            updated_at=now()",
             [
                 ':tid' => $tenantId, ':mid' => $meetingId, ':uid' => $memberId,
-                ':email' => $email, ':token' => $token,
+                ':email' => $email, ':token_hash' => $tokenHash,
                 ':status' => $status, ':sent_at' => $sentAt,
             ]
         );

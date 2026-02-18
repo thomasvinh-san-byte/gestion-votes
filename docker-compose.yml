@@ -2,7 +2,7 @@
 # AG-VOTE — Docker Compose
 # =============================================================================
 # Démarrage rapide :
-#   cp .env.example .env          # adapter les valeurs
+#   cp .env.example .env          # adapter les valeurs (DB_PASS obligatoire)
 #   docker compose up -d          # lancer tous les services
 #   docker compose logs -f app    # suivre les logs
 # =============================================================================
@@ -16,19 +16,17 @@ services:
     container_name: agvote-app
     restart: unless-stopped
     ports:
-      - "0.0.0.0:${APP_PORT:-8080}:8080"     # HTTP  (accessible depuis le réseau)
-      - "0.0.0.0:${WS_PORT:-8081}:8081"      # WebSocket
+      - "0.0.0.0:${APP_PORT:-8080}:8080"     # HTTP + WebSocket (via nginx proxy)
     env_file:
       - path: .env
         required: false
     environment:
-      # Override DB_DSN pour pointer vers le service "db" du compose
       DB_DSN: "pgsql:host=db;port=5432;dbname=${DB_DATABASE:-vote_app}"
       DB_HOST: db
       DB_PORT: 5432
       DB_DATABASE: "${DB_DATABASE:-vote_app}"
       DB_USERNAME: "${DB_USER:-vote_app}"
-      DB_PASSWORD: "${DB_PASS:-vote_app_dev_2026}"
+      DB_PASSWORD: "${DB_PASS:?DB_PASS requis — definir dans .env}"
       LOAD_DEMO_DATA: "${LOAD_DEMO_DATA:-1}"
     volumes:
       - app-storage:/tmp/ag-vote    # logs, cache PDF, fonts
@@ -41,6 +39,15 @@ services:
       timeout: 5s
       start_period: 20s
       retries: 3
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+        reservations:
+          memory: 128M
 
   # ---------------------------------------------------------------------------
   # Base de données PostgreSQL
@@ -52,7 +59,7 @@ services:
     environment:
       POSTGRES_DB: "${DB_DATABASE:-vote_app}"
       POSTGRES_USER: "${DB_USER:-vote_app}"
-      POSTGRES_PASSWORD: "${DB_PASS:-vote_app_dev_2026}"
+      POSTGRES_PASSWORD: "${DB_PASS:?DB_PASS requis — definir dans .env}"
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
@@ -63,6 +70,15 @@ services:
       timeout: 5s
       start_period: 10s
       retries: 5
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+        reservations:
+          memory: 64M
 
 volumes:
   pgdata:

@@ -41,8 +41,8 @@ RUN chown -R www-data:www-data /var/www \
     && chown -R www-data:www-data /tmp/ag-vote \
     && chmod +x /var/www/deploy/entrypoint.sh
 
-# HTTP + WebSocket
-EXPOSE 8080 8081
+# HTTP only — WebSocket proxied via nginx /ws path (port 8081 internal only)
+EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD curl -f http://127.0.0.1:8080/ || exit 1
