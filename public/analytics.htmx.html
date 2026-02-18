@@ -18,13 +18,23 @@
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="analytics"></aside>
 
-    <!-- Page header -->
-    <div class="page-header">
-      <h1>
-        <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
-        Tableaux de bord
-      </h1>
-    </div>
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">
+            <svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
+            Tableaux de bord
+          </h1>
+          <p class="text-sm text-secondary">Statistiques agrégées des séances</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
+        </button>
+      </div>
+    </header>
 
     <main class="app-main analytics-main">
       <div class="page-content">
@@ -195,6 +205,7 @@
   <script type="module" src="/assets/js/components/index.js"></script>
   <script src="/assets/js/core/shared.js"></script>
   <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/services/meeting-context.js"></script>
 
   <script>
   (function() {
