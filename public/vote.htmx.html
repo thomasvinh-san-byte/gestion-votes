@@ -59,13 +59,19 @@
     <main class="vote-main" id="main-content" role="main">
       <!-- Speech panel -->
       <section class="speech-panel" id="speechBox" aria-label="Demande de parole">
-        <div class="speech-info">
-          <h2>Demande de parole</h2>
-          <p id="speechHint" aria-live="polite">Vous pouvez demander la parole</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="badge badge-neutral" id="speechStatus" role="status" aria-live="polite">En attente</span>
-          <button class="btn btn-secondary btn-sm" id="btnHand" type="button" aria-describedby="speechHint">Lever la main</button>
+        <button class="speech-hand-btn" id="btnHand" type="button" aria-describedby="speechHint" aria-pressed="false">
+          <span class="speech-hand-icon" id="speechHandIcon" aria-hidden="true">
+            <svg class="icon icon-lg"><use href="/assets/icons.svg#icon-hand"></use></svg>
+          </span>
+        </button>
+        <div class="speech-status-zone">
+          <div class="speech-status-row">
+            <span class="speech-status-badge" id="speechStatus" role="status" aria-live="polite">Inactif</span>
+            <span class="speech-queue-pos" id="speechQueuePos" hidden>
+              <span id="speechPosNumber">—</span>
+            </span>
+          </div>
+          <p class="speech-hint" id="speechHint" aria-live="polite">Appuyez pour lever la main</p>
         </div>
       </section>
 
@@ -455,10 +461,18 @@
 
     // Hand raise / Request to speak
     const btnHand = document.getElementById('btnHand');
-    const speechStatus = document.getElementById('speechStatus');
+    const speechStatusEl = document.getElementById('speechStatus');
+    const speechQueuePos = document.getElementById('speechQueuePos');
+    const speechPosNumber = document.getElementById('speechPosNumber');
+    const speechHintEl = document.getElementById('speechHint');
+    const speechHandIcon = document.getElementById('speechHandIcon');
     let handRaised = false;
+    let queuePosition = null;
+    let queueSize = 0;
 
     btnHand?.addEventListener('click', async () => {
+      if (speakingNow) return; // Can't toggle while speaking
+
       const meetingId = document.getElementById('meetingSelect')?.value;
       const memberId = document.getElementById('memberSelect')?.value;
 
@@ -478,14 +492,18 @@
         const data = await resp.json();
 
         if (data.ok) {
-          handRaised = data.data?.requested ?? !handRaised;
+          const status = data.data?.status || 'none';
+          handRaised = status === 'waiting';
+          speakingNow = status === 'speaking';
+          queuePosition = data.data?.position || null;
+          queueSize = data.data?.queue_size || 0;
           updateHandStatus();
-          setNotif('success', handRaised ? 'Demande de parole envoyée' : 'Demande retirée');
+          setNotif('success', handRaised ? 'Main levee — demande envoyee' : 'Demande retiree');
         } else {
           setNotif('error', data.error || 'Erreur');
         }
       } catch (err) {
-        setNotif('error', 'Erreur réseau');
+        setNotif('error', 'Erreur reseau');
       } finally {
         btnHand.disabled = false;
       }
@@ -493,39 +511,46 @@
 
     function updateHandStatus() {
       const speechBox = document.getElementById('speechBox');
-      const speechHint = document.getElementById('speechHint');
 
       if (speakingNow) {
         // Currently speaking
-        btnHand.classList.remove('btn-warning', 'btn-secondary');
-        btnHand.classList.add('btn-success');
-        btnHand.innerHTML = '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> En parole';
+        btnHand.setAttribute('aria-pressed', 'true');
         btnHand.disabled = true;
-        speechStatus.textContent = 'Vous avez la parole';
-        speechStatus.classList.remove('badge-neutral', 'badge-warning');
-        speechStatus.classList.add('badge-success');
+        speechHandIcon.innerHTML = '<svg class="icon icon-lg"><use href="/assets/icons.svg#icon-mic"></use></svg>';
+        speechStatusEl.textContent = 'Vous avez la parole';
+        speechBox?.classList.remove('raised');
         speechBox?.classList.add('speaking');
-        if (speechHint) speechHint.textContent = 'Le président vous a accordé la parole';
+        if (speechHintEl) speechHintEl.textContent = 'Le president vous a accorde la parole';
+        if (speechQueuePos) speechQueuePos.hidden = true;
       } else if (handRaised) {
-        btnHand.classList.add('btn-warning');
-        btnHand.classList.remove('btn-secondary', 'btn-success');
-        btnHand.innerHTML = '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-hand"></use></svg> Main levée';
+        // Waiting in queue
+        btnHand.setAttribute('aria-pressed', 'true');
         btnHand.disabled = false;
-        speechStatus.textContent = 'Demande envoyée';
-        speechStatus.classList.remove('badge-neutral', 'badge-success');
-        speechStatus.classList.add('badge-warning');
+        speechHandIcon.innerHTML = '<svg class="icon icon-lg"><use href="/assets/icons.svg#icon-hand"></use></svg>';
+        speechStatusEl.textContent = 'Main levee';
+        speechBox?.classList.add('raised');
         speechBox?.classList.remove('speaking');
-        if (speechHint) speechHint.textContent = 'Votre demande de parole est en attente';
+        if (speechHintEl) {
+          speechHintEl.textContent = queuePosition
+            ? `Position ${queuePosition} sur ${queueSize} dans la file — appuyez pour retirer`
+            : 'Votre demande est en attente — appuyez pour retirer';
+        }
+        // Show queue position badge
+        if (speechQueuePos && queuePosition) {
+          speechPosNumber.textContent = `${queuePosition}/${queueSize}`;
+          speechQueuePos.hidden = false;
+        } else if (speechQueuePos) {
+          speechQueuePos.hidden = true;
+        }
       } else {
-        btnHand.classList.remove('btn-warning', 'btn-success');
-        btnHand.classList.add('btn-secondary');
-        btnHand.textContent = 'Lever la main';
+        // Inactive
+        btnHand.setAttribute('aria-pressed', 'false');
         btnHand.disabled = false;
-        speechStatus.textContent = 'En attente';
-        speechStatus.classList.add('badge-neutral');
-        speechStatus.classList.remove('badge-warning', 'badge-success');
-        speechBox?.classList.remove('speaking');
-        if (speechHint) speechHint.textContent = 'Vous pouvez demander la parole';
+        speechHandIcon.innerHTML = '<svg class="icon icon-lg"><use href="/assets/icons.svg#icon-hand"></use></svg>';
+        speechStatusEl.textContent = 'Inactif';
+        speechBox?.classList.remove('raised', 'speaking');
+        if (speechHintEl) speechHintEl.textContent = 'Appuyez pour lever la main';
+        if (speechQueuePos) speechQueuePos.hidden = true;
       }
     }
 
@@ -547,9 +572,12 @@
         if (data.ok && data.data) {
           const wasRaised = handRaised;
           const wasSpeaking = speakingNow;
+          const status = data.data.status || 'none';
 
-          handRaised = !!data.data.requested;
-          speakingNow = !!data.data.speaking;
+          handRaised = status === 'waiting';
+          speakingNow = status === 'speaking';
+          queuePosition = data.data.position || null;
+          queueSize = data.data.queue_size || 0;
 
           // Only update UI if state changed
           if (wasRaised !== handRaised || wasSpeaking !== speakingNow) {
@@ -559,6 +587,9 @@
             if (!wasSpeaking && speakingNow) {
               setNotif('success', 'Vous avez la parole !');
             }
+          } else if (handRaised && queuePosition !== data.data.position) {
+            // Position changed in queue
+            updateHandStatus();
           }
         }
       } catch (err) {
