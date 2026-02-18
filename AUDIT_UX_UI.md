@@ -12,17 +12,17 @@
 | 3 | P2-1 | Président | Aucune indication du rôle connecté | Critique | Faible | DONE |
 | 4 | P2-2 | Président | Boutons désactivés sans explication | Critique | Faible | DONE |
 | 5 | P7-1 | Admin | Reset démo trop facile à déclencher | Critique | Faible | DONE |
-| 6 | P7-2 | Admin | Aucun log des actions admin | Critique | Moyen | TODO |
+| 6 | P7-2 | Admin | Aucun log des actions admin | Critique | Moyen | BACKEND |
 | 7 | P3-2 | Opérateur | Vote unanime irréversible (batch sans rollback) | Haute | Moyen | DONE |
 | 8 | P3-3 | Opérateur | Vote manuel justification non éditable | Haute | Faible | DONE |
-| 9 | P3-4 | Opérateur | Pas d'annulation de vote manuel | Haute | Moyen | TODO |
+| 9 | P3-4 | Opérateur | Pas d'annulation de vote manuel | Haute | Moyen | BACKEND |
 | 10 | P4-2 | Votants | Raccourcis clavier 1/2/3 affichés mais inopérants | Haute | Faible | DONE |
-| 11 | P4-3 | Votants | Pas de queue offline pour les votes | Haute | Élevé | TODO |
+| 11 | P4-3 | Votants | Pas de queue offline pour les votes | Haute | Élevé | DEFERRED |
 | 12 | P4-4 | Votants | Procuration sans indication claire | Haute | Faible | DONE |
 | 13 | P2-3 | Président | "Clôturer le vote" vs "Clôturer la séance" confusion | Haute | Faible | DONE |
 | 14 | P2-4 | Président | Clôture scrutin sans confirmation modale | Haute | Faible | DONE |
 | 15 | P5-1 | Post-séance | Validation irréversible sans confirmation forte | Haute | Moyen | DONE |
-| 16 | P6-1 | Auditeur | Anomalies sans liens de drill-down | Haute | Moyen | TODO |
+| 16 | P6-1 | Auditeur | Anomalies sans liens de drill-down | Haute | Moyen | DONE |
 | 17 | P6-2 | Auditeur | Log d'audit non filtrable | Haute | Moyen | DONE |
 | 18 | P7-3 | Admin | Création user sans validation inline | Haute | Moyen | DONE |
 | 19 | P3-5 | Opérateur | Grille vote manuelle sans recherche | Moyenne | Faible | DONE |
@@ -30,7 +30,7 @@
 | 21 | P4-5 | Votants | Erreurs 409 non gérées côté front | Moyenne | Moyen | DONE |
 | 22 | P4-6 | Votants | Overlay blocage sans contact/aide | Moyenne | Faible | DONE |
 | 23 | P4-7 | Votants | Pas d'avertissement "vote irréversible" | Moyenne | Faible | DONE |
-| 24 | P2-5 | Président | Pas de proclamation explicite des résultats | Moyenne | Moyen | TODO |
+| 24 | P2-5 | Président | Pas de proclamation explicite des résultats | Moyenne | Moyen | DONE |
 | 25 | P2-7 | Président | Page validation sans contexte de séance | Moyenne | Faible | DONE |
 | 26 | P5-2 | Post-séance | Regex nom président trop strict | Moyenne | Faible | DONE |
 | 27 | P5-3 | Post-séance | Checklist sans liens de remédiation | Moyenne | Moyen | DONE |
@@ -38,16 +38,16 @@
 | 29 | P6-3 | Auditeur | Hash d'intégrité sans explication | Moyenne | Faible | DONE |
 | 30 | P6-4 | Auditeur | Sévérité anomalies par couleur seulement | Moyenne | Faible | DONE |
 | 31 | P6-5 | Auditeur | Auto-refresh perd les filtres | Moyenne | Faible | DONE |
-| 32 | P7-4 | Admin | Assignation rôles un par un | Moyenne | Moyen | TODO |
-| 33 | P7-5 | Admin | Éditeur templates sans coloration | Moyenne | Élevé | TODO |
-| 34 | P7-6 | Admin | prompt() natif pour duplication | Moyenne | Faible | TODO |
+| 32 | P7-4 | Admin | Assignation rôles un par un | Moyenne | Moyen | DONE |
+| 33 | P7-5 | Admin | Éditeur templates sans coloration | Moyenne | Élevé | DEFERRED |
+| 34 | P7-6 | Admin | prompt() natif pour duplication | Moyenne | Faible | DONE |
 | 35 | P2-6 | Président | Onglets inutiles visibles | Basse | Faible | DONE |
-| 36 | P3-7 | Opérateur | File parole non réordonnable | Basse | Moyen | TODO |
-| 37 | P3-8 | Opérateur | Timer parole côté client | Basse | Moyen | TODO |
-| 38 | P4-8 | Votants | Reçu vote non persistant | Basse | Faible | TODO |
-| 39 | P5-5 | Post-séance | Pas de dé-archivage admin | Basse | Élevé | TODO |
-| 40 | P6-6 | Auditeur | Export audit texte brut seulement | Basse | Moyen | TODO |
-| 41 | P7-7 | Admin | Machine à états : visualisation confuse | Basse | Moyen | TODO |
+| 36 | P3-7 | Opérateur | File parole non réordonnable | Basse | Moyen | DEFERRED |
+| 37 | P3-8 | Opérateur | Timer parole côté client | Basse | Moyen | DEFERRED |
+| 38 | P4-8 | Votants | Reçu vote non persistant | Basse | Faible | DONE |
+| 39 | P5-5 | Post-séance | Pas de dé-archivage admin | Basse | Élevé | BACKEND |
+| 40 | P6-6 | Auditeur | Export audit texte brut seulement | Basse | Moyen | BACKEND |
+| 41 | P7-7 | Admin | Machine à états : visualisation confuse | Basse | Moyen | DEFERRED |
 | 42 | P7-8 | Admin | KPI santé sans seuils documentés | Basse | Faible | DONE |
 
 ---
@@ -125,3 +125,28 @@ Interface complète (6 onglets) mais sans garde-fous suffisants et sans audit de
 - **P7-6** Duplication template via prompt() natif — Non stylé
 - **P7-7** Machine à états : visualisation confuse — Pas de vraies flèches
 - **P7-8** KPI santé sans seuils documentés — Points colorés sans explication
+
+---
+
+## Bilan final
+
+| Statut | Nombre | Description |
+|--------|--------|-------------|
+| DONE | 33/42 | Corrigés dans le frontend (HTML/JS/CSS) |
+| BACKEND | 4/42 | Nécessitent des modifications PHP côté serveur |
+| DEFERRED | 5/42 | Reportés (effort élevé ou complexité architecturale) |
+
+### Items BACKEND (nécessitent du développement serveur)
+
+- **P7-2** (Critique) — Log des actions admin : nécessite un middleware d'audit côté PHP pour tracer création/suppression/modification d'utilisateurs
+- **P3-4** (Haute) — Annulation vote manuel : nécessite un endpoint API `DELETE /ballots` avec gestion de la contrainte UNIQUE en base
+- **P5-5** (Basse) — Dé-archivage : nécessite une transition inverse dans la machine à états (`archived → validated`) côté PHP
+- **P6-6** (Basse) — Export audit structuré : nécessite un endpoint API pour générer PDF/JSON depuis le serveur
+
+### Items DEFERRED (reportés)
+
+- **P4-3** (Haute) — Queue offline : nécessite un Service Worker complet avec IndexedDB et synchronisation différée — architecture significative
+- **P7-5** (Moyenne) — Coloration syntaxique : nécessite l'intégration d'une bibliothèque externe (CodeMirror/Monaco) — effort élevé
+- **P3-7** (Basse) — Réordonnancement file parole : nécessite drag-and-drop + persistance serveur
+- **P7-7** (Basse) — Visualisation machine à états : nécessite une bibliothèque de graphes (d3/dagre) pour les flèches
+- **P3-8** (Basse) — Timer parole serveur : nécessite synchronisation temps serveur via WebSocket

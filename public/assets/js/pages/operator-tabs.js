@@ -2879,6 +2879,46 @@
       await loadVoteTab();
       if (currentMode === 'exec') refreshExecView();
       announce('Vote clôturé.');
+
+      // P2-5: Proclamation explicite des résultats
+      const closedMotion = motionsCache.find(m => String(m.id) === String(motionId));
+      if (closedMotion) {
+        const cFor = closedMotion.votes_for || 0;
+        const cAgainst = closedMotion.votes_against || 0;
+        const cAbstain = closedMotion.votes_abstain || 0;
+        const cBlanc = closedMotion.votes_blank || 0;
+        const cTotal = cFor + cAgainst + cAbstain + cBlanc;
+        const adopted = cFor > cAgainst;
+        const resultText = adopted ? 'ADOPTÉE' : 'REJETÉE';
+        const resultColor = adopted ? 'var(--color-success)' : 'var(--color-danger)';
+        const resultIcon = adopted ? 'check-circle' : 'x-circle';
+
+        const proclamModal = createModal({
+          id: 'proclamationModal',
+          title: 'Résultat du vote',
+          maxWidth: '520px',
+          content: `
+            <div style="text-align:center;padding:1rem 0;">
+              <i data-lucide="${resultIcon}" style="width:64px;height:64px;color:${resultColor};margin-bottom:1rem;"></i>
+              <h2 id="proclamationModal-title" style="font-size:1.5rem;margin:0 0 0.5rem;">${escapeHtml(closedMotion.title)}</h2>
+              <p style="font-size:2rem;font-weight:700;color:${resultColor};margin:0.5rem 0;" aria-live="assertive">
+                ${resultText}
+              </p>
+              <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:1.1rem;">
+                <span><strong style="color:var(--color-success)">${cFor}</strong> Pour</span>
+                <span><strong style="color:var(--color-danger)">${cAgainst}</strong> Contre</span>
+                <span><strong style="color:var(--color-text-muted)">${cAbstain}</strong> Abstention</span>
+                ${cBlanc > 0 ? `<span><strong style="color:var(--color-text-muted)">${cBlanc}</strong> Blanc</span>` : ''}
+              </div>
+              <p style="color:var(--color-text-muted);font-size:0.9rem;">${cTotal} vote${cTotal !== 1 ? 's' : ''} exprimé${cTotal !== 1 ? 's' : ''}</p>
+              <button class="btn btn-primary" data-action="close-proclamation" style="margin-top:1rem;">Fermer</button>
+            </div>
+          `
+        });
+
+        if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [proclamModal] });
+        proclamModal.querySelector('[data-action="close-proclamation"]').addEventListener('click', () => closeModal(proclamModal));
+      }
     } catch (err) {
       setNotif('error', err.message);
       await loadResolutions();

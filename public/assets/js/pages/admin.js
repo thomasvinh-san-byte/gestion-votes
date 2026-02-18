@@ -475,6 +475,80 @@
     });
   });
 
+  // P7-4: Bulk role assignment
+  document.getElementById('btnBulkAssign').addEventListener('click', function() {
+    const meetingId = document.getElementById('mrMeeting').value;
+    if (!meetingId) { setNotif('error', 'Sélectionnez d\'abord une séance'); return; }
+
+    const activeUsers = _allUsers.filter(function(u) { return u.is_active; });
+    if (!activeUsers.length) { setNotif('error', 'Aucun utilisateur actif'); return; }
+
+    const checkboxes = activeUsers.map(function(u) {
+      return '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;cursor:pointer;">' +
+        '<input type="checkbox" value="' + escapeHtml(u.id) + '" class="bulk-user-cb"> ' +
+        escapeHtml(u.name) + ' <span style="color:var(--color-text-muted);font-size:0.85rem;">(' + escapeHtml(u.email) + ')</span>' +
+        '</label>';
+    }).join('');
+
+    Shared.openModal({
+      title: 'Assignation en masse',
+      body:
+        '<div class="form-group">' +
+          '<label class="form-label">Rôle à attribuer</label>' +
+          '<select class="form-input" id="bulkRole">' +
+            '<option value="voter">Électeur</option>' +
+            '<option value="assessor">Assesseur</option>' +
+            '<option value="president">Président</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label class="form-label">Utilisateurs</label>' +
+          '<div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">' +
+            '<button type="button" class="btn btn-ghost btn-xs" id="bulkSelectAll">Tout sélectionner</button>' +
+            '<button type="button" class="btn btn-ghost btn-xs" id="bulkSelectNone">Tout désélectionner</button>' +
+          '</div>' +
+          '<div style="max-height:300px;overflow:auto;border:1px solid var(--color-border);border-radius:8px;padding:0.5rem;" id="bulkUserList">' +
+            checkboxes +
+          '</div>' +
+        '</div>',
+      confirmText: 'Assigner',
+      onConfirm: async function() {
+        var role = document.getElementById('bulkRole').value;
+        var checked = document.querySelectorAll('.bulk-user-cb:checked');
+        if (!checked.length) { setNotif('error', 'Sélectionnez au moins un utilisateur'); return; }
+
+        var success = 0;
+        var errors = 0;
+        for (var i = 0; i < checked.length; i++) {
+          try {
+            var r = await api('/api/v1/admin_meeting_roles.php', {
+              action: 'assign', meeting_id: meetingId, user_id: checked[i].value, role: role
+            });
+            if (r.body && r.body.ok) success++;
+            else errors++;
+          } catch(e) { errors++; }
+        }
+
+        if (success > 0) setNotif('success', success + ' rôle' + (success > 1 ? 's' : '') + ' attribué' + (success > 1 ? 's' : ''));
+        if (errors > 0) setNotif('error', errors + ' erreur' + (errors > 1 ? 's' : ''));
+        loadMeetingRoles();
+        loadUsers();
+      }
+    });
+
+    // Wire up select all / none after modal is in DOM
+    setTimeout(function() {
+      var allBtn = document.getElementById('bulkSelectAll');
+      var noneBtn = document.getElementById('bulkSelectNone');
+      if (allBtn) allBtn.addEventListener('click', function() {
+        document.querySelectorAll('.bulk-user-cb').forEach(function(cb) { cb.checked = true; });
+      });
+      if (noneBtn) noneBtn.addEventListener('click', function() {
+        document.querySelectorAll('.bulk-user-cb').forEach(function(cb) { cb.checked = false; });
+      });
+    }, 60);
+  });
+
   // ═══════════════════════════════════════════════════════
   // POLICIES — QUORUM
   // ═══════════════════════════════════════════════════════

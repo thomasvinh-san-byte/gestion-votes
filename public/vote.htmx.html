@@ -391,15 +391,23 @@
           statusEl.classList.add('voted');
         }
 
-        // Update receipt in footer
+        // Update receipt in footer + persist in localStorage (P4-8)
         const receipt = document.getElementById('voteReceipt');
         if (receipt) {
           const now = new Date();
           const hh = String(now.getHours()).padStart(2, '0');
           const mm = String(now.getMinutes()).padStart(2, '0');
           const ss = String(now.getSeconds()).padStart(2, '0');
-          receipt.textContent = `${hh}:${mm}:${ss} \u2022 ${choiceInfo[votingChoice].label}`;
+          const receiptText = `${hh}:${mm}:${ss} \u2022 ${choiceInfo[votingChoice].label}`;
+          receipt.textContent = receiptText;
           receipt.hidden = false;
+          // P4-8: Persist receipt in localStorage keyed by motion
+          try {
+            const motionTitle = document.getElementById('motionTitle')?.textContent || '';
+            const key = `ag_vote_receipt_${motionTitle}`;
+            localStorage.setItem(key, JSON.stringify({ text: receiptText, choice: votingChoice, ts: now.toISOString() }));
+            localStorage.setItem('ag_vote_last_receipt', receiptText);
+          } catch(e) { /* localStorage unavailable */ }
         }
 
         closeConfirm();
@@ -628,6 +636,18 @@
 
     // Initial poll
     setTimeout(pollSpeechStatus, 1000);
+
+    // P4-8: Restore last receipt from localStorage on load
+    try {
+      const lastReceipt = localStorage.getItem('ag_vote_last_receipt');
+      if (lastReceipt) {
+        const receipt = document.getElementById('voteReceipt');
+        if (receipt) {
+          receipt.textContent = lastReceipt;
+          receipt.hidden = false;
+        }
+      }
+    } catch(e) { /* localStorage unavailable */ }
 
     // P4-2: Keyboard shortcuts 1/2/3/4 → vote buttons
     document.addEventListener('keydown', (e) => {
