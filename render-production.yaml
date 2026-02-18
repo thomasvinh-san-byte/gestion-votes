@@ -1,0 +1,71 @@
+# =============================================================================
+# AG-VOTE — Render Blueprint PRODUCTION
+# =============================================================================
+# Ce blueprint crée un service web + base PostgreSQL avec TOUTES les
+# sécurités activées (auth, CSRF, rate limiting).
+#
+# Après déploiement, vous DEVEZ configurer manuellement dans le dashboard :
+#   1. APP_SECRET → générer avec: php -r "echo bin2hex(random_bytes(32));"
+#   2. CORS_ALLOWED_ORIGINS → votre domaine (ex: https://vote.monasso.fr)
+#   3. DEFAULT_TENANT_ID → UUID de votre organisation
+#
+# Pour la démo publique sans auth, utilisez render.yaml à la place.
+# =============================================================================
+
+services:
+  - type: web
+    name: ag-vote
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      # --- Base de données (auto-injectée par Render) ---
+      - key: DB_HOST
+        fromDatabase:
+          name: ag-vote-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ag-vote-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: ag-vote-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: ag-vote-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: ag-vote-db
+          property: password
+
+      # --- Application ---
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "0"
+
+      # --- Sécurité (TOUT activé) ---
+      - key: APP_AUTH_ENABLED
+        value: "1"
+      - key: CSRF_ENABLED
+        value: "1"
+      - key: RATE_LIMIT_ENABLED
+        value: "1"
+
+      # --- Pas de données de démo ---
+      - key: LOAD_DEMO_DATA
+        value: "0"
+
+      # --- À configurer manuellement dans le dashboard Render ---
+      # APP_SECRET           → OBLIGATOIRE, min 32 caractères
+      # CORS_ALLOWED_ORIGINS → votre domaine prod
+      # DEFAULT_TENANT_ID    → UUID de votre organisation
+
+databases:
+  - name: ag-vote-db
+    databaseName: vote_app
+    user: vote_app
+    plan: free

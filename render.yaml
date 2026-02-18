@@ -1,10 +1,13 @@
 # =============================================================================
-# AG-VOTE — Render Blueprint (one-click deploy)
+# AG-VOTE — Render Blueprint DÉMO (one-click deploy)
 # =============================================================================
 # Cliquer sur "Deploy to Render" crée automatiquement :
 #   - Un service web Docker (l'app PHP/Nginx)
 #   - Une base PostgreSQL
 #   - Toute la configuration réseau entre les deux
+#
+# ⚠ Ce blueprint est pour la DÉMO PUBLIQUE (auth désactivée, données test).
+#    Pour un déploiement PRODUCTION, utilisez render-production.yaml.
 # =============================================================================
 
 services:
