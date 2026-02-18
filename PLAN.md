@@ -3,7 +3,9 @@
 Suite au refactoring de la console opérateur (terminé), ce plan couvre le
 durcissement sécurité, la validation centralisée, et la qualité générale du backend.
 
-**Statut : EN COURS**
+**Statut : TERMINÉ** (18 février 2026)
+
+> Ce plan est archivé. Le plan actif est [`docs/dev/ROADMAP_PROD.md`](docs/dev/ROADMAP_PROD.md).
 
 ---
 

@@ -6,9 +6,12 @@
 
 This plan addresses structural inconsistencies ("Frankenstein" patterns) identified during the full project audit. The goal is to achieve end-to-end design coherence.
 
-### Status (February 2026)
+### Status: ARCHIVED (February 2026)
 
-All 6 phases are **effectively complete**. Remaining unchecked items (`[~]`) are intentionally deferred:
+All 6 phases are **effectively complete**. This plan is archived.
+Active plan: [`ROADMAP_PROD.md`](./ROADMAP_PROD.md)
+
+Remaining unchecked items (`[~]`) are intentionally deferred:
 - InputValidator migration: critical routes done, remaining routes use `api_require_uuid()` which is sufficient
 - Try/catch coverage: transactional/critical routes covered, simple GETs have acceptable default 500
 - ES6 module conversion: deferred due to regression risk across 22 HTML pages with no functional benefit
