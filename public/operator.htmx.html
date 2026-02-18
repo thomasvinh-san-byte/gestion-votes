@@ -978,6 +978,16 @@
             </div>
 
             <h3 class="mb-4">Votes manuels (opérateur)</h3>
+            <div class="flex gap-3 mb-3 flex-wrap" style="align-items:flex-end;">
+              <div class="form-group" style="flex:1;min-width:200px;margin:0;">
+                <label class="form-label" for="manualVoteSearch">Rechercher un votant</label>
+                <input type="text" class="form-input form-input-sm" id="manualVoteSearch" placeholder="Nom du membre…" aria-label="Rechercher un votant">
+              </div>
+              <div class="form-group" style="flex:1;min-width:200px;margin:0;">
+                <label class="form-label" for="manualVoteJustification">Justification</label>
+                <input type="text" class="form-input form-input-sm" id="manualVoteJustification" value="Vote opérateur manuel" placeholder="Raison du vote manuel…" aria-label="Justification du vote">
+              </div>
+            </div>
             <div id="manualVoteList" class="attendance-grid">
               <!-- Rendered by JS -->
             </div>

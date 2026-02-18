@@ -2120,9 +2120,28 @@
     list.querySelectorAll('.btn-delete-motion').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (!confirm('Supprimer cette résolution ?')) return;
+        const motionId = btn.dataset.motionId;
+        const motion = motionsCache.find(m => String(m.id) === String(motionId));
+        const title = motion ? escapeHtml(motion.title || '—') : 'cette résolution';
+        const ok = await new Promise(resolve => {
+          const modal = createModal({
+            id: 'deleteMotionModal',
+            title: 'Supprimer la résolution',
+            content: `
+              <h3 id="deleteMotionModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('trash-2', 'icon-sm icon-text')} Supprimer ?</h3>
+              <p style="margin:0 0 1.5rem;">Résolution : <strong>${title}</strong></p>
+              <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+                <button class="btn btn-danger" data-action="confirm">${icon('trash-2', 'icon-sm icon-text')} Supprimer</button>
+              </div>
+            `
+          });
+          modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+          modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+        });
+        if (!ok) return;
         try {
-          await api('/api/v1/motion_delete.php', { motion_id: btn.dataset.motionId, meeting_id: currentMeetingId });
+          await api('/api/v1/motion_delete.php', { motion_id: motionId, meeting_id: currentMeetingId });
           setNotif('success', 'Résolution supprimée');
           await loadResolutions();
           await loadStatusChecklist();
@@ -2357,7 +2376,13 @@
   }
 
   function renderManualVoteList() {
-    const voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
+    // P3-5: Filtrage par recherche
+    const searchInput = document.getElementById('manualVoteSearch');
+    const searchTerm = (searchInput ? searchInput.value : '').toLowerCase();
+    let voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
+    if (searchTerm) {
+      voters = voters.filter(v => (v.full_name || '').toLowerCase().includes(searchTerm));
+    }
     const list = document.getElementById('manualVoteList');
 
     // Allow vote correction - buttons are never disabled, but show current vote
@@ -2387,10 +2412,28 @@
         // Skip if clicking same vote
         if (currentVote === newVote) return;
 
-        // Confirm if correcting existing vote
+        // Confirm if correcting existing vote via modal
         const _vl = { for: 'Pour', against: 'Contre', abstain: 'Abstention' };
-        if (currentVote && !confirm(`Modifier le vote de "${_vl[currentVote] || currentVote}" vers "${_vl[newVote] || newVote}" ?`)) {
-          return;
+        if (currentVote) {
+          const ok = await new Promise(resolve => {
+            const memberName = card.querySelector('.attendance-name')?.textContent || '—';
+            const modal = createModal({
+              id: 'correctVoteModal',
+              title: 'Modifier le vote',
+              content: `
+                <h3 id="correctVoteModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Modifier le vote ?</h3>
+                <p style="margin:0 0 0.5rem;">Membre : <strong>${escapeHtml(memberName)}</strong></p>
+                <p style="margin:0 0 1.5rem;">De <strong>${_vl[currentVote] || currentVote}</strong> vers <strong>${_vl[newVote] || newVote}</strong></p>
+                <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                  <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+                  <button class="btn btn-primary" data-action="confirm">Modifier</button>
+                </div>
+              `
+            });
+            modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+            modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+          });
+          if (!ok) return;
         }
 
         await castManualVote(memberId, newVote);
@@ -2409,13 +2452,17 @@
       return;
     }
 
+    // P3-3: Lire la justification depuis le champ éditable
+    const justifInput = document.getElementById('manualVoteJustification');
+    const justification = (justifInput ? justifInput.value.trim() : '') || 'Vote opérateur manuel';
+
     try {
       const { body } = await api('/api/v1/manual_vote.php', {
         meeting_id: currentMeetingId,
         motion_id: currentOpenMotion.id,
         member_id: memberId,
         vote: vote,
-        justification: 'Vote opérateur manuel'
+        justification: justification
       });
 
       if (body?.ok === true) {
@@ -2425,9 +2472,15 @@
         setNotif('success', 'Vote enregistré');
       } else {
         setNotif('error', getApiError(body, 'Erreur lors du vote'));
+        // P3-6: Refresh auto pour resynchroniser l'état après erreur
+        if (currentOpenMotion) await loadBallots(currentOpenMotion.id);
+        renderManualVoteList();
       }
     } catch (err) {
       setNotif('error', err.message);
+      // P3-6: Refresh auto pour resynchroniser après erreur réseau
+      if (currentOpenMotion) await loadBallots(currentOpenMotion.id);
+      renderManualVoteList();
     }
   }
 
@@ -2442,6 +2495,7 @@
     }
 
     const voteLabels = { for: 'Pour', against: 'Contre', abstain: 'Abstention' };
+    const voteColors = { for: 'var(--color-success)', against: 'var(--color-danger)', abstain: 'var(--color-text-muted)' };
     const voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
 
     if (voters.length === 0) {
@@ -2449,9 +2503,30 @@
       return;
     }
 
-    if (!confirm(`Enregistrer "${voteLabels[voteType]}" pour ${voters.length} votant(s) ?`)) {
-      return;
-    }
+    // P3-2: Modale de confirmation au lieu de confirm()
+    const alreadyVoted = voters.filter(v => ballotsCache[v.member_id]).length;
+    const motionTitle = currentOpenMotion ? escapeHtml(currentOpenMotion.title || '—') : '—';
+
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'unanimityConfirmModal',
+        title: 'Confirmer le vote unanime',
+        content: `
+          <h3 id="unanimityConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('alert-triangle', 'icon-sm icon-text')} Vote unanime</h3>
+          <p style="margin:0 0 0.5rem;">Résolution : <strong>${motionTitle}</strong></p>
+          <p style="margin:0 0 0.5rem;">Vote : <strong style="color:${voteColors[voteType]}">${voteLabels[voteType]}</strong> pour <strong>${voters.length}</strong> votant(s)</p>
+          ${alreadyVoted > 0 ? `<p style="margin:0 0 0.5rem;color:var(--color-warning);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} ${alreadyVoted} votant(s) ont déjà voté — leur vote existant sera conservé.</p>` : ''}
+          <p style="margin:0 0 1.5rem;color:var(--color-text-muted);font-size:0.875rem;">Cette action enregistrera un vote manuel pour chaque votant présent ou à distance.</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">Confirmer (${voters.length} votes)</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
 
     let successCount = 0;
     let errorCount = 0;
@@ -2513,6 +2588,29 @@
   }
 
   async function openVote(motionId) {
+    // P3-1: Confirmation modale avant ouverture
+    const motion = motionsCache.find(m => String(m.id) === String(motionId));
+    const motionTitle = motion ? escapeHtml(motion.title || '—') : 'cette résolution';
+
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'openVoteConfirmModal',
+        title: 'Confirmer l\'ouverture du vote',
+        content: `
+          <h3 id="openVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('alert-triangle', 'icon-sm icon-text')} Ouvrir le vote ?</h3>
+          <p style="margin:0 0 0.5rem;">Résolution : <strong>${motionTitle}</strong></p>
+          <p style="margin:0 0 1.5rem;color:var(--color-text-muted);font-size:0.875rem;">Le vote sera immédiatement accessible à tous les votants. Un seul vote peut être ouvert à la fois.</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">${icon('play', 'icon-sm icon-text')} Ouvrir le vote</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
+
     // Disable ALL open-vote buttons and quick-open buttons to prevent any double-click
     const openBtns = document.querySelectorAll('.btn-open-vote, .btn-quick-open');
     openBtns.forEach(btn => {
@@ -2527,7 +2625,6 @@
       if (!openResult.body?.ok) {
         const errorMsg = getApiError(openResult.body, 'Erreur ouverture vote');
         setNotif('error', errorMsg);
-        // Re-render to restore buttons on error only
         await loadResolutions();
         return;
       }
@@ -2535,7 +2632,6 @@
       setNotif('success', 'Vote ouvert');
       announce('Vote ouvert.');
 
-      // loadResolutions will re-render the list with fresh buttons (old disabled ones are replaced)
       await loadResolutions();
 
       if (currentMode === 'exec') {
@@ -2547,13 +2643,43 @@
       }
     } catch (err) {
       setNotif('error', err.message);
-      // Re-render to restore buttons on error
       await loadResolutions();
     }
   }
 
   async function closeVote(motionId) {
-    if (!confirm('Clôturer ce vote ?')) return;
+    // P2-4 / P3: Modale de confirmation avec récapitulatif au lieu de confirm()
+    const motion = motionsCache.find(m => String(m.id) === String(motionId));
+    const motionTitle = motion ? escapeHtml(motion.title || '—') : 'ce vote';
+    const vFor = parseInt(document.getElementById('liveVoteFor')?.textContent || '0', 10);
+    const vAgainst = parseInt(document.getElementById('liveVoteAgainst')?.textContent || '0', 10);
+    const vAbstain = parseInt(document.getElementById('liveVoteAbstain')?.textContent || '0', 10);
+    const vTotal = vFor + vAgainst + vAbstain;
+
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'closeVoteConfirmModal',
+        title: 'Confirmer la clôture du scrutin',
+        content: `
+          <h3 id="closeVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('square', 'icon-sm icon-text')} Clôturer le scrutin ?</h3>
+          <p style="margin:0 0 0.75rem;">Résolution : <strong>${motionTitle}</strong></p>
+          <div style="display:flex;gap:1rem;margin:0 0 1rem;font-size:0.9375rem;">
+            <span style="color:var(--color-success);">${icon('check', 'icon-sm icon-text')} ${vFor}</span>
+            <span style="color:var(--color-danger);">${icon('x', 'icon-sm icon-text')} ${vAgainst}</span>
+            <span style="color:var(--color-text-muted);">&#9675; ${vAbstain}</span>
+            <span class="text-muted">&mdash; ${vTotal} vote(s)</span>
+          </div>
+          <p style="margin:0 0 1.5rem;color:var(--color-warning);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} Les résultats seront figés définitivement. Plus aucun vote ne sera accepté.</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-warning" data-action="confirm">${icon('square', 'icon-sm icon-text')} Clôturer le scrutin</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
 
     // Disable all close-vote buttons during the operation and show spinner
     const closeBtns = document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote');
@@ -2568,14 +2694,12 @@
       setNotif('success', 'Vote clôturé');
       currentOpenMotion = null;
       ballotsCache = {};
-      // loadResolutions + loadVoteTab will re-render with fresh buttons
       await loadResolutions();
       await loadVoteTab();
       if (currentMode === 'exec') refreshExecView();
       announce('Vote clôturé.');
     } catch (err) {
       setNotif('error', err.message);
-      // Re-render to restore buttons on error
       await loadResolutions();
     }
   }
@@ -2680,13 +2804,38 @@
     }
 
     const pending = motionsCache.filter(m => !m.opened_at && !m.closed_at);
+    const closed = motionsCache.filter(m => m.closed_at).length;
+    const total = motionsCache.length;
+    const meetingTitle = currentMeeting ? escapeHtml(currentMeeting.title || '') : '';
+    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+
+    let warningHtml = '';
     if (pending.length > 0) {
-      if (!confirm(`Attention: ${pending.length} résolution(s) n'ont pas été votées. Clôturer quand même ?`)) {
-        return;
-      }
-    } else if (!confirm('Clôturer la séance ? Cette action est irréversible.')) {
-      return;
+      warningHtml = `<p style="margin:0 0 0.75rem;color:var(--color-warning);">${icon('alert-triangle', 'icon-sm icon-text')} <strong>${pending.length} résolution(s)</strong> n'ont pas encore été votées.</p>`;
     }
+
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'closeSessionConfirmModal',
+        title: 'Clôturer la séance',
+        content: `
+          <h3 id="closeSessionConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('square', 'icon-sm icon-text')} Clôturer la séance ?</h3>
+          ${meetingTitle ? `<p style="margin:0 0 0.5rem;"><strong>${meetingTitle}</strong></p>` : ''}
+          <div style="margin:0 0 0.75rem;font-size:0.9375rem;color:var(--color-text-muted);">
+            ${icon('users', 'icon-sm icon-text')} ${presentCount} présent(s) &mdash; ${icon('check-circle', 'icon-sm icon-text')} ${closed}/${total} résolution(s) votée(s)
+          </div>
+          ${warningHtml}
+          <p style="margin:0 0 1.5rem;color:var(--color-danger);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} Cette action est irréversible. La séance passera en statut « clôturée ».</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-danger" data-action="confirm">${icon('square', 'icon-sm icon-text')} Clôturer la séance</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
 
     try {
       const { body } = await api('/api/v1/meeting_transition.php', {
@@ -2715,7 +2864,23 @@
   async function doTransition(toStatus) {
     const statusLabels = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
     const statusLabel = statusLabels[toStatus] || toStatus;
-    if (!confirm(`Changer l'état vers "${statusLabel}" ?`)) return;
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'transitionConfirmModal',
+        title: 'Confirmer le changement d\'état',
+        content: `
+          <h3 id="transitionConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Changer l'état ?</h3>
+          <p style="margin:0 0 1.5rem;">La séance passera en statut <strong>« ${statusLabel} »</strong>.</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">Confirmer</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
     try {
       const { body } = await api('/api/v1/meeting_transition.php', {
         meeting_id: currentMeetingId,
@@ -3429,6 +3594,9 @@
   document.getElementById('execBtnCloseVote')?.addEventListener('click', () => {
     if (currentOpenMotion) closeVote(currentOpenMotion.id);
   });
+
+  // Setup view: manual vote search (P3-5)
+  document.getElementById('manualVoteSearch')?.addEventListener('input', renderManualVoteList);
 
   // Exec view: manual vote search
   document.getElementById('execManualSearch')?.addEventListener('input', refreshExecManualVotes);
