@@ -17,50 +17,53 @@
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="members"></aside>
 
-    <!-- Page header -->
-    <div class="page-header">
-      <div>
-        <h1>Membres</h1>
-        <div class="page-header-subtitle">Gestion des participants et pondération</div>
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">Membres</h1>
+          <p class="text-sm text-secondary">Gestion des participants et pondération</p>
+        </div>
       </div>
-      <div class="page-header-actions">
-        <a class="btn btn-secondary" href="/api/v1/members_export_csv.php" target="_blank">
+      <div class="flex items-center gap-2">
+        <a class="btn btn-secondary btn-sm" href="/api/v1/members_export_csv.php" target="_blank">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
           Exporter CSV
         </a>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" aria-label="Séance en cours"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg></button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
+        </button>
       </div>
-    </div>
-
-    <!-- Stats bar -->
-    <div class="stats-bar">
-      <div class="stat-item total">
-        <div class="stat-value" id="kpiTotal">0</div>
-        <div class="stat-label">Total</div>
-      </div>
-      <div class="stat-item active">
-        <div class="stat-value" id="kpiActive">0</div>
-        <div class="stat-label">Actifs</div>
-      </div>
-      <div class="stat-item inactive">
-        <div class="stat-value" id="kpiInactive">0</div>
-        <div class="stat-label">Inactifs</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value" id="kpiPower">0</div>
-        <div class="stat-label">Voix totales</div>
-      </div>
-      <div class="stat-item">
-        <span class="stat-value" id="kpiAvgPower">—</span>
-        <span class="stat-label">Pouvoir moyen</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-value" id="kpiEmailCoverage">—</span>
-        <span class="stat-label">Couv. email</span>
-      </div>
-    </div>
+    </header>
 
     <main class="app-main members-main">
+      <!-- Stats bar -->
+      <div class="stats-bar">
+        <div class="stat-item total">
+          <div class="stat-value" id="kpiTotal">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-item active">
+          <div class="stat-value" id="kpiActive">0</div>
+          <div class="stat-label">Actifs</div>
+        </div>
+        <div class="stat-item inactive">
+          <div class="stat-value" id="kpiInactive">0</div>
+          <div class="stat-label">Inactifs</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="kpiPower">0</div>
+          <div class="stat-label">Voix totales</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="kpiAvgPower">—</span>
+          <span class="stat-label">Pouvoir moyen</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="kpiEmailCoverage">—</span>
+          <span class="stat-label">Couv. email</span>
+        </div>
+      </div>
       <div id="notif_box" class="alert hidden mb-4" style="margin: 1rem 1.5rem 0;"></div>
 
       <!-- Management panels (collapsible, above the two-column layout) -->
