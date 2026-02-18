@@ -22,7 +22,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                     NAVIGATEUR / CLIENT                     │
 ├─────────────────────────────────────────────────────────────┤
-│  1. SecurityHeaders    │ CSP, HSTS, X-Frame-Options        │
+│  1. Security Headers   │ CSP, HSTS, X-Frame-Options        │
 ├────────────────────────┼────────────────────────────────────┤
 │  2. RateLimiter        │ Anti-brute-force, DDoS mitigation │
 ├────────────────────────┼────────────────────────────────────┤
@@ -44,7 +44,7 @@
 |---------|----------------|
 | `app/Core/Security/CsrfMiddleware.php` | Protection CSRF |
 | `app/Core/Security/AuthMiddleware.php` | Authentification RBAC |
-| `app/Core/Security/SecurityHeaders.php` | Headers HTTP sécurisés |
+| `app/bootstrap.php` (lignes 148-160) | Headers HTTP sécurisés |
 | `app/Core/Security/RateLimiter.php` | Limitation de débit |
 | `app/Core/Validation/InputValidator.php` | Validation entrées |
 

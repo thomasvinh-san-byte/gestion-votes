@@ -290,7 +290,7 @@ class MotionRepository extends AbstractRepository
     }
 
     /**
-     * Contexte officiel pour une motion (OfficialResultsService, MeetingResultsService).
+     * Contexte officiel pour une motion (OfficialResultsService).
      */
     public function findWithOfficialContext(string $motionId): ?array
     {

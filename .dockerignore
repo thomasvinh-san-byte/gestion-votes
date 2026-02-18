@@ -2,11 +2,8 @@
 .git
 .gitignore
 
-# Documentation (keep docs/ for in-app doc viewer, exclude dev-only files)
-docs/dev/PLAN_HARMONISATION.md
-docs/dev/AUDIT_RAPPORT.md
+# Documentation
 LICENSE
-PLAN.md
 CONTRIBUTING.md
 
 # Tests

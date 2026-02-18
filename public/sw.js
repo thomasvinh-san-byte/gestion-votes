@@ -18,7 +18,6 @@ const PRECACHE_ASSETS = [
   '/operator.htmx.html',
   '/vote.php',
   '/assets/css/design-system.css',
-  '/assets/js/websocket-client.js',
   '/assets/js/components/index.js',
   '/assets/js/components/ag-badge.js',
   '/assets/js/components/ag-kpi.js',
