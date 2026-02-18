@@ -12,10 +12,10 @@
 | 3 | P2-1 | Président | Aucune indication du rôle connecté | Critique | Faible | DONE |
 | 4 | P2-2 | Président | Boutons désactivés sans explication | Critique | Faible | DONE |
 | 5 | P7-1 | Admin | Reset démo trop facile à déclencher | Critique | Faible | DONE |
-| 6 | P7-2 | Admin | Aucun log des actions admin | Critique | Moyen | BACKEND |
+| 6 | P7-2 | Admin | Aucun log des actions admin | Critique | Moyen | DONE |
 | 7 | P3-2 | Opérateur | Vote unanime irréversible (batch sans rollback) | Haute | Moyen | DONE |
 | 8 | P3-3 | Opérateur | Vote manuel justification non éditable | Haute | Faible | DONE |
-| 9 | P3-4 | Opérateur | Pas d'annulation de vote manuel | Haute | Moyen | BACKEND |
+| 9 | P3-4 | Opérateur | Pas d'annulation de vote manuel | Haute | Moyen | DONE |
 | 10 | P4-2 | Votants | Raccourcis clavier 1/2/3 affichés mais inopérants | Haute | Faible | DONE |
 | 11 | P4-3 | Votants | Pas de queue offline pour les votes | Haute | Élevé | DEFERRED |
 | 12 | P4-4 | Votants | Procuration sans indication claire | Haute | Faible | DONE |
@@ -45,8 +45,8 @@
 | 36 | P3-7 | Opérateur | File parole non réordonnable | Basse | Moyen | DEFERRED |
 | 37 | P3-8 | Opérateur | Timer parole côté client | Basse | Moyen | DEFERRED |
 | 38 | P4-8 | Votants | Reçu vote non persistant | Basse | Faible | DONE |
-| 39 | P5-5 | Post-séance | Pas de dé-archivage admin | Basse | Élevé | BACKEND |
-| 40 | P6-6 | Auditeur | Export audit texte brut seulement | Basse | Moyen | BACKEND |
+| 39 | P5-5 | Post-séance | Pas de dé-archivage admin | Basse | Élevé | DONE |
+| 40 | P6-6 | Auditeur | Export audit texte brut seulement | Basse | Moyen | DONE |
 | 41 | P7-7 | Admin | Machine à états : visualisation confuse | Basse | Moyen | DEFERRED |
 | 42 | P7-8 | Admin | KPI santé sans seuils documentés | Basse | Faible | DONE |
 
@@ -132,16 +132,8 @@ Interface complète (6 onglets) mais sans garde-fous suffisants et sans audit de
 
 | Statut | Nombre | Description |
 |--------|--------|-------------|
-| DONE | 33/42 | Corrigés dans le frontend (HTML/JS/CSS) |
-| BACKEND | 4/42 | Nécessitent des modifications PHP côté serveur |
+| DONE | 37/42 | Corrigés (frontend + backend) |
 | DEFERRED | 5/42 | Reportés (effort élevé ou complexité architecturale) |
-
-### Items BACKEND (nécessitent du développement serveur)
-
-- **P7-2** (Critique) — Log des actions admin : nécessite un middleware d'audit côté PHP pour tracer création/suppression/modification d'utilisateurs
-- **P3-4** (Haute) — Annulation vote manuel : nécessite un endpoint API `DELETE /ballots` avec gestion de la contrainte UNIQUE en base
-- **P5-5** (Basse) — Dé-archivage : nécessite une transition inverse dans la machine à états (`archived → validated`) côté PHP
-- **P6-6** (Basse) — Export audit structuré : nécessite un endpoint API pour générer PDF/JSON depuis le serveur
 
 ### Items DEFERRED (reportés)
 

@@ -303,6 +303,17 @@
               </table>
             </div>
           </div>
+
+          <!-- P5-5: Dé-archivage -->
+          <div class="card mt-4">
+            <div class="card-header">
+              <h3 class="card-title">Séances archivées</h3>
+              <p class="card-description">Restaurer une séance archivée vers l'état « Validée » pour corrections</p>
+            </div>
+            <div class="card-body p-0" id="archivedMeetingsList">
+              <div class="text-center p-4 text-muted">Chargement...</div>
+            </div>
+          </div>
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
@@ -357,6 +368,36 @@
               <div class="system-stat"><span class="system-stat-label">Mémoire</span><span class="system-stat-value" id="statMemory">—</span></div>
             </div>
           </div>
+          <!-- Journal d'audit admin (P7-2) -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="card-title">Journal des actions admin</h3>
+                  <p class="card-description">Historique des créations, modifications et suppressions d'utilisateurs, rôles et politiques</p>
+                </div>
+                <div class="flex gap-2 items-center">
+                  <select class="form-input form-input-sm" id="adminAuditAction" style="max-width:220px;" aria-label="Filtrer par type d'action">
+                    <option value="">Toutes les actions</option>
+                  </select>
+                  <input class="form-input form-input-sm" type="search" id="adminAuditSearch" placeholder="Rechercher..." style="max-width:200px;" aria-label="Rechercher dans le journal">
+                </div>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div id="adminAuditList" style="max-height:400px;overflow:auto;">
+                <div class="text-center p-4 text-muted">Chargement...</div>
+              </div>
+              <div class="flex items-center justify-between p-3 border-top" id="adminAuditPagination" style="display:none;">
+                <span class="text-sm text-muted" id="adminAuditCount"></span>
+                <div class="flex gap-2">
+                  <button class="btn btn-ghost btn-xs" id="adminAuditPrev" disabled>Précédent</button>
+                  <button class="btn btn-ghost btn-xs" id="adminAuditNext">Suivant</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Danger Zone -->
           <div class="card card-danger">
             <div class="card-header"><h3 class="card-title text-danger">Zone dangereuse</h3></div>

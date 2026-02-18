@@ -2536,14 +2536,18 @@
     });
   }
 
+  let ballotSourceCache = {}; // memberId → 'manual'|'tablet'|...
+
   async function loadBallots(motionId) {
     try {
       const { body } = await api(`/api/v1/ballots.php?motion_id=${motionId}`);
       const ballots = body?.data?.ballots || body?.ballots || [];
       ballotsCache = {};
+      ballotSourceCache = {};
       let forCount = 0, againstCount = 0, abstainCount = 0;
       ballots.forEach(b => {
         ballotsCache[b.member_id] = b.value;
+        ballotSourceCache[b.member_id] = b.source || 'tablet';
         if (b.value === 'for') forCount++;
         else if (b.value === 'against') againstCount++;
         else if (b.value === 'abstain') abstainCount++;
@@ -2570,6 +2574,10 @@
     list.innerHTML = voters.map(v => {
       const vote = ballotsCache[v.member_id];
       const hasVoted = !!vote;
+      const isManual = ballotSourceCache[v.member_id] === 'manual';
+      const cancelBtn = (hasVoted && isManual)
+        ? `<button class="mode-btn btn-cancel-ballot" data-member-id="${v.member_id}" title="Annuler ce vote manuel" style="color:var(--color-danger);margin-left:0.25rem;">${icon('trash-2', 'icon-sm')}</button>`
+        : '';
       return `
         <div class="attendance-card ${hasVoted ? 'present' : ''}" data-member-id="${v.member_id}">
           <span class="attendance-name">${escapeHtml(v.full_name || '—')}</span>
@@ -2577,6 +2585,7 @@
             <button class="mode-btn for ${vote === 'for' ? 'active' : ''}" data-vote="for" title="Pour">${icon('check', 'icon-sm')}</button>
             <button class="mode-btn against ${vote === 'against' ? 'active' : ''}" data-vote="against" title="Contre">${icon('x', 'icon-sm')}</button>
             <button class="mode-btn abstain ${vote === 'abstain' ? 'active' : ''}" data-vote="abstain" title="Abstention">${icon('minus', 'icon-sm')}</button>
+            ${cancelBtn}
           </div>
         </div>
       `;
@@ -2618,6 +2627,66 @@
         }
 
         await castManualVote(memberId, newVote);
+      });
+    });
+
+    // P3-4: Cancel manual vote buttons
+    list.querySelectorAll('.btn-cancel-ballot').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const memberId = btn.dataset.memberId;
+        const card = btn.closest('.attendance-card');
+        const memberName = card?.querySelector('.attendance-name')?.textContent || '—';
+        const voteLabels = { for: 'Pour', against: 'Contre', abstain: 'Abstention' };
+        const currentVote = ballotsCache[memberId];
+
+        const confirmed = await new Promise(resolve => {
+          const modal = createModal({
+            id: 'cancelBallotModal',
+            title: 'Annuler le vote manuel',
+            content: `
+              <h3 id="cancelBallotModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Annuler ce vote ?</h3>
+              <p>Membre : <strong>${escapeHtml(memberName)}</strong></p>
+              <p>Vote actuel : <strong>${voteLabels[currentVote] || currentVote}</strong></p>
+              <div class="form-group" style="margin-top:1rem;">
+                <label class="form-label">Justification <span class="text-danger">*</span></label>
+                <input class="form-input" type="text" id="cancelBallotReason" placeholder="Raison de l'annulation" required>
+              </div>
+              <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
+                <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+                <button class="btn btn-danger" data-action="confirm" id="btnConfirmCancel" disabled>Supprimer le vote</button>
+              </div>
+            `
+          });
+          const reasonInput = modal.querySelector('#cancelBallotReason');
+          const confirmBtn = modal.querySelector('#btnConfirmCancel');
+          reasonInput.addEventListener('input', () => { confirmBtn.disabled = reasonInput.value.trim().length < 3; });
+          modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(null); });
+          confirmBtn.addEventListener('click', () => { closeModal(modal); resolve(reasonInput.value.trim()); });
+          setTimeout(() => reasonInput.focus(), 60);
+        });
+
+        if (!confirmed) return;
+
+        btn.disabled = true;
+        try {
+          const { body } = await api('/api/v1/ballots_cancel.php', {
+            motion_id: currentOpenMotion.id,
+            member_id: memberId,
+            reason: confirmed
+          });
+          if (body?.ok) {
+            delete ballotsCache[memberId];
+            delete ballotSourceCache[memberId];
+            await loadBallots(currentOpenMotion.id);
+            renderManualVoteList();
+            setNotif('success', 'Vote annulé');
+          } else {
+            setNotif('error', body?.error_label || body?.error || 'Erreur lors de l\'annulation');
+          }
+        } catch (err) {
+          setNotif('error', err.message);
+        }
+        btn.disabled = false;
       });
     });
   }

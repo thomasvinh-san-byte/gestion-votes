@@ -105,12 +105,6 @@ switch ($toStatus) {
         $fields['closed_by'] = $userId;
         break;
 
-    case 'validated':
-        $fields['validated_at'] = date('Y-m-d H:i:s');
-        $fields['validated_by'] = api_current_user()['name'] ?? 'unknown';
-        $fields['validated_by_user_id'] = $userId;
-        break;
-
     case 'archived':
         $fields['archived_at'] = date('Y-m-d H:i:s');
         break;
@@ -120,6 +114,18 @@ switch ($toStatus) {
         if ($fromStatus === 'frozen') {
             $fields['frozen_at'] = null;
             $fields['frozen_by'] = null;
+        }
+        break;
+
+    case 'validated':
+        // Si on dé-archive: effacer archived_at, garder validated_at
+        if ($fromStatus === 'archived') {
+            $fields['archived_at'] = null;
+        } elseif (empty($meeting['validated_at'])) {
+            // Transition normale closed → validated
+            $fields['validated_at'] = date('Y-m-d H:i:s');
+            $fields['validated_by'] = api_current_user()['name'] ?? 'unknown';
+            $fields['validated_by_user_id'] = $userId;
         }
         break;
 }

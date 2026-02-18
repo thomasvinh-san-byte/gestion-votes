@@ -469,6 +469,18 @@
     setNotif('success', 'Export CSV du journal d\'audit lancé');
   });
 
+  // P6-6: Export JSON structuré
+  document.getElementById('btnExportAuditJson')?.addEventListener('click', () => {
+    if (!currentMeetingId) {
+      setNotif('error', 'Sélectionnez d\'abord une séance');
+      return;
+    }
+
+    const url = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}&format=json`;
+    window.open(url, '_blank');
+    setNotif('success', 'Export JSON structuré lancé (avec chaîne d\'intégrité)');
+  });
+
   // Event listeners
   meetingSelect.addEventListener('change', () => {
     loadMeetingData(meetingSelect.value);

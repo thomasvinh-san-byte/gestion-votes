@@ -726,7 +726,7 @@ class MeetingRepository extends AbstractRepository
     public function listAuditEventsForExport(string $tenantId, string $meetingId): array
     {
         return $this->selectAll(
-            "SELECT created_at, actor_role, actor_user_id, action, resource_type, resource_id, payload
+            "SELECT created_at, actor_role, actor_user_id, action, resource_type, resource_id, payload, prev_hash, this_hash
              FROM audit_events
              WHERE tenant_id = :tid AND meeting_id = :mid
              ORDER BY created_at ASC",
