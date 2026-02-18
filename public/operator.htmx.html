@@ -27,6 +27,7 @@
             <option value="">— Sélectionner une séance —</option>
           </select>
           <span class="badge" id="meetingStatusBadge" aria-live="polite">—</span>
+          <span class="meeting-bar-chip" id="userRoleBadge" hidden aria-live="polite" style="font-weight:600;"></span>
           <span class="meeting-bar-chip" id="healthChip" hidden>
             <span class="health-dot"></span>
             <strong id="healthScore">—</strong>
@@ -958,7 +959,7 @@
                 <span class="abstain">&#9675; <span id="liveVoteAbstain">0</span></span>
               </div>
               <div class="vote-controls-wrapper">
-                <button class="btn btn-lg btn-warning btn-close-vote" id="btnCloseVote"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer le vote</button>
+                <button class="btn btn-lg btn-warning btn-close-vote" id="btnCloseVote"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Terminer le scrutin</button>
               </div>
             </div>
 
@@ -1131,7 +1132,7 @@
                 </div>
                 <div class="exec-vote-actions">
                   <button class="btn btn-warning" id="execBtnCloseVote">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer le vote
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Terminer le scrutin
                   </button>
                 </div>
               </div>

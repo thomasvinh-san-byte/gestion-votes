@@ -25,6 +25,12 @@
         if (body && body.ok && body.data) {
           document.getElementById('meetingTitle').textContent = body.data.title;
           document.getElementById('meetingName').textContent = body.data.title;
+          // P2-7: Show date in context bar
+          const dateCtx = document.getElementById('meetingDateCtx');
+          if (dateCtx && body.data.scheduled_at) {
+            const d = new Date(body.data.scheduled_at);
+            dateCtx.textContent = '— ' + d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+          }
           Shared.show(document.getElementById('meetingContext'), 'flex');
 
           // Vérifier si déjà validée

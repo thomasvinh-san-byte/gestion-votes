@@ -334,6 +334,104 @@
     if (currentOpenMotion && currentMeetingStatus === 'live' && currentMode === 'setup') {
       switchTab('vote');
     }
+
+    // P2-1/P2-2/P2-6: Adapt UI based on user's role
+    applyRoleAwareUI();
+  }
+
+  // =========================================================================
+  // ROLE-AWARE UI (P2-1, P2-2, P2-6)
+  // =========================================================================
+
+  /**
+   * Detect the user's effective role for the current meeting and adapt the UI:
+   * - Show role badge in the meeting bar
+   * - Disable/tooltip buttons the user cannot use
+   * - Hide irrelevant tabs for non-operators
+   */
+  function applyRoleAwareUI() {
+    const roleBadge = document.getElementById('userRoleBadge');
+    if (!roleBadge) return;
+
+    const auth = window.Auth || {};
+    const systemRole = auth.role;
+    const meetingRoles = auth.meetingRoles || [];
+    const LABELS = auth.ROLE_LABELS || { admin: 'Administrateur', operator: 'Opérateur', president: 'Président', assessor: 'Assesseur' };
+
+    // Determine the effective role for this meeting
+    const meetingRole = meetingRoles.find(mr => String(mr.meeting_id) === String(currentMeetingId));
+    const effectiveMeetingRole = meetingRole ? meetingRole.role : null;
+
+    // Priority: meeting role > system role
+    let displayRole = '';
+    let roleColor = '';
+    const isAdmin = systemRole === 'admin';
+    const isOperator = systemRole === 'operator' || isAdmin;
+    const isPresident = effectiveMeetingRole === 'president';
+    const isAssessor = effectiveMeetingRole === 'assessor';
+
+    if (isAdmin) {
+      displayRole = LABELS.admin || 'Administrateur';
+      roleColor = 'var(--color-danger, #dc2626)';
+    } else if (isOperator && isPresident) {
+      displayRole = (LABELS.operator || 'Opérateur') + ' + ' + (LABELS.president || 'Président');
+      roleColor = 'var(--color-primary, #0066cc)';
+    } else if (isOperator) {
+      displayRole = LABELS.operator || 'Opérateur';
+      roleColor = 'var(--color-primary, #0066cc)';
+    } else if (isPresident) {
+      displayRole = LABELS.president || 'Président';
+      roleColor = 'var(--color-warning, #f59e0b)';
+    } else if (isAssessor) {
+      displayRole = LABELS.assessor || 'Assesseur';
+      roleColor = 'var(--color-text-muted)';
+    } else if (systemRole) {
+      displayRole = LABELS[systemRole] || systemRole;
+      roleColor = 'var(--color-text-muted)';
+    }
+
+    // P2-1: Show role badge
+    if (displayRole) {
+      roleBadge.innerHTML = icon('user', 'icon-sm icon-text') + ' ' + escapeHtml(displayRole);
+      roleBadge.style.color = roleColor;
+      roleBadge.hidden = false;
+    } else {
+      roleBadge.hidden = true;
+    }
+
+    // P2-2 & P2-6: If user is president (not operator/admin), restrict UI
+    const isRestrictedPresident = isPresident && !isOperator;
+    const restrictedMessage = 'Action réservée aux opérateurs';
+
+    if (isRestrictedPresident) {
+      // Hide prep mode switch (president doesn't prepare)
+      const prepModeSwitch = document.getElementById('prepModeSwitch');
+      if (prepModeSwitch) prepModeSwitch.hidden = true;
+
+      // P2-6: Hide "Paramètres" tab (president can't edit settings)
+      const paramTab = document.querySelector('[data-tab="parametres"]');
+      if (paramTab) paramTab.style.display = 'none';
+
+      // Disable action buttons with tooltip
+      const restrictedBtns = [
+        'btnAddResolution', 'btnConfirmResolution', 'btnMarkAllPresent',
+        'btnImportCSV', 'btnAddProxy', 'btnImportProxiesCSV'
+      ];
+      restrictedBtns.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.disabled = true;
+          btn.title = restrictedMessage;
+          btn.setAttribute('aria-label', (btn.textContent || '').trim() + ' (' + restrictedMessage + ')');
+        }
+      });
+
+      // Update context hint
+      const hint = document.getElementById('contextHint');
+      if (hint && currentMeetingStatus !== 'live') {
+        hint.innerHTML = icon('user', 'icon-sm icon-text') + ' Mode supervision — Président de séance';
+      }
+    }
   }
 
   // =========================================================================
@@ -2030,7 +2128,7 @@
       if (isLive && !isOpen && !isClosed) {
         voteActions = `<button class="btn btn-sm btn-primary btn-open-vote" data-motion-id="${m.id}">${icon('play', 'icon-sm icon-text')}Ouvrir</button>`;
       } else if (isLive && isOpen) {
-        voteActions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${m.id}">${icon('square', 'icon-sm icon-text')}Clôturer</button>`;
+        voteActions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${m.id}">${icon('square', 'icon-sm icon-text')}Terminer</button>`;
       }
 
       // Edit actions (only for pending resolutions)
@@ -2659,9 +2757,9 @@
     const confirmed = await new Promise(resolve => {
       const modal = createModal({
         id: 'closeVoteConfirmModal',
-        title: 'Confirmer la clôture du scrutin',
+        title: 'Terminer le scrutin',
         content: `
-          <h3 id="closeVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('square', 'icon-sm icon-text')} Clôturer le scrutin ?</h3>
+          <h3 id="closeVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('square', 'icon-sm icon-text')} Terminer le scrutin ?</h3>
           <p style="margin:0 0 0.75rem;">Résolution : <strong>${motionTitle}</strong></p>
           <div style="display:flex;gap:1rem;margin:0 0 1rem;font-size:0.9375rem;">
             <span style="color:var(--color-success);">${icon('check', 'icon-sm icon-text')} ${vFor}</span>
@@ -2672,7 +2770,7 @@
           <p style="margin:0 0 1.5rem;color:var(--color-warning);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} Les résultats seront figés définitivement. Plus aucun vote ne sera accepté.</p>
           <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
             <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-warning" data-action="confirm">${icon('square', 'icon-sm icon-text')} Clôturer le scrutin</button>
+            <button class="btn btn-warning" data-action="confirm">${icon('square', 'icon-sm icon-text')} Terminer le scrutin</button>
           </div>
         `
       });
