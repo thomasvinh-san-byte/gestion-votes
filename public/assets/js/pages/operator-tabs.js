@@ -1196,7 +1196,7 @@
         <h3 style="margin:0 0 1rem;"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer des membres (CSV)</h3>
         <p class="text-muted text-sm mb-3">
           Format attendu: <code>name,email,voting_power</code> (en-tête requis).<br>
-          L'email et le poids sont optionnels.
+          L'email et le nombre de voix sont optionnels.
         </p>
         <div class="form-group mb-3">
           <label class="form-label">Fichier CSV</label>
@@ -3469,28 +3469,135 @@
     }
 
     list.innerHTML = membersCache.map(m => `
-      <div class="assistant-member-row">
+      <div class="assistant-member-row" data-member-id="${m.id}">
         <span class="assistant-member-name">${escapeHtml(m.full_name || '—')}</span>
-        <span class="text-sm text-muted">${escapeHtml(m.email || '')}</span>
-        <span class="text-sm text-muted">${m.voting_power || 1} voix</span>
+        <span class="text-sm text-muted assistant-member-email">${escapeHtml(m.email || '')}</span>
+        <span class="assistant-member-power">${m.voting_power || 1} voix</span>
+        <div class="assistant-member-actions">
+          <button class="btn-icon-sm" title="Modifier" data-wiz-edit="${m.id}">
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
+          </button>
+          <button class="btn-icon-sm danger" title="Retirer" data-wiz-delete="${m.id}">
+            <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
+          </button>
+        </div>
       </div>
     `).join('');
+
+    // Bind edit/delete handlers
+    list.querySelectorAll('[data-wiz-edit]').forEach(btn => {
+      btn.addEventListener('click', () => wizEditMember(btn.dataset.wizEdit));
+    });
+    list.querySelectorAll('[data-wiz-delete]').forEach(btn => {
+      btn.addEventListener('click', () => wizDeleteMember(btn.dataset.wizDelete));
+    });
+  }
+
+  function wizEditMember(memberId) {
+    const m = membersCache.find(x => x.id === memberId);
+    if (!m) return;
+
+    Shared.openModal({
+      title: 'Modifier le membre',
+      body: `
+        <div class="form-group mb-3">
+          <label class="form-label">Nom complet *</label>
+          <input class="form-input" type="text" id="wizEditName" value="${escapeHtml(m.full_name || m.name || '')}" placeholder="Nom Prénom">
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Email <span class="text-muted text-sm">(facultatif)</span></label>
+          <input class="form-input" type="email" id="wizEditEmail" value="${escapeHtml(m.email || '')}" placeholder="email@exemple.com">
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label">Nombre de voix</label>
+          <input class="form-input" type="number" id="wizEditPower" value="${m.voting_power || 1}" min="1" step="1">
+        </div>
+      `,
+      confirmText: 'Enregistrer',
+      onConfirm: async function(modal) {
+        const newName = modal.querySelector('#wizEditName').value.trim();
+        const newEmail = modal.querySelector('#wizEditEmail').value.trim();
+        const newPower = parseInt(modal.querySelector('#wizEditPower').value) || 1;
+
+        if (!newName) { setNotif('error', 'Le nom est requis'); return false; }
+
+        try {
+          const { body } = await api('/api/v1/members.php', {
+            member_id: memberId,
+            full_name: newName,
+            email: newEmail || null,
+            voting_power: newPower,
+            is_active: true
+          }, 'PATCH');
+
+          if (body?.ok) {
+            setNotif('success', 'Membre modifié');
+            await loadMembers();
+            renderWizMembers();
+            return true;
+          } else {
+            setNotif('error', getApiError(body, 'Erreur'));
+            return false;
+          }
+        } catch (err) {
+          setNotif('error', err.message);
+          return false;
+        }
+      }
+    });
+  }
+
+  async function wizDeleteMember(memberId) {
+    const m = membersCache.find(x => x.id === memberId);
+    if (!m) return;
+    const name = m.full_name || m.name || 'ce membre';
+
+    Shared.openModal({
+      title: 'Retirer un membre',
+      body: `<p>Retirer <strong>${escapeHtml(name)}</strong> de la liste des membres ?</p>
+             <p class="text-sm text-muted">Cette action supprime le membre du registre.</p>`,
+      confirmText: 'Retirer',
+      danger: true,
+      onConfirm: async function() {
+        try {
+          const { body } = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
+          if (body?.ok) {
+            setNotif('success', name + ' retiré');
+            await loadMembers();
+            await loadAttendance();
+            renderWizMembers();
+            return true;
+          } else {
+            setNotif('error', getApiError(body, 'Erreur'));
+            return false;
+          }
+        } catch (err) {
+          setNotif('error', err.message);
+          return false;
+        }
+      }
+    });
   }
 
   async function wizAddMember() {
     const nameInput = document.getElementById('wizAddMemberName');
     const emailInput = document.getElementById('wizAddMemberEmail');
+    const powerInput = document.getElementById('wizAddMemberPower');
     const name = nameInput?.value?.trim();
     if (!name) { setNotif('error', 'Le nom est requis'); nameInput?.focus(); return; }
+
+    const voting_power = parseInt(powerInput?.value) || 1;
 
     try {
       await api('/api/v1/members.php', {
         action: 'create',
         full_name: name,
-        email: emailInput?.value?.trim() || null
+        email: emailInput?.value?.trim() || null,
+        voting_power: voting_power
       });
       if (nameInput) nameInput.value = '';
       if (emailInput) emailInput.value = '';
+      if (powerInput) powerInput.value = '1';
       nameInput?.focus();
       await loadMembers();
       renderWizMembers();

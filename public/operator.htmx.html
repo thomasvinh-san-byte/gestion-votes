@@ -137,13 +137,17 @@
               <div class="assistant-section">
                 <h3>Ajout rapide</h3>
                 <div class="flex gap-3 flex-wrap items-end">
-                  <div class="form-group" style="flex:1; min-width:180px;">
+                  <div class="form-group" style="flex:2; min-width:180px;">
                     <label class="form-label" for="wizAddMemberName">Nom complet</label>
                     <input type="text" class="form-input" id="wizAddMemberName" placeholder="Nom Prénom">
                   </div>
-                  <div class="form-group" style="flex:1; min-width:180px;">
+                  <div class="form-group" style="flex:2; min-width:180px;">
                     <label class="form-label" for="wizAddMemberEmail">Email <span class="text-muted text-sm">(facultatif)</span></label>
                     <input type="email" class="form-input" id="wizAddMemberEmail" placeholder="email@exemple.com">
+                  </div>
+                  <div class="form-group" style="flex:0 0 100px;">
+                    <label class="form-label" for="wizAddMemberPower">Voix</label>
+                    <input type="number" class="form-input" id="wizAddMemberPower" value="1" min="1" step="1">
                   </div>
                   <button class="btn btn-primary" id="wizBtnAddMember">
                     <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Ajouter
@@ -159,6 +163,16 @@
                   <p>Glisser un fichier CSV ici ou <label for="wizCsvFile" class="text-primary" style="cursor:pointer; text-decoration:underline;">choisir un fichier</label></p>
                   <input type="file" id="wizCsvFile" accept=".csv,.txt" style="display:none;">
                   <p class="text-sm text-muted">Format : nom, email, nombre_de_voix</p>
+                </div>
+                <div class="flex gap-3 mt-3 flex-wrap">
+                  <a href="/assets/modele_import_membres.csv" download class="btn btn-sm btn-ghost">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                    Modèle vierge CSV
+                  </a>
+                  <a href="/assets/demo_membres_ag.csv" download class="btn btn-sm btn-ghost">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                    Exemple avec 25 membres (démo)
+                  </a>
                 </div>
               </div>
 
