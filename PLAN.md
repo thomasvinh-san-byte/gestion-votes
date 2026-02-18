@@ -3,297 +3,137 @@
 Refactoring de `operator.htmx.html` + `operator-tabs.js` + `operator.css`
 pour aligner la console opérateur sur le wireframe (mode Préparation / Exécution).
 
----
-
-## Phase 0 — Nettoyage préalable
-
-### 0.1 Supprimer `operator.js` legacy
-- **Fichier** : `public/assets/js/pages/operator.js` (1 800 lignes)
-- Non chargé par l'HTML actuel (seul `operator-tabs.js` est référencé)
-- Action : `git rm public/assets/js/pages/operator.js`
-
-### 0.2 Retirer le wizard de la page opérateur
-- **Fichier** : `operator.htmx.html` ligne 43 — supprimer `<div id="wizard-progress"></div>`
-- **Fichier** : `operator.htmx.html` ligne 646 — retirer le `<script>` de `session-wizard.js`
-- **Fichier** : `session-wizard.js` — le wizard continue de fonctionner sur les autres
-  pages (meetings, members) ; on le masque uniquement sur la page opérateur.
-  La section `isOperatorPage` (lignes 289-306) devient inutile — on peut la simplifier
-  en ne rendant rien si `isOperatorPage`.
+**Statut : TERMINÉ** — toutes les phases sont implémentées.
 
 ---
 
-## Phase 1 — Nouvelle barre de séance (meeting bar)
+## Phase 0 — Nettoyage préalable ✅
 
-### 1.1 HTML (`operator.htmx.html`)
-Remplacer la `session-selector` (lignes 21-28) et intégrer le mode switch.
+### 0.1 Supprimer `operator.js` legacy ✅
+- `operator.js` supprimé ; seul `operator-tabs.js` est chargé.
 
-Nouvelle structure :
-
-```
-<section class="meeting-bar" aria-label="Sélection séance, état et mode">
-  <div class="meeting-bar-inner">
-    <!-- Ligne 1 : sélecteur + statut + santé + horloge + actions rapides -->
-    <div class="meeting-bar-top">
-      <div class="meeting-bar-left">
-        <select id="meetingSelect">...</select>
-        <span class="chip" id="meetingStatus">
-          <span class="status-dot"></span>
-          <strong id="statusText">Aucune séance</strong>
-        </span>
-        <span class="chip" id="meetingHealth">
-          <strong id="healthText">—</strong>
-          <span id="healthHint">pré-requis</span>
-        </span>
-      </div>
-      <div class="meeting-bar-right">
-        <span class="chip"><strong id="clock">--:--</strong> local</span>
-        <button class="btn btn-secondary" id="btnRefresh">Actualiser</button>
-        <button class="btn btn-danger" id="btnEmergency">Suspendre</button>
-      </div>
-    </div>
-    <!-- Ligne 2 : mode switch + action principale + projection -->
-    <div class="meeting-bar-actions">
-      <div class="meeting-bar-left">
-        <span class="context-hint" id="contextHint">Sélectionnez une séance…</span>
-        <div class="mode-switch" id="modeSwitch" role="group" aria-label="Mode">
-          <button id="btnModeSetup" aria-pressed="true">Préparation</button>
-          <button id="btnModeExec" aria-pressed="false">Exécution</button>
-        </div>
-      </div>
-      <div class="meeting-bar-right">
-        <button class="btn btn-primary" id="btnPrimary" disabled>Action principale</button>
-        <button class="btn btn-secondary" id="btnProjector" disabled>Écran de projection</button>
-      </div>
-    </div>
-  </div>
-</section>
-```
-
-### 1.2 CSS (`operator.css`)
-- Remplacer `.session-selector` par `.meeting-bar` (sticky, backdrop-filter)
-- Ajouter `.meeting-bar-inner`, `.meeting-bar-top`, `.meeting-bar-actions`
-- Ajouter `.chip` (mono, bordure, fond blanc)
-- Ajouter `.status-dot` (3 états : neutre, warn, danger)
-- Ajouter `.mode-switch` (segmented control avec `aria-pressed`)
-- Ajouter `.context-hint` (serif, muted)
-- Grid layout : `grid-template-rows: auto auto auto 1fr` pour ajouter la meeting-bar
-
-### 1.3 JS (`operator-tabs.js`)
-- Ajouter horloge `tick()` (setInterval 1s, format HH:MM)
-- Ajouter `btnRefresh` → appeler `loadAllData()`
-- Ajouter `btnEmergency` → confirmation + toast (placeholder pour v2)
-- Ajouter `btnProjector` → `window.open('/public.htmx.html?meeting_id=…')`
-- Ajouter `updateHealthChip()` basé sur la checklist existante
-- Ajouter `updateContextHint()` selon le mode et l'état
+### 0.2 Retirer le wizard de la page opérateur ✅
+- Pas de `<div id="wizard-progress">` ni de `<script>` session-wizard dans operator.
+- `session-wizard.js` : code `isOperatorPage` supprimé, skip explicite dans `init()`,
+  entrée operator retirée de `PAGE_STEP_MAP`, styles `.wizard-readonly` supprimés.
+- Le wizard continue de fonctionner sur les autres pages (meetings, members).
 
 ---
 
-## Phase 2 — Mode switch (Préparation / Exécution)
+## Phase 1 — Nouvelle barre de séance (meeting bar) ✅
 
-### 2.1 Variable d'état
+### 1.1 HTML ✅
+Meeting bar avec 2 lignes :
+- **Ligne 1** : sélecteur séance + badge statut + chip santé + horloge + bouton Actualiser
+- **Ligne 2** : context hint + mode switch (Préparation/Exécution) + bouton principal + lien Projection
+
+### 1.2 CSS ✅
+- `.meeting-bar`, `.meeting-bar-top`, `.meeting-bar-actions`, `.meeting-bar-chip`
+- `.health-dot` (3 états : ok, warn, danger)
+- `.mode-switch` (segmented control avec `.active`)
+- `.context-hint` (italique, muted)
+- Grid layout : `grid-template-rows: auto auto auto 1fr`
+
+### 1.3 JS ✅
+- Horloge `tick()` (setInterval 30s, format HH:MM)
+- `btnBarRefresh` → `loadAllData()`
+- `btnProjector` → lien vers `/public.htmx.html?meeting_id=…`
+- `updateHealthChip()` basé sur le score de conformité
+- `updateContextHint()` selon le mode et l'état
+
+---
+
+## Phase 2 — Mode switch (Préparation / Exécution) ✅
+
+### 2.1 Variable d'état ✅
 ```js
 let currentMode = 'setup'; // 'setup' | 'exec'
 ```
 
-### 2.2 Fonction `setMode(mode)`
-- Mettre à jour `aria-pressed` sur les boutons
-- Basculer la visibilité :
-  - `mode === 'setup'` → afficher `#viewSetup` (tabs + onglets), masquer `#viewExec`
-  - `mode === 'exec'` → afficher `#viewExec` (grille 3 colonnes), masquer `#viewSetup`
-- Mettre à jour le texte du `btnPrimary` :
-  - Setup : "Ouvrir la séance" (si prêt) ou "Continuer la préparation"
-  - Exec : "Accéder au vote"
-- Mettre à jour `contextHint`
-- Appeler `announce()` pour les lecteurs d'écran
+### 2.2 Fonction `setMode(mode)` ✅
+- Guard : empêche l'entrée en mode exec si la séance n'est pas `live`
+- Met à jour `aria-pressed` sur les boutons
+- Désactive `btnModeExec` quand la séance n'est pas live
+- Bascule la visibilité : `viewSetup` ↔ `viewExec`, masque/affiche `tabsNav`
+- Appelle `updatePrimaryButton()`, `updateContextHint()`, `announce()`
+- En mode exec : `refreshExecView()` + `startSessionTimer()`
 
-### 2.3 HTML — Enveloppes de vue
-Ajouter dans `<main>` :
-```html
-<!-- Vue Préparation (tabs existants enveloppés) -->
-<section id="viewSetup" hidden>
-  <!-- dashboard + checklist + alertes (nouveau) -->
-  <!-- tabs existants -->
-</section>
+### 2.3 HTML — Enveloppes de vue ✅
+- `<section id="viewSetup">` contient le dashboard + les 7 onglets
+- `<section id="viewExec">` contient la grille 3 colonnes + KPI strip
 
-<!-- Vue Exécution (nouveau) -->
-<section id="viewExec" hidden>
-  <!-- grille 3 colonnes -->
-</section>
-```
-
-### 2.4 Bascule automatique
-- Quand `launchSession()` réussit → `setMode('exec')`
-- Quand un vote s'ouvre (détection polling/ws) → si mode=setup, proposer bascule
-- Au chargement, si `meetingStatus === 'live'` → `setMode('exec')` par défaut
+### 2.4 Bascule automatique ✅
+- `launchSession()` → `setMode('exec')`
+- Au chargement, si `meetingStatus === 'live'` → `setMode('exec')`
+- Polling détecte un nouveau vote → notification + bascule vers onglet vote ou refresh exec
 
 ---
 
-## Phase 3 — Vue Préparation restructurée
+## Phase 3 — Vue Préparation restructurée ✅
 
-### 3.1 Dashboard de synthèse (au-dessus des onglets)
-Extraire les KPIs actuels de l'onglet Paramètres et les placer en haut de `#viewSetup`.
+### 3.1 Dashboard de synthèse ✅
+Grille 2 colonnes au-dessus des onglets : checklist conformité + panneau alertes.
 
-```html
-<div class="setup-grid">
-  <!-- Colonne gauche : dashboard + checklist -->
-  <section class="card">
-    <div class="card-header">
-      <h2>Préparation</h2>
-      <span class="chip"><strong id="lastUpdate">--:--:--</strong> maj</span>
-    </div>
-    <div class="card-body">
-      <!-- KPIs : Membres | Présents/Éligibles | Appareils -->
-      <div class="kpis">...</div>
-      <!-- Checklist conformité (remplace le wizard + statusChecklist) -->
-      <div class="conformity-checklist">
-        <!-- 4 étapes : Registre, Présences, Convocations, Règlement -->
-        <!-- Score : X/4 validés -->
-        <!-- Bouton "Ouvrir la séance" (activé si ≥3) -->
-      </div>
-    </div>
-  </section>
+### 3.2 Checklist de conformité ✅
+4 étapes avec score 0-4 :
 
-  <!-- Colonne droite : Alertes -->
-  <section class="card" id="alertsPanel">
-    <div class="card-header">
-      <h2>Alertes</h2>
-      <span class="chip"><strong id="alertCount">0</strong> actives</span>
-    </div>
-    <div class="card-body">
-      <div id="alertsList">Aucune alerte.</div>
-    </div>
-  </section>
-</div>
-```
+| # | Étape | Condition | Implémentation |
+|---|-------|-----------|----------------|
+| 1 | Registre des membres | `membersCache.length > 0` | `getConformityScore()` |
+| 2 | Présences & procurations | Au moins 1 présent/distant | `attendanceCache` |
+| 3 | Convocations | Toujours validé (optionnel) | score++ |
+| 4 | Règlement & présidence | Policy ou président assigné | `currentMeeting.quorum_policy_id` |
 
-### 3.2 Checklist de conformité (remplace le wizard dans cette page)
-4 étapes telles que définies dans le wireframe :
+- `renderConformityChecklist()` rend les items avec état (done/pending/optional)
+- `updateHealthChip()` met à jour le chip santé dans la meeting bar
+- `btnPrimary` activé si score ≥ 3
 
-| # | Étape | Condition de validation | Source de données |
-|---|-------|------------------------|-------------------|
-| 1 | Registre des membres | `membersCache.length > 0` | `loadMembers()` |
-| 2 | Présences & procurations | Au moins 1 présent + proxies OK | `attendanceCache` + `proxiesCache` |
-| 3 | Convocations | Optionnel (toujours "Option") | `invitationsStats` |
-| 4 | Règlement & présidence | Policies assignées + président | `currentMeeting.quorum_policy_id` + roles |
+### 3.3 Panneau d'alertes ✅
+- `renderAlertsPanel(targetId, countId)` réutilisable (setup + exec)
+- Sources : checklist incomplète, quorum non atteint, appareils inactifs, vote sans bulletins
 
-Nouvelle fonction `renderConformityChecklist()` :
-- Calcule le score (0-4)
-- Rend les 4 étapes avec état (validé / à faire / option)
-- Active le bouton "Ouvrir la séance" si score ≥ 3
-- Met à jour le chip santé dans la meeting bar
-
-### 3.3 Panneau d'alertes
-Nouvelle fonction `renderAlerts(target, items)` réutilisable (setup + exec) :
-- Accepte un tableau `[{ title, message, severity }]`
-- Severity : `info`, `warning`, `critical`
-- Styling : bordure gauche colorée, badge sévérité
-- Sources d'alertes :
-  - Checklist incomplète → "Préparation incomplète"
-  - Quorum non atteint (quand live) → "Quorum non atteint"
-  - Appareils inactifs → "X appareils inactifs"
-  - Vote ouvert sans votes → "Aucun vote enregistré"
-
-### 3.4 Onglets (inchangés)
-Les 7 onglets existants sont conservés tels quels sous le dashboard.
-On nettoie l'onglet Paramètres :
-- Retirer les quick-counts de présences (déjà dans le dashboard)
-- Retirer le `dashboardCard` et `devicesCard` (déplacés dans la vue Exécution)
-- Retirer le `launchBanner` (remplacé par la checklist)
-- Conserver : Membres card, Invitations card, Infos générales, Politiques, Rôles, État
+### 3.4 Onglets ✅
+7 onglets conservés : Paramètres, Résolutions, Présences, Procurations, Parole, Vote, Résultats.
 
 ---
 
-## Phase 4 — Vue Exécution (grille 3 colonnes)
+## Phase 4 — Vue Exécution (grille 3 colonnes) ✅
 
-### 4.1 HTML
-```html
-<section id="viewExec" hidden aria-label="Mode exécution">
-  <div class="exec-grid">
-    <!-- Col 1 : Vote en cours -->
-    <section class="card" id="execVoteCard">
-      <div class="card-header">
-        <h2>Vote en cours</h2>
-        <span class="live-badge"><span class="pulse"></span> LIVE</span>
-      </div>
-      <div class="card-body">
-        <!-- Motion active : titre + metadata -->
-        <!-- KPIs : Pour / Contre / Abstention -->
-        <!-- Bouton Clôturer (avec confirmation) -->
-        <!-- Texte de la motion (si disponible) -->
-      </div>
-    </section>
+### 4.1 HTML ✅
+- KPI strip : quorum bar, participation %, durée séance, résolutions X/Y
+- Grille 3 colonnes : Vote en cours | Files & opérations | Alertes
+- Vote : titre + KPIs (pour/contre/abstention) + barre participation + bouton clôturer
+- Opérations : parole (orateur + file), appareils (en ligne/inactifs), votes manuels (recherche + P/C/A)
+- Toggle `#execNoVote` / `#execActiveVote` selon qu'un vote est ouvert
+- `renderExecQuickOpenList()` : boutons d'ouverture rapide dans le panel no-vote
 
-    <!-- Col 2 : Files & opérations -->
-    <section class="card" id="execOpsCard">
-      <div class="card-header">
-        <h2>Files & opérations</h2>
-      </div>
-      <div class="card-body">
-        <!-- Sous-card : Parole (orateur + file) -->
-        <!-- Sous-card : Appareils (en ligne / inactifs) -->
-        <!-- Sous-card : Votes manuels (recherche + 3 boutons) -->
-      </div>
-    </section>
+### 4.2 CSS ✅
+- `.exec-grid` : `grid-template-columns: 1.25fr 1fr 1fr`
+- `.exec-card`, `.exec-subcard`, `.exec-kpi`, `.live-badge`
+- `.exec-kpi-strip` avec séparateurs
+- `.exec-participation-row` avec barre de progression
+- `.exec-manual-vote-row` avec boutons P/C/A
 
-    <!-- Col 3 : Alertes -->
-    <section class="card" id="execAlertsCard">
-      <div class="card-header">
-        <h2>Alertes</h2>
-        <span class="chip"><strong id="execAlertCount">0</strong> actives</span>
-      </div>
-      <div class="card-body">
-        <div id="execAlertsList">Aucune alerte.</div>
-      </div>
-    </section>
-  </div>
-</section>
-```
-
-### 4.2 CSS
-```css
-.exec-grid {
-  display: grid;
-  grid-template-columns: 1.25fr 1fr 1fr;
-  gap: 1rem;
-  align-items: start;
-}
-@media (max-width: 1100px) {
-  .exec-grid { grid-template-columns: 1fr; }
-}
-```
-
-### 4.3 JS — Fonctions de la vue Exécution
-Réutiliser au maximum le code existant de `operator-tabs.js` :
-
-| Fonctionnalité Exec | Source existante à réutiliser |
-|---|---|
-| Vote en cours (motion + KPIs) | `loadVoteTab()` + `loadBallots()` (lignes ~2171+) |
-| Bouton Clôturer | `closeVote()` existant |
-| Parole | `loadSpeechQueue()` + `renderCurrentSpeaker()` (lignes ~1627+) |
-| Appareils | `loadDevices()` (lignes ~600+) |
-| Votes manuels | `renderManualVoteList()` + `castManualVote()` (lignes ~2171+) |
-| Alertes | Nouveau `renderAlerts()` (partagé avec setup) |
-
-Refactorer ces fonctions pour qu'elles acceptent un conteneur cible en paramètre,
-permettant le rendu dans les onglets (setup) OU dans la grille exec.
+### 4.3 JS ✅
+- `refreshExecView()` → `refreshExecKPIs()`, `refreshExecVote()`, `refreshExecSpeech()`,
+  `refreshExecDevices()`, `refreshExecManualVotes()`, `refreshAlerts()`
+- `refreshExecVote()` toggle `execNoVote`/`execActiveVote` et les compteurs
+- `renderExecQuickOpenList()` affiche les résolutions ouvrables
+- Votes manuels avec recherche et binding des boutons
+- Timer séance basé sur `opened_at`
 
 ---
 
-## Phase 5 — Masquer les onglets en mode Exécution
+## Phase 5 — Masquer les onglets en mode Exécution ✅
 
-### 5.1 Visibilité des onglets
-Quand `mode === 'exec'` :
-- `tabsNav.style.display = 'none'`
-- Tous les `tab-content` masqués
-- Le dashboard setup masqué
-- Seul `#viewExec` visible
+### 5.1 Visibilité ✅
+Géré dans `setMode()` :
+- `mode === 'exec'` : `viewSetup.hidden = true`, `viewExec.hidden = false`, `tabsNav` masqué
+- `mode === 'setup'` : `viewSetup.hidden = false`, `viewExec.hidden = true`, `tabsNav` affiché
 
-Quand `mode === 'setup'` :
-- `tabsNav.style.display = 'flex'`
-- `#viewSetup` visible (dashboard + onglets)
-- `#viewExec` masqué
+Le setup-dashboard est contenu dans `#viewSetup`, donc automatiquement masqué en exec.
 
-### 5.2 Mise à jour du grid layout CSS
+### 5.2 Grid layout CSS ✅
 ```css
 [data-page-role="operator"] .app-shell {
   grid-template-rows: auto auto auto 1fr;
@@ -304,55 +144,55 @@ Quand `mode === 'setup'` :
     "sidebar main";
 }
 ```
-La meeting bar prend désormais 2 lignes. Les tabs sont masqués en mode exec.
 
 ---
 
-## Phase 6 — Polish et intégration
+## Phase 6 — Polish et intégration ✅
 
-### 6.1 Transition automatique Setup → Exec
-- `launchSession()` → `setMode('exec')` après transition réussie
-- Au chargement, si `currentMeetingStatus === 'live'` → `setMode('exec')`
-- Si statut passe à `closed` ou `validated` → revenir en `setup` (onglet Résultats)
+### 6.1 Transitions automatiques ✅
+- `launchSession()` → `setMode('exec')` + annonce
+- Au chargement, si `live` → `setMode('exec')` via `showMeetingContent()`
+- `closeSession()` → `setMode('setup')` + `switchTab('resultats')`
+- `doTransition()` : auto-switch selon le nouveau statut
+  (live → exec, closed/validated/archived → setup + resultats)
 
-### 6.2 Bouton principal contextuel
-- Pas de séance → disabled, "Action principale"
-- Setup + incomplet → "Continuer la préparation" → ouvre l'onglet Paramètres
-- Setup + prêt → "Ouvrir la séance" → lance `launchSession()`
-- Exec → "Accéder au vote" → scroll vers le panel vote
+### 6.2 Bouton principal contextuel ✅
+- Pas de séance → disabled, "Ouvrir la séance"
+- Setup + prêt (score ≥ 3) → "Ouvrir la séance" → `launchSession()`
+- Setup + live → "Passer en exécution" → `setMode('exec')`
+- Setup + terminé → disabled, "Séance terminée"
+- Exec + vote ouvert → "Voir le vote" → scroll vers `execVoteCard`
+- Exec + pas de vote → "Préparation" → `setMode('setup')`
+- `btnModeExec` désactivé si la séance n'est pas `live`
 
-### 6.3 `aria-live` et annonces
-- `<div class="sr-only" id="sr" aria-live="polite">` pour les changements de mode
-- Annonces : "Mode changé", "Séance lancée", "Vote clôturé", etc.
+### 6.3 `aria-live` et annonces ✅
+- `<div class="sr-only" id="srAnnounce" aria-live="polite">`
+- `announce()` pour : changement de mode, séance lancée, vote ouvert (manuel + polling),
+  vote clôturé, transitions d'état
 
-### 6.4 Responsive
-- `< 1100px` : exec-grid passe en 1 colonne
-- `< 980px` : sidebar masquée, meeting bar full-width
-- `< 768px` : tabs-nav scroll horizontal
-
----
-
-## Ordre d'implémentation
-
-| Étape | Fichiers modifiés | Dépendance |
-|---|---|---|
-| **0.1** Supprimer operator.js | `git rm` | Aucune |
-| **0.2** Retirer wizard de operator | `operator.htmx.html`, `session-wizard.js` | Aucune |
-| **1** Meeting bar enrichie | `operator.htmx.html`, `operator.css`, `operator-tabs.js` | 0 |
-| **2** Mode switch + enveloppes | `operator.htmx.html`, `operator-tabs.js` | 1 |
-| **3** Vue Préparation (dashboard + checklist + alertes) | `operator.htmx.html`, `operator.css`, `operator-tabs.js` | 2 |
-| **4** Vue Exécution (grille 3 colonnes) | `operator.htmx.html`, `operator.css`, `operator-tabs.js` | 2 |
-| **5** Masquer onglets en mode exec | `operator.css`, `operator-tabs.js` | 2+4 |
-| **6** Polish (transitions auto, a11y, responsive) | `operator-tabs.js`, `operator.css` | 3+4+5 |
+### 6.4 Responsive ✅
+- `< 1100px` : exec-grid → 1 colonne, KPI strip → wrap
+- `< 980px` : sidebar masquée sur la page opérateur, meeting bar full-width
+- `< 768px` : tabs-nav scroll horizontal, meeting bar empilée, attendance grid 1 col
+- `< 480px` : tailles réduites pour quick-counts et results
 
 ---
 
-## Ce qui ne change PAS
+## Fichiers modifiés
+
+| Fichier | Rôle |
+|---------|------|
+| `public/operator.htmx.html` | Structure HTML bimodale (meeting bar, viewSetup, viewExec) |
+| `public/assets/js/pages/operator-tabs.js` | Logique JS (3 430 lignes) : tabs, mode switch, exec view, polling |
+| `public/assets/css/operator.css` | Styles opérateur (1 984 lignes) : meeting bar, exec grid, responsive |
+| `public/assets/js/services/session-wizard.js` | Wizard nettoyé (skip operator, code mort supprimé) |
+
+## Ce qui n'a PAS changé
 
 - Les 7 onglets (Paramètres, Résolutions, Présences, Procurations, Parole, Vote, Résultats)
 - La logique métier existante (API calls, caches, state machine)
 - Le wizard sur les AUTRES pages (meetings, members)
-- La sidebar globale (`partials/sidebar.html`)
+- La sidebar globale
 - Les composants web (`ag-searchable-select`, `ag-popover`, `ag-toast`)
 - Le drawer system (conservé pour les modales secondaires)
 - Les imports CSV, les exports, le système de rôles
