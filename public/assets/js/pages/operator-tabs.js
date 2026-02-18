@@ -2472,6 +2472,7 @@
       }
 
       setNotif('success', 'Vote ouvert');
+      announce('Vote ouvert.');
 
       // loadResolutions will re-render the list with fresh buttons (old disabled ones are replaced)
       await loadResolutions();
@@ -2664,8 +2665,18 @@
           body.warnings.forEach(w => setNotif('warning', w.msg));
         }
         setNotif('success', `Séance passée en "${statusLabel}"`);
-        loadMeetingContext(currentMeetingId);
+        await loadMeetingContext(currentMeetingId);
         loadMeetings();
+
+        // Auto-switch mode based on new status
+        if (toStatus === 'live') {
+          setMode('exec');
+          announce('Séance en cours — mode exécution activé.');
+        } else if (['closed', 'validated', 'archived'].includes(toStatus)) {
+          setMode('setup');
+          switchTab('resultats');
+          announce(`Séance ${statusLabel}.`);
+        }
       } else {
         setNotif('error', getApiError(body));
       }
@@ -2679,6 +2690,10 @@
   // =========================================================================
 
   function setMode(mode) {
+    // Prevent entering exec mode if meeting is not live
+    if (mode === 'exec' && currentMeetingStatus !== 'live') {
+      mode = 'setup';
+    }
     currentMode = mode;
 
     // Update button states
@@ -2689,6 +2704,8 @@
     if (btnModeExec) {
       btnModeExec.classList.toggle('active', mode === 'exec');
       btnModeExec.setAttribute('aria-pressed', String(mode === 'exec'));
+      // Disable exec button when meeting is not live
+      btnModeExec.disabled = currentMeetingStatus !== 'live';
     }
 
     // Toggle views
@@ -3404,6 +3421,7 @@
         const motionTitle = currentOpenMotion.title;
         newVoteDebounceTimer = setTimeout(() => {
           setNotif('info', `Vote ouvert: ${motionTitle}`);
+          announce(`Vote ouvert : ${motionTitle}`);
           if (currentMode === 'exec') {
             loadBallots(currentOpenMotion.id).then(() => refreshExecView());
           } else {

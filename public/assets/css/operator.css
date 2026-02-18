@@ -1834,6 +1834,22 @@
    RESPONSIVE ADJUSTMENTS
    ============================================================================= */
 
+/* Hide sidebar on operator page earlier (more horizontal space needed) */
+@media (max-width: 980px) {
+  [data-page-role="operator"] .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "meetingbar"
+      "meetingbar-actions"
+      "tabs"
+      "main";
+  }
+
+  [data-page-role="operator"] .app-sidebar {
+    display: none;
+  }
+}
+
 @media (max-width: 1024px) {
   .settings-grid {
     gap: 1.25rem;
