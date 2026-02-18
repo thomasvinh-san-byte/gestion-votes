@@ -11,7 +11,7 @@
 | 2 | P4-1 | Votants | Vote "Blanc" absent de l'interface tablette | Critique | Moyen | DONE |
 | 3 | P2-1 | Président | Aucune indication du rôle connecté | Critique | Faible | DONE |
 | 4 | P2-2 | Président | Boutons désactivés sans explication | Critique | Faible | DONE |
-| 5 | P7-1 | Admin | Reset démo trop facile à déclencher | Critique | Faible | TODO |
+| 5 | P7-1 | Admin | Reset démo trop facile à déclencher | Critique | Faible | DONE |
 | 6 | P7-2 | Admin | Aucun log des actions admin | Critique | Moyen | TODO |
 | 7 | P3-2 | Opérateur | Vote unanime irréversible (batch sans rollback) | Haute | Moyen | DONE |
 | 8 | P3-3 | Opérateur | Vote manuel justification non éditable | Haute | Faible | DONE |
@@ -21,10 +21,10 @@
 | 12 | P4-4 | Votants | Procuration sans indication claire | Haute | Faible | DONE |
 | 13 | P2-3 | Président | "Clôturer le vote" vs "Clôturer la séance" confusion | Haute | Faible | DONE |
 | 14 | P2-4 | Président | Clôture scrutin sans confirmation modale | Haute | Faible | DONE |
-| 15 | P5-1 | Post-séance | Validation irréversible sans confirmation forte | Haute | Moyen | TODO |
+| 15 | P5-1 | Post-séance | Validation irréversible sans confirmation forte | Haute | Moyen | DONE |
 | 16 | P6-1 | Auditeur | Anomalies sans liens de drill-down | Haute | Moyen | TODO |
-| 17 | P6-2 | Auditeur | Log d'audit non filtrable | Haute | Moyen | TODO |
-| 18 | P7-3 | Admin | Création user sans validation inline | Haute | Moyen | TODO |
+| 17 | P6-2 | Auditeur | Log d'audit non filtrable | Haute | Moyen | DONE |
+| 18 | P7-3 | Admin | Création user sans validation inline | Haute | Moyen | DONE |
 | 19 | P3-5 | Opérateur | Grille vote manuelle sans recherche | Moyenne | Faible | DONE |
 | 20 | P3-6 | Opérateur | Pas de refresh auto sur erreur API | Moyenne | Faible | DONE |
 | 21 | P4-5 | Votants | Erreurs 409 non gérées côté front | Moyenne | Moyen | DONE |
@@ -33,11 +33,11 @@
 | 24 | P2-5 | Président | Pas de proclamation explicite des résultats | Moyenne | Moyen | TODO |
 | 25 | P2-7 | Président | Page validation sans contexte de séance | Moyenne | Faible | DONE |
 | 26 | P5-2 | Post-séance | Regex nom président trop strict | Moyenne | Faible | DONE |
-| 27 | P5-3 | Post-séance | Checklist sans liens de remédiation | Moyenne | Moyen | TODO |
-| 28 | P5-4 | Post-séance | Exports sans feedback | Moyenne | Faible | TODO |
-| 29 | P6-3 | Auditeur | Hash d'intégrité sans explication | Moyenne | Faible | TODO |
-| 30 | P6-4 | Auditeur | Sévérité anomalies par couleur seulement | Moyenne | Faible | TODO |
-| 31 | P6-5 | Auditeur | Auto-refresh perd les filtres | Moyenne | Faible | TODO |
+| 27 | P5-3 | Post-séance | Checklist sans liens de remédiation | Moyenne | Moyen | DONE |
+| 28 | P5-4 | Post-séance | Exports sans feedback | Moyenne | Faible | DONE |
+| 29 | P6-3 | Auditeur | Hash d'intégrité sans explication | Moyenne | Faible | DONE |
+| 30 | P6-4 | Auditeur | Sévérité anomalies par couleur seulement | Moyenne | Faible | DONE |
+| 31 | P6-5 | Auditeur | Auto-refresh perd les filtres | Moyenne | Faible | DONE |
 | 32 | P7-4 | Admin | Assignation rôles un par un | Moyenne | Moyen | TODO |
 | 33 | P7-5 | Admin | Éditeur templates sans coloration | Moyenne | Élevé | TODO |
 | 34 | P7-6 | Admin | prompt() natif pour duplication | Moyenne | Faible | TODO |
@@ -48,7 +48,7 @@
 | 39 | P5-5 | Post-séance | Pas de dé-archivage admin | Basse | Élevé | TODO |
 | 40 | P6-6 | Auditeur | Export audit texte brut seulement | Basse | Moyen | TODO |
 | 41 | P7-7 | Admin | Machine à états : visualisation confuse | Basse | Moyen | TODO |
-| 42 | P7-8 | Admin | KPI santé sans seuils documentés | Basse | Faible | TODO |
+| 42 | P7-8 | Admin | KPI santé sans seuils documentés | Basse | Faible | DONE |
 
 ---
 

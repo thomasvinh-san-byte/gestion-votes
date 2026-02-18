@@ -75,6 +75,10 @@
                 <div class="form-group">
                   <label class="form-label">Mot de passe *</label>
                   <input class="form-input" type="password" id="newPassword" placeholder="Min. 8 caractères" autocomplete="new-password" required minlength="8">
+                  <div class="password-strength" id="passwordStrength" hidden>
+                    <div class="password-strength-bar"><div class="password-strength-fill" id="passwordStrengthFill"></div></div>
+                    <span class="password-strength-text" id="passwordStrengthText">—</span>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Rôle système</label>
@@ -312,15 +316,15 @@
                 <span class="admin-health-label">Statut système</span>
               </div>
             </div>
-            <div class="admin-health-kpi" id="healthLatency">
-              <span class="admin-health-icon" id="healthLatencyDot">●</span>
+            <div class="admin-health-kpi" id="healthLatency" title="Vert : < 50ms · Orange : < 200ms · Rouge : ≥ 200ms">
+              <span class="admin-health-icon" id="healthLatencyDot" aria-hidden="true">●</span>
               <div>
                 <span class="admin-health-value" id="healthLatencyValue">—</span>
                 <span class="admin-health-label">Latence BDD</span>
               </div>
             </div>
-            <div class="admin-health-kpi" id="healthMemory">
-              <span class="admin-health-icon" id="healthMemoryDot">●</span>
+            <div class="admin-health-kpi" id="healthMemory" title="Vert : < 70% · Orange : < 90% · Rouge : ≥ 90%">
+              <span class="admin-health-icon" id="healthMemoryDot" aria-hidden="true">●</span>
               <div>
                 <span class="admin-health-value" id="healthMemoryValue">—</span>
                 <span class="admin-health-label">Mémoire</span>

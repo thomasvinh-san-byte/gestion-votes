@@ -794,7 +794,21 @@
     const btn = e.target.closest('[data-remove-assessor]');
     if (!btn) return;
     const userId = btn.getAttribute('data-remove-assessor');
-    if (!userId || !confirm('Retirer cet assesseur ?')) return;
+    if (!userId) return;
+    const confirmed = await new Promise(resolve => {
+      const m = createModal({
+        id: 'removeAssessorModal',
+        title: 'Retirer l\'assesseur',
+        content: `<p>Retirer cet assesseur de la séance ?</p>
+          <div class="flex gap-3 justify-end mt-4">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-danger" data-action="confirm">Retirer</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    });
+    if (!confirmed) return;
     btn.disabled = true;
     try {
       await api('/api/v1/admin_meeting_roles.php', {
@@ -976,12 +990,33 @@
     }
   }
 
-  async function blockDevice(deviceId, modal) {
-    const reason = prompt('Raison du blocage (optionnel):') || 'Bloqué par opérateur';
+  async function blockDevice(deviceId, parentModal) {
+    const reason = await new Promise(resolve => {
+      const m = createModal({
+        id: 'blockDeviceReasonModal',
+        title: 'Bloquer l\'appareil',
+        content: `
+          <div class="form-group mb-4">
+            <label class="form-label">Raison du blocage (optionnel)</label>
+            <input class="form-input" type="text" id="blockDeviceReason" placeholder="Ex : comportement suspect" maxlength="200">
+          </div>
+          <div class="flex gap-3 justify-end">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-danger" data-action="confirm">Bloquer</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(null); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => {
+        const val = m.querySelector('#blockDeviceReason').value.trim();
+        closeModal(m);
+        resolve(val || 'Bloqué par opérateur');
+      });
+    });
+    if (reason === null) return;
     try {
       await api('/api/v1/device_block.php', { device_id: deviceId, reason });
       setNotif('success', 'Appareil bloqué');
-      loadDevicesModal(modal);
+      loadDevicesModal(parentModal);
       loadDevices();
     } catch (err) {
       setNotif('error', err.message);
@@ -1335,7 +1370,20 @@
   }
 
   async function markAllPresent() {
-    if (!confirm('Marquer tous présents ?')) return;
+    const confirmed = await new Promise(resolve => {
+      const m = createModal({
+        id: 'markAllPresentModal',
+        title: 'Marquer tous présents',
+        content: `<p>Marquer tous les membres comme <strong>présents</strong> ?</p>
+          <div class="flex gap-3 justify-end mt-4">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">Confirmer</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    });
+    if (!confirmed) return;
     try {
       await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
       attendanceCache.forEach(m => m.mode = 'present');
@@ -1547,7 +1595,20 @@
   }
 
   async function revokeProxy(giverId) {
-    if (!confirm('Révoquer cette procuration ?')) return;
+    const confirmed = await new Promise(resolve => {
+      const m = createModal({
+        id: 'revokeProxyModal',
+        title: 'Révoquer la procuration',
+        content: `<p>Révoquer cette procuration ?</p>
+          <div class="flex gap-3 justify-end mt-4">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-danger" data-action="confirm">Révoquer</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    });
+    if (!confirmed) return;
 
     try {
       const { body } = await api('/api/v1/proxies_upsert.php', {
@@ -2017,7 +2078,20 @@
   }
 
   async function clearSpeechHistory() {
-    if (!confirm('Vider l\'historique des prises de parole ?')) return;
+    const confirmed = await new Promise(resolve => {
+      const m = createModal({
+        id: 'clearSpeechModal',
+        title: 'Vider l\'historique',
+        content: `<p>Vider l'historique des prises de parole ?</p>
+          <div class="flex gap-3 justify-end mt-4">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-danger" data-action="confirm">Vider</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    });
+    if (!confirmed) return;
     try {
       await api('/api/v1/speech_clear.php', { meeting_id: currentMeetingId });
       setNotif('success', 'Historique vidé');
@@ -3653,7 +3727,20 @@
 
   // Quick all present
   document.getElementById('btnQuickAllPresent')?.addEventListener('click', async () => {
-    if (!confirm('Marquer tous les membres comme présents ?')) return;
+    const confirmed = await new Promise(resolve => {
+      const m = createModal({
+        id: 'quickAllPresentModal',
+        title: 'Marquer tous présents',
+        content: `<p>Marquer <strong>tous les membres</strong> comme présents ?</p>
+          <div class="flex gap-3 justify-end mt-4">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">Confirmer</button>
+          </div>`
+      });
+      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
+      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    });
+    if (!confirmed) return;
     try {
       await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
       attendanceCache.forEach(m => m.mode = 'present');
