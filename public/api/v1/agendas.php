@@ -6,6 +6,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\AgendaRepository;
+use AgVote\Core\Validation\Schemas\ValidationSchemas;
 
 api_require_role('operator');
 
@@ -36,29 +37,14 @@ try {
             $input = $_POST;
         }
 
-        $meetingId = trim($input['meeting_id'] ?? '');
-        if ($meetingId === '') {
-            api_fail('missing_meeting_id', 422, [
-                'detail' => 'meeting_id est obligatoire.'
-            ]);
-        }
+        $v = ValidationSchemas::agenda()->validate($input);
+        $v->failIfInvalid();
+
+        $meetingId = $v->get('meeting_id');
+        $title     = $v->get('title');
 
         if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
-        }
-
-        $title = trim($input['title'] ?? '');
-        $len   = mb_strlen($title);
-
-        if ($len === 0) {
-            api_fail('missing_title', 400, [
-                'detail' => 'Le titre du point est obligatoire.'
-            ]);
-        }
-        if ($len > 40) {
-            api_fail('title_too_long', 400, [
-                'detail' => 'Le titre du point ne doit pas dépasser 40 caractères.'
-            ]);
         }
 
         $id  = $agendaRepo->generateUuid();

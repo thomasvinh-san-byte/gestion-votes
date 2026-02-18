@@ -5,6 +5,9 @@
  * Adds automatic CSRF support to API calls.
  */
 
+window.AG_DEBUG = window.AG_DEBUG ??
+  (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+
 window.Utils = window.Utils || {};
 
 (function(Utils) {

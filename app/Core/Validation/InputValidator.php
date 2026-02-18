@@ -295,7 +295,7 @@ final class InputValidator
     {
         $value = trim((string)$value);
 
-        $formats = ['Y-m-d H:i:s', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i:sP', 'Y-m-d'];
+        $formats = ['Y-m-d H:i:s', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i:sP', 'Y-m-d\TH:i', 'Y-m-d'];
 
         $datetime = null;
         foreach ($formats as $format) {

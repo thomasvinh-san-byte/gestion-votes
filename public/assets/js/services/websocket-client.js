@@ -75,11 +75,11 @@ class AgVoteWebSocket {
 
     return new Promise((resolve, reject) => {
       try {
-        console.log('[WS] Connecting to', this.url);
+        if (window.AG_DEBUG) console.log('[WS] Connecting to', this.url);
         this.socket = new WebSocket(this.url);
 
         this.socket.onopen = () => {
-          console.log('[WS] Connected');
+          if (window.AG_DEBUG) console.log('[WS] Connected');
           this.connected = true;
           this.reconnectAttempts = 0;
 
@@ -101,7 +101,7 @@ class AgVoteWebSocket {
         };
 
         this.socket.onclose = (event) => {
-          console.log('[WS] Disconnected', event.code, event.reason);
+          if (window.AG_DEBUG) console.log('[WS] Disconnected', event.code, event.reason);
           this.connected = false;
           this.authenticated = false;
           this._stopHeartbeat();
@@ -238,11 +238,11 @@ class AgVoteWebSocket {
 
     switch (type) {
       case 'connected':
-        console.log('[WS] Server acknowledged connection');
+        if (window.AG_DEBUG) console.log('[WS] Server acknowledged connection');
         break;
 
       case 'authenticated':
-        console.log('[WS] Authenticated for tenant', data.tenant_id);
+        if (window.AG_DEBUG) console.log('[WS] Authenticated for tenant', data.tenant_id);
         this.authenticated = true;
 
         // Re-subscribe to meetings
@@ -257,7 +257,7 @@ class AgVoteWebSocket {
         break;
 
       case 'subscribed':
-        console.log('[WS] Subscribed to meeting', data.meeting_id);
+        if (window.AG_DEBUG) console.log('[WS] Subscribed to meeting', data.meeting_id);
         break;
 
       case 'pong':
@@ -305,7 +305,7 @@ class AgVoteWebSocket {
    */
   _scheduleReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.log('[WS] Max reconnect attempts reached, falling back to polling');
+      if (window.AG_DEBUG) console.log('[WS] Max reconnect attempts reached, falling back to polling');
       this._startPolling();
       return;
     }
@@ -315,7 +315,7 @@ class AgVoteWebSocket {
       this.maxReconnectDelay
     );
 
-    console.log(`[WS] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts + 1})`);
+    if (window.AG_DEBUG) console.log(`[WS] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts + 1})`);
 
     setTimeout(() => {
       this.reconnectAttempts++;
@@ -360,7 +360,7 @@ class AgVoteWebSocket {
   _startPolling() {
     if (this.pollingEnabled) return;
 
-    console.log('[WS] Starting polling fallback');
+    if (window.AG_DEBUG) console.log('[WS] Starting polling fallback');
     this.pollingEnabled = true;
     this.lastPollTimestamp = Date.now();
 
@@ -376,7 +376,7 @@ class AgVoteWebSocket {
   _stopPolling() {
     if (!this.pollingEnabled) return;
 
-    console.log('[WS] Stopping polling');
+    if (window.AG_DEBUG) console.log('[WS] Stopping polling');
     this.pollingEnabled = false;
 
     if (this.pollingTimer) {

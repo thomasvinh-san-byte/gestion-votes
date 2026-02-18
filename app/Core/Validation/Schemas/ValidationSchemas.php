@@ -257,6 +257,28 @@ final class ValidationSchemas
     }
 
     /**
+     * Schema for agenda item creation
+     */
+    public static function agenda(): InputValidator
+    {
+        $schema = InputValidator::schema();
+
+        $schema->uuid('meeting_id')
+            ->required();
+
+        $schema->string('title')
+            ->minLength(1)
+            ->maxLength(100)
+            ->required();
+
+        $schema->integer('position')
+            ->min(0)
+            ->optional();
+
+        return $schema;
+    }
+
+    /**
      * Schema for quorum policy
      */
     public static function quorumPolicy(): InputValidator
@@ -331,7 +353,8 @@ final class ValidationSchemas
         $schema->enum('base', [
             'expressed',
             'present',
-            'eligible'
+            'eligible',
+            'total_eligible'
         ])->default('expressed');
         
         $schema->number('threshold')

@@ -40,13 +40,13 @@ class OfflineStorage {
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log('[OfflineStorage] Database opened successfully');
+        if (window.AG_DEBUG) console.log('[OfflineStorage] Database opened successfully');
         resolve(this.db);
       };
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
-        console.log('[OfflineStorage] Upgrading database schema');
+        if (window.AG_DEBUG) console.log('[OfflineStorage] Upgrading database schema');
 
         // Meetings store
         if (!db.objectStoreNames.contains(STORES.MEETINGS)) {
@@ -370,14 +370,14 @@ class OfflineSyncManager {
   }
 
   handleOnline() {
-    console.log('[OfflineSync] Back online');
+    if (window.AG_DEBUG) console.log('[OfflineSync] Back online');
     this.isOnline = true;
     this.emit('online');
     this.syncPendingActions();
   }
 
   handleOffline() {
-    console.log('[OfflineSync] Gone offline');
+    if (window.AG_DEBUG) console.log('[OfflineSync] Gone offline');
     this.isOnline = false;
     this.emit('offline');
   }
@@ -414,7 +414,7 @@ class OfflineSyncManager {
 
     try {
       const pending = await this.storage.getPendingActions();
-      console.log(`[OfflineSync] Syncing ${pending.length} pending actions`);
+      if (window.AG_DEBUG) console.log(`[OfflineSync] Syncing ${pending.length} pending actions`);
 
       let successCount = 0;
       let failCount = 0;
@@ -447,7 +447,7 @@ class OfflineSyncManager {
         }
       }
 
-      console.log(`[OfflineSync] Sync complete: ${successCount} success, ${failCount} failed`);
+      if (window.AG_DEBUG) console.log(`[OfflineSync] Sync complete: ${successCount} success, ${failCount} failed`);
       this.emit('syncComplete', { successCount, failCount });
 
     } finally {
@@ -488,7 +488,7 @@ class OfflineSyncManager {
       }
 
       await this.storage.setLastSyncTime(`meeting_${meetingId}`);
-      console.log(`[OfflineSync] Cached data for meeting ${meetingId}`);
+      if (window.AG_DEBUG) console.log(`[OfflineSync] Cached data for meeting ${meetingId}`);
 
     } catch (error) {
       console.error('[OfflineSync] Failed to cache meeting data:', error);
@@ -514,7 +514,7 @@ class OfflineSyncManager {
       try {
         await navigator.serviceWorker.ready;
         await registration.sync.register('sync-offline-actions');
-        console.log('[OfflineSync] Background sync registered');
+        if (window.AG_DEBUG) console.log('[OfflineSync] Background sync registered');
       } catch (error) {
         console.warn('[OfflineSync] Background sync not supported:', error);
       }
@@ -559,16 +559,16 @@ async function registerServiceWorker() {
       scope: '/'
     });
 
-    console.log('[SW] Service Worker registered:', registration.scope);
+    if (window.AG_DEBUG) console.log('[SW] Service Worker registered:', registration.scope);
 
     // Handle updates
     registration.addEventListener('updatefound', () => {
       const newWorker = registration.installing;
-      console.log('[SW] New Service Worker installing...');
+      if (window.AG_DEBUG) console.log('[SW] New Service Worker installing...');
 
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          console.log('[SW] New version available');
+          if (window.AG_DEBUG) console.log('[SW] New version available');
           // Optionally prompt user to refresh
           if (window.AgVoteOffline?.onUpdateAvailable) {
             window.AgVoteOffline.onUpdateAvailable();

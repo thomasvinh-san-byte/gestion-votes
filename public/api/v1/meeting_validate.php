@@ -27,10 +27,9 @@ if ($presidentName === '') api_fail('missing_president_name', 400);
 $tenant = api_current_tenant_id();
 $repo = new MeetingRepository();
 
-$meeting = $repo->findByIdForTenant($meetingId, $tenant);
-if (!$meeting) api_fail('meeting_not_found', 404);
-
 try {
+  $meeting = $repo->findByIdForTenant($meetingId, $tenant);
+  if (!$meeting) api_fail('meeting_not_found', 404);
   // Wrap report generation + validation + PV storage in a single transaction
   api_transaction(function () use ($repo, $meetingId, $tenant) {
     $pvHtml = MeetingReportService::renderHtml($meetingId, true);
