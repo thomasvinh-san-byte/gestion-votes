@@ -26,13 +26,10 @@
   ];
 
   // Map page paths to wizard step ids
-  // Note: operator page is excluded — it has its own meeting bar
+  // Note: wizard is only loaded on meetings page now.
+  // Operator has its own meeting bar; members/validate/archives are standalone CRUD.
   var PAGE_STEP_MAP = {
-    '/meetings.htmx.html':   'select',
-    '/members.htmx.html':    'members',
-    '/speaker.htmx.html':    'conduct',
-    '/validate.htmx.html':   'validate',
-    '/archives.htmx.html':   'validate'
+    '/meetings.htmx.html':   'select'
   };
 
   var STORAGE_KEY = 'ag_vote_wizard';

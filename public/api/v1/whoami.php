@@ -35,6 +35,22 @@ try {
     // best effort
 }
 
+// Resolve linked member (users.id → members.user_id)
+$linkedMember = null;
+try {
+    $memberRepo = new \AgVote\Repository\MemberRepository();
+    $found = $memberRepo->findByUserId($user['id'], $user['tenant_id']);
+    if ($found) {
+        $linkedMember = [
+            'id' => $found['id'],
+            'full_name' => $found['full_name'],
+            'voting_power' => (float)($found['voting_power'] ?? 1),
+        ];
+    }
+} catch (\Throwable $e) {
+    // best effort
+}
+
 echo json_encode([
   'ok' => true,
   'auth_enabled' => true,
@@ -45,6 +61,7 @@ echo json_encode([
       'name' => $user['name'],
       'role' => $user['role'],
     ],
+    'member' => $linkedMember,
     'meeting_roles' => $meetingRoles,
   ]
 ]);

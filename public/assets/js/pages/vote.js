@@ -431,13 +431,19 @@
       sel.setOptions(memberOptions);
     }
 
-    // Auto-select: try saved value, then try matching Auth user name
-    const saved = (localStorage.getItem("public.member_id") || "").trim();
+    // Auto-select: 1) linked member (user_id→member), 2) saved localStorage, 3) name/email match
     const allValues = useSearchable
       ? memberOptions.map(o => String(o.value))
       : [...sel.options].map(o => o.value);
 
-    if (saved && allValues.includes(saved)) {
+    const linkedId = window.Auth?.member?.id;
+    const saved = (localStorage.getItem("public.member_id") || "").trim();
+
+    if (linkedId && allValues.includes(linkedId)) {
+      // Deterministic: user account is linked to a member record
+      sel.value = linkedId;
+      localStorage.setItem("public.member_id", linkedId);
+    } else if (saved && allValues.includes(saved)) {
       sel.value = saved;
     } else if (window.Auth && window.Auth.user) {
       autoSelectMember(sel, useSearchable ? memberOptions : null);
@@ -451,20 +457,21 @@
   }
 
   /**
-   * Auto-select the current authenticated user in the member dropdown.
-   * Matches by name or email from window.Auth.user.
-   * Supports both native select and ag-searchable-select component.
+   * Fallback auto-select: match by name or email from window.Auth.user.
+   * Used only when no deterministic user_id→member link exists.
    * @param {HTMLSelectElement|AgSearchableSelect} sel - Member select element
    * @param {Array|null} optionsArray - Options array for searchable select (null for native)
    */
   function autoSelectMember(sel, optionsArray) {
     if (!window.Auth || !window.Auth.user) return;
+    // Skip if already resolved via linked member
+    if (window.Auth.member?.id) return;
+
     const userName = (window.Auth.user.name || '').toLowerCase().trim();
     const userEmail = (window.Auth.user.email || '').toLowerCase().trim();
     if (!userName && !userEmail) return;
 
     if (optionsArray) {
-      // ag-searchable-select
       for (const opt of optionsArray) {
         const label = (opt.label || '').toLowerCase();
         const sublabel = (opt.sublabel || '').toLowerCase();
@@ -477,7 +484,6 @@
         }
       }
     } else {
-      // Native select
       for (const opt of sel.options) {
         if (!opt.value) continue;
         const text = opt.textContent.toLowerCase();

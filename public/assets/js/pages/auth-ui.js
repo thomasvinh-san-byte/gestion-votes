@@ -355,9 +355,12 @@
         : (data.data ? data.data.auth_enabled : false);
       var meetingRoles = (data.data && data.data.meeting_roles) ? data.data.meeting_roles : [];
 
+      var linkedMember = (data.data && data.data.member) ? data.data.member : null;
+
       window.Auth.enabled = !!authEnabled;
       window.Auth.user = user;
       window.Auth.role = user ? user.role : null;
+      window.Auth.member = linkedMember;
       window.Auth.meetingRoles = meetingRoles;
 
       if (!authEnabled) {

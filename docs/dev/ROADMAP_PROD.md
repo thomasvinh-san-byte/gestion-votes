@@ -3,13 +3,15 @@
 > Dernière mise à jour : 18 février 2026
 > Consolidation des plans et audits précédents en un seul document actionnable.
 
+### Statut : Phases 1-5 TERMINÉES
+
+Seule la Phase 6 (nice-to-have post-lancement) reste ouverte.
+
 ---
 
 ## Contexte
 
-Le backend est **production-ready** : architecture solide, sécurité en profondeur (RBAC, CSRF, rate-limit, audit immutable), 265+ tests unitaires passants, validation centralisée sur les routes critiques.
-
-Les chantiers restants concernent : **bugs de déploiement**, **UX votant**, **cohérence design** et **accessibilité**.
+Le projet est **production-ready** : architecture solide, sécurité en profondeur, 265+ tests unitaires, auto-identification votant, accessibilité WCAG AA (focus trap, ARIA), wizard retiré des pages CRUD.
 
 ---
 
@@ -29,13 +31,13 @@ Configurations serveur, pas du code à écrire.
 
 ---
 
-## Phase 1 — Bugs déploiement (bloquant)
+## Phase 1 — Bugs déploiement (bloquant) ✅
 
-**Effort estimé : 0.5 jour**
+**Statut : TERMINÉ**
 
 ### 1.1 `.dockerignore` exclut le dossier `docs/`
 
-**Statut : bug confirmé** — cause du « Document non trouvé : ANALYTICS_ETHICS.md » sur Render.
+**Statut : corrigé** — `.dockerignore` mis à jour pour inclure `docs/` dans l'image Docker.
 
 Le `.dockerignore` contient :
 ```
@@ -54,13 +56,13 @@ Le dossier `docs/` n'est jamais copié dans l'image Docker. Or `doc_content.php`
 
 ---
 
-## Phase 2 — Auto-identification du votant
+## Phase 2 — Auto-identification du votant ✅
 
-**Effort estimé : 1-2 jours**
+**Statut : TERMINÉ**
 
-### 2.1 Problème actuel
+### 2.1 Problème résolu
 
-Sur la page vote (`vote.htmx.html`), le votant doit **manuellement chercher son nom** dans un dropdown (`ag-searchable-select`). Il existe un `autoSelectMember()` (vote.js:460-492) qui tente un match par nom/email, mais c'est du best-effort fragile (comparaison `includes()` sur des chaînes).
+Le votant est maintenant automatiquement identifié via la liaison `users.id` → `members.user_id`.
 
 ### 2.2 Solution : liaison `user_id` → `member_id`
 
@@ -95,13 +97,13 @@ $linkedMember = $memberRepo->findByUserId($user['id'], $user['tenant_id']);
 
 ---
 
-## Phase 3 — Cohérence design : retirer le wizard hors opérateur
+## Phase 3 — Cohérence design : retirer le wizard hors opérateur ✅
 
-**Effort estimé : 1-2 jours**
+**Statut : TERMINÉ**
 
-### 3.1 Problème
+### 3.1 Problème résolu
 
-Le `session-wizard.js` injecte une barre de progression « Diligent-style » (6 étapes) sur les pages :
+Le `session-wizard.js` n'est plus chargé par aucune page CRUD. Il injectait une barre de progression sur :
 - `members.htmx.html` (ligne 286)
 - `validate.htmx.html` (ligne 225)
 - `archives.htmx.html` (ligne 189)
@@ -133,14 +135,14 @@ Les pages `admin.htmx.html` et `meetings.htmx.html` n'ont déjà pas de wizard �
 
 ---
 
-## Phase 4 — Accessibilité (WCAG AA)
+## Phase 4 — Accessibilité (WCAG AA) ✅
 
-**Effort estimé : 1-2 jours**
+**Statut : TERMINÉ**
 
 ### 4.1 Focus trap sur les modals
 
-**Statut : manquant**
-Les modals (`shared.js`) ont `role="dialog"` et `aria-modal="true"` mais aucun piège de focus.
+**Statut : implémenté**
+`openModal()` dans `shared.js` intègre maintenant un piège de focus (Tab cycle), restauration du focus, et fermeture Escape.
 
 **Action :**
 - Ajouter une fonction `trapFocus(modalElement)` dans `shared.js`
@@ -152,8 +154,8 @@ Les modals (`shared.js`) ont `role="dialog"` et `aria-modal="true"` mais aucun p
 
 ### 4.2 ARIA sur les formulaires
 
-**Statut : partiel**
-`aria-live` en place (13 fichiers), skip-links implémentés (10 pages). Reste à vérifier les `<input>` dans les modals.
+**Statut : corrigé**
+`aria-label` ajoutés sur 5 search inputs + 2 `for` manquants dans `operator.htmx.html`. `aria-label` ajouté sur le file input caché dans `members.htmx.html`.
 
 **Action :**
 - Auditer les formulaires dans les modals (operator, admin, members)
@@ -163,21 +165,15 @@ Les modals (`shared.js`) ont `role="dialog"` et `aria-modal="true"` mais aucun p
 
 ---
 
-## Phase 5 — CSS consolidation (maintenance)
+## Phase 5 — CSS consolidation (maintenance) ✅
 
-**Effort estimé : 1-2 jours**
+**Statut : DÉJÀ PROPRE**
 
-### 5.1 Dédupliquer design-system.css / app.css
+### 5.1 Audit design-system.css / app.css
 
-`design-system.css` définit les fondations (tokens, base elements). `app.css` redéfinit certaines règles (`.form-input`, `.table`, etc.).
-
-**Action :**
-- Identifier les règles dupliquées entre les deux fichiers
-- Garder les définitions dans `design-system.css` (source de vérité)
-- Dans `app.css`, ne garder que les surcharges spécifiques aux pages
-- Vérifier visuellement les pages après nettoyage
-
-**Fichiers :** `public/assets/css/design-system.css`, `public/assets/css/app.css`
+Après analyse, **aucune duplication réelle** n'a été trouvée. L'ancien rapport d'audit mentionnait un fichier `ui.css` qui n'existe plus. Les fichiers actuels suivent une séparation correcte :
+- `design-system.css` = fondations (tokens, composants de base)
+- `app.css` = surcharges contextuelles (`.inline-form .form-input`, `.card-danger`, `.btn-xs`)
 
 ---
 

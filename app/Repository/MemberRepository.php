@@ -157,6 +157,23 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
+     * Find the member linked to a user account (via user_id FK).
+     * Returns null if no member is linked to this user.
+     */
+    public function findByUserId(string $userId, string $tenantId): ?array
+    {
+        return $this->selectOne(
+            "SELECT id, full_name, email,
+                    COALESCE(voting_power, vote_weight, 1.0) AS voting_power
+             FROM members
+             WHERE user_id = :uid AND tenant_id = :tid
+               AND is_active = true AND deleted_at IS NULL
+             LIMIT 1",
+            [':uid' => $userId, ':tid' => $tenantId]
+        );
+    }
+
+    /**
      * Finds an active member with voting weight (for manual_vote).
      */
     public function findActiveWithWeight(string $tenantId, string $memberId): ?array
