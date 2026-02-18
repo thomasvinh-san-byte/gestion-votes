@@ -130,6 +130,12 @@
               <span>Abstention</span>
               <span class="vote-btn-hint">Confirmation requise</span>
             </button>
+            <button class="vote-btn vote-btn-blanc" id="btnBlanc" data-choice="blanc" disabled aria-pressed="false" aria-describedby="motionTitle">
+              <span class="vote-btn-kbd" aria-hidden="true">4</span>
+              <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-minus-circle"></use></svg></span>
+              <span>Blanc</span>
+              <span class="vote-btn-hint">Confirmation requise</span>
+            </button>
           </div>
           <div class="vote-participation" id="voteParticipation" hidden>
             <div class="vote-participation-bar">
@@ -183,6 +189,10 @@
           <div class="reso-text" id="confirmResoText"></div>
         </details>
       </div>
+      <div class="confirm-irreversible-warning" aria-live="polite">
+        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+        <span>Ce vote est <strong>définitif et irréversible</strong>. Vous ne pourrez pas le modifier.</span>
+      </div>
       <div class="confirm-sheet-actions">
         <button class="btn btn-secondary" id="btnCancel">Annuler</button>
         <button class="btn btn-primary" id="btnConfirm">Confirmer</button>
@@ -216,7 +226,8 @@
     const choiceInfo = {
       'for': { label: 'POUR', color: 'var(--color-success)' },
       'against': { label: 'CONTRE', color: 'var(--color-danger)' },
-      'abstain': { label: 'ABSTENTION', color: 'var(--color-text-muted)' }
+      'abstain': { label: 'ABSTENTION', color: 'var(--color-text-muted)' },
+      'blanc': { label: 'BLANC', color: 'var(--color-neutral)' }
     };
 
     // Populate confirmation context
@@ -453,8 +464,21 @@
       }
 
       document.getElementById('memberName').textContent = member.name || 'Membre';
-      document.getElementById('memberWeight').textContent =
-        member.weight ? `${member.weight} voix` : '—';
+
+      // Weight + proxy indication
+      const weightParts = [];
+      if (member.weight && Number(member.weight) > 1) {
+        weightParts.push(`${member.weight} voix`);
+      }
+      if (member.mode === 'proxy') {
+        weightParts.push(member.proxyFor
+          ? `Procuration pour ${member.proxyFor}`
+          : 'Vote par procuration');
+      } else if (member.mode === 'remote') {
+        weightParts.push('À distance');
+      }
+      document.getElementById('memberWeight').textContent = weightParts.length ? weightParts.join(' · ') : '—';
+
       document.getElementById('memberAvatar').textContent =
         (member.name || '?').charAt(0).toUpperCase();
     };
@@ -604,6 +628,22 @@
 
     // Initial poll
     setTimeout(pollSpeechStatus, 1000);
+
+    // P4-2: Keyboard shortcuts 1/2/3/4 → vote buttons
+    document.addEventListener('keydown', (e) => {
+      // Ignore if overlay is open, or if typing in an input
+      if (confirmOverlay.classList.contains('show')) return;
+      const tag = (e.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      const keyMap = { '1': 'btnFor', '2': 'btnAgainst', '3': 'btnAbstain', '4': 'btnBlanc' };
+      const btnId = keyMap[e.key];
+      if (!btnId) return;
+      const btn = document.getElementById(btnId);
+      if (btn && !btn.disabled) {
+        e.preventDefault();
+        btn.click();
+      }
+    });
 
     // Cleanup on page unload to prevent memory leaks
     window.addEventListener('pagehide', () => {

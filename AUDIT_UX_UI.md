@@ -8,7 +8,7 @@
 | Rang | ID | Persona | Problème | Sévérité | Effort | Statut |
 |------|-----|---------|----------|----------|--------|--------|
 | 1 | P3-1 | Opérateur | Ouverture vote sans confirmation | Critique | Faible | DONE |
-| 2 | P4-1 | Votants | Vote "Blanc" absent de l'interface tablette | Critique | Moyen | TODO |
+| 2 | P4-1 | Votants | Vote "Blanc" absent de l'interface tablette | Critique | Moyen | DONE |
 | 3 | P2-1 | Président | Aucune indication du rôle connecté | Critique | Faible | DONE |
 | 4 | P2-2 | Président | Boutons désactivés sans explication | Critique | Faible | DONE |
 | 5 | P7-1 | Admin | Reset démo trop facile à déclencher | Critique | Faible | TODO |
@@ -16,9 +16,9 @@
 | 7 | P3-2 | Opérateur | Vote unanime irréversible (batch sans rollback) | Haute | Moyen | DONE |
 | 8 | P3-3 | Opérateur | Vote manuel justification non éditable | Haute | Faible | DONE |
 | 9 | P3-4 | Opérateur | Pas d'annulation de vote manuel | Haute | Moyen | TODO |
-| 10 | P4-2 | Votants | Raccourcis clavier 1/2/3 affichés mais inopérants | Haute | Faible | TODO |
+| 10 | P4-2 | Votants | Raccourcis clavier 1/2/3 affichés mais inopérants | Haute | Faible | DONE |
 | 11 | P4-3 | Votants | Pas de queue offline pour les votes | Haute | Élevé | TODO |
-| 12 | P4-4 | Votants | Procuration sans indication claire | Haute | Faible | TODO |
+| 12 | P4-4 | Votants | Procuration sans indication claire | Haute | Faible | DONE |
 | 13 | P2-3 | Président | "Clôturer le vote" vs "Clôturer la séance" confusion | Haute | Faible | DONE |
 | 14 | P2-4 | Président | Clôture scrutin sans confirmation modale | Haute | Faible | DONE |
 | 15 | P5-1 | Post-séance | Validation irréversible sans confirmation forte | Haute | Moyen | TODO |
@@ -27,9 +27,9 @@
 | 18 | P7-3 | Admin | Création user sans validation inline | Haute | Moyen | TODO |
 | 19 | P3-5 | Opérateur | Grille vote manuelle sans recherche | Moyenne | Faible | DONE |
 | 20 | P3-6 | Opérateur | Pas de refresh auto sur erreur API | Moyenne | Faible | DONE |
-| 21 | P4-5 | Votants | Erreurs 409 non gérées côté front | Moyenne | Moyen | TODO |
-| 22 | P4-6 | Votants | Overlay blocage sans contact/aide | Moyenne | Faible | TODO |
-| 23 | P4-7 | Votants | Pas d'avertissement "vote irréversible" | Moyenne | Faible | TODO |
+| 21 | P4-5 | Votants | Erreurs 409 non gérées côté front | Moyenne | Moyen | DONE |
+| 22 | P4-6 | Votants | Overlay blocage sans contact/aide | Moyenne | Faible | DONE |
+| 23 | P4-7 | Votants | Pas d'avertissement "vote irréversible" | Moyenne | Faible | DONE |
 | 24 | P2-5 | Président | Pas de proclamation explicite des résultats | Moyenne | Moyen | TODO |
 | 25 | P2-7 | Président | Page validation sans contexte de séance | Moyenne | Faible | DONE |
 | 26 | P5-2 | Post-séance | Regex nom président trop strict | Moyenne | Faible | DONE |
