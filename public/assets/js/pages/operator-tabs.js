@@ -2536,14 +2536,18 @@
     });
   }
 
+  let ballotSourceCache = {}; // memberId → 'manual'|'tablet'|...
+
   async function loadBallots(motionId) {
     try {
       const { body } = await api(`/api/v1/ballots.php?motion_id=${motionId}`);
       const ballots = body?.data?.ballots || body?.ballots || [];
       ballotsCache = {};
+      ballotSourceCache = {};
       let forCount = 0, againstCount = 0, abstainCount = 0;
       ballots.forEach(b => {
         ballotsCache[b.member_id] = b.value;
+        ballotSourceCache[b.member_id] = b.source || 'tablet';
         if (b.value === 'for') forCount++;
         else if (b.value === 'against') againstCount++;
         else if (b.value === 'abstain') abstainCount++;
@@ -2570,6 +2574,10 @@
     list.innerHTML = voters.map(v => {
       const vote = ballotsCache[v.member_id];
       const hasVoted = !!vote;
+      const isManual = ballotSourceCache[v.member_id] === 'manual';
+      const cancelBtn = (hasVoted && isManual)
+        ? `<button class="mode-btn btn-cancel-ballot" data-member-id="${v.member_id}" title="Annuler ce vote manuel" style="color:var(--color-danger);margin-left:0.25rem;">${icon('trash-2', 'icon-sm')}</button>`
+        : '';
       return `
         <div class="attendance-card ${hasVoted ? 'present' : ''}" data-member-id="${v.member_id}">
           <span class="attendance-name">${escapeHtml(v.full_name || '—')}</span>
@@ -2577,6 +2585,7 @@
             <button class="mode-btn for ${vote === 'for' ? 'active' : ''}" data-vote="for" title="Pour">${icon('check', 'icon-sm')}</button>
             <button class="mode-btn against ${vote === 'against' ? 'active' : ''}" data-vote="against" title="Contre">${icon('x', 'icon-sm')}</button>
             <button class="mode-btn abstain ${vote === 'abstain' ? 'active' : ''}" data-vote="abstain" title="Abstention">${icon('minus', 'icon-sm')}</button>
+            ${cancelBtn}
           </div>
         </div>
       `;
@@ -2618,6 +2627,66 @@
         }
 
         await castManualVote(memberId, newVote);
+      });
+    });
+
+    // P3-4: Cancel manual vote buttons
+    list.querySelectorAll('.btn-cancel-ballot').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const memberId = btn.dataset.memberId;
+        const card = btn.closest('.attendance-card');
+        const memberName = card?.querySelector('.attendance-name')?.textContent || '—';
+        const voteLabels = { for: 'Pour', against: 'Contre', abstain: 'Abstention' };
+        const currentVote = ballotsCache[memberId];
+
+        const confirmed = await new Promise(resolve => {
+          const modal = createModal({
+            id: 'cancelBallotModal',
+            title: 'Annuler le vote manuel',
+            content: `
+              <h3 id="cancelBallotModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Annuler ce vote ?</h3>
+              <p>Membre : <strong>${escapeHtml(memberName)}</strong></p>
+              <p>Vote actuel : <strong>${voteLabels[currentVote] || currentVote}</strong></p>
+              <div class="form-group" style="margin-top:1rem;">
+                <label class="form-label">Justification <span class="text-danger">*</span></label>
+                <input class="form-input" type="text" id="cancelBallotReason" placeholder="Raison de l'annulation" required>
+              </div>
+              <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
+                <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+                <button class="btn btn-danger" data-action="confirm" id="btnConfirmCancel" disabled>Supprimer le vote</button>
+              </div>
+            `
+          });
+          const reasonInput = modal.querySelector('#cancelBallotReason');
+          const confirmBtn = modal.querySelector('#btnConfirmCancel');
+          reasonInput.addEventListener('input', () => { confirmBtn.disabled = reasonInput.value.trim().length < 3; });
+          modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(null); });
+          confirmBtn.addEventListener('click', () => { closeModal(modal); resolve(reasonInput.value.trim()); });
+          setTimeout(() => reasonInput.focus(), 60);
+        });
+
+        if (!confirmed) return;
+
+        btn.disabled = true;
+        try {
+          const { body } = await api('/api/v1/ballots_cancel.php', {
+            motion_id: currentOpenMotion.id,
+            member_id: memberId,
+            reason: confirmed
+          });
+          if (body?.ok) {
+            delete ballotsCache[memberId];
+            delete ballotSourceCache[memberId];
+            await loadBallots(currentOpenMotion.id);
+            renderManualVoteList();
+            setNotif('success', 'Vote annulé');
+          } else {
+            setNotif('error', body?.error_label || body?.error || 'Erreur lors de l\'annulation');
+          }
+        } catch (err) {
+          setNotif('error', err.message);
+        }
+        btn.disabled = false;
       });
     });
   }
@@ -2879,6 +2948,46 @@
       await loadVoteTab();
       if (currentMode === 'exec') refreshExecView();
       announce('Vote clôturé.');
+
+      // P2-5: Proclamation explicite des résultats
+      const closedMotion = motionsCache.find(m => String(m.id) === String(motionId));
+      if (closedMotion) {
+        const cFor = closedMotion.votes_for || 0;
+        const cAgainst = closedMotion.votes_against || 0;
+        const cAbstain = closedMotion.votes_abstain || 0;
+        const cBlanc = closedMotion.votes_blank || 0;
+        const cTotal = cFor + cAgainst + cAbstain + cBlanc;
+        const adopted = cFor > cAgainst;
+        const resultText = adopted ? 'ADOPTÉE' : 'REJETÉE';
+        const resultColor = adopted ? 'var(--color-success)' : 'var(--color-danger)';
+        const resultIcon = adopted ? 'check-circle' : 'x-circle';
+
+        const proclamModal = createModal({
+          id: 'proclamationModal',
+          title: 'Résultat du vote',
+          maxWidth: '520px',
+          content: `
+            <div style="text-align:center;padding:1rem 0;">
+              <i data-lucide="${resultIcon}" style="width:64px;height:64px;color:${resultColor};margin-bottom:1rem;"></i>
+              <h2 id="proclamationModal-title" style="font-size:1.5rem;margin:0 0 0.5rem;">${escapeHtml(closedMotion.title)}</h2>
+              <p style="font-size:2rem;font-weight:700;color:${resultColor};margin:0.5rem 0;" aria-live="assertive">
+                ${resultText}
+              </p>
+              <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:1.1rem;">
+                <span><strong style="color:var(--color-success)">${cFor}</strong> Pour</span>
+                <span><strong style="color:var(--color-danger)">${cAgainst}</strong> Contre</span>
+                <span><strong style="color:var(--color-text-muted)">${cAbstain}</strong> Abstention</span>
+                ${cBlanc > 0 ? `<span><strong style="color:var(--color-text-muted)">${cBlanc}</strong> Blanc</span>` : ''}
+              </div>
+              <p style="color:var(--color-text-muted);font-size:0.9rem;">${cTotal} vote${cTotal !== 1 ? 's' : ''} exprimé${cTotal !== 1 ? 's' : ''}</p>
+              <button class="btn btn-primary" data-action="close-proclamation" style="margin-top:1rem;">Fermer</button>
+            </div>
+          `
+        });
+
+        if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [proclamModal] });
+        proclamModal.querySelector('[data-action="close-proclamation"]').addEventListener('click', () => closeModal(proclamModal));
+      }
     } catch (err) {
       setNotif('error', err.message);
       await loadResolutions();

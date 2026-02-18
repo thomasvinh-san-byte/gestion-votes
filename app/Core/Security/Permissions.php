@@ -123,6 +123,9 @@ final class Permissions
         'validated' => [
             'archived' => 'admin',
         ],
+        'archived' => [
+            'validated' => 'admin',
+        ],
     ];
 
     /**

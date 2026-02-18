@@ -475,6 +475,80 @@
     });
   });
 
+  // P7-4: Bulk role assignment
+  document.getElementById('btnBulkAssign').addEventListener('click', function() {
+    const meetingId = document.getElementById('mrMeeting').value;
+    if (!meetingId) { setNotif('error', 'Sélectionnez d\'abord une séance'); return; }
+
+    const activeUsers = _allUsers.filter(function(u) { return u.is_active; });
+    if (!activeUsers.length) { setNotif('error', 'Aucun utilisateur actif'); return; }
+
+    const checkboxes = activeUsers.map(function(u) {
+      return '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;cursor:pointer;">' +
+        '<input type="checkbox" value="' + escapeHtml(u.id) + '" class="bulk-user-cb"> ' +
+        escapeHtml(u.name) + ' <span style="color:var(--color-text-muted);font-size:0.85rem;">(' + escapeHtml(u.email) + ')</span>' +
+        '</label>';
+    }).join('');
+
+    Shared.openModal({
+      title: 'Assignation en masse',
+      body:
+        '<div class="form-group">' +
+          '<label class="form-label">Rôle à attribuer</label>' +
+          '<select class="form-input" id="bulkRole">' +
+            '<option value="voter">Électeur</option>' +
+            '<option value="assessor">Assesseur</option>' +
+            '<option value="president">Président</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label class="form-label">Utilisateurs</label>' +
+          '<div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">' +
+            '<button type="button" class="btn btn-ghost btn-xs" id="bulkSelectAll">Tout sélectionner</button>' +
+            '<button type="button" class="btn btn-ghost btn-xs" id="bulkSelectNone">Tout désélectionner</button>' +
+          '</div>' +
+          '<div style="max-height:300px;overflow:auto;border:1px solid var(--color-border);border-radius:8px;padding:0.5rem;" id="bulkUserList">' +
+            checkboxes +
+          '</div>' +
+        '</div>',
+      confirmText: 'Assigner',
+      onConfirm: async function() {
+        var role = document.getElementById('bulkRole').value;
+        var checked = document.querySelectorAll('.bulk-user-cb:checked');
+        if (!checked.length) { setNotif('error', 'Sélectionnez au moins un utilisateur'); return; }
+
+        var success = 0;
+        var errors = 0;
+        for (var i = 0; i < checked.length; i++) {
+          try {
+            var r = await api('/api/v1/admin_meeting_roles.php', {
+              action: 'assign', meeting_id: meetingId, user_id: checked[i].value, role: role
+            });
+            if (r.body && r.body.ok) success++;
+            else errors++;
+          } catch(e) { errors++; }
+        }
+
+        if (success > 0) setNotif('success', success + ' rôle' + (success > 1 ? 's' : '') + ' attribué' + (success > 1 ? 's' : ''));
+        if (errors > 0) setNotif('error', errors + ' erreur' + (errors > 1 ? 's' : ''));
+        loadMeetingRoles();
+        loadUsers();
+      }
+    });
+
+    // Wire up select all / none after modal is in DOM
+    setTimeout(function() {
+      var allBtn = document.getElementById('bulkSelectAll');
+      var noneBtn = document.getElementById('bulkSelectNone');
+      if (allBtn) allBtn.addEventListener('click', function() {
+        document.querySelectorAll('.bulk-user-cb').forEach(function(cb) { cb.checked = true; });
+      });
+      if (noneBtn) noneBtn.addEventListener('click', function() {
+        document.querySelectorAll('.bulk-user-cb').forEach(function(cb) { cb.checked = false; });
+      });
+    }, 60);
+  });
+
   // ═══════════════════════════════════════════════════════
   // POLICIES — QUORUM
   // ═══════════════════════════════════════════════════════
@@ -888,6 +962,7 @@
 
       // Load state stats
       loadStateStats();
+      loadArchivedMeetings();
 
     } catch (e) { console.error('loadStates', e); }
   }
@@ -917,6 +992,62 @@
         '</div>';
       }
     } catch (e) { console.error('loadStateStats', e); }
+  }
+
+  // P5-5: Archived meetings + de-archive
+  async function loadArchivedMeetings() {
+    var list = document.getElementById('archivedMeetingsList');
+    try {
+      var r = await api('/api/v1/meetings.php');
+      if (r.body && r.body.ok && r.body.data) {
+        var meetings = r.body.data.meetings || r.body.data.items || r.body.data || [];
+        var archived = meetings.filter(function(m) { return m.status === 'archived'; });
+        if (!archived.length) {
+          list.innerHTML = '<div class="text-center p-4 text-muted">Aucune séance archivée</div>';
+          return;
+        }
+        list.innerHTML = archived.map(function(m) {
+          var date = m.archived_at ? new Date(m.archived_at).toLocaleDateString('fr-FR') : '—';
+          return '<div class="system-stat" style="padding:0.75rem 1rem;">' +
+            '<div style="flex:1;">' +
+              '<strong>' + escapeHtml(m.title || m.slug || '') + '</strong>' +
+              '<div class="text-xs text-muted">Archivée le ' + date + '</div>' +
+            '</div>' +
+            '<button class="btn btn-ghost btn-xs btn-unarchive" data-meeting-id="' + escapeHtml(m.id) + '" data-title="' + escapeHtml(m.title || '') + '">Dé-archiver</button>' +
+          '</div>';
+        }).join('');
+
+        list.querySelectorAll('.btn-unarchive').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var meetingId = btn.dataset.meetingId;
+            var title = btn.dataset.title;
+            Shared.openModal({
+              title: 'Dé-archiver la séance',
+              body: '<p>Restaurer <strong>' + escapeHtml(title) + '</strong> vers l\'état « Validée » ?</p>' +
+                    '<p class="text-sm text-muted">Cela permet de corriger ou re-valider la séance avant de l\'archiver à nouveau.</p>',
+              confirmText: 'Dé-archiver',
+              onConfirm: async function() {
+                try {
+                  var r = await api('/api/v1/meeting_transition.php', {
+                    meeting_id: meetingId,
+                    to_status: 'validated'
+                  });
+                  if (r.body && r.body.ok) {
+                    setNotif('success', 'Séance dé-archivée');
+                    loadArchivedMeetings();
+                    loadStateStats();
+                  } else {
+                    setNotif('error', getApiError(r.body));
+                  }
+                } catch(e) { setNotif('error', e.message); }
+              }
+            });
+          });
+        });
+      }
+    } catch(e) {
+      list.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+    }
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1034,6 +1165,70 @@
   });
 
   // ═══════════════════════════════════════════════════════
+  // P7-2: ADMIN AUDIT LOG
+  // ═══════════════════════════════════════════════════════
+  let _auditOffset = 0;
+  const _auditLimit = 50;
+
+  async function loadAdminAuditLog() {
+    var list = document.getElementById('adminAuditList');
+    var actionFilter = document.getElementById('adminAuditAction').value;
+    var searchQuery = document.getElementById('adminAuditSearch').value.trim();
+
+    try {
+      var url = '/api/v1/admin_audit_log.php?limit=' + _auditLimit + '&offset=' + _auditOffset;
+      if (actionFilter) url += '&action=' + encodeURIComponent(actionFilter);
+      if (searchQuery) url += '&q=' + encodeURIComponent(searchQuery);
+
+      var r = await api(url);
+      if (r.body && r.body.ok && r.body.data) {
+        var d = r.body.data;
+
+        // Populate action filter dropdown (first load)
+        var actionSelect = document.getElementById('adminAuditAction');
+        if (actionSelect.options.length <= 1 && d.action_types) {
+          d.action_types.forEach(function(t) {
+            var opt = document.createElement('option');
+            opt.value = t.value;
+            opt.textContent = t.label;
+            actionSelect.appendChild(opt);
+          });
+        }
+
+        if (!d.events || d.events.length === 0) {
+          list.innerHTML = '<div class="text-center p-4 text-muted">Aucun événement admin</div>';
+        } else {
+          list.innerHTML = d.events.map(function(e) {
+            var ts = new Date(e.timestamp).toLocaleString('fr-FR');
+            var detail = e.detail ? ' — <span class="text-muted">' + escapeHtml(e.detail) + '</span>' : '';
+            var ip = e.ip_address ? '<span class="text-xs text-muted">' + escapeHtml(e.ip_address) + '</span>' : '';
+            return '<div class="system-stat" style="padding:0.6rem 1rem;">' +
+              '<div style="flex:1;">' +
+                '<span class="text-sm font-medium">' + escapeHtml(e.action_label) + '</span>' + detail +
+                '<div class="text-xs text-muted" style="margin-top:2px;">' + ts + ' · ' + escapeHtml(e.actor_role || '') + ' ' + ip + '</div>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+        }
+
+        // Pagination
+        var pagination = document.getElementById('adminAuditPagination');
+        pagination.style.display = 'flex';
+        document.getElementById('adminAuditCount').textContent = (d.offset + 1) + '-' + Math.min(d.offset + d.events.length, d.total) + ' sur ' + d.total;
+        document.getElementById('adminAuditPrev').disabled = d.offset === 0;
+        document.getElementById('adminAuditNext').disabled = (d.offset + _auditLimit) >= d.total;
+      }
+    } catch(e) {
+      list.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+    }
+  }
+
+  document.getElementById('adminAuditAction').addEventListener('change', function() { _auditOffset = 0; loadAdminAuditLog(); });
+  document.getElementById('adminAuditSearch').addEventListener('input', Utils.debounce(function() { _auditOffset = 0; loadAdminAuditLog(); }, 300));
+  document.getElementById('adminAuditPrev').addEventListener('click', function() { _auditOffset = Math.max(0, _auditOffset - _auditLimit); loadAdminAuditLog(); });
+  document.getElementById('adminAuditNext').addEventListener('click', function() { _auditOffset += _auditLimit; loadAdminAuditLog(); });
+
+  // ═══════════════════════════════════════════════════════
   // REFRESH ALL
   // ═══════════════════════════════════════════════════════
   function refreshAll() {
@@ -1044,6 +1239,7 @@
     loadRoles();
     loadStates();
     loadSystemStatus();
+    loadAdminAuditLog();
   }
 
   document.getElementById('btnRefresh').addEventListener('click', refreshAll);

@@ -14,7 +14,7 @@ class BallotRepository extends AbstractRepository
     public function listForMotion(string $motionId): array
     {
         return $this->selectAll(
-            "SELECT b.member_id, COALESCE(b.value::text, b.choice) AS value, b.weight, b.cast_at
+            "SELECT b.member_id, COALESCE(b.value::text, b.choice) AS value, b.weight, b.cast_at, COALESCE(b.source, 'tablet') AS source
              FROM ballots b
              WHERE b.motion_id = :mid
              ORDER BY b.cast_at ASC",

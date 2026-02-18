@@ -171,21 +171,37 @@
       'info': 'Information'
     };
 
-    container.innerHTML = filtered.map(a => `
-      <div class="anomaly-card ${a.severity || ''}" style="margin-bottom: 0.75rem;">
-        <div class="flex items-start gap-3">
-          <span class="text-lg">${severityIcons[a.severity] || severityIcons['warning']}</span>
-          <div class="flex-1">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="font-semibold">${escapeHtml(a.title || a.type)}</span>
-              <span class="badge badge-${a.severity === 'danger' ? 'danger' : a.severity === 'warning' ? 'warning' : 'info'}" style="font-size:0.65rem">${severityLabels[a.severity] || ''}</span>
+    container.innerHTML = filtered.map(a => {
+      // P6-1: Build drill-down links from anomaly context fields
+      let drillLinks = '';
+      const links = [];
+      if (a.member_id && a.member_name && currentMeetingId) {
+        links.push(`<span class="text-xs">${icon('user', 'icon-xs icon-text')} ${escapeHtml(a.member_name)}</span>`);
+      }
+      if (a.motion_id && a.motion_title && currentMeetingId) {
+        links.push(`<a href="/operator.htmx.html?meeting_id=${encodeURIComponent(currentMeetingId)}" class="text-xs text-primary" style="text-decoration:underline">${icon('clipboard-list', 'icon-xs icon-text')} ${escapeHtml(a.motion_title)}</a>`);
+      }
+      if (links.length) {
+        drillLinks = `<div class="flex flex-wrap gap-2 mt-1">${links.join('')}</div>`;
+      }
+
+      return `
+        <div class="anomaly-card ${a.severity || ''}" style="margin-bottom: 0.75rem;">
+          <div class="flex items-start gap-3">
+            <span class="text-lg">${severityIcons[a.severity] || severityIcons['warning']}</span>
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-semibold">${escapeHtml(a.title || a.type)}</span>
+                <span class="badge badge-${a.severity === 'danger' ? 'danger' : a.severity === 'warning' ? 'warning' : 'info'}" style="font-size:0.65rem">${severityLabels[a.severity] || ''}</span>
+              </div>
+              <div class="text-sm opacity-80">${escapeHtml(a.message || a.description)}</div>
+              ${a.context ? `<div class="text-xs mt-1 opacity-60">${escapeHtml(a.context)}</div>` : ''}
+              ${drillLinks}
             </div>
-            <div class="text-sm opacity-80">${escapeHtml(a.message || a.description)}</div>
-            ${a.context ? `<div class="text-xs mt-1 opacity-60">${escapeHtml(a.context)}</div>` : ''}
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   // Update integrity status indicator
@@ -451,6 +467,18 @@
     const url = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}&format=csv`;
     window.open(url, '_blank');
     setNotif('success', 'Export CSV du journal d\'audit lancé');
+  });
+
+  // P6-6: Export JSON structuré
+  document.getElementById('btnExportAuditJson')?.addEventListener('click', () => {
+    if (!currentMeetingId) {
+      setNotif('error', 'Sélectionnez d\'abord une séance');
+      return;
+    }
+
+    const url = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}&format=json`;
+    window.open(url, '_blank');
+    setNotif('success', 'Export JSON structuré lancé (avec chaîne d\'intégrité)');
   });
 
   // Event listeners

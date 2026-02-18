@@ -146,6 +146,7 @@ final class AuthMiddleware
         'live'      => ['closed' => 'president'],
         'closed'    => ['validated' => 'president'],
         'validated' => ['archived' => 'admin'],
+        'archived'  => ['validated' => 'admin'],
     ];
 
     // =========================================================================
