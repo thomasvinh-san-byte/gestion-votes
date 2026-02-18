@@ -1972,17 +1972,19 @@
    ============================================================================= */
 
 .assistant-mode {
-  padding: 1.25rem 1.5rem;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem;
 }
 
 /* --- Progress bar --- */
 .assistant-progress {
-  margin-bottom: 1.5rem;
-  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1.25rem 2rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-xs);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .assistant-progress-steps {
@@ -1996,7 +1998,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   background: none;
   border: none;
   cursor: pointer;
@@ -2010,40 +2012,45 @@
 }
 
 .assistant-step-number {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
   background: var(--color-bg-subtle);
   border: 2px solid var(--color-border);
   color: var(--color-text-muted);
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
 }
 
 .assistant-step.active .assistant-step-number {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: #fff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 .assistant-step.done .assistant-step-number {
   background: var(--color-success);
   border-color: var(--color-success);
   color: #fff;
+  font-size: 0;
 }
 
 .assistant-step.done .assistant-step-number::after {
   content: '\2713';
+  font-size: 0.85rem;
 }
 
 .assistant-step-label {
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--color-text-muted);
+  transition: color 0.2s;
 }
 
 .assistant-step.active .assistant-step-label {
@@ -2056,11 +2063,12 @@
 }
 
 .assistant-step-connector {
-  width: 32px;
+  width: 40px;
   height: 2px;
   background: var(--color-border);
   flex-shrink: 0;
-  transition: background-color 0.2s;
+  transition: background-color 0.3s;
+  border-radius: 1px;
 }
 
 .assistant-step-connector.done {
@@ -2071,22 +2079,24 @@
 .assistant-panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-xs);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   animation: fadeIn 0.2s ease;
 }
 
 .assistant-panel-header {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(to right, var(--color-primary-subtle), var(--color-surface));
 }
 
 .assistant-panel-header h2 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   margin: 0;
   color: var(--color-text);
+  letter-spacing: -0.01em;
 }
 
 .assistant-panel-body {
@@ -2098,7 +2108,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 1px solid var(--color-border);
   background: var(--color-bg-subtle);
 }
 
@@ -2116,23 +2126,27 @@
 }
 
 .assistant-section h3 {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.875rem 0;
+  padding-bottom: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--color-text);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 /* --- Import zone --- */
 .assistant-import-zone {
   border: 2px dashed var(--color-border);
-  border-radius: 10px;
-  padding: 2rem;
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
   text-align: center;
   color: var(--color-text-muted);
   transition: border-color 0.2s, background-color 0.2s;
+  cursor: pointer;
 }
 
 .assistant-import-zone:hover,
@@ -2143,23 +2157,35 @@
 
 .assistant-import-zone .icon {
   color: var(--color-text-muted);
-  opacity: 0.5;
+  opacity: 0.4;
   margin-bottom: 0.5rem;
+}
+
+.assistant-import-zone p {
+  margin: 0.25rem 0;
+  line-height: 1.5;
 }
 
 /* --- Members list in wizard --- */
 .assistant-members-list {
-  max-height: 300px;
+  max-height: 320px;
   overflow-y: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
 }
 
 .assistant-member-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.625rem 0.75rem;
+  gap: 0.75rem;
+  padding: 0.6rem 0.875rem;
   border-bottom: 1px solid var(--color-border-subtle);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  transition: background-color 0.1s;
+}
+
+.assistant-member-row:hover {
+  background: var(--color-bg-subtle);
 }
 
 .assistant-member-row:last-child {
@@ -2190,10 +2216,11 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
   border-left: 3px solid var(--color-border);
   background: var(--color-bg-subtle);
+  transition: background-color 0.15s;
 }
 
 .assistant-check-item.check-ok {
@@ -2227,36 +2254,48 @@
   text-align: center;
   padding: 2rem 1.5rem !important;
   background: var(--color-bg-subtle);
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid var(--color-border);
+}
+
+.assistant-launch-section .btn-lg {
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 /* --- Add resolution form in wizard --- */
 .assistant-add-resolution {
   padding: 1.25rem;
-  border: 2px dashed var(--color-primary);
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--color-primary-subtle) 0%, var(--color-surface) 100%);
+  border: 1px dashed var(--color-primary);
+  border-radius: 12px;
+  background: var(--color-primary-subtle);
 }
 
 .assistant-add-resolution h3 {
   color: var(--color-primary);
 }
 
-/* --- Secondary mode switch --- */
+/* --- Secondary mode switch (Assistant / Avancé) --- */
 .mode-switch-secondary {
-  margin-left: 0.5rem;
+  margin-left: 0.75rem;
   background: var(--color-surface);
-  border-color: var(--color-border-subtle);
+  border-color: var(--color-border);
 }
 
 .mode-switch-secondary .mode-switch-btn {
   font-size: 0.8rem;
   padding: 0.3rem 0.75rem;
+  gap: 0.3rem;
+}
+
+.mode-switch-secondary .mode-switch-btn .icon {
+  width: 14px;
+  height: 14px;
 }
 
 .mode-switch-secondary .mode-switch-btn.active {
-  background: var(--color-text-secondary);
+  background: var(--color-primary);
+  color: #fff;
 }
 
 /* --- Responsive --- */
@@ -2265,9 +2304,14 @@
     padding: 1rem;
   }
 
+  .assistant-progress {
+    padding: 0.875rem 1rem;
+  }
+
   .assistant-progress-steps {
     flex-wrap: wrap;
     gap: 0.25rem;
+    justify-content: center;
   }
 
   .assistant-step-connector {
@@ -2279,7 +2323,7 @@
   }
 
   .assistant-step {
-    padding: 0.5rem;
+    padding: 0.4rem;
   }
 
   .assistant-panel-body {
@@ -2302,6 +2346,10 @@
   }
 
   .assistant-import-zone {
-    padding: 1.25rem;
+    padding: 1.25rem 1rem;
+  }
+
+  .assistant-panel-header {
+    padding: 1rem;
   }
 }

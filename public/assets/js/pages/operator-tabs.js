@@ -3456,19 +3456,24 @@
   }
 
   async function wizImportCsvFile(file) {
-    const text = await file.text();
     try {
-      const { body } = await api('/api/v1/members_import_csv.php', {
-        csv_content: text,
-        meeting_id: currentMeetingId
+      const formData = new FormData();
+      formData.append('csv_file', file);
+
+      const resp = await fetch('/api/v1/members_import_csv.php', {
+        method: 'POST',
+        body: formData
       });
+      const body = await resp.json();
+
       if (body?.ok) {
-        setNotif('success', 'Import réussi : ' + (body.data?.imported_count || 0) + ' membres');
+        const imported = body.data?.imported || 0;
+        setNotif('success', 'Import réussi : ' + imported + ' membre' + (imported > 1 ? 's' : ''));
         await loadMembers();
         await loadAttendance();
         renderWizMembers();
       } else {
-        setNotif('error', body?.error || 'Erreur d\'import');
+        setNotif('error', body?.error || body?.detail || 'Erreur d\'import');
       }
     } catch (err) {
       setNotif('error', err.message);
