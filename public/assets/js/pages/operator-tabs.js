@@ -254,10 +254,18 @@
 
     // Auto-select mode based on meeting status
     const initialMode = (currentMeetingStatus === 'live') ? 'exec' : 'setup';
+
+    // For live/closed/validated/archived meetings, force advanced mode
+    if (['live', 'closed', 'validated', 'archived'].includes(currentMeetingStatus)) {
+      setPrepMode('advanced');
+    } else {
+      setPrepMode('assistant');
+    }
+
     setMode(initialMode);
 
-    // If in setup mode, show the right tab
-    if (initialMode === 'setup') {
+    // If in setup mode + advanced, show the right tab
+    if (initialMode === 'setup' && prepMode === 'advanced') {
       const urlParams = new URLSearchParams(window.location.search);
       const requestedTab = urlParams.get('tab');
       const validTabs = ['parametres', 'resolutions', 'presences', 'procurations', 'parole', 'vote', 'resultats'];
@@ -2712,11 +2720,19 @@
     if (mode === 'setup') {
       if (viewSetup) viewSetup.hidden = false;
       if (viewExec) viewExec.hidden = true;
-      Shared.show(tabsNav, 'flex');
+      // Show/hide prep mode switch and tabs based on prep mode
+      if (prepModeSwitch) prepModeSwitch.hidden = false;
+      if (prepMode === 'advanced') {
+        Shared.show(tabsNav, 'flex');
+      } else {
+        Shared.hide(tabsNav);
+      }
+      refreshWizardStep();
     } else {
       if (viewSetup) viewSetup.hidden = true;
       if (viewExec) viewExec.hidden = false;
       Shared.hide(tabsNav);
+      if (prepModeSwitch) prepModeSwitch.hidden = true;
       refreshExecView();
       startSessionTimer();
     }
@@ -3363,6 +3379,412 @@
 
   // Exec view: manual vote search
   document.getElementById('execManualSearch')?.addEventListener('input', refreshExecManualVotes);
+
+  // =========================================================================
+  // ASSISTANT MODE — Step-by-step wizard for meeting preparation
+  // =========================================================================
+
+  let currentWizardStep = 1;
+  let prepMode = 'assistant'; // 'assistant' | 'advanced'
+
+  const assistantMode = document.getElementById('assistantMode');
+  const advancedMode = document.getElementById('advancedMode');
+  const prepModeSwitch = document.getElementById('prepModeSwitch');
+  const btnModeAssistant = document.getElementById('btnModeAssistant');
+  const btnModeAdvanced = document.getElementById('btnModeAdvanced');
+
+  function setPrepMode(mode) {
+    prepMode = mode;
+    if (btnModeAssistant) {
+      btnModeAssistant.classList.toggle('active', mode === 'assistant');
+      btnModeAssistant.setAttribute('aria-pressed', String(mode === 'assistant'));
+    }
+    if (btnModeAdvanced) {
+      btnModeAdvanced.classList.toggle('active', mode === 'advanced');
+      btnModeAdvanced.setAttribute('aria-pressed', String(mode === 'advanced'));
+    }
+    if (assistantMode) assistantMode.hidden = mode !== 'assistant';
+    if (advancedMode) advancedMode.hidden = mode !== 'advanced';
+
+    // Show/hide tabs nav only in advanced mode
+    if (mode === 'advanced' && currentMode === 'setup') {
+      Shared.show(tabsNav, 'flex');
+    } else if (mode === 'assistant') {
+      Shared.hide(tabsNav);
+    }
+
+    // Refresh wizard content when switching to assistant
+    if (mode === 'assistant') refreshWizardStep();
+  }
+
+  function goToWizardStep(step) {
+    if (step < 1 || step > 5) return;
+    currentWizardStep = step;
+
+    // Update step buttons
+    document.querySelectorAll('[data-wizard-step]').forEach(btn => {
+      const s = parseInt(btn.dataset.wizardStep);
+      btn.classList.toggle('active', s === step);
+      btn.classList.toggle('done', s < step);
+    });
+
+    // Update connectors
+    const connectors = document.querySelectorAll('.assistant-step-connector');
+    connectors.forEach((c, i) => {
+      c.classList.toggle('done', i < step - 1);
+    });
+
+    // Show/hide panels
+    for (let i = 1; i <= 5; i++) {
+      const panel = document.getElementById('wizardStep' + i);
+      if (panel) panel.hidden = i !== step;
+    }
+
+    refreshWizardStep();
+  }
+
+  function refreshWizardStep() {
+    if (prepMode !== 'assistant') return;
+
+    switch (currentWizardStep) {
+      case 1: renderWizMembers(); break;
+      case 2: renderWizAttendance(); break;
+      case 3: renderWizResolutions(); break;
+      case 4: renderWizRules(); break;
+      case 5: renderWizChecklist(); break;
+    }
+  }
+
+  // --- Step 1: Members ---
+  function renderWizMembers() {
+    const title = document.getElementById('wizMembersTitle');
+    if (title) title.textContent = membersCache.length + ' membre' + (membersCache.length > 1 ? 's' : '') + ' ajouté' + (membersCache.length > 1 ? 's' : '');
+
+    const list = document.getElementById('wizMembersList');
+    if (!list) return;
+
+    if (membersCache.length === 0) {
+      list.innerHTML = '<div class="text-center p-4 text-muted">Aucun membre pour le moment.</div>';
+      return;
+    }
+
+    list.innerHTML = membersCache.map(m => `
+      <div class="assistant-member-row">
+        <span class="assistant-member-name">${escapeHtml(m.full_name || '—')}</span>
+        <span class="text-sm text-muted">${escapeHtml(m.email || '')}</span>
+        <span class="text-sm text-muted">${m.voting_power || 1} voix</span>
+      </div>
+    `).join('');
+  }
+
+  async function wizAddMember() {
+    const nameInput = document.getElementById('wizAddMemberName');
+    const emailInput = document.getElementById('wizAddMemberEmail');
+    const name = nameInput?.value?.trim();
+    if (!name) { setNotif('error', 'Le nom est requis'); nameInput?.focus(); return; }
+
+    try {
+      await api('/api/v1/members.php', {
+        action: 'create',
+        full_name: name,
+        email: emailInput?.value?.trim() || null
+      });
+      if (nameInput) nameInput.value = '';
+      if (emailInput) emailInput.value = '';
+      nameInput?.focus();
+      await loadMembers();
+      renderWizMembers();
+      setNotif('success', name + ' ajouté');
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  function wizHandleCsvDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const zone = document.getElementById('wizImportZone');
+    if (zone) zone.classList.remove('drag-over');
+    const file = e.dataTransfer?.files?.[0];
+    if (file) wizImportCsvFile(file);
+  }
+
+  async function wizImportCsvFile(file) {
+    const text = await file.text();
+    try {
+      const { body } = await api('/api/v1/members_import_csv.php', {
+        csv_content: text,
+        meeting_id: currentMeetingId
+      });
+      if (body?.ok) {
+        setNotif('success', 'Import réussi : ' + (body.data?.imported_count || 0) + ' membres');
+        await loadMembers();
+        await loadAttendance();
+        renderWizMembers();
+      } else {
+        setNotif('error', body?.error || "Erreur d'import");
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  // --- Step 2: Attendance ---
+  function renderWizAttendance() {
+    const grid = document.getElementById('wizAttendanceGrid');
+    if (!grid) return;
+
+    if (attendanceCache.length === 0) {
+      grid.innerHTML = '<div class="text-center p-4 text-muted">Ajoutez des membres à l\'étape 1 d\'abord.</div>';
+      return;
+    }
+
+    grid.innerHTML = attendanceCache.map(a => {
+      const name = escapeHtml(a.full_name || '—');
+      const isPresent = a.mode === 'present';
+      const isRemote = a.mode === 'remote';
+      const isAbsent = !a.mode || a.mode === 'absent';
+      return `
+        <div class="attendance-card" data-member-id="${a.member_id}">
+          <span class="attendance-name">${name}</span>
+          <div class="mode-btns">
+            <button class="mode-btn present ${isPresent ? 'active' : ''}" data-mode="present" title="Présent">P</button>
+            <button class="mode-btn remote ${isRemote ? 'active' : ''}" data-mode="remote" title="À distance">D</button>
+            <button class="mode-btn absent ${isAbsent ? 'active' : ''}" data-mode="absent" title="Absent">A</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Bind click handlers
+    grid.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const card = btn.closest('[data-member-id]');
+        const memberId = card.dataset.memberId;
+        const mode = btn.dataset.mode;
+
+        // Optimistic update
+        card.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        try {
+          await api('/api/v1/attendances_upsert.php', {
+            meeting_id: currentMeetingId,
+            member_id: memberId,
+            mode: mode
+          });
+          const entry = attendanceCache.find(a => a.member_id == memberId);
+          if (entry) entry.mode = mode;
+          updateWizAttendanceStats();
+        } catch (err) {
+          setNotif('error', err.message);
+        }
+      });
+    });
+
+    updateWizAttendanceStats();
+  }
+
+  function updateWizAttendanceStats() {
+    const present = attendanceCache.filter(a => a.mode === 'present').length;
+    const remote = attendanceCache.filter(a => a.mode === 'remote').length;
+    const proxy = proxiesCache.length;
+    const absent = attendanceCache.filter(a => !a.mode || a.mode === 'absent').length;
+    setText('wizPresent', present);
+    setText('wizRemote', remote);
+    setText('wizProxy', proxy);
+    setText('wizAbsent', absent);
+  }
+
+  async function wizAllPresent() {
+    try {
+      await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
+      attendanceCache.forEach(m => m.mode = 'present');
+      renderWizAttendance();
+      setNotif('success', 'Tous marqués présents');
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  async function wizAllRemote() {
+    try {
+      await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'remote' });
+      attendanceCache.forEach(m => m.mode = 'remote');
+      renderWizAttendance();
+      setNotif('success', 'Tous marqués à distance');
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  // --- Step 3: Resolutions ---
+  function renderWizResolutions() {
+    const list = document.getElementById('wizResolutionsList');
+    if (!list) return;
+
+    if (motionsCache.length === 0) {
+      list.innerHTML = '<div class="text-center p-4 text-muted">Aucune résolution pour le moment.</div>';
+      return;
+    }
+
+    list.innerHTML = motionsCache.map((m, i) => `
+      <div class="resolution-item">
+        <div class="resolution-header" style="cursor:default;">
+          <span class="resolution-number">#${i + 1}</span>
+          <span class="resolution-title">${escapeHtml(m.title || '—')}</span>
+          <span class="resolution-status pending">En attente</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function wizAddResolution() {
+    const titleInput = document.getElementById('wizResolutionTitle');
+    const descInput = document.getElementById('wizResolutionDesc');
+    const title = titleInput?.value?.trim();
+    if (!title) { setNotif('error', 'Le titre est requis'); titleInput?.focus(); return; }
+
+    try {
+      await api('/api/v1/motions.php', {
+        meeting_id: currentMeetingId,
+        title: title,
+        description: descInput?.value?.trim() || null
+      });
+      if (titleInput) titleInput.value = '';
+      if (descInput) descInput.value = '';
+      titleInput?.focus();
+      await loadResolutions();
+      renderWizResolutions();
+      setNotif('success', 'Résolution ajoutée');
+    } catch (err) {
+      setNotif('error', err.message);
+    }
+  }
+
+  // --- Step 4: Rules ---
+  function renderWizRules() {
+    // Populate policy dropdowns from cache
+    const qSelect = document.getElementById('wizQuorumPolicy');
+    const vSelect = document.getElementById('wizVotePolicy');
+
+    if (qSelect && policiesCache.quorum.length > 0) {
+      const currentVal = qSelect.value;
+      qSelect.innerHTML = '<option value="">— Aucun quorum —</option>' +
+        policiesCache.quorum.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
+      // Restore current meeting's quorum policy
+      if (currentMeeting?.quorum_policy_id) qSelect.value = currentMeeting.quorum_policy_id;
+      else if (currentVal) qSelect.value = currentVal;
+    }
+
+    if (vSelect && policiesCache.vote.length > 0) {
+      const currentVal = vSelect.value;
+      vSelect.innerHTML = '<option value="">— Majorité par défaut —</option>' +
+        policiesCache.vote.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
+      if (currentMeeting?.vote_policy_id) vSelect.value = currentMeeting.vote_policy_id;
+      else if (currentVal) vSelect.value = currentVal;
+    }
+
+    // Set convocation radio
+    const conv = currentMeeting?.convocation_no || '1';
+    const convRadio = document.querySelector('input[name="wizConvocation"][value="' + conv + '"]');
+    if (convRadio) convRadio.checked = true;
+
+    // Populate president from cache
+    const wizPresident = document.getElementById('wizPresident');
+    if (wizPresident && usersCache.length > 0) {
+      wizPresident.items = JSON.stringify(usersCache.map(u => ({
+        value: u.id,
+        label: u.name || u.email || u.id
+      })));
+    }
+  }
+
+  // --- Step 5: Checklist ---
+  function renderWizChecklist() {
+    const container = document.getElementById('wizChecklist');
+    if (!container) return;
+
+    const hasMembers = membersCache.length > 0;
+    const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
+    const hasMotions = motionsCache.length > 0;
+    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+    const proxyCount = proxiesCache.length;
+
+    const checks = [
+      { ok: hasMembers, text: membersCache.length + ' membre' + (membersCache.length > 1 ? 's' : '') + ' inscrit' + (membersCache.length > 1 ? 's' : '') },
+      { ok: hasAttendance, text: presentCount + ' présent' + (presentCount > 1 ? 's' : '') + (proxyCount > 0 ? ' · ' + proxyCount + ' procuration' + (proxyCount > 1 ? 's' : '') : '') },
+      { ok: hasMotions, text: motionsCache.length + ' résolution' + (motionsCache.length > 1 ? 's' : '') + ' à voter' },
+      { ok: true, text: 'Invitations non envoyées', warn: true, optional: true }
+    ];
+
+    container.innerHTML = checks.map(c => {
+      const icon = c.ok && !c.warn ? '&#10003;' : (c.warn ? '&#9888;' : '&#10007;');
+      const cls = c.ok && !c.warn ? 'check-ok' : (c.warn ? 'check-warn' : 'check-fail');
+      return `<div class="assistant-check-item ${cls}">
+        <span class="assistant-check-icon">${icon}</span>
+        <span>${escapeHtml(c.text)}${c.optional ? ' <span class="text-muted text-sm">(facultatif)</span>' : ''}</span>
+      </div>`;
+    }).join('');
+
+    // Enable/disable launch button
+    const launchBtn = document.getElementById('wizBtnLaunch');
+    const canLaunch = hasMembers && hasAttendance && hasMotions && ['draft', 'scheduled', 'frozen'].includes(currentMeetingStatus);
+    if (launchBtn) launchBtn.disabled = !canLaunch;
+  }
+
+  // --- Wizard navigation bindings ---
+  document.getElementById('wizBtnAddMember')?.addEventListener('click', wizAddMember);
+  document.getElementById('wizAddMemberName')?.addEventListener('keypress', e => { if (e.key === 'Enter') wizAddMember(); });
+  document.getElementById('wizBtnAllPresent')?.addEventListener('click', wizAllPresent);
+  document.getElementById('wizBtnAllRemote')?.addEventListener('click', wizAllRemote);
+  document.getElementById('wizBtnAddResolution')?.addEventListener('click', wizAddResolution);
+  document.getElementById('wizResolutionTitle')?.addEventListener('keypress', e => { if (e.key === 'Enter') wizAddResolution(); });
+
+  // CSV import
+  const wizCsvFile = document.getElementById('wizCsvFile');
+  if (wizCsvFile) {
+    wizCsvFile.addEventListener('change', e => {
+      if (e.target.files[0]) wizImportCsvFile(e.target.files[0]);
+    });
+  }
+  const wizImportZone = document.getElementById('wizImportZone');
+  if (wizImportZone) {
+    wizImportZone.addEventListener('dragover', e => { e.preventDefault(); wizImportZone.classList.add('drag-over'); });
+    wizImportZone.addEventListener('dragleave', () => wizImportZone.classList.remove('drag-over'));
+    wizImportZone.addEventListener('drop', wizHandleCsvDrop);
+  }
+
+  // Step navigation
+  document.getElementById('wizBtnNext1')?.addEventListener('click', () => goToWizardStep(2));
+  document.getElementById('wizBtnPrev2')?.addEventListener('click', () => goToWizardStep(1));
+  document.getElementById('wizBtnNext2')?.addEventListener('click', () => goToWizardStep(3));
+  document.getElementById('wizBtnPrev3')?.addEventListener('click', () => goToWizardStep(2));
+  document.getElementById('wizBtnNext3')?.addEventListener('click', () => goToWizardStep(4));
+  document.getElementById('wizBtnPrev4')?.addEventListener('click', () => goToWizardStep(3));
+  document.getElementById('wizBtnNext4')?.addEventListener('click', () => goToWizardStep(5));
+  document.getElementById('wizBtnPrev5')?.addEventListener('click', () => goToWizardStep(4));
+
+  // Step progress clicks
+  document.querySelectorAll('[data-wizard-step]').forEach(btn => {
+    btn.addEventListener('click', () => goToWizardStep(parseInt(btn.dataset.wizardStep)));
+  });
+
+  // Launch button
+  document.getElementById('wizBtnLaunch')?.addEventListener('click', launchSession);
+
+  // Send invitations from wizard
+  document.getElementById('wizBtnSendInvitations')?.addEventListener('click', () => {
+    // Switch to advanced mode and show invitations
+    setPrepMode('advanced');
+    switchTab('parametres');
+    const sendBtn = document.getElementById('btnSendInvitations');
+    if (sendBtn) sendBtn.click();
+  });
+
+  // Prep mode toggle
+  btnModeAssistant?.addEventListener('click', () => setPrepMode('assistant'));
+  btnModeAdvanced?.addEventListener('click', () => setPrepMode('advanced'));
 
   // Expose switchTab globally for wizard navigation
   window.switchTab = switchTab;

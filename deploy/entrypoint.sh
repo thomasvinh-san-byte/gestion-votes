@@ -4,6 +4,26 @@ set -e
 echo "=== AG-VOTE : Initialisation ==="
 
 # ---------------------------------------------------------------------------
+# Production safety check
+# ---------------------------------------------------------------------------
+if [ "$APP_ENV" = "production" ] || [ "$APP_ENV" = "prod" ]; then
+  if [ "$APP_AUTH_ENABLED" != "1" ]; then
+    echo "[FATAL] APP_AUTH_ENABLED doit être 1 en production. Arrêt."
+    exit 1
+  fi
+  if [ -z "$APP_SECRET" ] || [ "$APP_SECRET" = "change-me-in-prod" ] || [ "$APP_SECRET" = "dev-secret-do-not-use-in-production-change-me-now-please-64chr" ]; then
+    echo "[FATAL] APP_SECRET non configuré pour la production. Arrêt."
+    echo "        Générer avec: php -r \"echo bin2hex(random_bytes(32));\""
+    exit 1
+  fi
+  if [ "$LOAD_DEMO_DATA" = "1" ]; then
+    echo "[FATAL] LOAD_DEMO_DATA=1 interdit en production. Arrêt."
+    exit 1
+  fi
+  echo "Vérifications production OK."
+fi
+
+# ---------------------------------------------------------------------------
 # Normalize env vars (Render/cloud sets DB_HOST etc., PHP app needs DB_DSN)
 # ---------------------------------------------------------------------------
 : "${DB_HOST:=db}"

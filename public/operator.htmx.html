@@ -47,6 +47,14 @@
             <button class="mode-switch-btn active" id="btnModeSetup" aria-pressed="true">Préparation</button>
             <button class="mode-switch-btn" id="btnModeExec" aria-pressed="false">Exécution</button>
           </div>
+          <div class="mode-switch mode-switch-secondary" id="prepModeSwitch" role="group" aria-label="Mode de préparation">
+            <button class="mode-switch-btn active" id="btnModeAssistant" aria-pressed="true">
+              <svg class="icon icon-text icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg> Assistant
+            </button>
+            <button class="mode-switch-btn" id="btnModeAdvanced" aria-pressed="false">
+              <svg class="icon icon-text icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg> Avancé
+            </button>
+          </div>
         </div>
         <div class="meeting-bar-right">
           <button class="btn btn-sm btn-primary" id="btnPrimary" disabled>Ouvrir la séance</button>
@@ -84,6 +92,322 @@
            VIEW: SETUP (Préparation) — dashboard + checklist + tabs
            ================================================================ -->
       <section id="viewSetup" hidden aria-label="Mode préparation">
+
+        <!-- ================================================================
+             ASSISTANT MODE - Step-by-step guided preparation
+             ================================================================ -->
+        <div id="assistantMode" class="assistant-mode">
+          <!-- Progress bar -->
+          <div class="assistant-progress">
+            <div class="assistant-progress-steps">
+              <button class="assistant-step active" data-wizard-step="1">
+                <span class="assistant-step-number">1</span>
+                <span class="assistant-step-label">Membres</span>
+              </button>
+              <div class="assistant-step-connector"></div>
+              <button class="assistant-step" data-wizard-step="2">
+                <span class="assistant-step-number">2</span>
+                <span class="assistant-step-label">Présences</span>
+              </button>
+              <div class="assistant-step-connector"></div>
+              <button class="assistant-step" data-wizard-step="3">
+                <span class="assistant-step-number">3</span>
+                <span class="assistant-step-label">Résolutions</span>
+              </button>
+              <div class="assistant-step-connector"></div>
+              <button class="assistant-step" data-wizard-step="4">
+                <span class="assistant-step-number">4</span>
+                <span class="assistant-step-label">Règlement</span>
+              </button>
+              <div class="assistant-step-connector"></div>
+              <button class="assistant-step" data-wizard-step="5">
+                <span class="assistant-step-number">5</span>
+                <span class="assistant-step-label">Lancement</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 1: Membres -->
+          <div class="assistant-panel" id="wizardStep1">
+            <div class="assistant-panel-header">
+              <h2>Étape 1 sur 5 — Qui participe à cette séance ?</h2>
+            </div>
+            <div class="assistant-panel-body">
+              <!-- Quick add -->
+              <div class="assistant-section">
+                <h3>Ajout rapide</h3>
+                <div class="flex gap-3 flex-wrap items-end">
+                  <div class="form-group" style="flex:1; min-width:180px;">
+                    <label class="form-label" for="wizAddMemberName">Nom complet</label>
+                    <input type="text" class="form-input" id="wizAddMemberName" placeholder="Nom Prénom">
+                  </div>
+                  <div class="form-group" style="flex:1; min-width:180px;">
+                    <label class="form-label" for="wizAddMemberEmail">Email <span class="text-muted text-sm">(facultatif)</span></label>
+                    <input type="email" class="form-input" id="wizAddMemberEmail" placeholder="email@exemple.com">
+                  </div>
+                  <button class="btn btn-primary" id="wizBtnAddMember">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Ajouter
+                  </button>
+                </div>
+              </div>
+
+              <!-- CSV Import -->
+              <div class="assistant-section">
+                <h3>Ou importer une liste</h3>
+                <div class="assistant-import-zone" id="wizImportZone">
+                  <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
+                  <p>Glisser un fichier CSV ici ou <label for="wizCsvFile" class="text-primary" style="cursor:pointer; text-decoration:underline;">choisir un fichier</label></p>
+                  <input type="file" id="wizCsvFile" accept=".csv,.txt" style="display:none;">
+                  <p class="text-sm text-muted">Format : nom, email, nombre_de_voix</p>
+                </div>
+              </div>
+
+              <!-- Members list -->
+              <div class="assistant-section">
+                <div class="flex items-center justify-between mb-3">
+                  <h3 id="wizMembersTitle" style="margin:0; border:none; padding:0;">0 membres ajoutés</h3>
+                  <a href="/members.htmx.html" class="btn btn-sm btn-ghost" target="_blank">Gestion avancée
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg>
+                  </a>
+                </div>
+                <div id="wizMembersList" class="assistant-members-list">
+                  <div class="text-center p-4 text-muted">Aucun membre pour le moment.</div>
+                </div>
+              </div>
+            </div>
+            <div class="assistant-panel-footer">
+              <span></span>
+              <button class="btn btn-primary" id="wizBtnNext1">
+                Continuer
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Présences -->
+          <div class="assistant-panel" id="wizardStep2" hidden>
+            <div class="assistant-panel-header">
+              <h2>Étape 2 sur 5 — Qui est présent ?</h2>
+            </div>
+            <div class="assistant-panel-body">
+              <div class="assistant-section">
+                <div class="flex gap-2 mb-4">
+                  <button class="btn btn-success" id="wizBtnAllPresent">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents
+                  </button>
+                  <button class="btn btn-secondary" id="wizBtnAllRemote">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-wifi"></use></svg> Tous à distance
+                  </button>
+                </div>
+                <p class="text-sm text-muted mb-4">Cliquez sur le statut de chaque membre :</p>
+                <div class="assistant-legend mb-4">
+                  <span class="badge badge-success badge-sm">P = Présent</span>
+                  <span class="badge badge-info badge-sm">D = À distance</span>
+                  <span class="badge badge-muted badge-sm">A = Absent</span>
+                </div>
+                <div class="attendance-grid" id="wizAttendanceGrid">
+                  <!-- Rendered by JS -->
+                </div>
+              </div>
+              <div class="assistant-section">
+                <div class="flex items-center justify-between">
+                  <h3 style="margin:0; border:none; padding:0;">Résumé</h3>
+                </div>
+                <div class="quick-counts mt-3">
+                  <div class="quick-count">
+                    <span class="quick-count-value success" id="wizPresent">0</span>
+                    <div class="quick-count-label">Présents</div>
+                  </div>
+                  <div class="quick-count">
+                    <span class="quick-count-value info" id="wizRemote">0</span>
+                    <div class="quick-count-label">À distance</div>
+                  </div>
+                  <div class="quick-count">
+                    <span class="quick-count-value warning" id="wizProxy">0</span>
+                    <div class="quick-count-label">Procurations</div>
+                  </div>
+                  <div class="quick-count">
+                    <span class="quick-count-value muted" id="wizAbsent">0</span>
+                    <div class="quick-count-label">Absents</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="assistant-panel-footer">
+              <button class="btn btn-secondary" id="wizBtnPrev2">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg> Membres
+              </button>
+              <button class="btn btn-primary" id="wizBtnNext2">
+                Continuer
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Résolutions -->
+          <div class="assistant-panel" id="wizardStep3" hidden>
+            <div class="assistant-panel-header">
+              <h2>Étape 3 sur 5 — Sur quoi allez-vous voter ?</h2>
+            </div>
+            <div class="assistant-panel-body">
+              <div class="assistant-section">
+                <div id="wizResolutionsList" class="mb-4">
+                  <!-- Rendered by JS -->
+                </div>
+
+                <div class="assistant-add-resolution">
+                  <h3>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
+                    Ajouter une résolution
+                  </h3>
+                  <div class="form-group mb-3">
+                    <label class="form-label" for="wizResolutionTitle">Titre</label>
+                    <input type="text" class="form-input" id="wizResolutionTitle" placeholder="Ex : Approbation des comptes 2023" maxlength="500">
+                  </div>
+                  <div class="form-group mb-3">
+                    <label class="form-label" for="wizResolutionDesc">Description <span class="text-muted text-sm">(facultatif)</span></label>
+                    <textarea class="form-input" id="wizResolutionDesc" rows="3" placeholder="Texte complet de la résolution..." maxlength="10000"></textarea>
+                  </div>
+                  <button class="btn btn-primary" id="wizBtnAddResolution">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Ajouter
+                  </button>
+                </div>
+                <p class="text-sm text-muted mt-4">
+                  <svg class="icon icon-text icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                  Vous pourrez réordonner et modifier les résolutions jusqu'au lancement du vote.
+                </p>
+              </div>
+            </div>
+            <div class="assistant-panel-footer">
+              <button class="btn btn-secondary" id="wizBtnPrev3">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg> Présences
+              </button>
+              <button class="btn btn-primary" id="wizBtnNext3">
+                Continuer
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 4: Règlement -->
+          <div class="assistant-panel" id="wizardStep4" hidden>
+            <div class="assistant-panel-header">
+              <h2>Étape 4 sur 5 — Comment se déroule le vote ?</h2>
+            </div>
+            <div class="assistant-panel-body">
+              <!-- Règles de vote -->
+              <div class="assistant-section">
+                <h3>Règles de vote</h3>
+                <div class="form-group mb-4">
+                  <label class="form-label" for="wizQuorumPolicy">Quorum <span class="text-muted text-sm">(nombre minimum de participants requis)</span></label>
+                  <select class="form-input" id="wizQuorumPolicy">
+                    <option value="">— Aucun quorum —</option>
+                  </select>
+                  <p class="text-sm text-muted mt-1">Si le quorum n'est pas atteint, le vote ne peut pas avoir lieu.</p>
+                </div>
+                <div class="form-group mb-4">
+                  <label class="form-label" for="wizVotePolicy">Majorité requise pour adopter une résolution</label>
+                  <select class="form-input" id="wizVotePolicy">
+                    <option value="">— Majorité par défaut —</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Type de convocation</label>
+                  <div class="flex flex-col gap-2">
+                    <label class="flex items-center gap-2">
+                      <input type="radio" name="wizConvocation" value="1" checked> 1re convocation <span class="text-muted text-sm">(quorum standard)</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                      <input type="radio" name="wizConvocation" value="2"> 2e convocation <span class="text-muted text-sm">(quorum réduit)</span>
+                    </label>
+                  </div>
+                  <p class="text-sm text-muted mt-1">En 2e convocation, le quorum requis est généralement abaissé selon vos statuts.</p>
+                </div>
+              </div>
+
+              <!-- Présidence -->
+              <div class="assistant-section">
+                <h3>Présidence</h3>
+                <div class="form-group mb-4">
+                  <label class="form-label">Qui préside la séance ? <span class="text-muted text-sm">(facultatif)</span></label>
+                  <ag-searchable-select
+                    id="wizPresident"
+                    placeholder="Rechercher un utilisateur..."
+                    empty-text="Aucun utilisateur trouvé"
+                  ></ag-searchable-select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Assesseurs <span class="text-muted text-sm">(facultatif)</span></label>
+                  <div id="wizAssessorsList" class="assessors-list mb-2">
+                    <span class="text-muted text-sm">Aucun assesseur</span>
+                  </div>
+                  <button class="btn btn-sm btn-secondary" id="wizBtnAddAssessor">+ Ajouter un assesseur</button>
+                </div>
+              </div>
+            </div>
+            <div class="assistant-panel-footer">
+              <button class="btn btn-secondary" id="wizBtnPrev4">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg> Résolutions
+              </button>
+              <button class="btn btn-primary" id="wizBtnNext4">
+                Continuer
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 5: Récapitulatif & Lancement -->
+          <div class="assistant-panel" id="wizardStep5" hidden>
+            <div class="assistant-panel-header">
+              <h2>Étape 5 sur 5 — Tout est prêt ?</h2>
+            </div>
+            <div class="assistant-panel-body">
+              <!-- Checklist -->
+              <div class="assistant-section">
+                <h3>Vérification</h3>
+                <div class="assistant-checklist" id="wizChecklist">
+                  <!-- Rendered by JS -->
+                </div>
+              </div>
+
+              <!-- Invitations -->
+              <div class="assistant-section">
+                <h3>Invitations <span class="text-muted text-sm">(facultatif)</span></h3>
+                <p class="text-sm text-muted mb-3">Souhaitez-vous envoyer les convocations par email avant de lancer ?</p>
+                <div class="flex gap-2">
+                  <button class="btn btn-secondary" id="wizBtnSendInvitations">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg> Envoyer maintenant
+                  </button>
+                  <span class="text-sm text-muted flex items-center">ou passez directement au lancement</span>
+                </div>
+              </div>
+
+              <!-- Launch -->
+              <div class="assistant-section assistant-launch-section">
+                <p class="text-muted mb-4">Quand tout est prêt :</p>
+                <button class="btn btn-lg btn-success w-full" id="wizBtnLaunch" disabled>
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
+                  Lancer la séance
+                </button>
+                <p class="text-sm text-muted mt-3 text-center">
+                  <svg class="icon icon-text icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+                  Une fois lancée, vous ne pourrez plus modifier la liste des membres ni les résolutions.
+                </p>
+              </div>
+            </div>
+            <div class="assistant-panel-footer">
+              <button class="btn btn-secondary" id="wizBtnPrev5">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg> Règlement
+              </button>
+              <span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             ADVANCED MODE - Original dashboard + tabs (toggled)
+             ================================================================ -->
+        <div id="advancedMode" class="advanced-mode" hidden>
 
         <!-- Setup dashboard: checklist + alerts above the tabs -->
         <div class="setup-dashboard">
@@ -135,7 +459,7 @@
           </div>
         </div>
 
-        <!-- Existing tabs content (wrapped in viewSetup) -->
+        <!-- Existing tabs content (wrapped in advancedMode) -->
 
         <!-- Tab: Paramètres -->
         <div class="tab-content" id="tab-parametres" role="tabpanel" aria-labelledby="tab-btn-parametres" tabindex="0">
@@ -701,6 +1025,7 @@
           </div>
         </div>
 
+        </div><!-- /advancedMode -->
       </section><!-- /viewSetup -->
 
       <!-- ================================================================
