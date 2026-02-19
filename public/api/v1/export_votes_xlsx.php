@@ -28,24 +28,29 @@ $mt = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$mt) api_fail('meeting_not_found', 404);
 if (empty($mt['validated_at'])) api_fail('meeting_not_validated', 409);
 
-$ballotRepo = new BallotRepository();
-$rows = $ballotRepo->listVotesExportForMeeting($meetingId);
+try {
+    $ballotRepo = new BallotRepository();
+    $rows = $ballotRepo->listVotesExportForMeeting($meetingId);
 
-// Formater les données (ignorer les lignes sans votant)
-$formattedRows = [];
-foreach ($rows as $r) {
-    if (!empty($r['voter_name'])) {
-        $formattedRows[] = ExportService::formatVoteRow($r);
+    // Formater les données (ignorer les lignes sans votant)
+    $formattedRows = [];
+    foreach ($rows as $r) {
+        if (!empty($r['voter_name'])) {
+            $formattedRows[] = ExportService::formatVoteRow($r);
+        }
     }
+
+    // Génération du fichier
+    $filename = ExportService::generateFilename('votes', $mt['title'] ?? '', 'xlsx');
+    ExportService::initXlsxOutput($filename);
+
+    $spreadsheet = ExportService::createSpreadsheet(
+        ExportService::getVotesHeaders(),
+        $formattedRows,
+        'Votes'
+    );
+    ExportService::outputSpreadsheet($spreadsheet);
+} catch (Throwable $e) {
+    error_log('Error in export_votes_xlsx.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
 }
-
-// Génération du fichier
-$filename = ExportService::generateFilename('votes', $mt['title'] ?? '', 'xlsx');
-ExportService::initXlsxOutput($filename);
-
-$spreadsheet = ExportService::createSpreadsheet(
-    ExportService::getVotesHeaders(),
-    $formattedRows,
-    'Votes'
-);
-ExportService::outputSpreadsheet($spreadsheet);

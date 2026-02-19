@@ -23,29 +23,34 @@ $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $repo = new ExportTemplateRepository();
 $tenantId = api_current_tenant_id();
 
-switch ($method) {
-    case 'GET':
-        api_require_role(['operator', 'admin']);
-        handleGet($repo, $tenantId);
-        break;
+try {
+    switch ($method) {
+        case 'GET':
+            api_require_role(['operator', 'admin']);
+            handleGet($repo, $tenantId);
+            break;
 
-    case 'POST':
-        api_require_role(['operator', 'admin']);
-        handlePost($repo, $tenantId);
-        break;
+        case 'POST':
+            api_require_role(['operator', 'admin']);
+            handlePost($repo, $tenantId);
+            break;
 
-    case 'PUT':
-        api_require_role(['operator', 'admin']);
-        handlePut($repo, $tenantId);
-        break;
+        case 'PUT':
+            api_require_role(['operator', 'admin']);
+            handlePut($repo, $tenantId);
+            break;
 
-    case 'DELETE':
-        api_require_role(['operator', 'admin']);
-        handleDelete($repo, $tenantId);
-        break;
+        case 'DELETE':
+            api_require_role(['operator', 'admin']);
+            handleDelete($repo, $tenantId);
+            break;
 
-    default:
-        api_fail('method_not_allowed', 405);
+        default:
+            api_fail('method_not_allowed', 405);
+    }
+} catch (Throwable $e) {
+    error_log('Error in export_templates.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
 }
 
 function handleGet(ExportTemplateRepository $repo, string $tenantId): void

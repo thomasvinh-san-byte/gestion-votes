@@ -157,9 +157,18 @@
    * @param {Object} m - Meeting data
    * @returns {string} HTML string
    */
+  const MEETING_TYPE_LABELS = {
+    ag_ordinaire: 'AG ordinaire',
+    ag_extraordinaire: 'AG extraordinaire',
+    conseil: 'Conseil',
+    bureau: 'Bureau',
+    autre: 'Autre'
+  };
+
   function renderMeetingCard(m) {
     const title = escapeHtml(m.title || '(sans titre)');
     const statusInfo = Shared.MEETING_STATUS_MAP[m.status] || Shared.MEETING_STATUS_MAP['draft'];
+    const typeLabel = MEETING_TYPE_LABELS[m.meeting_type] || '';
     const isLive = m.status === 'live';
     const isDraft = m.status === 'draft';
     const isScheduled = m.status === 'scheduled' || m.status === 'frozen';
@@ -203,6 +212,7 @@
           <h3 class="meeting-card-title">${title}</h3>
           <div class="meeting-card-meta">
             <span class="badge ${badgeClass}">${statusInfo.text}</span>
+            ${typeLabel ? `<span class="badge badge-muted badge-sm">${typeLabel}</span>` : ''}
             <span class="meeting-date">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
               ${date}
@@ -343,7 +353,7 @@
     }
 
     const meetingTypeRadio = document.querySelector('input[name="meetingTypeCreate"]:checked');
-    const meeting_type = meetingTypeRadio ? meetingTypeRadio.value : 'ordinary';
+    const meeting_type = meetingTypeRadio ? meetingTypeRadio.value : 'ag_ordinaire';
 
     Shared.btnLoading(createBtn, true);
     try {

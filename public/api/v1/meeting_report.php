@@ -16,7 +16,7 @@ use AgVote\Service\MeetingReportService;
 api_require_role('auditor');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-if ($meetingId === '') api_fail('missing_meeting_id', 400);
+if ($meetingId === '' || !api_is_uuid($meetingId)) api_fail('missing_meeting_id', 400);
 
 $showVoters = ((string)($_GET['show_voters'] ?? '') === '1');
 
@@ -48,6 +48,8 @@ if (!$regen) {
 }
 
 
+try {
+
 OfficialResultsService::ensureSchema();
 
 $motions = $motionRepo->listForReport($meetingId);
@@ -65,6 +67,46 @@ try {
 } catch (Throwable $e) { $tokens = []; }
 
 function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+
+function decisionLabel(string $dec): string {
+  return match($dec) {
+    'adopted' => 'Adoptée',
+    'rejected' => 'Rejetée',
+    'no_quorum' => 'Sans quorum',
+    'no_votes' => 'Sans votes',
+    'no_policy' => 'Sans règle',
+    'cancelled' => 'Annulée',
+    'pending' => 'En attente',
+    default => $dec,
+  };
+}
+
+function fmtNum(float $n): string {
+  if (abs($n - round($n)) < 0.000001) return (string)intval(round($n));
+  return rtrim(rtrim(number_format($n, 4, '.', ''), '0'), '.');
+}
+
+function modeLabel(string $mode): string {
+  return match($mode) {
+    'present' => 'Présent',
+    'remote' => 'À distance',
+    'proxy' => 'Représenté',
+    'excused' => 'Excusé',
+    'absent', '' => 'Absent',
+    default => $mode,
+  };
+}
+
+function choiceLabel(string $choice): string {
+  return match($choice) {
+    'for' => 'Pour',
+    'against' => 'Contre',
+    'abstain' => 'Abstention',
+    'nsp' => 'Ne se prononce pas',
+    'blank' => 'Blanc',
+    default => $choice,
+  };
+}
 
 function policyLabel(?array $votePolicy, ?array $quorumPolicy): string {
   $parts = [];
@@ -147,11 +189,11 @@ foreach ($motions as $m) {
   $rowsHtml .= '<tr>';
   $rowsHtml .= '<td><strong>'.h($m['title'] ?? 'Motion').'</strong><div class="muted">'.h($m['description'] ?? '').'</div>'.$detailHtml.'</td>';
   $rowsHtml .= '<td><span class="badge">'.h($src).$note.'</span></td>';
-  $rowsHtml .= '<td class="num">'.h((string)$of).'</td>';
-  $rowsHtml .= '<td class="num">'.h((string)$og).'</td>';
-  $rowsHtml .= '<td class="num">'.h((string)$oa).'</td>';
-  $rowsHtml .= '<td class="num">'.h((string)$ot).'</td>';
-  $rowsHtml .= '<td><span class="badge '.($dec==='adopted'?'success':($dec==='rejected'?'danger':'muted')).'">'.h($dec).'</span><div class="muted tiny">'.h($reas).'</div></td>';
+  $rowsHtml .= '<td class="num">'.h(fmtNum($of)).'</td>';
+  $rowsHtml .= '<td class="num">'.h(fmtNum($og)).'</td>';
+  $rowsHtml .= '<td class="num">'.h(fmtNum($oa)).'</td>';
+  $rowsHtml .= '<td class="num">'.h(fmtNum($ot)).'</td>';
+  $rowsHtml .= '<td><span class="badge '.($dec==='adopted'?'success':($dec==='rejected'?'danger':'muted')).'">'.h(decisionLabel($dec)).'</span><div class="muted tiny">'.h($reas).'</div></td>';
   $rowsHtml .= '</tr>';
 }
 
@@ -165,7 +207,7 @@ foreach ($attendance as $r) {
   $totalWeight += $vp;
   $isPresent = in_array($mode, ['present','remote','proxy'], true);
   if ($isPresent) { $presentCount++; $presentWeight += $vp; }
-  $attRows .= "<tr><td>".h($name)."</td><td>".h($mode ?: 'absent')."</td><td class='num'>".h((string)$vp)."</td><td class='tiny muted'>".h((string)($r['checked_in_at'] ?? ''))."</td></tr>";
+  $attRows .= "<tr><td>".h($name)."</td><td>".h(modeLabel($mode))."</td><td class='num'>".h(fmtNum($vp))."</td><td class='tiny muted'>".h((string)($r['checked_in_at'] ?? ''))."</td></tr>";
 }
 $attSummary = "Présents: $presentCount (poids ".number_format($presentWeight, 2, '.', '').") · Poids total: ".number_format($totalWeight, 2, '.', '')."";
 
@@ -207,7 +249,7 @@ if ($showVoters) {
         ? (h($giver ?: '—')." (mandant) ← ".h($receiver ?: '—')." (mandataire)")
         : h($giver ?: '—');
 
-      $rows .= "<tr><td class='num'>".h((string)$i)."</td><td>".h($choice)."</td><td class='num'>".h((string)$w)."</td><td>".($isProxy ? "proxy" : "direct")."</td><td>".$who."</td></tr>";
+      $rows .= "<tr><td class='num'>".h((string)$i)."</td><td>".h(choiceLabel($choice))."</td><td class='num'>".h(fmtNum($w))."</td><td>".($isProxy ? "Procuration" : "Direct")."</td><td>".$who."</td></tr>";
     }
 
     $votesByMotionHtml .= "<h3 style='font-size:14px;margin:16px 0 6px;'>".h($title)."</h3>";
@@ -228,7 +270,7 @@ $html = <<<HTML
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>PV — {$meetingId}</title>
+<title>PV — {$meeting['title']}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:24px;color:#111827}
@@ -309,3 +351,10 @@ HTML;
 
 header('Content-Type: text/html; charset=utf-8');
 echo $html;
+
+} catch (Throwable $e) {
+  error_log('Error in meeting_report.php: ' . $e->getMessage());
+  http_response_code(500);
+  header('Content-Type: text/html; charset=utf-8');
+  echo '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Erreur</title></head><body><h1>Erreur de génération du PV</h1><p>Une erreur est survenue lors de la génération du procès-verbal.</p></body></html>';
+}

@@ -631,7 +631,7 @@
     if (currentMeeting?.scheduled_at) {
       try {
         dateText = new Date(currentMeeting.scheduled_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-      } catch (e) { dateText = currentMeeting.scheduled_at; }
+      } catch (e) { dateText = escapeHtml(currentMeeting.scheduled_at); }
     }
 
     const summary = document.getElementById('launchModalSummary');
@@ -713,7 +713,7 @@
       dateInput.value = currentMeeting.scheduled_at.slice(0, 10);
     }
 
-    // Type de consultation (stored in description or metadata)
+    // Type de consultation
     const meetingType = currentMeeting.meeting_type || 'ag_ordinaire';
     document.querySelectorAll('input[name="meetingType"]').forEach(radio => {
       radio.checked = radio.value === meetingType;
@@ -1159,11 +1159,12 @@
     Shared.btnLoading(btn, true);
 
     try {
-      // Save title and date
+      // Save title, date, and meeting type
       await api('/api/v1/meetings_update.php', {
         meeting_id: currentMeetingId,
         title: title,
-        scheduled_at: scheduledAt || null
+        scheduled_at: scheduledAt || null,
+        meeting_type: meetingType
       });
 
       // Save policies
@@ -1822,7 +1823,6 @@
         }
       });
     } catch (err) {
-      setNotif('error', 'Erreur ouverture modale procuration');
       setNotif('error', 'Erreur lors de l\'ouverture du formulaire: ' + err.message);
     }
   }
@@ -4503,17 +4503,21 @@
     if (!title) { setNotif('error', 'Le titre est requis'); titleInput?.focus(); return; }
 
     try {
-      await api('/api/v1/motions.php', {
+      const { body } = await api('/api/v1/motion_create_simple.php', {
         meeting_id: currentMeetingId,
         title: title,
-        description: descInput?.value?.trim() || null
+        description: descInput?.value?.trim() || ''
       });
-      if (titleInput) titleInput.value = '';
-      if (descInput) descInput.value = '';
-      titleInput?.focus();
-      await loadResolutions();
-      renderWizResolutions();
-      setNotif('success', 'Résolution ajoutée');
+      if (body?.ok === true) {
+        if (titleInput) titleInput.value = '';
+        if (descInput) descInput.value = '';
+        titleInput?.focus();
+        await loadResolutions();
+        renderWizResolutions();
+        setNotif('success', 'Résolution ajoutée');
+      } else {
+        setNotif('error', getApiError(body, 'Erreur lors de la création'));
+      }
     } catch (err) {
       setNotif('error', err.message);
     }
@@ -4670,7 +4674,7 @@
     if (hasDate) {
       try {
         dateText = new Date(currentMeeting.scheduled_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-      } catch (e) { dateText = currentMeeting.scheduled_at; }
+      } catch (e) { dateText = escapeHtml(currentMeeting.scheduled_at); }
     }
 
     const checks = [
@@ -4684,11 +4688,12 @@
     ];
 
     container.innerHTML = checks.map(c => {
-      const icon = c.ok && !c.warn ? '&#10003;' : (c.warn ? '&#9888;' : '&#10007;');
+      const iconChar = c.ok && !c.warn ? '&#10003;' : (c.warn ? '&#9888;' : '&#10007;');
       const cls = c.ok && !c.warn ? 'check-ok' : (c.warn ? 'check-warn' : 'check-fail');
+      // c.text values are already escaped where needed (e.g. presidentName)
       return `<div class="assistant-check-item ${cls}">
-        <span class="assistant-check-icon">${icon}</span>
-        <span>${escapeHtml(c.text)}${c.optional ? ' <span class="text-muted text-sm">(facultatif)</span>' : ''}</span>
+        <span class="assistant-check-icon">${iconChar}</span>
+        <span>${c.text}${c.optional ? ' <span class="text-muted text-sm">(facultatif)</span>' : ''}</span>
       </div>`;
     }).join('');
 
@@ -4721,12 +4726,28 @@
     wizImportZone.addEventListener('drop', wizHandleCsvDrop);
   }
 
-  // Step navigation
-  document.getElementById('wizBtnNext1')?.addEventListener('click', () => goToWizardStep(2));
+  // Step navigation with soft prerequisite warnings
+  document.getElementById('wizBtnNext1')?.addEventListener('click', () => {
+    if (membersCache.length === 0) {
+      setNotif('warning', 'Aucun membre ajouté — vous pourrez revenir à cette étape.');
+    }
+    goToWizardStep(2);
+  });
   document.getElementById('wizBtnPrev2')?.addEventListener('click', () => goToWizardStep(1));
-  document.getElementById('wizBtnNext2')?.addEventListener('click', () => goToWizardStep(3));
+  document.getElementById('wizBtnNext2')?.addEventListener('click', () => {
+    const hasPresent = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
+    if (!hasPresent) {
+      setNotif('warning', 'Aucun membre pointé présent — pensez à enregistrer les présences.');
+    }
+    goToWizardStep(3);
+  });
   document.getElementById('wizBtnPrev3')?.addEventListener('click', () => goToWizardStep(2));
-  document.getElementById('wizBtnNext3')?.addEventListener('click', () => goToWizardStep(4));
+  document.getElementById('wizBtnNext3')?.addEventListener('click', () => {
+    if (motionsCache.length === 0) {
+      setNotif('warning', 'Aucune résolution créée — ajoutez au moins une résolution avant le lancement.');
+    }
+    goToWizardStep(4);
+  });
   document.getElementById('wizBtnPrev4')?.addEventListener('click', () => goToWizardStep(3));
   document.getElementById('wizBtnNext4')?.addEventListener('click', async () => { await wizSaveRules(); goToWizardStep(5); });
   document.getElementById('wizBtnPrev5')?.addEventListener('click', () => goToWizardStep(4));

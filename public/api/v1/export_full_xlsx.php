@@ -36,22 +36,27 @@ $mt = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$mt) api_fail('meeting_not_found', 404);
 if (empty($mt['validated_at'])) api_fail('meeting_not_validated', 409);
 
-// Récupération des données
-$attendanceRepo = new AttendanceRepository();
-$attendanceRows = $attendanceRepo->listExportForMeeting($meetingId);
+try {
+    // Récupération des données
+    $attendanceRepo = new AttendanceRepository();
+    $attendanceRows = $attendanceRepo->listExportForMeeting($meetingId);
 
-$motionRepo = new MotionRepository();
-$motionRows = $motionRepo->listResultsExportForMeeting($meetingId);
+    $motionRepo = new MotionRepository();
+    $motionRows = $motionRepo->listResultsExportForMeeting($meetingId);
 
-$voteRows = [];
-if ($includeVotes) {
-    $ballotRepo = new BallotRepository();
-    $voteRows = $ballotRepo->listVotesExportForMeeting($meetingId);
+    $voteRows = [];
+    if ($includeVotes) {
+        $ballotRepo = new BallotRepository();
+        $voteRows = $ballotRepo->listVotesExportForMeeting($meetingId);
+    }
+
+    // Génération du fichier
+    $filename = ExportService::generateFilename('complet', $mt['title'] ?? '', 'xlsx');
+    ExportService::initXlsxOutput($filename);
+
+    $spreadsheet = ExportService::createFullExportSpreadsheet($mt, $attendanceRows, $motionRows, $voteRows);
+    ExportService::outputSpreadsheet($spreadsheet);
+} catch (Throwable $e) {
+    error_log('Error in export_full_xlsx.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
 }
-
-// Génération du fichier
-$filename = ExportService::generateFilename('complet', $mt['title'] ?? '', 'xlsx');
-ExportService::initXlsxOutput($filename);
-
-$spreadsheet = ExportService::createFullExportSpreadsheet($mt, $attendanceRows, $motionRows, $voteRows);
-ExportService::outputSpreadsheet($spreadsheet);

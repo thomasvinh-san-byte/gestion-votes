@@ -17,15 +17,16 @@ if (!is_array($input)) $input = $_POST;
 
 $meetingId = trim((string)($input['meeting_id'] ?? ''));
 
-api_guard_meeting_not_validated($meetingId);
-
 if ($meetingId === '' || !api_is_uuid($meetingId)) {
     api_fail('missing_meeting_id', 400, ['detail' => 'meeting_id est obligatoire (uuid).']);
 }
 
+api_guard_meeting_not_validated($meetingId);
+
 $title  = array_key_exists('title', $input) ? trim((string)$input['title']) : null;
 $presidentName = array_key_exists('president_name', $input) ? trim((string)$input['president_name']) : null;
 $scheduledAt = array_key_exists('scheduled_at', $input) ? trim((string)$input['scheduled_at']) : null;
+$meetingType = array_key_exists('meeting_type', $input) ? trim((string)$input['meeting_type']) : null;
 
 // Status transitions must go through meeting_transition.php (proper state machine
 // with role checks, workflow guards, and complete state coverage).
@@ -43,6 +44,11 @@ if ($title !== null) {
 
 if ($presidentName !== null && mb_strlen($presidentName) > 200) {
     api_fail('president_name_too_long', 400, ['detail' => 'Nom du président trop long (200 max).']);
+}
+
+$validMeetingTypes = ['ag_ordinaire', 'ag_extraordinaire', 'conseil', 'bureau', 'autre'];
+if ($meetingType !== null && !in_array($meetingType, $validMeetingTypes, true)) {
+    api_fail('invalid_meeting_type', 400, ['detail' => 'Type de séance invalide.', 'valid_types' => $validMeetingTypes]);
 }
 
 $repo = new MeetingRepository();
@@ -63,6 +69,9 @@ if ($presidentName !== null) {
 }
 if ($scheduledAt !== null) {
     $fields['scheduled_at'] = $scheduledAt ?: null;
+}
+if ($meetingType !== null) {
+    $fields['meeting_type'] = $meetingType;
 }
 
 if (!$fields) {

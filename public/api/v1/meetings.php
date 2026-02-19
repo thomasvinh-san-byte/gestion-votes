@@ -48,6 +48,7 @@ try {
         $description = $v->get('description');
         $scheduledAt = $v->get('scheduled_at');
         $location    = $v->get('location');
+        $meetingType = $v->get('meeting_type', 'ag_ordinaire');
 
         $id = $repo->generateUuid();
         $repo->create(
@@ -56,7 +57,8 @@ try {
             $title,
             $description ?: null,
             $scheduledAt ?: null,
-            $location ?: null
+            $location ?: null,
+            $meetingType
         );
 
         // Auto-assign tenant's first vote/quorum policies as defaults

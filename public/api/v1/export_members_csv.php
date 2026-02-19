@@ -42,21 +42,28 @@ if (empty($mt['validated_at'])) {
     exit;
 }
 
-// Génération du fichier
-$filename = ExportService::generateFilename('membres', $mt['title'] ?? '');
-ExportService::initCsvOutput($filename);
+try {
+    // Génération du fichier
+    $filename = ExportService::generateFilename('membres', $mt['title'] ?? '');
+    ExportService::initCsvOutput($filename);
 
-$out = ExportService::openCsvOutput();
+    $out = ExportService::openCsvOutput();
 
-// En-têtes français
-ExportService::writeCsvRow($out, ExportService::getMembersHeaders());
+    // En-têtes français
+    ExportService::writeCsvRow($out, ExportService::getMembersHeaders());
 
-// Données formatées
-$memberRepo = new MemberRepository();
-$rows = $memberRepo->listExportForMeeting($meetingId, api_current_tenant_id());
+    // Données formatées
+    $memberRepo = new MemberRepository();
+    $rows = $memberRepo->listExportForMeeting($meetingId, api_current_tenant_id());
 
-foreach ($rows as $r) {
-    ExportService::writeCsvRow($out, ExportService::formatMemberRow($r));
+    foreach ($rows as $r) {
+        ExportService::writeCsvRow($out, ExportService::formatMemberRow($r));
+    }
+
+    fclose($out);
+} catch (Throwable $e) {
+    error_log('Error in export_members_csv.php: ' . $e->getMessage());
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "server_error";
 }
-
-fclose($out);

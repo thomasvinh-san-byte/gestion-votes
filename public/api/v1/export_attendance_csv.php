@@ -42,21 +42,28 @@ if (empty($mt['validated_at'])) {
     exit;
 }
 
-$attendanceRepo = new AttendanceRepository();
-$rows = $attendanceRepo->listExportForMeeting($meetingId);
+try {
+    $attendanceRepo = new AttendanceRepository();
+    $rows = $attendanceRepo->listExportForMeeting($meetingId);
 
-// Génération du fichier
-$filename = ExportService::generateFilename('presences', $mt['title'] ?? '');
-ExportService::initCsvOutput($filename);
+    // Génération du fichier
+    $filename = ExportService::generateFilename('presences', $mt['title'] ?? '');
+    ExportService::initCsvOutput($filename);
 
-$out = ExportService::openCsvOutput();
+    $out = ExportService::openCsvOutput();
 
-// En-têtes français
-ExportService::writeCsvRow($out, ExportService::getAttendanceHeaders());
+    // En-têtes français
+    ExportService::writeCsvRow($out, ExportService::getAttendanceHeaders());
 
-// Données formatées
-foreach ($rows as $r) {
-    ExportService::writeCsvRow($out, ExportService::formatAttendanceRow($r));
+    // Données formatées
+    foreach ($rows as $r) {
+        ExportService::writeCsvRow($out, ExportService::formatAttendanceRow($r));
+    }
+
+    fclose($out);
+} catch (Throwable $e) {
+    error_log('Error in export_attendance_csv.php: ' . $e->getMessage());
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "server_error";
 }
-
-fclose($out);
