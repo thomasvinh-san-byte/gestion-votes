@@ -11,101 +11,157 @@
   <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 
-<body class="bg-slate-50 text-slate-900">
-
-  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-      <div class="min-w-0">
-        <div class="font-extrabold leading-tight truncate">Trust</div>
-        <div class="text-xs text-slate-500 truncate">Contrôle, cohérence, recalcul, audit</div>
+<body class="app-shell">
+<div class="app">
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand">
+        <strong>Gestion des votes</strong>
+        <span>v1.0</span>
       </div>
-      <nav class="flex items-center gap-2 flex-wrap justify-end">
-        <a class="btn" data-meeting-link href="/operator.htmx.html">Opérateur</a>
-        <a class="btn" data-meeting-link href="/validate.htmx.html">Président</a>
-        <a class="btn" data-meeting-link href="/public.htmx.html">Projecteur</a>
-        <a class="btn" data-meeting-link href="/vote.htmx.html">Voteur</a>
-        <span id="busy" class="muted tiny" style="visibility:hidden">⏳</span>
-      </nav>
+    </div>
+
+    <div class="header-center">
+      <div class="page-title">Audit &amp; Trust</div>
+      <div class="page-subtitle">Controle, coherence, recalcul, audit</div>
+    </div>
+
+    <div class="header-right">
+      <button class="icon-btn" data-drawer="readiness" title="Readiness">&#10004;</button>
+      <button class="icon-btn" data-drawer="infos" title="Informations">&#9888;</button>
+      <button class="icon-btn" data-drawer="menu" title="Menu">&#9776;</button>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 py-5" id="app">
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-      <div class="lg:col-span-8">
-        <div class="card p-4">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+  <aside class="app-sidebar">
+    <div class="sidebar-inner">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">GV</div>
+        <div class="sidebar-brand-text">
+          Gestion des votes
+          <small>Assemblees &amp; Conseils</small>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Preparation</div>
+        <nav class="nav">
+          <a href="/meetings.htmx.html"><span class="ico">&#9783;</span><span class="lbl">Tableau de bord</span></a>
+          <a href="/preparation.htmx.html"><span class="ico">&#9776;</span><span class="lbl">Preparation</span></a>
+          <a href="/members.htmx.html"><span class="ico">&#9734;</span><span class="lbl">Membres</span></a>
+          <a href="/motions.htmx.html"><span class="ico">&#9998;</span><span class="lbl">Resolutions</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Seance</div>
+        <nav class="nav">
+          <a href="/operator.htmx.html"><span class="ico">&#9881;</span><span class="lbl">Fiche seance</span></a>
+          <a href="/operator_flow.htmx.html"><span class="ico">&#9654;</span><span class="lbl">Conduite live</span></a>
+          <a href="/president.htmx.html"><span class="ico">&#9733;</span><span class="lbl">President</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Post-seance</div>
+        <nav class="nav">
+          <a class="active" href="/trust.htmx.html"><span class="ico">&#10003;</span><span class="lbl">Audit &amp; Trust</span></a>
+          <a href="/report.htmx.html"><span class="ico">&#9993;</span><span class="lbl">Proces-verbal</span></a>
+          <a href="/archives.htmx.html"><span class="ico">&#9635;</span><span class="lbl">Archives</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Administration</div>
+        <nav class="nav">
+          <a href="/admin.htmx.html"><span class="ico">&#9881;</span><span class="lbl">Parametres</span></a>
+        </nav>
+      </div>
+
+      <div class="sidebar-foot">Gestion des Votes v1.0</div>
+    </div>
+  </aside>
+
+  <main class="app-main">
+    <div class="main-inner" id="app">
+
+    <div style="display:grid; grid-template-columns:1fr auto; gap:16px; margin-bottom:16px;">
+      <div>
+        <div class="card" style="padding:16px;">
+          <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
             <div>
-              <div class="font-bold">Séance</div>
-              <div class="muted tiny">Lecture via endpoints Trust (statut, motions, décisions).</div>
+              <div style="font-weight:700;">Seance</div>
+              <div class="muted tiny">Lecture via endpoints Trust (statut, motions, decisions).</div>
             </div>
-            <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
-              <input id="trustApiKey" class="input" style="min-width:240px" placeholder="Clé API (Trust)" autocomplete="off" />
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <input id="trustApiKey" class="input" style="min-width:240px" placeholder="Cle API (Trust)" autocomplete="off" />
               <button class="btn" id="btnRefresh" data-busy>Actualiser</button>
             </div>
           </div>
 
-          <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px;">
             <div>
-              <label class="muted tiny" for="meetingSelect">Séance</label>
-              <select id="meetingSelect" class="input w-full" data-busy>
+              <label class="muted tiny" for="meetingSelect">Seance</label>
+              <select id="meetingSelect" class="input" style="width:100%;" data-busy>
                 <option value="">— Chargement —</option>
               </select>
             </div>
             <div>
               <label class="muted tiny">Statut</label>
-              <div id="statusBox" class="p-3 rounded-xl border border-slate-200 bg-slate-50">—</div>
+              <div id="statusBox" style="padding:12px; border-radius:8px; border:1px solid var(--border); background:var(--bg-subtle);">—</div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="lg:col-span-4">
-        <div class="card p-4">
-          <div class="flex items-center justify-between">
+      <div style="min-width:280px;">
+        <div class="card" style="padding:16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
             <div>
-              <div class="font-bold">Notifications</div>
-              <div class="muted tiny">Événements Trust (bloquants / avertissements)</div>
+              <div style="font-weight:700;">Notifications</div>
+              <div class="muted tiny">Evenements Trust (bloquants / avertissements)</div>
             </div>
             <span class="badge" id="badgeNotifications">0</span>
           </div>
-          <div id="notificationsList" class="mt-3 space-y-2">
+          <div id="notificationsList" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
             <div class="muted tiny">—</div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section class="mt-4 card p-4">
-      <div class="flex items-center justify-between gap-3">
+    <div class="card" style="padding:16px; margin-top:16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <div>
-          <div class="font-bold">Motions & décisions</div>
-          <div class="muted tiny">Tableau de cohérence (source officielle / comptage / décision).</div>
+          <div style="font-weight:700;">Motions &amp; decisions</div>
+          <div class="muted tiny">Tableau de coherence (source officielle / comptage / decision).</div>
         </div>
       </div>
 
-      <div class="mt-4 table-wrap">
-        <table class="w-full text-sm">
-          <thead class="text-xs uppercase text-slate-500 bg-slate-50">
+      <div class="table-wrap" style="margin-top:16px;">
+        <table>
+          <thead>
             <tr>
-              <th class="p-2 text-left">Motion</th>
-              <th class="p-2 text-left">Source</th>
-              <th class="p-2 text-left">Comptage</th>
-              <th class="p-2 text-left">Décision</th>
-              <th class="p-2 text-left">État</th>
+              <th style="text-align:left; padding:8px;">Motion</th>
+              <th style="text-align:left; padding:8px;">Source</th>
+              <th style="text-align:left; padding:8px;">Comptage</th>
+              <th style="text-align:left; padding:8px;">Decision</th>
+              <th style="text-align:left; padding:8px;">Etat</th>
             </tr>
           </thead>
           <tbody id="motionsTbody"></tbody>
         </table>
       </div>
-    </section>
+    </div>
+
   <div class="card pad" style="margin-top:12px;" id="stateDebugPanel">
   <div class="row between" style="gap:10px; flex-wrap:wrap;">
     <div>
       <div style="font-weight:800;">State debug</div>
-      <div class="muted tiny">Vue compacte pour itérer vite (meeting, motion active, ballots, tokens, anomalies).</div>
+      <div class="muted tiny">Vue compacte pour iterer vite (meeting, motion active, ballots, tokens, anomalies).</div>
     </div>
     <div class="row" style="gap:8px; align-items:center;">
-      <button class="btn" id="btnDbgRefresh" type="button">Rafraîchir</button>
+      <button class="btn" id="btnDbgRefresh" type="button">Rafraichir</button>
     </div>
   </div>
   <div class="hr"></div>
@@ -113,22 +169,35 @@
     <div class="tiny"><span class="muted">meeting_id:</span> <code id="dbgMeetingId">—</code></div>
     <div class="tiny"><span class="muted">motion:</span> <span id="dbgCurrentMotion">—</span> <span class="muted">(<span id="dbgCurrentMotionState">—</span>)</span></div>
 
-    <div class="tiny"><span class="muted">éligibles:</span> <strong id="dbgEligible">—</strong> <span class="muted">(fallback:</span> <span id="dbgFallback">—</span><span class="muted">)</span></div>
+    <div class="tiny"><span class="muted">eligibles:</span> <strong id="dbgEligible">—</strong> <span class="muted">(fallback:</span> <span id="dbgFallback">—</span><span class="muted">)</span></div>
     <div class="tiny"><span class="muted">motions ouvertes:</span> <strong id="dbgOpenMotions">—</strong></div>
 
     <div class="tiny"><span class="muted">ballots (motion active):</span> <strong id="dbgBallots">—</strong> <span class="muted">/ manquants:</span> <strong id="dbgMissing">—</strong></div>
-    <div class="tiny"><span class="muted">tokens actifs:</span> <strong id="dbgTokensActive">—</strong> <span class="muted">/ expirés:</span> <strong id="dbgTokensExpired">—</strong></div>
+    <div class="tiny"><span class="muted">tokens actifs:</span> <strong id="dbgTokensActive">—</strong> <span class="muted">/ expires:</span> <strong id="dbgTokensExpired">—</strong></div>
 
     <div class="tiny"><span class="muted">votes hors statut:</span> <strong id="dbgUnexpectedBallots">—</strong></div>
-    <div class="tiny"><span class="muted">tokens expirés (global):</span> <strong id="dbgExpiredTokens">—</strong></div>
+    <div class="tiny"><span class="muted">tokens expires (global):</span> <strong id="dbgExpiredTokens">—</strong></div>
   </div>
 </div>
 
-</main>
+    </div>
+  </main>
+
+  <div class="drawer-overlay" data-drawer-close hidden></div>
+  <aside class="drawer" hidden>
+    <div class="drawer-header">
+      <div class="drawer-title">Panneau</div>
+      <button class="icon-btn" data-drawer-close title="Fermer">&#10005;</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+</div>
 
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <script src="/assets/js/utils.js"></script>
   <script src="/assets/js/trust-page.js"></script>
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
 
 <script src="/assets/js/state-debug.js"></script>
 </body>

@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preparation - Gestion des votes</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body class="app-shell">
+<div class="app">
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand">
+        <strong>Gestion des votes</strong>
+        <span>v1.0</span>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="page-title">Preparation de la seance</div>
+      <div class="page-subtitle">Checklist, documents, convocations, ordre du jour</div>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" data-drawer="readiness" title="Readiness">&#10004;</button>
+      <button class="icon-btn" data-drawer="menu" title="Menu">&#9776;</button>
+    </div>
+  </header>
+
+  <aside class="app-sidebar">
+    <div class="sidebar-inner">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">GV</div>
+        <div class="sidebar-brand-text">
+          Gestion des votes
+          <small>Assemblees &amp; Conseils</small>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Preparation</div>
+        <nav class="nav">
+          <a href="/meetings.htmx.html"><span class="ico">&#9783;</span><span class="lbl">Tableau de bord</span></a>
+          <a class="active" href="/preparation.htmx.html"><span class="ico">&#9776;</span><span class="lbl">Preparation</span></a>
+          <a href="/members.htmx.html"><span class="ico">&#9734;</span><span class="lbl">Membres</span></a>
+          <a href="/motions.htmx.html"><span class="ico">&#9998;</span><span class="lbl">Resolutions</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Seance</div>
+        <nav class="nav">
+          <a href="/operator.htmx.html"><span class="ico">&#9881;</span><span class="lbl">Fiche seance</span></a>
+          <a href="/operator_flow.htmx.html"><span class="ico">&#9654;</span><span class="lbl">Conduite live</span></a>
+          <a href="/president.htmx.html"><span class="ico">&#9733;</span><span class="lbl">President</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Post-seance</div>
+        <nav class="nav">
+          <a href="/trust.htmx.html"><span class="ico">&#10003;</span><span class="lbl">Audit &amp; Trust</span></a>
+          <a href="/report.htmx.html"><span class="ico">&#9993;</span><span class="lbl">Proces-verbal</span></a>
+          <a href="/archives.htmx.html"><span class="ico">&#9635;</span><span class="lbl">Archives</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Administration</div>
+        <nav class="nav">
+          <a href="/admin.htmx.html"><span class="ico">&#9881;</span><span class="lbl">Parametres</span></a>
+        </nav>
+      </div>
+
+      <div class="sidebar-foot">Gestion des Votes v1.0</div>
+    </div>
+  </aside>
+
+  <main class="app-main">
+    <div class="page-container">
+
+      <!-- Meeting context header -->
+      <div hx-get="/partials/meeting_header.htmx.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div>
+          <h1 class="h1" style="margin:0;">Preparation</h1>
+          <p class="muted" style="margin:4px 0 0;">Tout ce qu'il faut verifier avant le jour J.</p>
+        </div>
+        <div class="row" style="gap:8px;">
+          <button class="btn" id="btnRefresh" type="button">Actualiser</button>
+          <button class="btn primary" id="btnAddTask" type="button">+ Ajouter une tache</button>
+        </div>
+      </div>
+
+      <!-- Progress overview -->
+      <div class="card pad" id="prepOverview" style="margin-bottom:20px;">
+        <div class="row between" style="margin-bottom:12px;">
+          <div>
+            <div class="h2" style="margin:0;">Progression globale</div>
+            <div class="muted" style="font-size:12px;">Suivi de l'avancement de la preparation</div>
+          </div>
+          <div class="row" style="gap:6px;">
+            <span class="badge" id="prepBadge">0%</span>
+          </div>
+        </div>
+        <div class="progress-bar" style="margin-bottom:12px;">
+          <div class="progress-bar-fill" id="prepProgressBar" style="width:0%;"></div>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:8px;" id="prepStats">
+          <div class="stat-card" style="padding:12px;">
+            <div class="stat-label">Checklist</div>
+            <div class="stat-value" id="statChecklist" style="font-size:20px;">-</div>
+          </div>
+          <div class="stat-card" style="padding:12px;">
+            <div class="stat-label">Documents</div>
+            <div class="stat-value" id="statDocs" style="font-size:20px;">-</div>
+          </div>
+          <div class="stat-card" style="padding:12px;">
+            <div class="stat-label">Convocations</div>
+            <div class="stat-value" id="statConvoc" style="font-size:20px;">-</div>
+          </div>
+          <div class="stat-card" style="padding:12px;">
+            <div class="stat-label">Resolutions</div>
+            <div class="stat-value" id="statMotions" style="font-size:20px;">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs" style="margin-bottom:16px;">
+        <button class="tab active" data-prep-tab="checklist" type="button">Checklist</button>
+        <button class="tab" data-prep-tab="documents" type="button">Documents</button>
+        <button class="tab" data-prep-tab="convocations" type="button">Convocations</button>
+        <button class="tab" data-prep-tab="timeline" type="button">Timeline</button>
+      </div>
+
+      <!-- Checklist panel -->
+      <div id="panel-checklist" class="prep-panel">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="h2" style="margin:0;">Checklist de preparation</div>
+              <div class="muted" style="font-size:12px;">Verifiez chaque point avant la seance</div>
+            </div>
+            <button class="btn sm" id="btnAddCheckItem" type="button">+ Ajouter</button>
+          </div>
+          <div id="checklistContainer" class="checklist">
+            <div class="checklist-item"><div class="muted">Chargement...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents panel -->
+      <div id="panel-documents" class="prep-panel" style="display:none;">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="h2" style="margin:0;">Documents de seance</div>
+              <div class="muted" style="font-size:12px;">Suivez la collecte et validation des pieces</div>
+            </div>
+            <button class="btn sm" id="btnAddDoc" type="button">+ Ajouter un document</button>
+          </div>
+          <div id="docsContainer" class="doc-list">
+            <div class="doc-item"><div class="muted">Chargement...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Convocations panel -->
+      <div id="panel-convocations" class="prep-panel" style="display:none;">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="h2" style="margin:0;">Convocations</div>
+              <div class="muted" style="font-size:12px;">Etat d'envoi et confirmation des membres</div>
+            </div>
+            <div class="row" style="gap:6px;">
+              <button class="btn sm" id="btnGenConvoc" type="button">Generer toutes</button>
+              <button class="btn sm primary" id="btnSendConvoc" type="button">Envoyer</button>
+            </div>
+          </div>
+          <div id="convocContainer">
+            <div style="padding:16px;" class="muted">Chargement...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline panel -->
+      <div id="panel-timeline" class="prep-panel" style="display:none;">
+        <div class="card pad">
+          <div class="h2" style="margin:0 0 16px;">Timeline de preparation</div>
+          <div id="timelineContainer" class="prep-timeline">
+            <div class="prep-timeline-item done">
+              <div style="font-weight:500;">Creation de la seance</div>
+              <div class="muted" style="font-size:12px;" id="tlCreated">-</div>
+            </div>
+            <div class="prep-timeline-item" id="tlMembers">
+              <div style="font-weight:500;">Membres configures</div>
+              <div class="muted" style="font-size:12px;">Ajouter les participants et leur ponderation</div>
+            </div>
+            <div class="prep-timeline-item" id="tlMotions">
+              <div style="font-weight:500;">Ordre du jour defini</div>
+              <div class="muted" style="font-size:12px;">Resolutions et points a l'ordre du jour</div>
+            </div>
+            <div class="prep-timeline-item" id="tlDocs">
+              <div style="font-weight:500;">Documents reunis</div>
+              <div class="muted" style="font-size:12px;">Tous les documents necessaires collectes</div>
+            </div>
+            <div class="prep-timeline-item" id="tlConvoc">
+              <div style="font-weight:500;">Convocations envoyees</div>
+              <div class="muted" style="font-size:12px;">Tous les membres convoques dans les delais</div>
+            </div>
+            <div class="prep-timeline-item" id="tlReady">
+              <div style="font-weight:500;">Seance prete</div>
+              <div class="muted" style="font-size:12px;">Tous les points sont valides, pret a lancer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Add Checklist Item Modal -->
+<div class="modal-backdrop" id="modalCheckItem">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title">Ajouter une tache</div>
+      <button class="icon-btn" onclick="document.getElementById('modalCheckItem').classList.remove('open')" type="button">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="stack" style="gap:14px;">
+        <div class="field">
+          <label for="checkTitle">Titre *</label>
+          <input id="checkTitle" type="text" placeholder="Ex: Verifier la liste des membres">
+        </div>
+        <div class="field">
+          <label for="checkDesc">Description</label>
+          <textarea id="checkDesc" placeholder="Details supplementaires..." rows="2"></textarea>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="field">
+            <label for="checkCategory">Categorie</label>
+            <select id="checkCategory">
+              <option value="general">General</option>
+              <option value="documents">Documents</option>
+              <option value="convocations">Convocations</option>
+              <option value="logistique">Logistique</option>
+              <option value="ordre_du_jour">Ordre du jour</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="checkDue">Echeance</label>
+            <input id="checkDue" type="date">
+          </div>
+        </div>
+        <div class="field">
+          <label for="checkAssigned">Assigne a</label>
+          <input id="checkAssigned" type="text" placeholder="Nom ou role">
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="document.getElementById('modalCheckItem').classList.remove('open')" type="button">Annuler</button>
+      <button class="btn primary" id="btnSaveCheckItem" type="button">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Document Modal -->
+<div class="modal-backdrop" id="modalAddDoc">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title">Ajouter un document</div>
+      <button class="icon-btn" onclick="document.getElementById('modalAddDoc').classList.remove('open')" type="button">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="stack" style="gap:14px;">
+        <div class="field">
+          <label for="docTitle">Titre *</label>
+          <input id="docTitle" type="text" placeholder="Ex: Budget previsionnel 2026">
+        </div>
+        <div class="field">
+          <label for="docDesc">Description</label>
+          <textarea id="docDesc" placeholder="Contenu attendu..." rows="2"></textarea>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="field">
+            <label for="docCategory">Categorie</label>
+            <select id="docCategory">
+              <option value="annexe">Annexe</option>
+              <option value="convocation">Convocation</option>
+              <option value="ordre_du_jour">Ordre du jour</option>
+              <option value="rapport">Rapport</option>
+              <option value="budget">Budget</option>
+              <option value="pv_precedent">PV precedent</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="docDeadline">Deadline</label>
+            <input id="docDeadline" type="date">
+          </div>
+        </div>
+        <div class="field">
+          <label for="docRequestFrom">Demande a</label>
+          <input id="docRequestFrom" type="text" placeholder="Service ou personne responsable">
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="document.getElementById('modalAddDoc').classList.remove('open')" type="button">Annuler</button>
+      <button class="btn primary" id="btnSaveDoc" type="button">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer -->
+<div class="drawer-overlay" data-drawer-close hidden></div>
+<aside class="drawer" hidden>
+  <div class="drawer-header">
+    <div class="drawer-title">Panneau</div>
+    <button class="icon-btn" data-drawer-close title="Fermer">&#10005;</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/shell.js"></script>
+<script src="/assets/js/meeting-context.js"></script>
+
+<script>
+(function(){
+  // Get meeting_id from URL
+  var params = new URLSearchParams(location.search);
+  var meetingId = params.get('meeting_id') || '';
+
+  if(!meetingId){
+    document.querySelector('.page-container').innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#9888;</div><div class="empty-state-title">Aucune seance selectionnee</div><div class="empty-state-desc">Retournez au tableau de bord pour selectionner une seance.</div><a class="btn primary" href="/meetings.htmx.html">Tableau de bord</a></div>';
+    return;
+  }
+
+  // API helpers
+  var apiGet = (window.Utils && Utils.apiGet) ? Utils.apiGet : function(url){ return fetch(url).then(function(r){ return r.json(); }); };
+  var apiPost = (window.Utils && Utils.apiPost) ? Utils.apiPost : function(url, data){ return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){ return r.json(); }); };
+
+  // State
+  var checkItems = [];
+  var docs = [];
+  var convocations = [];
+  var membersCount = 0;
+  var motionsCount = 0;
+
+  // Tab switching
+  document.querySelectorAll('[data-prep-tab]').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('[data-prep-tab]').forEach(function(t){ t.classList.remove('active'); });
+      tab.classList.add('active');
+      document.querySelectorAll('.prep-panel').forEach(function(p){ p.style.display = 'none'; });
+      var panel = document.getElementById('panel-' + tab.getAttribute('data-prep-tab'));
+      if(panel) panel.style.display = '';
+    });
+  });
+
+  // Render checklist
+  function renderChecklist(){
+    var container = document.getElementById('checklistContainer');
+    if(!checkItems.length){
+      container.innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div class="empty-state-title" style="font-size:14px;">Aucune tache</div><div class="empty-state-desc" style="font-size:12px;">Ajoutez des taches pour suivre la preparation.</div></div>';
+      return;
+    }
+
+    // Group by category
+    var categories = {};
+    checkItems.forEach(function(item){
+      var cat = item.category || 'general';
+      if(!categories[cat]) categories[cat] = [];
+      categories[cat].push(item);
+    });
+
+    var catLabels = {general:'General', documents:'Documents', convocations:'Convocations', logistique:'Logistique', ordre_du_jour:'Ordre du jour'};
+    var html = '';
+
+    Object.keys(categories).forEach(function(cat){
+      html += '<div style="padding:10px 16px; background:var(--bg-subtle); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);">' + (catLabels[cat] || cat) + '</div>';
+      categories[cat].forEach(function(item){
+        var checked = item.is_checked ? ' checked' : '';
+        var checkCls = item.is_checked ? ' checked' : '';
+        var itemCls = item.is_checked ? ' checked' : '';
+        var dueHtml = item.due_date ? '<span class="checklist-meta">' + item.due_date + '</span>' : '';
+        var assignHtml = item.assigned_to ? '<span class="badge sm" style="font-size:10px;">' + item.assigned_to + '</span>' : '';
+
+        html += '<div class="checklist-item'+itemCls+'">' +
+          '<div class="checklist-check'+checkCls+'" data-check-id="'+item.id+'" onclick="toggleCheck(\''+item.id+'\', '+ !item.is_checked +')">' +
+            (item.is_checked ? '&#10003;' : '') +
+          '</div>' +
+          '<div class="checklist-label">' +
+            '<div style="font-weight:500;">' + (item.title || '') + '</div>' +
+            (item.description ? '<div class="muted" style="font-size:12px;">' + item.description + '</div>' : '') +
+          '</div>' +
+          '<div class="row" style="gap:6px; flex-shrink:0;">' +
+            assignHtml + dueHtml +
+          '</div>' +
+        '</div>';
+      });
+    });
+
+    container.innerHTML = html;
+  }
+
+  // Render documents
+  function renderDocs(){
+    var container = document.getElementById('docsContainer');
+    if(!docs.length){
+      container.innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div class="empty-state-title" style="font-size:14px;">Aucun document</div><div class="empty-state-desc" style="font-size:12px;">Ajoutez les documents necessaires pour la seance.</div></div>';
+      return;
+    }
+
+    var statusLabels = {pending:'En attente', requested:'Demande', received:'Recu', approved:'Valide', rejected:'Refuse'};
+    var statusCls = {pending:'badge neutral', requested:'badge info', received:'badge warning', approved:'badge success', rejected:'badge danger'};
+    var catIcons = {convocation:'&#9993;', ordre_du_jour:'&#9998;', annexe:'&#128206;', rapport:'&#128196;', budget:'&#128176;', pv_precedent:'&#128221;', autre:'&#128195;'};
+
+    container.innerHTML = docs.map(function(doc){
+      var st = doc.status || 'pending';
+      return '<div class="doc-item">' +
+        '<div class="doc-icon">' + (catIcons[doc.category] || '&#128195;') + '</div>' +
+        '<div class="doc-info">' +
+          '<div class="doc-name">' + (doc.title || 'Sans titre') + '</div>' +
+          '<div class="doc-meta">' +
+            (doc.requested_from ? 'Demande a: ' + doc.requested_from : '') +
+            (doc.deadline ? ' | Deadline: ' + doc.deadline : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="doc-status">' +
+          '<span class="' + (statusCls[st] || 'badge') + '">' + (statusLabels[st] || st) + '</span>' +
+        '</div>' +
+        '<div style="flex-shrink:0;">' +
+          (st === 'pending' || st === 'requested' ? '<button class="btn sm" onclick="markDocReceived(\''+doc.id+'\')">Marquer recu</button>' : '') +
+          (st === 'received' ? '<button class="btn sm primary" onclick="markDocApproved(\''+doc.id+'\')">Approuver</button>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Render convocations
+  function renderConvoc(){
+    var container = document.getElementById('convocContainer');
+    if(!convocations.length){
+      container.innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div class="empty-state-title" style="font-size:14px;">Aucune convocation</div><div class="empty-state-desc" style="font-size:12px;">Generez les convocations depuis la liste des membres.</div></div>';
+      return;
+    }
+
+    var statusLabels = {draft:'Brouillon', sent:'Envoyee', opened:'Lue', confirmed:'Confirmee', declined:'Declinee', bounced:'Echouee'};
+    var statusCls = {draft:'badge neutral', sent:'badge info', opened:'badge warning', confirmed:'badge success', declined:'badge danger', bounced:'badge danger'};
+
+    var html = '<table><thead><tr><th>Membre</th><th>Methode</th><th>Statut</th><th>Envoyee le</th><th>Confirmee le</th></tr></thead><tbody>';
+    convocations.forEach(function(c){
+      var st = c.status || 'draft';
+      html += '<tr>' +
+        '<td style="font-weight:500;">' + (c.member_name || c.member_id || '-') + '</td>' +
+        '<td>' + (c.method || 'email') + '</td>' +
+        '<td><span class="' + (statusCls[st] || 'badge') + '">' + (statusLabels[st] || st) + '</span></td>' +
+        '<td class="muted" style="font-size:12px;">' + (c.sent_at ? new Date(c.sent_at).toLocaleDateString('fr-FR') : '-') + '</td>' +
+        '<td class="muted" style="font-size:12px;">' + (c.confirmed_at ? new Date(c.confirmed_at).toLocaleDateString('fr-FR') : '-') + '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  // Update progress
+  function updateProgress(){
+    var totalChecks = checkItems.length;
+    var doneChecks = checkItems.filter(function(i){ return i.is_checked; }).length;
+
+    var totalDocs = docs.length;
+    var doneDocs = docs.filter(function(d){ return d.status === 'approved' || d.status === 'received'; }).length;
+
+    var totalConvoc = convocations.length;
+    var doneConvoc = convocations.filter(function(c){ return c.status === 'confirmed' || c.status === 'sent'; }).length;
+
+    var total = totalChecks + totalDocs + totalConvoc;
+    var done = doneChecks + doneDocs + doneConvoc;
+    var pct = total > 0 ? Math.round(done / total * 100) : 0;
+
+    document.getElementById('prepBadge').textContent = pct + '%';
+    document.getElementById('prepBadge').className = pct === 100 ? 'badge success' : (pct > 50 ? 'badge info' : 'badge neutral');
+    document.getElementById('prepProgressBar').style.width = pct + '%';
+    document.getElementById('prepProgressBar').className = 'progress-bar-fill' + (pct === 100 ? ' success' : (pct > 50 ? '' : ' warning'));
+
+    document.getElementById('statChecklist').textContent = doneChecks + '/' + totalChecks;
+    document.getElementById('statDocs').textContent = doneDocs + '/' + totalDocs;
+    document.getElementById('statConvoc').textContent = doneConvoc + '/' + totalConvoc;
+    document.getElementById('statMotions').textContent = motionsCount;
+
+    // Timeline
+    if(membersCount > 0) document.getElementById('tlMembers').className = 'prep-timeline-item done';
+    if(motionsCount > 0) document.getElementById('tlMotions').className = 'prep-timeline-item done';
+    if(totalDocs > 0 && doneDocs === totalDocs) document.getElementById('tlDocs').className = 'prep-timeline-item done';
+    else if(totalDocs > 0) document.getElementById('tlDocs').className = 'prep-timeline-item active';
+    if(totalConvoc > 0 && doneConvoc === totalConvoc) document.getElementById('tlConvoc').className = 'prep-timeline-item done';
+    else if(doneConvoc > 0) document.getElementById('tlConvoc').className = 'prep-timeline-item active';
+    if(pct === 100) document.getElementById('tlReady').className = 'prep-timeline-item done';
+    else if(pct > 70) document.getElementById('tlReady').className = 'prep-timeline-item active';
+  }
+
+  // Load all data
+  async function loadAll(){
+    try {
+      // Load checklist items
+      var checkResp = await apiGet('/api/v1/preparation_checklist.php?meeting_id=' + encodeURIComponent(meetingId)).catch(function(){ return {}; });
+      checkItems = (checkResp && checkResp.data && checkResp.data.items) || checkResp.items || [];
+
+      // Load documents
+      var docsResp = await apiGet('/api/v1/preparation_documents.php?meeting_id=' + encodeURIComponent(meetingId)).catch(function(){ return {}; });
+      docs = (docsResp && docsResp.data && docsResp.data.items) || docsResp.items || [];
+
+      // Load convocations
+      var convocResp = await apiGet('/api/v1/preparation_convocations.php?meeting_id=' + encodeURIComponent(meetingId)).catch(function(){ return {}; });
+      convocations = (convocResp && convocResp.data && convocResp.data.items) || convocResp.items || [];
+
+      // Load members count
+      var membersResp = await apiGet('/api/v1/members.php').catch(function(){ return {}; });
+      var membersArr = membersResp.data ? (membersResp.data.members || membersResp.data) : (membersResp.members || []);
+      if(Array.isArray(membersArr)) membersCount = membersArr.length;
+
+      // Load motions count
+      var motionsResp = await apiGet('/api/v1/motions_for_meeting.php?meeting_id=' + encodeURIComponent(meetingId)).catch(function(){ return {}; });
+      var motionsArr = motionsResp.items || motionsResp.motions || [];
+      if(Array.isArray(motionsArr)) motionsCount = motionsArr.length;
+
+    } catch(e){ /* silent */ }
+
+    renderChecklist();
+    renderDocs();
+    renderConvoc();
+    updateProgress();
+  }
+
+  // Toggle check item
+  window.toggleCheck = async function(id, val){
+    try {
+      await apiPost('/api/v1/preparation_checklist_toggle.php', { id: id, meeting_id: meetingId, is_checked: val });
+      checkItems = checkItems.map(function(item){ if(item.id === id){ item.is_checked = val; if(val) item.checked_at = new Date().toISOString(); } return item; });
+      renderChecklist();
+      updateProgress();
+    } catch(e){ /* retry on load */ loadAll(); }
+  };
+
+  // Mark doc received / approved
+  window.markDocReceived = async function(id){
+    try {
+      await apiPost('/api/v1/preparation_documents_status.php', { id: id, meeting_id: meetingId, status: 'received' });
+      loadAll();
+    } catch(e){ /* silent */ }
+  };
+  window.markDocApproved = async function(id){
+    try {
+      await apiPost('/api/v1/preparation_documents_status.php', { id: id, meeting_id: meetingId, status: 'approved' });
+      loadAll();
+    } catch(e){ /* silent */ }
+  };
+
+  // Add checklist item
+  document.getElementById('btnAddCheckItem').addEventListener('click', function(){ document.getElementById('modalCheckItem').classList.add('open'); });
+  document.getElementById('btnAddTask').addEventListener('click', function(){ document.getElementById('modalCheckItem').classList.add('open'); });
+  document.getElementById('btnSaveCheckItem').addEventListener('click', async function(){
+    var title = (document.getElementById('checkTitle').value || '').trim();
+    if(!title) return;
+    try {
+      await apiPost('/api/v1/preparation_checklist.php', {
+        meeting_id: meetingId,
+        title: title,
+        description: (document.getElementById('checkDesc').value || '').trim(),
+        category: document.getElementById('checkCategory').value,
+        due_date: document.getElementById('checkDue').value || null,
+        assigned_to: (document.getElementById('checkAssigned').value || '').trim() || null
+      });
+      document.getElementById('modalCheckItem').classList.remove('open');
+      document.getElementById('checkTitle').value = '';
+      document.getElementById('checkDesc').value = '';
+      loadAll();
+    } catch(e){ /* silent */ }
+  });
+
+  // Add document
+  document.getElementById('btnAddDoc').addEventListener('click', function(){ document.getElementById('modalAddDoc').classList.add('open'); });
+  document.getElementById('btnSaveDoc').addEventListener('click', async function(){
+    var title = (document.getElementById('docTitle').value || '').trim();
+    if(!title) return;
+    try {
+      await apiPost('/api/v1/preparation_documents.php', {
+        meeting_id: meetingId,
+        title: title,
+        description: (document.getElementById('docDesc').value || '').trim(),
+        category: document.getElementById('docCategory').value,
+        deadline: document.getElementById('docDeadline').value || null,
+        requested_from: (document.getElementById('docRequestFrom').value || '').trim() || null
+      });
+      document.getElementById('modalAddDoc').classList.remove('open');
+      document.getElementById('docTitle').value = '';
+      document.getElementById('docDesc').value = '';
+      loadAll();
+    } catch(e){ /* silent */ }
+  });
+
+  // Generate convocations
+  document.getElementById('btnGenConvoc').addEventListener('click', async function(){
+    try {
+      await apiPost('/api/v1/preparation_convocations_generate.php', { meeting_id: meetingId });
+      loadAll();
+    } catch(e){ /* silent */ }
+  });
+
+  // Send convocations
+  document.getElementById('btnSendConvoc').addEventListener('click', async function(){
+    try {
+      await apiPost('/api/v1/preparation_convocations_send.php', { meeting_id: meetingId });
+      loadAll();
+    } catch(e){ /* silent */ }
+  });
+
+  // Refresh
+  document.getElementById('btnRefresh').addEventListener('click', loadAll);
+
+  // Initial load
+  loadAll();
+})();
+</script>
+</body>
+</html>

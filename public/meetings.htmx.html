@@ -3,181 +3,369 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Séances</title>
-    <link rel="stylesheet" href="/assets/css/app.css">
+  <title>Tableau de bord - Gestion des votes</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body class="app-shell">
 <div class="app">
-    <header class="app-header">
-      <div class="header-left">
-        <div class="brand">
-          <strong>Gestion des assemblées</strong>
-          <span>Interface</span>
-        </div>
-      </div>
-
-      <div class="header-center">
-        <div class="page-title">Séances</div>
-        <div class="page-subtitle">Créer, ouvrir et gérer une séance</div>
-      </div>
-
-      <div class="header-actions">
-        <button class="icon-btn" type="button" data-drawer="readiness" title="Préparation">✅</button>
-        <button class="icon-btn" type="button" data-drawer="info" title="Informations">⚠️</button>
-        <button class="icon-btn" type="button" data-drawer="menu" title="Menu">☰</button>
-      </div>
-    </header>
-
-    <aside class="app-sidebar">
-      <nav class="nav">
-        <a class="active" href="/meetings.htmx.html"><span class="ico">🏛️</span><span class="lbl">Tableau de bord</span></a>
-        <a href="/members.htmx.html"><span class="ico">👥</span><span class="lbl">Membres</span></a>
-        <a href="/operator_flow.htmx.html"><span class="ico">🧑‍💼</span><span class="lbl">Conduite</span></a>
-        <a href="/president.htmx.html"><span class="ico">🧑‍⚖️</span><span class="lbl">Président</span></a>
-        <a href="/archives.htmx.html"><span class="ico">📚</span><span class="lbl">Archives</span></a>
-        <a href="/admin.htmx.html"><span class="ico">⚙️</span><span class="lbl">Administration</span></a>
-      </nav>
-    </aside>
-
-    <main class="app-main">
-      <div class="page-container">
-<div class="container">
-
-    <div class="page-header" style="margin-top:12px;">
-      <div>
-        <h1>Séances</h1>
-        <div class="muted">Créer, ouvrir et gérer une séance.</div>
-      </div>
-      <div class="row" style="gap:8px; flex-wrap:wrap;">
-        <a class="btn" href="/members.htmx.html">Membres</a>
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand">
+        <strong>Gestion des votes</strong>
+        <span>v1.0</span>
       </div>
     </div>
 
-    <div id="notif_box" class="notif" style="display:none;"></div>
-
-    <section class="card">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
-        <div style="min-width:280px;">
-          <div style="font-weight:600;">Créer une séance</div>
-          <div class="muted tiny">Titre obligatoire. Description optionnelle.</div>
-
-          <div class="row" style="margin-top:10px; gap:8px; flex-wrap:wrap;">
-            <input id="meeting_title" placeholder="Assemblée Générale 2026"
-                   style="min-width:280px; padding:8px; border:1px solid #ccc; border-radius:6px;">
-            <input id="meeting_desc" placeholder="Description (optionnel)"
-                   style="min-width:280px; padding:8px; border:1px solid #ccc; border-radius:6px;">
-            <button class="btn primary" id="create_meeting_btn">➕ Créer</button>
-          </div>
-        </div>
-
-        <div style="min-width:260px;">
-          <div style="font-weight:600;">Ouvrir une séance</div>
-          <div class="muted tiny">Sélectionne une séance active pour accéder aux pages.</div>
-
-          <div class="row" style="margin-top:10px; gap:8px; flex-wrap:wrap;">
-            <select id="meeting_select" style="min-width:260px; padding:8px; border:1px solid #ccc; border-radius:6px;">
-              <option value="">– Sélectionner une séance –</option>
-            </select>
-            <a class="btn" id="btnOpenMotions" href="/motions.htmx.html">Motions</a>
-            <a class="btn primary" id="btnOpenOperator" href="/operator.htmx.html">Opérateur ▶</a>
-          </div>
-
-          <div class="muted tiny" style="margin-top:8px;">
-            Astuce : les liens gardent automatiquement <code>meeting_id</code>.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;">
-      <section class="card">
-        <div style="font-weight:600;">Séances actives</div>
-        <div id="active_meetings_list" class="muted tiny" style="margin-top:10px;">Chargement…</div>
-      </section>
-      <section class="card">
-        <div style="font-weight:600;">Historique</div>
-        <div id="history_meetings_list" class="muted tiny" style="margin-top:10px;">Chargement…</div>
-      </section>
+    <div class="header-center">
+      <div class="page-title">Tableau de bord</div>
+      <div class="page-subtitle">Vue d'ensemble des seances</div>
     </div>
 
-    <pre id="log_box" class="muted tiny" style="margin-top:12px; white-space:pre-wrap; display:none;"></pre>
-  </div>
-
-  <script src="/assets/js/utils.js"></script>
-  <script src="/assets/js/auth-ui.js"></script>
-  <script src="/assets/js/meetings.js"></script>
-
-  <script>
-  (function () {
-    // meetings.js expose: loadMeetings(), fillMeetingSelect(), selectMeeting()
-    // utils.js expose: api(), setNotif()
-
-    function setMeetingLinks(meetingId) {
-      const links = [
-        ["btnOpenMotions", "/motions.htmx.html"],
-        ["btnOpenOperator", "/operator.htmx.html"],
-      ];
-      links.forEach(([id, base]) => {
-        const a = document.getElementById(id);
-        if (!a) return;
-        if (!meetingId) { a.href = base; return; }
-        const u = new URL(base, location.origin);
-        u.searchParams.set("meeting_id", meetingId);
-        a.href = u.pathname + "?" + u.searchParams.toString();
-      });
-    }
-
-    const sel = document.getElementById("meeting_select");
-    if (sel) {
-      sel.addEventListener("change", () => setMeetingLinks(sel.value));
-    }
-
-    document.getElementById("create_meeting_btn").addEventListener("click", async () => {
-      const title = (document.getElementById("meeting_title").value || "").trim();
-      const description = (document.getElementById("meeting_desc").value || "").trim();
-      if (!title) { setNotif('error', "Titre requis."); return; }
-
-      const { status, body } = await api("/api/v1/meetings.php", { title, description });
-      if (!body || !body.ok) {
-        setNotif('error', "Erreur création séance: " + (body?.error || status));
-        return;
-      }
-      setNotif('success', "Séance créée.");
-      document.getElementById("meeting_title").value = "";
-      document.getElementById("meeting_desc").value = "";
-
-      // reload lists + auto-select created meeting if returned
-      await loadMeetings();
-      const mid = body.data?.meeting_id;
-      if (mid && sel) {
-        sel.value = mid;
-        setMeetingLinks(mid);
-      }
-    });
-
-    // Initial load
-    if (typeof loadMeetings === "function") {
-      loadMeetings().then(() => {
-        if (sel && sel.value) setMeetingLinks(sel.value);
-      });
-    } else {
-      setNotif('error', "meetings.js non chargé (loadMeetings introuvable).");
-    }
-  })();
-  </script>
-      </div>
-    </main>
-  </div>
-
-  <div id="drawerOverlay" class="drawer-overlay"></div>
-  <aside id="drawer" class="drawer" aria-hidden="true">
-    <div class="drawer-header">
-      <div id="drawerTitle" class="drawer-title">Menu</div>
-      <button class="drawer-close" type="button" data-drawer-close title="Fermer">✕</button>
+    <div class="header-right">
+      <button class="icon-btn" data-drawer="readiness" title="Readiness">&#10004;</button>
+      <button class="icon-btn" data-drawer="infos" title="Informations">&#9888;</button>
+      <button class="icon-btn" data-drawer="menu" title="Menu">&#9776;</button>
     </div>
-    <div id="drawerBody" class="drawer-body"></div>
+  </header>
+
+  <aside class="app-sidebar">
+    <div class="sidebar-inner">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">GV</div>
+        <div class="sidebar-brand-text">
+          Gestion des votes
+          <small>Assemblees &amp; Conseils</small>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Preparation</div>
+        <nav class="nav">
+          <a class="active" href="/meetings.htmx.html"><span class="ico">&#9783;</span><span class="lbl">Tableau de bord</span></a>
+          <a href="/preparation.htmx.html"><span class="ico">&#9776;</span><span class="lbl">Preparation</span></a>
+          <a href="/members.htmx.html"><span class="ico">&#9734;</span><span class="lbl">Membres</span></a>
+          <a href="/motions.htmx.html"><span class="ico">&#9998;</span><span class="lbl">Resolutions</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Seance</div>
+        <nav class="nav">
+          <a href="/operator.htmx.html"><span class="ico">&#9881;</span><span class="lbl">Fiche seance</span></a>
+          <a href="/operator_flow.htmx.html"><span class="ico">&#9654;</span><span class="lbl">Conduite live</span></a>
+          <a href="/president.htmx.html"><span class="ico">&#9733;</span><span class="lbl">President</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Post-seance</div>
+        <nav class="nav">
+          <a href="/trust.htmx.html"><span class="ico">&#10003;</span><span class="lbl">Audit &amp; Trust</span></a>
+          <a href="/report.htmx.html"><span class="ico">&#9993;</span><span class="lbl">Proces-verbal</span></a>
+          <a href="/archives.htmx.html"><span class="ico">&#9635;</span><span class="lbl">Archives</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Administration</div>
+        <nav class="nav">
+          <a href="/admin.htmx.html"><span class="ico">&#9881;</span><span class="lbl">Parametres</span></a>
+        </nav>
+      </div>
+
+      <div class="sidebar-foot">
+        Gestion des Votes v1.0
+      </div>
+    </div>
   </aside>
 
-  <script src="/assets/js/shell.js"></script>
+  <main class="app-main">
+    <div class="page-container">
+
+      <!-- Page header -->
+      <div class="page-header" style="margin-bottom: 24px;">
+        <div>
+          <h1 class="h1" style="margin:0;">Tableau de bord</h1>
+          <p class="muted" style="margin:4px 0 0;">Gerez vos seances de vote, de la preparation a l'archivage.</p>
+        </div>
+        <div class="row" style="gap:8px;">
+          <button class="btn primary" id="btnNewMeeting">+ Nouvelle seance</button>
+        </div>
+      </div>
+
+      <!-- KPI Stats -->
+      <div id="statsGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:24px;">
+        <div class="stat-card">
+          <div class="stat-label">Seances actives</div>
+          <div class="stat-value" id="statActive">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">En preparation</div>
+          <div class="stat-value" id="statPrep">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Archivees</div>
+          <div class="stat-value" id="statArchived">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="statTotal">-</div>
+        </div>
+      </div>
+
+      <div id="notif_box" class="notif" style="display:none; margin-bottom:16px;"></div>
+
+      <!-- Tabs: Actives / Historique -->
+      <div class="tabs" style="margin-bottom:16px;">
+        <button class="tab active" id="tabActive" type="button">Seances actives</button>
+        <button class="tab" id="tabHistory" type="button">Historique</button>
+      </div>
+
+      <!-- Active meetings list -->
+      <div id="panelActive">
+        <div id="active_meetings_list" class="stack">
+          <div class="card pad">
+            <div class="muted">Chargement...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History meetings list (hidden by default) -->
+      <div id="panelHistory" style="display:none;">
+        <div id="history_meetings_list" class="stack">
+          <div class="card pad">
+            <div class="muted">Chargement...</div>
+          </div>
+        </div>
+      </div>
+
+      <pre id="log_box" class="muted tiny" style="margin-top:12px; white-space:pre-wrap; display:none;"></pre>
+    </div>
+  </main>
+</div>
+
+<!-- New Meeting Modal -->
+<div class="modal-backdrop" id="modalNewMeeting">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title">Nouvelle seance</div>
+      <button class="icon-btn" id="modalClose" type="button">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="stack" style="gap:16px;">
+        <div class="field">
+          <label for="meeting_title">Titre de la seance *</label>
+          <input id="meeting_title" type="text" placeholder="Ex: Assemblee Generale 2026">
+        </div>
+        <div class="field">
+          <label for="meeting_desc">Description</label>
+          <textarea id="meeting_desc" placeholder="Objectifs et contexte de la seance..." rows="3"></textarea>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="field">
+            <label for="meeting_date">Date prevue</label>
+            <input id="meeting_date" type="date">
+          </div>
+          <div class="field">
+            <label for="meeting_location">Lieu</label>
+            <input id="meeting_location" type="text" placeholder="Salle du conseil">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="modalCancel" type="button">Annuler</button>
+      <button class="btn primary" id="create_meeting_btn" type="button">Creer la seance</button>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer -->
+<div class="drawer-overlay" data-drawer-close hidden></div>
+<aside class="drawer" hidden>
+  <div class="drawer-header">
+    <div class="drawer-title">Panneau</div>
+    <button class="icon-btn" data-drawer-close title="Fermer">&#10005;</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/auth-ui.js"></script>
+<script src="/assets/js/meetings.js"></script>
+<script src="/assets/js/shell.js"></script>
+
+<script>
+(function () {
+  // Modal management
+  const modal = document.getElementById('modalNewMeeting');
+  const btnNew = document.getElementById('btnNewMeeting');
+  const btnClose = document.getElementById('modalClose');
+  const btnCancel = document.getElementById('modalCancel');
+
+  function openModal(){ modal.classList.add('open'); }
+  function closeModal(){ modal.classList.remove('open'); document.getElementById('meeting_title').value=''; document.getElementById('meeting_desc').value=''; }
+
+  btnNew.addEventListener('click', openModal);
+  btnClose.addEventListener('click', closeModal);
+  btnCancel.addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e){ if(e.target === modal) closeModal(); });
+
+  // Tab switching
+  const tabActive = document.getElementById('tabActive');
+  const tabHistory = document.getElementById('tabHistory');
+  const panelActive = document.getElementById('panelActive');
+  const panelHistory = document.getElementById('panelHistory');
+
+  tabActive.addEventListener('click', function(){
+    tabActive.classList.add('active'); tabHistory.classList.remove('active');
+    panelActive.style.display=''; panelHistory.style.display='none';
+  });
+  tabHistory.addEventListener('click', function(){
+    tabHistory.classList.add('active'); tabActive.classList.remove('active');
+    panelHistory.style.display=''; panelActive.style.display='none';
+  });
+
+  // Meeting select (hidden, for compat with existing meetings.js)
+  // We create it dynamically since meetings.js expects it
+  var hiddenSelect = document.createElement('select');
+  hiddenSelect.id = 'meeting_select';
+  hiddenSelect.style.display = 'none';
+  document.body.appendChild(hiddenSelect);
+
+  function setMeetingLinks(meetingId) {
+    document.querySelectorAll('a[data-meeting-link]').forEach(function(a){
+      var href = a.getAttribute('href') || a.getAttribute('data-base-href');
+      if(!href) return;
+      var u = new URL(href, location.origin);
+      if(meetingId) u.searchParams.set('meeting_id', meetingId);
+      a.setAttribute('href', u.pathname + '?' + u.searchParams.toString());
+    });
+  }
+
+  // Override render to show nice cards
+  window.renderMeetingsLists = function(){
+    var activeDiv = document.getElementById('active_meetings_list');
+    var historyDiv = document.getElementById('history_meetings_list');
+    if(!activeDiv || !historyDiv) return;
+
+    var meetings = (window.state && state.meetings) ? state.meetings : [];
+    var actives = meetings.filter(function(m){ return m.status !== 'archived'; });
+    var history = meetings.filter(function(m){ return m.status === 'closed' || m.status === 'archived'; });
+
+    // Stats
+    document.getElementById('statActive').textContent = actives.filter(function(m){ return m.status === 'live'; }).length;
+    document.getElementById('statPrep').textContent = actives.filter(function(m){ return m.status === 'draft' || m.status === 'scheduled'; }).length;
+    document.getElementById('statArchived').textContent = history.length;
+    document.getElementById('statTotal').textContent = meetings.length;
+
+    // Active list
+    if(!actives.length){
+      activeDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#9783;</div><div class="empty-state-title">Aucune seance active</div><div class="empty-state-desc">Creez votre premiere seance pour commencer.</div><button class="btn primary" onclick="document.getElementById(\'btnNewMeeting\').click()">+ Nouvelle seance</button></div>';
+    } else {
+      activeDiv.innerHTML = actives.map(function(m){
+        var statusCls = 'badge neutral';
+        var statusLabel = m.status;
+        if(m.status === 'live'){ statusCls = 'badge success'; statusLabel = 'En cours'; }
+        else if(m.status === 'draft'){ statusCls = 'badge neutral'; statusLabel = 'Brouillon'; }
+        else if(m.status === 'scheduled'){ statusCls = 'badge info'; statusLabel = 'Planifiee'; }
+        else if(m.status === 'closed'){ statusCls = 'badge warning'; statusLabel = 'Cloturee'; }
+
+        var dateStr = '';
+        if(m.scheduled_at) dateStr = new Date(m.scheduled_at).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'});
+        else if(m.created_at) dateStr = new Date(m.created_at).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'});
+
+        return '<div class="card pad" style="cursor:pointer;" onclick="selectMeeting(\''+m.id+'\')">' +
+          '<div class="row between" style="flex-wrap:wrap; gap:8px;">' +
+            '<div style="flex:1; min-width:200px;">' +
+              '<div style="font-weight:600; font-size:14px; margin-bottom:2px;">' + (window.escapeHtml ? escapeHtml(m.title) : m.title) + '</div>' +
+              '<div class="muted" style="font-size:12px;">' + (m.description ? (window.escapeHtml ? escapeHtml(m.description) : m.description) : 'Pas de description') + '</div>' +
+            '</div>' +
+            '<div class="row" style="gap:8px; flex-shrink:0;">' +
+              (dateStr ? '<span class="muted" style="font-size:12px;">'+dateStr+'</span>' : '') +
+              '<span class="'+statusCls+'">'+statusLabel+'</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="row" style="margin-top:10px; gap:6px;">' +
+            '<a class="btn sm" data-meeting-link href="/preparation.htmx.html" onclick="event.stopPropagation()">Preparation</a>' +
+            '<a class="btn sm" data-meeting-link href="/motions.htmx.html" onclick="event.stopPropagation()">Resolutions</a>' +
+            '<a class="btn sm" data-meeting-link href="/operator.htmx.html" onclick="event.stopPropagation()">Fiche seance</a>' +
+            '<a class="btn sm primary" data-meeting-link href="/operator_flow.htmx.html" onclick="event.stopPropagation()">Conduite</a>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      // Set meeting links for the first meeting or selected
+      var sel = document.getElementById('meeting_select');
+      var mid = (sel && sel.value) || (actives[0] && actives[0].id);
+      if(mid) setMeetingLinks(mid);
+    }
+
+    // History list
+    if(!history.length){
+      historyDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#9635;</div><div class="empty-state-title">Pas d\'historique</div><div class="empty-state-desc">Les seances archivees apparaitront ici.</div></div>';
+    } else {
+      historyDiv.innerHTML = history.map(function(m){
+        var dateStr = '';
+        if(m.validated_at) dateStr = 'Validee le ' + new Date(m.validated_at).toLocaleDateString('fr-FR');
+        else if(m.archived_at) dateStr = 'Archivee le ' + new Date(m.archived_at).toLocaleDateString('fr-FR');
+        else if(m.ended_at) dateStr = 'Terminee le ' + new Date(m.ended_at).toLocaleDateString('fr-FR');
+
+        return '<div class="card pad">' +
+          '<div class="row between" style="flex-wrap:wrap; gap:8px;">' +
+            '<div>' +
+              '<div style="font-weight:600; font-size:14px;">' + (window.escapeHtml ? escapeHtml(m.title) : m.title) + '</div>' +
+              '<div class="muted" style="font-size:12px;">' + dateStr + '</div>' +
+            '</div>' +
+            '<span class="badge neutral">' + m.status + '</span>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+  };
+
+  // Create meeting
+  document.getElementById('create_meeting_btn').addEventListener('click', async function() {
+    var title = (document.getElementById('meeting_title').value || '').trim();
+    var description = (document.getElementById('meeting_desc').value || '').trim();
+    if (!title) { setNotif('error', 'Titre requis.'); return; }
+
+    var payload = { title: title };
+    if(description) payload.description = description;
+
+    var dateVal = document.getElementById('meeting_date').value;
+    if(dateVal) payload.scheduled_at = dateVal + 'T09:00:00';
+
+    var locVal = document.getElementById('meeting_location').value;
+    if(locVal) payload.location = locVal;
+
+    var result = await api('/api/v1/meetings.php', payload);
+    if (!result.body || !result.body.ok) {
+      setNotif('error', 'Erreur creation seance: ' + (result.body && result.body.error ? result.body.error : result.status));
+      return;
+    }
+    setNotif('success', 'Seance creee avec succes.');
+    closeModal();
+    await loadMeetings();
+
+    var mid = result.body.data && result.body.data.meeting_id;
+    if(mid){
+      var sel = document.getElementById('meeting_select');
+      if(sel) sel.value = mid;
+      setMeetingLinks(mid);
+    }
+  });
+
+  // Initial load
+  if (typeof loadMeetings === 'function') {
+    loadMeetings().then(function(){
+      var sel = document.getElementById('meeting_select');
+      if (sel && sel.value) setMeetingLinks(sel.value);
+    });
+  } else {
+    setNotif('error', 'meetings.js non charge.');
+  }
+})();
+</script>
 </body>
 </html>

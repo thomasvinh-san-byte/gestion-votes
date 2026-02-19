@@ -7,15 +7,86 @@
   <script src="/assets/js/utils.js"></script>
   <link rel="stylesheet" href="/assets/css/app.css">
 </head>
-<body>
-  <div class="wrap">
+<body class="app-shell">
+<div class="app">
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand">
+        <strong>Gestion des votes</strong>
+        <span>v1.0</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="page-title">Administration</div>
+      <div class="page-subtitle">Parametrage global, politiques, monitoring</div>
+    </div>
+
+    <div class="header-right">
+      <button class="icon-btn" data-drawer="readiness" title="Readiness">&#10004;</button>
+      <button class="icon-btn" data-drawer="menu" title="Menu">&#9776;</button>
+    </div>
+  </header>
+
+  <aside class="app-sidebar">
+    <div class="sidebar-inner">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">GV</div>
+        <div class="sidebar-brand-text">
+          Gestion des votes
+          <small>Assemblees &amp; Conseils</small>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Preparation</div>
+        <nav class="nav">
+          <a href="/meetings.htmx.html"><span class="ico">&#9783;</span><span class="lbl">Tableau de bord</span></a>
+          <a href="/preparation.htmx.html"><span class="ico">&#9776;</span><span class="lbl">Preparation</span></a>
+          <a href="/members.htmx.html"><span class="ico">&#9734;</span><span class="lbl">Membres</span></a>
+          <a href="/motions.htmx.html"><span class="ico">&#9998;</span><span class="lbl">Resolutions</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Seance</div>
+        <nav class="nav">
+          <a href="/operator.htmx.html"><span class="ico">&#9881;</span><span class="lbl">Fiche seance</span></a>
+          <a href="/operator_flow.htmx.html"><span class="ico">&#9654;</span><span class="lbl">Conduite live</span></a>
+          <a href="/president.htmx.html"><span class="ico">&#9733;</span><span class="lbl">President</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Post-seance</div>
+        <nav class="nav">
+          <a href="/trust.htmx.html"><span class="ico">&#10003;</span><span class="lbl">Audit &amp; Trust</span></a>
+          <a href="/report.htmx.html"><span class="ico">&#9993;</span><span class="lbl">Proces-verbal</span></a>
+          <a href="/archives.htmx.html"><span class="ico">&#9635;</span><span class="lbl">Archives</span></a>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Administration</div>
+        <nav class="nav">
+          <a class="active" href="/admin.htmx.html"><span class="ico">&#9881;</span><span class="lbl">Parametres</span></a>
+        </nav>
+      </div>
+
+      <div class="sidebar-foot">Gestion des Votes v1.0</div>
+    </div>
+  </aside>
+
+  <main class="app-main">
+    <div class="main-inner">
+
     <div class="row between" style="margin-bottom:12px;">
       <div>
-        <h1 style="margin:0;">Admin</h1>
-        <div class="muted">Paramétrage global (politiques), monitoring minimal, export.</div>
+        <h1 style="margin:0;">Administration</h1>
+        <div class="muted">Parametrage global (politiques), monitoring minimal, export.</div>
       </div>
       <div class="row" style="gap:8px;">
-        <a class="btn" href="/index.html">Accueil</a>
+        <a class="btn" href="/meetings.htmx.html">Tableau de bord</a>
         <a class="btn" href="/archives.htmx.html">Archives</a>
       </div>
     </div>
@@ -23,37 +94,37 @@
     <section class="card" style="margin-bottom:12px;">
       <div class="row between">
         <div>
-          <div style="font-weight:700;">Tableau de bord système</div>
+          <div style="font-weight:700;">Tableau de bord systeme</div>
           <div class="muted tiny">Connexions actives, latence DB, compteurs (best-effort).</div>
         </div>
-        <button class="btn" id="refreshSys">↻ Rafraîchir</button>
+        <button class="btn" id="refreshSys">&#8635; Rafraichir</button>
       </div>
       <div class="hr"></div>
-      <div id="sysBox" class="stack"><div class="muted">Chargement…</div></div>
+      <div id="sysBox" class="stack"><div class="muted">Chargement...</div></div>
     </section>
 
     <section class="card" style="margin-bottom:12px;">
       <div class="row between">
         <div>
           <div style="font-weight:700;">Politiques de quorum</div>
-          <div class="muted tiny">Modèles par défaut réutilisables (single / evolving / double).</div>
+          <div class="muted tiny">Modeles par defaut reutilisables (single / evolving / double).</div>
         </div>
-        <button class="btn primary" id="newQuorumBtn">＋ Nouvelle</button>
+        <button class="btn primary" id="newQuorumBtn">+ Nouvelle</button>
       </div>
       <div class="hr"></div>
-      <div id="quorumList" class="stack"><div class="muted">Chargement…</div></div>
+      <div id="quorumList" class="stack"><div class="muted">Chargement...</div></div>
     </section>
 
     <section class="card" style="margin-bottom:12px;">
       <div class="row between">
         <div>
-          <div style="font-weight:700;">Politiques de majorité</div>
-          <div class="muted tiny">Règles de vote réutilisables (base / seuil / abstentions).</div>
+          <div style="font-weight:700;">Politiques de majorite</div>
+          <div class="muted tiny">Regles de vote reutilisables (base / seuil / abstentions).</div>
         </div>
-        <button class="btn primary" id="newVoteBtn">＋ Nouvelle</button>
+        <button class="btn primary" id="newVoteBtn">+ Nouvelle</button>
       </div>
       <div class="hr"></div>
-      <div id="voteList" class="stack"><div class="muted">Chargement…</div></div>
+      <div id="voteList" class="stack"><div class="muted">Chargement...</div></div>
     </section>
 
     <section class="card">
@@ -61,24 +132,37 @@
       <div class="hr"></div>
       <div class="row" style="gap:8px; flex-wrap:wrap;">
         <a class="btn" href="/api/v1/archives_list.php" target="_blank">API Archives (JSON)</a>
-        <a class="btn" href="/api/v1/admin_system_status.php" target="_blank">API Système (JSON)</a>
+        <a class="btn" href="/api/v1/admin_system_status.php" target="_blank">API Systeme (JSON)</a>
       </div>
     </section>
 
-  </div>
+    </div>
+  </main>
+
+  <div class="drawer-overlay" data-drawer-close hidden></div>
+  <aside class="drawer" hidden>
+    <div class="drawer-header">
+      <div class="drawer-title">Panneau</div>
+      <button class="icon-btn" data-drawer-close title="Fermer">&#10005;</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+</div>
 
   <!-- Modal simple -->
   <div id="modal" class="modal" style="display:none;">
     <div class="modal-backdrop" data-close="1"></div>
     <div class="modal-card">
       <div class="row between" style="margin-bottom:8px;">
-        <div style="font-weight:700;" id="modalTitle">Édition</div>
-        <button class="btn" data-close="1">✕</button>
+        <div style="font-weight:700;" id="modalTitle">Edition</div>
+        <button class="btn" data-close="1">&#10005;</button>
       </div>
       <div id="modalBody"></div>
     </div>
   </div>
 
   <script src="/assets/js/admin-page.js"></script>
+  <script src="/assets/js/shell.js"></script>
+  <script src="/assets/js/meeting-context.js"></script>
 </body>
 </html>
