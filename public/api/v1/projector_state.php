@@ -1,6 +1,7 @@
 <?php
 // public/api/v1/projector_state.php
 // Etat compact pour l'écran projecteur (ACTIVE/CLOSED/IDLE) + gestion vote secret.
+// Supporte ?meeting_id= pour cibler une séance explicite.
 
 require __DIR__ . '/../../../app/api.php';
 
@@ -16,24 +17,52 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 try {
     $meetingRepo = new MeetingRepository();
     $motionRepo  = new MotionRepository();
+    $tenantId    = api_current_tenant_id();
 
-    // Séance "courante" pour le tenant : privilégie live, puis closed, puis draft.
-    $meeting = $meetingRepo->findCurrentForTenant(api_current_tenant_id());
+    $requestedId = trim((string)($_GET['meeting_id'] ?? ''));
 
-    if (!$meeting) {
-        api_fail('no_live_meeting', 404);
+    // --- Meeting resolution ---
+    if ($requestedId !== '') {
+        // Explicit meeting_id: show it as long as it's not archived
+        $meeting = $meetingRepo->findByIdForTenant($requestedId, $tenantId);
+        if (!$meeting || ($meeting['status'] ?? '') === 'archived') {
+            api_fail('meeting_not_found', 404);
+        }
+        $meetingId     = (string)$meeting['id'];
+        $meetingTitle  = (string)$meeting['title'];
+        $meetingStatus = (string)$meeting['status'];
+    } else {
+        // Auto-detect: only live meetings
+        $liveMeetings = $meetingRepo->listLiveForTenant($tenantId);
+
+        if (count($liveMeetings) === 0) {
+            api_fail('no_live_meeting', 404);
+        }
+
+        if (count($liveMeetings) > 1) {
+            // Multiple live meetings — frontend must choose
+            api_ok([
+                'choose'   => true,
+                'meetings' => array_map(fn($m) => [
+                    'id'         => (string)$m['id'],
+                    'title'      => (string)$m['title'],
+                    'started_at' => (string)($m['started_at'] ?? ''),
+                ], $liveMeetings),
+            ]);
+        }
+
+        // Single live meeting — auto-select
+        $m = $liveMeetings[0];
+        $meetingId     = (string)$m['id'];
+        $meetingTitle  = (string)$m['title'];
+        $meetingStatus = 'live';
     }
 
-    $meetingId = (string)$meeting['meeting_id'];
-    $tenantId  = api_current_tenant_id();
-
-    // Motion ouverte (ACTIVE) : opened_at non null & closed_at null.
-    $open = $motionRepo->findOpenForProjector($meetingId);
-
-    // Dernière motion clôturée (CLOSED) : closed_at non null.
+    // --- Motion state ---
+    $open   = $motionRepo->findOpenForProjector($meetingId);
     $closed = $motionRepo->findLastClosedForProjector($meetingId);
 
-    $phase = 'idle';
+    $phase  = 'idle';
     $motion = null;
 
     if ($open) {
@@ -64,8 +93,8 @@ try {
 
     api_ok([
         'meeting_id'     => $meetingId,
-        'meeting_title'  => (string)$meeting['meeting_title'],
-        'meeting_status' => (string)$meeting['meeting_status'],
+        'meeting_title'  => $meetingTitle,
+        'meeting_status' => $meetingStatus,
         'phase'          => $phase,
         'motion'         => $motion,
         'total_motions'  => $totalMotions,

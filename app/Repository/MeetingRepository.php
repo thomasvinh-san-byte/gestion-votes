@@ -360,6 +360,20 @@ class MeetingRepository extends AbstractRepository
         ) ?? 0);
     }
 
+    /**
+     * Liste les seances live d'un tenant (pour le selecteur projecteur).
+     */
+    public function listLiveForTenant(string $tenantId): array
+    {
+        return $this->selectAll(
+            "SELECT id, title, started_at
+             FROM meetings
+             WHERE tenant_id = :tid AND status = 'live'
+             ORDER BY started_at DESC NULLS LAST, created_at DESC",
+            [':tid' => $tenantId]
+        );
+    }
+
     // =========================================================================
     // ECRITURE
     // =========================================================================
