@@ -18,11 +18,7 @@ try {
     api_require_role(['operator', 'president', 'admin']);
     
     $input = api_request('POST');
-    
-    $meetingId = trim((string)($input['meeting_id'] ?? ''));
-    if ($meetingId === '') {
-        throw new InvalidArgumentException('meeting_id requis');
-    }
+    $meetingId = api_require_uuid($input, 'meeting_id');
     
     // Pass tenant context for security validation
     $tenantId = api_current_tenant_id();

@@ -9,9 +9,8 @@ use AgVote\Service\SpeechService;
 try {
     api_require_role(['operator','trust','president','admin']);
     $data = api_request('POST');
-    $meetingId = trim((string)($data['meeting_id'] ?? ''));
-    $requestId = trim((string)($data['request_id'] ?? ''));
-    if ($meetingId===''||$requestId==='') throw new InvalidArgumentException('meeting_id et request_id requis');
+    $meetingId = api_require_uuid($data, 'meeting_id');
+    $requestId = api_require_uuid($data, 'request_id');
 
     $tenantId = api_current_tenant_id();
     $out = SpeechService::cancelRequest($meetingId, $requestId, $tenantId);

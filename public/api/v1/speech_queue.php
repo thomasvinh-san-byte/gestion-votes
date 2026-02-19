@@ -9,8 +9,7 @@ use AgVote\Service\SpeechService;
 try {
     api_require_role('public');
     $q = api_request('GET');
-    $meetingId = trim((string)($q['meeting_id'] ?? ''));
-    if ($meetingId === '') throw new InvalidArgumentException('meeting_id requis');
+    $meetingId = api_require_uuid($q, 'meeting_id');
     $out = SpeechService::getQueue($meetingId);
 
     // Process queue with frontend-expected field aliases

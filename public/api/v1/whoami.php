@@ -1,29 +1,20 @@
 <?php
 require __DIR__ . '/../../../app/api.php';
 
-// Toujours JSON
-header('Content-Type: application/json; charset=utf-8');
-
 $enabled = AuthMiddleware::isEnabled();
 if (!$enabled) {
-  echo json_encode([
-    'ok' => true,
+  api_ok([
     'auth_enabled' => false,
     'user' => null
   ]);
-  exit;
 }
 
 $user = AuthMiddleware::authenticate();
 if ($user === null) {
-  http_response_code(401);
-  echo json_encode(['ok'=>false,'error'=>'missing_or_invalid_api_key','auth_enabled'=>true]);
-  exit;
+  api_fail('missing_or_invalid_api_key', 401, ['auth_enabled' => true]);
 }
 if (!$user['is_active']) {
-  http_response_code(401);
-  echo json_encode(['ok'=>false,'error'=>'user_inactive','auth_enabled'=>true]);
-  exit;
+  api_fail('user_inactive', 401, ['auth_enabled' => true]);
 }
 
 // Charger les rôles de séance actifs
@@ -51,17 +42,14 @@ try {
     // best effort
 }
 
-echo json_encode([
-  'ok' => true,
+api_ok([
   'auth_enabled' => true,
-  'data' => [
-    'user' => [
-      'id' => $user['id'],
-      'email' => $user['email'],
-      'name' => $user['name'],
-      'role' => $user['role'],
-    ],
-    'member' => $linkedMember,
-    'meeting_roles' => $meetingRoles,
-  ]
+  'user' => [
+    'id' => $user['id'],
+    'email' => $user['email'],
+    'name' => $user['name'],
+    'role' => $user['role'],
+  ],
+  'member' => $linkedMember,
+  'meeting_roles' => $meetingRoles,
 ]);

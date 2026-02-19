@@ -6,12 +6,11 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\DeviceRepository;
 
-header('Content-Type: application/json; charset=utf-8');
-
 api_require_role(['operator','admin','trust']);
 
+$q = api_request('GET');
 $tenantId = api_current_tenant_id();
-$meetingId = isset($_GET['meeting_id']) ? (string)$_GET['meeting_id'] : '';
+$meetingId = (string)($q['meeting_id'] ?? '');
 
 try {
   $repo = new DeviceRepository();
@@ -50,8 +49,7 @@ try {
     ];
   }
 
-  echo json_encode(['ok'=>true,'counts'=>$counts,'items'=>$items]);
+  api_ok(['counts' => $counts, 'items' => $items]);
 } catch (Throwable $e) {
-  http_response_code(500);
-  echo json_encode(['ok'=>false,'error'=>'server_error']);
+  api_fail('server_error', 500);
 }

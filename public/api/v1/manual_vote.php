@@ -17,26 +17,7 @@ use AgVote\Repository\ManualActionRepository;
 
 api_require_role('operator');
 
-header('Content-Type: application/json; charset=utf-8');
-
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if ($method !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'method_not_allowed']);
-    exit;
-}
-
-$raw = $GLOBALS['__ag_vote_raw_body'] ?? (file_get_contents('php://input') ?: '');
-$data = [];
-$ct = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
-
-if (is_string($ct) && stripos($ct, 'application/json') !== false) {
-    $data = json_decode($raw, true);
-    if (!is_array($data)) $data = [];
-} else {
-    // fallback form-encoded
-    $data = $_POST ?? [];
-}
+$data = api_request('POST');
 
 // SECURITY: Always use current authenticated tenant - never from input
 $tenantId  = api_current_tenant_id();
@@ -47,14 +28,10 @@ $voteUi    = trim((string)($data['vote'] ?? ''));
 $justif    = trim((string)($data['justification'] ?? ''));
 
 if ($meetingId === '' || $motionId === '' || $memberId === '') {
-    http_response_code(400);
-    echo json_encode(['error' => 'missing_fields', 'required' => ['meeting_id','motion_id','member_id']]);
-    exit;
+    api_fail('missing_fields', 400, ['required' => ['meeting_id','motion_id','member_id']]);
 }
 if ($justif === '') {
-    http_response_code(400);
-    echo json_encode(['error' => 'missing_justification']);
-    exit;
+    api_fail('missing_justification', 400);
 }
 
 // Mapping identique à vote.php (UI FR -> ENUM DB)
@@ -70,9 +47,7 @@ $map = [
     'nsp' => 'nsp',
 ];
 if (!isset($map[$voteUi])) {
-    http_response_code(400);
-    echo json_encode(['error' => 'invalid_vote']);
-    exit;
+    api_fail('invalid_vote', 400);
 }
 $value = $map[$voteUi];
 
@@ -85,33 +60,23 @@ $manualRepo  = new ManualActionRepository();
 // 1) Vérifs intégrité
 $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
 if (!$meeting) {
-    http_response_code(404);
-    echo json_encode(['error' => 'meeting_not_found']);
-    exit;
+    api_fail('meeting_not_found', 404);
 }
 if (!empty($meeting['validated_at'])) {
-    http_response_code(409);
-    echo json_encode(['error' => 'meeting_validated']);
-    exit;
+    api_fail('meeting_validated', 409);
 }
 
 $motion = $motionRepo->findForMeetingWithState($tenantId, $motionId, $meetingId);
 if (!$motion) {
-    http_response_code(404);
-    echo json_encode(['error' => 'motion_not_found']);
-    exit;
+    api_fail('motion_not_found', 404);
 }
 if (empty($motion['opened_at']) || !empty($motion['closed_at'])) {
-    http_response_code(409);
-    echo json_encode(['error' => 'motion_not_open']);
-    exit;
+    api_fail('motion_not_open', 409);
 }
 
 $member = $memberRepo->findActiveWithWeight($tenantId, $memberId);
 if (!$member) {
-    http_response_code(404);
-    echo json_encode(['error' => 'member_not_found']);
-    exit;
+    api_fail('member_not_found', 404);
 }
 
 $weight = (string)($member['vote_weight'] ?? '1.0');
@@ -143,13 +108,11 @@ try {
 
     db()->commit();
 
-    echo json_encode([
-        'ok' => true,
+    api_ok([
         'ballot_id' => $ballotId,
         'value' => $value,
         'source' => 'manual',
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
+    ]);
 
 } catch (Throwable $e) {
     db()->rollBack();
@@ -157,12 +120,8 @@ try {
     // Contrainte UNIQUE (motion_id, member_id) => déjà voté (tablet / manual / etc.)
     $msg = $e->getMessage();
     if (stripos($msg, 'unique') !== false || stripos($msg, 'ballots_motion_id_member_id') !== false) {
-        http_response_code(409);
-        echo json_encode(['error' => 'already_voted'], JSON_UNESCAPED_UNICODE);
-        exit;
+        api_fail('already_voted', 409);
     }
 
-    http_response_code(500);
-    echo json_encode(['error' => 'server_error', 'detail' => 'manual_vote_failed'], JSON_UNESCAPED_UNICODE);
-    exit;
+    api_fail('server_error', 500, ['detail' => 'manual_vote_failed']);
 }

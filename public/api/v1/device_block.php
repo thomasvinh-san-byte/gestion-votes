@@ -6,11 +6,9 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\DeviceRepository;
 
-header('Content-Type: application/json; charset=utf-8');
 api_require_role(['operator', 'admin']);
 
-$in = json_decode(file_get_contents('php://input') ?: '[]', true);
-if (!is_array($in)) $in = [];
+$in = api_request('POST');
 
 $tenantId  = api_current_tenant_id();
 $meetingId = (string)($in['meeting_id'] ?? '');
@@ -19,9 +17,7 @@ $reason    = trim((string)($in['reason'] ?? ''));
 if ($reason === '') $reason = 'blocked_by_operator';
 
 if ($deviceId === '') {
-  http_response_code(400);
-  echo json_encode(['ok'=>false,'error'=>'missing_device_id']);
-  exit;
+  api_fail('missing_device_id', 400);
 }
 
 try {
@@ -46,8 +42,7 @@ try {
     ]);
   }
 
-  echo json_encode(['ok'=>true]);
+  api_ok([]);
 } catch (Throwable $e) {
-  http_response_code(500);
-  echo json_encode(['ok'=>false,'error'=>'server_error']);
+  api_fail('server_error', 500);
 }

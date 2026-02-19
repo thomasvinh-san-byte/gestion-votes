@@ -9,8 +9,7 @@ use AgVote\Service\SpeechService;
 try {
     api_require_role(['operator','trust','president','admin']);
     $data = api_request('POST');
-    $meetingId = trim((string)($data['meeting_id'] ?? ''));
-    if ($meetingId==='') throw new InvalidArgumentException('meeting_id requis');
+    $meetingId = api_require_uuid($data, 'meeting_id');
 
     // Pass tenant context for security validation
     $tenantId = api_current_tenant_id();

@@ -878,23 +878,22 @@
     if (!currentMeetingId) return;
 
     try {
-      const resp = await fetch(`/api/v1/devices_list.php?meeting_id=${currentMeetingId}`, { credentials: 'same-origin' });
-      const data = await resp.json();
+      const { body } = await api(`/api/v1/devices_list.php?meeting_id=${currentMeetingId}`);
 
-      if (!data.ok) return;
+      if (!body?.ok) return;
 
       // Show card
       const card = document.getElementById('devicesCard');
       if (card) Shared.show(card, 'block');
 
-      const counts = data.counts || {};
+      const counts = body.data?.counts || {};
       setText('devOnline', counts.online ?? 0);
       setText('devStale', counts.stale ?? 0);
       setText('devOffline', counts.offline ?? 0);
       setText('devBlocked', counts.blocked ?? 0);
 
       // Device list (show first 5)
-      const items = data.items || [];
+      const items = body.data?.items || [];
       const list = document.getElementById('devicesList');
 
       if (items.length === 0) {
@@ -946,15 +945,14 @@
     const list = modal.querySelector('#devicesModalList');
 
     try {
-      const resp = await fetch(`/api/v1/devices_list.php?meeting_id=${currentMeetingId}`, { credentials: 'same-origin' });
-      const data = await resp.json();
+      const { body } = await api(`/api/v1/devices_list.php?meeting_id=${currentMeetingId}`);
 
-      if (!data.ok || !data.items?.length) {
+      if (!body?.ok || !body.data?.items?.length) {
         list.innerHTML = '<div class="text-center p-4 text-muted">Aucun appareil connecté</div>';
         return;
       }
 
-      list.innerHTML = data.items.map(dev => {
+      list.innerHTML = body.data.items.map(dev => {
         const statusIcon = dev.status === 'online' ? icon('circle', 'icon-xs icon-success') : dev.status === 'stale' ? icon('circle', 'icon-xs icon-warning') : icon('circle', 'icon-xs icon-muted');
         const blocked = dev.is_blocked;
         const battery = dev.battery_pct !== null ? `${icon('battery', 'icon-xs')} ${dev.battery_pct}%${dev.is_charging ? icon('zap', 'icon-xs') : ''}` : '';
@@ -1237,6 +1235,8 @@
         return;
       }
 
+      const btn = document.getElementById('btnConfirmAssessor');
+      Shared.btnLoading(btn, true);
       try {
         await api('/api/v1/admin_meeting_roles.php', {
           action: 'assign',
@@ -1249,6 +1249,8 @@
         modal.remove();
       } catch (err) {
         setNotif('error', err.message);
+      } finally {
+        Shared.btnLoading(btn, false);
       }
     };
   }
@@ -2147,6 +2149,7 @@
           setNotif('error', 'Sélectionnez un membre');
           return;
         }
+        Shared.btnLoading(btnConfirm, true);
         try {
           await api('/api/v1/speech_request.php', {
             meeting_id: currentMeetingId,
@@ -2157,6 +2160,8 @@
           loadSpeechQueue();
         } catch (err) {
           setNotif('error', err.message);
+        } finally {
+          Shared.btnLoading(btnConfirm, false);
         }
       };
     }
@@ -2401,6 +2406,8 @@
         return;
       }
 
+      const btn = document.getElementById('btnSaveEdit');
+      Shared.btnLoading(btn, true);
       try {
         const { body } = await api('/api/v1/motions.php', {
           motion_id: motionId,
@@ -2419,6 +2426,8 @@
         }
       } catch (err) {
         setNotif('error', err.message);
+      } finally {
+        Shared.btnLoading(btn, false);
       }
     };
 
