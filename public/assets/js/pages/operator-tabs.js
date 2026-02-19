@@ -149,6 +149,41 @@
   }
 
   // =========================================================================
+  // CONFIRM MODAL HELPER (uses Shared.openModal for standardized modals)
+  // =========================================================================
+
+  /**
+   * Show a confirm/cancel modal and return a Promise<boolean>.
+   * @param {Object} opts
+   * @param {string} opts.title - Modal title
+   * @param {string} opts.body - Body HTML
+   * @param {string} [opts.confirmText='Confirmer'] - Confirm button text
+   * @param {string} [opts.confirmClass='btn-primary'] - Confirm button class
+   * @returns {Promise<boolean>}
+   */
+  function confirmModal({ title, body, confirmText = 'Confirmer', confirmClass = 'btn-primary' }) {
+    return new Promise(resolve => {
+      let resolved = false;
+      const m = Shared.openModal({
+        title,
+        body,
+        confirmText,
+        confirmClass,
+        onConfirm() {
+          resolved = true;
+          resolve(true);
+        }
+      });
+      // When modal is closed without confirming (Escape, backdrop, Cancel)
+      const origClose = m._close;
+      m._close = function() {
+        origClose.call(this);
+        if (!resolved) resolve(false);
+      };
+    });
+  }
+
+  // =========================================================================
   // TAB NAVIGATION
   // =========================================================================
 
@@ -457,7 +492,7 @@
       membersCache = body?.data?.members || [];
       renderMembersCard();
     } catch (err) {
-      console.warn('loadMembers:', err.message);
+      setNotif('error', 'Erreur chargement membres');
     }
   }
 
@@ -509,8 +544,8 @@
     const btnCancel = document.getElementById('btnCancelMember');
     const btnConfirm = document.getElementById('btnConfirmMember');
 
-    btnCancel.onclick = () => closeModal(modal);
-    btnConfirm.onclick = async () => {
+    btnCancel.addEventListener('click', () => closeModal(modal));
+    btnConfirm.addEventListener('click', async () => {
       const name = document.getElementById('newMemberName').value.trim();
       const email = document.getElementById('newMemberEmail').value.trim();
 
@@ -541,7 +576,7 @@
         btnCancel.disabled = false;
         btnConfirm.textContent = originalText;
       }
-    };
+    });
   }
 
   // =========================================================================
@@ -725,7 +760,7 @@
         document.getElementById('settingConvocation').value = currentMeeting.convocation_no || 1;
       }
     } catch (err) {
-      console.warn('loadPolicies:', err.message);
+      setNotif('error', 'Erreur chargement politiques');
     }
   }
 
@@ -768,7 +803,7 @@
       // Assessors list
       renderAssessors(assessors);
     } catch (err) {
-      console.warn('loadRoles:', err.message);
+      setNotif('error', 'Erreur chargement rôles');
     }
   }
 
@@ -791,24 +826,44 @@
     }).join('');
   }
 
+  // Render assessors in wizard Step 4 context
+  async function renderWizAssessors() {
+    const container = document.getElementById('wizAssessorsList');
+    if (!container) return;
+    try {
+      const { body } = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`);
+      const roles = body?.data?.items || [];
+      const assessors = roles.filter(r => r.role === 'assessor');
+      if (!assessors.length) {
+        container.innerHTML = '<span class="text-muted text-sm">Aucun assesseur</span>';
+        return;
+      }
+      container.innerHTML = assessors.map(a => {
+        const user = usersCache.find(u => u.id === a.user_id);
+        const name = user ? (user.name || user.email) : a.user_id;
+        return `
+          <div class="flex items-center justify-between gap-2 p-2 bg-subtle rounded">
+            <span>${escapeHtml(name)}</span>
+            <button class="btn btn-sm btn-ghost text-danger" data-remove-assessor="${escapeHtml(a.user_id)}" title="Retirer" aria-label="Retirer ${escapeHtml(name)}">&#10005;</button>
+          </div>
+        `;
+      }).join('');
+    } catch {
+      // Silently fail — list will show placeholder
+    }
+  }
+
   // Delegated handler for assessor removal (replaces inline onclick)
   document.addEventListener('click', async function(e) {
     const btn = e.target.closest('[data-remove-assessor]');
     if (!btn) return;
     const userId = btn.getAttribute('data-remove-assessor');
     if (!userId) return;
-    const confirmed = await new Promise(resolve => {
-      const m = createModal({
-        id: 'removeAssessorModal',
-        title: 'Retirer l\'assesseur',
-        content: `<p>Retirer cet assesseur de la séance ?</p>
-          <div class="flex gap-3 justify-end mt-4">
-            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-danger" data-action="confirm">Retirer</button>
-          </div>`
-      });
-      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
-      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    const confirmed = await confirmModal({
+      title: 'Retirer l\'assesseur',
+      body: '<p>Retirer cet assesseur de la séance ?</p>',
+      confirmText: 'Retirer',
+      confirmClass: 'btn-danger'
     });
     if (!confirmed) return;
     btn.disabled = true;
@@ -821,6 +876,7 @@
       });
       setNotif('success', 'Assesseur retiré');
       loadRoles();
+      renderWizAssessors();
     } catch (err) {
       setNotif('error', err.message);
     } finally {
@@ -855,9 +911,9 @@
         Shared.show(motionDiv, 'block');
         document.getElementById('dashMotionTitle').textContent = d.current_motion.title || '—';
         const votes = d.current_motion_votes || {};
-        document.getElementById('dashVoteFor').textContent = votes.weight_for ?? 0;
-        document.getElementById('dashVoteAgainst').textContent = votes.weight_against ?? 0;
-        document.getElementById('dashVoteAbstain').textContent = votes.weight_abstain ?? 0;
+        document.getElementById('dashVoteFor').textContent = Shared.formatWeight(votes.weight_for ?? 0);
+        document.getElementById('dashVoteAgainst').textContent = Shared.formatWeight(votes.weight_against ?? 0);
+        document.getElementById('dashVoteAbstain').textContent = Shared.formatWeight(votes.weight_abstain ?? 0);
       } else {
         Shared.hide(motionDiv);
       }
@@ -870,7 +926,7 @@
         document.getElementById('dashReadyReasons').innerHTML = ready.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('');
       }
     } catch (err) {
-      console.warn('loadDashboard:', err.message);
+      setNotif('error', 'Erreur chargement tableau de bord');
     }
   }
 
@@ -913,7 +969,7 @@
         }
       }
     } catch (err) {
-      console.warn('loadDevices:', err.message);
+      setNotif('error', 'Erreur chargement appareils');
     }
   }
 
@@ -935,7 +991,7 @@
     `;
 
     document.body.appendChild(modal);
-    document.getElementById('btnCloseDevices').onclick = () => modal.remove();
+    document.getElementById('btnCloseDevices').addEventListener('click', () => modal.remove());
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
     loadDevicesModal(modal);
@@ -1081,7 +1137,7 @@
       document.getElementById('tabCountResolutions').textContent = d.motions_total || 0;
       document.getElementById('tabCountPresences').textContent = d.present_count || 0;
     } catch (err) {
-      console.warn('loadStatusChecklist:', err.message);
+      setNotif('error', 'Erreur chargement checklist');
     }
   }
 
@@ -1205,11 +1261,11 @@
     modal.className = 'modal-backdrop';
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
 
-    const availableUsers = usersCache.filter(u => {
-      // Exclude current president
-      const presId = document.getElementById('settingPresident').value;
-      return u.id !== presId;
-    });
+    // Support both wizard and advanced contexts
+    const wizPres = document.getElementById('wizPresident');
+    const settPres = document.getElementById('settingPresident');
+    const presId = (wizPres && !wizPres.closest('[hidden]')) ? wizPres.value : settPres?.value;
+    const availableUsers = usersCache.filter(u => u.id !== presId);
 
     modal.innerHTML = `
       <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:400px;width:90%;">
@@ -1227,8 +1283,8 @@
 
     document.body.appendChild(modal);
 
-    document.getElementById('btnCancelAssessor').onclick = () => modal.remove();
-    document.getElementById('btnConfirmAssessor').onclick = async () => {
+    document.getElementById('btnCancelAssessor').addEventListener('click', () => modal.remove());
+    document.getElementById('btnConfirmAssessor').addEventListener('click', async () => {
       const userId = document.getElementById('assessorSelect').value;
       if (!userId) {
         setNotif('error', 'Sélectionnez un utilisateur');
@@ -1246,13 +1302,14 @@
         });
         setNotif('success', 'Assesseur ajouté');
         loadRoles();
+        renderWizAssessors();
         modal.remove();
       } catch (err) {
         setNotif('error', err.message);
       } finally {
         Shared.btnLoading(btn, false);
       }
-    };
+    });
   }
 
   // =========================================================================
@@ -1265,7 +1322,7 @@
       attendanceCache = body?.data?.attendances || [];
       renderAttendance();
     } catch (err) {
-      console.warn('loadAttendance:', err.message);
+      setNotif('error', 'Erreur chargement présences');
     }
   }
 
@@ -1374,18 +1431,9 @@
   }
 
   async function markAllPresent() {
-    const confirmed = await new Promise(resolve => {
-      const m = createModal({
-        id: 'markAllPresentModal',
-        title: 'Marquer tous présents',
-        content: `<p>Marquer tous les membres comme <strong>présents</strong> ?</p>
-          <div class="flex gap-3 justify-end mt-4">
-            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-primary" data-action="confirm">Confirmer</button>
-          </div>`
-      });
-      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
-      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    const confirmed = await confirmModal({
+      title: 'Marquer tous présents',
+      body: '<p>Marquer tous les membres comme <strong>présents</strong> ?</p>'
     });
     if (!confirmed) return;
     try {
@@ -1448,7 +1496,7 @@
     }
 
     // Preview button handler
-    btnPreview.onclick = async () => {
+    btnPreview.addEventListener('click', async () => {
       const csvContent = await getCSVContent();
 
       if (!csvContent) {
@@ -1470,16 +1518,16 @@
       if (!hasValidRows) {
         setNotif('warning', 'Aucune donnée valide trouvée');
       }
-    };
+    });
 
     // Auto-preview when file is selected
-    document.getElementById('csvFileInput').onchange = () => {
+    document.getElementById('csvFileInput').addEventListener('change', () => {
       btnPreview.click();
-    };
+    });
 
-    document.getElementById('btnCancelImport').onclick = () => modal.remove();
+    document.getElementById('btnCancelImport').addEventListener('click', () => modal.remove());
 
-    btnConfirm.onclick = async () => {
+    btnConfirm.addEventListener('click', async () => {
       const csvContent = await getCSVContent();
 
       if (!csvContent) {
@@ -1520,7 +1568,7 @@
         btnConfirm.disabled = false;
         btnConfirm.textContent = 'Importer';
       }
-    };
+    });
   }
 
   // =========================================================================
@@ -1535,7 +1583,7 @@
       proxiesCache = body?.data?.proxies || body?.proxies || [];
       renderProxies();
     } catch (err) {
-      console.warn('loadProxies:', err.message);
+      setNotif('error', 'Erreur chargement procurations');
     }
   }
 
@@ -1601,18 +1649,11 @@
   }
 
   async function revokeProxy(giverId) {
-    const confirmed = await new Promise(resolve => {
-      const m = createModal({
-        id: 'revokeProxyModal',
-        title: 'Révoquer la procuration',
-        content: `<p>Révoquer cette procuration ?</p>
-          <div class="flex gap-3 justify-end mt-4">
-            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-danger" data-action="confirm">Révoquer</button>
-          </div>`
-      });
-      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
-      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    const confirmed = await confirmModal({
+      title: 'Révoquer la procuration',
+      body: '<p>Révoquer cette procuration ?</p>',
+      confirmText: 'Révoquer',
+      confirmClass: 'btn-danger'
     });
     if (!confirmed) return;
 
@@ -1733,8 +1774,8 @@
       const btnCancel = document.getElementById('btnCancelProxy');
       const btnConfirm = document.getElementById('btnConfirmProxy');
 
-      if (btnCancel) btnCancel.onclick = () => modal.remove();
-      if (btnConfirm) btnConfirm.onclick = async () => {
+      if (btnCancel) btnCancel.addEventListener('click', () => modal.remove());
+      if (btnConfirm) btnConfirm.addEventListener('click', async () => {
         const giverId = document.getElementById('proxyGiverSelect').value;
         const receiverId = document.getElementById('proxyReceiverSelect').value;
 
@@ -1779,9 +1820,9 @@
           btnCancel.disabled = false;
           btnConfirm.textContent = originalText;
         }
-      };
+      });
     } catch (err) {
-      console.error('Error in showAddProxyModal:', err);
+      setNotif('error', 'Erreur ouverture modale procuration');
       setNotif('error', 'Erreur lors de l\'ouverture du formulaire: ' + err.message);
     }
   }
@@ -1846,7 +1887,7 @@
       return csvContent;
     }
 
-    btnPreview.onclick = async () => {
+    btnPreview.addEventListener('click', async () => {
       const csvContent = await getCSVContent();
       if (!csvContent) {
         setNotif('error', 'Aucun contenu à prévisualiser');
@@ -1872,12 +1913,12 @@
       previewContainer.innerHTML = html;
       Shared.show(previewContainer, 'block');
       btnConfirm.disabled = validCount === 0;
-    };
+    });
 
-    document.getElementById('csvProxyFileInput').onchange = () => btnPreview.click();
-    document.getElementById('btnCancelProxyImport').onclick = () => modal.remove();
+    document.getElementById('csvProxyFileInput').addEventListener('change', () => btnPreview.click());
+    document.getElementById('btnCancelProxyImport').addEventListener('click', () => modal.remove());
 
-    btnConfirm.onclick = async () => {
+    btnConfirm.addEventListener('click', async () => {
       const csvContent = await getCSVContent();
       if (!csvContent) {
         setNotif('error', 'Aucun contenu à importer');
@@ -1918,7 +1959,7 @@
         btnConfirm.disabled = false;
         btnConfirm.textContent = 'Importer';
       }
-    };
+    });
   }
 
   // =========================================================================
@@ -1960,7 +2001,7 @@
       const countEl = document.getElementById('tabCountSpeech');
       if (countEl) countEl.textContent = speechQueueCache.length;
     } catch (err) {
-      console.warn('loadSpeechQueue:', err.message);
+      setNotif('error', 'Erreur chargement file de parole');
     }
   }
 
@@ -2086,18 +2127,11 @@
   }
 
   async function clearSpeechHistory() {
-    const confirmed = await new Promise(resolve => {
-      const m = createModal({
-        id: 'clearSpeechModal',
-        title: 'Vider l\'historique',
-        content: `<p>Vider l'historique des prises de parole ?</p>
-          <div class="flex gap-3 justify-end mt-4">
-            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-danger" data-action="confirm">Vider</button>
-          </div>`
-      });
-      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
-      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    const confirmed = await confirmModal({
+      title: 'Vider l\'historique',
+      body: '<p>Vider l\'historique des prises de parole ?</p>',
+      confirmText: 'Vider',
+      confirmClass: 'btn-danger'
     });
     if (!confirmed) return;
     try {
@@ -2139,11 +2173,11 @@
       `
     });
 
-    document.getElementById('btnCancelAddSpeech').onclick = () => closeModal(modal);
+    document.getElementById('btnCancelAddSpeech').addEventListener('click', () => closeModal(modal));
 
     const btnConfirm = document.getElementById('btnConfirmAddSpeech');
     if (btnConfirm) {
-      btnConfirm.onclick = async () => {
+      btnConfirm.addEventListener('click', async () => {
         const memberId = document.getElementById('addSpeechSelect').value;
         if (!memberId) {
           setNotif('error', 'Sélectionnez un membre');
@@ -2163,7 +2197,7 @@
         } finally {
           Shared.btnLoading(btnConfirm, false);
         }
-      };
+      });
     }
   }
 
@@ -2179,7 +2213,7 @@
       renderResolutions();
       document.getElementById('tabCountResolutions').textContent = motionsCache.length;
     } catch (err) {
-      console.warn('loadResolutions:', err.message);
+      setNotif('error', 'Erreur chargement résolutions');
     }
   }
 
@@ -2394,9 +2428,9 @@
 
     document.body.appendChild(modal);
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-    document.getElementById('btnCancelEdit').onclick = () => modal.remove();
+    document.getElementById('btnCancelEdit').addEventListener('click', () => modal.remove());
 
-    document.getElementById('btnSaveEdit').onclick = async () => {
+    document.getElementById('btnSaveEdit').addEventListener('click', async () => {
       const title = document.getElementById('editResolutionTitle').value.trim();
       const description = document.getElementById('editResolutionDesc').value.trim();
       const secret = document.getElementById('editResolutionSecret').checked;
@@ -2429,7 +2463,7 @@
       } finally {
         Shared.btnLoading(btn, false);
       }
-    };
+    });
 
     // Focus on title
     document.getElementById('editResolutionTitle').focus();
@@ -2571,7 +2605,7 @@
       setText('liveVoteAgainst', againstCount);
       setText('liveVoteAbstain', abstainCount);
     } catch (err) {
-      console.warn('loadBallots:', err.message);
+      setNotif('error', 'Erreur chargement bulletins');
     }
   }
 
@@ -2975,12 +3009,16 @@
       // P2-5: Proclamation explicite des résultats
       const closedMotion = motionsCache.find(m => String(m.id) === String(motionId));
       if (closedMotion) {
-        const cFor = closedMotion.votes_for || 0;
-        const cAgainst = closedMotion.votes_against || 0;
-        const cAbstain = closedMotion.votes_abstain || 0;
-        const cBlanc = closedMotion.votes_blank || 0;
-        const cTotal = cFor + cAgainst + cAbstain + cBlanc;
-        const adopted = cFor > cAgainst;
+        const rFor = parseFloat(closedMotion.votes_for) || 0;
+        const rAgainst = parseFloat(closedMotion.votes_against) || 0;
+        const rAbstain = parseFloat(closedMotion.votes_abstain) || 0;
+        const rBlanc = parseFloat(closedMotion.votes_blank) || 0;
+        const cFor = Shared.formatWeight(rFor);
+        const cAgainst = Shared.formatWeight(rAgainst);
+        const cAbstain = Shared.formatWeight(rAbstain);
+        const cBlanc = Shared.formatWeight(rBlanc);
+        const cTotal = Shared.formatWeight(rFor + rAgainst + rAbstain + rBlanc);
+        const adopted = rFor > rAgainst;
         const resultText = adopted ? 'ADOPTÉE' : 'REJETÉE';
         const resultColor = adopted ? 'var(--color-success)' : 'var(--color-danger)';
         const resultIcon = adopted ? 'check-circle' : 'x-circle';
@@ -3000,9 +3038,9 @@
                 <span><strong style="color:var(--color-success)">${cFor}</strong> Pour</span>
                 <span><strong style="color:var(--color-danger)">${cAgainst}</strong> Contre</span>
                 <span><strong style="color:var(--color-text-muted)">${cAbstain}</strong> Abstention</span>
-                ${cBlanc > 0 ? `<span><strong style="color:var(--color-text-muted)">${cBlanc}</strong> Blanc</span>` : ''}
+                ${rBlanc > 0 ? `<span><strong style="color:var(--color-text-muted)">${cBlanc}</strong> Blanc</span>` : ''}
               </div>
-              <p style="color:var(--color-text-muted);font-size:0.9rem;">${cTotal} vote${cTotal !== 1 ? 's' : ''} exprimé${cTotal !== 1 ? 's' : ''}</p>
+              <p style="color:var(--color-text-muted);font-size:0.9rem;">${cTotal} vote${cTotal !== '1' ? 's' : ''} exprimé${cTotal !== '1' ? 's' : ''}</p>
               <button class="btn btn-primary" data-action="close-proclamation" style="margin-top:1rem;">Fermer</button>
             </div>
           `
@@ -3033,9 +3071,9 @@
     const list = document.getElementById('resultsDetailList');
     list.innerHTML = motionsCache.map((m, i) => {
       const isClosed = !!m.closed_at;
-      const vFor = m.votes_for || 0;
-      const vAgainst = m.votes_against || 0;
-      const vAbstain = m.votes_abstain || 0;
+      const vFor = parseFloat(m.votes_for) || 0;
+      const vAgainst = parseFloat(m.votes_against) || 0;
+      const vAbstain = parseFloat(m.votes_abstain) || 0;
       const total = vFor + vAgainst + vAbstain;
       const pct = total > 0 ? Math.round((vFor / total) * 100) : 0;
       const status = !isClosed ? 'En attente' : (vFor > vAgainst ? 'Adoptée' : 'Rejetée');
@@ -3049,9 +3087,9 @@
           </div>
           ${isClosed ? `
             <div style="display:flex;gap:2rem;margin-top:1rem;font-size:1.1rem;">
-              <span style="color:var(--color-success)">${icon('check', 'icon-sm')} ${vFor}</span>
-              <span style="color:var(--color-danger)">${icon('x', 'icon-sm')} ${vAgainst}</span>
-              <span style="color:var(--color-text-muted)">${icon('minus', 'icon-sm')} ${vAbstain}</span>
+              <span style="color:var(--color-success)">${icon('check', 'icon-sm')} ${Shared.formatWeight(vFor)}</span>
+              <span style="color:var(--color-danger)">${icon('x', 'icon-sm')} ${Shared.formatWeight(vAgainst)}</span>
+              <span style="color:var(--color-text-muted)">${icon('minus', 'icon-sm')} ${Shared.formatWeight(vAbstain)}</span>
               <span style="margin-left:auto;">${pct}% pour</span>
             </div>
           ` : ''}
@@ -3177,21 +3215,9 @@
   async function doTransition(toStatus) {
     const statusLabels = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
     const statusLabel = statusLabels[toStatus] || toStatus;
-    const confirmed = await new Promise(resolve => {
-      const modal = createModal({
-        id: 'transitionConfirmModal',
-        title: 'Confirmer le changement d\'état',
-        content: `
-          <h3 id="transitionConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Changer l'état ?</h3>
-          <p style="margin:0 0 1.5rem;">La séance passera en statut <strong>« ${statusLabel} »</strong>.</p>
-          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
-            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-primary" data-action="confirm">Confirmer</button>
-          </div>
-        `
-      });
-      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
-      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    const confirmed = await confirmModal({
+      title: 'Confirmer le changement d\'état',
+      body: `<p>La séance passera en statut <strong>« ${statusLabel} »</strong>.</p>`
     });
     if (!confirmed) return;
     try {
@@ -3273,13 +3299,16 @@
     announce(mode === 'setup' ? 'Mode préparation activé' : 'Mode exécution activé');
   }
 
+  /** @type {string|null} Current primary button action name */
+  let primaryAction = null;
+
   function updatePrimaryButton() {
     if (!btnPrimary) return;
 
     if (!currentMeetingId) {
       btnPrimary.disabled = true;
       btnPrimary.textContent = 'Ouvrir la séance';
-      btnPrimary.onclick = null;
+      primaryAction = null;
       return;
     }
 
@@ -3288,31 +3317,40 @@
         const score = getConformityScore();
         btnPrimary.disabled = score < 3;
         btnPrimary.textContent = 'Ouvrir la séance';
-        btnPrimary.onclick = launchSession;
+        primaryAction = 'launch';
       } else if (currentMeetingStatus === 'live') {
         btnPrimary.disabled = false;
         btnPrimary.textContent = 'Passer en exécution';
-        btnPrimary.onclick = () => setMode('exec');
+        primaryAction = 'exec';
       } else {
         btnPrimary.disabled = true;
         btnPrimary.textContent = 'Séance terminée';
-        btnPrimary.onclick = null;
+        primaryAction = null;
       }
     } else {
       // Exec mode
       if (currentOpenMotion) {
         btnPrimary.disabled = false;
         btnPrimary.textContent = 'Voir le vote';
-        btnPrimary.onclick = () => {
-          const el = document.getElementById('execVoteCard');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        };
+        primaryAction = 'scroll-vote';
       } else {
         btnPrimary.disabled = false;
         btnPrimary.textContent = 'Préparation';
-        btnPrimary.onclick = () => setMode('setup');
+        primaryAction = 'setup';
       }
     }
+  }
+
+  if (btnPrimary) {
+    btnPrimary.addEventListener('click', () => {
+      if (primaryAction === 'launch') launchSession();
+      else if (primaryAction === 'exec') setMode('exec');
+      else if (primaryAction === 'setup') setMode('setup');
+      else if (primaryAction === 'scroll-vote') {
+        const el = document.getElementById('execVoteCard');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
   }
 
   function updateContextHint() {
@@ -3872,7 +3910,7 @@
 
         const openRateEl = document.getElementById('invOpenRate');
         const engEl = document.getElementById('invEngagement');
-        if (openRateEl) openRateEl.textContent = (eng.open_rate || 0) + '%';
+        if (openRateEl) openRateEl.textContent = Shared.formatPct(eng.open_rate || 0) + '%';
         if (engEl && (inv.sent || inv.opened)) Shared.show(engEl, 'block');
 
         invitationsSentCount = (inv.sent || 0) + (inv.opened || 0) + (inv.accepted || 0);
@@ -4021,18 +4059,9 @@
 
   // Quick all present
   document.getElementById('btnQuickAllPresent')?.addEventListener('click', async () => {
-    const confirmed = await new Promise(resolve => {
-      const m = createModal({
-        id: 'quickAllPresentModal',
-        title: 'Marquer tous présents',
-        content: `<p>Marquer <strong>tous les membres</strong> comme présents ?</p>
-          <div class="flex gap-3 justify-end mt-4">
-            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-primary" data-action="confirm">Confirmer</button>
-          </div>`
-      });
-      m.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(m); resolve(false); });
-      m.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(m); resolve(true); });
+    const confirmed = await confirmModal({
+      title: 'Marquer tous présents',
+      body: '<p>Marquer <strong>tous les membres</strong> comme présents ?</p>'
     });
     if (!confirmed) return;
     try {
@@ -4181,7 +4210,7 @@
       <div class="assistant-member-row" data-member-id="${m.id}">
         <span class="assistant-member-name">${escapeHtml(m.full_name || '—')}</span>
         <span class="text-sm text-muted assistant-member-email">${escapeHtml(m.email || '')}</span>
-        <span class="assistant-member-power">${m.voting_power || 1} voix</span>
+        <span class="assistant-member-power">${Shared.formatWeight(m.voting_power)} voix</span>
         <div class="assistant-member-actions">
           <button class="btn-icon-sm" title="Modifier" data-wiz-edit="${m.id}">
             <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
@@ -4530,7 +4559,13 @@
         value: u.id,
         label: u.name || u.email || u.id
       })));
+      if (currentMeeting?.president_user_id) {
+        wizPresident.value = currentMeeting.president_user_id;
+      }
     }
+
+    // Populate assessors list
+    renderWizAssessors();
   }
 
   // --- Step 4: Save rules on leaving step ---
@@ -4541,8 +4576,13 @@
     const votePolicyId = document.getElementById('wizVotePolicy')?.value || null;
     const convocationNo = parseInt(document.querySelector('input[name="wizConvocation"]:checked')?.value || '1') || 1;
 
+    // Save president from wizard
+    const wizPres = document.getElementById('wizPresident');
+    const presidentId = wizPres?.value || null;
+    const presidentName = wizPres?.selectedOption?.label || '';
+
     try {
-      await Promise.all([
+      const promises = [
         api('/api/v1/meeting_quorum_settings.php', {
           meeting_id: currentMeetingId,
           quorum_policy_id: quorumPolicyId,
@@ -4552,13 +4592,35 @@
           meeting_id: currentMeetingId,
           vote_policy_id: votePolicyId
         })
-      ]);
+      ];
+
+      // Save president if set
+      if (presidentId) {
+        promises.push(
+          api('/api/v1/admin_meeting_roles.php', {
+            action: 'assign',
+            meeting_id: currentMeetingId,
+            user_id: presidentId,
+            role: 'president'
+          }),
+          api('/api/v1/meetings_update.php', {
+            meeting_id: currentMeetingId,
+            president_name: presidentName
+          })
+        );
+      }
+
+      await Promise.all(promises);
 
       // Update local state
       if (currentMeeting) {
         currentMeeting.quorum_policy_id = quorumPolicyId;
         currentMeeting.vote_policy_id = votePolicyId;
         currentMeeting.convocation_no = convocationNo;
+        if (presidentId) {
+          currentMeeting.president_user_id = presidentId;
+          currentMeeting.president_name = presidentName;
+        }
       }
 
       // Also sync with settings tab dropdowns
@@ -4568,6 +4630,8 @@
       if (settingQuorum) settingQuorum.value = quorumPolicyId || '';
       if (settingVote) settingVote.value = votePolicyId || '';
       if (settingConv) settingConv.value = convocationNo;
+      const settingPres = document.getElementById('settingPresident');
+      if (settingPres && presidentId) settingPres.value = presidentId;
     } catch (err) {
       console.warn('wizSaveRules:', err.message);
     }
@@ -4628,6 +4692,7 @@
   document.getElementById('wizBtnAllPresent')?.addEventListener('click', wizAllPresent);
   document.getElementById('wizBtnAllRemote')?.addEventListener('click', wizAllRemote);
   document.getElementById('wizBtnAddResolution')?.addEventListener('click', wizAddResolution);
+  document.getElementById('wizBtnAddAssessor')?.addEventListener('click', addAssessor);
   document.getElementById('wizResolutionTitle')?.addEventListener('keypress', e => { if (e.key === 'Enter') wizAddResolution(); });
 
   // CSV import

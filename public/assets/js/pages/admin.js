@@ -42,7 +42,7 @@
         _allUsers = r.body.data.items || [];
         filterAndRenderUsers();
       }
-    } catch (e) { console.error('loadUsers', e); }
+    } catch (e) { setNotif('error', 'Erreur chargement utilisateurs'); }
   }
 
   function filterAndRenderUsers() {
@@ -355,7 +355,7 @@
             }).join('');
         }
       }
-    } catch(e) { console.error('loadMeetingSelects', e); }
+    } catch(e) { setNotif('error', 'Erreur chargement séances'); }
 
     // Populate user select from full users list
     try {
@@ -382,7 +382,7 @@
             }).join('');
         }
       }
-    } catch(e) { console.error('loadUserSelect', e); }
+    } catch(e) { setNotif('error', 'Erreur chargement utilisateurs'); }
   }
 
   async function loadMeetingRoles() {
@@ -579,7 +579,7 @@
         _quorumPolicies = r.body.data.items;
         renderQuorumList(_quorumPolicies);
       }
-    } catch(e) { console.error('loadQuorumPolicies', e); }
+    } catch(e) { setNotif('error', 'Erreur chargement politiques de quorum'); }
   }
 
   function renderQuorumList(items) {
@@ -727,7 +727,7 @@
         _votePolicies = r.body.data.items;
         renderVoteList(_votePolicies);
       }
-    } catch(e) { console.error('loadVotePolicies', e); }
+    } catch(e) { setNotif('error', 'Erreur chargement politiques de vote'); }
   }
 
   function renderVoteList(items) {
@@ -941,7 +941,7 @@
         });
       }
 
-    } catch (e) { console.error('loadRoles', e); }
+    } catch (e) { setNotif('error', 'Erreur chargement rôles'); }
   }
 
   // ═══════════════════════════════════════════════════════
@@ -990,7 +990,7 @@
       loadStateStats();
       loadArchivedMeetings();
 
-    } catch (e) { console.error('loadStates', e); }
+    } catch (e) { setNotif('error', 'Erreur chargement états'); }
   }
 
   // Load statistics by state
@@ -1017,7 +1017,7 @@
           }).join('') +
         '</div>';
       }
-    } catch (e) { console.error('loadStateStats', e); }
+    } catch (e) { setNotif('error', 'Erreur chargement statistiques'); }
   }
 
   // P5-5: Archived meetings + de-archive

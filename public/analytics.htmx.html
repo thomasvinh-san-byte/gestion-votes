@@ -295,7 +295,7 @@
         if (!data) throw new Error('Données non disponibles');
 
         const totals = data.totals || {};
-        const avgRate = data.avg_participation_rate || 0;
+        const avgRate = Math.round(parseFloat(data.avg_participation_rate) || 0);
         const decisions = data.motion_decisions || {};
 
         const adopted = parseInt(decisions.adopted || 0);
@@ -420,9 +420,9 @@
                     <td>
                       <div class="table-progress-cell">
                         <div class="progress-bar table-progress-bar">
-                          <div class="progress-bar-fill ${m.rate >= 50 ? 'success' : 'warning'}" style="width:${m.rate}%"></div>
+                          <div class="progress-bar-fill ${m.rate >= 50 ? 'success' : 'warning'}" style="width:${Math.round(m.rate)}%"></div>
                         </div>
-                        <span>${m.rate}%</span>
+                        <span>${Math.round(m.rate)}%</span>
                       </div>
                     </td>
                   </tr>
@@ -656,7 +656,7 @@
                   <tr>
                     <td>${escapeHtml(m.title?.substring(0, 25) || 'Séance')}</td>
                     <td>${m.date ? new Date(m.date).toLocaleDateString('fr-FR') : '-'}</td>
-                    <td>${m.participation_rate || 0}%</td>
+                    <td>${Math.round(parseFloat(m.participation_rate) || 0)}%</td>
                     <td>
                       ${m.flags?.map(f => `<span class="badge badge-warning anomaly-flag">${escapeHtml(f)}</span>`).join('') || '-'}
                     </td>

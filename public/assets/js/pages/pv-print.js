@@ -75,14 +75,15 @@
       return mode === 'present' || mode === 'remote';
     }).length;
     $('#pvPresent').textContent = String(present);
-    $('#pvQuorum').textContent = (att?.summary?.quorum_pct !== undefined) ? `${att.summary.quorum_pct}%` : '—';
+    $('#pvQuorum').textContent = (att?.summary?.quorum_pct !== undefined) ? `${Math.round(parseFloat(att.summary.quorum_pct))}%` : '—';
 
     const tbody = $('#pvAttendanceBody');
     tbody.innerHTML = members.map(m => {
       const name = esc(m.full_name || m.name || '');
       const st = (m.mode || 'absent').toUpperCase();
       const w = parseFloat(m.voting_power) || parseFloat(m.vote_weight) || 1;
-      return `<tr>${td(name)}${td('')}${td(pill(st))}${td(`<span style="font-variant-numeric:tabular-nums;">${w}</span>`, true)}</tr>`;
+      const wFmt = Number.isInteger(w) ? String(w) : w.toFixed(2).replace(/\.?0+$/, '');
+      return `<tr>${td(name)}${td('')}${td(pill(st))}${td(`<span style="font-variant-numeric:tabular-nums;">${wFmt}</span>`, true)}</tr>`;
     }).join('');
 
     const wrap = $('#pvMotions');

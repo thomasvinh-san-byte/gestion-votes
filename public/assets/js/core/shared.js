@@ -317,6 +317,32 @@
   }
 
   // =========================================================================
+  // NUMBER FORMATTING HELPERS
+  // =========================================================================
+
+  /**
+   * Format a voting weight for display (1.0000 → "1", 1.5000 → "1.5").
+   * @param {number|string} v - Raw weight value
+   * @returns {string}
+   */
+  function formatWeight(v) {
+    var n = parseFloat(v);
+    if (isNaN(n)) return '1';
+    return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, '');
+  }
+
+  /**
+   * Format a percentage for display (66.6667 → "67", 0 → "0").
+   * @param {number|string} v - Raw percentage value
+   * @returns {string}
+   */
+  function formatPct(v) {
+    var n = parseFloat(v);
+    if (isNaN(n)) return '0';
+    return String(Math.round(n));
+  }
+
+  // =========================================================================
   // EXPORTS
   // =========================================================================
 
@@ -332,7 +358,9 @@
     hide: hide,
     skeletonTable: skeletonTable,
     emptyState: emptyState,
-    toast: toast
+    toast: toast,
+    formatWeight: formatWeight,
+    formatPct: formatPct
   };
 
 })();

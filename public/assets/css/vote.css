@@ -4,6 +4,41 @@
  * Tablet-optimized voting interface with large touch targets.
  */
 
+:root {
+  --shadow-warning-ring: 0 0 0 4px rgba(234, 179, 8, 0.10);
+  --shadow-warning-glow: 0 4px 20px rgba(234, 179, 8, 0.40);
+  --shadow-warning-glow-lg: 0 6px 28px rgba(234, 179, 8, 0.60);
+  --shadow-success-ring: 0 0 0 4px rgba(22, 163, 74, 0.10);
+  --shadow-success-glow: 0 4px 20px rgba(22, 163, 74, 0.35);
+  --shadow-danger-glow: 0 2px 6px rgba(220, 38, 38, 0.35);
+  --color-warning-bg-8: rgba(234, 179, 8, 0.08);
+  --color-warning-border-25: rgba(234, 179, 8, 0.25);
+}
+
+[data-theme="dark"] {
+  --shadow-warning-ring: 0 0 0 4px rgba(251, 191, 36, 0.15);
+  --shadow-warning-glow: 0 4px 20px rgba(251, 191, 36, 0.35);
+  --shadow-warning-glow-lg: 0 6px 28px rgba(251, 191, 36, 0.50);
+  --shadow-success-ring: 0 0 0 4px rgba(74, 222, 128, 0.15);
+  --shadow-success-glow: 0 4px 20px rgba(74, 222, 128, 0.30);
+  --shadow-danger-glow: 0 2px 6px rgba(248, 113, 113, 0.30);
+  --color-warning-bg-8: rgba(251, 191, 36, 0.10);
+  --color-warning-border-25: rgba(251, 191, 36, 0.20);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --shadow-warning-ring: 0 0 0 4px rgba(251, 191, 36, 0.15);
+    --shadow-warning-glow: 0 4px 20px rgba(251, 191, 36, 0.35);
+    --shadow-warning-glow-lg: 0 6px 28px rgba(251, 191, 36, 0.50);
+    --shadow-success-ring: 0 0 0 4px rgba(74, 222, 128, 0.15);
+    --shadow-success-glow: 0 4px 20px rgba(74, 222, 128, 0.30);
+    --shadow-danger-glow: 0 2px 6px rgba(248, 113, 113, 0.30);
+    --color-warning-bg-8: rgba(251, 191, 36, 0.10);
+    --color-warning-border-25: rgba(251, 191, 36, 0.20);
+  }
+}
+
 /* =============================================================================
    FULL HEIGHT APP FOR TABLETS
    ============================================================================= */
@@ -131,14 +166,14 @@
 .speech-panel.raised {
   border-color: var(--color-warning);
   background: var(--color-warning-subtle);
-  box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.10);
+  box-shadow: var(--shadow-warning-ring);
 }
 
 /* --- State: en parole (speaking) --- */
 .speech-panel.speaking {
   border-color: var(--color-success);
   background: var(--color-success-subtle);
-  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.10);
+  box-shadow: var(--shadow-success-ring);
 }
 
 /* --- Button wrapper (relative for badge positioning) --- */
@@ -184,7 +219,7 @@
 .speech-hand-btn[aria-pressed="true"] {
   background: var(--color-warning);
   border-color: var(--color-warning);
-  box-shadow: 0 4px 20px rgba(234, 179, 8, 0.40);
+  box-shadow: var(--shadow-warning-glow);
   animation: hand-glow 2s ease-in-out infinite;
 }
 
@@ -196,7 +231,7 @@
 .speech-panel.speaking .speech-hand-btn {
   background: var(--color-success);
   border-color: var(--color-success);
-  box-shadow: 0 4px 20px rgba(22, 163, 74, 0.35);
+  box-shadow: var(--shadow-success-glow);
   animation: none;
 }
 
@@ -219,11 +254,11 @@
 
 @keyframes hand-glow {
   0%, 100% {
-    box-shadow: 0 4px 20px rgba(234, 179, 8, 0.40);
+    box-shadow: var(--shadow-warning-glow);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 6px 28px rgba(234, 179, 8, 0.60);
+    box-shadow: var(--shadow-warning-glow-lg);
     transform: scale(1.04);
   }
 }
@@ -245,7 +280,7 @@
   font-size: 0.8rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+  box-shadow: var(--shadow-danger-glow);
   pointer-events: none;
   z-index: 1;
   animation: badge-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -829,8 +864,8 @@
   gap: 0.5rem;
   padding: 0.625rem 1rem;
   margin: 0 1rem;
-  background: rgba(234, 179, 8, 0.08);
-  border: 1px solid rgba(234, 179, 8, 0.25);
+  background: var(--color-warning-bg-8);
+  border: 1px solid var(--color-warning-border-25);
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 600;
