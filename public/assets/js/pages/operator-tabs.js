@@ -534,8 +534,10 @@
     setText('membersCount', membersCache.length);
 
     const list = document.getElementById('membersList');
+    if (!list) return;
+
     if (membersCache.length === 0) {
-      list.innerHTML = '<span class="text-muted text-sm">Aucun membre</span>';
+      list.innerHTML = '<span class="text-muted text-sm">Aucun membre inscrit. Ajoutez des membres pour commencer.</span>';
       return;
     }
 
