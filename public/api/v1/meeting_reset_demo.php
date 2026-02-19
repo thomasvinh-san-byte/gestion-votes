@@ -45,6 +45,12 @@ try {
   (new MeetingRepository())->resetForDemo($meetingId, api_current_tenant_id());
 
   db()->commit();
+
+  audit_log('meeting.reset_demo', 'meeting', $meetingId, [
+    'title' => $mt['title'] ?? '',
+    'reset_by' => api_current_user_id(),
+  ], $meetingId);
+
   api_ok(['ok'=>true,'meeting_id'=>$meetingId]);
 
 } catch (Throwable $e) {
