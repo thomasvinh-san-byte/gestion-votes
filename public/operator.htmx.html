@@ -48,14 +48,7 @@
             <button class="mode-switch-btn active" id="btnModeSetup" aria-pressed="true">Préparation</button>
             <button class="mode-switch-btn" id="btnModeExec" aria-pressed="false">Exécution</button>
           </div>
-          <div class="mode-switch mode-switch-secondary" id="prepModeSwitch" role="group" aria-label="Mode de préparation">
-            <button class="mode-switch-btn active" id="btnModeAssistant" aria-pressed="true">
-              <svg class="icon icon-text icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg> Assistant
-            </button>
-            <button class="mode-switch-btn" id="btnModeAdvanced" aria-pressed="false">
-              <svg class="icon icon-text icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg> Avancé
-            </button>
-          </div>
+          <!-- Mode switch removed: always show full tabs -->
         </div>
         <div class="meeting-bar-right">
           <button class="btn btn-sm btn-primary" id="btnPrimary" disabled>Ouvrir la séance</button>
@@ -97,7 +90,7 @@
         <!-- ================================================================
              ASSISTANT MODE - Step-by-step guided preparation
              ================================================================ -->
-        <div id="assistantMode" class="assistant-mode">
+        <div id="assistantMode" class="assistant-mode" hidden>
           <!-- Progress bar -->
           <div class="assistant-progress">
             <div class="assistant-progress-steps">
@@ -423,7 +416,7 @@
         <!-- ================================================================
              ADVANCED MODE - Original dashboard + tabs (toggled)
              ================================================================ -->
-        <div id="advancedMode" class="advanced-mode" hidden>
+        <div id="advancedMode" class="advanced-mode">
 
         <!-- Setup dashboard: checklist + alerts above the tabs -->
         <div class="setup-dashboard">

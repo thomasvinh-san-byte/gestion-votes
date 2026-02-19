@@ -405,7 +405,7 @@ window.Utils = window.Utils || {};
    * @param {string} fallback - Default message if no error found
    * @returns {string} Human-readable error message
    */
-  Utils.getApiError = function(body, fallback = 'An error occurred') {
+  Utils.getApiError = function(body, fallback = 'Une erreur est survenue') {
     if (!body) return fallback;
     // Priority: message (translated) > detail > error (code)
     return body.message || body.detail || body.error || fallback;
@@ -860,7 +860,7 @@ function log(...args) {
  * @param {string} fallback - Default message if no error found
  * @returns {string} Human-readable error message
  */
-function getApiError(body, fallback = 'An error occurred') {
+function getApiError(body, fallback = 'Une erreur est survenue') {
   if (!body) return fallback;
   return body.message || body.detail || body.error || fallback;
 }

@@ -291,17 +291,13 @@
     // Auto-select mode based on meeting status
     const initialMode = (currentMeetingStatus === 'live') ? 'exec' : 'setup';
 
-    // For live/closed/validated/archived meetings, force advanced mode
-    if (['live', 'closed', 'validated', 'archived'].includes(currentMeetingStatus)) {
-      setPrepMode('advanced');
-    } else {
-      setPrepMode('assistant');
-    }
+    // Always use advanced mode (assistant mode removed)
+    setPrepMode('advanced');
 
     setMode(initialMode);
 
-    // If in setup mode + advanced, show the right tab
-    if (initialMode === 'setup' && prepMode === 'advanced') {
+    // If in setup mode, show the right tab
+    if (initialMode === 'setup') {
       const urlParams = new URLSearchParams(window.location.search);
       const requestedTab = urlParams.get('tab');
       const validTabs = ['parametres', 'resolutions', 'presences', 'procurations', 'parole', 'vote', 'resultats'];
@@ -2962,7 +2958,7 @@
         id: 'closeVoteConfirmModal',
         title: 'Terminer le scrutin',
         content: `
-          <h3 id="closeVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('square', 'icon-sm icon-text')} Terminer le scrutin ?</h3>
+          <h3 id="closeVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Terminer le scrutin ?</h3>
           <p style="margin:0 0 0.75rem;">Résolution : <strong>${motionTitle}</strong></p>
           <div style="display:flex;gap:1rem;margin:0 0 1rem;font-size:0.9375rem;">
             <span style="color:var(--color-success);">${icon('check', 'icon-sm icon-text')} ${vFor}</span>
@@ -2973,7 +2969,7 @@
           <p style="margin:0 0 1.5rem;color:var(--color-warning);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} Les résultats seront figés définitivement. Plus aucun vote ne sera accepté.</p>
           <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
             <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-warning" data-action="confirm">${icon('square', 'icon-sm icon-text')} Terminer le scrutin</button>
+            <button class="btn btn-warning" data-action="confirm">${icon('check-circle', 'icon-sm icon-text')} Terminer le scrutin</button>
           </div>
         `
       });
@@ -3289,19 +3285,12 @@
     if (mode === 'setup') {
       if (viewSetup) viewSetup.hidden = false;
       if (viewExec) viewExec.hidden = true;
-      // Show/hide prep mode switch and tabs based on prep mode
-      if (prepModeSwitch) prepModeSwitch.hidden = false;
-      if (prepMode === 'advanced') {
-        Shared.show(tabsNav, 'flex');
-      } else {
-        Shared.hide(tabsNav);
-      }
-      refreshWizardStep();
+      // Always show tabs in setup mode (advanced mode only)
+      Shared.show(tabsNav, 'flex');
     } else {
       if (viewSetup) viewSetup.hidden = true;
       if (viewExec) viewExec.hidden = false;
       Shared.hide(tabsNav);
-      if (prepModeSwitch) prepModeSwitch.hidden = true;
       refreshExecView();
       startSessionTimer();
     }
@@ -4135,36 +4124,20 @@
   // =========================================================================
 
   let currentWizardStep = 1;
-  let prepMode = 'assistant'; // 'assistant' | 'advanced'
+  let prepMode = 'advanced'; // always advanced — assistant mode removed
 
   const assistantMode = document.getElementById('assistantMode');
   const advancedMode = document.getElementById('advancedMode');
-  const prepModeSwitch = document.getElementById('prepModeSwitch');
-  const btnModeAssistant = document.getElementById('btnModeAssistant');
-  const btnModeAdvanced = document.getElementById('btnModeAdvanced');
 
   function setPrepMode(mode) {
-    prepMode = mode;
-    if (btnModeAssistant) {
-      btnModeAssistant.classList.toggle('active', mode === 'assistant');
-      btnModeAssistant.setAttribute('aria-pressed', String(mode === 'assistant'));
-    }
-    if (btnModeAdvanced) {
-      btnModeAdvanced.classList.toggle('active', mode === 'advanced');
-      btnModeAdvanced.setAttribute('aria-pressed', String(mode === 'advanced'));
-    }
-    if (assistantMode) assistantMode.hidden = mode !== 'assistant';
-    if (advancedMode) advancedMode.hidden = mode !== 'advanced';
+    prepMode = 'advanced'; // force advanced mode
+    if (assistantMode) assistantMode.hidden = true;
+    if (advancedMode) advancedMode.hidden = false;
 
-    // Show/hide tabs nav only in advanced mode
-    if (mode === 'advanced' && currentMode === 'setup') {
+    // Always show tabs nav in setup mode
+    if (currentMode === 'setup') {
       Shared.show(tabsNav, 'flex');
-    } else if (mode === 'assistant') {
-      Shared.hide(tabsNav);
     }
-
-    // Refresh wizard content when switching to assistant
-    if (mode === 'assistant') refreshWizardStep();
   }
 
   function goToWizardStep(step) {
@@ -4769,9 +4742,7 @@
     if (sendBtn) sendBtn.click();
   });
 
-  // Prep mode toggle
-  btnModeAssistant?.addEventListener('click', () => setPrepMode('assistant'));
-  btnModeAdvanced?.addEventListener('click', () => setPrepMode('advanced'));
+  // Prep mode: always advanced (assistant toggle removed)
 
   // Expose switchTab globally for wizard navigation
   window.switchTab = switchTab;
