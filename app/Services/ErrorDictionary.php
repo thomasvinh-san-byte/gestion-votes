@@ -99,6 +99,7 @@ final class ErrorDictionary
         'invalid_tenant' => 'Organisation invalide.',
 
         // System errors
+        'server_error' => 'Erreur serveur. Consultez les logs pour plus de détails.',
         'internal_error' => 'Une erreur interne est survenue. Veuillez réessayer.',
         'database_error' => 'Erreur de base de données. Veuillez réessayer.',
         'service_unavailable' => 'Service temporairement indisponible.',
