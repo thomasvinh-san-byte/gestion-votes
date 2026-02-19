@@ -73,7 +73,7 @@ final class MeetingReportService
         $html .= "<div style=\"display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap\">";
         $html .= "<div><div class=\"tiny muted\">Séance</div><div><strong>".$h($meeting['title'])."</strong></div></div>";
         $html .= "<div><div class=\"tiny muted\">Président</div><div>".$h($meeting['president_name'] ?: '—')."</div></div>";
-        $html .= "<div><div class=\"tiny muted\">Statut</div><div>".$h($meeting['status'])."</div></div>";
+        $html .= "<div><div class=\"tiny muted\">Statut</div><div>".$h(self::statusLabel($meeting['status']))."</div></div>";
         $html .= "<div><div class=\"tiny muted\">Validée</div><div>".$h($meeting['validated_at'] ?: '—')."</div></div>";
         $html .= "</div></div>";
 
@@ -163,7 +163,7 @@ final class MeetingReportService
             $html .= "<td class=\"right\">".$h(self::fmt($og))."</td>";
             $html .= "<td class=\"right\">".$h(self::fmt($oa))."</td>";
             $html .= "<td class=\"right\">".$h(self::fmt($ot))."</td>";
-            $html .= "<td><span class=\"badge $badgeClass\">".$h($dec)."</span><div class=\"muted tiny\">".$h($reas)."</div></td>";
+            $html .= "<td><span class=\"badge $badgeClass\">".$h(self::decisionLabel($dec))."</span><div class=\"muted tiny\">".$h($reas)."</div></td>";
             $html .= "</tr>";
         }
 
@@ -184,7 +184,7 @@ final class MeetingReportService
             $html .= "<div class=\"card\"><strong>Annexe – Présences</strong><div class=\"hr\"></div>";
             $html .= "<table><thead><tr><th>Nom</th><th class=\"right\">Pouvoir</th><th>Mode</th></tr></thead><tbody>";
             foreach ($attendance as $a) {
-                $html .= "<tr><td>".$h($a['full_name'])."</td><td class=\"right\">".$h(self::fmt((float)$a['voting_power']))."</td><td>".$h($a['mode'] ?: 'absent')."</td></tr>";
+                $html .= "<tr><td>".$h($a['full_name'])."</td><td class=\"right\">".$h(self::fmt((float)$a['voting_power']))."</td><td>".$h(self::modeLabel($a['mode'] ?? ''))."</td></tr>";
             }
             $html .= "</tbody></table></div>";
         }
@@ -224,5 +224,45 @@ final class MeetingReportService
         $thr = $maj['threshold'] ?? null;
         if ($base === null || $ratio === null || $thr === null) return null;
         return "Majorité (".$base."): ratio ".self::fmt((float)$ratio)." / seuil ".self::fmt((float)$thr);
+    }
+
+    private static function decisionLabel(string $dec): string
+    {
+        return match($dec) {
+            'adopted' => 'Adoptée',
+            'rejected' => 'Rejetée',
+            'no_quorum' => 'Sans quorum',
+            'no_votes' => 'Sans votes',
+            'no_policy' => 'Sans règle',
+            'cancelled' => 'Annulée',
+            'pending' => 'En attente',
+            default => $dec,
+        };
+    }
+
+    private static function statusLabel(string $status): string
+    {
+        return match($status) {
+            'draft' => 'Brouillon',
+            'scheduled' => 'Programmée',
+            'frozen' => 'Figée',
+            'live' => 'En cours',
+            'closed' => 'Clôturée',
+            'validated' => 'Validée',
+            'archived' => 'Archivée',
+            default => $status,
+        };
+    }
+
+    private static function modeLabel(string $mode): string
+    {
+        return match($mode) {
+            'present' => 'Présent',
+            'remote' => 'À distance',
+            'proxy' => 'Représenté',
+            'excused' => 'Excusé',
+            'absent', '' => 'Absent',
+            default => $mode,
+        };
     }
 }

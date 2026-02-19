@@ -28,19 +28,24 @@ $mt = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$mt) api_fail('meeting_not_found', 404);
 if (empty($mt['validated_at'])) api_fail('meeting_not_validated', 409);
 
-$motionRepo = new MotionRepository();
-$rows = $motionRepo->listResultsExportForMeeting($meetingId);
+try {
+    $motionRepo = new MotionRepository();
+    $rows = $motionRepo->listResultsExportForMeeting($meetingId);
 
-// Formater les données
-$formattedRows = array_map([ExportService::class, 'formatMotionResultRow'], $rows);
+    // Formater les données
+    $formattedRows = array_map([ExportService::class, 'formatMotionResultRow'], $rows);
 
-// Génération du fichier
-$filename = ExportService::generateFilename('resultats', $mt['title'] ?? '', 'xlsx');
-ExportService::initXlsxOutput($filename);
+    // Génération du fichier
+    $filename = ExportService::generateFilename('resultats', $mt['title'] ?? '', 'xlsx');
+    ExportService::initXlsxOutput($filename);
 
-$spreadsheet = ExportService::createSpreadsheet(
-    ExportService::getMotionResultsHeaders(),
-    $formattedRows,
-    'Résultats'
-);
-ExportService::outputSpreadsheet($spreadsheet);
+    $spreadsheet = ExportService::createSpreadsheet(
+        ExportService::getMotionResultsHeaders(),
+        $formattedRows,
+        'Résultats'
+    );
+    ExportService::outputSpreadsheet($spreadsheet);
+} catch (Throwable $e) {
+    error_log('Error in export_results_xlsx.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
+}

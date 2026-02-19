@@ -18,9 +18,16 @@ if ($meetingId === '') {
 
 $showVoters = ((string)($_GET['show_voters'] ?? '') === '1');
 
-$html = MeetingReportService::renderHtml($meetingId, $showVoters);
+try {
+    $html = MeetingReportService::renderHtml($meetingId, $showVoters);
 
-// Print-friendly headers
-header('Content-Type: text/html; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
-echo $html;
+    // Print-friendly headers
+    header('Content-Type: text/html; charset=utf-8');
+    header('X-Content-Type-Options: nosniff');
+    echo $html;
+} catch (Throwable $e) {
+    error_log('Error in export_pv_html.php: ' . $e->getMessage());
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Erreur</title></head><body><h1>Erreur</h1><p>Impossible de générer le PV.</p></body></html>';
+}

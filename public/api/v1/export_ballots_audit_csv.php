@@ -5,6 +5,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\BallotRepository;
+use AgVote\Service\ExportService;
 
 api_require_role('operator');
 
@@ -32,14 +33,13 @@ if (empty($mt['validated_at'])) {
     exit;
 }
 
-$filename = "ballots_audit_" . $meetingId . ".csv";
-header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename="' . $filename . '"');
-header('X-Content-Type-Options: nosniff');
+try {
+
+$filename = ExportService::generateFilename('audit', $mt['title'] ?? '');
+ExportService::initCsvOutput($filename);
 
 $sep = ';';
-$out = fopen('php://output', 'w');
-fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
+$out = ExportService::openCsvOutput();
 
 fputcsv($out, [
   'Ballot ID',
@@ -72,19 +72,26 @@ foreach ($rows as $r) {
     (string)($r['motion_title'] ?? ''),
     (string)($r['member_id'] ?? ''),
     (string)($r['voter_name'] ?? ''),
-    (string)($r['attendance_mode'] ?? ''),
-    (string)($r['value'] ?? ''),
+    ExportService::translateAttendanceMode($r['attendance_mode'] ?? ''),
+    ExportService::translateVoteChoice($r['value'] ?? ''),
     (string)($r['weight'] ?? ''),
-    ((bool)($r['is_proxy_vote'] ?? false)) ? '1' : '0',
+    ((bool)($r['is_proxy_vote'] ?? false)) ? 'Oui' : 'Non',
     (string)($r['proxy_source_member_id'] ?? ''),
-    (string)($r['cast_at'] ?? ''),
-    (string)($r['source'] ?? ''),
+    ExportService::formatDate($r['cast_at'] ?? null),
+    ExportService::translateVoteSource($r['source'] ?? ''),
     (string)($r['token_id'] ?? ''),
     (string)($r['token_hash_prefix'] ?? ''),
-    (string)($r['token_expires_at'] ?? ''),
-    (string)($r['token_used_at'] ?? ''),
+    ExportService::formatDate($r['token_expires_at'] ?? null),
+    ExportService::formatDate($r['token_used_at'] ?? null),
     (string)($r['manual_justification'] ?? ''),
   ], $sep);
 }
 
 fclose($out);
+
+} catch (Throwable $e) {
+    error_log('Error in export_ballots_audit_csv.php: ' . $e->getMessage());
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "server_error";
+}

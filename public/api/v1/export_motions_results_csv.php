@@ -29,21 +29,26 @@ $mt = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
 if (!$mt) api_fail('meeting_not_found', 404);
 if (empty($mt['validated_at'])) api_fail('meeting_not_validated', 409);
 
-// Génération du fichier
-$filename = ExportService::generateFilename('resultats', $mt['title'] ?? '');
-ExportService::initCsvOutput($filename);
+try {
+    // Génération du fichier
+    $filename = ExportService::generateFilename('resultats', $mt['title'] ?? '');
+    ExportService::initCsvOutput($filename);
 
-$out = ExportService::openCsvOutput();
+    $out = ExportService::openCsvOutput();
 
-// En-têtes français
-ExportService::writeCsvRow($out, ExportService::getMotionResultsHeaders());
+    // En-têtes français
+    ExportService::writeCsvRow($out, ExportService::getMotionResultsHeaders());
 
-// Données formatées
-$motionRepo = new MotionRepository();
-$rows = $motionRepo->listResultsExportForMeeting($meetingId);
+    // Données formatées
+    $motionRepo = new MotionRepository();
+    $rows = $motionRepo->listResultsExportForMeeting($meetingId);
 
-foreach ($rows as $r) {
-    ExportService::writeCsvRow($out, ExportService::formatMotionResultRow($r));
+    foreach ($rows as $r) {
+        ExportService::writeCsvRow($out, ExportService::formatMotionResultRow($r));
+    }
+
+    fclose($out);
+} catch (Throwable $e) {
+    error_log('Error in export_motions_results_csv.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
 }
-
-fclose($out);

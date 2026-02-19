@@ -46,6 +46,8 @@ if (!$isPreview && empty($meeting['validated_at'])) {
     ]);
 }
 
+try {
+
 // Charger les présences
 $attendances = (new AttendanceRepository())->listForReport($meetingId, $tenantId);
 
@@ -262,7 +264,16 @@ foreach ($motions as $i => $m) {
     
     // Décision
     $decisionClass = ($m['decision'] === 'adopted') ? '' : 'result-rejected';
-    $decisionLabel = ($m['decision'] === 'adopted') ? '✓ ADOPTÉE' : '✗ REJETÉE';
+    $decisionLabel = match($m['decision'] ?? '') {
+        'adopted' => '✓ ADOPTÉE',
+        'rejected' => '✗ REJETÉE',
+        'no_quorum' => '⚠ SANS QUORUM',
+        'no_votes' => '⚠ SANS VOTES',
+        'no_policy' => '⚠ SANS RÈGLE',
+        'cancelled' => '✗ ANNULÉE',
+        'pending' => '… EN ATTENTE',
+        default => '? ' . strtoupper($m['decision'] ?? '—'),
+    };
     $html .= '<div class="result-box ' . $decisionClass . '">';
     $html .= '<strong>Décision :</strong> ' . $decisionLabel;
     if (!empty($m['decision_reason'])) {
@@ -321,3 +332,8 @@ header('X-Content-Type-Options: nosniff');
 header('X-Report-SHA256: ' . $hash);
 
 echo $pdfContent;
+
+} catch (Throwable $e) {
+    error_log('Error in meeting_generate_report_pdf.php: ' . $e->getMessage());
+    api_fail('pdf_generation_error', 500);
+}

@@ -42,23 +42,30 @@ if (empty($mt['validated_at'])) {
     exit;
 }
 
-// Génération du fichier
-$filename = ExportService::generateFilename('votes', $mt['title'] ?? '');
-ExportService::initCsvOutput($filename);
+try {
+    // Génération du fichier
+    $filename = ExportService::generateFilename('votes', $mt['title'] ?? '');
+    ExportService::initCsvOutput($filename);
 
-$out = ExportService::openCsvOutput();
+    $out = ExportService::openCsvOutput();
 
-// En-têtes français
-ExportService::writeCsvRow($out, ExportService::getVotesHeaders());
+    // En-têtes français
+    ExportService::writeCsvRow($out, ExportService::getVotesHeaders());
 
-// Données formatées
-$ballotRepo = new BallotRepository();
-$rows = $ballotRepo->listVotesExportForMeeting($meetingId);
+    // Données formatées
+    $ballotRepo = new BallotRepository();
+    $rows = $ballotRepo->listVotesExportForMeeting($meetingId);
 
-foreach ($rows as $r) {
-    // Ignorer les lignes sans votant (motions sans votes)
-    if (empty($r['voter_name'])) continue;
-    ExportService::writeCsvRow($out, ExportService::formatVoteRow($r));
+    foreach ($rows as $r) {
+        // Ignorer les lignes sans votant (motions sans votes)
+        if (empty($r['voter_name'])) continue;
+        ExportService::writeCsvRow($out, ExportService::formatVoteRow($r));
+    }
+
+    fclose($out);
+} catch (Throwable $e) {
+    error_log('Error in export_votes_csv.php: ' . $e->getMessage());
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "server_error";
 }
-
-fclose($out);
