@@ -75,7 +75,7 @@ if ($file && $file['error'] === UPLOAD_ERR_OK) {
 
     $handle = fopen($file['tmp_name'], 'r');
     if (!$handle) {
-        api_fail('file_read_error', 500);
+        api_fail('file_read_error', 500, ['detail' => $e->getMessage()]);
     }
 } elseif ($csvContent && is_string($csvContent) && strlen($csvContent) > 0) {
     // ── Mode contenu texte (FormData ou JSON) ──

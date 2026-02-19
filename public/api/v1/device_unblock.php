@@ -39,5 +39,5 @@ try {
 
   api_ok([]);
 } catch (Throwable $e) {
-  api_fail('server_error', 500);
+  api_fail('server_error', 500, ['detail' => $e->getMessage()]);
 }

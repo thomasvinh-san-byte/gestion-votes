@@ -89,7 +89,7 @@ if (!in_array($mime, ['text/csv', 'text/plain', 'application/csv', 'application/
 
 $handle = fopen($file['tmp_name'], 'r');
 if (!$handle) {
-    api_fail('file_read_error', 500);
+    api_fail('file_read_error', 500, ['detail' => $e->getMessage()]);
 }
 
 $firstLine = fgets($handle);

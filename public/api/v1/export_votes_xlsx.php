@@ -52,5 +52,5 @@ try {
     ExportService::outputSpreadsheet($spreadsheet);
 } catch (Throwable $e) {
     error_log('Error in export_votes_xlsx.php: ' . $e->getMessage());
-    api_fail('server_error', 500);
+    api_fail('server_error', 500, ['detail' => $e->getMessage()]);
 }

@@ -118,5 +118,5 @@ try {
     api_fail('database_error', 500, ['detail' => 'Erreur de base de données']);
 } catch (Throwable $e) {
     error_log('Error in members.php: ' . $e->getMessage());
-    api_fail('internal_error', 500, ['detail' => 'Erreur interne du serveur']);
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
 }

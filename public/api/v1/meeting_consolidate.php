@@ -20,5 +20,5 @@ try {
     api_ok(['updated_motions' => $r['updated']]);
 } catch (Throwable $e) {
     error_log('meeting_consolidate.php: ' . $e->getMessage());
-    api_fail('consolidate_failed', 500);
+    api_fail('consolidate_failed', 500, ['detail' => $e->getMessage()]);
 }

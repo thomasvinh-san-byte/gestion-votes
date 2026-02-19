@@ -127,5 +127,5 @@ api_ok($data);
 
 } catch (Throwable $e) {
     error_log('Error in dashboard.php: ' . $e->getMessage());
-    api_fail('server_error', 500);
+    api_fail('server_error', 500, ['detail' => $e->getMessage()]);
 }

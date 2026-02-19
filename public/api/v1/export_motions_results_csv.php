@@ -50,5 +50,5 @@ try {
     fclose($out);
 } catch (Throwable $e) {
     error_log('Error in export_motions_results_csv.php: ' . $e->getMessage());
-    api_fail('server_error', 500);
+    api_fail('server_error', 500, ['detail' => $e->getMessage()]);
 }

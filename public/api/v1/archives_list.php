@@ -14,5 +14,5 @@ try {
     api_ok(['items' => $rows]);
 } catch (Throwable $e) {
     error_log('Error in archives_list.php: ' . $e->getMessage());
-    api_fail('internal_error', 500);
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
 }

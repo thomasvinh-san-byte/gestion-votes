@@ -35,5 +35,5 @@ try {
     api_ok(['motion_id' => (string)$motionId]);
 } catch (Throwable $e) {
     error_log('motion_delete.php error: '.$e->getMessage());
-    api_fail('internal_error', 500, ['detail'=>'Erreur interne du serveur']);
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
 }
