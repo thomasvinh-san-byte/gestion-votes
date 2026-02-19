@@ -25,11 +25,15 @@ DO $$
 BEGIN
   -- meeting_status: etats de la seance
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'meeting_status') THEN
-    CREATE TYPE meeting_status AS ENUM ('draft','scheduled','frozen','live','closed','validated','archived');
+    CREATE TYPE meeting_status AS ENUM ('draft','scheduled','frozen','live','paused','closed','validated','archived');
   ELSE
     -- Ajouter les valeurs manquantes si necessaire
     BEGIN
       ALTER TYPE meeting_status ADD VALUE IF NOT EXISTS 'frozen' BEFORE 'live';
+    EXCEPTION WHEN others THEN NULL;
+    END;
+    BEGIN
+      ALTER TYPE meeting_status ADD VALUE IF NOT EXISTS 'paused' AFTER 'live';
     EXCEPTION WHEN others THEN NULL;
     END;
     BEGIN
@@ -299,6 +303,8 @@ CREATE TABLE IF NOT EXISTS meetings (
   frozen_by uuid,
   opened_by uuid,
   closed_by uuid,
+  paused_at timestamptz,
+  paused_by uuid,
   late_rule_quorum boolean NOT NULL DEFAULT true,
   late_rule_vote boolean NOT NULL DEFAULT true,
   ready_to_sign boolean DEFAULT false,
@@ -314,6 +320,7 @@ CREATE INDEX IF NOT EXISTS idx_meetings_tenant ON meetings(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(tenant_id, status);
 CREATE INDEX IF NOT EXISTS idx_meetings_time ON meetings(tenant_id, COALESCE(started_at, scheduled_at, created_at));
 CREATE INDEX IF NOT EXISTS idx_meetings_frozen ON meetings(tenant_id) WHERE status = 'frozen';
+CREATE INDEX IF NOT EXISTS idx_meetings_paused ON meetings(tenant_id) WHERE status = 'paused';
 CREATE INDEX IF NOT EXISTS idx_meetings_validated ON meetings(tenant_id) WHERE status = 'validated';
 CREATE UNIQUE INDEX IF NOT EXISTS ux_meetings_tenant_slug ON meetings(tenant_id, slug);
 
@@ -1087,6 +1094,9 @@ INSERT INTO meeting_state_transitions (from_status, to_status, required_role, de
   ('scheduled', 'frozen',    'president', 'Verrouiller la configuration (resolutions, membres)'),
   ('draft',     'frozen',    'president', 'Verrouiller directement depuis brouillon'),
   ('frozen',    'live',      'president', 'Ouvrir la seance (debut des votes)'),
+  ('live',      'paused',    'operator',  'Mettre la seance en pause'),
+  ('paused',    'live',      'operator',  'Reprendre la seance'),
+  ('paused',    'closed',    'president', 'Cloturer directement depuis la pause'),
   ('live',      'closed',    'president', 'Cloturer la seance (fin des votes)'),
   ('closed',    'validated', 'president', 'Valider les resultats et signer le PV'),
   ('validated', 'archived',  'admin',     'Archiver la seance (scellement definitif)'),

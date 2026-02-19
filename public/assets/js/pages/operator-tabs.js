@@ -61,7 +61,14 @@
       { to: 'live', label: 'Ouvrir la séance', iconName: 'play' },
       { to: 'scheduled', label: 'Dégeler', iconName: 'unlock' }
     ],
-    live: [{ to: 'closed', label: 'Clôturer', iconName: 'square' }],
+    live: [
+      { to: 'paused', label: 'Pause', iconName: 'pause' },
+      { to: 'closed', label: 'Clôturer', iconName: 'square' }
+    ],
+    paused: [
+      { to: 'live', label: 'Reprendre', iconName: 'play' },
+      { to: 'closed', label: 'Clôturer', iconName: 'square' }
+    ],
     closed: [{ to: 'validated', label: 'Valider', iconName: 'check-circle' }],
     validated: [{ to: 'archived', label: 'Archiver', iconName: 'archive' }],
     archived: []
@@ -238,7 +245,7 @@
    * Show/hide execution tabs based on meeting status
    */
   function updateLiveTabs() {
-    const isLive = ['live', 'closed', 'validated'].includes(currentMeetingStatus);
+    const isLive = ['live', 'paused', 'closed', 'validated'].includes(currentMeetingStatus);
     const sep = document.getElementById('tabSeparator');
     if (sep) sep.hidden = !isLive;
     document.querySelectorAll('.tab-btn-live').forEach(btn => {
@@ -3381,7 +3388,7 @@
       return closeSession();
     }
 
-    const statusLabels = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
+    const statusLabels = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', paused: 'en pause', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
     const statusLabel = statusLabels[toStatus] || toStatus;
     const confirmed = await confirmModal({
       title: 'Confirmer le changement d\'état',
@@ -3405,6 +3412,9 @@
         if (toStatus === 'live') {
           setMode('exec');
           announce('Séance en cours — mode exécution activé.');
+        } else if (toStatus === 'paused') {
+          setMode('setup');
+          announce('Séance en pause.');
         } else if (['closed', 'validated', 'archived'].includes(toStatus)) {
           setMode('setup', { tab: 'resultats' });
           announce(`Séance ${statusLabel}.`);
@@ -3514,6 +3524,10 @@
         btnPrimary.disabled = false;
         btnPrimary.textContent = 'Passer en exécution';
         primaryAction = 'exec';
+      } else if (currentMeetingStatus === 'paused') {
+        btnPrimary.disabled = false;
+        btnPrimary.textContent = 'Reprendre la séance';
+        primaryAction = 'resume';
       } else {
         btnPrimary.disabled = true;
         btnPrimary.textContent = 'Séance terminée';
@@ -3546,6 +3560,7 @@
       if (primaryAction === 'launch') launchSession();
       else if (primaryAction === 'exec') setMode('exec');
       else if (primaryAction === 'setup') setMode('setup');
+      else if (primaryAction === 'resume') doTransition('live');
       else if (primaryAction === 'close-session') closeSession();
       else if (primaryAction === 'scroll-vote') {
         const el = document.getElementById('execVoteCard');
@@ -3567,6 +3582,8 @@
         contextHint.textContent = 'Séance clôturée — consultez les résultats.';
       } else if (currentMeetingStatus === 'archived') {
         contextHint.textContent = 'Séance archivée.';
+      } else if (currentMeetingStatus === 'paused') {
+        contextHint.textContent = 'Séance en pause — reprenez ou clôturez.';
       } else if (currentMeetingStatus === 'live') {
         contextHint.textContent = 'Séance en cours — basculez en exécution.';
       } else {
@@ -3824,7 +3841,7 @@
     }
 
     // Quorum check (when live) — use configured threshold from policy
-    if (currentMeetingStatus === 'live' && currentMeeting && currentMeeting.quorum_policy_id) {
+    if (['live', 'paused'].includes(currentMeetingStatus) && currentMeeting && currentMeeting.quorum_policy_id) {
       const present = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
       const proxyActive = proxiesCache.filter(p => !p.revoked_at).length;
       const total = present + proxyActive;

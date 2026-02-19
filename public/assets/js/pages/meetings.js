@@ -49,7 +49,7 @@
    * @param {Array} meetings - All meetings
    */
   function updateStats(meetings) {
-    const live = meetings.filter(m => m.status === 'live').length;
+    const live = meetings.filter(m => m.status === 'live' || m.status === 'paused').length;
     const scheduled = meetings.filter(m => ['scheduled', 'frozen'].includes(m.status)).length;
     const draft = meetings.filter(m => m.status === 'draft').length;
 
@@ -96,7 +96,7 @@
 
   function filterMeetings(meetings, filter) {
     if (filter === 'all') return meetings;
-    if (filter === 'live') return meetings.filter(m => m.status === 'live');
+    if (filter === 'live') return meetings.filter(m => m.status === 'live' || m.status === 'paused');
     if (filter === 'scheduled') return meetings.filter(m => ['scheduled', 'frozen'].includes(m.status));
     if (filter === 'draft') return meetings.filter(m => m.status === 'draft');
     if (filter === 'archived') return meetings.filter(m => ['closed', 'validated', 'archived'].includes(m.status));
@@ -118,7 +118,7 @@
       return (a.title || '').localeCompare(b.title || '', 'fr');
     }
     // Default: sort by status then date
-    const statusOrder = { live: 0, frozen: 1, scheduled: 2, draft: 3, closed: 4, validated: 5, archived: 6 };
+    const statusOrder = { live: 0, paused: 1, frozen: 2, scheduled: 3, draft: 4, closed: 5, validated: 6, archived: 7 };
     const orderA = statusOrder[a.status] ?? 99;
     const orderB = statusOrder[b.status] ?? 99;
     if (orderA !== orderB) return orderA - orderB;
@@ -149,7 +149,7 @@
     const title = escapeHtml(m.title || '(sans titre)');
     const statusInfo = Shared.MEETING_STATUS_MAP[m.status] || Shared.MEETING_STATUS_MAP['draft'];
     const typeLabel = MEETING_TYPE_LABELS[m.meeting_type] || '';
-    const isLive = m.status === 'live';
+    const isLive = m.status === 'live' || m.status === 'paused';
     const isDraft = m.status === 'draft';
     const isScheduled = m.status === 'scheduled' || m.status === 'frozen';
     const isArchived = ['closed', 'validated', 'archived'].includes(m.status);

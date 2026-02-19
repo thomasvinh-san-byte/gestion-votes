@@ -559,6 +559,20 @@ async function refresh() {
 
       await loadResults(s.motion.id, true);
 
+    } else if (s.meeting_status === 'paused') {
+      // Session paused
+      badge.className = 'status-badge idle';
+      badge.textContent = 'en pause';
+      motion.textContent = 'Séance en pause';
+      sub.textContent = 'La séance reprendra sous peu';
+      show('waiting_state', true);
+      show('chart_container', false);
+      show('decision_section', false);
+      show('secret_block', false);
+      updateResolution(null);
+      currentMotionId = null;
+      resetBars();
+
     } else {
       // Waiting
       badge.className = 'status-badge idle';

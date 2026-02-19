@@ -218,8 +218,9 @@ class MeetingRepository extends AbstractRepository
              WHERE m.tenant_id = :tenant_id AND m.status <> 'archived'
              ORDER BY
                 CASE m.status
-                    WHEN 'live' THEN 1 WHEN 'closed' THEN 2
-                    WHEN 'draft' THEN 3 ELSE 4
+                    WHEN 'live' THEN 1 WHEN 'paused' THEN 2
+                    WHEN 'closed' THEN 3 WHEN 'draft' THEN 4
+                    ELSE 5
                 END,
                 m.created_at DESC
              LIMIT 1",
@@ -366,9 +367,9 @@ class MeetingRepository extends AbstractRepository
     public function listLiveForTenant(string $tenantId): array
     {
         return $this->selectAll(
-            "SELECT id, title, started_at
+            "SELECT id, title, started_at, status
              FROM meetings
-             WHERE tenant_id = :tid AND status = 'live'
+             WHERE tenant_id = :tid AND status IN ('live', 'paused')
              ORDER BY started_at DESC NULLS LAST, created_at DESC",
             [':tid' => $tenantId]
         );
