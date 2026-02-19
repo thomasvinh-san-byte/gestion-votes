@@ -584,14 +584,17 @@ class BallotRepository extends AbstractRepository
      */
     public function listUnjustifiedManualVotes(string $meetingId): array
     {
+        // Manual votes without a corresponding manual_actions.notes entry
         return $this->selectAll(
             "SELECT b.id, m.full_name, mo.title AS motion_title
              FROM ballots b
              JOIN motions mo ON mo.id = b.motion_id
              JOIN members m ON m.id = b.member_id
+             LEFT JOIN manual_actions ma ON ma.motion_id = b.motion_id
+               AND ma.member_id = b.member_id AND ma.action_type = 'manual_vote'
              WHERE mo.meeting_id = :mid
                AND b.source = 'manual'
-               AND (b.justification IS NULL OR b.justification = '')",
+               AND (ma.notes IS NULL OR ma.notes = '')",
             [':mid' => $meetingId]
         );
     }

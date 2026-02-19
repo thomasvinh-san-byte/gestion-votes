@@ -22,11 +22,22 @@ if ($status === 'declined' || $status === 'bounced') {
     api_fail('token_not_usable', 400, ['status' => $status]);
 }
 
-// Marquer comme ouvert (best-effort)
-(new InvitationRepository())->markOpened((string)$inv['id']);
+$repo = new InvitationRepository();
+$invId = (string)$inv['id'];
+
+// Marquer comme ouvert si c'est la premiere fois, puis accepte
+if ($status === 'pending' || $status === 'sent') {
+    $repo->markOpened($invId);
+}
+$repo->markAccepted($invId);
+
+audit_log('invitation.redeemed', 'invitation', $invId, [
+    'meeting_id' => (string)$inv['meeting_id'],
+    'member_id'  => (string)$inv['member_id'],
+], (string)$inv['meeting_id']);
 
 api_ok([
     'meeting_id' => (string)$inv['meeting_id'],
     'member_id' => (string)$inv['member_id'],
-    'status' => $status,
+    'status' => 'accepted',
 ]);

@@ -22,8 +22,14 @@
     return res.json();
   }
 
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = String(s ?? '');
+    return d.innerHTML;
+  }
+
   function pill(text) {
-    return `<span class="pill">${String(text || '—')}</span>`;
+    return `<span class="pill">${esc(text || '—')}</span>`;
   }
 
   function td(c, right) {
@@ -73,7 +79,7 @@
 
     const tbody = $('#pvAttendanceBody');
     tbody.innerHTML = members.map(m => {
-      const name = m.full_name || m.name || '';
+      const name = esc(m.full_name || m.name || '');
       const st = (m.mode || 'absent').toUpperCase();
       const w = parseFloat(m.voting_power) || parseFloat(m.vote_weight) || 1;
       return `<tr>${td(name)}${td('')}${td(pill(st))}${td(`<span style="font-variant-numeric:tabular-nums;">${w}</span>`, true)}</tr>`;
@@ -92,8 +98,8 @@
       return `<div class="card" style="padding:12px;">
         <div class="row" style="align-items:flex-start;">
           <div style="flex:1;">
-            <div class="k" style="font-size:14px;">${t}</div>
-            <div class="text-muted text-xs" style="white-space:pre-wrap; margin-top:4px;">${d}</div>
+            <div class="k" style="font-size:14px;">${esc(t)}</div>
+            <div class="text-muted text-xs" style="white-space:pre-wrap; margin-top:4px;">${esc(d)}</div>
           </div>
           <div class="controls" style="flex-direction:column; align-items:flex-end; gap:6px;">
             ${pill(st)}

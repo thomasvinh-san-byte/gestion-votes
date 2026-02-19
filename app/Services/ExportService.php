@@ -219,10 +219,15 @@ final class ExportService
     /**
      * Initializes a CSV export with UTF-8 BOM for Excel
      */
+    private static function safeFilename(string $filename): string
+    {
+        return str_replace(['"', "\r", "\n", "\0", '\\'], '', $filename);
+    }
+
     public static function initCsvOutput(string $filename): void
     {
         header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Disposition: attachment; filename="' . self::safeFilename($filename) . '"');
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: no-cache, no-store, must-revalidate');
     }
@@ -560,7 +565,7 @@ final class ExportService
     public static function initXlsxOutput(string $filename): void
     {
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Disposition: attachment; filename="' . self::safeFilename($filename) . '"');
         header('Cache-Control: max-age=0');
         header('X-Content-Type-Options: nosniff');
     }

@@ -108,11 +108,13 @@ class InvitationRepository extends AbstractRepository
     {
         $tokenHash = hash('sha256', $token);
 
-        // Lookup par hash (securise)
+        // Lookup par hash (securise) — exclut invitations expirees et revoquees
         $row = $this->selectOne(
-            "SELECT id, meeting_id, member_id, status
+            "SELECT id, meeting_id, member_id, status, expires_at, revoked_at
              FROM invitations
              WHERE token_hash = :hash
+               AND revoked_at IS NULL
+               AND (expires_at IS NULL OR expires_at > now())
              LIMIT 1",
             [':hash' => $tokenHash]
         );
@@ -122,9 +124,11 @@ class InvitationRepository extends AbstractRepository
 
         // Fallback: lookup par token brut (anciennes invitations non migrees)
         return $this->selectOne(
-            "SELECT id, meeting_id, member_id, status
+            "SELECT id, meeting_id, member_id, status, expires_at, revoked_at
              FROM invitations
              WHERE token = :token
+               AND revoked_at IS NULL
+               AND (expires_at IS NULL OR expires_at > now())
              LIMIT 1",
             [':token' => $token]
         );
@@ -142,15 +146,17 @@ class InvitationRepository extends AbstractRepository
         string $token
     ): void {
         $tokenHash = hash('sha256', $token);
+        $expiresAt = (new \DateTimeImmutable('+' . self::DEFAULT_TTL_DAYS . ' days'))->format('c');
         $this->execute(
-            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token_hash, status, sent_at, updated_at)
-             VALUES (:tenant_id, :meeting_id, :member_id, :email, :token_hash, 'sent', now(), now())
+            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token_hash, status, sent_at, expires_at, updated_at)
+             VALUES (:tenant_id, :meeting_id, :member_id, :email, :token_hash, 'sent', now(), :expires_at, now())
              ON CONFLICT (tenant_id, meeting_id, member_id)
              DO UPDATE SET token_hash = EXCLUDED.token_hash,
                            token = NULL,
                            email = COALESCE(EXCLUDED.email, invitations.email),
                            status = 'sent',
                            sent_at = now(),
+                           expires_at = EXCLUDED.expires_at,
                            updated_at = now()",
             [
                 ':tenant_id' => $tenantId,
@@ -158,6 +164,7 @@ class InvitationRepository extends AbstractRepository
                 ':member_id' => $memberId,
                 ':email' => $email,
                 ':token_hash' => $tokenHash,
+                ':expires_at' => $expiresAt,
             ]
         );
     }
@@ -178,6 +185,9 @@ class InvitationRepository extends AbstractRepository
      * Upsert pour envoi en masse (avec status et sent_at parametrables).
      * Stocke le token_hash au lieu du token brut.
      */
+    /** Default invitation TTL: 14 days */
+    private const DEFAULT_TTL_DAYS = 14;
+
     public function upsertBulk(
         string $tenantId,
         string $meetingId,
@@ -188,20 +198,22 @@ class InvitationRepository extends AbstractRepository
         ?string $sentAt
     ): void {
         $tokenHash = hash('sha256', $token);
+        $expiresAt = (new \DateTimeImmutable('+' . self::DEFAULT_TTL_DAYS . ' days'))->format('c');
         $this->execute(
-            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token_hash, status, sent_at, updated_at)
-             VALUES (:tid, :mid, :uid, :email, :token_hash, :status, :sent_at, now())
+            "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token_hash, status, sent_at, expires_at, updated_at)
+             VALUES (:tid, :mid, :uid, :email, :token_hash, :status, :sent_at, :expires_at, now())
              ON CONFLICT (tenant_id, meeting_id, member_id)
              DO UPDATE SET token_hash=EXCLUDED.token_hash,
                            token=NULL,
                            email=COALESCE(EXCLUDED.email, invitations.email),
                            status=EXCLUDED.status,
                            sent_at=EXCLUDED.sent_at,
+                           expires_at=EXCLUDED.expires_at,
                            updated_at=now()",
             [
                 ':tid' => $tenantId, ':mid' => $meetingId, ':uid' => $memberId,
                 ':email' => $email, ':token_hash' => $tokenHash,
-                ':status' => $status, ':sent_at' => $sentAt,
+                ':status' => $status, ':sent_at' => $sentAt, ':expires_at' => $expiresAt,
             ]
         );
     }

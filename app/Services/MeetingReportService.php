@@ -139,10 +139,8 @@ final class MeetingReportService
             $policyLine = self::policyLine($votePolicy, $quorumPolicy);
 
             $quorumJust = null;
-            if (class_exists('QuorumEngine')) {
-                try { $qr = QuorumEngine::computeForMotion($mid); $quorumJust = (string)($qr['justification'] ?? null); }
-                catch (Throwable $e) { $quorumJust = null; }
-            }
+            try { $qr = QuorumEngine::computeForMotion($mid); $quorumJust = (string)($qr['justification'] ?? null); }
+            catch (Throwable $e) { $quorumJust = null; }
 
             $majorityJust = null;
             try {

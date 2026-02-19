@@ -80,21 +80,21 @@
 }
 
 .state-node-visual.closed {
-  background: var(--color-success-subtle, #dcfce7);
-  border-color: var(--color-success, #22c55e);
-  color: #166534;
+  background: var(--color-success-subtle);
+  border-color: var(--color-success);
+  color: var(--color-success-text);
 }
 
 .state-node-visual.validated {
-  background: #f0fdf4;
-  border-color: #16a34a;
-  color: #15803d;
+  background: var(--color-success-subtle);
+  border-color: var(--color-success);
+  color: var(--color-success-hover);
 }
 
 .state-node-visual.archived {
-  background: #f3e8ff;
-  border-color: #9333ea;
-  color: #7e22ce;
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .state-arrow-visual {

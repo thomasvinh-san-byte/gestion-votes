@@ -192,13 +192,13 @@
       emptyState.style.display = 'none';
 
       templatesGrid.innerHTML = templates.map(t => `
-        <div class="template-card ${t.is_default ? 'is-default' : ''}" data-id="${t.id}">
+        <div class="template-card ${t.is_default ? 'is-default' : ''}" data-id="${escapeHtml(t.id)}">
           <div class="template-card-header">
             <div class="template-card-title">
               ${escapeHtml(t.name)}
               ${t.is_default ? '<span class="badge badge-sm ml-2">Par défaut</span>' : ''}
             </div>
-            <span class="template-card-type ${t.template_type}">${t.template_type}</span>
+            <span class="template-card-type ${escapeHtml(t.template_type)}">${escapeHtml(t.template_type)}</span>
           </div>
           <div class="template-card-body">
             <div class="template-card-subject">
@@ -209,14 +209,14 @@
             </div>
           </div>
           <div class="template-card-footer">
-            <button class="btn btn-sm btn-secondary flex-1" onclick="editTemplate('${t.id}')">
+            <button class="btn btn-sm btn-secondary flex-1" data-action="edit" data-id="${escapeHtml(t.id)}">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
               Modifier
             </button>
-            <button class="btn btn-sm btn-secondary" onclick="duplicateTemplate('${t.id}')" title="Dupliquer">
+            <button class="btn btn-sm btn-secondary" data-action="duplicate" data-id="${escapeHtml(t.id)}" title="Dupliquer">
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-copy"></use></svg>
             </button>
-            <button class="btn btn-sm btn-danger" onclick="deleteTemplate('${t.id}')" ${t.is_default ? 'disabled title="Impossible de supprimer le template par défaut"' : ''}>
+            <button class="btn btn-sm btn-danger" data-action="delete" data-id="${escapeHtml(t.id)}" ${t.is_default ? 'disabled title="Impossible de supprimer le template par défaut"' : ''}>
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
             </button>
           </div>
@@ -227,7 +227,7 @@
     // Render variables helper
     function renderVariables() {
       variablesList.innerHTML = Object.entries(availableVariables).map(([v, desc]) => `
-        <span class="variable-tag" onclick="insertVariable('${v}')" title="${escapeHtml(desc)}">${v}</span>
+        <span class="variable-tag" data-action="insert-var" data-var="${escapeHtml(v)}" title="${escapeHtml(desc)}">${escapeHtml(v)}</span>
       `).join('');
     }
 
@@ -330,72 +330,86 @@
     }
 
     // Delete template
-    async function deleteTemplate(id) {
-      if (!confirm('Supprimer ce template ?')) return;
+    function deleteTemplate(id) {
+      const tpl = templates.find(t => t.id === id);
+      const tplName = tpl ? tpl.name : 'ce template';
 
-      try {
-        const resp = await fetch(`${API_BASE}/email_templates.php?id=${id}`, {
-          method: 'DELETE',
-          credentials: 'include'
-        });
-
-        const data = await resp.json();
-        if (!data.ok) throw new Error(data.message || data.error || 'Erreur suppression');
-
-        window.showToast?.('Template supprimé', 'success');
-        loadTemplates();
-      } catch (err) {
-        window.showToast?.('Erreur: ' + err.message, 'error');
-      }
+      Shared.openModal({
+        title: 'Supprimer le template',
+        body: '<p>Supprimer le template « <strong>' + escapeHtml(tplName) + '</strong> » ?</p>',
+        confirmText: 'Supprimer',
+        confirmClass: 'btn btn-danger',
+        onConfirm: async function() {
+          try {
+            const resp = await fetch(`${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}`, {
+              method: 'DELETE',
+              credentials: 'include'
+            });
+            const data = await resp.json();
+            if (!data.ok) throw new Error(data.message || data.error || 'Erreur suppression');
+            window.showToast?.('Template supprimé', 'success');
+            loadTemplates();
+          } catch (err) {
+            window.showToast?.('Erreur: ' + err.message, 'error');
+          }
+        }
+      });
     }
 
     // Duplicate template
-    async function duplicateTemplate(id) {
-      const newName = prompt('Nom du nouveau template:');
-      if (!newName) return;
+    function duplicateTemplate(id) {
+      const tpl = templates.find(t => t.id === id);
+      const defaultName = tpl ? tpl.name + ' (copie)' : '';
 
-      try {
-        const resp = await fetch(`${API_BASE}/email_templates.php`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'duplicate',
-            source_id: id,
-            new_name: newName
-          })
-        });
-
-        const data = await resp.json();
-        if (!data.ok) throw new Error(data.message || data.error || 'Erreur duplication');
-
-        window.showToast?.('Template dupliqué', 'success');
-        loadTemplates();
-      } catch (err) {
-        window.showToast?.('Erreur: ' + err.message, 'error');
-      }
+      Shared.openModal({
+        title: 'Dupliquer le template',
+        body: '<div class="form-group"><label class="form-label">Nom du nouveau template</label>' +
+          '<input class="form-input" type="text" id="dupTemplateName" value="' + escapeHtml(defaultName) + '"></div>',
+        confirmText: 'Dupliquer',
+        onConfirm: async function(modal) {
+          var newName = modal.querySelector('#dupTemplateName').value.trim();
+          if (!newName) { window.showToast?.('Nom requis', 'error'); return false; }
+          try {
+            const resp = await fetch(`${API_BASE}/email_templates.php`, {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'duplicate', source_id: id, new_name: newName })
+            });
+            const data = await resp.json();
+            if (!data.ok) throw new Error(data.message || data.error || 'Erreur duplication');
+            window.showToast?.('Template dupliqué', 'success');
+            loadTemplates();
+          } catch (err) {
+            window.showToast?.('Erreur: ' + err.message, 'error');
+          }
+        }
+      });
     }
 
     // Create default templates
-    async function createDefaults() {
-      if (!confirm('Créer les templates par défaut (invitation et rappel) ?')) return;
-
-      try {
-        const resp = await fetch(`${API_BASE}/email_templates.php`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'create_defaults' })
-        });
-
-        const data = await resp.json();
-        if (!data.ok) throw new Error(data.message || data.error || 'Erreur creation');
-
-        window.showToast?.(`${data.data.count} templates créés`, 'success');
-        loadTemplates();
-      } catch (err) {
-        window.showToast?.('Erreur: ' + err.message, 'error');
-      }
+    function createDefaults() {
+      Shared.openModal({
+        title: 'Créer les templates par défaut',
+        body: '<p>Créer les templates par défaut (invitation et rappel) ?</p>',
+        confirmText: 'Créer',
+        onConfirm: async function() {
+          try {
+            const resp = await fetch(`${API_BASE}/email_templates.php`, {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'create_defaults' })
+            });
+            const data = await resp.json();
+            if (!data.ok) throw new Error(data.message || data.error || 'Erreur creation');
+            window.showToast?.((data.data.count || 0) + ' templates créés', 'success');
+            loadTemplates();
+          } catch (err) {
+            window.showToast?.('Erreur: ' + err.message, 'error');
+          }
+        }
+      });
     }
 
     // Update preview
@@ -431,10 +445,24 @@
     }
 
     function stripHtml(html) {
-      const div = document.createElement('div');
-      div.innerHTML = html;
-      return div.textContent || '';
+      if (!html) return '';
+      return html.replace(/<[^>]*>/g, '');
     }
+
+    // Event delegation for template cards and variable tags
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      var action = btn.dataset.action;
+      var id = btn.dataset.id;
+
+      switch (action) {
+        case 'edit': editTemplate(id); break;
+        case 'duplicate': duplicateTemplate(id); break;
+        case 'delete': deleteTemplate(id); break;
+        case 'insert-var': insertVariable(btn.dataset.var); break;
+      }
+    });
 
     // Event listeners
     document.getElementById('btnNewTemplate').addEventListener('click', openNewEditor);

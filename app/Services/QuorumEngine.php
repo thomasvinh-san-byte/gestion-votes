@@ -211,10 +211,23 @@ final class QuorumEngine
             $den = max(1, $eligibleMembers);
             $num = (float)$numMembers;
         } else {
-            $den = $eligibleWeight > 0 ? $eligibleWeight : 0.0001;
+            $den = $eligibleWeight;
             $num = (float)$numWeight;
         }
-        $ratio = $den > 0 ? $num / $den : 0.0;
+
+        if ($den <= 0) {
+            return [
+                'configured' => true,
+                'met' => false,
+                'ratio' => 0.0,
+                'threshold' => $threshold,
+                'numerator' => $num,
+                'denominator' => 0.0,
+                'basis' => $basis,
+            ];
+        }
+
+        $ratio = $num / $den;
 
         return [
             'configured' => true,

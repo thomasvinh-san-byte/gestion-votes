@@ -72,8 +72,14 @@ if ($method === 'POST') {
             api_fail('user_not_found', 404);
         }
 
-        // Contrainte président unique par séance
+        // President assignment requires admin role (prevent operator self-escalation)
         if ($role === 'president') {
+            if (api_current_role() !== 'admin') {
+                api_fail('admin_required_for_president', 403, [
+                    'detail' => 'Seul un administrateur peut assigner le rôle de président.',
+                ]);
+            }
+            // Contrainte président unique par séance
             $existingPres = $userRepo->findExistingPresident(api_current_tenant_id(), $meetingId);
             if ($existingPres && $existingPres !== $userId) {
                 // Révoquer l'ancien président

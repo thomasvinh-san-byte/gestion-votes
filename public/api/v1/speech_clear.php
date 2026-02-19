@@ -9,12 +9,14 @@ use AgVote\Service\SpeechService;
 try {
     api_require_role(['operator','trust','president','admin']);
     $data = api_request('POST');
-    $meetingId = trim((string)($data['meeting_id'] ?? ''));
-    if ($meetingId==='') throw new InvalidArgumentException('meeting_id requis');
+    $meetingId = api_require_uuid($data, 'meeting_id');
 
     // Pass tenant context for security validation
     $tenantId = api_current_tenant_id();
     $out = SpeechService::clearHistory($meetingId, $tenantId);
+
+    audit_log('speech.cleared', 'meeting', $meetingId, [], $meetingId);
+
     api_ok($out);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);

@@ -204,7 +204,8 @@ try {
             $data['email'] = strtolower(trim($row[$colIndex['email']] ?? ''));
         }
         if (isset($colIndex['voting_power'])) {
-            $data['voting_power'] = (float)($row[$colIndex['voting_power']] ?? 1);
+            $vp = (float)($row[$colIndex['voting_power']] ?? 1);
+            $data['voting_power'] = max(0, min($vp, 100000));
         } else {
             $data['voting_power'] = 1.0;
         }
@@ -287,7 +288,7 @@ fclose($handle);
 audit_log('members_import', 'member', null, [
     'imported' => $imported,
     'skipped' => $skipped,
-    'filename' => $file['name'],
+    'filename' => $file['name'] ?? 'csv_content',
 ]);
 
 api_ok([

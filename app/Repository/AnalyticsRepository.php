@@ -266,17 +266,21 @@ class AnalyticsRepository extends AbstractRepository
     public function countLowParticipationMeetings(string $tenantId, string $dateFrom): int
     {
         return (int)($this->scalar(
-            "SELECT COUNT(*) FROM (
+            "WITH eligible AS (
+                SELECT COUNT(*) AS cnt FROM members WHERE tenant_id = :tid AND is_active = true
+            )
+            SELECT COUNT(*) FROM (
                 SELECT m.id,
-                    COUNT(CASE WHEN a.mode IN ('present', 'remote', 'proxy') THEN 1 END) as attended,
-                    (SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true) as eligible
+                    COUNT(CASE WHEN a.mode IN ('present', 'remote', 'proxy') THEN 1 END) as attended
                 FROM meetings m
                 LEFT JOIN attendances a ON a.meeting_id = m.id
                 WHERE m.tenant_id = :tid2
                   AND m.started_at IS NOT NULL
                   AND m.started_at >= :from
                 GROUP BY m.id
-                HAVING eligible > 0 AND (attended::float / eligible) < 0.5
+                HAVING (SELECT cnt FROM eligible) > 0
+                  AND COUNT(CASE WHEN a.mode IN ('present', 'remote', 'proxy') THEN 1 END)::float
+                      / (SELECT cnt FROM eligible) < 0.5
             ) sub",
             [':tid' => $tenantId, ':tid2' => $tenantId, ':from' => $dateFrom]
         ) ?? 0);
@@ -287,13 +291,15 @@ class AnalyticsRepository extends AbstractRepository
      */
     public function countQuorumIssues(string $tenantId, string $dateFrom): int
     {
+        // Count meetings with motions decided despite tally issues
         return (int)($this->scalar(
             "SELECT COUNT(DISTINCT m.id) FROM meetings m
              JOIN motions mo ON mo.meeting_id = m.id
              WHERE m.tenant_id = :tid
                AND m.started_at >= :from
                AND mo.decision IS NOT NULL
-               AND mo.quorum_reached = false",
+               AND (mo.tally_status = 'quorum_not_met'
+                    OR mo.decision_reason ILIKE '%quorum%')",
             [':tid' => $tenantId, ':from' => $dateFrom]
         ) ?? 0);
     }
@@ -349,7 +355,7 @@ class AnalyticsRepository extends AbstractRepository
              JOIN motions mo ON mo.id = b.motion_id
              JOIN meetings m ON m.id = mo.meeting_id
              WHERE m.tenant_id = :tid
-               AND b.created_at >= :from",
+               AND b.cast_at >= :from",
             [':tid' => $tenantId, ':from' => $dateFrom]
         );
         return (float)($result ?? 0);
@@ -384,7 +390,7 @@ class AnalyticsRepository extends AbstractRepository
                 m.started_at as date,
                 COUNT(CASE WHEN a.mode IN ('present', 'remote', 'proxy') THEN 1 END) as attended,
                 (SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true) as eligible,
-                COUNT(DISTINCT CASE WHEN mo.decision IS NOT NULL AND mo.quorum_reached = false THEN mo.id END) as quorum_issues,
+                COUNT(DISTINCT CASE WHEN mo.decision IS NOT NULL AND (mo.tally_status = 'quorum_not_met' OR mo.decision_reason ILIKE '%quorum%') THEN mo.id END) as quorum_issues,
                 COUNT(DISTINCT CASE WHEN mo.opened_at IS NOT NULL AND mo.closed_at IS NULL THEN mo.id END) as incomplete
              FROM meetings m
              LEFT JOIN attendances a ON a.meeting_id = m.id

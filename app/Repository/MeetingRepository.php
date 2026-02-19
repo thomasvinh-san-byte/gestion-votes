@@ -389,6 +389,14 @@ class MeetingRepository extends AbstractRepository
         );
     }
 
+    private const UPDATABLE_FIELDS = [
+        'title', 'description', 'status', 'scheduled_at', 'started_at', 'ended_at',
+        'location', 'quorum_policy_id', 'vote_policy_id', 'convocation_no',
+        'president_name', 'president_member_id', 'president_source',
+        'current_motion_id', 'late_rule_quorum', 'late_rule_vote',
+        'ready_to_sign', 'validated_at', 'validated_by_user_id', 'archived_at',
+    ];
+
     /**
      * Met a jour dynamiquement des champs d'une seance.
      *
@@ -401,8 +409,11 @@ class MeetingRepository extends AbstractRepository
         $sets = [];
         $params = [':tid' => $tenantId, ':id' => $meetingId];
         foreach ($fields as $col => $val) {
+            if (!in_array($col, self::UPDATABLE_FIELDS, true)) {
+                throw new \InvalidArgumentException("Colonne non autorisée : {$col}");
+            }
             $param = ':f_' . $col;
-            $sets[] = "{$col} = {$param}";
+            $sets[] = "\"{$col}\" = {$param}";
             $params[$param] = $val;
         }
         $sets[] = "updated_at = now()";
@@ -894,10 +905,10 @@ class MeetingRepository extends AbstractRepository
     public function listProxyCeilingViolations(string $tenantId, string $meetingId, int $maxPerReceiver): array
     {
         return $this->selectAll(
-            "SELECT proxy_id, COUNT(*) AS c
+            "SELECT receiver_member_id, COUNT(*) AS c
              FROM proxies
              WHERE tenant_id = :tid AND meeting_id = :mid AND revoked_at IS NULL
-             GROUP BY proxy_id
+             GROUP BY receiver_member_id
              HAVING COUNT(*) > :mx
              ORDER BY c DESC",
             [':tid' => $tenantId, ':mid' => $meetingId, ':mx' => $maxPerReceiver]
@@ -1052,8 +1063,11 @@ class MeetingRepository extends AbstractRepository
      */
     public function isOwnedByUser(string $meetingId, string $userId): bool
     {
+        // Check if user belongs to the same tenant as the meeting
         return (bool)$this->scalar(
-            "SELECT 1 FROM meetings WHERE id = :id AND created_by_user_id = :uid",
+            "SELECT 1 FROM meetings m
+             JOIN users u ON u.tenant_id = m.tenant_id
+             WHERE m.id = :id AND u.id = :uid",
             [':id' => $meetingId, ':uid' => $userId]
         );
     }

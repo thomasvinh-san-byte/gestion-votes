@@ -94,9 +94,28 @@ try {
         error_log('[motions_close] EventBroadcaster failed after commit: ' . $wsErr->getMessage());
     }
 
+    // Include vote completeness info so operator can see if votes are missing
+    $eligibleCount = 0;
+    try {
+        $eligibleCount = (int)db_select_one(
+            "SELECT COUNT(*) AS cnt FROM attendances WHERE meeting_id = :mid AND tenant_id = :tid AND mode IN ('present','remote')",
+            [':mid' => (string)$motion['meeting_id'], ':tid' => api_current_tenant_id()]
+        )['cnt'];
+    } catch (Throwable $e) { /* non-critical */ }
+
     api_ok([
         'meeting_id'       => (string)$motion['meeting_id'],
         'closed_motion_id' => $motionId,
+        'results'          => [
+            'for'      => $o['for'] ?? 0,
+            'against'  => $o['against'] ?? 0,
+            'abstain'  => $o['abstain'] ?? 0,
+            'total'    => $o['total'] ?? 0,
+            'decision' => $o['decision'] ?? 'unknown',
+            'reason'   => $o['reason'] ?? null,
+        ],
+        'eligible_count'   => $eligibleCount,
+        'votes_cast'       => $o['total'] ?? 0,
     ]);
 } catch (Throwable $e) {
     if (db()->inTransaction()) db()->rollBack();

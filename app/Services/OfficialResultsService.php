@@ -78,12 +78,17 @@ final class OfficialResultsService
                 $quorumDenominator = max(1, $eligibleMembers);
                 $quorumNumerator   = max(0, $expressedMembersApprox);
             } else {
-                $quorumDenominator = $eligibleWeight > 0 ? $eligibleWeight : 0.0001;
+                $quorumDenominator = $eligibleWeight;
                 $quorumNumerator   = $expressedWeight;
             }
 
-            $quorumRatio = $quorumDenominator > 0 ? $quorumNumerator / $quorumDenominator : 0.0;
-            $quorumMet = $quorumRatio >= $quorumThreshold;
+            if ($quorumDenominator <= 0) {
+                $quorumRatio = 0.0;
+                $quorumMet = false;
+            } else {
+                $quorumRatio = $quorumNumerator / $quorumDenominator;
+                $quorumMet = $quorumRatio >= $quorumThreshold;
+            }
         }
 
         // Majority (same logic as VoteEngine)
@@ -91,13 +96,11 @@ final class OfficialResultsService
         $majorityRatio     = null;
         $majorityThreshold = null;
         $majorityBase      = null;
-        $abstAsAgainst     = null;
         $majorityDenominator = null;
 
         if ($votePolicy) {
             $majorityBase      = (string)$votePolicy['base'];
             $majorityThreshold = (float)$votePolicy['threshold'];
-            $abstAsAgainst     = (bool)$votePolicy['abstention_as_against'];
 
             if ($majorityBase === 'expressed') {
                 $baseTotal = $expressedWeight;
@@ -109,12 +112,13 @@ final class OfficialResultsService
                 $baseTotal = $expressedWeight;
             }
 
-            $majorityDenominator = $baseTotal > 0 ? $baseTotal : 0.0001;
-            $majorityRatio = $forWeight / $majorityDenominator;
-
             if ($baseTotal <= 0.0 || $expressedWeight <= 0.0) {
+                $majorityDenominator = 0.0;
+                $majorityRatio = 0.0;
                 $adopted = false;
             } else {
+                $majorityDenominator = $baseTotal;
+                $majorityRatio = $forWeight / $majorityDenominator;
                 $adopted = $majorityRatio >= $majorityThreshold;
                 if ($quorumMet === false) {
                     $adopted = false;
@@ -379,22 +383,30 @@ final class OfficialResultsService
         $motionRepo = new MotionRepository();
         $motions = $motionRepo->listClosedForMeeting($meetingId);
 
-        $updated = 0;
-        foreach ($motions as $m) {
-            $mid = (string)$m['id'];
-            $o = self::computeOfficialTallies($mid);
+        $pdo = \db();
+        $pdo->beginTransaction();
+        try {
+            $updated = 0;
+            foreach ($motions as $m) {
+                $mid = (string)$m['id'];
+                $o = self::computeOfficialTallies($mid);
 
-            $motionRepo->updateOfficialResults(
-                $mid,
-                $o['source'],
-                $o['for'],
-                $o['against'],
-                $o['abstain'],
-                $o['total'],
-                $o['decision'],
-                $o['reason']
-            );
-            $updated++;
+                $motionRepo->updateOfficialResults(
+                    $mid,
+                    $o['source'],
+                    $o['for'],
+                    $o['against'],
+                    $o['abstain'],
+                    $o['total'],
+                    $o['decision'],
+                    $o['reason']
+                );
+                $updated++;
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
         }
 
         return ['updated' => $updated];

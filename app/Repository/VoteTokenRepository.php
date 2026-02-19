@@ -69,6 +69,22 @@ class VoteTokenRepository extends AbstractRepository
     }
 
     /**
+     * Atomic validate-and-consume: marks a valid token as used and returns its data,
+     * or returns null if token is not found, already used, or expired.
+     * Single UPDATE…RETURNING eliminates TOCTOU race condition.
+     */
+    public function consumeIfValid(string $tokenHash): ?array
+    {
+        return $this->selectOne(
+            "UPDATE vote_tokens
+             SET used_at = now()
+             WHERE token_hash = :hash AND used_at IS NULL AND expires_at > NOW()
+             RETURNING token_hash, tenant_id, meeting_id, member_id, motion_id, expires_at, used_at",
+            [':hash' => $tokenHash]
+        );
+    }
+
+    /**
      * Compte tous les tokens de vote (global).
      */
     public function countAll(): ?int

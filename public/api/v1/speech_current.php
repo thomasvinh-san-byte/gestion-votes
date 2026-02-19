@@ -10,8 +10,7 @@ use AgVote\Service\SpeechService;
 try {
     api_require_role('public');
     $q = api_request('GET');
-    $meetingId = trim((string)($q['meeting_id'] ?? ''));
-    if ($meetingId === '') throw new InvalidArgumentException('meeting_id requis');
+    $meetingId = api_require_uuid($q, 'meeting_id');
 
     $out = SpeechService::getQueue($meetingId);
     $speaker = $out['speaker'] ?? null;
@@ -45,14 +44,7 @@ try {
         ]);
     } else {
         // No current speaker
-        http_response_code(200);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode([
-            'ok' => true,
-            'data' => null,
-            'queue_count' => $queueCount
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
+        api_ok(['speaker' => null, 'queue_count' => $queueCount]);
     }
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);

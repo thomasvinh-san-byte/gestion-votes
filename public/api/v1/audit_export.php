@@ -10,6 +10,9 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MeetingRepository;
 
+// Audit export requires auditor, operator, or admin role
+api_require_role(['auditor', 'operator', 'admin']);
+
 $q = api_request('GET');
 $meetingId = api_require_uuid($q, 'meeting_id');
 $format = strtolower(trim((string)($_GET['format'] ?? 'csv')));

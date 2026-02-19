@@ -64,20 +64,9 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Count of active members for a tenant.
+     * Count of active members for a tenant (excludes soft-deleted).
      */
     public function countActive(string $tenantId): int
-    {
-        return (int)($this->scalar(
-            "SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true",
-            [':tid' => $tenantId]
-        ) ?? 0);
-    }
-
-    /**
-     * Count of active and not deleted members for a tenant.
-     */
-    public function countActiveNotDeleted(string $tenantId): int
     {
         return (int)($this->scalar(
             "SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND is_active = true AND deleted_at IS NULL",
@@ -86,13 +75,21 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Total weight of active members for a tenant.
+     * @deprecated Use countActive() which now excludes soft-deleted members.
+     */
+    public function countActiveNotDeleted(string $tenantId): int
+    {
+        return $this->countActive($tenantId);
+    }
+
+    /**
+     * Total weight of active members for a tenant (excludes soft-deleted).
      */
     public function sumActiveWeight(string $tenantId): float
     {
         return (float)($this->scalar(
             "SELECT COALESCE(SUM(COALESCE(voting_power, vote_weight, 1.0)), 0)
-             FROM members WHERE tenant_id = :tid AND is_active = true",
+             FROM members WHERE tenant_id = :tid AND is_active = true AND deleted_at IS NULL",
             [':tid' => $tenantId]
         ) ?? 0.0);
     }
@@ -103,7 +100,7 @@ class MemberRepository extends AbstractRepository
     public function listActiveIds(string $tenantId): array
     {
         return $this->selectAll(
-            "SELECT id FROM members WHERE tenant_id = :tid AND is_active = true",
+            "SELECT id FROM members WHERE tenant_id = :tid AND is_active = true AND deleted_at IS NULL",
             [':tid' => $tenantId]
         );
     }
@@ -289,8 +286,9 @@ class MemberRepository extends AbstractRepository
     public function listByMeetingFallback(string $tenantId, string $meetingId): array
     {
         return $this->selectAll(
-            "SELECT id AS member_id FROM members
-             WHERE tenant_id = :tid AND meeting_id = :mid",
+            "SELECT m.id AS member_id FROM members m
+             JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
+             WHERE m.tenant_id = :tid",
             [':tid' => $tenantId, ':mid' => $meetingId]
         );
     }
@@ -316,10 +314,11 @@ class MemberRepository extends AbstractRepository
     public function listActiveFallbackByMeeting(string $tenantId, string $meetingId): array
     {
         return $this->selectAll(
-            "SELECT id AS member_id, full_name
-             FROM members
-             WHERE tenant_id = :tid AND meeting_id = :mid AND is_active = true
-             ORDER BY full_name ASC",
+            "SELECT m.id AS member_id, m.full_name
+             FROM members m
+             JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
+             WHERE m.tenant_id = :tid AND m.is_active = true
+             ORDER BY m.full_name ASC",
             [':tid' => $tenantId, ':mid' => $meetingId]
         );
     }
@@ -385,8 +384,11 @@ class MemberRepository extends AbstractRepository
      */
     public function isOwnedByUser(string $memberId, string $userId): bool
     {
+        // Check if user belongs to the same tenant as the member
         return (bool)$this->scalar(
-            "SELECT 1 FROM members WHERE id = :id AND created_by_user_id = :uid",
+            "SELECT 1 FROM members mb
+             JOIN users u ON u.tenant_id = mb.tenant_id
+             WHERE mb.id = :id AND u.id = :uid",
             [':id' => $memberId, ':uid' => $userId]
         );
     }

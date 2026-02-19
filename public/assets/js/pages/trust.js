@@ -58,13 +58,17 @@
     url.searchParams.set('meeting_id', meetingId);
     window.history.replaceState({}, '', url);
 
-    await Promise.all([
-      loadMeetingStatus(meetingId),
-      loadAnomalies(meetingId),
-      loadChecks(meetingId),
-      loadMotions(meetingId),
-      loadAuditLog(meetingId)
-    ]);
+    try {
+      await Promise.all([
+        loadMeetingStatus(meetingId),
+        loadAnomalies(meetingId),
+        loadChecks(meetingId),
+        loadMotions(meetingId),
+        loadAuditLog(meetingId)
+      ]);
+    } catch (err) {
+      setNotif('error', 'Erreur lors du chargement des données');
+    }
   }
 
   // Load meeting status
@@ -90,7 +94,7 @@
         `;
       }
     } catch (err) {
-      console.error('Status error:', err);
+      setNotif('error', 'Erreur chargement statut');
     }
   }
 
@@ -133,7 +137,7 @@
         renderAnomalies();
       }
     } catch (err) {
-      console.error('Anomalies error:', err);
+      setNotif('error', 'Erreur chargement anomalies');
     }
   }
 
@@ -299,7 +303,7 @@
         `;
       }
     } catch (err) {
-      console.error('Checks error:', err);
+      setNotif('error', 'Erreur chargement contrôles');
     }
   }
 
@@ -384,7 +388,7 @@
         document.getElementById('kpiBallots').textContent = totalBallots;
       }
     } catch (err) {
-      console.error('Motions error:', err);
+      setNotif('error', 'Erreur chargement résolutions');
     }
   }
 
@@ -402,7 +406,7 @@
     } catch (err) {
       currentAuditEntries = [];
       renderAuditLog();
-      console.error('Audit error:', err);
+      setNotif('error', 'Erreur chargement journal d\'audit');
     }
   }
 
@@ -486,16 +490,19 @@
     loadMeetingData(meetingSelect.value);
   });
 
-  document.getElementById('btnRefresh').addEventListener('click', () => {
+  document.getElementById('btnRefresh').addEventListener('click', async () => {
     if (currentMeetingId) {
-      loadMeetingData(currentMeetingId);
+      const btn = document.getElementById('btnRefresh');
+      Shared.btnLoading(btn, true);
+      try { await loadMeetingData(currentMeetingId); } finally { Shared.btnLoading(btn, false); }
     }
   });
 
-  document.getElementById('btnRecheck').addEventListener('click', () => {
+  document.getElementById('btnRecheck').addEventListener('click', async () => {
     if (currentMeetingId) {
-      loadChecks(currentMeetingId);
-      loadAnomalies(currentMeetingId);
+      const btn = document.getElementById('btnRecheck');
+      Shared.btnLoading(btn, true);
+      try { await Promise.all([loadChecks(currentMeetingId), loadAnomalies(currentMeetingId)]); } finally { Shared.btnLoading(btn, false); }
     }
   });
 

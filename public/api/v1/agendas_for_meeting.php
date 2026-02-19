@@ -7,6 +7,9 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\AgendaRepository;
 
+// Public access: agenda may be displayed on public/projection screen
+api_require_role('public');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     api_fail('method_not_allowed', 405);
     exit;

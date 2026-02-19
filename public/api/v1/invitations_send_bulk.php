@@ -41,20 +41,28 @@ if (!$mailer->isConfigured() && !$dryRun) {
   api_fail('smtp_not_configured', 400);
 }
 
-$sent = 0; $skipped = 0; $errors = [];
+$sent = 0; $skipped = 0; $errors = []; $skippedNoEmail = []; $skippedAlreadySent = [];
 
 foreach ($members as $m) {
   $memberId = (string)$m['id'];
   $memberName = (string)($m['full_name'] ?? '');
   $email = trim((string)($m['email'] ?? ''));
-  if ($email === '') { $skipped++; continue; }
+  if ($email === '') {
+    $skipped++;
+    $skippedNoEmail[] = $memberName ?: $memberId;
+    continue;
+  }
 
   if ($onlyUnsent) {
     $st = $invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId);
-    if ($st === 'sent') { $skipped++; continue; }
+    if ($st === 'sent') {
+      $skipped++;
+      $skippedAlreadySent[] = $memberName ?: $email;
+      continue;
+    }
   }
 
-  $token = bin2hex(random_bytes(16));
+  $token = bin2hex(random_bytes(32));
   $invitationRepo->upsertBulk(
     $tenantId,
     $meetingId,
@@ -106,5 +114,7 @@ api_ok([
   'dry_run' => $dryRun,
   'sent' => $sent,
   'skipped' => $skipped,
+  'skipped_no_email' => $skippedNoEmail,
+  'skipped_already_sent' => $skippedAlreadySent,
   'errors' => $errors,
 ]);

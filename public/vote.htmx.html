@@ -401,12 +401,13 @@
           const receiptText = `${hh}:${mm}:${ss} \u2022 ${choiceInfo[votingChoice].label}`;
           receipt.textContent = receiptText;
           receipt.hidden = false;
-          // P4-8: Persist receipt in localStorage keyed by motion
+          // P4-8: Persist receipt in localStorage keyed by member + motion
           try {
+            const memberId = document.getElementById('memberSelect')?.value || 'anonymous';
             const motionTitle = document.getElementById('motionTitle')?.textContent || '';
             const key = `ag_vote_receipt_${motionTitle}`;
             localStorage.setItem(key, JSON.stringify({ text: receiptText, choice: votingChoice, ts: now.toISOString() }));
-            localStorage.setItem('ag_vote_last_receipt', receiptText);
+            localStorage.setItem('ag_vote_last_receipt_' + memberId, receiptText);
           } catch(e) { /* localStorage unavailable */ }
         }
 
@@ -637,9 +638,10 @@
     // Initial poll
     setTimeout(pollSpeechStatus, 1000);
 
-    // P4-8: Restore last receipt from localStorage on load
+    // P4-8: Restore last receipt from localStorage on load (per-member)
     try {
-      const lastReceipt = localStorage.getItem('ag_vote_last_receipt');
+      const memberId = document.getElementById('memberSelect')?.value || 'anonymous';
+      const lastReceipt = localStorage.getItem('ag_vote_last_receipt_' + memberId);
       if (lastReceipt) {
         const receipt = document.getElementById('voteReceipt');
         if (receipt) {

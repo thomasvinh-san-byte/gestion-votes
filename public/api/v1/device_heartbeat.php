@@ -6,14 +6,10 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\DeviceRepository;
 
-header('Content-Type: application/json; charset=utf-8');
-
 // Heartbeat: enforce auth in production, allow public in dev
 api_require_role('public');
 
-$raw = file_get_contents('php://input');
-$in = json_decode($raw ?: '[]', true);
-if (!is_array($in)) $in = [];
+$in = api_request('POST');
 
 $tenantId  = api_current_tenant_id();
 $deviceId  = (string)($in['device_id'] ?? '');
@@ -25,9 +21,7 @@ $battery   = isset($in['battery_pct']) ? (int)$in['battery_pct'] : null;
 $charging  = isset($in['is_charging']) ? (bool)$in['is_charging'] : null;
 
 if ($deviceId === '') {
-  http_response_code(400);
-  echo json_encode(['ok'=>false,'error'=>'missing_device_id']);
-  exit;
+  api_fail('missing_device_id', 400);
 }
 
 try {
@@ -42,26 +36,21 @@ try {
   $blockReason = $b ? (string)($b['reason'] ?? '') : '';
 
   // Pending kick command
-  $kick = false;
-  $kickMsg = '';
+  $command = null;
   $cmd = $repo->findPendingKick($tenantId, $deviceId);
   if ($cmd) {
-    $kick = true;
     $payload = json_decode((string)$cmd['payload'], true);
-    if (is_array($payload) && isset($payload['message'])) $kickMsg = (string)$payload['message'];
-
+    $kickMsg = (is_array($payload) && isset($payload['message'])) ? (string)$payload['message'] : '';
+    $command = ['type' => 'kick', 'message' => $kickMsg];
     $repo->consumeCommand((string)$cmd['id']);
   }
 
-  echo json_encode([
-    'ok' => true,
+  api_ok([
     'device_id' => $deviceId,
     'blocked' => $isBlocked,
     'block_reason' => $blockReason,
-    'kick' => $kick,
-    'kick_message' => $kickMsg,
+    'command' => $command,
   ]);
 } catch (Throwable $e) {
-  http_response_code(500);
-  echo json_encode(['ok'=>false,'error'=>'server_error']);
+  api_fail('server_error', 500);
 }

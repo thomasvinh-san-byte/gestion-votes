@@ -21,6 +21,14 @@ try {
 
     $ballot = BallotsService::castBallot($data);
 
+    // Audit trail for vote cast (critical for compliance)
+    $motionId = $data['motion_id'] ?? $ballot['motion_id'] ?? null;
+    $meetingId = $ballot['meeting_id'] ?? $data['meeting_id'] ?? null;
+    audit_log('ballot.cast', 'motion', $motionId, [
+        'member_id' => $data['member_id'] ?? $ballot['member_id'] ?? null,
+        'choice'    => $ballot['choice'] ?? $data['choice'] ?? null,
+    ], $meetingId);
+
     api_ok(['ballot' => $ballot], 201);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);

@@ -4,7 +4,7 @@
 // No authentication required — documentation is public.
 declare(strict_types=1);
 
-header('Content-Type: application/json; charset=utf-8');
+require __DIR__ . '/../../../app/api.php';
 
 $docsRoot = dirname(__DIR__, 3) . '/docs';
 
@@ -47,4 +47,4 @@ foreach ($categories as $catName => $docs) {
     }
 }
 
-echo json_encode(['ok' => true, 'data' => $result]);
+api_ok($result);

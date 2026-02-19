@@ -165,12 +165,20 @@
     function updateModalConfirmState() {
       if (!btnModalConfirm) return;
       const checkOk = confirmCheckbox && confirmCheckbox.checked;
-      const textOk = confirmText && confirmText.value.trim() === 'VALIDER';
+      const textOk = confirmText && confirmText.value.trim().toUpperCase() === 'VALIDER';
       btnModalConfirm.disabled = !(checkOk && textOk);
     }
 
     if (confirmCheckbox) confirmCheckbox.addEventListener('change', updateModalConfirmState);
-    if (confirmText) confirmText.addEventListener('input', updateModalConfirmState);
+    if (confirmText) {
+      confirmText.addEventListener('input', updateModalConfirmState);
+      confirmText.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !btnModalConfirm.disabled) {
+          e.preventDefault();
+          btnModalConfirm.click();
+        }
+      });
+    }
 
     // Close modal helper
     function closeValidateModal() {

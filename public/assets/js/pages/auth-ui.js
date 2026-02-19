@@ -253,8 +253,14 @@
     // Auth disabled (dev mode) - allow everything
     if (!window.Auth.enabled) return;
 
-    // Not logged in - redirect to login
+    // Not logged in - redirect to login (unless invitation token present on vote page)
     if (!window.Auth.user) {
+      var hasInvToken = window.location.search.indexOf('token=') !== -1;
+      var isVotePage = window.location.pathname === '/vote.htmx.html';
+      if (hasInvToken && isVotePage) {
+        // Allow unauthenticated access — invitation token handles identity
+        return;
+      }
       window.location.href = '/login.html?redirect=' +
         encodeURIComponent(window.location.pathname + window.location.search);
       return;
@@ -316,7 +322,7 @@
 
     // Allowed pages for voters
     var path = window.location.pathname;
-    var allowed = ['/vote.htmx.html', '/public.htmx.html'];
+    var allowed = ['/vote.htmx.html', '/public.htmx.html', '/help.htmx.html', '/docs.htmx.html'];
     for (var i = 0; i < allowed.length; i++) {
       if (path === allowed[i]) return;
     }
@@ -331,13 +337,86 @@
 
   function filterSidebar() {
     var sidebar = document.querySelector('[data-include-sidebar]');
-    if (!sidebar) return;
+    if (!sidebar) return false;
 
     var role = window.Auth.role;
     var meetingRoles = window.Auth.meetingRoles || [];
 
     sidebar.querySelectorAll('[data-requires-role]').forEach(function (el) {
       hasAccess(el.getAttribute('data-requires-role'), role, meetingRoles) ? Shared.show(el) : Shared.hide(el);
+    });
+    return true;
+  }
+
+  /**
+   * Watch for sidebar being loaded asynchronously (via data-include-sidebar).
+   * Re-applies role filtering when sidebar content arrives.
+   */
+  var _sidebarObserver = null;
+  function observeSidebarInclusion() {
+    if (_sidebarObserver) return; // already watching
+    var target = document.querySelector('[data-include-sidebar]');
+    if (!target) return;
+    // If sidebar already has children, we're done
+    if (target.querySelector('[data-requires-role]')) return;
+
+    _sidebarObserver = new MutationObserver(function () {
+      if (target.querySelector('[data-requires-role]')) {
+        filterSidebar();
+        applyVisibility();
+        _sidebarObserver.disconnect();
+        _sidebarObserver = null;
+      }
+    });
+    _sidebarObserver.observe(target, { childList: true, subtree: true });
+  }
+
+  // =========================================================================
+  // SESSION EXPIRY WARNING
+  // =========================================================================
+
+  var SESSION_TIMEOUT_MS = 30 * 60 * 1000;  // 30 minutes (matches server)
+  var WARNING_BEFORE_MS = 5 * 60 * 1000;    // warn 5 minutes before expiry
+  var _sessionTimer = null;
+  var _sessionWarningShown = false;
+
+  function scheduleSessionWarning() {
+    if (_sessionTimer) clearTimeout(_sessionTimer);
+    _sessionWarningShown = false;
+
+    _sessionTimer = setTimeout(function () {
+      if (_sessionWarningShown) return;
+      _sessionWarningShown = true;
+      showSessionWarning();
+    }, SESSION_TIMEOUT_MS - WARNING_BEFORE_MS);
+  }
+
+  function showSessionWarning() {
+    var banner = ensureBanner();
+    var existing = document.getElementById('session-expiry-warning');
+    if (existing) return;
+
+    var warn = document.createElement('div');
+    warn.id = 'session-expiry-warning';
+    warn.setAttribute('role', 'alert');
+    warn.style.cssText = 'background:var(--color-warning-bg,#fef3cd);color:var(--color-warning-text,#856404);' +
+      'padding:8px 16px;text-align:center;font-size:13px;border-bottom:1px solid var(--color-warning-border,#ffc107);';
+    warn.innerHTML =
+      'Votre session expire bient\u00f4t. ' +
+      '<button class="btn btn-sm btn-ghost" id="session-extend-btn" style="margin-left:8px;text-decoration:underline;">' +
+      'Prolonger</button>';
+    banner.parentNode.insertBefore(warn, banner.nextSibling);
+
+    document.getElementById('session-extend-btn').addEventListener('click', function () {
+      // Ping whoami to refresh session on server
+      fetch('/api/v1/whoami.php', { credentials: 'same-origin' })
+        .then(function () {
+          warn.remove();
+          scheduleSessionWarning();
+        })
+        .catch(function () {
+          warn.textContent = 'Session expir\u00e9e. Veuillez vous reconnecter.';
+        });
     });
   }
 
@@ -378,8 +457,14 @@
       applyVisibility();
       enforcePageRole();
 
-      // Filter sidebar after a short delay (sidebar loads async)
-      setTimeout(filterSidebar, 300);
+      // Filter sidebar: apply now if already loaded, and watch for async inclusion
+      filterSidebar();
+      observeSidebarInclusion();
+
+      // Session expiry warning
+      if (window.Auth.user) {
+        scheduleSessionWarning();
+      }
 
     } catch (e) {
       window.Auth.enabled = true;

@@ -9,13 +9,17 @@ use AgVote\Service\SpeechService;
 try {
     api_require_role('public');
     $data = api_request('POST');
-    $meetingId = trim((string)($data['meeting_id'] ?? ''));
-    $memberId = trim((string)($data['member_id'] ?? ''));
-    if ($meetingId===''||$memberId==='') throw new InvalidArgumentException('meeting_id et member_id requis');
+    $meetingId = api_require_uuid($data, 'meeting_id');
+    $memberId = api_require_uuid($data, 'member_id');
     $tenantId = api_current_tenant_id();
     SpeechService::toggleRequest($meetingId,$memberId,$tenantId);
     // Return full status with position info
     $out = SpeechService::getMyStatus($meetingId,$memberId,$tenantId);
+
+    audit_log('speech.requested', 'meeting', $meetingId, [
+        'member_id' => $memberId,
+    ], $meetingId);
+
     api_ok($out);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);

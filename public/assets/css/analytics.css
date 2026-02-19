@@ -444,18 +444,18 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 .anomaly-item.warning {
-  background: #fef3c7;
-  border-left: 3px solid #f59e0b;
+  background: var(--color-warning-subtle);
+  border-left: 3px solid var(--color-warning);
 }
 
 .anomaly-item.info {
-  background: #dbeafe;
-  border-left: 3px solid #3b82f6;
+  background: var(--color-info-subtle);
+  border-left: 3px solid var(--color-info);
 }
 
 .anomaly-item.ok {
-  background: #d1fae5;
-  border-left: 3px solid #10b981;
+  background: var(--color-success-subtle);
+  border-left: 3px solid var(--color-success);
 }
 
 .anomaly-icon {
