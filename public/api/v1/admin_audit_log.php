@@ -15,6 +15,8 @@ require __DIR__ . '/../../../app/api.php';
 api_require_role('admin');
 api_request('GET');
 
+try {
+
 $tenantId = api_current_tenant_id();
 $limit    = min(200, max(1, (int)($_GET['limit'] ?? 100)));
 $offset   = max(0, (int)($_GET['offset'] ?? 0));
@@ -132,3 +134,8 @@ api_ok([
     'events'       => $formatted,
     'action_types' => $actionTypes,
 ]);
+
+} catch (Throwable $e) {
+    error_log('Error in admin_audit_log.php: ' . $e->getMessage());
+    api_fail('internal_error', 500);
+}

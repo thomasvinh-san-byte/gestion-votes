@@ -174,6 +174,8 @@
         document.getElementById('newName').value = '';
         document.getElementById('newEmail').value = '';
         document.getElementById('newPassword').value = '';
+        var strengthEl = document.getElementById('passwordStrength');
+        if (strengthEl) strengthEl.hidden = true;
         loadUsers();
       } else {
         setNotif('error', getApiError(r.body));
@@ -614,13 +616,23 @@
 
     const modeOptions = ['single','evolving','double'].map(function(m) {
       const sel = m === (p.mode || 'single') ? ' selected' : '';
-      return '<option value="' + m + '"' + sel + '>' + m + '</option>';
+      const labels = { single: 'Simple', evolving: 'Évolutif', double: 'Double convocation' };
+      return '<option value="' + m + '"' + sel + '>' + (labels[m] || m) + '</option>';
     }).join('');
 
     const denOptions = ['eligible_members','eligible_weight'].map(function(d) {
       const sel = d === (p.denominator || 'eligible_members') ? ' selected' : '';
-      return '<option value="' + d + '"' + sel + '>' + d + '</option>';
+      const labels = { eligible_members: 'Membres éligibles', eligible_weight: 'Poids éligible' };
+      return '<option value="' + d + '"' + sel + '>' + (labels[d] || d) + '</option>';
     }).join('');
+
+    const den2Options = ['eligible_members','eligible_weight'].map(function(d) {
+      const sel = d === (p.denominator2 || 'eligible_members') ? ' selected' : '';
+      const labels = { eligible_members: 'Membres éligibles', eligible_weight: 'Poids éligible' };
+      return '<option value="' + d + '"' + sel + '>' + (labels[d] || d) + '</option>';
+    }).join('');
+
+    var showCall2 = (p.mode === 'double' || p.mode === 'evolving') ? '' : ' hidden';
 
     Shared.openModal({
       title: isEdit ? 'Modifier la politique de quorum' : 'Nouvelle politique de quorum',
@@ -645,6 +657,22 @@
           '<label class="form-label">Seuil (0 à 1)</label>' +
           '<input class="form-input" type="number" id="qpThreshold" min="0" max="1" step="0.01" value="' + (p.threshold != null ? p.threshold : '0.5') + '">' +
         '</div>' +
+        '<div id="qpCall2Section"' + showCall2 + '>' +
+          '<hr style="border-color:var(--color-border);margin:0.75rem 0;">' +
+          '<div class="text-sm font-semibold mb-2" style="color:var(--color-text-secondary)">2e convocation / 2e tour</div>' +
+          '<div class="form-group mb-3">' +
+            '<label class="form-label">Seuil de convocation 2 (0 à 1)</label>' +
+            '<input class="form-input" type="number" id="qpThresholdCall2" min="0" max="1" step="0.01" value="' + (p.threshold_call2 != null ? p.threshold_call2 : '') + '" placeholder="Optionnel">' +
+          '</div>' +
+          '<div class="form-group mb-3">' +
+            '<label class="form-label">Dénominateur 2e tour</label>' +
+            '<select class="form-input" id="qpDen2">' + den2Options + '</select>' +
+          '</div>' +
+          '<div class="form-group mb-3">' +
+            '<label class="form-label">Seuil 2e tour (0 à 1)</label>' +
+            '<input class="form-input" type="number" id="qpThreshold2" min="0" max="1" step="0.01" value="' + (p.threshold2 != null ? p.threshold2 : '') + '" placeholder="Optionnel">' +
+          '</div>' +
+        '</div>' +
         '<div class="flex gap-4 mb-3">' +
           '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpProxies"' + (p.include_proxies ? ' checked' : '') + '> Inclure les procurations</label>' +
           '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpRemote"' + (p.count_remote ? ' checked' : '') + '> Compter les distants</label>' +
@@ -657,15 +685,24 @@
         if (isNaN(thresholdVal) || thresholdVal < 0 || thresholdVal > 1) {
           setNotif('error', 'Le seuil doit être compris entre 0 et 1'); return false;
         }
+        var mode = modal.querySelector('#qpMode').value;
         const payload = {
           name: name,
           description: modal.querySelector('#qpDesc').value.trim(),
-          mode: modal.querySelector('#qpMode').value,
+          mode: mode,
           denominator: modal.querySelector('#qpDen').value,
           threshold: thresholdVal,
           include_proxies: modal.querySelector('#qpProxies').checked ? 1 : 0,
           count_remote: modal.querySelector('#qpRemote').checked ? 1 : 0
         };
+        // Include call-2 parameters for double/evolving modes
+        if (mode === 'double' || mode === 'evolving') {
+          var tc2 = modal.querySelector('#qpThresholdCall2').value;
+          var t2 = modal.querySelector('#qpThreshold2').value;
+          if (tc2 !== '') payload.threshold_call2 = parseFloat(tc2);
+          payload.denominator2 = modal.querySelector('#qpDen2').value;
+          if (t2 !== '') payload.threshold2 = parseFloat(t2);
+        }
         if (isEdit) payload.id = p.id;
         api('/api/v1/admin_quorum_policies.php', payload)
           .then(function(r) {
@@ -675,6 +712,17 @@
           .catch(function(err) { setNotif('error', err.message); });
       }
     });
+
+    // Toggle call-2 section visibility based on mode selection
+    setTimeout(function() {
+      var modeSelect = document.getElementById('qpMode');
+      var call2Section = document.getElementById('qpCall2Section');
+      if (modeSelect && call2Section) {
+        modeSelect.addEventListener('change', function() {
+          call2Section.hidden = (this.value === 'single');
+        });
+      }
+    }, 60);
   }
 
   document.getElementById('btnAddQuorum').addEventListener('click', function() { openQuorumModal(null); });
@@ -986,47 +1034,40 @@
           '<td class="text-sm">' + escapeHtml(t.description || '') + '</td></tr>';
       }).join('');
 
-      // Load state stats
-      loadStateStats();
-      loadArchivedMeetings();
+      // Load state stats + archived meetings (single API call)
+      loadStateStatsAndArchived();
 
     } catch (e) { setNotif('error', 'Erreur chargement états'); }
   }
 
-  // Load statistics by state
-  async function loadStateStats() {
+  // Load statistics by state + archived meetings list (single API call)
+  async function loadStateStatsAndArchived() {
+    var list = document.getElementById('archivedMeetingsList');
     try {
-      const r = await api('/api/v1/meetings.php');
+      var r = await api('/api/v1/meetings.php');
       if (r.body && r.body.ok && r.body.data) {
-        const meetings = r.body.data.meetings || r.body.data.items || r.body.data || [];
-        const counts = {
+        var meetings = r.body.data.meetings || r.body.data.items || r.body.data || [];
+
+        // --- State stats ---
+        var counts = {
           draft: 0, scheduled: 0, frozen: 0, live: 0, closed: 0, validated: 0, archived: 0
         };
         meetings.forEach(function(m) {
           if (counts.hasOwnProperty(m.status)) counts[m.status]++;
         });
 
-        const statsEl = document.getElementById('stateStats');
+        var statsEl = document.getElementById('stateStats');
         statsEl.innerHTML = '<div class="flex flex-wrap gap-3">' +
           Object.entries(counts).map(function(e) {
-            const status = e[0];
-            const count = e[1];
+            var status = e[0];
+            var count = e[1];
             return '<div class="flex items-center gap-2">' +
               '<span class="state-node-visual ' + status + '" style="padding:0.25rem 0.5rem;font-size:0.75rem">' + count + '</span>' +
             '</div>';
           }).join('') +
         '</div>';
-      }
-    } catch (e) { setNotif('error', 'Erreur chargement statistiques'); }
-  }
 
-  // P5-5: Archived meetings + de-archive
-  async function loadArchivedMeetings() {
-    var list = document.getElementById('archivedMeetingsList');
-    try {
-      var r = await api('/api/v1/meetings.php');
-      if (r.body && r.body.ok && r.body.data) {
-        var meetings = r.body.data.meetings || r.body.data.items || r.body.data || [];
+        // --- Archived meetings ---
         var archived = meetings.filter(function(m) { return m.status === 'archived'; });
         if (!archived.length) {
           list.innerHTML = '<div class="text-center p-4 text-muted">Aucune séance archivée</div>';
@@ -1060,8 +1101,7 @@
                   });
                   if (r.body && r.body.ok) {
                     setNotif('success', 'Séance dé-archivée');
-                    loadArchivedMeetings();
-                    loadStateStats();
+                    loadStateStatsAndArchived();
                   } else {
                     setNotif('error', getApiError(r.body));
                   }
@@ -1117,16 +1157,17 @@
         }
 
         // Color-code memory with accessible labels
+        // memory_usage is in MB (e.g. "12.3 MB"), use MB-based thresholds
         var memoryText = s.memory_usage || '—';
         var memoryDot = document.getElementById('healthMemoryDot');
         var memoryDisplay = document.getElementById('healthMemoryValue');
         if (memoryDot && memoryDisplay) {
           memoryDisplay.textContent = memoryText;
-          var memPct = parseFloat(memoryText);
-          if (memPct < 70) {
+          var memMB = parseFloat(memoryText) || 0;
+          if (memMB < 64) {
             memoryDot.className = 'admin-health-icon success';
             memoryDot.setAttribute('aria-label', 'Mémoire normale');
-          } else if (memPct < 90) {
+          } else if (memMB < 128) {
             memoryDot.className = 'admin-health-icon warning';
             memoryDot.setAttribute('aria-label', 'Mémoire élevée');
           } else {
@@ -1139,6 +1180,27 @@
         var meetingsDisplay = document.getElementById('healthMeetingsValue');
         if (meetingsDisplay) {
           meetingsDisplay.textContent = s.active_meetings || '0';
+        }
+
+        // System alerts
+        var alertsContainer = document.getElementById('systemAlerts');
+        var alerts = r.body.data.alerts || [];
+        if (alertsContainer) {
+          if (!alerts.length) {
+            alertsContainer.innerHTML = '<div class="text-center p-3 text-muted text-sm">Aucune alerte récente</div>';
+          } else {
+            alertsContainer.innerHTML = alerts.map(function(a) {
+              var sevClass = a.severity === 'critical' ? 'danger' : (a.severity === 'warn' ? 'warning' : 'info');
+              var ts = a.created_at ? new Date(a.created_at).toLocaleString('fr-FR') : '';
+              return '<div class="system-stat" style="padding:0.6rem 1rem;">' +
+                '<span class="admin-health-icon ' + sevClass + '" style="flex-shrink:0">●</span>' +
+                '<div style="flex:1;">' +
+                  '<span class="text-sm font-medium">' + escapeHtml(a.message || a.code) + '</span>' +
+                  (ts ? '<div class="text-xs text-muted">' + ts + '</div>' : '') +
+                '</div>' +
+              '</div>';
+            }).join('');
+          }
         }
       } else {
         document.getElementById('statDbStatus').textContent = 'Erreur';
