@@ -88,6 +88,6 @@ try {
     }
 
 } catch (Throwable $e) {
-    error_log('Error in meetings.php: ' . $e->getMessage());
-    api_fail('server_error', 500);
+    error_log('Error in meetings.php: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+    api_fail('server_error', 500, ['detail' => $e->getMessage()]);
 }
