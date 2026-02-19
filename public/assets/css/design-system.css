@@ -198,6 +198,10 @@ table {
   --color-info-subtle: #eff6ff;
   --color-info-text: #1e40af;
 
+  --color-accent: #9333ea;
+  --color-accent-subtle: #f3e8ff;
+  --color-accent-text: #7e22ce;
+
   --color-neutral: #64748b;
   --color-neutral-hover: #475569;
   --color-neutral-subtle: #f1f5f9;
@@ -714,6 +718,13 @@ h4, .h4 {
   border-radius: var(--radius-md);
   transition: border-color var(--duration-fast);
   box-sizing: border-box;
+}
+
+.form-input-sm,
+.form-select-sm {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
 }
 
 .form-input:hover,

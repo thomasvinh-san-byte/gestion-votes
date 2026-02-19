@@ -27,6 +27,11 @@ try {
 
     // Pass tenant context for security validation
     $out = SpeechService::grant($meetingId, $memberId!=='' ? $memberId : null, $tenantId);
+
+    audit_log('speech.granted', 'meeting', $meetingId, [
+        'member_id' => $memberId ?: ($out['speaker']['member_id'] ?? null),
+    ], $meetingId);
+
     api_ok($out);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);

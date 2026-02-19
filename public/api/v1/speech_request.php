@@ -16,6 +16,11 @@ try {
     SpeechService::toggleRequest($meetingId,$memberId,$tenantId);
     // Return full status with position info
     $out = SpeechService::getMyStatus($meetingId,$memberId,$tenantId);
+
+    audit_log('speech.requested', 'meeting', $meetingId, [
+        'member_id' => $memberId,
+    ], $meetingId);
+
     api_ok($out);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);

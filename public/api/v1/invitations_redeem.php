@@ -31,6 +31,11 @@ if ($status === 'pending' || $status === 'sent') {
 }
 $repo->markAccepted($invId);
 
+audit_log('invitation.redeemed', 'invitation', $invId, [
+    'meeting_id' => (string)$inv['meeting_id'],
+    'member_id'  => (string)$inv['member_id'],
+], (string)$inv['meeting_id']);
+
 api_ok([
     'meeting_id' => (string)$inv['meeting_id'],
     'member_id' => (string)$inv['member_id'],

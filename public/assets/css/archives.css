@@ -206,5 +206,5 @@
 
 .archive-badge.no-pv {
   background: var(--color-warning-subtle);
-  color: #92400e;
+  color: var(--color-warning-text);
 }

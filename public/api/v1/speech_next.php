@@ -30,7 +30,11 @@ try {
     // Terminer l'orateur courant et passer au suivant
     // La méthode grant() sans memberId prend automatiquement le prochain
     $result = SpeechService::grant($meetingId, null, $tenantId);
-    
+
+    audit_log('speech.next', 'meeting', $meetingId, [
+        'member_id' => $result['speaker']['member_id'] ?? null,
+    ], $meetingId);
+
     api_ok($result);
     
 } catch (InvalidArgumentException $e) {

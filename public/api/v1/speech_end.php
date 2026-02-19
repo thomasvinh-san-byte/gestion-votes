@@ -15,6 +15,9 @@ try {
     // Pass tenant context for security validation
     $tenantId = api_current_tenant_id();
     $out = SpeechService::endCurrent($meetingId, $tenantId);
+
+    audit_log('speech.ended', 'meeting', $meetingId, [], $meetingId);
+
     api_ok($out);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);

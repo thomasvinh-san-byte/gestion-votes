@@ -15,6 +15,11 @@ try {
 
     $tenantId = api_current_tenant_id();
     $out = SpeechService::cancelRequest($meetingId, $requestId, $tenantId);
+
+    audit_log('speech.cancelled', 'meeting', $meetingId, [
+        'request_id' => $requestId,
+    ], $meetingId);
+
     api_ok($out);
 } catch (InvalidArgumentException $e) {
     api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);
