@@ -43,6 +43,7 @@
   let proxiesCache = [];  // Cache for proxies
   let invitationsSentCount = 0;  // Track sent invitations for wizard checklist
   let currentMode = 'setup'; // 'setup' | 'exec'
+  let lastSetupTab = 'seance'; // Remember last active prep tab for seamless mode switching
 
   // Safe DOM text setter — avoids null reference errors if element is missing
   function setText(id, value) {
@@ -322,22 +323,25 @@
     Shared.hide(noMeetingState);
     if (meetingBarActions) meetingBarActions.hidden = false;
 
-    // Auto-select mode based on meeting status
-    const initialMode = (currentMeetingStatus === 'live') ? 'exec' : 'setup';
-
     // Always use advanced mode (assistant mode removed)
     setPrepMode();
 
-    setMode(initialMode);
+    // Auto-select mode based on meeting status
+    const initialMode = (currentMeetingStatus === 'live') ? 'exec' : 'setup';
 
-    // If in setup mode, show the right tab
     if (initialMode === 'setup') {
+      // Check URL for a specific tab request
       const urlParams = new URLSearchParams(window.location.search);
       const requestedTab = urlParams.get('tab');
       const validTabs = ['seance', 'participants', 'ordre-du-jour', 'controle', 'parole', 'vote', 'resultats',
         'parametres', 'resolutions', 'presences', 'procurations']; // legacy aliases accepted
-      const tabToShow = (requestedTab && validTabs.includes(requestedTab)) ? requestedTab : 'seance';
-      switchTab(tabToShow);
+      // Default tab depends on meeting status: post-session → résultats, prep → séance
+      const isPostSession = ['closed', 'validated', 'archived'].includes(currentMeetingStatus);
+      const defaultTab = isPostSession ? 'resultats' : 'seance';
+      const tabToShow = (requestedTab && validTabs.includes(requestedTab)) ? requestedTab : defaultTab;
+      setMode('setup', { tab: tabToShow });
+    } else {
+      setMode('exec');
     }
   }
 
@@ -398,9 +402,9 @@
     // Initialize motion tracking state to avoid false notifications on page load
     initializePreviousMotionState();
 
-    // If a vote is already open and in setup, switch to vote tab
+    // If a vote is already open and meeting is live, auto-switch to exec
     if (currentOpenMotion && currentMeetingStatus === 'live' && currentMode === 'setup') {
-      switchTab('vote');
+      setMode('exec');
     }
 
     // P2-1/P2-2/P2-6: Adapt UI based on user's role
@@ -2937,9 +2941,13 @@
 
       await loadResolutions();
 
+      if (currentOpenMotion) await loadBallots(currentOpenMotion.id);
+
       if (currentMode === 'exec') {
-        if (currentOpenMotion) await loadBallots(currentOpenMotion.id);
         refreshExecView();
+      } else if (currentMeetingStatus === 'live') {
+        // Auto-switch to exec for real-time vote monitoring
+        setMode('exec');
       } else {
         switchTab('vote');
         await loadVoteTab();
@@ -3335,8 +3343,7 @@
         setNotif('success', 'Séance clôturée avec succès');
         await loadMeetingContext(currentMeetingId);
         loadMeetings();
-        setMode('setup');
-        switchTab('resultats');
+        setMode('setup', { tab: 'resultats' });
         announce('Séance clôturée.');
       } else {
         setNotif('error', getApiError(body, 'Erreur lors de la clôture'));
@@ -3381,8 +3388,7 @@
           setMode('exec');
           announce('Séance en cours — mode exécution activé.');
         } else if (['closed', 'validated', 'archived'].includes(toStatus)) {
-          setMode('setup');
-          switchTab('resultats');
+          setMode('setup', { tab: 'resultats' });
           announce(`Séance ${statusLabel}.`);
         }
       } else {
@@ -3397,14 +3403,32 @@
   // MODE SWITCH (Préparation / Exécution)
   // =========================================================================
 
-  function setMode(mode) {
+  /**
+   * Switch between Préparation (setup) and Exécution (exec) modes.
+   * @param {string} mode - 'setup' or 'exec'
+   * @param {Object} [opts] - Options
+   * @param {string} [opts.tab] - Force a specific tab when entering setup mode
+   * @param {boolean} [opts.restoreTab] - Restore last active prep tab (default true for manual switches)
+   */
+  function setMode(mode, opts = {}) {
     // Prevent entering exec mode if meeting is not live
     if (mode === 'exec' && currentMeetingStatus !== 'live') {
       mode = 'setup';
     }
+
+    // No-op if already in the requested mode and view is visible (unless forcing a tab)
+    const alreadyVisible = mode === 'setup' ? (viewSetup && !viewSetup.hidden) : (viewExec && !viewExec.hidden);
+    if (mode === currentMode && !opts.tab && alreadyVisible) return;
+
+    // Save last active prep tab when leaving setup
+    if (currentMode === 'setup' && mode === 'exec') {
+      const activeTab = document.querySelector('.tab-btn.active');
+      if (activeTab) lastSetupTab = activeTab.dataset.tab;
+    }
+
     currentMode = mode;
 
-    // Update button states
+    // Update mode switch button states
     if (btnModeSetup) {
       btnModeSetup.classList.toggle('active', mode === 'setup');
       btnModeSetup.setAttribute('aria-pressed', String(mode === 'setup'));
@@ -3412,19 +3436,33 @@
     if (btnModeExec) {
       btnModeExec.classList.toggle('active', mode === 'exec');
       btnModeExec.setAttribute('aria-pressed', String(mode === 'exec'));
-      // Disable exec button when meeting is not live
       btnModeExec.disabled = currentMeetingStatus !== 'live';
     }
 
-    // Toggle views
+    // Show/hide mode switch: only useful when meeting is live or recently closed
+    const modeSwitch = document.getElementById('modeSwitch');
+    if (modeSwitch) {
+      modeSwitch.hidden = !['live', 'closed'].includes(currentMeetingStatus);
+    }
+
+    // Cross-fade views
+    const incoming = mode === 'setup' ? viewSetup : viewExec;
+    const outgoing = mode === 'setup' ? viewExec : viewSetup;
+
+    if (outgoing) outgoing.hidden = true;
+    if (incoming) {
+      incoming.hidden = false;
+      incoming.classList.remove('view-entering');
+      void incoming.offsetWidth; // force reflow for re-trigger
+      incoming.classList.add('view-entering');
+    }
+
     if (mode === 'setup') {
-      if (viewSetup) viewSetup.hidden = false;
-      if (viewExec) viewExec.hidden = true;
-      // Always show tabs in setup mode (advanced mode only)
       Shared.show(tabsNav, 'flex');
+      // Restore last active prep tab or apply forced tab
+      const targetTab = opts.tab || (opts.restoreTab !== false ? lastSetupTab : null);
+      if (targetTab) switchTab(targetTab);
     } else {
-      if (viewSetup) viewSetup.hidden = true;
-      if (viewExec) viewExec.hidden = false;
       Shared.hide(tabsNav);
       refreshExecView();
       startSessionTimer();
@@ -3507,13 +3545,19 @@
     }
 
     if (currentMode === 'setup') {
-      const score = getConformityScore();
-      if (currentMeetingStatus === 'live') {
+      if (['closed', 'validated'].includes(currentMeetingStatus)) {
+        contextHint.textContent = 'Séance clôturée — consultez les résultats.';
+      } else if (currentMeetingStatus === 'archived') {
+        contextHint.textContent = 'Séance archivée.';
+      } else if (currentMeetingStatus === 'live') {
         contextHint.textContent = 'Séance en cours — basculez en exécution.';
-      } else if (score >= 4) {
-        contextHint.textContent = 'Séance prête — vous pouvez lancer.';
       } else {
-        contextHint.textContent = 'Préparez la séance (' + score + '/4 pré-requis validés).';
+        const score = getConformityScore();
+        if (score >= 4) {
+          contextHint.textContent = 'Séance prête — vous pouvez lancer.';
+        } else {
+          contextHint.textContent = 'Préparez la séance (' + score + '/4 pré-requis validés).';
+        }
       }
     } else {
       if (currentOpenMotion) {
@@ -4299,8 +4343,14 @@
   document.getElementById('btnCloseSession')?.addEventListener('click', closeSession);
   document.getElementById('execBtnCloseSession')?.addEventListener('click', closeSession);
   document.getElementById('execBtnSwitchResults')?.addEventListener('click', () => {
-    setMode('setup');
-    switchTab('resultats');
+    setMode('setup', { tab: 'resultats' });
+  });
+
+  // Quick nav buttons in exec mode — switch to setup with specific tab
+  document.querySelectorAll('[data-exec-goto]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setMode('setup', { tab: btn.dataset.execGoto });
+    });
   });
 
   // Speech queue buttons
@@ -4403,6 +4453,9 @@
           announce(`Vote ouvert : ${motionTitle}`);
           if (currentMode === 'exec') {
             loadBallots(currentOpenMotion.id).then(() => refreshExecView());
+          } else if (currentMeetingStatus === 'live') {
+            // Auto-switch to exec for real-time vote monitoring
+            loadBallots(currentOpenMotion.id).then(() => setMode('exec'));
           } else {
             switchTab('vote');
           }
