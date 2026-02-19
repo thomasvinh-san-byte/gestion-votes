@@ -464,8 +464,8 @@
             </div>
           </div>
           <div class="group-actions">
-            <button class="member-action-btn" onclick="editGroup('${g.id}')" title="Modifier"><svg class="icon"><use href="/assets/icons.svg#icon-edit"></use></svg></button>
-            <button class="member-action-btn danger" onclick="deleteGroup('${g.id}')" title="Supprimer"><svg class="icon"><use href="/assets/icons.svg#icon-trash"></use></svg></button>
+            <button class="member-action-btn" data-action="edit-group" data-id="${g.id}" title="Modifier"><svg class="icon"><use href="/assets/icons.svg#icon-edit"></use></svg></button>
+            <button class="member-action-btn danger" data-action="delete-group" data-id="${g.id}" title="Supprimer"><svg class="icon"><use href="/assets/icons.svg#icon-trash"></use></svg></button>
           </div>
         </div>
       `).join('');
@@ -479,9 +479,9 @@
       }
 
       groupFiltersField.style.display = '';
-      const allBtn = `<button class="filter-chip ${!currentGroupFilter ? 'active' : ''}" onclick="filterByGroup(null)">Tous les groupes</button>`;
+      const allBtn = `<button class="filter-chip ${!currentGroupFilter ? 'active' : ''}" data-action="filter-group" data-group-id="">Tous les groupes</button>`;
       const groupBtns = allGroups.map(g => `
-        <button class="filter-chip ${currentGroupFilter === g.id ? 'active' : ''}" onclick="filterByGroup('${g.id}')">
+        <button class="filter-chip ${currentGroupFilter === g.id ? 'active' : ''}" data-action="filter-group" data-group-id="${g.id}">
           <span class="group-color-dot-sm" style="background-color: ${escapeHtml(g.color || '#6366f1')}"></span>
           ${escapeHtml(g.name)}
         </button>
@@ -673,11 +673,11 @@
           </div>` : ''}
         </div>
         <div class="detail-actions">
-          <button class="btn btn-primary btn-sm" onclick="editMember('${m.id}'); memberDetailDialog.close();">
+          <button class="btn btn-primary btn-sm" data-action="edit-member" data-id="${m.id}">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
             Modifier
           </button>
-          <button class="btn btn-secondary btn-sm" onclick="toggleActive('${m.id}', ${!m.is_active}); memberDetailDialog.close();">
+          <button class="btn btn-secondary btn-sm" data-action="toggle-active" data-id="${m.id}" data-active="${!m.is_active}">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-${m.is_active ? 'pause' : 'play'}"></use></svg>
             ${m.is_active ? 'Désactiver' : 'Activer'}
           </button>
@@ -744,7 +744,7 @@
         const vp = formatVotingPower(m.voting_power);
 
         return `
-          <article class="member-card ${cardClass}" data-member-id="${m.id}" onclick="openMemberDetail('${m.id}')" aria-label="${escapeHtml(name)}">
+          <article class="member-card ${cardClass}" data-member-id="${m.id}" data-action="open-detail" data-id="${m.id}" aria-label="${escapeHtml(name)}">
             <div class="member-avatar">${initials}</div>
             <div class="member-card-body">
               <div class="member-card-main">
@@ -758,10 +758,10 @@
               </div>
             </div>
             <div class="member-card-actions">
-              <button class="member-action-icon" onclick="event.stopPropagation(); editMember('${m.id}')" title="Modifier" aria-label="Modifier ${escapeHtml(name)}">
+              <button class="member-action-icon" data-action="edit-member" data-id="${m.id}" title="Modifier" aria-label="Modifier ${escapeHtml(name)}">
                 <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
               </button>
-              <button class="member-action-icon danger" onclick="event.stopPropagation(); deleteMember('${m.id}')" title="Supprimer" aria-label="Supprimer ${escapeHtml(name)}">
+              <button class="member-action-icon danger" data-action="delete-member" data-id="${m.id}" title="Supprimer" aria-label="Supprimer ${escapeHtml(name)}">
                 <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
               </button>
             </div>
@@ -1128,6 +1128,47 @@
 
     document.getElementById('groupName').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') document.getElementById('btnCreateGroup').click();
+    });
+
+    // ==========================================
+    // EVENT DELEGATION (replaces inline onclick)
+    // ==========================================
+
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      var action = btn.dataset.action;
+      var id = btn.dataset.id;
+
+      switch (action) {
+        case 'edit-group':
+          window.editGroup(id);
+          break;
+        case 'delete-group':
+          window.deleteGroup(id);
+          break;
+        case 'filter-group':
+          window.filterByGroup(btn.dataset.groupId || null);
+          break;
+        case 'open-detail':
+          // Ignore if the click was on an action button inside the card
+          if (e.target.closest('[data-action="edit-member"]') || e.target.closest('[data-action="delete-member"]')) return;
+          window.openMemberDetail(id);
+          break;
+        case 'edit-member':
+          e.stopPropagation();
+          window.editMember(id);
+          if (memberDetailDialog.open) memberDetailDialog.close();
+          break;
+        case 'delete-member':
+          e.stopPropagation();
+          window.deleteMember(id);
+          break;
+        case 'toggle-active':
+          window.toggleActive(id, btn.dataset.active === 'true');
+          if (memberDetailDialog.open) memberDetailDialog.close();
+          break;
+      }
     });
 
     // ==========================================

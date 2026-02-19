@@ -421,6 +421,22 @@
   // Filter roles when meeting selection changes
   document.getElementById('mrMeeting').addEventListener('change', loadMeetingRoles);
 
+  // P7-security: Hide president option from non-admin operators
+  function filterPresidentOption() {
+    var auth = window.Auth || {};
+    if (auth.role === 'admin') return; // admins see all
+    var mrRole = document.getElementById('mrRole');
+    if (mrRole) {
+      var presOpt = mrRole.querySelector('option[value="president"]');
+      if (presOpt) presOpt.remove();
+    }
+  }
+  if (window.Auth && window.Auth.ready) {
+    window.Auth.ready.then(filterPresidentOption);
+  } else {
+    filterPresidentOption();
+  }
+
   // Assign role
   document.getElementById('btnAssignRole').addEventListener('click', async function() {
     const btn = this;
@@ -490,16 +506,18 @@
         '</label>';
     }).join('');
 
+    var isAdmin = window.Auth && window.Auth.role === 'admin';
+    var bulkRoleOptions =
+      '<option value="voter">Électeur</option>' +
+      '<option value="assessor">Assesseur</option>' +
+      (isAdmin ? '<option value="president">Président</option>' : '');
+
     Shared.openModal({
       title: 'Assignation en masse',
       body:
         '<div class="form-group">' +
           '<label class="form-label">Rôle à attribuer</label>' +
-          '<select class="form-input" id="bulkRole">' +
-            '<option value="voter">Électeur</option>' +
-            '<option value="assessor">Assesseur</option>' +
-            '<option value="president">Président</option>' +
-          '</select>' +
+          '<select class="form-input" id="bulkRole">' + bulkRoleOptions + '</select>' +
         '</div>' +
         '<div class="form-group">' +
           '<label class="form-label">Utilisateurs</label>' +
@@ -635,12 +653,16 @@
       onConfirm: function(modal) {
         const name = modal.querySelector('#qpName').value.trim();
         if (!name) { setNotif('error', 'Nom requis'); return false; }
+        var thresholdVal = parseFloat(modal.querySelector('#qpThreshold').value);
+        if (isNaN(thresholdVal) || thresholdVal < 0 || thresholdVal > 1) {
+          setNotif('error', 'Le seuil doit être compris entre 0 et 1'); return false;
+        }
         const payload = {
           name: name,
           description: modal.querySelector('#qpDesc').value.trim(),
           mode: modal.querySelector('#qpMode').value,
           denominator: modal.querySelector('#qpDen').value,
-          threshold: modal.querySelector('#qpThreshold').value,
+          threshold: thresholdVal,
           include_proxies: modal.querySelector('#qpProxies').checked ? 1 : 0,
           count_remote: modal.querySelector('#qpRemote').checked ? 1 : 0
         };
@@ -769,11 +791,15 @@
       onConfirm: function(modal) {
         const name = modal.querySelector('#vpName').value.trim();
         if (!name) { setNotif('error', 'Nom requis'); return false; }
+        var thresholdVal = parseFloat(modal.querySelector('#vpThreshold').value);
+        if (isNaN(thresholdVal) || thresholdVal < 0 || thresholdVal > 1) {
+          setNotif('error', 'Le seuil doit être compris entre 0 et 1'); return false;
+        }
         const payload = {
           name: name,
           description: modal.querySelector('#vpDesc').value.trim(),
           base: modal.querySelector('#vpBase').value,
-          threshold: modal.querySelector('#vpThreshold').value,
+          threshold: thresholdVal,
           abstention_as_against: modal.querySelector('#vpAbstention').checked ? 1 : 0
         };
         if (isEdit) payload.id = p.id;

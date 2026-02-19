@@ -3958,6 +3958,55 @@
 
   document.getElementById('btnSendInvitations')?.addEventListener('click', sendInvitations);
 
+  // Invitation scheduling buttons
+  const invitationsOptions = document.getElementById('invitationsOptions');
+  const scheduleGroup = document.getElementById('scheduleGroup');
+
+  document.getElementById('btnScheduleInvitations')?.addEventListener('click', () => {
+    if (!invitationsOptions) return;
+    const isVisible = invitationsOptions.style.display !== 'none';
+    invitationsOptions.style.display = isVisible ? 'none' : '';
+    if (!isVisible && scheduleGroup) scheduleGroup.style.display = '';
+  });
+
+  document.getElementById('btnCancelSend')?.addEventListener('click', () => {
+    if (invitationsOptions) invitationsOptions.style.display = 'none';
+  });
+
+  document.getElementById('btnConfirmSend')?.addEventListener('click', async () => {
+    if (!currentMeetingId) { setNotif('error', 'Aucune séance sélectionnée'); return; }
+
+    const scheduledAt = document.getElementById('invScheduleAt')?.value || '';
+    const templateId = document.getElementById('invTemplateSelect')?.value || '';
+    const recipientsRadio = document.querySelector('input[name="invRecipients"]:checked');
+    const onlyUnsent = !recipientsRadio || recipientsRadio.value === 'unsent';
+
+    const btn = document.getElementById('btnConfirmSend');
+    Shared.btnLoading(btn, true);
+
+    try {
+      const payload = { meeting_id: currentMeetingId, only_unsent: onlyUnsent };
+      if (templateId) payload.template_id = templateId;
+      if (scheduledAt) payload.scheduled_at = scheduledAt;
+
+      const { body } = await api('/api/v1/invitations_schedule.php', payload);
+      if (body?.ok) {
+        const count = body.data?.scheduled || 0;
+        const label = scheduledAt ? 'programmée' + (count > 1 ? 's' : '') : 'envoyée' + (count > 1 ? 's' : '');
+        setNotif('success', count + ' invitation' + (count > 1 ? 's' : '') + ' ' + label);
+        if (invitationsOptions) invitationsOptions.style.display = 'none';
+        await loadInvitationStats();
+        loadStatusChecklist();
+      } else {
+        setNotif('error', getApiError(body, 'Erreur programmation invitations'));
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
+    }
+  });
+
   // Quick member add
   document.getElementById('btnAddMember')?.addEventListener('click', addMemberQuick);
 
