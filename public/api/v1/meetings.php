@@ -85,10 +85,7 @@ try {
         api_fail('method_not_allowed', 405);
     }
 
-} catch (PDOException $e) {
-    error_log("Database error in meetings.php: " . $e->getMessage());
-    api_fail('database_error', 500, ['detail' => 'Erreur de base de données']);
 } catch (Throwable $e) {
-    error_log("Unexpected error in meetings.php: " . $e->getMessage());
-    api_fail('internal_error', 500, ['detail' => 'Erreur interne du serveur']);
+    error_log('Error in meetings.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
 }

@@ -64,10 +64,7 @@ try {
 
     api_fail('method_not_allowed', 405);
 
-} catch (PDOException $e) {
-    error_log("Database error in admin_vote_policies.php: " . $e->getMessage());
-    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
 } catch (Throwable $e) {
-    error_log("Unexpected error in admin_vote_policies.php: " . $e->getMessage());
-    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
+    error_log('Error in admin_vote_policies.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
 }

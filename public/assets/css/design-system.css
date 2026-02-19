@@ -278,9 +278,45 @@ table {
 
   --color-primary: #818cf8;
   --color-primary-hover: #a5b4fc;
+  --color-primary-active: #c7d2fe;
   --color-primary-subtle: rgba(129, 140, 248, 0.15);
+  --color-primary-text: #0f172a;
+
+  --color-success: #4ade80;
+  --color-success-hover: #86efac;
+  --color-success-subtle: rgba(74, 222, 128, 0.15);
+  --color-success-text: #bbf7d0;
+
+  --color-warning: #fbbf24;
+  --color-warning-hover: #fcd34d;
+  --color-warning-subtle: rgba(251, 191, 36, 0.15);
+  --color-warning-text: #fde68a;
+
+  --color-danger: #f87171;
+  --color-danger-hover: #fca5a5;
+  --color-danger-subtle: rgba(248, 113, 113, 0.15);
+  --color-danger-text: #fecaca;
+
+  --color-info: #60a5fa;
+  --color-info-hover: #93c5fd;
+  --color-info-subtle: rgba(96, 165, 250, 0.15);
+  --color-info-text: #bfdbfe;
+
+  --color-accent: #c084fc;
+  --color-accent-subtle: rgba(192, 132, 252, 0.15);
+  --color-accent-text: #e9d5ff;
+
   --color-neutral: #64748b;
+  --color-neutral-hover: #94a3b8;
   --color-neutral-subtle: rgba(100, 116, 139, 0.15);
+  --color-neutral-text: #cbd5e1;
+
+  --ring-color: rgba(129, 140, 248, 0.4);
+
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
 }
 
 /* =============================================================================

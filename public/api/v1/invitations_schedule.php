@@ -73,10 +73,7 @@ api_ok([
     'errors' => $result['errors'],
 ]);
 
-} catch (PDOException $e) {
-    error_log("Database error in invitations_schedule.php: " . $e->getMessage());
-    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
 } catch (Throwable $e) {
-    error_log("Unexpected error in invitations_schedule.php: " . $e->getMessage());
-    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
+    error_log('Error in invitations_schedule.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
 }

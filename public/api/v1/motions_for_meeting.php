@@ -62,11 +62,13 @@ try {
             $m['votes_for']     = (int)$statsMap[$mid]['ballots_for'];
             $m['votes_against'] = (int)$statsMap[$mid]['ballots_against'];
             $m['votes_abstain'] = (int)$statsMap[$mid]['ballots_abstain'];
+            $m['votes_nsp']     = (int)$statsMap[$mid]['ballots_nsp'];
             $m['votes_count']   = (int)$statsMap[$mid]['ballots_total'];
         } else {
             $m['votes_for'] = 0;
             $m['votes_against'] = 0;
             $m['votes_abstain'] = 0;
+            $m['votes_nsp'] = 0;
             $m['votes_count'] = 0;
         }
 
@@ -94,7 +96,7 @@ try {
         'current_motion_id' => $currentMotionId,
         'motions'           => $motions,
     ]);
-} catch (PDOException $e) {
-    error_log("Database error in motions_for_meeting.php: " . $e->getMessage());
-    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
+} catch (Throwable $e) {
+    error_log("Error in motions_for_meeting.php: " . $e->getMessage());
+    api_fail('server_error', 500);
 }

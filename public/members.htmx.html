@@ -377,12 +377,12 @@
         }
       }
 
-      // Email coverage (members with email / total members)
+      // Email coverage (active members with email / active members)
       var kpiEmailCoverage = document.getElementById('kpiEmailCoverage');
       if (kpiEmailCoverage) {
-        if (total > 0) {
-          var withEmail = members.filter(function(m) { return m.email; }).length;
-          var pct = Math.round((withEmail / total) * 100);
+        if (active > 0) {
+          var withEmail = members.filter(function(m) { return m.is_active && m.email; }).length;
+          var pct = Math.round((withEmail / active) * 100);
           kpiEmailCoverage.textContent = pct + '%';
         } else {
           kpiEmailCoverage.textContent = '\u2014';
