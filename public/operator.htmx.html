@@ -61,13 +61,41 @@
 
     <!-- Tabs navigation (shown in setup mode when meeting selected) -->
     <nav class="tabs-nav" id="tabsNav" style="display: none;" role="tablist" aria-label="Sections de la séance">
-      <button class="tab-btn active" data-tab="parametres" role="tab" aria-selected="true" aria-controls="tab-parametres" id="tab-btn-parametres">Paramètres</button>
-      <button class="tab-btn" data-tab="resolutions" role="tab" aria-selected="false" aria-controls="tab-resolutions" id="tab-btn-resolutions">Résolutions <span class="tab-count" id="tabCountResolutions" aria-label="résolutions">0</span></button>
-      <button class="tab-btn" data-tab="presences" role="tab" aria-selected="false" aria-controls="tab-presences" id="tab-btn-presences">Présences <span class="tab-count" id="tabCountPresences" aria-label="présences">0</span></button>
-      <button class="tab-btn" data-tab="procurations" role="tab" aria-selected="false" aria-controls="tab-procurations" id="tab-btn-procurations">Procurations <span class="tab-count" id="tabCountProxies" aria-label="procurations">0</span></button>
-      <button class="tab-btn" data-tab="parole" role="tab" aria-selected="false" aria-controls="tab-parole" id="tab-btn-parole">Parole <span class="tab-count" id="tabCountSpeech" aria-label="demandes">0</span></button>
-      <button class="tab-btn" data-tab="vote" role="tab" aria-selected="false" aria-controls="tab-vote" id="tab-btn-vote">Vote en direct</button>
-      <button class="tab-btn" data-tab="resultats" role="tab" aria-selected="false" aria-controls="tab-resultats" id="tab-btn-resultats">Résultats</button>
+      <!-- 4 preparation tabs — always visible -->
+      <button class="tab-btn active" data-tab="seance" role="tab" aria-selected="true" aria-controls="tab-seance" id="tab-btn-seance">
+        <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
+        <span class="tab-label">Séance</span>
+      </button>
+      <button class="tab-btn" data-tab="participants" role="tab" aria-selected="false" aria-controls="tab-participants" id="tab-btn-participants">
+        <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+        <span class="tab-label">Participants</span>
+        <span class="tab-count" id="tabCountPresences" aria-label="présences">0</span>
+      </button>
+      <button class="tab-btn" data-tab="ordre-du-jour" role="tab" aria-selected="false" aria-controls="tab-ordre-du-jour" id="tab-btn-ordre-du-jour">
+        <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+        <span class="tab-label">Ordre du jour</span>
+        <span class="tab-count" id="tabCountResolutions" aria-label="résolutions">0</span>
+      </button>
+      <button class="tab-btn" data-tab="controle" role="tab" aria-selected="false" aria-controls="tab-controle" id="tab-btn-controle">
+        <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+        <span class="tab-label">Contrôle</span>
+        <span class="tab-count" id="tabCountAlerts" aria-label="alertes" hidden>0</span>
+      </button>
+      <!-- Separator + execution tabs — visible only when meeting is live -->
+      <span class="tab-separator" id="tabSeparator" hidden aria-hidden="true"></span>
+      <button class="tab-btn tab-btn-live" data-tab="parole" role="tab" aria-selected="false" aria-controls="tab-parole" id="tab-btn-parole" hidden>
+        <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg>
+        <span class="tab-label">Parole</span>
+        <span class="tab-count" id="tabCountSpeech" aria-label="demandes">0</span>
+      </button>
+      <button class="tab-btn tab-btn-live" data-tab="vote" role="tab" aria-selected="false" aria-controls="tab-vote" id="tab-btn-vote" hidden>
+        <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
+        <span class="tab-label">Vote</span>
+      </button>
+      <button class="tab-btn tab-btn-live" data-tab="resultats" role="tab" aria-selected="false" aria-controls="tab-resultats" id="tab-btn-resultats" hidden>
+        <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
+        <span class="tab-label">Résultats</span>
+      </button>
     </nav>
 
     <main class="app-main" id="main-content" role="main">
@@ -87,193 +115,14 @@
            ================================================================ -->
       <section id="viewSetup" hidden aria-label="Mode préparation">
 
-        <!-- Setup content (dashboard + tabs) -->
+        <!-- Setup content -->
         <div id="advancedMode" class="advanced-mode">
 
-        <!-- Setup dashboard: checklist + alerts above the tabs -->
-        <div class="setup-dashboard">
-          <div class="setup-dashboard-grid">
-            <!-- Conformity checklist -->
-            <div class="setup-card">
-              <div class="setup-card-header">
-                <h2>Préparation</h2>
-                <span class="meeting-bar-chip"><strong id="setupScore">0/4</strong> validés</span>
-              </div>
-              <div class="setup-card-body">
-                <div class="conformity-checklist" id="conformityChecklist">
-                  <div class="conformity-item" data-step="members">
-                    <span class="conformity-icon pending"></span>
-                    <span class="conformity-label">Registre des membres</span>
-                    <span class="conformity-status">à faire</span>
-                  </div>
-                  <div class="conformity-item" data-step="attendance">
-                    <span class="conformity-icon pending"></span>
-                    <span class="conformity-label">Présences &amp; procurations</span>
-                    <span class="conformity-status">à faire</span>
-                  </div>
-                  <div class="conformity-item" data-step="convocations">
-                    <span class="conformity-icon pending"></span>
-                    <span class="conformity-label">Convocations</span>
-                    <span class="conformity-status">optionnel</span>
-                  </div>
-                  <div class="conformity-item" data-step="rules">
-                    <span class="conformity-icon pending"></span>
-                    <span class="conformity-label">Règlement &amp; présidence</span>
-                    <span class="conformity-status">à faire</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Alerts panel -->
-            <div class="setup-card">
-              <div class="setup-card-header">
-                <h2>Alertes</h2>
-                <span class="meeting-bar-chip"><strong id="setupAlertCount">0</strong> actives</span>
-              </div>
-              <div class="setup-card-body">
-                <div id="setupAlertsList" class="alerts-list">
-                  <div class="alert-empty">Aucune alerte.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Launch banner (shown when all prerequisites are met) -->
-        <div id="launchBanner" class="launch-banner" style="display:none;">
-          <div class="launch-banner-content">
-            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
-            <span>Tous les pré-requis sont remplis. Vous pouvez lancer la séance.</span>
-          </div>
-          <button class="btn btn-success" id="btnLaunchSession">
-            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg> Lancer la séance
-          </button>
-        </div>
-
-        <!-- Existing tabs content (wrapped in advancedMode) -->
-
-        <!-- Tab: Paramètres -->
-        <div class="tab-content" id="tab-parametres" role="tabpanel" aria-labelledby="tab-btn-parametres" tabindex="0">
+        <!-- ============================================================
+             Tab 1: SÉANCE — Définir la réunion
+             ============================================================ -->
+        <div class="tab-content" id="tab-seance" role="tabpanel" aria-labelledby="tab-btn-seance" tabindex="0">
           <div class="settings-grid">
-            <!-- Membres card -->
-            <div class="settings-section">
-              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Membres</h3>
-              <div class="flex items-center justify-between mb-3">
-                <div>
-                  <span class="text-3xl font-bold" id="membersCount">0</span>
-                  <span class="text-muted ml-2">membres inscrits</span>
-                </div>
-              </div>
-              <div id="membersList" class="members-list-compact mb-3">
-                <!-- Rendered by JS -->
-              </div>
-              <div class="flex gap-2">
-                <button class="btn btn-sm btn-primary flex-1" id="btnAddMember">+ Ajouter un membre</button>
-                <a href="/members.htmx.html" class="btn btn-sm btn-secondary">Gérer</a>
-              </div>
-            </div>
-
-            <!-- Présences card -->
-            <div class="settings-section">
-              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-hand"></use></svg> Présences</h3>
-              <div class="quick-counts mb-3">
-                <div class="quick-count">
-                  <span class="quick-count-value success" id="quickPresent">0</span>
-                  <div class="quick-count-label">Présents</div>
-                </div>
-                <div class="quick-count">
-                  <span class="quick-count-value info" id="quickRemote">0</span>
-                  <div class="quick-count-label">Distants</div>
-                </div>
-                <div class="quick-count">
-                  <span class="quick-count-value warning" id="quickProxy">0</span>
-                  <div class="quick-count-label">Procurations</div>
-                </div>
-                <div class="quick-count">
-                  <span class="quick-count-value muted" id="quickAbsent">0</span>
-                  <div class="quick-count-label">Absents</div>
-                </div>
-              </div>
-              <div class="flex gap-2">
-                <button class="btn btn-sm btn-success flex-1" id="btnQuickAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
-                <button class="btn btn-sm btn-secondary" data-tab-switch="presences">Détails</button>
-              </div>
-            </div>
-
-            <!-- Invitations card -->
-            <div class="settings-section" id="invitationsCard">
-              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Invitations</h3>
-              <div class="quick-counts mb-3">
-                <div class="quick-count">
-                  <span class="quick-count-value" id="invTotal">0</span>
-                  <div class="quick-count-label">Total</div>
-                </div>
-                <div class="quick-count">
-                  <span class="quick-count-value success" id="invSent">0</span>
-                  <div class="quick-count-label">Envoyées</div>
-                </div>
-                <div class="quick-count">
-                  <span class="quick-count-value info" id="invOpened">0</span>
-                  <div class="quick-count-label">Ouvertes</div>
-                </div>
-                <div class="quick-count">
-                  <span class="quick-count-value text-danger" id="invBounced">0</span>
-                  <div class="quick-count-label">Échecs</div>
-                </div>
-              </div>
-              <div id="invEngagement" class="text-sm text-muted mb-3" style="display:none;">
-                Taux ouverture: <strong id="invOpenRate">0%</strong>
-              </div>
-              <div class="flex gap-2 flex-wrap">
-                <button class="btn btn-sm btn-primary flex-1" id="btnSendInvitations">
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
-                  Envoyer les invitations
-                </button>
-                <ag-popover title="Programmer l'envoi" content="Planifiez l'envoi automatique des invitations à une date et heure précises." position="top">
-                  <button slot="trigger" class="btn btn-sm btn-secondary" id="btnScheduleInvitations">
-                    <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
-                  </button>
-                </ag-popover>
-                <ag-popover title="Templates d'email" content="Personnalisez le contenu des emails envoyés." position="top">
-                  <a slot="trigger" href="/email-templates.htmx.html" class="btn btn-sm btn-secondary">
-                    <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
-                  </a>
-                </ag-popover>
-              </div>
-              <!-- Invitations options (hidden by default) -->
-              <div id="invitationsOptions" class="invitations-options" style="display:none;">
-                <div class="form-group mb-3">
-                  <label class="form-label" for="invTemplateSelect">Template</label>
-                  <select class="form-input" id="invTemplateSelect">
-                    <option value="">Template par défaut</option>
-                  </select>
-                </div>
-                <div class="form-group mb-3">
-                  <label class="form-label">Destinataires</label>
-                  <div class="flex flex-col gap-1">
-                    <label class="flex items-center gap-2">
-                      <input type="radio" name="invRecipients" value="unsent" checked> Non encore invités
-                    </label>
-                    <label class="flex items-center gap-2">
-                      <input type="radio" name="invRecipients" value="all"> Tous les membres
-                    </label>
-                  </div>
-                </div>
-                <div class="form-group mb-3" id="scheduleGroup" style="display:none;">
-                  <label class="form-label" for="invScheduleAt">Date/heure d'envoi</label>
-                  <input type="datetime-local" class="form-input" id="invScheduleAt">
-                </div>
-                <div class="flex gap-2">
-                  <button class="btn btn-sm btn-success" id="btnConfirmSend">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
-                    Confirmer l'envoi
-                  </button>
-                  <button class="btn btn-sm btn-secondary" id="btnCancelSend">Annuler</button>
-                </div>
-              </div>
-            </div>
-
             <div class="settings-section">
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg> Informations générales</h3>
               <div class="form-group mb-3">
@@ -336,9 +185,6 @@
                   <option value="2">2ème convocation</option>
                 </select>
               </div>
-              <div class="mt-4">
-                <button class="btn btn-primary" id="btnSaveSettings"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-save"></use></svg> Enregistrer les paramètres</button>
-              </div>
             </div>
 
             <div class="settings-section">
@@ -365,7 +211,254 @@
                 <button class="btn btn-sm btn-secondary" id="btnAddAssessor">+ Ajouter un assesseur</button>
               </div>
             </div>
+          </div>
+          <div class="tab-footer-actions">
+            <button class="btn btn-primary" id="btnSaveSettings"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-save"></use></svg> Enregistrer</button>
+            <button class="btn btn-secondary" data-tab-switch="participants">Étape suivante : Participants <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg></button>
+          </div>
+        </div>
 
+        <!-- ============================================================
+             Tab 2: PARTICIPANTS — Membres + Présences + Procurations
+             ============================================================ -->
+        <div class="tab-content" id="tab-participants" role="tabpanel" aria-labelledby="tab-btn-participants" tabindex="0">
+          <!-- Quick stats -->
+          <div class="results-summary mb-4">
+            <div class="result-card">
+              <div class="value" id="membersCount">0</div>
+              <div class="label">Membres inscrits</div>
+            </div>
+            <div class="result-card">
+              <div class="value" id="presStatPresent">0</div>
+              <div class="label">Présents</div>
+            </div>
+            <div class="result-card">
+              <div class="value" id="presStatRemote">0</div>
+              <div class="label">Distants</div>
+            </div>
+            <div class="result-card">
+              <div class="value" id="proxyStatActive">0</div>
+              <div class="label">Procurations</div>
+            </div>
+            <div class="result-card">
+              <div class="value" id="presStatAbsent">0</div>
+              <div class="label">Absents</div>
+            </div>
+          </div>
+
+          <!-- Section: Présences -->
+          <div class="tab-toolbar">
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-primary" id="btnAddMember">+ Ajouter un membre</button>
+              <button class="btn btn-sm btn-success" id="btnMarkAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
+              <button class="btn btn-sm btn-secondary" id="btnImportCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Import CSV</button>
+            </div>
+            <input type="text" class="form-input tab-toolbar-search" id="presenceSearch" placeholder="Rechercher un membre..." aria-label="Rechercher un membre">
+          </div>
+
+          <h3 class="mb-3"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Présences</h3>
+          <div class="attendance-grid" id="attendanceGrid">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Section: Procurations -->
+          <div class="tab-section-separator"></div>
+          <div class="tab-toolbar">
+            <div class="flex gap-2 items-center">
+              <h3 style="margin:0"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-share-2"></use></svg> Procurations</h3>
+              <button class="btn btn-sm btn-primary" id="btnAddProxy"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Nouvelle procuration</button>
+              <button class="btn btn-sm btn-secondary" id="btnImportProxiesCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer CSV</button>
+            </div>
+            <input type="text" class="form-input tab-toolbar-search" id="proxySearch" placeholder="Rechercher une procuration..." aria-label="Rechercher une procuration">
+          </div>
+
+          <div class="proxy-list-header">
+            <div class="hint">
+              <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+              <span>Les mandants absents donnent procuration aux mandataires présents pour voter à leur place.</span>
+            </div>
+          </div>
+          <div id="proxyList" class="proxy-list">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div class="tab-footer-actions">
+            <a href="/members.htmx.html" class="btn btn-secondary">Gestion avancée des membres</a>
+            <button class="btn btn-secondary" data-tab-switch="ordre-du-jour">Étape suivante : Ordre du jour <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg></button>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             Tab 3: ORDRE DU JOUR — Résolutions
+             ============================================================ -->
+        <div class="tab-content" id="tab-ordre-du-jour" role="tabpanel" aria-labelledby="tab-btn-ordre-du-jour" tabindex="0">
+          <div class="tab-toolbar">
+            <button class="btn btn-primary" id="btnAddResolution">+ Nouvelle résolution</button>
+            <input type="text" class="form-input tab-toolbar-search" id="resolutionSearch" placeholder="Rechercher une résolution..." aria-label="Rechercher une résolution">
+          </div>
+
+          <div id="resolutionsList">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Add resolution form (hidden by default) -->
+          <div id="addResolutionForm" class="settings-section add-resolution-form" style="display: none;">
+            <h3>Nouvelle résolution</h3>
+            <div class="form-group mb-3">
+              <label class="form-label">Titre</label>
+              <input type="text" class="form-input" id="newResolutionTitle" placeholder="Ex: Approbation des comptes 2023" maxlength="500">
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label">Description / Texte complet</label>
+              <textarea class="form-input" id="newResolutionDesc" rows="6" placeholder="Considérant que..." maxlength="10000"></textarea>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-primary" id="btnConfirmResolution">Créer la résolution</button>
+              <button class="btn btn-secondary" id="btnCancelResolution">Annuler</button>
+            </div>
+          </div>
+
+          <div class="tab-footer-actions">
+            <button class="btn btn-secondary" data-tab-switch="controle">Étape suivante : Contrôle <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg></button>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             Tab 4: CONTRÔLE — Vérifier et lancer
+             ============================================================ -->
+        <div class="tab-content" id="tab-controle" role="tabpanel" aria-labelledby="tab-btn-controle" tabindex="0">
+          <!-- Launch banner (prominent at top) -->
+          <div id="launchBanner" class="launch-banner" style="display:none;">
+            <div class="launch-banner-content">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
+              <span>Tous les pré-requis sont remplis. Vous pouvez lancer la séance.</span>
+            </div>
+            <button class="btn btn-success" id="btnLaunchSession">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg> Lancer la séance
+            </button>
+          </div>
+
+          <div class="setup-dashboard-grid">
+            <!-- Conformity checklist -->
+            <div class="setup-card">
+              <div class="setup-card-header">
+                <h2>Préparation</h2>
+                <span class="meeting-bar-chip"><strong id="setupScore">0/4</strong> validés</span>
+              </div>
+              <div class="setup-card-body">
+                <div class="conformity-checklist" id="conformityChecklist">
+                  <div class="conformity-item" data-step="members">
+                    <span class="conformity-icon pending"></span>
+                    <span class="conformity-label">Registre des membres</span>
+                    <span class="conformity-status">à faire</span>
+                  </div>
+                  <div class="conformity-item" data-step="attendance">
+                    <span class="conformity-icon pending"></span>
+                    <span class="conformity-label">Présences &amp; procurations</span>
+                    <span class="conformity-status">à faire</span>
+                  </div>
+                  <div class="conformity-item" data-step="convocations">
+                    <span class="conformity-icon pending"></span>
+                    <span class="conformity-label">Convocations</span>
+                    <span class="conformity-status">optionnel</span>
+                  </div>
+                  <div class="conformity-item" data-step="rules">
+                    <span class="conformity-icon pending"></span>
+                    <span class="conformity-label">Règlement &amp; présidence</span>
+                    <span class="conformity-status">à faire</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alerts panel -->
+            <div class="setup-card">
+              <div class="setup-card-header">
+                <h2>Alertes</h2>
+                <span class="meeting-bar-chip"><strong id="setupAlertCount">0</strong> actives</span>
+              </div>
+              <div class="setup-card-body">
+                <div id="setupAlertsList" class="alerts-list">
+                  <div class="alert-empty">Aucune alerte.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-grid mt-4">
+            <!-- Invitations card -->
+            <div class="settings-section" id="invitationsCard">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Invitations</h3>
+              <div class="quick-counts mb-3">
+                <div class="quick-count">
+                  <span class="quick-count-value" id="invTotal">0</span>
+                  <div class="quick-count-label">Total</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value success" id="invSent">0</span>
+                  <div class="quick-count-label">Envoyées</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value info" id="invOpened">0</span>
+                  <div class="quick-count-label">Ouvertes</div>
+                </div>
+                <div class="quick-count">
+                  <span class="quick-count-value text-danger" id="invBounced">0</span>
+                  <div class="quick-count-label">Échecs</div>
+                </div>
+              </div>
+              <div id="invEngagement" class="text-sm text-muted mb-3" style="display:none;">
+                Taux ouverture: <strong id="invOpenRate">0%</strong>
+              </div>
+              <div class="flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-primary flex-1" id="btnSendInvitations">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
+                  Envoyer les invitations
+                </button>
+                <ag-popover title="Programmer l'envoi" content="Planifiez l'envoi automatique des invitations à une date et heure précises." position="top">
+                  <button slot="trigger" class="btn btn-sm btn-secondary" id="btnScheduleInvitations">
+                    <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+                  </button>
+                </ag-popover>
+                <ag-popover title="Templates d'email" content="Personnalisez le contenu des emails envoyés." position="top">
+                  <a slot="trigger" href="/email-templates.htmx.html" class="btn btn-sm btn-secondary">
+                    <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
+                  </a>
+                </ag-popover>
+              </div>
+              <div id="invitationsOptions" class="invitations-options" style="display:none;">
+                <div class="form-group mb-3">
+                  <label class="form-label" for="invTemplateSelect">Template</label>
+                  <select class="form-input" id="invTemplateSelect">
+                    <option value="">Template par défaut</option>
+                  </select>
+                </div>
+                <div class="form-group mb-3">
+                  <label class="form-label">Destinataires</label>
+                  <div class="flex flex-col gap-1">
+                    <label class="flex items-center gap-2">
+                      <input type="radio" name="invRecipients" value="unsent" checked> Non encore invités
+                    </label>
+                    <label class="flex items-center gap-2">
+                      <input type="radio" name="invRecipients" value="all"> Tous les membres
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group mb-3" id="scheduleGroup" style="display:none;">
+                  <label class="form-label" for="invScheduleAt">Date/heure d'envoi</label>
+                  <input type="datetime-local" class="form-input" id="invScheduleAt">
+                </div>
+                <div class="flex gap-2">
+                  <button class="btn btn-sm btn-success" id="btnConfirmSend">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
+                    Confirmer l'envoi
+                  </button>
+                  <button class="btn btn-sm btn-secondary" id="btnCancelSend">Annuler</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- État de la séance -->
             <div class="settings-section">
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> État de la séance</h3>
               <div id="statusChecklist" class="status-checklist mb-4">
@@ -441,108 +534,9 @@
           </div>
         </div>
 
-        <!-- Tab: Résolutions -->
-        <div class="tab-content" id="tab-resolutions" role="tabpanel" aria-labelledby="tab-btn-resolutions" tabindex="0">
-          <div class="tab-toolbar">
-            <button class="btn btn-primary" id="btnAddResolution">+ Nouvelle résolution</button>
-            <input type="text" class="form-input tab-toolbar-search" id="resolutionSearch" placeholder="Rechercher une résolution..." aria-label="Rechercher une résolution">
-          </div>
-
-          <div id="resolutionsList">
-            <!-- Rendered by JS -->
-          </div>
-
-          <!-- Add resolution form (hidden by default) -->
-          <div id="addResolutionForm" class="settings-section add-resolution-form" style="display: none;">
-            <h3>Nouvelle résolution</h3>
-            <div class="form-group mb-3">
-              <label class="form-label">Titre</label>
-              <input type="text" class="form-input" id="newResolutionTitle" placeholder="Ex: Approbation des comptes 2023" maxlength="500">
-            </div>
-            <div class="form-group mb-3">
-              <label class="form-label">Description / Texte complet</label>
-              <textarea class="form-input" id="newResolutionDesc" rows="6" placeholder="Considérant que..." maxlength="10000"></textarea>
-            </div>
-            <div class="flex gap-2">
-              <button class="btn btn-primary" id="btnConfirmResolution">Créer la résolution</button>
-              <button class="btn btn-secondary" id="btnCancelResolution">Annuler</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab: Présences -->
-        <div class="tab-content" id="tab-presences" role="tabpanel" aria-labelledby="tab-btn-presences" tabindex="0">
-          <div class="tab-toolbar">
-            <div class="flex gap-2">
-              <button class="btn btn-secondary" id="btnMarkAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
-              <button class="btn btn-secondary" id="btnImportCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importation CSV</button>
-            </div>
-            <input type="text" class="form-input tab-toolbar-search" id="presenceSearch" placeholder="Rechercher un membre..." aria-label="Rechercher un membre">
-          </div>
-
-          <div class="results-summary mb-6">
-            <div class="result-card">
-              <div class="value" id="presStatPresent">0</div>
-              <div class="label">Présents</div>
-            </div>
-            <div class="result-card">
-              <div class="value" id="presStatRemote">0</div>
-              <div class="label">Distants</div>
-            </div>
-            <div class="result-card">
-              <div class="value" id="presStatProxy">0</div>
-              <div class="label">Procurations</div>
-            </div>
-            <div class="result-card">
-              <div class="value" id="presStatAbsent">0</div>
-              <div class="label">Absents</div>
-            </div>
-          </div>
-
-          <h3 class="mb-4"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Membres</h3>
-          <div class="attendance-grid" id="attendanceGrid">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-
-        <!-- Tab: Procurations -->
-        <div class="tab-content" id="tab-procurations" role="tabpanel" aria-labelledby="tab-btn-procurations" tabindex="0">
-          <div class="tab-toolbar">
-            <div class="flex gap-2">
-              <button class="btn btn-primary" id="btnAddProxy"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Nouvelle procuration</button>
-              <button class="btn btn-secondary" id="btnImportProxiesCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer CSV</button>
-            </div>
-            <input type="text" class="form-input tab-toolbar-search" id="proxySearch" placeholder="Rechercher une procuration..." aria-label="Rechercher une procuration">
-          </div>
-
-          <div class="results-summary mb-6">
-            <div class="result-card">
-              <div class="value" id="proxyStatActive">0</div>
-              <div class="label">Procurations actives</div>
-            </div>
-            <div class="result-card">
-              <div class="value" id="proxyStatGivers">0</div>
-              <div class="label">Mandants</div>
-            </div>
-            <div class="result-card">
-              <div class="value" id="proxyStatReceivers">0</div>
-              <div class="label">Mandataires</div>
-            </div>
-          </div>
-
-          <!-- Proxy list header -->
-          <div class="proxy-list-header">
-            <div class="hint">
-              <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
-              <span>Les mandants absents donnent procuration aux mandataires présents pour voter à leur place.</span>
-            </div>
-          </div>
-
-          <div id="proxyList" class="proxy-list">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-
+        <!-- ============================================================
+             Tab 5: PAROLE — Visible quand séance live
+             ============================================================ -->
         <!-- Tab: Parole (file des orateurs) -->
         <div class="tab-content" id="tab-parole" role="tabpanel" aria-labelledby="tab-btn-parole" tabindex="0">
           <div class="charts-grid">

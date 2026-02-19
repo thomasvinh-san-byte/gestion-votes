@@ -196,7 +196,18 @@
     });
   }
 
+  // Legacy tab ID aliases for backward compat
+  const TAB_ALIASES = {
+    'parametres': 'seance',
+    'presences': 'participants',
+    'procurations': 'participants',
+    'resolutions': 'ordre-du-jour'
+  };
+
   async function switchTab(tabId) {
+    // Resolve legacy aliases
+    tabId = TAB_ALIASES[tabId] || tabId;
+
     tabButtons.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabId);
     });
@@ -206,17 +217,39 @@
 
     // Reload data when switching to certain tabs
     if (currentMeetingId) {
-      if (tabId === 'presences') {
+      if (tabId === 'participants') {
         await loadAttendance();
-      }
-      if (tabId === 'procurations') {
         await loadProxies();
-        await loadAttendance(); // Need attendance for proxy modal
       }
-      if (tabId === 'resolutions') await loadResolutions();
+      if (tabId === 'ordre-du-jour') await loadResolutions();
+      if (tabId === 'controle') {
+        renderConformityChecklist();
+        refreshAlerts();
+        loadStatusChecklist();
+        loadInvitationStats();
+      }
       if (tabId === 'parole') await loadSpeechQueue();
       if (tabId === 'vote') await loadVoteTab();
       if (tabId === 'resultats') await loadResults();
+    }
+  }
+
+  /**
+   * Show/hide execution tabs based on meeting status
+   */
+  function updateLiveTabs() {
+    const isLive = ['live', 'closed', 'validated'].includes(currentMeetingStatus);
+    const sep = document.getElementById('tabSeparator');
+    if (sep) sep.hidden = !isLive;
+    document.querySelectorAll('.tab-btn-live').forEach(btn => {
+      btn.hidden = !isLive;
+    });
+    // Update alert count badge
+    const alertCountEl = document.getElementById('tabCountAlerts');
+    if (alertCountEl) {
+      const count = parseInt(document.getElementById('setupAlertCount')?.textContent || '0');
+      alertCountEl.textContent = count;
+      alertCountEl.hidden = count === 0;
     }
   }
 
@@ -264,6 +297,7 @@
         currentMeetingStatus = body.data.status;
         showMeetingContent();
         updateHeader(body.data);
+        updateLiveTabs();
         await loadAllData();
       }
     } catch (err) {
@@ -292,7 +326,7 @@
     const initialMode = (currentMeetingStatus === 'live') ? 'exec' : 'setup';
 
     // Always use advanced mode (assistant mode removed)
-    setPrepMode('advanced');
+    setPrepMode();
 
     setMode(initialMode);
 
@@ -300,8 +334,9 @@
     if (initialMode === 'setup') {
       const urlParams = new URLSearchParams(window.location.search);
       const requestedTab = urlParams.get('tab');
-      const validTabs = ['parametres', 'resolutions', 'presences', 'procurations', 'parole', 'vote', 'resultats'];
-      const tabToShow = (requestedTab && validTabs.includes(requestedTab)) ? requestedTab : 'parametres';
+      const validTabs = ['seance', 'participants', 'ordre-du-jour', 'controle', 'parole', 'vote', 'resultats',
+        'parametres', 'resolutions', 'presences', 'procurations']; // legacy aliases accepted
+      const tabToShow = (requestedTab && validTabs.includes(requestedTab)) ? requestedTab : 'seance';
       switchTab(tabToShow);
     }
   }
@@ -3477,16 +3512,27 @@
 
     const score = steps.filter(s => s.done).length;
 
+    // Map checklist steps to tabs for navigation
+    const stepTabMap = { members: 'participants', attendance: 'participants', convocations: 'controle', rules: 'seance' };
+
     checklist.innerHTML = steps.map(s => {
       const doneClass = s.done ? 'done' : '';
       const optClass = s.optional ? 'optional' : '';
       const iconClass = s.done ? 'done' : 'pending';
-      return '<div class="conformity-item ' + doneClass + ' ' + optClass + '" data-step="' + s.key + '">'
+      const tab = stepTabMap[s.key] || '';
+      return '<div class="conformity-item ' + doneClass + ' ' + optClass + '" data-step="' + s.key + '"'
+        + (tab && !s.done ? ' data-goto-tab="' + tab + '" style="cursor:pointer" title="Aller à l\'onglet"' : '')
+        + '>'
         + '<span class="conformity-icon ' + iconClass + '"></span>'
         + '<span class="conformity-label">' + s.label + '</span>'
         + '<span class="conformity-status">' + s.status + '</span>'
         + '</div>';
     }).join('');
+
+    // Clickable incomplete items navigate to relevant tab
+    checklist.querySelectorAll('[data-goto-tab]').forEach(item => {
+      item.addEventListener('click', () => switchTab(item.dataset.gotoTab));
+    });
 
     // Update score display
     const setupScoreEl = document.getElementById('setupScore');
@@ -3542,33 +3588,33 @@
     if (!hasMembers) {
       alerts.push({
         title: 'Aucun membre',
-        message: 'Ajoutez des membres dans l\u2019onglet Présences.',
+        message: 'Ajoutez des membres dans l\u2019onglet Participants.',
         severity: 'critical',
-        tab: 'presences'
+        tab: 'participants'
       });
     }
     if (hasMembers && !hasPresent) {
       alerts.push({
         title: 'Aucun présent enregistré',
-        message: 'Pointez les présences dans l\u2019onglet Présences.',
+        message: 'Pointez les présences dans l\u2019onglet Participants.',
         severity: 'critical',
-        tab: 'presences'
+        tab: 'participants'
       });
     }
     if (!hasMotions) {
       alerts.push({
         title: 'Aucune résolution',
-        message: 'Créez au moins une résolution à voter.',
+        message: 'Créez au moins une résolution dans l\u2019Ordre du jour.',
         severity: 'warning',
-        tab: 'resolutions'
+        tab: 'ordre-du-jour'
       });
     }
     if (!hasRules) {
       alerts.push({
         title: 'Ni quorum ni président',
-        message: 'Configurez le quorum ou désignez un président dans Paramètres.',
+        message: 'Configurez le quorum ou désignez un président dans Séance.',
         severity: 'info',
-        tab: 'parametres'
+        tab: 'seance'
       });
     }
 
@@ -3637,6 +3683,10 @@
   function refreshAlerts() {
     renderAlertsPanel('setupAlertsList', 'setupAlertCount');
     renderAlertsPanel('execAlertsList', 'execAlertCount');
+    // Update Contrôle tab badge
+    const count = parseInt(document.getElementById('setupAlertCount')?.textContent || '0');
+    const badge = document.getElementById('tabCountAlerts');
+    if (badge) { badge.textContent = count; badge.hidden = count === 0; }
   }
 
   // =========================================================================
