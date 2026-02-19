@@ -191,6 +191,9 @@ function show(id, visible) {
   if (el) el.classList.toggle('visible', visible);
 }
 
+// Format weight: 1.0000 → "1", 1.5 → "1.5"
+function fmtW(v) { var n = parseFloat(v); return isNaN(n) ? '0' : (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, '')); }
+
 // Animate bars
 function animateBars(forPct, againstPct, abstainPct, forCount, againstCount, abstainCount, forWeight, againstWeight, abstainWeight) {
   const maxHeight = 140; // max bar height in px (matches CSS .bar-wrapper height - margin)
@@ -200,9 +203,9 @@ function animateBars(forPct, againstPct, abstainPct, forCount, againstCount, abs
   document.getElementById('pct_against').textContent = againstPct.toFixed(0) + '%';
   document.getElementById('pct_abstain').textContent = abstainPct.toFixed(0) + '%';
 
-  document.getElementById('count_for').textContent = forWeight.toFixed(0);
-  document.getElementById('count_against').textContent = againstWeight.toFixed(0);
-  document.getElementById('count_abstain').textContent = abstainWeight.toFixed(0);
+  document.getElementById('count_for').textContent = fmtW(forWeight);
+  document.getElementById('count_against').textContent = fmtW(againstWeight);
+  document.getElementById('count_abstain').textContent = fmtW(abstainWeight);
 
   // Animate bar heights
   requestAnimationFrame(() => {
@@ -310,7 +313,7 @@ async function loadResults(motionId, reveal = true) {
     if (quorum.applied) {
       quorumEl.textContent = quorum.met ? 'Atteint' : 'Non atteint';
       quorumEl.className = 'decision-value ' + (quorum.met ? 'adopted' : 'rejected');
-      document.getElementById('quorum_detail').textContent = `${(quorum.ratio ?? 0).toFixed(2)} / ${(quorum.threshold ?? 0).toFixed(2)}`;
+      document.getElementById('quorum_detail').textContent = `${fmtW(quorum.ratio ?? 0)} / ${fmtW(quorum.threshold ?? 0)}`;
     } else {
       quorumEl.textContent = 'N/A';
       quorumEl.className = 'decision-value pending';

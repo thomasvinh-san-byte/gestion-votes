@@ -477,7 +477,7 @@
       // Weight + proxy indication
       const weightParts = [];
       if (member.weight && Number(member.weight) > 1) {
-        weightParts.push(`${member.weight} voix`);
+        weightParts.push(`${Shared.formatWeight(member.weight)} voix`);
       }
       if (member.mode === 'proxy') {
         weightParts.push(member.proxyFor

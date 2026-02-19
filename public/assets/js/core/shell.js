@@ -427,6 +427,66 @@
 
   window.MobileNav = { open: openMobileNav, close: closeMobileNav };
 
+  // ==========================================================================
+  // Theme Toggle (dark/light mode)
+  // ==========================================================================
+
+  const THEME_KEY = 'ag-vote-theme';
+
+  /**
+   * Apply the given theme to the document.
+   * @param {'light'|'dark'|'auto'} theme
+   */
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      // auto — remove attribute and let prefers-color-scheme rule
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }
+
+  /**
+   * Toggle between light and dark themes.
+   */
+  function toggleTheme() {
+    const current = localStorage.getItem(THEME_KEY);
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+      (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const next = isDark ? 'light' : 'dark';
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+  }
+
+  // Restore saved theme on load
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  }
+
+  // Bind toggle button (may be loaded dynamically via sidebar partial)
+  function bindThemeToggle() {
+    const btn = document.getElementById('btnToggleTheme');
+    if (btn && !btn.dataset.themeBound) {
+      btn.dataset.themeBound = 'true';
+      btn.addEventListener('click', toggleTheme);
+    }
+  }
+
+  // Try binding immediately and also observe for sidebar load
+  bindThemeToggle();
+  const sidebarEl = document.querySelector('[data-include-sidebar]');
+  if (sidebarEl) {
+    new MutationObserver(function(_, obs) {
+      bindThemeToggle();
+      if (document.getElementById('btnToggleTheme')) obs.disconnect();
+    }).observe(sidebarEl, { childList: true, subtree: true });
+  }
+
+  window.ThemeToggle = { toggle: toggleTheme, apply: applyTheme };
+
   // Auto-load auth UI banner (login/logout + role visibility)
   const authScript = document.createElement('script');
   authScript.src = '/assets/js/pages/auth-ui.js';

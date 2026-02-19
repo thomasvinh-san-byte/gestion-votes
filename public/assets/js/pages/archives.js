@@ -28,15 +28,11 @@
     // Render archives
     function render(items) {
       if (!items || items.length === 0) {
-        archivesList.innerHTML = `
-          <div class="empty-state p-8">
-            <div class="empty-state-icon">📭</div>
-            <div class="empty-state-title">Aucune séance archivée</div>
-            <div class="empty-state-description">
-              ${currentYear ? 'Aucune archive pour ' + currentYear : 'Les séances validées par le président apparaîtront ici'}
-            </div>
-          </div>
-        `;
+        archivesList.innerHTML = Shared.emptyState({
+          icon: 'archives',
+          title: 'Aucune séance archivée',
+          description: currentYear ? 'Aucune archive pour ' + currentYear : 'Les séances validées par le président apparaîtront ici'
+        });
         return;
       }
 

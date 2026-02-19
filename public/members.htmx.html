@@ -720,13 +720,11 @@
       updatePagination(n);
 
       if (!n) {
-        membersList.innerHTML = `
-          <div class="empty-state">
-            <svg class="icon" style="width:3rem;height:3rem;opacity:0.3;" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-            <h3>Aucun membre</h3>
-            <p>Ajoutez des membres avec le formulaire ci-dessus ou importez un fichier CSV.</p>
-          </div>
-        `;
+        membersList.innerHTML = Shared.emptyState({
+          icon: 'members',
+          title: 'Aucun membre',
+          description: 'Ajoutez des membres avec le formulaire ci-dessus ou importez un fichier CSV.'
+        });
         return;
       }
 
