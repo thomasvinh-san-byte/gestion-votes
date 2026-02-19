@@ -12,7 +12,7 @@
 <body>
   <!-- Skip links -->
   <a href="#main-content" class="skip-link">Aller au contenu principal</a>
-  <a href="#main-nav" class="skip-link">Aller à la navigation</a>
+  <a href="#tabsNav" class="skip-link">Aller à la navigation</a>
 
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
@@ -839,7 +839,17 @@
               <!-- Parole sub-card -->
               <div class="exec-subcard">
                 <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> Parole</h3>
-                <div id="execSpeakerInfo" class="text-sm text-muted">Aucun orateur</div>
+                <div id="execSpeakerInfo" class="exec-speaker-block">
+                  <span class="text-sm text-muted">Aucun orateur</span>
+                </div>
+                <div id="execSpeechActions" class="exec-speech-actions" style="display:none;">
+                  <button class="btn btn-xs btn-danger" id="execBtnEndSpeech" title="Fin de parole">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Fin
+                  </button>
+                  <button class="btn btn-xs btn-primary" id="execBtnNextSpeaker" title="Orateur suivant">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-skip-forward"></use></svg> Suivant
+                  </button>
+                </div>
                 <div id="execSpeechQueue" class="text-sm text-muted mt-2">File vide</div>
               </div>
               <!-- Appareils sub-card -->

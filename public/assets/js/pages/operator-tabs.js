@@ -41,7 +41,6 @@
   let usersCache = [];
   let policiesCache = { quorum: [], vote: [] };
   let proxiesCache = [];  // Cache for proxies
-  let invitationsSentCount = 0;  // Track sent invitations for wizard checklist
   let currentMode = 'setup'; // 'setup' | 'exec'
   let lastSetupTab = 'seance'; // Remember last active prep tab for seamless mode switching
 
@@ -2918,7 +2917,7 @@
     });
     if (!confirmed) return;
 
-    // Disable ALL open-vote buttons and quick-open buttons to prevent any double-click
+    // Disable ALL open-vote buttons and quick-open buttons to prevent double-click
     const openBtns = document.querySelectorAll('.btn-open-vote, .btn-quick-open');
     openBtns.forEach(btn => {
       btn.disabled = true;
@@ -2946,7 +2945,6 @@
       if (currentMode === 'exec') {
         refreshExecView();
       } else if (currentMeetingStatus === 'live') {
-        // Auto-switch to exec for real-time vote monitoring
         setMode('exec');
       } else {
         switchTab('vote');
@@ -2955,6 +2953,14 @@
     } catch (err) {
       setNotif('error', err.message);
       await loadResolutions();
+    } finally {
+      // Restore any surviving buttons (DOM may have been re-rendered by loadResolutions)
+      openBtns.forEach(btn => {
+        if (btn.isConnected && btn.dataset.origHtml) {
+          btn.disabled = false;
+          btn.innerHTML = btn.dataset.origHtml;
+        }
+      });
     }
   }
 
@@ -2994,9 +3000,10 @@
 
     // Disable all close-vote buttons during the operation and show spinner
     const closeBtns = document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote');
+    const closeOrigHtml = new Map();
     closeBtns.forEach(b => {
       b.disabled = true;
-      b.dataset.origHtml = b.dataset.origHtml || b.innerHTML;
+      closeOrigHtml.set(b, b.innerHTML);
       b.innerHTML = '<span class="spinner spinner-sm"></span> Clôture…';
     });
 
@@ -3070,6 +3077,15 @@
     } catch (err) {
       setNotif('error', err.message);
       await loadResolutions();
+    } finally {
+      // Restore any surviving buttons (DOM may have been re-rendered)
+      closeBtns.forEach(b => {
+        if (b.isConnected) {
+          b.disabled = false;
+          const orig = closeOrigHtml.get(b);
+          if (orig) b.innerHTML = orig;
+        }
+      });
     }
   }
 
@@ -4017,23 +4033,58 @@
     });
   }
 
+  let execSpeechTimerInterval = null;
+
   function refreshExecSpeech() {
     const speakerInfo = document.getElementById('execSpeakerInfo');
+    const actionsEl = document.getElementById('execSpeechActions');
     const queueList = document.getElementById('execSpeechQueue');
 
+    // Clear exec timer
+    if (execSpeechTimerInterval) {
+      clearInterval(execSpeechTimerInterval);
+      execSpeechTimerInterval = null;
+    }
+
     if (speakerInfo) {
-      speakerInfo.innerHTML = currentSpeakerCache
-        ? '<strong>' + escapeHtml(currentSpeakerCache.full_name || '—') + '</strong> a la parole'
-        : '<span class="text-muted">Aucun orateur</span>';
+      if (currentSpeakerCache) {
+        const name = escapeHtml(currentSpeakerCache.full_name || '—');
+        const startTime = currentSpeakerCache.updated_at ? new Date(currentSpeakerCache.updated_at).getTime() : Date.now();
+        speakerInfo.innerHTML =
+          '<div class="exec-speaker-active">' +
+            '<svg class="icon icon-text exec-speaker-mic" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg>' +
+            '<strong>' + name + '</strong>' +
+            '<span class="exec-speaker-timer" id="execSpeakerTimer">00:00</span>' +
+          '</div>';
+        // Start live timer
+        function updateExecTimer() {
+          const el = document.getElementById('execSpeakerTimer');
+          if (!el) return;
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+          const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+          const ss = String(elapsed % 60).padStart(2, '0');
+          el.textContent = mm + ':' + ss;
+        }
+        updateExecTimer();
+        execSpeechTimerInterval = setInterval(updateExecTimer, 1000);
+      } else {
+        speakerInfo.innerHTML = '<span class="text-sm text-muted">Aucun orateur</span>';
+      }
+    }
+
+    // Show/hide action buttons
+    if (actionsEl) {
+      actionsEl.style.display = currentSpeakerCache ? '' : 'none';
     }
 
     if (queueList) {
       if (speechQueueCache.length === 0) {
         queueList.innerHTML = '<span class="text-muted text-sm">File vide</span>';
       } else {
-        queueList.innerHTML = speechQueueCache.slice(0, 5).map(function(s, i) {
-          return '<div class="text-sm">' + (i + 1) + '. ' + escapeHtml(s.full_name || '—') + '</div>';
-        }).join('');
+        queueList.innerHTML = '<div class="text-sm text-muted mb-1">File (' + speechQueueCache.length + ') :</div>' +
+          speechQueueCache.slice(0, 5).map(function(s, i) {
+            return '<div class="text-sm">' + (i + 1) + '. ' + escapeHtml(s.full_name || '—') + '</div>';
+          }).join('');
         if (speechQueueCache.length > 5) {
           queueList.innerHTML += '<div class="text-sm text-muted">+ ' + (speechQueueCache.length - 5) + ' autres</div>';
         }
@@ -4098,8 +4149,14 @@
 
   meetingSelect.addEventListener('change', () => loadMeetingContext(meetingSelect.value));
 
+  // Debounce helper for search inputs (avoid re-render on every keystroke)
+  function debounce(fn, ms = 250) {
+    let t;
+    return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
+  }
+
   // Presence search
-  document.getElementById('presenceSearch')?.addEventListener('input', renderAttendance);
+  document.getElementById('presenceSearch')?.addEventListener('input', debounce(renderAttendance));
   document.getElementById('btnMarkAllPresent')?.addEventListener('click', markAllPresent);
 
   // Import CSV button
@@ -4109,13 +4166,13 @@
   document.getElementById('btnAddProxy')?.addEventListener('click', showAddProxyModal);
 
   // Proxy search
-  document.getElementById('proxySearch')?.addEventListener('input', renderProxies);
+  document.getElementById('proxySearch')?.addEventListener('input', debounce(renderProxies));
 
   // Import proxies CSV button
   document.getElementById('btnImportProxiesCSV')?.addEventListener('click', showImportProxiesCSVModal);
 
   // Resolution search
-  document.getElementById('resolutionSearch')?.addEventListener('input', renderResolutions);
+  document.getElementById('resolutionSearch')?.addEventListener('input', debounce(renderResolutions));
   document.getElementById('btnAddResolution')?.addEventListener('click', () => {
     Shared.show(document.getElementById('addResolutionForm'), 'block');
   });
@@ -4164,7 +4221,6 @@
         if (openRateEl) openRateEl.textContent = Shared.formatPct(eng.open_rate || 0) + '%';
         if (engEl && (inv.sent || inv.opened)) Shared.show(engEl, 'block');
 
-        invitationsSentCount = (inv.sent || 0) + (inv.opened || 0) + (inv.accepted || 0);
       }
     } catch (err) {
       // Stats may not exist yet — ignore
@@ -4374,6 +4430,14 @@
     if (currentOpenMotion) closeVote(currentOpenMotion.id);
   });
 
+  // Exec view: speech action buttons
+  document.getElementById('execBtnEndSpeech')?.addEventListener('click', () => {
+    endCurrentSpeech();
+  });
+  document.getElementById('execBtnNextSpeaker')?.addEventListener('click', () => {
+    nextSpeaker();
+  });
+
   // Setup view: manual vote search (P3-5)
   document.getElementById('manualVoteSearch')?.addEventListener('input', renderManualVoteList);
 
@@ -4508,6 +4572,7 @@
     if (pollTimer) clearTimeout(pollTimer);
     if (newVoteDebounceTimer) clearTimeout(newVoteDebounceTimer);
     if (speechTimerInterval) clearInterval(speechTimerInterval);
+    if (execSpeechTimerInterval) clearInterval(execSpeechTimerInterval);
     if (sessionTimerInterval) clearInterval(sessionTimerInterval);
   });
 

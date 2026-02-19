@@ -148,6 +148,105 @@
 }
 
 /* =============================================================================
+   CURRENT SPEAKER BANNER — visible to all participants
+   ============================================================================= */
+
+.current-speaker-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--color-success-subtle) 0%, var(--color-surface) 100%);
+  border: 2px solid var(--color-success);
+  border-radius: 12px;
+  animation: speakerFadeIn 0.3s ease-out;
+}
+
+.current-speaker-banner[hidden] {
+  display: none;
+}
+
+@keyframes speakerFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.current-speaker-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-success);
+  color: #fff;
+  flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.current-speaker-icon .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.current-speaker-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.current-speaker-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.current-speaker-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-success-text);
+}
+
+.current-speaker-timer {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--color-text);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  padding: 0.25rem 0.75rem;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.current-speaker-queue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+}
+
+.current-speaker-queue-count {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--color-warning);
+}
+
+.current-speaker-queue-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* =============================================================================
    SPEECH PANEL — Demande de parole
    3 etats : inactif (neutre) → raised (ambre) → speaking (vert)
    ============================================================================= */
@@ -905,6 +1004,25 @@
    ============================================================================= */
 
 @media (max-width: 768px) {
+  .current-speaker-banner {
+    gap: 0.625rem;
+    padding: 0.625rem 1rem;
+  }
+
+  .current-speaker-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .current-speaker-timer {
+    font-size: 1rem;
+    padding: 0.125rem 0.5rem;
+  }
+
+  .current-speaker-queue {
+    display: none;
+  }
+
   .vote-buttons {
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: 1fr;
