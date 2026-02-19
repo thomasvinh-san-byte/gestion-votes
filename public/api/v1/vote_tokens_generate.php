@@ -14,13 +14,12 @@ api_require_role('operator');
 $in = api_request('POST');
 
 $meetingId = trim((string)($in['meeting_id'] ?? ($_GET['meeting_id'] ?? '')));
-
-api_guard_meeting_not_validated($meetingId);
-
 $motionId  = trim((string)($in['motion_id']  ?? ($_GET['motion_id']  ?? '')));
 
 if ($meetingId === '' || !api_is_uuid($meetingId)) api_fail('invalid_meeting_id', 400);
 if ($motionId === '' || !api_is_uuid($motionId)) api_fail('invalid_motion_id', 400);
+
+api_guard_meeting_not_validated($meetingId);
 
 $tenant = api_current_tenant_id();
 

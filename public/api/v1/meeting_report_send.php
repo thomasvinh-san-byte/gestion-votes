@@ -10,12 +10,12 @@ api_require_role('operator');
 $input = api_request('POST');
 
 $meetingId = trim((string)($input['meeting_id'] ?? ''));
-
-api_guard_meeting_not_validated($meetingId);
-
 $toEmail   = trim((string)($input['email'] ?? ''));
 
 if ($meetingId === '' || $toEmail === '') api_fail('missing_meeting_or_email', 400);
+if (!api_is_uuid($meetingId)) api_fail('invalid_meeting_id', 400);
+
+api_guard_meeting_not_validated($meetingId);
 
 try {
     global $config;

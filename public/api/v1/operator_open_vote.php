@@ -21,11 +21,11 @@ if (!is_array($input)) $input = $_POST;
 
 $meetingId = trim((string)($input['meeting_id'] ?? ''));
 
-api_guard_meeting_not_validated($meetingId);
-
 if ($meetingId === '' || !api_is_uuid($meetingId)) {
   api_fail('invalid_meeting_id', 422);
 }
+
+api_guard_meeting_not_validated($meetingId);
 
 $motionId = trim((string)($input['motion_id'] ?? ''));
 if ($motionId !== '' && !api_is_uuid($motionId)) {

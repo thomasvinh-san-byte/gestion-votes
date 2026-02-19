@@ -15,6 +15,9 @@ try {
     $mode      = trim((string)($data['mode'] ?? ''));
     $notes     = isset($data['notes']) ? (string)$data['notes'] : null;
 
+    if ($meetingId === '' || !api_is_uuid($meetingId)) api_fail('invalid_meeting_id', 400);
+    if ($memberId === '' || !api_is_uuid($memberId)) api_fail('invalid_member_id', 400);
+
     api_guard_meeting_not_validated($meetingId);
 
     $row = AttendancesService::upsert($meetingId, $memberId, $mode, $notes);

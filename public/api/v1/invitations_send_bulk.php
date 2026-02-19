@@ -13,13 +13,13 @@ $input = api_request('POST');
 
 $meetingId = trim((string)($input['meeting_id'] ?? ''));
 
+if ($meetingId === '' || !api_is_uuid($meetingId)) api_fail('missing_meeting_id', 400);
+
 api_guard_meeting_not_validated($meetingId);
 
 $dryRun    = (bool)($input['dry_run'] ?? false);
 $onlyUnsent = (bool)($input['only_unsent'] ?? true);
 $limit     = (int)($input['limit'] ?? 0);
-
-if ($meetingId === '') api_fail('missing_meeting_id', 400);
 
 global $config;
 

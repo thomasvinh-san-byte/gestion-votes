@@ -387,16 +387,18 @@ class MeetingRepository extends AbstractRepository
         string $title,
         ?string $description,
         ?string $scheduledAt,
-        ?string $location
+        ?string $location,
+        string $meetingType = 'ag_ordinaire'
     ): void {
         $this->execute(
-            "INSERT INTO meetings (id, tenant_id, title, description, status, scheduled_at, location, created_at, updated_at)
-             VALUES (:id, :tenant_id, :title, :description, 'draft', :scheduled_at, :location, NOW(), NOW())",
+            "INSERT INTO meetings (id, tenant_id, title, description, meeting_type, status, scheduled_at, location, created_at, updated_at)
+             VALUES (:id, :tenant_id, :title, :description, :meeting_type, 'draft', :scheduled_at, :location, NOW(), NOW())",
             [
                 ':id' => $id,
                 ':tenant_id' => $tenantId,
                 ':title' => $title,
                 ':description' => $description ?: null,
+                ':meeting_type' => $meetingType,
                 ':scheduled_at' => $scheduledAt ?: null,
                 ':location' => $location ?: null,
             ]
@@ -404,7 +406,7 @@ class MeetingRepository extends AbstractRepository
     }
 
     private const UPDATABLE_FIELDS = [
-        'title', 'description', 'status', 'scheduled_at', 'started_at', 'ended_at',
+        'title', 'description', 'meeting_type', 'status', 'scheduled_at', 'started_at', 'ended_at',
         'location', 'quorum_policy_id', 'vote_policy_id', 'convocation_no',
         'president_name', 'president_member_id', 'president_source',
         'current_motion_id', 'late_rule_quorum', 'late_rule_vote',

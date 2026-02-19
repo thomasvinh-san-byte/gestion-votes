@@ -277,6 +277,7 @@ CREATE TABLE IF NOT EXISTS meetings (
   title text NOT NULL,
   slug text,
   description text,
+  meeting_type text NOT NULL DEFAULT 'ag_ordinaire',
   status meeting_status NOT NULL DEFAULT 'draft',
   scheduled_at timestamptz,
   started_at timestamptz,
