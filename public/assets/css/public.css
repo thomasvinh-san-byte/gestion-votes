@@ -234,27 +234,27 @@ body.projection-body {
 }
 
 .bar-item.for .bar-percentage {
-  background: #16a34a;
+  background: var(--color-success, #16a34a);
 }
 
 .bar-item.for .bar-percentage::after {
-  border-top: 8px solid #16a34a;
+  border-top: 8px solid var(--color-success, #16a34a);
 }
 
 .bar-item.against .bar-percentage {
-  background: #dc2626;
+  background: var(--color-danger, #dc2626);
 }
 
 .bar-item.against .bar-percentage::after {
-  border-top: 8px solid #dc2626;
+  border-top: 8px solid var(--color-danger, #dc2626);
 }
 
 .bar-item.abstain .bar-percentage {
-  background: #475569;
+  background: var(--color-neutral-hover, #475569);
 }
 
 .bar-item.abstain .bar-percentage::after {
-  border-top: 8px solid #475569;
+  border-top: 8px solid var(--color-neutral-hover, #475569);
 }
 
 .bar-count {
@@ -284,15 +284,15 @@ body.projection-body {
 }
 
 .bar-item.for .bar {
-  background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  background: linear-gradient(180deg, var(--color-success, #22c55e) 0%, var(--color-success-hover, #16a34a) 100%);
 }
 
 .bar-item.against .bar {
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(180deg, var(--color-danger, #ef4444) 0%, var(--color-danger-hover, #dc2626) 100%);
 }
 
 .bar-item.abstain .bar {
-  background: linear-gradient(180deg, #64748b 0%, #475569 100%);
+  background: linear-gradient(180deg, var(--color-neutral, #64748b) 0%, var(--color-neutral-hover, #475569) 100%);
 }
 
 .bar::after {
@@ -358,11 +358,11 @@ body.projection-body {
 }
 
 .decision-value.adopted {
-  color: #16a34a; /* Bright green for projection */
+  color: var(--color-success, #16a34a);
 }
 
 .decision-value.rejected {
-  color: #dc2626; /* Bright red for projection */
+  color: var(--color-danger, #dc2626);
 }
 
 .decision-value.pending {

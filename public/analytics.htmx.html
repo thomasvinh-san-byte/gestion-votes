@@ -229,15 +229,25 @@
       }
     };
 
-    // Colors
-    const COLORS = {
-      primary: '#6366f1',
-      success: '#10b981',
-      danger: '#ef4444',
-      warning: '#f59e0b',
-      muted: '#9ca3af',
-      info: '#3b82f6',
-    };
+    // Colors — read from CSS variables for dark mode compatibility
+    function cssVar(name, fallback) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+    }
+    function getCOLORS() {
+      return {
+        primary: cssVar('--color-primary', '#6366f1'),
+        success: cssVar('--color-success', '#10b981'),
+        danger:  cssVar('--color-danger', '#ef4444'),
+        warning: cssVar('--color-warning', '#f59e0b'),
+        muted:   cssVar('--color-text-muted', '#9ca3af'),
+        info:    cssVar('--color-info', '#3b82f6'),
+      };
+    }
+    let COLORS = getCOLORS();
+    // Refresh colors when theme changes
+    new MutationObserver(() => { COLORS = getCOLORS(); }).observe(
+      document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }
+    );
 
     // Period buttons
     document.querySelectorAll('.period-btn').forEach(btn => {
@@ -361,9 +371,9 @@
 
         const meetings = data.meetings || [];
         const labels = meetings.map(m => m.title?.substring(0, 15) || 'Séance');
-        const rates = meetings.map(m => m.rate);
-        const presents = meetings.map(m => m.present);
-        const proxies = meetings.map(m => m.proxy);
+        const rates = meetings.map(m => parseFloat(m.rate) || 0);
+        const presents = meetings.map(m => parseInt(m.present) || 0);
+        const proxies = meetings.map(m => parseInt(m.proxy) || 0);
 
         // Destroy existing chart
         if (charts.participation) charts.participation.destroy();
@@ -412,21 +422,23 @@
                 </tr>
               </thead>
               <tbody>
-                ${meetings.slice(-10).reverse().map(m => `
+                ${meetings.slice(-10).reverse().map(m => {
+                  const rate = parseFloat(m.rate) || 0;
+                  return `
                   <tr>
                     <td>${escapeHtml(m.title?.substring(0, 30) || 'Séance')}</td>
-                    <td>${m.present} / ${m.eligible}</td>
-                    <td>${m.proxy}</td>
+                    <td>${parseInt(m.present) || 0} / ${parseInt(m.eligible) || 0}</td>
+                    <td>${parseInt(m.proxy) || 0}</td>
                     <td>
                       <div class="table-progress-cell">
                         <div class="progress-bar table-progress-bar">
-                          <div class="progress-bar-fill ${m.rate >= 50 ? 'success' : 'warning'}" style="width:${Math.round(m.rate)}%"></div>
+                          <div class="progress-bar-fill ${rate >= 50 ? 'success' : 'warning'}" style="width:${Math.round(rate)}%"></div>
                         </div>
-                        <span>${Math.round(m.rate)}%</span>
+                        <span>${Math.round(rate)}%</span>
                       </div>
                     </td>
-                  </tr>
-                `).join('')}
+                  </tr>`;
+                }).join('')}
               </tbody>
             </table>
           `;

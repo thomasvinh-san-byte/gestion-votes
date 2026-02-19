@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
 
 // Allow authenticated users (voters, operators, etc.) to query current motion
@@ -14,14 +16,31 @@ try {
 
     $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
     if ($meetingId === '' || !api_is_uuid($meetingId)) {
-        api_fail('invalid_request', 422, ['detail' => 'meeting_id est obligatoire (uuid).']);
+        api_fail('invalid_request', 422);
     }
 
-    $repo = new MotionRepository();
-    $motion = $repo->findCurrentOpen($meetingId, api_current_tenant_id());
+    $tenantId = api_current_tenant_id();
+    $motionRepo = new MotionRepository();
+    $motion = $motionRepo->findCurrentOpen($meetingId, $tenantId);
 
-    api_ok(['motion' => $motion]); // motion peut être null
+    // KPI context for voter progress & participation
+    $totalMotions  = $motionRepo->countForMeeting($meetingId);
+    $meetingRepo   = new MeetingRepository();
+    $eligibleCount = $meetingRepo->countActiveMembers($tenantId);
+
+    $ballotsCast = 0;
+    if ($motion) {
+        $ballotRepo  = new BallotRepository();
+        $ballotsCast = $ballotRepo->countByMotionId((string)$motion['id']);
+    }
+
+    api_ok([
+        'motion'         => $motion,
+        'total_motions'  => $totalMotions,
+        'eligible_count' => $eligibleCount,
+        'ballots_cast'   => $ballotsCast,
+    ]);
 } catch (Throwable $e) {
     error_log('Error in current_motion.php: ' . $e->getMessage());
-    api_fail('internal_error', 500, ['detail' => 'Erreur interne du serveur']);
+    api_fail('internal_error', 500);
 }
