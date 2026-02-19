@@ -287,7 +287,7 @@ fclose($handle);
 audit_log('members_import', 'member', null, [
     'imported' => $imported,
     'skipped' => $skipped,
-    'filename' => $file['name'],
+    'filename' => $file['name'] ?? 'csv_content',
 ]);
 
 api_ok([

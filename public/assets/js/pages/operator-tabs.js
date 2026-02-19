@@ -41,6 +41,7 @@
   let usersCache = [];
   let policiesCache = { quorum: [], vote: [] };
   let proxiesCache = [];  // Cache for proxies
+  let invitationsSentCount = 0;  // Track sent invitations for wizard checklist
   let currentMode = 'setup'; // 'setup' | 'exec'
 
   // Safe DOM text setter — avoids null reference errors if element is missing
@@ -308,7 +309,8 @@
       loadDashboard(),
       loadDevices(),
       loadSpeechQueue(),
-      loadProxies()
+      loadProxies(),
+      loadInvitationStats()
     ]);
 
     // Log any failures but continue
@@ -3835,6 +3837,109 @@
   // Add assessor button
   document.getElementById('btnAddAssessor')?.addEventListener('click', addAssessor);
 
+  // =========================================================================
+  // INVITATIONS
+  // =========================================================================
+
+  async function loadInvitationStats() {
+    if (!currentMeetingId) return;
+    try {
+      const { body } = await api(`/api/v1/invitations_stats.php?meeting_id=${currentMeetingId}`);
+      if (body?.ok && body?.data) {
+        const inv = body.data.invitations || {};
+        const eng = body.data.engagement || {};
+        setText('invTotal', inv.total || 0);
+        setText('invSent', inv.sent || 0);
+        setText('invOpened', inv.opened || 0);
+        setText('invBounced', inv.bounced || 0);
+
+        const openRateEl = document.getElementById('invOpenRate');
+        const engEl = document.getElementById('invEngagement');
+        if (openRateEl) openRateEl.textContent = (eng.open_rate || 0) + '%';
+        if (engEl && (inv.sent || inv.opened)) Shared.show(engEl, 'block');
+
+        invitationsSentCount = (inv.sent || 0) + (inv.opened || 0) + (inv.accepted || 0);
+      }
+    } catch (err) {
+      // Stats may not exist yet — ignore
+    }
+  }
+
+  async function sendInvitations() {
+    if (!currentMeetingId) {
+      setNotif('error', 'Aucune séance sélectionnée');
+      return;
+    }
+
+    const membersWithEmail = membersCache.filter(m => m.email).length;
+    if (membersWithEmail === 0) {
+      setNotif('error', 'Aucun membre n\'a d\'adresse email. Ajoutez des emails aux membres avant d\'envoyer.');
+      return;
+    }
+
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'sendInvitationsModal',
+        title: 'Envoyer les invitations',
+        content: `
+          <h3 id="sendInvitationsModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('mail', 'icon-sm icon-text')} Envoyer les invitations ?</h3>
+          <p style="margin:0 0 0.75rem;">${membersWithEmail} membre${membersWithEmail > 1 ? 's' : ''} avec email recevront une invitation de vote.</p>
+          <p style="margin:0 0 0.5rem;color:var(--color-text-muted);font-size:0.875rem;">Les invitations déjà envoyées ne seront pas renvoyées (sauf si vous cochez ci-dessous).</p>
+          <label class="flex items-center gap-2 mt-3 mb-4" style="font-size:0.875rem;cursor:pointer;">
+            <input type="checkbox" id="invResendAll">
+            Renvoyer à tous (y compris ceux déjà invités)
+          </label>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-primary" data-action="confirm">${icon('send', 'icon-sm icon-text')} Envoyer</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
+
+    const resendAll = document.getElementById('invResendAll')?.checked || false;
+    const btn = document.getElementById('btnSendInvitations');
+    Shared.btnLoading(btn, true);
+
+    try {
+      const { body } = await api('/api/v1/invitations_send_bulk.php', {
+        meeting_id: currentMeetingId,
+        only_unsent: !resendAll
+      });
+
+      if (body?.ok) {
+        const sent = body.data?.sent || body.sent || 0;
+        const skipped = body.data?.skipped || body.skipped || 0;
+        const errors = body.data?.errors || body.errors || [];
+
+        if (errors.length > 0) {
+          setNotif('warning', `${sent} invitation${sent > 1 ? 's' : ''} envoyée${sent > 1 ? 's' : ''}, ${errors.length} erreur${errors.length > 1 ? 's' : ''}`);
+        } else {
+          setNotif('success', `${sent} invitation${sent > 1 ? 's' : ''} envoyée${sent > 1 ? 's' : ''}${skipped > 0 ? ` (${skipped} déjà envoyée${skipped > 1 ? 's' : ''})` : ''}`);
+        }
+
+        await loadInvitationStats();
+        loadStatusChecklist();
+      } else {
+        const errMsg = body?.error || getApiError(body, 'Erreur envoi invitations');
+        if (errMsg === 'smtp_not_configured' || (errMsg && errMsg.includes('smtp'))) {
+          setNotif('error', 'Le serveur SMTP n\'est pas configuré. Vérifiez la configuration email dans l\'administration.');
+        } else {
+          setNotif('error', errMsg);
+        }
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
+    }
+  }
+
+  document.getElementById('btnSendInvitations')?.addEventListener('click', sendInvitations);
+
   // Quick member add
   document.getElementById('btnAddMember')?.addEventListener('click', addMemberQuick);
 
@@ -4352,6 +4457,46 @@
     }
   }
 
+  // --- Step 4: Save rules on leaving step ---
+  async function wizSaveRules() {
+    if (!currentMeetingId) return;
+
+    const quorumPolicyId = document.getElementById('wizQuorumPolicy')?.value || null;
+    const votePolicyId = document.getElementById('wizVotePolicy')?.value || null;
+    const convocationNo = parseInt(document.querySelector('input[name="wizConvocation"]:checked')?.value || '1') || 1;
+
+    try {
+      await Promise.all([
+        api('/api/v1/meeting_quorum_settings.php', {
+          meeting_id: currentMeetingId,
+          quorum_policy_id: quorumPolicyId,
+          convocation_no: convocationNo
+        }),
+        api('/api/v1/meeting_vote_settings.php', {
+          meeting_id: currentMeetingId,
+          vote_policy_id: votePolicyId
+        })
+      ]);
+
+      // Update local state
+      if (currentMeeting) {
+        currentMeeting.quorum_policy_id = quorumPolicyId;
+        currentMeeting.vote_policy_id = votePolicyId;
+        currentMeeting.convocation_no = convocationNo;
+      }
+
+      // Also sync with settings tab dropdowns
+      const settingQuorum = document.getElementById('settingQuorumPolicy');
+      const settingVote = document.getElementById('settingVotePolicy');
+      const settingConv = document.getElementById('settingConvocation');
+      if (settingQuorum) settingQuorum.value = quorumPolicyId || '';
+      if (settingVote) settingVote.value = votePolicyId || '';
+      if (settingConv) settingConv.value = convocationNo;
+    } catch (err) {
+      console.warn('wizSaveRules:', err.message);
+    }
+  }
+
   // --- Step 5: Checklist ---
   function renderWizChecklist() {
     const container = document.getElementById('wizChecklist');
@@ -4383,7 +4528,7 @@
       { ok: hasMotions, text: motionsCache.length + ' résolution' + (motionsCache.length > 1 ? 's' : '') + ' à voter' },
       { ok: hasQuorumPolicy, text: hasQuorumPolicy ? 'Quorum configuré' : 'Aucun quorum configuré', warn: !hasQuorumPolicy, optional: true },
       { ok: hasPresident, text: hasPresident ? 'Président : ' + escapeHtml(presidentName || 'assigné') : 'Aucun président désigné', warn: !hasPresident, optional: true },
-      { ok: true, text: 'Invitations non envoyées', warn: true, optional: true }
+      { ok: invitationsSentCount > 0, text: invitationsSentCount > 0 ? invitationsSentCount + ' invitation' + (invitationsSentCount > 1 ? 's' : '') + ' envoyée' + (invitationsSentCount > 1 ? 's' : '') : 'Invitations non envoyées', warn: invitationsSentCount === 0, optional: true }
     ];
 
     container.innerHTML = checks.map(c => {
@@ -4430,7 +4575,7 @@
   document.getElementById('wizBtnPrev3')?.addEventListener('click', () => goToWizardStep(2));
   document.getElementById('wizBtnNext3')?.addEventListener('click', () => goToWizardStep(4));
   document.getElementById('wizBtnPrev4')?.addEventListener('click', () => goToWizardStep(3));
-  document.getElementById('wizBtnNext4')?.addEventListener('click', () => goToWizardStep(5));
+  document.getElementById('wizBtnNext4')?.addEventListener('click', async () => { await wizSaveRules(); goToWizardStep(5); });
   document.getElementById('wizBtnPrev5')?.addEventListener('click', () => goToWizardStep(4));
 
   // Step progress clicks
