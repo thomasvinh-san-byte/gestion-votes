@@ -8,6 +8,9 @@ use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
 
+// Public access: voters and public display need this endpoint
+api_require_role('public');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     api_fail('method_not_allowed', 405);
 }
