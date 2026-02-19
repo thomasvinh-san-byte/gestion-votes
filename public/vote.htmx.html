@@ -75,6 +75,22 @@
         </div>
       </section>
 
+      <!-- Current speaker banner (visible to all) -->
+      <section class="current-speaker-banner" id="currentSpeakerBanner" aria-label="Orateur en cours" aria-live="polite" hidden>
+        <div class="current-speaker-icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/icons.svg#icon-mic"></use></svg>
+        </div>
+        <div class="current-speaker-info">
+          <span class="current-speaker-name" id="currentSpeakerName">—</span>
+          <span class="current-speaker-label">a la parole</span>
+        </div>
+        <div class="current-speaker-timer" id="currentSpeakerTimer" aria-label="Temps écoulé">00:00</div>
+        <div class="current-speaker-queue" id="currentSpeakerQueue" hidden>
+          <span class="current-speaker-queue-count" id="currentSpeakerQueueCount">0</span>
+          <span class="current-speaker-queue-label">en attente</span>
+        </div>
+      </section>
+
       <!-- Motion card -->
       <section class="motion-card" id="motionBox" aria-label="Résolution en cours" aria-live="polite">
         <div class="motion-card-header">
@@ -638,6 +654,79 @@
     // Initial poll
     setTimeout(pollSpeechStatus, 1000);
 
+    // -----------------------------------------------------------------------
+    // CURRENT SPEAKER BANNER — visible to all participants
+    // Polls speech_current.php to show who is speaking with a live timer
+    // -----------------------------------------------------------------------
+    const speakerBanner = document.getElementById('currentSpeakerBanner');
+    const speakerNameEl = document.getElementById('currentSpeakerName');
+    const speakerTimerEl = document.getElementById('currentSpeakerTimer');
+    const speakerQueueEl = document.getElementById('currentSpeakerQueue');
+    const speakerQueueCountEl = document.getElementById('currentSpeakerQueueCount');
+    let _speakerStartTime = null;
+    let _speakerTimerInterval = null;
+    let _lastSpeakerId = null;
+
+    function updateSpeakerTimer() {
+      if (!_speakerStartTime || !speakerTimerEl) return;
+      const elapsed = Math.floor((Date.now() - _speakerStartTime) / 1000);
+      const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const ss = String(elapsed % 60).padStart(2, '0');
+      speakerTimerEl.textContent = mm + ':' + ss;
+    }
+
+    async function pollCurrentSpeaker() {
+      const meetingId = document.getElementById('meetingSelect')?.value;
+      if (!meetingId || !speakerBanner) return;
+
+      try {
+        const resp = await fetch('/api/v1/speech_current.php?meeting_id=' + encodeURIComponent(meetingId), {
+          credentials: 'same-origin'
+        });
+        const data = await resp.json();
+
+        if (data.ok && data.data && data.data.member_name) {
+          const d = data.data;
+          // New speaker or first detection
+          if (_lastSpeakerId !== d.request_id) {
+            _lastSpeakerId = d.request_id;
+            _speakerStartTime = d.started_at ? new Date(d.started_at).getTime() : (Date.now() - (d.elapsed_seconds || 0) * 1000);
+            if (_speakerTimerInterval) clearInterval(_speakerTimerInterval);
+            _speakerTimerInterval = setInterval(updateSpeakerTimer, 1000);
+          }
+          speakerNameEl.textContent = d.member_name;
+          updateSpeakerTimer();
+
+          // Queue count
+          if (d.queue_count > 0 && speakerQueueEl) {
+            speakerQueueCountEl.textContent = d.queue_count;
+            speakerQueueEl.hidden = false;
+          } else if (speakerQueueEl) {
+            speakerQueueEl.hidden = true;
+          }
+
+          speakerBanner.hidden = false;
+        } else {
+          // No speaker
+          speakerBanner.hidden = true;
+          _lastSpeakerId = null;
+          _speakerStartTime = null;
+          if (_speakerTimerInterval) {
+            clearInterval(_speakerTimerInterval);
+            _speakerTimerInterval = null;
+          }
+        }
+      } catch (err) {
+        // Silent fail for polling
+      }
+    }
+
+    const _speakerPollTimer = setInterval(() => {
+      if (!document.hidden) pollCurrentSpeaker();
+    }, 3000);
+
+    setTimeout(pollCurrentSpeaker, 1500);
+
     // P4-8: Restore last receipt from localStorage on load (per-member)
     try {
       const memberId = document.getElementById('memberSelect')?.value || 'anonymous';
@@ -670,6 +759,8 @@
     // Cleanup on page unload to prevent memory leaks
     window.addEventListener('pagehide', () => {
       clearInterval(_speechPollTimer);
+      clearInterval(_speakerPollTimer);
+      if (_speakerTimerInterval) clearInterval(_speakerTimerInterval);
       if (motionTitleObserver) motionTitleObserver.disconnect();
     });
   })();

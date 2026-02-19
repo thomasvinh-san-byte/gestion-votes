@@ -41,8 +41,8 @@
   let usersCache = [];
   let policiesCache = { quorum: [], vote: [] };
   let proxiesCache = [];  // Cache for proxies
-  let invitationsSentCount = 0;  // Track sent invitations for wizard checklist
   let currentMode = 'setup'; // 'setup' | 'exec'
+  let lastSetupTab = 'seance'; // Remember last active prep tab for seamless mode switching
 
   // Safe DOM text setter — avoids null reference errors if element is missing
   function setText(id, value) {
@@ -196,7 +196,18 @@
     });
   }
 
+  // Legacy tab ID aliases for backward compat
+  const TAB_ALIASES = {
+    'parametres': 'seance',
+    'presences': 'participants',
+    'procurations': 'participants',
+    'resolutions': 'ordre-du-jour'
+  };
+
   async function switchTab(tabId) {
+    // Resolve legacy aliases
+    tabId = TAB_ALIASES[tabId] || tabId;
+
     tabButtons.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabId);
     });
@@ -206,17 +217,39 @@
 
     // Reload data when switching to certain tabs
     if (currentMeetingId) {
-      if (tabId === 'presences') {
+      if (tabId === 'participants') {
         await loadAttendance();
-      }
-      if (tabId === 'procurations') {
         await loadProxies();
-        await loadAttendance(); // Need attendance for proxy modal
       }
-      if (tabId === 'resolutions') await loadResolutions();
+      if (tabId === 'ordre-du-jour') await loadResolutions();
+      if (tabId === 'controle') {
+        renderConformityChecklist();
+        refreshAlerts();
+        loadStatusChecklist();
+        loadInvitationStats();
+      }
       if (tabId === 'parole') await loadSpeechQueue();
       if (tabId === 'vote') await loadVoteTab();
       if (tabId === 'resultats') await loadResults();
+    }
+  }
+
+  /**
+   * Show/hide execution tabs based on meeting status
+   */
+  function updateLiveTabs() {
+    const isLive = ['live', 'closed', 'validated'].includes(currentMeetingStatus);
+    const sep = document.getElementById('tabSeparator');
+    if (sep) sep.hidden = !isLive;
+    document.querySelectorAll('.tab-btn-live').forEach(btn => {
+      btn.hidden = !isLive;
+    });
+    // Update alert count badge
+    const alertCountEl = document.getElementById('tabCountAlerts');
+    if (alertCountEl) {
+      const count = parseInt(document.getElementById('setupAlertCount')?.textContent || '0');
+      alertCountEl.textContent = count;
+      alertCountEl.hidden = count === 0;
     }
   }
 
@@ -264,6 +297,7 @@
         currentMeetingStatus = body.data.status;
         showMeetingContent();
         updateHeader(body.data);
+        updateLiveTabs();
         await loadAllData();
       }
     } catch (err) {
@@ -288,21 +322,25 @@
     Shared.hide(noMeetingState);
     if (meetingBarActions) meetingBarActions.hidden = false;
 
+    // Always use advanced mode (assistant mode removed)
+    setPrepMode();
+
     // Auto-select mode based on meeting status
     const initialMode = (currentMeetingStatus === 'live') ? 'exec' : 'setup';
 
-    // Always use advanced mode (assistant mode removed)
-    setPrepMode('advanced');
-
-    setMode(initialMode);
-
-    // If in setup mode, show the right tab
     if (initialMode === 'setup') {
+      // Check URL for a specific tab request
       const urlParams = new URLSearchParams(window.location.search);
       const requestedTab = urlParams.get('tab');
-      const validTabs = ['parametres', 'resolutions', 'presences', 'procurations', 'parole', 'vote', 'resultats'];
-      const tabToShow = (requestedTab && validTabs.includes(requestedTab)) ? requestedTab : 'parametres';
-      switchTab(tabToShow);
+      const validTabs = ['seance', 'participants', 'ordre-du-jour', 'controle', 'parole', 'vote', 'resultats',
+        'parametres', 'resolutions', 'presences', 'procurations']; // legacy aliases accepted
+      // Default tab depends on meeting status: post-session → résultats, prep → séance
+      const isPostSession = ['closed', 'validated', 'archived'].includes(currentMeetingStatus);
+      const defaultTab = isPostSession ? 'resultats' : 'seance';
+      const tabToShow = (requestedTab && validTabs.includes(requestedTab)) ? requestedTab : defaultTab;
+      setMode('setup', { tab: tabToShow });
+    } else {
+      setMode('exec');
     }
   }
 
@@ -363,9 +401,9 @@
     // Initialize motion tracking state to avoid false notifications on page load
     initializePreviousMotionState();
 
-    // If a vote is already open and in setup, switch to vote tab
+    // If a vote is already open and meeting is live, auto-switch to exec
     if (currentOpenMotion && currentMeetingStatus === 'live' && currentMode === 'setup') {
-      switchTab('vote');
+      setMode('exec');
     }
 
     // P2-1/P2-2/P2-6: Adapt UI based on user's role
@@ -822,34 +860,7 @@
     }).join('');
   }
 
-  // Render assessors in wizard Step 4 context
-  async function renderWizAssessors() {
-    const container = document.getElementById('wizAssessorsList');
-    if (!container) return;
-    try {
-      const { body } = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`);
-      const roles = body?.data?.items || [];
-      const assessors = roles.filter(r => r.role === 'assessor');
-      if (!assessors.length) {
-        container.innerHTML = '<span class="text-muted text-sm">Aucun assesseur</span>';
-        return;
-      }
-      container.innerHTML = assessors.map(a => {
-        const user = usersCache.find(u => u.id === a.user_id);
-        const name = user ? (user.name || user.email) : a.user_id;
-        return `
-          <div class="flex items-center justify-between gap-2 p-2 bg-subtle rounded">
-            <span>${escapeHtml(name)}</span>
-            <button class="btn btn-sm btn-ghost text-danger" data-remove-assessor="${escapeHtml(a.user_id)}" title="Retirer" aria-label="Retirer ${escapeHtml(name)}">&#10005;</button>
-          </div>
-        `;
-      }).join('');
-    } catch {
-      // Silently fail — list will show placeholder
-    }
-  }
-
-  // Delegated handler for assessor removal (replaces inline onclick)
+  // Delegated handler for assessor removal
   document.addEventListener('click', async function(e) {
     const btn = e.target.closest('[data-remove-assessor]');
     if (!btn) return;
@@ -872,7 +883,6 @@
       });
       setNotif('success', 'Assesseur retiré');
       loadRoles();
-      renderWizAssessors();
     } catch (err) {
       setNotif('error', err.message);
     } finally {
@@ -1299,7 +1309,6 @@
         });
         setNotif('success', 'Assesseur ajouté');
         loadRoles();
-        renderWizAssessors();
         modal.remove();
       } catch (err) {
         setNotif('error', err.message);
@@ -2908,7 +2917,7 @@
     });
     if (!confirmed) return;
 
-    // Disable ALL open-vote buttons and quick-open buttons to prevent any double-click
+    // Disable ALL open-vote buttons and quick-open buttons to prevent double-click
     const openBtns = document.querySelectorAll('.btn-open-vote, .btn-quick-open');
     openBtns.forEach(btn => {
       btn.disabled = true;
@@ -2931,9 +2940,12 @@
 
       await loadResolutions();
 
+      if (currentOpenMotion) await loadBallots(currentOpenMotion.id);
+
       if (currentMode === 'exec') {
-        if (currentOpenMotion) await loadBallots(currentOpenMotion.id);
         refreshExecView();
+      } else if (currentMeetingStatus === 'live') {
+        setMode('exec');
       } else {
         switchTab('vote');
         await loadVoteTab();
@@ -2941,6 +2953,14 @@
     } catch (err) {
       setNotif('error', err.message);
       await loadResolutions();
+    } finally {
+      // Restore any surviving buttons (DOM may have been re-rendered by loadResolutions)
+      openBtns.forEach(btn => {
+        if (btn.isConnected && btn.dataset.origHtml) {
+          btn.disabled = false;
+          btn.innerHTML = btn.dataset.origHtml;
+        }
+      });
     }
   }
 
@@ -2980,9 +3000,10 @@
 
     // Disable all close-vote buttons during the operation and show spinner
     const closeBtns = document.querySelectorAll('.btn-close-vote, #btnCloseVote, #execBtnCloseVote');
+    const closeOrigHtml = new Map();
     closeBtns.forEach(b => {
       b.disabled = true;
-      b.dataset.origHtml = b.dataset.origHtml || b.innerHTML;
+      closeOrigHtml.set(b, b.innerHTML);
       b.innerHTML = '<span class="spinner spinner-sm"></span> Clôture…';
     });
 
@@ -3056,6 +3077,15 @@
     } catch (err) {
       setNotif('error', err.message);
       await loadResolutions();
+    } finally {
+      // Restore any surviving buttons (DOM may have been re-rendered)
+      closeBtns.forEach(b => {
+        if (b.isConnected) {
+          b.disabled = false;
+          const orig = closeOrigHtml.get(b);
+          if (orig) b.innerHTML = orig;
+        }
+      });
     }
   }
 
@@ -3114,8 +3144,41 @@
     updateCloseSessionStatus();
   }
 
+  /**
+   * Compute closure readiness state.
+   * Returns { total, closedCount, openCount, pendingCount, allDone, hasOpenVote,
+   *           adopted, rejected, presentCount, totalMembers, durationStr }
+   */
+  function getCloseSessionState() {
+    const total = motionsCache.length;
+    const closedMotions = motionsCache.filter(m => m.closed_at);
+    const closedCount = closedMotions.length;
+    const openCount = motionsCache.filter(m => m.opened_at && !m.closed_at).length;
+    const pendingCount = total - closedCount - openCount;
+    const allDone = total > 0 && closedCount === total;
+    const hasOpenVote = openCount > 0;
+    const adopted = closedMotions.filter(m => (m.decision || m.result) === 'adopted').length;
+    const rejected = closedMotions.filter(m => (m.decision || m.result) === 'rejected').length;
+    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+    const totalMembers = attendanceCache.length;
+
+    // Session duration
+    const startedAt = currentMeeting?.opened_at || currentMeeting?.started_at;
+    let durationStr = '';
+    if (startedAt) {
+      const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+      const hours = Math.floor(elapsed / 3600);
+      const minutes = Math.floor((elapsed % 3600) / 60);
+      durationStr = hours > 0 ? `${hours}h${String(minutes).padStart(2, '0')}` : `${minutes} min`;
+    }
+
+    return { total, closedCount, openCount, pendingCount, allDone, hasOpenVote,
+             adopted, rejected, presentCount, totalMembers, durationStr };
+  }
+
   function updateCloseSessionStatus() {
     const section = document.getElementById('closeSessionSection');
+    const checksDiv = document.getElementById('closeSessionChecks');
     const statusDiv = document.getElementById('closeSessionStatus');
     const btnClose = document.getElementById('btnCloseSession');
     if (!section || !statusDiv || !btnClose) return;
@@ -3127,67 +3190,158 @@
     }
     Shared.show(section, 'block');
 
-    // Check readiness
-    const total = motionsCache.length;
-    const closed = motionsCache.filter(m => m.closed_at).length;
-    const open = motionsCache.filter(m => m.opened_at && !m.closed_at).length;
-    const pending = total - closed - open;
-    const allClosed = total > 0 && closed === total;
-    const hasOpenVote = open > 0;
-
-    let statusHtml = '';
+    const s = getCloseSessionState();
     let canClose = true;
 
-    if (hasOpenVote) {
-      statusHtml += `<div class="alert alert-warning mb-2">${icon('alert-triangle', 'icon-sm icon-text')}Un vote est en cours — clôturez-le avant de fermer la séance.</div>`;
-      canClose = false;
+    // Security checks display
+    if (checksDiv) {
+      let checksHtml = '';
+      if (s.hasOpenVote) {
+        checksHtml += `<div class="close-check close-check-warn">${icon('alert-triangle', 'icon-sm')} Un vote est en cours — clôturez-le d'abord</div>`;
+        canClose = false;
+      } else {
+        checksHtml += `<div class="close-check close-check-ok">${icon('check-circle', 'icon-sm')} Aucun vote en cours</div>`;
+      }
+
+      if (s.pendingCount > 0) {
+        checksHtml += `<div class="close-check close-check-warn">${icon('alert-triangle', 'icon-sm')} ${s.pendingCount} résolution(s) non votée(s)</div>`;
+      } else if (s.total > 0) {
+        checksHtml += `<div class="close-check close-check-ok">${icon('check-circle', 'icon-sm')} ${s.closedCount}/${s.total} résolution(s) votée(s)</div>`;
+      }
+
+      if (s.presentCount > 0) {
+        checksHtml += `<div class="close-check close-check-ok">${icon('users', 'icon-sm')} ${s.presentCount} participant(s) / ${s.totalMembers} inscrit(s)</div>`;
+      } else {
+        checksHtml += `<div class="close-check close-check-warn">${icon('alert-triangle', 'icon-sm')} Aucun participant présent</div>`;
+      }
+
+      checksDiv.innerHTML = checksHtml;
     }
 
-    if (pending > 0) {
-      statusHtml += `<div class="alert alert-info mb-2">${icon('info', 'icon-sm icon-text')}${pending} résolution(s) n'ont pas encore été votées.</div>`;
+    // Status summary
+    let statusHtml = '';
+    if (s.allDone) {
+      statusHtml = `<div class="alert alert-success mb-2">${icon('check-circle', 'icon-sm icon-text')} Tous les votes sont terminés. Prêt à clôturer.</div>`;
+    } else if (s.closedCount > 0) {
+      statusHtml = `<div class="alert alert-info mb-2">${icon('info', 'icon-sm icon-text')} ${s.closedCount}/${s.total} résolution(s) traitée(s).</div>`;
     }
 
-    if (allClosed) {
-      statusHtml += `<div class="alert alert-success mb-2">${icon('check-circle', 'icon-sm icon-text')}Tous les votes sont terminés. Vous pouvez clôturer la séance.</div>`;
-    }
-
-    statusDiv.innerHTML = statusHtml || '<div class="text-muted">Prêt à clôturer.</div>';
+    statusDiv.innerHTML = statusHtml;
     btnClose.disabled = !canClose;
   }
 
-  async function closeSession() {
-    const open = motionsCache.filter(m => m.opened_at && !m.closed_at);
-    if (open.length > 0) {
-      setNotif('error', 'Impossible de clôturer : un vote est encore ouvert');
+  /**
+   * Update the exec-mode close session banner.
+   * Shows when meeting is live and no vote is currently open.
+   */
+  function updateExecCloseSession() {
+    const banner = document.getElementById('execCloseBanner');
+    if (!banner) return;
+
+    if (currentMeetingStatus !== 'live') {
+      Shared.hide(banner);
       return;
     }
 
-    const pending = motionsCache.filter(m => !m.opened_at && !m.closed_at);
-    const closed = motionsCache.filter(m => m.closed_at).length;
-    const total = motionsCache.length;
-    const meetingTitle = currentMeeting ? escapeHtml(currentMeeting.title || '') : '';
-    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+    const s = getCloseSessionState();
 
-    let warningHtml = '';
-    if (pending.length > 0) {
-      warningHtml = `<p style="margin:0 0 0.75rem;color:var(--color-warning);">${icon('alert-triangle', 'icon-sm icon-text')} <strong>${pending.length} résolution(s)</strong> n'ont pas encore été votées.</p>`;
+    // Hide while a vote is actively open
+    if (s.hasOpenVote) {
+      Shared.hide(banner);
+      return;
     }
+
+    Shared.show(banner, 'flex');
+
+    const titleEl = document.getElementById('execCloseTitle');
+    const summaryEl = document.getElementById('execCloseSummary');
+
+    if (s.allDone) {
+      if (titleEl) titleEl.textContent = 'Tous les votes sont terminés';
+      if (summaryEl) summaryEl.textContent = `${s.closedCount} résolution(s) votée(s) — prêt à clôturer.`;
+      banner.className = 'exec-close-banner exec-close-banner-ready';
+    } else if (s.closedCount > 0) {
+      if (titleEl) titleEl.textContent = 'Clôture possible';
+      if (summaryEl) summaryEl.textContent = `${s.closedCount}/${s.total} résolution(s) votée(s), ${s.pendingCount} en attente.`;
+      banner.className = 'exec-close-banner exec-close-banner-warn';
+    } else {
+      if (titleEl) titleEl.textContent = 'Aucun vote effectué';
+      if (summaryEl) summaryEl.textContent = `${s.total} résolution(s) en attente.`;
+      banner.className = 'exec-close-banner exec-close-banner-warn';
+    }
+  }
+
+  async function closeSession() {
+    // Hard block: cannot close with an open vote
+    const openVotes = motionsCache.filter(m => m.opened_at && !m.closed_at);
+    if (openVotes.length > 0) {
+      setNotif('error', 'Impossible de clôturer : un vote est encore ouvert.');
+      return;
+    }
+
+    const s = getCloseSessionState();
+    const meetingTitle = currentMeeting ? escapeHtml(currentMeeting.title || '') : '';
+
+    // Build security checks HTML
+    let checksHtml = '';
+    checksHtml += `<div class="close-check close-check-ok">${icon('check-circle', 'icon-sm')} Aucun vote en cours</div>`;
+
+    if (s.pendingCount > 0) {
+      checksHtml += `<div class="close-check close-check-warn">${icon('alert-triangle', 'icon-sm')} ${s.pendingCount} résolution(s) non votée(s)</div>`;
+    } else if (s.total > 0) {
+      checksHtml += `<div class="close-check close-check-ok">${icon('check-circle', 'icon-sm')} ${s.closedCount}/${s.total} résolution(s) votée(s)</div>`;
+    }
+
+    if (s.presentCount > 0) {
+      checksHtml += `<div class="close-check close-check-ok">${icon('users', 'icon-sm')} ${s.presentCount} participant(s) sur ${s.totalMembers}</div>`;
+    } else {
+      checksHtml += `<div class="close-check close-check-warn">${icon('alert-triangle', 'icon-sm')} Aucun participant présent</div>`;
+    }
+
+    // Build results summary
+    let summaryParts = [];
+    if (s.adopted > 0) summaryParts.push(`<span style="color:var(--color-success)">${s.adopted} adoptée(s)</span>`);
+    if (s.rejected > 0) summaryParts.push(`<span style="color:var(--color-danger)">${s.rejected} rejetée(s)</span>`);
+    const summaryLine = summaryParts.length > 0 ? ` — ${summaryParts.join(', ')}` : '';
 
     const confirmed = await new Promise(resolve => {
       const modal = createModal({
         id: 'closeSessionConfirmModal',
         title: 'Clôturer la séance',
+        maxWidth: '540px',
         content: `
-          <h3 id="closeSessionConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('square', 'icon-sm icon-text')} Clôturer la séance ?</h3>
-          ${meetingTitle ? `<p style="margin:0 0 0.5rem;"><strong>${meetingTitle}</strong></p>` : ''}
-          <div style="margin:0 0 0.75rem;font-size:0.9375rem;color:var(--color-text-muted);">
-            ${icon('users', 'icon-sm icon-text')} ${presentCount} présent(s) &mdash; ${icon('check-circle', 'icon-sm icon-text')} ${closed}/${total} résolution(s) votée(s)
+          <h3 id="closeSessionConfirmModal-title" style="margin:0 0 1rem;font-size:1.125rem;display:flex;align-items:center;gap:0.5rem;">
+            ${icon('square', 'icon-sm')} Clôturer la séance
+          </h3>
+          ${meetingTitle ? `<p style="margin:0 0 1rem;font-weight:600;font-size:1rem;">${meetingTitle}</p>` : ''}
+
+          <div style="background:var(--color-bg-subtle);border:1px solid var(--color-border);border-radius:8px;padding:1rem;margin-bottom:1rem;">
+            <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.9rem;">
+              ${checksHtml}
+            </div>
           </div>
-          ${warningHtml}
-          <p style="margin:0 0 1.5rem;color:var(--color-danger);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} Cette action est irréversible. La séance passera en statut « clôturée ».</p>
+
+          <div style="background:var(--color-bg-subtle);border:1px solid var(--color-border);border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:0.875rem;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.375rem;">
+              ${icon('bar-chart', 'icon-sm')} <strong>Bilan :</strong> ${s.closedCount}/${s.total} résolution(s) traitée(s)${summaryLine}
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.375rem;">
+              ${icon('users', 'icon-sm')} ${s.presentCount} présent(s) / ${s.totalMembers} inscrit(s)
+            </div>
+            ${s.durationStr ? `<div style="display:flex;align-items:center;gap:0.5rem;">${icon('clock', 'icon-sm')} Durée de la séance : ${s.durationStr}</div>` : ''}
+          </div>
+
+          <div style="display:flex;gap:0.75rem;padding:0.875rem 1rem;background:var(--color-danger-subtle);border:1px solid var(--color-danger);border-radius:8px;margin-bottom:1.5rem;font-size:0.85rem;color:var(--color-danger-text, var(--color-text));">
+            ${icon('alert-triangle', 'icon-sm')}
+            <div>
+              <strong>Action irréversible</strong>
+              <p style="margin:0.25rem 0 0;opacity:0.85;">La séance passera en statut « clôturée ». Les votes ne pourront plus être modifiés. Un procès-verbal sera disponible.</p>
+            </div>
+          </div>
+
           <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
             <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-danger" data-action="confirm">${icon('square', 'icon-sm icon-text')} Clôturer la séance</button>
+            <button class="btn btn-danger" data-action="confirm">${icon('square', 'icon-sm icon-text')} Clôturer définitivement</button>
           </div>
         `
       });
@@ -3202,11 +3356,10 @@
         to_status: 'closed'
       });
       if (body?.ok) {
-        setNotif('success', 'Séance clôturée');
+        setNotif('success', 'Séance clôturée avec succès');
         await loadMeetingContext(currentMeetingId);
         loadMeetings();
-        setMode('setup');
-        switchTab('resultats');
+        setMode('setup', { tab: 'resultats' });
         announce('Séance clôturée.');
       } else {
         setNotif('error', getApiError(body, 'Erreur lors de la clôture'));
@@ -3221,6 +3374,11 @@
   // =========================================================================
 
   async function doTransition(toStatus) {
+    // Redirect session closure to the enhanced security flow
+    if (toStatus === 'closed') {
+      return closeSession();
+    }
+
     const statusLabels = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
     const statusLabel = statusLabels[toStatus] || toStatus;
     const confirmed = await confirmModal({
@@ -3246,8 +3404,7 @@
           setMode('exec');
           announce('Séance en cours — mode exécution activé.');
         } else if (['closed', 'validated', 'archived'].includes(toStatus)) {
-          setMode('setup');
-          switchTab('resultats');
+          setMode('setup', { tab: 'resultats' });
           announce(`Séance ${statusLabel}.`);
         }
       } else {
@@ -3262,14 +3419,32 @@
   // MODE SWITCH (Préparation / Exécution)
   // =========================================================================
 
-  function setMode(mode) {
+  /**
+   * Switch between Préparation (setup) and Exécution (exec) modes.
+   * @param {string} mode - 'setup' or 'exec'
+   * @param {Object} [opts] - Options
+   * @param {string} [opts.tab] - Force a specific tab when entering setup mode
+   * @param {boolean} [opts.restoreTab] - Restore last active prep tab (default true for manual switches)
+   */
+  function setMode(mode, opts = {}) {
     // Prevent entering exec mode if meeting is not live
     if (mode === 'exec' && currentMeetingStatus !== 'live') {
       mode = 'setup';
     }
+
+    // No-op if already in the requested mode and view is visible (unless forcing a tab)
+    const alreadyVisible = mode === 'setup' ? (viewSetup && !viewSetup.hidden) : (viewExec && !viewExec.hidden);
+    if (mode === currentMode && !opts.tab && alreadyVisible) return;
+
+    // Save last active prep tab when leaving setup
+    if (currentMode === 'setup' && mode === 'exec') {
+      const activeTab = document.querySelector('.tab-btn.active');
+      if (activeTab) lastSetupTab = activeTab.dataset.tab;
+    }
+
     currentMode = mode;
 
-    // Update button states
+    // Update mode switch button states
     if (btnModeSetup) {
       btnModeSetup.classList.toggle('active', mode === 'setup');
       btnModeSetup.setAttribute('aria-pressed', String(mode === 'setup'));
@@ -3277,19 +3452,33 @@
     if (btnModeExec) {
       btnModeExec.classList.toggle('active', mode === 'exec');
       btnModeExec.setAttribute('aria-pressed', String(mode === 'exec'));
-      // Disable exec button when meeting is not live
       btnModeExec.disabled = currentMeetingStatus !== 'live';
     }
 
-    // Toggle views
+    // Show/hide mode switch: only useful when meeting is live or recently closed
+    const modeSwitch = document.getElementById('modeSwitch');
+    if (modeSwitch) {
+      modeSwitch.hidden = !['live', 'closed'].includes(currentMeetingStatus);
+    }
+
+    // Cross-fade views
+    const incoming = mode === 'setup' ? viewSetup : viewExec;
+    const outgoing = mode === 'setup' ? viewExec : viewSetup;
+
+    if (outgoing) outgoing.hidden = true;
+    if (incoming) {
+      incoming.hidden = false;
+      incoming.classList.remove('view-entering');
+      void incoming.offsetWidth; // force reflow for re-trigger
+      incoming.classList.add('view-entering');
+    }
+
     if (mode === 'setup') {
-      if (viewSetup) viewSetup.hidden = false;
-      if (viewExec) viewExec.hidden = true;
-      // Always show tabs in setup mode (advanced mode only)
       Shared.show(tabsNav, 'flex');
+      // Restore last active prep tab or apply forced tab
+      const targetTab = opts.tab || (opts.restoreTab !== false ? lastSetupTab : null);
+      if (targetTab) switchTab(targetTab);
     } else {
-      if (viewSetup) viewSetup.hidden = true;
-      if (viewExec) viewExec.hidden = false;
       Shared.hide(tabsNav);
       refreshExecView();
       startSessionTimer();
@@ -3335,9 +3524,17 @@
         btnPrimary.textContent = 'Voir le vote';
         primaryAction = 'scroll-vote';
       } else {
-        btnPrimary.disabled = false;
-        btnPrimary.textContent = 'Préparation';
-        primaryAction = 'setup';
+        // When no vote is open, check if we can close the session
+        const allDone = motionsCache.length > 0 && motionsCache.every(m => m.closed_at);
+        if (allDone) {
+          btnPrimary.disabled = false;
+          btnPrimary.textContent = 'Clôturer la séance';
+          primaryAction = 'close-session';
+        } else {
+          btnPrimary.disabled = false;
+          btnPrimary.textContent = 'Préparation';
+          primaryAction = 'setup';
+        }
       }
     }
   }
@@ -3347,6 +3544,7 @@
       if (primaryAction === 'launch') launchSession();
       else if (primaryAction === 'exec') setMode('exec');
       else if (primaryAction === 'setup') setMode('setup');
+      else if (primaryAction === 'close-session') closeSession();
       else if (primaryAction === 'scroll-vote') {
         const el = document.getElementById('execVoteCard');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -3363,19 +3561,30 @@
     }
 
     if (currentMode === 'setup') {
-      const score = getConformityScore();
-      if (currentMeetingStatus === 'live') {
+      if (['closed', 'validated'].includes(currentMeetingStatus)) {
+        contextHint.textContent = 'Séance clôturée — consultez les résultats.';
+      } else if (currentMeetingStatus === 'archived') {
+        contextHint.textContent = 'Séance archivée.';
+      } else if (currentMeetingStatus === 'live') {
         contextHint.textContent = 'Séance en cours — basculez en exécution.';
-      } else if (score >= 4) {
-        contextHint.textContent = 'Séance prête — vous pouvez lancer.';
       } else {
-        contextHint.textContent = 'Préparez la séance (' + score + '/4 pré-requis validés).';
+        const score = getConformityScore();
+        if (score >= 4) {
+          contextHint.textContent = 'Séance prête — vous pouvez lancer.';
+        } else {
+          contextHint.textContent = 'Préparez la séance (' + score + '/4 pré-requis validés).';
+        }
       }
     } else {
       if (currentOpenMotion) {
         contextHint.textContent = 'Vote en cours : ' + (currentOpenMotion.title || '');
       } else if (currentMeetingStatus === 'live') {
-        contextHint.textContent = 'Séance en cours — aucun vote ouvert.';
+        const allDone = motionsCache.length > 0 && motionsCache.every(m => m.closed_at);
+        if (allDone) {
+          contextHint.textContent = 'Tous les votes sont terminés — prêt à clôturer.';
+        } else {
+          contextHint.textContent = 'Séance en cours — aucun vote ouvert.';
+        }
       } else {
         contextHint.textContent = 'Mode exécution.';
       }
@@ -3506,16 +3715,27 @@
 
     const score = steps.filter(s => s.done).length;
 
+    // Map checklist steps to tabs for navigation
+    const stepTabMap = { members: 'participants', attendance: 'participants', convocations: 'controle', rules: 'seance' };
+
     checklist.innerHTML = steps.map(s => {
       const doneClass = s.done ? 'done' : '';
       const optClass = s.optional ? 'optional' : '';
       const iconClass = s.done ? 'done' : 'pending';
-      return '<div class="conformity-item ' + doneClass + ' ' + optClass + '" data-step="' + s.key + '">'
+      const tab = stepTabMap[s.key] || '';
+      return '<div class="conformity-item ' + doneClass + ' ' + optClass + '" data-step="' + s.key + '"'
+        + (tab && !s.done ? ' data-goto-tab="' + tab + '" style="cursor:pointer" title="Aller à l\'onglet"' : '')
+        + '>'
         + '<span class="conformity-icon ' + iconClass + '"></span>'
         + '<span class="conformity-label">' + s.label + '</span>'
         + '<span class="conformity-status">' + s.status + '</span>'
         + '</div>';
     }).join('');
+
+    // Clickable incomplete items navigate to relevant tab
+    checklist.querySelectorAll('[data-goto-tab]').forEach(item => {
+      item.addEventListener('click', () => switchTab(item.dataset.gotoTab));
+    });
 
     // Update score display
     const setupScoreEl = document.getElementById('setupScore');
@@ -3559,13 +3779,45 @@
 
     if (!currentMeetingId) return alerts;
 
-    // Conformity check
-    const score = getConformityScore();
-    if (score < 4) {
+    // Specific missing prerequisites (replaces generic "score X/4")
+    const hasMembers = membersCache.length > 0;
+    const hasPresent = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
+    const hasMotions = motionsCache.length > 0;
+    const hasQuorum = !!(currentMeeting && currentMeeting.quorum_policy_id);
+    const presEl = document.getElementById('settingPresident');
+    const hasPresident = !!(presEl && presEl.value);
+    const hasRules = hasQuorum || hasPresident;
+
+    if (!hasMembers) {
       alerts.push({
-        title: 'Préparation incomplète',
-        message: score + '/4 pré-requis validés.',
-        severity: score < 2 ? 'critical' : 'warning'
+        title: 'Aucun membre',
+        message: 'Ajoutez des membres dans l\u2019onglet Participants.',
+        severity: 'critical',
+        tab: 'participants'
+      });
+    }
+    if (hasMembers && !hasPresent) {
+      alerts.push({
+        title: 'Aucun présent enregistré',
+        message: 'Pointez les présences dans l\u2019onglet Participants.',
+        severity: 'critical',
+        tab: 'participants'
+      });
+    }
+    if (!hasMotions) {
+      alerts.push({
+        title: 'Aucune résolution',
+        message: 'Créez au moins une résolution dans l\u2019Ordre du jour.',
+        severity: 'warning',
+        tab: 'ordre-du-jour'
+      });
+    }
+    if (!hasRules) {
+      alerts.push({
+        title: 'Ni quorum ni président',
+        message: 'Configurez le quorum ou désignez un président dans Séance.',
+        severity: 'info',
+        tab: 'seance'
       });
     }
 
@@ -3614,17 +3866,30 @@
       return;
     }
 
-    target.innerHTML = alerts.map(a =>
-      '<div class="alert-item ' + a.severity + '">'
-      + '<div class="alert-item-title">' + escapeHtml(a.title) + '</div>'
-      + '<div class="alert-item-message">' + escapeHtml(a.message) + '</div>'
-      + '</div>'
-    ).join('');
+    target.innerHTML = alerts.map(a => {
+      const tabLink = a.tab
+        ? ' <button class="btn btn-sm btn-ghost" style="margin-top:0.25rem" data-alert-go="' + a.tab + '">Aller \u00e0 l\u2019onglet &rarr;</button>'
+        : '';
+      return '<div class="alert-item ' + a.severity + '">'
+        + '<div><div class="alert-item-title">' + escapeHtml(a.title) + '</div>'
+        + '<div class="alert-item-message">' + escapeHtml(a.message) + '</div>'
+        + tabLink + '</div>'
+        + '</div>';
+    }).join('');
+
+    // Bind "go to tab" buttons
+    target.querySelectorAll('[data-alert-go]').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.alertGo));
+    });
   }
 
   function refreshAlerts() {
     renderAlertsPanel('setupAlertsList', 'setupAlertCount');
     renderAlertsPanel('execAlertsList', 'execAlertCount');
+    // Update Contrôle tab badge
+    const count = parseInt(document.getElementById('setupAlertCount')?.textContent || '0');
+    const badge = document.getElementById('tabCountAlerts');
+    if (badge) { badge.textContent = count; badge.hidden = count === 0; }
   }
 
   // =========================================================================
@@ -3695,6 +3960,7 @@
     refreshExecDevices();
     refreshExecManualVotes();
     refreshAlerts();
+    updateExecCloseSession();
   }
 
   function refreshExecVote() {
@@ -3767,23 +4033,58 @@
     });
   }
 
+  let execSpeechTimerInterval = null;
+
   function refreshExecSpeech() {
     const speakerInfo = document.getElementById('execSpeakerInfo');
+    const actionsEl = document.getElementById('execSpeechActions');
     const queueList = document.getElementById('execSpeechQueue');
 
+    // Clear exec timer
+    if (execSpeechTimerInterval) {
+      clearInterval(execSpeechTimerInterval);
+      execSpeechTimerInterval = null;
+    }
+
     if (speakerInfo) {
-      speakerInfo.innerHTML = currentSpeakerCache
-        ? '<strong>' + escapeHtml(currentSpeakerCache.full_name || '—') + '</strong> a la parole'
-        : '<span class="text-muted">Aucun orateur</span>';
+      if (currentSpeakerCache) {
+        const name = escapeHtml(currentSpeakerCache.full_name || '—');
+        const startTime = currentSpeakerCache.updated_at ? new Date(currentSpeakerCache.updated_at).getTime() : Date.now();
+        speakerInfo.innerHTML =
+          '<div class="exec-speaker-active">' +
+            '<svg class="icon icon-text exec-speaker-mic" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg>' +
+            '<strong>' + name + '</strong>' +
+            '<span class="exec-speaker-timer" id="execSpeakerTimer">00:00</span>' +
+          '</div>';
+        // Start live timer
+        function updateExecTimer() {
+          const el = document.getElementById('execSpeakerTimer');
+          if (!el) return;
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+          const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+          const ss = String(elapsed % 60).padStart(2, '0');
+          el.textContent = mm + ':' + ss;
+        }
+        updateExecTimer();
+        execSpeechTimerInterval = setInterval(updateExecTimer, 1000);
+      } else {
+        speakerInfo.innerHTML = '<span class="text-sm text-muted">Aucun orateur</span>';
+      }
+    }
+
+    // Show/hide action buttons
+    if (actionsEl) {
+      actionsEl.style.display = currentSpeakerCache ? '' : 'none';
     }
 
     if (queueList) {
       if (speechQueueCache.length === 0) {
         queueList.innerHTML = '<span class="text-muted text-sm">File vide</span>';
       } else {
-        queueList.innerHTML = speechQueueCache.slice(0, 5).map(function(s, i) {
-          return '<div class="text-sm">' + (i + 1) + '. ' + escapeHtml(s.full_name || '—') + '</div>';
-        }).join('');
+        queueList.innerHTML = '<div class="text-sm text-muted mb-1">File (' + speechQueueCache.length + ') :</div>' +
+          speechQueueCache.slice(0, 5).map(function(s, i) {
+            return '<div class="text-sm">' + (i + 1) + '. ' + escapeHtml(s.full_name || '—') + '</div>';
+          }).join('');
         if (speechQueueCache.length > 5) {
           queueList.innerHTML += '<div class="text-sm text-muted">+ ' + (speechQueueCache.length - 5) + ' autres</div>';
         }
@@ -3848,8 +4149,14 @@
 
   meetingSelect.addEventListener('change', () => loadMeetingContext(meetingSelect.value));
 
+  // Debounce helper for search inputs (avoid re-render on every keystroke)
+  function debounce(fn, ms = 250) {
+    let t;
+    return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
+  }
+
   // Presence search
-  document.getElementById('presenceSearch')?.addEventListener('input', renderAttendance);
+  document.getElementById('presenceSearch')?.addEventListener('input', debounce(renderAttendance));
   document.getElementById('btnMarkAllPresent')?.addEventListener('click', markAllPresent);
 
   // Import CSV button
@@ -3859,13 +4166,13 @@
   document.getElementById('btnAddProxy')?.addEventListener('click', showAddProxyModal);
 
   // Proxy search
-  document.getElementById('proxySearch')?.addEventListener('input', renderProxies);
+  document.getElementById('proxySearch')?.addEventListener('input', debounce(renderProxies));
 
   // Import proxies CSV button
   document.getElementById('btnImportProxiesCSV')?.addEventListener('click', showImportProxiesCSVModal);
 
   // Resolution search
-  document.getElementById('resolutionSearch')?.addEventListener('input', renderResolutions);
+  document.getElementById('resolutionSearch')?.addEventListener('input', debounce(renderResolutions));
   document.getElementById('btnAddResolution')?.addEventListener('click', () => {
     Shared.show(document.getElementById('addResolutionForm'), 'block');
   });
@@ -3914,7 +4221,6 @@
         if (openRateEl) openRateEl.textContent = Shared.formatPct(eng.open_rate || 0) + '%';
         if (engEl && (inv.sent || inv.opened)) Shared.show(engEl, 'block');
 
-        invitationsSentCount = (inv.sent || 0) + (inv.opened || 0) + (inv.accepted || 0);
       }
     } catch (err) {
       // Stats may not exist yet — ignore
@@ -4089,8 +4395,19 @@
     btn.addEventListener('click', () => switchTab(btn.dataset.tabSwitch));
   });
 
-  // Close session button
+  // Close session buttons (Résultats tab + Exec view)
   document.getElementById('btnCloseSession')?.addEventListener('click', closeSession);
+  document.getElementById('execBtnCloseSession')?.addEventListener('click', closeSession);
+  document.getElementById('execBtnSwitchResults')?.addEventListener('click', () => {
+    setMode('setup', { tab: 'resultats' });
+  });
+
+  // Quick nav buttons in exec mode — switch to setup with specific tab
+  document.querySelectorAll('[data-exec-goto]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setMode('setup', { tab: btn.dataset.execGoto });
+    });
+  });
 
   // Speech queue buttons
   document.getElementById('btnNextSpeaker')?.addEventListener('click', nextSpeaker);
@@ -4113,6 +4430,14 @@
     if (currentOpenMotion) closeVote(currentOpenMotion.id);
   });
 
+  // Exec view: speech action buttons
+  document.getElementById('execBtnEndSpeech')?.addEventListener('click', () => {
+    endCurrentSpeech();
+  });
+  document.getElementById('execBtnNextSpeaker')?.addEventListener('click', () => {
+    nextSpeaker();
+  });
+
   // Setup view: manual vote search (P3-5)
   document.getElementById('manualVoteSearch')?.addEventListener('input', renderManualVoteList);
 
@@ -4120,631 +4445,19 @@
   document.getElementById('execManualSearch')?.addEventListener('input', refreshExecManualVotes);
 
   // =========================================================================
-  // ASSISTANT MODE — Step-by-step wizard for meeting preparation
+  // SETUP MODE INIT
   // =========================================================================
 
-  let currentWizardStep = 1;
-  let prepMode = 'advanced'; // always advanced — assistant mode removed
-
-  const assistantMode = document.getElementById('assistantMode');
   const advancedMode = document.getElementById('advancedMode');
 
-  function setPrepMode(mode) {
-    prepMode = 'advanced'; // force advanced mode
-    if (assistantMode) assistantMode.hidden = true;
+  function setPrepMode() {
     if (advancedMode) advancedMode.hidden = false;
-
-    // Always show tabs nav in setup mode
     if (currentMode === 'setup') {
       Shared.show(tabsNav, 'flex');
     }
   }
 
-  function goToWizardStep(step) {
-    if (step < 1 || step > 5) return;
-    currentWizardStep = step;
-
-    // Update step buttons
-    document.querySelectorAll('[data-wizard-step]').forEach(btn => {
-      const s = parseInt(btn.dataset.wizardStep);
-      btn.classList.toggle('active', s === step);
-      btn.classList.toggle('done', s < step);
-    });
-
-    // Update connectors
-    const connectors = document.querySelectorAll('.assistant-step-connector');
-    connectors.forEach((c, i) => {
-      c.classList.toggle('done', i < step - 1);
-    });
-
-    // Show/hide panels
-    for (let i = 1; i <= 5; i++) {
-      const panel = document.getElementById('wizardStep' + i);
-      if (panel) panel.hidden = i !== step;
-    }
-
-    refreshWizardStep();
-  }
-
-  function refreshWizardStep() {
-    if (prepMode !== 'assistant') return;
-
-    switch (currentWizardStep) {
-      case 1: renderWizMembers(); break;
-      case 2: renderWizAttendance(); break;
-      case 3: renderWizResolutions(); break;
-      case 4: renderWizRules(); break;
-      case 5: renderWizChecklist(); break;
-    }
-  }
-
-  // --- Step 1: Members ---
-  function renderWizMembers() {
-    const title = document.getElementById('wizMembersTitle');
-    if (title) title.textContent = membersCache.length + ' membre' + (membersCache.length > 1 ? 's' : '') + ' ajouté' + (membersCache.length > 1 ? 's' : '');
-
-    const list = document.getElementById('wizMembersList');
-    if (!list) return;
-
-    if (membersCache.length === 0) {
-      list.innerHTML = '<div class="text-center p-4 text-muted">Aucun membre pour le moment.</div>';
-      return;
-    }
-
-    list.innerHTML = membersCache.map(m => `
-      <div class="assistant-member-row" data-member-id="${m.id}">
-        <span class="assistant-member-name">${escapeHtml(m.full_name || '—')}</span>
-        <span class="text-sm text-muted assistant-member-email">${escapeHtml(m.email || '')}</span>
-        <span class="assistant-member-power">${Shared.formatWeight(m.voting_power)} voix</span>
-        <div class="assistant-member-actions">
-          <button class="btn-icon-sm" title="Modifier" data-wiz-edit="${m.id}">
-            <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
-          </button>
-          <button class="btn-icon-sm danger" title="Retirer" data-wiz-delete="${m.id}">
-            <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
-          </button>
-        </div>
-      </div>
-    `).join('');
-
-    // Bind edit/delete handlers
-    list.querySelectorAll('[data-wiz-edit]').forEach(btn => {
-      btn.addEventListener('click', () => wizEditMember(btn.dataset.wizEdit));
-    });
-    list.querySelectorAll('[data-wiz-delete]').forEach(btn => {
-      btn.addEventListener('click', () => wizDeleteMember(btn.dataset.wizDelete));
-    });
-  }
-
-  function wizEditMember(memberId) {
-    const m = membersCache.find(x => x.id === memberId);
-    if (!m) return;
-
-    Shared.openModal({
-      title: 'Modifier le membre',
-      body: `
-        <div class="form-group mb-3">
-          <label class="form-label">Nom complet *</label>
-          <input class="form-input" type="text" id="wizEditName" value="${escapeHtml(m.full_name || m.name || '')}" placeholder="Nom Prénom">
-        </div>
-        <div class="form-group mb-3">
-          <label class="form-label">Email <span class="text-muted text-sm">(facultatif)</span></label>
-          <input class="form-input" type="email" id="wizEditEmail" value="${escapeHtml(m.email || '')}" placeholder="email@exemple.com">
-        </div>
-        <div class="form-group mb-3">
-          <label class="form-label">Nombre de voix</label>
-          <input class="form-input" type="number" id="wizEditPower" value="${m.voting_power || 1}" min="1" step="1">
-        </div>
-      `,
-      confirmText: 'Enregistrer',
-      onConfirm: async function(modal) {
-        const newName = modal.querySelector('#wizEditName').value.trim();
-        const newEmail = modal.querySelector('#wizEditEmail').value.trim();
-        const newPower = parseInt(modal.querySelector('#wizEditPower').value) || 1;
-
-        if (!newName) { setNotif('error', 'Le nom est requis'); return false; }
-
-        try {
-          const { body } = await api('/api/v1/members.php', {
-            member_id: memberId,
-            full_name: newName,
-            email: newEmail || null,
-            voting_power: newPower,
-            is_active: true
-          }, 'PATCH');
-
-          if (body?.ok) {
-            setNotif('success', 'Membre modifié');
-            await loadMembers();
-            renderWizMembers();
-            return true;
-          } else {
-            setNotif('error', getApiError(body, 'Erreur'));
-            return false;
-          }
-        } catch (err) {
-          setNotif('error', err.message);
-          return false;
-        }
-      }
-    });
-  }
-
-  async function wizDeleteMember(memberId) {
-    const m = membersCache.find(x => x.id === memberId);
-    if (!m) return;
-    const name = m.full_name || m.name || 'ce membre';
-
-    Shared.openModal({
-      title: 'Retirer un membre',
-      body: `<p>Retirer <strong>${escapeHtml(name)}</strong> de la liste des membres ?</p>
-             <p class="text-sm text-muted">Cette action supprime le membre du registre.</p>`,
-      confirmText: 'Retirer',
-      danger: true,
-      onConfirm: async function() {
-        try {
-          const { body } = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
-          if (body?.ok) {
-            setNotif('success', name + ' retiré');
-            await loadMembers();
-            await loadAttendance();
-            renderWizMembers();
-            return true;
-          } else {
-            setNotif('error', getApiError(body, 'Erreur'));
-            return false;
-          }
-        } catch (err) {
-          setNotif('error', err.message);
-          return false;
-        }
-      }
-    });
-  }
-
-  async function wizAddMember() {
-    const nameInput = document.getElementById('wizAddMemberName');
-    const emailInput = document.getElementById('wizAddMemberEmail');
-    const powerInput = document.getElementById('wizAddMemberPower');
-    const name = nameInput?.value?.trim();
-    if (!name) { setNotif('error', 'Le nom est requis'); nameInput?.focus(); return; }
-
-    const voting_power = parseInt(powerInput?.value) || 1;
-
-    try {
-      await api('/api/v1/members.php', {
-        action: 'create',
-        full_name: name,
-        email: emailInput?.value?.trim() || null,
-        voting_power: voting_power
-      });
-      if (nameInput) nameInput.value = '';
-      if (emailInput) emailInput.value = '';
-      if (powerInput) powerInput.value = '1';
-      nameInput?.focus();
-      await loadMembers();
-      renderWizMembers();
-      setNotif('success', name + ' ajouté');
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  }
-
-  function wizHandleCsvDrop(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const zone = document.getElementById('wizImportZone');
-    if (zone) zone.classList.remove('drag-over');
-    const file = e.dataTransfer?.files?.[0];
-    if (file) wizImportCsvFile(file);
-  }
-
-  async function wizImportCsvFile(file) {
-    const text = await file.text();
-    try {
-      const { body } = await api('/api/v1/members_import_csv.php', {
-        csv_content: text,
-        meeting_id: currentMeetingId
-      });
-      if (body?.ok) {
-        setNotif('success', 'Import réussi : ' + (body.data?.imported_count || 0) + ' membres');
-        await loadMembers();
-        await loadAttendance();
-        renderWizMembers();
-      } else {
-        setNotif('error', body?.error || "Erreur d'import");
-      }
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  }
-
-  // --- Step 2: Attendance ---
-  function renderWizAttendance() {
-    const grid = document.getElementById('wizAttendanceGrid');
-    if (!grid) return;
-
-    if (attendanceCache.length === 0) {
-      grid.innerHTML = '<div class="text-center p-4 text-muted">Ajoutez des membres à l\'étape 1 d\'abord.</div>';
-      return;
-    }
-
-    grid.innerHTML = attendanceCache.map(a => {
-      const name = escapeHtml(a.full_name || '—');
-      const isPresent = a.mode === 'present';
-      const isRemote = a.mode === 'remote';
-      const isAbsent = !a.mode || a.mode === 'absent';
-      return `
-        <div class="attendance-card" data-member-id="${a.member_id}">
-          <span class="attendance-name">${name}</span>
-          <div class="mode-btns">
-            <button class="mode-btn present ${isPresent ? 'active' : ''}" data-mode="present" title="Présent">P</button>
-            <button class="mode-btn remote ${isRemote ? 'active' : ''}" data-mode="remote" title="À distance">D</button>
-            <button class="mode-btn absent ${isAbsent ? 'active' : ''}" data-mode="absent" title="Absent">A</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    // Bind click handlers
-    grid.querySelectorAll('.mode-btn').forEach(btn => {
-      btn.addEventListener('click', async function() {
-        const card = btn.closest('[data-member-id]');
-        const memberId = card.dataset.memberId;
-        const mode = btn.dataset.mode;
-
-        // Optimistic update
-        card.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        try {
-          await api('/api/v1/attendances_upsert.php', {
-            meeting_id: currentMeetingId,
-            member_id: memberId,
-            mode: mode
-          });
-          const entry = attendanceCache.find(a => a.member_id == memberId);
-          if (entry) entry.mode = mode;
-          updateWizAttendanceStats();
-        } catch (err) {
-          setNotif('error', err.message);
-        }
-      });
-    });
-
-    updateWizAttendanceStats();
-  }
-
-  function updateWizAttendanceStats() {
-    const present = attendanceCache.filter(a => a.mode === 'present').length;
-    const remote = attendanceCache.filter(a => a.mode === 'remote').length;
-    const proxy = proxiesCache.length;
-    const absent = attendanceCache.filter(a => !a.mode || a.mode === 'absent').length;
-    setText('wizPresent', present);
-    setText('wizRemote', remote);
-    setText('wizProxy', proxy);
-    setText('wizAbsent', absent);
-  }
-
-  async function wizAllPresent() {
-    try {
-      await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
-      attendanceCache.forEach(m => m.mode = 'present');
-      renderWizAttendance();
-      setNotif('success', 'Tous marqués présents');
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  }
-
-  async function wizAllRemote() {
-    try {
-      await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'remote' });
-      attendanceCache.forEach(m => m.mode = 'remote');
-      renderWizAttendance();
-      setNotif('success', 'Tous marqués à distance');
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  }
-
-  // --- Step 3: Resolutions ---
-  function renderWizResolutions() {
-    const list = document.getElementById('wizResolutionsList');
-    if (!list) return;
-
-    if (motionsCache.length === 0) {
-      list.innerHTML = '<div class="text-center p-4 text-muted">Aucune résolution pour le moment.</div>';
-      return;
-    }
-
-    list.innerHTML = motionsCache.map((m, i) => `
-      <div class="resolution-item">
-        <div class="resolution-header" style="cursor:default;">
-          <span class="resolution-number">#${i + 1}</span>
-          <span class="resolution-title">${escapeHtml(m.title || '—')}</span>
-          <span class="resolution-status pending">En attente</span>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  async function wizAddResolution() {
-    const titleInput = document.getElementById('wizResolutionTitle');
-    const descInput = document.getElementById('wizResolutionDesc');
-    const title = titleInput?.value?.trim();
-    if (!title) { setNotif('error', 'Le titre est requis'); titleInput?.focus(); return; }
-
-    try {
-      const { body } = await api('/api/v1/motion_create_simple.php', {
-        meeting_id: currentMeetingId,
-        title: title,
-        description: descInput?.value?.trim() || ''
-      });
-      if (body?.ok === true) {
-        if (titleInput) titleInput.value = '';
-        if (descInput) descInput.value = '';
-        titleInput?.focus();
-        await loadResolutions();
-        renderWizResolutions();
-        setNotif('success', 'Résolution ajoutée');
-      } else {
-        setNotif('error', getApiError(body, 'Erreur lors de la création'));
-      }
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  }
-
-  // --- Step 4: Rules ---
-  function renderWizRules() {
-    // Populate policy dropdowns from cache
-    const qSelect = document.getElementById('wizQuorumPolicy');
-    const vSelect = document.getElementById('wizVotePolicy');
-    const qHint = document.getElementById('wizQuorumHint');
-    const vHint = document.getElementById('wizVoteHint');
-
-    if (qSelect) {
-      if (policiesCache.quorum.length > 0) {
-        const currentVal = qSelect.value;
-        qSelect.innerHTML = '<option value="">— Aucun quorum —</option>' +
-          policiesCache.quorum.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
-        if (currentMeeting?.quorum_policy_id) qSelect.value = currentMeeting.quorum_policy_id;
-        else if (currentVal) qSelect.value = currentVal;
-        qSelect.disabled = false;
-        if (qHint) qHint.innerHTML = 'Si le quorum n\'est pas atteint, le vote ne peut pas avoir lieu.';
-      } else {
-        qSelect.innerHTML = '<option value="">— Aucun quorum —</option>';
-        qSelect.disabled = false;
-        if (qHint) qHint.innerHTML = 'Aucune politique de quorum créée. <a href="/admin.htmx.html#policies" target="_blank" class="text-primary">Créer une politique</a> (optionnel — vous pouvez continuer sans).';
-      }
-    }
-
-    if (vSelect) {
-      if (policiesCache.vote.length > 0) {
-        const currentVal = vSelect.value;
-        vSelect.innerHTML = '<option value="">— Majorité simple (par défaut) —</option>' +
-          policiesCache.vote.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
-        if (currentMeeting?.vote_policy_id) vSelect.value = currentMeeting.vote_policy_id;
-        else if (currentVal) vSelect.value = currentVal;
-        vSelect.disabled = false;
-        if (vHint) vHint.innerHTML = '';
-      } else {
-        vSelect.innerHTML = '<option value="">— Majorité simple (par défaut) —</option>';
-        vSelect.disabled = false;
-        if (vHint) vHint.innerHTML = 'Aucune politique de vote personnalisée. La majorité simple (50%+1) sera appliquée.';
-      }
-    }
-
-    // Set convocation radio
-    const conv = currentMeeting?.convocation_no || '1';
-    const convRadio = document.querySelector('input[name="wizConvocation"][value="' + conv + '"]');
-    if (convRadio) convRadio.checked = true;
-
-    // Populate president from cache
-    const wizPresident = document.getElementById('wizPresident');
-    if (wizPresident && usersCache.length > 0) {
-      wizPresident.items = JSON.stringify(usersCache.map(u => ({
-        value: u.id,
-        label: u.name || u.email || u.id
-      })));
-      if (currentMeeting?.president_user_id) {
-        wizPresident.value = currentMeeting.president_user_id;
-      }
-    }
-
-    // Populate assessors list
-    renderWizAssessors();
-  }
-
-  // --- Step 4: Save rules on leaving step ---
-  async function wizSaveRules() {
-    if (!currentMeetingId) return;
-
-    const quorumPolicyId = document.getElementById('wizQuorumPolicy')?.value || null;
-    const votePolicyId = document.getElementById('wizVotePolicy')?.value || null;
-    const convocationNo = parseInt(document.querySelector('input[name="wizConvocation"]:checked')?.value || '1') || 1;
-
-    // Save president from wizard
-    const wizPres = document.getElementById('wizPresident');
-    const presidentId = wizPres?.value || null;
-    const presidentName = wizPres?.selectedOption?.label || '';
-
-    try {
-      const promises = [
-        api('/api/v1/meeting_quorum_settings.php', {
-          meeting_id: currentMeetingId,
-          quorum_policy_id: quorumPolicyId,
-          convocation_no: convocationNo
-        }),
-        api('/api/v1/meeting_vote_settings.php', {
-          meeting_id: currentMeetingId,
-          vote_policy_id: votePolicyId
-        })
-      ];
-
-      // Save president if set
-      if (presidentId) {
-        promises.push(
-          api('/api/v1/admin_meeting_roles.php', {
-            action: 'assign',
-            meeting_id: currentMeetingId,
-            user_id: presidentId,
-            role: 'president'
-          }),
-          api('/api/v1/meetings_update.php', {
-            meeting_id: currentMeetingId,
-            president_name: presidentName
-          })
-        );
-      }
-
-      await Promise.all(promises);
-
-      // Update local state
-      if (currentMeeting) {
-        currentMeeting.quorum_policy_id = quorumPolicyId;
-        currentMeeting.vote_policy_id = votePolicyId;
-        currentMeeting.convocation_no = convocationNo;
-        if (presidentId) {
-          currentMeeting.president_user_id = presidentId;
-          currentMeeting.president_name = presidentName;
-        }
-      }
-
-      // Also sync with settings tab dropdowns
-      const settingQuorum = document.getElementById('settingQuorumPolicy');
-      const settingVote = document.getElementById('settingVotePolicy');
-      const settingConv = document.getElementById('settingConvocation');
-      if (settingQuorum) settingQuorum.value = quorumPolicyId || '';
-      if (settingVote) settingVote.value = votePolicyId || '';
-      if (settingConv) settingConv.value = convocationNo;
-      const settingPres = document.getElementById('settingPresident');
-      if (settingPres && presidentId) settingPres.value = presidentId;
-    } catch (err) {
-      console.warn('wizSaveRules:', err.message);
-    }
-  }
-
-  // --- Step 5: Checklist ---
-  function renderWizChecklist() {
-    const container = document.getElementById('wizChecklist');
-    if (!container) return;
-
-    const hasMembers = membersCache.length > 0;
-    const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
-    const hasMotions = motionsCache.length > 0;
-    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
-    const remoteCount = attendanceCache.filter(a => a.mode === 'remote').length;
-    const proxyCount = proxiesCache.length;
-    const hasDate = !!(currentMeeting?.scheduled_at);
-    const hasPresident = !!(currentMeeting?.president_user_id || currentMeeting?.president_name);
-    const hasQuorumPolicy = !!(currentMeeting?.quorum_policy_id);
-    const presidentName = currentMeeting?.president_name || '';
-
-    // Format date for display
-    let dateText = 'Date non renseignée';
-    if (hasDate) {
-      try {
-        dateText = new Date(currentMeeting.scheduled_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-      } catch (e) { dateText = escapeHtml(currentMeeting.scheduled_at); }
-    }
-
-    const checks = [
-      { ok: hasDate, text: dateText, warn: !hasDate },
-      { ok: hasMembers, text: membersCache.length + ' membre' + (membersCache.length > 1 ? 's' : '') + ' inscrit' + (membersCache.length > 1 ? 's' : '') },
-      { ok: hasAttendance, text: presentCount + ' présent' + (presentCount > 1 ? 's' : '') + (remoteCount > 0 ? ' dont ' + remoteCount + ' à distance' : '') + (proxyCount > 0 ? ' · ' + proxyCount + ' procuration' + (proxyCount > 1 ? 's' : '') : '') },
-      { ok: hasMotions, text: motionsCache.length + ' résolution' + (motionsCache.length > 1 ? 's' : '') + ' à voter' },
-      { ok: hasQuorumPolicy, text: hasQuorumPolicy ? 'Quorum configuré' : 'Aucun quorum configuré', warn: !hasQuorumPolicy, optional: true },
-      { ok: hasPresident, text: hasPresident ? 'Président : ' + escapeHtml(presidentName || 'assigné') : 'Aucun président désigné', warn: !hasPresident, optional: true },
-      { ok: invitationsSentCount > 0, text: invitationsSentCount > 0 ? invitationsSentCount + ' invitation' + (invitationsSentCount > 1 ? 's' : '') + ' envoyée' + (invitationsSentCount > 1 ? 's' : '') : 'Invitations non envoyées', warn: invitationsSentCount === 0, optional: true }
-    ];
-
-    container.innerHTML = checks.map(c => {
-      const iconChar = c.ok && !c.warn ? '&#10003;' : (c.warn ? '&#9888;' : '&#10007;');
-      const cls = c.ok && !c.warn ? 'check-ok' : (c.warn ? 'check-warn' : 'check-fail');
-      // c.text values are already escaped where needed (e.g. presidentName)
-      return `<div class="assistant-check-item ${cls}">
-        <span class="assistant-check-icon">${iconChar}</span>
-        <span>${c.text}${c.optional ? ' <span class="text-muted text-sm">(facultatif)</span>' : ''}</span>
-      </div>`;
-    }).join('');
-
-    // Enable/disable launch button
-    const launchBtn = document.getElementById('wizBtnLaunch');
-    const canLaunch = hasMembers && hasAttendance && hasMotions && ['draft', 'scheduled', 'frozen'].includes(currentMeetingStatus);
-    if (launchBtn) launchBtn.disabled = !canLaunch;
-  }
-
-  // --- Wizard navigation bindings ---
-  document.getElementById('wizBtnAddMember')?.addEventListener('click', wizAddMember);
-  document.getElementById('wizAddMemberName')?.addEventListener('keypress', e => { if (e.key === 'Enter') wizAddMember(); });
-  document.getElementById('wizBtnAllPresent')?.addEventListener('click', wizAllPresent);
-  document.getElementById('wizBtnAllRemote')?.addEventListener('click', wizAllRemote);
-  document.getElementById('wizBtnAddResolution')?.addEventListener('click', wizAddResolution);
-  document.getElementById('wizBtnAddAssessor')?.addEventListener('click', addAssessor);
-  document.getElementById('wizResolutionTitle')?.addEventListener('keypress', e => { if (e.key === 'Enter') wizAddResolution(); });
-
-  // CSV import
-  const wizCsvFile = document.getElementById('wizCsvFile');
-  if (wizCsvFile) {
-    wizCsvFile.addEventListener('change', e => {
-      if (e.target.files[0]) wizImportCsvFile(e.target.files[0]);
-    });
-  }
-  const wizImportZone = document.getElementById('wizImportZone');
-  if (wizImportZone) {
-    wizImportZone.addEventListener('dragover', e => { e.preventDefault(); wizImportZone.classList.add('drag-over'); });
-    wizImportZone.addEventListener('dragleave', () => wizImportZone.classList.remove('drag-over'));
-    wizImportZone.addEventListener('drop', wizHandleCsvDrop);
-  }
-
-  // Step navigation with soft prerequisite warnings
-  document.getElementById('wizBtnNext1')?.addEventListener('click', () => {
-    if (membersCache.length === 0) {
-      setNotif('warning', 'Aucun membre ajouté — vous pourrez revenir à cette étape.');
-    }
-    goToWizardStep(2);
-  });
-  document.getElementById('wizBtnPrev2')?.addEventListener('click', () => goToWizardStep(1));
-  document.getElementById('wizBtnNext2')?.addEventListener('click', () => {
-    const hasPresent = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
-    if (!hasPresent) {
-      setNotif('warning', 'Aucun membre pointé présent — pensez à enregistrer les présences.');
-    }
-    goToWizardStep(3);
-  });
-  document.getElementById('wizBtnPrev3')?.addEventListener('click', () => goToWizardStep(2));
-  document.getElementById('wizBtnNext3')?.addEventListener('click', () => {
-    if (motionsCache.length === 0) {
-      setNotif('warning', 'Aucune résolution créée — ajoutez au moins une résolution avant le lancement.');
-    }
-    goToWizardStep(4);
-  });
-  document.getElementById('wizBtnPrev4')?.addEventListener('click', () => goToWizardStep(3));
-  document.getElementById('wizBtnNext4')?.addEventListener('click', async () => { await wizSaveRules(); goToWizardStep(5); });
-  document.getElementById('wizBtnPrev5')?.addEventListener('click', () => goToWizardStep(4));
-
-  // Step progress clicks
-  document.querySelectorAll('[data-wizard-step]').forEach(btn => {
-    btn.addEventListener('click', () => goToWizardStep(parseInt(btn.dataset.wizardStep)));
-  });
-
-  // Launch button
-  document.getElementById('wizBtnLaunch')?.addEventListener('click', launchSession);
-
-  // Send invitations from wizard
-  document.getElementById('wizBtnSendInvitations')?.addEventListener('click', () => {
-    // Switch to advanced mode and show invitations
-    setPrepMode('advanced');
-    switchTab('parametres');
-    const sendBtn = document.getElementById('btnSendInvitations');
-    if (sendBtn) sendBtn.click();
-  });
-
-  // Prep mode: always advanced (assistant toggle removed)
-
-  // Expose switchTab globally for wizard navigation
+  // Expose switchTab globally
   window.switchTab = switchTab;
 
   initTabs();
@@ -4804,6 +4517,9 @@
           announce(`Vote ouvert : ${motionTitle}`);
           if (currentMode === 'exec') {
             loadBallots(currentOpenMotion.id).then(() => refreshExecView());
+          } else if (currentMeetingStatus === 'live') {
+            // Auto-switch to exec for real-time vote monitoring
+            loadBallots(currentOpenMotion.id).then(() => setMode('exec'));
           } else {
             switchTab('vote');
           }
@@ -4856,6 +4572,7 @@
     if (pollTimer) clearTimeout(pollTimer);
     if (newVoteDebounceTimer) clearTimeout(newVoteDebounceTimer);
     if (speechTimerInterval) clearInterval(speechTimerInterval);
+    if (execSpeechTimerInterval) clearInterval(execSpeechTimerInterval);
     if (sessionTimerInterval) clearInterval(sessionTimerInterval);
   });
 
