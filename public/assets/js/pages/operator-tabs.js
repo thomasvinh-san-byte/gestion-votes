@@ -3120,8 +3120,41 @@
     updateCloseSessionStatus();
   }
 
+  /**
+   * Compute closure readiness state.
+   * Returns { total, closedCount, openCount, pendingCount, allDone, hasOpenVote,
+   *           adopted, rejected, presentCount, totalMembers, durationStr }
+   */
+  function getCloseSessionState() {
+    const total = motionsCache.length;
+    const closedMotions = motionsCache.filter(m => m.closed_at);
+    const closedCount = closedMotions.length;
+    const openCount = motionsCache.filter(m => m.opened_at && !m.closed_at).length;
+    const pendingCount = total - closedCount - openCount;
+    const allDone = total > 0 && closedCount === total;
+    const hasOpenVote = openCount > 0;
+    const adopted = closedMotions.filter(m => (m.decision || m.result) === 'adopted').length;
+    const rejected = closedMotions.filter(m => (m.decision || m.result) === 'rejected').length;
+    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+    const totalMembers = attendanceCache.length;
+
+    // Session duration
+    const startedAt = currentMeeting?.opened_at || currentMeeting?.started_at;
+    let durationStr = '';
+    if (startedAt) {
+      const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+      const hours = Math.floor(elapsed / 3600);
+      const minutes = Math.floor((elapsed % 3600) / 60);
+      durationStr = hours > 0 ? `${hours}h${String(minutes).padStart(2, '0')}` : `${minutes} min`;
+    }
+
+    return { total, closedCount, openCount, pendingCount, allDone, hasOpenVote,
+             adopted, rejected, presentCount, totalMembers, durationStr };
+  }
+
   function updateCloseSessionStatus() {
     const section = document.getElementById('closeSessionSection');
+    const checksDiv = document.getElementById('closeSessionChecks');
     const statusDiv = document.getElementById('closeSessionStatus');
     const btnClose = document.getElementById('btnCloseSession');
     if (!section || !statusDiv || !btnClose) return;
@@ -3133,67 +3166,158 @@
     }
     Shared.show(section, 'block');
 
-    // Check readiness
-    const total = motionsCache.length;
-    const closed = motionsCache.filter(m => m.closed_at).length;
-    const open = motionsCache.filter(m => m.opened_at && !m.closed_at).length;
-    const pending = total - closed - open;
-    const allClosed = total > 0 && closed === total;
-    const hasOpenVote = open > 0;
-
-    let statusHtml = '';
+    const s = getCloseSessionState();
     let canClose = true;
 
-    if (hasOpenVote) {
-      statusHtml += `<div class="alert alert-warning mb-2">${icon('alert-triangle', 'icon-sm icon-text')}Un vote est en cours — clôturez-le avant de fermer la séance.</div>`;
-      canClose = false;
+    // Security checks display
+    if (checksDiv) {
+      let checksHtml = '';
+      if (s.hasOpenVote) {
+        checksHtml += `<div class="close-check close-check-warn">${icon('alert-triangle', 'icon-sm')} Un vote est en cours — clôturez-le d'abord</div>`;
+        canClose = false;
+      } else {
+        checksHtml += `<div class="close-check close-check-ok">${icon('check-circle', 'icon-sm')} Aucun vote en cours</div>`;
+      }
+
+      if (s.pendingCount > 0) {
+        checksHtml += `<div class="close-check close-check-warn">${icon('alert-triangle', 'icon-sm')} ${s.pendingCount} résolution(s) non votée(s)</div>`;
+      } else if (s.total > 0) {
+        checksHtml += `<div class="close-check close-check-ok">${icon('check-circle', 'icon-sm')} ${s.closedCount}/${s.total} résolution(s) votée(s)</div>`;
+      }
+
+      if (s.presentCount > 0) {
+        checksHtml += `<div class="close-check close-check-ok">${icon('users', 'icon-sm')} ${s.presentCount} participant(s) / ${s.totalMembers} inscrit(s)</div>`;
+      } else {
+        checksHtml += `<div class="close-check close-check-warn">${icon('alert-triangle', 'icon-sm')} Aucun participant présent</div>`;
+      }
+
+      checksDiv.innerHTML = checksHtml;
     }
 
-    if (pending > 0) {
-      statusHtml += `<div class="alert alert-info mb-2">${icon('info', 'icon-sm icon-text')}${pending} résolution(s) n'ont pas encore été votées.</div>`;
+    // Status summary
+    let statusHtml = '';
+    if (s.allDone) {
+      statusHtml = `<div class="alert alert-success mb-2">${icon('check-circle', 'icon-sm icon-text')} Tous les votes sont terminés. Prêt à clôturer.</div>`;
+    } else if (s.closedCount > 0) {
+      statusHtml = `<div class="alert alert-info mb-2">${icon('info', 'icon-sm icon-text')} ${s.closedCount}/${s.total} résolution(s) traitée(s).</div>`;
     }
 
-    if (allClosed) {
-      statusHtml += `<div class="alert alert-success mb-2">${icon('check-circle', 'icon-sm icon-text')}Tous les votes sont terminés. Vous pouvez clôturer la séance.</div>`;
-    }
-
-    statusDiv.innerHTML = statusHtml || '<div class="text-muted">Prêt à clôturer.</div>';
+    statusDiv.innerHTML = statusHtml;
     btnClose.disabled = !canClose;
   }
 
-  async function closeSession() {
-    const open = motionsCache.filter(m => m.opened_at && !m.closed_at);
-    if (open.length > 0) {
-      setNotif('error', 'Impossible de clôturer : un vote est encore ouvert');
+  /**
+   * Update the exec-mode close session banner.
+   * Shows when meeting is live and no vote is currently open.
+   */
+  function updateExecCloseSession() {
+    const banner = document.getElementById('execCloseBanner');
+    if (!banner) return;
+
+    if (currentMeetingStatus !== 'live') {
+      Shared.hide(banner);
       return;
     }
 
-    const pending = motionsCache.filter(m => !m.opened_at && !m.closed_at);
-    const closed = motionsCache.filter(m => m.closed_at).length;
-    const total = motionsCache.length;
-    const meetingTitle = currentMeeting ? escapeHtml(currentMeeting.title || '') : '';
-    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
+    const s = getCloseSessionState();
 
-    let warningHtml = '';
-    if (pending.length > 0) {
-      warningHtml = `<p style="margin:0 0 0.75rem;color:var(--color-warning);">${icon('alert-triangle', 'icon-sm icon-text')} <strong>${pending.length} résolution(s)</strong> n'ont pas encore été votées.</p>`;
+    // Hide while a vote is actively open
+    if (s.hasOpenVote) {
+      Shared.hide(banner);
+      return;
     }
+
+    Shared.show(banner, 'flex');
+
+    const titleEl = document.getElementById('execCloseTitle');
+    const summaryEl = document.getElementById('execCloseSummary');
+
+    if (s.allDone) {
+      if (titleEl) titleEl.textContent = 'Tous les votes sont terminés';
+      if (summaryEl) summaryEl.textContent = `${s.closedCount} résolution(s) votée(s) — prêt à clôturer.`;
+      banner.className = 'exec-close-banner exec-close-banner-ready';
+    } else if (s.closedCount > 0) {
+      if (titleEl) titleEl.textContent = 'Clôture possible';
+      if (summaryEl) summaryEl.textContent = `${s.closedCount}/${s.total} résolution(s) votée(s), ${s.pendingCount} en attente.`;
+      banner.className = 'exec-close-banner exec-close-banner-warn';
+    } else {
+      if (titleEl) titleEl.textContent = 'Aucun vote effectué';
+      if (summaryEl) summaryEl.textContent = `${s.total} résolution(s) en attente.`;
+      banner.className = 'exec-close-banner exec-close-banner-warn';
+    }
+  }
+
+  async function closeSession() {
+    // Hard block: cannot close with an open vote
+    const openVotes = motionsCache.filter(m => m.opened_at && !m.closed_at);
+    if (openVotes.length > 0) {
+      setNotif('error', 'Impossible de clôturer : un vote est encore ouvert.');
+      return;
+    }
+
+    const s = getCloseSessionState();
+    const meetingTitle = currentMeeting ? escapeHtml(currentMeeting.title || '') : '';
+
+    // Build security checks HTML
+    let checksHtml = '';
+    checksHtml += `<div class="close-check close-check-ok">${icon('check-circle', 'icon-sm')} Aucun vote en cours</div>`;
+
+    if (s.pendingCount > 0) {
+      checksHtml += `<div class="close-check close-check-warn">${icon('alert-triangle', 'icon-sm')} ${s.pendingCount} résolution(s) non votée(s)</div>`;
+    } else if (s.total > 0) {
+      checksHtml += `<div class="close-check close-check-ok">${icon('check-circle', 'icon-sm')} ${s.closedCount}/${s.total} résolution(s) votée(s)</div>`;
+    }
+
+    if (s.presentCount > 0) {
+      checksHtml += `<div class="close-check close-check-ok">${icon('users', 'icon-sm')} ${s.presentCount} participant(s) sur ${s.totalMembers}</div>`;
+    } else {
+      checksHtml += `<div class="close-check close-check-warn">${icon('alert-triangle', 'icon-sm')} Aucun participant présent</div>`;
+    }
+
+    // Build results summary
+    let summaryParts = [];
+    if (s.adopted > 0) summaryParts.push(`<span style="color:var(--color-success)">${s.adopted} adoptée(s)</span>`);
+    if (s.rejected > 0) summaryParts.push(`<span style="color:var(--color-danger)">${s.rejected} rejetée(s)</span>`);
+    const summaryLine = summaryParts.length > 0 ? ` — ${summaryParts.join(', ')}` : '';
 
     const confirmed = await new Promise(resolve => {
       const modal = createModal({
         id: 'closeSessionConfirmModal',
         title: 'Clôturer la séance',
+        maxWidth: '540px',
         content: `
-          <h3 id="closeSessionConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('square', 'icon-sm icon-text')} Clôturer la séance ?</h3>
-          ${meetingTitle ? `<p style="margin:0 0 0.5rem;"><strong>${meetingTitle}</strong></p>` : ''}
-          <div style="margin:0 0 0.75rem;font-size:0.9375rem;color:var(--color-text-muted);">
-            ${icon('users', 'icon-sm icon-text')} ${presentCount} présent(s) &mdash; ${icon('check-circle', 'icon-sm icon-text')} ${closed}/${total} résolution(s) votée(s)
+          <h3 id="closeSessionConfirmModal-title" style="margin:0 0 1rem;font-size:1.125rem;display:flex;align-items:center;gap:0.5rem;">
+            ${icon('square', 'icon-sm')} Clôturer la séance
+          </h3>
+          ${meetingTitle ? `<p style="margin:0 0 1rem;font-weight:600;font-size:1rem;">${meetingTitle}</p>` : ''}
+
+          <div style="background:var(--color-bg-subtle);border:1px solid var(--color-border);border-radius:8px;padding:1rem;margin-bottom:1rem;">
+            <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.9rem;">
+              ${checksHtml}
+            </div>
           </div>
-          ${warningHtml}
-          <p style="margin:0 0 1.5rem;color:var(--color-danger);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} Cette action est irréversible. La séance passera en statut « clôturée ».</p>
+
+          <div style="background:var(--color-bg-subtle);border:1px solid var(--color-border);border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:0.875rem;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.375rem;">
+              ${icon('bar-chart', 'icon-sm')} <strong>Bilan :</strong> ${s.closedCount}/${s.total} résolution(s) traitée(s)${summaryLine}
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.375rem;">
+              ${icon('users', 'icon-sm')} ${s.presentCount} présent(s) / ${s.totalMembers} inscrit(s)
+            </div>
+            ${s.durationStr ? `<div style="display:flex;align-items:center;gap:0.5rem;">${icon('clock', 'icon-sm')} Durée de la séance : ${s.durationStr}</div>` : ''}
+          </div>
+
+          <div style="display:flex;gap:0.75rem;padding:0.875rem 1rem;background:var(--color-danger-subtle);border:1px solid var(--color-danger);border-radius:8px;margin-bottom:1.5rem;font-size:0.85rem;color:var(--color-danger-text, var(--color-text));">
+            ${icon('alert-triangle', 'icon-sm')}
+            <div>
+              <strong>Action irréversible</strong>
+              <p style="margin:0.25rem 0 0;opacity:0.85;">La séance passera en statut « clôturée ». Les votes ne pourront plus être modifiés. Un procès-verbal sera disponible.</p>
+            </div>
+          </div>
+
           <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
             <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-danger" data-action="confirm">${icon('square', 'icon-sm icon-text')} Clôturer la séance</button>
+            <button class="btn btn-danger" data-action="confirm">${icon('square', 'icon-sm icon-text')} Clôturer définitivement</button>
           </div>
         `
       });
@@ -3208,7 +3332,7 @@
         to_status: 'closed'
       });
       if (body?.ok) {
-        setNotif('success', 'Séance clôturée');
+        setNotif('success', 'Séance clôturée avec succès');
         await loadMeetingContext(currentMeetingId);
         loadMeetings();
         setMode('setup');
@@ -3227,6 +3351,11 @@
   // =========================================================================
 
   async function doTransition(toStatus) {
+    // Redirect session closure to the enhanced security flow
+    if (toStatus === 'closed') {
+      return closeSession();
+    }
+
     const statusLabels = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
     const statusLabel = statusLabels[toStatus] || toStatus;
     const confirmed = await confirmModal({
@@ -3341,9 +3470,17 @@
         btnPrimary.textContent = 'Voir le vote';
         primaryAction = 'scroll-vote';
       } else {
-        btnPrimary.disabled = false;
-        btnPrimary.textContent = 'Préparation';
-        primaryAction = 'setup';
+        // When no vote is open, check if we can close the session
+        const allDone = motionsCache.length > 0 && motionsCache.every(m => m.closed_at);
+        if (allDone) {
+          btnPrimary.disabled = false;
+          btnPrimary.textContent = 'Clôturer la séance';
+          primaryAction = 'close-session';
+        } else {
+          btnPrimary.disabled = false;
+          btnPrimary.textContent = 'Préparation';
+          primaryAction = 'setup';
+        }
       }
     }
   }
@@ -3353,6 +3490,7 @@
       if (primaryAction === 'launch') launchSession();
       else if (primaryAction === 'exec') setMode('exec');
       else if (primaryAction === 'setup') setMode('setup');
+      else if (primaryAction === 'close-session') closeSession();
       else if (primaryAction === 'scroll-vote') {
         const el = document.getElementById('execVoteCard');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -3381,7 +3519,12 @@
       if (currentOpenMotion) {
         contextHint.textContent = 'Vote en cours : ' + (currentOpenMotion.title || '');
       } else if (currentMeetingStatus === 'live') {
-        contextHint.textContent = 'Séance en cours — aucun vote ouvert.';
+        const allDone = motionsCache.length > 0 && motionsCache.every(m => m.closed_at);
+        if (allDone) {
+          contextHint.textContent = 'Tous les votes sont terminés — prêt à clôturer.';
+        } else {
+          contextHint.textContent = 'Séance en cours — aucun vote ouvert.';
+        }
       } else {
         contextHint.textContent = 'Mode exécution.';
       }
@@ -3757,6 +3900,7 @@
     refreshExecDevices();
     refreshExecManualVotes();
     refreshAlerts();
+    updateExecCloseSession();
   }
 
   function refreshExecVote() {
@@ -4151,8 +4295,13 @@
     btn.addEventListener('click', () => switchTab(btn.dataset.tabSwitch));
   });
 
-  // Close session button
+  // Close session buttons (Résultats tab + Exec view)
   document.getElementById('btnCloseSession')?.addEventListener('click', closeSession);
+  document.getElementById('execBtnCloseSession')?.addEventListener('click', closeSession);
+  document.getElementById('execBtnSwitchResults')?.addEventListener('click', () => {
+    setMode('setup');
+    switchTab('resultats');
+  });
 
   // Speech queue buttons
   document.getElementById('btnNextSpeaker')?.addEventListener('click', nextSpeaker);

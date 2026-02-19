@@ -720,7 +720,10 @@
           <!-- Session Close Section -->
           <div class="settings-section close-session-section" id="closeSessionSection">
             <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance</h3>
-            <p class="text-muted mb-4">Une fois tous les votes terminés, vous pouvez clôturer la séance pour passer à la validation.</p>
+            <p class="text-muted mb-3">Finalisez la séance une fois tous les votes terminés. La clôture est irréversible et déclenche la génération du procès-verbal.</p>
+            <div id="closeSessionChecks" class="close-session-checks mb-3">
+              <!-- Security checks rendered by JS -->
+            </div>
             <div id="closeSessionStatus" class="mb-4">
               <!-- Status rendered by JS -->
             </div>
@@ -761,6 +764,26 @@
             </div>
           </div>
         </div>
+
+        <!-- Close session banner (visible when ready to close the session) -->
+        <div id="execCloseBanner" class="exec-close-banner" style="display:none;">
+          <div class="exec-close-banner-info">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-flag"></use></svg>
+            <div>
+              <strong id="execCloseTitle">Prêt à clôturer</strong>
+              <div class="text-sm text-muted" id="execCloseSummary"></div>
+            </div>
+          </div>
+          <div class="exec-close-banner-actions">
+            <button class="btn btn-sm btn-secondary" id="execBtnSwitchResults">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg> Résultats
+            </button>
+            <button class="btn btn-warning" id="execBtnCloseSession">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance
+            </button>
+          </div>
+        </div>
+
         <div class="exec-grid">
           <!-- Col 1: Vote en cours -->
           <div class="exec-card" id="execVoteCard">
