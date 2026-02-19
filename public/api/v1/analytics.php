@@ -43,9 +43,9 @@ try {
     };
 
     api_ok($data);
-} catch (PDOException $e) {
-    error_log("Analytics API error: " . $e->getMessage());
-    api_fail('database_error', 500);
+} catch (Throwable $e) {
+    error_log('Error in analytics.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
 }
 
 /**

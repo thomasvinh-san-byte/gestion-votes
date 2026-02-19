@@ -2248,8 +2248,10 @@
     list.innerHTML = headerHint + (filtered.map((m, i) => {
       const isOpen = !!(m.opened_at && !m.closed_at);
       const isClosed = !!m.closed_at;
-      const statusClass = isOpen ? 'open' : (isClosed ? 'closed' : 'pending');
-      const statusText = isOpen ? 'Vote en cours' : (isClosed ? 'Terminé' : 'En attente');
+      const dec = m.decision || m.result || '';
+      const closedLabels = { adopted: 'Adoptée', rejected: 'Rejetée', no_quorum: 'Sans quorum', no_votes: 'Sans vote', no_policy: 'Terminé' };
+      const statusClass = isOpen ? 'open' : (isClosed ? (dec === 'adopted' ? 'closed adopted' : 'closed') : 'pending');
+      const statusText = isOpen ? 'Vote en cours' : (isClosed ? (closedLabels[dec] || 'Terminé') : 'En attente');
 
       // Vote actions
       let voteActions = '';
@@ -2282,9 +2284,9 @@
 
       const results = isClosed ? `
         <div style="display:flex;gap:1rem;font-size:0.85rem;margin-top:0.5rem;">
-          <span style="color:var(--color-success)">${icon('check', 'icon-xs')} ${m.votes_for || 0}</span>
-          <span style="color:var(--color-danger)">${icon('x', 'icon-xs')} ${m.votes_against || 0}</span>
-          <span style="color:var(--color-text-muted)">${icon('minus', 'icon-xs')} ${m.votes_abstain || 0}</span>
+          <span style="color:var(--color-success)">${icon('check', 'icon-xs')} ${Shared.formatWeight(m.votes_for || 0)}</span>
+          <span style="color:var(--color-danger)">${icon('x', 'icon-xs')} ${Shared.formatWeight(m.votes_against || 0)}</span>
+          <span style="color:var(--color-text-muted)">${icon('minus', 'icon-xs')} ${Shared.formatWeight(m.votes_abstain || 0)}</span>
         </div>
       ` : '';
 
@@ -3006,22 +3008,27 @@
       if (currentMode === 'exec') refreshExecView();
       announce('Vote clôturé.');
 
-      // P2-5: Proclamation explicite des résultats
+      // P2-5: Proclamation explicite des résultats (uses VoteEngine decision)
       const closedMotion = motionsCache.find(m => String(m.id) === String(motionId));
       if (closedMotion) {
         const rFor = parseFloat(closedMotion.votes_for) || 0;
         const rAgainst = parseFloat(closedMotion.votes_against) || 0;
         const rAbstain = parseFloat(closedMotion.votes_abstain) || 0;
-        const rBlanc = parseFloat(closedMotion.votes_blank) || 0;
+        const rNsp = parseFloat(closedMotion.votes_nsp) || 0;
         const cFor = Shared.formatWeight(rFor);
         const cAgainst = Shared.formatWeight(rAgainst);
         const cAbstain = Shared.formatWeight(rAbstain);
-        const cBlanc = Shared.formatWeight(rBlanc);
-        const cTotal = Shared.formatWeight(rFor + rAgainst + rAbstain + rBlanc);
-        const adopted = rFor > rAgainst;
-        const resultText = adopted ? 'ADOPTÉE' : 'REJETÉE';
-        const resultColor = adopted ? 'var(--color-success)' : 'var(--color-danger)';
-        const resultIcon = adopted ? 'check-circle' : 'x-circle';
+        const cNsp = Shared.formatWeight(rNsp);
+        const cTotal = Shared.formatWeight(rFor + rAgainst + rAbstain + rNsp);
+
+        // Use authoritative decision from VoteEngine (via close response or motion record)
+        const decision = closeData.results?.decision || closedMotion.decision || closedMotion.result || '';
+        const reason = closeData.results?.reason || closedMotion.decision_reason || '';
+        const decisionLabels = { adopted: 'ADOPTÉE', rejected: 'REJETÉE', no_quorum: 'QUORUM NON ATTEINT', no_votes: 'AUCUN VOTE', no_policy: 'SANS POLITIQUE' };
+        const resultText = decisionLabels[decision] || decision.toUpperCase() || '—';
+        const isAdopted = decision === 'adopted';
+        const resultColor = isAdopted ? 'var(--color-success)' : 'var(--color-danger)';
+        const resultIcon = isAdopted ? 'check-circle' : 'x-circle';
 
         const proclamModal = createModal({
           id: 'proclamationModal',
@@ -3034,11 +3041,12 @@
               <p style="font-size:2rem;font-weight:700;color:${resultColor};margin:0.5rem 0;" aria-live="assertive">
                 ${resultText}
               </p>
+              ${reason ? `<p style="color:var(--color-text-secondary);font-size:0.95rem;margin:0 0 1rem;">${escapeHtml(reason)}</p>` : ''}
               <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:1.1rem;">
                 <span><strong style="color:var(--color-success)">${cFor}</strong> Pour</span>
                 <span><strong style="color:var(--color-danger)">${cAgainst}</strong> Contre</span>
                 <span><strong style="color:var(--color-text-muted)">${cAbstain}</strong> Abstention</span>
-                ${rBlanc > 0 ? `<span><strong style="color:var(--color-text-muted)">${cBlanc}</strong> Blanc</span>` : ''}
+                ${rNsp > 0 ? `<span><strong style="color:var(--color-text-muted)">${cNsp}</strong> NSP</span>` : ''}
               </div>
               <p style="color:var(--color-text-muted);font-size:0.9rem;">${cTotal} vote${cTotal !== '1' ? 's' : ''} exprimé${cTotal !== '1' ? 's' : ''}</p>
               <button class="btn btn-primary" data-action="close-proclamation" style="margin-top:1rem;">Fermer</button>
@@ -3061,12 +3069,15 @@
 
   async function loadResults() {
     const closed = motionsCache.filter(m => m.closed_at);
-    const adopted = closed.filter(m => (m.votes_for || 0) > (m.votes_against || 0)).length;
-    const rejected = closed.length - adopted;
+    const adopted = closed.filter(m => (m.decision || m.result) === 'adopted').length;
+    const rejected = closed.filter(m => (m.decision || m.result) === 'rejected').length;
 
     setText('resultAdopted', adopted);
     setText('resultRejected', rejected);
     setText('resultTotal', motionsCache.length);
+
+    const decisionLabels = { adopted: 'Adoptée', rejected: 'Rejetée', no_quorum: 'Sans quorum', no_votes: 'Aucun vote', no_policy: 'Sans politique' };
+    const decisionColors = { adopted: 'var(--color-success)', rejected: 'var(--color-danger)' };
 
     const list = document.getElementById('resultsDetailList');
     list.innerHTML = motionsCache.map((m, i) => {
@@ -3076,8 +3087,9 @@
       const vAbstain = parseFloat(m.votes_abstain) || 0;
       const total = vFor + vAgainst + vAbstain;
       const pct = total > 0 ? Math.round((vFor / total) * 100) : 0;
-      const status = !isClosed ? 'En attente' : (vFor > vAgainst ? 'Adoptée' : 'Rejetée');
-      const statusColor = !isClosed ? 'var(--color-text-muted)' : (vFor > vAgainst ? 'var(--color-success)' : 'var(--color-danger)');
+      const dec = m.decision || m.result || '';
+      const status = !isClosed ? 'En attente' : (decisionLabels[dec] || dec || 'Rejetée');
+      const statusColor = !isClosed ? 'var(--color-text-muted)' : (decisionColors[dec] || 'var(--color-danger)');
 
       return `
         <div class="settings-section" style="margin-bottom:1rem;">

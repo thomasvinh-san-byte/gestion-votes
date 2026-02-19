@@ -19,7 +19,7 @@ try {
     $repo = new MeetingRepository();
     $rows = $repo->listArchived(api_current_tenant_id(), $from, $to);
     api_ok(['meetings' => $rows]);
-} catch (PDOException $e) {
-    error_log('meetings_archive.php: ' . $e->getMessage());
-    api_fail('database_error', 500);
+} catch (Throwable $e) {
+    error_log('Error in meetings_archive.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
 }
