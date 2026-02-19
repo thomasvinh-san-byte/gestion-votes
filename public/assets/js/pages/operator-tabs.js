@@ -822,34 +822,7 @@
     }).join('');
   }
 
-  // Render assessors in wizard Step 4 context
-  async function renderWizAssessors() {
-    const container = document.getElementById('wizAssessorsList');
-    if (!container) return;
-    try {
-      const { body } = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`);
-      const roles = body?.data?.items || [];
-      const assessors = roles.filter(r => r.role === 'assessor');
-      if (!assessors.length) {
-        container.innerHTML = '<span class="text-muted text-sm">Aucun assesseur</span>';
-        return;
-      }
-      container.innerHTML = assessors.map(a => {
-        const user = usersCache.find(u => u.id === a.user_id);
-        const name = user ? (user.name || user.email) : a.user_id;
-        return `
-          <div class="flex items-center justify-between gap-2 p-2 bg-subtle rounded">
-            <span>${escapeHtml(name)}</span>
-            <button class="btn btn-sm btn-ghost text-danger" data-remove-assessor="${escapeHtml(a.user_id)}" title="Retirer" aria-label="Retirer ${escapeHtml(name)}">&#10005;</button>
-          </div>
-        `;
-      }).join('');
-    } catch {
-      // Silently fail — list will show placeholder
-    }
-  }
-
-  // Delegated handler for assessor removal (replaces inline onclick)
+  // Delegated handler for assessor removal
   document.addEventListener('click', async function(e) {
     const btn = e.target.closest('[data-remove-assessor]');
     if (!btn) return;
@@ -872,7 +845,6 @@
       });
       setNotif('success', 'Assesseur retiré');
       loadRoles();
-      renderWizAssessors();
     } catch (err) {
       setNotif('error', err.message);
     } finally {
@@ -1299,7 +1271,6 @@
         });
         setNotif('success', 'Assesseur ajouté');
         loadRoles();
-        renderWizAssessors();
         modal.remove();
       } catch (err) {
         setNotif('error', err.message);
@@ -3559,13 +3530,45 @@
 
     if (!currentMeetingId) return alerts;
 
-    // Conformity check
-    const score = getConformityScore();
-    if (score < 4) {
+    // Specific missing prerequisites (replaces generic "score X/4")
+    const hasMembers = membersCache.length > 0;
+    const hasPresent = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
+    const hasMotions = motionsCache.length > 0;
+    const hasQuorum = !!(currentMeeting && currentMeeting.quorum_policy_id);
+    const presEl = document.getElementById('settingPresident');
+    const hasPresident = !!(presEl && presEl.value);
+    const hasRules = hasQuorum || hasPresident;
+
+    if (!hasMembers) {
       alerts.push({
-        title: 'Préparation incomplète',
-        message: score + '/4 pré-requis validés.',
-        severity: score < 2 ? 'critical' : 'warning'
+        title: 'Aucun membre',
+        message: 'Ajoutez des membres dans l\u2019onglet Présences.',
+        severity: 'critical',
+        tab: 'presences'
+      });
+    }
+    if (hasMembers && !hasPresent) {
+      alerts.push({
+        title: 'Aucun présent enregistré',
+        message: 'Pointez les présences dans l\u2019onglet Présences.',
+        severity: 'critical',
+        tab: 'presences'
+      });
+    }
+    if (!hasMotions) {
+      alerts.push({
+        title: 'Aucune résolution',
+        message: 'Créez au moins une résolution à voter.',
+        severity: 'warning',
+        tab: 'resolutions'
+      });
+    }
+    if (!hasRules) {
+      alerts.push({
+        title: 'Ni quorum ni président',
+        message: 'Configurez le quorum ou désignez un président dans Paramètres.',
+        severity: 'info',
+        tab: 'parametres'
       });
     }
 
@@ -3614,12 +3617,21 @@
       return;
     }
 
-    target.innerHTML = alerts.map(a =>
-      '<div class="alert-item ' + a.severity + '">'
-      + '<div class="alert-item-title">' + escapeHtml(a.title) + '</div>'
-      + '<div class="alert-item-message">' + escapeHtml(a.message) + '</div>'
-      + '</div>'
-    ).join('');
+    target.innerHTML = alerts.map(a => {
+      const tabLink = a.tab
+        ? ' <button class="btn btn-sm btn-ghost" style="margin-top:0.25rem" data-alert-go="' + a.tab + '">Aller \u00e0 l\u2019onglet &rarr;</button>'
+        : '';
+      return '<div class="alert-item ' + a.severity + '">'
+        + '<div><div class="alert-item-title">' + escapeHtml(a.title) + '</div>'
+        + '<div class="alert-item-message">' + escapeHtml(a.message) + '</div>'
+        + tabLink + '</div>'
+        + '</div>';
+    }).join('');
+
+    // Bind "go to tab" buttons
+    target.querySelectorAll('[data-alert-go]').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.alertGo));
+    });
   }
 
   function refreshAlerts() {
@@ -4120,631 +4132,19 @@
   document.getElementById('execManualSearch')?.addEventListener('input', refreshExecManualVotes);
 
   // =========================================================================
-  // ASSISTANT MODE — Step-by-step wizard for meeting preparation
+  // SETUP MODE INIT
   // =========================================================================
 
-  let currentWizardStep = 1;
-  let prepMode = 'advanced'; // always advanced — assistant mode removed
-
-  const assistantMode = document.getElementById('assistantMode');
   const advancedMode = document.getElementById('advancedMode');
 
-  function setPrepMode(mode) {
-    prepMode = 'advanced'; // force advanced mode
-    if (assistantMode) assistantMode.hidden = true;
+  function setPrepMode() {
     if (advancedMode) advancedMode.hidden = false;
-
-    // Always show tabs nav in setup mode
     if (currentMode === 'setup') {
       Shared.show(tabsNav, 'flex');
     }
   }
 
-  function goToWizardStep(step) {
-    if (step < 1 || step > 5) return;
-    currentWizardStep = step;
-
-    // Update step buttons
-    document.querySelectorAll('[data-wizard-step]').forEach(btn => {
-      const s = parseInt(btn.dataset.wizardStep);
-      btn.classList.toggle('active', s === step);
-      btn.classList.toggle('done', s < step);
-    });
-
-    // Update connectors
-    const connectors = document.querySelectorAll('.assistant-step-connector');
-    connectors.forEach((c, i) => {
-      c.classList.toggle('done', i < step - 1);
-    });
-
-    // Show/hide panels
-    for (let i = 1; i <= 5; i++) {
-      const panel = document.getElementById('wizardStep' + i);
-      if (panel) panel.hidden = i !== step;
-    }
-
-    refreshWizardStep();
-  }
-
-  function refreshWizardStep() {
-    if (prepMode !== 'assistant') return;
-
-    switch (currentWizardStep) {
-      case 1: renderWizMembers(); break;
-      case 2: renderWizAttendance(); break;
-      case 3: renderWizResolutions(); break;
-      case 4: renderWizRules(); break;
-      case 5: renderWizChecklist(); break;
-    }
-  }
-
-  // --- Step 1: Members ---
-  function renderWizMembers() {
-    const title = document.getElementById('wizMembersTitle');
-    if (title) title.textContent = membersCache.length + ' membre' + (membersCache.length > 1 ? 's' : '') + ' ajouté' + (membersCache.length > 1 ? 's' : '');
-
-    const list = document.getElementById('wizMembersList');
-    if (!list) return;
-
-    if (membersCache.length === 0) {
-      list.innerHTML = '<div class="text-center p-4 text-muted">Aucun membre pour le moment.</div>';
-      return;
-    }
-
-    list.innerHTML = membersCache.map(m => `
-      <div class="assistant-member-row" data-member-id="${m.id}">
-        <span class="assistant-member-name">${escapeHtml(m.full_name || '—')}</span>
-        <span class="text-sm text-muted assistant-member-email">${escapeHtml(m.email || '')}</span>
-        <span class="assistant-member-power">${Shared.formatWeight(m.voting_power)} voix</span>
-        <div class="assistant-member-actions">
-          <button class="btn-icon-sm" title="Modifier" data-wiz-edit="${m.id}">
-            <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
-          </button>
-          <button class="btn-icon-sm danger" title="Retirer" data-wiz-delete="${m.id}">
-            <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
-          </button>
-        </div>
-      </div>
-    `).join('');
-
-    // Bind edit/delete handlers
-    list.querySelectorAll('[data-wiz-edit]').forEach(btn => {
-      btn.addEventListener('click', () => wizEditMember(btn.dataset.wizEdit));
-    });
-    list.querySelectorAll('[data-wiz-delete]').forEach(btn => {
-      btn.addEventListener('click', () => wizDeleteMember(btn.dataset.wizDelete));
-    });
-  }
-
-  function wizEditMember(memberId) {
-    const m = membersCache.find(x => x.id === memberId);
-    if (!m) return;
-
-    Shared.openModal({
-      title: 'Modifier le membre',
-      body: `
-        <div class="form-group mb-3">
-          <label class="form-label">Nom complet *</label>
-          <input class="form-input" type="text" id="wizEditName" value="${escapeHtml(m.full_name || m.name || '')}" placeholder="Nom Prénom">
-        </div>
-        <div class="form-group mb-3">
-          <label class="form-label">Email <span class="text-muted text-sm">(facultatif)</span></label>
-          <input class="form-input" type="email" id="wizEditEmail" value="${escapeHtml(m.email || '')}" placeholder="email@exemple.com">
-        </div>
-        <div class="form-group mb-3">
-          <label class="form-label">Nombre de voix</label>
-          <input class="form-input" type="number" id="wizEditPower" value="${m.voting_power || 1}" min="1" step="1">
-        </div>
-      `,
-      confirmText: 'Enregistrer',
-      onConfirm: async function(modal) {
-        const newName = modal.querySelector('#wizEditName').value.trim();
-        const newEmail = modal.querySelector('#wizEditEmail').value.trim();
-        const newPower = parseInt(modal.querySelector('#wizEditPower').value) || 1;
-
-        if (!newName) { setNotif('error', 'Le nom est requis'); return false; }
-
-        try {
-          const { body } = await api('/api/v1/members.php', {
-            member_id: memberId,
-            full_name: newName,
-            email: newEmail || null,
-            voting_power: newPower,
-            is_active: true
-          }, 'PATCH');
-
-          if (body?.ok) {
-            setNotif('success', 'Membre modifié');
-            await loadMembers();
-            renderWizMembers();
-            return true;
-          } else {
-            setNotif('error', getApiError(body, 'Erreur'));
-            return false;
-          }
-        } catch (err) {
-          setNotif('error', err.message);
-          return false;
-        }
-      }
-    });
-  }
-
-  async function wizDeleteMember(memberId) {
-    const m = membersCache.find(x => x.id === memberId);
-    if (!m) return;
-    const name = m.full_name || m.name || 'ce membre';
-
-    Shared.openModal({
-      title: 'Retirer un membre',
-      body: `<p>Retirer <strong>${escapeHtml(name)}</strong> de la liste des membres ?</p>
-             <p class="text-sm text-muted">Cette action supprime le membre du registre.</p>`,
-      confirmText: 'Retirer',
-      danger: true,
-      onConfirm: async function() {
-        try {
-          const { body } = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
-          if (body?.ok) {
-            setNotif('success', name + ' retiré');
-            await loadMembers();
-            await loadAttendance();
-            renderWizMembers();
-            return true;
-          } else {
-            setNotif('error', getApiError(body, 'Erreur'));
-            return false;
-          }
-        } catch (err) {
-          setNotif('error', err.message);
-          return false;
-        }
-      }
-    });
-  }
-
-  async function wizAddMember() {
-    const nameInput = document.getElementById('wizAddMemberName');
-    const emailInput = document.getElementById('wizAddMemberEmail');
-    const powerInput = document.getElementById('wizAddMemberPower');
-    const name = nameInput?.value?.trim();
-    if (!name) { setNotif('error', 'Le nom est requis'); nameInput?.focus(); return; }
-
-    const voting_power = parseInt(powerInput?.value) || 1;
-
-    try {
-      await api('/api/v1/members.php', {
-        action: 'create',
-        full_name: name,
-        email: emailInput?.value?.trim() || null,
-        voting_power: voting_power
-      });
-      if (nameInput) nameInput.value = '';
-      if (emailInput) emailInput.value = '';
-      if (powerInput) powerInput.value = '1';
-      nameInput?.focus();
-      await loadMembers();
-      renderWizMembers();
-      setNotif('success', name + ' ajouté');
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  }
-
-  function wizHandleCsvDrop(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const zone = document.getElementById('wizImportZone');
-    if (zone) zone.classList.remove('drag-over');
-    const file = e.dataTransfer?.files?.[0];
-    if (file) wizImportCsvFile(file);
-  }
-
-  async function wizImportCsvFile(file) {
-    const text = await file.text();
-    try {
-      const { body } = await api('/api/v1/members_import_csv.php', {
-        csv_content: text,
-        meeting_id: currentMeetingId
-      });
-      if (body?.ok) {
-        setNotif('success', 'Import réussi : ' + (body.data?.imported_count || 0) + ' membres');
-        await loadMembers();
-        await loadAttendance();
-        renderWizMembers();
-      } else {
-        setNotif('error', body?.error || "Erreur d'import");
-      }
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  }
-
-  // --- Step 2: Attendance ---
-  function renderWizAttendance() {
-    const grid = document.getElementById('wizAttendanceGrid');
-    if (!grid) return;
-
-    if (attendanceCache.length === 0) {
-      grid.innerHTML = '<div class="text-center p-4 text-muted">Ajoutez des membres à l\'étape 1 d\'abord.</div>';
-      return;
-    }
-
-    grid.innerHTML = attendanceCache.map(a => {
-      const name = escapeHtml(a.full_name || '—');
-      const isPresent = a.mode === 'present';
-      const isRemote = a.mode === 'remote';
-      const isAbsent = !a.mode || a.mode === 'absent';
-      return `
-        <div class="attendance-card" data-member-id="${a.member_id}">
-          <span class="attendance-name">${name}</span>
-          <div class="mode-btns">
-            <button class="mode-btn present ${isPresent ? 'active' : ''}" data-mode="present" title="Présent">P</button>
-            <button class="mode-btn remote ${isRemote ? 'active' : ''}" data-mode="remote" title="À distance">D</button>
-            <button class="mode-btn absent ${isAbsent ? 'active' : ''}" data-mode="absent" title="Absent">A</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    // Bind click handlers
-    grid.querySelectorAll('.mode-btn').forEach(btn => {
-      btn.addEventListener('click', async function() {
-        const card = btn.closest('[data-member-id]');
-        const memberId = card.dataset.memberId;
-        const mode = btn.dataset.mode;
-
-        // Optimistic update
-        card.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        try {
-          await api('/api/v1/attendances_upsert.php', {
-            meeting_id: currentMeetingId,
-            member_id: memberId,
-            mode: mode
-          });
-          const entry = attendanceCache.find(a => a.member_id == memberId);
-          if (entry) entry.mode = mode;
-          updateWizAttendanceStats();
-        } catch (err) {
-          setNotif('error', err.message);
-        }
-      });
-    });
-
-    updateWizAttendanceStats();
-  }
-
-  function updateWizAttendanceStats() {
-    const present = attendanceCache.filter(a => a.mode === 'present').length;
-    const remote = attendanceCache.filter(a => a.mode === 'remote').length;
-    const proxy = proxiesCache.length;
-    const absent = attendanceCache.filter(a => !a.mode || a.mode === 'absent').length;
-    setText('wizPresent', present);
-    setText('wizRemote', remote);
-    setText('wizProxy', proxy);
-    setText('wizAbsent', absent);
-  }
-
-  async function wizAllPresent() {
-    try {
-      await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
-      attendanceCache.forEach(m => m.mode = 'present');
-      renderWizAttendance();
-      setNotif('success', 'Tous marqués présents');
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  }
-
-  async function wizAllRemote() {
-    try {
-      await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'remote' });
-      attendanceCache.forEach(m => m.mode = 'remote');
-      renderWizAttendance();
-      setNotif('success', 'Tous marqués à distance');
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  }
-
-  // --- Step 3: Resolutions ---
-  function renderWizResolutions() {
-    const list = document.getElementById('wizResolutionsList');
-    if (!list) return;
-
-    if (motionsCache.length === 0) {
-      list.innerHTML = '<div class="text-center p-4 text-muted">Aucune résolution pour le moment.</div>';
-      return;
-    }
-
-    list.innerHTML = motionsCache.map((m, i) => `
-      <div class="resolution-item">
-        <div class="resolution-header" style="cursor:default;">
-          <span class="resolution-number">#${i + 1}</span>
-          <span class="resolution-title">${escapeHtml(m.title || '—')}</span>
-          <span class="resolution-status pending">En attente</span>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  async function wizAddResolution() {
-    const titleInput = document.getElementById('wizResolutionTitle');
-    const descInput = document.getElementById('wizResolutionDesc');
-    const title = titleInput?.value?.trim();
-    if (!title) { setNotif('error', 'Le titre est requis'); titleInput?.focus(); return; }
-
-    try {
-      const { body } = await api('/api/v1/motion_create_simple.php', {
-        meeting_id: currentMeetingId,
-        title: title,
-        description: descInput?.value?.trim() || ''
-      });
-      if (body?.ok === true) {
-        if (titleInput) titleInput.value = '';
-        if (descInput) descInput.value = '';
-        titleInput?.focus();
-        await loadResolutions();
-        renderWizResolutions();
-        setNotif('success', 'Résolution ajoutée');
-      } else {
-        setNotif('error', getApiError(body, 'Erreur lors de la création'));
-      }
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  }
-
-  // --- Step 4: Rules ---
-  function renderWizRules() {
-    // Populate policy dropdowns from cache
-    const qSelect = document.getElementById('wizQuorumPolicy');
-    const vSelect = document.getElementById('wizVotePolicy');
-    const qHint = document.getElementById('wizQuorumHint');
-    const vHint = document.getElementById('wizVoteHint');
-
-    if (qSelect) {
-      if (policiesCache.quorum.length > 0) {
-        const currentVal = qSelect.value;
-        qSelect.innerHTML = '<option value="">— Aucun quorum —</option>' +
-          policiesCache.quorum.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
-        if (currentMeeting?.quorum_policy_id) qSelect.value = currentMeeting.quorum_policy_id;
-        else if (currentVal) qSelect.value = currentVal;
-        qSelect.disabled = false;
-        if (qHint) qHint.innerHTML = 'Si le quorum n\'est pas atteint, le vote ne peut pas avoir lieu.';
-      } else {
-        qSelect.innerHTML = '<option value="">— Aucun quorum —</option>';
-        qSelect.disabled = false;
-        if (qHint) qHint.innerHTML = 'Aucune politique de quorum créée. <a href="/admin.htmx.html#policies" target="_blank" class="text-primary">Créer une politique</a> (optionnel — vous pouvez continuer sans).';
-      }
-    }
-
-    if (vSelect) {
-      if (policiesCache.vote.length > 0) {
-        const currentVal = vSelect.value;
-        vSelect.innerHTML = '<option value="">— Majorité simple (par défaut) —</option>' +
-          policiesCache.vote.map(p => `<option value="${p.id}">${escapeHtml(p.name || p.label || p.id)}</option>`).join('');
-        if (currentMeeting?.vote_policy_id) vSelect.value = currentMeeting.vote_policy_id;
-        else if (currentVal) vSelect.value = currentVal;
-        vSelect.disabled = false;
-        if (vHint) vHint.innerHTML = '';
-      } else {
-        vSelect.innerHTML = '<option value="">— Majorité simple (par défaut) —</option>';
-        vSelect.disabled = false;
-        if (vHint) vHint.innerHTML = 'Aucune politique de vote personnalisée. La majorité simple (50%+1) sera appliquée.';
-      }
-    }
-
-    // Set convocation radio
-    const conv = currentMeeting?.convocation_no || '1';
-    const convRadio = document.querySelector('input[name="wizConvocation"][value="' + conv + '"]');
-    if (convRadio) convRadio.checked = true;
-
-    // Populate president from cache
-    const wizPresident = document.getElementById('wizPresident');
-    if (wizPresident && usersCache.length > 0) {
-      wizPresident.items = JSON.stringify(usersCache.map(u => ({
-        value: u.id,
-        label: u.name || u.email || u.id
-      })));
-      if (currentMeeting?.president_user_id) {
-        wizPresident.value = currentMeeting.president_user_id;
-      }
-    }
-
-    // Populate assessors list
-    renderWizAssessors();
-  }
-
-  // --- Step 4: Save rules on leaving step ---
-  async function wizSaveRules() {
-    if (!currentMeetingId) return;
-
-    const quorumPolicyId = document.getElementById('wizQuorumPolicy')?.value || null;
-    const votePolicyId = document.getElementById('wizVotePolicy')?.value || null;
-    const convocationNo = parseInt(document.querySelector('input[name="wizConvocation"]:checked')?.value || '1') || 1;
-
-    // Save president from wizard
-    const wizPres = document.getElementById('wizPresident');
-    const presidentId = wizPres?.value || null;
-    const presidentName = wizPres?.selectedOption?.label || '';
-
-    try {
-      const promises = [
-        api('/api/v1/meeting_quorum_settings.php', {
-          meeting_id: currentMeetingId,
-          quorum_policy_id: quorumPolicyId,
-          convocation_no: convocationNo
-        }),
-        api('/api/v1/meeting_vote_settings.php', {
-          meeting_id: currentMeetingId,
-          vote_policy_id: votePolicyId
-        })
-      ];
-
-      // Save president if set
-      if (presidentId) {
-        promises.push(
-          api('/api/v1/admin_meeting_roles.php', {
-            action: 'assign',
-            meeting_id: currentMeetingId,
-            user_id: presidentId,
-            role: 'president'
-          }),
-          api('/api/v1/meetings_update.php', {
-            meeting_id: currentMeetingId,
-            president_name: presidentName
-          })
-        );
-      }
-
-      await Promise.all(promises);
-
-      // Update local state
-      if (currentMeeting) {
-        currentMeeting.quorum_policy_id = quorumPolicyId;
-        currentMeeting.vote_policy_id = votePolicyId;
-        currentMeeting.convocation_no = convocationNo;
-        if (presidentId) {
-          currentMeeting.president_user_id = presidentId;
-          currentMeeting.president_name = presidentName;
-        }
-      }
-
-      // Also sync with settings tab dropdowns
-      const settingQuorum = document.getElementById('settingQuorumPolicy');
-      const settingVote = document.getElementById('settingVotePolicy');
-      const settingConv = document.getElementById('settingConvocation');
-      if (settingQuorum) settingQuorum.value = quorumPolicyId || '';
-      if (settingVote) settingVote.value = votePolicyId || '';
-      if (settingConv) settingConv.value = convocationNo;
-      const settingPres = document.getElementById('settingPresident');
-      if (settingPres && presidentId) settingPres.value = presidentId;
-    } catch (err) {
-      console.warn('wizSaveRules:', err.message);
-    }
-  }
-
-  // --- Step 5: Checklist ---
-  function renderWizChecklist() {
-    const container = document.getElementById('wizChecklist');
-    if (!container) return;
-
-    const hasMembers = membersCache.length > 0;
-    const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
-    const hasMotions = motionsCache.length > 0;
-    const presentCount = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
-    const remoteCount = attendanceCache.filter(a => a.mode === 'remote').length;
-    const proxyCount = proxiesCache.length;
-    const hasDate = !!(currentMeeting?.scheduled_at);
-    const hasPresident = !!(currentMeeting?.president_user_id || currentMeeting?.president_name);
-    const hasQuorumPolicy = !!(currentMeeting?.quorum_policy_id);
-    const presidentName = currentMeeting?.president_name || '';
-
-    // Format date for display
-    let dateText = 'Date non renseignée';
-    if (hasDate) {
-      try {
-        dateText = new Date(currentMeeting.scheduled_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-      } catch (e) { dateText = escapeHtml(currentMeeting.scheduled_at); }
-    }
-
-    const checks = [
-      { ok: hasDate, text: dateText, warn: !hasDate },
-      { ok: hasMembers, text: membersCache.length + ' membre' + (membersCache.length > 1 ? 's' : '') + ' inscrit' + (membersCache.length > 1 ? 's' : '') },
-      { ok: hasAttendance, text: presentCount + ' présent' + (presentCount > 1 ? 's' : '') + (remoteCount > 0 ? ' dont ' + remoteCount + ' à distance' : '') + (proxyCount > 0 ? ' · ' + proxyCount + ' procuration' + (proxyCount > 1 ? 's' : '') : '') },
-      { ok: hasMotions, text: motionsCache.length + ' résolution' + (motionsCache.length > 1 ? 's' : '') + ' à voter' },
-      { ok: hasQuorumPolicy, text: hasQuorumPolicy ? 'Quorum configuré' : 'Aucun quorum configuré', warn: !hasQuorumPolicy, optional: true },
-      { ok: hasPresident, text: hasPresident ? 'Président : ' + escapeHtml(presidentName || 'assigné') : 'Aucun président désigné', warn: !hasPresident, optional: true },
-      { ok: invitationsSentCount > 0, text: invitationsSentCount > 0 ? invitationsSentCount + ' invitation' + (invitationsSentCount > 1 ? 's' : '') + ' envoyée' + (invitationsSentCount > 1 ? 's' : '') : 'Invitations non envoyées', warn: invitationsSentCount === 0, optional: true }
-    ];
-
-    container.innerHTML = checks.map(c => {
-      const iconChar = c.ok && !c.warn ? '&#10003;' : (c.warn ? '&#9888;' : '&#10007;');
-      const cls = c.ok && !c.warn ? 'check-ok' : (c.warn ? 'check-warn' : 'check-fail');
-      // c.text values are already escaped where needed (e.g. presidentName)
-      return `<div class="assistant-check-item ${cls}">
-        <span class="assistant-check-icon">${iconChar}</span>
-        <span>${c.text}${c.optional ? ' <span class="text-muted text-sm">(facultatif)</span>' : ''}</span>
-      </div>`;
-    }).join('');
-
-    // Enable/disable launch button
-    const launchBtn = document.getElementById('wizBtnLaunch');
-    const canLaunch = hasMembers && hasAttendance && hasMotions && ['draft', 'scheduled', 'frozen'].includes(currentMeetingStatus);
-    if (launchBtn) launchBtn.disabled = !canLaunch;
-  }
-
-  // --- Wizard navigation bindings ---
-  document.getElementById('wizBtnAddMember')?.addEventListener('click', wizAddMember);
-  document.getElementById('wizAddMemberName')?.addEventListener('keypress', e => { if (e.key === 'Enter') wizAddMember(); });
-  document.getElementById('wizBtnAllPresent')?.addEventListener('click', wizAllPresent);
-  document.getElementById('wizBtnAllRemote')?.addEventListener('click', wizAllRemote);
-  document.getElementById('wizBtnAddResolution')?.addEventListener('click', wizAddResolution);
-  document.getElementById('wizBtnAddAssessor')?.addEventListener('click', addAssessor);
-  document.getElementById('wizResolutionTitle')?.addEventListener('keypress', e => { if (e.key === 'Enter') wizAddResolution(); });
-
-  // CSV import
-  const wizCsvFile = document.getElementById('wizCsvFile');
-  if (wizCsvFile) {
-    wizCsvFile.addEventListener('change', e => {
-      if (e.target.files[0]) wizImportCsvFile(e.target.files[0]);
-    });
-  }
-  const wizImportZone = document.getElementById('wizImportZone');
-  if (wizImportZone) {
-    wizImportZone.addEventListener('dragover', e => { e.preventDefault(); wizImportZone.classList.add('drag-over'); });
-    wizImportZone.addEventListener('dragleave', () => wizImportZone.classList.remove('drag-over'));
-    wizImportZone.addEventListener('drop', wizHandleCsvDrop);
-  }
-
-  // Step navigation with soft prerequisite warnings
-  document.getElementById('wizBtnNext1')?.addEventListener('click', () => {
-    if (membersCache.length === 0) {
-      setNotif('warning', 'Aucun membre ajouté — vous pourrez revenir à cette étape.');
-    }
-    goToWizardStep(2);
-  });
-  document.getElementById('wizBtnPrev2')?.addEventListener('click', () => goToWizardStep(1));
-  document.getElementById('wizBtnNext2')?.addEventListener('click', () => {
-    const hasPresent = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
-    if (!hasPresent) {
-      setNotif('warning', 'Aucun membre pointé présent — pensez à enregistrer les présences.');
-    }
-    goToWizardStep(3);
-  });
-  document.getElementById('wizBtnPrev3')?.addEventListener('click', () => goToWizardStep(2));
-  document.getElementById('wizBtnNext3')?.addEventListener('click', () => {
-    if (motionsCache.length === 0) {
-      setNotif('warning', 'Aucune résolution créée — ajoutez au moins une résolution avant le lancement.');
-    }
-    goToWizardStep(4);
-  });
-  document.getElementById('wizBtnPrev4')?.addEventListener('click', () => goToWizardStep(3));
-  document.getElementById('wizBtnNext4')?.addEventListener('click', async () => { await wizSaveRules(); goToWizardStep(5); });
-  document.getElementById('wizBtnPrev5')?.addEventListener('click', () => goToWizardStep(4));
-
-  // Step progress clicks
-  document.querySelectorAll('[data-wizard-step]').forEach(btn => {
-    btn.addEventListener('click', () => goToWizardStep(parseInt(btn.dataset.wizardStep)));
-  });
-
-  // Launch button
-  document.getElementById('wizBtnLaunch')?.addEventListener('click', launchSession);
-
-  // Send invitations from wizard
-  document.getElementById('wizBtnSendInvitations')?.addEventListener('click', () => {
-    // Switch to advanced mode and show invitations
-    setPrepMode('advanced');
-    switchTab('parametres');
-    const sendBtn = document.getElementById('btnSendInvitations');
-    if (sendBtn) sendBtn.click();
-  });
-
-  // Prep mode: always advanced (assistant toggle removed)
-
-  // Expose switchTab globally for wizard navigation
+  // Expose switchTab globally
   window.switchTab = switchTab;
 
   initTabs();

@@ -53,6 +53,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh; /* dynamic viewport height — accounts for mobile browser chrome */
   background: var(--color-bg);
 }
 
@@ -139,6 +140,7 @@
 
 .vote-main {
   flex: 1;
+  min-height: 0; /* allow shrinking below content size so footer stays visible */
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
@@ -527,6 +529,8 @@
 .vote-buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  align-items: stretch;
   gap: 1.5rem;
   max-width: min(1100px, 100%);
   margin: 0 auto;
@@ -550,6 +554,9 @@
   transition: transform 0.1s, box-shadow 0.15s;
   position: relative;
   overflow: hidden;
+  min-height: 180px;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .vote-btn:active:not(:disabled) {
@@ -900,6 +907,7 @@
 @media (max-width: 768px) {
   .vote-buttons {
     grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 1fr;
     gap: 1rem;
   }
 
@@ -909,6 +917,7 @@
     justify-content: center;
     font-size: 1.75rem;
     min-height: 80px;
+    height: 100%;
   }
 
   .vote-btn-icon {
