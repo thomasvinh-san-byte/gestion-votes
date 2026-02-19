@@ -29,5 +29,5 @@ try {
     api_ok(['ballots' => $ballots]);
 } catch (Throwable $e) {
     error_log('Error in ballots.php: ' . $e->getMessage());
-    api_fail('internal_error', 500, ['detail' => 'Erreur interne']);
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
 }

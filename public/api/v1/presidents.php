@@ -20,5 +20,5 @@ try {
     api_ok(['presidents' => $rows]);
 } catch (Throwable $e) {
     error_log('Error in presidents.php: ' . $e->getMessage());
-    api_fail('server_error', 500);
+    api_fail('server_error', 500, ['detail' => $e->getMessage()]);
 }

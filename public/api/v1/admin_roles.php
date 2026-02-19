@@ -57,5 +57,5 @@ try {
     ]);
 } catch (Throwable $e) {
     error_log('Error in admin_roles.php: ' . $e->getMessage());
-    api_fail('internal_error', 500);
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
 }

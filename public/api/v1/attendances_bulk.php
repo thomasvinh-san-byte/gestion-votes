@@ -120,5 +120,5 @@ try {
 } catch (\Throwable $e) {
     db()->rollBack();
     error_log("attendances_bulk error: " . $e->getMessage());
-    api_fail('database_error', 500);
+    api_fail('database_error', 500, ['detail' => $e->getMessage()]);
 }

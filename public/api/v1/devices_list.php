@@ -51,5 +51,5 @@ try {
 
   api_ok(['counts' => $counts, 'items' => $items]);
 } catch (Throwable $e) {
-  api_fail('server_error', 500);
+  api_fail('server_error', 500, ['detail' => $e->getMessage()]);
 }

@@ -56,7 +56,7 @@ if (!$proxy) {
 $deleted = $proxyRepo->deleteProxy($proxyId, $meetingId);
 
 if ($deleted === 0) {
-    api_fail('delete_failed', 500);
+    api_fail('delete_failed', 500, ['detail' => $e->getMessage()]);
 }
 
 audit_log('proxy_deleted', 'proxy', $proxyId, [

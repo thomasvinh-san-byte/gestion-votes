@@ -50,7 +50,7 @@ try {
     }
 } catch (Throwable $e) {
     error_log('Error in export_templates.php: ' . $e->getMessage());
-    api_fail('server_error', 500);
+    api_fail('server_error', 500, ['detail' => $e->getMessage()]);
 }
 
 function handleGet(ExportTemplateRepository $repo, string $tenantId): void

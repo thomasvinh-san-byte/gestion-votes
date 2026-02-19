@@ -192,5 +192,5 @@ api_fail('method_not_allowed', 405);
 
 } catch (Throwable $e) {
     error_log('Error in admin_users.php: ' . $e->getMessage());
-    api_fail('internal_error', 500);
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
 }

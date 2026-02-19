@@ -75,5 +75,5 @@ try {
     ]);
 } catch (Throwable $e) {
     error_log("wizard_status.php error: " . $e->getMessage());
-    api_fail('internal_error', 500);
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
 }

@@ -39,5 +39,5 @@ try {
     api_fail('business_error', 400, ['detail' => $e->getMessage()]);
 } catch (Throwable $e) {
     error_log('Error in speech_next.php: ' . $e->getMessage());
-    api_fail('internal_error', 500);
+    api_fail('internal_error', 500, ['detail' => $e->getMessage()]);
 }

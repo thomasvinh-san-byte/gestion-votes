@@ -66,5 +66,5 @@ try {
 
 } catch (Throwable $e) {
     error_log('Error in admin_vote_policies.php: ' . $e->getMessage());
-    api_fail('server_error', 500);
+    api_fail('server_error', 500, ['detail' => $e->getMessage()]);
 }
