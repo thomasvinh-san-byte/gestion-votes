@@ -15,6 +15,7 @@ class MeetingTransitionTest extends TestCase
         'scheduled',
         'frozen',
         'live',
+        'paused',
         'closed',
         'validated',
         'archived',
@@ -25,7 +26,8 @@ class MeetingTransitionTest extends TestCase
         'draft'     => ['scheduled', 'frozen'],
         'scheduled' => ['frozen', 'draft'],
         'frozen'    => ['live', 'scheduled'],
-        'live'      => ['closed'],
+        'live'      => ['paused', 'closed'],
+        'paused'    => ['live', 'closed'],
         'closed'    => ['validated'],
         'validated' => ['archived'],
         'archived'  => [],
@@ -46,6 +48,11 @@ class MeetingTransitionTest extends TestCase
             'scheduled' => 'admin',
         ],
         'live' => [
+            'paused' => 'operator',
+            'closed' => 'president',
+        ],
+        'paused' => [
+            'live' => 'operator',
             'closed' => 'president',
         ],
         'closed' => [

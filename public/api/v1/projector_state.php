@@ -51,11 +51,11 @@ try {
             ]);
         }
 
-        // Single live meeting — auto-select
+        // Single live/paused meeting — auto-select
         $m = $liveMeetings[0];
         $meetingId     = (string)$m['id'];
         $meetingTitle  = (string)$m['title'];
-        $meetingStatus = 'live';
+        $meetingStatus = (string)($m['status'] ?? 'live');
     }
 
     // --- Motion state ---

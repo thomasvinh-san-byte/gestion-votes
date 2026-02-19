@@ -71,35 +71,52 @@
             Préparer une nouvelle séance
           </h3>
           <div class="create-form">
-            <div class="form-group" style="flex: 1; min-width: 200px;">
-              <label class="form-label" for="meeting_title">Titre de la séance</label>
-              <input class="form-input" type="text" id="meeting_title" placeholder="Ex : Assemblée Générale 2024" required>
+            <div class="form-group" style="flex: 2; min-width: 200px;">
+              <label class="form-label" for="meeting_title">Titre de la séance <span class="text-danger">*</span></label>
+              <input class="form-input" type="text" id="meeting_title" placeholder="Ex : Assemblée Générale 2024" required autocomplete="off">
             </div>
             <div class="form-group" style="min-width: 160px;">
-              <label class="form-label" for="meeting_date">Date de la séance</label>
-              <input class="form-input" type="date" id="meeting_date" required>
+              <label class="form-label" for="meeting_date">Date <span class="text-danger">*</span></label>
+              <input class="form-input date-picker-input" type="date" id="meeting_date" required>
             </div>
             <div class="form-group">
               <label class="form-label">Type</label>
-              <div class="flex gap-3 flex-wrap">
-                <label class="flex items-center gap-2 text-sm">
-                  <input type="radio" name="meetingTypeCreate" value="ag_ordinaire" checked> AG ordinaire
+              <div class="meeting-type-chips">
+                <label class="type-chip">
+                  <input type="radio" name="meetingTypeCreate" value="ag_ordinaire" checked>
+                  <span class="type-chip-label">AG ordinaire</span>
                 </label>
-                <label class="flex items-center gap-2 text-sm">
-                  <input type="radio" name="meetingTypeCreate" value="ag_extraordinaire"> AG extraordinaire
+                <label class="type-chip">
+                  <input type="radio" name="meetingTypeCreate" value="ag_extraordinaire">
+                  <span class="type-chip-label">AG extra.</span>
                 </label>
-                <label class="flex items-center gap-2 text-sm">
-                  <input type="radio" name="meetingTypeCreate" value="conseil"> Conseil
+                <label class="type-chip">
+                  <input type="radio" name="meetingTypeCreate" value="conseil">
+                  <span class="type-chip-label">Conseil</span>
                 </label>
-                <label class="flex items-center gap-2 text-sm">
-                  <input type="radio" name="meetingTypeCreate" value="bureau"> Bureau
+                <label class="type-chip">
+                  <input type="radio" name="meetingTypeCreate" value="bureau">
+                  <span class="type-chip-label">Bureau</span>
                 </label>
-                <label class="flex items-center gap-2 text-sm">
-                  <input type="radio" name="meetingTypeCreate" value="autre"> Autre
+                <label class="type-chip">
+                  <input type="radio" name="meetingTypeCreate" value="autre">
+                  <span class="type-chip-label">Autre</span>
                 </label>
               </div>
             </div>
-            <button class="btn btn-primary" id="create_meeting_btn" style="align-self: flex-end;">
+            <div class="form-group" style="flex-basis: 100%;">
+              <label class="form-label">Pièces jointes PDF (optionnel)</label>
+              <div class="file-drop-zone" id="fileDropZone">
+                <input type="file" id="meeting_files" accept=".pdf,application/pdf" multiple hidden>
+                <div class="file-drop-content">
+                  <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                  <span>Glisser-déposer vos PDF ici ou <button type="button" class="btn-link" id="fileBrowseBtn">parcourir</button></span>
+                  <span class="text-xs text-muted">PDF uniquement, 10 Mo max par fichier</span>
+                </div>
+                <div class="file-list" id="fileList"></div>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-lg" id="create_meeting_btn" style="flex-basis: 100%;">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
               Préparer la séance
             </button>

@@ -26,7 +26,7 @@ if ($toStatus === '') {
     api_fail('missing_to_status', 400, ['detail' => 'Le champ to_status est requis.']);
 }
 
-$validStatuses = ['draft', 'scheduled', 'frozen', 'live', 'closed', 'validated', 'archived'];
+$validStatuses = ['draft', 'scheduled', 'frozen', 'live', 'paused', 'closed', 'validated', 'archived'];
 if (!in_array($toStatus, $validStatuses, true)) {
     api_fail('invalid_status', 400, [
         'detail' => "Statut '$toStatus' invalide.",
@@ -96,6 +96,16 @@ switch ($toStatus) {
             $fields['scheduled_at'] = $now;
         }
         $fields['opened_by'] = $userId;
+        // Clear pause fields when resuming from paused
+        if ($fromStatus === 'paused') {
+            $fields['paused_at'] = null;
+            $fields['paused_by'] = null;
+        }
+        break;
+
+    case 'paused':
+        $fields['paused_at'] = date('Y-m-d H:i:s');
+        $fields['paused_by'] = $userId;
         break;
 
     case 'closed':

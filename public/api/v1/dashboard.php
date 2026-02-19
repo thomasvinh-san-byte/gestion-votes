@@ -28,7 +28,7 @@ $meetings = $meetingRepo->listForDashboard($tenantId);
 // Séance suggérée: live si existe sinon la première de la liste
 $suggested = null;
 foreach ($meetings as $m) {
-  if (($m['status'] ?? '') === 'live') { $suggested = $m['id']; break; }
+  if (in_array($m['status'] ?? '', ['live', 'paused'], true)) { $suggested = $m['id']; break; }
 }
 if ($suggested === null && count($meetings) > 0) $suggested = $meetings[0]['id'];
 

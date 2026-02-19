@@ -75,8 +75,16 @@ final class MeetingWorkflowService
             }
         }
 
+        // live → paused: block if a vote is actively open
+        if ($toStatus === 'paused' && $fromStatus === 'live') {
+            $openCount = self::countOpenMotions($meetingId);
+            if ($openCount > 0) {
+                $issues[] = ['code' => 'motion_open', 'msg' => "Impossible de mettre en pause : $openCount vote(s) en cours. Fermez le vote avant de mettre en pause."];
+            }
+        }
+
         // live → closed
-        if ($toStatus === 'closed' && $fromStatus === 'live') {
+        if ($toStatus === 'closed' && ($fromStatus === 'live' || $fromStatus === 'paused')) {
             $openCount = self::countOpenMotions($meetingId);
             if ($openCount > 0) {
                 $issues[] = ['code' => 'motion_open', 'msg' => "$openCount résolution(s) encore ouverte(s)"];

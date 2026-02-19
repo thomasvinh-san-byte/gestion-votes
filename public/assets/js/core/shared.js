@@ -79,6 +79,7 @@
     scheduled: { badge: 'badge-info',             text: 'Programmée' },
     frozen:    { badge: 'badge-info',             text: 'Verrouillée' },
     live:      { badge: 'badge-danger badge-dot', text: 'En cours' },
+    paused:    { badge: 'badge-warning',          text: 'En pause' },
     closed:    { badge: 'badge-success',          text: 'Terminée' },
     validated: { badge: 'badge-success',          text: 'Validée' },
     archived:  { badge: 'badge-neutral',          text: 'Archivée' }
