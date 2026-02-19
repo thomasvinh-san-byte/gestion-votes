@@ -340,10 +340,11 @@
       }
     }
 
-    // Priority: MeetingContext > saved localStorage > first meeting in list
+    // Priority: invitation token > MeetingContext > saved localStorage > first meeting in list
+    const invitationId = window._invitationMeetingId || null;
     const contextId = (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
     const saved = (localStorage.getItem("public.meeting_id") || "").trim();
-    const initialId = contextId || saved;
+    const initialId = invitationId || contextId || saved;
     if (initialId && meetings.some(x=>x.meeting_id===initialId)) {
       sel.value = initialId;
     } else if (meetings.length) {
@@ -447,15 +448,20 @@
       sel.setOptions(memberOptions);
     }
 
-    // Auto-select: 1) linked member (user_id→member), 2) saved localStorage, 3) name/email match
+    // Auto-select: 0) invitation token, 1) linked member (user_id→member), 2) saved localStorage, 3) name/email match
     const allValues = useSearchable
       ? memberOptions.map(o => String(o.value))
       : [...sel.options].map(o => o.value);
 
+    const invitationMemberId = window._invitationMemberId || null;
     const linkedId = window.Auth?.member?.id;
     const saved = (localStorage.getItem("public.member_id") || "").trim();
 
-    if (linkedId && allValues.includes(linkedId)) {
+    if (invitationMemberId && allValues.includes(invitationMemberId)) {
+      // Invitation token resolved this member — highest priority
+      sel.value = invitationMemberId;
+      localStorage.setItem("public.member_id", invitationMemberId);
+    } else if (linkedId && allValues.includes(linkedId)) {
       // Deterministic: user account is linked to a member record
       sel.value = linkedId;
       localStorage.setItem("public.member_id", linkedId);
@@ -790,6 +796,93 @@
     throw lastErr || new Error('Échec de l\'envoi du vote');
   }
 
+  // ─── Invitation token auto-connect ──────────────────────
+  let _invitationLocked = false;
+
+  /**
+   * Handle invitation token from URL (?token=xxx).
+   * Calls invitations_redeem to resolve meeting_id + member_id,
+   * then pre-selects both in the UI and locks the selectors.
+   * @returns {Promise<boolean>} true if token was handled
+   */
+  async function handleInvitationToken() {
+    const params = new URLSearchParams(window.location.search);
+    const token = (params.get('token') || '').trim();
+    if (!token) return false;
+
+    try {
+      const resp = await fetch('/api/v1/invitations_redeem.php?token=' + encodeURIComponent(token), {
+        credentials: 'same-origin'
+      });
+      const data = await resp.json();
+
+      if (!resp.ok || !data.ok) {
+        const code = data?.error || data?.detail || 'invalid_token';
+        const msgs = {
+          'missing_token': 'Lien d\u2019invitation incomplet.',
+          'invalid_token': 'Ce lien d\u2019invitation n\u2019est plus valide ou a expiré.',
+          'token_not_usable': 'Cette invitation a été déclinée ou est inutilisable.'
+        };
+        notify('error', msgs[code] || 'Lien d\u2019invitation invalide.');
+        return false;
+      }
+
+      const meetingId = data.data?.meeting_id || data.meeting_id;
+      const memberId = data.data?.member_id || data.member_id;
+      if (!meetingId || !memberId) return false;
+
+      // Store resolved IDs for auto-selection after meetings load
+      _invitationLocked = true;
+      window._invitationMeetingId = meetingId;
+      window._invitationMemberId = memberId;
+
+      // Persist so MeetingContext picks it up
+      localStorage.setItem('public.meeting_id', meetingId);
+      localStorage.setItem('public.member_id', memberId);
+      if (typeof MeetingContext !== 'undefined') {
+        MeetingContext.set(meetingId, { updateUrl: false });
+      }
+
+      // Clean token from URL to prevent accidental re-redemption
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('token');
+      window.history.replaceState({}, '', cleanUrl.toString());
+
+      return true;
+    } catch (e) {
+      notify('error', 'Impossible de vérifier l\u2019invitation. Vérifiez votre connexion.');
+      return false;
+    }
+  }
+
+  /**
+   * After meetings + members are loaded, force-select invitation IDs and lock selectors.
+   */
+  function applyInvitationLock() {
+    if (!_invitationLocked) return;
+
+    const meetingSel = $('#meetingSelect');
+    const memberSel = $('#memberSelect');
+
+    if (window._invitationMeetingId && meetingSel) {
+      meetingSel.value = window._invitationMeetingId;
+      if (meetingSel.setAttribute) meetingSel.setAttribute('disabled', 'disabled');
+    }
+    if (window._invitationMemberId && memberSel) {
+      memberSel.value = window._invitationMemberId;
+      if (memberSel.setAttribute) memberSel.setAttribute('disabled', 'disabled');
+      updateMemberFromSelect(memberSel);
+    }
+
+    // Show welcome banner
+    const memberName = memberSel?.selectedOption?.label
+      || memberSel?.options?.[memberSel.selectedIndex]?.textContent?.split('(')[0]?.trim()
+      || '';
+    if (memberName) {
+      notify('success', 'Bienvenue ' + memberName + ' — votre identité est confirmée.');
+    }
+  }
+
   function wire(){
     // Initialize MeetingContext if available
     if (typeof MeetingContext !== 'undefined') {
@@ -828,8 +921,17 @@
       });
     }
 
-    // Load meetings - MeetingContext handles URL param and persistence
-    loadMeetings().catch((e)=>notify("error", e?.message || String(e)));
+    // Handle invitation token BEFORE loading meetings
+    // This resolves meeting_id + member_id from the token so loadMeetings can auto-select
+    handleInvitationToken()
+      .then(() => loadMeetings())
+      .then(() => {
+        // After members loaded, apply invitation lock if token was used
+        if (_invitationLocked) {
+          applyInvitationLock();
+        }
+      })
+      .catch((e) => notify("error", e?.message || String(e)));
 
     // Poll current motion (disabled when WebSocket is connected)
     const _motionPollTimer = setInterval(()=>{
