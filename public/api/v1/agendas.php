@@ -16,13 +16,8 @@ $agendaRepo = new AgendaRepository();
 
 try {
     if ($method === 'GET') {
-        $meetingId = trim($_GET['meeting_id'] ?? '');
-
-        if ($meetingId === '') {
-            api_fail('missing_meeting_id', 422, [
-                'detail' => 'meeting_id est obligatoire.'
-            ]);
-        }
+        $q = api_request('GET');
+        $meetingId = api_require_uuid($q, 'meeting_id');
 
         if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);

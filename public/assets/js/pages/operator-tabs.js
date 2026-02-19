@@ -457,7 +457,7 @@
       membersCache = body?.data?.members || [];
       renderMembersCard();
     } catch (err) {
-      console.warn('loadMembers:', err.message);
+      setNotif('error', 'Erreur chargement membres');
     }
   }
 
@@ -725,7 +725,7 @@
         document.getElementById('settingConvocation').value = currentMeeting.convocation_no || 1;
       }
     } catch (err) {
-      console.warn('loadPolicies:', err.message);
+      setNotif('error', 'Erreur chargement politiques');
     }
   }
 
@@ -768,7 +768,7 @@
       // Assessors list
       renderAssessors(assessors);
     } catch (err) {
-      console.warn('loadRoles:', err.message);
+      setNotif('error', 'Erreur chargement rôles');
     }
   }
 
@@ -870,7 +870,7 @@
         document.getElementById('dashReadyReasons').innerHTML = ready.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('');
       }
     } catch (err) {
-      console.warn('loadDashboard:', err.message);
+      setNotif('error', 'Erreur chargement tableau de bord');
     }
   }
 
@@ -913,7 +913,7 @@
         }
       }
     } catch (err) {
-      console.warn('loadDevices:', err.message);
+      setNotif('error', 'Erreur chargement appareils');
     }
   }
 
@@ -1081,7 +1081,7 @@
       document.getElementById('tabCountResolutions').textContent = d.motions_total || 0;
       document.getElementById('tabCountPresences').textContent = d.present_count || 0;
     } catch (err) {
-      console.warn('loadStatusChecklist:', err.message);
+      setNotif('error', 'Erreur chargement checklist');
     }
   }
 
@@ -1265,7 +1265,7 @@
       attendanceCache = body?.data?.attendances || [];
       renderAttendance();
     } catch (err) {
-      console.warn('loadAttendance:', err.message);
+      setNotif('error', 'Erreur chargement présences');
     }
   }
 
@@ -1535,7 +1535,7 @@
       proxiesCache = body?.data?.proxies || body?.proxies || [];
       renderProxies();
     } catch (err) {
-      console.warn('loadProxies:', err.message);
+      setNotif('error', 'Erreur chargement procurations');
     }
   }
 
@@ -1781,7 +1781,7 @@
         }
       };
     } catch (err) {
-      console.error('Error in showAddProxyModal:', err);
+      setNotif('error', 'Erreur ouverture modale procuration');
       setNotif('error', 'Erreur lors de l\'ouverture du formulaire: ' + err.message);
     }
   }
@@ -1960,7 +1960,7 @@
       const countEl = document.getElementById('tabCountSpeech');
       if (countEl) countEl.textContent = speechQueueCache.length;
     } catch (err) {
-      console.warn('loadSpeechQueue:', err.message);
+      setNotif('error', 'Erreur chargement file de parole');
     }
   }
 
@@ -2179,7 +2179,7 @@
       renderResolutions();
       document.getElementById('tabCountResolutions').textContent = motionsCache.length;
     } catch (err) {
-      console.warn('loadResolutions:', err.message);
+      setNotif('error', 'Erreur chargement résolutions');
     }
   }
 
@@ -2571,7 +2571,7 @@
       setText('liveVoteAgainst', againstCount);
       setText('liveVoteAbstain', abstainCount);
     } catch (err) {
-      console.warn('loadBallots:', err.message);
+      setNotif('error', 'Erreur chargement bulletins');
     }
   }
 

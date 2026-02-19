@@ -86,7 +86,7 @@
           }
         }
       } catch (err) {
-        console.error('Meeting info error:', err);
+        setNotif('error', 'Erreur chargement informations séance');
       }
     }
 

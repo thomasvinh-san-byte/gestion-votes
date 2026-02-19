@@ -11,21 +11,8 @@ use AgVote\Repository\PolicyRepository;
 // Public access: voters and public display need this endpoint
 api_require_role('public');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    api_fail('method_not_allowed', 405);
-}
-
-$input = json_decode(file_get_contents('php://input'), true);
-if (!is_array($input)) {
-    $input = [];
-}
-
-$meetingId = $_GET['meeting_id'] ?? ($input['meeting_id'] ?? '');
-$meetingId = trim($meetingId);
-
-if ($meetingId === '') {
-    api_fail('missing_meeting_id', 400);
-}
+$q = api_request('GET');
+$meetingId = api_require_uuid($q, 'meeting_id');
 
 try {
     $meetingRepo = new MeetingRepository();

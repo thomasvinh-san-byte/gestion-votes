@@ -39,7 +39,7 @@
           }
         }
       } catch (err) {
-        console.error('Erreur info séance :', err);
+        setNotif('error', 'Erreur chargement informations séance');
       }
     }
 
@@ -96,7 +96,7 @@
           }
         }
       } catch (err) {
-        console.error('Erreur résumé :', err);
+        setNotif('error', 'Erreur chargement résumé');
       }
     }
 
