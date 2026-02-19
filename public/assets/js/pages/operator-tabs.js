@@ -2946,8 +2946,16 @@
     });
 
     try {
-      await api('/api/v1/motions_close.php', { meeting_id: currentMeetingId, motion_id: motionId });
-      setNotif('success', 'Vote clôturé');
+      const closeResult = await api('/api/v1/motions_close.php', { meeting_id: currentMeetingId, motion_id: motionId });
+      const closeData = closeResult.body?.data || {};
+      const eligibleCount = closeData.eligible_count || 0;
+      const votesCast = closeData.votes_cast || 0;
+      if (eligibleCount > 0 && votesCast < eligibleCount) {
+        const missing = eligibleCount - votesCast;
+        setNotif('warning', `Vote clôturé — ${missing} votant${missing > 1 ? 's' : ''} n'${missing > 1 ? 'ont' : 'a'} pas voté (${votesCast}/${eligibleCount})`);
+      } else {
+        setNotif('success', 'Vote clôturé');
+      }
       currentOpenMotion = null;
       ballotsCache = {};
       await loadResolutions();
@@ -3914,11 +3922,21 @@
         const sent = body.data?.sent || body.sent || 0;
         const skipped = body.data?.skipped || body.skipped || 0;
         const errors = body.data?.errors || body.errors || [];
+        const noEmail = body.data?.skipped_no_email || [];
 
         if (errors.length > 0) {
           setNotif('warning', `${sent} invitation${sent > 1 ? 's' : ''} envoyée${sent > 1 ? 's' : ''}, ${errors.length} erreur${errors.length > 1 ? 's' : ''}`);
         } else {
-          setNotif('success', `${sent} invitation${sent > 1 ? 's' : ''} envoyée${sent > 1 ? 's' : ''}${skipped > 0 ? ` (${skipped} déjà envoyée${skipped > 1 ? 's' : ''})` : ''}`);
+          let msg = `${sent} invitation${sent > 1 ? 's' : ''} envoyée${sent > 1 ? 's' : ''}`;
+          if (skipped > 0) msg += ` (${skipped} ignorée${skipped > 1 ? 's' : ''})`;
+          setNotif('success', msg);
+        }
+
+        // Warn about members without email addresses
+        if (noEmail.length > 0) {
+          const names = noEmail.slice(0, 5).map(n => escapeHtml(n)).join(', ');
+          const more = noEmail.length > 5 ? ` et ${noEmail.length - 5} autre${noEmail.length - 5 > 1 ? 's' : ''}` : '';
+          setNotif('warning', `${noEmail.length} membre${noEmail.length > 1 ? 's' : ''} sans email : ${names}${more}`);
         }
 
         await loadInvitationStats();
