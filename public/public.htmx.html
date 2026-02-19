@@ -295,14 +295,16 @@ async function loadResults(motionId, reveal = true) {
     // Decision - transform technical status to user-friendly labels
     const decisionEl = document.getElementById('decision_value');
     const statusLabels = {
-      'Adopte': 'Adopté',
-      'Rejete': 'Rejeté',
+      'adopted': 'Adopté',
+      'rejected': 'Rejeté',
       'no_votes': 'En attente',
+      'no_quorum': 'Quorum non atteint',
+      'no_policy': 'Sans politique',
       'pending': 'En cours'
     };
     const statusText = statusLabels[decision.status] || decision.status || '—';
     decisionEl.textContent = statusText;
-    decisionEl.className = 'decision-value ' + (decision.status === 'Adopte' ? 'adopted' : decision.status === 'Rejete' ? 'rejected' : 'pending');
+    decisionEl.className = 'decision-value ' + (decision.status === 'adopted' ? 'adopted' : decision.status === 'rejected' ? 'rejected' : 'pending');
 
     // Hide technical reason for no_votes status
     const reasonText = decision.status === 'no_votes' ? '' : (decision.reason || '');
@@ -313,7 +315,7 @@ async function loadResults(motionId, reveal = true) {
     if (quorum.applied) {
       quorumEl.textContent = quorum.met ? 'Atteint' : 'Non atteint';
       quorumEl.className = 'decision-value ' + (quorum.met ? 'adopted' : 'rejected');
-      document.getElementById('quorum_detail').textContent = `${fmtW(quorum.ratio ?? 0)} / ${fmtW(quorum.threshold ?? 0)}`;
+      document.getElementById('quorum_detail').textContent = `${Math.round((quorum.ratio ?? 0) * 100)}% / ${Math.round((quorum.threshold ?? 0) * 100)}%`;
     } else {
       quorumEl.textContent = 'N/A';
       quorumEl.className = 'decision-value pending';

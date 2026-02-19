@@ -25,6 +25,7 @@ try {
     }
 
     $meetingId = (string)$meeting['meeting_id'];
+    $tenantId  = api_current_tenant_id();
 
     // Motion ouverte (ACTIVE) : opened_at non null & closed_at null.
     $open = $motionRepo->findOpenForProjector($meetingId);
@@ -57,15 +58,21 @@ try {
         ];
     }
 
+    // KPI: total motions + eligible voter count
+    $totalMotions  = $motionRepo->countForMeeting($meetingId);
+    $eligibleCount = $meetingRepo->countActiveMembers($tenantId);
+
     api_ok([
         'meeting_id'     => $meetingId,
         'meeting_title'  => (string)$meeting['meeting_title'],
         'meeting_status' => (string)$meeting['meeting_status'],
         'phase'          => $phase,
         'motion'         => $motion,
+        'total_motions'  => $totalMotions,
+        'eligible_count' => $eligibleCount,
     ]);
 
-} catch (PDOException $e) {
-    error_log('Database error in projector_state.php: ' . $e->getMessage());
-    api_fail('database_error', 500);
+} catch (Throwable $e) {
+    error_log('Error in projector_state.php: ' . $e->getMessage());
+    api_fail('server_error', 500);
 }
