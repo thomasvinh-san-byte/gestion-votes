@@ -7,7 +7,12 @@ use AgVote\Repository\MeetingRepository;
 api_require_role('viewer');
 api_request('GET');
 
-$repo = new MeetingRepository();
-$rows = $repo->listArchivedWithReports(api_current_tenant_id());
+try {
+    $repo = new MeetingRepository();
+    $rows = $repo->listArchivedWithReports(api_current_tenant_id());
 
-api_ok(['items' => $rows]);
+    api_ok(['items' => $rows]);
+} catch (Throwable $e) {
+    error_log('Error in archives_list.php: ' . $e->getMessage());
+    api_fail('internal_error', 500);
+}

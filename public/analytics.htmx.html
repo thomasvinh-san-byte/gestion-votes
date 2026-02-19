@@ -244,8 +244,11 @@
       };
     }
     let COLORS = getCOLORS();
-    // Refresh colors when theme changes
-    new MutationObserver(() => { COLORS = getCOLORS(); }).observe(
+    // Refresh colors and rebuild charts when theme changes
+    new MutationObserver(() => {
+      COLORS = getCOLORS();
+      loadAllData();
+    }).observe(
       document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }
     );
 
@@ -300,7 +303,7 @@
     async function loadOverview() {
       const container = document.getElementById('overviewCards');
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=overview`);
+        const { body } = await api(`/api/v1/analytics.php?type=overview&period=${currentPeriod}`);
         const data = body?.data;
         if (!data) throw new Error('Données non disponibles');
 

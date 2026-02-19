@@ -57,7 +57,7 @@ function getOverview(
     AnalyticsRepository $analyticsRepo
 ): array {
     $totalMeetings = $analyticsRepo->countMeetings($tenantId);
-    $totalMembers = $memberRepo->countNotDeleted($tenantId);
+    $totalMembers = $memberRepo->countActiveNotDeleted($tenantId);
     $totalMotions = $analyticsRepo->countMotions($tenantId);
     $totalBallots = $analyticsRepo->countBallots($tenantId);
 
@@ -102,7 +102,7 @@ function getParticipation(
     int $limit
 ): array {
     $meetings = $analyticsRepo->getParticipationByMeeting($tenantId, $dateFrom, $limit);
-    $eligibleCount = $memberRepo->countNotDeleted($tenantId);
+    $eligibleCount = $memberRepo->countActiveNotDeleted($tenantId);
 
     $participation = [];
     foreach ($meetings as $m) {
