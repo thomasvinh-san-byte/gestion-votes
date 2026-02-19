@@ -25,35 +25,22 @@ $offset = max(0, (int)($_GET['offset'] ?? 0));
 
 $tenantId = api_current_tenant_id();
 
-$repo = new MeetingRepository();
+try {
+    $repo = new MeetingRepository();
 
-// Vérifier que la séance existe
-$meeting = $repo->findByIdForTenant($meetingId, $tenantId);
-if (!$meeting) {
-    api_fail('meeting_not_found', 404);
-}
-
-// Récupérer les événements liés à cette séance
-$events = $repo->listAuditEventsForLog($tenantId, $meetingId, $limit, $offset);
-
-// Compter le total
-$total = $repo->countAuditEventsForLog($tenantId, $meetingId);
-
-// Formatter les événements
-$formatted = [];
-foreach ($events as $e) {
-    $payload = [];
-    if (!empty($e['payload'])) {
-        try {
-            $payload = is_string($e['payload'])
-                ? json_decode($e['payload'], true) ?? []
-                : (array)$e['payload'];
-        } catch (\Throwable $ex) {
-            $payload = [];
-        }
+    // Vérifier que la séance existe
+    $meeting = $repo->findByIdForTenant($meetingId, $tenantId);
+    if (!$meeting) {
+        api_fail('meeting_not_found', 404);
     }
 
-    // Déterminer le label de l'action
+    // Récupérer les événements liés à cette séance
+    $events = $repo->listAuditEventsForLog($tenantId, $meetingId, $limit, $offset);
+
+    // Compter le total
+    $total = $repo->countAuditEventsForLog($tenantId, $meetingId);
+
+    // Labels d'action (défini une seule fois)
     $actionLabels = [
         'meeting_created' => 'Séance créée',
         'meeting_updated' => 'Séance modifiée',
@@ -76,42 +63,56 @@ foreach ($events as $e) {
         'quorum_lost' => 'Quorum perdu',
     ];
 
-    $actionLabel = $actionLabels[$e['action']] ?? ucfirst(str_replace('_', ' ', $e['action']));
+    // Formatter les événements
+    $formatted = [];
+    foreach ($events as $e) {
+        $payload = [];
+        if (!empty($e['payload'])) {
+            $payload = is_string($e['payload'])
+                ? (json_decode($e['payload'], true) ?? [])
+                : (array)$e['payload'];
+        }
 
-    // Construire le message
-    $message = $payload['message'] ?? $payload['detail'] ?? '';
-    if (empty($message) && isset($payload['member_name'])) {
-        $message = $payload['member_name'];
-    }
-    if (empty($message) && isset($payload['title'])) {
-        $message = $payload['title'];
+        $actionLabel = $actionLabels[$e['action']] ?? ucfirst(str_replace('_', ' ', $e['action']));
+
+        // Construire le message
+        $message = $payload['message'] ?? $payload['detail'] ?? '';
+        if (empty($message) && isset($payload['member_name'])) {
+            $message = $payload['member_name'];
+        }
+        if (empty($message) && isset($payload['title'])) {
+            $message = $payload['title'];
+        }
+
+        // Déterminer l'acteur
+        $actor = $e['actor_role'] ?? 'système';
+        if (!empty($payload['actor_name'])) {
+            $actor = $payload['actor_name'];
+        }
+
+        $formatted[] = [
+            'id' => $e['id'],
+            'timestamp' => $e['created_at'],
+            'action' => $e['action'],
+            'action_label' => $actionLabel,
+            'resource_type' => $e['resource_type'],
+            'resource_id' => $e['resource_id'],
+            'actor' => $actor,
+            'actor_role' => $e['actor_role'],
+            'message' => $message,
+            'ip_address' => $e['ip_address'],
+            'payload' => $payload,
+        ];
     }
 
-    // Déterminer l'acteur
-    $actor = $e['actor_role'] ?? 'système';
-    if (!empty($payload['actor_name'])) {
-        $actor = $payload['actor_name'];
-    }
-
-    $formatted[] = [
-        'id' => $e['id'],
-        'timestamp' => $e['created_at'],
-        'action' => $e['action'],
-        'action_label' => $actionLabel,
-        'resource_type' => $e['resource_type'],
-        'resource_id' => $e['resource_id'],
-        'actor' => $actor,
-        'actor_role' => $e['actor_role'],
-        'message' => $message,
-        'ip_address' => $e['ip_address'],
-        'payload' => $payload,
-    ];
+    api_ok([
+        'meeting_id' => $meetingId,
+        'total' => $total,
+        'limit' => $limit,
+        'offset' => $offset,
+        'events' => $formatted,
+    ]);
+} catch (Throwable $e) {
+    error_log('Error in audit_log.php: ' . $e->getMessage());
+    api_fail('internal_error', 500);
 }
-
-api_ok([
-    'meeting_id' => $meetingId,
-    'total' => $total,
-    'limit' => $limit,
-    'offset' => $offset,
-    'events' => $formatted,
-]);

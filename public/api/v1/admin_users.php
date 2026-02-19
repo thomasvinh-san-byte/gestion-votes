@@ -25,6 +25,8 @@ if ($method === 'GET') {
 
 $validSystemRoles = ['admin', 'operator', 'auditor', 'viewer'];
 
+try {
+
 $userRepo = new UserRepository();
 
 // ─── GET : lister les utilisateurs ───────────────────────────────
@@ -187,3 +189,8 @@ if ($method === 'POST') {
 }
 
 api_fail('method_not_allowed', 405);
+
+} catch (Throwable $e) {
+    error_log('Error in admin_users.php: ' . $e->getMessage());
+    api_fail('internal_error', 500);
+}

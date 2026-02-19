@@ -16,41 +16,46 @@ use AgVote\Repository\MeetingRepository;
 api_request('GET');
 api_require_role('admin');
 
-$userRepo    = new UserRepository();
-$meetingRepo = new MeetingRepository();
+try {
+    $userRepo    = new UserRepository();
+    $meetingRepo = new MeetingRepository();
 
-// Rôles
-$systemRoleLabels  = AuthMiddleware::getSystemRoleLabels();
-$meetingRoleLabels = AuthMiddleware::getMeetingRoleLabels();
-$statusLabels      = AuthMiddleware::getMeetingStatusLabels();
+    // Rôles
+    $systemRoleLabels  = AuthMiddleware::getSystemRoleLabels();
+    $meetingRoleLabels = AuthMiddleware::getMeetingRoleLabels();
+    $statusLabels      = AuthMiddleware::getMeetingStatusLabels();
 
-// Permissions depuis la DB
-$permissions = $userRepo->listRolePermissions();
+    // Permissions depuis la DB
+    $permissions = $userRepo->listRolePermissions();
 
-// Transitions
-$transitions = $meetingRepo->listStateTransitions();
+    // Transitions
+    $transitions = $meetingRepo->listStateTransitions();
 
-// Users par rôle système
-$usersByRole = $userRepo->countBySystemRole(api_current_tenant_id());
+    // Users par rôle système
+    $usersByRole = $userRepo->countBySystemRole(api_current_tenant_id());
 
-// Rôles de séance actifs (combien d'assignations actives par rôle)
-$meetingRoleCounts = $userRepo->countByMeetingRole(api_current_tenant_id());
+    // Rôles de séance actifs (combien d'assignations actives par rôle)
+    $meetingRoleCounts = $userRepo->countByMeetingRole(api_current_tenant_id());
 
-// Matrice permissions groupées par rôle
-$permByRole = [];
-foreach ($permissions as $p) {
-    $permByRole[$p['role']][] = [
-        'permission' => $p['permission'],
-        'description' => $p['description'],
-    ];
+    // Matrice permissions groupées par rôle
+    $permByRole = [];
+    foreach ($permissions as $p) {
+        $permByRole[$p['role']][] = [
+            'permission' => $p['permission'],
+            'description' => $p['description'],
+        ];
+    }
+
+    api_ok([
+        'system_roles' => $systemRoleLabels,
+        'meeting_roles' => $meetingRoleLabels,
+        'statuses' => $statusLabels,
+        'permissions_by_role' => $permByRole,
+        'state_transitions' => $transitions,
+        'users_by_system_role' => $usersByRole,
+        'meeting_role_counts' => $meetingRoleCounts,
+    ]);
+} catch (Throwable $e) {
+    error_log('Error in admin_roles.php: ' . $e->getMessage());
+    api_fail('internal_error', 500);
 }
-
-api_ok([
-    'system_roles' => $systemRoleLabels,
-    'meeting_roles' => $meetingRoleLabels,
-    'statuses' => $statusLabels,
-    'permissions_by_role' => $permByRole,
-    'state_transitions' => $transitions,
-    'users_by_system_role' => $usersByRole,
-    'meeting_role_counts' => $meetingRoleCounts,
-]);
