@@ -85,6 +85,11 @@
     voter: 'Électeur'
   };
 
+  function esc(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
   // =========================================================================
   // AUTH BANNER
   // =========================================================================
@@ -285,8 +290,8 @@
       '  <div style="margin-bottom:16px;"><svg class="icon" style="width:64px;height:64px;color:var(--color-danger);"><use href="/assets/icons.svg#icon-x-circle"></use></svg></div>' +
       '  <h2 style="margin-bottom:8px;">Accès refusé</h2>' +
       '  <p style="color:var(--color-text-secondary,#666);margin-bottom:24px;">' +
-      '    Cette page nécessite le rôle <strong>' + requiredLabels + '</strong>.<br>' +
-      '    Votre rôle actuel : <strong>' + roleLabel + '</strong>.' +
+      '    Cette page nécessite le rôle <strong>' + esc(requiredLabels) + '</strong>.<br>' +
+      '    Votre rôle actuel : <strong>' + esc(roleLabel) + '</strong>.' +
       '  </p>' +
       '  <div style="display:flex;gap:8px;justify-content:center;">' +
       '    <a href="/" class="btn btn-secondary">Retour à l\'accueil</a>' +

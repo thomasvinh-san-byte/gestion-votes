@@ -643,7 +643,7 @@
 
       memberDetailBody.innerHTML = `
         <div class="detail-header-row">
-          <div class="detail-avatar ${m.is_active ? 'is-active' : ''}">${initials}</div>
+          <div class="detail-avatar ${m.is_active ? 'is-active' : ''}">${escapeHtml(initials)}</div>
           <div>
             <div class="detail-name">${escapeHtml(name)}</div>
             <div class="detail-status">${m.is_active
@@ -743,7 +743,7 @@
 
         return `
           <article class="member-card ${cardClass}" data-member-id="${m.id}" data-action="open-detail" data-id="${m.id}" aria-label="${escapeHtml(name)}">
-            <div class="member-avatar">${initials}</div>
+            <div class="member-avatar">${escapeHtml(initials)}</div>
             <div class="member-card-body">
               <div class="member-card-main">
                 <h3 class="member-name">${escapeHtml(name)}</h3>

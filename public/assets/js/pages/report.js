@@ -86,10 +86,10 @@
       const email = document.getElementById('email').value.trim();
       const msgDiv = document.getElementById('emailMsg');
 
-      if (!email) {
+      if (!email || !Utils.isValidEmail(email)) {
         Shared.show(msgDiv, 'block');
         msgDiv.className = 'alert alert-danger';
-        msgDiv.textContent = 'Veuillez saisir une adresse email';
+        msgDiv.textContent = !email ? 'Veuillez saisir une adresse email' : 'Adresse email invalide';
         return;
       }
 

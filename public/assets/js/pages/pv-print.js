@@ -38,25 +38,31 @@
 
   async function load() {
     const mid = q('meeting_id');
+    const errors = [];
 
     let meeting = null;
     try {
       const raw = await fetchJson(`/api/v1/operator_workflow_state.php?meeting_id=${encodeURIComponent(mid)}`);
       meeting = raw?.data || raw;
-    } catch (_) {}
+    } catch (_) { errors.push('séance'); }
 
     let att = null;
     try {
       const raw = await fetchJson(`/api/v1/attendances.php?meeting_id=${encodeURIComponent(mid)}`);
       att = raw?.data || raw;
-    } catch (_) {}
+    } catch (_) { errors.push('présences'); }
     const members = att?.attendances || att?.members || [];
 
     let mot = null;
     try {
       const raw = await fetchJson(`/api/v1/motions_for_meeting.php?meeting_id=${encodeURIComponent(mid)}`);
       mot = raw?.data || raw;
-    } catch (_) {}
+    } catch (_) { errors.push('résolutions'); }
+
+    if (errors.length) {
+      const el = document.getElementById('pvMeta');
+      if (el) el.textContent += ' — Chargement partiel (données manquantes : ' + errors.join(', ') + ')';
+    }
     const motions = (mot?.motions || []).map(m => ({
       ...m,
       id: m.motion_id || m.id,

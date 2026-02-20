@@ -165,6 +165,7 @@
     const role = document.getElementById('newRole').value;
     const password = document.getElementById('newPassword').value;
     if (!name || !email) { setNotif('error', 'Nom et e-mail requis'); return; }
+    if (!Utils.isValidEmail(email)) { setNotif('error', 'Adresse e-mail invalide'); return; }
     if (!password || password.length < 8) { setNotif('error', 'Mot de passe requis (min. 8 caractères)'); return; }
     Shared.btnLoading(btn, true);
     try {
@@ -303,6 +304,7 @@
           const newEmail = modal.querySelector('#editEmail').value.trim();
           const newRole = modal.querySelector('#editRole').value;
           if (!newName || !newEmail) { setNotif('error', 'Nom et e-mail requis'); return false; }
+          if (!Utils.isValidEmail(newEmail)) { setNotif('error', 'Adresse e-mail invalide'); return false; }
           api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole})
             .then(function(r) {
               if (r.body && r.body.ok) { setNotif('success', 'Utilisateur mis à jour'); loadUsers(); }
