@@ -121,4 +121,15 @@ final class MembersController extends AbstractController
 
         api_ok(['member_id' => $id, 'deleted' => true]);
     }
+
+    public function presidents(): void
+    {
+        api_require_role('auditor');
+        api_request('GET');
+
+        $repo = new MemberRepository();
+        $rows = $repo->listActiveForPresident(api_current_tenant_id());
+
+        api_ok(['presidents' => $rows]);
+    }
 }

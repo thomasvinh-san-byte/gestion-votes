@@ -104,4 +104,24 @@ final class AgendaController extends AbstractController
 
         api_fail('method_not_allowed', 405);
     }
+
+    public function listForMeetingPublic(): void
+    {
+        api_require_role('public');
+        $q = api_request('GET');
+        $meetingId = api_require_uuid($q, 'meeting_id');
+
+        $meetingRepo = new MeetingRepository();
+        if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
+            api_fail('meeting_not_found', 404);
+        }
+
+        $agendaRepo = new AgendaRepository();
+        $rows = $agendaRepo->listForMeetingCompact($meetingId);
+
+        api_ok([
+            'meeting_id' => $meetingId,
+            'agendas'    => $rows,
+        ]);
+    }
 }

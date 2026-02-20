@@ -8,7 +8,7 @@ declare(strict_types=1);
  * Integrates: CSRF validation, Auth RBAC, Rate Limiting.
  */
 
-require __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 // =============================================================================
 // CACHE php://input (can only be read once)

@@ -8,7 +8,7 @@ use AgVote\Repository\MemberRepository;
 use AgVote\Core\Security\CsrfMiddleware;
 
 /**
- * Consolidates auth endpoints: login, logout, whoami, csrf.
+ * Consolidates auth endpoints: login, logout, whoami, csrf, ping.
  */
 final class AuthController extends AbstractController
 {
@@ -233,5 +233,28 @@ final class AuthController extends AbstractController
             'member' => $linkedMember,
             'meeting_roles' => $meetingRoles,
         ]);
+    }
+
+    public function csrf(): void
+    {
+        api_request('GET');
+
+        CsrfMiddleware::init();
+        $token = CsrfMiddleware::getToken();
+
+        api_ok([
+            'csrf_token'  => $token,
+            'header_name' => CsrfMiddleware::getHeaderName(),
+            'field_name'  => CsrfMiddleware::getTokenName(),
+        ]);
+    }
+
+    public function ping(): void
+    {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        if (!\AgVote\Core\Security\RateLimiter::check('ping', $ip, 60, 60, false)) {
+            api_fail('rate_limit_exceeded', 429);
+        }
+        api_ok(['ts' => date('c')]);
     }
 }

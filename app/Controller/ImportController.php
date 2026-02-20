@@ -8,6 +8,7 @@ use AgVote\Repository\MemberGroupRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\ProxyRepository;
+use AgVote\Repository\MotionRepository;
 use AgVote\Service\ImportService;
 
 final class ImportController extends AbstractController
@@ -819,6 +820,249 @@ final class ImportController extends AbstractController
         }
 
         $response = ['imported' => $imported, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20), 'dry_run' => $dryRun, 'max_proxies_per_receiver' => $maxProxiesPerReceiver];
+        if ($dryRun) $response['preview'] = array_slice($preview, 0, 50);
+        api_ok($response);
+    }
+
+    public function motionsCsv(): void
+    {
+        api_rate_limit('csv_import', 10, 3600);
+        api_require_role(['operator', 'admin']);
+        api_request('POST');
+
+        $meetingId = trim($_POST['meeting_id'] ?? '');
+        if (!api_is_uuid($meetingId)) {
+            api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
+        }
+
+        $tenantId = api_current_tenant_id();
+        $meetingRepo = new MeetingRepository();
+        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+        if (!$meeting) api_fail('meeting_not_found', 404);
+
+        if (in_array($meeting['status'], ['validated', 'archived'], true)) {
+            api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
+        }
+
+        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        $file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            api_fail('upload_error', 400, ['detail' => 'Fichier manquant ou erreur upload.']);
+        }
+
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if ($ext !== 'csv') api_fail('invalid_file_type', 400, ['detail' => 'Seuls les fichiers CSV sont acceptés.']);
+        if ($file['size'] > 5 * 1024 * 1024) api_fail('file_too_large', 400, ['detail' => 'Max 5 MB.']);
+
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($file['tmp_name']);
+        if (!in_array($mime, ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'], true)) {
+            api_fail('invalid_mime_type', 400, ['detail' => "Type non autorisé: {$mime}"]);
+        }
+
+        $handle = fopen($file['tmp_name'], 'r');
+        if (!$handle) api_fail('file_read_error', 500, ['detail' => 'Impossible d\'ouvrir le fichier CSV']);
+
+        $firstLine = fgets($handle);
+        rewind($handle);
+        $separator = strpos($firstLine, ';') !== false ? ';' : ',';
+
+        $headers = fgetcsv($handle, 0, $separator);
+        if (!$headers) { fclose($handle); api_fail('invalid_csv', 400, ['detail' => 'En-têtes CSV invalides.']); }
+        $headers = array_map(fn($h) => strtolower(trim($h)), $headers);
+
+        $columnMap = [
+            'title' => ['title', 'titre', 'intitule', 'intitulé', 'resolution', 'résolution'],
+            'description' => ['description', 'texte', 'content', 'contenu', 'detail', 'détail'],
+            'position' => ['position', 'ordre', 'order', 'rang', 'index'],
+            'secret' => ['secret', 'vote_secret', 'secret_vote', 'scrutin_secret'],
+        ];
+        $colIndex = self::mapColumns($headers, $columnMap);
+
+        if (!isset($colIndex['title'])) {
+            fclose($handle);
+            api_fail('missing_title_column', 400, ['detail' => 'Colonne "title" ou "titre" requise.', 'found' => $headers]);
+        }
+
+        $motionRepo = new MotionRepository();
+        $existingMotions = $motionRepo->countForMeeting($meetingId);
+        $nextPosition = $existingMotions + 1;
+
+        $imported = 0; $skipped = 0; $errors = []; $lineNumber = 1; $preview = [];
+
+        if (!$dryRun) db()->beginTransaction();
+
+        try {
+            while (($row = fgetcsv($handle, 0, $separator)) !== false) {
+                $lineNumber++;
+                if (empty(array_filter($row))) continue;
+
+                $title = trim($row[$colIndex['title']] ?? '');
+                $description = isset($colIndex['description']) ? trim($row[$colIndex['description']] ?? '') : null;
+
+                $position = null;
+                if (isset($colIndex['position'])) {
+                    $posVal = trim($row[$colIndex['position']] ?? '');
+                    if ($posVal !== '' && is_numeric($posVal)) $position = (int)$posVal;
+                }
+                if ($position === null) {
+                    $position = $nextPosition++;
+                } else {
+                    $nextPosition = max($nextPosition, $position + 1);
+                }
+
+                $secret = false;
+                if (isset($colIndex['secret'])) {
+                    $secretVal = strtolower(trim($row[$colIndex['secret']] ?? '0'));
+                    $secret = in_array($secretVal, ['1', 'true', 'oui', 'yes', 'secret'], true);
+                }
+
+                if (empty($title) || mb_strlen($title) < 2) {
+                    $errors[] = ['line' => $lineNumber, 'error' => 'Titre invalide ou trop court']; $skipped++; continue;
+                }
+                if (mb_strlen($title) > 500) {
+                    $errors[] = ['line' => $lineNumber, 'error' => 'Titre trop long (max 500 caractères)']; $skipped++; continue;
+                }
+
+                if ($dryRun) {
+                    $preview[] = [
+                        'line' => $lineNumber, 'title' => $title,
+                        'description' => $description ? mb_substr($description, 0, 100) . (mb_strlen($description) > 100 ? '...' : '') : null,
+                        'position' => $position, 'secret' => $secret,
+                    ];
+                } else {
+                    $motionId = $motionRepo->generateUuid();
+                    $motionRepo->create($motionId, $tenantId, $meetingId, null, $title, $description ?? '', $secret, null, null);
+                    $motionRepo->updatePosition($motionId, $tenantId, $position);
+                }
+                $imported++;
+            }
+            if (!$dryRun) db()->commit();
+        } catch (\Throwable $e) {
+            if (!$dryRun) db()->rollBack();
+            fclose($handle);
+            api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
+        }
+
+        fclose($handle);
+
+        if (!$dryRun && $imported > 0) {
+            audit_log('motions_import', 'motion', $meetingId, [
+                'imported' => $imported, 'skipped' => $skipped, 'filename' => $file['name'],
+            ], $meetingId);
+        }
+
+        $response = ['imported' => $imported, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20), 'dry_run' => $dryRun];
+        if ($dryRun) $response['preview'] = array_slice($preview, 0, 50);
+        api_ok($response);
+    }
+
+    public function motionsXlsx(): void
+    {
+        api_rate_limit('xlsx_import', 10, 3600);
+        api_require_role(['operator', 'admin']);
+        api_request('POST');
+
+        $meetingId = trim($_POST['meeting_id'] ?? '');
+        if (!api_is_uuid($meetingId)) {
+            api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
+        }
+
+        $tenantId = api_current_tenant_id();
+        $meetingRepo = new MeetingRepository();
+        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+        if (!$meeting) api_fail('meeting_not_found', 404);
+
+        if (in_array($meeting['status'], ['validated', 'archived'], true)) {
+            api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
+        }
+
+        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        $file = $_FILES['file'] ?? $_FILES['xlsx_file'] ?? null;
+        if (!$file) api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
+
+        $validation = ImportService::validateUploadedFile($file, 'xlsx');
+        if (!$validation['ok']) api_fail('invalid_file', 400, ['detail' => $validation['error']]);
+
+        $result = ImportService::readXlsxFile($file['tmp_name']);
+        if ($result['error']) api_fail('file_read_error', 400, ['detail' => $result['error']]);
+
+        $headers = $result['headers'];
+        $rows = $result['rows'];
+
+        $columnMap = ImportService::getMotionsColumnMap();
+        $colIndex = ImportService::mapColumns($headers, $columnMap);
+
+        if (!isset($colIndex['title'])) {
+            api_fail('missing_title_column', 400, ['detail' => 'Colonne "title" ou "titre" requise.', 'found' => $headers]);
+        }
+
+        $motionRepo = new MotionRepository();
+        $existingMotions = $motionRepo->countForMeeting($meetingId);
+        $nextPosition = $existingMotions + 1;
+
+        $imported = 0; $skipped = 0; $errors = []; $preview = [];
+
+        if (!$dryRun) db()->beginTransaction();
+
+        try {
+            foreach ($rows as $lineIndex => $row) {
+                $lineNumber = $lineIndex + 2;
+
+                $title = trim($row[$colIndex['title']] ?? '');
+                $description = isset($colIndex['description']) ? trim($row[$colIndex['description']] ?? '') : null;
+
+                $position = null;
+                if (isset($colIndex['position'])) {
+                    $posVal = trim($row[$colIndex['position']] ?? '');
+                    if ($posVal !== '' && is_numeric($posVal)) $position = (int)$posVal;
+                }
+                if ($position === null) {
+                    $position = $nextPosition++;
+                } else {
+                    $nextPosition = max($nextPosition, $position + 1);
+                }
+
+                $secret = false;
+                if (isset($colIndex['secret'])) {
+                    $secret = ImportService::parseBoolean($row[$colIndex['secret']] ?? '0');
+                }
+
+                if (empty($title) || mb_strlen($title) < 2) {
+                    $errors[] = ['line' => $lineNumber, 'error' => 'Titre invalide ou trop court']; $skipped++; continue;
+                }
+                if (mb_strlen($title) > 500) {
+                    $errors[] = ['line' => $lineNumber, 'error' => 'Titre trop long (max 500 caractères)']; $skipped++; continue;
+                }
+
+                if ($dryRun) {
+                    $preview[] = [
+                        'line' => $lineNumber, 'title' => $title,
+                        'description' => $description ? mb_substr($description, 0, 100) . (mb_strlen($description) > 100 ? '...' : '') : null,
+                        'position' => $position, 'secret' => $secret,
+                    ];
+                } else {
+                    $motionId = $motionRepo->generateUuid();
+                    $motionRepo->create($motionId, $tenantId, $meetingId, null, $title, $description ?? '', $secret, null, null);
+                    $motionRepo->updatePosition($motionId, $tenantId, $position);
+                }
+                $imported++;
+            }
+            if (!$dryRun) db()->commit();
+        } catch (\Throwable $e) {
+            if (!$dryRun) db()->rollBack();
+            api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
+        }
+
+        if (!$dryRun && $imported > 0) {
+            audit_log('motions_import_xlsx', 'motion', $meetingId, [
+                'imported' => $imported, 'skipped' => $skipped, 'filename' => $file['name'],
+            ], $meetingId);
+        }
+
+        $response = ['imported' => $imported, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20), 'dry_run' => $dryRun];
         if ($dryRun) $response['preview'] = array_slice($preview, 0, 50);
         api_ok($response);
     }

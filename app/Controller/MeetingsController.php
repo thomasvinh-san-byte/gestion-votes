@@ -8,6 +8,7 @@ use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Service\MeetingValidator;
+use AgVote\Service\MeetingReportService;
 use AgVote\Service\NotificationsService;
 
 /**
@@ -484,5 +485,43 @@ final class MeetingsController extends AbstractController
         }
 
         api_fail('method_not_allowed', 405);
+    }
+
+    public function validate(): void
+    {
+        api_require_role(['president', 'admin']);
+        $input = api_request('POST');
+
+        $meetingId = trim((string)($input['meeting_id'] ?? ''));
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
+            api_fail('invalid_meeting_id', 400);
+        }
+
+        api_guard_meeting_not_validated($meetingId);
+
+        $presidentName = trim((string)($input['president_name'] ?? ''));
+        if ($presidentName === '') {
+            api_fail('missing_president_name', 400);
+        }
+
+        $tenant = api_current_tenant_id();
+        $repo = new MeetingRepository();
+
+        $meeting = $repo->findByIdForTenant($meetingId, $tenant);
+        if (!$meeting) {
+            api_fail('meeting_not_found', 404);
+        }
+
+        try {
+            api_transaction(function () use ($repo, $meetingId, $tenant) {
+                $pvHtml = MeetingReportService::renderHtml($meetingId, true);
+                $repo->markValidated($meetingId, $tenant);
+                $repo->storePVHtml($meetingId, $pvHtml);
+            });
+
+            api_ok(['meeting_id' => $meetingId, 'status' => 'validated']);
+        } catch (\Throwable $e) {
+            api_fail('validation_failed', 500, ['detail' => $e->getMessage()]);
+        }
     }
 }
