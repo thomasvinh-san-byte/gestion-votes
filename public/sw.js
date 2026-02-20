@@ -35,14 +35,6 @@ const CACHEABLE_API_PATTERNS = [
   /\/api\/v1\/attendances\.php\?/,
 ];
 
-// API endpoints for offline queue (write operations)
-const QUEUEABLE_API_PATTERNS = [
-  /\/api\/v1\/ballots\.php$/,
-  /\/api\/v1\/attendances_upsert\.php$/,
-  /\/api\/v1\/motions_open\.php$/,
-  /\/api\/v1\/motions_close\.php$/,
-];
-
 // ============================================================================
 // Install Event
 // ============================================================================
@@ -95,11 +87,8 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET requests except for queueable API calls
+  // Skip non-GET requests (no offline queue)
   if (request.method !== 'GET') {
-    if (isQueueableApiRequest(url.pathname)) {
-      event.respondWith(handleQueueableRequest(request));
-    }
     return;
   }
 
@@ -125,10 +114,6 @@ function isStaticAsset(pathname) {
 
 function isCacheableApiRequest(pathname) {
   return CACHEABLE_API_PATTERNS.some(pattern => pattern.test(pathname));
-}
-
-function isQueueableApiRequest(pathname) {
-  return QUEUEABLE_API_PATTERNS.some(pattern => pattern.test(pathname));
 }
 
 function isHtmlRequest(request) {
@@ -233,84 +218,6 @@ async function staleWhileRevalidate(request, cacheName) {
   }
 
   return offlinePage();
-}
-
-// ============================================================================
-// Offline Queue for Write Operations
-// ============================================================================
-
-async function handleQueueableRequest(request) {
-  try {
-    const response = await fetch(request.clone());
-    return response;
-  } catch (error) {
-    // Network failed - queue for later
-    console.log('[SW] Queuing offline request:', request.url);
-
-    try {
-      const body = await request.clone().json();
-      await queueOfflineAction({
-        url: request.url,
-        method: request.method,
-        headers: Object.fromEntries(request.headers.entries()),
-        body: body,
-        timestamp: Date.now(),
-      });
-
-      return new Response(JSON.stringify({
-        ok: true,
-        queued: true,
-        message: 'Action mise en file d\'attente pour synchronisation'
-      }), {
-        status: 202,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    } catch (queueError) {
-      console.error('[SW] Failed to queue request:', queueError);
-      return offlineResponse('Impossible de mettre l\'action en file d\'attente');
-    }
-  }
-}
-
-/**
- * Queue an action for later sync using IndexedDB
- */
-async function queueOfflineAction(action) {
-  // Notify clients about the queued action
-  const clients = await self.clients.matchAll();
-  clients.forEach(client => {
-    client.postMessage({
-      type: 'OFFLINE_ACTION_QUEUED',
-      action: action
-    });
-  });
-
-  // Store in IndexedDB via message to main thread
-  // (IndexedDB access in SW is limited, so we delegate to client)
-}
-
-// ============================================================================
-// Background Sync
-// ============================================================================
-
-self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync triggered:', event.tag);
-
-  if (event.tag === 'sync-offline-actions') {
-    event.waitUntil(syncOfflineActions());
-  }
-});
-
-async function syncOfflineActions() {
-  console.log('[SW] Syncing offline actions...');
-
-  // Request sync from clients (they have IndexedDB access)
-  const clients = await self.clients.matchAll();
-  clients.forEach(client => {
-    client.postMessage({
-      type: 'SYNC_OFFLINE_ACTIONS'
-    });
-  });
 }
 
 // ============================================================================

@@ -120,8 +120,6 @@ final class Application
             define('DEFAULT_TENANT_ID', $tid);
         }
 
-        $GLOBALS['APP_TENANT_ID'] = DEFAULT_TENANT_ID;
-
         self::$debug = (bool)(self::$config['debug'] ?? false);
     }
 

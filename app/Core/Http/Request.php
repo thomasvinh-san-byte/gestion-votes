@@ -14,6 +14,9 @@ use AgVote\Core\Security\AuthMiddleware;
  */
 final class Request
 {
+    /** @var string|null Cached raw body (php://input can only be read once) */
+    private static ?string $cachedRawBody = null;
+
     private string $method;
     private array $query;
     private array $body;
@@ -26,11 +29,22 @@ final class Request
         $this->query  = $_GET;
         $this->method = strtoupper($this->server['REQUEST_METHOD'] ?? 'GET');
 
-        $this->rawBody = $GLOBALS['__ag_vote_raw_body']
-            ?? file_get_contents('php://input') ?: '';
+        $this->rawBody = self::getRawBody();
 
         $decoded = json_decode($this->rawBody, true);
         $this->body = is_array($decoded) ? $decoded : $_POST;
+    }
+
+    /**
+     * Get the raw request body, caching it for reuse.
+     * Central source of truth — replaces $GLOBALS['__ag_vote_raw_body'].
+     */
+    public static function getRawBody(): string
+    {
+        if (self::$cachedRawBody === null) {
+            self::$cachedRawBody = file_get_contents('php://input') ?: '';
+        }
+        return self::$cachedRawBody;
     }
 
     // ── HTTP method ─────────────────────────────────────────────────────

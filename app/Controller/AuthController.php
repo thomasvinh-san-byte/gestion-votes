@@ -18,8 +18,7 @@ final class AuthController extends AbstractController
             api_fail('method_not_allowed', 405);
         }
 
-        // Use cached raw body (api.php already cached it in $GLOBALS)
-        $rawBody = $GLOBALS['__ag_vote_raw_body'] ?? '';
+        $rawBody = \AgVote\Core\Http\Request::getRawBody();
         $input = json_decode($rawBody, true);
         if (!is_array($input)) {
             $input = $_POST;

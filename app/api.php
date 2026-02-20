@@ -27,13 +27,8 @@ set_exception_handler(function (\Throwable $e) {
     echo json_encode(['ok' => false, 'error' => 'internal_error'], JSON_UNESCAPED_UNICODE);
 });
 
-// =============================================================================
-// CACHE php://input (can only be read once)
-// Both CSRF middleware and api_request() need it.
-// =============================================================================
-if (!isset($GLOBALS['__ag_vote_raw_body'])) {
-    $GLOBALS['__ag_vote_raw_body'] = file_get_contents('php://input') ?: '';
-}
+// Eagerly cache php://input (can only be read once)
+\AgVote\Core\Http\Request::getRawBody();
 
 // =============================================================================
 // API FUNCTIONS - JSON RESPONSES
@@ -125,8 +120,8 @@ function api_request(string ...$methods): array {
         ]);
     }
 
-    // Parse JSON or POST body (uses global cache)
-    $raw = $GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input');
+    // Parse JSON or POST body
+    $raw = \AgVote\Core\Http\Request::getRawBody();
     $data = json_decode($raw ?: '', true);
 
     if (!is_array($data)) {
