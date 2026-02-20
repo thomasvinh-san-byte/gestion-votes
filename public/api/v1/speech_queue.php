@@ -1,35 +1,4 @@
 <?php
-// public/api/v1/speech_queue.php
 declare(strict_types=1);
-
 require __DIR__ . '/../../../app/api.php';
-
-use AgVote\Service\SpeechService;
-
-try {
-    api_require_role('public');
-    $q = api_request('GET');
-    $meetingId = api_require_uuid($q, 'meeting_id');
-    $out = SpeechService::getQueue($meetingId);
-
-    // Process queue with frontend-expected field aliases
-    $queue = $out['queue'] ?? [];
-    foreach ($queue as &$item) {
-        $item['member_name'] = $item['full_name'] ?? $item['member_name'] ?? '';
-        $item['requested_at'] = $item['created_at'] ?? null;
-    }
-    unset($item);
-
-    // Return both speaker and queue (for operator console)
-    api_ok([
-        'speaker' => $out['speaker'] ?? null,
-        'queue' => $queue,
-    ]);
-} catch (InvalidArgumentException $e) {
-    api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);
-} catch (RuntimeException $e) {
-    api_fail('business_error', 400, ['detail' => $e->getMessage()]);
-} catch (Throwable $e) {
-    error_log('Error in speech_queue.php: ' . $e->getMessage());
-    api_fail('internal_error', 500, ['detail' => 'Erreur interne du serveur']);
-}
+(new \AgVote\Controller\SpeechController())->handle('queue');

@@ -173,7 +173,7 @@
    * @param {*} x - Value to escape
    * @returns {string} Escaped string
    */
-  function escapeHtml(x){ return (window.Utils?.escapeHtml ? Utils.escapeHtml(x) : String(x ?? "")); }
+  function escapeHtml(x){ return Utils.escapeHtml(x); }
 
   // -----------------------------
   // Policy labels (visual indicator of overrides)
