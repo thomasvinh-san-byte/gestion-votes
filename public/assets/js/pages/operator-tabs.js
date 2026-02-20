@@ -1,7 +1,13 @@
 /**
  * operator-tabs.js — Tab-based operator console for AG-VOTE (Diligent-style)
  * Requires: utils.js, shared.js, shell.js
+ *
+ * Sub-modules (loaded after this file):
+ *   operator-speech.js, operator-attendance.js, operator-motions.js
+ * Communication via window.OpS bridge (state + function registry).
  */
+window.OpS = { fn: {} };
+
 (function() {
   'use strict';
 
@@ -4478,6 +4484,97 @@
 
   // Expose switchTab globally
   window.switchTab = switchTab;
+
+  // =========================================================================
+  // OPS BRIDGE — shared state & function registry for sub-modules
+  // =========================================================================
+
+  const _ops = window.OpS;
+
+  // State proxy: each property delegates to the local IIFE variable.
+  // Sub-modules read/write via OpS.xxx; main file uses bare variables as before.
+  function _defState(name, getter, setter) {
+    Object.defineProperty(_ops, name, {
+      get: getter, set: setter, enumerable: true, configurable: true
+    });
+  }
+
+  _defState('currentMeetingId',     () => currentMeetingId,     v => { currentMeetingId = v; });
+  _defState('currentMeetingStatus', () => currentMeetingStatus, v => { currentMeetingStatus = v; });
+  _defState('currentMeeting',       () => currentMeeting,       v => { currentMeeting = v; });
+  _defState('currentMode',          () => currentMode,          v => { currentMode = v; });
+  _defState('attendanceCache',      () => attendanceCache,      v => { attendanceCache = v; });
+  _defState('motionsCache',         () => motionsCache,         v => { motionsCache = v; });
+  _defState('currentOpenMotion',    () => currentOpenMotion,    v => { currentOpenMotion = v; });
+  _defState('previousOpenMotionId', () => previousOpenMotionId, v => { previousOpenMotionId = v; });
+  _defState('ballotsCache',         () => ballotsCache,         v => { ballotsCache = v; });
+  _defState('ballotSourceCache',    () => ballotSourceCache,    v => { ballotSourceCache = v; });
+  _defState('usersCache',           () => usersCache,           v => { usersCache = v; });
+  _defState('policiesCache',        () => policiesCache,        v => { policiesCache = v; });
+  _defState('proxiesCache',         () => proxiesCache,         v => { proxiesCache = v; });
+  _defState('membersCache',         () => membersCache,         v => { membersCache = v; });
+  _defState('speechQueueCache',     () => speechQueueCache,     v => { speechQueueCache = v; });
+  _defState('currentSpeakerCache',  () => currentSpeakerCache,  v => { currentSpeakerCache = v; });
+  _defState('speechTimerInterval',  () => speechTimerInterval,  v => { speechTimerInterval = v; });
+  _defState('previousQueueIds',     () => previousQueueIds,     v => { previousQueueIds = v; });
+  _defState('execSpeechTimerInterval', () => execSpeechTimerInterval, v => { execSpeechTimerInterval = v; });
+  _defState('lastSetupTab',         () => lastSetupTab,         v => { lastSetupTab = v; });
+
+  // Core utilities — sub-modules use these directly
+  _ops.createModal   = createModal;
+  _ops.closeModal    = closeModal;
+  _ops.confirmModal  = confirmModal;
+  _ops.setText       = setText;
+  _ops.announce      = announce;
+  _ops.TRANSITIONS   = TRANSITIONS;
+
+  // Function registry — sub-modules call main-file functions via OpS.fn.xxx()
+  // When a sub-module replaces a function, it overwrites the entry here.
+  _ops.fn.loadStatusChecklist      = loadStatusChecklist;
+  _ops.fn.checkLaunchReady         = checkLaunchReady;
+  _ops.fn.updateQuickStats         = updateQuickStats;
+  _ops.fn.loadMembers              = loadMembers;
+  _ops.fn.loadAttendance           = loadAttendance;
+  _ops.fn.renderAttendance         = renderAttendance;
+  _ops.fn.loadProxies              = loadProxies;
+  _ops.fn.renderProxies            = renderProxies;
+  _ops.fn.loadResolutions          = loadResolutions;
+  _ops.fn.renderResolutions        = renderResolutions;
+  _ops.fn.loadSpeechQueue          = loadSpeechQueue;
+  _ops.fn.renderCurrentSpeaker     = renderCurrentSpeaker;
+  _ops.fn.renderSpeechQueue        = renderSpeechQueue;
+  _ops.fn.grantSpeech              = grantSpeech;
+  _ops.fn.nextSpeaker              = nextSpeaker;
+  _ops.fn.endCurrentSpeech         = endCurrentSpeech;
+  _ops.fn.cancelSpeechRequest      = cancelSpeechRequest;
+  _ops.fn.clearSpeechHistory       = clearSpeechHistory;
+  _ops.fn.showAddToQueueModal      = showAddToQueueModal;
+  _ops.fn.loadBallots              = loadBallots;
+  _ops.fn.loadVoteTab              = loadVoteTab;
+  _ops.fn.renderManualVoteList     = renderManualVoteList;
+  _ops.fn.refreshExecView          = refreshExecView;
+  _ops.fn.refreshExecManualVotes   = refreshExecManualVotes;
+  _ops.fn.setMode                  = setMode;
+  _ops.fn.switchTab                = switchTab;
+  _ops.fn.loadMeetingContext       = loadMeetingContext;
+  _ops.fn.loadMeetings             = loadMeetings;
+  _ops.fn.renderConformityChecklist = renderConformityChecklist;
+  _ops.fn.refreshAlerts            = refreshAlerts;
+  _ops.fn.updateAttendance         = updateAttendance;
+  _ops.fn.markAllPresent           = markAllPresent;
+  _ops.fn.showImportCSVModal       = showImportCSVModal;
+  _ops.fn.showAddProxyModal        = showAddProxyModal;
+  _ops.fn.showImportProxiesCSVModal = showImportProxiesCSVModal;
+  _ops.fn.revokeProxy              = revokeProxy;
+  _ops.fn.createResolution         = createResolution;
+  _ops.fn.openVote                 = openVote;
+  _ops.fn.closeVote                = closeVote;
+  _ops.fn.castManualVote           = castManualVote;
+  _ops.fn.applyUnanimity           = applyUnanimity;
+  _ops.fn.loadResults              = loadResults;
+  _ops.fn.closeSession             = closeSession;
+  _ops.fn.doTransition             = doTransition;
+  _ops.fn.initializePreviousMotionState = initializePreviousMotionState;
 
   initTabs();
   startClock();
