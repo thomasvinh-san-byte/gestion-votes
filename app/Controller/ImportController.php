@@ -166,6 +166,7 @@ final class ImportController extends AbstractController
                 $imported++;
             }
             db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             db()->rollBack();
             fclose($handle);
@@ -286,6 +287,7 @@ final class ImportController extends AbstractController
                 $imported++;
             }
             db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             db()->rollBack();
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
@@ -404,6 +406,7 @@ final class ImportController extends AbstractController
                 $imported++;
             }
             if (!$dryRun) db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (!$dryRun) db()->rollBack();
             fclose($handle);
@@ -511,6 +514,7 @@ final class ImportController extends AbstractController
                 $imported++;
             }
             if (!$dryRun) db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (!$dryRun) db()->rollBack();
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
@@ -661,6 +665,7 @@ final class ImportController extends AbstractController
                 $imported++;
             }
             if (!$dryRun) db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (!$dryRun) db()->rollBack();
             fclose($handle);
@@ -796,6 +801,7 @@ final class ImportController extends AbstractController
                 $imported++;
             }
             if (!$dryRun) db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (!$dryRun) db()->rollBack();
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
@@ -925,6 +931,7 @@ final class ImportController extends AbstractController
                 $imported++;
             }
             if (!$dryRun) db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (!$dryRun) db()->rollBack();
             fclose($handle);
@@ -1035,6 +1042,7 @@ final class ImportController extends AbstractController
                 $imported++;
             }
             if (!$dryRun) db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (!$dryRun) db()->rollBack();
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);

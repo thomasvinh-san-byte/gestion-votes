@@ -93,6 +93,7 @@ final class EmailController extends AbstractController
                 'scheduled_at' => $scheduledAt ?? 'immediate',
                 'errors' => $result['errors'],
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             error_log('Error in EmailController::schedule: ' . $e->getMessage());
             api_fail('server_error', 500, ['detail' => $e->getMessage()]);

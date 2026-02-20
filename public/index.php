@@ -76,7 +76,11 @@ $candidate = $uriWithoutPhp . '.php';
 $filePath = __DIR__ . $candidate;
 
 if (file_exists($filePath) && is_file($filePath)) {
-    require $filePath;
+    try {
+        require $filePath;
+    } catch (\AgVote\Core\Http\ApiResponseException $e) {
+        $e->getResponse()->send();
+    }
     exit;
 }
 

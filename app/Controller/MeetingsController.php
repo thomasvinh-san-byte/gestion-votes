@@ -506,6 +506,7 @@ final class MeetingsController extends AbstractController
             });
 
             api_ok(['meeting_id' => $meetingId, 'status' => 'validated']);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             api_fail('validation_failed', 500, ['detail' => $e->getMessage()]);
         }

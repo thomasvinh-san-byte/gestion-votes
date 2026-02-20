@@ -153,6 +153,7 @@ final class MeetingWorkflowController extends AbstractController
 
         try {
             EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), $toStatus, $fromStatus);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
         }
 
@@ -273,7 +274,8 @@ final class MeetingWorkflowController extends AbstractController
 
             try {
                 EventBroadcaster::meetingStatusChanged($meetingId, $tenant, 'live', $fromStatus);
-            } catch (\Throwable $e) {
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) {
             }
 
             api_ok([
@@ -284,6 +286,7 @@ final class MeetingWorkflowController extends AbstractController
                 'transitioned_at' => date('c'),
                 'warnings' => $workflowCheck['warnings'] ?? [],
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
@@ -521,6 +524,7 @@ final class MeetingWorkflowController extends AbstractController
             db()->commit();
 
             api_ok(['ok' => true, 'meeting_id' => $meetingId]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             db()->rollBack();
             api_fail('reset_failed', 500, ['detail' => 'Reset demo échoué']);

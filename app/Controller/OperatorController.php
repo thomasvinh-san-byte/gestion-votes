@@ -341,6 +341,7 @@ final class OperatorController extends AbstractController
                 'generated' => $inserted,
                 'tokens' => $listTokens ? $tokensOut : null,
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (db()->inTransaction()) {
                 db()->rollBack();
@@ -418,6 +419,7 @@ final class OperatorController extends AbstractController
                     'max' => $proxyMax,
                 ];
             }
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             $proxyCeilings = [];
         }

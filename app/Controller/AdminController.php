@@ -337,6 +337,7 @@ final class AdminController extends AbstractController
         try {
             $free = @disk_free_space($path);
             $total = @disk_total_space($path);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             $free = null;
             $total = null;
@@ -363,6 +364,7 @@ final class AdminController extends AbstractController
                 'count_audit_events' => $cntAud,
                 'auth_failures_15m' => $fail15,
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
         }
 
@@ -386,7 +388,8 @@ final class AdminController extends AbstractController
                 if (!$userRepo->findRecentAlert($a['code'])) {
                     $userRepo->insertSystemAlert($a['code'], $a['severity'], $a['message'], json_encode($a['details']));
                 }
-            } catch (\Throwable $e) {
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) {
             }
         }
 

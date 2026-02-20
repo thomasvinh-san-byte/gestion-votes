@@ -76,6 +76,7 @@ final class VoteTokenController extends AbstractController
                 ];
             }
             db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             db()->rollBack();
             api_fail('token_generation_failed', 500, ['detail' => 'Erreur lors de la génération des tokens.']);

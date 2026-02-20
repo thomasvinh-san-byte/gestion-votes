@@ -74,6 +74,7 @@ final class QuorumController extends AbstractController
             echo '  </div>';
             echo '</section>';
 
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             error_log("quorum_card error: " . $e->getMessage());
             $safe = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');

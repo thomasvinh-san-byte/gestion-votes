@@ -138,7 +138,8 @@ final class AttendancesController extends AbstractController
             try {
                 $stats = $attendanceRepo->getStatsByMode($meetingId, $tenantId);
                 EventBroadcaster::attendanceUpdated($meetingId, $stats);
-            } catch (\Throwable $e) {
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) {
                 // Don't fail if broadcast fails
             }
 
@@ -148,6 +149,7 @@ final class AttendancesController extends AbstractController
                 'total' => $created + $updated,
                 'mode' => $mode,
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             db()->rollBack();
             api_fail('database_error', 500, ['detail' => $e->getMessage()]);

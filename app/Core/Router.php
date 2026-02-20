@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace AgVote\Core;
 
+use AgVote\Core\Http\ApiResponseException;
 use AgVote\Core\Middleware\MiddlewareInterface;
 use AgVote\Core\Middleware\RoleMiddleware;
 use AgVote\Core\Middleware\RateLimitGuard;
@@ -114,22 +115,27 @@ final class Router
         // Strip .php extension for matching
         $uriWithoutPhp = preg_replace('/\.php$/', '', $uri);
 
-        // Try exact match first
-        if (isset($this->routes[$uri])) {
-            return $this->dispatchRoute($this->routes[$uri], $httpMethod);
-        }
+        try {
+            // Try exact match first
+            if (isset($this->routes[$uri])) {
+                return $this->dispatchRoute($this->routes[$uri], $httpMethod);
+            }
 
-        // Try without .php
-        if ($uriWithoutPhp !== $uri && isset($this->routes[$uriWithoutPhp])) {
-            return $this->dispatchRoute($this->routes[$uriWithoutPhp], $httpMethod);
-        }
+            // Try without .php
+            if ($uriWithoutPhp !== $uri && isset($this->routes[$uriWithoutPhp])) {
+                return $this->dispatchRoute($this->routes[$uriWithoutPhp], $httpMethod);
+            }
 
-        // Try special routes
-        if (isset($this->specialRoutes[$uri])) {
-            return $this->dispatchSpecial($this->specialRoutes[$uri]);
-        }
-        if ($uriWithoutPhp !== $uri && isset($this->specialRoutes[$uriWithoutPhp])) {
-            return $this->dispatchSpecial($this->specialRoutes[$uriWithoutPhp]);
+            // Try special routes
+            if (isset($this->specialRoutes[$uri])) {
+                return $this->dispatchSpecial($this->specialRoutes[$uri]);
+            }
+            if ($uriWithoutPhp !== $uri && isset($this->specialRoutes[$uriWithoutPhp])) {
+                return $this->dispatchSpecial($this->specialRoutes[$uriWithoutPhp]);
+            }
+        } catch (ApiResponseException $e) {
+            $e->getResponse()->send();
+            return true;
         }
 
         return false;

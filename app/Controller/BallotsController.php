@@ -134,7 +134,8 @@ final class BallotsController extends AbstractController
                     'ballot_cancelled' => true,
                     'member_id' => $memberId,
                 ]);
-            } catch (\Throwable $e) {
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) {
                 // Don't fail if broadcast fails
             }
 
@@ -143,6 +144,7 @@ final class BallotsController extends AbstractController
                 'motion_id' => $motionId,
                 'member_id' => $memberId,
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (db()->inTransaction()) {
                 db()->rollBack();
@@ -248,6 +250,7 @@ final class BallotsController extends AbstractController
             ], $meetingId);
 
             api_ok(['ballot_id' => $ballotId, 'value' => $value, 'source' => 'manual']);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             db()->rollBack();
             $msg = $e->getMessage();
@@ -292,6 +295,7 @@ final class BallotsController extends AbstractController
             $ballotRepo->markPaperBallotUsed($pb['id'], (string)$pb['tenant_id']);
             $manualRepo->createPaperBallotAction($pb['tenant_id'], $pb['meeting_id'], $pb['motion_id'], $vote, $just);
             db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             db()->rollBack();
             api_fail('paper_ballot_redeem_failed', 500, ['detail' => 'Erreur lors de l\'enregistrement du vote papier.']);

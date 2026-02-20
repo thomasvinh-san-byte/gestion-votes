@@ -470,6 +470,7 @@ final class MotionsController extends AbstractController
                 'vote_policy_id' => $votePolicyId,
                 'quorum_policy_id' => $quorumPolicyId,
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             error_log('[motions_open] audit_log failed: ' . $e->getMessage());
         }
@@ -479,6 +480,7 @@ final class MotionsController extends AbstractController
                 'title' => (string)$motion['title'],
                 'secret' => (bool)$motion['secret'],
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             error_log('[motions_open] EventBroadcaster failed: ' . $e->getMessage());
         }
@@ -537,7 +539,8 @@ final class MotionsController extends AbstractController
 
             try {
                 VoteTokenService::revokeForMotion($motionId, api_current_tenant_id());
-            } catch (\Throwable $tokenErr) {
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $tokenErr) {
                 error_log('[motions_close] token revocation failed after commit: ' . $tokenErr->getMessage());
             }
 
@@ -545,7 +548,8 @@ final class MotionsController extends AbstractController
                 audit_log('motion_closed', 'motion', $motionId, [
                     'meeting_id' => (string)$motion['meeting_id'],
                 ]);
-            } catch (\Throwable $auditErr) {
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $auditErr) {
                 error_log('[motions_close] audit_log failed after commit: ' . $auditErr->getMessage());
             }
 
@@ -558,7 +562,8 @@ final class MotionsController extends AbstractController
                     'decision' => $o['decision'] ?? 'unknown',
                     'reason' => $o['reason'] ?? null,
                 ]);
-            } catch (\Throwable $wsErr) {
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $wsErr) {
                 error_log('[motions_close] EventBroadcaster failed after commit: ' . $wsErr->getMessage());
             }
 
@@ -570,7 +575,8 @@ final class MotionsController extends AbstractController
                     api_current_tenant_id(),
                     ['present', 'remote']
                 );
-            } catch (\Throwable $e) { /* non-critical */ }
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) { /* non-critical */ }
 
             api_ok([
                 'meeting_id'       => (string)$motion['meeting_id'],
@@ -586,6 +592,7 @@ final class MotionsController extends AbstractController
                 'eligible_count'   => $eligibleCount,
                 'votes_cast'       => $o['total'] ?? 0,
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (db()->inTransaction()) {
                 db()->rollBack();

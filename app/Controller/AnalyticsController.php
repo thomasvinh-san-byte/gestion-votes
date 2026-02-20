@@ -43,6 +43,7 @@ final class AnalyticsController extends AbstractController
             };
 
             api_ok($data);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             error_log('Error in AnalyticsController::analytics: ' . $e->getMessage());
             api_fail('server_error', 500, ['detail' => $e->getMessage()]);
