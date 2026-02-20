@@ -32,7 +32,7 @@ final class VoteTokenService
         string $memberId,
         string $motionId,
         int $ttlSeconds = self::DEFAULT_TTL_SECONDS,
-        ?string $tenantId = null
+        string $tenantId
     ): array {
         $meetingId = trim($meetingId);
         $memberId  = trim($memberId);
@@ -41,9 +41,6 @@ final class VoteTokenService
         if ($meetingId === '' || $memberId === '' || $motionId === '') {
             throw new InvalidArgumentException('meeting_id, member_id et motion_id sont obligatoires');
         }
-
-        // Resolve tenant
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $meetingRepo = new MeetingRepository();
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {

@@ -110,9 +110,9 @@
       return new Date(dateB) - new Date(dateA);
     }
     if (currentSortMode === 'date_asc') {
-      var dateA2 = a.scheduled_at || a.created_at || '';
-      var dateB2 = b.scheduled_at || b.created_at || '';
-      return new Date(dateA2) - new Date(dateB2);
+      var dateA = a.scheduled_at || a.created_at || '';
+      var dateB = b.scheduled_at || b.created_at || '';
+      return new Date(dateA) - new Date(dateB);
     }
     if (currentSortMode === 'title') {
       return (a.title || '').localeCompare(b.title || '', 'fr');

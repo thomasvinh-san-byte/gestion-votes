@@ -164,7 +164,7 @@ final class AnalyticsController extends AbstractController
     private static function getOverview(string $tenantId, MemberRepository $memberRepo, AnalyticsRepository $analyticsRepo): array
     {
         $totalMeetings = $analyticsRepo->countMeetings($tenantId);
-        $totalMembers = $memberRepo->countActiveNotDeleted($tenantId);
+        $totalMembers = $memberRepo->countActive($tenantId);
         $totalMotions = $analyticsRepo->countMotions($tenantId);
         $totalBallots = $analyticsRepo->countBallots($tenantId);
 
@@ -193,7 +193,7 @@ final class AnalyticsController extends AbstractController
     private static function getParticipation(string $tenantId, string $dateFrom, MemberRepository $memberRepo, AnalyticsRepository $analyticsRepo, int $limit): array
     {
         $meetings = $analyticsRepo->getParticipationByMeeting($tenantId, $dateFrom, $limit);
-        $eligibleCount = $memberRepo->countActiveNotDeleted($tenantId);
+        $eligibleCount = $memberRepo->countActive($tenantId);
 
         $participation = [];
         foreach ($meetings as $m) {

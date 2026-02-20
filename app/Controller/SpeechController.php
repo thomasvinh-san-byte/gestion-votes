@@ -127,8 +127,9 @@ final class SpeechController extends AbstractController
         api_rate_limit('speech_queue', 120, 60);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
+        $tenantId = api_current_tenant_id();
 
-        $out = SpeechService::getQueue($meetingId);
+        $out = SpeechService::getQueue($meetingId, $tenantId);
 
         $queue = $out['queue'] ?? [];
         foreach ($queue as &$item) {
@@ -149,8 +150,9 @@ final class SpeechController extends AbstractController
         api_rate_limit('speech_current', 120, 60);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
+        $tenantId = api_current_tenant_id();
 
-        $out = SpeechService::getQueue($meetingId);
+        $out = SpeechService::getQueue($meetingId, $tenantId);
         $speaker = $out['speaker'] ?? null;
         $queueCount = count($out['queue'] ?? []);
 
@@ -190,6 +192,7 @@ final class SpeechController extends AbstractController
         $meetingId = api_require_uuid($q, 'meeting_id');
         $memberId = api_require_uuid($q, 'member_id');
 
-        api_ok(SpeechService::getMyStatus($meetingId, $memberId));
+        $tenantId = api_current_tenant_id();
+        api_ok(SpeechService::getMyStatus($meetingId, $memberId, $tenantId));
     }
 }

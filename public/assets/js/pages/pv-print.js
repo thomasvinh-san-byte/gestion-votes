@@ -87,7 +87,7 @@
     tbody.innerHTML = members.map(m => {
       const name = esc(m.full_name || m.name || '');
       const st = (m.mode || 'absent').toUpperCase();
-      const w = parseFloat(m.voting_power) || parseFloat(m.vote_weight) || 1;
+      const w = parseFloat(m.voting_power) || 1;
       const wFmt = Number.isInteger(w) ? String(w) : w.toFixed(2).replace(/\.?0+$/, '');
       return `<tr>${td(name)}${td('')}${td(pill(st))}${td(`<span style="font-variant-numeric:tabular-nums;">${wFmt}</span>`, true)}</tr>`;
     }).join('');

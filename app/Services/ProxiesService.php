@@ -39,9 +39,8 @@ use InvalidArgumentException;
  */
 final class ProxiesService
 {
-    public static function listForMeeting(string $meetingId, ?string $tenantId = null): array
+    public static function listForMeeting(string $meetingId, string $tenantId): array
     {
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
         $repo = new ProxyRepository();
         return $repo->listForMeeting($meetingId, $tenantId);
     }
@@ -64,9 +63,8 @@ final class ProxiesService
      * @param string|null $tenantId Tenant ID (auto-detected if null)
      * @throws InvalidArgumentException If validation fails
      */
-    public static function upsert(string $meetingId, string $giverMemberId, string $receiverMemberId, ?string $tenantId = null): void
+    public static function upsert(string $meetingId, string $giverMemberId, string $receiverMemberId, string $tenantId): void
     {
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
         $maxPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 99);
         $repo = new ProxyRepository();
 

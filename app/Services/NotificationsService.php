@@ -18,10 +18,8 @@ final class NotificationsService
      * Emits notifications when readiness state changes (without spam).
      * @param array<string,mixed> $validation Return from MeetingValidator::canBeValidated
      */
-    public static function emitReadinessTransitions(string $meetingId, array $validation, ?string $tenantId = null): void
+    public static function emitReadinessTransitions(string $meetingId, array $validation, string $tenantId): void
     {
-
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $meetingRepo = new MeetingRepository();
         $row = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$row) return;
@@ -155,10 +153,8 @@ final class NotificationsService
         string $message,
         array $audience = ['operator', 'trust'],
         array $data = [],
-        ?string $tenantId = null
+        string $tenantId
     ): void {
-
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $meetingRepo = new MeetingRepository();
         $row = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$row) return;
@@ -206,15 +202,13 @@ final class NotificationsService
         (new NotificationRepository())->markRead($meetingId, $id, $tenantId);
     }
 
-    public static function markAllRead(string $meetingId, string $audience = 'operator', string $tenantId = ''): void
+    public static function markAllRead(string $meetingId, string $audience, string $tenantId): void
     {
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         (new NotificationRepository())->markAllRead($meetingId, $audience, $tenantId);
     }
 
-    public static function clear(string $meetingId, string $audience = 'operator', string $tenantId = ''): void
+    public static function clear(string $meetingId, string $audience, string $tenantId): void
     {
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         (new NotificationRepository())->clear($meetingId, $audience, $tenantId);
     }
 }

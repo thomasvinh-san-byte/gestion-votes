@@ -223,7 +223,7 @@ async function staleWhileRevalidate(request, cacheName) {
     .catch(() => null);
 
   if (cached) {
-    fetchPromise; // Update in background
+    fetchPromise.catch(() => {}); // Revalidate in background
     return cached;
   }
 

@@ -56,8 +56,9 @@ final class AttendancesController extends AbstractController
         }
 
         api_guard_meeting_not_validated($meetingId);
+        $tenantId = api_current_tenant_id();
 
-        $row = AttendancesService::upsert($meetingId, $memberId, $mode, $notes);
+        $row = AttendancesService::upsert($meetingId, $memberId, $mode, $tenantId, $notes);
 
         audit_log('attendance.upsert', 'attendance', $memberId, [
             'meeting_id' => $meetingId,

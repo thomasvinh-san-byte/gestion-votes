@@ -19,8 +19,9 @@ final class ProxiesController extends AbstractController
         api_require_role(['operator', 'trust', 'admin']);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
+        $tenantId = api_current_tenant_id();
 
-        $rows = ProxiesService::listForMeeting($meetingId);
+        $rows = ProxiesService::listForMeeting($meetingId, $tenantId);
         api_ok([
             'meeting_id' => $meetingId,
             'count' => count($rows),
@@ -37,6 +38,7 @@ final class ProxiesController extends AbstractController
         api_guard_meeting_not_validated($meetingId);
         $giverId = api_require_uuid($in, 'giver_member_id');
 
+        $tenantId = api_current_tenant_id();
         $receiverRaw = trim((string)($in['receiver_member_id'] ?? ''));
         $scope = trim((string)($in['scope'] ?? 'full'));
 
@@ -59,7 +61,7 @@ final class ProxiesController extends AbstractController
             ]);
         }
 
-        ProxiesService::upsert($meetingId, $giverId, $receiverRaw);
+        ProxiesService::upsert($meetingId, $giverId, $receiverRaw, $tenantId);
 
         audit_log('proxy_upsert', 'meeting', $meetingId, [
             'giver_member_id' => $giverId,

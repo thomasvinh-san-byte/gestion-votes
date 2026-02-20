@@ -146,7 +146,7 @@ final class OperatorController extends AbstractController
         $ready = (bool)($validation['can'] ?? false);
         $reasons = (array)($validation['reasons'] ?? []);
 
-        NotificationsService::emitReadinessTransitions($meetingId, $validation);
+        NotificationsService::emitReadinessTransitions($meetingId, $validation, $tenant);
 
         api_ok([
             'meeting' => [

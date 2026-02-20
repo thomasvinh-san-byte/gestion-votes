@@ -25,9 +25,8 @@ final class AttendancesService
      *
      * Used for vote eligibility (public).
      */
-    public static function isPresent(string $meetingId, string $memberId, ?string $tenantId = null): bool
+    public static function isPresent(string $meetingId, string $memberId, string $tenantId): bool
     {
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
         $meetingId = trim($meetingId);
         $memberId = trim($memberId);
         if ($meetingId === '' || $memberId === '') {
@@ -43,9 +42,8 @@ final class AttendancesService
      *
      * Recommended for controlling vote eligibility to avoid proxy chains.
      */
-    public static function isPresentDirect(string $meetingId, string $memberId, ?string $tenantId = null): bool
+    public static function isPresentDirect(string $meetingId, string $memberId, string $tenantId): bool
     {
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
         $meetingId = trim($meetingId);
         $memberId = trim($memberId);
         if ($meetingId === '' || $memberId === '') {
@@ -61,9 +59,8 @@ final class AttendancesService
      *
      * @return array<int,array<string,mixed>>
      */
-    public static function listForMeeting(string $meetingId, ?string $tenantId = null): array
+    public static function listForMeeting(string $meetingId, string $tenantId): array
     {
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
         $meetingId = trim($meetingId);
         if ($meetingId === '') {
             throw new InvalidArgumentException('meeting_id est obligatoire');
@@ -78,9 +75,8 @@ final class AttendancesService
      *
      * @return array{present_count:int,present_weight:float}
      */
-    public static function summaryForMeeting(string $meetingId, ?string $tenantId = null): array
+    public static function summaryForMeeting(string $meetingId, string $tenantId): array
     {
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
         $meetingId = trim($meetingId);
         if ($meetingId === '') {
             throw new InvalidArgumentException('meeting_id est obligatoire');
@@ -97,7 +93,7 @@ final class AttendancesService
      *
      * @return array<string,mixed> attendance row (or {deleted:true})
      */
-    public static function upsert(string $meetingId, string $memberId, string $mode, ?string $notes = null): array
+    public static function upsert(string $meetingId, string $memberId, string $mode, string $tenantId, ?string $notes = null): array
     {
         $meetingId = trim($meetingId);
         $memberId = trim($memberId);
@@ -111,8 +107,6 @@ final class AttendancesService
         if (!in_array($mode, $allowed, true)) {
             throw new InvalidArgumentException("mode invalide (present/remote/proxy/excused/absent)");
         }
-
-        $tenantId = (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
 
         // Verify meeting belongs to tenant
         $meetingRepo = new MeetingRepository();

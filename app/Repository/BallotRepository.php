@@ -323,14 +323,6 @@ class BallotRepository extends AbstractRepository
     // =========================================================================
 
     /**
-     * Genere un UUID via PostgreSQL (pour code bulletin papier).
-     */
-    public function newUuid(): string
-    {
-        return $this->generateUuid();
-    }
-
-    /**
      * Cree un bulletin papier.
      */
     public function createPaperBallot(string $meetingId, string $motionId, string $code, string $codeHash): void
