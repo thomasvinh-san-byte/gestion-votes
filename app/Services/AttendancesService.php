@@ -133,12 +133,12 @@ final class AttendancesService
         $attendanceRepo = new AttendanceRepository();
 
         if ($mode === 'absent') {
-            $attendanceRepo->deleteByMeetingAndMember($meetingId, $memberId);
+            $attendanceRepo->deleteByMeetingAndMember($meetingId, $memberId, $tenantId);
             self::broadcastAttendanceStats($attendanceRepo, $meetingId, $tenantId);
             return ['deleted' => true, 'meeting_id' => $meetingId, 'member_id' => $memberId];
         }
 
-        $effective = (float)($member['voting_power'] ?? $member['vote_weight'] ?? 1.0);
+        $effective = (float)($member['voting_power'] ?? 1.0);
 
         $row = $attendanceRepo->upsert($tenantId, $meetingId, $memberId, $mode, $effective, $notes);
         if (!$row) {

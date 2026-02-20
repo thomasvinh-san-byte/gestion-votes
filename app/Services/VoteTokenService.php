@@ -109,7 +109,7 @@ final class VoteTokenService
     /**
      * Marks a token as used (consumed).
      */
-    public static function consume(string $token): bool
+    public static function consume(string $token, string $tenantId = ''): bool
     {
         $token = trim($token);
         if ($token === '') {
@@ -119,7 +119,16 @@ final class VoteTokenService
         $tokenHash = hash('sha256', $token);
 
         $tokenRepo = new VoteTokenRepository();
-        $affected = $tokenRepo->consume($tokenHash);
+
+        if ($tenantId === '') {
+            $row = $tokenRepo->findByHash($tokenHash);
+            if (!$row) {
+                return false;
+            }
+            $tenantId = (string)$row['tenant_id'];
+        }
+
+        $affected = $tokenRepo->consume($tokenHash, $tenantId);
 
         return $affected > 0;
     }
@@ -166,7 +175,7 @@ final class VoteTokenService
     /**
      * Revokes all unused tokens for a given motion.
      */
-    public static function revokeForMotion(string $motionId, string $tenantId = ''): int
+    public static function revokeForMotion(string $motionId, string $tenantId): int
     {
         $tokenRepo = new VoteTokenRepository();
         return $tokenRepo->revokeForMotion($motionId, $tenantId);

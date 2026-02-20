@@ -236,133 +236,79 @@ class InvitationRepository extends AbstractRepository
     /**
      * Marque une invitation comme bounced (echec envoi).
      */
-    public function markBounced(string $meetingId, string $memberId, string $tenantId = ''): void
+    public function markBounced(string $meetingId, string $memberId, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE invitations SET status='bounced', updated_at=now()
-                 WHERE meeting_id = :mid AND member_id = :uid AND tenant_id = :tid",
-                [':mid' => $meetingId, ':uid' => $memberId, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE invitations SET status='bounced', updated_at=now()
-                 WHERE meeting_id = :mid AND member_id = :uid",
-                [':mid' => $meetingId, ':uid' => $memberId]
-            );
-        }
+        $this->execute(
+            "UPDATE invitations SET status='bounced', updated_at=now()
+             WHERE meeting_id = :mid AND member_id = :uid AND tenant_id = :tid",
+            [':mid' => $meetingId, ':uid' => $memberId, ':tid' => $tenantId]
+        );
     }
 
     /**
      * Marque une invitation comme acceptee.
      */
-    public function markAccepted(string $id, string $tenantId = ''): void
+    public function markAccepted(string $id, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE invitations
-                 SET status = 'accepted', responded_at = coalesce(responded_at, now()), updated_at = now()
-                 WHERE id = :id AND tenant_id = :tid",
-                [':id' => $id, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE invitations
-                 SET status = 'accepted', responded_at = coalesce(responded_at, now()), updated_at = now()
-                 WHERE id = :id",
-                [':id' => $id]
-            );
-        }
+        $this->execute(
+            "UPDATE invitations
+             SET status = 'accepted', responded_at = coalesce(responded_at, now()), updated_at = now()
+             WHERE id = :id AND tenant_id = :tid",
+            [':id' => $id, ':tid' => $tenantId]
+        );
     }
 
     /**
      * Marque une invitation comme ouverte (si pending/sent).
      */
-    public function markOpened(string $id, string $tenantId = ''): void
+    public function markOpened(string $id, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE invitations
-                 SET status = CASE WHEN status IN ('pending','sent') THEN 'opened' ELSE status END, updated_at = now()
-                 WHERE id = :id AND tenant_id = :tid",
-                [':id' => $id, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE invitations
-                 SET status = CASE WHEN status IN ('pending','sent') THEN 'opened' ELSE status END, updated_at = now()
-                 WHERE id = :id",
-                [':id' => $id]
-            );
-        }
+        $this->execute(
+            "UPDATE invitations
+             SET status = CASE WHEN status IN ('pending','sent') THEN 'opened' ELSE status END, updated_at = now()
+             WHERE id = :id AND tenant_id = :tid",
+            [':id' => $id, ':tid' => $tenantId]
+        );
     }
 
     /**
      * Marque une invitation comme envoyee.
      */
-    public function markSent(string $id, string $tenantId = ''): void
+    public function markSent(string $id, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE invitations
-                 SET status = 'sent', sent_at = COALESCE(sent_at, now()), updated_at = now()
-                 WHERE id = :id AND tenant_id = :tid",
-                [':id' => $id, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE invitations
-                 SET status = 'sent', sent_at = COALESCE(sent_at, now()), updated_at = now()
-                 WHERE id = :id",
-                [':id' => $id]
-            );
-        }
+        $this->execute(
+            "UPDATE invitations
+             SET status = 'sent', sent_at = COALESCE(sent_at, now()), updated_at = now()
+             WHERE id = :id AND tenant_id = :tid",
+            [':id' => $id, ':tid' => $tenantId]
+        );
     }
 
     /**
      * Incremente le compteur d'ouvertures.
      */
-    public function incrementOpenCount(string $id, string $tenantId = ''): void
+    public function incrementOpenCount(string $id, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE invitations
-                 SET open_count = COALESCE(open_count, 0) + 1, opened_at = COALESCE(opened_at, now()),
-                     status = CASE WHEN status IN ('pending','sent') THEN 'opened' ELSE status END, updated_at = now()
-                 WHERE id = :id AND tenant_id = :tid",
-                [':id' => $id, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE invitations
-                 SET open_count = COALESCE(open_count, 0) + 1, opened_at = COALESCE(opened_at, now()),
-                     status = CASE WHEN status IN ('pending','sent') THEN 'opened' ELSE status END, updated_at = now()
-                 WHERE id = :id",
-                [':id' => $id]
-            );
-        }
+        $this->execute(
+            "UPDATE invitations
+             SET open_count = COALESCE(open_count, 0) + 1, opened_at = COALESCE(opened_at, now()),
+                 status = CASE WHEN status IN ('pending','sent') THEN 'opened' ELSE status END, updated_at = now()
+             WHERE id = :id AND tenant_id = :tid",
+            [':id' => $id, ':tid' => $tenantId]
+        );
     }
 
     /**
      * Incremente le compteur de clics.
      */
-    public function incrementClickCount(string $id, string $tenantId = ''): void
+    public function incrementClickCount(string $id, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE invitations
-                 SET click_count = COALESCE(click_count, 0) + 1, clicked_at = COALESCE(clicked_at, now()), updated_at = now()
-                 WHERE id = :id AND tenant_id = :tid",
-                [':id' => $id, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE invitations
-                 SET click_count = COALESCE(click_count, 0) + 1, clicked_at = COALESCE(clicked_at, now()), updated_at = now()
-                 WHERE id = :id",
-                [':id' => $id]
-            );
-        }
+        $this->execute(
+            "UPDATE invitations
+             SET click_count = COALESCE(click_count, 0) + 1, clicked_at = COALESCE(clicked_at, now()), updated_at = now()
+             WHERE id = :id AND tenant_id = :tid",
+            [':id' => $id, ':tid' => $tenantId]
+        );
     }
 
     /**

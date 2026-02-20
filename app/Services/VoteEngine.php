@@ -54,7 +54,7 @@ final class VoteEngine
 
         // Aggregate ballots by value
         $ballotRepo = new BallotRepository();
-        $t = $ballotRepo->tally($motionId);
+        $t = $ballotRepo->tally($motionId, $tenantId);
 
         $tallies = [
             'for'     => ['count' => (int)$t['count_for'],     'weight' => (float)$t['weight_for']],

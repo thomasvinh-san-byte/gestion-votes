@@ -167,7 +167,7 @@ final class AttendancesController extends AbstractController
 
         $presentFrom = trim((string)($in['present_from_at'] ?? ''));
 
-        (new AttendanceRepository())->updatePresentFrom($meetingId, $memberId, $presentFrom === '' ? null : $presentFrom);
+        (new AttendanceRepository())->updatePresentFrom($meetingId, $memberId, $presentFrom === '' ? null : $presentFrom, api_current_tenant_id());
 
         audit_log($presentFrom !== '' ? 'attendance_present_from_set' : 'attendance_present_from_cleared', 'meeting', $meetingId, [
             'member_id' => $memberId,

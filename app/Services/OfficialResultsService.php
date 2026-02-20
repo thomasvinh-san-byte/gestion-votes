@@ -323,7 +323,7 @@ final class OfficialResultsService
 
         // EVOTE: totals from ballots + decision from VoteEngine
         $ballotRepo = new BallotRepository();
-        $t = $ballotRepo->tally($motionId);
+        $t = $ballotRepo->tally($motionId, (string)$motion['tenant_id']);
 
         $forW = (float)$t['weight_for'];
         $agW  = (float)$t['weight_against'];

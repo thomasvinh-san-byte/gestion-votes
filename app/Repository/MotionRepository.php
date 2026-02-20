@@ -312,17 +312,11 @@ class MotionRepository extends AbstractRepository
     /**
      * Liste les motions fermees d'une seance (pour consolidation).
      */
-    public function listClosedForMeeting(string $meetingId, string $tenantId = ''): array
+    public function listClosedForMeeting(string $meetingId, string $tenantId): array
     {
-        if ($tenantId !== '') {
-            return $this->selectAll(
-                "SELECT id FROM motions WHERE meeting_id = :mid AND tenant_id = :tid AND closed_at IS NOT NULL ORDER BY closed_at ASC",
-                [':mid' => $meetingId, ':tid' => $tenantId]
-            );
-        }
         return $this->selectAll(
-            "SELECT id FROM motions WHERE meeting_id = :mid AND closed_at IS NOT NULL ORDER BY closed_at ASC",
-            [':mid' => $meetingId]
+            "SELECT id FROM motions WHERE meeting_id = :mid AND tenant_id = :tid AND closed_at IS NOT NULL ORDER BY closed_at ASC",
+            [':mid' => $meetingId, ':tid' => $tenantId]
         );
     }
 
@@ -356,26 +350,9 @@ class MotionRepository extends AbstractRepository
 
     /**
      * Contexte ballot (BallotsService): motion + meeting status + tenant.
-     * When $tenantId is provided, enforces tenant isolation at the query level.
      */
-    public function findWithBallotContext(string $motionId, string $tenantId = ''): ?array
+    public function findWithBallotContext(string $motionId, string $tenantId): ?array
     {
-        if ($tenantId !== '') {
-            return $this->selectOne(
-                "SELECT
-                  m.id          AS motion_id,
-                  m.opened_at   AS motion_opened_at,
-                  m.closed_at   AS motion_closed_at,
-                  mt.id         AS meeting_id,
-                  mt.status     AS meeting_status,
-                  mt.validated_at AS meeting_validated_at,
-                  mt.tenant_id  AS tenant_id
-                FROM motions m
-                JOIN meetings mt ON mt.id = m.meeting_id
-                WHERE m.id = :mid AND m.tenant_id = :tid",
-                [':mid' => $motionId, ':tid' => $tenantId]
-            );
-        }
         return $this->selectOne(
             "SELECT
               m.id          AS motion_id,
@@ -387,8 +364,8 @@ class MotionRepository extends AbstractRepository
               mt.tenant_id  AS tenant_id
             FROM motions m
             JOIN meetings mt ON mt.id = m.meeting_id
-            WHERE m.id = :mid",
-            [':mid' => $motionId]
+            WHERE m.id = :mid AND m.tenant_id = :tid",
+            [':mid' => $motionId, ':tid' => $tenantId]
         );
     }
 
@@ -420,7 +397,7 @@ class MotionRepository extends AbstractRepository
             "SELECT id, title, status, opened_at, closed_at, quorum_policy_id
              FROM motions
              WHERE meeting_id = :m
-             ORDER BY sort_order NULLS LAST, created_at ASC",
+             ORDER BY position NULLS LAST, created_at ASC",
             [':m' => $meetingId]
         );
     }
@@ -516,7 +493,7 @@ class MotionRepository extends AbstractRepository
             "SELECT title, evote_results
              FROM motions
              WHERE meeting_id = :mid
-             ORDER BY COALESCE(position, sort_order, 0) ASC",
+             ORDER BY COALESCE(position, 0) ASC",
             [':mid' => $meetingId]
         );
     }
@@ -715,36 +692,21 @@ class MotionRepository extends AbstractRepository
         float $total,
         string $decision,
         string $reason,
-        string $tenantId = ''
+        string $tenantId
     ): void {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE motions SET
-                   official_source = :src, official_for = :f, official_against = :a,
-                   official_abstain = :ab, official_total = :t,
-                   decision = :d, decision_reason = :r, decided_at = NOW()
-                 WHERE id = :id AND tenant_id = :tid",
-                [
-                    ':src' => $source, ':f' => $for, ':a' => $against,
-                    ':ab' => $abstain, ':t' => $total,
-                    ':d' => $decision, ':r' => $reason, ':id' => $motionId,
-                    ':tid' => $tenantId,
-                ]
-            );
-        } else {
-            $this->execute(
-                "UPDATE motions SET
-                   official_source = :src, official_for = :f, official_against = :a,
-                   official_abstain = :ab, official_total = :t,
-                   decision = :d, decision_reason = :r, decided_at = NOW()
-                 WHERE id = :id",
-                [
-                    ':src' => $source, ':f' => $for, ':a' => $against,
-                    ':ab' => $abstain, ':t' => $total,
-                    ':d' => $decision, ':r' => $reason, ':id' => $motionId,
-                ]
-            );
-        }
+        $this->execute(
+            "UPDATE motions SET
+               official_source = :src, official_for = :f, official_against = :a,
+               official_abstain = :ab, official_total = :t,
+               decision = :d, decision_reason = :r, decided_at = NOW()
+             WHERE id = :id AND tenant_id = :tid",
+            [
+                ':src' => $source, ':f' => $for, ':a' => $against,
+                ':ab' => $abstain, ':t' => $total,
+                ':d' => $decision, ':r' => $reason, ':id' => $motionId,
+                ':tid' => $tenantId,
+            ]
+        );
     }
 
     /**
@@ -803,7 +765,7 @@ class MotionRepository extends AbstractRepository
             "SELECT id FROM motions
              WHERE tenant_id = :tid AND meeting_id = :mid
                AND opened_at IS NULL AND closed_at IS NULL
-             ORDER BY COALESCE(position, sort_order, 0) ASC
+             ORDER BY COALESCE(position, 0) ASC
              LIMIT 1 FOR UPDATE",
             [':tid' => $tenantId, ':mid' => $meetingId]
         );
@@ -852,19 +814,12 @@ class MotionRepository extends AbstractRepository
     /**
      * Met a jour le comptage manuel d'une motion.
      */
-    public function updateManualTally(string $motionId, int $total, int $for, int $against, int $abstain, string $tenantId = ''): void
+    public function updateManualTally(string $motionId, int $total, int $for, int $against, int $abstain, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE motions SET manual_total = :t, manual_for = :f, manual_against = :a, manual_abstain = :ab WHERE id = :id AND tenant_id = :tid",
-                [':t' => $total, ':f' => $for, ':a' => $against, ':ab' => $abstain, ':id' => $motionId, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE motions SET manual_total = :t, manual_for = :f, manual_against = :a, manual_abstain = :ab WHERE id = :id",
-                [':t' => $total, ':f' => $for, ':a' => $against, ':ab' => $abstain, ':id' => $motionId]
-            );
-        }
+        $this->execute(
+            "UPDATE motions SET manual_total = :t, manual_for = :f, manual_against = :a, manual_abstain = :ab WHERE id = :id AND tenant_id = :tid",
+            [':t' => $total, ':f' => $for, ':a' => $against, ':ab' => $abstain, ':id' => $motionId, ':tid' => $tenantId]
+        );
     }
 
     /**

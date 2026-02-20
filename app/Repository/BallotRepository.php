@@ -11,51 +11,35 @@ class BallotRepository extends AbstractRepository
     /**
      * Lists ballots for a motion (for operator display).
      */
-    public function listForMotion(string $motionId, string $tenantId = ''): array
+    public function listForMotion(string $motionId, string $tenantId): array
     {
-        if ($tenantId !== '') {
-            return $this->selectAll(
-                "SELECT b.member_id, COALESCE(b.value::text, b.choice) AS value, b.weight, b.cast_at, COALESCE(b.source, 'tablet') AS source
-                 FROM ballots b
-                 WHERE b.motion_id = :mid AND b.tenant_id = :tid
-                 ORDER BY b.cast_at ASC",
-                [':mid' => $motionId, ':tid' => $tenantId]
-            );
-        }
         return $this->selectAll(
-            "SELECT b.member_id, COALESCE(b.value::text, b.choice) AS value, b.weight, b.cast_at, COALESCE(b.source, 'tablet') AS source
+            "SELECT b.member_id, b.value::text AS value, b.weight, b.cast_at, COALESCE(b.source, 'tablet') AS source
              FROM ballots b
-             WHERE b.motion_id = :mid
+             WHERE b.motion_id = :mid AND b.tenant_id = :tid
              ORDER BY b.cast_at ASC",
-            [':mid' => $motionId]
+            [':mid' => $motionId, ':tid' => $tenantId]
         );
     }
 
     /**
      * Tally complet pour une motion : comptages et poids par choix.
      */
-    public function tally(string $motionId, string $tenantId = ''): array
+    public function tally(string $motionId, string $tenantId): array
     {
-        $where = 'motion_id = :mid';
-        $params = [':mid' => $motionId];
-        if ($tenantId !== '') {
-            $where .= ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
-
         $row = $this->selectOne(
             "SELECT
                 COUNT(*)::int AS total_ballots,
-                COUNT(*) FILTER (WHERE COALESCE(value::text, choice) = 'for')::int AS count_for,
-                COUNT(*) FILTER (WHERE COALESCE(value::text, choice) = 'against')::int AS count_against,
-                COUNT(*) FILTER (WHERE COALESCE(value::text, choice) = 'abstain')::int AS count_abstain,
-                COUNT(*) FILTER (WHERE COALESCE(value::text, choice) = 'nsp')::int AS count_nsp,
-                COALESCE(SUM(COALESCE(weight, effective_power, 0)) FILTER (WHERE COALESCE(value::text, choice) = 'for'), 0)::float8 AS weight_for,
-                COALESCE(SUM(COALESCE(weight, effective_power, 0)) FILTER (WHERE COALESCE(value::text, choice) = 'against'), 0)::float8 AS weight_against,
-                COALESCE(SUM(COALESCE(weight, effective_power, 0)) FILTER (WHERE COALESCE(value::text, choice) = 'abstain'), 0)::float8 AS weight_abstain,
-                COALESCE(SUM(COALESCE(weight, effective_power, 0)), 0)::float8 AS weight_total
-             FROM ballots WHERE $where",
-            $params
+                COUNT(*) FILTER (WHERE value::text = 'for')::int AS count_for,
+                COUNT(*) FILTER (WHERE value::text = 'against')::int AS count_against,
+                COUNT(*) FILTER (WHERE value::text = 'abstain')::int AS count_abstain,
+                COUNT(*) FILTER (WHERE value::text = 'nsp')::int AS count_nsp,
+                COALESCE(SUM(COALESCE(weight, 0)) FILTER (WHERE value::text = 'for'), 0)::float8 AS weight_for,
+                COALESCE(SUM(COALESCE(weight, 0)) FILTER (WHERE value::text = 'against'), 0)::float8 AS weight_against,
+                COALESCE(SUM(COALESCE(weight, 0)) FILTER (WHERE value::text = 'abstain'), 0)::float8 AS weight_abstain,
+                COALESCE(SUM(COALESCE(weight, 0)), 0)::float8 AS weight_total
+             FROM ballots WHERE motion_id = :mid AND tenant_id = :tid",
+            [':mid' => $motionId, ':tid' => $tenantId]
         );
         return $row ?: [
             'total_ballots' => 0,
@@ -179,8 +163,8 @@ class BallotRepository extends AbstractRepository
     {
         return $this->selectAll(
             "SELECT
-               COALESCE(b.value::text, b.choice) AS choice,
-               COALESCE(b.weight, b.effective_power, 0) AS effective_power,
+               b.value::text AS choice,
+               COALESCE(b.weight, 0) AS effective_power,
                b.is_proxy_vote,
                b.member_id AS giver_member_id,
                b.proxy_source_member_id AS receiver_member_id,
@@ -326,17 +310,11 @@ class BallotRepository extends AbstractRepository
      * Supprime un ballot par motion et membre.
      * Utilise par ballots_cancel.php pour annuler un vote manuel.
      */
-    public function deleteByMotionAndMember(string $motionId, string $memberId, string $tenantId = ''): int
+    public function deleteByMotionAndMember(string $motionId, string $memberId, string $tenantId): int
     {
-        if ($tenantId !== '') {
-            return $this->execute(
-                "DELETE FROM ballots WHERE motion_id = :mid AND member_id = :mem AND tenant_id = :tid",
-                [':mid' => $motionId, ':mem' => $memberId, ':tid' => $tenantId]
-            );
-        }
         return $this->execute(
-            "DELETE FROM ballots WHERE motion_id = :mid AND member_id = :mem",
-            [':mid' => $motionId, ':mem' => $memberId]
+            "DELETE FROM ballots WHERE motion_id = :mid AND member_id = :mem AND tenant_id = :tid",
+            [':mid' => $motionId, ':mem' => $memberId, ':tid' => $tenantId]
         );
     }
 
@@ -380,19 +358,12 @@ class BallotRepository extends AbstractRepository
     /**
      * Marque un bulletin papier comme utilise.
      */
-    public function markPaperBallotUsed(string $id, string $tenantId = ''): void
+    public function markPaperBallotUsed(string $id, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE paper_ballots SET used_at = NOW(), used_by_operator = true WHERE id = :id AND tenant_id = :tid",
-                [':id' => $id, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE paper_ballots SET used_at = NOW(), used_by_operator = true WHERE id = :id",
-                [':id' => $id]
-            );
-        }
+        $this->execute(
+            "UPDATE paper_ballots SET used_at = NOW(), used_by_operator = true WHERE id = :id AND tenant_id = :tid",
+            [':id' => $id, ':tid' => $tenantId]
+        );
     }
 
     /**

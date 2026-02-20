@@ -57,6 +57,13 @@ final class MeetingWorkflowController extends AbstractController
             ]);
         }
 
+        // Archived is terminal. No force, no bypass, no exceptions.
+        if ($fromStatus === 'archived') {
+            api_fail('archived_immutable', 403, [
+                'detail' => 'Séance archivée : aucune transition autorisée.',
+            ]);
+        }
+
         AuthMiddleware::requireTransition($fromStatus, $toStatus, $meetingId);
 
         $forceTransition = filter_var($input['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -125,9 +132,7 @@ final class MeetingWorkflowController extends AbstractController
                 break;
 
             case 'validated':
-                if ($fromStatus === 'archived') {
-                    $fields['archived_at'] = null;
-                } elseif (empty($meeting['validated_at'])) {
+                if (empty($meeting['validated_at'])) {
                     $fields['validated_at'] = date('Y-m-d H:i:s');
                     $fields['validated_by'] = api_current_user()['name'] ?? 'unknown';
                     $fields['validated_by_user_id'] = $userId;

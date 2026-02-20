@@ -202,7 +202,7 @@ HTML;
             '{{member_name}}' => $fullName,
             '{{member_first_name}}' => $firstName,
             '{{member_email}}' => (string)($member['email'] ?? ''),
-            '{{member_voting_power}}' => (string)($member['vote_weight'] ?? '1'),
+            '{{member_voting_power}}' => (string)($member['voting_power'] ?? '1'),
             '{{meeting_title}}' => (string)($meeting['title'] ?? ''),
             '{{meeting_date}}' => $meetingDate,
             '{{meeting_time}}' => $meetingTime,

@@ -54,7 +54,7 @@ try {
 
     if ($tenantId !== null) {
         // Incrementer le compteur d'ouvertures
-        $invitationRepo->incrementOpenCount($invitationId);
+        $invitationRepo->incrementOpenCount($invitationId, $tenantId);
 
         // Logger l'evenement
         $eventRepo->logEvent(

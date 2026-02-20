@@ -61,7 +61,7 @@ try {
     // Post-commit side-effects: wrap in try-catch so a failure here
     // does NOT return 500 when the motion was already successfully closed.
     try {
-        VoteTokenService::revokeForMotion($motionId);
+        VoteTokenService::revokeForMotion($motionId, api_current_tenant_id());
     } catch (Throwable $tokenErr) {
         error_log('[motions_close] token revocation failed after commit: ' . $tokenErr->getMessage());
     }

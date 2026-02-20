@@ -82,7 +82,7 @@ final class EmailQueueService
 
                 // Update invitation status if linked
                 if ($email['invitation_id']) {
-                    $this->invitationRepo->markSent($email['invitation_id']);
+                    $this->invitationRepo->markSent($email['invitation_id'], (string)$email['tenant_id']);
                 }
 
                 $result['sent']++;
@@ -346,7 +346,7 @@ final class EmailQueueService
 
                 $result['sent']++;
             } else {
-                $this->invitationRepo->markBounced($meetingId, $memberId);
+                $this->invitationRepo->markBounced($meetingId, $memberId, $tenantId);
                 $result['errors'][] = [
                     'member_id' => $memberId,
                     'email' => $email,
@@ -369,9 +369,9 @@ final class EmailQueueService
     /**
      * Cancels all scheduled emails for a meeting.
      */
-    public function cancelMeetingEmails(string $meetingId): int
+    public function cancelMeetingEmails(string $meetingId, string $tenantId): int
     {
-        return $this->queueRepo->cancelForMeeting($meetingId);
+        return $this->queueRepo->cancelForMeeting($meetingId, $tenantId);
     }
 
     /**

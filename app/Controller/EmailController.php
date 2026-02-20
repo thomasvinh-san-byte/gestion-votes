@@ -191,7 +191,7 @@ final class EmailController extends AbstractController
 
             if (!$res['ok']) {
                 $errors[] = ['member_id'=>$memberId,'email'=>$email,'error'=>$res['error']];
-                $invitationRepo->markBounced($meetingId, $memberId);
+                $invitationRepo->markBounced($meetingId, $memberId, $tenantId);
             } else {
                 $sent++;
             }

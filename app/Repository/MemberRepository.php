@@ -14,8 +14,8 @@ class MemberRepository extends AbstractRepository
     public function listByTenant(string $tenantId): array
     {
         return $this->selectAll(
-            "SELECT id, tenant_id, external_ref, full_name, email, vote_weight,
-                    voting_power, role, is_active, created_at, updated_at
+            "SELECT id, tenant_id, external_ref, full_name, email,
+                    COALESCE(voting_power, 1.0) AS voting_power, role, is_active, created_at, updated_at
              FROM members
              WHERE tenant_id = :tenant_id AND deleted_at IS NULL
              ORDER BY full_name",
@@ -30,8 +30,8 @@ class MemberRepository extends AbstractRepository
     {
         return $this->selectAll(
             "SELECT id, full_name, email, role,
-                    COALESCE(voting_power, vote_weight, 1.0) AS voting_power,
-                    vote_weight, is_active, created_at, updated_at, tenant_id
+                    COALESCE(voting_power, 1.0) AS voting_power,
+                    is_active, created_at, updated_at, tenant_id
              FROM members
              WHERE tenant_id = :tenant_id
                AND is_active = true
@@ -88,7 +88,7 @@ class MemberRepository extends AbstractRepository
     public function sumActiveWeight(string $tenantId): float
     {
         return (float)($this->scalar(
-            "SELECT COALESCE(SUM(COALESCE(voting_power, vote_weight, 1.0)), 0)
+            "SELECT COALESCE(SUM(COALESCE(voting_power, 1.0)), 0)
              FROM members WHERE tenant_id = :tid AND is_active = true AND deleted_at IS NULL",
             [':tid' => $tenantId]
         ) ?? 0.0);
@@ -128,12 +128,12 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * Sum of vote_weight for non-deleted members (for dashboard eligible weight).
+     * Sum of voting_power for non-deleted members (for dashboard eligible weight).
      */
     public function sumNotDeletedVoteWeight(string $tenantId): int
     {
         return (int)($this->scalar(
-            "SELECT COALESCE(SUM(vote_weight), 0) FROM members WHERE tenant_id = :tid AND deleted_at IS NULL",
+            "SELECT COALESCE(SUM(COALESCE(voting_power, 1.0)), 0) FROM members WHERE tenant_id = :tid AND deleted_at IS NULL",
             [':tid' => $tenantId]
         ) ?? 0);
     }
@@ -161,7 +161,7 @@ class MemberRepository extends AbstractRepository
     {
         return $this->selectOne(
             "SELECT id, full_name, email,
-                    COALESCE(voting_power, vote_weight, 1.0) AS voting_power
+                    COALESCE(voting_power, 1.0) AS voting_power
              FROM members
              WHERE user_id = :uid AND tenant_id = :tid
                AND is_active = true AND deleted_at IS NULL
@@ -176,7 +176,7 @@ class MemberRepository extends AbstractRepository
     public function findActiveWithWeight(string $tenantId, string $memberId): ?array
     {
         return $this->selectOne(
-            "SELECT id, vote_weight FROM members
+            "SELECT id, COALESCE(voting_power, 1.0) AS voting_power FROM members
              WHERE tenant_id = :tid AND id = :id AND is_active = true",
             [':tid' => $tenantId, ':id' => $memberId]
         );
@@ -203,7 +203,7 @@ class MemberRepository extends AbstractRepository
     public function insertSeedMember(string $id, string $tenantId, string $fullName): bool
     {
         $rows = $this->execute(
-            "INSERT INTO members (id, tenant_id, full_name, is_active, vote_weight, created_at, updated_at)
+            "INSERT INTO members (id, tenant_id, full_name, is_active, voting_power, created_at, updated_at)
              VALUES (:id, :tid, :name, true, 1, now(), now())
              ON CONFLICT DO NOTHING",
             [':id' => $id, ':tid' => $tenantId, ':name' => $fullName]
@@ -249,14 +249,13 @@ class MemberRepository extends AbstractRepository
         bool $isActive
     ): void {
         $this->execute(
-            "INSERT INTO members (id, tenant_id, full_name, email, vote_weight, voting_power, is_active, created_at, updated_at)
-             VALUES (:id, :tid, :name, :email, :vw, :vp, :active, now(), now())",
+            "INSERT INTO members (id, tenant_id, full_name, email, voting_power, is_active, created_at, updated_at)
+             VALUES (:id, :tid, :name, :email, :vp, :active, now(), now())",
             [
                 ':id' => $id,
                 ':tid' => $tenantId,
                 ':name' => $fullName,
                 ':email' => $email !== '' ? $email : null,
-                ':vw' => $votingPower,
                 ':vp' => $votingPower,
                 ':active' => $isActive ? 'true' : 'false',
             ]
@@ -270,7 +269,7 @@ class MemberRepository extends AbstractRepository
     {
         return $this->selectAll(
             "SELECT m.id AS member_id, m.full_name,
-                    COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power,
+                    COALESCE(m.voting_power, 1.0) AS voting_power,
                     a.mode AS attendance_mode
              FROM members m
              LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid
@@ -348,29 +347,17 @@ class MemberRepository extends AbstractRepository
     /**
      * Met a jour un membre lors d'un import CSV.
      */
-    public function updateImport(string $id, string $fullName, ?string $email, float $votingPower, bool $isActive, string $tenantId = ''): void
+    public function updateImport(string $id, string $fullName, ?string $email, float $votingPower, bool $isActive, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE members SET
-                    full_name = :name, email = COALESCE(:email, email), voting_power = :vp, is_active = :active, updated_at = NOW()
-                 WHERE id = :id AND tenant_id = :tid",
-                [
-                    ':name' => $fullName, ':email' => $email, ':vp' => $votingPower,
-                    ':active' => $isActive ? 'true' : 'false', ':id' => $id, ':tid' => $tenantId,
-                ]
-            );
-        } else {
-            $this->execute(
-                "UPDATE members SET
-                    full_name = :name, email = COALESCE(:email, email), voting_power = :vp, is_active = :active, updated_at = NOW()
-                 WHERE id = :id",
-                [
-                    ':name' => $fullName, ':email' => $email, ':vp' => $votingPower,
-                    ':active' => $isActive ? 'true' : 'false', ':id' => $id,
-                ]
-            );
-        }
+        $this->execute(
+            "UPDATE members SET
+                full_name = :name, email = COALESCE(:email, email), voting_power = :vp, is_active = :active, updated_at = NOW()
+             WHERE id = :id AND tenant_id = :tid",
+            [
+                ':name' => $fullName, ':email' => $email, ':vp' => $votingPower,
+                ':active' => $isActive ? 'true' : 'false', ':id' => $id, ':tid' => $tenantId,
+            ]
+        );
     }
 
     /**
@@ -408,19 +395,12 @@ class MemberRepository extends AbstractRepository
     /**
      * Soft delete un membre (marque deleted_at).
      */
-    public function softDelete(string $id, string $tenantId = ''): void
+    public function softDelete(string $id, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE members SET deleted_at = NOW(), updated_at = NOW() WHERE id = :id AND tenant_id = :tid",
-                [':id' => $id, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE members SET deleted_at = NOW(), updated_at = NOW() WHERE id = :id",
-                [':id' => $id]
-            );
-        }
+        $this->execute(
+            "UPDATE members SET deleted_at = NOW(), updated_at = NOW() WHERE id = :id AND tenant_id = :tid",
+            [':id' => $id, ':tid' => $tenantId]
+        );
     }
 
     /**
@@ -430,8 +410,8 @@ class MemberRepository extends AbstractRepository
     {
         return $this->selectAll(
             "SELECT id, full_name, full_name AS name, email, role,
-                    COALESCE(voting_power, vote_weight, 1.0) AS voting_power,
-                    vote_weight, is_active, created_at, updated_at, tenant_id
+                    COALESCE(voting_power, 1.0) AS voting_power,
+                    is_active, created_at, updated_at, tenant_id
              FROM members
              WHERE tenant_id = :tenant_id
                AND deleted_at IS NULL
