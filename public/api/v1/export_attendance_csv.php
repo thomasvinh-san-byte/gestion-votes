@@ -46,18 +46,20 @@ try {
     $attendanceRepo = new AttendanceRepository();
     $rows = $attendanceRepo->listExportForMeeting($meetingId);
 
-    // Génération du fichier
-    $filename = ExportService::generateFilename('presences', $mt['title'] ?? '');
-    ExportService::initCsvOutput($filename);
+    $export = new ExportService();
 
-    $out = ExportService::openCsvOutput();
+    // Génération du fichier
+    $filename = $export->generateFilename('presences', $mt['title'] ?? '');
+    $export->initCsvOutput($filename);
+
+    $out = $export->openCsvOutput();
 
     // En-têtes français
-    ExportService::writeCsvRow($out, ExportService::getAttendanceHeaders());
+    $export->writeCsvRow($out, $export->getAttendanceHeaders());
 
     // Données formatées
     foreach ($rows as $r) {
-        ExportService::writeCsvRow($out, ExportService::formatAttendanceRow($r));
+        $export->writeCsvRow($out, $export->formatAttendanceRow($r));
     }
 
     fclose($out);

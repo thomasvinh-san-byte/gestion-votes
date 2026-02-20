@@ -35,11 +35,13 @@ if (empty($mt['validated_at'])) {
 
 try {
 
-$filename = ExportService::generateFilename('audit', $mt['title'] ?? '');
-ExportService::initCsvOutput($filename);
+$export = new ExportService();
+
+$filename = $export->generateFilename('audit', $mt['title'] ?? '');
+$export->initCsvOutput($filename);
 
 $sep = ';';
-$out = ExportService::openCsvOutput();
+$out = $export->openCsvOutput();
 
 fputcsv($out, [
   'Ballot ID',
@@ -72,17 +74,17 @@ foreach ($rows as $r) {
     (string)($r['motion_title'] ?? ''),
     (string)($r['member_id'] ?? ''),
     (string)($r['voter_name'] ?? ''),
-    ExportService::translateAttendanceMode($r['attendance_mode'] ?? ''),
-    ExportService::translateVoteChoice($r['value'] ?? ''),
+    $export->translateAttendanceMode($r['attendance_mode'] ?? ''),
+    $export->translateVoteChoice($r['value'] ?? ''),
     (string)($r['weight'] ?? ''),
     ((bool)($r['is_proxy_vote'] ?? false)) ? 'Oui' : 'Non',
     (string)($r['proxy_source_member_id'] ?? ''),
-    ExportService::formatDate($r['cast_at'] ?? null),
-    ExportService::translateVoteSource($r['source'] ?? ''),
+    $export->formatDate($r['cast_at'] ?? null),
+    $export->translateVoteSource($r['source'] ?? ''),
     (string)($r['token_id'] ?? ''),
     (string)($r['token_hash_prefix'] ?? ''),
-    ExportService::formatDate($r['token_expires_at'] ?? null),
-    ExportService::formatDate($r['token_used_at'] ?? null),
+    $export->formatDate($r['token_expires_at'] ?? null),
+    $export->formatDate($r['token_used_at'] ?? null),
     (string)($r['manual_justification'] ?? ''),
   ], $sep);
 }

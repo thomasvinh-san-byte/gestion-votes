@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MotionRepository;
+use AgVote\Repository\AttendanceRepository;
 use AgVote\Service\OfficialResultsService;
 use AgVote\Service\VoteTokenService;
 use AgVote\WebSocket\EventBroadcaster;
@@ -91,10 +92,12 @@ try {
     // Include vote completeness info so operator can see if votes are missing
     $eligibleCount = 0;
     try {
-        $eligibleCount = (int)db_select_one(
-            "SELECT COUNT(*) AS cnt FROM attendances WHERE meeting_id = :mid AND tenant_id = :tid AND mode IN ('present','remote')",
-            [':mid' => (string)$motion['meeting_id'], ':tid' => api_current_tenant_id()]
-        )['cnt'];
+        $attendanceRepo = new AttendanceRepository();
+        $eligibleCount = $attendanceRepo->countByModes(
+            (string)$motion['meeting_id'],
+            api_current_tenant_id(),
+            ['present', 'remote']
+        );
     } catch (Throwable $e) { /* non-critical */ }
 
     api_ok([

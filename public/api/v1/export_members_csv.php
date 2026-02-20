@@ -43,21 +43,23 @@ if (empty($mt['validated_at'])) {
 }
 
 try {
-    // Génération du fichier
-    $filename = ExportService::generateFilename('membres', $mt['title'] ?? '');
-    ExportService::initCsvOutput($filename);
+    $export = new ExportService();
 
-    $out = ExportService::openCsvOutput();
+    // Génération du fichier
+    $filename = $export->generateFilename('membres', $mt['title'] ?? '');
+    $export->initCsvOutput($filename);
+
+    $out = $export->openCsvOutput();
 
     // En-têtes français
-    ExportService::writeCsvRow($out, ExportService::getMembersHeaders());
+    $export->writeCsvRow($out, $export->getMembersHeaders());
 
     // Données formatées
     $memberRepo = new MemberRepository();
     $rows = $memberRepo->listExportForMeeting($meetingId, api_current_tenant_id());
 
     foreach ($rows as $r) {
-        ExportService::writeCsvRow($out, ExportService::formatMemberRow($r));
+        $export->writeCsvRow($out, $export->formatMemberRow($r));
     }
 
     fclose($out);

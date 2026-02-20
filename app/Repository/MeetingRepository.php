@@ -32,6 +32,18 @@ class MeetingRepository extends AbstractRepository
     }
 
     /**
+     * Checks if a meeting has been validated (validated_at IS NOT NULL).
+     * Used by ballots_cancel.php to guard against modifications after validation.
+     */
+    public function isValidated(string $id, string $tenantId): bool
+    {
+        return (bool)$this->scalar(
+            "SELECT 1 FROM meetings WHERE id = :id AND tenant_id = :tid AND validated_at IS NOT NULL",
+            [':id' => $id, ':tid' => $tenantId]
+        );
+    }
+
+    /**
      * Finds a meeting by its slug (URL obfuscation).
      */
     public function findBySlugForTenant(string $slug, string $tenantId): ?array

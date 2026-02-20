@@ -306,6 +306,18 @@ class BallotRepository extends AbstractRepository
         ) ?? 0);
     }
 
+    /**
+     * Supprime un ballot par motion et membre.
+     * Utilise par ballots_cancel.php pour annuler un vote manuel.
+     */
+    public function deleteByMotionAndMember(string $motionId, string $memberId): int
+    {
+        return $this->execute(
+            "DELETE FROM ballots WHERE motion_id = :mid AND member_id = :mem",
+            [':mid' => $motionId, ':mem' => $memberId]
+        );
+    }
+
     // =========================================================================
     // PAPER BALLOTS
     // =========================================================================
