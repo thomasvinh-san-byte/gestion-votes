@@ -25,7 +25,6 @@ final class DevSeedController extends AbstractController
     {
         $this->guardProduction();
 
-        api_require_role('operator');
         $in = api_request('POST');
         $count = max(1, min(100, (int)($in['count'] ?? 10)));
 
@@ -60,7 +59,6 @@ final class DevSeedController extends AbstractController
     {
         $this->guardProduction();
 
-        api_require_role('operator');
         $in = api_request('POST');
         $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if ($meetingId === '') {

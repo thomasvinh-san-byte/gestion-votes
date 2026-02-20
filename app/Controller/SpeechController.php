@@ -10,8 +10,6 @@ final class SpeechController extends AbstractController
 {
     public function request(): void
     {
-        api_require_role('public');
-        api_rate_limit('speech_request', 30, 60);
         $data = api_request('POST');
         $meetingId = api_require_uuid($data, 'meeting_id');
         $memberId = api_require_uuid($data, 'member_id');
@@ -35,7 +33,6 @@ final class SpeechController extends AbstractController
 
     public function grant(): void
     {
-        api_require_role(['operator', 'trust', 'president', 'admin']);
         $data = api_request('POST');
         $meetingId = api_require_uuid($data, 'meeting_id');
         $memberId = trim((string)($data['member_id'] ?? ''));
@@ -64,7 +61,6 @@ final class SpeechController extends AbstractController
 
     public function end(): void
     {
-        api_require_role(['operator', 'trust', 'president', 'admin']);
         $data = api_request('POST');
         $meetingId = api_require_uuid($data, 'meeting_id');
         $tenantId = api_current_tenant_id();
@@ -77,7 +73,6 @@ final class SpeechController extends AbstractController
 
     public function cancel(): void
     {
-        api_require_role(['operator', 'trust', 'president', 'admin']);
         $data = api_request('POST');
         $meetingId = api_require_uuid($data, 'meeting_id');
         $requestId = api_require_uuid($data, 'request_id');
@@ -94,7 +89,6 @@ final class SpeechController extends AbstractController
 
     public function clear(): void
     {
-        api_require_role(['operator', 'trust', 'president', 'admin']);
         $data = api_request('POST');
         $meetingId = api_require_uuid($data, 'meeting_id');
         $tenantId = api_current_tenant_id();
@@ -107,7 +101,6 @@ final class SpeechController extends AbstractController
 
     public function next(): void
     {
-        api_require_role(['operator', 'president', 'admin']);
         $data = api_request('POST');
         $meetingId = api_require_uuid($data, 'meeting_id');
         $tenantId = api_current_tenant_id();
@@ -123,8 +116,6 @@ final class SpeechController extends AbstractController
 
     public function queue(): void
     {
-        api_require_role('public');
-        api_rate_limit('speech_queue', 120, 60);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
         $tenantId = api_current_tenant_id();
@@ -146,8 +137,6 @@ final class SpeechController extends AbstractController
 
     public function current(): void
     {
-        api_require_role('public');
-        api_rate_limit('speech_current', 120, 60);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
         $tenantId = api_current_tenant_id();
@@ -186,8 +175,6 @@ final class SpeechController extends AbstractController
 
     public function myStatus(): void
     {
-        api_require_role('public');
-        api_rate_limit('speech_my_status', 120, 60);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
         $memberId = api_require_uuid($q, 'member_id');

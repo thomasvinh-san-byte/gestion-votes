@@ -25,9 +25,7 @@ final class AdminController extends AbstractController
         // GET: operators can list users (needed for meeting role assignment)
         // POST: admin only
         if ($method === 'GET') {
-            api_require_role(['admin', 'operator']);
         } else {
-            api_require_role('admin');
         }
 
         $validSystemRoles = ['admin', 'operator', 'auditor', 'viewer'];
@@ -180,7 +178,6 @@ final class AdminController extends AbstractController
 
     public function roles(): void
     {
-        api_require_role('admin');
         api_request('GET');
 
         $userRepo = new UserRepository();
@@ -213,8 +210,6 @@ final class AdminController extends AbstractController
     public function meetingRoles(): void
     {
         $method = api_method();
-        api_require_role(['admin', 'operator']);
-
         $validMeetingRoles = ['president', 'assessor', 'voter'];
         $userRepo = new UserRepository();
         $meetingRepo = new MeetingRepository();
@@ -324,7 +319,6 @@ final class AdminController extends AbstractController
 
     public function systemStatus(): void
     {
-        api_require_role('admin');
         api_request('GET');
 
         $userRepo = new UserRepository();
@@ -422,7 +416,6 @@ final class AdminController extends AbstractController
 
     public function auditLog(): void
     {
-        api_require_role('admin');
         api_request('GET');
 
         $tenantId = api_current_tenant_id();

@@ -22,7 +22,6 @@ final class BallotsController extends AbstractController
 {
     public function listForMotion(): void
     {
-        api_require_role(['operator', 'admin', 'president']);
         api_request('GET');
 
         $motionId = trim((string)($_GET['motion_id'] ?? ''));
@@ -42,8 +41,6 @@ final class BallotsController extends AbstractController
 
     public function cast(): void
     {
-        api_require_role('public');
-        api_rate_limit('ballot_cast', 60, 60);
         $data = api_request('POST');
 
         $idempotencyKey = $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] ?? null;
@@ -68,7 +65,6 @@ final class BallotsController extends AbstractController
 
     public function cancel(): void
     {
-        api_require_role(['operator', 'admin']);
         $in = api_request('POST');
 
         $motionId = api_require_uuid($in, 'motion_id');
@@ -157,8 +153,6 @@ final class BallotsController extends AbstractController
 
     public function result(): void
     {
-        api_require_role('public');
-        api_rate_limit('ballot_result', 120, 60);
         $params = api_request('GET');
 
         $motionId = trim((string)($params['motion_id'] ?? ''));
@@ -172,7 +166,6 @@ final class BallotsController extends AbstractController
 
     public function manualVote(): void
     {
-        api_require_role('operator');
         $data = api_request('POST');
 
         $tenantId = api_current_tenant_id();
@@ -267,7 +260,6 @@ final class BallotsController extends AbstractController
 
     public function redeemPaperBallot(): void
     {
-        api_require_role('operator');
         $in = api_request('POST');
 
         $code = trim((string)($in['code'] ?? ''));
@@ -316,8 +308,6 @@ final class BallotsController extends AbstractController
 
     public function reportIncident(): void
     {
-        api_require_role('public');
-        api_rate_limit('vote_incident', 30, 60);
         $in = api_request('POST');
 
         $kind = trim((string)($in['kind'] ?? 'network'));

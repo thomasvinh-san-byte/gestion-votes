@@ -39,7 +39,6 @@ final class DevicesController extends AbstractController
 
     public function listDevices(): void
     {
-        api_require_role(['operator', 'admin', 'trust']);
         $q = api_request('GET');
         $tenantId = api_current_tenant_id();
         $meetingId = (string)($q['meeting_id'] ?? '');
@@ -93,7 +92,6 @@ final class DevicesController extends AbstractController
 
     public function block(): void
     {
-        api_require_role(['operator', 'admin']);
         $in = api_request('POST');
         $tenantId = api_current_tenant_id();
         $meetingId = (string)($in['meeting_id'] ?? '');
@@ -116,7 +114,6 @@ final class DevicesController extends AbstractController
 
     public function unblock(): void
     {
-        api_require_role(['operator', 'admin']);
         $in = api_request('POST');
         $tenantId = api_current_tenant_id();
         $meetingId = (string)($in['meeting_id'] ?? '');
@@ -134,7 +131,6 @@ final class DevicesController extends AbstractController
 
     public function kick(): void
     {
-        api_require_role(['operator', 'admin']);
         $in = api_request('POST');
         $tenantId = api_current_tenant_id();
         $meetingId = (string)($in['meeting_id'] ?? '');
@@ -157,8 +153,6 @@ final class DevicesController extends AbstractController
 
     public function heartbeat(): void
     {
-        api_require_role('public');
-        api_rate_limit('device_heartbeat', 60, 60);
         $in = api_request('POST');
         $tenantId = api_current_tenant_id();
         $deviceId = $this->requireDeviceId($in);

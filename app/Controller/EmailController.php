@@ -14,7 +14,6 @@ final class EmailController extends AbstractController
 {
     public function preview(): void
     {
-        api_require_role(['operator', 'admin']);
         $input = api_request('POST');
 
         $bodyHtml = trim((string)($input['body_html'] ?? ''));
@@ -44,8 +43,6 @@ final class EmailController extends AbstractController
 
     public function schedule(): void
     {
-        api_require_role('operator');
-
         try {
             $input = api_request('POST');
 
@@ -104,7 +101,6 @@ final class EmailController extends AbstractController
 
     public function sendBulk(): void
     {
-        api_require_role('operator');
         $input = api_request('POST');
 
         $meetingId = trim((string)($input['meeting_id'] ?? ''));

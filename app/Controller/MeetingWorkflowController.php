@@ -24,7 +24,6 @@ final class MeetingWorkflowController extends AbstractController
 {
     public function transition(): void
     {
-        api_require_role(['operator', 'president', 'admin']);
         $input = api_request('POST');
 
         $meetingId = api_require_uuid($input, 'meeting_id');
@@ -168,7 +167,6 @@ final class MeetingWorkflowController extends AbstractController
 
     public function launch(): void
     {
-        api_require_role(['operator', 'president', 'admin']);
         $input = api_request('POST');
 
         $meetingId = api_require_uuid($input, 'meeting_id');
@@ -296,8 +294,6 @@ final class MeetingWorkflowController extends AbstractController
 
     public function workflowCheck(): void
     {
-        api_require_role(['operator', 'president', 'admin', 'viewer']);
-
         $meetingId = api_require_uuid($_GET, 'meeting_id');
         $toStatus = trim((string)($_GET['to_status'] ?? ''));
 
@@ -319,8 +315,6 @@ final class MeetingWorkflowController extends AbstractController
 
     public function readyCheck(): void
     {
-        api_require_role('auditor');
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -459,7 +453,6 @@ final class MeetingWorkflowController extends AbstractController
 
     public function consolidate(): void
     {
-        api_require_role(['operator', 'admin']);
         $body = api_request('POST');
 
         $meetingId = api_require_uuid($body, 'meeting_id');
@@ -491,7 +484,6 @@ final class MeetingWorkflowController extends AbstractController
 
     public function resetDemo(): void
     {
-        api_require_role(['operator', 'admin']);
         $in = api_request('POST');
 
         $meetingId = api_require_uuid($in, 'meeting_id');

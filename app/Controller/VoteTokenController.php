@@ -15,8 +15,6 @@ final class VoteTokenController extends AbstractController
 {
     public function generate(): void
     {
-        api_require_role('operator');
-
         $in = api_request('POST');
 
         $meetingId = trim((string)($in['meeting_id'] ?? ($_GET['meeting_id'] ?? '')));

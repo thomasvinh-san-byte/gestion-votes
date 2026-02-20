@@ -25,7 +25,6 @@ final class MotionsController extends AbstractController
 {
     public function createOrUpdate(): void
     {
-        api_require_role('operator');
         $in = api_request('POST');
 
         $v = InputValidator::schema()
@@ -122,8 +121,6 @@ final class MotionsController extends AbstractController
 
     public function listForMeeting(): void
     {
-        api_require_role('public');
-        api_rate_limit('motions_for_meeting', 120, 60);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
 
@@ -204,7 +201,6 @@ final class MotionsController extends AbstractController
 
     public function createSimple(): void
     {
-        api_require_role('operator');
         $in = api_request('POST');
 
         $meetingId = trim((string)($in['meeting_id'] ?? ''));
@@ -272,7 +268,6 @@ final class MotionsController extends AbstractController
 
     public function deleteMotion(): void
     {
-        api_require_role('operator');
         $in = api_request('POST');
         $motionId = api_require_uuid($in, 'motion_id');
 
@@ -304,7 +299,6 @@ final class MotionsController extends AbstractController
 
     public function reorder(): void
     {
-        api_require_role('operator');
         $in = api_request('POST');
 
         $meetingId = trim((string)($in['meeting_id'] ?? ''));
@@ -345,7 +339,6 @@ final class MotionsController extends AbstractController
 
     public function tally(): void
     {
-        api_require_role('operator');
         $in = api_request('GET');
 
         $motionId = trim((string)($in['motion_id'] ?? ($_GET['motion_id'] ?? '')));
@@ -384,8 +377,6 @@ final class MotionsController extends AbstractController
 
     public function current(): void
     {
-        api_require_role('public');
-        api_rate_limit('current_motion', 120, 60);
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -415,7 +406,6 @@ final class MotionsController extends AbstractController
 
     public function open(): void
     {
-        api_require_role('operator');
         $input = api_request('POST');
 
         $motionId = trim((string)($input['motion_id'] ?? ''));
@@ -503,7 +493,6 @@ final class MotionsController extends AbstractController
 
     public function close(): void
     {
-        api_require_role(['operator', 'president', 'admin']);
         $input = api_request('POST');
 
         $motionId = trim((string)($input['motion_id'] ?? ''));
@@ -607,7 +596,6 @@ final class MotionsController extends AbstractController
 
     public function degradedTally(): void
     {
-        api_require_role(['operator', 'auditor']);
         $input = api_request('POST');
 
         $motionId = trim((string)($input['motion_id'] ?? ''));

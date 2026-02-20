@@ -13,8 +13,6 @@ final class QuorumController extends AbstractController
 {
     public function card(): void
     {
-        api_require_role('public');
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         $motionId  = trim((string)($_GET['motion_id'] ?? ''));
 
@@ -85,7 +83,6 @@ final class QuorumController extends AbstractController
 
     public function status(): void
     {
-        api_require_role('operator');
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -121,8 +118,6 @@ final class QuorumController extends AbstractController
 
     public function meetingSettings(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $method = api_method();
         $repo = new MeetingRepository();
 

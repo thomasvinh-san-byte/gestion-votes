@@ -12,8 +12,6 @@ final class ExportTemplatesController extends AbstractController
 {
     public function list(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
 
@@ -59,8 +57,6 @@ final class ExportTemplatesController extends AbstractController
 
     public function create(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $input = api_request('POST');
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
@@ -119,8 +115,6 @@ final class ExportTemplatesController extends AbstractController
 
     public function update(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
         $id = trim((string)($_GET['id'] ?? ''));
@@ -157,8 +151,6 @@ final class ExportTemplatesController extends AbstractController
 
     public function delete(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
         $id = trim((string)($_GET['id'] ?? ''));

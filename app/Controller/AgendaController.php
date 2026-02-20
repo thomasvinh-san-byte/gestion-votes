@@ -14,7 +14,6 @@ final class AgendaController extends AbstractController
 {
     public function listForMeeting(): void
     {
-        api_require_role('operator');
         $data = api_request('GET');
 
         $meetingId = api_require_uuid($data, 'meeting_id');
@@ -31,7 +30,6 @@ final class AgendaController extends AbstractController
 
     public function create(): void
     {
-        api_require_role('operator');
         $data = api_request('POST');
 
         $v = ValidationSchemas::agenda()->validate($data);
@@ -62,8 +60,6 @@ final class AgendaController extends AbstractController
 
     public function lateRules(): void
     {
-        api_require_role('operator');
-
         $method = api_method();
         $repo = new MeetingRepository();
 
@@ -107,7 +103,6 @@ final class AgendaController extends AbstractController
 
     public function listForMeetingPublic(): void
     {
-        api_require_role('public');
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
 

@@ -13,8 +13,6 @@ final class EmailTemplatesController extends AbstractController
 {
     public function list(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $repo = new EmailTemplateRepository();
         global $config;
         $service = new EmailTemplateService($config ?? []);
@@ -49,8 +47,6 @@ final class EmailTemplatesController extends AbstractController
 
     public function create(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $input = api_request('POST');
         $repo = new EmailTemplateRepository();
         global $config;
@@ -128,8 +124,6 @@ final class EmailTemplatesController extends AbstractController
 
     public function update(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $repo = new EmailTemplateRepository();
         $tenantId = api_current_tenant_id();
         $id = trim((string)($_GET['id'] ?? ''));
@@ -171,8 +165,6 @@ final class EmailTemplatesController extends AbstractController
 
     public function delete(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $repo = new EmailTemplateRepository();
         $tenantId = api_current_tenant_id();
         $id = trim((string)($_GET['id'] ?? ''));

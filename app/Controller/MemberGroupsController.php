@@ -15,8 +15,6 @@ final class MemberGroupsController extends AbstractController
 
     public function list(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $tenantId = api_current_tenant_id();
         $repo = new MemberGroupRepository();
         $groupId = trim((string)($_GET['id'] ?? ''));
@@ -44,8 +42,6 @@ final class MemberGroupsController extends AbstractController
 
     public function create(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $input = api_request('POST');
         $tenantId = api_current_tenant_id();
         $repo = new MemberGroupRepository();
@@ -77,8 +73,6 @@ final class MemberGroupsController extends AbstractController
 
     public function update(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $input = api_request('PATCH');
         $tenantId = api_current_tenant_id();
         $repo = new MemberGroupRepository();
@@ -120,8 +114,6 @@ final class MemberGroupsController extends AbstractController
 
     public function delete(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $tenantId = api_current_tenant_id();
         $repo = new MemberGroupRepository();
         $groupId = trim((string)($_GET['id'] ?? ''));
@@ -151,8 +143,6 @@ final class MemberGroupsController extends AbstractController
 
     public function assign(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $input = api_request('POST');
         $tenantId = api_current_tenant_id();
         $userId = api_current_user_id();
@@ -193,8 +183,6 @@ final class MemberGroupsController extends AbstractController
 
     public function unassign(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $tenantId = api_current_tenant_id();
         $groupRepo = new MemberGroupRepository();
         $memberRepo = new MemberRepository();
@@ -234,8 +222,6 @@ final class MemberGroupsController extends AbstractController
 
     public function setMemberGroups(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $input = api_request('PUT');
         $tenantId = api_current_tenant_id();
         $userId = api_current_user_id();
@@ -284,8 +270,6 @@ final class MemberGroupsController extends AbstractController
 
     public function bulkAssign(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $input = api_request('POST');
         $tenantId = api_current_tenant_id();
         $userId = api_current_user_id();

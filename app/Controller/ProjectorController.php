@@ -13,7 +13,6 @@ final class ProjectorController extends AbstractController
 {
     public function state(): void
     {
-        api_require_role('public');
         api_request('GET');
 
         $meetingRepo = new MeetingRepository();

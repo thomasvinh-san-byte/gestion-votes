@@ -16,7 +16,6 @@ final class ProxiesController extends AbstractController
 {
     public function listForMeeting(): void
     {
-        api_require_role(['operator', 'trust', 'admin']);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
         $tenantId = api_current_tenant_id();
@@ -31,7 +30,6 @@ final class ProxiesController extends AbstractController
 
     public function upsert(): void
     {
-        api_require_role('operator');
         $in = api_request('POST');
 
         $meetingId = api_require_uuid($in, 'meeting_id');
@@ -80,7 +78,6 @@ final class ProxiesController extends AbstractController
 
     public function delete(): void
     {
-        api_require_role(['operator', 'admin']);
         $input = api_request('POST');
 
         $meetingId = trim((string)($input['meeting_id'] ?? ''));

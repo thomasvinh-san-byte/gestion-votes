@@ -13,8 +13,6 @@ final class ReminderController extends AbstractController
 {
     public function listForMeeting(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -38,8 +36,6 @@ final class ReminderController extends AbstractController
 
     public function upsert(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $input = api_request('POST');
         $tenantId = api_current_tenant_id();
         $repo = new ReminderScheduleRepository();
@@ -108,8 +104,6 @@ final class ReminderController extends AbstractController
 
     public function delete(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $id = trim((string)($_GET['id'] ?? ''));
         if (!api_is_uuid($id)) {
             api_fail('invalid_reminder_id', 400);

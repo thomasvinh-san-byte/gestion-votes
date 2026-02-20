@@ -13,7 +13,6 @@ final class EmergencyController extends AbstractController
 {
     public function checkToggle(): void
     {
-        api_require_role(['operator', 'admin']);
         $in = api_request('POST');
 
         $meetingId = api_require_uuid($in, 'meeting_id');
@@ -47,7 +46,6 @@ final class EmergencyController extends AbstractController
 
     public function procedures(): void
     {
-        api_require_role('operator');
         $q = api_request('GET');
 
         $aud = trim((string)($q['audience'] ?? 'operator'));

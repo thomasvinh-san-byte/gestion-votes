@@ -15,7 +15,6 @@ final class PoliciesController extends AbstractController
 {
     public function listQuorum(): void
     {
-        api_require_role('operator');
         api_request('GET');
         $rows = (new PolicyRepository())->listQuorumPolicies(api_current_tenant_id());
         api_ok(['items' => $rows]);
@@ -23,7 +22,6 @@ final class PoliciesController extends AbstractController
 
     public function listVote(): void
     {
-        api_require_role('operator');
         api_request('GET');
         $rows = (new PolicyRepository())->listVotePolicies(api_current_tenant_id());
         api_ok(['items' => $rows]);
@@ -31,7 +29,6 @@ final class PoliciesController extends AbstractController
 
     public function adminQuorum(): void
     {
-        api_require_role('admin');
         $method = api_method();
         $repo = new PolicyRepository();
         $tenantId = api_current_tenant_id();
@@ -97,7 +94,6 @@ final class PoliciesController extends AbstractController
 
     public function adminVote(): void
     {
-        api_require_role('admin');
         $method = api_method();
         $repo = new PolicyRepository();
         $tenantId = api_current_tenant_id();

@@ -12,7 +12,6 @@ final class AnalyticsController extends AbstractController
 {
     public function analytics(): void
     {
-        api_require_role('operator');
         api_request('GET');
 
         $tenantId = api_current_tenant_id();
@@ -52,8 +51,6 @@ final class AnalyticsController extends AbstractController
 
     public function reportsAggregate(): void
     {
-        api_require_role(['operator', 'admin', 'auditor']);
-
         $repo = new AggregateReportRepository();
         $tenantId = api_current_tenant_id();
 

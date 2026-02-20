@@ -20,7 +20,6 @@ final class MeetingsController extends AbstractController
 {
     public function index(): void
     {
-        api_require_role('viewer');
         api_request('GET');
 
         $limit = (int)($_GET['limit'] ?? 50);
@@ -42,7 +41,6 @@ final class MeetingsController extends AbstractController
 
     public function update(): void
     {
-        api_require_role('operator');
         $input = api_request('POST');
 
         $meetingId = trim((string)($input['meeting_id'] ?? ''));
@@ -121,7 +119,6 @@ final class MeetingsController extends AbstractController
 
     public function archive(): void
     {
-        api_require_role('operator');
         api_request('GET');
 
         $from = trim($_GET['from'] ?? '');
@@ -134,7 +131,6 @@ final class MeetingsController extends AbstractController
 
     public function archivesList(): void
     {
-        api_require_role('viewer');
         api_request('GET');
 
         $repo = new MeetingRepository();
@@ -144,7 +140,6 @@ final class MeetingsController extends AbstractController
 
     public function status(): void
     {
-        api_require_role('operator');
         api_request('GET');
 
         $repo = new MeetingRepository();
@@ -197,7 +192,6 @@ final class MeetingsController extends AbstractController
 
     public function statusForMeeting(): void
     {
-        api_require_role('auditor');
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -245,8 +239,6 @@ final class MeetingsController extends AbstractController
 
     public function summary(): void
     {
-        api_require_role(['operator', 'president', 'admin', 'auditor']);
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -305,8 +297,6 @@ final class MeetingsController extends AbstractController
 
     public function stats(): void
     {
-        api_require_role('public');
-        api_rate_limit('meeting_stats', 120, 60);
         api_request('GET');
 
         $meetingId = trim($_GET['meeting_id'] ?? '');
@@ -381,7 +371,6 @@ final class MeetingsController extends AbstractController
 
     public function createMeeting(): void
     {
-        api_require_role('operator');
         $data = api_request('POST');
 
         $v = ValidationSchemas::meeting()->validate($data);
@@ -433,8 +422,6 @@ final class MeetingsController extends AbstractController
 
     public function voteSettings(): void
     {
-        api_require_role(['operator', 'admin']);
-
         $method = api_method();
         $repo = new MeetingRepository();
 
@@ -489,7 +476,6 @@ final class MeetingsController extends AbstractController
 
     public function validate(): void
     {
-        api_require_role(['president', 'admin']);
         $input = api_request('POST');
 
         $meetingId = trim((string)($input['meeting_id'] ?? ''));

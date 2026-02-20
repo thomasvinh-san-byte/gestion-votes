@@ -14,7 +14,6 @@ final class MembersController extends AbstractController
 {
     public function index(): void
     {
-        api_require_role('operator');
         $data = api_request('GET');
 
         $repo = new MemberRepository();
@@ -34,7 +33,6 @@ final class MembersController extends AbstractController
 
     public function create(): void
     {
-        api_require_role('operator');
         $input = api_request('POST');
 
         // Normalize legacy field name
@@ -63,7 +61,6 @@ final class MembersController extends AbstractController
 
     public function updateMember(): void
     {
-        api_require_role('operator');
         $input = api_request('PATCH', 'PUT');
 
         $id = trim($input['id'] ?? $input['member_id'] ?? '');
@@ -100,7 +97,6 @@ final class MembersController extends AbstractController
 
     public function delete(): void
     {
-        api_require_role('operator');
         $input = api_request('DELETE');
 
         $id = trim($input['id'] ?? $input['member_id'] ?? '');
@@ -124,7 +120,6 @@ final class MembersController extends AbstractController
 
     public function presidents(): void
     {
-        api_require_role('auditor');
         api_request('GET');
 
         $repo = new MemberRepository();

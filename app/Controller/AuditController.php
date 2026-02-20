@@ -14,8 +14,6 @@ final class AuditController extends AbstractController
 {
     public function timeline(): void
     {
-        api_require_role(['auditor', 'admin', 'operator', 'president']);
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -101,8 +99,6 @@ final class AuditController extends AbstractController
 
     public function export(): void
     {
-        api_require_role(['auditor', 'operator', 'admin']);
-
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
         $format = strtolower(trim((string)($_GET['format'] ?? 'csv')));
@@ -199,7 +195,6 @@ final class AuditController extends AbstractController
 
     public function meetingAudit(): void
     {
-        api_require_role(['auditor', 'admin']);
         api_request('GET');
 
         $meetingId = trim($_GET['meeting_id'] ?? '');
@@ -223,7 +218,6 @@ final class AuditController extends AbstractController
 
     public function meetingEvents(): void
     {
-        api_require_role('auditor');
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -243,7 +237,6 @@ final class AuditController extends AbstractController
 
     public function operatorEvents(): void
     {
-        api_require_role(['operator', 'admin', 'trust']);
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));

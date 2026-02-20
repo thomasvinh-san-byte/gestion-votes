@@ -39,7 +39,6 @@ final class AuthController extends AbstractController
             $user = $userRepo->findByEmailGlobal($email);
 
             if (!$user || empty($user['password_hash'])) {
-                api_rate_limit('auth_login_fail', 10, 300);
                 try {
                     $userRepo->logAuthFailure(
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',
@@ -52,7 +51,6 @@ final class AuthController extends AbstractController
             }
 
             if (!password_verify($password, $user['password_hash'])) {
-                api_rate_limit('auth_login_fail', 10, 300);
                 try {
                     $userRepo->logAuthFailure(
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',
@@ -85,7 +83,6 @@ final class AuthController extends AbstractController
             $user = $userRepo->findByApiKeyHashGlobal($hash);
 
             if (!$user) {
-                api_rate_limit('auth_login_fail', 10, 300);
                 try {
                     $userRepo->logAuthFailure(
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',

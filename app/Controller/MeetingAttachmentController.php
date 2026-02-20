@@ -13,8 +13,6 @@ final class MeetingAttachmentController extends AbstractController
 {
     public function listForMeeting(): void
     {
-        api_require_role('operator');
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -28,8 +26,6 @@ final class MeetingAttachmentController extends AbstractController
 
     public function upload(): void
     {
-        api_require_role('operator');
-
         $meetingId = trim((string)($_POST['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -110,8 +106,6 @@ final class MeetingAttachmentController extends AbstractController
 
     public function delete(): void
     {
-        api_require_role('operator');
-
         $input = api_request('DELETE');
         $id = trim((string)($input['id'] ?? ''));
         if ($id === '' || !api_is_uuid($id)) {

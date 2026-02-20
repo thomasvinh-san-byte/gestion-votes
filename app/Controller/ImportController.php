@@ -15,8 +15,6 @@ final class ImportController extends AbstractController
 {
     public function membersCsv(): void
     {
-        api_rate_limit('csv_import', 10, 3600);
-        api_require_role(['operator', 'admin']);
         api_request('POST');
 
         // Support 3 modes: file upload, csv_content as FormData, csv_content as JSON
@@ -185,8 +183,6 @@ final class ImportController extends AbstractController
 
     public function membersXlsx(): void
     {
-        api_rate_limit('xlsx_import', 10, 3600);
-        api_require_role(['operator', 'admin']);
         api_request('POST');
 
         $file = $_FILES['file'] ?? $_FILES['xlsx_file'] ?? null;
@@ -304,8 +300,6 @@ final class ImportController extends AbstractController
 
     public function attendancesCsv(): void
     {
-        api_rate_limit('csv_import', 10, 3600);
-        api_require_role(['operator', 'admin']);
         api_request('POST');
 
         $meetingId = trim($_POST['meeting_id'] ?? '');
@@ -431,8 +425,6 @@ final class ImportController extends AbstractController
 
     public function attendancesXlsx(): void
     {
-        api_rate_limit('xlsx_import', 10, 3600);
-        api_require_role(['operator', 'admin']);
         api_request('POST');
 
         $meetingId = trim($_POST['meeting_id'] ?? '');
@@ -537,8 +529,6 @@ final class ImportController extends AbstractController
 
     public function proxiesCsv(): void
     {
-        api_rate_limit('csv_import', 10, 3600);
-        api_require_role(['operator', 'admin']);
         api_request('POST');
 
         $meetingId = trim($_POST['meeting_id'] ?? '');
@@ -692,8 +682,6 @@ final class ImportController extends AbstractController
 
     public function proxiesXlsx(): void
     {
-        api_rate_limit('xlsx_import', 10, 3600);
-        api_require_role(['operator', 'admin']);
         api_request('POST');
 
         $meetingId = trim($_POST['meeting_id'] ?? '');
@@ -826,8 +814,6 @@ final class ImportController extends AbstractController
 
     public function motionsCsv(): void
     {
-        api_rate_limit('csv_import', 10, 3600);
-        api_require_role(['operator', 'admin']);
         api_request('POST');
 
         $meetingId = trim($_POST['meeting_id'] ?? '');
@@ -960,8 +946,6 @@ final class ImportController extends AbstractController
 
     public function motionsXlsx(): void
     {
-        api_rate_limit('xlsx_import', 10, 3600);
-        api_require_role(['operator', 'admin']);
         api_request('POST');
 
         $meetingId = trim($_POST['meeting_id'] ?? '');
