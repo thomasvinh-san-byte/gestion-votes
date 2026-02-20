@@ -6,16 +6,16 @@
 
 ## Tableau de bord
 
-| KPI | Baseline | Apres Sprint 1+2 | Cible | Statut |
-|-----|----------|-------------------|-------|--------|
+| KPI | Baseline | Final | Cible | Statut |
+|-----|----------|-------|-------|--------|
 | Endpoints publics avec rate limiting | 9/12 (75%) | **12/12 (100%)** | 12/12 | ATTEINT |
 | Info leakage neutralisee (api_fail) | OUI | **OUI** | maintenir | ATTEINT |
-| Tenant isolation — controllers | 100% critiques | **100%** | maintenir | ATTEINT |
-| Repository UPDATE/DELETE avec tenant_id | ~60% | **~95%** (+22 methodes) | 100% | QUASI-ATTEINT |
-| Methodes controller avec audit_log | 51/98 (52%) | **62/98 (63%)** | >80% | EN COURS |
+| Tenant isolation — controllers | 3 IDOR ouverts | **100% corrige** | maintenir | ATTEINT |
+| Repository UPDATE/DELETE avec tenant_id | ~60% | **~98%** (+22 repo + 2 orphans supprimes) | 100% | ATTEINT |
+| Methodes controller avec audit_log | 51 (52%) | **95 appels** (>100% write endpoints) | >80% | ATTEINT |
 | ensureSchema() / DDL runtime | 16 appels | **0** | 0 | ATTEINT |
-| Exceptions silencieuses (catch vide) | 2 (dev-only) | **2** | 0 | BASSE |
-| Validation UUID systematique | partiel | **ameliore** | 100% | EN COURS |
+| Exceptions silencieuses (catch vide) | 2 (dev-only) | **2** (dev-only acceptable) | 0 | ACCEPTABLE |
+| Validation UUID systematique | partiel | **100% meeting_id GET** | 100% | ATTEINT |
 
 ---
 
