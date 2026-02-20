@@ -1,4 +1,4 @@
 <?php
-// public/api/v1/members_export_csv.php
-// Alias for export_members_csv.php — members.htmx.html references this name
-require __DIR__ . '/export_members_csv.php';
+declare(strict_types=1);
+require __DIR__ . '/../../../app/api.php';
+(new \AgVote\Controller\ExportController())->handle('membersCsv');

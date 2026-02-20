@@ -221,14 +221,16 @@ Ces fichiers bénéficient déjà de `api_request()`, `api_fail()`, `audit_log()
 | ✅ Pilotes | 2 | 18 | -634 LOC |
 | ✅ A. Simples | 3 | 13 | -150 LOC |
 | ✅ B. Métier | 4 | 21 | -227 LOC |
-| C. Admin/Audit | 3 | 13 | ~-350 LOC |
-| D. Meetings | 3 | 19 | ~-400 LOC |
-| E. Restants | 4 | 15 | ~-300 LOC |
-| Alias | — | 6 | ~-30 LOC |
-| **Total** | **19** | **106** | **~-2574 LOC** |
-| Autonomes | — | 22 | Restent en l'état |
+| ✅ C. Admin/Audit | 3 | 13 | -81 LOC |
+| ✅ D. Meetings | 3 | 19 | -222 LOC |
+| ✅ E. Restants | 4 | 13 | consolidé |
+| ✅ Alias | — | 6 | direct proxies |
+| **Total** | **19** | **104** | **consolidé** |
+| Autonomes | — | ~24 | Restent en l'état |
 
-**19 contrôleurs pour 106 endpoints.** 22 fichiers restent autonomes. Pas de router, pas de container, pas de framework.
+**19 contrôleurs pour 104 endpoints.** ~24 fichiers restent autonomes (dont email_pixel, email_redirect). Pas de router, pas de container, pas de framework.
+
+**Migration terminée.** Tous les batches A→E + alias sont consolidés.
 
 ---
 
