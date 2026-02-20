@@ -32,7 +32,7 @@ final class MeetingWorkflowService
      * @param string $toStatus Target status
      * @return array ['issues' => [], 'warnings' => [], 'can_proceed' => bool]
      */
-    public static function issuesBeforeTransition(string $meetingId, string $tenantId, string $toStatus): array
+    public static function issuesBeforeTransition(string $meetingId, string $tenantId, string $toStatus, ?string $fromStatusOverride = null): array
     {
         $issues = [];
         $warnings = [];
@@ -48,7 +48,7 @@ final class MeetingWorkflowService
             ];
         }
 
-        $fromStatus = $meeting['status'];
+        $fromStatus = $fromStatusOverride ?? $meeting['status'];
 
         // draft → scheduled
         if ($toStatus === 'scheduled' && $fromStatus === 'draft') {
@@ -105,6 +105,11 @@ final class MeetingWorkflowService
             if ($closed > 0 && $consolidated < $closed) {
                 $warnings[] = ['code' => 'not_consolidated', 'msg' => 'Résultats non consolidés (officialisation recommandée)'];
             }
+        }
+
+        // Block backward transition from archived — audit trail immutability
+        if ($fromStatus === 'archived') {
+            $issues[] = ['code' => 'archived_immutable', 'msg' => 'Séance archivée : toute modification est interdite pour garantir l\'intégrité de l\'audit.'];
         }
 
         return [
@@ -193,7 +198,8 @@ final class MeetingWorkflowService
             'draft' => ['scheduled'],
             'scheduled' => ['frozen', 'draft'],
             'frozen' => ['live', 'scheduled'],
-            'live' => ['closed'],
+            'live' => ['paused', 'closed'],
+            'paused' => ['live', 'closed'],
             'closed' => ['validated'],
             'validated' => ['archived'],
             'archived' => [],

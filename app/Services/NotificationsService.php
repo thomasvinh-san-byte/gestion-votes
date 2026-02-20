@@ -201,18 +201,20 @@ final class NotificationsService
         return $notifRepo->listRecent($meetingId, $limit, $audience);
     }
 
-    public static function markRead(string $meetingId, int $id): void
+    public static function markRead(string $meetingId, int $id, string $tenantId): void
     {
-        (new NotificationRepository())->markRead($meetingId, $id);
+        (new NotificationRepository())->markRead($meetingId, $id, $tenantId);
     }
 
-    public static function markAllRead(string $meetingId, string $audience = 'operator'): void
+    public static function markAllRead(string $meetingId, string $audience = 'operator', string $tenantId = ''): void
     {
-        (new NotificationRepository())->markAllRead($meetingId, $audience);
+        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
+        (new NotificationRepository())->markAllRead($meetingId, $audience, $tenantId);
     }
 
-    public static function clear(string $meetingId, string $audience = 'operator'): void
+    public static function clear(string $meetingId, string $audience = 'operator', string $tenantId = ''): void
     {
-        (new NotificationRepository())->clear($meetingId, $audience);
+        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
+        (new NotificationRepository())->clear($meetingId, $audience, $tenantId);
     }
 }

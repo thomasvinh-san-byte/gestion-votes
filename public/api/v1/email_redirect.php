@@ -56,7 +56,7 @@ if ($invitationId !== '' && $trackingEnabled) {
 
             if ($tenantId !== null) {
                 // Incrementer le compteur de clics
-                $invitationRepo->incrementClickCount($invitationId);
+                $invitationRepo->incrementClickCount($invitationId, $tenantId);
 
                 // Logger l'evenement avec l'URL cible
                 $eventRepo->logEvent(

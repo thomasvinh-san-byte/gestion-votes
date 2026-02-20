@@ -150,7 +150,7 @@ final class ImportController extends AbstractController
                 $memberId = null;
                 if ($existing) {
                     $memberId = $existing['id'];
-                    $memberRepo->updateImport($memberId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
+                    $memberRepo->updateImport($memberId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active'], $tenantId);
                 } else {
                     $memberId = $memberRepo->createImport($tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
                 }
@@ -272,7 +272,7 @@ final class ImportController extends AbstractController
                 $memberId = null;
                 if ($existing) {
                     $memberId = $existing['id'];
-                    $memberRepo->updateImport($memberId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
+                    $memberRepo->updateImport($memberId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active'], $tenantId);
                 } else {
                     $memberId = $memberRepo->createImport($tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
                 }

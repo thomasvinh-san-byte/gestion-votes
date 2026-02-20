@@ -28,6 +28,8 @@
     errorBox.textContent = msg;
     errorBox.classList.add('visible');
     successBox.classList.remove('visible');
+    // Accessibility: move focus to error so screen readers announce it
+    errorBox.focus();
   }
 
   function showSuccess(msg) {

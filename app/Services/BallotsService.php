@@ -42,9 +42,10 @@ final class BallotsService
             throw new InvalidArgumentException('Valeur de vote invalide (for/against/abstain/nsp attendue)');
         }
 
-        // Load motion + meeting + tenant
+        // Load motion + meeting + tenant (with tenant isolation when available)
         $motionRepo = new MotionRepository();
-        $context = $motionRepo->findWithBallotContext($motionId);
+        $callerTenantId = trim((string)($data['_tenant_id'] ?? ''));
+        $context = $motionRepo->findWithBallotContext($motionId, $callerTenantId);
 
         if (!$context) {
             throw new RuntimeException('Motion introuvable');
@@ -57,9 +58,9 @@ final class BallotsService
             throw new RuntimeException('Impossible de voter sur une motion dont la séance n\'est pas en cours');
         }
 
-if (!empty($context['meeting_validated_at'])) {
-    throw new RuntimeException('Séance validée : vote interdit');
-}
+        if (!empty($context['meeting_validated_at'])) {
+            throw new RuntimeException('Séance validée : vote interdit');
+        }
 
         if (empty($context['motion_opened_at']) || !empty($context['motion_closed_at'])) {
             throw new RuntimeException('Cette motion n\'est pas ouverte au vote');
@@ -131,11 +132,21 @@ if (!empty($context['meeting_validated_at'])) {
         }
 
         $ballotRepo = new BallotRepository();
+        $meetingRepo = new \AgVote\Repository\MeetingRepository();
 
         // Wrap ballot insert + audit log in a transaction for atomicity
         $pdo = \db();
         $pdo->beginTransaction();
         try {
+            // Lock the meeting row to prevent TOCTOU race: meeting could
+            // transition from 'live' to 'closed' between the initial check
+            // and the ballot INSERT.
+            $lockedMeeting = $meetingRepo->lockForUpdate($meetingId, $tenantId);
+            if (!$lockedMeeting || $lockedMeeting['status'] !== 'live') {
+                $pdo->rollBack();
+                throw new RuntimeException('Séance non disponible pour le vote');
+            }
+
             $ballotRepo->castBallot(
                 $tenantId,
                 $motionId,

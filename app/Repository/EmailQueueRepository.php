@@ -113,19 +113,12 @@ class EmailQueueRepository extends AbstractRepository
     /**
      * Annule tous les emails programmes pour une seance.
      */
-    public function cancelForMeeting(string $meetingId, string $tenantId = ''): int
+    public function cancelForMeeting(string $meetingId, string $tenantId): int
     {
-        if ($tenantId !== '') {
-            return $this->execute(
-                "UPDATE email_queue SET status = 'cancelled', updated_at = now()
-                 WHERE meeting_id = :meeting_id AND tenant_id = :tid AND status = 'pending'",
-                [':meeting_id' => $meetingId, ':tid' => $tenantId]
-            );
-        }
         return $this->execute(
             "UPDATE email_queue SET status = 'cancelled', updated_at = now()
-             WHERE meeting_id = :meeting_id AND status = 'pending'",
-            [':meeting_id' => $meetingId]
+             WHERE meeting_id = :meeting_id AND tenant_id = :tid AND status = 'pending'",
+            [':meeting_id' => $meetingId, ':tid' => $tenantId]
         );
     }
 

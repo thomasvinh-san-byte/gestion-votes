@@ -157,19 +157,12 @@ class DeviceRepository extends AbstractRepository
     /**
      * Marque une commande comme consommee.
      */
-    public function consumeCommand(string $commandId, string $tenantId = ''): void
+    public function consumeCommand(string $commandId, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE device_commands SET consumed_at = now() WHERE id = ?::uuid AND tenant_id = ?",
-                [$commandId, $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE device_commands SET consumed_at = now() WHERE id = ?::uuid",
-                [$commandId]
-            );
-        }
+        $this->execute(
+            "UPDATE device_commands SET consumed_at = now() WHERE id = ?::uuid AND tenant_id = ?",
+            [$commandId, $tenantId]
+        );
     }
 
     /**

@@ -1150,6 +1150,10 @@
     });
     if (!confirmed) return;
 
+    // Show loading on close session buttons during API call
+    const sessionCloseBtns = document.querySelectorAll('#btnCloseSession, #execBtnCloseSession');
+    sessionCloseBtns.forEach(b => Shared.btnLoading(b, true));
+
     try {
       const { body } = await api('/api/v1/meeting_transition.php', {
         meeting_id: O.currentMeetingId,
@@ -1166,6 +1170,8 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      sessionCloseBtns.forEach(b => { if (b.isConnected) Shared.btnLoading(b, false); });
     }
   }
 
@@ -1186,6 +1192,11 @@
       body: `<p>La séance passera en statut <strong>« ${statusLabel} »</strong>.</p>`
     });
     if (!confirmed) return;
+
+    // Show loading on the transition button that triggered this action
+    const transBtn = document.querySelector(`[data-transition="${toStatus}"]`);
+    if (transBtn) Shared.btnLoading(transBtn, true);
+
     try {
       const { body } = await api('/api/v1/meeting_transition.php', {
         meeting_id: O.currentMeetingId,
@@ -1215,6 +1226,8 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      if (transBtn && transBtn.isConnected) Shared.btnLoading(transBtn, false);
     }
   }
 

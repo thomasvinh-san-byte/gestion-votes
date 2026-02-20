@@ -11,23 +11,23 @@ Périmètre : `public/assets/js/**/*.js` + fichiers `.htmx.html`
 |-----|-------------|-------|-------|-------|--------|
 | K1 | innerHTML sans escapeHtml (XSS) | 6 UNSAFE | **0** | 0 | ATTEINT |
 | K2 | Secrets dans localStorage | 4 violations | **0** | 0 | ATTEINT |
-| K3 | Error handling API silencieux | 14 PARTIAL (89%) | **10 PARTIAL (92%)** | 100% | ACCEPTABLE |
+| K3 | Error handling API silencieux | 14 PARTIAL (89%) | **0 silencieux (100%)** | 100% | ATTEINT |
 | K4 | POST sans CSRF token | 1 manquant | **0** | 0 | ATTEINT |
 | K5 | Formulaires sans validation email | 3 faiblesses | **0** | 0 | ATTEINT |
 | K6 | Fonctions depth > 3 niveaux | 22 fonctions | **22** | 0 | NON TRAITE |
 
-### K3 — Les 10 PARTIAL restants (volontairement acceptés)
+### K3 — Stratégie appliquée aux 10 ex-PARTIAL
 
-Tous sont des fallbacks intentionnels pour des données optionnelles ou des
-mécanismes de polling. Les corriger ajouterait du bruit UI sans valeur :
+Aucun catch n'est plus silencieux. Chaque instance a reçu un traitement
+adapté à son contexte UI :
 
-| Fichier:Ligne | Endpoint | Justification du silence |
-|---------------|----------|--------------------------|
-| vote.js:152 | device_heartbeat.php | Polling : un échec isolé est invisible pour l'utilisateur |
-| vote.js:198-201 | policies + settings (×4) | Graceful degradation : on continue avec les défauts |
-| vote.js:422 | attendances.php | Fallback secondaire dans un bloc déjà catchée |
-| shell.js:134,160,182 | context drawer (×3) | Section auxiliaire de la sidebar, non critique |
-| operator-tabs.js:2221 | invitations_stats.php | Stats optionnelles, absentes en début de vie |
+| Fichier:Ligne | Endpoint | Traitement appliqué |
+|---------------|----------|---------------------|
+| vote.js:152 | device_heartbeat.php | Compteur d'échecs consécutifs → `notify('error')` après 3 ratés |
+| vote.js:198-201 | policies + settings (×4) | `console.warn` groupé avec liste des endpoints en erreur |
+| vote.js:422 | attendances.php | `console.warn` avec message + fallback members.php documenté |
+| shell.js:134,160,182 | context drawer (×3) | Accumulation → indicateur "sections indisponibles" en pied de drawer |
+| operator-tabs.js:2221 | invitations_stats.php | Affichage "—" dans tous les compteurs au lieu de les laisser vides |
 
 ---
 
@@ -56,12 +56,17 @@ explicite et sécurisé.
 | 1 | `public.htmx.html` | `api_key` : `localStorage` → `sessionStorage` (survit au reload, pas à la fermeture de session) |
 | 2 | `vote.htmx.html` | Vote receipts : `localStorage` → `sessionStorage` (les choix de vote ne persistent plus entre sessions) |
 
-### K3 — Error handling (2 fixes, 2 fichiers)
+### K3 — Error handling (6 fixes, 4 fichiers)
 
 | # | Fichier | Correction |
 |---|---------|------------|
 | 1 | `pages/pv-print.js` | 3 `catch(_){}` silencieux → accumulation d'erreurs et message visible "Chargement partiel" |
 | 2 | `pages/meetings.js` | Upload attachments : `console.warn` → `setNotif('warning', ...)` |
+| 3 | `pages/vote.js:152` | Heartbeat : compteur d'échecs consécutifs → `notify('error')` après 3 ratés, reset à 0 en cas de succès |
+| 4 | `pages/vote.js:198-201` | Policies ×4 : `console.warn` groupé listant les endpoints en erreur |
+| 5 | `pages/vote.js:422` | Attendances : `console.warn` informatif avant fallback sur members.php |
+| 6 | `core/shell.js:134,160,182` | Context drawer ×3 : accumulation des échecs → indicateur discret "sections indisponibles" en pied de drawer |
+| 7 | `pages/operator-tabs.js:2221` | Stats invitations : affichage "—" explicite dans les compteurs au lieu de les laisser vides |
 
 ### K4 — CSRF (1 fix)
 
@@ -302,12 +307,12 @@ Chaque étape doit être validée par :
 | Fichier | Appels | COVERED | PARTIAL | CSRF ok |
 |---------|--------|---------|---------|---------|
 | admin.js | 25 | 25 | 0 | 25/25 |
-| operator-tabs.js | 28 | 27 | 1 | 28/28 |
+| operator-tabs.js | 28 | 28 | 0 | 28/28 |
 | operator-motions.js | 13 | 13 | 0 | 13/13 |
 | operator-attendance.js | 9 | 9 | 0 | 9/9 |
 | operator-speech.js | 7 | 7 | 0 | 7/7 |
-| vote.js | 11 | 6 | 5 | 11/11 |
-| shell.js | 6 | 3 | 3 | 6/6 |
+| vote.js | 11 | 11 | 0 | 11/11 |
+| shell.js | 6 | 6 | 0 | 6/6 |
 | auth-ui.js | 4 | 4 | 0 | 4/4 |
 | login.js | 3 | 3 | 0 | 2/3 (login pre-auth) |
 | meetings.js | 3 | 3 | 0 | 3/3 |
@@ -317,7 +322,7 @@ Chaque étape doit être validée par :
 | trust.js | 7 | 7 | 0 | 7/7 |
 | archives.js | 1 | 1 | 0 | 1/1 |
 | shared.js | 1 | 1 | 0 | N/A (GET) |
-| **TOTAL** | **127** | **117** | **10** | **125/127** |
+| **TOTAL** | **127** | **127** | **0** | **125/127** |
 
 ### Infrastructure CSRF
 
@@ -328,7 +333,35 @@ Chaque étape doit être validée par :
 
 ---
 
-## 5. Conventions à respecter (post-audit)
+## 5. Corrections supplémentaires (passe 2)
+
+### A. localStorage → sessionStorage (privacy sur appareils partagés)
+
+| # | Fichier | Correction |
+|---|---------|------------|
+| 1 | `pages/vote.js` | 14 occurrences : `device.id`, `public.meeting_id`, `public.member_id` migrés vers sessionStorage |
+| 2 | `services/meeting-context.js` | 4 occurrences : `meeting_id` context migré vers sessionStorage |
+
+**Seul localStorage restant** : `shell.js` — thème clair/sombre (non-sensible, conservé).
+
+### E. Fuites mémoire (timers + event listeners)
+
+| # | Fichier | Correction |
+|---|---------|------------|
+| 1 | `pages/vote.js:947-951` | Timers poll/heartbeat stockés sur `window` avec `clearInterval` avant recréation |
+| 2 | `pages/operator-tabs.js:1606` | Timer clock non gardé → ajout `_clockInterval` avec clear + cleanup dans `beforeunload` |
+| 3 | `components/ag-popover.js:112` | `removeEventListeners()` ne nettoyait que document → nettoyage complet de tous les listeners (trigger + popover + document) |
+
+### G. Accessibilité
+
+| # | Fichier | Correction |
+|---|---------|------------|
+| 1 | `pages/login.js` | `showError()` donne le focus à `errorBox` pour les lecteurs d'écran |
+| 2 | `login.html` | Ajout `tabindex="-1"` sur `errorBox` pour le rendre focusable programmatiquement |
+
+---
+
+## 6. Conventions à respecter (post-audit)
 
 ### Injection HTML
 
@@ -340,9 +373,15 @@ Chaque étape doit être validée par :
 
 ### Stockage client
 
-- **sessionStorage** uniquement pour les données temporaires (api_key, receipts)
-- **localStorage** interdit pour les clés API, tokens, et données de vote
-- **Règle** : aucune donnée identifiant un choix de vote ne doit survivre à la fermeture du navigateur
+- **sessionStorage** uniquement pour les données temporaires (api_key, receipts, meeting/member IDs)
+- **localStorage** réservé aux préférences non-sensibles (thème)
+- **Règle** : aucune donnée identifiant un votant ou un choix de vote ne doit survivre à la fermeture du navigateur
+
+### Timers
+
+- Tout `setInterval` doit être assigné à une variable nettoyable
+- Avant de créer un timer, toujours `clearInterval` le précédent
+- Tout composant avec timers doit implémenter un cleanup dans `beforeunload` ou `disconnectedCallback`
 
 ### Nouveaux appels API
 
@@ -350,3 +389,159 @@ Tout nouveau `fetch()` / `api()` doit :
 1. Être dans un `try/catch` avec `setNotif('error', ...)` sauf justification documentée
 2. Inclure `X-CSRF-Token` si POST (utiliser `api()` de préférence)
 3. Valider le format email avec `Utils.isValidEmail()` si le champ est un email
+
+---
+
+## 7. Audit du chemin critique — Cycle de vie des séances
+
+Date : 2026-02-20
+Périmètre : workflow complet `draft → scheduled → frozen → live → paused → closed → validated → archived`
+
+### Machine d'états backend (`MeetingWorkflowService`)
+
+```
+draft ──→ scheduled ──→ frozen ──→ live ──→ closed ──→ validated ──→ archived
+  ↑            ↑           ↑         ↓↑         ↑
+  └────────────┘           └─────────┘│         │
+   (retour brouillon)       (dégeler) │         │
+                                      ↓         │
+                                   paused ──────┘
+```
+
+Chaque transition est validée par `issuesBeforeTransition()` :
+
+| Transition | Bloquant | Avertissement |
+|------------|----------|---------------|
+| draft → scheduled | Résolutions requises | — |
+| scheduled → frozen | Présences requises | Président non assigné |
+| frozen → live | — | Quorum non atteint |
+| live → paused | Vote en cours interdit | — |
+| live/paused → closed | Vote en cours interdit | — |
+| closed → validated | Résultats invalides | Non consolidé |
+
+### Bugs corrigés
+
+#### BUG 1 — CRITIQUE : `launch()` contourne les validations intermédiaires
+
+**Avant** : `MeetingWorkflowController::launch()` appelait
+`issuesBeforeTransition($meetingId, $tenant, 'live')` qui ne vérifiait que
+la transition `frozen → live`. Lancer depuis `draft` contournait les checks
+"résolutions requises" (draft→scheduled) et "présences requises"
+(scheduled→frozen).
+
+**Root cause** : `issuesBeforeTransition()` utilise `$fromStatus` lu en base
+pour cibler les vérifications. Lors d'un lancement atomique (draft→live),
+`$fromStatus = 'draft'` et `$toStatus = 'live'` ne matchent aucun bloc
+conditionnel.
+
+**Fix** :
+- `MeetingWorkflowService::issuesBeforeTransition()` accepte un paramètre
+  optionnel `$fromStatusOverride` pour simuler l'état source.
+- `launch()` itère sur chaque étape du chemin (`['scheduled', 'frozen', 'live']`)
+  en passant l'état simulé : chaque transition intermédiaire est vérifiée.
+
+**Fichiers** : `app/Services/MeetingWorkflowService.php`,
+`app/Controller/MeetingWorkflowController.php`
+
+#### BUG 2 — HAUTE : Bouton "Ouvrir la séance" actif sans présences
+
+**Avant** : `getConformityScore()` ajoute inconditionnellement +1 pour
+"Convocations" (optionnel, toujours vrai). Seuil = 3/4. Résultat : on peut
+atteindre 3 avec `membres(1) + convocations(1) + règlement(1) = 3` sans
+aucune présence.
+
+**Fix** : `updatePrimaryButton()` ajoute un check explicite
+`hasAttendance` en plus du score : `btnPrimary.disabled = score < 3 || !hasAttendance`.
+
+**Fichier** : `public/assets/js/pages/operator-tabs.js`
+
+#### BUG 3 — MOYENNE : Pas d'indicateur de chargement sur les transitions
+
+**Avant** : `launchSessionConfirmed()`, `closeSession()`, `doTransition()`
+fermaient le modal immédiatement et lançaient l'appel API sans feedback
+visuel. L'utilisateur pouvait cliquer à nouveau ou ne pas savoir si
+l'action était en cours.
+
+**Fix** : Ajout de `Shared.btnLoading()` sur les boutons déclencheurs
+(btnPrimary, btnLaunchSession, btnCloseSession, transition buttons) avec
+restauration dans `finally`.
+
+**Fichiers** : `public/assets/js/pages/operator-tabs.js`,
+`public/assets/js/pages/operator-motions.js`
+
+#### BUG 4 — BASSE : `getTransitionReadiness()` transitions incomplètes
+
+**Avant** : La map `possibleTransitions` ne contenait pas `paused → live/closed`
+ni `live → paused`.
+
+**Fix** : Ajout des transitions manquantes.
+
+**Fichier** : `app/Services/MeetingWorkflowService.php`
+
+### Bugs backend corrigés (audit profond)
+
+#### BUG 5 — HAUTE : `findWithBallotContext()` sans filtre tenant_id
+
+**Avant** : La requête sélectionnait par `m.id = :mid` uniquement.
+Un attaquant connaissant un motion_id d'un autre tenant pouvait obtenir
+le contexte (meeting_status, tenant_id). Les checks downstream (membre
+doit exister dans le tenant, doit être présent) empêchaient l'exploitation
+réelle, mais la défense en profondeur était absente.
+
+**Fix** : Paramètre optionnel `$tenantId` ajouté à `findWithBallotContext()`.
+Le contrôleur passe `api_current_tenant_id()` via `_tenant_id` dans les données.
+
+**Fichiers** : `app/Repository/MotionRepository.php`,
+`app/Services/BallotsService.php`, `app/Controller/BallotsController.php`
+
+#### BUG 6 — HAUTE : Missing `m.position` dans `findWithMeetingInfo()`
+
+**Avant** : La requête ne sélectionnait pas `m.position`. Le broadcast
+WebSocket `motionOpened` envoyait `position: null` systématiquement.
+
+**Fix** : Ajout de `m.position` au SELECT.
+
+**Fichier** : `app/Repository/MotionRepository.php`
+
+#### BUG 7 — HAUTE : Pas de verrouillage meeting pendant le vote (TOCTOU)
+
+**Avant** : `BallotsService::castBallot()` vérifiait le statut meeting
+hors transaction (`findWithBallotContext()` = SELECT simple), puis ouvrait
+une transaction pour l'INSERT. Entre les deux, le meeting pouvait passer de
+`live` à `closed`, permettant un vote sur une séance fermée.
+
+**Fix** : Ajout de `MeetingRepository::lockForUpdate()` à l'intérieur
+de la transaction, avec re-vérification du statut `live`.
+
+**Fichier** : `app/Services/BallotsService.php`
+
+#### BUG 8 — MOYENNE : Transition `archived → validated` non bloquée
+
+**Avant** : `issuesBeforeTransition()` ne bloquait aucune transition
+depuis `archived`. Le code dans `transition()` acceptait `archived → validated`
+et effaçait `archived_at`. Cela violait l'immutabilité de l'audit trail.
+
+**Fix** : Ajout d'un blocage systématique de toute transition depuis
+`archived` dans `issuesBeforeTransition()`.
+
+**Fichier** : `app/Services/MeetingWorkflowService.php`
+
+#### BUG 9 — BASSE : Indentation cassée dans BallotsService
+
+**Avant** : Le check `meeting_validated_at` (lignes 60-62) avait une
+indentation au niveau 0 au lieu du niveau 2 du bloc parent.
+
+**Fix** : Correction de l'indentation.
+
+**Fichier** : `app/Services/BallotsService.php`
+
+### Faux positifs identifiés (audit frontend initial)
+
+Les 3 findings "CRITICAL" de l'audit frontend automatisé étaient des
+faux positifs :
+
+| Finding | Réalité |
+|---------|---------|
+| `submitVote()` non défini | `window.submitVote = cast` à vote.js:963 |
+| Archives export sans handlers | Handlers à archives.js:401-406 |
+| Year filter non câblé | Handler à archives.js:305 |

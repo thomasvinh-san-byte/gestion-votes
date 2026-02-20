@@ -79,7 +79,7 @@ try {
         $voting_power = $v->get('voting_power', 1);
         $is_active    = $v->get('is_active', true);
 
-        $repo->updateImport($id, $full_name, $email ?: null, $voting_power, $is_active);
+        $repo->updateImport($id, $full_name, $email ?: null, $voting_power, $is_active, $tenantId);
 
         audit_log('member_updated', 'member', $id, ['full_name' => $full_name]);
 

@@ -89,14 +89,14 @@ class AgPopover extends HTMLElement {
       }
     };
 
+    this._handlers._popoverEnter = () => { clearTimeout(this._hideTimeout); };
+
     if (this.triggerMode === 'hover') {
       trigger.addEventListener('mouseenter', this._handlers.show);
       trigger.addEventListener('mouseleave', this._handlers.hide);
       trigger.addEventListener('focus', this._handlers.show);
       trigger.addEventListener('blur', this._handlers.hide);
-      popover.addEventListener('mouseenter', () => {
-        clearTimeout(this._hideTimeout);
-      });
+      popover.addEventListener('mouseenter', this._handlers._popoverEnter);
       popover.addEventListener('mouseleave', this._handlers.hide);
     } else if (this.triggerMode === 'click') {
       trigger.addEventListener('click', this._handlers.toggle);
@@ -110,10 +110,22 @@ class AgPopover extends HTMLElement {
   }
 
   removeEventListeners() {
-    if (this._handlers) {
-      document.removeEventListener('keydown', this._handlers.keydown);
-      document.removeEventListener('click', this._handlers.clickOutside);
+    if (!this._handlers) return;
+    const trigger = this.querySelector('[slot="trigger"]');
+    const popover = this.shadowRoot?.querySelector('.popover');
+    if (trigger) {
+      trigger.removeEventListener('mouseenter', this._handlers.show);
+      trigger.removeEventListener('mouseleave', this._handlers.hide);
+      trigger.removeEventListener('focus', this._handlers.show);
+      trigger.removeEventListener('blur', this._handlers.hide);
+      trigger.removeEventListener('click', this._handlers.toggle);
     }
+    if (popover) {
+      popover.removeEventListener('mouseenter', this._handlers._popoverEnter);
+      popover.removeEventListener('mouseleave', this._handlers.hide);
+    }
+    document.removeEventListener('keydown', this._handlers.keydown);
+    document.removeEventListener('click', this._handlers.clickOutside);
   }
 
   show() {

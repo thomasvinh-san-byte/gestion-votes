@@ -51,7 +51,7 @@ try {
     $hash = hash_hmac('sha256', $raw, APP_SECRET);
 
     // Idempotent: keep one token per (member,motion) by deleting previous unused tokens
-    $voteTokenRepo->deleteUnusedByMotionAndMember($meetingId, $motionId, $v['member_id']);
+    $voteTokenRepo->deleteUnusedByMotionAndMember($meetingId, $motionId, $v['member_id'], $tenant);
 
     $voteTokenRepo->insert($hash, $tenant, $meetingId, $v['member_id'], $motionId, $expiresAt);
 

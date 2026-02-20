@@ -57,6 +57,13 @@ final class MeetingWorkflowController extends AbstractController
             ]);
         }
 
+        // Archived is terminal. No force, no bypass, no exceptions.
+        if ($fromStatus === 'archived') {
+            api_fail('archived_immutable', 403, [
+                'detail' => 'Séance archivée : aucune transition autorisée.',
+            ]);
+        }
+
         AuthMiddleware::requireTransition($fromStatus, $toStatus, $meetingId);
 
         $forceTransition = filter_var($input['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -125,9 +132,7 @@ final class MeetingWorkflowController extends AbstractController
                 break;
 
             case 'validated':
-                if ($fromStatus === 'archived') {
-                    $fields['archived_at'] = null;
-                } elseif (empty($meeting['validated_at'])) {
+                if (empty($meeting['validated_at'])) {
                     $fields['validated_at'] = date('Y-m-d H:i:s');
                     $fields['validated_by'] = api_current_user()['name'] ?? 'unknown';
                     $fields['validated_by_user_id'] = $userId;
@@ -207,15 +212,29 @@ final class MeetingWorkflowController extends AbstractController
                     ]);
             }
 
-            $workflowCheck = MeetingWorkflowService::issuesBeforeTransition($meetingId, $tenant, 'live');
-            if (!$workflowCheck['can_proceed']) {
+            // Check prerequisites for EACH step in the launch path, not just the final target.
+            // Without this, launching from 'draft' would skip motions/attendance checks
+            // that are specific to intermediate transitions (draft→scheduled, scheduled→frozen).
+            $allIssues = [];
+            $allWarnings = [];
+            $simulatedFrom = $fromStatus;
+            foreach ($path as $step) {
+                $stepCheck = MeetingWorkflowService::issuesBeforeTransition($meetingId, $tenant, $step, $simulatedFrom);
+                $allIssues = array_merge($allIssues, $stepCheck['issues']);
+                $allWarnings = array_merge($allWarnings, $stepCheck['warnings']);
+                $simulatedFrom = $step;
+            }
+
+            if (count($allIssues) > 0) {
                 $pdo->rollBack();
                 api_fail('workflow_issues', 422, [
                     'detail' => 'Lancement bloqué par des pré-requis',
-                    'issues' => $workflowCheck['issues'],
-                    'warnings' => $workflowCheck['warnings'],
+                    'issues' => $allIssues,
+                    'warnings' => $allWarnings,
                 ]);
             }
+
+            $workflowCheck = ['warnings' => $allWarnings];
 
             $now = date('Y-m-d H:i:s');
             $currentStatus = $fromStatus;

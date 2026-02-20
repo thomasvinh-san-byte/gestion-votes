@@ -51,6 +51,9 @@ final class BallotsController extends AbstractController
             $data['_idempotency_key'] = $idempotencyKey;
         }
 
+        // Pass tenant_id for defense-in-depth tenant isolation in the query
+        $data['_tenant_id'] = api_current_tenant_id();
+
         $ballot = BallotsService::castBallot($data);
 
         $motionId = $data['motion_id'] ?? $ballot['motion_id'] ?? null;
@@ -222,7 +225,7 @@ final class BallotsController extends AbstractController
             api_fail('member_not_found', 404);
         }
 
-        $weight = (string)($member['vote_weight'] ?? '1.0');
+        $weight = (string)($member['voting_power'] ?? '1.0');
 
         db()->beginTransaction();
         try {
@@ -294,7 +297,7 @@ final class BallotsController extends AbstractController
 
         db()->beginTransaction();
         try {
-            $ballotRepo->markPaperBallotUsed($pb['id']);
+            $ballotRepo->markPaperBallotUsed($pb['id'], (string)$pb['tenant_id']);
             $manualRepo->createPaperBallotAction($pb['tenant_id'], $pb['meeting_id'], $pb['motion_id'], $vote, $just);
             db()->commit();
         } catch (\Throwable $e) {

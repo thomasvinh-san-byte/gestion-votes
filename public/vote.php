@@ -34,7 +34,7 @@ if (!$row) {
 // - refuser si la motion n'est pas ouverte (opened_at NULL ou closed_at non NULL)
 // - refuser si la séance est validée (validated_at non NULL)
 $motionRepo = new MotionRepository();
-$ctx = $motionRepo->findWithBallotContext($row['motion_id']);
+$ctx = $motionRepo->findWithBallotContext($row['motion_id'], (string)$row['tenant_id']);
 
 if (!$ctx) {
     http_response_code(404);
@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdo = \db();
     $pdo->beginTransaction();
     try {
-        $consumed = $tokenRepo->consume($hash);
+        $consumed = $tokenRepo->consume($hash, (string)$row['tenant_id']);
         if ($consumed === 0) {
             // Token was already consumed (race condition / double-click)
             $pdo->rollBack();

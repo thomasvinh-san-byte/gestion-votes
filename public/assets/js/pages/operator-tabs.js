@@ -710,6 +710,11 @@ window.OpS = { fn: {} };
   async function launchSessionConfirmed() {
     hideLaunchModal();
 
+    // Show loading on launch/primary buttons during API call
+    const launchBtn = document.getElementById('btnLaunchSession');
+    if (launchBtn) Shared.btnLoading(launchBtn, true);
+    if (btnPrimary) Shared.btnLoading(btnPrimary, true);
+
     try {
       // Atomic launch: single API call handles all transitions (draft→scheduled→frozen→live)
       const { body } = await api('/api/v1/meeting_launch.php', {
@@ -735,6 +740,9 @@ window.OpS = { fn: {} };
       setNotif('error', err.message);
       // Reload to see current state after potential partial failure
       await loadMeetingContext(currentMeetingId);
+    } finally {
+      if (launchBtn) Shared.btnLoading(launchBtn, false);
+      if (btnPrimary) Shared.btnLoading(btnPrimary, false);
     }
   }
 
@@ -1494,7 +1502,11 @@ window.OpS = { fn: {} };
     if (currentMode === 'setup') {
       if (['draft', 'scheduled', 'frozen'].includes(currentMeetingStatus)) {
         const score = getConformityScore();
-        btnPrimary.disabled = score < 3;
+        // Attendance is mandatory for launch — score alone is insufficient
+        // because "Convocations" always adds +1, making it possible to reach
+        // 3/4 without attendance (members + convocations + rules = 3).
+        const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
+        btnPrimary.disabled = score < 3 || !hasAttendance;
         btnPrimary.textContent = 'Ouvrir la séance';
         primaryAction = 'launch';
       } else if (currentMeetingStatus === 'live') {
@@ -1595,7 +1607,9 @@ window.OpS = { fn: {} };
   // CLOCK
   // =========================================================================
 
+  let _clockInterval = null;
   function startClock() {
+    if (_clockInterval) clearInterval(_clockInterval);
     function tick() {
       const now = new Date();
       if (barClock) {
@@ -1603,7 +1617,7 @@ window.OpS = { fn: {} };
       }
     }
     tick();
-    setInterval(tick, 30000);
+    _clockInterval = setInterval(tick, 30000);
   }
 
   // Session elapsed timer
@@ -2219,7 +2233,13 @@ window.OpS = { fn: {} };
 
       }
     } catch (err) {
-      // Stats may not exist yet — ignore
+      // Stats endpoint may not exist yet — show placeholders
+      setText('invTotal', '—');
+      setText('invSent', '—');
+      setText('invOpened', '—');
+      setText('invBounced', '—');
+      var openRateEl = document.getElementById('invOpenRate');
+      if (openRateEl) openRateEl.textContent = '—';
     }
   }
 
@@ -2661,6 +2681,7 @@ window.OpS = { fn: {} };
     if (speechTimerInterval) clearInterval(speechTimerInterval);
     if (execSpeechTimerInterval) clearInterval(execSpeechTimerInterval);
     if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+    if (_clockInterval) clearInterval(_clockInterval);
   });
 
   // Start polling after initial load

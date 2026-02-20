@@ -178,17 +178,12 @@ CREATE TABLE IF NOT EXISTS members (
   name text,
   email citext,
   role text,
-  -- NOTE: vote_weight is legacy, voting_power is the new standard.
-  -- Code uses COALESCE(voting_power, vote_weight, 1.0) for compatibility.
-  -- Future migration will unify to voting_power only.
-  vote_weight numeric(12,4) NOT NULL DEFAULT 1.0,
-  voting_power numeric(12,4),
+  voting_power numeric(12,4) NOT NULL DEFAULT 1.0,
   is_active boolean NOT NULL DEFAULT true,
   deleted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT members_vote_weight_positive CHECK (vote_weight >= 0),
-  CONSTRAINT members_voting_power_positive CHECK (voting_power IS NULL OR voting_power >= 0)
+  CONSTRAINT members_voting_power_positive CHECK (voting_power >= 0)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS ux_members_tenant_full_name ON members(tenant_id, full_name);
@@ -444,9 +439,7 @@ CREATE TABLE IF NOT EXISTS motions (
   description text,
   body text,
   secret boolean NOT NULL DEFAULT false,
-  status text,
   position integer,
-  sort_order integer,
   vote_policy_id uuid REFERENCES vote_policies(id) ON DELETE SET NULL,
   quorum_policy_id uuid REFERENCES quorum_policies(id) ON DELETE SET NULL,
   opened_at timestamptz,
@@ -463,7 +456,6 @@ CREATE TABLE IF NOT EXISTS motions (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT motions_times_ok CHECK (closed_at IS NULL OR opened_at IS NULL OR closed_at >= opened_at),
-  CONSTRAINT motions_status_check CHECK (status IS NULL OR status IN ('draft','open','closed')),
   CONSTRAINT motions_decision_check CHECK (decision IS NULL OR decision IN ('adopted','rejected'))
 );
 
@@ -647,9 +639,7 @@ CREATE TABLE IF NOT EXISTS ballots (
   motion_id uuid NOT NULL REFERENCES motions(id) ON DELETE CASCADE,
   member_id uuid NOT NULL REFERENCES members(id) ON DELETE CASCADE,
   value motion_value NOT NULL,
-  choice text,
   weight numeric(12,4) NOT NULL DEFAULT 1.0,
-  effective_power numeric(12,4),
   source text,
   cast_at timestamptz NOT NULL DEFAULT now(),
   is_proxy_vote boolean DEFAULT false,
@@ -1335,7 +1325,7 @@ SELECT
     mg.created_at,
     mg.updated_at,
     COUNT(mga.member_id) FILTER (WHERE m.is_active = true AND m.deleted_at IS NULL) AS member_count,
-    COALESCE(SUM(m.vote_weight) FILTER (WHERE m.is_active = true AND m.deleted_at IS NULL), 0) AS total_weight
+    COALESCE(SUM(COALESCE(m.voting_power, 1.0)) FILTER (WHERE m.is_active = true AND m.deleted_at IS NULL), 0) AS total_weight
 FROM member_groups mg
 LEFT JOIN member_group_assignments mga ON mga.group_id = mg.id
 LEFT JOIN members m ON m.id = mga.member_id

@@ -51,7 +51,7 @@ class AttendanceRepository extends AbstractRepository
     {
         return $this->selectAll(
             "SELECT m.id AS member_id, m.full_name, m.email, m.role,
-                    COALESCE(m.voting_power, m.vote_weight, 1) AS voting_power,
+                    COALESCE(m.voting_power, 1) AS voting_power,
                     a.id AS attendance_id, a.meeting_id,
                     COALESCE(a.mode::text, 'absent') AS mode,
                     a.checked_in_at, a.checked_out_at, a.effective_power, a.notes
@@ -91,7 +91,7 @@ class AttendanceRepository extends AbstractRepository
     {
         return $this->selectAll(
             "SELECT m.id AS member_id, m.full_name,
-                    COALESCE(m.voting_power, m.vote_weight, 1.0) AS voting_power,
+                    COALESCE(m.voting_power, 1.0) AS voting_power,
                     a.mode, a.checked_in_at, a.checked_out_at
              FROM members m
              LEFT JOIN attendances a ON a.member_id = m.id AND a.meeting_id = :mid AND a.tenant_id = :tid
@@ -102,14 +102,14 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
-     * Resume attendance pour le dashboard (present count + weight via members.vote_weight).
+     * Resume attendance pour le dashboard (present count + weight).
      */
     public function dashboardSummary(string $tenantId, string $meetingId): array
     {
         $row = $this->selectOne(
             "SELECT
                 COUNT(*) FILTER (WHERE a.mode IN ('present','remote'))::int AS present_count,
-                COALESCE(SUM(m.vote_weight) FILTER (WHERE a.mode IN ('present','remote')),0)::int AS present_weight
+                COALESCE(SUM(COALESCE(m.voting_power, 1.0)) FILTER (WHERE a.mode IN ('present','remote')),0)::int AS present_weight
              FROM attendances a
              JOIN members m ON m.id = a.member_id
              WHERE a.tenant_id = :tid AND a.meeting_id = :mid",
@@ -250,39 +250,24 @@ class AttendanceRepository extends AbstractRepository
     /**
      * Supprime la presence d'un membre pour une seance.
      */
-    public function deleteByMeetingAndMember(string $meetingId, string $memberId, string $tenantId = ''): void
+    public function deleteByMeetingAndMember(string $meetingId, string $memberId, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "DELETE FROM attendances WHERE meeting_id = :mid AND member_id = :uid AND tenant_id = :tid",
-                [':mid' => $meetingId, ':uid' => $memberId, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "DELETE FROM attendances WHERE meeting_id = :mid AND member_id = :uid",
-                [':mid' => $meetingId, ':uid' => $memberId]
-            );
-        }
+        $this->execute(
+            "DELETE FROM attendances WHERE meeting_id = :mid AND member_id = :uid AND tenant_id = :tid",
+            [':mid' => $meetingId, ':uid' => $memberId, ':tid' => $tenantId]
+        );
     }
 
     /**
      * Met a jour present_from_at pour un membre.
      */
-    public function updatePresentFrom(string $meetingId, string $memberId, ?string $presentFromAt, string $tenantId = ''): void
+    public function updatePresentFrom(string $meetingId, string $memberId, ?string $presentFromAt, string $tenantId): void
     {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE attendances SET present_from_at = :p, updated_at = NOW()
-                 WHERE meeting_id = :mid AND member_id = :uid AND tenant_id = :tid",
-                [':p' => $presentFromAt, ':mid' => $meetingId, ':uid' => $memberId, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE attendances SET present_from_at = :p, updated_at = NOW()
-                 WHERE meeting_id = :mid AND member_id = :uid",
-                [':p' => $presentFromAt, ':mid' => $meetingId, ':uid' => $memberId]
-            );
-        }
+        $this->execute(
+            "UPDATE attendances SET present_from_at = :p, updated_at = NOW()
+             WHERE meeting_id = :mid AND member_id = :uid AND tenant_id = :tid",
+            [':p' => $presentFromAt, ':mid' => $meetingId, ':uid' => $memberId, ':tid' => $tenantId]
+        );
     }
 
     /**
