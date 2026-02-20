@@ -5,15 +5,81 @@
 | Couche        | Fichiers | Etat                                              |
 |---------------|----------|---------------------------------------------------|
 | Controllers   | 20       | OK — delegate aux Services, AbstractController gere les exceptions |
-| Services      | 18+      | OK (tenant mandatory apres fix). 2 reliquats `$GLOBALS` dans MeetingReportService et QuorumEngine |
-| Repositories  | 25+      | OK — data access pur, phantom aliases supprimes    |
+| Services      | 18       | OK (tenant mandatory apres fix). 2 reliquats `$GLOBALS` dans MeetingReportService et QuorumEngine |
+| Repositories  | 28       | OK — data access pur, phantom aliases supprimes (470 methodes) |
 | Vues          | 0 formel | MANQUANT — pas de couche View, HTML inline (vote.php, doc.php), templates email isoles |
-| Routeur       | 0        | MANQUANT — 142 stubs PHP dans `public/api/v1/` et 2 handlers directs |
+| Routeur       | 0        | MANQUANT — 142 fichiers dans `public/api/v1/` (103 stubs + 39 handlers lourds) et 2 handlers directs |
 | Middleware    | ad-hoc   | PARTIEL — auth/csrf/rate-limit appeles manuellement dans chaque endpoint |
-| Bootstrap     | 1 monolithe (342L) | PARTIEL — config + DB + securite + helpers globaux dans un seul fichier |
-| Fonctions globales | ~25  | EXCESSIF — `api_ok`, `api_fail`, `api_require_role`, `db()`, `audit_log`, etc. |
-| `$GLOBALS`    | 4 restants | A eliminer (MeetingReportService, QuorumEngine, EmailController, bootstrap) |
-| DB helpers depreces | 5 appels | `db_select_one`, `db_all`, etc. dans api.php et bootstrap |
+| Bootstrap     | 1 monolithe (341L) | PARTIEL — config + DB + securite + helpers globaux dans un seul fichier |
+| API helpers   | 1 monolithe (235L) | ~25 fonctions globales : `api_ok`, `api_fail`, `api_require_role`, `db()`, `audit_log`, etc. |
+| `$GLOBALS`    | 6 restants | `APP_TENANT_ID` x4 (bootstrap, MeetingReportService, QuorumEngine, EmailController) + `__ag_vote_raw_body` x2 (api.php, CsrfMiddleware) |
+| DB helpers depreces | 5 appels | `db_select_one` dans api.php (x2), aliases depreces dans bootstrap (x3) |
+| Frontend      | 16 HTML/HTMX | SPA decouple (appels fetch vers API), pas de templating serveur |
+
+### Inventaire detaille public/api/v1/ (142 fichiers)
+
+**39 fichiers lourds (>40 lignes) — logique inline, pas de controller** :
+
+| Fichier | Lignes | Sujet |
+|---------|--------|-------|
+| member_group_assignments.php | 290 | CRUD groupes/membres |
+| motions_import_csv.php | 258 | Import CSV motions |
+| export_templates.php | 250 | CRUD templates export |
+| email_templates.php | 249 | CRUD templates email |
+| motions_import_xlsx.php | 218 | Import XLSX motions |
+| member_groups.php | 216 | CRUD groupes |
+| motions_open.php | 156 | Ouverture motion |
+| reminders.php | 155 | Gestion rappels |
+| auth_login.php | 150 | Authentification |
+| meeting_attachments.php | 144 | Pieces jointes |
+| dashboard.php | 137 | Dashboard operateur |
+| motions_close.php | 118 | Fermeture motion |
+| members.php | 116 | CRUD membres |
+| projector_state.php | 105 | Etat projecteur |
+| degraded_tally.php | 92 | Decompte degrade |
+| vote_tokens_generate.php | 86 | Generation tokens vote |
+| meetings.php | 85 | CRUD seances |
+| email_redirect.php | 81 | Redirect tracking |
+| wizard_status.php | 79 | Etat wizard |
+| quorum_card.php | 76 | Carte quorum |
+| meeting_quorum_settings.php | 65 | Config quorum |
+| dev_seed_attendances.php | 64 | Seed presences |
+| agendas.php | 62 | Ordre du jour |
+| meeting_vote_settings.php | 59 | Config vote |
+| whoami.php | 55 | User courant |
+| dev_seed_members.php | 53 | Seed membres |
+| doc_index.php | 50 | Index doc |
+| auth_logout.php | 49 | Deconnexion |
+| meeting_late_rules.php | 47 | Regles retard |
+| quorum_status.php | 45 | Status quorum |
+| + 9 autres (40-45 lignes) | | |
+
+**103 fichiers stubs (3-5 lignes)** — delegation pure vers un Controller existant.
+
+### 20 controllers existants (6 853 lignes, 98 methodes)
+
+| Controller | Meth. | Lignes | Responsabilite |
+|-----------|-------|--------|----------------|
+| ImportController | 6 | 857 | Import CSV/XLSX |
+| MeetingReportsController | 5 | 713 | Rapports, exports |
+| MeetingWorkflowController | 6 | 537 | Transitions etats seance |
+| OperatorController | 3 | 521 | Actions operateur |
+| AdminController | 5 | 521 | Admin users/audit |
+| AnalyticsController | 2 | 433 | Analytics |
+| MotionsController | 7 | 409 | CRUD motions |
+| MeetingsController | 8 | 378 | CRUD seances |
+| BallotsController | 7 | 338 | Bulletins |
+| AuditController | 5 | 320 | Audit trail |
+| TrustController | 2 | 284 | Anomalies |
+| ExportController | 9 | 246 | Exports CSV/XLSX/PDF |
+| EmailController | 3 | 219 | Emails |
+| DevicesController | 5 | 203 | Devices tablette |
+| SpeechController | 9 | 198 | File de parole |
+| InvitationsController | 4 | 186 | Invitations |
+| AttendancesController | 4 | 180 | Presences |
+| PoliciesController | 4 | 150 | Politiques vote/quorum |
+| ProxiesController | 3 | 131 | Procurations |
+| AbstractController | 1 | 29 | Base (handle + try/catch) |
 
 ---
 
@@ -45,31 +111,75 @@ View (JsonView | TemplateView)  ← serialisation reponse
 
 ## Phases
 
+### Phase 0 — Extraire les 39 handlers lourds vers des Controllers
+
+**But** : Avant de pouvoir supprimer les fichiers `public/api/v1/`, les 39 fichiers
+qui contiennent de la logique inline (>40 lignes) doivent etre refactores en controllers.
+
+**Principe** : Chaque handler lourd est deplace dans un Controller existant ou nouveau.
+Le fichier API est remplace par un stub de 4 lignes delegant au controller.
+
+**Groupes de migration** (par controller cible) :
+
+| Nouveau/existant controller | Fichiers sources | Total lignes |
+|-----------------------------|-----------------|--------------|
+| AuthController (nouveau) | auth_login.php (150), auth_logout.php (49), whoami.php (55) | 254 |
+| MemberGroupsController (nouveau) | member_group_assignments.php (290), member_groups.php (216) | 506 |
+| MembersController (nouveau) | members.php (116) | 116 |
+| DashboardController (nouveau) | dashboard.php (137), wizard_status.php (79) | 216 |
+| QuorumController (nouveau) | quorum_card.php (76), quorum_status.php (45), meeting_quorum_settings.php (65) | 186 |
+| ProjectorController (nouveau) | projector_state.php (105) | 105 |
+| AgendaController (nouveau) | agendas.php (62), meeting_late_rules.php (47) | 109 |
+| ReminderController (nouveau) | reminders.php (155) | 155 |
+| MeetingAttachmentController (nouveau) | meeting_attachments.php (144) | 144 |
+| DocController (nouveau) | doc_index.php (50) | 50 |
+| DevSeedController (nouveau, dev only) | dev_seed_members.php (53), dev_seed_attendances.php (64) | 117 |
+| MotionsController (existant) | motions_open.php (156), motions_close.php (118), degraded_tally.php (92) | 366 |
+| ImportController (existant) | motions_import_csv.php (258), motions_import_xlsx.php (218) | 476 |
+| ExportController (existant) | export_templates.php (250) | 250 |
+| EmailController (existant) | email_templates.php (249), email_redirect.php (81) | 330 |
+| MeetingsController (existant) | meetings.php (85), meeting_vote_settings.php (59) | 144 |
+| VoteTokenController (nouveau) | vote_tokens_generate.php (86) | 86 |
+
+**Methode pour chaque fichier** :
+1. Creer la methode dans le controller cible (copier la logique)
+2. Remplacer le fichier API par un stub de 4 lignes : `(new Controller())->handle('method')`
+3. Tester que l'endpoint repond identiquement
+
+**Regle** : Aucune URL ne change. Les fichiers restent en place mais deviennent des stubs.
+
+**Estimation** : ~3 500 lignes deplacees (pas reecrites), 10-12 nouveaux controllers.
+
+---
+
 ### Phase 1 — Routeur central (eliminer 142 stubs)
 
-**But** : Remplacer les 142 fichiers `public/api/v1/*.php` (3-4 lignes chacun) par une table de routes unique.
+**But** : Remplacer les 142 fichiers `public/api/v1/*.php` (tous devenus des stubs
+de 4 lignes apres Phase 0) par une table de routes unique.
+
+**Prerequis** : Phase 0 terminee (plus aucune logique inline dans les stubs).
 
 **Fichiers a creer** :
-- `app/Core/Router.php` — routeur simple pattern-matching (regex ou exact-match)
+- `app/Core/Router.php` — routeur simple exact-match (pas besoin de regex pour l'instant)
 - `app/routes.php` — table declarative des routes
-- `public/index.php` — front controller unique (require bootstrap + api, dispatch)
+- `public/index.php` — front controller unique (require bootstrap → api → router → dispatch)
 
 **Fichiers a supprimer** :
-- Les 142 fichiers `public/api/v1/*.php`
+- Les 142 fichiers `public/api/v1/*.php` (devenus stubs identiques)
 
 **Migration** :
 1. Creer `Router` avec methode `dispatch(string $method, string $uri)`
-2. Generer `routes.php` a partir des stubs existants (script de migration)
+2. Generer `routes.php` a partir des stubs existants (script automatise)
 3. Creer `public/index.php` qui charge bootstrap → api → router → dispatch
 4. Configurer `.htaccess` / nginx pour rediriger vers `index.php`
-5. Conserver temporairement les stubs avec un redirect interne
-6. Tester, puis supprimer les stubs
+5. Conserver temporairement les stubs avec un fallback interne
+6. Tester chaque endpoint, puis supprimer les stubs
 
 **Regle** : Les URLs ne changent pas (`/api/v1/ballots` fonctionne toujours).
 
 **Risque** : Configuration serveur (.htaccess). Fournir config Apache ET nginx.
 
-**Estimation** : ~250 lignes de code nouveau, ~500 lignes supprimees.
+**Estimation** : ~300 lignes de code nouveau (Router + routes), ~600 lignes supprimees (stubs).
 
 ---
 
@@ -194,26 +304,30 @@ View (JsonView | TemplateView)  ← serialisation reponse
 ## Ordre de priorite et dependances
 
 ```
-Phase 1 (Routeur)          <- independant, peut commencer immediatement
+Phase 0 (Handlers → Controllers) <- independant, peut commencer immediatement
     |
-Phase 2 (Middlewares)      <- necessite Phase 1
+Phase 1 (Routeur)                <- necessite Phase 0
     |
-Phase 3 (Request/Response) <- necessite Phase 2
+Phase 2 (Middlewares)            <- necessite Phase 1
     |
-    +-- Phase 4 (Views)    <- necessite Phase 3
+Phase 3 (Request/Response)      <- necessite Phase 2
     |
-    +-- Phase 5 (Bootstrap)  <- necessite Phase 3
+    +-- Phase 4 (Views)          <- necessite Phase 3
     |
-Phase 6 (Nettoyage)       <- apres tout
+    +-- Phase 5 (Bootstrap)      <- necessite Phase 3
+    |
+Phase 6 (Nettoyage)             <- apres tout
 ```
 
 ## Metriques de succes
 
 | Critere                       | Avant    | Apres    |
 |-------------------------------|----------|----------|
+| Fichiers API avec logique inline | 39+2  | 0        |
 | Fichiers stubs API            | 142      | 0        |
+| Controllers                   | 20       | ~32      |
 | Fonctions globales            | ~25      | 0        |
-| `$GLOBALS` usages             | 4        | 0        |
+| `$GLOBALS` usages             | 6        | 0        |
 | DB helpers depreces           | 5 appels | 0        |
 | Handlers directs (vote/doc)   | 2        | 0        |
 | Middlewares ad-hoc inline     | ~60 appels| 0       |
