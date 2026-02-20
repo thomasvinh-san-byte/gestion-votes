@@ -710,6 +710,11 @@ window.OpS = { fn: {} };
   async function launchSessionConfirmed() {
     hideLaunchModal();
 
+    // Show loading on launch/primary buttons during API call
+    const launchBtn = document.getElementById('btnLaunchSession');
+    if (launchBtn) Shared.btnLoading(launchBtn, true);
+    if (btnPrimary) Shared.btnLoading(btnPrimary, true);
+
     try {
       // Atomic launch: single API call handles all transitions (draft→scheduled→frozen→live)
       const { body } = await api('/api/v1/meeting_launch.php', {
@@ -735,6 +740,9 @@ window.OpS = { fn: {} };
       setNotif('error', err.message);
       // Reload to see current state after potential partial failure
       await loadMeetingContext(currentMeetingId);
+    } finally {
+      if (launchBtn) Shared.btnLoading(launchBtn, false);
+      if (btnPrimary) Shared.btnLoading(btnPrimary, false);
     }
   }
 
@@ -1494,7 +1502,11 @@ window.OpS = { fn: {} };
     if (currentMode === 'setup') {
       if (['draft', 'scheduled', 'frozen'].includes(currentMeetingStatus)) {
         const score = getConformityScore();
-        btnPrimary.disabled = score < 3;
+        // Attendance is mandatory for launch — score alone is insufficient
+        // because "Convocations" always adds +1, making it possible to reach
+        // 3/4 without attendance (members + convocations + rules = 3).
+        const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
+        btnPrimary.disabled = score < 3 || !hasAttendance;
         btnPrimary.textContent = 'Ouvrir la séance';
         primaryAction = 'launch';
       } else if (currentMeetingStatus === 'live') {

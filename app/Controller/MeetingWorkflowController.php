@@ -207,15 +207,29 @@ final class MeetingWorkflowController extends AbstractController
                     ]);
             }
 
-            $workflowCheck = MeetingWorkflowService::issuesBeforeTransition($meetingId, $tenant, 'live');
-            if (!$workflowCheck['can_proceed']) {
+            // Check prerequisites for EACH step in the launch path, not just the final target.
+            // Without this, launching from 'draft' would skip motions/attendance checks
+            // that are specific to intermediate transitions (draft→scheduled, scheduled→frozen).
+            $allIssues = [];
+            $allWarnings = [];
+            $simulatedFrom = $fromStatus;
+            foreach ($path as $step) {
+                $stepCheck = MeetingWorkflowService::issuesBeforeTransition($meetingId, $tenant, $step, $simulatedFrom);
+                $allIssues = array_merge($allIssues, $stepCheck['issues']);
+                $allWarnings = array_merge($allWarnings, $stepCheck['warnings']);
+                $simulatedFrom = $step;
+            }
+
+            if (count($allIssues) > 0) {
                 $pdo->rollBack();
                 api_fail('workflow_issues', 422, [
                     'detail' => 'Lancement bloqué par des pré-requis',
-                    'issues' => $workflowCheck['issues'],
-                    'warnings' => $workflowCheck['warnings'],
+                    'issues' => $allIssues,
+                    'warnings' => $allWarnings,
                 ]);
             }
+
+            $workflowCheck = ['warnings' => $allWarnings];
 
             $now = date('Y-m-d H:i:s');
             $currentStatus = $fromStatus;

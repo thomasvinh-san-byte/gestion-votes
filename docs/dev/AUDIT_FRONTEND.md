@@ -389,3 +389,102 @@ Tout nouveau `fetch()` / `api()` doit :
 1. Être dans un `try/catch` avec `setNotif('error', ...)` sauf justification documentée
 2. Inclure `X-CSRF-Token` si POST (utiliser `api()` de préférence)
 3. Valider le format email avec `Utils.isValidEmail()` si le champ est un email
+
+---
+
+## 7. Audit du chemin critique — Cycle de vie des séances
+
+Date : 2026-02-20
+Périmètre : workflow complet `draft → scheduled → frozen → live → paused → closed → validated → archived`
+
+### Machine d'états backend (`MeetingWorkflowService`)
+
+```
+draft ──→ scheduled ──→ frozen ──→ live ──→ closed ──→ validated ──→ archived
+  ↑            ↑           ↑         ↓↑         ↑
+  └────────────┘           └─────────┘│         │
+   (retour brouillon)       (dégeler) │         │
+                                      ↓         │
+                                   paused ──────┘
+```
+
+Chaque transition est validée par `issuesBeforeTransition()` :
+
+| Transition | Bloquant | Avertissement |
+|------------|----------|---------------|
+| draft → scheduled | Résolutions requises | — |
+| scheduled → frozen | Présences requises | Président non assigné |
+| frozen → live | — | Quorum non atteint |
+| live → paused | Vote en cours interdit | — |
+| live/paused → closed | Vote en cours interdit | — |
+| closed → validated | Résultats invalides | Non consolidé |
+
+### Bugs corrigés
+
+#### BUG 1 — CRITIQUE : `launch()` contourne les validations intermédiaires
+
+**Avant** : `MeetingWorkflowController::launch()` appelait
+`issuesBeforeTransition($meetingId, $tenant, 'live')` qui ne vérifiait que
+la transition `frozen → live`. Lancer depuis `draft` contournait les checks
+"résolutions requises" (draft→scheduled) et "présences requises"
+(scheduled→frozen).
+
+**Root cause** : `issuesBeforeTransition()` utilise `$fromStatus` lu en base
+pour cibler les vérifications. Lors d'un lancement atomique (draft→live),
+`$fromStatus = 'draft'` et `$toStatus = 'live'` ne matchent aucun bloc
+conditionnel.
+
+**Fix** :
+- `MeetingWorkflowService::issuesBeforeTransition()` accepte un paramètre
+  optionnel `$fromStatusOverride` pour simuler l'état source.
+- `launch()` itère sur chaque étape du chemin (`['scheduled', 'frozen', 'live']`)
+  en passant l'état simulé : chaque transition intermédiaire est vérifiée.
+
+**Fichiers** : `app/Services/MeetingWorkflowService.php`,
+`app/Controller/MeetingWorkflowController.php`
+
+#### BUG 2 — HAUTE : Bouton "Ouvrir la séance" actif sans présences
+
+**Avant** : `getConformityScore()` ajoute inconditionnellement +1 pour
+"Convocations" (optionnel, toujours vrai). Seuil = 3/4. Résultat : on peut
+atteindre 3 avec `membres(1) + convocations(1) + règlement(1) = 3` sans
+aucune présence.
+
+**Fix** : `updatePrimaryButton()` ajoute un check explicite
+`hasAttendance` en plus du score : `btnPrimary.disabled = score < 3 || !hasAttendance`.
+
+**Fichier** : `public/assets/js/pages/operator-tabs.js`
+
+#### BUG 3 — MOYENNE : Pas d'indicateur de chargement sur les transitions
+
+**Avant** : `launchSessionConfirmed()`, `closeSession()`, `doTransition()`
+fermaient le modal immédiatement et lançaient l'appel API sans feedback
+visuel. L'utilisateur pouvait cliquer à nouveau ou ne pas savoir si
+l'action était en cours.
+
+**Fix** : Ajout de `Shared.btnLoading()` sur les boutons déclencheurs
+(btnPrimary, btnLaunchSession, btnCloseSession, transition buttons) avec
+restauration dans `finally`.
+
+**Fichiers** : `public/assets/js/pages/operator-tabs.js`,
+`public/assets/js/pages/operator-motions.js`
+
+#### BUG 4 — BASSE : `getTransitionReadiness()` transitions incomplètes
+
+**Avant** : La map `possibleTransitions` ne contenait pas `paused → live/closed`
+ni `live → paused`.
+
+**Fix** : Ajout des transitions manquantes.
+
+**Fichier** : `app/Services/MeetingWorkflowService.php`
+
+### Faux positifs identifiés (audit frontend initial)
+
+Les 3 findings "CRITICAL" de l'audit frontend automatisé étaient des
+faux positifs :
+
+| Finding | Réalité |
+|---------|---------|
+| `submitVote()` non défini | `window.submitVote = cast` à vote.js:963 |
+| Archives export sans handlers | Handlers à archives.js:401-406 |
+| Year filter non câblé | Handler à archives.js:305 |
