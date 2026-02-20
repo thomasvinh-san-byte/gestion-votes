@@ -29,9 +29,7 @@ use AgVote\Service\ImportService;
 api_rate_limit('xlsx_import', 10, 3600);
 api_require_role(['operator', 'admin']);
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    api_fail('method_not_allowed', 405);
-}
+api_request('POST');
 
 // =============================================================================
 // PARAMÈTRES

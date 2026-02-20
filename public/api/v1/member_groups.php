@@ -21,7 +21,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MemberGroupRepository;
 
-$method = $_SERVER['REQUEST_METHOD'];
+$method = api_method();
 
 // Authentification requise pour tous les endpoints
 api_require_role(['operator', 'admin']);

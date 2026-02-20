@@ -7,7 +7,7 @@ use AgVote\Core\Validation\Schemas\ValidationSchemas;
 
 api_require_role('admin');
 
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$method = api_method();
 
 $repo = new PolicyRepository();
 

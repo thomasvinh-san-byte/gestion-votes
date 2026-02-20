@@ -9,7 +9,7 @@ use AgVote\Repository\MeetingRepository;
 
 api_require_role(['operator', 'admin']);
 
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$method = api_method();
 $repo = new MeetingRepository();
 
 if ($method === 'GET') {

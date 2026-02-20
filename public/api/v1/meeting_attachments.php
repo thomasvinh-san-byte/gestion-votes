@@ -8,7 +8,7 @@ use AgVote\Repository\MeetingRepository;
 
 api_require_role('operator');
 
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$method = api_method();
 $tenantId = api_current_tenant_id();
 $repo = new MeetingAttachmentRepository();
 
@@ -109,9 +109,7 @@ try {
 
     // ── DELETE: remove an attachment ──
     if ($method === 'DELETE') {
-        $input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
-        if (!is_array($input)) $input = $_GET;
-
+        $input = api_request('DELETE');
         $id = trim((string)($input['id'] ?? ''));
         if ($id === '' || !api_is_uuid($id)) {
             api_fail('missing_id', 400);

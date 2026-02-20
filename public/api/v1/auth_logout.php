@@ -13,9 +13,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Core\Security\CsrfMiddleware;
 
-if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-    api_fail('method_not_allowed', 405);
-}
+api_request('POST');
 
 // Validate CSRF token to prevent forced logout attacks
 CsrfMiddleware::validate();

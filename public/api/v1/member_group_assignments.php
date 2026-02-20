@@ -23,7 +23,7 @@ use AgVote\Repository\MemberRepository;
 
 api_require_role(['operator', 'admin']);
 
-$method = $_SERVER['REQUEST_METHOD'];
+$method = api_method();
 $tenantId = api_current_tenant_id();
 $action = trim((string) ($_GET['action'] ?? ''));
 $userId = api_current_user_id();

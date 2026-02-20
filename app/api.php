@@ -97,14 +97,25 @@ function api_require_role(string|array $roles): void {
 // =============================================================================
 
 /**
- * Parse and validate incoming request
+ * Returns the current HTTP method (uppercase).
  */
-function api_request(string $expectedMethod = 'GET'): array {
-    $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+function api_method(): string {
+    return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+}
 
-    if ($method !== strtoupper($expectedMethod)) {
+/**
+ * Parse and validate incoming request.
+ * Accepts one or more allowed methods: api_request('GET'), api_request('GET', 'POST').
+ * Defaults to GET if no method specified.
+ */
+function api_request(string ...$methods): array {
+    $method = api_method();
+
+    $allowed = !empty($methods) ? array_map('strtoupper', $methods) : ['GET'];
+
+    if (!in_array($method, $allowed, true)) {
         api_fail('method_not_allowed', 405, [
-            'detail' => "Méthode {$method} non autorisée, {$expectedMethod} attendu."
+            'detail' => "Méthode {$method} non autorisée, " . implode('/', $allowed) . " attendu."
         ]);
     }
 

@@ -8,13 +8,7 @@ use AgVote\Service\MeetingReportService;
 
 api_require_role(['president', 'admin']);
 
-if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-  api_fail('method_not_allowed', 405);
-  exit;
-}
-
-$input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
-if (!is_array($input)) $input = $_POST;
+$input = api_request('POST');
 
 $meetingId = trim((string)($input['meeting_id'] ?? ''));
 if ($meetingId === '' || !api_is_uuid($meetingId)) api_fail('invalid_meeting_id', 400);

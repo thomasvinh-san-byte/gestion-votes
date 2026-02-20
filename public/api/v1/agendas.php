@@ -10,14 +10,14 @@ use AgVote\Core\Validation\Schemas\ValidationSchemas;
 
 api_require_role('operator');
 
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$data = api_request('GET', 'POST');
+$method = api_method();
 $meetingRepo = new MeetingRepository();
 $agendaRepo = new AgendaRepository();
 
 try {
     if ($method === 'GET') {
-        $q = api_request('GET');
-        $meetingId = api_require_uuid($q, 'meeting_id');
+        $meetingId = api_require_uuid($data, 'meeting_id');
 
         if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
@@ -27,12 +27,7 @@ try {
         api_ok(['agendas' => $rows]);
 
     } elseif ($method === 'POST') {
-        $input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
-        if (!is_array($input)) {
-            $input = $_POST;
-        }
-
-        $v = ValidationSchemas::agenda()->validate($input);
+        $v = ValidationSchemas::agenda()->validate($data);
         $v->failIfInvalid();
 
         $meetingId = $v->get('meeting_id');
@@ -59,8 +54,6 @@ try {
             'title'     => $title,
         ], 201);
 
-    } else {
-        api_fail('method_not_allowed', 405);
     }
 
 } catch (Throwable $e) {

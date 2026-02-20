@@ -14,7 +14,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\ReminderScheduleRepository;
 use AgVote\Repository\EmailTemplateRepository;
 
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$method = api_method();
 $repo = new ReminderScheduleRepository();
 $tenantId = api_current_tenant_id();
 

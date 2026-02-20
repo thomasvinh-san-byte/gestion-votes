@@ -19,7 +19,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\ExportTemplateRepository;
 
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$method = api_method();
 $repo = new ExportTemplateRepository();
 $tenantId = api_current_tenant_id();
 
