@@ -107,6 +107,11 @@ final class MeetingWorkflowService
             }
         }
 
+        // Block backward transition from archived — audit trail immutability
+        if ($fromStatus === 'archived') {
+            $issues[] = ['code' => 'archived_immutable', 'msg' => 'Séance archivée : toute modification est interdite pour garantir l\'intégrité de l\'audit.'];
+        }
+
         return [
             'issues' => $issues,
             'warnings' => $warnings,

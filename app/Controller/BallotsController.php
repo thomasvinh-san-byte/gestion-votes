@@ -51,6 +51,9 @@ final class BallotsController extends AbstractController
             $data['_idempotency_key'] = $idempotencyKey;
         }
 
+        // Pass tenant_id for defense-in-depth tenant isolation in the query
+        $data['_tenant_id'] = api_current_tenant_id();
+
         $ballot = BallotsService::castBallot($data);
 
         $motionId = $data['motion_id'] ?? $ballot['motion_id'] ?? null;

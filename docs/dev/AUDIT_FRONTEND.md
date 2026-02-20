@@ -478,6 +478,63 @@ ni `live → paused`.
 
 **Fichier** : `app/Services/MeetingWorkflowService.php`
 
+### Bugs backend corrigés (audit profond)
+
+#### BUG 5 — HAUTE : `findWithBallotContext()` sans filtre tenant_id
+
+**Avant** : La requête sélectionnait par `m.id = :mid` uniquement.
+Un attaquant connaissant un motion_id d'un autre tenant pouvait obtenir
+le contexte (meeting_status, tenant_id). Les checks downstream (membre
+doit exister dans le tenant, doit être présent) empêchaient l'exploitation
+réelle, mais la défense en profondeur était absente.
+
+**Fix** : Paramètre optionnel `$tenantId` ajouté à `findWithBallotContext()`.
+Le contrôleur passe `api_current_tenant_id()` via `_tenant_id` dans les données.
+
+**Fichiers** : `app/Repository/MotionRepository.php`,
+`app/Services/BallotsService.php`, `app/Controller/BallotsController.php`
+
+#### BUG 6 — HAUTE : Missing `m.position` dans `findWithMeetingInfo()`
+
+**Avant** : La requête ne sélectionnait pas `m.position`. Le broadcast
+WebSocket `motionOpened` envoyait `position: null` systématiquement.
+
+**Fix** : Ajout de `m.position` au SELECT.
+
+**Fichier** : `app/Repository/MotionRepository.php`
+
+#### BUG 7 — HAUTE : Pas de verrouillage meeting pendant le vote (TOCTOU)
+
+**Avant** : `BallotsService::castBallot()` vérifiait le statut meeting
+hors transaction (`findWithBallotContext()` = SELECT simple), puis ouvrait
+une transaction pour l'INSERT. Entre les deux, le meeting pouvait passer de
+`live` à `closed`, permettant un vote sur une séance fermée.
+
+**Fix** : Ajout de `MeetingRepository::lockForUpdate()` à l'intérieur
+de la transaction, avec re-vérification du statut `live`.
+
+**Fichier** : `app/Services/BallotsService.php`
+
+#### BUG 8 — MOYENNE : Transition `archived → validated` non bloquée
+
+**Avant** : `issuesBeforeTransition()` ne bloquait aucune transition
+depuis `archived`. Le code dans `transition()` acceptait `archived → validated`
+et effaçait `archived_at`. Cela violait l'immutabilité de l'audit trail.
+
+**Fix** : Ajout d'un blocage systématique de toute transition depuis
+`archived` dans `issuesBeforeTransition()`.
+
+**Fichier** : `app/Services/MeetingWorkflowService.php`
+
+#### BUG 9 — BASSE : Indentation cassée dans BallotsService
+
+**Avant** : Le check `meeting_validated_at` (lignes 60-62) avait une
+indentation au niveau 0 au lieu du niveau 2 du bloc parent.
+
+**Fix** : Correction de l'indentation.
+
+**Fichier** : `app/Services/BallotsService.php`
+
 ### Faux positifs identifiés (audit frontend initial)
 
 Les 3 findings "CRITICAL" de l'audit frontend automatisé étaient des

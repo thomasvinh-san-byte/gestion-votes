@@ -54,7 +54,7 @@ class MotionRepository extends AbstractRepository
     {
         return $this->selectOne(
             "SELECT
-                m.id AS motion_id, m.meeting_id, m.title,
+                m.id AS motion_id, m.meeting_id, m.title, m.position,
                 m.opened_at, m.closed_at,
                 m.vote_policy_id, m.quorum_policy_id,
                 mt.status AS meeting_status,
@@ -356,9 +356,26 @@ class MotionRepository extends AbstractRepository
 
     /**
      * Contexte ballot (BallotsService): motion + meeting status + tenant.
+     * When $tenantId is provided, enforces tenant isolation at the query level.
      */
-    public function findWithBallotContext(string $motionId): ?array
+    public function findWithBallotContext(string $motionId, string $tenantId = ''): ?array
     {
+        if ($tenantId !== '') {
+            return $this->selectOne(
+                "SELECT
+                  m.id          AS motion_id,
+                  m.opened_at   AS motion_opened_at,
+                  m.closed_at   AS motion_closed_at,
+                  mt.id         AS meeting_id,
+                  mt.status     AS meeting_status,
+                  mt.validated_at AS meeting_validated_at,
+                  mt.tenant_id  AS tenant_id
+                FROM motions m
+                JOIN meetings mt ON mt.id = m.meeting_id
+                WHERE m.id = :mid AND m.tenant_id = :tid",
+                [':mid' => $motionId, ':tid' => $tenantId]
+            );
+        }
         return $this->selectOne(
             "SELECT
               m.id          AS motion_id,
