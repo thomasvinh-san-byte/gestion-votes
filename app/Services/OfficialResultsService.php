@@ -107,7 +107,10 @@ final class OfficialResultsService
             } elseif ($majorityBase === 'eligible') {
                 $baseTotal = $eligibleWeight;
             } elseif ($majorityBase === 'present') {
-                $baseTotal = $expressedWeight;
+                // Use actual present weight from attendance, not expressed weight
+                $meetingId = (string)($motion['meeting_id'] ?? '');
+                $attendanceRepo = new \AgVote\Repository\AttendanceRepository();
+                $baseTotal = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
             } else {
                 $baseTotal = $expressedWeight;
             }
@@ -356,8 +359,6 @@ final class OfficialResultsService
      */
     public static function computeAndPersistMotion(string $motionId): array
     {
-        self::ensureSchema();
-
         $o = self::computeOfficialTallies($motionId);
 
         $motionRepo = new MotionRepository();
@@ -376,12 +377,10 @@ final class OfficialResultsService
     }
 
     /** @return array{updated:int} */
-    public static function consolidateMeeting(string $meetingId): array
+    public static function consolidateMeeting(string $meetingId, string $tenantId = ''): array
     {
-        self::ensureSchema();
-
         $motionRepo = new MotionRepository();
-        $motions = $motionRepo->listClosedForMeeting($meetingId);
+        $motions = $motionRepo->listClosedForMeeting($meetingId, $tenantId);
 
         $pdo = \db();
         $pdo->beginTransaction();
@@ -399,7 +398,8 @@ final class OfficialResultsService
                     $o['abstain'],
                     $o['total'],
                     $o['decision'],
-                    $o['reason']
+                    $o['reason'],
+                    $tenantId
                 );
                 $updated++;
             }

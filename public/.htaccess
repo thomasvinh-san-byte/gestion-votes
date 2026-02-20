@@ -33,7 +33,7 @@
 Options -Indexes
 
 # Bloquer l'accès aux fichiers sensibles
-<FilesMatch "\.(env|sql|md|json|lock|xml|yml|yaml|ini|log|sh|bak|swp)$">
+<FilesMatch "\.(env|sql|md|json|jsonl|lock|xml|yml|yaml|ini|log|sh|bak|swp)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>

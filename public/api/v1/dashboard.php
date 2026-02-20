@@ -83,7 +83,7 @@ if ($meetingId !== '') {
     $data['current_motion'] = $motionData ?: null;
 
     // votes (poids) sur la motion en cours
-    $t = $ballotRepo->tally($currentMotionId);
+    $t = $ballotRepo->tally($currentMotionId, $tenantId);
     $data['current_motion_votes'] = [
         'ballots_count'  => (int)$t['total_ballots'],
         'weight_for'     => (int)$t['weight_for'],

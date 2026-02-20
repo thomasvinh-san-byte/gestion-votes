@@ -62,8 +62,6 @@ final class MeetingReportsController extends AbstractController
             }
         }
 
-        OfficialResultsService::ensureSchema();
-
         $motions = $motionRepo->listForReport($meetingId);
         $attendance = $attendanceRepo->listForReport($meetingId, $tenant);
 

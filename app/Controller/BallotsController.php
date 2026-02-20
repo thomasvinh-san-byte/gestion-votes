@@ -36,7 +36,7 @@ final class BallotsController extends AbstractController
             api_fail('motion_not_found', 404, ['detail' => 'Motion introuvable']);
         }
 
-        $ballots = (new BallotRepository())->listForMotion($motionId);
+        $ballots = (new BallotRepository())->listForMotion($motionId, api_current_tenant_id());
         api_ok(['ballots' => $ballots]);
     }
 

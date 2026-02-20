@@ -140,7 +140,9 @@ final class VoteEngine
             } elseif ($majorityBase === 'eligible') {
                 $baseTotal = $eligibleWeight;
             } elseif ($majorityBase === 'present') {
-                $baseTotal = $expressedWeight;
+                // Use actual present weight from attendance, not expressed weight
+                $attendanceRepo = new \AgVote\Repository\AttendanceRepository();
+                $baseTotal = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
             } else {
                 $baseTotal = $expressedWeight;
             }

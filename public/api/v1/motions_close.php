@@ -23,9 +23,6 @@ if ($motionId === '' || !api_is_uuid($motionId)) {
 try {
     $repo = new MotionRepository();
 
-    // Ensure official columns exist BEFORE transaction (DDL can't be in a TX)
-    OfficialResultsService::ensureSchema();
-
     // SECURITY: Use transaction + lock to prevent race conditions
     db()->beginTransaction();
 
