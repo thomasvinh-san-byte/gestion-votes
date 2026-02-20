@@ -440,7 +440,7 @@
       const actionLabel = entry.action_label || entry.action;
       return `
         <div class="audit-entry">
-          <div class="audit-time">${formatDate(time)}</div>
+          <div class="audit-time">${Utils.formatDate(time)}</div>
           <div class="audit-content">
             <div class="audit-action">${escapeHtml(actionLabel)}</div>
             ${detail ? `<div class="audit-detail">${escapeHtml(detail)}</div>` : ''}

@@ -334,24 +334,6 @@ window.Utils = window.Utils || {};
   // ==========================================================================
 
   /**
-   * Get meeting ID from URL or data attributes
-   */
-  Utils.getMeetingId = function() {
-    const params = new URLSearchParams(window.location.search);
-    const fromUrl = params.get('meeting_id');
-    if (fromUrl) return fromUrl;
-
-    const el = document.querySelector('[data-meeting-id]');
-    if (el) return el.dataset.meetingId;
-
-    try {
-      return localStorage.getItem('operator.meeting_id') || localStorage.getItem('public.meeting_id') || '';
-    } catch(e) {
-      return '';
-    }
-  };
-
-  /**
    * Humanize error messages from API
    * Prefers 'message' (translated message) over 'error' (technical code)
    */
@@ -568,20 +550,6 @@ window.Utils = window.Utils || {};
 
 })(window.Utils);
 
-/**
- * Global email validation function
- */
-function isValidEmail(email) {
-  return Utils.isValidEmail(email);
-}
-
-/**
- * Global CSV parse function
- */
-function parseCSV(content, options) {
-  return Utils.parseCSV(content, options);
-}
-
 // ==========================================================================
 // GLOBAL CONVENIENCE FUNCTIONS
 // ==========================================================================
@@ -687,13 +655,6 @@ function escapeHtml(str) {
 function getParam(name) {
   const params = new URLSearchParams(window.location.search);
   return params.get(name);
-}
-
-/**
- * Format date to French locale — delegates to Utils.formatDate
- */
-function formatDate(dateStr) {
-  return Utils.formatDate(dateStr);
 }
 
 /**
