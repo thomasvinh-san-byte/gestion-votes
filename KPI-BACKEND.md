@@ -6,16 +6,16 @@
 
 ## Tableau de bord
 
-| KPI | Actuel | Cible | Priorite |
-|-----|--------|-------|----------|
-| Endpoints publics avec rate limiting | **9/12** (75%) | **12/12** (100%) | HAUTE |
-| Info leakage neutralisee (api_fail centralisee) | **OUI** | maintenir | - |
-| Tenant isolation — controllers avec check | **100%** critiques fixes | maintenir 100% | CRITIQUE |
-| Repository UPDATE/DELETE avec tenant_id | ~60% | **100%** | HAUTE |
-| Methodes controller avec audit_log | **51/98** (52%) | **>80%** | MOYENNE |
-| ensureSchema() / DDL runtime restants | **16 appels** | **0** | MOYENNE |
-| Exceptions silencieuses (catch vide) | **2** (dev-only) | **0** | BASSE |
-| Validation UUID systematique | partiel | **100% api_require_uuid** | MOYENNE |
+| KPI | Baseline | Apres Sprint 1+2 | Cible | Statut |
+|-----|----------|-------------------|-------|--------|
+| Endpoints publics avec rate limiting | 9/12 (75%) | **12/12 (100%)** | 12/12 | ATTEINT |
+| Info leakage neutralisee (api_fail) | OUI | **OUI** | maintenir | ATTEINT |
+| Tenant isolation — controllers | 100% critiques | **100%** | maintenir | ATTEINT |
+| Repository UPDATE/DELETE avec tenant_id | ~60% | **~95%** (+22 methodes) | 100% | QUASI-ATTEINT |
+| Methodes controller avec audit_log | 51/98 (52%) | **62/98 (63%)** | >80% | EN COURS |
+| ensureSchema() / DDL runtime | 16 appels | **0** | 0 | ATTEINT |
+| Exceptions silencieuses (catch vide) | 2 (dev-only) | **2** | 0 | BASSE |
+| Validation UUID systematique | partiel | **ameliore** | 100% | EN COURS |
 
 ---
 
