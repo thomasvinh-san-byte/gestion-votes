@@ -2,7 +2,7 @@
  * MeetingContext - Centralized meeting state management singleton
  *
  * Single source of truth for meeting_id across the application.
- * Provides: get/set methods, localStorage persistence, URL sync, event emission.
+ * Provides: get/set methods, sessionStorage persistence, URL sync, event emission.
  *
  * Usage:
  *   MeetingContext.init();                    // Call once on page load
@@ -22,24 +22,24 @@ const MeetingContext = (function() {
   const _listeners = [];
 
   /**
-   * Initialize the context from URL or localStorage
+   * Initialize the context from URL or sessionStorage
    * @returns {string|null} The current meeting_id
    */
   function init() {
     if (_initialized) return _meetingId;
 
-    // Priority: URL param > localStorage > hidden input
+    // Priority: URL param > sessionStorage > hidden input
     const urlParams = new URLSearchParams(window.location.search);
     const urlId = urlParams.get('meeting_id');
-    const storedId = localStorage.getItem(STORAGE_KEY);
+    const storedId = sessionStorage.getItem(STORAGE_KEY);
     const inputEl = document.querySelector('input[name="meeting_id"]');
     const inputId = inputEl?.value || null;
 
     _meetingId = urlId || storedId || inputId || null;
 
-    // Persist to localStorage if we got it from URL
+    // Persist to sessionStorage if we got it from URL
     if (_meetingId) {
-      localStorage.setItem(STORAGE_KEY, _meetingId);
+      sessionStorage.setItem(STORAGE_KEY, _meetingId);
     }
 
     // Update URL if we got it from storage but not from URL
@@ -74,9 +74,9 @@ const MeetingContext = (function() {
     _meetingId = id || null;
 
     if (_meetingId) {
-      localStorage.setItem(STORAGE_KEY, _meetingId);
+      sessionStorage.setItem(STORAGE_KEY, _meetingId);
     } else {
-      localStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY);
     }
 
     if (updateUrl) {
@@ -183,7 +183,7 @@ const MeetingContext = (function() {
   }
 
   // ─── Cross-tab synchronization ──────────────────────────
-  // Listen for localStorage changes from other tabs to stay in sync.
+  // Listen for sessionStorage changes from other tabs to stay in sync.
 
   window.addEventListener('storage', function(e) {
     if (e.key !== STORAGE_KEY) return;

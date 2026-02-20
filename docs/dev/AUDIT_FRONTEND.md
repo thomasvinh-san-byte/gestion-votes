@@ -333,7 +333,35 @@ Chaque étape doit être validée par :
 
 ---
 
-## 5. Conventions à respecter (post-audit)
+## 5. Corrections supplémentaires (passe 2)
+
+### A. localStorage → sessionStorage (privacy sur appareils partagés)
+
+| # | Fichier | Correction |
+|---|---------|------------|
+| 1 | `pages/vote.js` | 14 occurrences : `device.id`, `public.meeting_id`, `public.member_id` migrés vers sessionStorage |
+| 2 | `services/meeting-context.js` | 4 occurrences : `meeting_id` context migré vers sessionStorage |
+
+**Seul localStorage restant** : `shell.js` — thème clair/sombre (non-sensible, conservé).
+
+### E. Fuites mémoire (timers + event listeners)
+
+| # | Fichier | Correction |
+|---|---------|------------|
+| 1 | `pages/vote.js:947-951` | Timers poll/heartbeat stockés sur `window` avec `clearInterval` avant recréation |
+| 2 | `pages/operator-tabs.js:1606` | Timer clock non gardé → ajout `_clockInterval` avec clear + cleanup dans `beforeunload` |
+| 3 | `components/ag-popover.js:112` | `removeEventListeners()` ne nettoyait que document → nettoyage complet de tous les listeners (trigger + popover + document) |
+
+### G. Accessibilité
+
+| # | Fichier | Correction |
+|---|---------|------------|
+| 1 | `pages/login.js` | `showError()` donne le focus à `errorBox` pour les lecteurs d'écran |
+| 2 | `login.html` | Ajout `tabindex="-1"` sur `errorBox` pour le rendre focusable programmatiquement |
+
+---
+
+## 6. Conventions à respecter (post-audit)
 
 ### Injection HTML
 
@@ -345,9 +373,15 @@ Chaque étape doit être validée par :
 
 ### Stockage client
 
-- **sessionStorage** uniquement pour les données temporaires (api_key, receipts)
-- **localStorage** interdit pour les clés API, tokens, et données de vote
-- **Règle** : aucune donnée identifiant un choix de vote ne doit survivre à la fermeture du navigateur
+- **sessionStorage** uniquement pour les données temporaires (api_key, receipts, meeting/member IDs)
+- **localStorage** réservé aux préférences non-sensibles (thème)
+- **Règle** : aucune donnée identifiant un votant ou un choix de vote ne doit survivre à la fermeture du navigateur
+
+### Timers
+
+- Tout `setInterval` doit être assigné à une variable nettoyable
+- Avant de créer un timer, toujours `clearInterval` le précédent
+- Tout composant avec timers doit implémenter un cleanup dans `beforeunload` ou `disconnectedCallback`
 
 ### Nouveaux appels API
 

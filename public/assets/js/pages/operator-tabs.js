@@ -1595,7 +1595,9 @@ window.OpS = { fn: {} };
   // CLOCK
   // =========================================================================
 
+  let _clockInterval = null;
   function startClock() {
+    if (_clockInterval) clearInterval(_clockInterval);
     function tick() {
       const now = new Date();
       if (barClock) {
@@ -1603,7 +1605,7 @@ window.OpS = { fn: {} };
       }
     }
     tick();
-    setInterval(tick, 30000);
+    _clockInterval = setInterval(tick, 30000);
   }
 
   // Session elapsed timer
@@ -2667,6 +2669,7 @@ window.OpS = { fn: {} };
     if (speechTimerInterval) clearInterval(speechTimerInterval);
     if (execSpeechTimerInterval) clearInterval(execSpeechTimerInterval);
     if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+    if (_clockInterval) clearInterval(_clockInterval);
   });
 
   // Start polling after initial load

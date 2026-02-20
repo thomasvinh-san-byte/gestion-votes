@@ -27,16 +27,16 @@
 
   /**
    * Get or generate a unique device identifier.
-   * Persisted in localStorage for session continuity.
+   * Persisted in sessionStorage for session continuity.
    * @returns {string} Device UUID
    */
   function getDeviceId(){
     try {
       const k = 'device.id';
-      let v = localStorage.getItem(k);
+      let v = sessionStorage.getItem(k);
       if (!v) {
         v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + '-' + Math.random().toString(16).slice(2));
-        localStorage.setItem(k, v);
+        sessionStorage.setItem(k, v);
       }
       return v;
     } catch(e){
@@ -350,10 +350,10 @@
       }
     }
 
-    // Priority: invitation token > MeetingContext > saved localStorage > first meeting in list
+    // Priority: invitation token > MeetingContext > saved sessionStorage > first meeting in list
     const invitationId = window._invitationMeetingId || null;
     const contextId = (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
-    const saved = (localStorage.getItem("public.meeting_id") || "").trim();
+    const saved = (sessionStorage.getItem("public.meeting_id") || "").trim();
     const initialId = invitationId || contextId || saved;
     if (initialId && meetings.some(x=>x.meeting_id===initialId)) {
       sel.value = initialId;
@@ -364,7 +364,7 @@
     if (typeof MeetingContext !== 'undefined' && sel.value) {
       MeetingContext.set(sel.value, { updateUrl: false });
     }
-    localStorage.setItem("public.meeting_id", sel.value || "");
+    sessionStorage.setItem("public.meeting_id", sel.value || "");
     await loadMembers();
     await refresh();
   }
@@ -458,23 +458,23 @@
       sel.setOptions(memberOptions);
     }
 
-    // Auto-select: 0) invitation token, 1) linked member (user_id→member), 2) saved localStorage, 3) name/email match
+    // Auto-select: 0) invitation token, 1) linked member (user_id→member), 2) saved sessionStorage, 3) name/email match
     const allValues = useSearchable
       ? memberOptions.map(o => String(o.value))
       : [...sel.options].map(o => o.value);
 
     const invitationMemberId = window._invitationMemberId || null;
     const linkedId = window.Auth?.member?.id;
-    const saved = (localStorage.getItem("public.member_id") || "").trim();
+    const saved = (sessionStorage.getItem("public.member_id") || "").trim();
 
     if (invitationMemberId && allValues.includes(invitationMemberId)) {
       // Invitation token resolved this member — highest priority
       sel.value = invitationMemberId;
-      localStorage.setItem("public.member_id", invitationMemberId);
+      sessionStorage.setItem("public.member_id", invitationMemberId);
     } else if (linkedId && allValues.includes(linkedId)) {
       // Deterministic: user account is linked to a member record
       sel.value = linkedId;
-      localStorage.setItem("public.member_id", linkedId);
+      sessionStorage.setItem("public.member_id", linkedId);
     } else if (saved && allValues.includes(saved)) {
       sel.value = saved;
     } else if (window.Auth && window.Auth.user) {
@@ -513,7 +513,7 @@
         if ((userName && label.includes(userName)) ||
             (userEmail && (label.includes(userEmail) || sublabel.includes(userEmail)))) {
           sel.value = opt.value;
-          localStorage.setItem("public.member_id", opt.value);
+          sessionStorage.setItem("public.member_id", opt.value);
           updateMemberFromSelect(sel);
           break;
         }
@@ -524,7 +524,7 @@
         const text = opt.textContent.toLowerCase();
         if ((userName && text.includes(userName)) || (userEmail && text.includes(userEmail))) {
           sel.value = opt.value;
-          localStorage.setItem("public.member_id", opt.value);
+          sessionStorage.setItem("public.member_id", opt.value);
           updateMemberFromSelect(sel);
           break;
         }
@@ -701,8 +701,8 @@
   async function refresh(){
     const meetingId = selectedMeetingId();
     const memberId = selectedMemberId();
-    if (meetingId) localStorage.setItem("public.meeting_id", meetingId);
-    if (memberId) localStorage.setItem("public.member_id", memberId);
+    if (meetingId) sessionStorage.setItem("public.meeting_id", meetingId);
+    if (memberId) sessionStorage.setItem("public.member_id", memberId);
 
     if (!meetingId){
       updateMotionCard(null);
@@ -847,8 +847,8 @@
       window._invitationMemberId = memberId;
 
       // Persist so MeetingContext picks it up
-      localStorage.setItem('public.meeting_id', meetingId);
-      localStorage.setItem('public.member_id', memberId);
+      sessionStorage.setItem('public.meeting_id', meetingId);
+      sessionStorage.setItem('public.member_id', memberId);
       if (typeof MeetingContext !== 'undefined') {
         MeetingContext.set(meetingId, { updateUrl: false });
       }
@@ -907,7 +907,7 @@
       if (typeof MeetingContext !== 'undefined' && newId) {
         MeetingContext.set(newId, { updateUrl: false });
       }
-      localStorage.setItem("public.meeting_id", newId);
+      sessionStorage.setItem("public.meeting_id", newId);
       await loadMembers();
       await refresh();
     });
@@ -943,17 +943,19 @@
       })
       .catch((e) => notify("error", e?.message || String(e)));
 
-    // Poll current motion every 3s
-    const _motionPollTimer = setInterval(()=>{
+    // Poll current motion every 3s — clear previous timers to prevent accumulation
+    if (window._voteMotionPollTimer) clearInterval(window._voteMotionPollTimer);
+    if (window._voteHeartbeatTimer) clearInterval(window._voteHeartbeatTimer);
+    window._voteMotionPollTimer = setInterval(()=>{
       if (!document.hidden) refresh().catch(()=>{});
     }, 3000);
     // Heartbeat every 15s
-    const _heartbeatTimer = setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
+    window._voteHeartbeatTimer = setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
 
     // Cleanup on page unload to prevent memory leaks
     window.addEventListener('pagehide', ()=>{
-      clearInterval(_motionPollTimer);
-      clearInterval(_heartbeatTimer);
+      clearInterval(window._voteMotionPollTimer);
+      clearInterval(window._voteHeartbeatTimer);
     });
   }
 
