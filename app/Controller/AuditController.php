@@ -227,7 +227,7 @@ final class AuditController extends AbstractController
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        if ($meetingId === '') {
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422);
         }
 
@@ -247,7 +247,7 @@ final class AuditController extends AbstractController
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        if ($meetingId === '') {
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422);
         }
 

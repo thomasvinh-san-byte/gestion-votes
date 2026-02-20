@@ -22,7 +22,7 @@ final class AttendancesController extends AbstractController
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        if ($meetingId === '') {
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_request', 422, ['detail' => 'meeting_id est obligatoire']);
         }
 
@@ -58,6 +58,12 @@ final class AttendancesController extends AbstractController
         api_guard_meeting_not_validated($meetingId);
 
         $row = AttendancesService::upsert($meetingId, $memberId, $mode, $notes);
+
+        audit_log('attendance.upsert', 'attendance', $memberId, [
+            'meeting_id' => $meetingId,
+            'mode' => $mode,
+        ], $meetingId);
+
         api_ok(['attendance' => $row]);
     }
 
@@ -163,12 +169,10 @@ final class AttendancesController extends AbstractController
 
         (new AttendanceRepository())->updatePresentFrom($meetingId, $memberId, $presentFrom === '' ? null : $presentFrom);
 
-        if ($presentFrom !== '') {
-            audit_log('attendance_present_from_set', 'meeting', $meetingId, [
-                'member_id' => $memberId,
-                'present_from_at' => $presentFrom,
-            ]);
-        }
+        audit_log($presentFrom !== '' ? 'attendance_present_from_set' : 'attendance_present_from_cleared', 'meeting', $meetingId, [
+            'member_id' => $memberId,
+            'present_from_at' => $presentFrom !== '' ? $presentFrom : null,
+        ]);
 
         api_ok(['saved' => true]);
     }

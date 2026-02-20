@@ -81,6 +81,10 @@ function handlePost(ReminderScheduleRepository $repo, string $tenantId): void
         $repo->setupDefaults($tenantId, $meetingId, $templateId);
         $reminders = $repo->listForMeeting($meetingId, $tenantId);
 
+        audit_log('reminder.setup_defaults', 'meeting', $meetingId, [
+            'count' => count($reminders),
+        ], $meetingId);
+
         api_ok([
             'meeting_id' => $meetingId,
             'reminders' => $reminders,
@@ -124,6 +128,11 @@ function handlePost(ReminderScheduleRepository $repo, string $tenantId): void
         $isActive
     );
 
+    audit_log('reminder.upsert', 'meeting', $meetingId, [
+        'days_before' => $daysBefore,
+        'is_active' => $isActive,
+    ], $meetingId);
+
     api_ok(['reminder' => $reminder], 201);
 }
 
@@ -139,6 +148,8 @@ function handleDelete(ReminderScheduleRepository $repo, string $tenantId): void
     if (!$deleted) {
         api_fail('reminder_not_found', 404);
     }
+
+    audit_log('reminder.delete', 'reminder', $id);
 
     api_ok(['deleted' => true]);
 }

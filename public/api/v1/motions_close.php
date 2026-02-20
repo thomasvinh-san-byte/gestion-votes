@@ -52,7 +52,8 @@ try {
     $repo->updateOfficialResults(
         (string)$motionId,
         $o['source'], $o['for'], $o['against'],
-        $o['abstain'], $o['total'], $o['decision'], $o['reason']
+        $o['abstain'], $o['total'], $o['decision'], $o['reason'],
+        api_current_tenant_id()
     );
 
     db()->commit();

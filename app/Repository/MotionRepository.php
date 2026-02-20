@@ -685,41 +685,6 @@ class MotionRepository extends AbstractRepository
         );
     }
 
-    /**
-     * Met a jour la politique de vote d'une motion.
-     */
-    public function updateVotePolicy(string $motionId, ?string $policyId, string $tenantId = ''): void
-    {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE motions SET vote_policy_id = :pid, updated_at = NOW() WHERE id = :id AND tenant_id = :tid",
-                [':pid' => $policyId, ':id' => $motionId, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE motions SET vote_policy_id = :pid, updated_at = NOW() WHERE id = :id",
-                [':pid' => $policyId, ':id' => $motionId]
-            );
-        }
-    }
-
-    /**
-     * Met a jour la politique de quorum d'une motion.
-     */
-    public function updateQuorumPolicy(string $motionId, ?string $policyId, string $tenantId = ''): void
-    {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE motions SET quorum_policy_id = :pid, updated_at = NOW() WHERE id = :id AND tenant_id = :tid",
-                [':pid' => $policyId, ':id' => $motionId, ':tid' => $tenantId]
-            );
-        } else {
-            $this->execute(
-                "UPDATE motions SET quorum_policy_id = :pid, updated_at = NOW() WHERE id = :id",
-                [':pid' => $policyId, ':id' => $motionId]
-            );
-        }
-    }
 
     /**
      * Persiste les resultats officiels d'une motion (OfficialResultsService).

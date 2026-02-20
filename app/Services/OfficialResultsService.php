@@ -351,7 +351,7 @@ final class OfficialResultsService
      * Compute and persist official results for a single motion.
      * @return array{source:string,for:float,against:float,abstain:float,total:float,decision:string,reason:string}
      */
-    public static function computeAndPersistMotion(string $motionId): array
+    public static function computeAndPersistMotion(string $motionId, string $tenantId = ''): array
     {
         $o = self::computeOfficialTallies($motionId);
 
@@ -364,7 +364,8 @@ final class OfficialResultsService
             $o['abstain'],
             $o['total'],
             $o['decision'],
-            $o['reason']
+            $o['reason'],
+            $tenantId
         );
 
         return $o;

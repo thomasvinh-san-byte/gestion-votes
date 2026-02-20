@@ -303,7 +303,7 @@ final class MeetingWorkflowController extends AbstractController
         api_require_role('auditor');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        if ($meetingId === '') {
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
 

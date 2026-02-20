@@ -626,6 +626,10 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
             api_fail('mail_send_failed', 500);
         }
 
+        audit_log('report.send', 'meeting', $meetingId, [
+            'email' => $toEmail,
+        ], $meetingId);
+
         api_ok(['ok' => true]);
     }
 
@@ -634,7 +638,7 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         api_require_role('operator');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        if ($meetingId === '') {
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
             http_response_code(400);
             header('Content-Type: text/plain; charset=utf-8');
             echo "missing_meeting_id";

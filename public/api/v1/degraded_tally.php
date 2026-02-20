@@ -51,7 +51,7 @@ if ($sum !== $total) {
 try {
     db()->beginTransaction();
 
-    (new MotionRepository())->updateManualTally($motionId, $total, $for, $against, $abstain);
+    (new MotionRepository())->updateManualTally($motionId, $total, $for, $against, $abstain, $tenantId);
 
     (new ManualActionRepository())->createManualTally(
         $tenantId,

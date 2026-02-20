@@ -60,8 +60,14 @@ class VoteTokenRepository extends AbstractRepository
     /**
      * Marque un token comme consomme (used_at = now()).
      */
-    public function consume(string $tokenHash): int
+    public function consume(string $tokenHash, string $tenantId = ''): int
     {
+        if ($tenantId !== '') {
+            return $this->execute(
+                "UPDATE vote_tokens SET used_at = now() WHERE token_hash = :hash AND tenant_id = :tid AND used_at IS NULL",
+                [':hash' => $tokenHash, ':tid' => $tenantId]
+            );
+        }
         return $this->execute(
             "UPDATE vote_tokens SET used_at = now() WHERE token_hash = :hash AND used_at IS NULL",
             [':hash' => $tokenHash]

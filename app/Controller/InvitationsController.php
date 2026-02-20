@@ -43,6 +43,11 @@ final class InvitationsController extends AbstractController
 
         (new InvitationRepository())->upsertSent($tenantId, $meetingId, $memberId, $email, $token);
 
+        audit_log('invitation.create', 'invitation', $memberId, [
+            'meeting_id' => $meetingId,
+            'email' => $email,
+        ], $meetingId);
+
         $voteUrl = "/vote.htmx.html?token=" . rawurlencode($token);
 
         api_ok([
@@ -57,7 +62,7 @@ final class InvitationsController extends AbstractController
     {
         api_require_role('operator');
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        if ($meetingId === '') {
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
 

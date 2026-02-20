@@ -244,6 +244,13 @@ final class BallotsController extends AbstractController
             );
 
             db()->commit();
+
+            audit_log('ballot.manual_vote', 'ballot', $ballotId, [
+                'motion_id' => $motionId,
+                'member_id' => $memberId,
+                'value' => $value,
+            ], $meetingId);
+
             api_ok(['ballot_id' => $ballotId, 'value' => $value, 'source' => 'manual']);
         } catch (\Throwable $e) {
             db()->rollBack();

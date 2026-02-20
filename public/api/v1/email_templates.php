@@ -118,6 +118,11 @@ function handlePost(EmailTemplateRepository $repo, EmailTemplateService $service
             api_fail('duplicate_failed', 400);
         }
 
+        audit_log('email_template.duplicate', 'email_template', $duplicate['id'] ?? $sourceId, [
+            'source_id' => $sourceId,
+            'new_name' => $newName,
+        ]);
+
         api_ok(['template' => $duplicate]);
     }
 
@@ -165,6 +170,11 @@ function handlePost(EmailTemplateRepository $repo, EmailTemplateService $service
         api_fail('create_failed', 500);
     }
 
+    audit_log('email_template.create', 'email_template', $template['id'] ?? '', [
+        'name' => $name,
+        'type' => $type,
+    ]);
+
     api_ok(['template' => $template], 201);
 }
 
@@ -205,6 +215,8 @@ function handlePut(EmailTemplateRepository $repo, string $tenantId): void
         api_fail('update_failed', 500);
     }
 
+    audit_log('email_template.update', 'email_template', $id, ['name' => $name]);
+
     api_ok(['template' => $template]);
 }
 
@@ -230,6 +242,8 @@ function handleDelete(EmailTemplateRepository $repo, string $tenantId): void
     if (!$deleted) {
         api_fail('delete_failed', 500);
     }
+
+    audit_log('email_template.delete', 'email_template', $id, ['name' => $existing['name'] ?? '']);
 
     api_ok(['deleted' => true]);
 }
