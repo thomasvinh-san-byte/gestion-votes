@@ -75,14 +75,6 @@ class MemberRepository extends AbstractRepository
     }
 
     /**
-     * @deprecated Use countActive() which now excludes soft-deleted members.
-     */
-    public function countActiveNotDeleted(string $tenantId): int
-    {
-        return $this->countActive($tenantId);
-    }
-
-    /**
      * Total weight of active members for a tenant (excludes soft-deleted).
      */
     public function sumActiveWeight(string $tenantId): float

@@ -165,7 +165,7 @@ final class AdminController extends AbstractController
                     api_fail('weak_password', 400, ['detail' => 'Le mot de passe doit contenir au moins 8 caractères.']);
                 }
 
-                $id = $userRepo->newUuid();
+                $id = $userRepo->generateUuid();
                 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
                 $userRepo->createUser($id, api_current_tenant_id(), $email, $name, $role, $passwordHash);
                 audit_log('admin.user.created', 'user', $id, ['email' => $email, 'role' => $role]);
@@ -350,7 +350,7 @@ final class AdminController extends AbstractController
 
         $cntMeet = $meetingRepo->countForTenant($tenantId);
         $cntMot = $motionRepo->countAll();
-        $cntMembers = $memberRepo->countActiveNotDeleted($tenantId);
+        $cntMembers = $memberRepo->countActive($tenantId);
         $cntLive = $meetingRepo->countLive($tenantId);
         $cntTok = $voteTokenRepo->countAll();
         $cntAud = $userRepo->countAuditEvents($tenantId);

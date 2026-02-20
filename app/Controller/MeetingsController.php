@@ -160,7 +160,7 @@ final class MeetingsController extends AbstractController
         $validation = MeetingValidator::canBeValidated((string)$meeting['meeting_id'], api_current_tenant_id());
         $readyToSign = (bool)($validation['can'] ?? false);
 
-        NotificationsService::emitReadinessTransitions((string)$meeting['meeting_id'], $validation);
+        NotificationsService::emitReadinessTransitions((string)$meeting['meeting_id'], $validation, api_current_tenant_id());
 
         $signStatus = 'not_ready';
         $signMessage = "Séance en cours de traitement.";
@@ -211,7 +211,7 @@ final class MeetingsController extends AbstractController
         $validation = MeetingValidator::canBeValidated((string)$meetingId, api_current_tenant_id());
         $readyToSign = (bool)($validation['can'] ?? false);
 
-        NotificationsService::emitReadinessTransitions((string)$meetingId, $validation);
+        NotificationsService::emitReadinessTransitions((string)$meetingId, $validation, api_current_tenant_id());
 
         $signStatus = 'not_ready';
         $signMessage = '';

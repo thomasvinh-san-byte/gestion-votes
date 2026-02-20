@@ -410,7 +410,7 @@
         // Store attendance info for proxy display
         _memberAttendance[x.member_id] = {
           mode,
-          weight: x.vote_weight || x.weight || null,
+          weight: x.voting_power || x.weight || null,
           proxyFor: x.proxy_holder_name || x.proxy_for || null
         };
 

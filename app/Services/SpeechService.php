@@ -54,10 +54,8 @@ final class SpeechService
     }
 
     /** @return array{speaker: ?array<string,mixed>, queue: array<int,array<string,mixed>>} */
-    public static function getQueue(string $meetingId, ?string $tenantId = null): array
+    public static function getQueue(string $meetingId, string $tenantId): array
     {
-
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $tenantId = self::resolveTenant($meetingId, $tenantId);
         $repo = new SpeechRepository();
 
@@ -68,10 +66,8 @@ final class SpeechService
     }
 
     /** @return array{status: string, request_id: ?string, position: ?int, queue_size: int} */
-    public static function getMyStatus(string $meetingId, string $memberId, ?string $tenantId = null): array
+    public static function getMyStatus(string $meetingId, string $memberId, string $tenantId): array
     {
-
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $tenantId = self::resolveTenant($meetingId, $tenantId);
         $repo = new SpeechRepository();
 
@@ -134,10 +130,8 @@ final class SpeechService
      * @param string|null $memberId Member ID (optional, picks next in queue if null)
      * @param string $tenantId Tenant ID for tenant isolation
      */
-    public static function grant(string $meetingId, ?string $memberId = null, ?string $tenantId = null): array
+    public static function grant(string $meetingId, ?string $memberId, string $tenantId): array
     {
-
-        $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $tenantId = self::resolveTenant($meetingId, $tenantId);
         $repo = new SpeechRepository();
 

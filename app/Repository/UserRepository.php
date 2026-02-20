@@ -261,14 +261,6 @@ class UserRepository extends AbstractRepository
     }
 
     /**
-     * Genere un UUID via PostgreSQL.
-     */
-    public function newUuid(): string
-    {
-        return $this->generateUuid();
-    }
-
-    /**
      * Cree un nouvel utilisateur.
      */
     public function createUser(
