@@ -8,11 +8,6 @@
   let currentSeverityFilter = 'all';
   const meetingSelect = document.getElementById('meetingSelect');
 
-  function getMeetingIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('meeting_id');
-  }
-
   // Load meetings list and auto-select active one
   async function loadMeetings() {
     try {
@@ -29,8 +24,8 @@
         meetingSelect.appendChild(opt);
       });
 
-      // Priority: URL param > first live meeting > first meeting
-      const urlMeetingId = getMeetingIdFromUrl();
+      // Priority: MeetingContext (URL > localStorage) > first live > first meeting
+      const urlMeetingId = MeetingContext.get();
       if (urlMeetingId) {
         meetingSelect.value = urlMeetingId;
         loadMeetingData(urlMeetingId);

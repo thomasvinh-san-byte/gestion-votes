@@ -63,11 +63,11 @@
   function setTitle(t){ if (titleEl) titleEl.textContent = t; }
 
   /**
-   * Escape HTML entities in a string.
+   * Escape HTML entities — delegates to Utils.escapeHtml.
    * @param {string} s - String to escape
    * @returns {string} Escaped string
    */
-  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function esc(s) { return Utils.escapeHtml(s); }
 
   /**
    * Open a drawer by kind name.

@@ -2,16 +2,7 @@
 (function() {
     'use strict';
 
-    let currentMeetingId = null;
-
-    // Get meeting_id from URL
-    function getMeetingIdFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('meeting_id');
-    }
-
-    // Check meeting ID
-    currentMeetingId = getMeetingIdFromUrl();
+    let currentMeetingId = MeetingContext.get();
     if (!currentMeetingId) {
       setNotif('error', 'Aucune séance sélectionnée');
       setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);

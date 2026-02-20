@@ -675,45 +675,10 @@ function setNotif(type, message, duration = 5000) {
 }
 
 /**
- * Create notification container if not exists
- * Uses aria-live region for screen reader announcements
- */
-function createNotifContainer() {
-  let container = document.getElementById('notif_box');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'notif_box';
-    container.className = 'toast-container';
-    // ARIA live region for accessibility
-    container.setAttribute('aria-live', 'polite');
-    container.setAttribute('aria-atomic', 'false');
-    container.setAttribute('aria-relevant', 'additions');
-    container.style.cssText = `
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      pointer-events: none;
-    `;
-    document.body.appendChild(container);
-  }
-  return container;
-}
-
-/**
- * Escape HTML entities
+ * Escape HTML entities — delegates to Utils.escapeHtml
  */
 function escapeHtml(str) {
-  if (str === null || str === undefined) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  return Utils.escapeHtml(str);
 }
 
 /**
@@ -725,22 +690,10 @@ function getParam(name) {
 }
 
 /**
- * Format date to French locale
+ * Format date to French locale — delegates to Utils.formatDate
  */
 function formatDate(dateStr) {
-  if (!dateStr) return '—';
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch (e) {
-    return dateStr;
-  }
+  return Utils.formatDate(dateStr);
 }
 
 /**
@@ -768,15 +721,10 @@ function log(...args) {
 }
 
 /**
- * Extract error message from API response body
- * Prefers 'message' (translated) over 'error' (technical code)
- * @param {object} body - API response body
- * @param {string} fallback - Default message if no error found
- * @returns {string} Human-readable error message
+ * Extract error message from API response body — delegates to Utils.getApiError
  */
 function getApiError(body, fallback = 'Une erreur est survenue') {
-  if (!body) return fallback;
-  return body.message || body.detail || body.error || fallback;
+  return Utils.getApiError(body, fallback);
 }
 
 // Add slide-out animation
