@@ -10,6 +10,13 @@ api_request('GET');
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 $motionId  = trim((string)($_GET['motion_id'] ?? ''));
 
+if ($meetingId !== '' && !api_is_uuid($meetingId)) {
+    api_fail('invalid_meeting_id', 422);
+}
+if ($motionId !== '' && !api_is_uuid($motionId)) {
+    api_fail('invalid_motion_id', 422);
+}
+
 try {
     // Use tenant context if available for security
     $tenantId = api_current_tenant_id();

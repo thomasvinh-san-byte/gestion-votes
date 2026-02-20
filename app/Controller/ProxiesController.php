@@ -109,7 +109,7 @@ final class ProxiesController extends AbstractController
             api_fail('proxy_not_found', 404);
         }
 
-        $deleted = $proxyRepo->deleteProxy($proxyId, $meetingId);
+        $deleted = $proxyRepo->deleteProxy($proxyId, $meetingId, $tenantId);
         if ($deleted === 0) {
             api_fail('delete_failed', 500, ['detail' => 'La suppression a échoué.']);
         }

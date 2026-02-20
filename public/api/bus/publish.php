@@ -14,10 +14,11 @@ if (!$type) {
 }
 
 $evt = [
-    'id' => uniqid('', true), 
-    'type' => $type, 
-    'payload' => $payload, 
-    'ts' => time()
+    'id' => bin2hex(random_bytes(16)),
+    'tenant_id' => api_current_tenant_id(),
+    'type' => $type,
+    'payload' => $payload,
+    'ts' => time(),
 ];
 
 $file = __DIR__ . '/events.jsonl';

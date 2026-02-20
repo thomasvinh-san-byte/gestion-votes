@@ -97,7 +97,7 @@ try {
             api_fail('member_not_found', 404, ['detail' => 'Membre introuvable.']);
         }
 
-        $repo->softDelete($id);
+        $repo->softDelete($id, $tenantId);
 
         audit_log('member_deleted', 'member', $id);
 

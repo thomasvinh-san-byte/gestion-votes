@@ -18,11 +18,6 @@ use RuntimeException;
  */
 final class SpeechService
 {
-    private static function ensureSchema(): void
-    {
-        (new SpeechRepository())->ensureSchema();
-    }
-
     private static function memberLabel(string $memberId, string $tenantId): ?string
     {
         $memberRepo = new MemberRepository();
@@ -61,7 +56,6 @@ final class SpeechService
     /** @return array{speaker: ?array<string,mixed>, queue: array<int,array<string,mixed>>} */
     public static function getQueue(string $meetingId, ?string $tenantId = null): array
     {
-        self::ensureSchema();
 
         $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $tenantId = self::resolveTenant($meetingId, $tenantId);
@@ -76,7 +70,6 @@ final class SpeechService
     /** @return array{status: string, request_id: ?string, position: ?int, queue_size: int} */
     public static function getMyStatus(string $meetingId, string $memberId, ?string $tenantId = null): array
     {
-        self::ensureSchema();
 
         $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $tenantId = self::resolveTenant($meetingId, $tenantId);
@@ -111,7 +104,6 @@ final class SpeechService
      */
     public static function toggleRequest(string $meetingId, string $memberId, string $tenantId): array
     {
-        self::ensureSchema();
 
         $tenantId = self::resolveTenant($meetingId, $tenantId);
         $repo = new SpeechRepository();
@@ -144,7 +136,6 @@ final class SpeechService
      */
     public static function grant(string $meetingId, ?string $memberId = null, ?string $tenantId = null): array
     {
-        self::ensureSchema();
 
         $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $tenantId = self::resolveTenant($meetingId, $tenantId);
@@ -187,7 +178,6 @@ final class SpeechService
      */
     public static function endCurrent(string $meetingId, string $tenantId): array
     {
-        self::ensureSchema();
 
         $tenantId = self::resolveTenant($meetingId, $tenantId);
         $repo = new SpeechRepository();
@@ -220,7 +210,6 @@ final class SpeechService
      */
     public static function cancelRequest(string $meetingId, string $requestId, string $tenantId): array
     {
-        self::ensureSchema();
 
         $tenantId = self::resolveTenant($meetingId, $tenantId);
         $repo = new SpeechRepository();
@@ -252,7 +241,6 @@ final class SpeechService
      */
     public static function clearHistory(string $meetingId, string $tenantId): array
     {
-        self::ensureSchema();
 
         $tenantId = self::resolveTenant($meetingId, $tenantId);
         $repo = new SpeechRepository();

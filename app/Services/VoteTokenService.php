@@ -166,9 +166,9 @@ final class VoteTokenService
     /**
      * Revokes all unused tokens for a given motion.
      */
-    public static function revokeForMotion(string $motionId): int
+    public static function revokeForMotion(string $motionId, string $tenantId = ''): int
     {
         $tokenRepo = new VoteTokenRepository();
-        return $tokenRepo->revokeForMotion($motionId);
+        return $tokenRepo->revokeForMotion($motionId, $tenantId);
     }
 }

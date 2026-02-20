@@ -36,13 +36,14 @@ final class BallotsController extends AbstractController
             api_fail('motion_not_found', 404, ['detail' => 'Motion introuvable']);
         }
 
-        $ballots = (new BallotRepository())->listForMotion($motionId);
+        $ballots = (new BallotRepository())->listForMotion($motionId, api_current_tenant_id());
         api_ok(['ballots' => $ballots]);
     }
 
     public function cast(): void
     {
         api_require_role('public');
+        api_rate_limit('ballot_cast', 60, 60);
         $data = api_request('POST');
 
         $idempotencyKey = $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] ?? null;
@@ -118,7 +119,7 @@ final class BallotsController extends AbstractController
                 ]);
             }
 
-            $ballotRepo->deleteByMotionAndMember($motionId, $memberId);
+            $ballotRepo->deleteByMotionAndMember($motionId, $memberId, $tenantId);
             db()->commit();
 
             audit_log('ballot_cancelled', 'ballot', $motionId, [
@@ -154,6 +155,7 @@ final class BallotsController extends AbstractController
     public function result(): void
     {
         api_require_role('public');
+        api_rate_limit('ballot_result', 120, 60);
         $params = api_request('GET');
 
         $motionId = trim((string)($params['motion_id'] ?? ''));
@@ -242,6 +244,13 @@ final class BallotsController extends AbstractController
             );
 
             db()->commit();
+
+            audit_log('ballot.manual_vote', 'ballot', $ballotId, [
+                'motion_id' => $motionId,
+                'member_id' => $memberId,
+                'value' => $value,
+            ], $meetingId);
+
             api_ok(['ballot_id' => $ballotId, 'value' => $value, 'source' => 'manual']);
         } catch (\Throwable $e) {
             db()->rollBack();
@@ -305,6 +314,7 @@ final class BallotsController extends AbstractController
     public function reportIncident(): void
     {
         api_require_role('public');
+        api_rate_limit('vote_incident', 30, 60);
         $in = api_request('POST');
 
         $kind = trim((string)($in['kind'] ?? 'network'));

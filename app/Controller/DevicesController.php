@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Repository\DeviceRepository;
+use AgVote\Repository\MeetingRepository;
 
 /**
  * Consolidates 5 device endpoints.
@@ -157,6 +158,7 @@ final class DevicesController extends AbstractController
     public function heartbeat(): void
     {
         api_require_role('public');
+        api_rate_limit('device_heartbeat', 60, 60);
         $in = api_request('POST');
         $tenantId = api_current_tenant_id();
         $deviceId = $this->requireDeviceId($in);
@@ -166,6 +168,14 @@ final class DevicesController extends AbstractController
         $userAgent = (string)($_SERVER['HTTP_USER_AGENT'] ?? ($in['user_agent'] ?? ''));
         $battery = isset($in['battery_pct']) ? (int)$in['battery_pct'] : null;
         $charging = isset($in['is_charging']) ? (bool)$in['is_charging'] : null;
+
+        // Tenant isolation: verify meeting belongs to current tenant
+        if ($meetingId !== '' && api_is_uuid($meetingId)) {
+            $meeting = (new MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
+            if (!$meeting) {
+                $meetingId = ''; // silently ignore cross-tenant meeting_id
+            }
+        }
 
         $repo = new DeviceRepository();
         $repo->upsertHeartbeat($deviceId, $tenantId, $meetingId, $role, $ip, $userAgent, $battery, $charging);
@@ -180,7 +190,7 @@ final class DevicesController extends AbstractController
             $payload = json_decode((string)$cmd['payload'], true);
             $kickMsg = (is_array($payload) && isset($payload['message'])) ? (string)$payload['message'] : '';
             $command = ['type' => 'kick', 'message' => $kickMsg];
-            $repo->consumeCommand((string)$cmd['id']);
+            $repo->consumeCommand((string)$cmd['id'], $tenantId);
         }
 
         api_ok([

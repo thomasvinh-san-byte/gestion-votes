@@ -58,8 +58,14 @@ class ProxyRepository extends AbstractRepository
     /**
      * Supprime une procuration.
      */
-    public function deleteProxy(string $proxyId, string $meetingId): int
+    public function deleteProxy(string $proxyId, string $meetingId, string $tenantId = ''): int
     {
+        if ($tenantId !== '') {
+            return $this->execute(
+                "DELETE FROM proxies WHERE id = :id AND meeting_id = :meeting_id AND tenant_id = :tid",
+                [':id' => $proxyId, ':meeting_id' => $meetingId, ':tid' => $tenantId]
+            );
+        }
         return $this->execute(
             "DELETE FROM proxies WHERE id = :id AND meeting_id = :meeting_id",
             [':id' => $proxyId, ':meeting_id' => $meetingId]

@@ -312,8 +312,14 @@ class MotionRepository extends AbstractRepository
     /**
      * Liste les motions fermees d'une seance (pour consolidation).
      */
-    public function listClosedForMeeting(string $meetingId): array
+    public function listClosedForMeeting(string $meetingId, string $tenantId = ''): array
     {
+        if ($tenantId !== '') {
+            return $this->selectAll(
+                "SELECT id FROM motions WHERE meeting_id = :mid AND tenant_id = :tid AND closed_at IS NOT NULL ORDER BY closed_at ASC",
+                [':mid' => $meetingId, ':tid' => $tenantId]
+            );
+        }
         return $this->selectAll(
             "SELECT id FROM motions WHERE meeting_id = :mid AND closed_at IS NOT NULL ORDER BY closed_at ASC",
             [':mid' => $meetingId]
@@ -679,27 +685,6 @@ class MotionRepository extends AbstractRepository
         );
     }
 
-    /**
-     * Met a jour la politique de vote d'une motion.
-     */
-    public function updateVotePolicy(string $motionId, ?string $policyId): void
-    {
-        $this->execute(
-            "UPDATE motions SET vote_policy_id = :pid, updated_at = NOW() WHERE id = :id",
-            [':pid' => $policyId, ':id' => $motionId]
-        );
-    }
-
-    /**
-     * Met a jour la politique de quorum d'une motion.
-     */
-    public function updateQuorumPolicy(string $motionId, ?string $policyId): void
-    {
-        $this->execute(
-            "UPDATE motions SET quorum_policy_id = :pid, updated_at = NOW() WHERE id = :id",
-            [':pid' => $policyId, ':id' => $motionId]
-        );
-    }
 
     /**
      * Persiste les resultats officiels d'une motion (OfficialResultsService).
@@ -712,20 +697,37 @@ class MotionRepository extends AbstractRepository
         float $abstain,
         float $total,
         string $decision,
-        string $reason
+        string $reason,
+        string $tenantId = ''
     ): void {
-        $this->execute(
-            "UPDATE motions SET
-               official_source = :src, official_for = :f, official_against = :a,
-               official_abstain = :ab, official_total = :t,
-               decision = :d, decision_reason = :r, decided_at = NOW()
-             WHERE id = :id",
-            [
-                ':src' => $source, ':f' => $for, ':a' => $against,
-                ':ab' => $abstain, ':t' => $total,
-                ':d' => $decision, ':r' => $reason, ':id' => $motionId,
-            ]
-        );
+        if ($tenantId !== '') {
+            $this->execute(
+                "UPDATE motions SET
+                   official_source = :src, official_for = :f, official_against = :a,
+                   official_abstain = :ab, official_total = :t,
+                   decision = :d, decision_reason = :r, decided_at = NOW()
+                 WHERE id = :id AND tenant_id = :tid",
+                [
+                    ':src' => $source, ':f' => $for, ':a' => $against,
+                    ':ab' => $abstain, ':t' => $total,
+                    ':d' => $decision, ':r' => $reason, ':id' => $motionId,
+                    ':tid' => $tenantId,
+                ]
+            );
+        } else {
+            $this->execute(
+                "UPDATE motions SET
+                   official_source = :src, official_for = :f, official_against = :a,
+                   official_abstain = :ab, official_total = :t,
+                   decision = :d, decision_reason = :r, decided_at = NOW()
+                 WHERE id = :id",
+                [
+                    ':src' => $source, ':f' => $for, ':a' => $against,
+                    ':ab' => $abstain, ':t' => $total,
+                    ':d' => $decision, ':r' => $reason, ':id' => $motionId,
+                ]
+            );
+        }
     }
 
     /**
@@ -833,12 +835,19 @@ class MotionRepository extends AbstractRepository
     /**
      * Met a jour le comptage manuel d'une motion.
      */
-    public function updateManualTally(string $motionId, int $total, int $for, int $against, int $abstain): void
+    public function updateManualTally(string $motionId, int $total, int $for, int $against, int $abstain, string $tenantId = ''): void
     {
-        $this->execute(
-            "UPDATE motions SET manual_total = :t, manual_for = :f, manual_against = :a, manual_abstain = :ab WHERE id = :id",
-            [':t' => $total, ':f' => $for, ':a' => $against, ':ab' => $abstain, ':id' => $motionId]
-        );
+        if ($tenantId !== '') {
+            $this->execute(
+                "UPDATE motions SET manual_total = :t, manual_for = :f, manual_against = :a, manual_abstain = :ab WHERE id = :id AND tenant_id = :tid",
+                [':t' => $total, ':f' => $for, ':a' => $against, ':ab' => $abstain, ':id' => $motionId, ':tid' => $tenantId]
+            );
+        } else {
+            $this->execute(
+                "UPDATE motions SET manual_total = :t, manual_for = :f, manual_against = :a, manual_abstain = :ab WHERE id = :id",
+                [':t' => $total, ':f' => $for, ':a' => $against, ':ab' => $abstain, ':id' => $motionId]
+            );
+        }
     }
 
     /**

@@ -23,12 +23,6 @@ use RuntimeException;
  */
 final class OfficialResultsService
 {
-    public static function ensureSchema(): void
-    {
-        $motionRepo = new MotionRepository();
-        $motionRepo->ensureOfficialColumns();
-    }
-
     /**
      * @return array{decision:string,reason:string,quorum_met:bool|null,majority_ratio:float|null,majority_threshold:float|null,majority_base:string|null}
      */
@@ -107,7 +101,10 @@ final class OfficialResultsService
             } elseif ($majorityBase === 'eligible') {
                 $baseTotal = $eligibleWeight;
             } elseif ($majorityBase === 'present') {
-                $baseTotal = $expressedWeight;
+                // Use actual present weight from attendance, not expressed weight
+                $meetingId = (string)($motion['meeting_id'] ?? '');
+                $attendanceRepo = new \AgVote\Repository\AttendanceRepository();
+                $baseTotal = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
             } else {
                 $baseTotal = $expressedWeight;
             }
@@ -354,10 +351,8 @@ final class OfficialResultsService
      * Compute and persist official results for a single motion.
      * @return array{source:string,for:float,against:float,abstain:float,total:float,decision:string,reason:string}
      */
-    public static function computeAndPersistMotion(string $motionId): array
+    public static function computeAndPersistMotion(string $motionId, string $tenantId = ''): array
     {
-        self::ensureSchema();
-
         $o = self::computeOfficialTallies($motionId);
 
         $motionRepo = new MotionRepository();
@@ -369,19 +364,18 @@ final class OfficialResultsService
             $o['abstain'],
             $o['total'],
             $o['decision'],
-            $o['reason']
+            $o['reason'],
+            $tenantId
         );
 
         return $o;
     }
 
     /** @return array{updated:int} */
-    public static function consolidateMeeting(string $meetingId): array
+    public static function consolidateMeeting(string $meetingId, string $tenantId = ''): array
     {
-        self::ensureSchema();
-
         $motionRepo = new MotionRepository();
-        $motions = $motionRepo->listClosedForMeeting($meetingId);
+        $motions = $motionRepo->listClosedForMeeting($meetingId, $tenantId);
 
         $pdo = \db();
         $pdo->beginTransaction();
@@ -399,7 +393,8 @@ final class OfficialResultsService
                     $o['abstain'],
                     $o['total'],
                     $o['decision'],
-                    $o['reason']
+                    $o['reason'],
+                    $tenantId
                 );
                 $updated++;
             }

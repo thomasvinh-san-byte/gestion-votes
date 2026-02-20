@@ -198,7 +198,7 @@ final class MeetingsController extends AbstractController
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        if ($meetingId === '') {
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422);
         }
 
@@ -303,6 +303,7 @@ final class MeetingsController extends AbstractController
     public function stats(): void
     {
         api_require_role('public');
+        api_rate_limit('meeting_stats', 120, 60);
         api_request('GET');
 
         $meetingId = trim($_GET['meeting_id'] ?? '');

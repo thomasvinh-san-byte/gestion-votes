@@ -313,8 +313,10 @@
           return resp.text();
         })
         .then(function(markdown) {
-          // Render markdown with marked
+          // Render markdown with marked — strip script/iframe tags for defense-in-depth
           var html = marked.parse(markdown);
+          html = html.replace(/<(script|iframe|object|embed)[^>]*>[\s\S]*?<\/\1>/gi, '')
+                     .replace(/<(script|iframe|object|embed)[^>]*\/?>/gi, '');
           container.innerHTML = '<div class="prose">' + html + '</div>';
 
           // Post-processing

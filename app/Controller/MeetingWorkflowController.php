@@ -303,7 +303,7 @@ final class MeetingWorkflowController extends AbstractController
         api_require_role('auditor');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        if ($meetingId === '') {
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
 
@@ -440,15 +440,33 @@ final class MeetingWorkflowController extends AbstractController
 
     public function consolidate(): void
     {
-        api_require_role('auditor');
+        api_require_role(['operator', 'admin']);
         $body = api_request('POST');
 
-        $meetingId = trim((string)($body['meeting_id'] ?? ''));
-        if ($meetingId === '') {
-            api_fail('missing_meeting_id', 400);
+        $meetingId = api_require_uuid($body, 'meeting_id');
+        $tenantId = api_current_tenant_id();
+
+        $repo = new MeetingRepository();
+        $meeting = $repo->findByIdForTenant($meetingId, $tenantId);
+        if (!$meeting) {
+            api_fail('meeting_not_found', 404);
         }
 
-        $r = OfficialResultsService::consolidateMeeting($meetingId);
+        // Only closed or validated meetings can be consolidated
+        if (!in_array($meeting['status'], ['closed', 'validated'], true)) {
+            api_fail('invalid_status_for_consolidation', 422, [
+                'detail' => 'Seule une séance clôturée ou validée peut être consolidée.',
+                'current_status' => $meeting['status'],
+            ]);
+        }
+
+        $r = OfficialResultsService::consolidateMeeting($meetingId, $tenantId);
+
+        audit_log('meeting.consolidate', 'meeting', $meetingId, [
+            'updated_motions' => $r['updated'],
+            'title' => $meeting['title'] ?? '',
+        ], $meetingId);
+
         api_ok(['updated_motions' => $r['updated']]);
     }
 
@@ -472,26 +490,24 @@ final class MeetingWorkflowController extends AbstractController
             api_fail('meeting_validated', 409, ['detail' => 'Séance validée : reset interdit (séance figée).']);
         }
 
+        $tenantId = api_current_tenant_id();
+
         db()->beginTransaction();
         try {
-            (new BallotRepository())->deleteByMeeting($meetingId, api_current_tenant_id());
-            (new VoteTokenRepository())->deleteByMeetingMotions($meetingId, api_current_tenant_id());
+            (new BallotRepository())->deleteByMeeting($meetingId, $tenantId);
+            (new VoteTokenRepository())->deleteByMeetingMotions($meetingId, $tenantId);
+            (new ManualActionRepository())->deleteByMeeting($meetingId, $tenantId);
 
-            try {
-                (new ManualActionRepository())->deleteByMeeting($meetingId, api_current_tenant_id());
-            } catch (\Throwable $e) {
-            }
-            (new MeetingRepository())->deleteAuditEventsByMeeting($meetingId, api_current_tenant_id());
+            (new MotionRepository())->resetStatesForMeeting($meetingId, $tenantId);
+            (new MeetingRepository())->resetForDemo($meetingId, $tenantId);
 
-            (new MotionRepository())->resetStatesForMeeting($meetingId, api_current_tenant_id());
-            (new MeetingRepository())->resetForDemo($meetingId, api_current_tenant_id());
-
-            db()->commit();
-
+            // Audit log inside the transaction so it can't be lost
             audit_log('meeting.reset_demo', 'meeting', $meetingId, [
                 'title' => $mt['title'] ?? '',
                 'reset_by' => api_current_user_id(),
             ], $meetingId);
+
+            db()->commit();
 
             api_ok(['ok' => true, 'meeting_id' => $meetingId]);
         } catch (\Throwable $e) {

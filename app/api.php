@@ -33,8 +33,10 @@ function api_fail(string $error, int $code = 400, array $extra = []): never {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
 
-    // In production, strip internal error details from 5xx responses to avoid leaking DB/stack info
-    if (($_ENV['APP_ENV'] ?? 'demo') === 'production' && $code >= 500) {
+    // Strip internal error details from 5xx responses unless explicitly in development mode
+    $appEnv = $_ENV['APP_ENV'] ?? 'demo';
+    if ($appEnv !== 'development' && $code >= 500) {
+        error_log("[api_fail] $error: " . ($extra['detail'] ?? '(no detail)'));
         unset($extra['detail']);
     }
 

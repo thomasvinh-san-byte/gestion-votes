@@ -140,13 +140,13 @@
     modal.className = 'modal';
     modal.innerHTML =
       '<div class="modal-header">' +
-        '<div class="modal-title">' + (opts.title || '') + '</div>' +
+        '<div class="modal-title">' + Utils.escapeHtml(opts.title || '') + '</div>' +
         '<button class="btn btn-ghost btn-icon btn-sm modal-close-btn" type="button" aria-label="Fermer">&times;</button>' +
       '</div>' +
       '<div class="modal-body">' + (opts.body || '') + '</div>' +
       '<div class="modal-footer">' +
-        '<button class="btn btn-secondary modal-cancel-btn" type="button">' + (opts.cancelText || 'Annuler') + '</button>' +
-        '<button class="btn ' + (opts.confirmClass || 'btn-primary') + ' modal-confirm-btn" type="button">' + (opts.confirmText || 'Confirmer') + '</button>' +
+        '<button class="btn btn-secondary modal-cancel-btn" type="button">' + Utils.escapeHtml(opts.cancelText || 'Annuler') + '</button>' +
+        '<button class="btn ' + (opts.confirmClass || 'btn-primary') + ' modal-confirm-btn" type="button">' + Utils.escapeHtml(opts.confirmText || 'Confirmer') + '</button>' +
       '</div>';
 
     backdrop.appendChild(modal);

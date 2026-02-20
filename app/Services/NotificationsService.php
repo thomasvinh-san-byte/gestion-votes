@@ -14,18 +14,12 @@ use AgVote\Repository\NotificationRepository;
  */
 final class NotificationsService
 {
-    public static function ensureSchema(): void
-    {
-        (new NotificationRepository())->ensureSchema();
-    }
-
     /**
      * Emits notifications when readiness state changes (without spam).
      * @param array<string,mixed> $validation Return from MeetingValidator::canBeValidated
      */
     public static function emitReadinessTransitions(string $meetingId, array $validation, ?string $tenantId = null): void
     {
-        self::ensureSchema();
 
         $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $meetingRepo = new MeetingRepository();
@@ -163,7 +157,6 @@ final class NotificationsService
         array $data = [],
         ?string $tenantId = null
     ): void {
-        self::ensureSchema();
 
         $tenantId = $tenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
         $meetingRepo = new MeetingRepository();
@@ -194,7 +187,6 @@ final class NotificationsService
      */
     public static function list(string $meetingId, string $audience = 'operator', int $sinceId = 0, int $limit = 30): array
     {
-        self::ensureSchema();
         $notifRepo = new NotificationRepository();
         return $notifRepo->listSinceId($meetingId, $sinceId, $limit, $audience);
     }
@@ -205,26 +197,22 @@ final class NotificationsService
      */
     public static function recent(string $meetingId, string $audience = 'operator', int $limit = 80): array
     {
-        self::ensureSchema();
         $notifRepo = new NotificationRepository();
         return $notifRepo->listRecent($meetingId, $limit, $audience);
     }
 
     public static function markRead(string $meetingId, int $id): void
     {
-        self::ensureSchema();
         (new NotificationRepository())->markRead($meetingId, $id);
     }
 
     public static function markAllRead(string $meetingId, string $audience = 'operator'): void
     {
-        self::ensureSchema();
         (new NotificationRepository())->markAllRead($meetingId, $audience);
     }
 
     public static function clear(string $meetingId, string $audience = 'operator'): void
     {
-        self::ensureSchema();
         (new NotificationRepository())->clear($meetingId, $audience);
     }
 }

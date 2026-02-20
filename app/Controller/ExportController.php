@@ -42,6 +42,14 @@ final class ExportController extends AbstractController
         return $mt;
     }
 
+    private function auditExport(string $type, string $meetingId, string $format = 'csv'): void
+    {
+        audit_log('export.' . $type, 'meeting', $meetingId, [
+            'format' => $format,
+            'exported_by' => api_current_user_id(),
+        ], $meetingId);
+    }
+
     // ------------------------------------------------------------------
     // Attendance
     // ------------------------------------------------------------------
@@ -50,6 +58,7 @@ final class ExportController extends AbstractController
     {
         api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
+        $this->auditExport('attendance', $mt['id'], 'csv');
 
         $rows = (new AttendanceRepository())->listExportForMeeting($mt['id']);
         $export = new ExportService();
@@ -68,6 +77,7 @@ final class ExportController extends AbstractController
     {
         api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
+        $this->auditExport('attendance', $mt['id'], 'xlsx');
 
         $rows = (new AttendanceRepository())->listExportForMeeting($mt['id']);
         $export = new ExportService();
@@ -87,6 +97,7 @@ final class ExportController extends AbstractController
     {
         api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
+        $this->auditExport('votes', $mt['id'], 'csv');
 
         $rows = (new BallotRepository())->listVotesExportForMeeting($mt['id']);
         $export = new ExportService();
@@ -107,6 +118,7 @@ final class ExportController extends AbstractController
     {
         api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
+        $this->auditExport('votes', $mt['id'], 'xlsx');
 
         $rows = (new BallotRepository())->listVotesExportForMeeting($mt['id']);
         $export = new ExportService();
@@ -132,6 +144,7 @@ final class ExportController extends AbstractController
     {
         api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
+        $this->auditExport('members', $mt['id'], 'csv');
 
         $rows = (new MemberRepository())->listExportForMeeting($mt['id'], api_current_tenant_id());
         $export = new ExportService();
@@ -154,6 +167,7 @@ final class ExportController extends AbstractController
     {
         api_require_role(['operator', 'admin', 'auditor']);
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
+        $this->auditExport('motion_results', $mt['id'], 'csv');
 
         $rows = (new MotionRepository())->listResultsExportForMeeting($mt['id']);
         $export = new ExportService();
@@ -172,6 +186,7 @@ final class ExportController extends AbstractController
     {
         api_require_role(['operator', 'admin', 'auditor']);
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
+        $this->auditExport('motion_results', $mt['id'], 'xlsx');
 
         $rows = (new MotionRepository())->listResultsExportForMeeting($mt['id']);
         $export = new ExportService();
@@ -192,6 +207,7 @@ final class ExportController extends AbstractController
         api_require_role(['operator', 'admin', 'auditor']);
         $meetingId = $this->requireMeetingId();
         $mt = $this->requireValidatedMeeting($meetingId);
+        $this->auditExport('full', $meetingId, 'xlsx');
         $includeVotes = (bool)($_GET['include_votes'] ?? true);
 
         $attendanceRows = (new AttendanceRepository())->listExportForMeeting($meetingId);
@@ -213,6 +229,7 @@ final class ExportController extends AbstractController
     {
         api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
+        $this->auditExport('ballots_audit', $mt['id'], 'csv');
 
         $rows = (new BallotRepository())->listAuditExportForMeeting($mt['id']);
         $export = new ExportService();

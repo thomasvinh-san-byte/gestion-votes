@@ -117,6 +117,7 @@ final class MotionsController extends AbstractController
     public function listForMeeting(): void
     {
         api_require_role('public');
+        api_rate_limit('motions_for_meeting', 120, 60);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
 
@@ -378,6 +379,7 @@ final class MotionsController extends AbstractController
     public function current(): void
     {
         api_require_role('public');
+        api_rate_limit('current_motion', 120, 60);
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));

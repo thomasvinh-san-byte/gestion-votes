@@ -250,24 +250,39 @@ class AttendanceRepository extends AbstractRepository
     /**
      * Supprime la presence d'un membre pour une seance.
      */
-    public function deleteByMeetingAndMember(string $meetingId, string $memberId): void
+    public function deleteByMeetingAndMember(string $meetingId, string $memberId, string $tenantId = ''): void
     {
-        $this->execute(
-            "DELETE FROM attendances WHERE meeting_id = :mid AND member_id = :uid",
-            [':mid' => $meetingId, ':uid' => $memberId]
-        );
+        if ($tenantId !== '') {
+            $this->execute(
+                "DELETE FROM attendances WHERE meeting_id = :mid AND member_id = :uid AND tenant_id = :tid",
+                [':mid' => $meetingId, ':uid' => $memberId, ':tid' => $tenantId]
+            );
+        } else {
+            $this->execute(
+                "DELETE FROM attendances WHERE meeting_id = :mid AND member_id = :uid",
+                [':mid' => $meetingId, ':uid' => $memberId]
+            );
+        }
     }
 
     /**
      * Met a jour present_from_at pour un membre.
      */
-    public function updatePresentFrom(string $meetingId, string $memberId, ?string $presentFromAt): void
+    public function updatePresentFrom(string $meetingId, string $memberId, ?string $presentFromAt, string $tenantId = ''): void
     {
-        $this->execute(
-            "UPDATE attendances SET present_from_at = :p, updated_at = NOW()
-             WHERE meeting_id = :mid AND member_id = :uid",
-            [':p' => $presentFromAt, ':mid' => $meetingId, ':uid' => $memberId]
-        );
+        if ($tenantId !== '') {
+            $this->execute(
+                "UPDATE attendances SET present_from_at = :p, updated_at = NOW()
+                 WHERE meeting_id = :mid AND member_id = :uid AND tenant_id = :tid",
+                [':p' => $presentFromAt, ':mid' => $meetingId, ':uid' => $memberId, ':tid' => $tenantId]
+            );
+        } else {
+            $this->execute(
+                "UPDATE attendances SET present_from_at = :p, updated_at = NOW()
+                 WHERE meeting_id = :mid AND member_id = :uid",
+                [':p' => $presentFromAt, ':mid' => $meetingId, ':uid' => $memberId]
+            );
+        }
     }
 
     /**

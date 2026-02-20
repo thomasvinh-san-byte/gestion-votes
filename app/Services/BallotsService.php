@@ -169,7 +169,7 @@ if (!empty($context['meeting_validated_at'])) {
 
         // Broadcast WebSocket event with updated tally (outside transaction)
         try {
-            $tally = $ballotRepo->tally($motionId);
+            $tally = $ballotRepo->tally($motionId, $tenantId);
             EventBroadcaster::voteCast($meetingId, $motionId, $tally);
         } catch (Throwable $e) {
             // Silently fail - don't break the vote if broadcast fails

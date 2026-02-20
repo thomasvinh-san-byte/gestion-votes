@@ -417,14 +417,14 @@
           const receiptText = `${hh}:${mm}:${ss} \u2022 ${choiceInfo[votingChoice].label}`;
           receipt.textContent = receiptText;
           receipt.hidden = false;
-          // P4-8: Persist receipt in localStorage keyed by member + motion
+          // P4-8: Persist receipt in sessionStorage (not localStorage — vote secrecy)
           try {
             const memberId = document.getElementById('memberSelect')?.value || 'anonymous';
             const motionTitle = document.getElementById('motionTitle')?.textContent || '';
             const key = `ag_vote_receipt_${motionTitle}`;
-            localStorage.setItem(key, JSON.stringify({ text: receiptText, choice: votingChoice, ts: now.toISOString() }));
-            localStorage.setItem('ag_vote_last_receipt_' + memberId, receiptText);
-          } catch(e) { /* localStorage unavailable */ }
+            sessionStorage.setItem(key, JSON.stringify({ text: receiptText, choice: votingChoice, ts: now.toISOString() }));
+            sessionStorage.setItem('ag_vote_last_receipt_' + memberId, receiptText);
+          } catch(e) { /* sessionStorage unavailable */ }
         }
 
         closeConfirm();
@@ -727,10 +727,10 @@
 
     setTimeout(pollCurrentSpeaker, 1500);
 
-    // P4-8: Restore last receipt from localStorage on load (per-member)
+    // P4-8: Restore last receipt from sessionStorage on load (per-member)
     try {
       const memberId = document.getElementById('memberSelect')?.value || 'anonymous';
-      const lastReceipt = localStorage.getItem('ag_vote_last_receipt_' + memberId);
+      const lastReceipt = sessionStorage.getItem('ag_vote_last_receipt_' + memberId);
       if (lastReceipt) {
         const receipt = document.getElementById('voteReceipt');
         if (receipt) {
@@ -738,7 +738,7 @@
           receipt.hidden = false;
         }
       }
-    } catch(e) { /* localStorage unavailable */ }
+    } catch(e) { /* sessionStorage unavailable */ }
 
     // P4-2: Keyboard shortcuts 1/2/3/4 → vote buttons
     document.addEventListener('keydown', (e) => {

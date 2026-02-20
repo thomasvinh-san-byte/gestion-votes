@@ -23,9 +23,6 @@ if ($motionId === '' || !api_is_uuid($motionId)) {
 try {
     $repo = new MotionRepository();
 
-    // Ensure official columns exist BEFORE transaction (DDL can't be in a TX)
-    OfficialResultsService::ensureSchema();
-
     // SECURITY: Use transaction + lock to prevent race conditions
     db()->beginTransaction();
 
@@ -55,7 +52,8 @@ try {
     $repo->updateOfficialResults(
         (string)$motionId,
         $o['source'], $o['for'], $o['against'],
-        $o['abstain'], $o['total'], $o['decision'], $o['reason']
+        $o['abstain'], $o['total'], $o['decision'], $o['reason'],
+        api_current_tenant_id()
     );
 
     db()->commit();

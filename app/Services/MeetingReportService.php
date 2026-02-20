@@ -25,8 +25,6 @@ final class MeetingReportService
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
         if (!$meeting) throw new RuntimeException('meeting_not_found');
 
-        OfficialResultsService::ensureSchema();
-
         $motionRepo = new MotionRepository();
         $motions = $motionRepo->listForReport($meetingId);
 

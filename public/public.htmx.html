@@ -164,10 +164,17 @@
 <div class="sr-only" id="sr_alert" aria-live="assertive" aria-atomic="true"></div>
 
 <script>
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
 window.APP_API_KEY = window.APP_API_KEY
   || new URLSearchParams(location.search).get("api_key")
-  || (function(){ try { return localStorage.getItem("api_key"); } catch(e){ return null; } })()
+  || (function(){ try { return sessionStorage.getItem("api_key"); } catch(e){ return null; } })()
   || "";
+// Persist to sessionStorage (not localStorage) so it survives page reloads but not new sessions
+if (window.APP_API_KEY) { try { sessionStorage.setItem("api_key", window.APP_API_KEY); } catch(e){} }
 
 let MEETING_ID = new URLSearchParams(location.search).get('meeting_id') || null;
 let currentMotionId = null;
@@ -186,8 +193,8 @@ function showMeetingPicker(meetings) {
     const btn = document.createElement('button');
     btn.className = 'meeting-picker-card';
     const time = m.started_at ? new Date(m.started_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
-    btn.innerHTML = '<span class="meeting-picker-card-title">' + (m.title || 'Sans titre') + '</span>'
-      + (time ? '<span class="meeting-picker-card-time">Démarrée à ' + time + '</span>' : '');
+    btn.innerHTML = '<span class="meeting-picker-card-title">' + escapeHtml(m.title || 'Sans titre') + '</span>'
+      + (time ? '<span class="meeting-picker-card-time">Démarrée à ' + escapeHtml(time) + '</span>' : '');
     btn.addEventListener('click', function() { selectMeeting(m.id); });
     list.appendChild(btn);
   });

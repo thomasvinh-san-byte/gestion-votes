@@ -43,6 +43,11 @@ final class InvitationsController extends AbstractController
 
         (new InvitationRepository())->upsertSent($tenantId, $meetingId, $memberId, $email, $token);
 
+        audit_log('invitation.create', 'invitation', $memberId, [
+            'meeting_id' => $meetingId,
+            'email' => $email,
+        ], $meetingId);
+
         $voteUrl = "/vote.htmx.html?token=" . rawurlencode($token);
 
         api_ok([
@@ -57,7 +62,7 @@ final class InvitationsController extends AbstractController
     {
         api_require_role('operator');
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        if ($meetingId === '') {
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
 
@@ -68,6 +73,7 @@ final class InvitationsController extends AbstractController
     public function redeem(): void
     {
         api_require_role('public');
+        api_rate_limit('invitation_redeem', 30, 60);
         $token = trim((string)($_GET['token'] ?? ''));
         if ($token === '') {
             api_fail('missing_token', 400);
@@ -79,16 +85,22 @@ final class InvitationsController extends AbstractController
             api_fail('invalid_token', 404);
         }
 
+        // Tenant isolation: invitation must belong to current tenant
+        if ((string)($inv['tenant_id'] ?? '') !== api_current_tenant_id()) {
+            api_fail('invalid_token', 404);
+        }
+
         $status = (string)$inv['status'];
         if ($status === 'declined' || $status === 'bounced') {
             api_fail('token_not_usable', 400, ['status' => $status]);
         }
 
         $invId = (string)$inv['id'];
+        $invTenant = (string)($inv['tenant_id'] ?? '');
         if ($status === 'pending' || $status === 'sent') {
-            $repo->markOpened($invId);
+            $repo->markOpened($invId, $invTenant);
         }
-        $repo->markAccepted($invId);
+        $repo->markAccepted($invId, $invTenant);
 
         audit_log('invitation.redeemed', 'invitation', $invId, [
             'meeting_id' => (string)$inv['meeting_id'],

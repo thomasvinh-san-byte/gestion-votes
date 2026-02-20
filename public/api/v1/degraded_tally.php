@@ -48,13 +48,10 @@ if ($sum !== $total) {
     api_fail('inconsistent_tally', 422, ['detail' => 'Pour + Contre + Abstentions doit être égal au total.', 'total'=>$total,'sum'=>$sum]);
 }
 
-// Best-effort: créer table manual_actions si setup pas joué
-(new ManualActionRepository())->ensureSchema();
-
 try {
     db()->beginTransaction();
 
-    (new MotionRepository())->updateManualTally($motionId, $total, $for, $against, $abstain);
+    (new MotionRepository())->updateManualTally($motionId, $total, $for, $against, $abstain, $tenantId);
 
     (new ManualActionRepository())->createManualTally(
         $tenantId,
