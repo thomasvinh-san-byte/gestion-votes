@@ -49,6 +49,7 @@ use AgVote\Controller\QuorumController;
 use AgVote\Controller\ReminderController;
 use AgVote\Controller\SpeechController;
 use AgVote\Controller\TrustController;
+use AgVote\Controller\VotePublicController;
 use AgVote\Controller\VoteTokenController;
 
 return function (Router $router): void {
@@ -312,4 +313,14 @@ return function (Router $router): void {
 
     // ── Vote tokens ──
     $router->mapAny("$prefix/vote_tokens_generate", VoteTokenController::class, 'generate', $op);
+
+    // ═════════════════════════════════════════════════════════════════════
+    // PUBLIC HTML PAGES (no auth middleware — token/public access)
+    // ═════════════════════════════════════════════════════════════════════
+
+    // Vote form (token-authenticated, no role middleware)
+    $router->mapAny('/vote', VotePublicController::class, 'vote');
+
+    // Documentation viewer (public, no auth)
+    $router->map('GET', '/doc', DocController::class, 'view');
 };
