@@ -43,6 +43,7 @@ final class BallotsController extends AbstractController
     public function cast(): void
     {
         api_require_role('public');
+        api_rate_limit('ballot_cast', 60, 60);
         $data = api_request('POST');
 
         $idempotencyKey = $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] ?? null;
@@ -154,6 +155,7 @@ final class BallotsController extends AbstractController
     public function result(): void
     {
         api_require_role('public');
+        api_rate_limit('ballot_result', 120, 60);
         $params = api_request('GET');
 
         $motionId = trim((string)($params['motion_id'] ?? ''));
@@ -305,6 +307,7 @@ final class BallotsController extends AbstractController
     public function reportIncident(): void
     {
         api_require_role('public');
+        api_rate_limit('vote_incident', 30, 60);
         $in = api_request('POST');
 
         $kind = trim((string)($in['kind'] ?? 'network'));

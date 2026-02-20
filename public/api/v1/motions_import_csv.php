@@ -87,7 +87,7 @@ if (!in_array($mime, ['text/csv', 'text/plain', 'application/csv', 'application/
 
 $handle = fopen($file['tmp_name'], 'r');
 if (!$handle) {
-    api_fail('file_read_error', 500, ['detail' => $e->getMessage()]);
+    api_fail('file_read_error', 500, ['detail' => 'Impossible d\'ouvrir le fichier CSV']);
 }
 
 $firstLine = fgets($handle);

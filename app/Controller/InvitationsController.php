@@ -68,6 +68,7 @@ final class InvitationsController extends AbstractController
     public function redeem(): void
     {
         api_require_role('public');
+        api_rate_limit('invitation_redeem', 30, 60);
         $token = trim((string)($_GET['token'] ?? ''));
         if ($token === '') {
             api_fail('missing_token', 400);
@@ -76,6 +77,11 @@ final class InvitationsController extends AbstractController
         $repo = new InvitationRepository();
         $inv = $repo->findByToken($token);
         if (!$inv) {
+            api_fail('invalid_token', 404);
+        }
+
+        // Tenant isolation: invitation must belong to current tenant
+        if ((string)($inv['tenant_id'] ?? '') !== api_current_tenant_id()) {
             api_fail('invalid_token', 404);
         }
 

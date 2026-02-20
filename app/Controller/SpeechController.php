@@ -11,10 +11,17 @@ final class SpeechController extends AbstractController
     public function request(): void
     {
         api_require_role('public');
+        api_rate_limit('speech_request', 30, 60);
         $data = api_request('POST');
         $meetingId = api_require_uuid($data, 'meeting_id');
         $memberId = api_require_uuid($data, 'member_id');
         $tenantId = api_current_tenant_id();
+
+        // Tenant isolation: verify meeting belongs to current tenant
+        $meeting = (new \AgVote\Repository\MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
+        if (!$meeting) {
+            api_fail('meeting_not_found', 404);
+        }
 
         SpeechService::toggleRequest($meetingId, $memberId, $tenantId);
         $out = SpeechService::getMyStatus($meetingId, $memberId, $tenantId);
@@ -117,6 +124,7 @@ final class SpeechController extends AbstractController
     public function queue(): void
     {
         api_require_role('public');
+        api_rate_limit('speech_queue', 120, 60);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
 
@@ -138,6 +146,7 @@ final class SpeechController extends AbstractController
     public function current(): void
     {
         api_require_role('public');
+        api_rate_limit('speech_current', 120, 60);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
 
@@ -176,6 +185,7 @@ final class SpeechController extends AbstractController
     public function myStatus(): void
     {
         api_require_role('public');
+        api_rate_limit('speech_my_status', 120, 60);
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
         $memberId = api_require_uuid($q, 'member_id');

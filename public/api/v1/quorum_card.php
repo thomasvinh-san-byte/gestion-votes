@@ -10,6 +10,15 @@ api_require_role('public');
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 $motionId  = trim((string)($_GET['motion_id'] ?? ''));
 
+if ($meetingId !== '' && !api_is_uuid($meetingId)) {
+    http_response_code(422);
+    exit('Invalid meeting_id');
+}
+if ($motionId !== '' && !api_is_uuid($motionId)) {
+    http_response_code(422);
+    exit('Invalid motion_id');
+}
+
 header('Content-Type: text/html; charset=utf-8');
 
 try {
