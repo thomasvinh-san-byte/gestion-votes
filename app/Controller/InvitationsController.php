@@ -91,10 +91,11 @@ final class InvitationsController extends AbstractController
         }
 
         $invId = (string)$inv['id'];
+        $invTenant = (string)($inv['tenant_id'] ?? '');
         if ($status === 'pending' || $status === 'sent') {
-            $repo->markOpened($invId);
+            $repo->markOpened($invId, $invTenant);
         }
-        $repo->markAccepted($invId);
+        $repo->markAccepted($invId, $invTenant);
 
         audit_log('invitation.redeemed', 'invitation', $invId, [
             'meeting_id' => (string)$inv['meeting_id'],

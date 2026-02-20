@@ -84,6 +84,11 @@ final class EmailController extends AbstractController
 
             $result = $service->scheduleInvitations($tenantId, $meetingId, $templateId, $scheduledAt, $onlyUnsent);
 
+            audit_log('email.schedule', 'meeting', $meetingId, [
+                'scheduled' => $result['scheduled'],
+                'skipped' => $result['skipped'],
+            ], $meetingId);
+
             api_ok([
                 'meeting_id' => $meetingId,
                 'scheduled' => $result['scheduled'],
@@ -190,6 +195,14 @@ final class EmailController extends AbstractController
             } else {
                 $sent++;
             }
+        }
+
+        if (!$dryRun) {
+            audit_log('email.send_bulk', 'meeting', $meetingId, [
+                'sent' => $sent,
+                'skipped' => $skipped,
+                'errors_count' => count($errors),
+            ], $meetingId);
         }
 
         api_ok([

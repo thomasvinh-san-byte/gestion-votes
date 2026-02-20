@@ -23,12 +23,6 @@ use RuntimeException;
  */
 final class OfficialResultsService
 {
-    public static function ensureSchema(): void
-    {
-        $motionRepo = new MotionRepository();
-        $motionRepo->ensureOfficialColumns();
-    }
-
     /**
      * @return array{decision:string,reason:string,quorum_met:bool|null,majority_ratio:float|null,majority_threshold:float|null,majority_base:string|null}
      */

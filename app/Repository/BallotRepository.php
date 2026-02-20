@@ -326,8 +326,14 @@ class BallotRepository extends AbstractRepository
      * Supprime un ballot par motion et membre.
      * Utilise par ballots_cancel.php pour annuler un vote manuel.
      */
-    public function deleteByMotionAndMember(string $motionId, string $memberId): int
+    public function deleteByMotionAndMember(string $motionId, string $memberId, string $tenantId = ''): int
     {
+        if ($tenantId !== '') {
+            return $this->execute(
+                "DELETE FROM ballots WHERE motion_id = :mid AND member_id = :mem AND tenant_id = :tid",
+                [':mid' => $motionId, ':mem' => $memberId, ':tid' => $tenantId]
+            );
+        }
         return $this->execute(
             "DELETE FROM ballots WHERE motion_id = :mid AND member_id = :mem",
             [':mid' => $motionId, ':mem' => $memberId]
@@ -374,12 +380,19 @@ class BallotRepository extends AbstractRepository
     /**
      * Marque un bulletin papier comme utilise.
      */
-    public function markPaperBallotUsed(string $id): void
+    public function markPaperBallotUsed(string $id, string $tenantId = ''): void
     {
-        $this->execute(
-            "UPDATE paper_ballots SET used_at = NOW(), used_by_operator = true WHERE id = :id",
-            [':id' => $id]
-        );
+        if ($tenantId !== '') {
+            $this->execute(
+                "UPDATE paper_ballots SET used_at = NOW(), used_by_operator = true WHERE id = :id AND tenant_id = :tid",
+                [':id' => $id, ':tid' => $tenantId]
+            );
+        } else {
+            $this->execute(
+                "UPDATE paper_ballots SET used_at = NOW(), used_by_operator = true WHERE id = :id",
+                [':id' => $id]
+            );
+        }
     }
 
     /**

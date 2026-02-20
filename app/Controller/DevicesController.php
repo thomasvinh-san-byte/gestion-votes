@@ -190,7 +190,7 @@ final class DevicesController extends AbstractController
             $payload = json_decode((string)$cmd['payload'], true);
             $kickMsg = (is_array($payload) && isset($payload['message'])) ? (string)$payload['message'] : '';
             $command = ['type' => 'kick', 'message' => $kickMsg];
-            $repo->consumeCommand((string)$cmd['id']);
+            $repo->consumeCommand((string)$cmd['id'], $tenantId);
         }
 
         api_ok([

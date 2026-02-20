@@ -119,7 +119,7 @@ final class BallotsController extends AbstractController
                 ]);
             }
 
-            $ballotRepo->deleteByMotionAndMember($motionId, $memberId);
+            $ballotRepo->deleteByMotionAndMember($motionId, $memberId, $tenantId);
             db()->commit();
 
             audit_log('ballot_cancelled', 'ballot', $motionId, [

@@ -160,50 +160,66 @@ class NotificationRepository extends AbstractRepository
     /**
      * Marque une notification comme lue.
      */
-    public function markRead(string $meetingId, int $id): void
+    public function markRead(string $meetingId, int $id, string $tenantId = ''): void
     {
         if ($id <= 0) return;
-        $this->execute(
-            "UPDATE meeting_notifications
-             SET read_at = now()
-             WHERE meeting_id = ? AND id = ? AND read_at IS NULL",
-            [$meetingId, $id]
-        );
+        if ($tenantId !== '') {
+            $this->execute(
+                "UPDATE meeting_notifications SET read_at = now()
+                 WHERE meeting_id = ? AND id = ? AND tenant_id = ? AND read_at IS NULL",
+                [$meetingId, $id, $tenantId]
+            );
+        } else {
+            $this->execute(
+                "UPDATE meeting_notifications SET read_at = now()
+                 WHERE meeting_id = ? AND id = ? AND read_at IS NULL",
+                [$meetingId, $id]
+            );
+        }
     }
 
     /**
      * Marque toutes les notifications comme lues (par audience).
      */
-    public function markAllRead(string $meetingId, string $audience = ''): void
+    public function markAllRead(string $meetingId, string $audience = '', string $tenantId = ''): void
     {
+        $tid = ($tenantId !== '') ? " AND tenant_id = ?" : '';
+        $params = [$meetingId];
+        if ($tenantId !== '') $params[] = $tenantId;
+
         if ($audience === '' || $audience === 'all') {
             $this->execute(
                 "UPDATE meeting_notifications SET read_at = now()
-                 WHERE meeting_id = ? AND read_at IS NULL",
-                [$meetingId]
+                 WHERE meeting_id = ?{$tid} AND read_at IS NULL",
+                $params
             );
             return;
         }
+        $params[] = $audience;
         $this->execute(
             "UPDATE meeting_notifications SET read_at = now()
-             WHERE meeting_id = ? AND read_at IS NULL AND (audience @> ARRAY[?]::text[])",
-            [$meetingId, $audience]
+             WHERE meeting_id = ?{$tid} AND read_at IS NULL AND (audience @> ARRAY[?]::text[])",
+            $params
         );
     }
 
     /**
      * Supprime les notifications (par audience).
      */
-    public function clear(string $meetingId, string $audience = ''): void
+    public function clear(string $meetingId, string $audience = '', string $tenantId = ''): void
     {
+        $tid = ($tenantId !== '') ? " AND tenant_id = ?" : '';
+        $params = [$meetingId];
+        if ($tenantId !== '') $params[] = $tenantId;
+
         if ($audience === '' || $audience === 'all') {
-            $this->execute("DELETE FROM meeting_notifications WHERE meeting_id = ?", [$meetingId]);
+            $this->execute("DELETE FROM meeting_notifications WHERE meeting_id = ?{$tid}", $params);
             return;
         }
+        $params[] = $audience;
         $this->execute(
-            "DELETE FROM meeting_notifications
-             WHERE meeting_id = ? AND (audience @> ARRAY[?]::text[])",
-            [$meetingId, $audience]
+            "DELETE FROM meeting_notifications WHERE meeting_id = ?{$tid} AND (audience @> ARRAY[?]::text[])",
+            $params
         );
     }
 }

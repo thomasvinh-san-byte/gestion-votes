@@ -348,17 +348,29 @@ class MemberRepository extends AbstractRepository
     /**
      * Met a jour un membre lors d'un import CSV.
      */
-    public function updateImport(string $id, string $fullName, ?string $email, float $votingPower, bool $isActive): void
+    public function updateImport(string $id, string $fullName, ?string $email, float $votingPower, bool $isActive, string $tenantId = ''): void
     {
-        $this->execute(
-            "UPDATE members SET
-                full_name = :name, email = COALESCE(:email, email), voting_power = :vp, is_active = :active, updated_at = NOW()
-             WHERE id = :id",
-            [
-                ':name' => $fullName, ':email' => $email, ':vp' => $votingPower,
-                ':active' => $isActive ? 'true' : 'false', ':id' => $id,
-            ]
-        );
+        if ($tenantId !== '') {
+            $this->execute(
+                "UPDATE members SET
+                    full_name = :name, email = COALESCE(:email, email), voting_power = :vp, is_active = :active, updated_at = NOW()
+                 WHERE id = :id AND tenant_id = :tid",
+                [
+                    ':name' => $fullName, ':email' => $email, ':vp' => $votingPower,
+                    ':active' => $isActive ? 'true' : 'false', ':id' => $id, ':tid' => $tenantId,
+                ]
+            );
+        } else {
+            $this->execute(
+                "UPDATE members SET
+                    full_name = :name, email = COALESCE(:email, email), voting_power = :vp, is_active = :active, updated_at = NOW()
+                 WHERE id = :id",
+                [
+                    ':name' => $fullName, ':email' => $email, ':vp' => $votingPower,
+                    ':active' => $isActive ? 'true' : 'false', ':id' => $id,
+                ]
+            );
+        }
     }
 
     /**
@@ -396,12 +408,19 @@ class MemberRepository extends AbstractRepository
     /**
      * Soft delete un membre (marque deleted_at).
      */
-    public function softDelete(string $id): void
+    public function softDelete(string $id, string $tenantId = ''): void
     {
-        $this->execute(
-            "UPDATE members SET deleted_at = NOW(), updated_at = NOW() WHERE id = :id",
-            [':id' => $id]
-        );
+        if ($tenantId !== '') {
+            $this->execute(
+                "UPDATE members SET deleted_at = NOW(), updated_at = NOW() WHERE id = :id AND tenant_id = :tid",
+                [':id' => $id, ':tid' => $tenantId]
+            );
+        } else {
+            $this->execute(
+                "UPDATE members SET deleted_at = NOW(), updated_at = NOW() WHERE id = :id",
+                [':id' => $id]
+            );
+        }
     }
 
     /**

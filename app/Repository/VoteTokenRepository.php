@@ -99,8 +99,14 @@ class VoteTokenRepository extends AbstractRepository
     /**
      * Revoque tous les tokens non utilises pour une motion.
      */
-    public function revokeForMotion(string $motionId): int
+    public function revokeForMotion(string $motionId, string $tenantId = ''): int
     {
+        if ($tenantId !== '') {
+            return $this->execute(
+                "UPDATE vote_tokens SET used_at = now() WHERE motion_id = :mid AND tenant_id = :tid AND used_at IS NULL",
+                [':mid' => $motionId, ':tid' => $tenantId]
+            );
+        }
         return $this->execute(
             "UPDATE vote_tokens SET used_at = now() WHERE motion_id = :mid AND used_at IS NULL",
             [':mid' => $motionId]
@@ -184,13 +190,21 @@ class VoteTokenRepository extends AbstractRepository
     /**
      * Supprime les tokens non utilises pour un membre + motion (idempotence).
      */
-    public function deleteUnusedByMotionAndMember(string $meetingId, string $motionId, string $memberId): void
+    public function deleteUnusedByMotionAndMember(string $meetingId, string $motionId, string $memberId, string $tenantId = ''): void
     {
-        $this->execute(
-            "DELETE FROM vote_tokens
-             WHERE meeting_id = :mid AND motion_id = :mo AND member_id = :mb AND used_at IS NULL",
-            [':mid' => $meetingId, ':mo' => $motionId, ':mb' => $memberId]
-        );
+        if ($tenantId !== '') {
+            $this->execute(
+                "DELETE FROM vote_tokens
+                 WHERE meeting_id = :mid AND motion_id = :mo AND member_id = :mb AND tenant_id = :tid AND used_at IS NULL",
+                [':mid' => $meetingId, ':mo' => $motionId, ':mb' => $memberId, ':tid' => $tenantId]
+            );
+        } else {
+            $this->execute(
+                "DELETE FROM vote_tokens
+                 WHERE meeting_id = :mid AND motion_id = :mo AND member_id = :mb AND used_at IS NULL",
+                [':mid' => $meetingId, ':mo' => $motionId, ':mb' => $memberId]
+            );
+        }
     }
 
     /**
