@@ -110,8 +110,10 @@
   /**
    * Send device heartbeat to the server.
    * Reports device status and receives block/kick commands.
+   * After 3 consecutive failures, shows a connection warning.
    * @returns {Promise<void>}
    */
+  var _heartbeatFailCount = 0;
   async function sendHeartbeat(){
     const meetingId = selectedMeetingId();
     if (!meetingId) return;
@@ -149,8 +151,12 @@
         notify('error', data.command.message || 'Reconnexion requise.');
         setTimeout(()=>{ location.reload(); }, 800);
       }
+      _heartbeatFailCount = 0;
     } catch(e){
-      // Heartbeat failures are non-blocking
+      _heartbeatFailCount++;
+      if (_heartbeatFailCount === 3) {
+        notify('error', 'Connexion instable — vérifiez votre réseau.');
+      }
     }
   }
 
@@ -194,12 +200,16 @@
     _meetingVotePolicyId = null;
     _meetingQuorumPolicyId = null;
 
+    var _policyErrors = [];
     const [vp, qp, mv, mq] = await Promise.all([
-      apiGet('/api/v1/vote_policies.php').catch(()=>({})),
-      apiGet('/api/v1/quorum_policies.php').catch(()=>({})),
-      apiGet(`/api/v1/meeting_vote_settings.php?meeting_id=${encodeURIComponent(meetingId)}`).catch(()=>({})),
-      apiGet(`/api/v1/meeting_quorum_settings.php?meeting_id=${encodeURIComponent(meetingId)}`).catch(()=>({}))
+      apiGet('/api/v1/vote_policies.php').catch(()=>{ _policyErrors.push('vote_policies'); return {}; }),
+      apiGet('/api/v1/quorum_policies.php').catch(()=>{ _policyErrors.push('quorum_policies'); return {}; }),
+      apiGet(`/api/v1/meeting_vote_settings.php?meeting_id=${encodeURIComponent(meetingId)}`).catch(()=>{ _policyErrors.push('meeting_vote_settings'); return {}; }),
+      apiGet(`/api/v1/meeting_quorum_settings.php?meeting_id=${encodeURIComponent(meetingId)}`).catch(()=>{ _policyErrors.push('meeting_quorum_settings'); return {}; })
     ]);
+    if (_policyErrors.length) {
+      console.warn('[vote] Policy fetch partial failure:', _policyErrors.join(', '));
+    }
     (vp?.data?.items || vp?.items || []).forEach(p => { _votePoliciesById[p.id] = p; });
     (qp?.data?.items || qp?.items || []).forEach(p => { _quorumPoliciesById[p.id] = p; });
     _meetingVotePolicyId = (mv?.data?.vote_policy_id ?? mv?.vote_policy_id ?? null);
@@ -420,7 +430,7 @@
         filled++;
       }
     } catch(e) {
-      // ignore
+      console.warn('[vote] Attendance fetch failed, falling back to members list:', e?.message || e);
     }
 
     // Fallback: if no attendance recorded, still display all members

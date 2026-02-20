@@ -111,6 +111,7 @@
     dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
 
     var sections = [];
+    var failedSections = [];
 
     // --- Info séance ---
     try {
@@ -131,7 +132,7 @@
           '</div>'
         );
       }
-    } catch(e) { /* silently skip section */ }
+    } catch(e) { failedSections.push('infos séance'); }
 
     // --- Readiness checks ---
     try {
@@ -157,7 +158,7 @@
           );
         }
       }
-    } catch(e) { /* silently skip section */ }
+    } catch(e) { failedSections.push('check-list'); }
 
     // --- Anomalies ---
     try {
@@ -179,7 +180,16 @@
           );
         }
       }
-    } catch(e) { /* silently skip section */ }
+    } catch(e) { failedSections.push('anomalies'); }
+
+    // Show partial-load hint if some sections failed
+    if (failedSections.length) {
+      sections.push(
+        '<div style="padding:8px 12px;font-size:11px;color:var(--color-text-muted,#999);border-top:1px solid var(--color-border,#eee);margin-top:8px;">' +
+          'Chargement partiel — sections indisponibles : ' + esc(failedSections.join(', ')) +
+        '</div>'
+      );
+    }
 
     if (sections.length === 0) {
       dbody.innerHTML = '<div style="padding:16px;text-align:center;" class="text-muted">Aucune information disponible.</div>';

@@ -11,23 +11,23 @@ Périmètre : `public/assets/js/**/*.js` + fichiers `.htmx.html`
 |-----|-------------|-------|-------|-------|--------|
 | K1 | innerHTML sans escapeHtml (XSS) | 6 UNSAFE | **0** | 0 | ATTEINT |
 | K2 | Secrets dans localStorage | 4 violations | **0** | 0 | ATTEINT |
-| K3 | Error handling API silencieux | 14 PARTIAL (89%) | **10 PARTIAL (92%)** | 100% | ACCEPTABLE |
+| K3 | Error handling API silencieux | 14 PARTIAL (89%) | **0 silencieux (100%)** | 100% | ATTEINT |
 | K4 | POST sans CSRF token | 1 manquant | **0** | 0 | ATTEINT |
 | K5 | Formulaires sans validation email | 3 faiblesses | **0** | 0 | ATTEINT |
 | K6 | Fonctions depth > 3 niveaux | 22 fonctions | **22** | 0 | NON TRAITE |
 
-### K3 — Les 10 PARTIAL restants (volontairement acceptés)
+### K3 — Stratégie appliquée aux 10 ex-PARTIAL
 
-Tous sont des fallbacks intentionnels pour des données optionnelles ou des
-mécanismes de polling. Les corriger ajouterait du bruit UI sans valeur :
+Aucun catch n'est plus silencieux. Chaque instance a reçu un traitement
+adapté à son contexte UI :
 
-| Fichier:Ligne | Endpoint | Justification du silence |
-|---------------|----------|--------------------------|
-| vote.js:152 | device_heartbeat.php | Polling : un échec isolé est invisible pour l'utilisateur |
-| vote.js:198-201 | policies + settings (×4) | Graceful degradation : on continue avec les défauts |
-| vote.js:422 | attendances.php | Fallback secondaire dans un bloc déjà catchée |
-| shell.js:134,160,182 | context drawer (×3) | Section auxiliaire de la sidebar, non critique |
-| operator-tabs.js:2221 | invitations_stats.php | Stats optionnelles, absentes en début de vie |
+| Fichier:Ligne | Endpoint | Traitement appliqué |
+|---------------|----------|---------------------|
+| vote.js:152 | device_heartbeat.php | Compteur d'échecs consécutifs → `notify('error')` après 3 ratés |
+| vote.js:198-201 | policies + settings (×4) | `console.warn` groupé avec liste des endpoints en erreur |
+| vote.js:422 | attendances.php | `console.warn` avec message + fallback members.php documenté |
+| shell.js:134,160,182 | context drawer (×3) | Accumulation → indicateur "sections indisponibles" en pied de drawer |
+| operator-tabs.js:2221 | invitations_stats.php | Affichage "—" dans tous les compteurs au lieu de les laisser vides |
 
 ---
 
@@ -56,12 +56,17 @@ explicite et sécurisé.
 | 1 | `public.htmx.html` | `api_key` : `localStorage` → `sessionStorage` (survit au reload, pas à la fermeture de session) |
 | 2 | `vote.htmx.html` | Vote receipts : `localStorage` → `sessionStorage` (les choix de vote ne persistent plus entre sessions) |
 
-### K3 — Error handling (2 fixes, 2 fichiers)
+### K3 — Error handling (6 fixes, 4 fichiers)
 
 | # | Fichier | Correction |
 |---|---------|------------|
 | 1 | `pages/pv-print.js` | 3 `catch(_){}` silencieux → accumulation d'erreurs et message visible "Chargement partiel" |
 | 2 | `pages/meetings.js` | Upload attachments : `console.warn` → `setNotif('warning', ...)` |
+| 3 | `pages/vote.js:152` | Heartbeat : compteur d'échecs consécutifs → `notify('error')` après 3 ratés, reset à 0 en cas de succès |
+| 4 | `pages/vote.js:198-201` | Policies ×4 : `console.warn` groupé listant les endpoints en erreur |
+| 5 | `pages/vote.js:422` | Attendances : `console.warn` informatif avant fallback sur members.php |
+| 6 | `core/shell.js:134,160,182` | Context drawer ×3 : accumulation des échecs → indicateur discret "sections indisponibles" en pied de drawer |
+| 7 | `pages/operator-tabs.js:2221` | Stats invitations : affichage "—" explicite dans les compteurs au lieu de les laisser vides |
 
 ### K4 — CSRF (1 fix)
 
@@ -302,12 +307,12 @@ Chaque étape doit être validée par :
 | Fichier | Appels | COVERED | PARTIAL | CSRF ok |
 |---------|--------|---------|---------|---------|
 | admin.js | 25 | 25 | 0 | 25/25 |
-| operator-tabs.js | 28 | 27 | 1 | 28/28 |
+| operator-tabs.js | 28 | 28 | 0 | 28/28 |
 | operator-motions.js | 13 | 13 | 0 | 13/13 |
 | operator-attendance.js | 9 | 9 | 0 | 9/9 |
 | operator-speech.js | 7 | 7 | 0 | 7/7 |
-| vote.js | 11 | 6 | 5 | 11/11 |
-| shell.js | 6 | 3 | 3 | 6/6 |
+| vote.js | 11 | 11 | 0 | 11/11 |
+| shell.js | 6 | 6 | 0 | 6/6 |
 | auth-ui.js | 4 | 4 | 0 | 4/4 |
 | login.js | 3 | 3 | 0 | 2/3 (login pre-auth) |
 | meetings.js | 3 | 3 | 0 | 3/3 |
@@ -317,7 +322,7 @@ Chaque étape doit être validée par :
 | trust.js | 7 | 7 | 0 | 7/7 |
 | archives.js | 1 | 1 | 0 | 1/1 |
 | shared.js | 1 | 1 | 0 | N/A (GET) |
-| **TOTAL** | **127** | **117** | **10** | **125/127** |
+| **TOTAL** | **127** | **127** | **0** | **125/127** |
 
 ### Infrastructure CSRF
 

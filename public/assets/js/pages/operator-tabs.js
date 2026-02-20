@@ -2219,7 +2219,13 @@ window.OpS = { fn: {} };
 
       }
     } catch (err) {
-      // Stats may not exist yet — ignore
+      // Stats endpoint may not exist yet — show placeholders
+      setText('invTotal', '—');
+      setText('invSent', '—');
+      setText('invOpened', '—');
+      setText('invBounced', '—');
+      var openRateEl = document.getElementById('invOpenRate');
+      if (openRateEl) openRateEl.textContent = '—';
     }
   }
 
