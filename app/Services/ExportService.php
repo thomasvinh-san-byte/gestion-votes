@@ -84,7 +84,7 @@ final class ExportService
     /**
      * Translates an attendance mode
      */
-    public static function translateAttendanceMode(?string $mode): string
+    public function translateAttendanceMode(?string $mode): string
     {
         $mode = strtolower(trim((string)$mode));
         return self::ATTENDANCE_MODES[$mode] ?? $mode;
@@ -93,7 +93,7 @@ final class ExportService
     /**
      * Translates a decision
      */
-    public static function translateDecision(?string $decision): string
+    public function translateDecision(?string $decision): string
     {
         $decision = strtolower(trim((string)$decision));
         return self::DECISIONS[$decision] ?? $decision;
@@ -102,7 +102,7 @@ final class ExportService
     /**
      * Translates a vote choice
      */
-    public static function translateVoteChoice(?string $choice): string
+    public function translateVoteChoice(?string $choice): string
     {
         $choice = strtolower(trim((string)$choice));
         return self::VOTE_CHOICES[$choice] ?? $choice;
@@ -111,7 +111,7 @@ final class ExportService
     /**
      * Translates a meeting status
      */
-    public static function translateMeetingStatus(?string $status): string
+    public function translateMeetingStatus(?string $status): string
     {
         $status = strtolower(trim((string)$status));
         return self::MEETING_STATUSES[$status] ?? $status;
@@ -120,7 +120,7 @@ final class ExportService
     /**
      * Translates a vote source
      */
-    public static function translateVoteSource(?string $source): string
+    public function translateVoteSource(?string $source): string
     {
         $source = strtolower(trim((string)$source));
         return self::VOTE_SOURCES[$source] ?? $source;
@@ -129,7 +129,7 @@ final class ExportService
     /**
      * Translates a boolean
      */
-    public static function translateBoolean($value): string
+    public function translateBoolean($value): string
     {
         if (is_bool($value)) {
             return self::BOOLEANS[$value];
@@ -145,7 +145,7 @@ final class ExportService
      * @param bool $includeTime Include time
      * @return string Formatted date (e.g., "15/01/2024" or "15/01/2024 14:30")
      */
-    public static function formatDate(?string $datetime, bool $includeTime = true): string
+    public function formatDate(?string $datetime, bool $includeTime = true): string
     {
         if ($datetime === null || $datetime === '') {
             return '';
@@ -165,7 +165,7 @@ final class ExportService
     /**
      * Formats time only
      */
-    public static function formatTime(?string $datetime): string
+    public function formatTime(?string $datetime): string
     {
         if ($datetime === null || $datetime === '') {
             return '';
@@ -183,7 +183,7 @@ final class ExportService
      * Formats a number (voting power, weight, etc.)
      * Displays integers without decimals, decimals with up to 4 digits
      */
-    public static function formatNumber($value, int $decimals = 2): string
+    public function formatNumber($value, int $decimals = 2): string
     {
         if ($value === null || $value === '') {
             return '0';
@@ -204,12 +204,12 @@ final class ExportService
     /**
      * Formats a percentage
      */
-    public static function formatPercent($value): string
+    public function formatPercent($value): string
     {
         if ($value === null || $value === '') {
             return '';
         }
-        return self::formatNumber((float)$value * 100, 1) . ' %';
+        return $this->formatNumber((float)$value * 100, 1) . ' %';
     }
 
     // ========================================================================
@@ -217,17 +217,17 @@ final class ExportService
     // ========================================================================
 
     /**
-     * Initializes a CSV export with UTF-8 BOM for Excel
+     * Sanitizes a filename for Content-Disposition header
      */
-    private static function safeFilename(string $filename): string
+    private function safeFilename(string $filename): string
     {
         return str_replace(['"', "\r", "\n", "\0", '\\'], '', $filename);
     }
 
-    public static function initCsvOutput(string $filename): void
+    public function initCsvOutput(string $filename): void
     {
         header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . self::safeFilename($filename) . '"');
+        header('Content-Disposition: attachment; filename="' . $this->safeFilename($filename) . '"');
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: no-cache, no-store, must-revalidate');
     }
@@ -237,7 +237,7 @@ final class ExportService
      *
      * @return resource
      */
-    public static function openCsvOutput()
+    public function openCsvOutput()
     {
         $out = fopen('php://output', 'w');
         fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM pour Excel
@@ -251,7 +251,7 @@ final class ExportService
      * @param array $row
      * @param string $separator
      */
-    public static function writeCsvRow($handle, array $row, string $separator = ';'): void
+    public function writeCsvRow($handle, array $row, string $separator = ';'): void
     {
         fputcsv($handle, $row, $separator);
     }
@@ -259,7 +259,7 @@ final class ExportService
     /**
      * Generates a filename for export
      */
-    public static function generateFilename(string $type, string $meetingTitle = '', string $extension = 'csv'): string
+    public function generateFilename(string $type, string $meetingTitle = '', string $extension = 'csv'): string
     {
         $prefix = match($type) {
             'attendance', 'presences' => 'Emargement',
@@ -275,7 +275,7 @@ final class ExportService
 
         // Clean title for filename
         if ($meetingTitle !== '') {
-            $cleanTitle = self::sanitizeFilename($meetingTitle);
+            $cleanTitle = $this->sanitizeFilename($meetingTitle);
             $prefix .= '_' . $cleanTitle;
         }
 
@@ -286,7 +286,7 @@ final class ExportService
     /**
      * Sanitizes a string for use in a filename
      */
-    public static function sanitizeFilename(string $str): string
+    public function sanitizeFilename(string $str): string
     {
         // Replace accents
         $str = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $str);
@@ -305,50 +305,50 @@ final class ExportService
     /**
      * Prepares an export row for attendance
      */
-    public static function formatAttendanceRow(array $row): array
+    public function formatAttendanceRow(array $row): array
     {
         return [
             (string)($row['full_name'] ?? ''),
-            self::formatNumber($row['voting_power'] ?? 1),
-            self::translateAttendanceMode($row['attendance_mode'] ?? $row['mode'] ?? ''),
-            self::formatDate($row['checked_in_at'] ?? null),
-            self::formatDate($row['checked_out_at'] ?? null),
+            $this->formatNumber($row['voting_power'] ?? 1),
+            $this->translateAttendanceMode($row['attendance_mode'] ?? $row['mode'] ?? ''),
+            $this->formatDate($row['checked_in_at'] ?? null),
+            $this->formatDate($row['checked_out_at'] ?? null),
             (string)($row['proxy_to_name'] ?? ''),
-            self::formatNumber($row['proxies_received'] ?? 0, 0),
+            $this->formatNumber($row['proxies_received'] ?? 0, 0),
         ];
     }
 
     /**
      * Prepares an export row for votes
      */
-    public static function formatVoteRow(array $row): array
+    public function formatVoteRow(array $row): array
     {
         return [
             (string)($row['motion_title'] ?? ''),
             (int)($row['motion_position'] ?? $row['position'] ?? 0),
             (string)($row['voter_name'] ?? ''),
-            self::translateVoteChoice($row['value'] ?? ''),
-            self::formatNumber($row['weight'] ?? 1),
-            self::translateBoolean($row['is_proxy_vote'] ?? false),
+            $this->translateVoteChoice($row['value'] ?? ''),
+            $this->formatNumber($row['weight'] ?? 1),
+            $this->translateBoolean($row['is_proxy_vote'] ?? false),
             (string)($row['proxy_source_name'] ?? ''),
-            self::formatDate($row['cast_at'] ?? null),
-            self::translateVoteSource($row['source'] ?? ''),
+            $this->formatDate($row['cast_at'] ?? null),
+            $this->translateVoteSource($row['source'] ?? ''),
         ];
     }
 
     /**
      * Prepares an export row for members
      */
-    public static function formatMemberRow(array $row): array
+    public function formatMemberRow(array $row): array
     {
         return [
             (string)($row['full_name'] ?? ''),
             (string)($row['email'] ?? ''),
-            self::formatNumber($row['voting_power'] ?? 1),
-            self::translateBoolean($row['is_active'] ?? true),
-            self::translateAttendanceMode($row['attendance_mode'] ?? ''),
-            self::formatDate($row['checked_in_at'] ?? null),
-            self::formatDate($row['checked_out_at'] ?? null),
+            $this->formatNumber($row['voting_power'] ?? 1),
+            $this->translateBoolean($row['is_active'] ?? true),
+            $this->translateAttendanceMode($row['attendance_mode'] ?? ''),
+            $this->formatDate($row['checked_in_at'] ?? null),
+            $this->formatDate($row['checked_out_at'] ?? null),
             (string)($row['proxy_to_name'] ?? ''),
         ];
     }
@@ -356,20 +356,20 @@ final class ExportService
     /**
      * Prepares an export row for motions/resolutions
      */
-    public static function formatMotionResultRow(array $row): array
+    public function formatMotionResultRow(array $row): array
     {
         return [
             (int)($row['position'] ?? 0),
             (string)($row['title'] ?? ''),
-            self::formatDate($row['opened_at'] ?? null),
-            self::formatDate($row['closed_at'] ?? null),
-            self::formatNumber($row['w_for'] ?? $row['official_for'] ?? 0),
-            self::formatNumber($row['w_against'] ?? $row['official_against'] ?? 0),
-            self::formatNumber($row['w_abstain'] ?? $row['official_abstain'] ?? 0),
-            self::formatNumber($row['w_nsp'] ?? 0),
-            self::formatNumber($row['w_total'] ?? $row['official_total'] ?? 0),
+            $this->formatDate($row['opened_at'] ?? null),
+            $this->formatDate($row['closed_at'] ?? null),
+            $this->formatNumber($row['w_for'] ?? $row['official_for'] ?? 0),
+            $this->formatNumber($row['w_against'] ?? $row['official_against'] ?? 0),
+            $this->formatNumber($row['w_abstain'] ?? $row['official_abstain'] ?? 0),
+            $this->formatNumber($row['w_nsp'] ?? 0),
+            $this->formatNumber($row['w_total'] ?? $row['official_total'] ?? 0),
             (int)($row['ballots_count'] ?? 0),
-            self::translateDecision($row['decision'] ?? ''),
+            $this->translateDecision($row['decision'] ?? ''),
             (string)($row['decision_reason'] ?? ''),
         ];
     }
@@ -377,14 +377,14 @@ final class ExportService
     /**
      * Prepares an export row for proxies
      */
-    public static function formatProxyRow(array $row): array
+    public function formatProxyRow(array $row): array
     {
         return [
             (string)($row['grantor_name'] ?? ''),
             (string)($row['grantee_name'] ?? ''),
-            self::formatNumber($row['grantor_voting_power'] ?? 1),
-            self::formatDate($row['created_at'] ?? null),
-            self::translateBoolean($row['is_active'] ?? true),
+            $this->formatNumber($row['grantor_voting_power'] ?? 1),
+            $this->formatDate($row['created_at'] ?? null),
+            $this->translateBoolean($row['is_active'] ?? true),
         ];
     }
 
@@ -392,7 +392,7 @@ final class ExportService
     // CSV HEADERS FOR EACH EXPORT TYPE
     // ========================================================================
 
-    public static function getAttendanceHeaders(): array
+    public function getAttendanceHeaders(): array
     {
         return [
             'Nom',
@@ -405,7 +405,7 @@ final class ExportService
         ];
     }
 
-    public static function getVotesHeaders(): array
+    public function getVotesHeaders(): array
     {
         return [
             'Résolution',
@@ -420,7 +420,7 @@ final class ExportService
         ];
     }
 
-    public static function getMembersHeaders(): array
+    public function getMembersHeaders(): array
     {
         return [
             'Nom',
@@ -434,7 +434,7 @@ final class ExportService
         ];
     }
 
-    public static function getMotionResultsHeaders(): array
+    public function getMotionResultsHeaders(): array
     {
         return [
             'N°',
@@ -452,7 +452,7 @@ final class ExportService
         ];
     }
 
-    public static function getProxiesHeaders(): array
+    public function getProxiesHeaders(): array
     {
         return [
             'Mandant',
@@ -475,7 +475,7 @@ final class ExportService
      * @param string $sheetTitle Sheet title
      * @return \PhpOffice\PhpSpreadsheet\Spreadsheet
      */
-    public static function createSpreadsheet(array $headers, array $rows, string $sheetTitle = 'Données'): \PhpOffice\PhpSpreadsheet\Spreadsheet
+    public function createSpreadsheet(array $headers, array $rows, string $sheetTitle = 'Données'): \PhpOffice\PhpSpreadsheet\Spreadsheet
     {
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -518,7 +518,7 @@ final class ExportService
     /**
      * Adds a sheet to an existing workbook
      */
-    public static function addSheet(
+    public function addSheet(
         \PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet,
         array $headers,
         array $rows,
@@ -562,10 +562,10 @@ final class ExportService
     /**
      * Initializes HTTP headers for XLSX export
      */
-    public static function initXlsxOutput(string $filename): void
+    public function initXlsxOutput(string $filename): void
     {
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . self::safeFilename($filename) . '"');
+        header('Content-Disposition: attachment; filename="' . $this->safeFilename($filename) . '"');
         header('Cache-Control: max-age=0');
         header('X-Content-Type-Options: nosniff');
     }
@@ -573,7 +573,7 @@ final class ExportService
     /**
      * Sends an Excel workbook to the browser
      */
-    public static function outputSpreadsheet(\PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet): void
+    public function outputSpreadsheet(\PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet): void
     {
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save('php://output');
@@ -588,7 +588,7 @@ final class ExportService
      * @param array $voteRows Individual votes (optional)
      * @return \PhpOffice\PhpSpreadsheet\Spreadsheet
      */
-    public static function createFullExportSpreadsheet(
+    public function createFullExportSpreadsheet(
         array $meeting,
         array $attendanceRows,
         array $motionRows,
@@ -598,9 +598,9 @@ final class ExportService
         $summaryHeaders = ['Information', 'Valeur'];
         $summaryData = [
             ['Séance', $meeting['title'] ?? ''],
-            ['Date', self::formatDate($meeting['scheduled_at'] ?? null, false)],
-            ['Statut', self::translateMeetingStatus($meeting['status'] ?? '')],
-            ['Validée le', self::formatDate($meeting['validated_at'] ?? null)],
+            ['Date', $this->formatDate($meeting['scheduled_at'] ?? null, false)],
+            ['Statut', $this->translateMeetingStatus($meeting['status'] ?? '')],
+            ['Validée le', $this->formatDate($meeting['validated_at'] ?? null)],
             ['Président', $meeting['president_name'] ?? ''],
             ['', ''],
             ['Membres présents', count(array_filter($attendanceRows, fn($r) => ($r['attendance_mode'] ?? '') === 'present'))],
@@ -612,26 +612,26 @@ final class ExportService
             ['Résolutions rejetées', count(array_filter($motionRows, fn($r) => ($r['decision'] ?? '') === 'rejected'))],
         ];
 
-        $spreadsheet = self::createSpreadsheet($summaryHeaders, $summaryData, 'Résumé');
+        $spreadsheet = $this->createSpreadsheet($summaryHeaders, $summaryData, 'Résumé');
 
         // Attendance sheet
-        $attendanceFormatted = array_map([self::class, 'formatAttendanceRow'], $attendanceRows);
-        self::addSheet($spreadsheet, self::getAttendanceHeaders(), $attendanceFormatted, 'Émargement');
+        $attendanceFormatted = array_map([$this, 'formatAttendanceRow'], $attendanceRows);
+        $this->addSheet($spreadsheet, $this->getAttendanceHeaders(), $attendanceFormatted, 'Émargement');
 
         // Motions sheet
-        $motionsFormatted = array_map([self::class, 'formatMotionResultRow'], $motionRows);
-        self::addSheet($spreadsheet, self::getMotionResultsHeaders(), $motionsFormatted, 'Résolutions');
+        $motionsFormatted = array_map([$this, 'formatMotionResultRow'], $motionRows);
+        $this->addSheet($spreadsheet, $this->getMotionResultsHeaders(), $motionsFormatted, 'Résolutions');
 
         // Votes sheet (if provided)
         if (!empty($voteRows)) {
             $votesFormatted = [];
             foreach ($voteRows as $r) {
                 if (!empty($r['voter_name'])) {
-                    $votesFormatted[] = self::formatVoteRow($r);
+                    $votesFormatted[] = $this->formatVoteRow($r);
                 }
             }
             if (!empty($votesFormatted)) {
-                self::addSheet($spreadsheet, self::getVotesHeaders(), $votesFormatted, 'Votes');
+                $this->addSheet($spreadsheet, $this->getVotesHeaders(), $votesFormatted, 'Votes');
             }
         }
 

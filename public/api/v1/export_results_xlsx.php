@@ -32,19 +32,21 @@ try {
     $motionRepo = new MotionRepository();
     $rows = $motionRepo->listResultsExportForMeeting($meetingId);
 
+    $export = new ExportService();
+
     // Formater les données
-    $formattedRows = array_map([ExportService::class, 'formatMotionResultRow'], $rows);
+    $formattedRows = array_map([$export, 'formatMotionResultRow'], $rows);
 
     // Génération du fichier
-    $filename = ExportService::generateFilename('resultats', $mt['title'] ?? '', 'xlsx');
-    ExportService::initXlsxOutput($filename);
+    $filename = $export->generateFilename('resultats', $mt['title'] ?? '', 'xlsx');
+    $export->initXlsxOutput($filename);
 
-    $spreadsheet = ExportService::createSpreadsheet(
-        ExportService::getMotionResultsHeaders(),
+    $spreadsheet = $export->createSpreadsheet(
+        $export->getMotionResultsHeaders(),
         $formattedRows,
         'Résultats'
     );
-    ExportService::outputSpreadsheet($spreadsheet);
+    $export->outputSpreadsheet($spreadsheet);
 } catch (Throwable $e) {
     error_log('Error in export_results_xlsx.php: ' . $e->getMessage());
     api_fail('server_error', 500, ['detail' => $e->getMessage()]);

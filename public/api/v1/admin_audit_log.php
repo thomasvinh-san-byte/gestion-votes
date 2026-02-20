@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
+use AgVote\Repository\AuditEventRepository;
+
 api_require_role('admin');
 api_request('GET');
 
@@ -23,44 +25,10 @@ $offset   = max(0, (int)($_GET['offset'] ?? 0));
 $action   = trim((string)($_GET['action'] ?? ''));
 $q        = trim((string)($_GET['q'] ?? ''));
 
-// Build query
-$where  = "WHERE tenant_id = ?";
-$params = [$tenantId];
+$repo = new AuditEventRepository();
 
-// Only admin-prefixed actions (admin.user.*, admin_quorum_policy_*, etc.)
-$where .= " AND (action LIKE 'admin.%' OR action LIKE 'admin\\_%')";
-
-// Optional action filter
-if ($action !== '') {
-    $where .= " AND action = ?";
-    $params[] = $action;
-}
-
-// Optional text search
-if ($q !== '') {
-    $where .= " AND (action ILIKE ? OR CAST(payload AS text) ILIKE ? OR actor_role ILIKE ?)";
-    $like = '%' . $q . '%';
-    $params[] = $like;
-    $params[] = $like;
-    $params[] = $like;
-}
-
-// Count total
-$stmtCount = db()->prepare("SELECT COUNT(*) FROM audit_events $where");
-$stmtCount->execute($params);
-$total = (int)$stmtCount->fetchColumn();
-
-// Fetch events
-$sql = "SELECT id, action, resource_type, resource_id, actor_user_id, actor_role,
-               payload, ip_address, created_at
-        FROM audit_events
-        $where
-        ORDER BY created_at DESC
-        LIMIT $limit OFFSET $offset";
-
-$stmt = db()->prepare($sql);
-$stmt->execute($params);
-$events = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+$total  = $repo->countAdminEvents($tenantId, $action ?: null, $q ?: null);
+$events = $repo->searchAdminEvents($tenantId, $action ?: null, $q ?: null, $limit, $offset);
 
 // Action labels for admin events
 $actionLabels = [
@@ -116,11 +84,8 @@ foreach ($events as $e) {
 
 // Distinct action types for filter dropdown
 $actionTypes = [];
-$stmtActions = db()->prepare(
-    "SELECT DISTINCT action FROM audit_events WHERE tenant_id = ? AND (action LIKE 'admin.%' OR action LIKE 'admin\\_%') ORDER BY action"
-);
-$stmtActions->execute([$tenantId]);
-foreach ($stmtActions->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+$distinctActions = $repo->listDistinctAdminActions($tenantId);
+foreach ($distinctActions as $row) {
     $actionTypes[] = [
         'value' => $row['action'],
         'label' => $actionLabels[$row['action']] ?? $row['action'],

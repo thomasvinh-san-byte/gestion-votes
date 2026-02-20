@@ -50,12 +50,14 @@ try {
         $voteRows = $ballotRepo->listVotesExportForMeeting($meetingId);
     }
 
-    // Génération du fichier
-    $filename = ExportService::generateFilename('complet', $mt['title'] ?? '', 'xlsx');
-    ExportService::initXlsxOutput($filename);
+    $export = new ExportService();
 
-    $spreadsheet = ExportService::createFullExportSpreadsheet($mt, $attendanceRows, $motionRows, $voteRows);
-    ExportService::outputSpreadsheet($spreadsheet);
+    // Génération du fichier
+    $filename = $export->generateFilename('complet', $mt['title'] ?? '', 'xlsx');
+    $export->initXlsxOutput($filename);
+
+    $spreadsheet = $export->createFullExportSpreadsheet($mt, $attendanceRows, $motionRows, $voteRows);
+    $export->outputSpreadsheet($spreadsheet);
 } catch (Throwable $e) {
     error_log('Error in export_full_xlsx.php: ' . $e->getMessage());
     api_fail('server_error', 500, ['detail' => $e->getMessage()]);

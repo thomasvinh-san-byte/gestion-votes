@@ -16,6 +16,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\WebSocket\EventBroadcaster;
 
@@ -45,12 +46,9 @@ try {
     }
 
     // Guard: check validated status BEFORE continuing transaction
-    // api_guard calls api_fail() which exits, so check manually
     $meetingId = $motion['meeting_id'];
-    $mt = db()->prepare("SELECT validated_at FROM meetings WHERE tenant_id = :tid AND id = :mid");
-    $mt->execute([':tid' => $tenantId, ':mid' => $meetingId]);
-    $mtRow = $mt->fetch(\PDO::FETCH_ASSOC);
-    if ($mtRow && !empty($mtRow['validated_at'])) {
+    $meetingRepo = new MeetingRepository();
+    if ($meetingRepo->isValidated($meetingId, $tenantId)) {
         db()->rollBack();
         api_fail('meeting_validated', 409, [
             'detail' => 'Séance validée : modification interdite (séance figée).'
@@ -84,10 +82,7 @@ try {
     }
 
     // Delete the ballot
-    $stmt = db()->prepare(
-        "DELETE FROM ballots WHERE motion_id = :mid AND member_id = :mem"
-    );
-    $stmt->execute([':mid' => $motionId, ':mem' => $memberId]);
+    $ballotRepo->deleteByMotionAndMember($motionId, $memberId);
 
     db()->commit();
 

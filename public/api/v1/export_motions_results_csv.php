@@ -30,21 +30,23 @@ if (!$mt) api_fail('meeting_not_found', 404);
 if (empty($mt['validated_at'])) api_fail('meeting_not_validated', 409);
 
 try {
-    // Génération du fichier
-    $filename = ExportService::generateFilename('resultats', $mt['title'] ?? '');
-    ExportService::initCsvOutput($filename);
+    $export = new ExportService();
 
-    $out = ExportService::openCsvOutput();
+    // Génération du fichier
+    $filename = $export->generateFilename('resultats', $mt['title'] ?? '');
+    $export->initCsvOutput($filename);
+
+    $out = $export->openCsvOutput();
 
     // En-têtes français
-    ExportService::writeCsvRow($out, ExportService::getMotionResultsHeaders());
+    $export->writeCsvRow($out, $export->getMotionResultsHeaders());
 
     // Données formatées
     $motionRepo = new MotionRepository();
     $rows = $motionRepo->listResultsExportForMeeting($meetingId);
 
     foreach ($rows as $r) {
-        ExportService::writeCsvRow($out, ExportService::formatMotionResultRow($r));
+        $export->writeCsvRow($out, $export->formatMotionResultRow($r));
     }
 
     fclose($out);

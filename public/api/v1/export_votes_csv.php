@@ -43,14 +43,16 @@ if (empty($mt['validated_at'])) {
 }
 
 try {
-    // Génération du fichier
-    $filename = ExportService::generateFilename('votes', $mt['title'] ?? '');
-    ExportService::initCsvOutput($filename);
+    $export = new ExportService();
 
-    $out = ExportService::openCsvOutput();
+    // Génération du fichier
+    $filename = $export->generateFilename('votes', $mt['title'] ?? '');
+    $export->initCsvOutput($filename);
+
+    $out = $export->openCsvOutput();
 
     // En-têtes français
-    ExportService::writeCsvRow($out, ExportService::getVotesHeaders());
+    $export->writeCsvRow($out, $export->getVotesHeaders());
 
     // Données formatées
     $ballotRepo = new BallotRepository();
@@ -59,7 +61,7 @@ try {
     foreach ($rows as $r) {
         // Ignorer les lignes sans votant (motions sans votes)
         if (empty($r['voter_name'])) continue;
-        ExportService::writeCsvRow($out, ExportService::formatVoteRow($r));
+        $export->writeCsvRow($out, $export->formatVoteRow($r));
     }
 
     fclose($out);

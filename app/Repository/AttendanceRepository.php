@@ -157,6 +157,20 @@ class AttendanceRepository extends AbstractRepository
     }
 
     /**
+     * Compte les presences par modes donnes (sans filtre checked_out).
+     * Utilise par motions_close pour le compte d'eligibles post-cloture.
+     */
+    public function countByModes(string $meetingId, string $tenantId, array $modes): int
+    {
+        $ph = implode(',', array_fill(0, count($modes), '?'));
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM attendances
+             WHERE meeting_id = ? AND tenant_id = ? AND mode IN ($ph)",
+            array_merge([$meetingId, $tenantId], $modes)
+        ) ?? 0);
+    }
+
+    /**
      * Compte les membres presents ou distants (pour workflow validation).
      */
     public function countPresentOrRemote(string $meetingId, string $tenantId): int
