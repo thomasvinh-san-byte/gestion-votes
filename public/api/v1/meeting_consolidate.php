@@ -1,20 +1,4 @@
 <?php
 declare(strict_types=1);
-
 require __DIR__ . '/../../../app/api.php';
-
-use AgVote\Service\OfficialResultsService;
-
-api_require_role('auditor');
-
-$body = api_request('POST');
-$meetingId = trim((string)($body['meeting_id'] ?? ''));
-if ($meetingId === '') api_fail('missing_meeting_id', 400);
-
-try {
-    $r = OfficialResultsService::consolidateMeeting($meetingId);
-    api_ok(['updated_motions' => $r['updated']]);
-} catch (Throwable $e) {
-    error_log('meeting_consolidate.php: ' . $e->getMessage());
-    api_fail('consolidate_failed', 500, ['detail' => $e->getMessage()]);
-}
+(new \AgVote\Controller\MeetingWorkflowController())->handle('consolidate');

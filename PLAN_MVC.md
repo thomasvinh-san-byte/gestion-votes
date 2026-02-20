@@ -16,9 +16,16 @@
 | AbstractController | — | ✅ 28 lignes |
 | SpeechController | 9 fichiers, ~290 LOC | ✅ 1 contrôleur, 170 LOC, -121 net |
 | ExportController | 9 fichiers, ~570 LOC | ✅ 1 contrôleur, 195 LOC, -513 net |
-| **Total consolidé** | **18 endpoints** | **-634 lignes** |
+| DevicesController | 5 fichiers, ~200 LOC | ✅ 1 contrôleur, -150 net |
+| PoliciesController | 4 fichiers, ~350 LOC | ✅ 1 contrôleur, -150 net |
+| InvitationsController | 4 fichiers, ~180 LOC | ✅ 1 contrôleur, -150 net |
+| AttendancesController | 4 fichiers, ~260 LOC | ✅ 1 contrôleur |
+| ProxiesController | 3 fichiers, ~175 LOC | ✅ 1 contrôleur (fix bug $e) |
+| BallotsController | 7 fichiers, ~350 LOC | ✅ 1 contrôleur |
+| MotionsController | 7 fichiers, ~530 LOC | ✅ 1 contrôleur |
+| **Total consolidé** | **52 endpoints** | **-1084 lignes** |
 
-Reste : **124 fichiers** non consolidés.
+Reste : **~90 fichiers** non consolidés (dont 22 autonomes).
 
 ---
 
@@ -211,9 +218,9 @@ Ces fichiers bénéficient déjà de `api_request()`, `api_fail()`, `audit_log()
 
 | Batch | Contrôleurs | Endpoints | Gain estimé |
 |---|---|---|---|
-| ✅ Fait | 2 | 18 | -634 LOC |
-| A. Simples | 3 | 13 | ~-330 LOC |
-| B. Métier | 4 | 22 | ~-530 LOC |
+| ✅ Pilotes | 2 | 18 | -634 LOC |
+| ✅ A. Simples | 3 | 13 | -150 LOC |
+| ✅ B. Métier | 4 | 21 | -227 LOC |
 | C. Admin/Audit | 3 | 13 | ~-350 LOC |
 | D. Meetings | 3 | 19 | ~-400 LOC |
 | E. Restants | 4 | 15 | ~-300 LOC |
