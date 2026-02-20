@@ -9,7 +9,7 @@ use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\PolicyRepository;
 
-class TrustController extends AbstractController
+final class TrustController extends AbstractController
 {
     public function anomalies(): void
     {

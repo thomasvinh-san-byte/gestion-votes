@@ -10,7 +10,7 @@ use AgVote\Repository\MemberRepository;
 use AgVote\Repository\InvitationRepository;
 use AgVote\Service\MailerService;
 
-class EmailController extends AbstractController
+final class EmailController extends AbstractController
 {
     public function preview(): void
     {

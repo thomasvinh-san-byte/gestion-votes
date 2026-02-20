@@ -8,7 +8,7 @@ use AgVote\Repository\AnalyticsRepository;
 use AgVote\Repository\AggregateReportRepository;
 use AgVote\Service\ExportService;
 
-class AnalyticsController extends AbstractController
+final class AnalyticsController extends AbstractController
 {
     public function analytics(): void
     {

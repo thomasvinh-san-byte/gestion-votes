@@ -10,7 +10,7 @@ use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\ProxyRepository;
 use AgVote\Service\ImportService;
 
-class ImportController extends AbstractController
+final class ImportController extends AbstractController
 {
     public function membersCsv(): void
     {
