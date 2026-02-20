@@ -10,15 +10,14 @@ use AgVote\Core\Validation\Schemas\ValidationSchemas;
 
 api_require_role('operator');
 
-header('Content-Type: application/json; charset=utf-8');
-
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$data = api_request('GET', 'POST');
+$method = api_method();
 $repo = new MeetingRepository();
 
 try {
     if ($method === 'GET') {
         // Single meeting by id
-        $singleId = trim($_GET['id'] ?? '');
+        $singleId = trim($data['id'] ?? '');
         if ($singleId !== '') {
             $meeting = $repo->findByIdForTenant($singleId, api_current_tenant_id());
             if (!$meeting) {
@@ -27,7 +26,7 @@ try {
             api_ok($meeting);
         }
         // List meetings - filter by active_only if requested
-        $activeOnly = filter_var($_GET['active_only'] ?? '0', FILTER_VALIDATE_BOOLEAN);
+        $activeOnly = filter_var($data['active_only'] ?? '0', FILTER_VALIDATE_BOOLEAN);
         if ($activeOnly) {
             $rows = $repo->listActiveByTenant(api_current_tenant_id());
         } else {
@@ -36,12 +35,7 @@ try {
         api_ok(['meetings' => $rows]);
 
     } elseif ($method === 'POST') {
-        $input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
-        if (!is_array($input)) {
-            $input = $_POST;
-        }
-
-        $v = ValidationSchemas::meeting()->validate($input);
+        $v = ValidationSchemas::meeting()->validate($data);
         $v->failIfInvalid();
 
         $title       = $v->get('title');
@@ -83,8 +77,6 @@ try {
             'title'      => $title,
         ], 201);
 
-    } else {
-        api_fail('method_not_allowed', 405);
     }
 
 } catch (Throwable $e) {

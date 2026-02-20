@@ -326,12 +326,12 @@ final class OfficialResultsService
 
         // EVOTE: totals from ballots + decision from VoteEngine
         $ballotRepo = new BallotRepository();
-        $rows = $ballotRepo->weightedTally($motionId);
+        $t = $ballotRepo->tally($motionId);
 
-        $forW = (float)$rows['w_for'];
-        $agW  = (float)$rows['w_against'];
-        $abW  = (float)$rows['w_abstain'];
-        $totW = (float)$rows['w_total'];
+        $forW = (float)$t['weight_for'];
+        $agW  = (float)$t['weight_against'];
+        $abW  = (float)$t['weight_abstain'];
+        $totW = (float)$t['weight_total'];
 
         $r = VoteEngine::computeMotionResult($motionId);
         $status = (string)($r['decision']['status'] ?? (($forW > $agW) ? 'adopted' : 'rejected'));

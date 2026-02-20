@@ -14,12 +14,7 @@ use AgVote\Service\NotificationsService;
 
 api_require_role(['operator','auditor']);
 
-if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-    api_fail('method_not_allowed', 405);
-}
-
-$input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
-if (!is_array($input)) $input = $_POST;
+$input = api_request('POST');
 
 $motionId = trim((string)($input['motion_id'] ?? ''));
 if ($motionId === '') api_fail('missing_motion_id', 422);

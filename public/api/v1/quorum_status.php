@@ -5,9 +5,7 @@ use AgVote\Service\QuorumEngine;
 
 api_require_role('operator');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    api_fail('method_not_allowed', 405);
-}
+api_request('GET');
 
 $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
 $motionId  = trim((string)($_GET['motion_id'] ?? ''));

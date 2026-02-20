@@ -5,6 +5,7 @@ namespace AgVote\Service;
 
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MemberRepository;
 use AgVote\WebSocket\EventBroadcaster;
 use InvalidArgumentException;
 use RuntimeException;
@@ -124,7 +125,7 @@ final class AttendancesService
         }
 
         // Load member + voting power
-        $member = MembersService::getMember($memberId, $tenantId);
+        $member = (new MemberRepository())->findByIdForTenant($memberId, $tenantId);
         if (!$member) {
             throw new RuntimeException('Membre hors tenant');
         }

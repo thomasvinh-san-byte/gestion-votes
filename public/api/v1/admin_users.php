@@ -13,7 +13,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\UserRepository;
 
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$method = api_method();
 
 // GET: operators can list users (needed for meeting role assignment)
 // POST: admin only (create, update, toggle, etc.)

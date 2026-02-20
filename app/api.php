@@ -10,8 +10,6 @@ declare(strict_types=1);
 
 require __DIR__ . '/bootstrap.php';
 
-use AgVote\Core\Validation\InputValidator;
-
 // =============================================================================
 // CACHE php://input (can only be read once)
 // Both CSRF middleware and api_request() need it.
@@ -24,14 +22,14 @@ if (!isset($GLOBALS['__ag_vote_raw_body'])) {
 // API FUNCTIONS - JSON RESPONSES
 // =============================================================================
 
-function json_ok(array $data = [], int $code = 200): never {
+function api_ok(array $data = [], int $code = 200): never {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['ok' => true, 'data' => $data], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-function json_err(string $error, int $code = 400, array $extra = []): never {
+function api_fail(string $error, int $code = 400, array $extra = []): never {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
 
@@ -47,14 +45,6 @@ function json_err(string $error, int $code = 400, array $extra = []): never {
     exit;
 }
 
-function api_ok(array $data = [], int $code = 200): never {
-    json_ok($data, $code);
-}
-
-function api_fail(string $error, int $code = 400, array $extra = []): never {
-    json_err($error, $code, $extra);
-}
-
 // =============================================================================
 // API FUNCTIONS - VALIDATION
 // =============================================================================
@@ -66,37 +56,10 @@ function api_is_uuid(string $v): bool {
     );
 }
 
-/**
- * Checks if a string looks like a slug (non-UUID, alphanumeric with hyphens).
- */
-function api_is_slug(string $v): bool {
-    return (bool)preg_match('/^[a-zA-Z0-9][a-zA-Z0-9-]{2,48}[a-zA-Z0-9]$/', $v)
-        && !api_is_uuid($v);
-}
-
-/**
- * Checks if a string is a valid identifier (UUID or slug).
- */
-function api_is_identifier(string $v): bool {
-    return api_is_uuid($v) || api_is_slug($v);
-}
-
 function api_require_uuid(array $in, string $key): string {
     $v = trim((string)($in[$key] ?? ''));
     if ($v === '' || !api_is_uuid($v)) {
         api_fail('missing_or_invalid_uuid', 400, ['field' => $key, 'expected' => 'uuid']);
-    }
-    return $v;
-}
-
-/**
- * Requires an identifier (UUID or slug) in input data.
- * Allows URL obfuscation while supporting legacy UUIDs.
- */
-function api_require_identifier(array $in, string $key): string {
-    $v = trim((string)($in[$key] ?? ''));
-    if ($v === '' || !api_is_identifier($v)) {
-        api_fail('missing_or_invalid_identifier', 400, ['field' => $key, 'expected' => 'uuid ou slug']);
     }
     return $v;
 }
@@ -129,40 +92,30 @@ function api_require_role(string|array $roles): void {
     AuthMiddleware::requireRole($roles);
 }
 
-/**
- * Alias for backward compatibility
- */
-function require_role(string $role): void {
-    api_require_role($role);
-}
-
-/**
- * Alias for backward compatibility
- */
-function require_any_role(array $roles): void {
-    api_require_role($roles);
-}
-
-/**
- * Alias api_require_any_role -> api_require_role (accepts array)
- */
-function api_require_any_role(string|array $roles): void {
-    api_require_role($roles);
-}
-
 // =============================================================================
 // API FUNCTIONS - REQUEST PARSING
 // =============================================================================
 
 /**
- * Parse and validate incoming request
+ * Returns the current HTTP method (uppercase).
  */
-function api_request(string $expectedMethod = 'GET'): array {
-    $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+function api_method(): string {
+    return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+}
 
-    if ($method !== strtoupper($expectedMethod)) {
+/**
+ * Parse and validate incoming request.
+ * Accepts one or more allowed methods: api_request('GET'), api_request('GET', 'POST').
+ * Defaults to GET if no method specified.
+ */
+function api_request(string ...$methods): array {
+    $method = api_method();
+
+    $allowed = !empty($methods) ? array_map('strtoupper', $methods) : ['GET'];
+
+    if (!in_array($method, $allowed, true)) {
         api_fail('method_not_allowed', 405, [
-            'detail' => "Méthode {$method} non autorisée, {$expectedMethod} attendu."
+            'detail' => "Méthode {$method} non autorisée, " . implode('/', $allowed) . " attendu."
         ]);
     }
 
@@ -254,28 +207,6 @@ function api_rate_limit(string $context, int $maxAttempts = 100, int $windowSeco
 }
 
 // =============================================================================
-// API FUNCTIONS - ADVANCED VALIDATION
-// =============================================================================
-
-/**
- * Creates a validator for inputs
- */
-function api_validator(): InputValidator {
-    return InputValidator::schema();
-}
-
-/**
- * Validates inputs and fails if invalid
- */
-function api_validate(array $input, InputValidator $validator): array {
-    $result = $validator->validate($input);
-    if (!$result->isValid()) {
-        api_fail('validation_failed', 422, ['errors' => $result->errors()]);
-    }
-    return $result->data();
-}
-
-// =============================================================================
 // API FUNCTIONS - TRANSACTIONS
 // =============================================================================
 
@@ -300,33 +231,3 @@ function api_transaction(callable $fn): mixed {
     }
 }
 
-/**
- * Execute endpoint logic with standardized error handling.
- * Catches exceptions and returns appropriate API errors.
- *
- * @param callable $fn Function containing endpoint logic
- */
-function api_handle(callable $fn): void {
-    try {
-        $fn();
-    } catch (\InvalidArgumentException $e) {
-        api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);
-    } catch (\RuntimeException $e) {
-        api_fail('business_error', 400, ['detail' => $e->getMessage()]);
-    } catch (\Throwable $e) {
-        error_log("API Error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-        api_fail('internal_error', 500);
-    }
-}
-
-/**
- * Execute endpoint logic within a transaction with error handling.
- * Combines api_transaction() and api_handle().
- *
- * @param callable $fn Function containing endpoint logic
- */
-function api_transactional(callable $fn): void {
-    api_handle(function() use ($fn) {
-        api_transaction($fn);
-    });
-}

@@ -9,14 +9,14 @@
 
 services:
   # ---------------------------------------------------------------------------
-  # Application : Nginx + PHP-FPM + WebSocket (supervisord)
+  # Application : Nginx + PHP-FPM (supervisord)
   # ---------------------------------------------------------------------------
   app:
     build: .
     container_name: agvote-app
     restart: unless-stopped
     ports:
-      - "0.0.0.0:${APP_PORT:-8080}:8080"     # HTTP + WebSocket (via nginx proxy)
+      - "0.0.0.0:${APP_PORT:-8080}:8080"     # HTTP
     env_file:
       - path: .env
         required: false

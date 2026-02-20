@@ -35,9 +35,7 @@ api_rate_limit('csv_import', 10, 3600);
 api_require_role(['operator', 'admin']);
 
 // POST uniquement
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    api_fail('method_not_allowed', 405);
-}
+api_request('POST');
 
 // =============================================================================
 // VALIDATION FICHIER OU CONTENU CSV

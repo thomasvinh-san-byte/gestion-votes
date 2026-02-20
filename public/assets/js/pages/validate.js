@@ -282,13 +282,11 @@
 
     document.getElementById('btnRecheck').addEventListener('click', loadChecks);
 
-    // Interrogation périodique (actualisation auto 5s pour vérifications et résumé, désactivée quand WebSocket connecté)
+    // Interrogation périodique (actualisation auto 5s)
     let pollingInterval = null;
     function startPolling() {
       if (pollingInterval) return;
       pollingInterval = setInterval(() => {
-        // Ignorer l'interrogation si le WebSocket est connecté et authentifié
-        if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
         if (!document.hidden && currentMeetingId) {
           loadSummary();
           loadChecks();

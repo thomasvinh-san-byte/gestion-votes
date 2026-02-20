@@ -83,7 +83,13 @@ if ($meetingId !== '') {
     $data['current_motion'] = $motionData ?: null;
 
     // votes (poids) sur la motion en cours
-    $data['current_motion_votes'] = $ballotRepo->dashboardTally($tenantId, $meetingId, $currentMotionId);
+    $t = $ballotRepo->tally($currentMotionId);
+    $data['current_motion_votes'] = [
+        'ballots_count'  => (int)$t['total_ballots'],
+        'weight_for'     => (int)$t['weight_for'],
+        'weight_against' => (int)$t['weight_against'],
+        'weight_abstain' => (int)$t['weight_abstain'],
+    ];
   }
 
   // openable motions

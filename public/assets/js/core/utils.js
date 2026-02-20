@@ -80,22 +80,6 @@ window.Utils = window.Utils || {};
     return response.json();
   };
 
-  Utils.apiDelete = async function(url, options = {}) {
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: buildHeaders(options.headers || {}),
-      credentials: 'same-origin',
-      ...options,
-    });
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'network_error' }));
-      throw new Error(error.error || 'request_failed');
-    }
-    
-    return response.json();
-  };
-
   // ==========================================================================
   // EXISTING HELPERS (preserved)
   // ==========================================================================
@@ -350,27 +334,6 @@ window.Utils = window.Utils || {};
   // ==========================================================================
 
   /**
-   * Show toast notification using unified AgToast system
-   */
-  Utils.toast = function(type, message, duration = 5000) {
-    // Normalize type
-    const normalizedType = (type === 'danger') ? 'error' : type;
-
-    // Use AgToast directly if available
-    if (typeof AgToast !== 'undefined' && AgToast.show) {
-      AgToast.show(normalizedType, message, duration);
-      return;
-    }
-
-    // Fallback to setNotif
-    if (typeof setNotif === 'function') {
-      setNotif(type, message, duration);
-    } else {
-      console[type === 'error' ? 'error' : 'log']('[toast]', message);
-    }
-  };
-
-  /**
    * Get meeting ID from URL or data attributes
    */
   Utils.getMeetingId = function() {
@@ -425,55 +388,6 @@ window.Utils = window.Utils || {};
     // RFC 5322 compliant regex (simplified)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email.trim());
-  };
-
-  /**
-   * Validate email and return error message if invalid
-   * @param {string} email - Email to validate
-   * @returns {{valid: boolean, error?: string}}
-   */
-  Utils.validateEmail = function(email) {
-    if (!email || email.trim() === '') {
-      return { valid: true }; // Empty is valid (not required)
-    }
-    if (!Utils.isValidEmail(email)) {
-      return { valid: false, error: 'Invalid email format' };
-    }
-    return { valid: true };
-  };
-
-  /**
-   * Add validation feedback to email input
-   * @param {HTMLInputElement} input - Email input element
-   */
-  Utils.setupEmailValidation = function(input) {
-    if (!input) return;
-
-    const validate = () => {
-      const result = Utils.validateEmail(input.value);
-      input.classList.toggle('is-invalid', !result.valid);
-      input.classList.toggle('is-valid', result.valid && input.value.trim() !== '');
-
-      // Update or create error message
-      let errorEl = input.parentElement?.querySelector('.validation-error');
-      if (!result.valid) {
-        if (!errorEl) {
-          errorEl = document.createElement('div');
-          errorEl.className = 'validation-error text-sm text-danger mt-1';
-          input.parentElement?.appendChild(errorEl);
-        }
-        errorEl.textContent = result.error;
-      } else if (errorEl) {
-        errorEl.remove();
-      }
-
-      return result.valid;
-    };
-
-    input.addEventListener('blur', validate);
-    input.addEventListener('input', Utils.debounce(validate, 500));
-
-    return validate;
   };
 
   // ==========================================================================

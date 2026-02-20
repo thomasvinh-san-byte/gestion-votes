@@ -17,7 +17,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\EmailTemplateRepository;
 use AgVote\Service\EmailTemplateService;
 
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$method = api_method();
 $repo = new EmailTemplateRepository();
 $service = new EmailTemplateService($config ?? []);
 $tenantId = api_current_tenant_id();

@@ -10,7 +10,8 @@ use AgVote\Core\Validation\Schemas\ValidationSchemas;
 
 api_require_role('operator');
 
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$data = api_request('GET', 'POST', 'PATCH', 'PUT', 'DELETE');
+$method = api_method();
 $repo = new MemberRepository();
 $tenantId = api_current_tenant_id();
 
@@ -20,7 +21,7 @@ try {
         $members = $repo->listAll($tenantId);
 
         // Include groups if requested
-        $includeGroups = isset($_GET['include_groups']) && $_GET['include_groups'];
+        $includeGroups = isset($data['include_groups']) && $data['include_groups'];
         if ($includeGroups) {
             $groupRepo = new MemberGroupRepository();
             foreach ($members as &$member) {
@@ -31,8 +32,7 @@ try {
         api_ok(['members' => $members]);
 
     } elseif ($method === 'POST') {
-        $input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
-        if (!is_array($input)) $input = $_POST;
+        $input = $data;
 
         // Normalize legacy field name
         if (isset($input['vote_weight']) && !isset($input['voting_power'])) {
@@ -55,9 +55,7 @@ try {
         api_ok(['member_id' => $id, 'full_name' => $full_name], 201);
 
     } elseif ($method === 'PATCH' || $method === 'PUT') {
-        $input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
-        if (!is_array($input)) $input = $_POST;
-
+        $input = $data;
         $id = trim($input['id'] ?? $input['member_id'] ?? '');
         if ($id === '' || !api_is_uuid($id)) {
             api_fail('missing_member_id', 422, ['detail' => 'ID membre requis.']);
@@ -88,9 +86,7 @@ try {
         api_ok(['member_id' => $id, 'full_name' => $full_name]);
 
     } elseif ($method === 'DELETE') {
-        $input = json_decode($GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input'), true);
-        if (!is_array($input)) $input = $_GET;
-
+        $input = $data;
         $id = trim($input['id'] ?? $input['member_id'] ?? '');
         if ($id === '' || !api_is_uuid($id)) {
             api_fail('missing_member_id', 422, ['detail' => 'ID membre requis.']);
@@ -107,8 +103,6 @@ try {
 
         api_ok(['member_id' => $id, 'deleted' => true]);
 
-    } else {
-        api_fail('method_not_allowed', 405);
     }
 } catch (\PDOException $e) {
     error_log('DB error in members.php: ' . $e->getMessage());

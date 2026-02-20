@@ -11,7 +11,7 @@ require __DIR__ . '/../../../app/api.php';
 use AgVote\Repository\UserRepository;
 use AgVote\Repository\MeetingRepository;
 
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$method = api_method();
 api_require_role(['admin', 'operator']);
 
 $validMeetingRoles = ['president', 'assessor', 'voter'];
