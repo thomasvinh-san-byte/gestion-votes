@@ -932,30 +932,6 @@ class MeetingRepository extends AbstractRepository
         );
     }
 
-    /**
-     * Compte les audit_events d'un tenant.
-     */
-    public function countAuditEventsForTenant(string $tenantId): ?int
-    {
-        try {
-            return (int)($this->scalar(
-                "SELECT COUNT(*) FROM audit_events WHERE tenant_id = :tid",
-                [':tid' => $tenantId]
-            ) ?? 0);
-        } catch (\Throwable $e) { return null; }
-    }
-
-    /**
-     * Compte les echecs d'authentification recents (15 min).
-     */
-    public function countRecentAuthFailures(): ?int
-    {
-        try {
-            return (int)($this->scalar(
-                "SELECT COUNT(*) FROM auth_failures WHERE created_at > NOW() - INTERVAL '15 minutes'"
-            ) ?? 0);
-        } catch (\Throwable $e) { return null; }
-    }
 
     /**
      * Reinitialise les champs live d'une seance (reset demo).
@@ -983,66 +959,6 @@ class MeetingRepository extends AbstractRepository
         } catch (\Throwable $e) { /* table may not exist */ }
     }
 
-    /**
-     * Ping DB (SELECT 1).
-     */
-    public function ping(): bool
-    {
-        try {
-            $this->scalar("SELECT 1");
-            return true;
-        } catch (\Throwable $e) {
-            return false;
-        }
-    }
-
-    /**
-     * Nombre de connexions actives PostgreSQL.
-     */
-    public function activeConnections(): ?int
-    {
-        try {
-            return (int)$this->scalar("SELECT COUNT(*) FROM pg_stat_activity WHERE datname = current_database()");
-        } catch (\Throwable $e) { return null; }
-    }
-
-    /**
-     * Verifie si une alerte systeme recente existe.
-     */
-    public function findRecentAlert(string $code): bool
-    {
-        try {
-            return (bool)$this->scalar(
-                "SELECT 1 FROM system_alerts WHERE code = :c AND created_at > NOW() - INTERVAL '10 minutes' LIMIT 1",
-                [':c' => $code]
-            );
-        } catch (\Throwable $e) { return false; }
-    }
-
-    /**
-     * Cree une alerte systeme.
-     */
-    public function createSystemAlert(string $code, string $severity, string $message, ?string $detailsJson): void
-    {
-        try {
-            $this->execute(
-                "INSERT INTO system_alerts(code, severity, message, details_json, created_at) VALUES (:c,:s,:m,:d,NOW())",
-                [':c' => $code, ':s' => $severity, ':m' => $message, ':d' => $detailsJson]
-            );
-        } catch (\Throwable $e) { /* best-effort */ }
-    }
-
-    /**
-     * Liste les alertes systeme recentes.
-     */
-    public function listRecentAlerts(int $limit = 20): array
-    {
-        try {
-            return $this->selectAll(
-                "SELECT id, created_at, code, severity, message, details_json FROM system_alerts ORDER BY created_at DESC LIMIT " . max(1, $limit)
-            );
-        } catch (\Throwable $e) { return []; }
-    }
 
     /**
      * Upsert complet du rapport (HTML + SHA256 + generated_at).

@@ -54,23 +54,14 @@ final class VoteEngine
 
         // Aggregate ballots by value
         $ballotRepo = new BallotRepository();
-        $rows = $ballotRepo->tallyByMotion($motionId);
+        $t = $ballotRepo->tally($motionId);
 
         $tallies = [
-            'for'     => ['count' => 0, 'weight' => 0.0],
-            'against' => ['count' => 0, 'weight' => 0.0],
-            'abstain' => ['count' => 0, 'weight' => 0.0],
-            'nsp'     => ['count' => 0, 'weight' => 0.0],
+            'for'     => ['count' => (int)$t['count_for'],     'weight' => (float)$t['weight_for']],
+            'against' => ['count' => (int)$t['count_against'],  'weight' => (float)$t['weight_against']],
+            'abstain' => ['count' => (int)$t['count_abstain'],  'weight' => (float)$t['weight_abstain']],
+            'nsp'     => ['count' => (int)$t['count_nsp'],      'weight' => 0.0],
         ];
-
-        foreach ($rows as $row) {
-            $value = (string)$row['value'];
-            if (!isset($tallies[$value])) {
-                continue;
-            }
-            $tallies[$value]['count']  = (int)$row['count'];
-            $tallies[$value]['weight'] = (float)$row['weight'];
-        }
 
         $expressedMembers = $tallies['for']['count']
             + $tallies['against']['count']

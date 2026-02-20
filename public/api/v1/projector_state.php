@@ -10,9 +10,7 @@ use AgVote\Repository\MotionRepository;
 
 api_require_role('public');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    api_fail('method_not_allowed', 405);
-}
+api_request('GET');
 
 try {
     $meetingRepo = new MeetingRepository();

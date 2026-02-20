@@ -5,6 +5,7 @@ namespace AgVote\Service;
 
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MemberRepository;
 use AgVote\WebSocket\EventBroadcaster;
 use InvalidArgumentException;
 use RuntimeException;
@@ -68,7 +69,8 @@ if (!empty($context['meeting_validated_at'])) {
         $proxyVoterId = trim((string)($data['proxy_source_member_id'] ?? ''));
 
         // Load the represented member (the one whose vote is counted)
-        $member = MembersService::getMember($memberId, $tenantId);
+        $memberRepo = new MemberRepository();
+        $member = $memberRepo->findByIdForTenant($memberId, $tenantId);
         if (!$member) {
             throw new RuntimeException('Membre inconnu');
         }
@@ -95,7 +97,7 @@ if (!empty($context['meeting_validated_at'])) {
                 throw new InvalidArgumentException('proxy_source_member_id est obligatoire (UUID) pour un vote par procuration');
             }
 
-            $proxyVoter = MembersService::getMember($proxyVoterId, $tenantId);
+            $proxyVoter = $memberRepo->findByIdForTenant($proxyVoterId, $tenantId);
             if (!$proxyVoter) {
                 throw new RuntimeException('Mandataire inconnu');
             }
@@ -167,7 +169,7 @@ if (!empty($context['meeting_validated_at'])) {
 
         // Broadcast WebSocket event with updated tally (outside transaction)
         try {
-            $tally = $ballotRepo->getTallyForMotion($tenantId, $meetingId, $motionId);
+            $tally = $ballotRepo->tally($motionId);
             EventBroadcaster::voteCast($meetingId, $motionId, $tally);
         } catch (Throwable $e) {
             // Silently fail - don't break the vote if broadcast fails

@@ -9,9 +9,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../app/api.php';
 
-if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-    api_fail('method_not_allowed', 405);
-}
+api_request('GET');
 
 CsrfMiddleware::init();
 $token = CsrfMiddleware::getToken();

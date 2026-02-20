@@ -933,13 +933,11 @@
       })
       .catch((e) => notify("error", e?.message || String(e)));
 
-    // Poll current motion (disabled when WebSocket is connected)
+    // Poll current motion every 3s
     const _motionPollTimer = setInterval(()=>{
-      // Skip polling if WebSocket is connected and authenticated
-      if (typeof AgVoteWebSocket !== 'undefined' && window._wsClient?.isRealTime) return;
       if (!document.hidden) refresh().catch(()=>{});
     }, 3000);
-    // Heartbeat always runs (separate from WebSocket heartbeat interval)
+    // Heartbeat every 15s
     const _heartbeatTimer = setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
 
     // Cleanup on page unload to prevent memory leaks

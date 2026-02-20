@@ -6,9 +6,7 @@ require __DIR__ . '/../../../app/api.php';
 
 use AgVote\Repository\MeetingRepository;
 
-if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-    api_fail('method_not_allowed', 405);
-}
+api_request('GET');
 
 api_require_role('auditor');
 

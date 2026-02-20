@@ -9,9 +9,7 @@ use AgVote\Repository\AnalyticsRepository;
 
 api_require_role('operator');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    api_fail('method_not_allowed', 405);
-}
+api_request('GET');
 
 $tenantId = api_current_tenant_id();
 $type = trim($_GET['type'] ?? 'overview');

@@ -8,9 +8,7 @@ use AgVote\Repository\MeetingRepository;
 
 api_require_role('operator');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    api_fail('method_not_allowed', 405);
-}
+api_request('GET');
 
 $from = trim($_GET['from'] ?? '');
 $to   = trim($_GET['to']   ?? '');

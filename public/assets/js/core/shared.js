@@ -90,18 +90,6 @@
   // =========================================================================
 
   /**
-   * Get initials from a full name (max 2 chars).
-   */
-  function getInitials(name) {
-    return (name || '?')
-      .split(' ')
-      .map(function (w) { return w.charAt(0); })
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
-  }
-
-  /**
    * Set a button's loading state with spinner + disabled + aria-busy.
    * @param {HTMLButtonElement} btn
    * @param {boolean} loading
@@ -221,31 +209,6 @@
   }
 
   // =========================================================================
-  // SKELETON LOADING
-  // =========================================================================
-
-  /**
-   * Render skeleton loading rows inside a container.
-   * @param {HTMLElement} container - Target element to fill
-   * @param {number} [rows=4] - Number of skeleton rows
-   * @param {number} [cols=3] - Number of cells per row
-   */
-  function skeletonTable(container, rows, cols) {
-    if (!container) return;
-    rows = rows || 4;
-    cols = cols || 3;
-    var html = '';
-    for (var r = 0; r < rows; r++) {
-      html += '<div class="skeleton-row">';
-      for (var c = 0; c < cols; c++) {
-        html += '<div class="skeleton skeleton-cell"></div>';
-      }
-      html += '</div>';
-    }
-    container.innerHTML = html;
-  }
-
-  // =========================================================================
   // SHOW / HIDE UTILITIES
   // =========================================================================
 
@@ -302,22 +265,6 @@
   }
 
   // =========================================================================
-  // TOAST HELPER
-  // =========================================================================
-
-  /**
-   * Show a toast notification (delegates to AgToast web component).
-   * @param {string} type - 'success' | 'error' | 'warning' | 'info'
-   * @param {string} message - Message to display
-   * @param {number} [duration=5000] - Auto-dismiss duration in ms
-   */
-  function toast(type, message, duration) {
-    if (typeof AgToast !== 'undefined' && AgToast.show) {
-      return AgToast.show(type, message, duration !== undefined ? duration : 5000);
-    }
-  }
-
-  // =========================================================================
   // NUMBER FORMATTING HELPERS
   // =========================================================================
 
@@ -352,14 +299,11 @@
     ROLE_LABELS_MEETING: ROLE_LABELS_MEETING,
     ROLE_LABELS_ALL: ROLE_LABELS_ALL,
     MEETING_STATUS_MAP: MEETING_STATUS_MAP,
-    getInitials: getInitials,
     btnLoading: btnLoading,
     openModal: openModal,
     show: show,
     hide: hide,
-    skeletonTable: skeletonTable,
     emptyState: emptyState,
-    toast: toast,
     formatWeight: formatWeight,
     formatPct: formatPct
   };

@@ -22,7 +22,6 @@ if (PHP_SAPI === 'cli' && !isset($_SERVER['REQUEST_METHOD'])) {
 
 require __DIR__ . '/../app/bootstrap.php';
 
-use AgVote\Service\MembersService;
 use AgVote\Service\BallotsService;
 use AgVote\Service\VoteEngine;
 

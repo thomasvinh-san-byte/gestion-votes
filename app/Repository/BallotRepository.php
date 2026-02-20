@@ -23,56 +23,9 @@ class BallotRepository extends AbstractRepository
     }
 
     /**
-     * Tally par valeur (for/against/abstain/nsp) pour une motion.
+     * Tally complet pour une motion : comptages et poids par choix.
      */
-    public function tallyByMotion(string $motionId): array
-    {
-        return $this->selectAll(
-            "SELECT value, COUNT(*) AS count, COALESCE(SUM(weight), 0) AS weight
-             FROM ballots WHERE motion_id = :mid GROUP BY value",
-            [':mid' => $motionId]
-        );
-    }
-
-    /**
-     * Tally pondere agrege (for/against/abstain/total) pour OfficialResultsService.
-     */
-    public function weightedTally(string $motionId): array
-    {
-        $row = $this->selectOne(
-            "SELECT
-               COALESCE(SUM(CASE WHEN COALESCE(value::text, choice) = 'for' THEN COALESCE(weight, effective_power, 0) ELSE 0 END), 0) AS w_for,
-               COALESCE(SUM(CASE WHEN COALESCE(value::text, choice) = 'against' THEN COALESCE(weight, effective_power, 0) ELSE 0 END), 0) AS w_against,
-               COALESCE(SUM(CASE WHEN COALESCE(value::text, choice) = 'abstain' THEN COALESCE(weight, effective_power, 0) ELSE 0 END), 0) AS w_abstain,
-               COALESCE(SUM(COALESCE(weight, effective_power, 0)), 0) AS w_total
-             FROM ballots WHERE motion_id = :mid",
-            [':mid' => $motionId]
-        );
-        return $row ?: ['w_for' => 0, 'w_against' => 0, 'w_abstain' => 0, 'w_total' => 0];
-    }
-
-    /**
-     * Tally pondere pour le dashboard (for/against/abstain + ballots_count).
-     */
-    public function dashboardTally(string $tenantId, string $meetingId, string $motionId): array
-    {
-        $row = $this->selectOne(
-            "SELECT
-                COUNT(*)::int AS ballots_count,
-                COALESCE(SUM(CASE WHEN COALESCE(value::text, choice)='for' THEN weight ELSE 0 END),0)::int AS weight_for,
-                COALESCE(SUM(CASE WHEN COALESCE(value::text, choice)='against' THEN weight ELSE 0 END),0)::int AS weight_against,
-                COALESCE(SUM(CASE WHEN COALESCE(value::text, choice)='abstain' THEN weight ELSE 0 END),0)::int AS weight_abstain
-             FROM ballots
-             WHERE tenant_id = :tid AND meeting_id = :mid AND motion_id = :moid",
-            [':tid' => $tenantId, ':mid' => $meetingId, ':moid' => $motionId]
-        );
-        return $row ?: ['ballots_count' => 0, 'weight_for' => 0, 'weight_against' => 0, 'weight_abstain' => 0];
-    }
-
-    /**
-     * Tally en temps reel pour WebSocket broadcast.
-     */
-    public function getTallyForMotion(string $tenantId, string $meetingId, string $motionId): array
+    public function tally(string $motionId): array
     {
         $row = $this->selectOne(
             "SELECT
@@ -81,41 +34,18 @@ class BallotRepository extends AbstractRepository
                 COUNT(*) FILTER (WHERE COALESCE(value::text, choice) = 'against')::int AS count_against,
                 COUNT(*) FILTER (WHERE COALESCE(value::text, choice) = 'abstain')::int AS count_abstain,
                 COUNT(*) FILTER (WHERE COALESCE(value::text, choice) = 'nsp')::int AS count_nsp,
-                COALESCE(SUM(weight) FILTER (WHERE COALESCE(value::text, choice) = 'for'), 0)::float8 AS weight_for,
-                COALESCE(SUM(weight) FILTER (WHERE COALESCE(value::text, choice) = 'against'), 0)::float8 AS weight_against,
-                COALESCE(SUM(weight) FILTER (WHERE COALESCE(value::text, choice) = 'abstain'), 0)::float8 AS weight_abstain,
-                COALESCE(SUM(weight), 0)::float8 AS weight_total
-             FROM ballots
-             WHERE tenant_id = :tid AND meeting_id = :mid AND motion_id = :moid",
-            [':tid' => $tenantId, ':mid' => $meetingId, ':moid' => $motionId]
-        );
-        return $row ?: [
-            'total_ballots' => 0,
-            'count_for' => 0,
-            'count_against' => 0,
-            'count_abstain' => 0,
-            'count_nsp' => 0,
-            'weight_for' => 0.0,
-            'weight_against' => 0.0,
-            'weight_abstain' => 0.0,
-            'weight_total' => 0.0,
-        ];
-    }
-
-    /**
-     * Compte les bulletins par choix (for/against/abstain) pour une motion.
-     */
-    public function countChoicesByMotion(string $motionId): array
-    {
-        $row = $this->selectOne(
-            "SELECT
-               SUM(CASE WHEN COALESCE(value::text, choice)='for' THEN 1 ELSE 0 END) AS c_for,
-               SUM(CASE WHEN COALESCE(value::text, choice)='against' THEN 1 ELSE 0 END) AS c_against,
-               SUM(CASE WHEN COALESCE(value::text, choice)='abstain' THEN 1 ELSE 0 END) AS c_abstain
+                COALESCE(SUM(COALESCE(weight, effective_power, 0)) FILTER (WHERE COALESCE(value::text, choice) = 'for'), 0)::float8 AS weight_for,
+                COALESCE(SUM(COALESCE(weight, effective_power, 0)) FILTER (WHERE COALESCE(value::text, choice) = 'against'), 0)::float8 AS weight_against,
+                COALESCE(SUM(COALESCE(weight, effective_power, 0)) FILTER (WHERE COALESCE(value::text, choice) = 'abstain'), 0)::float8 AS weight_abstain,
+                COALESCE(SUM(COALESCE(weight, effective_power, 0)), 0)::float8 AS weight_total
              FROM ballots WHERE motion_id = :mid",
             [':mid' => $motionId]
         );
-        return $row ?: ['c_for' => 0, 'c_against' => 0, 'c_abstain' => 0];
+        return $row ?: [
+            'total_ballots' => 0,
+            'count_for' => 0, 'count_against' => 0, 'count_abstain' => 0, 'count_nsp' => 0,
+            'weight_for' => 0.0, 'weight_against' => 0.0, 'weight_abstain' => 0.0, 'weight_total' => 0.0,
+        ];
     }
 
     /**
