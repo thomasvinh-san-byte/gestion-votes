@@ -1,11 +1,14 @@
 /**
- * operator-motions.js — Resolutions, votes, results & transitions sub-module.
+ * operator-motions.js — Motions / Votes / Results / Transitions sub-module
+ * for the operator console.
  * Requires: utils.js, shared.js, operator-tabs.js (OpS bridge)
  */
 (function() {
   'use strict';
 
   const O = window.OpS;
+
+  const VALID_VOTE_TYPES = ['for', 'against', 'abstain'];
 
   // =========================================================================
   // TAB: RÉSOLUTIONS - Motions
@@ -23,7 +26,7 @@
     }
   }
 
-  // Initialize O.previousOpenMotionId when loading meeting to avoid false "vote opened" notifications
+  // Initialize previousOpenMotionId when loading meeting to avoid false "vote opened" notifications
   function initializePreviousMotionState() {
     O.previousOpenMotionId = O.currentOpenMotion?.id || null;
   }
@@ -393,8 +396,6 @@
     });
   }
 
-  O.ballotSourceCache = {}; // memberId → 'manual'|'tablet'|...
-
   async function loadBallots(motionId) {
     try {
       const { body } = await api(`/api/v1/ballots.php?motion_id=${motionId}`);
@@ -547,8 +548,6 @@
       });
     });
   }
-
-  const VALID_VOTE_TYPES = ['for', 'against', 'abstain'];
 
   async function castManualVote(memberId, vote) {
     if (!O.currentOpenMotion) return;
@@ -964,7 +963,7 @@
     const totalMembers = O.attendanceCache.length;
 
     // Session duration
-    const startedAt = currentMeeting?.opened_at || currentMeeting?.started_at;
+    const startedAt = O.currentMeeting?.opened_at || O.currentMeeting?.started_at;
     let durationStr = '';
     if (startedAt) {
       const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
@@ -1081,7 +1080,7 @@
     }
 
     const s = getCloseSessionState();
-    const meetingTitle = currentMeeting ? escapeHtml(currentMeeting.title || '') : '';
+    const meetingTitle = O.currentMeeting ? escapeHtml(O.currentMeeting.title || '') : '';
 
     // Build security checks HTML
     let checksHtml = '';
@@ -1219,27 +1218,28 @@
     }
   }
 
-
+  // =========================================================================
   // Register on OpS — overwrites the stubs from operator-tabs.js
-  O.fn.loadResolutions          = loadResolutions;
+  // =========================================================================
+  O.fn.loadResolutions            = loadResolutions;
   O.fn.initializePreviousMotionState = initializePreviousMotionState;
-  O.fn.renderResolutions        = renderResolutions;
-  O.fn.showEditResolutionModal  = showEditResolutionModal;
-  O.fn.moveResolution           = moveResolution;
-  O.fn.createResolution         = createResolution;
-  O.fn.loadVoteTab              = loadVoteTab;
-  O.fn.renderQuickOpenList      = renderQuickOpenList;
-  O.fn.loadBallots              = loadBallots;
-  O.fn.renderManualVoteList     = renderManualVoteList;
-  O.fn.castManualVote           = castManualVote;
-  O.fn.applyUnanimity           = applyUnanimity;
-  O.fn.openVote                 = openVote;
-  O.fn.closeVote                = closeVote;
-  O.fn.loadResults              = loadResults;
-  O.fn.getCloseSessionState     = getCloseSessionState;
-  O.fn.updateCloseSessionStatus = updateCloseSessionStatus;
-  O.fn.updateExecCloseSession   = updateExecCloseSession;
-  O.fn.closeSession             = closeSession;
-  O.fn.doTransition             = doTransition;
+  O.fn.renderResolutions          = renderResolutions;
+  O.fn.showEditResolutionModal    = showEditResolutionModal;
+  O.fn.moveResolution             = moveResolution;
+  O.fn.createResolution           = createResolution;
+  O.fn.loadVoteTab                = loadVoteTab;
+  O.fn.renderQuickOpenList        = renderQuickOpenList;
+  O.fn.loadBallots                = loadBallots;
+  O.fn.renderManualVoteList       = renderManualVoteList;
+  O.fn.castManualVote             = castManualVote;
+  O.fn.applyUnanimity             = applyUnanimity;
+  O.fn.openVote                   = openVote;
+  O.fn.closeVote                  = closeVote;
+  O.fn.loadResults                = loadResults;
+  O.fn.getCloseSessionState       = getCloseSessionState;
+  O.fn.updateCloseSessionStatus   = updateCloseSessionStatus;
+  O.fn.updateExecCloseSession     = updateExecCloseSession;
+  O.fn.closeSession               = closeSession;
+  O.fn.doTransition               = doTransition;
 
 })();

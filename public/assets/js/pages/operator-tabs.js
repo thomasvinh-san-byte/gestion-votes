@@ -1864,9 +1864,9 @@ window.OpS = { fn: {} };
 
     target.innerHTML = alerts.map(a => {
       const tabLink = a.tab
-        ? ' <button class="btn btn-sm btn-ghost" style="margin-top:0.25rem" data-alert-go="' + a.tab + '">Aller \u00e0 l\u2019onglet &rarr;</button>'
+        ? ' <button class="btn btn-sm btn-ghost" style="margin-top:0.25rem" data-alert-go="' + escapeHtml(a.tab) + '">Aller \u00e0 l\u2019onglet &rarr;</button>'
         : '';
-      return '<div class="alert-item ' + a.severity + '">'
+      return '<div class="alert-item ' + escapeHtml(a.severity) + '">'
         + '<div><div class="alert-item-title">' + escapeHtml(a.title) + '</div>'
         + '<div class="alert-item-message">' + escapeHtml(a.message) + '</div>'
         + tabLink + '</div>'

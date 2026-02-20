@@ -51,8 +51,6 @@
     const params = new URLSearchParams(window.location.search);
     if (params.get("meeting_id")) return params.get("meeting_id");
 
-    if (window.Utils && window.Utils.getMeetingId) return window.Utils.getMeetingId() || "";
-
     return "";
   }
 
