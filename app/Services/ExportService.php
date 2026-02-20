@@ -463,6 +463,55 @@ final class ExportService
         ];
     }
 
+    public function getAuditHeaders(): array
+    {
+        return [
+            'Ballot ID',
+            'Motion ID',
+            'Résolution',
+            'Member ID',
+            'Votant',
+            'Mode présence',
+            'Choix',
+            'Poids',
+            'Proxy vote',
+            'Proxy source member_id',
+            'Horodatage vote',
+            'Source vote',
+            'Token ID',
+            'Token hash (prefix)',
+            'Token expires_at',
+            'Token used_at',
+            'Justification (manual)',
+        ];
+    }
+
+    /**
+     * Prepares an export row for ballot audit
+     */
+    public function formatAuditRow(array $r): array
+    {
+        return [
+            (string)($r['ballot_id'] ?? ''),
+            (string)($r['motion_id'] ?? ''),
+            (string)($r['motion_title'] ?? ''),
+            (string)($r['member_id'] ?? ''),
+            (string)($r['voter_name'] ?? ''),
+            $this->translateAttendanceMode($r['attendance_mode'] ?? ''),
+            $this->translateVoteChoice($r['value'] ?? ''),
+            (string)($r['weight'] ?? ''),
+            $this->translateBoolean($r['is_proxy_vote'] ?? false),
+            (string)($r['proxy_source_member_id'] ?? ''),
+            $this->formatDate($r['cast_at'] ?? null),
+            $this->translateVoteSource($r['source'] ?? ''),
+            (string)($r['token_id'] ?? ''),
+            (string)($r['token_hash_prefix'] ?? ''),
+            $this->formatDate($r['token_expires_at'] ?? null),
+            $this->formatDate($r['token_used_at'] ?? null),
+            (string)($r['manual_justification'] ?? ''),
+        ];
+    }
+
     // ========================================================================
     // EXPORT XLSX (PhpSpreadsheet)
     // ========================================================================
