@@ -636,4 +636,53 @@
     <polyline points="2 17 12 22 22 17"/>
     <polyline points="2 12 12 17 22 12"/>
   </symbol>
+
+  <!-- Missing icons — added during audit -->
+
+  <!-- ban (blocked device indicator) -->
+  <symbol id="icon-ban" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="m4.9 4.9 14.2 14.2"/>
+  </symbol>
+
+  <!-- battery (device battery level) -->
+  <symbol id="icon-battery" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="1" y="6" width="18" height="12" rx="2" ry="2"/>
+    <line x1="23" y1="13" x2="23" y2="11"/>
+  </symbol>
+
+  <!-- flag (incident reporting) -->
+  <symbol id="icon-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+    <line x1="4" y1="22" x2="4" y2="15"/>
+  </symbol>
+
+  <!-- minus-circle (abstention vote button) -->
+  <symbol id="icon-minus-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="8" y1="12" x2="16" y2="12"/>
+  </symbol>
+
+  <!-- mouse-pointer (vote opening action) -->
+  <symbol id="icon-mouse-pointer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
+    <path d="m13 13 6 6"/>
+  </symbol>
+
+  <!-- share-2 (proxy/delegation section) -->
+  <symbol id="icon-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="18" cy="5" r="3"/>
+    <circle cx="6" cy="12" r="3"/>
+    <circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  </symbol>
+
+  <!-- user-check (proxy indicator) -->
+  <symbol id="icon-user-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <polyline points="16 11 18 13 22 9"/>
+  </symbol>
+
 </svg>
