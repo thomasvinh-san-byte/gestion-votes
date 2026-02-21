@@ -19,7 +19,7 @@ final class MeetingReportService
         $meetingId = trim($meetingId);
         if ($meetingId === '') throw new InvalidArgumentException('meeting_id obligatoire');
 
-        $tenant = (string)($GLOBALS['APP_TENANT_ID'] ?? DEFAULT_TENANT_ID);
+        $tenant = \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId() ?: DEFAULT_TENANT_ID;
 
         $meetingRepo = new MeetingRepository();
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);

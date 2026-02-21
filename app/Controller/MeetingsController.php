@@ -3,9 +3,12 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Validation\Schemas\ValidationSchemas;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
 use AgVote\Service\MeetingValidator;
+use AgVote\Service\MeetingReportService;
 use AgVote\Service\NotificationsService;
 
 /**
@@ -17,7 +20,6 @@ final class MeetingsController extends AbstractController
 {
     public function index(): void
     {
-        api_require_role('viewer');
         api_request('GET');
 
         $limit = (int)($_GET['limit'] ?? 50);
@@ -39,7 +41,6 @@ final class MeetingsController extends AbstractController
 
     public function update(): void
     {
-        api_require_role('operator');
         $input = api_request('POST');
 
         $meetingId = trim((string)($input['meeting_id'] ?? ''));
@@ -118,7 +119,6 @@ final class MeetingsController extends AbstractController
 
     public function archive(): void
     {
-        api_require_role('operator');
         api_request('GET');
 
         $from = trim($_GET['from'] ?? '');
@@ -131,7 +131,6 @@ final class MeetingsController extends AbstractController
 
     public function archivesList(): void
     {
-        api_require_role('viewer');
         api_request('GET');
 
         $repo = new MeetingRepository();
@@ -141,7 +140,6 @@ final class MeetingsController extends AbstractController
 
     public function status(): void
     {
-        api_require_role('operator');
         api_request('GET');
 
         $repo = new MeetingRepository();
@@ -194,7 +192,6 @@ final class MeetingsController extends AbstractController
 
     public function statusForMeeting(): void
     {
-        api_require_role('auditor');
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -242,8 +239,6 @@ final class MeetingsController extends AbstractController
 
     public function summary(): void
     {
-        api_require_role(['operator', 'president', 'admin', 'auditor']);
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -302,8 +297,6 @@ final class MeetingsController extends AbstractController
 
     public function stats(): void
     {
-        api_require_role('public');
-        api_rate_limit('meeting_stats', 120, 60);
         api_request('GET');
 
         $meetingId = trim($_GET['meeting_id'] ?? '');
@@ -374,5 +367,148 @@ final class MeetingsController extends AbstractController
             'distinct_voters' => (int)$distinctVoters,
             'motions' => $motions,
         ]);
+    }
+
+    public function createMeeting(): void
+    {
+        $data = api_request('POST');
+
+        $v = ValidationSchemas::meeting()->validate($data);
+        $v->failIfInvalid();
+
+        $title       = $v->get('title');
+        $description = $v->get('description');
+        $scheduledAt = $v->get('scheduled_at');
+        $location    = $v->get('location');
+        $meetingType = $v->get('meeting_type', 'ag_ordinaire');
+
+        $repo = new MeetingRepository();
+        $id = $repo->generateUuid();
+        $repo->create(
+            $id,
+            api_current_tenant_id(),
+            $title,
+            $description ?: null,
+            $scheduledAt ?: null,
+            $location ?: null,
+            $meetingType
+        );
+
+        $policyRepo = new PolicyRepository();
+        $votePolicies = $policyRepo->listVotePolicies(api_current_tenant_id());
+        $quorumPolicies = $policyRepo->listQuorumPolicies(api_current_tenant_id());
+        $defaults = [];
+        if (!empty($votePolicies)) {
+            $defaults['vote_policy_id'] = $votePolicies[0]['id'];
+        }
+        if (!empty($quorumPolicies)) {
+            $defaults['quorum_policy_id'] = $quorumPolicies[0]['id'];
+        }
+        if ($defaults) {
+            $repo->updateFields($id, api_current_tenant_id(), $defaults);
+        }
+
+        audit_log('meeting_created', 'meeting', $id, [
+            'title'       => $title,
+            'scheduled_at' => $scheduledAt,
+            'location'    => $location,
+        ]);
+
+        api_ok([
+            'meeting_id' => $id,
+            'title'      => $title,
+        ], 201);
+    }
+
+    public function voteSettings(): void
+    {
+        $method = api_method();
+        $repo = new MeetingRepository();
+
+        if ($method === 'GET') {
+            $q = api_request('GET');
+            $meetingId = api_require_uuid($q, 'meeting_id');
+
+            $row = $repo->findVoteSettings($meetingId, api_current_tenant_id());
+            if (!$row) {
+                api_fail('meeting_not_found', 404);
+            }
+
+            api_ok([
+                'meeting_id' => $row['meeting_id'],
+                'title' => $row['title'],
+                'vote_policy_id' => $row['vote_policy_id'],
+            ]);
+        }
+
+        if ($method === 'POST') {
+            $in = api_request('POST');
+            $meetingId = api_require_uuid($in, 'meeting_id');
+
+            api_guard_meeting_not_validated($meetingId);
+
+            $policyId = trim((string)($in['vote_policy_id'] ?? ''));
+            if ($policyId !== '' && !api_is_uuid($policyId)) {
+                api_fail('invalid_vote_policy_id', 400, ['expected' => 'uuid or empty']);
+            }
+
+            if (!$repo->existsForTenant($meetingId, api_current_tenant_id())) {
+                api_fail('meeting_not_found', 404);
+            }
+
+            if ($policyId !== '') {
+                if (!$repo->votePolicyExists($policyId, api_current_tenant_id())) {
+                    api_fail('vote_policy_not_found', 404);
+                }
+            }
+
+            $repo->updateVotePolicy($meetingId, api_current_tenant_id(), $policyId === '' ? null : $policyId);
+
+            audit_log('meeting_vote_policy_updated', 'meeting', $meetingId, [
+                'vote_policy_id' => ($policyId === '' ? null : $policyId),
+            ]);
+
+            api_ok(['saved' => true]);
+        }
+
+        api_fail('method_not_allowed', 405);
+    }
+
+    public function validate(): void
+    {
+        $input = api_request('POST');
+
+        $meetingId = trim((string)($input['meeting_id'] ?? ''));
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
+            api_fail('invalid_meeting_id', 400);
+        }
+
+        api_guard_meeting_not_validated($meetingId);
+
+        $presidentName = trim((string)($input['president_name'] ?? ''));
+        if ($presidentName === '') {
+            api_fail('missing_president_name', 400);
+        }
+
+        $tenant = api_current_tenant_id();
+        $repo = new MeetingRepository();
+
+        $meeting = $repo->findByIdForTenant($meetingId, $tenant);
+        if (!$meeting) {
+            api_fail('meeting_not_found', 404);
+        }
+
+        try {
+            api_transaction(function () use ($repo, $meetingId, $tenant) {
+                $pvHtml = MeetingReportService::renderHtml($meetingId, true);
+                $repo->markValidated($meetingId, $tenant);
+                $repo->storePVHtml($meetingId, $pvHtml);
+            });
+
+            api_ok(['meeting_id' => $meetingId, 'status' => 'validated']);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) {
+            api_fail('validation_failed', 500, ['detail' => $e->getMessage()]);
+        }
     }
 }

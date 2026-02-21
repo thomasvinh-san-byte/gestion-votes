@@ -8,43 +8,42 @@ declare(strict_types=1);
  * Integrates: CSRF validation, Auth RBAC, Rate Limiting.
  */
 
-require __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 // =============================================================================
-// CACHE php://input (can only be read once)
-// Both CSRF middleware and api_request() need it.
+// GLOBAL EXCEPTION HANDLER for ApiResponseException
+// Ensures api_ok()/api_fail() responses are sent even when not dispatched
+// through the Router (e.g., direct file access in public/api/v1/).
 // =============================================================================
-if (!isset($GLOBALS['__ag_vote_raw_body'])) {
-    $GLOBALS['__ag_vote_raw_body'] = file_get_contents('php://input') ?: '';
-}
+set_exception_handler(function (\Throwable $e) {
+    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+        $e->getResponse()->send();
+        return;
+    }
+    // Unexpected uncaught exception — generic 500
+    error_log('Uncaught exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => false, 'error' => 'internal_error'], JSON_UNESCAPED_UNICODE);
+});
+
+// Eagerly cache php://input (can only be read once)
+\AgVote\Core\Http\Request::getRawBody();
 
 // =============================================================================
 // API FUNCTIONS - JSON RESPONSES
 // =============================================================================
 
 function api_ok(array $data = [], int $code = 200): never {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['ok' => true, 'data' => $data], JSON_UNESCAPED_UNICODE);
-    exit;
+    throw new \AgVote\Core\Http\ApiResponseException(
+        \AgVote\Core\Http\JsonResponse::ok($data, $code)
+    );
 }
 
 function api_fail(string $error, int $code = 400, array $extra = []): never {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-
-    // Strip internal error details from 5xx responses unless explicitly in development mode
-    $appEnv = $_ENV['APP_ENV'] ?? 'demo';
-    if ($appEnv !== 'development' && $code >= 500) {
-        error_log("[api_fail] $error: " . ($extra['detail'] ?? '(no detail)'));
-        unset($extra['detail']);
-    }
-
-    // Enrich with translated French message
-    $enriched = \AgVote\Service\ErrorDictionary::enrichError($error, $extra);
-
-    echo json_encode(['ok' => false, 'error' => $error] + $enriched, JSON_UNESCAPED_UNICODE);
-    exit;
+    throw new \AgVote\Core\Http\ApiResponseException(
+        \AgVote\Core\Http\JsonResponse::fail($error, $code, $extra)
+    );
 }
 
 // =============================================================================
@@ -121,8 +120,8 @@ function api_request(string ...$methods): array {
         ]);
     }
 
-    // Parse JSON or POST body (uses global cache)
-    $raw = $GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input');
+    // Parse JSON or POST body
+    $raw = \AgVote\Core\Http\Request::getRawBody();
     $data = json_decode($raw ?: '', true);
 
     if (!is_array($data)) {
@@ -163,10 +162,9 @@ function api_current_tenant_id(): string {
  */
 function api_guard_meeting_not_validated(string $meetingId): void {
     if ($meetingId === '') return;
-    $mt = db_select_one(
-        "SELECT validated_at FROM meetings WHERE tenant_id = :tid AND id = :mid",
-        [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
-    );
+    $st = db()->prepare("SELECT validated_at FROM meetings WHERE tenant_id = :tid AND id = :mid");
+    $st->execute([':tid' => api_current_tenant_id(), ':mid' => $meetingId]);
+    $mt = $st->fetch();
     if ($mt && !empty($mt['validated_at'])) {
         api_fail('meeting_validated', 409, [
             'detail' => 'Séance validée : modification interdite (séance figée).'
@@ -179,10 +177,9 @@ function api_guard_meeting_not_validated(string $meetingId): void {
  * Fatal 404 if not found.
  */
 function api_guard_meeting_exists(string $meetingId): array {
-    $mt = db_select_one(
-        "SELECT * FROM meetings WHERE tenant_id = :tid AND id = :mid",
-        [':tid' => api_current_tenant_id(), ':mid' => $meetingId]
-    );
+    $st = db()->prepare("SELECT * FROM meetings WHERE tenant_id = :tid AND id = :mid");
+    $st->execute([':tid' => api_current_tenant_id(), ':mid' => $meetingId]);
+    $mt = $st->fetch();
     if (!$mt) {
         api_fail('meeting_not_found', 404);
     }
@@ -227,8 +224,18 @@ function api_transaction(callable $fn): mixed {
         $result = $fn();
         $pdo->commit();
         return $result;
+    } catch (\AgVote\Core\Http\ApiResponseException $e) {
+        // api_ok() inside a transaction = success → commit, then re-throw
+        if ($pdo->inTransaction()) {
+            $e->getResponse()->getStatusCode() < 400
+                ? $pdo->commit()
+                : $pdo->rollBack();
+        }
+        throw $e;
     } catch (\Throwable $e) {
-        $pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         throw $e;
     }
 }

@@ -56,7 +56,6 @@ final class ExportController extends AbstractController
 
     public function attendanceCsv(): void
     {
-        api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('attendance', $mt['id'], 'csv');
 
@@ -75,7 +74,6 @@ final class ExportController extends AbstractController
 
     public function attendanceXlsx(): void
     {
-        api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('attendance', $mt['id'], 'xlsx');
 
@@ -95,7 +93,6 @@ final class ExportController extends AbstractController
 
     public function votesCsv(): void
     {
-        api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('votes', $mt['id'], 'csv');
 
@@ -116,7 +113,6 @@ final class ExportController extends AbstractController
 
     public function votesXlsx(): void
     {
-        api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('votes', $mt['id'], 'xlsx');
 
@@ -142,7 +138,6 @@ final class ExportController extends AbstractController
 
     public function membersCsv(): void
     {
-        api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('members', $mt['id'], 'csv');
 
@@ -165,7 +160,6 @@ final class ExportController extends AbstractController
 
     public function motionResultsCsv(): void
     {
-        api_require_role(['operator', 'admin', 'auditor']);
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('motion_results', $mt['id'], 'csv');
 
@@ -184,7 +178,6 @@ final class ExportController extends AbstractController
 
     public function resultsXlsx(): void
     {
-        api_require_role(['operator', 'admin', 'auditor']);
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('motion_results', $mt['id'], 'xlsx');
 
@@ -204,7 +197,6 @@ final class ExportController extends AbstractController
 
     public function fullXlsx(): void
     {
-        api_require_role(['operator', 'admin', 'auditor']);
         $meetingId = $this->requireMeetingId();
         $mt = $this->requireValidatedMeeting($meetingId);
         $this->auditExport('full', $meetingId, 'xlsx');
@@ -227,7 +219,6 @@ final class ExportController extends AbstractController
 
     public function ballotsAuditCsv(): void
     {
-        api_require_role('operator');
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('ballots_audit', $mt['id'], 'csv');
 

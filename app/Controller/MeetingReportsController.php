@@ -25,8 +25,6 @@ final class MeetingReportsController extends AbstractController
 {
     public function report(): void
     {
-        api_require_role('auditor');
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -58,7 +56,8 @@ final class MeetingReportsController extends AbstractController
                     echo (string)$snap['html'];
                     exit;
                 }
-            } catch (\Throwable $e) {
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) {
             }
         }
 
@@ -68,12 +67,14 @@ final class MeetingReportsController extends AbstractController
         $proxies = [];
         try {
             $proxies = $meetingRepo->listProxiesForReport($meetingId);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
         }
 
         $tokens = [];
         try {
             $tokens = $invitationRepo->listTokensForReport($meetingId);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
         }
 
@@ -106,7 +107,8 @@ final class MeetingReportsController extends AbstractController
                     $dec = $o['decision'];
                     $reas = $o['reason'];
                     $note = ' (calculé)';
-                } catch (\Throwable $e) {
+                } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) {
                     $src = '—';
                     $of = $og = $oa = $ot = 0.0;
                     $dec = '—';
@@ -132,7 +134,8 @@ final class MeetingReportsController extends AbstractController
                     $detail['majority_threshold'] = $r['decision']['threshold'] ?? ($r['majority']['threshold'] ?? null);
                     $detail['majority_base'] = $r['decision']['base'] ?? ($r['majority']['base'] ?? null);
                 }
-            } catch (\Throwable $e) {
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) {
             }
 
             $pol = self::policyLabel($votePolicy, $quorumPolicy);
@@ -334,8 +337,6 @@ HTML;
 
     public function generatePdf(): void
     {
-        api_require_role(['president', 'admin', 'operator', 'auditor']);
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 400);
@@ -519,8 +520,6 @@ HTML;
 
     public function generateReport(): void
     {
-        api_require_role('president');
-
         $in = api_request('GET');
         $meetingId = trim((string)($in['meeting_id'] ?? ($_GET['meeting_id'] ?? '')));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
@@ -585,7 +584,6 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
 
     public function sendReport(): void
     {
-        api_require_role('operator');
         $input = api_request('POST');
 
         $meetingId = trim((string)($input['meeting_id'] ?? ''));
@@ -635,8 +633,6 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
 
     public function exportPvHtml(): void
     {
-        api_require_role('operator');
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             http_response_code(400);

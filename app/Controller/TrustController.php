@@ -13,8 +13,6 @@ final class TrustController extends AbstractController
 {
     public function anomalies(): void
     {
-        api_require_role(['auditor', 'admin', 'operator']);
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -142,8 +140,6 @@ final class TrustController extends AbstractController
 
     public function checks(): void
     {
-        api_require_role(['auditor', 'admin', 'operator']);
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);

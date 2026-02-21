@@ -1,124 +1,16 @@
-# =============================================================================
-# AG-VOTE — Configuration Apache
-# =============================================================================
+# Front controller rewrite rules for Apache.
+#
+# All requests to non-existing files are routed through index.php.
+# Static assets and existing PHP files still work directly.
 
-# Activer la réécriture d'URL
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
 
-    # Rediriger vers HTTPS en production (Render, etc.)
-    # Activé automatiquement quand le header X-Forwarded-Proto est présent (reverse proxy)
-    RewriteCond %{HTTP:X-Forwarded-Proto} =http [OR]
-    RewriteCond %{HTTPS} off
-    RewriteCond %{HTTP_HOST} !^localhost [NC]
-    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1 [NC]
-    RewriteCond %{HTTP_HOST} !^192\.168\. [NC]
-    RewriteCond %{HTTP_HOST} !^10\. [NC]
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    # If the request is for an existing file or directory, serve it directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
-    # Ne pas réécrire les fichiers et dossiers existants
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-
-    # Rediriger tout vers index.html (SPA fallback)
-    # RewriteRule ^(.*)$ index.html [L]
-</IfModule>
-
-# =============================================================================
-# Sécurité
-# =============================================================================
-
-# Désactiver l'affichage du contenu des répertoires
-Options -Indexes
-
-# Bloquer l'accès aux fichiers sensibles
-<FilesMatch "\.(env|sql|md|json|jsonl|lock|xml|yml|yaml|ini|log|sh|bak|swp)$">
-    <IfModule mod_authz_core.c>
-        Require all denied
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order deny,allow
-        Deny from all
-    </IfModule>
-</FilesMatch>
-
-# Bloquer l'accès aux dossiers sensibles
-<DirectoryMatch "^/.*/\.(git|svn|hg)/">
-    <IfModule mod_authz_core.c>
-        Require all denied
-    </IfModule>
-</DirectoryMatch>
-
-# =============================================================================
-# Pages d'erreur personnalisées
-# =============================================================================
-ErrorDocument 404 /errors/404.html
-ErrorDocument 500 /errors/500.html
-
-# =============================================================================
-# Headers de sécurité
-# =============================================================================
-<IfModule mod_headers.c>
-    # XSS Protection
-    Header set X-XSS-Protection "1; mode=block"
-    
-    # Clickjacking Protection
-    Header set X-Frame-Options "SAMEORIGIN"
-    
-    # MIME Sniffing Protection
-    Header set X-Content-Type-Options "nosniff"
-    
-    # Referrer Policy
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
-    
-    # Permissions Policy
-    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-</IfModule>
-
-# =============================================================================
-# Compression
-# =============================================================================
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
-    AddOutputFilterByType DEFLATE application/javascript application/json
-    AddOutputFilterByType DEFLATE application/xml application/xhtml+xml
-</IfModule>
-
-# =============================================================================
-# Cache statique
-# =============================================================================
-<IfModule mod_expires.c>
-    ExpiresActive On
-    
-    # Images
-    ExpiresByType image/jpeg "access plus 1 year"
-    ExpiresByType image/png "access plus 1 year"
-    ExpiresByType image/gif "access plus 1 year"
-    ExpiresByType image/svg+xml "access plus 1 year"
-    ExpiresByType image/webp "access plus 1 year"
-    
-    # CSS et JS
-    ExpiresByType text/css "access plus 1 month"
-    ExpiresByType application/javascript "access plus 1 month"
-    
-    # Fonts
-    ExpiresByType font/woff2 "access plus 1 year"
-    ExpiresByType font/woff "access plus 1 year"
-    ExpiresByType font/ttf "access plus 1 year"
-    
-    # HTML - pas de cache (données dynamiques)
-    ExpiresByType text/html "access plus 0 seconds"
-</IfModule>
-
-# =============================================================================
-# PHP Configuration (si .htaccess peut modifier)
-# =============================================================================
-<IfModule mod_php.c>
-    php_flag display_errors Off
-    php_flag log_errors On
-    php_value error_log /tmp/ag-vote/php_errors.log
-    php_value upload_max_filesize 10M
-    php_value post_max_size 10M
-    php_value max_execution_time 60
+    # Otherwise, route through the front controller
+    RewriteRule ^ index.php [L,QSA]
 </IfModule>

@@ -14,7 +14,6 @@ final class EmailController extends AbstractController
 {
     public function preview(): void
     {
-        api_require_role(['operator', 'admin']);
         $input = api_request('POST');
 
         $bodyHtml = trim((string)($input['body_html'] ?? ''));
@@ -44,8 +43,6 @@ final class EmailController extends AbstractController
 
     public function schedule(): void
     {
-        api_require_role('operator');
-
         try {
             $input = api_request('POST');
 
@@ -96,6 +93,7 @@ final class EmailController extends AbstractController
                 'scheduled_at' => $scheduledAt ?? 'immediate',
                 'errors' => $result['errors'],
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             error_log('Error in EmailController::schedule: ' . $e->getMessage());
             api_fail('server_error', 500, ['detail' => $e->getMessage()]);
@@ -104,7 +102,6 @@ final class EmailController extends AbstractController
 
     public function sendBulk(): void
     {
-        api_require_role('operator');
         $input = api_request('POST');
 
         $meetingId = trim((string)($input['meeting_id'] ?? ''));
@@ -124,7 +121,7 @@ final class EmailController extends AbstractController
 
         $meetingTitle = $meetingRepo->findTitle($meetingId) ?? $meetingId;
 
-        $tenantId = (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
+        $tenantId = api_current_tenant_id();
         $members = $memberRepo->listActiveWithEmail($tenantId);
 
         if ($limit > 0) $members = array_slice($members, 0, $limit);

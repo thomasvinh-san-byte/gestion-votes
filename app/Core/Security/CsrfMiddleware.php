@@ -143,8 +143,8 @@ final class CsrfMiddleware
             return trim((string)$_POST[self::TOKEN_NAME]);
         }
 
-        // 4. JSON body (uses global cache to avoid consuming php://input)
-        $rawBody = $GLOBALS['__ag_vote_raw_body'] ?? file_get_contents('php://input');
+        // 4. JSON body (uses cached raw body to avoid consuming php://input)
+        $rawBody = \AgVote\Core\Http\Request::getRawBody();
         if ($rawBody) {
             $json = json_decode($rawBody, true);
             if (is_array($json) && isset($json[self::TOKEN_NAME])) {

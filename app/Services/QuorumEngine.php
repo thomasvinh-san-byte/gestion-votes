@@ -80,7 +80,7 @@ final class QuorumEngine
         $meetingId = trim($meetingId);
         if ($meetingId === '') throw new InvalidArgumentException('meeting_id obligatoire');
 
-        $expectedTenantId = $expectedTenantId ?: (string)($GLOBALS['APP_TENANT_ID'] ?? api_current_tenant_id());
+        $expectedTenantId = $expectedTenantId ?: api_current_tenant_id();
 
         $meetingRepo = new MeetingRepository();
         $row = $meetingRepo->findByIdForTenant($meetingId, $expectedTenantId);

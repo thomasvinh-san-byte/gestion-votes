@@ -22,8 +22,6 @@ final class OperatorController extends AbstractController
 {
     public function workflowState(): void
     {
-        api_require_role('operator');
-
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -208,7 +206,6 @@ final class OperatorController extends AbstractController
 
     public function openVote(): void
     {
-        api_require_role('operator');
         $input = api_request('POST');
 
         $meetingId = trim((string)($input['meeting_id'] ?? ''));
@@ -344,6 +341,7 @@ final class OperatorController extends AbstractController
                 'generated' => $inserted,
                 'tokens' => $listTokens ? $tokensOut : null,
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (db()->inTransaction()) {
                 db()->rollBack();
@@ -354,7 +352,6 @@ final class OperatorController extends AbstractController
 
     public function anomalies(): void
     {
-        api_require_role('operator');
         api_request('GET');
 
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
@@ -422,6 +419,7 @@ final class OperatorController extends AbstractController
                     'max' => $proxyMax,
                 ];
             }
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             $proxyCeilings = [];
         }

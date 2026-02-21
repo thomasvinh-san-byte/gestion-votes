@@ -22,7 +22,6 @@ final class BallotsController extends AbstractController
 {
     public function listForMotion(): void
     {
-        api_require_role(['operator', 'admin', 'president']);
         api_request('GET');
 
         $motionId = trim((string)($_GET['motion_id'] ?? ''));
@@ -42,8 +41,6 @@ final class BallotsController extends AbstractController
 
     public function cast(): void
     {
-        api_require_role('public');
-        api_rate_limit('ballot_cast', 60, 60);
         $data = api_request('POST');
 
         $idempotencyKey = $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] ?? null;
@@ -68,7 +65,6 @@ final class BallotsController extends AbstractController
 
     public function cancel(): void
     {
-        api_require_role(['operator', 'admin']);
         $in = api_request('POST');
 
         $motionId = api_require_uuid($in, 'motion_id');
@@ -138,7 +134,8 @@ final class BallotsController extends AbstractController
                     'ballot_cancelled' => true,
                     'member_id' => $memberId,
                 ]);
-            } catch (\Throwable $e) {
+            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) {
                 // Don't fail if broadcast fails
             }
 
@@ -147,6 +144,7 @@ final class BallotsController extends AbstractController
                 'motion_id' => $motionId,
                 'member_id' => $memberId,
             ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             if (db()->inTransaction()) {
                 db()->rollBack();
@@ -157,8 +155,6 @@ final class BallotsController extends AbstractController
 
     public function result(): void
     {
-        api_require_role('public');
-        api_rate_limit('ballot_result', 120, 60);
         $params = api_request('GET');
 
         $motionId = trim((string)($params['motion_id'] ?? ''));
@@ -172,7 +168,6 @@ final class BallotsController extends AbstractController
 
     public function manualVote(): void
     {
-        api_require_role('operator');
         $data = api_request('POST');
 
         $tenantId = api_current_tenant_id();
@@ -255,6 +250,7 @@ final class BallotsController extends AbstractController
             ], $meetingId);
 
             api_ok(['ballot_id' => $ballotId, 'value' => $value, 'source' => 'manual']);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             db()->rollBack();
             $msg = $e->getMessage();
@@ -267,7 +263,6 @@ final class BallotsController extends AbstractController
 
     public function redeemPaperBallot(): void
     {
-        api_require_role('operator');
         $in = api_request('POST');
 
         $code = trim((string)($in['code'] ?? ''));
@@ -300,6 +295,7 @@ final class BallotsController extends AbstractController
             $ballotRepo->markPaperBallotUsed($pb['id'], (string)$pb['tenant_id']);
             $manualRepo->createPaperBallotAction($pb['tenant_id'], $pb['meeting_id'], $pb['motion_id'], $vote, $just);
             db()->commit();
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             db()->rollBack();
             api_fail('paper_ballot_redeem_failed', 500, ['detail' => 'Erreur lors de l\'enregistrement du vote papier.']);
@@ -316,8 +312,6 @@ final class BallotsController extends AbstractController
 
     public function reportIncident(): void
     {
-        api_require_role('public');
-        api_rate_limit('vote_incident', 30, 60);
         $in = api_request('POST');
 
         $kind = trim((string)($in['kind'] ?? 'network'));

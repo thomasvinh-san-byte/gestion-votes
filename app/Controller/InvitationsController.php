@@ -14,7 +14,6 @@ final class InvitationsController extends AbstractController
 {
     public function create(): void
     {
-        api_require_role('operator');
         $input = api_request('POST');
 
         $meetingId = trim((string)($input['meeting_id'] ?? ''));
@@ -60,7 +59,6 @@ final class InvitationsController extends AbstractController
 
     public function listForMeeting(): void
     {
-        api_require_role('operator');
         $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -72,8 +70,6 @@ final class InvitationsController extends AbstractController
 
     public function redeem(): void
     {
-        api_require_role('public');
-        api_rate_limit('invitation_redeem', 30, 60);
         $token = trim((string)($_GET['token'] ?? ''));
         if ($token === '') {
             api_fail('missing_token', 400);
@@ -116,7 +112,6 @@ final class InvitationsController extends AbstractController
 
     public function stats(): void
     {
-        api_require_role(['operator', 'admin', 'auditor']);
         $input = api_request('GET');
 
         $meetingId = trim((string)($input['meeting_id'] ?? ''));

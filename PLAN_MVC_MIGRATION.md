@@ -1,20 +1,20 @@
 # Plan de migration full MVC — gestion-votes
 
-## Etat des lieux (post-couacs)
+## Etat des lieux — MIGRATION TERMINEE
 
 | Couche        | Fichiers | Etat                                              |
 |---------------|----------|---------------------------------------------------|
-| Controllers   | 20       | OK — delegate aux Services, AbstractController gere les exceptions |
-| Services      | 18       | OK (tenant mandatory apres fix). 2 reliquats `$GLOBALS` dans MeetingReportService et QuorumEngine |
+| Controllers   | 32       | FAIT — 12 nouveaux controllers extraits des handlers inline + AbstractController avec Request |
+| Services      | 18       | FAIT — tenant via AuthMiddleware/api_current_tenant_id(), zero `$GLOBALS` |
 | Repositories  | 28       | OK — data access pur, phantom aliases supprimes (470 methodes) |
-| Vues          | 0 formel | MANQUANT — pas de couche View, HTML inline (vote.php, doc.php), templates email isoles |
-| Routeur       | 0        | MANQUANT — 142 fichiers dans `public/api/v1/` (103 stubs + 39 handlers lourds) et 2 handlers directs |
-| Middleware    | ad-hoc   | PARTIEL — auth/csrf/rate-limit appeles manuellement dans chaque endpoint |
-| Bootstrap     | 1 monolithe (341L) | PARTIEL — config + DB + securite + helpers globaux dans un seul fichier |
-| API helpers   | 1 monolithe (235L) | ~25 fonctions globales : `api_ok`, `api_fail`, `api_require_role`, `db()`, `audit_log`, etc. |
-| `$GLOBALS`    | 6 restants | `APP_TENANT_ID` x4 (bootstrap, MeetingReportService, QuorumEngine, EmailController) + `__ag_vote_raw_body` x2 (api.php, CsrfMiddleware) |
-| DB helpers depreces | 5 appels | `db_select_one` dans api.php (x2), aliases depreces dans bootstrap (x3) |
-| Frontend      | 16 HTML/HTMX | SPA decouple (appels fetch vers API), pas de templating serveur |
+| Vues          | HtmlView + 3 templates | FAIT — HtmlView, vote_form.php, vote_confirm.php, doc_page.php |
+| Routeur       | Router + routes.php | FAIT — table declarative, 142 stubs supprimes, front controller unique |
+| Middleware    | MiddlewarePipeline | FAIT — MiddlewareInterface, RoleMiddleware, RateLimitGuard |
+| Bootstrap     | Application + 3 Providers | FAIT — EnvProvider, DatabaseProvider, SecurityProvider |
+| API helpers   | api.php (throw-based) | FAIT — api_ok/api_fail throw ApiResponseException, plus d'exit() |
+| `$GLOBALS`    | 0 restants | FAIT — APP_TENANT_ID elimine, __ag_vote_raw_body → Request::getRawBody() |
+| DB helpers depreces | 0 appels | FAIT — db_select_one inline dans api.php, aliases supprimes |
+| Frontend      | 16 HTML/HTMX | SPA decouple (appels fetch vers API), templates serveur pour vote/doc |
 
 ### Inventaire detaille public/api/v1/ (142 fichiers)
 

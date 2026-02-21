@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Http\Request;
+
 /**
  * Base controller. One job: wrap a method call in standard error handling.
  *
@@ -10,13 +12,24 @@ namespace AgVote\Controller;
  *   (new SpeechController())->handle('request');
  *
  * The controller method contains pure business logic — no try/catch needed.
+ * The $request property is available for controllers that adopt the new
+ * Request object pattern (opt-in, not mandatory).
  */
 abstract class AbstractController
 {
+    protected Request $request;
+
+    public function __construct()
+    {
+        $this->request = new Request();
+    }
+
     public function handle(string $method): void
     {
         try {
             $this->$method();
+        } catch (\AgVote\Core\Http\ApiResponseException $e) {
+            throw $e; // Not an error — propagate to Router for sending
         } catch (\InvalidArgumentException $e) {
             api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);
         } catch (\RuntimeException $e) {

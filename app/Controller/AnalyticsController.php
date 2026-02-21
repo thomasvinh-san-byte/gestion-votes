@@ -12,7 +12,6 @@ final class AnalyticsController extends AbstractController
 {
     public function analytics(): void
     {
-        api_require_role('operator');
         api_request('GET');
 
         $tenantId = api_current_tenant_id();
@@ -44,6 +43,7 @@ final class AnalyticsController extends AbstractController
             };
 
             api_ok($data);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
             error_log('Error in AnalyticsController::analytics: ' . $e->getMessage());
             api_fail('server_error', 500, ['detail' => $e->getMessage()]);
@@ -52,8 +52,6 @@ final class AnalyticsController extends AbstractController
 
     public function reportsAggregate(): void
     {
-        api_require_role(['operator', 'admin', 'auditor']);
-
         $repo = new AggregateReportRepository();
         $tenantId = api_current_tenant_id();
 
