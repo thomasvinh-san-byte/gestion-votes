@@ -6,6 +6,7 @@ namespace AgVote\Controller;
 use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Repository\AuditEventRepository;
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\UserRepository;
@@ -182,9 +183,10 @@ final class AdminController extends AbstractController
 
         $userRepo = new UserRepository();
         $meetingRepo = new MeetingRepository();
+        $statsRepo = new MeetingStatsRepository();
 
         $permissions = $userRepo->listRolePermissions();
-        $transitions = $meetingRepo->listStateTransitions();
+        $transitions = $statsRepo->listStateTransitions();
         $usersByRole = $userRepo->countBySystemRole(api_current_tenant_id());
         $meetingRoleCounts = $userRepo->countByMeetingRole(api_current_tenant_id());
 
@@ -337,8 +339,8 @@ final class AdminController extends AbstractController
         try {
             $free = @disk_free_space($path);
             $total = @disk_total_space($path);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             $free = null;
             $total = null;
         }
@@ -364,8 +366,8 @@ final class AdminController extends AbstractController
                 'count_audit_events' => $cntAud,
                 'auth_failures_15m' => $fail15,
             ]);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
         }
 
         $alertsToCreate = [];
@@ -388,8 +390,8 @@ final class AdminController extends AbstractController
                 if (!$userRepo->findRecentAlert($a['code'])) {
                     $userRepo->insertSystemAlert($a['code'], $a['severity'], $a['message'], json_encode($a['details']));
                 }
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
+            } catch (\Throwable $e) {
+                if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             }
         }
 

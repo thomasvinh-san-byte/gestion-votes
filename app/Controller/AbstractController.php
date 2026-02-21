@@ -39,4 +39,20 @@ abstract class AbstractController
             api_fail('internal_error', 500);
         }
     }
+
+    /**
+     * Wraps a block that may call api_ok/api_fail internally.
+     * Catches only non-API exceptions, converting them to api_fail.
+     * Eliminates the need for manual catch(ApiResponseException){throw} pattern.
+     */
+    protected static function wrapApiCall(callable $fn, string $errorCode = 'internal_error', int $httpCode = 500): void
+    {
+        try {
+            $fn();
+        } catch (\AgVote\Core\Http\ApiResponseException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            api_fail($errorCode, $httpCode, ['detail' => $e->getMessage()]);
+        }
+    }
 }

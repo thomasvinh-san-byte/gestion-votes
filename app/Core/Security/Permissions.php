@@ -137,22 +137,22 @@ final class Permissions
     public const LABELS = [
         'roles' => [
             'admin'     => 'Administrateur',
-            'operator'  => 'Operateur',
+            'operator'  => 'Opérateur',
             'auditor'   => 'Auditeur',
             'viewer'    => 'Observateur',
-            'president' => 'President de seance',
+            'president' => 'Président de séance',
             'assessor'  => 'Assesseur / Scrutateur',
-            'voter'     => 'Electeur',
+            'voter'     => 'Électeur',
         ],
         'statuses' => [
             'draft'     => 'Brouillon',
-            'scheduled' => 'Planifiee',
-            'frozen'    => 'Verrouillee',
+            'scheduled' => 'Planifiée',
+            'frozen'    => 'Verrouillée',
             'live'      => 'En cours',
             'paused'    => 'En pause',
-            'closed'    => 'Cloturee',
-            'validated' => 'Validee',
-            'archived'  => 'Archivee',
+            'closed'    => 'Clôturée',
+            'validated' => 'Validée',
+            'archived'  => 'Archivée',
         ],
     ];
 

@@ -268,17 +268,15 @@ final class RateLimiter
             $retryAfter
         ));
 
-        http_response_code(429);
-        header('Content-Type: application/json; charset=utf-8');
-        header('Retry-After: ' . $retryAfter);
-
-        echo json_encode([
-            'ok' => false,
-            'error' => 'rate_limit_exceeded',
-            'detail' => 'Trop de requêtes. Veuillez réessayer plus tard.',
-            'retry_after' => $retryAfter,
-        ], JSON_UNESCAPED_UNICODE);
-
-        exit;
+        throw new \AgVote\Core\Http\ApiResponseException(
+            new \AgVote\Core\Http\JsonResponse(429, [
+                'ok' => false,
+                'error' => 'rate_limit_exceeded',
+                'detail' => 'Trop de requêtes. Veuillez réessayer plus tard.',
+                'retry_after' => $retryAfter,
+            ], [
+                'Retry-After' => (string) $retryAfter,
+            ])
+        );
     }
 }

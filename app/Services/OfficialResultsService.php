@@ -24,6 +24,9 @@ use RuntimeException;
 final class OfficialResultsService
 {
     /**
+     * Applies quorum/majority policies to weighted vote totals.
+     * Delegates the core calculation to VoteEngine::computeDecision() (single source of truth).
+     *
      * @return array{decision:string,reason:string,quorum_met:bool|null,majority_ratio:float|null,majority_threshold:float|null,majority_base:string|null}
      */
     private static function decideWithPolicies(array $motion, float $forWeight, float $againstWeight, float $abstainWeight, float $expressedWeight, int $expressedMembersApprox): array
@@ -56,102 +59,61 @@ final class OfficialResultsService
             $votePolicy = $policyRepo->findVotePolicy($appliedVotePolicyId);
         }
 
-        // Quorum (same logic as VoteEngine)
-        $quorumMet = null;
-        $quorumRatio = null;
-        $quorumThreshold = null;
-        $quorumBasis = null;
-        $quorumNumerator = null;
-        $quorumDenominator = null;
-
-        if ($quorumPolicy) {
-            $quorumBasis     = (string)$quorumPolicy['denominator'];
-            $quorumThreshold = (float)$quorumPolicy['threshold'];
-
-            if ($quorumBasis === 'eligible_members') {
-                $quorumDenominator = max(1, $eligibleMembers);
-                $quorumNumerator   = max(0, $expressedMembersApprox);
-            } else {
-                $quorumDenominator = $eligibleWeight;
-                $quorumNumerator   = $expressedWeight;
-            }
-
-            if ($quorumDenominator <= 0) {
-                $quorumRatio = 0.0;
-                $quorumMet = false;
-            } else {
-                $quorumRatio = $quorumNumerator / $quorumDenominator;
-                $quorumMet = $quorumRatio >= $quorumThreshold;
-            }
+        // Resolve present weight for 'present' majority base
+        $presentWeight = null;
+        if ($votePolicy && ($votePolicy['base'] ?? '') === 'present') {
+            $meetingId = (string)($motion['meeting_id'] ?? '');
+            $attendanceRepo = new \AgVote\Repository\AttendanceRepository();
+            $presentWeight = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
         }
 
-        // Majority (same logic as VoteEngine)
-        $adopted           = null;
-        $majorityRatio     = null;
-        $majorityThreshold = null;
-        $majorityBase      = null;
-        $majorityDenominator = null;
+        // Delegate to VoteEngine (single source of truth for quorum/majority)
+        $calc = VoteEngine::computeDecision(
+            $quorumPolicy,
+            $votePolicy,
+            $forWeight,
+            $againstWeight,
+            $abstainWeight,
+            $expressedWeight,
+            $expressedMembersApprox,
+            $eligibleMembers,
+            $eligibleWeight,
+            $presentWeight,
+        );
 
-        if ($votePolicy) {
-            $majorityBase      = (string)$votePolicy['base'];
-            $majorityThreshold = (float)$votePolicy['threshold'];
+        $quorumMet         = $calc['quorum']['met'];
+        $quorumRatio       = $calc['quorum']['ratio'];
+        $quorumThreshold   = $calc['quorum']['threshold'];
+        $quorumBasis       = $calc['quorum']['basis'];
+        $adopted           = $calc['majority']['met'];
+        $majorityRatio     = $calc['majority']['ratio'];
+        $majorityThreshold = $calc['majority']['threshold'];
+        $majorityBase      = $calc['majority']['base'];
 
-            if ($majorityBase === 'expressed') {
-                $baseTotal = $expressedWeight;
-            } elseif ($majorityBase === 'eligible') {
-                $baseTotal = $eligibleWeight;
-            } elseif ($majorityBase === 'present') {
-                // Use actual present weight from attendance, not expressed weight
-                $meetingId = (string)($motion['meeting_id'] ?? '');
-                $attendanceRepo = new \AgVote\Repository\AttendanceRepository();
-                $baseTotal = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
-            } else {
-                $baseTotal = $expressedWeight;
-            }
-
-            if ($baseTotal <= 0.0 || $expressedWeight <= 0.0) {
-                $majorityDenominator = 0.0;
-                $majorityRatio = 0.0;
-                $adopted = false;
-            } else {
-                $majorityDenominator = $baseTotal;
-                $majorityRatio = $forWeight / $majorityDenominator;
-                $adopted = $majorityRatio >= $majorityThreshold;
-                if ($quorumMet === false) {
-                    $adopted = false;
-                }
-            }
-        }
-
-        // Final decision and explicit reason
+        // Build explicit French reason
         $status = 'rejected';
         $reason = '';
 
         if ($votePolicy) {
             $status = $adopted ? 'adopted' : 'rejected';
 
-            // Explicit reason with numerical values
             if ($quorumMet === false) {
-                // Quorum not met
                 $quorumPct = self::formatPct($quorumRatio);
                 $thresholdPct = self::formatPct($quorumThreshold);
                 $basisLabel = ($quorumBasis === 'eligible_members') ? 'des membres éligibles' : 'du poids éligible';
                 $reason = "Quorum non atteint ({$quorumPct} < {$thresholdPct} {$basisLabel})";
             } elseif ($adopted) {
-                // Majority reached
                 $ratioPct = self::formatPct($majorityRatio);
                 $thresholdPct = self::formatPct($majorityThreshold);
                 $baseLabel = self::getMajorityBaseLabel($majorityBase);
                 $reason = "Majorité atteinte ({$ratioPct} >= {$thresholdPct} {$baseLabel})";
             } else {
-                // Majority not reached
                 $ratioPct = self::formatPct($majorityRatio);
                 $thresholdPct = self::formatPct($majorityThreshold);
                 $baseLabel = self::getMajorityBaseLabel($majorityBase);
                 $reason = "Majorité non atteinte ({$ratioPct} < {$thresholdPct} {$baseLabel})";
             }
         } else {
-            // No vote policy: simple majority
             $status = ($forWeight > $againstWeight) ? 'adopted' : 'rejected';
 
             if ($quorumMet === false) {

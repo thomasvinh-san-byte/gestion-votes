@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
+use AgVote\Repository\ProxyRepository;
 use AgVote\Repository\WizardRepository;
 
 /**
@@ -21,6 +23,7 @@ final class DashboardController extends AbstractController
         $tenantId = api_current_tenant_id();
 
         $meetingRepo = new MeetingRepository();
+        $statsRepo   = new MeetingStatsRepository();
         $memberRepo  = new MemberRepository();
         $attRepo     = new AttendanceRepository();
         $motionRepo  = new MotionRepository();
@@ -76,7 +79,7 @@ final class DashboardController extends AbstractController
                 'present_weight' => (int)$att['present_weight'],
             ];
 
-            $data['proxies'] = ['count' => $meetingRepo->countActiveProxies($tenantId, $meetingId)];
+            $data['proxies'] = ['count' => (new ProxyRepository())->countActive($meetingId)];
 
             $currentMotionId = (string)($meeting['current_motion_id'] ?? '');
             if ($currentMotionId === '') {
@@ -108,7 +111,7 @@ final class DashboardController extends AbstractController
                 $reasons[] = "Président non renseigné.";
             }
 
-            $openCount = $meetingRepo->countOpenMotions($meetingId);
+            $openCount = $statsRepo->countOpenMotions($meetingId);
             if ($openCount > 0) {
                 $reasons[] = "Une motion est encore ouverte.";
             }

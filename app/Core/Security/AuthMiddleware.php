@@ -30,10 +30,10 @@ use RuntimeException;
 final class AuthMiddleware
 {
     // =========================================================================
-    // CONSTANTS
+    // CONSTANTS — delegated to Permissions (single source of truth)
     // =========================================================================
 
-    /** System roles with hierarchy level */
+    /** System roles (subset of hierarchy with level >= viewer) */
     private const SYSTEM_ROLES = [
         'admin'    => 100,
         'operator' => 80,
@@ -47,107 +47,12 @@ final class AuthMiddleware
     /** Session timeout in seconds (30 minutes) */
     private const SESSION_TIMEOUT = 1800;
 
-    /** Hierarchy levels for ALL roles (system + meeting) */
-    private const ROLE_HIERARCHY = [
-        'admin'     => 100,
-        'operator'  => 80,
-        'president' => 70,
-        'assessor'  => 60,
-        'auditor'   => 50,
-        'voter'     => 10,
-        'viewer'    => 5,
-        'public'    => 3,
-        'anonymous' => 0,
-    ];
-
-    /**
-     * Permission matrix by role (system AND meeting)
-     * Format: 'resource:action' => [allowed roles]
-     */
-    private const PERMISSIONS = [
-        // Meetings - lifecycle
-        'meeting:create'       => ['admin', 'operator'],
-        'meeting:read'         => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor', 'voter'],
-        'meeting:update'       => ['admin', 'operator'],
-        'meeting:delete'       => ['admin'],
-        'meeting:freeze'       => ['admin', 'president'],
-        'meeting:unfreeze'     => ['admin'],
-        'meeting:open'         => ['admin', 'president'],
-        'meeting:close'        => ['admin', 'president'],
-        'meeting:validate'     => ['admin', 'president'],
-        'meeting:archive'      => ['admin', 'operator'],
-        'meeting:assign_roles' => ['admin', 'operator'],
-
-        // Motions
-        'motion:create' => ['admin', 'operator'],
-        'motion:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor', 'voter'],
-        'motion:update' => ['admin', 'operator'],
-        'motion:delete' => ['admin', 'operator'],
-        'motion:open'   => ['admin', 'operator'],
-        'motion:close'  => ['admin', 'operator', 'president'],
-
-        // Votes
-        'vote:cast'   => ['admin', 'operator', 'voter'],
-        'vote:read'   => ['admin', 'operator', 'auditor', 'president', 'assessor'],
-        'vote:manual' => ['admin', 'operator'],
-
-        // Members
-        'member:create' => ['admin', 'operator'],
-        'member:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
-        'member:update' => ['admin', 'operator'],
-        'member:delete' => ['admin'],
-        'member:import' => ['admin', 'operator'],
-
-        // Attendance
-        'attendance:create' => ['admin', 'operator'],
-        'attendance:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
-        'attendance:update' => ['admin', 'operator'],
-
-        // Proxies
-        'proxy:create' => ['admin', 'operator'],
-        'proxy:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
-        'proxy:delete' => ['admin', 'operator'],
-
-        // Speech
-        'speech:request' => ['admin', 'operator', 'president', 'voter'],
-        'speech:grant'   => ['admin', 'operator', 'president'],
-        'speech:end'     => ['admin', 'operator', 'president'],
-
-        // Audit
-        'audit:read'   => ['admin', 'auditor', 'president', 'assessor'],
-        'audit:export' => ['admin', 'auditor', 'president'],
-
-        // Admin
-        'admin:users'    => ['admin'],
-        'admin:policies' => ['admin'],
-        'admin:system'   => ['admin'],
-        'admin:roles'    => ['admin'],
-
-        // Reports
-        'report:generate' => ['admin', 'operator', 'president'],
-        'report:read'     => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
-        'report:export'   => ['admin', 'operator', 'auditor', 'president'],
-    ];
-
     /**
      * Role aliases for backward compatibility.
-     * Old role names are mapped to system or meeting roles.
      */
     private const ROLE_ALIASES = [
         'trust'    => 'assessor',
         'readonly' => 'viewer',
-    ];
-
-    /** Allowed state transitions: from => [to => required_role] */
-    private const STATE_TRANSITIONS = [
-        'draft'     => ['scheduled' => 'operator', 'frozen' => 'president'],
-        'scheduled' => ['frozen' => 'president', 'draft' => 'admin'],
-        'frozen'    => ['live' => 'president', 'scheduled' => 'admin'],
-        'live'      => ['paused' => 'operator', 'closed' => 'president'],
-        'paused'    => ['live' => 'operator', 'closed' => 'president'],
-        'closed'    => ['validated' => 'president'],
-        'validated' => ['archived' => 'admin'],
-        // 'archived' is terminal — no transitions allowed
     ];
 
     // =========================================================================
@@ -330,13 +235,13 @@ final class AuthMiddleware
         }
 
         // Check by system hierarchy
-        $userLevel = self::ROLE_HIERARCHY[$systemRole] ?? 0;
+        $userLevel = Permissions::HIERARCHY[$systemRole] ?? 0;
         foreach ($roles as $requiredRole) {
             // Do not use hierarchy for meeting roles
             if (self::isMeetingRole($requiredRole)) {
                 continue;
             }
-            $requiredLevel = self::ROLE_HIERARCHY[$requiredRole] ?? 0;
+            $requiredLevel = Permissions::HIERARCHY[$requiredRole] ?? 0;
             if ($userLevel >= $requiredLevel) {
                 return true;
             }
@@ -446,7 +351,7 @@ final class AuthMiddleware
             return true;
         }
 
-        $allowedRoles = self::PERMISSIONS[$permission] ?? [];
+        $allowedRoles = Permissions::PERMISSIONS[$permission] ?? [];
 
         // Check system role
         if (in_array($systemRole, $allowedRoles, true)) {
@@ -454,12 +359,12 @@ final class AuthMiddleware
         }
 
         // Check system hierarchy
-        $userLevel = self::ROLE_HIERARCHY[$systemRole] ?? 0;
+        $userLevel = Permissions::HIERARCHY[$systemRole] ?? 0;
         foreach ($allowedRoles as $allowedRole) {
             if (self::isMeetingRole($allowedRole)) {
                 continue; // Don't hierarchy-compare meeting roles
             }
-            if ($userLevel >= (self::ROLE_HIERARCHY[$allowedRole] ?? 0)) {
+            if ($userLevel >= (Permissions::HIERARCHY[$allowedRole] ?? 0)) {
                 return true;
             }
         }
@@ -563,7 +468,7 @@ final class AuthMiddleware
      */
     public static function canTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): bool
     {
-        $allowed = self::STATE_TRANSITIONS[$fromStatus] ?? [];
+        $allowed = Permissions::TRANSITIONS[$fromStatus] ?? [];
         if (!isset($allowed[$toStatus])) {
             return false;
         }
@@ -592,7 +497,7 @@ final class AuthMiddleware
 
     public static function requireTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): void
     {
-        $allowed = self::STATE_TRANSITIONS[$fromStatus] ?? [];
+        $allowed = Permissions::TRANSITIONS[$fromStatus] ?? [];
         if (!isset($allowed[$toStatus])) {
             self::deny('invalid_transition', 422, [
                 'from' => $fromStatus,
@@ -614,7 +519,7 @@ final class AuthMiddleware
 
     public static function availableTransitions(string $currentStatus, ?string $meetingId = null): array
     {
-        $all = self::STATE_TRANSITIONS[$currentStatus] ?? [];
+        $all = Permissions::TRANSITIONS[$currentStatus] ?? [];
         $result = [];
 
         foreach ($all as $to => $requiredRole) {
@@ -637,45 +542,33 @@ final class AuthMiddleware
 
     public static function getSystemRoleLabels(): array
     {
-        return [
-            'admin'    => 'Administrateur',
-            'operator' => 'Opérateur',
-            'auditor'  => 'Auditeur',
-            'viewer'   => 'Observateur',
-        ];
+        return array_intersect_key(
+            Permissions::LABELS['roles'],
+            self::SYSTEM_ROLES
+        );
     }
 
     public static function getMeetingRoleLabels(): array
     {
-        return [
-            'president' => 'Président de séance',
-            'assessor'  => 'Assesseur / Scrutateur',
-            'voter'     => 'Électeur',
-        ];
+        return array_intersect_key(
+            Permissions::LABELS['roles'],
+            array_flip(self::MEETING_ROLES)
+        );
     }
 
     public static function getRoleLabels(): array
     {
-        return self::getSystemRoleLabels() + self::getMeetingRoleLabels();
+        return Permissions::LABELS['roles'];
     }
 
     public static function getMeetingStatusLabels(): array
     {
-        return [
-            'draft'     => 'Brouillon',
-            'scheduled' => 'Planifiée',
-            'frozen'    => 'Verrouillée',
-            'live'      => 'En cours',
-            'paused'    => 'En pause',
-            'closed'    => 'Clôturée',
-            'validated' => 'Validée',
-            'archived'  => 'Archivée',
-        ];
+        return Permissions::LABELS['statuses'];
     }
 
     public static function getAllRoles(): array
     {
-        return array_keys(self::ROLE_HIERARCHY);
+        return array_keys(Permissions::HIERARCHY);
     }
 
     // =========================================================================
@@ -687,7 +580,7 @@ final class AuthMiddleware
         $effectiveRoles = self::getEffectiveRoles($meetingId);
         $permissions = [];
 
-        foreach (self::PERMISSIONS as $permission => $allowedRoles) {
+        foreach (Permissions::PERMISSIONS as $permission => $allowedRoles) {
             if (self::getCurrentRole() === 'admin') {
                 $permissions[] = $permission;
                 continue;
@@ -705,7 +598,7 @@ final class AuthMiddleware
 
     public static function getRoleLevel(string $role): int
     {
-        return self::ROLE_HIERARCHY[self::normalizeRole($role)] ?? 0;
+        return Permissions::HIERARCHY[self::normalizeRole($role)] ?? 0;
     }
 
     public static function isRoleAtLeast(string $role, string $minimumRole): bool
@@ -774,17 +667,16 @@ final class AuthMiddleware
     {
         self::logAuthFailure($code);
 
-        http_response_code($httpCode);
-        header('Content-Type: application/json; charset=utf-8');
-        header('WWW-Authenticate: ApiKey realm="AG-Vote API"');
-
-        $response = ['ok' => false, 'error' => $code];
+        $body = ['ok' => false, 'error' => $code];
         if (self::$debug && !empty($extra)) {
-            $response['debug'] = $extra;
+            $body['debug'] = $extra;
         }
 
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
-        exit;
+        throw new \AgVote\Core\Http\ApiResponseException(
+            new \AgVote\Core\Http\JsonResponse($httpCode, $body, [
+                'WWW-Authenticate' => 'ApiKey realm="AG-Vote API"',
+            ])
+        );
     }
 
     private static function logAuthFailure(string $reason, ?string $credential = null): void

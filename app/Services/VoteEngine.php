@@ -14,21 +14,111 @@ use RuntimeException;
 /**
  * VoteEngine - Computes motion voting results.
  *
- * This service handles the calculation of vote results for motions,
- * including tallying ballots, applying quorum policies, and determining
- * majority outcomes.
- *
- * Features:
- * - Ballot aggregation by vote value (for, against, abstain, nsp)
- * - Weight-based voting support
- * - Quorum verification against configured policies
- * - Majority calculation with configurable thresholds
- * - Abstention-as-against option support
- *
- * @package AgVote\Service
+ * Single source of truth for quorum/majority calculation.
  */
 final class VoteEngine
 {
+    /**
+     * Pure quorum/majority calculation. No I/O — takes all inputs as parameters.
+     * Used by both computeMotionResult() and OfficialResultsService::decideWithPolicies().
+     *
+     * @return array{quorum: array, majority: array, decision: array}
+     */
+    public static function computeDecision(
+        ?array $quorumPolicy,
+        ?array $votePolicy,
+        float $forWeight,
+        float $againstWeight,
+        float $abstainWeight,
+        float $expressedWeight,
+        int $expressedMembers,
+        int $eligibleMembers,
+        float $eligibleWeight,
+        ?float $presentWeight = null,
+    ): array {
+        // Quorum calculation
+        $quorumMet         = null;
+        $quorumRatio       = null;
+        $quorumThreshold   = null;
+        $quorumDenominator = null;
+        $quorumBasis       = null;
+
+        if ($quorumPolicy) {
+            $quorumBasis     = (string)$quorumPolicy['denominator'];
+            $quorumThreshold = (float)$quorumPolicy['threshold'];
+
+            if ($quorumBasis === 'eligible_members') {
+                $denominator = max(1, $eligibleMembers);
+                $numerator   = $expressedMembers;
+            } else {
+                $denominator = $eligibleWeight;
+                $numerator   = $expressedWeight;
+            }
+
+            if ($denominator <= 0) {
+                $quorumMet = false;
+                $quorumRatio = 0.0;
+            } else {
+                $quorumRatio = $numerator / $denominator;
+                $quorumMet = $quorumRatio >= $quorumThreshold;
+            }
+            $quorumDenominator = $denominator;
+        }
+
+        // Majority calculation
+        $adopted           = null;
+        $majorityRatio     = null;
+        $majorityThreshold = null;
+        $majorityBase      = null;
+        $abstAsAgainst     = null;
+
+        if ($votePolicy) {
+            $majorityBase      = (string)$votePolicy['base'];
+            $majorityThreshold = (float)$votePolicy['threshold'];
+            $abstAsAgainst     = (bool)($votePolicy['abstention_as_against'] ?? false);
+
+            if ($majorityBase === 'expressed') {
+                $baseTotal = $expressedWeight;
+            } elseif ($majorityBase === 'eligible') {
+                $baseTotal = $eligibleWeight;
+            } elseif ($majorityBase === 'present') {
+                $baseTotal = $presentWeight ?? $expressedWeight;
+            } else {
+                $baseTotal = $expressedWeight;
+            }
+
+            if ($baseTotal <= 0.0 || $expressedWeight <= 0.0) {
+                $majorityRatio = 0.0;
+                $adopted = false;
+            } else {
+                $majorityRatio = $forWeight / $baseTotal;
+                $adopted = $majorityRatio >= $majorityThreshold;
+                if ($quorumMet === false) {
+                    $adopted = false;
+                }
+            }
+        }
+
+        return [
+            'quorum' => [
+                'applied'     => (bool)$quorumPolicy,
+                'met'         => $quorumMet,
+                'basis'       => $quorumBasis,
+                'ratio'       => $quorumRatio,
+                'threshold'   => $quorumThreshold,
+                'denominator' => $quorumDenominator,
+            ],
+            'majority' => [
+                'applied'               => (bool)$votePolicy,
+                'met'                   => $adopted,
+                'base'                  => $majorityBase,
+                'ratio'                 => $majorityRatio,
+                'threshold'             => $majorityThreshold,
+                'abstention_as_against' => $abstAsAgainst,
+            ],
+        ];
+    }
+
     /**
      * Computes motion results from ballots and policies.
      *
@@ -94,74 +184,29 @@ final class VoteEngine
             $votePolicy = $policyRepo->findVotePolicy($appliedVotePolicyId);
         }
 
-        // Quorum calculation
-        $quorumMet         = null;
-        $quorumRatio       = null;
-        $quorumThreshold   = null;
-        $quorumDenominator = null;
-        $quorumBasis       = null;
-
-        if ($quorumPolicy) {
-            $quorumBasis     = (string)$quorumPolicy['denominator'];
-            $quorumThreshold = (float)$quorumPolicy['threshold'];
-
-            if ($quorumBasis === 'eligible_members') {
-                $denominator = max(1, $eligibleMembers);
-                $numerator   = $expressedMembers;
-            } else {
-                $denominator = $eligibleWeight;
-                $numerator   = $expressedWeight;
-            }
-
-            if ($denominator <= 0) {
-                $quorumMet = false;
-                $quorumRatio = 0.0;
-            } else {
-                $quorumRatio = $numerator / $denominator;
-                $quorumMet = $quorumRatio >= $quorumThreshold;
-            }
-            $quorumDenominator = $denominator;
+        // Resolve present weight for 'present' majority base
+        $presentWeight = null;
+        if ($votePolicy && ($votePolicy['base'] ?? '') === 'present') {
+            $attendanceRepo = new \AgVote\Repository\AttendanceRepository();
+            $presentWeight = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
         }
 
-        // Majority calculation
-        $adopted           = null;
-        $majorityRatio     = null;
-        $majorityThreshold = null;
-        $majorityBase      = null;
-        $abstAsAgainst     = null;
+        // Compute decision using the shared engine
+        $calc = self::computeDecision(
+            $quorumPolicy,
+            $votePolicy,
+            $tallies['for']['weight'],
+            $tallies['against']['weight'],
+            $tallies['abstain']['weight'],
+            $expressedWeight,
+            $expressedMembers,
+            $eligibleMembers,
+            $eligibleWeight,
+            $presentWeight,
+        );
 
-        if ($votePolicy) {
-            $majorityBase      = (string)$votePolicy['base'];
-            $majorityThreshold = (float)$votePolicy['threshold'];
-            $abstAsAgainst     = (bool)$votePolicy['abstention_as_against'];
-
-            if ($majorityBase === 'expressed') {
-                $baseTotal = $expressedWeight;
-            } elseif ($majorityBase === 'eligible') {
-                $baseTotal = $eligibleWeight;
-            } elseif ($majorityBase === 'present') {
-                // Use actual present weight from attendance, not expressed weight
-                $attendanceRepo = new \AgVote\Repository\AttendanceRepository();
-                $baseTotal = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
-            } else {
-                $baseTotal = $expressedWeight;
-            }
-
-            $forWeight     = $tallies['for']['weight'];
-            $againstWeight = $tallies['against']['weight'];
-            $abstainWeight = $tallies['abstain']['weight'];
-
-            if ($baseTotal <= 0.0 || $expressedWeight <= 0.0) {
-                $majorityRatio = 0.0;
-                $adopted = false;
-            } else {
-                $majorityRatio = $forWeight / $baseTotal;
-                $adopted = $majorityRatio >= $majorityThreshold;
-                if ($quorumMet === false) {
-                    $adopted = false;
-                }
-            }
-        }
+        $quorumMet = $calc['quorum']['met'];
+        $adopted   = $calc['majority']['met'];
 
         // Human-readable global status
         $decisionStatus = 'no_votes';
@@ -205,22 +250,8 @@ final class VoteEngine
                 'members' => $expressedMembers,
                 'weight'  => $expressedWeight,
             ],
-            'quorum' => [
-                'applied'     => (bool)$quorumPolicy,
-                'met'         => $quorumMet,
-                'basis'       => $quorumBasis,
-                'ratio'       => $quorumRatio,
-                'threshold'   => $quorumThreshold,
-                'denominator' => $quorumDenominator,
-            ],
-            'majority' => [
-                'applied'               => (bool)$votePolicy,
-                'met'                   => $adopted,
-                'base'                  => $majorityBase,
-                'ratio'                 => $majorityRatio,
-                'threshold'             => $majorityThreshold,
-                'abstention_as_against' => $abstAsAgainst,
-            ],
+            'quorum' => $calc['quorum'],
+            'majority' => $calc['majority'],
             'decision' => [
                 'status' => $decisionStatus,
                 'reason' => $decisionReason,

@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
+use AgVote\Repository\MeetingReportRepository;
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Service\MeetingValidator;
@@ -149,7 +151,8 @@ final class MeetingsController extends AbstractController
             api_fail('no_live_meeting', 404);
         }
 
-        $counts = $repo->countMotionStats((string)$meeting['meeting_id']);
+        $statsRepo = new MeetingStatsRepository();
+        $counts = $statsRepo->countMotionStats((string)$meeting['meeting_id']);
 
         $totalMotions = (int)($counts['total_motions'] ?? 0);
         $openMotions = (int)($counts['open_motions'] ?? 0);
@@ -246,29 +249,30 @@ final class MeetingsController extends AbstractController
 
         $tenantId = api_current_tenant_id();
         $repo = new MeetingRepository();
+        $statsRepo = new MeetingStatsRepository();
 
         $meeting = $repo->findSummaryFields($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
         }
 
-        $totalMembers = $repo->countActiveMembers($tenantId);
-        $presentCount = $repo->countPresent($meetingId);
-        $proxyCount = $repo->countProxy($meetingId);
+        $totalMembers = $statsRepo->countActiveMembers($tenantId);
+        $presentCount = $statsRepo->countPresent($meetingId);
+        $proxyCount = $statsRepo->countProxy($meetingId);
         $absentCount = $totalMembers - $presentCount - $proxyCount;
 
-        $motionsCount = $repo->countMotions($meetingId);
-        $closedMotionsCount = $repo->countClosedMotions($meetingId);
-        $openMotionsCount = $repo->countOpenMotions($meetingId);
+        $motionsCount = $statsRepo->countMotions($meetingId);
+        $closedMotionsCount = $statsRepo->countClosedMotions($meetingId);
+        $openMotionsCount = $statsRepo->countOpenMotions($meetingId);
 
-        $adoptedCount = $repo->countAdoptedMotions($meetingId);
-        $rejectedCount = $repo->countRejectedMotions($meetingId);
+        $adoptedCount = $statsRepo->countAdoptedMotions($meetingId);
+        $rejectedCount = $statsRepo->countRejectedMotions($meetingId);
 
-        $ballotsCount = $repo->countBallots($meetingId);
-        $totalVotedWeight = $repo->sumBallotWeight($meetingId);
-        $proxiesCount = $repo->countProxies($meetingId);
-        $incidentsCount = $repo->countIncidents($meetingId);
-        $manualVotesCount = $repo->countManualVotes($meetingId);
+        $ballotsCount = $statsRepo->countBallots($meetingId);
+        $totalVotedWeight = $statsRepo->sumBallotWeight($meetingId);
+        $proxiesCount = $statsRepo->countProxies($meetingId);
+        $incidentsCount = $statsRepo->countIncidents($meetingId);
+        $manualVotesCount = $statsRepo->countManualVotes($meetingId);
 
         api_ok([
             'meeting_id' => $meetingId,
@@ -305,13 +309,14 @@ final class MeetingsController extends AbstractController
         }
 
         $meetingRepo = new MeetingRepository();
+        $statsRepo = new MeetingStatsRepository();
         $motionRepo = new MotionRepository();
 
         if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
         }
 
-        $motionsCount = $meetingRepo->countMotions($meetingId);
+        $motionsCount = $statsRepo->countMotions($meetingId);
         $rows = $motionRepo->listStatsForMeeting($meetingId);
 
         $motions = [];
@@ -457,7 +462,7 @@ final class MeetingsController extends AbstractController
             }
 
             if ($policyId !== '') {
-                if (!$repo->votePolicyExists($policyId, api_current_tenant_id())) {
+                if (!(new PolicyRepository())->votePolicyExists($policyId, api_current_tenant_id())) {
                     api_fail('vote_policy_not_found', 404);
                 }
             }
@@ -502,12 +507,12 @@ final class MeetingsController extends AbstractController
             api_transaction(function () use ($repo, $meetingId, $tenant) {
                 $pvHtml = MeetingReportService::renderHtml($meetingId, true);
                 $repo->markValidated($meetingId, $tenant);
-                $repo->storePVHtml($meetingId, $pvHtml);
+                (new MeetingReportRepository())->storeHtml($meetingId, $pvHtml);
             });
 
             api_ok(['meeting_id' => $meetingId, 'status' => 'validated']);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             api_fail('validation_failed', 500, ['detail' => $e->getMessage()]);
         }
     }

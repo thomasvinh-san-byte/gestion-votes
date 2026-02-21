@@ -122,4 +122,155 @@ class AuditEventRepository extends AbstractRepository
             [$tenantId]
         );
     }
+
+    // =========================================================================
+    // MEETING AUDIT EVENTS (migrated from MeetingRepository)
+    // =========================================================================
+
+    /**
+     * Audit events for CSV export (all columns, chronological).
+     */
+    public function listForMeetingExport(string $tenantId, string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT created_at, actor_role, actor_user_id, action, resource_type, resource_id, payload, prev_hash, this_hash
+             FROM audit_events
+             WHERE tenant_id = :tid AND meeting_id = :mid
+             ORDER BY created_at ASC",
+            [':tid' => $tenantId, ':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Audit events for a meeting.
+     */
+    public function listForMeeting(string $meetingId, string $tenantId, int $limit = 200, string $order = 'DESC'): array
+    {
+        $order = ($order === 'ASC') ? 'ASC' : 'DESC';
+        return $this->selectAll(
+            "SELECT id, action, resource_type, resource_id, payload, created_at
+             FROM audit_events
+             WHERE tenant_id = :tid
+               AND ((resource_type = 'meeting' AND resource_id = :mid)
+                    OR (resource_type = 'motion' AND resource_id IN (
+                        SELECT id FROM motions WHERE meeting_id = :mid2)))
+             ORDER BY created_at {$order}
+             LIMIT " . max(1, $limit),
+            [':tid' => $tenantId, ':mid' => $meetingId, ':mid2' => $meetingId]
+        );
+    }
+
+    /**
+     * Filtered audit events for a meeting (for operator_audit_events).
+     */
+    public function listForMeetingFiltered(
+        string $tenantId,
+        string $meetingId,
+        int $limit = 200,
+        string $resourceType = '',
+        string $action = '',
+        string $q = ''
+    ): array {
+        $where = "WHERE tenant_id = ? AND (
+            (resource_type = 'meeting' AND resource_id = ?)
+            OR
+            (resource_type = 'motion' AND resource_id IN (SELECT id FROM motions WHERE meeting_id = ?))
+        )";
+        $params = [$tenantId, $meetingId, $meetingId];
+
+        if ($resourceType !== '') {
+            $where .= " AND resource_type = ?";
+            $params[] = $resourceType;
+        }
+        if ($action !== '') {
+            $where .= " AND action ILIKE ?";
+            $params[] = "%" . $action . "%";
+        }
+        if ($q !== '') {
+            $where .= " AND (action ILIKE ? OR resource_id ILIKE ? OR payload::text ILIKE ?)";
+            $params[] = "%" . $q . "%";
+            $params[] = "%" . $q . "%";
+            $params[] = "%" . $q . "%";
+        }
+
+        return $this->selectAll(
+            "SELECT id, action, resource_type, resource_id, payload, created_at
+             FROM audit_events
+             {$where}
+             ORDER BY created_at DESC
+             LIMIT " . max(1, min($limit, 500)),
+            $params
+        );
+    }
+
+    /**
+     * Paginated audit events for the audit log (timeline).
+     */
+    public function listForMeetingLog(
+        string $tenantId,
+        string $meetingId,
+        int $limit = 50,
+        int $offset = 0
+    ): array {
+        return $this->selectAll(
+            "SELECT
+                ae.id,
+                ae.action,
+                ae.resource_type,
+                ae.resource_id,
+                ae.actor_user_id,
+                ae.actor_role,
+                ae.payload,
+                ae.ip_address,
+                ae.created_at
+            FROM audit_events ae
+            WHERE ae.tenant_id = ?
+              AND (
+                ae.meeting_id = ?
+                OR (ae.resource_type = 'meeting' AND ae.resource_id = ?)
+                OR (ae.resource_type = 'motion' AND ae.resource_id IN (
+                    SELECT id FROM motions WHERE meeting_id = ?
+                ))
+                OR (ae.resource_type = 'attendance' AND ae.resource_id IN (
+                    SELECT id FROM attendances WHERE meeting_id = ?
+                ))
+              )
+            ORDER BY ae.created_at DESC
+            LIMIT ? OFFSET ?",
+            [$tenantId, $meetingId, $meetingId, $meetingId, $meetingId, $limit, $offset]
+        );
+    }
+
+    /**
+     * Count total audit events for the audit log (pagination).
+     */
+    public function countForMeetingLog(string $tenantId, string $meetingId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*)
+            FROM audit_events ae
+            WHERE ae.tenant_id = ?
+              AND (
+                ae.meeting_id = ?
+                OR (ae.resource_type = 'meeting' AND ae.resource_id = ?)
+                OR (ae.resource_type = 'motion' AND ae.resource_id IN (
+                    SELECT id FROM motions WHERE meeting_id = ?
+                ))
+              )",
+            [$tenantId, $meetingId, $meetingId, $meetingId]
+        ) ?? 0);
+    }
+
+    /**
+     * Delete audit events for a meeting (reset demo, best-effort).
+     */
+    public function deleteByMeeting(string $meetingId, string $tenantId): void
+    {
+        try {
+            $this->execute(
+                "DELETE FROM audit_events WHERE meeting_id = :mid AND tenant_id = :tid",
+                [':mid' => $meetingId, ':tid' => $tenantId]
+            );
+        } catch (\Throwable $e) { /* table may not exist */ }
+    }
 }

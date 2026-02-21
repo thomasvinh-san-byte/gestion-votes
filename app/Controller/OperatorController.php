@@ -6,9 +6,11 @@ namespace AgVote\Controller;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\ProxyRepository;
 use AgVote\Repository\VoteTokenRepository;
 use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
@@ -33,6 +35,7 @@ final class OperatorController extends AbstractController
         $tenant = api_current_tenant_id();
 
         $meetingRepo = new MeetingRepository();
+        $statsRepo = new MeetingStatsRepository();
         $memberRepo = new MemberRepository();
         $motionRepo = new MotionRepository();
         $ballotRepo = new BallotRepository();
@@ -80,7 +83,7 @@ final class OperatorController extends AbstractController
         $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
         $quorumOk = $presentCount > 0 && $quorumRatio >= $quorumThreshold;
 
-        $coveredRows = $meetingRepo->listDistinctProxyGivers($meetingId);
+        $coveredRows = (new ProxyRepository())->listDistinctGivers($meetingId);
         $coveredSet = [];
         foreach ($coveredRows as $x) {
             $coveredSet[(string)$x['giver_member_id']] = true;
@@ -94,7 +97,7 @@ final class OperatorController extends AbstractController
         }
         $missingNames = array_values(array_filter(array_map(fn($id) => $absentNames[$id] ?? '', $missing)));
 
-        $proxyActive = $meetingRepo->countActiveProxies($tenant, $meetingId);
+        $proxyActive = (new ProxyRepository())->countActive($meetingId);
 
         $motions = $motionRepo->countWorkflowSummary($meetingId);
 
@@ -129,7 +132,7 @@ final class OperatorController extends AbstractController
 
         $canOpenNext = $quorumOk && (count($missing) === 0) && ($openMotion === null) && ($nextMotion !== null);
 
-        $hasClosed = $meetingRepo->countClosedMotions($meetingId);
+        $hasClosed = $statsRepo->countClosedMotions($meetingId);
         $canConsolidate = ((int)($motions['open'] ?? 0)) === 0 && $hasClosed > 0;
         $consolidatedCount = $motionRepo->countConsolidatedMotions($meetingId);
         $consolidationDone = ($hasClosed > 0) && ($consolidatedCount >= $hasClosed);
@@ -395,7 +398,7 @@ final class OperatorController extends AbstractController
         $proxyMax = (int)config('proxy_max_per_receiver', 99);
         $proxyCeilings = [];
         try {
-            $rows = $meetingRepo->listProxyCeilingViolations(api_current_tenant_id(), $meetingId, $proxyMax);
+            $rows = (new ProxyRepository())->listCeilingViolations(api_current_tenant_id(), $meetingId, $proxyMax);
             foreach ($rows as $r) {
                 $pid = (string)$r['proxy_id'];
                 $proxyCeilings[] = [
@@ -405,8 +408,8 @@ final class OperatorController extends AbstractController
                     'max' => $proxyMax,
                 ];
             }
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             $proxyCeilings = [];
         }
 
