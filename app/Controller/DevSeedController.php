@@ -47,8 +47,8 @@ final class DevSeedController extends AbstractController
                 if ($repo->insertSeedMember($id, api_current_tenant_id(), $fullName)) {
                     $created++;
                 }
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
+            } catch (\Throwable $e) {
+                if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
                 // skip duplicates
             }
         }
@@ -94,8 +94,8 @@ final class DevSeedController extends AbstractController
             try {
                 $attendanceRepo->upsertSeed($id, api_current_tenant_id(), $meetingId, $m['id'], $mode);
                 $created++;
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
+            } catch (\Throwable $e) {
+                if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
                 // skip errors
             }
         }

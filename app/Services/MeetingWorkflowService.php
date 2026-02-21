@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MotionRepository;
@@ -94,7 +95,8 @@ final class MeetingWorkflowService
         // closed → validated
         if ($toStatus === 'validated' && $fromStatus === 'closed') {
             $motionRepo = new MotionRepository();
-            $closed = $meetingRepo->countClosedMotions($meetingId);
+            $statsRepo = new MeetingStatsRepository();
+            $closed = $statsRepo->countClosedMotions($meetingId);
             $bad = $motionRepo->countBadClosedMotions($meetingId);
 
             if ($bad > 0) {
@@ -166,8 +168,8 @@ final class MeetingWorkflowService
      */
     public static function countOpenMotions(string $meetingId): int
     {
-        $meetingRepo = new MeetingRepository();
-        return $meetingRepo->countOpenMotions($meetingId);
+        $statsRepo = new MeetingStatsRepository();
+        return $statsRepo->countOpenMotions($meetingId);
     }
 
     /**
@@ -175,8 +177,8 @@ final class MeetingWorkflowService
      */
     public static function allMotionsClosed(string $meetingId): bool
     {
-        $meetingRepo = new MeetingRepository();
-        return $meetingRepo->countOpenMotions($meetingId) === 0;
+        $statsRepo = new MeetingStatsRepository();
+        return $statsRepo->countOpenMotions($meetingId) === 0;
     }
 
     /**

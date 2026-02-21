@@ -164,14 +164,13 @@ final class CsrfMiddleware
             $_SERVER['REQUEST_URI'] ?? 'unknown'
         ));
 
-        http_response_code(403);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode([
-            'ok' => false,
-            'error' => $code,
-            'detail' => 'Validation CSRF échouée. Rechargez la page et réessayez.'
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
+        throw new \AgVote\Core\Http\ApiResponseException(
+            new \AgVote\Core\Http\JsonResponse(403, [
+                'ok' => false,
+                'error' => $code,
+                'detail' => 'Validation CSRF échouée. Rechargez la page et réessayez.',
+            ])
+        );
     }
 
     /**

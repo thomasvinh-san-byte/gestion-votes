@@ -5,6 +5,7 @@ namespace AgVote\Controller;
 
 use AgVote\Service\QuorumEngine;
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\PolicyRepository;
 
 /**
  * Consolidates quorum_card.php, quorum_status.php, meeting_quorum_settings.php.
@@ -74,8 +75,8 @@ final class QuorumController extends AbstractController
             echo '  </div>';
             echo '</section>';
 
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             error_log("quorum_card error: " . $e->getMessage());
             $safe = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
             echo '<section class="card"><div class="row between"><div><div class="k">Quorum</div><div class="muted tiny">' . $safe . '</div></div><span class="badge danger">erreur</span></div></section>';
@@ -160,7 +161,7 @@ final class QuorumController extends AbstractController
             }
 
             if ($policyId !== '') {
-                if (!$repo->quorumPolicyExists($policyId, api_current_tenant_id())) {
+                if (!(new PolicyRepository())->quorumPolicyExists($policyId, api_current_tenant_id())) {
                     api_fail('quorum_policy_not_found', 404);
                 }
             }

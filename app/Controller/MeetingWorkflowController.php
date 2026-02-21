@@ -8,6 +8,7 @@ use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\ManualActionRepository;
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\VoteTokenRepository;
@@ -153,8 +154,8 @@ final class MeetingWorkflowController extends AbstractController
 
         try {
             EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), $toStatus, $fromStatus);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
         }
 
         api_ok([
@@ -266,8 +267,8 @@ final class MeetingWorkflowController extends AbstractController
 
         try {
             EventBroadcaster::meetingStatusChanged($meetingId, $tenant, 'live', $txResult['fromStatus']);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
         }
 
         api_ok([
@@ -312,6 +313,7 @@ final class MeetingWorkflowController extends AbstractController
         $tenant = api_current_tenant_id();
 
         $meetingRepo = new MeetingRepository();
+        $statsRepo = new MeetingStatsRepository();
         $motionRepo = new MotionRepository();
         $attendanceRepo = new AttendanceRepository();
         $memberRepo = new MemberRepository();
@@ -334,7 +336,7 @@ final class MeetingWorkflowController extends AbstractController
         ];
 
         // Check 2: Motions ouvertes
-        $openCount = $meetingRepo->countOpenMotions($meetingId);
+        $openCount = $statsRepo->countOpenMotions($meetingId);
         $checks[] = [
             'passed' => $openCount === 0,
             'label' => 'Motions fermées',

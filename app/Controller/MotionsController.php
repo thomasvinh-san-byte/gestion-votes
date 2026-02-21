@@ -9,6 +9,7 @@ use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\ManualActionRepository;
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Service\NotificationsService;
@@ -57,10 +58,11 @@ final class MotionsController extends AbstractController
 
         api_guard_meeting_not_validated((string)$agenda['meeting_id']);
 
-        if ($votePolicyId !== '' && !$meetingRepo->votePolicyExists($votePolicyId, $tenantId)) {
+        $policyRepo = new PolicyRepository();
+        if ($votePolicyId !== '' && !$policyRepo->votePolicyExists($votePolicyId, $tenantId)) {
             api_fail('vote_policy_not_found', 404);
         }
-        if ($quorumPolicyId !== '' && !$meetingRepo->quorumPolicyExists($quorumPolicyId, $tenantId)) {
+        if ($quorumPolicyId !== '' && !$policyRepo->quorumPolicyExists($quorumPolicyId, $tenantId)) {
             api_fail('quorum_policy_not_found', 404);
         }
 
@@ -386,7 +388,7 @@ final class MotionsController extends AbstractController
         $motion = $motionRepo->findCurrentOpen($meetingId, $tenantId);
 
         $totalMotions = $motionRepo->countForMeeting($meetingId);
-        $eligibleCount = (new MeetingRepository())->countActiveMembers($tenantId);
+        $eligibleCount = (new MeetingStatsRepository())->countActiveMembers($tenantId);
 
         $ballotsCast = 0;
         if ($motion) {
@@ -475,8 +477,8 @@ final class MotionsController extends AbstractController
                 'vote_policy_id' => $votePolicyId,
                 'quorum_policy_id' => $quorumPolicyId,
             ]);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             error_log('[motions_open] audit_log failed: ' . $e->getMessage());
         }
 
@@ -485,8 +487,8 @@ final class MotionsController extends AbstractController
                 'title' => $txResult['title'],
                 'secret' => $txResult['secret'],
             ]);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             error_log('[motions_open] EventBroadcaster failed: ' . $e->getMessage());
         }
 
@@ -540,8 +542,8 @@ final class MotionsController extends AbstractController
 
         try {
             VoteTokenService::revokeForMotion($motionId, api_current_tenant_id());
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $tokenErr) {
+            if ($tokenErr instanceof \AgVote\Core\Http\ApiResponseException) throw $tokenErr;
             error_log('[motions_close] token revocation failed after commit: ' . $tokenErr->getMessage());
         }
 
@@ -549,8 +551,8 @@ final class MotionsController extends AbstractController
             audit_log('motion_closed', 'motion', $motionId, [
                 'meeting_id' => (string)$motion['meeting_id'],
             ]);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $auditErr) {
+            if ($auditErr instanceof \AgVote\Core\Http\ApiResponseException) throw $auditErr;
             error_log('[motions_close] audit_log failed after commit: ' . $auditErr->getMessage());
         }
 
@@ -563,8 +565,8 @@ final class MotionsController extends AbstractController
                 'decision' => $o['decision'] ?? 'unknown',
                 'reason' => $o['reason'] ?? null,
             ]);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $wsErr) {
+            if ($wsErr instanceof \AgVote\Core\Http\ApiResponseException) throw $wsErr;
             error_log('[motions_close] EventBroadcaster failed after commit: ' . $wsErr->getMessage());
         }
 
@@ -576,8 +578,10 @@ final class MotionsController extends AbstractController
                 api_current_tenant_id(),
                 ['present', 'remote']
             );
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) { /* non-critical */ }
+        } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+            /* non-critical */
+        }
 
         api_ok([
             'meeting_id'       => (string)$motion['meeting_id'],

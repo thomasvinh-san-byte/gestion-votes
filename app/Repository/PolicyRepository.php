@@ -226,4 +226,20 @@ class PolicyRepository extends AbstractRepository
             [':tid' => $tenantId]
         );
     }
+
+    public function votePolicyExists(string $policyId, string $tenantId): bool
+    {
+        return (bool)$this->scalar(
+            "SELECT 1 FROM vote_policies WHERE tenant_id = :tid AND id = :id",
+            [':tid' => $tenantId, ':id' => $policyId]
+        );
+    }
+
+    public function quorumPolicyExists(string $policyId, string $tenantId): bool
+    {
+        return (bool)$this->scalar(
+            "SELECT 1 FROM quorum_policies WHERE tenant_id = :tid AND id = :id",
+            [':tid' => $tenantId, ':id' => $policyId]
+        );
+    }
 }

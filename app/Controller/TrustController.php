@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\ProxyRepository;
 
 final class TrustController extends AbstractController
 {
@@ -73,7 +75,7 @@ final class TrustController extends AbstractController
         }
 
         // 4. Procurations orphelines
-        $orphanProxies = (new MeetingRepository())->listOrphanProxies($meetingId);
+        $orphanProxies = (new ProxyRepository())->listOrphans($meetingId);
         foreach ($orphanProxies as $row) {
             $anomalies[] = [
                 'id' => 'orphan_proxy_' . $row['id'],
@@ -148,6 +150,7 @@ final class TrustController extends AbstractController
         $tenantId = api_current_tenant_id();
 
         $meetingRepo = new MeetingRepository();
+        $statsRepo   = new MeetingStatsRepository();
         $memberRepo  = new MemberRepository();
         $motionRepo  = new MotionRepository();
         $ballotRepo  = new BallotRepository();
@@ -170,7 +173,7 @@ final class TrustController extends AbstractController
         ];
 
         // 2. Au moins un membre présent
-        $presentCount = $meetingRepo->countPresent($meetingId);
+        $presentCount = $statsRepo->countPresent($meetingId);
         $checks[] = [
             'id' => 'members_present',
             'label' => 'Membres présents',
@@ -197,9 +200,9 @@ final class TrustController extends AbstractController
         ];
 
         // 4. Toutes les résolutions traitées
-        $totalMotions = $meetingRepo->countMotions($meetingId);
-        $closedMotions = $meetingRepo->countClosedMotions($meetingId);
-        $openMotions = $meetingRepo->countOpenMotions($meetingId);
+        $totalMotions = $statsRepo->countMotions($meetingId);
+        $closedMotions = $statsRepo->countClosedMotions($meetingId);
+        $openMotions = $statsRepo->countOpenMotions($meetingId);
         $allMotionsClosed = $openMotions === 0;
         $checks[] = [
             'id' => 'all_motions_closed',
@@ -218,7 +221,7 @@ final class TrustController extends AbstractController
         ];
 
         // 6. Procurations valides (pas de cycle)
-        $proxyCycles = $meetingRepo->findProxyCycles($meetingId);
+        $proxyCycles = (new ProxyRepository())->findCycles($meetingId);
         $proxyOk = count($proxyCycles) === 0;
         $checks[] = [
             'id' => 'proxies_valid',

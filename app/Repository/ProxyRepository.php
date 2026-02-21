@@ -197,4 +197,104 @@ class ProxyRepository extends AbstractRepository
         ) ?? 0);
         return $count > 0;
     }
+
+    // =========================================================================
+    // PROXY ANALYSIS (migrated from MeetingRepository)
+    // =========================================================================
+
+    /**
+     * Count active proxies for a meeting.
+     */
+    public function countActive(string $meetingId): int
+    {
+        return (int)($this->scalar(
+            "SELECT COUNT(*) FROM proxies
+             WHERE meeting_id = :mid AND revoked_at IS NULL",
+            [':mid' => $meetingId]
+        ) ?? 0);
+    }
+
+    /**
+     * List distinct giver_member_id of active proxies for a meeting.
+     */
+    public function listDistinctGivers(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT DISTINCT giver_member_id FROM proxies WHERE meeting_id = :mid AND revoked_at IS NULL",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * List receivers exceeding the proxy ceiling.
+     */
+    public function listCeilingViolations(string $tenantId, string $meetingId, int $maxPerReceiver): array
+    {
+        return $this->selectAll(
+            "SELECT receiver_member_id, COUNT(*) AS c
+             FROM proxies
+             WHERE tenant_id = :tid AND meeting_id = :mid AND revoked_at IS NULL
+             GROUP BY receiver_member_id
+             HAVING COUNT(*) > :mx
+             ORDER BY c DESC",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':mx' => $maxPerReceiver]
+        );
+    }
+
+    /**
+     * List orphan proxies (receiver is absent).
+     */
+    public function listOrphans(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT p.id, giver.full_name AS giver_name, receiver.full_name AS receiver_name
+             FROM proxies p
+             JOIN members giver ON giver.id = p.giver_member_id
+             JOIN members receiver ON receiver.id = p.receiver_member_id
+             LEFT JOIN attendances a ON a.meeting_id = :mid1 AND a.member_id = p.receiver_member_id
+             WHERE p.meeting_id = :mid2
+               AND (a.id IS NULL OR a.mode NOT IN ('present', 'remote'))",
+            [':mid1' => $meetingId, ':mid2' => $meetingId]
+        );
+    }
+
+    /**
+     * List proxies for report generation.
+     */
+    public function listForReport(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT p.id,
+                    g.full_name AS giver_name,
+                    r.full_name AS receiver_name,
+                    g.voting_power AS giver_voting_power,
+                    p.created_at
+             FROM proxies p
+             JOIN members g ON g.id = p.giver_member_id
+             JOIN members r ON r.id = p.receiver_member_id
+             WHERE p.meeting_id = :mid AND p.revoked_at IS NULL
+             ORDER BY g.full_name",
+            [':mid' => $meetingId]
+        );
+    }
+
+    /**
+     * Find proxy cycles for a meeting.
+     */
+    public function findCycles(string $meetingId): array
+    {
+        return $this->selectAll(
+            "SELECT p1.giver_member_id, p1.receiver_member_id,
+                    g1.full_name AS giver_name, r1.full_name AS receiver_name
+             FROM proxies p1
+             JOIN proxies p2 ON p2.meeting_id = p1.meeting_id
+                 AND p2.giver_member_id = p1.receiver_member_id
+                 AND p2.receiver_member_id = p1.giver_member_id
+                 AND p2.revoked_at IS NULL
+             JOIN members g1 ON g1.id = p1.giver_member_id
+             JOIN members r1 ON r1.id = p1.receiver_member_id
+             WHERE p1.meeting_id = :mid AND p1.revoked_at IS NULL",
+            [':mid' => $meetingId]
+        );
+    }
 }

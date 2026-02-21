@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Repository\AuditEventRepository;
 use AgVote\Repository\MeetingRepository;
 
 /**
@@ -23,15 +24,16 @@ final class AuditController extends AbstractController
         $offset = max(0, api_query_int('offset', 0));
 
         $tenantId = api_current_tenant_id();
-        $repo = new MeetingRepository();
+        $meetingRepo = new MeetingRepository();
 
-        $meeting = $repo->findByIdForTenant($meetingId, $tenantId);
+        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
         }
 
-        $events = $repo->listAuditEventsForLog($tenantId, $meetingId, $limit, $offset);
-        $total = $repo->countAuditEventsForLog($tenantId, $meetingId);
+        $auditRepo = new AuditEventRepository();
+        $events = $auditRepo->listForMeetingLog($tenantId, $meetingId, $limit, $offset);
+        $total = $auditRepo->countForMeetingLog($tenantId, $meetingId);
 
         $actionLabels = [
             'meeting_created' => 'Séance créée',
@@ -103,16 +105,17 @@ final class AuditController extends AbstractController
         $meetingId = api_require_uuid($q, 'meeting_id');
         $format = strtolower(api_query('format', 'csv'));
 
-        $repo = new MeetingRepository();
+        $meetingRepo = new MeetingRepository();
         $tenantId = api_current_tenant_id();
 
-        $meeting = $repo->findByIdForTenant($meetingId, $tenantId);
+        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
         }
 
         $slug = $meeting['slug'] ?? $meetingId;
-        $events = $repo->listAuditEventsForExport($tenantId, $meetingId);
+        $auditRepo = new AuditEventRepository();
+        $events = $auditRepo->listForMeetingExport($tenantId, $meetingId);
 
         if ($format === 'json') {
             $jsonEvents = [];
@@ -202,13 +205,14 @@ final class AuditController extends AbstractController
             api_fail('missing_meeting_id', 422);
         }
 
-        $repo = new MeetingRepository();
+        $meetingRepo = new MeetingRepository();
 
-        if (!$repo->existsForTenant($meetingId, api_current_tenant_id())) {
+        if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
         }
 
-        $rows = $repo->listAuditEvents($meetingId, api_current_tenant_id(), 200, 'ASC');
+        $auditRepo = new AuditEventRepository();
+        $rows = $auditRepo->listForMeeting($meetingId, api_current_tenant_id(), 200, 'ASC');
 
         api_ok([
             'meeting_id' => $meetingId,
@@ -225,13 +229,14 @@ final class AuditController extends AbstractController
             api_fail('missing_meeting_id', 422);
         }
 
-        $repo = new MeetingRepository();
+        $meetingRepo = new MeetingRepository();
 
-        if (!$repo->existsForTenant($meetingId, api_current_tenant_id())) {
+        if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
         }
 
-        $rows = $repo->listAuditEvents($meetingId, api_current_tenant_id());
+        $auditRepo = new AuditEventRepository();
+        $rows = $auditRepo->listForMeeting($meetingId, api_current_tenant_id());
         api_ok(['events' => self::formatEvents($rows)]);
     }
 
@@ -262,7 +267,8 @@ final class AuditController extends AbstractController
             api_fail('meeting_not_found', 404);
         }
 
-        $rows = $meetingRepo->listAuditEventsFiltered(
+        $auditRepo = new AuditEventRepository();
+        $rows = $auditRepo->listForMeetingFiltered(
             api_current_tenant_id(),
             $meetingId,
             $limit,

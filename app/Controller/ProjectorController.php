@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MotionRepository;
 
 /**
@@ -84,7 +85,8 @@ final class ProjectorController extends AbstractController
         }
 
         $totalMotions  = $motionRepo->countForMeeting($meetingId);
-        $eligibleCount = $meetingRepo->countActiveMembers($tenantId);
+        $statsRepo     = new MeetingStatsRepository();
+        $eligibleCount = $statsRepo->countActiveMembers($tenantId);
 
         api_ok([
             'meeting_id'     => $meetingId,

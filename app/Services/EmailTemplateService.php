@@ -5,6 +5,7 @@ namespace AgVote\Service;
 
 use AgVote\Repository\EmailTemplateRepository;
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberRepository;
 
 /**
@@ -196,7 +197,8 @@ HTML;
         $firstName = $nameParts[0] ?? '';
 
         // Motion count
-        $motionsCount = (int)($this->meetingRepo->countMotions($meetingId) ?? 0);
+        $statsRepo = new MeetingStatsRepository();
+        $motionsCount = (int)($statsRepo->countMotions($meetingId) ?? 0);
 
         return [
             '{{member_name}}' => $fullName,

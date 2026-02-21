@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MotionRepository;
 
 /**
@@ -44,8 +45,9 @@ final class MeetingValidator
         }
 
         $motionRepo = new MotionRepository();
+        $statsRepo = new MeetingStatsRepository();
 
-        $open = $meetingRepo->countOpenMotions($meetingId);
+        $open = $statsRepo->countOpenMotions($meetingId);
         if ($open > 0) {
             $reasons[] = "$open motion(s) encore ouverte(s).";
             $codes[] = 'open_motions';
@@ -57,7 +59,7 @@ final class MeetingValidator
             $codes[] = 'bad_closed_results';
         }
 
-        $closed = $meetingRepo->countClosedMotions($meetingId);
+        $closed = $statsRepo->countClosedMotions($meetingId);
         $consolidated = $motionRepo->countConsolidatedMotions($meetingId);
 
         // Consolidation is required when there is at least one closed motion.

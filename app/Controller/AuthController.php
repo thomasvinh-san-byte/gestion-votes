@@ -45,8 +45,10 @@ final class AuthController extends AbstractController
                         $email,
                         'invalid_credentials'
                     );
-                } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) { /* best effort */ }
+                } catch (\Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+                    /* best effort */
+                }
                 api_fail('invalid_credentials', 401, ['detail' => 'Email ou mot de passe incorrect.']);
             }
 
@@ -58,8 +60,10 @@ final class AuthController extends AbstractController
                         $email,
                         'wrong_password'
                     );
-                } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) { /* best effort */ }
+                } catch (\Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+                    /* best effort */
+                }
                 api_fail('invalid_credentials', 401, ['detail' => 'Email ou mot de passe incorrect.']);
             }
 
@@ -68,8 +72,10 @@ final class AuthController extends AbstractController
                 try {
                     $newHash = password_hash($password, PASSWORD_DEFAULT);
                     $userRepo->setPasswordHash($user['tenant_id'], $user['id'], $newHash);
-                } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) { /* best effort */ }
+                } catch (\Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+                    /* best effort */
+                }
             }
 
         } else {
@@ -92,8 +98,10 @@ final class AuthController extends AbstractController
                         substr($apiKey, 0, 8) . '...',
                         'invalid_key'
                     );
-                } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) { /* best effort */ }
+                } catch (\Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+                    /* best effort */
+                }
                 api_fail('invalid_credentials', 401, ['detail' => 'Identifiants invalides.']);
             }
         }
@@ -203,8 +211,8 @@ final class AuthController extends AbstractController
         try {
             $userRepo = new UserRepository();
             $meetingRoles = $userRepo->listActiveMeetingRolesForUser($user['id'], $user['tenant_id']);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             // best effort
         }
 
@@ -219,8 +227,8 @@ final class AuthController extends AbstractController
                     'voting_power' => (float)($found['voting_power'] ?? 1),
                 ];
             }
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             // best effort
         }
 

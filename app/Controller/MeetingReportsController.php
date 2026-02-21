@@ -6,9 +6,11 @@ namespace AgVote\Controller;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\InvitationRepository;
+use AgVote\Repository\MeetingReportRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\ProxyRepository;
 use AgVote\Service\MailerService;
 use AgVote\Service\MeetingReportService;
 use AgVote\Service\OfficialResultsService;
@@ -50,14 +52,14 @@ final class MeetingReportsController extends AbstractController
         // Serve cached snapshot if available (audit-defensible)
         if (!$regen) {
             try {
-                $snap = $meetingRepo->findPVSnapshot($meetingId);
+                $snap = (new MeetingReportRepository())->findSnapshot($meetingId);
                 if ($snap && !empty($snap['html'])) {
                     header('Content-Type: text/html; charset=utf-8');
                     echo (string)$snap['html'];
                     exit;
                 }
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
+            } catch (\Throwable $e) {
+                if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             }
         }
 
@@ -66,16 +68,16 @@ final class MeetingReportsController extends AbstractController
 
         $proxies = [];
         try {
-            $proxies = $meetingRepo->listProxiesForReport($meetingId);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+            $proxies = (new ProxyRepository())->listForReport($meetingId);
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
         }
 
         $tokens = [];
         try {
             $tokens = $invitationRepo->listTokensForReport($meetingId);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
         }
 
         $rowsHtml = '';
@@ -107,8 +109,8 @@ final class MeetingReportsController extends AbstractController
                     $dec = $o['decision'];
                     $reas = $o['reason'];
                     $note = ' (calculé)';
-                } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
+                } catch (\Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
                     $src = '—';
                     $of = $og = $oa = $ot = 0.0;
                     $dec = '—';
@@ -134,8 +136,8 @@ final class MeetingReportsController extends AbstractController
                     $detail['majority_threshold'] = $r['decision']['threshold'] ?? ($r['majority']['threshold'] ?? null);
                     $detail['majority_base'] = $r['decision']['base'] ?? ($r['majority']['base'] ?? null);
                 }
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
+            } catch (\Throwable $e) {
+                if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
             }
 
             $pol = self::policyLabel($votePolicy, $quorumPolicy);
@@ -358,7 +360,7 @@ HTML;
 
         $attendances = (new AttendanceRepository())->listForReport($meetingId, $tenantId);
         $motions = (new MotionRepository())->listForReport($meetingId);
-        $proxies = (new MeetingRepository())->listProxiesForReport($meetingId);
+        $proxies = (new ProxyRepository())->listForReport($meetingId);
 
         // Build the full HTML for PDF
         $html = '<!DOCTYPE html>
@@ -503,7 +505,7 @@ HTML;
         $hash = hash('sha256', $pdfContent);
 
         if (!$isPreview) {
-            (new MeetingRepository())->upsertReportFull($meetingId, $html, $hash);
+            (new MeetingReportRepository())->upsertFull($meetingId, $html, $hash);
         }
 
         $prefix = $isPreview ? 'BROUILLON_PV_' : 'PV_';
@@ -576,7 +578,7 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         $html = ob_get_clean();
         $hash = hash('sha256', $html);
 
-        $meetingRepo->upsertReportHash($meetingId, $hash);
+        (new MeetingReportRepository())->upsertHash($meetingId, $hash);
 
         header('Content-Type: text/html; charset=utf-8');
         echo $html;
