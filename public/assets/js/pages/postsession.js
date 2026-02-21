@@ -87,7 +87,9 @@
         setStatValue('statRejected', s.rejected || 0);
         setStatValue('statBallots', s.total_ballots || 0);
       }
-    } catch (e) { /* silent */ }
+    } catch (e) {
+      // Stats remain at their default placeholder values
+    }
 
     // Load readiness checks with retry
     var checklistEl = document.getElementById('verifyChecklist');
@@ -194,7 +196,10 @@
           }
         }
       }
-    } catch (e) { /* silent */ }
+    } catch (e) {
+      var actions = document.getElementById('transitionActions');
+      if (actions) actions.innerHTML = '<p class="text-sm text-muted">Impossible de v\u00e9rifier l\u2019\u00e9tat de la s\u00e9ance.</p>';
+    }
   }
 
   async function doValidate() {
@@ -342,32 +347,39 @@
     });
 
     // Archive
-    click('btnArchive', async function () {
-      if (!confirm('Archiver d\u00e9finitivement cette s\u00e9ance ? Cette action est irr\u00e9versible.')) return;
-
-      var btn = document.getElementById('btnArchive');
-      Shared.btnLoading(btn, true);
-      try {
-        var res = await window.api('/api/v1/meetings_archive.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ meeting_id: meetingId })
-        });
-        var d = res.body;
-        if (d && d.ok) {
-          setNotif('success', 'S\u00e9ance archiv\u00e9e');
-          var banner = document.getElementById('completeBanner');
-          if (banner) banner.hidden = false;
-          var archiveCard = document.getElementById('archiveCard');
-          if (archiveCard) archiveCard.hidden = true;
-        } else {
-          setNotif('error', d.error || 'Erreur d\'archivage');
+    click('btnArchive', function () {
+      Shared.openModal({
+        title: 'Archiver la s\u00e9ance',
+        body: '<p>Archiver d\u00e9finitivement cette s\u00e9ance ?</p>' +
+              '<p class="text-sm text-muted">Cette action est irr\u00e9versible. Les donn\u00e9es resteront consultables dans les archives.</p>',
+        confirmText: 'Archiver',
+        confirmClass: 'btn btn-danger',
+        onConfirm: async function() {
+          var btn = document.getElementById('btnArchive');
+          Shared.btnLoading(btn, true);
+          try {
+            var res = await window.api('/api/v1/meetings_archive.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ meeting_id: meetingId })
+            });
+            var d = res.body;
+            if (d && d.ok) {
+              setNotif('success', 'S\u00e9ance archiv\u00e9e');
+              var banner = document.getElementById('completeBanner');
+              if (banner) banner.hidden = false;
+              var archiveCard = document.getElementById('archiveCard');
+              if (archiveCard) archiveCard.hidden = true;
+            } else {
+              setNotif('error', d.error || 'Erreur d\'archivage');
+            }
+          } catch (e) {
+            setNotif('error', 'Erreur r\u00e9seau');
+          } finally {
+            Shared.btnLoading(btn, false);
+          }
         }
-      } catch (e) {
-        setNotif('error', 'Erreur r\u00e9seau');
-      } finally {
-        Shared.btnLoading(btn, false);
-      }
+      });
     });
 
     // Custom email toggle
@@ -425,7 +437,9 @@
           } else if (selectEl) {
             selectEl.innerHTML = '<option value="">Aucune s\u00e9ance termin\u00e9e</option>';
           }
-        } catch (e) { /* silent */ }
+        } catch (e) {
+          if (selectEl) selectEl.innerHTML = '<option value="">Erreur de chargement</option>';
+        }
       }
       return;
     }
@@ -437,7 +451,10 @@
         var title = document.getElementById('meetingTitle');
         if (title) title.textContent = res.body.data.title || 'S\u00e9ance';
       }
-    } catch (e) { /* silent */ }
+    } catch (e) {
+      var title = document.getElementById('meetingTitle');
+      if (title) title.textContent = 'S\u00e9ance';
+    }
 
     bindNavigation();
     goToStep(1);

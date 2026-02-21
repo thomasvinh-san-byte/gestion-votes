@@ -137,9 +137,9 @@
 
   <!-- Exports Modal -->
   <div class="modal-backdrop" id="exportsBackdrop" style="display: none;"></div>
-  <div class="modal" id="exportsModal" style="display: none;">
+  <div class="modal" id="exportsModal" role="dialog" aria-modal="true" aria-labelledby="exportsModalTitle" aria-hidden="true" style="display: none;">
     <div class="modal-header">
-      <h3 class="modal-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Exports</h3>
+      <h3 class="modal-title" id="exportsModalTitle"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Exports</h3>
       <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseExports" aria-label="Fermer">×</button>
     </div>
     <div class="modal-body">

@@ -386,22 +386,41 @@
     const modal = document.getElementById('exportsModal');
     const backdrop = document.getElementById('exportsBackdrop');
 
+    var previousFocusExport = null;
+
     function openExportsModal() {
+      previousFocusExport = document.activeElement;
       Shared.show(modal, 'block');
       Shared.show(backdrop, 'block');
+      modal.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
+      // Focus first interactive element
+      var firstFocusable = modal.querySelector('select, button, input');
+      if (firstFocusable) setTimeout(function () { firstFocusable.focus(); }, 50);
     }
 
     function closeExportsModal() {
       Shared.hide(modal);
       Shared.hide(backdrop);
+      modal.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
+      // Restore focus
+      if (previousFocusExport && previousFocusExport.focus) {
+        try { previousFocusExport.focus(); } catch (e) {}
+      }
     }
 
     document.getElementById('btnExportsModal').addEventListener('click', openExportsModal);
     document.getElementById('btnCloseExports').addEventListener('click', closeExportsModal);
     document.getElementById('btnCloseExports2').addEventListener('click', closeExportsModal);
     backdrop.addEventListener('click', closeExportsModal);
+
+    // Close exports modal with Escape key
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.style.display !== 'none') {
+        closeExportsModal();
+      }
+    });
 
     // Export functions
     function getSelectedMeetingId() {
