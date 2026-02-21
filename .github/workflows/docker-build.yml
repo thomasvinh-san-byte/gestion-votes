@@ -1,5 +1,5 @@
 # =============================================================================
-# AG-VOTE — Build & Push Docker image to GitHub Container Registry
+# AG-VOTE — Validate, Build & Push Docker image to GitHub Container Registry
 # =============================================================================
 # Déclenché sur :
 #   - push sur main (image :latest)
@@ -21,7 +21,50 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # Pre-flight: fast checks that catch errors before the slow Docker build
+  # ---------------------------------------------------------------------------
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP (must match Dockerfile)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: intl, mbstring, zip, gd, pdo_pgsql
+          tools: composer:v2
+
+      - name: Verify composer.lock is in sync
+        run: composer validate --no-check-publish --strict
+
+      - name: Verify platform requirements
+        run: composer check-platform-reqs --no-dev
+
+      - name: Install dependencies (--no-dev, like Docker)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      - name: PHP syntax check on app/
+        run: find app/ -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Verify Dockerfile PHP version matches composer.json
+        run: |
+          DOCKER_PHP=$(grep -oP 'FROM php:\K[0-9]+\.[0-9]+' Dockerfile)
+          COMPOSER_PHP=$(php -r '$j=json_decode(file_get_contents("composer.json"),true); $p=$j["config"]["platform"]["php"] ?? ""; echo $p ? implode(".",array_slice(explode(".",$p),0,2)) : "unset";')
+          echo "Dockerfile PHP: $DOCKER_PHP"
+          echo "Composer platform PHP: $COMPOSER_PHP"
+          if [ "$DOCKER_PHP" != "$COMPOSER_PHP" ]; then
+            echo "::error::PHP version mismatch! Dockerfile=$DOCKER_PHP, composer.json platform=$COMPOSER_PHP"
+            exit 1
+          fi
+
+  # ---------------------------------------------------------------------------
+  # Docker build (only runs if validate passes)
+  # ---------------------------------------------------------------------------
   build:
+    needs: validate
     runs-on: ubuntu-latest
 
     permissions:

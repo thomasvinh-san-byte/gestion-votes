@@ -1,4 +1,4 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 LABEL org.opencontainers.image.title="AG-VOTE" \
       org.opencontainers.image.description="Application de gestion de votes en assemblée générale" \
@@ -26,10 +26,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# Dependencies (cached layer)
-COPY composer.json composer.lock* ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress 2>/dev/null || \
-    composer install --no-dev --no-interaction --no-progress
+# Dependencies (cached layer — lock file required, no error masking)
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
 # Application
 COPY . .
