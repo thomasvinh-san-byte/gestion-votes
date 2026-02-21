@@ -1037,12 +1037,14 @@ CREATE TABLE IF NOT EXISTS meeting_emergency_checks (
 
 CREATE TABLE IF NOT EXISTS meeting_reports (
   meeting_id uuid PRIMARY KEY REFERENCES meetings(id) ON DELETE CASCADE,
+  tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   html text NOT NULL,
   sha256 text,
   generated_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE INDEX IF NOT EXISTS idx_meeting_reports_tenant ON meeting_reports(tenant_id);
 
 CREATE TABLE IF NOT EXISTS paper_ballots (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

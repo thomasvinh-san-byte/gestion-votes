@@ -81,7 +81,7 @@ final class EmailQueueService {
             );
 
             if ($sendResult['ok']) {
-                $this->queueRepo->markSent($email['id']);
+                $this->queueRepo->markSent($email['id'], (string) $email['tenant_id']);
 
                 // Log event
                 $this->eventRepo->logEvent(
@@ -99,7 +99,7 @@ final class EmailQueueService {
                 $result['sent']++;
             } else {
                 $error = $sendResult['error'] ?? 'unknown_error';
-                $this->queueRepo->markFailed($email['id'], $error);
+                $this->queueRepo->markFailed($email['id'], $error, (string) $email['tenant_id']);
 
                 // Log event
                 $this->eventRepo->logEvent(
@@ -268,7 +268,7 @@ final class EmailQueueService {
             $result['errors'] = array_merge($result['errors'], $scheduled['errors']);
 
             // Mark as executed
-            $this->reminderRepo->markExecuted($reminder['id']);
+            $this->reminderRepo->markExecuted($reminder['id'], (string) $reminder['tenant_id']);
         }
 
         return $result;

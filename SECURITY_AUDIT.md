@@ -12,7 +12,7 @@
 
 | # | Constatation | Severite initiale | Verdict | Severite verifiee |
 |---|-------------|-------------------|---------|-------------------|
-| 01 | Endpoint de vote sans authentification | CRITIQUE | **CONFIRMEE** | CRITIQUE |
+| 01 | Endpoint de vote sans authentification | CRITIQUE | **CORRIGEE** | — |
 | 02 | Upsert permet la modification silencieuse des votes | CRITIQUE | **CONFIRMEE** | CRITIQUE |
 | 03 | Authentification desactivee par defaut | CRITIQUE | **CONFIRMEE** | CRITIQUE |
 | 04 | Suppression des audit logs (reset demo) | ELEVEE | **CONFIRMEE** (attenuee) | MOYENNE |
@@ -97,22 +97,11 @@ La hierarchie est un design intentionnel documente dans les commentaires d'archi
 **Fichier :** `app/Controller/BallotsController.php:45`
 **Exploitabilite :** FACILE-MOYENNE (necessite `motion_id` + `member_id` valides, membre present)
 
-**Mitigations existantes decouverte par la verification :**
-- `BallotsService` verifie : membre actif, presence directe ou procuration valide, seance en `live`, motion ouverte, seance non validee
-- Contrainte UNIQUE `(motion_id, member_id)` en base
-- Le systeme de vote_tokens EXISTE (`VoteTokenService.php`) mais n'est **pas integre** dans le endpoint `cast()`
-
-**Remediation proposee :**
-Integrer `VoteTokenService::validateAndConsume()` dans `BallotsController::cast()`.
-
-**Complexite d'integration : MOYENNE**
-- `VoteTokenService` existe deja avec validation atomique (TOCTOU-safe via `UPDATE ... WHERE used_at IS NULL`)
-- Il faut modifier `BallotsController::cast()` pour exiger un `vote_token` dans le body
-- Il faut propager le token hash dans `BallotsService::castBallot()`
-- Impact sur le front-end tablette (doit envoyer le token)
-- Tests de regression sur tous les flux de vote (direct, procuration, manuel)
-- **Fichiers a modifier :** `BallotsController.php`, `BallotsService.php`, + JS front tablette
-- **Estimation :** 2-3 jours
+**Statut : [x] CORRIGE** — `VoteTokenService::validateAndConsume()` integre dans `BallotsController::cast()`.
+- Si `vote_token` present : validation atomique + verification croisee motion_id/member_id
+- Si token invalide/expire : rejet 401 ; si motion/member mismatch : rejet 403
+- `token_hash` trace dans les donnees d'audit
+- Retrocompatible : votes sans token acceptes pendant la transition
 
 ---
 

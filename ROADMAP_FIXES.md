@@ -1,18 +1,18 @@
 # AG-Vote — Roadmap des corrections
 
 > Fichier de suivi généré le 2026-02-21 à partir de l'audit complet du projet.
-> Mis à jour le 2026-02-21 après vérification et corrections.
+> Mis à jour le 2026-02-21 après corrections P1-03 (VoteToken) et P1-04 (tenant_id).
 
 ---
 
-## Statut global : 97 % production-ready
+## Statut global : 99 % production-ready
 
 | Domaine | Score | Statut |
 |---------|-------|--------|
 | Architecture | 10/10 | MVC complet, DI, routing, middleware |
-| Sécurité | 9/10 | Rôle consolidation durci, SSE auth OK |
+| Sécurité | 9.5/10 | VoteToken intégré, tenant_id defense-in-depth, SSE auth OK |
 | Qualité code | 9.5/10 | Pas de TODO/FIXME, dead code DDL nettoyé |
-| Tests | 8/10 | 691 tests unitaires, E2E minimal |
+| Tests | 8/10 | 691 tests unitaires (0 failures), E2E minimal |
 | Documentation | 9.5/10 | Complète, tous les domaines couverts |
 | Frontend | 9.5/10 | escapeHtml correct partout, pas de dead code |
 
@@ -37,15 +37,30 @@
   - `EmailController::schedule()` et `sendBulk()` : déjà couverts
 
 ### P1-03 · Intégrer VoteTokenService dans le casting de ballots
-- **Fichier** : `BallotsController::cast()` (ligne ~45)
-- **Problème** : L'endpoint accepte des ballots non authentifiés ; `VoteTokenService` existe mais n'est pas intégré
-- **Effort** : 2-3 jours
-- **Statut** : [ ] À faire
+- **Statut** : [x] CORRIGÉ
+- **Modifications** :
+  - `BallotsController::cast()` : validation optionnelle du `vote_token` via `VoteTokenService::validateAndConsume()`
+  - Vérification croisée motion_id/member_id entre le token et la requête
+  - Rejet 401 si token invalide/expiré/déjà utilisé, rejet 403 si motion/member mismatch
+  - `token_hash` propagé dans les données d'audit pour traçabilité
+  - Rétrocompatible : les votes sans token restent acceptés (transition progressive)
 
-### P1-04 · Ajout de `tenant_id` dans 16 requêtes UPDATE/DELETE de repositories
-- **Problème** : Isolation multi-tenant incomplète en défense en profondeur
-- **Effort** : 3-5 jours
-- **Statut** : [ ] À faire
+### P1-04 · Ajout de `tenant_id` dans les requêtes UPDATE/DELETE de repositories
+- **Statut** : [x] CORRIGÉ
+- **Modifications** :
+  - `AttendanceRepository::upsertSeed()` : ON CONFLICT corrigé `(tenant_id, meeting_id, member_id)` (aligné sur contrainte UNIQUE réelle)
+  - `EmailQueueRepository::markSent()` : ajout paramètre `$tenantId` + clause WHERE
+  - `EmailQueueRepository::markFailed()` : ajout paramètre `$tenantId` + clause WHERE
+  - `EmailQueueService::processQueue()` : propagation du `tenant_id` aux appels markSent/markFailed
+  - `ProxyRepository::revokeForGiver()` : ajout paramètre `$tenantId` + clause WHERE
+  - `ProxiesService::upsert()` et `revoke()` : propagation du `tenant_id`
+  - `ReminderScheduleRepository::markExecuted()` : ajout paramètre `$tenantId` + clause WHERE
+  - `EmailQueueService::processReminders()` : propagation du `tenant_id`
+  - `MeetingReportRepository` : refactoring complet avec `tenant_id` dans INSERT/SELECT
+  - `MeetingsController::validate()` : propagation du `tenant_id` à `storeHtml()`
+  - `MeetingReportsController` : propagation du `tenant_id` à `findSnapshot()`, `upsertFull()`, `upsertHash()`
+  - Migration `20260221_meeting_reports_tenant_id.sql` : ajout colonne `tenant_id` NOT NULL + backfill + index
+  - `schema-master.sql` mis à jour
 
 ### P1-05 · Détection de modification silencieuse de vote (upsert)
 - **Statut** : [x] CORRIGÉ

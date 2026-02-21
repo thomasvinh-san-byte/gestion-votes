@@ -11,6 +11,7 @@ use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Service\BallotsService;
 use AgVote\Service\VoteEngine;
+use AgVote\Service\VoteTokenService;
 use AgVote\WebSocket\EventBroadcaster;
 use Throwable;
 
@@ -50,14 +51,48 @@ final class BallotsController extends AbstractController {
         // Pass tenant_id for defense-in-depth tenant isolation in the query
         $data['_tenant_id'] = api_current_tenant_id();
 
+        // VoteToken validation (defense-in-depth): if a vote_token is provided,
+        // validate and consume it atomically before accepting the ballot.
+        $voteToken = trim((string) ($data['vote_token'] ?? ''));
+        $tokenHash = null;
+        if ($voteToken !== '') {
+            $tokenService = new VoteTokenService();
+            $tokenResult = $tokenService->validateAndConsume($voteToken);
+            if (!$tokenResult['valid']) {
+                api_fail('invalid_vote_token', 401, [
+                    'detail' => 'Token de vote invalide ou expiré.',
+                    'reason' => $tokenResult['reason'] ?? 'unknown',
+                ]);
+            }
+            // Verify token matches the requested motion/member
+            $reqMotionId = trim((string) ($data['motion_id'] ?? ''));
+            $reqMemberId = trim((string) ($data['member_id'] ?? ''));
+            if ($reqMotionId !== '' && ($tokenResult['motion_id'] ?? '') !== $reqMotionId) {
+                api_fail('token_motion_mismatch', 403, [
+                    'detail' => 'Le token ne correspond pas à cette résolution.',
+                ]);
+            }
+            if ($reqMemberId !== '' && ($tokenResult['member_id'] ?? '') !== $reqMemberId) {
+                api_fail('token_member_mismatch', 403, [
+                    'detail' => 'Le token ne correspond pas à ce membre.',
+                ]);
+            }
+            $tokenHash = $tokenResult['token_hash'];
+            $data['_token_hash'] = $tokenHash;
+        }
+
         $ballot = (new BallotsService())->castBallot($data);
 
         $motionId = $data['motion_id'] ?? $ballot['motion_id'] ?? null;
         $meetingId = $ballot['meeting_id'] ?? $data['meeting_id'] ?? null;
-        audit_log('ballot.cast', 'motion', $motionId, [
+        $auditData = [
             'member_id' => $data['member_id'] ?? $ballot['member_id'] ?? null,
             'choice' => $ballot['choice'] ?? $data['choice'] ?? null,
-        ], $meetingId);
+        ];
+        if ($tokenHash !== null) {
+            $auditData['token_hash'] = $tokenHash;
+        }
+        audit_log('ballot.cast', 'motion', $motionId, $auditData, $meetingId);
 
         api_ok(['ballot' => $ballot], 201);
     }

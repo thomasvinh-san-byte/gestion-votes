@@ -52,7 +52,7 @@ final class MeetingReportsController extends AbstractController {
         // Serve cached snapshot if available (audit-defensible)
         if (!$regen) {
             try {
-                $snap = (new MeetingReportRepository())->findSnapshot($meetingId);
+                $snap = (new MeetingReportRepository())->findSnapshot($meetingId, $tenant);
                 if ($snap && !empty($snap['html'])) {
                     header('Content-Type: text/html; charset=utf-8');
                     echo (string) $snap['html'];
@@ -519,7 +519,7 @@ final class MeetingReportsController extends AbstractController {
         $hash = hash('sha256', $pdfContent);
 
         if (!$isPreview) {
-            (new MeetingReportRepository())->upsertFull($meetingId, $html, $hash);
+            (new MeetingReportRepository())->upsertFull($meetingId, $html, $hash, $tenantId);
         }
 
         $prefix = $isPreview ? 'BROUILLON_PV_' : 'PV_';
@@ -596,7 +596,8 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         $html = ob_get_clean();
         $hash = hash('sha256', $html);
 
-        (new MeetingReportRepository())->upsertHash($meetingId, $hash);
+        $tenantId = api_current_tenant_id();
+        (new MeetingReportRepository())->upsertHash($meetingId, $hash, $tenantId);
 
         audit_log('report.generate_html', 'meeting', $meetingId, [
             'sha256' => $hash,
