@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Console opérateur - AG-VOTE">
   <title>Fiche séance — AG-VOTE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/operator.css">
 </head>
@@ -13,6 +16,13 @@
   <!-- Skip links -->
   <a href="#main-content" class="skip-link">Aller au contenu principal</a>
   <a href="#tabsNav" class="skip-link">Aller à la navigation</a>
+
+  <noscript>
+    <div style="padding:2rem;text-align:center;background:#fef3cd;border:1px solid #ffc107;margin:1rem;border-radius:8px;">
+      <strong>JavaScript requis</strong><br>
+      Cette application nécessite JavaScript pour fonctionner. Veuillez l'activer dans votre navigateur.
+    </div>
+  </noscript>
 
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
@@ -27,7 +37,7 @@
             <option value="">— Sélectionner une séance —</option>
           </select>
           <span class="badge" id="meetingStatusBadge" aria-live="polite">—</span>
-          <span class="meeting-bar-chip" id="userRoleBadge" hidden aria-live="polite" style="font-weight:600;"></span>
+          <span class="meeting-bar-chip font-semibold" id="userRoleBadge" hidden aria-live="polite"></span>
           <span class="meeting-bar-chip" id="healthChip" hidden>
             <span class="health-dot"></span>
             <strong id="healthScore">—</strong>
@@ -276,7 +286,11 @@
 
           <!-- Members quick summary -->
           <div id="membersList" class="members-summary mb-3">
-            <span class="text-muted text-sm">Chargement des membres...</span>
+            <div class="skeleton-group" aria-label="Chargement des membres">
+              <div class="skeleton skeleton-text" style="width:60%"></div>
+              <div class="skeleton skeleton-text" style="width:80%"></div>
+              <div class="skeleton skeleton-text" style="width:45%"></div>
+            </div>
           </div>
 
           <!-- Section: Présences -->
@@ -299,7 +313,7 @@
           <div class="tab-section-separator"></div>
           <div class="tab-toolbar">
             <div class="flex gap-2 items-center">
-              <h3 style="margin:0"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-share-2"></use></svg> Procurations</h3>
+              <h3 class="h3-compact"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-share-2"></use></svg> Procurations</h3>
               <button class="btn btn-sm btn-primary" id="btnAddProxy"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Nouvelle procuration</button>
               <button class="btn btn-sm btn-secondary" id="btnImportProxiesCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer CSV</button>
             </div>
@@ -330,13 +344,16 @@
           <!-- Agenda items section -->
           <div class="settings-section mb-4" id="agendaSection">
             <div class="flex items-center justify-between mb-3">
-              <h3 style="margin:0"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg> Ordre du jour</h3>
+              <h3 class="h3-compact"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg> Ordre du jour</h3>
               <button class="btn btn-sm btn-primary" id="btnAddAgendaItem">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Ajouter un point
               </button>
             </div>
             <div id="agendaList" aria-busy="true">
-              <span class="text-muted text-sm">Chargement&hellip;</span>
+              <div class="skeleton-group" aria-label="Chargement de l'ordre du jour">
+                <div class="skeleton skeleton-text" style="width:70%"></div>
+                <div class="skeleton skeleton-text" style="width:55%"></div>
+              </div>
             </div>
           </div>
 
@@ -561,7 +578,10 @@
             <div class="settings-section" id="emergencyCard">
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Proc&eacute;dures d'urgence</h3>
               <div id="emergencyChecklist" class="emergency-checklist" aria-busy="true">
-                <span class="text-muted text-sm">Chargement&hellip;</span>
+                <div class="skeleton-group" aria-label="Chargement des procédures">
+                  <div class="skeleton skeleton-text" style="width:65%"></div>
+                  <div class="skeleton skeleton-text" style="width:50%"></div>
+                </div>
               </div>
             </div>
 
@@ -722,12 +742,12 @@
             </div>
 
             <h3 class="mb-4">Votes manuels (opérateur)</h3>
-            <div class="flex gap-3 mb-3 flex-wrap" style="align-items:flex-end;">
-              <div class="form-group" style="flex:1;min-width:200px;margin:0;">
+            <div class="flex gap-3 mb-3 flex-wrap manual-vote-row">
+              <div class="form-group form-group-flex">
                 <label class="form-label" for="manualVoteSearch">Rechercher un votant</label>
                 <input type="text" class="form-input form-input-sm" id="manualVoteSearch" placeholder="Nom du membre…" aria-label="Rechercher un votant">
               </div>
-              <div class="form-group" style="flex:1;min-width:200px;margin:0;">
+              <div class="form-group form-group-flex">
                 <label class="form-label" for="manualVoteJustification">Justification</label>
                 <input type="text" class="form-input form-input-sm" id="manualVoteJustification" value="Vote opérateur manuel" placeholder="Raison du vote manuel…" aria-label="Justification du vote">
               </div>

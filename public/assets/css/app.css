@@ -3,8 +3,10 @@
  * Single CSS entrypoint - all pages should include only this file.
  */
 
-/* Google Fonts — loaded first for fastest paint */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Google Fonts — loaded via <link rel="preconnect"> + <link rel="stylesheet">
+ * in each HTML <head> for non-render-blocking paint.
+ * Do NOT use @import url() here — it creates a blocking waterfall.
+ */
 
 /* Import Design System (foundation + legacy compat) */
 @import url("/assets/css/design-system.css");
@@ -435,20 +437,10 @@
   border: 1px solid var(--color-border-subtle);
 }
 
-/* ─── Skeleton Loading Placeholder ─── */
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-bg-subtle) 25%,
-    var(--color-surface) 50%,
-    var(--color-bg-subtle) 75%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
-  border-radius: var(--radius);
-  color: transparent !important;
-}
-
+/* ─── Skeleton Loading Placeholder ───
+ * NOTE: Base .skeleton is in design-system.css.
+ * These are app-specific skeleton extensions only.
+ */
 .skeleton * { visibility: hidden; }
 
 .skeleton-text {
@@ -464,9 +456,11 @@
   border-radius: 50%;
 }
 
-@keyframes skeleton-shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+.skeleton-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-3, 0.75rem) 0;
 }
 
 /* ─── Admin Tabs (shared pattern) ─── */

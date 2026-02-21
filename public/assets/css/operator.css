@@ -2606,3 +2606,24 @@
 .quorum-status-card.quorum-unmet .icon-md {
   color: var(--color-danger);
 }
+
+/* =============================================================================
+   EXTRACTED INLINE STYLES — previously hardcoded in operator.htmx.html
+   ============================================================================= */
+
+/* Manual vote form row (was style="align-items:flex-end;") */
+.manual-vote-row {
+  align-items: flex-end;
+}
+
+/* Flexible form field (was style="flex:1;min-width:200px;margin:0;") */
+.form-group-flex {
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
+}
+
+/* Section heading with no margin (was style="margin:0") */
+.h3-compact {
+  margin: 0;
+}
