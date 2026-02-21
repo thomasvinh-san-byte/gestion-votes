@@ -278,8 +278,9 @@
           <div class="tab-toolbar">
             <div class="flex gap-2">
               <button class="btn btn-sm btn-primary" id="btnAddMember">+ Ajouter un membre</button>
-              <button class="btn btn-sm btn-success" id="btnMarkAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous présents</button>
-              <button class="btn btn-sm btn-secondary" id="btnImportCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Import CSV</button>
+              <button class="btn btn-sm btn-success" id="btnMarkAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous pr&eacute;sents</button>
+              <button class="btn btn-sm btn-secondary" id="btnImportCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Import membres</button>
+              <button class="btn btn-sm btn-secondary" id="btnImportAttendanceCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg> Import pr&eacute;sences</button>
             </div>
             <input type="text" class="form-input tab-toolbar-search" id="presenceSearch" placeholder="Rechercher un membre..." aria-label="Rechercher un membre">
           </div>
@@ -320,9 +321,25 @@
              Tab 3: ORDRE DU JOUR — Résolutions
              ============================================================ -->
         <div class="tab-content" id="tab-ordre-du-jour" role="tabpanel" aria-labelledby="tab-btn-ordre-du-jour" tabindex="0">
+          <!-- Agenda items section -->
+          <div class="settings-section mb-4" id="agendaSection">
+            <div class="flex items-center justify-between mb-3">
+              <h3 style="margin:0"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg> Ordre du jour</h3>
+              <button class="btn btn-sm btn-primary" id="btnAddAgendaItem">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Ajouter un point
+              </button>
+            </div>
+            <div id="agendaList" aria-busy="true">
+              <span class="text-muted text-sm">Chargement&hellip;</span>
+            </div>
+          </div>
+
+          <div class="tab-section-separator"></div>
+
+          <!-- Resolutions section -->
           <div class="tab-toolbar">
-            <button class="btn btn-primary" id="btnAddResolution">+ Nouvelle résolution</button>
-            <input type="text" class="form-input tab-toolbar-search" id="resolutionSearch" placeholder="Rechercher une résolution..." aria-label="Rechercher une résolution">
+            <button class="btn btn-primary" id="btnAddResolution">+ Nouvelle r&eacute;solution</button>
+            <input type="text" class="form-input tab-toolbar-search" id="resolutionSearch" placeholder="Rechercher une r&eacute;solution..." aria-label="Rechercher une r&eacute;solution">
           </div>
 
           <div id="resolutionsList">
@@ -667,6 +684,18 @@
               </div>
               <div class="vote-controls-wrapper">
                 <button class="btn btn-lg btn-warning btn-close-vote" id="btnCloseVote"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Terminer le scrutin</button>
+              </div>
+            </div>
+
+            <!-- Quorum status card -->
+            <div class="quorum-status-card mb-4" id="quorumStatusCard" hidden>
+              <div class="flex items-center gap-3">
+                <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+                <div>
+                  <div class="text-sm font-semibold" id="quorumStatusLabel">Quorum</div>
+                  <div class="text-xs text-muted" id="quorumStatusDetail"></div>
+                </div>
+                <span class="badge ml-auto" id="quorumStatusBadge">—</span>
               </div>
             </div>
 

@@ -2397,6 +2397,48 @@
   color: var(--color-text-muted);
 }
 
+/* Agenda items */
+.agenda-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.agenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+  transition: background var(--duration-fast);
+}
+
+.agenda-item:hover {
+  background: var(--color-bg-subtle);
+}
+
+.agenda-item-number {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--persona-preparateur-subtle);
+  color: var(--persona-preparateur);
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.agenda-item-title {
+  font-size: 0.9rem;
+}
+
 /* =============================================================================
    LAUNCH CONFIRMATION MODAL
    ============================================================================= */
@@ -2509,4 +2551,43 @@
 
 .exec-manual-vote-row:last-child {
   border-bottom: none;
+}
+
+/* =============================================================================
+   QUORUM STATUS CARD (vote tab)
+   ============================================================================= */
+
+.quorum-status-card {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg, 10px);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: border-color var(--duration-fast, 150ms) ease, background var(--duration-fast, 150ms) ease;
+}
+
+.quorum-status-card .icon-md {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.quorum-status-card.quorum-met {
+  border-color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 6%, var(--color-surface));
+}
+
+.quorum-status-card.quorum-met .icon-md {
+  color: var(--color-success);
+}
+
+.quorum-status-card.quorum-unmet {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 6%, var(--color-surface));
+}
+
+.quorum-status-card.quorum-unmet .icon-md {
+  color: var(--color-danger);
 }

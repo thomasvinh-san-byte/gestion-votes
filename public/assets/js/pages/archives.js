@@ -28,11 +28,22 @@
     // Render archives
     function render(items) {
       if (!items || items.length === 0) {
-        archivesList.innerHTML = Shared.emptyState({
-          icon: 'archives',
-          title: 'Aucune séance archivée',
-          description: currentYear ? 'Aucune archive pour ' + currentYear : 'Les séances validées par le président apparaîtront ici'
-        });
+        var query = searchInput.value.trim();
+        if (query) {
+          archivesList.innerHTML = Shared.emptyState({
+            icon: 'search',
+            title: 'Aucun résultat',
+            description: 'Aucune archive ne correspond à « ' + escapeHtml(query) + ' »'
+          });
+        } else {
+          archivesList.innerHTML = Shared.emptyState({
+            icon: 'archive',
+            title: 'Aucune séance archivée',
+            description: currentYear
+              ? 'Aucune archive pour ' + currentYear
+              : 'Les séances validées par le président apparaîtront ici'
+          });
+        }
         return;
       }
 
@@ -165,7 +176,16 @@
       `;
     }
 
-    // Load archives
+    // Reset KPIs to placeholder
+    function resetKPIs() {
+      ['kpiTotal', 'kpiWithPV', 'kpiThisYear', 'kpiAvgParticipation', 'kpiDateRange',
+       'statTotal', 'statWithPV', 'statMotions', 'statBallots'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = '—';
+      });
+    }
+
+    // Load archives with retry
     async function loadArchives() {
       archivesList.innerHTML = `
         <div class="text-center p-6">
@@ -174,84 +194,84 @@
         </div>
       `;
 
-      try {
-        const { body } = await api('/api/v1/archives_list.php');
+      await Shared.withRetry({
+        container: archivesList,
+        maxRetries: 1,
+        errorMsg: 'Impossible de charger les archives',
+        action: async function () {
+          const { body } = await api('/api/v1/archives_list.php');
 
-        if (body && (body.data || body.items)) {
-          allArchives = body.data?.items || body.items || body.data || [];
+          if (body && (body.data || body.items)) {
+            allArchives = body.data?.items || body.items || body.data || [];
 
-          // Update KPIs
-          const total = allArchives.length;
-          const withPV = allArchives.filter(a => a.has_report).length;
-          const thisYear = allArchives.filter(a => {
-            const date = new Date(a.archived_at || a.validated_at);
-            return date.getFullYear() === new Date().getFullYear();
-          }).length;
+            // Update KPIs
+            const total = allArchives.length;
+            const withPV = allArchives.filter(a => a.has_report).length;
+            const thisYear = allArchives.filter(a => {
+              const date = new Date(a.archived_at || a.validated_at);
+              return date.getFullYear() === new Date().getFullYear();
+            }).length;
 
-          document.getElementById('kpiTotal').textContent = total;
-          document.getElementById('kpiWithPV').textContent = withPV;
-          document.getElementById('kpiThisYear').textContent = thisYear;
+            document.getElementById('kpiTotal').textContent = total;
+            document.getElementById('kpiWithPV').textContent = withPV;
+            document.getElementById('kpiThisYear').textContent = thisYear;
 
-          // Average participation rate
-          const participationRates = allArchives
-            .map(a => parseFloat(a.participation_rate))
-            .filter(v => !isNaN(v));
-          const avgParticipation = participationRates.length > 0
-            ? Math.round(participationRates.reduce((sum, v) => sum + v, 0) / participationRates.length)
-            : null;
-          document.getElementById('kpiAvgParticipation').textContent =
-            avgParticipation != null ? avgParticipation + ' %' : '—';
+            // Average participation rate
+            const participationRates = allArchives
+              .map(a => parseFloat(a.participation_rate))
+              .filter(v => !isNaN(v));
+            const avgParticipation = participationRates.length > 0
+              ? Math.round(participationRates.reduce((sum, v) => sum + v, 0) / participationRates.length)
+              : null;
+            document.getElementById('kpiAvgParticipation').textContent =
+              avgParticipation != null ? avgParticipation + ' %' : '—';
 
-          // Date range (period)
-          const dates = allArchives
-            .map(a => new Date(a.archived_at || a.validated_at))
-            .filter(d => !isNaN(d.getTime()))
-            .sort((a, b) => a - b);
-          if (dates.length > 0) {
-            const fmt = d => d.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
-            const minDate = fmt(dates[0]);
-            const maxDate = fmt(dates[dates.length - 1]);
-            document.getElementById('kpiDateRange').textContent =
-              minDate === maxDate ? minDate : minDate + ' — ' + maxDate;
+            // Date range (period)
+            const dates = allArchives
+              .map(a => new Date(a.archived_at || a.validated_at))
+              .filter(d => !isNaN(d.getTime()))
+              .sort((a, b) => a - b);
+            if (dates.length > 0) {
+              const fmt = d => d.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+              const minDate = fmt(dates[0]);
+              const maxDate = fmt(dates[dates.length - 1]);
+              document.getElementById('kpiDateRange').textContent =
+                minDate === maxDate ? minDate : minDate + ' — ' + maxDate;
+            } else {
+              document.getElementById('kpiDateRange').textContent = '—';
+            }
+
+            // Calculate aggregate stats
+            const totalMotions = allArchives.reduce((sum, a) => sum + (parseInt(a.motions_count) || parseInt(a.total_motions) || 0), 0);
+            const totalBallots = allArchives.reduce((sum, a) => sum + (parseInt(a.ballots_count) || parseInt(a.total_ballots) || 0), 0);
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statWithPV').textContent = withPV;
+            document.getElementById('statMotions').textContent = totalMotions || '—';
+            document.getElementById('statBallots').textContent = totalBallots || '—';
+
+            // Populate year filter
+            populateYearFilter();
+
+            // Populate export select
+            const exportSelect = document.getElementById('exportMeetingSelect');
+            exportSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
+            allArchives.forEach(a => {
+              const opt = document.createElement('option');
+              opt.value = a.id;
+              opt.textContent = a.title || a.id;
+              exportSelect.appendChild(opt);
+            });
+
+            // Apply filters and render
+            applyFilters();
           } else {
-            document.getElementById('kpiDateRange').textContent = '—';
+            allArchives = [];
+            resetKPIs();
+            render([]);
           }
-
-          // Calculate aggregate stats
-          const totalMotions = allArchives.reduce((sum, a) => sum + (parseInt(a.motions_count) || parseInt(a.total_motions) || 0), 0);
-          const totalBallots = allArchives.reduce((sum, a) => sum + (parseInt(a.ballots_count) || parseInt(a.total_ballots) || 0), 0);
-
-          document.getElementById('statTotal').textContent = total;
-          document.getElementById('statWithPV').textContent = withPV;
-          document.getElementById('statMotions').textContent = totalMotions || '—';
-          document.getElementById('statBallots').textContent = totalBallots || '—';
-
-          // Populate year filter
-          populateYearFilter();
-
-          // Populate export select
-          const exportSelect = document.getElementById('exportMeetingSelect');
-          exportSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
-          allArchives.forEach(a => {
-            const opt = document.createElement('option');
-            opt.value = a.id;
-            opt.textContent = a.title || a.id;
-            exportSelect.appendChild(opt);
-          });
-
-          // Apply filters and render
-          applyFilters();
-        } else {
-          render([]);
         }
-      } catch (err) {
-        archivesList.innerHTML = `
-          <div class="alert alert-danger">
-            <span>${icon('x-circle', 'icon-md icon-danger')}</span>
-            <span>Erreur de chargement: ${escapeHtml(err.message)}</span>
-          </div>
-        `;
-      }
+      });
     }
 
     // Populate year filter dropdown
@@ -392,9 +412,11 @@
     function doExport(endpoint) {
       const meetingId = getSelectedMeetingId();
       if (!meetingId) {
-        setNotif('error', 'Sélectionnez d\'abord une séance');
+        var select = document.getElementById('exportMeetingSelect');
+        Shared.fieldError(select, 'Sélectionnez une séance avant d\u2019exporter');
         return;
       }
+      Shared.fieldClear(document.getElementById('exportMeetingSelect'));
       window.open(`/api/v1/${endpoint}?meeting_id=${meetingId}`, '_blank');
     }
 

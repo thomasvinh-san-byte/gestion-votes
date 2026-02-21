@@ -242,7 +242,7 @@ window.OpS = { fn: {} };
         loadInvitationStats();
       }
       if (tabId === 'parole') await loadSpeechQueue();
-      if (tabId === 'vote') await loadVoteTab();
+      if (tabId === 'vote') { await loadVoteTab(); loadQuorumStatus(); }
       if (tabId === 'resultats') await loadResults();
     }
   }
@@ -423,6 +423,7 @@ window.OpS = { fn: {} };
       loadPolicies(),
       loadRoles(),
       loadStatusChecklist(),
+      loadAgenda(),
       loadDashboard(),
       loadDevices(),
       loadEmergencyProcedures(),
@@ -1072,6 +1073,94 @@ window.OpS = { fn: {} };
   }
 
   // =========================================================================
+  // AGENDA MANAGEMENT
+  // =========================================================================
+
+  let agendaCache = [];
+
+  async function loadAgenda() {
+    if (!currentMeetingId) return;
+    var container = document.getElementById('agendaList');
+    if (!container) return;
+
+    await Shared.withRetry({
+      container: container,
+      errorMsg: 'Impossible de charger l\u2019ordre du jour',
+      action: async function () {
+        var res = await api('/api/v1/agendas.php?meeting_id=' + currentMeetingId);
+        var d = res.body;
+        if (!d || !d.ok) throw new Error((d && d.error) || 'Erreur');
+        agendaCache = (d.data && d.data.agendas) || d.agendas || [];
+        container.setAttribute('aria-busy', 'false');
+        renderAgenda();
+      }
+    });
+  }
+
+  function renderAgenda() {
+    var container = document.getElementById('agendaList');
+    if (!container) return;
+
+    if (agendaCache.length === 0) {
+      container.innerHTML = Shared.emptyState({
+        icon: 'generic',
+        title: 'Aucun point \u00e0 l\u2019ordre du jour',
+        description: 'Ajoutez les points qui structureront votre s\u00e9ance.'
+      });
+      return;
+    }
+
+    container.innerHTML = '<ol class="agenda-items">' +
+      agendaCache.map(function (item, i) {
+        return '<li class="agenda-item" data-id="' + escapeHtml(item.id || '') + '">' +
+          '<span class="agenda-item-number">' + (i + 1) + '</span>' +
+          '<span class="agenda-item-title">' + escapeHtml(item.title || '') + '</span>' +
+        '</li>';
+      }).join('') +
+    '</ol>';
+  }
+
+  // Add agenda item
+  document.getElementById('btnAddAgendaItem')?.addEventListener('click', function () {
+    if (!currentMeetingId) { setNotif('error', 'Aucune s\u00e9ance s\u00e9lectionn\u00e9e'); return; }
+
+    Shared.openModal({
+      title: 'Ajouter un point \u00e0 l\u2019ordre du jour',
+      body:
+        '<div class="form-group">' +
+          '<label class="form-label">Intitul\u00e9 du point</label>' +
+          '<input class="form-input" type="text" id="agendaItemTitle" placeholder="Ex: Approbation du proc\u00e8s-verbal" maxlength="500" autofocus>' +
+        '</div>',
+      confirmText: 'Ajouter',
+      onConfirm: async function (modal) {
+        var titleInput = modal.querySelector('#agendaItemTitle');
+        if (!Shared.validateField(titleInput, [{ test: function (v) { return v.length > 0; }, msg: 'L\u2019intitul\u00e9 est requis' }])) return false;
+
+        var confirmBtn = modal.querySelector('.modal-confirm-btn');
+        Shared.btnLoading(confirmBtn, true);
+        try {
+          var res = await api('/api/v1/agendas.php', {
+            meeting_id: currentMeetingId,
+            title: titleInput.value.trim()
+          });
+          if (res.body && res.body.ok) {
+            setNotif('success', 'Point ajout\u00e9');
+            loadAgenda();
+          } else {
+            setNotif('error', (res.body && res.body.error) || 'Erreur');
+            Shared.btnLoading(confirmBtn, false);
+            return false;
+          }
+        } catch (e) {
+          setNotif('error', 'Erreur r\u00e9seau');
+          Shared.btnLoading(confirmBtn, false);
+          return false;
+        }
+      }
+    });
+  });
+
+  // =========================================================================
   // EMERGENCY PROCEDURES
   // =========================================================================
 
@@ -1132,6 +1221,72 @@ window.OpS = { fn: {} };
         });
       }
     });
+  }
+
+  // =========================================================================
+  // QUORUM STATUS (vote tab card)
+  // =========================================================================
+
+  async function loadQuorumStatus() {
+    if (!currentMeetingId) return;
+    var card = document.getElementById('quorumStatusCard');
+    if (!card) return;
+
+    // Only show when a quorum policy is set
+    if (!currentMeeting || !currentMeeting.quorum_policy_id) {
+      card.hidden = true;
+      return;
+    }
+
+    try {
+      var res = await api('/api/v1/quorum_status.php?meeting_id=' + currentMeetingId);
+      var d = res.body;
+      if (!d || !d.ok) { card.hidden = true; return; }
+
+      var data = d.data || d;
+      var applied = data.applied;
+      var met = data.met;
+      var justification = data.justification || '';
+      var present = data.present || 0;
+      var required = data.required || 0;
+      var totalEligible = data.total_eligible || 0;
+
+      var label = document.getElementById('quorumStatusLabel');
+      var detail = document.getElementById('quorumStatusDetail');
+      var badge = document.getElementById('quorumStatusBadge');
+
+      if (!applied) {
+        label.textContent = 'Quorum';
+        detail.textContent = 'Aucune politique appliquée';
+        badge.textContent = '—';
+        badge.className = 'badge ml-auto';
+        card.hidden = false;
+        card.className = 'quorum-status-card mb-4';
+        return;
+      }
+
+      label.textContent = present + ' / ' + required + ' requis';
+      detail.textContent = justification || (present + ' présents sur ' + totalEligible + ' éligibles');
+
+      if (met === true) {
+        badge.textContent = 'Atteint';
+        badge.className = 'badge badge-success ml-auto';
+        card.className = 'quorum-status-card mb-4 quorum-met';
+      } else if (met === false) {
+        badge.textContent = 'Non atteint';
+        badge.className = 'badge badge-danger ml-auto';
+        card.className = 'quorum-status-card mb-4 quorum-unmet';
+      } else {
+        badge.textContent = '—';
+        badge.className = 'badge ml-auto';
+        card.className = 'quorum-status-card mb-4';
+      }
+
+      card.hidden = false;
+    } catch (e) {
+      console.warn('loadQuorumStatus error:', e);
+      card.hidden = true;
+    }
   }
 
   function showDeviceManagementModal() {
@@ -2301,8 +2456,75 @@ window.OpS = { fn: {} };
   document.getElementById('presenceSearch')?.addEventListener('input', debounce(renderAttendance));
   document.getElementById('btnMarkAllPresent')?.addEventListener('click', markAllPresent);
 
-  // Import CSV button
+  // Import CSV button (members)
   document.getElementById('btnImportCSV')?.addEventListener('click', showImportCSVModal);
+
+  // Import attendance CSV button
+  document.getElementById('btnImportAttendanceCSV')?.addEventListener('click', function () {
+    if (!currentMeetingId) { setNotif('error', 'Aucune s\u00e9ance s\u00e9lectionn\u00e9e'); return; }
+
+    Shared.openModal({
+      title: 'Importer les pr\u00e9sences (CSV)',
+      body:
+        '<p class="text-muted text-sm mb-3">' +
+          'Format attendu : <code>name,email,mode,notes</code> (en-t\u00eate requis).<br>' +
+          'Colonnes requises : <code>name</code> ou <code>email</code>. Mode : present, absent, excused, proxy.' +
+        '</p>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Fichier CSV</label>' +
+          '<input type="file" class="form-input" id="attendanceCsvFile" accept=".csv,.txt">' +
+        '</div>' +
+        '<div id="attendanceImportResult" hidden></div>',
+      confirmText: 'Importer',
+      onConfirm: async function (modal) {
+        var fileInput = modal.querySelector('#attendanceCsvFile');
+        if (!fileInput.files.length) {
+          Shared.fieldError(fileInput, 'S\u00e9lectionnez un fichier CSV');
+          return false;
+        }
+
+        var confirmBtn = modal.querySelector('.modal-confirm-btn');
+        Shared.btnLoading(confirmBtn, true);
+
+        var formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('meeting_id', currentMeetingId);
+
+        try {
+          var response = await fetch('/api/v1/attendances_import_csv.php', {
+            method: 'POST',
+            body: formData
+          });
+          var d = await response.json();
+
+          var resultDiv = modal.querySelector('#attendanceImportResult');
+          resultDiv.hidden = false;
+
+          if (d.ok) {
+            var imported = d.data ? d.data.imported : (d.imported || 0);
+            var skipped = d.data ? d.data.skipped : (d.skipped || 0);
+            var errors = d.data ? d.data.errors : (d.errors || []);
+
+            resultDiv.innerHTML =
+              '<div class="alert alert-success mb-2"><strong>' + imported + ' pr\u00e9sence' + (imported > 1 ? 's' : '') + ' import\u00e9e' + (imported > 1 ? 's' : '') + '</strong>' +
+              (skipped > 0 ? ', ' + skipped + ' ignor\u00e9e' + (skipped > 1 ? 's' : '') : '') +
+              '</div>' +
+              (errors.length > 0 ? '<div class="text-sm text-danger">' + errors.slice(0, 5).map(function (e) { return 'Ligne ' + e.line + ' : ' + escapeHtml(e.error); }).join('<br>') + '</div>' : '');
+
+            setNotif('success', imported + ' pr\u00e9sences import\u00e9es');
+            loadAttendance();
+          } else {
+            resultDiv.innerHTML = '<div class="alert alert-danger">' + escapeHtml(d.error || 'Erreur d\u2019import') + '</div>';
+          }
+        } catch (e) {
+          setNotif('error', 'Erreur r\u00e9seau');
+        } finally {
+          Shared.btnLoading(confirmBtn, false);
+        }
+        return false; // Keep modal open to show results
+      }
+    });
+  });
 
   // Add proxy button
   document.getElementById('btnAddProxy')?.addEventListener('click', showAddProxyModal);
@@ -2850,6 +3072,9 @@ window.OpS = { fn: {} };
       } else if (onVoteTab) {
         loadVoteTab();
       }
+
+      // Refresh quorum when on vote tab
+      if (onVoteTab) loadQuorumStatus();
 
       // Refresh bimodal UI
       renderConformityChecklist();
