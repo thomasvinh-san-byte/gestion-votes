@@ -232,12 +232,12 @@
         const formData = new FormData();
         formData.append('csv_content', csvContent);
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || (window.CSRF && window.CSRF.token) || '';
+        const csrfHeaders = (window.Utils && window.Utils.getCsrfToken) ? { 'X-CSRF-Token': window.Utils.getCsrfToken() } : {};
         const resp = await fetch('/api/v1/members_import_csv.php', {
           method: 'POST',
           body: formData,
           credentials: 'same-origin',
-          headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {}
+          headers: csrfHeaders
         });
         const data = await resp.json();
 
@@ -610,12 +610,12 @@
         formData.append('meeting_id', O.currentMeetingId);
         formData.append('csv_content', csvContent);
 
-        const csrfTok = document.querySelector('meta[name="csrf-token"]')?.content || (window.CSRF && window.CSRF.token) || '';
+        const csrfHeaders2 = (window.Utils && window.Utils.getCsrfToken) ? { 'X-CSRF-Token': window.Utils.getCsrfToken() } : {};
         const resp = await fetch('/api/v1/proxies_import_csv.php', {
           method: 'POST',
           body: formData,
           credentials: 'same-origin',
-          headers: csrfTok ? { 'X-CSRF-Token': csrfTok } : {}
+          headers: csrfHeaders2
         });
         const data = await resp.json();
 

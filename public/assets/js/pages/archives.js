@@ -440,10 +440,10 @@
     }
 
     document.getElementById('btnExportPV').addEventListener('click', () => doExport('meeting_report.php'));
-    document.getElementById('btnExportAttendance').addEventListener('click', () => doExport('attendance_export.php'));
-    document.getElementById('btnExportVotes').addEventListener('click', () => doExport('votes_export.php'));
-    document.getElementById('btnExportMotions').addEventListener('click', () => doExport('motions_export.php'));
-    document.getElementById('btnExportMembers').addEventListener('click', () => doExport('members_export.php'));
+    document.getElementById('btnExportAttendance').addEventListener('click', () => doExport('export_attendance_csv.php'));
+    document.getElementById('btnExportVotes').addEventListener('click', () => doExport('export_votes_csv.php'));
+    document.getElementById('btnExportMotions').addEventListener('click', () => doExport('export_motions_results_csv.php'));
+    document.getElementById('btnExportMembers').addEventListener('click', () => doExport('export_members_csv.php'));
     document.getElementById('btnExportAudit').addEventListener('click', () => doExport('audit_export.php'));
 
     // Initial load
