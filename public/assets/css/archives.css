@@ -104,7 +104,7 @@
 }
 
 .archive-stat-value {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--color-primary);
 }

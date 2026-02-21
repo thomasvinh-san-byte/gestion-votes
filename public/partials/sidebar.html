@@ -8,7 +8,7 @@
   <!-- Section : Avant la séance (Préparateur) -->
   <div class="nav-section" role="group" aria-labelledby="nav-section-prep">
     <span class="nav-section-title" id="nav-section-prep">
-      <span class="nav-section-dot" style="background:var(--persona-preparateur);" aria-hidden="true"></span>
+      <span class="nav-section-dot dot-prep" aria-hidden="true"></span>
       Pr&eacute;paration
     </span>
     <a class="nav-item" href="/meetings.htmx.html" data-page="meetings" data-requires-role="admin,operator,auditor,viewer">
@@ -28,7 +28,7 @@
   <!-- Section : Pendant la séance (Opérateur + Président + Votant) -->
   <div class="nav-section" role="group" aria-labelledby="nav-section-live">
     <span class="nav-section-title" id="nav-section-live">
-      <span class="nav-section-dot" style="background:var(--persona-operateur);" aria-hidden="true"></span>
+      <span class="nav-section-dot dot-ops" aria-hidden="true"></span>
       S&eacute;ance en direct
     </span>
     <a class="nav-item" href="/vote.htmx.html" data-page="vote" data-requires-role="admin,operator,president,voter">
@@ -44,7 +44,7 @@
   <!-- Section : Après la séance (Responsable post-séance) -->
   <div class="nav-section" role="group" aria-labelledby="nav-section-post">
     <span class="nav-section-title" id="nav-section-post">
-      <span class="nav-section-dot" style="background:var(--persona-postsession);" aria-hidden="true"></span>
+      <span class="nav-section-dot dot-post" aria-hidden="true"></span>
       Apr&egrave;s la s&eacute;ance
     </span>
     <a class="nav-item" href="/postsession.htmx.html" data-page="postsession" data-requires-role="admin,operator,president">
@@ -64,7 +64,7 @@
   <!-- Section : Contrôle (Auditeur) -->
   <div class="nav-section" role="group" aria-labelledby="nav-section-audit">
     <span class="nav-section-title" id="nav-section-audit">
-      <span class="nav-section-dot" style="background:var(--persona-auditeur);" aria-hidden="true"></span>
+      <span class="nav-section-dot dot-audit" aria-hidden="true"></span>
       Contr&ocirc;le
     </span>
     <a class="nav-item" href="/trust.htmx.html" data-page="trust" data-requires-role="admin,auditor,assessor">
@@ -80,7 +80,7 @@
   <!-- Section : Système (Administrateur) -->
   <div class="nav-section" role="group" aria-labelledby="nav-section-admin">
     <span class="nav-section-title" id="nav-section-admin">
-      <span class="nav-section-dot" style="background:var(--persona-admin);" aria-hidden="true"></span>
+      <span class="nav-section-dot dot-admin" aria-hidden="true"></span>
       Syst&egrave;me
     </span>
     <a class="nav-item" href="/admin.htmx.html" data-page="admin" data-requires-role="admin">

@@ -13,6 +13,10 @@
   padding: 1.5rem;
 }
 
+.app-main.meetings-main {
+  padding: 0;
+}
+
 /* =============================================================================
    CALENDAR VIEW
    ============================================================================= */
@@ -54,13 +58,13 @@
 }
 
 .calendar-title {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   font-weight: 600;
 }
 
 .calendar-today-btn {
   padding: 0.375rem 0.75rem;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .calendar-grid {
@@ -76,7 +80,7 @@
 .calendar-day-header {
   padding: 0.75rem 0.5rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -100,7 +104,7 @@
 }
 
 .calendar-day-number {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   margin-bottom: 0.25rem;
 }
@@ -177,7 +181,7 @@
 
 .tab-btn {
   padding: 0.875rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--color-text-muted);
   background: transparent;
@@ -206,7 +210,7 @@
   height: 20px;
   padding: 0 6px;
   margin-left: 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   background: var(--color-bg-subtle);
   border-radius: 10px;
@@ -259,7 +263,7 @@
 }
 
 .settings-section h3 {
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   margin: 0 0 1rem 0;
   padding-bottom: 0.75rem;
@@ -305,13 +309,13 @@
 }
 
 .result-card .value {
-  font-size: 2rem;
+  font-size: var(--text-3xl);
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
 
 .result-card .label {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -372,7 +376,7 @@
 .vote-results-live {
   display: flex;
   gap: 2rem;
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   font-weight: 700;
 }
 
@@ -417,7 +421,7 @@
 }
 
 .export-icon {
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
 }
 
 .export-info h4 {
@@ -428,7 +432,7 @@
 
 .export-info p {
   margin: 0.25rem 0 0;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
@@ -487,7 +491,7 @@
   justify-content: center;
   background: var(--color-bg-subtle);
   border-radius: 50%;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
@@ -589,7 +593,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -693,7 +697,7 @@
 /* Badge styling enhancements */
 .badge-sm {
   padding: 0.25rem 0.625rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 
@@ -749,11 +753,24 @@
   align-items: flex-end;
 }
 
+.create-form .form-group-title {
+  flex: 2;
+  min-width: 200px;
+}
+
+.create-form .form-group-date {
+  min-width: 160px;
+}
+
+.create-form .form-group-full {
+  flex-basis: 100%;
+}
+
 .create-form .form-input {
   flex: 1;
   min-width: 250px;
   padding: 0.75rem 1rem;
-  font-size: 1rem;
+  font-size: var(--text-base);
   border-radius: 8px;
 }
 
@@ -895,7 +912,7 @@
   cursor: pointer;
   padding: 0.15rem;
   line-height: 1;
-  font-size: 1rem;
+  font-size: var(--text-base);
   opacity: 0.6;
 }
 
@@ -981,7 +998,7 @@
   border: 1px solid var(--color-border);
   border-radius: 50px;
   background: var(--color-surface);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   transition: color var(--duration-fast) var(--ease-default), background-color var(--duration-fast) var(--ease-default), border-color var(--duration-fast) var(--ease-default), box-shadow var(--duration-fast) var(--ease-default);
@@ -1009,7 +1026,7 @@
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   background: var(--color-bg-subtle);
   border-radius: 10px;
@@ -1037,7 +1054,7 @@
 
 .section-title {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
 }
 
@@ -1064,7 +1081,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   transition: color var(--duration-fast) var(--ease-default), background-color var(--duration-fast) var(--ease-default), border-color var(--duration-fast) var(--ease-default), box-shadow var(--duration-fast) var(--ease-default);
 }
 
@@ -1129,7 +1146,7 @@
   }
 
   .stats-bar .stat-value {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 
   .session-selector {
@@ -1161,7 +1178,7 @@
   }
 
   .meeting-card-title {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 
   .meeting-card-body {
@@ -1238,7 +1255,7 @@
   }
 
   .meeting-stats span {
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
   }
 
   .stats-bar {
@@ -1254,7 +1271,7 @@
   }
 
   .create-card h3 {
-    font-size: 1rem;
+    font-size: var(--text-base);
     margin-bottom: 1rem;
   }
 }

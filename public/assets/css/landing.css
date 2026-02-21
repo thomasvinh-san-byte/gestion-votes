@@ -128,12 +128,24 @@
   color: var(--color-text-secondary);
 }
 
+.landing .section-header.secondary-section {
+  margin-top: var(--space-12);
+}
+
+.landing .section-header.secondary-section .section-title {
+  font-size: var(--text-xl);
+}
+
 .roles-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--space-6);
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.roles-grid.roles-grid-narrow {
+  max-width: 700px;
 }
 
 .role-card {

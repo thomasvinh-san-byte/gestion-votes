@@ -16,7 +16,7 @@
 }
 
 .doc-page-header h1 {
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   font-weight: 700;
   margin: 0.5rem 0 0;
   color: var(--color-text);
@@ -64,7 +64,7 @@
   padding: 1.5rem 1rem;
   border-right: 1px solid var(--color-border);
   background: var(--color-bg-subtle);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 /* ─── TOC Rail (right — sticky scroll-spy) ─── */
@@ -238,7 +238,7 @@
 }
 
 .prose h4 {
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   margin: 1.5rem 0 0.5rem;
   color: var(--color-text-secondary);
@@ -351,7 +351,7 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow-x: auto;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   line-height: 1.6;
 }
 
@@ -370,7 +370,7 @@
   width: 100%;
   border-collapse: collapse;
   margin: 0 0 1.25rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .prose thead th {
@@ -494,7 +494,7 @@
   }
 
   .doc-page-header h1 {
-    font-size: 1.25rem;
+    font-size: var(--text-xl);
   }
 
   .doc-content {

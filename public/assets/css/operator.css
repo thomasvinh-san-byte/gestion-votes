@@ -238,7 +238,7 @@
 
 /* Context hint */
 .context-hint {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   font-style: italic;
 }
@@ -258,7 +258,7 @@
 
 .mode-switch-btn {
   padding: 0.375rem 1rem;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   border: none;
   border-radius: 6px;
@@ -379,7 +379,7 @@
 }
 
 .conformity-status {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -407,7 +407,7 @@
   border-radius: 8px;
   border-left: 3px solid var(--color-border);
   background: var(--color-bg-subtle);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .alert-item.info { border-left-color: var(--color-info); }
@@ -416,7 +416,7 @@
 
 .alert-item-title {
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .alert-item-message {
@@ -429,7 +429,7 @@
   text-align: center;
   padding: 1.5rem;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 /* =============================================================================
@@ -498,7 +498,7 @@
 
 /* Exec vote card */
 .exec-vote-title {
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   margin-bottom: 1rem;
   line-height: 1.4;
@@ -558,7 +558,7 @@
 }
 
 .exec-subcard h3 {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   margin: 0 0 0.5rem 0;
   display: flex;
@@ -569,7 +569,7 @@
 .exec-device-counts {
   display: flex;
   gap: 1rem;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .exec-manual-vote-list {
@@ -586,7 +586,7 @@
   background: var(--color-success-subtle);
   border: 1px solid var(--color-success);
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .exec-speaker-mic {
@@ -793,7 +793,7 @@
   height: 22px;
   padding: 0 7px;
   margin-left: 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   background: var(--color-bg-subtle);
   border-radius: 11px;
@@ -852,7 +852,7 @@
   background-size: 14px 14px;
   border: 2px solid var(--color-border);
   transition: border-color var(--duration-fast);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   box-sizing: border-box;
 }
 
@@ -932,7 +932,7 @@
 }
 
 .quick-count-value {
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   font-weight: 700;
   line-height: 1;
 }
@@ -1038,7 +1038,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   border: 1px solid var(--color-border);
   border-radius: 6px;
@@ -1208,7 +1208,7 @@
 }
 
 .result-card .label {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   font-weight: 500;
 }
@@ -1459,7 +1459,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   box-shadow: 0 4px 12px rgb(79 70 229 / 0.25);
 }
 
@@ -1566,7 +1566,7 @@
 
 .resolution-status {
   padding: 0.3rem 0.875rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   border-radius: 12px;
   background: var(--color-bg-subtle);
@@ -1641,7 +1641,7 @@
 
 .resolution-reorder .btn {
   padding: 0.2rem 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   line-height: 1;
   min-width: auto;
   border-radius: 4px;
@@ -1676,7 +1676,7 @@
   align-items: center;
   gap: 0.625rem;
   padding: 0.375rem 0;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .member-list-item .member-avatar {
@@ -1793,7 +1793,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 0.625rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   border-radius: 6px;
 }
 
@@ -1941,7 +1941,7 @@
   align-items: center;
   gap: 0.625rem;
   padding: 0.625rem 0.75rem;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   border-bottom: 1px solid var(--color-border-subtle);
   transition: background var(--duration-fast) var(--ease-default);
 }
@@ -2127,7 +2127,7 @@
 }
 
 .kpi-compact .kpi-value {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -2144,7 +2144,7 @@
 }
 
 .exec-participation-label {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -2156,7 +2156,7 @@
 }
 
 .exec-participation-pct {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   min-width: 3rem;
@@ -2254,7 +2254,7 @@
 
   .tab-btn {
     padding: 0.875rem 1rem;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
   }
 
   .meeting-bar select {
@@ -2326,7 +2326,7 @@
   }
 
   .quick-count-value {
-    font-size: 1.25rem;
+    font-size: var(--text-xl);
   }
 
   .results-summary {
@@ -2344,7 +2344,7 @@
 
   .vote-results-live {
     gap: 1.5rem;
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 }
 
@@ -2399,7 +2399,7 @@
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   transition: background var(--duration-fast);
 }
 
@@ -2536,7 +2536,7 @@
   background: var(--color-warning-subtle);
   border: 1px solid var(--color-warning);
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-warning-text, var(--color-text));
 }
 

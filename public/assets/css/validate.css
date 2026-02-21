@@ -106,7 +106,7 @@
 
 .validate-modal-header h3 {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--color-danger-text);
 }
