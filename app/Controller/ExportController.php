@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -19,10 +20,8 @@ use AgVote\Service\ExportService;
  * The two helpers below eliminate the validation boilerplate
  * that was copy-pasted (with inconsistencies) across all 9 files.
  */
-final class ExportController extends AbstractController
-{
-    private function requireMeetingId(): string
-    {
+final class ExportController extends AbstractController {
+    private function requireMeetingId(): string {
         $id = api_query('meeting_id');
         if ($id === '' || !api_is_uuid($id)) {
             api_fail('missing_meeting_id', 400);
@@ -30,8 +29,7 @@ final class ExportController extends AbstractController
         return $id;
     }
 
-    private function requireValidatedMeeting(string $meetingId): array
-    {
+    private function requireValidatedMeeting(string $meetingId): array {
         $mt = (new MeetingRepository())->findByIdForTenant($meetingId, api_current_tenant_id());
         if (!$mt) {
             api_fail('meeting_not_found', 404);
@@ -42,8 +40,7 @@ final class ExportController extends AbstractController
         return $mt;
     }
 
-    private function auditExport(string $type, string $meetingId, string $format = 'csv'): void
-    {
+    private function auditExport(string $type, string $meetingId, string $format = 'csv'): void {
         audit_log('export.' . $type, 'meeting', $meetingId, [
             'format' => $format,
             'exported_by' => api_current_user_id(),
@@ -54,8 +51,7 @@ final class ExportController extends AbstractController
     // Attendance
     // ------------------------------------------------------------------
 
-    public function attendanceCsv(): void
-    {
+    public function attendanceCsv(): void {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('attendance', $mt['id'], 'csv');
 
@@ -72,8 +68,7 @@ final class ExportController extends AbstractController
         fclose($out);
     }
 
-    public function attendanceXlsx(): void
-    {
+    public function attendanceXlsx(): void {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('attendance', $mt['id'], 'xlsx');
 
@@ -91,8 +86,7 @@ final class ExportController extends AbstractController
     // Votes
     // ------------------------------------------------------------------
 
-    public function votesCsv(): void
-    {
+    public function votesCsv(): void {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('votes', $mt['id'], 'csv');
 
@@ -111,8 +105,7 @@ final class ExportController extends AbstractController
         fclose($out);
     }
 
-    public function votesXlsx(): void
-    {
+    public function votesXlsx(): void {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('votes', $mt['id'], 'xlsx');
 
@@ -136,8 +129,7 @@ final class ExportController extends AbstractController
     // Members
     // ------------------------------------------------------------------
 
-    public function membersCsv(): void
-    {
+    public function membersCsv(): void {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('members', $mt['id'], 'csv');
 
@@ -158,8 +150,7 @@ final class ExportController extends AbstractController
     // Motion results
     // ------------------------------------------------------------------
 
-    public function motionResultsCsv(): void
-    {
+    public function motionResultsCsv(): void {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('motion_results', $mt['id'], 'csv');
 
@@ -176,8 +167,7 @@ final class ExportController extends AbstractController
         fclose($out);
     }
 
-    public function resultsXlsx(): void
-    {
+    public function resultsXlsx(): void {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('motion_results', $mt['id'], 'xlsx');
 
@@ -195,8 +185,7 @@ final class ExportController extends AbstractController
     // Full multi-sheet export
     // ------------------------------------------------------------------
 
-    public function fullXlsx(): void
-    {
+    public function fullXlsx(): void {
         $meetingId = $this->requireMeetingId();
         $mt = $this->requireValidatedMeeting($meetingId);
         $this->auditExport('full', $meetingId, 'xlsx');
@@ -217,8 +206,7 @@ final class ExportController extends AbstractController
     // Ballots audit
     // ------------------------------------------------------------------
 
-    public function ballotsAuditCsv(): void
-    {
+    public function ballotsAuditCsv(): void {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('ballots_audit', $mt['id'], 'csv');
 

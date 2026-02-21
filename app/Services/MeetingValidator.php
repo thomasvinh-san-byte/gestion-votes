@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
@@ -21,10 +22,8 @@ use AgVote\Repository\MotionRepository;
  * - (optional) consolidation done: official_source present on all closed motions
  */
 
-final class MeetingValidator
-{
-    public static function canBeValidated(string $meetingId, string $tenantId): array
-    {
+final class MeetingValidator {
+    public static function canBeValidated(string $meetingId, string $tenantId): array {
         $meetingRepo = new MeetingRepository();
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
 
@@ -39,7 +38,7 @@ final class MeetingValidator
         $reasons = [];
         $codes = [];
 
-        if (trim((string)($meeting['president_name'] ?? '')) === '') {
+        if (trim((string) ($meeting['president_name'] ?? '')) === '') {
             $reasons[] = 'Président non renseigné.';
             $codes[] = 'missing_president';
         }
@@ -49,13 +48,13 @@ final class MeetingValidator
 
         $open = $statsRepo->countOpenMotions($meetingId);
         if ($open > 0) {
-            $reasons[] = "$open motion(s) encore ouverte(s).";
+            $reasons[] = "{$open} motion(s) encore ouverte(s).";
             $codes[] = 'open_motions';
         }
 
         $bad = $motionRepo->countBadClosedMotions($meetingId);
         if ($bad > 0) {
-            $reasons[] = "$bad motion(s) fermée(s) sans résultat exploitable (manuel cohérent ou e-vote).";
+            $reasons[] = "{$bad} motion(s) fermée(s) sans résultat exploitable (manuel cohérent ou e-vote).";
             $codes[] = 'bad_closed_results';
         }
 

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Repository;
@@ -9,8 +10,7 @@ namespace AgVote\Repository;
  * Centralise toutes les requetes d'agregation pour le dashboard analytics.
  * Aucune logique metier — uniquement des requetes de lecture.
  */
-class AnalyticsRepository extends AbstractRepository
-{
+class AnalyticsRepository extends AbstractRepository {
     // =========================================================================
     // VUE D'ENSEMBLE (OVERVIEW)
     // =========================================================================
@@ -18,69 +18,63 @@ class AnalyticsRepository extends AbstractRepository
     /**
      * Compte le nombre total de seances pour un tenant.
      */
-    public function countMeetings(string $tenantId): int
-    {
-        return (int)($this->scalar(
-            "SELECT COUNT(*) FROM meetings WHERE tenant_id = :tid",
-            [':tid' => $tenantId]
+    public function countMeetings(string $tenantId): int {
+        return (int) ($this->scalar(
+            'SELECT COUNT(*) FROM meetings WHERE tenant_id = :tid',
+            [':tid' => $tenantId],
         ) ?? 0);
     }
 
     /**
      * Compte le nombre total de motions pour un tenant.
      */
-    public function countMotions(string $tenantId): int
-    {
-        return (int)($this->scalar(
-            "SELECT COUNT(*) FROM motions WHERE tenant_id = :tid",
-            [':tid' => $tenantId]
+    public function countMotions(string $tenantId): int {
+        return (int) ($this->scalar(
+            'SELECT COUNT(*) FROM motions WHERE tenant_id = :tid',
+            [':tid' => $tenantId],
         ) ?? 0);
     }
 
     /**
      * Compte le nombre total de bulletins pour un tenant.
      */
-    public function countBallots(string $tenantId): int
-    {
-        return (int)($this->scalar(
-            "SELECT COUNT(*) FROM ballots b
+    public function countBallots(string $tenantId): int {
+        return (int) ($this->scalar(
+            'SELECT COUNT(*) FROM ballots b
              JOIN motions m ON m.id = b.motion_id
-             WHERE m.tenant_id = :tid",
-            [':tid' => $tenantId]
+             WHERE m.tenant_id = :tid',
+            [':tid' => $tenantId],
         ) ?? 0);
     }
 
     /**
      * Repartition des seances par statut.
      */
-    public function getMeetingsByStatus(string $tenantId): array
-    {
+    public function getMeetingsByStatus(string $tenantId): array {
         return $this->selectAll(
-            "SELECT status::text as status, COUNT(*) as count
+            'SELECT status::text as status, COUNT(*) as count
              FROM meetings WHERE tenant_id = :tid
-             GROUP BY status",
-            [':tid' => $tenantId]
+             GROUP BY status',
+            [':tid' => $tenantId],
         );
     }
 
     /**
      * Repartition des motions par decision.
      */
-    public function getMotionDecisions(string $tenantId): array
-    {
+    public function getMotionDecisions(string $tenantId): array {
         return $this->selectAll(
             "SELECT COALESCE(decision, 'pending') as decision, COUNT(*) as count
              FROM motions WHERE tenant_id = :tid
              GROUP BY decision",
-            [':tid' => $tenantId]
+            [':tid' => $tenantId],
         );
     }
 
     /**
      * Taux de participation moyen sur la derniere annee.
      */
-    public function getAverageParticipationRate(string $tenantId): float
-    {
+    public function getAverageParticipationRate(string $tenantId): float {
         $result = $this->scalar(
             "SELECT
                 AVG(CASE WHEN eligible > 0 THEN present::float / eligible * 100 ELSE 0 END) as avg_rate
@@ -95,9 +89,9 @@ class AnalyticsRepository extends AbstractRepository
                   AND m.started_at > NOW() - INTERVAL '1 year'
                 GROUP BY a.meeting_id
              ) sub",
-            [':tid' => $tenantId, ':tid2' => $tenantId]
+            [':tid' => $tenantId, ':tid2' => $tenantId],
         );
-        return round((float)($result ?? 0), 1);
+        return round((float) ($result ?? 0), 1);
     }
 
     // =========================================================================
@@ -107,8 +101,7 @@ class AnalyticsRepository extends AbstractRepository
     /**
      * Statistiques de participation par seance.
      */
-    public function getParticipationByMeeting(string $tenantId, string $dateFrom, int $limit): array
-    {
+    public function getParticipationByMeeting(string $tenantId, string $dateFrom, int $limit): array {
         return $this->selectAll(
             "SELECT
                 m.id,
@@ -125,7 +118,7 @@ class AnalyticsRepository extends AbstractRepository
              GROUP BY m.id, m.title, m.started_at
              ORDER BY m.started_at DESC
              LIMIT :lim",
-            [':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]
+            [':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit],
         );
     }
 
@@ -136,8 +129,7 @@ class AnalyticsRepository extends AbstractRepository
     /**
      * Statistiques des motions par seance.
      */
-    public function getMotionsStatsByMeeting(string $tenantId, string $dateFrom, int $limit): array
-    {
+    public function getMotionsStatsByMeeting(string $tenantId, string $dateFrom, int $limit): array {
         return $this->selectAll(
             "SELECT
                 m.id as meeting_id,
@@ -156,15 +148,14 @@ class AnalyticsRepository extends AbstractRepository
              HAVING COUNT(mo.id) > 0
              ORDER BY m.started_at DESC
              LIMIT :lim",
-            [':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]
+            [':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit],
         );
     }
 
     /**
      * Totaux des motions (adopted/rejected).
      */
-    public function getMotionsTotals(string $tenantId, string $dateFrom): array
-    {
+    public function getMotionsTotals(string $tenantId, string $dateFrom): array {
         $row = $this->selectOne(
             "SELECT
                 COUNT(*) as total,
@@ -174,7 +165,7 @@ class AnalyticsRepository extends AbstractRepository
              JOIN meetings m ON m.id = mo.meeting_id
              WHERE m.tenant_id = :tid
                AND m.started_at >= :from",
-            [':tid' => $tenantId, ':from' => $dateFrom]
+            [':tid' => $tenantId, ':from' => $dateFrom],
         );
         return $row ?? ['total' => 0, 'adopted' => 0, 'rejected' => 0];
     }
@@ -186,10 +177,9 @@ class AnalyticsRepository extends AbstractRepository
     /**
      * Duree des votes (motions avec opened_at et closed_at).
      */
-    public function getVoteDurations(string $tenantId, string $dateFrom, int $limit): array
-    {
+    public function getVoteDurations(string $tenantId, string $dateFrom, int $limit): array {
         return $this->selectAll(
-            "SELECT
+            'SELECT
                 mo.id,
                 mo.title,
                 mo.opened_at,
@@ -203,8 +193,8 @@ class AnalyticsRepository extends AbstractRepository
                AND mo.closed_at IS NOT NULL
                AND mo.opened_at >= :from
              ORDER BY mo.closed_at DESC
-             LIMIT :lim",
-            [':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]
+             LIMIT :lim',
+            [':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit],
         );
     }
 
@@ -215,10 +205,9 @@ class AnalyticsRepository extends AbstractRepository
     /**
      * Statistiques des procurations par seance.
      */
-    public function getProxiesStatsByMeeting(string $tenantId, string $dateFrom, int $limit): array
-    {
+    public function getProxiesStatsByMeeting(string $tenantId, string $dateFrom, int $limit): array {
         return $this->selectAll(
-            "SELECT
+            'SELECT
                 m.id as meeting_id,
                 m.title,
                 m.started_at,
@@ -238,21 +227,20 @@ class AnalyticsRepository extends AbstractRepository
                AND m.started_at >= :from
              GROUP BY m.id, m.title, m.started_at
              ORDER BY m.started_at DESC
-             LIMIT :lim",
-            [':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]
+             LIMIT :lim',
+            [':tid' => $tenantId, ':from' => $dateFrom, ':lim' => $limit],
         );
     }
 
     /**
      * Total des procurations.
      */
-    public function countProxies(string $tenantId, string $dateFrom): int
-    {
-        return (int)($this->scalar(
-            "SELECT COUNT(*) FROM proxies p
+    public function countProxies(string $tenantId, string $dateFrom): int {
+        return (int) ($this->scalar(
+            'SELECT COUNT(*) FROM proxies p
              JOIN meetings m ON m.id = p.meeting_id
-             WHERE m.tenant_id = :tid AND m.started_at >= :from",
-            [':tid' => $tenantId, ':from' => $dateFrom]
+             WHERE m.tenant_id = :tid AND m.started_at >= :from',
+            [':tid' => $tenantId, ':from' => $dateFrom],
         ) ?? 0);
     }
 
@@ -263,9 +251,8 @@ class AnalyticsRepository extends AbstractRepository
     /**
      * Compte les seances avec participation faible (<50%).
      */
-    public function countLowParticipationMeetings(string $tenantId, string $dateFrom): int
-    {
-        return (int)($this->scalar(
+    public function countLowParticipationMeetings(string $tenantId, string $dateFrom): int {
+        return (int) ($this->scalar(
             "WITH eligible AS (
                 SELECT COUNT(*) AS cnt FROM members WHERE tenant_id = :tid AND is_active = true
             )
@@ -282,17 +269,16 @@ class AnalyticsRepository extends AbstractRepository
                   AND COUNT(CASE WHEN a.mode IN ('present', 'remote', 'proxy') THEN 1 END)::float
                       / (SELECT cnt FROM eligible) < 0.5
             ) sub",
-            [':tid' => $tenantId, ':tid2' => $tenantId, ':from' => $dateFrom]
+            [':tid' => $tenantId, ':tid2' => $tenantId, ':from' => $dateFrom],
         ) ?? 0);
     }
 
     /**
      * Compte les seances avec problemes de quorum.
      */
-    public function countQuorumIssues(string $tenantId, string $dateFrom): int
-    {
+    public function countQuorumIssues(string $tenantId, string $dateFrom): int {
         // Count meetings with motions decided despite tally issues
-        return (int)($this->scalar(
+        return (int) ($this->scalar(
             "SELECT COUNT(DISTINCT m.id) FROM meetings m
              JOIN motions mo ON mo.meeting_id = m.id
              WHERE m.tenant_id = :tid
@@ -300,33 +286,31 @@ class AnalyticsRepository extends AbstractRepository
                AND mo.decision IS NOT NULL
                AND (mo.tally_status = 'quorum_not_met'
                     OR mo.decision_reason ILIKE '%quorum%')",
-            [':tid' => $tenantId, ':from' => $dateFrom]
+            [':tid' => $tenantId, ':from' => $dateFrom],
         ) ?? 0);
     }
 
     /**
      * Compte les votes incomplets (ouverts mais jamais fermes).
      */
-    public function countIncompleteVotes(string $tenantId, string $dateFrom): int
-    {
-        return (int)($this->scalar(
-            "SELECT COUNT(*) FROM motions mo
+    public function countIncompleteVotes(string $tenantId, string $dateFrom): int {
+        return (int) ($this->scalar(
+            'SELECT COUNT(*) FROM motions mo
              JOIN meetings m ON m.id = mo.meeting_id
              WHERE m.tenant_id = :tid
                AND mo.opened_at IS NOT NULL
                AND mo.closed_at IS NULL
-               AND mo.opened_at >= :from",
-            [':tid' => $tenantId, ':from' => $dateFrom]
+               AND mo.opened_at >= :from',
+            [':tid' => $tenantId, ':from' => $dateFrom],
         ) ?? 0);
     }
 
     /**
      * Compte les membres avec forte concentration de procurations (>3).
      */
-    public function countHighProxyConcentration(string $tenantId, string $dateFrom): int
-    {
-        return (int)($this->scalar(
-            "SELECT COUNT(*) FROM (
+    public function countHighProxyConcentration(string $tenantId, string $dateFrom): int {
+        return (int) ($this->scalar(
+            'SELECT COUNT(*) FROM (
                 SELECT p.receiver_member_id, COUNT(*) as proxy_count
                 FROM proxies p
                 JOIN meetings m ON m.id = p.meeting_id
@@ -335,16 +319,15 @@ class AnalyticsRepository extends AbstractRepository
                   AND p.revoked_at IS NULL
                 GROUP BY p.receiver_member_id
                 HAVING COUNT(*) > 3
-            ) sub",
-            [':tid' => $tenantId, ':from' => $dateFrom]
+            ) sub',
+            [':tid' => $tenantId, ':from' => $dateFrom],
         ) ?? 0);
     }
 
     /**
      * Calcule le taux d'abstention.
      */
-    public function getAbstentionRate(string $tenantId, string $dateFrom): float
-    {
+    public function getAbstentionRate(string $tenantId, string $dateFrom): float {
         $result = $this->scalar(
             "SELECT
                 CASE WHEN COUNT(*) > 0
@@ -356,33 +339,31 @@ class AnalyticsRepository extends AbstractRepository
              JOIN meetings m ON m.id = mo.meeting_id
              WHERE m.tenant_id = :tid
                AND b.cast_at >= :from",
-            [':tid' => $tenantId, ':from' => $dateFrom]
+            [':tid' => $tenantId, ':from' => $dateFrom],
         );
-        return (float)($result ?? 0);
+        return (float) ($result ?? 0);
     }
 
     /**
      * Compte les votes tres courts (<30 secondes).
      */
-    public function countVeryShortVotes(string $tenantId, string $dateFrom): int
-    {
-        return (int)($this->scalar(
-            "SELECT COUNT(*) FROM motions mo
+    public function countVeryShortVotes(string $tenantId, string $dateFrom): int {
+        return (int) ($this->scalar(
+            'SELECT COUNT(*) FROM motions mo
              JOIN meetings m ON m.id = mo.meeting_id
              WHERE m.tenant_id = :tid
                AND mo.opened_at IS NOT NULL
                AND mo.closed_at IS NOT NULL
                AND mo.opened_at >= :from
-               AND EXTRACT(EPOCH FROM (mo.closed_at - mo.opened_at)) < 30",
-            [':tid' => $tenantId, ':from' => $dateFrom]
+               AND EXTRACT(EPOCH FROM (mo.closed_at - mo.opened_at)) < 30',
+            [':tid' => $tenantId, ':from' => $dateFrom],
         ) ?? 0);
     }
 
     /**
      * Liste des seances avec flags d'anomalies.
      */
-    public function getFlaggedMeetings(string $tenantId, string $dateFrom, int $limit): array
-    {
+    public function getFlaggedMeetings(string $tenantId, string $dateFrom, int $limit): array {
         return $this->selectAll(
             "SELECT
                 m.id,
@@ -401,7 +382,7 @@ class AnalyticsRepository extends AbstractRepository
              GROUP BY m.id, m.title, m.started_at
              ORDER BY m.started_at DESC
              LIMIT :lim",
-            [':tid' => $tenantId, ':tid2' => $tenantId, ':from' => $dateFrom, ':lim' => $limit]
+            [':tid' => $tenantId, ':tid2' => $tenantId, ':from' => $dateFrom, ':lim' => $limit],
         );
     }
 
@@ -412,10 +393,9 @@ class AnalyticsRepository extends AbstractRepository
     /**
      * Distribution des temps de reponse (delai ouverture -> vote).
      */
-    public function getVoteTimingDistribution(string $tenantId, string $dateFrom): array
-    {
+    public function getVoteTimingDistribution(string $tenantId, string $dateFrom): array {
         return $this->selectAll(
-            "SELECT
+            'SELECT
                 EXTRACT(EPOCH FROM (b.created_at - mo.opened_at)) as response_seconds
              FROM ballots b
              JOIN motions mo ON mo.id = b.motion_id
@@ -423,8 +403,8 @@ class AnalyticsRepository extends AbstractRepository
              WHERE m.tenant_id = :tid
                AND mo.opened_at IS NOT NULL
                AND b.created_at >= :from
-               AND b.created_at >= mo.opened_at",
-            [':tid' => $tenantId, ':from' => $dateFrom]
+               AND b.created_at >= mo.opened_at',
+            [':tid' => $tenantId, ':from' => $dateFrom],
         );
     }
 }

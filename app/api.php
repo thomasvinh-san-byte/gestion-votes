@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -36,13 +37,13 @@ set_exception_handler(function (\Throwable $e) {
 
 function api_ok(array $data = [], int $code = 200): never {
     throw new \AgVote\Core\Http\ApiResponseException(
-        \AgVote\Core\Http\JsonResponse::ok($data, $code)
+        \AgVote\Core\Http\JsonResponse::ok($data, $code),
     );
 }
 
 function api_fail(string $error, int $code = 400, array $extra = []): never {
     throw new \AgVote\Core\Http\ApiResponseException(
-        \AgVote\Core\Http\JsonResponse::fail($error, $code, $extra)
+        \AgVote\Core\Http\JsonResponse::fail($error, $code, $extra),
     );
 }
 
@@ -51,14 +52,14 @@ function api_fail(string $error, int $code = 400, array $extra = []): never {
 // =============================================================================
 
 function api_is_uuid(string $v): bool {
-    return (bool)preg_match(
+    return (bool) preg_match(
         '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
-        $v
+        $v,
     );
 }
 
 function api_require_uuid(array $in, string $key): string {
-    $v = trim((string)($in[$key] ?? ''));
+    $v = trim((string) ($in[$key] ?? ''));
     if ($v === '' || !api_is_uuid($v)) {
         api_fail('missing_or_invalid_uuid', 400, ['field' => $key, 'expected' => 'uuid']);
     }
@@ -77,11 +78,11 @@ function api_require_uuid(array $in, string $key): string {
  */
 function api_require_role(string|array $roles): void {
     $roles = is_array($roles) ? $roles : [$roles];
-    
+
     // CSRF validation for mutating requests (unless disabled)
     $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
     $csrfEnabled = getenv('CSRF_ENABLED') !== '0';
-    
+
     if ($csrfEnabled && in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
         // 'public' role or voter endpoints = no CSRF (vote token serves as proof)
         if (!in_array('public', $roles, true) && !in_array('voter', $roles, true)) {
@@ -116,7 +117,7 @@ function api_request(string ...$methods): array {
 
     if (!in_array($method, $allowed, true)) {
         api_fail('method_not_allowed', 405, [
-            'detail' => "Méthode {$method} non autorisée, " . implode('/', $allowed) . " attendu."
+            'detail' => "Méthode {$method} non autorisée, " . implode('/', $allowed) . ' attendu.',
         ]);
     }
 
@@ -136,14 +137,14 @@ function api_request(string ...$methods): array {
  * Get a query string parameter.
  */
 function api_query(string $key, string $default = ''): string {
-    return trim((string)($_GET[$key] ?? $default));
+    return trim((string) ($_GET[$key] ?? $default));
 }
 
 /**
  * Get a query string parameter as int.
  */
 function api_query_int(string $key, int $default = 0): int {
-    return (int)($_GET[$key] ?? $default);
+    return (int) ($_GET[$key] ?? $default);
 }
 
 /**
@@ -188,11 +189,13 @@ function api_current_tenant_id(): string {
  * Fatal 409 if meeting is validated.
  */
 function api_guard_meeting_not_validated(string $meetingId): void {
-    if ($meetingId === '') return;
+    if ($meetingId === '') {
+        return;
+    }
     $repo = new \AgVote\Repository\MeetingRepository();
     if ($repo->isValidated($meetingId, api_current_tenant_id())) {
         api_fail('meeting_validated', 409, [
-            'detail' => 'Séance validée : modification interdite (séance figée).'
+            'detail' => 'Séance validée : modification interdite (séance figée).',
         ]);
     }
 }
@@ -219,13 +222,13 @@ function api_guard_meeting_exists(string $meetingId): array {
  */
 function api_rate_limit(string $context, int $maxAttempts = 100, int $windowSeconds = 60): void {
     $identifier = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    
+
     // If authenticated, use user ID
     $userId = api_current_user_id();
     if ($userId) {
         $identifier = $userId;
     }
-    
+
     RateLimiter::check($context, $identifier, $maxAttempts, $windowSeconds);
 }
 
@@ -238,8 +241,10 @@ function api_rate_limit(string $context, int $maxAttempts = 100, int $windowSeco
  * Automatically commits on success, rolls back on exception.
  *
  * @param callable $fn Function to execute within transaction
- * @return mixed Return value of the callback
+ *
  * @throws \Throwable Re-throws any exception after rollback
+ *
+ * @return mixed Return value of the callback
  */
 function api_transaction(callable $fn): mixed {
     $pdo = db();
@@ -263,4 +268,3 @@ function api_transaction(callable $fn): mixed {
         throw $e;
     }
 }
-

@@ -1,18 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use finfo;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use Throwable;
 
 /**
  * ImportService - Centralized service for file imports (CSV, XLSX)
  *
  * Handles file reading and parsing for import operations.
  */
-final class ImportService
-{
+final class ImportService {
     // ========================================================================
     // CONSTANTS
     // ========================================================================
@@ -45,10 +46,10 @@ final class ImportService
      *
      * @param array $file $_FILES entry
      * @param string $expectedExtension 'csv' or 'xlsx'
+     *
      * @return array ['ok' => bool, 'error' => ?string]
      */
-    public static function validateUploadedFile(array $file, string $expectedExtension): array
-    {
+    public static function validateUploadedFile(array $file, string $expectedExtension): array {
         // Check upload error
         if (!isset($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
             return ['ok' => false, 'error' => 'Fichier manquant ou erreur upload.'];
@@ -66,7 +67,7 @@ final class ImportService
         }
 
         // Check MIME type
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($file['tmp_name']);
 
         $allowedMimes = $expectedExtension === 'xlsx' ? self::XLSX_MIME_TYPES : self::CSV_MIME_TYPES;
@@ -86,10 +87,10 @@ final class ImportService
      *
      * @param string $filePath Path to the XLSX file
      * @param int $sheetIndex Sheet index to read (default: 0 = first sheet)
+     *
      * @return array ['headers' => array, 'rows' => array, 'error' => ?string]
      */
-    public static function readXlsxFile(string $filePath, int $sheetIndex = 0): array
-    {
+    public static function readXlsxFile(string $filePath, int $sheetIndex = 0): array {
         try {
             $spreadsheet = IOFactory::load($filePath);
             $sheet = $spreadsheet->getSheet($sheetIndex);
@@ -109,15 +110,15 @@ final class ImportService
                     if ($cell->isFormula()) {
                         $value = $cell->getCalculatedValue();
                     }
-                    $rowData[] = $value !== null ? (string)$value : '';
+                    $rowData[] = $value !== null ? (string) $value : '';
                 }
 
                 if ($rowIndex === 0) {
                     // First row = headers
-                    $headers = array_map(fn($h) => strtolower(trim($h)), $rowData);
+                    $headers = array_map(fn ($h) => strtolower(trim($h)), $rowData);
                 } else {
                     // Skip empty rows
-                    if (!empty(array_filter($rowData, fn($v) => trim($v) !== ''))) {
+                    if (!empty(array_filter($rowData, fn ($v) => trim($v) !== ''))) {
                         $rows[] = $rowData;
                     }
                 }
@@ -130,7 +131,7 @@ final class ImportService
                 'error' => null,
             ];
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return [
                 'headers' => [],
                 'rows' => [],
@@ -144,10 +145,10 @@ final class ImportService
      *
      * @param array $headers Normalized headers from file
      * @param array $columnMap Map of field => [alias1, alias2, ...]
+     *
      * @return array Map of field => column index
      */
-    public static function mapColumns(array $headers, array $columnMap): array
-    {
+    public static function mapColumns(array $headers, array $columnMap): array {
         $colIndex = [];
         foreach ($columnMap as $field => $aliases) {
             foreach ($aliases as $alias) {
@@ -169,10 +170,10 @@ final class ImportService
      * Reads a CSV file and returns rows as arrays
      *
      * @param string $filePath Path to the CSV file
+     *
      * @return array ['headers' => array, 'rows' => array, 'separator' => string, 'error' => ?string]
      */
-    public static function readCsvFile(string $filePath): array
-    {
+    public static function readCsvFile(string $filePath): array {
         $handle = fopen($filePath, 'r');
         if (!$handle) {
             return [
@@ -200,7 +201,7 @@ final class ImportService
             ];
         }
 
-        $headers = array_map(fn($h) => strtolower(trim($h)), $headers);
+        $headers = array_map(fn ($h) => strtolower(trim($h)), $headers);
 
         // Read rows
         $rows = [];
@@ -227,8 +228,7 @@ final class ImportService
     /**
      * Column map for members import
      */
-    public static function getMembersColumnMap(): array
-    {
+    public static function getMembersColumnMap(): array {
         return [
             'name' => ['name', 'nom', 'full_name', 'nom_complet'],
             'first_name' => ['first_name', 'prenom', 'prénom'],
@@ -243,8 +243,7 @@ final class ImportService
     /**
      * Column map for attendances import
      */
-    public static function getAttendancesColumnMap(): array
-    {
+    public static function getAttendancesColumnMap(): array {
         return [
             'name' => ['name', 'nom', 'full_name', 'nom_complet', 'membre'],
             'email' => ['email', 'mail', 'e-mail'],
@@ -256,8 +255,7 @@ final class ImportService
     /**
      * Column map for motions import
      */
-    public static function getMotionsColumnMap(): array
-    {
+    public static function getMotionsColumnMap(): array {
         return [
             'title' => ['title', 'titre', 'intitule', 'intitulé', 'resolution', 'résolution'],
             'description' => ['description', 'texte', 'content', 'contenu', 'detail', 'détail'],
@@ -269,8 +267,7 @@ final class ImportService
     /**
      * Column map for proxies import
      */
-    public static function getProxiesColumnMap(): array
-    {
+    public static function getProxiesColumnMap(): array {
         return [
             'giver_name' => ['giver_name', 'mandant_nom', 'mandant', 'donneur', 'donneur_nom', 'from_name', 'de'],
             'giver_email' => ['giver_email', 'mandant_email', 'donneur_email', 'from_email'],
@@ -286,8 +283,7 @@ final class ImportService
     /**
      * Parse attendance mode from various formats
      */
-    public static function parseAttendanceMode(string $val): ?string
-    {
+    public static function parseAttendanceMode(string $val): ?string {
         $val = mb_strtolower(trim($val));
 
         if (in_array($val, ['present', 'présent', 'p', '1', 'oui', 'yes'], true)) {
@@ -312,8 +308,7 @@ final class ImportService
     /**
      * Parse boolean from various formats
      */
-    public static function parseBoolean(string $val): bool
-    {
+    public static function parseBoolean(string $val): bool {
         $val = strtolower(trim($val));
         return in_array($val, ['1', 'true', 'oui', 'yes', 'actif', 'active', 'o', 'y'], true);
     }
@@ -321,11 +316,10 @@ final class ImportService
     /**
      * Parse voting power (float)
      */
-    public static function parseVotingPower(string $val): float
-    {
+    public static function parseVotingPower(string $val): float {
         // Handle French decimal separator
         $val = str_replace(',', '.', trim($val));
-        $power = (float)$val;
+        $power = (float) $val;
         return $power > 0 ? $power : 1.0;
     }
 }

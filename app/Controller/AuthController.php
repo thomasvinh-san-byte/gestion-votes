@@ -1,19 +1,20 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\UserRepository;
-use AgVote\Repository\MemberRepository;
 use AgVote\Core\Security\CsrfMiddleware;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\UserRepository;
+use AuthMiddleware;
+use Throwable;
 
 /**
  * Consolidates auth endpoints: login, logout, whoami, csrf, ping.
  */
-final class AuthController extends AbstractController
-{
-    public function login(): void
-    {
+final class AuthController extends AbstractController {
+    public function login(): void {
         if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
             api_fail('method_not_allowed', 405);
         }
@@ -29,8 +30,8 @@ final class AuthController extends AbstractController
         $authMethod = 'unknown';
 
         // ── Auth by email/password (priority) ──
-        $email    = trim((string)($input['email'] ?? ''));
-        $password = (string)($input['password'] ?? '');
+        $email = trim((string) ($input['email'] ?? ''));
+        $password = (string) ($input['password'] ?? '');
 
         if ($email !== '' && $password !== '') {
             $authMethod = 'password';
@@ -43,10 +44,12 @@ final class AuthController extends AbstractController
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                         $_SERVER['HTTP_USER_AGENT'] ?? '',
                         $email,
-                        'invalid_credentials'
+                        'invalid_credentials',
                     );
-                } catch (\Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+                } catch (Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                        throw $e;
+                    }
                     /* best effort */
                 }
                 api_fail('invalid_credentials', 401, ['detail' => 'Email ou mot de passe incorrect.']);
@@ -58,10 +61,12 @@ final class AuthController extends AbstractController
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                         $_SERVER['HTTP_USER_AGENT'] ?? '',
                         $email,
-                        'wrong_password'
+                        'wrong_password',
                     );
-                } catch (\Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+                } catch (Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                        throw $e;
+                    }
                     /* best effort */
                 }
                 api_fail('invalid_credentials', 401, ['detail' => 'Email ou mot de passe incorrect.']);
@@ -72,15 +77,17 @@ final class AuthController extends AbstractController
                 try {
                     $newHash = password_hash($password, PASSWORD_DEFAULT);
                     $userRepo->setPasswordHash($user['tenant_id'], $user['id'], $newHash);
-                } catch (\Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+                } catch (Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                        throw $e;
+                    }
                     /* best effort */
                 }
             }
 
         } else {
             // ── Fallback: API key auth (compat) ──
-            $apiKey = trim((string)($input['api_key'] ?? ''));
+            $apiKey = trim((string) ($input['api_key'] ?? ''));
 
             if ($apiKey === '') {
                 api_fail('missing_credentials', 400, ['detail' => 'Email et mot de passe requis.']);
@@ -96,10 +103,12 @@ final class AuthController extends AbstractController
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                         $_SERVER['HTTP_USER_AGENT'] ?? '',
                         substr($apiKey, 0, 8) . '...',
-                        'invalid_key'
+                        'invalid_key',
                     );
-                } catch (\Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+                } catch (Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                        throw $e;
+                    }
                     /* best effort */
                 }
                 api_fail('invalid_credentials', 401, ['detail' => 'Identifiants invalides.']);
@@ -155,8 +164,7 @@ final class AuthController extends AbstractController
         ]);
     }
 
-    public function logout(): void
-    {
+    public function logout(): void {
         api_request('POST');
 
         CsrfMiddleware::validate();
@@ -176,22 +184,26 @@ final class AuthController extends AbstractController
 
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params['path'], $params['domain'],
-                $params['secure'], $params['httponly']
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params['path'],
+                $params['domain'],
+                $params['secure'],
+                $params['httponly'],
             );
         }
 
         session_destroy();
 
-        \AuthMiddleware::reset();
+        AuthMiddleware::reset();
 
         api_ok(['logged_out' => true]);
     }
 
-    public function whoami(): void
-    {
-        $enabled = \AuthMiddleware::isEnabled();
+    public function whoami(): void {
+        $enabled = AuthMiddleware::isEnabled();
         if (!$enabled) {
             api_ok([
                 'auth_enabled' => false,
@@ -199,7 +211,7 @@ final class AuthController extends AbstractController
             ]);
         }
 
-        $user = \AuthMiddleware::authenticate();
+        $user = AuthMiddleware::authenticate();
         if ($user === null) {
             api_fail('missing_or_invalid_api_key', 401, ['auth_enabled' => true]);
         }
@@ -211,8 +223,10 @@ final class AuthController extends AbstractController
         try {
             $userRepo = new UserRepository();
             $meetingRoles = $userRepo->listActiveMeetingRolesForUser($user['id'], $user['tenant_id']);
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
             // best effort
         }
 
@@ -224,11 +238,13 @@ final class AuthController extends AbstractController
                 $linkedMember = [
                     'id' => $found['id'],
                     'full_name' => $found['full_name'],
-                    'voting_power' => (float)($found['voting_power'] ?? 1),
+                    'voting_power' => (float) ($found['voting_power'] ?? 1),
                 ];
             }
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
             // best effort
         }
 
@@ -245,22 +261,20 @@ final class AuthController extends AbstractController
         ]);
     }
 
-    public function csrf(): void
-    {
+    public function csrf(): void {
         api_request('GET');
 
         CsrfMiddleware::init();
         $token = CsrfMiddleware::getToken();
 
         api_ok([
-            'csrf_token'  => $token,
+            'csrf_token' => $token,
             'header_name' => CsrfMiddleware::getHeaderName(),
-            'field_name'  => CsrfMiddleware::getTokenName(),
+            'field_name' => CsrfMiddleware::getTokenName(),
         ]);
     }
 
-    public function ping(): void
-    {
+    public function ping(): void {
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         if (!\AgVote\Core\Security\RateLimiter::check('ping', $ip, 60, 60, false)) {
             api_fail('rate_limit_exceeded', 429);

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core\Middleware;
@@ -11,12 +12,11 @@ namespace AgVote\Core\Middleware;
  * - Authentication via AuthMiddleware
  * - Role/permission checking
  */
-final class RoleMiddleware implements MiddlewareInterface
-{
-    public function __construct(private readonly string|array $roles) {}
+final class RoleMiddleware implements MiddlewareInterface {
+    public function __construct(private readonly string|array $roles) {
+    }
 
-    public function process(callable $next): void
-    {
+    public function process(callable $next): void {
         api_require_role($this->roles);
         $next();
     }

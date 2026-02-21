@@ -1,17 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\AnalyticsRepository;
 use AgVote\Repository\AggregateReportRepository;
+use AgVote\Repository\AnalyticsRepository;
+use AgVote\Repository\MemberRepository;
 use AgVote\Service\ExportService;
+use Throwable;
 
-final class AnalyticsController extends AbstractController
-{
-    public function analytics(): void
-    {
+final class AnalyticsController extends AbstractController {
+    public function analytics(): void {
         api_request('GET');
 
         $tenantId = api_current_tenant_id();
@@ -43,15 +43,16 @@ final class AnalyticsController extends AbstractController
             };
 
             api_ok($data);
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
             error_log('Error in AnalyticsController::analytics: ' . $e->getMessage());
             api_fail('server_error', 500, ['detail' => $e->getMessage()]);
         }
     }
 
-    public function reportsAggregate(): void
-    {
+    public function reportsAggregate(): void {
         $q = api_request('GET');
         $repo = new AggregateReportRepository();
         $tenantId = api_current_tenant_id();
@@ -71,8 +72,10 @@ final class AnalyticsController extends AbstractController
         $meetingIds = $q['meeting_ids'] ?? [];
 
         if (!empty($meetingIds) && is_array($meetingIds)) {
-            $meetingIds = array_filter($meetingIds, fn($id) => api_is_uuid($id));
-            if (empty($meetingIds)) $meetingIds = null;
+            $meetingIds = array_filter($meetingIds, fn ($id) => api_is_uuid($id));
+            if (empty($meetingIds)) {
+                $meetingIds = null;
+            }
         } else {
             $meetingIds = null;
         }
@@ -160,8 +163,7 @@ final class AnalyticsController extends AbstractController
     // Analytics helper methods (from analytics.php inline functions)
     // =========================================================================
 
-    private static function getOverview(string $tenantId, MemberRepository $memberRepo, AnalyticsRepository $analyticsRepo): array
-    {
+    private static function getOverview(string $tenantId, MemberRepository $memberRepo, AnalyticsRepository $analyticsRepo): array {
         $totalMeetings = $analyticsRepo->countMeetings($tenantId);
         $totalMembers = $memberRepo->countActive($tenantId);
         $totalMotions = $analyticsRepo->countMotions($tenantId);
@@ -170,13 +172,13 @@ final class AnalyticsController extends AbstractController
         $statusRows = $analyticsRepo->getMeetingsByStatus($tenantId);
         $meetingsByStatus = [];
         foreach ($statusRows as $row) {
-            $meetingsByStatus[$row['status']] = (int)$row['count'];
+            $meetingsByStatus[$row['status']] = (int) $row['count'];
         }
 
         $decisionRows = $analyticsRepo->getMotionDecisions($tenantId);
         $motionDecisions = [];
         foreach ($decisionRows as $row) {
-            $motionDecisions[$row['decision']] = (int)$row['count'];
+            $motionDecisions[$row['decision']] = (int) $row['count'];
         }
 
         $avgParticipation = $analyticsRepo->getAverageParticipationRate($tenantId);
@@ -189,52 +191,49 @@ final class AnalyticsController extends AbstractController
         ];
     }
 
-    private static function getParticipation(string $tenantId, string $dateFrom, MemberRepository $memberRepo, AnalyticsRepository $analyticsRepo, int $limit): array
-    {
+    private static function getParticipation(string $tenantId, string $dateFrom, MemberRepository $memberRepo, AnalyticsRepository $analyticsRepo, int $limit): array {
         $meetings = $analyticsRepo->getParticipationByMeeting($tenantId, $dateFrom, $limit);
         $eligibleCount = $memberRepo->countActive($tenantId);
 
         $participation = [];
         foreach ($meetings as $m) {
             $rate = $eligibleCount > 0
-                ? round(((int)$m['present_count'] + (int)$m['proxy_count']) / $eligibleCount * 100, 1)
+                ? round(((int) $m['present_count'] + (int) $m['proxy_count']) / $eligibleCount * 100, 1)
                 : 0;
             $participation[] = [
                 'meeting_id' => $m['id'], 'title' => $m['title'], 'date' => $m['started_at'],
-                'present' => (int)$m['present_count'], 'proxy' => (int)$m['proxy_count'],
-                'total' => (int)$m['total_attendees'], 'eligible' => $eligibleCount, 'rate' => $rate,
+                'present' => (int) $m['present_count'], 'proxy' => (int) $m['proxy_count'],
+                'total' => (int) $m['total_attendees'], 'eligible' => $eligibleCount, 'rate' => $rate,
             ];
         }
 
         return ['eligible_count' => $eligibleCount, 'meetings' => array_reverse($participation)];
     }
 
-    private static function getMotionsStats(string $tenantId, string $dateFrom, AnalyticsRepository $analyticsRepo, int $limit): array
-    {
+    private static function getMotionsStats(string $tenantId, string $dateFrom, AnalyticsRepository $analyticsRepo, int $limit): array {
         $byMeeting = $analyticsRepo->getMotionsStatsByMeeting($tenantId, $dateFrom, $limit);
         $summary = $analyticsRepo->getMotionsTotals($tenantId, $dateFrom);
 
         return [
             'summary' => [
-                'total' => (int)($summary['total'] ?? 0),
-                'adopted' => (int)($summary['adopted'] ?? 0),
-                'rejected' => (int)($summary['rejected'] ?? 0),
-                'adoption_rate' => (int)($summary['total'] ?? 0) > 0
-                    ? round((int)($summary['adopted'] ?? 0) / (int)$summary['total'] * 100, 1)
+                'total' => (int) ($summary['total'] ?? 0),
+                'adopted' => (int) ($summary['adopted'] ?? 0),
+                'rejected' => (int) ($summary['rejected'] ?? 0),
+                'adoption_rate' => (int) ($summary['total'] ?? 0) > 0
+                    ? round((int) ($summary['adopted'] ?? 0) / (int) $summary['total'] * 100, 1)
                     : 0,
             ],
             'by_meeting' => array_reverse($byMeeting),
         ];
     }
 
-    private static function getVoteDuration(string $tenantId, string $dateFrom, AnalyticsRepository $analyticsRepo, int $limit): array
-    {
+    private static function getVoteDuration(string $tenantId, string $dateFrom, AnalyticsRepository $analyticsRepo, int $limit): array {
         $motions = $analyticsRepo->getVoteDurations($tenantId, $dateFrom, $limit);
 
         $durations = [];
         $totalSeconds = 0;
         foreach ($motions as $mo) {
-            $seconds = (float)$mo['duration_seconds'];
+            $seconds = (float) $mo['duration_seconds'];
             $totalSeconds += $seconds;
             $durations[] = [
                 'motion_id' => $mo['id'], 'title' => $mo['title'], 'meeting_title' => $mo['meeting_title'],
@@ -248,13 +247,20 @@ final class AnalyticsController extends AbstractController
 
         $distribution = ['0-30s' => 0, '30s-1m' => 0, '1-2m' => 0, '2-5m' => 0, '5-10m' => 0, '10m+' => 0];
         foreach ($motions as $mo) {
-            $s = (float)$mo['duration_seconds'];
-            if ($s < 30) $distribution['0-30s']++;
-            elseif ($s < 60) $distribution['30s-1m']++;
-            elseif ($s < 120) $distribution['1-2m']++;
-            elseif ($s < 300) $distribution['2-5m']++;
-            elseif ($s < 600) $distribution['5-10m']++;
-            else $distribution['10m+']++;
+            $s = (float) $mo['duration_seconds'];
+            if ($s < 30) {
+                $distribution['0-30s']++;
+            } elseif ($s < 60) {
+                $distribution['30s-1m']++;
+            } elseif ($s < 120) {
+                $distribution['1-2m']++;
+            } elseif ($s < 300) {
+                $distribution['2-5m']++;
+            } elseif ($s < 600) {
+                $distribution['5-10m']++;
+            } else {
+                $distribution['10m+']++;
+            }
         }
 
         return [
@@ -264,16 +270,14 @@ final class AnalyticsController extends AbstractController
         ];
     }
 
-    private static function getProxiesStats(string $tenantId, string $dateFrom, AnalyticsRepository $analyticsRepo, int $limit): array
-    {
+    private static function getProxiesStats(string $tenantId, string $dateFrom, AnalyticsRepository $analyticsRepo, int $limit): array {
         $byMeeting = $analyticsRepo->getProxiesStatsByMeeting($tenantId, $dateFrom, $limit);
         $totalCount = $analyticsRepo->countProxies($tenantId, $dateFrom);
 
         return ['total_proxies' => $totalCount, 'by_meeting' => array_reverse($byMeeting)];
     }
 
-    private static function getAnomalies(string $tenantId, string $dateFrom, AnalyticsRepository $analyticsRepo, int $limit): array
-    {
+    private static function getAnomalies(string $tenantId, string $dateFrom, AnalyticsRepository $analyticsRepo, int $limit): array {
         $lowParticipationCount = $analyticsRepo->countLowParticipationMeetings($tenantId, $dateFrom);
         $quorumIssuesCount = $analyticsRepo->countQuorumIssues($tenantId, $dateFrom);
         $incompleteVotesCount = $analyticsRepo->countIncompleteVotes($tenantId, $dateFrom);
@@ -286,13 +290,19 @@ final class AnalyticsController extends AbstractController
         $flaggedList = [];
         foreach ($meetings as $m) {
             $flags = [];
-            $eligible = (int)$m['eligible'];
-            $attended = (int)$m['attended'];
+            $eligible = (int) $m['eligible'];
+            $attended = (int) $m['attended'];
             $rate = $eligible > 0 ? round($attended / $eligible * 100, 1) : 0;
 
-            if ($rate < 50 && $eligible > 0) $flags[] = 'Participation faible';
-            if ((int)$m['quorum_issues'] > 0) $flags[] = 'Quorum';
-            if ((int)$m['incomplete'] > 0) $flags[] = 'Votes incomplets';
+            if ($rate < 50 && $eligible > 0) {
+                $flags[] = 'Participation faible';
+            }
+            if ((int) $m['quorum_issues'] > 0) {
+                $flags[] = 'Quorum';
+            }
+            if ((int) $m['incomplete'] > 0) {
+                $flags[] = 'Votes incomplets';
+            }
 
             if (count($flags) > 0) {
                 $flaggedList[] = [
@@ -315,23 +325,29 @@ final class AnalyticsController extends AbstractController
         ];
     }
 
-    private static function getVoteTimingDistribution(string $tenantId, string $dateFrom, AnalyticsRepository $analyticsRepo): array
-    {
+    private static function getVoteTimingDistribution(string $tenantId, string $dateFrom, AnalyticsRepository $analyticsRepo): array {
         $timesRows = $analyticsRepo->getVoteTimingDistribution($tenantId, $dateFrom);
 
         $distribution = ['0-10s' => 0, '10-30s' => 0, '30s-1m' => 0, '1-2m' => 0, '2-5m' => 0, '5m+' => 0];
         $totalSeconds = 0;
         $count = 0;
         foreach ($timesRows as $row) {
-            $s = (float)$row['response_seconds'];
+            $s = (float) $row['response_seconds'];
             $totalSeconds += $s;
             $count++;
-            if ($s < 10) $distribution['0-10s']++;
-            elseif ($s < 30) $distribution['10-30s']++;
-            elseif ($s < 60) $distribution['30s-1m']++;
-            elseif ($s < 120) $distribution['1-2m']++;
-            elseif ($s < 300) $distribution['2-5m']++;
-            else $distribution['5m+']++;
+            if ($s < 10) {
+                $distribution['0-10s']++;
+            } elseif ($s < 30) {
+                $distribution['10-30s']++;
+            } elseif ($s < 60) {
+                $distribution['30s-1m']++;
+            } elseif ($s < 120) {
+                $distribution['1-2m']++;
+            } elseif ($s < 300) {
+                $distribution['2-5m']++;
+            } else {
+                $distribution['5m+']++;
+            }
         }
 
         $avgSeconds = $count > 0 ? $totalSeconds / $count : 0;
@@ -342,27 +358,25 @@ final class AnalyticsController extends AbstractController
         ];
     }
 
-    private static function formatDuration(float $seconds): string
-    {
+    private static function formatDuration(float $seconds): string {
         if ($seconds < 60) {
             return round($seconds) . 's';
         } elseif ($seconds < 3600) {
             $m = floor($seconds / 60);
             $s = round($seconds % 60);
             return $m . 'm' . ($s > 0 ? ' ' . $s . 's' : '');
-        } else {
-            $h = floor($seconds / 3600);
-            $m = floor(($seconds % 3600) / 60);
-            return $h . 'h' . ($m > 0 ? ' ' . $m . 'm' : '');
         }
+        $h = floor($seconds / 3600);
+        $m = floor(($seconds % 3600) / 60);
+        return $h . 'h' . ($m > 0 ? ' ' . $m . 'm' : '');
+
     }
 
     // =========================================================================
     // Aggregate report helper methods (from reports_aggregate.php inline functions)
     // =========================================================================
 
-    private static function getReportHeaders(string $type): array
-    {
+    private static function getReportHeaders(string $type): array {
         return match ($type) {
             'participation' => ['Nom', 'Email', 'Pouvoir de vote', 'Séances totales', 'Présent(e)', 'Par procuration', 'Excusé(e)', 'Absent(e)', 'Taux de participation (%)'],
             'decisions' => ['Séance', 'Date', 'N° résolution', 'Titre', 'Décision', 'Pour', 'Contre', 'Abstention', 'Votants', 'Poids Pour', 'Poids Contre', 'Poids Abstention'],
@@ -374,8 +388,7 @@ final class AnalyticsController extends AbstractController
         };
     }
 
-    private static function formatReportRows(string $type, array $data, ExportService $svc): array
-    {
+    private static function formatReportRows(string $type, array $data, ExportService $svc): array {
         $rows = [];
 
         if ($type === 'summary') {

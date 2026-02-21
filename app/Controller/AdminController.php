@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -11,22 +12,20 @@ use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\UserRepository;
 use AgVote\Repository\VoteTokenRepository;
+use Throwable;
 
 /**
  * Consolidates 5 admin endpoints.
  *
  * Shared pattern: admin role, UserRepository, AuthMiddleware labels.
  */
-final class AdminController extends AbstractController
-{
-    public function users(): void
-    {
+final class AdminController extends AbstractController {
+    public function users(): void {
         $method = api_method();
 
         // GET: operators can list users (needed for meeting role assignment)
         // POST: admin only
         if ($method === 'GET') {
-        } else {
         }
 
         $validSystemRoles = ['admin', 'operator', 'auditor', 'viewer'];
@@ -54,11 +53,11 @@ final class AdminController extends AbstractController
 
         if ($method === 'POST') {
             $in = api_request('POST');
-            $action = trim((string)($in['action'] ?? 'create'));
+            $action = trim((string) ($in['action'] ?? 'create'));
 
             if ($action === 'set_password') {
                 $userId = api_require_uuid($in, 'user_id');
-                $password = (string)($in['password'] ?? '');
+                $password = (string) ($in['password'] ?? '');
 
                 if (strlen($password) < 8) {
                     api_fail('weak_password', 400, ['detail' => 'Le mot de passe doit contenir au moins 8 caractères.']);
@@ -94,7 +93,7 @@ final class AdminController extends AbstractController
                     api_fail('cannot_toggle_self', 400, ['detail' => 'Vous ne pouvez pas vous désactiver vous-même.']);
                 }
 
-                $active = (int)($in['is_active'] ?? 1) ? true : false;
+                $active = (int) ($in['is_active'] ?? 1) ? true : false;
                 $userRepo->toggleActive(api_current_tenant_id(), $userId, $active);
                 audit_log('admin.user.toggled', 'user', $userId, ['is_active' => $active]);
                 api_ok(['saved' => true, 'user_id' => $userId, 'is_active' => $active]);
@@ -115,16 +114,16 @@ final class AdminController extends AbstractController
 
             if ($action === 'update') {
                 $userId = api_require_uuid($in, 'user_id');
-                $email = strtolower(trim((string)($in['email'] ?? '')));
-                $name = trim((string)($in['name'] ?? ''));
-                $role = trim((string)($in['role'] ?? ''));
+                $email = strtolower(trim((string) ($in['email'] ?? '')));
+                $name = trim((string) ($in['name'] ?? ''));
+                $role = trim((string) ($in['role'] ?? ''));
 
                 if ($email === '' || $name === '') {
                     api_fail('missing_fields', 400, ['detail' => 'email et name sont requis.']);
                 }
                 if ($role !== '' && !in_array($role, $validSystemRoles, true)) {
                     api_fail('invalid_role', 400, [
-                        'detail' => "Rôle système invalide : '$role'",
+                        'detail' => "Rôle système invalide : '{$role}'",
                         'valid' => $validSystemRoles,
                     ]);
                 }
@@ -140,26 +139,26 @@ final class AdminController extends AbstractController
             }
 
             if ($action === 'create') {
-                $email = strtolower(trim((string)($in['email'] ?? '')));
-                $name = trim((string)($in['name'] ?? ''));
-                $role = trim((string)($in['role'] ?? 'viewer'));
+                $email = strtolower(trim((string) ($in['email'] ?? '')));
+                $name = trim((string) ($in['name'] ?? ''));
+                $role = trim((string) ($in['role'] ?? 'viewer'));
 
                 if ($email === '' || $name === '') {
                     api_fail('missing_fields', 400, ['detail' => 'email et name sont requis.']);
                 }
                 if (!in_array($role, $validSystemRoles, true)) {
                     api_fail('invalid_role', 400, [
-                        'detail' => "Rôle système invalide : '$role'",
+                        'detail' => "Rôle système invalide : '{$role}'",
                         'valid' => $validSystemRoles,
                     ]);
                 }
 
                 $existing = $userRepo->findIdByEmail(api_current_tenant_id(), $email);
                 if ($existing) {
-                    api_fail('email_exists', 409, ['detail' => "Un utilisateur avec l'email '$email' existe déjà."]);
+                    api_fail('email_exists', 409, ['detail' => "Un utilisateur avec l'email '{$email}' existe déjà."]);
                 }
 
-                $password = trim((string)($in['password'] ?? ''));
+                $password = trim((string) ($in['password'] ?? ''));
                 if (strlen($password) < 8) {
                     api_fail('weak_password', 400, ['detail' => 'Le mot de passe doit contenir au moins 8 caractères.']);
                 }
@@ -171,14 +170,13 @@ final class AdminController extends AbstractController
                 api_ok(['saved' => true, 'user_id' => $id]);
             }
 
-            api_fail('unknown_action', 400, ['detail' => "Action '$action' inconnue."]);
+            api_fail('unknown_action', 400, ['detail' => "Action '{$action}' inconnue."]);
         }
 
         api_fail('method_not_allowed', 405);
     }
 
-    public function roles(): void
-    {
+    public function roles(): void {
         api_request('GET');
 
         $userRepo = new UserRepository();
@@ -209,8 +207,7 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    public function meetingRoles(): void
-    {
+    public function meetingRoles(): void {
         $method = api_method();
         $validMeetingRoles = ['president', 'assessor', 'voter'];
         $userRepo = new UserRepository();
@@ -236,16 +233,16 @@ final class AdminController extends AbstractController
 
         if ($method === 'POST') {
             $in = api_request('POST');
-            $action = trim((string)($in['action'] ?? 'assign'));
+            $action = trim((string) ($in['action'] ?? 'assign'));
 
             if ($action === 'assign') {
                 $meetingId = api_require_uuid($in, 'meeting_id');
                 $userId = api_require_uuid($in, 'user_id');
-                $role = trim((string)($in['role'] ?? ''));
+                $role = trim((string) ($in['role'] ?? ''));
 
                 if (!in_array($role, $validMeetingRoles, true)) {
                     api_fail('invalid_meeting_role', 400, [
-                        'detail' => "Rôle de séance invalide : '$role'",
+                        'detail' => "Rôle de séance invalide : '{$role}'",
                         'valid' => $validMeetingRoles,
                     ]);
                 }
@@ -277,7 +274,7 @@ final class AdminController extends AbstractController
                     $meetingId,
                     $userId,
                     $role,
-                    api_current_user_id()
+                    api_current_user_id(),
                 );
 
                 audit_log('admin.meeting_role.assigned', 'meeting', $meetingId, [
@@ -292,7 +289,7 @@ final class AdminController extends AbstractController
             if ($action === 'revoke') {
                 $meetingId = api_require_uuid($in, 'meeting_id');
                 $userId = api_require_uuid($in, 'user_id');
-                $role = trim((string)($in['role'] ?? ''));
+                $role = trim((string) ($in['role'] ?? ''));
 
                 if ($role !== '' && !in_array($role, $validMeetingRoles, true)) {
                     api_fail('invalid_meeting_role', 400);
@@ -302,7 +299,7 @@ final class AdminController extends AbstractController
                     api_current_tenant_id(),
                     $meetingId,
                     $userId,
-                    $role !== '' ? $role : null
+                    $role !== '' ? $role : null,
                 );
 
                 audit_log('admin.meeting_role.revoked', 'meeting', $meetingId, [
@@ -319,8 +316,7 @@ final class AdminController extends AbstractController
         api_fail('method_not_allowed', 405);
     }
 
-    public function systemStatus(): void
-    {
+    public function systemStatus(): void {
         api_request('GET');
 
         $userRepo = new UserRepository();
@@ -339,8 +335,10 @@ final class AdminController extends AbstractController
         try {
             $free = @disk_free_space($path);
             $total = @disk_total_space($path);
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
             $free = null;
             $total = null;
         }
@@ -357,7 +355,7 @@ final class AdminController extends AbstractController
             $userRepo->insertSystemMetric([
                 'server_time' => $serverTime,
                 'db_latency_ms' => $dbLat,
-                'db_active_connections' => $active === null ? null : (int)$active,
+                'db_active_connections' => $active === null ? null : (int) $active,
                 'disk_free_bytes' => $free,
                 'disk_total_bytes' => $total,
                 'count_meetings' => $cntMeet,
@@ -366,8 +364,10 @@ final class AdminController extends AbstractController
                 'count_audit_events' => $cntAud,
                 'auth_failures_15m' => $fail15,
             ]);
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
         }
 
         $alertsToCreate = [];
@@ -390,8 +390,10 @@ final class AdminController extends AbstractController
                 if (!$userRepo->findRecentAlert($a['code'])) {
                     $userRepo->insertSystemAlert($a['code'], $a['severity'], $a['message'], json_encode($a['details']));
                 }
-            } catch (\Throwable $e) {
-                if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+            } catch (Throwable $e) {
+                if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                    throw $e;
+                }
             }
         }
 
@@ -401,7 +403,7 @@ final class AdminController extends AbstractController
             'system' => [
                 'server_time' => $serverTime,
                 'db_latency_ms' => $dbLat === null ? null : round($dbLat, 2),
-                'db_active_connections' => $active === null ? null : (int)$active,
+                'db_active_connections' => $active === null ? null : (int) $active,
                 'disk_free_bytes' => $free,
                 'disk_total_bytes' => $total,
                 'disk_free_pct' => ($free !== null && $total) ? round(($free / $total) * 100.0, 2) : null,
@@ -419,8 +421,7 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    public function auditLog(): void
-    {
+    public function auditLog(): void {
         api_request('GET');
 
         $tenantId = api_current_tenant_id();
@@ -506,14 +507,13 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    private static function parsePayload(mixed $payload): array
-    {
+    private static function parsePayload(mixed $payload): array {
         if (empty($payload)) {
             return [];
         }
         if (is_string($payload)) {
             return json_decode($payload, true) ?? [];
         }
-        return (array)$payload;
+        return (array) $payload;
     }
 }

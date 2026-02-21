@@ -1,25 +1,23 @@
 <?php
+
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
 use AgVote\Core\Logger;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests unitaires pour Logger
  */
-class LoggerTest extends TestCase
-{
+class LoggerTest extends TestCase {
     private string $tempLogFile;
 
-    protected function setUp(): void
-    {
+    protected function setUp(): void {
         $this->tempLogFile = sys_get_temp_dir() . '/ag-vote-test-' . uniqid() . '.log';
         Logger::reset();
         Logger::configure(['file' => $this->tempLogFile, 'level' => 'debug']);
     }
 
-    protected function tearDown(): void
-    {
+    protected function tearDown(): void {
         Logger::reset();
         if (file_exists($this->tempLogFile)) {
             @unlink($this->tempLogFile);
@@ -30,8 +28,7 @@ class LoggerTest extends TestCase
     // BASIC LOGGING TESTS
     // =========================================================================
 
-    public function testDebugLogWritesEntry(): void
-    {
+    public function testDebugLogWritesEntry(): void {
         Logger::debug('Test debug message');
 
         $this->assertFileExists($this->tempLogFile);
@@ -40,8 +37,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('"level":"DEBUG"', $content);
     }
 
-    public function testInfoLogWritesEntry(): void
-    {
+    public function testInfoLogWritesEntry(): void {
         Logger::info('Test info message');
 
         $content = file_get_contents($this->tempLogFile);
@@ -49,8 +45,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('"level":"INFO"', $content);
     }
 
-    public function testWarningLogWritesEntry(): void
-    {
+    public function testWarningLogWritesEntry(): void {
         Logger::warning('Test warning message');
 
         $content = file_get_contents($this->tempLogFile);
@@ -58,8 +53,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('"level":"WARNING"', $content);
     }
 
-    public function testErrorLogWritesEntry(): void
-    {
+    public function testErrorLogWritesEntry(): void {
         Logger::error('Test error message');
 
         $content = file_get_contents($this->tempLogFile);
@@ -67,8 +61,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('"level":"ERROR"', $content);
     }
 
-    public function testCriticalLogWritesEntry(): void
-    {
+    public function testCriticalLogWritesEntry(): void {
         Logger::critical('Test critical message');
 
         $content = file_get_contents($this->tempLogFile);
@@ -80,8 +73,7 @@ class LoggerTest extends TestCase
     // LOG LEVEL FILTERING TESTS
     // =========================================================================
 
-    public function testMinLevelFiltersDebug(): void
-    {
+    public function testMinLevelFiltersDebug(): void {
         Logger::reset();
         Logger::configure(['file' => $this->tempLogFile, 'level' => 'info']);
 
@@ -93,8 +85,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('Should appear', $content);
     }
 
-    public function testMinLevelFiltersInfo(): void
-    {
+    public function testMinLevelFiltersInfo(): void {
         Logger::reset();
         Logger::configure(['file' => $this->tempLogFile, 'level' => 'warning']);
 
@@ -106,8 +97,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('Should appear', $content);
     }
 
-    public function testErrorLevelStillLogsError(): void
-    {
+    public function testErrorLevelStillLogsError(): void {
         Logger::reset();
         Logger::configure(['file' => $this->tempLogFile, 'level' => 'error']);
 
@@ -123,8 +113,7 @@ class LoggerTest extends TestCase
     // CONTEXT TESTS
     // =========================================================================
 
-    public function testContextIsIncluded(): void
-    {
+    public function testContextIsIncluded(): void {
         Logger::info('Test with context', [
             'user_id' => '123',
             'action' => 'login',
@@ -136,8 +125,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('"action":"login"', $content);
     }
 
-    public function testEmptyContextNotIncluded(): void
-    {
+    public function testEmptyContextNotIncluded(): void {
         Logger::info('Test without context');
 
         $content = file_get_contents($this->tempLogFile);
@@ -153,8 +141,7 @@ class LoggerTest extends TestCase
     // JSON FORMAT TESTS
     // =========================================================================
 
-    public function testLogEntryIsValidJson(): void
-    {
+    public function testLogEntryIsValidJson(): void {
         Logger::info('Test JSON format');
 
         $content = file_get_contents($this->tempLogFile);
@@ -166,8 +153,7 @@ class LoggerTest extends TestCase
         }
     }
 
-    public function testLogEntryContainsRequiredFields(): void
-    {
+    public function testLogEntryContainsRequiredFields(): void {
         Logger::info('Test required fields');
 
         $content = file_get_contents($this->tempLogFile);
@@ -180,8 +166,7 @@ class LoggerTest extends TestCase
         $this->assertArrayHasKey('request_id', $entry);
     }
 
-    public function testTimestampIsIso8601(): void
-    {
+    public function testTimestampIsIso8601(): void {
         Logger::info('Test timestamp');
 
         $content = file_get_contents($this->tempLogFile);
@@ -200,8 +185,7 @@ class LoggerTest extends TestCase
     // SPECIAL LOG METHODS TESTS
     // =========================================================================
 
-    public function testApiLogMethod(): void
-    {
+    public function testApiLogMethod(): void {
         Logger::api('GET', '/api/v1/meetings', 200, 0.150, ['user' => 'test']);
 
         $content = file_get_contents($this->tempLogFile);
@@ -211,8 +195,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('"duration_ms":', $content);
     }
 
-    public function testApiLogLevelBasedOnStatus(): void
-    {
+    public function testApiLogLevelBasedOnStatus(): void {
         // 2xx -> info
         Logger::api('GET', '/test', 200, 0.1);
         $content = file_get_contents($this->tempLogFile);
@@ -235,8 +218,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('"level":"ERROR"', $content);
     }
 
-    public function testAuthLogMethod(): void
-    {
+    public function testAuthLogMethod(): void {
         Logger::auth('login', true, ['method' => 'password']);
 
         $content = file_get_contents($this->tempLogFile);
@@ -245,8 +227,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('"auth_success":true', $content);
     }
 
-    public function testAuthLogFailure(): void
-    {
+    public function testAuthLogFailure(): void {
         Logger::auth('login', false, ['reason' => 'bad_password']);
 
         $content = file_get_contents($this->tempLogFile);
@@ -255,8 +236,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('"auth_success":false', $content);
     }
 
-    public function testSecurityLogMethod(): void
-    {
+    public function testSecurityLogMethod(): void {
         Logger::security('rate_limit_exceeded', ['ip' => '1.2.3.4']);
 
         $content = file_get_contents($this->tempLogFile);
@@ -265,8 +245,7 @@ class LoggerTest extends TestCase
         $this->assertStringContainsString('"security_event":"rate_limit_exceeded"', $content);
     }
 
-    public function testExceptionLogMethod(): void
-    {
+    public function testExceptionLogMethod(): void {
         try {
             throw new \RuntimeException('Test exception', 42);
         } catch (\Throwable $e) {
@@ -284,8 +263,7 @@ class LoggerTest extends TestCase
     // REQUEST ID TESTS
     // =========================================================================
 
-    public function testRequestIdIsConsistent(): void
-    {
+    public function testRequestIdIsConsistent(): void {
         Logger::info('First message');
         Logger::info('Second message');
 
@@ -307,8 +285,7 @@ class LoggerTest extends TestCase
     // RESET TESTS
     // =========================================================================
 
-    public function testResetClearsConfiguration(): void
-    {
+    public function testResetClearsConfiguration(): void {
         Logger::configure(['level' => 'error']);
         Logger::reset();
 

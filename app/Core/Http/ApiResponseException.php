@@ -1,7 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core\Http;
+
+use Exception;
 
 /**
  * Exception that carries a ready-to-send JSON response.
@@ -13,16 +16,14 @@ namespace AgVote\Core\Http;
  *
  * Caught at the Router level and sent via JsonResponse::send().
  */
-final class ApiResponseException extends \Exception
-{
+final class ApiResponseException extends Exception {
     public function __construct(
         private readonly JsonResponse $response,
     ) {
         parent::__construct('API response', $response->getStatusCode());
     }
 
-    public function getResponse(): JsonResponse
-    {
+    public function getResponse(): JsonResponse {
         return $this->response;
     }
 }

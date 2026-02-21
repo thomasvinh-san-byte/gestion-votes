@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Repository;
@@ -6,27 +7,24 @@ namespace AgVote\Repository;
 /**
  * Data access for ballots.
  */
-class BallotRepository extends AbstractRepository
-{
+class BallotRepository extends AbstractRepository {
     /**
      * Lists ballots for a motion (for operator display).
      */
-    public function listForMotion(string $motionId, string $tenantId): array
-    {
+    public function listForMotion(string $motionId, string $tenantId): array {
         return $this->selectAll(
             "SELECT b.member_id, b.value::text AS value, b.weight, b.cast_at, COALESCE(b.source, 'tablet') AS source
              FROM ballots b
              WHERE b.motion_id = :mid AND b.tenant_id = :tid
              ORDER BY b.cast_at ASC",
-            [':mid' => $motionId, ':tid' => $tenantId]
+            [':mid' => $motionId, ':tid' => $tenantId],
         );
     }
 
     /**
      * Tally complet pour une motion : comptages et poids par choix.
      */
-    public function tally(string $motionId, string $tenantId): array
-    {
+    public function tally(string $motionId, string $tenantId): array {
         $row = $this->selectOne(
             "SELECT
                 COUNT(*)::int AS total_ballots,
@@ -39,7 +37,7 @@ class BallotRepository extends AbstractRepository
                 COALESCE(SUM(COALESCE(weight, 0)) FILTER (WHERE value::text = 'abstain'), 0)::float8 AS weight_abstain,
                 COALESCE(SUM(COALESCE(weight, 0)), 0)::float8 AS weight_total
              FROM ballots WHERE motion_id = :mid AND tenant_id = :tid",
-            [':mid' => $motionId, ':tid' => $tenantId]
+            [':mid' => $motionId, ':tid' => $tenantId],
         );
         return $row ?: [
             'total_ballots' => 0,
@@ -51,12 +49,11 @@ class BallotRepository extends AbstractRepository
     /**
      * Nombre de bulletins pour une motion (pour validation readiness).
      */
-    public function countForMotion(string $tenantId, string $meetingId, string $motionId): int
-    {
-        return (int)($this->scalar(
-            "SELECT COUNT(*) FROM ballots
-             WHERE tenant_id = :tid AND meeting_id = :mid AND motion_id = :moid",
-            [':tid' => $tenantId, ':mid' => $meetingId, ':moid' => $motionId]
+    public function countForMotion(string $tenantId, string $meetingId, string $motionId): int {
+        return (int) ($this->scalar(
+            'SELECT COUNT(*) FROM ballots
+             WHERE tenant_id = :tid AND meeting_id = :mid AND motion_id = :moid',
+            [':tid' => $tenantId, ':mid' => $meetingId, ':moid' => $motionId],
         ) ?? 0);
     }
 
@@ -70,11 +67,11 @@ class BallotRepository extends AbstractRepository
         string $memberId,
         string $value,
         float $weight = 1.0,
-        string $source = 'tablet'
+        string $source = 'tablet',
     ): void {
         $this->execute(
-            "INSERT INTO ballots (tenant_id, meeting_id, motion_id, member_id, value, weight, cast_at, source)
-             VALUES (:tid, :mid, :moid, :uid, :value, :weight, NOW(), :source)",
+            'INSERT INTO ballots (tenant_id, meeting_id, motion_id, member_id, value, weight, cast_at, source)
+             VALUES (:tid, :mid, :moid, :uid, :value, :weight, NOW(), :source)',
             [
                 ':tid' => $tenantId,
                 ':mid' => $meetingId,
@@ -83,7 +80,7 @@ class BallotRepository extends AbstractRepository
                 ':value' => $value,
                 ':weight' => $weight,
                 ':source' => $source,
-            ]
+            ],
         );
     }
 
@@ -96,7 +93,7 @@ class BallotRepository extends AbstractRepository
         string $motionId,
         string $memberId,
         string $value,
-        string $weight
+        string $weight,
     ): string {
         $row = $this->insertReturning(
             "INSERT INTO ballots (tenant_id, meeting_id, motion_id, member_id, value, weight, cast_at, is_proxy_vote, source)
@@ -106,9 +103,9 @@ class BallotRepository extends AbstractRepository
                 ':tid' => $tenantId, ':mid' => $meetingId,
                 ':moid' => $motionId, ':uid' => $memberId,
                 ':value' => $value, ':weight' => $weight,
-            ]
+            ],
         );
-        return (string)($row['id'] ?? '');
+        return (string) ($row['id'] ?? '');
     }
 
     /**
@@ -121,10 +118,10 @@ class BallotRepository extends AbstractRepository
         string $value,
         float $weight,
         bool $isProxyVote,
-        ?string $proxySourceMemberId
+        ?string $proxySourceMemberId,
     ): void {
         $this->execute(
-            "INSERT INTO ballots (
+            'INSERT INTO ballots (
               id, tenant_id, motion_id, member_id, value, weight, cast_at, is_proxy_vote, proxy_source_member_id
             ) VALUES (
               gen_random_uuid(), :tid, :mid, :mem, :value, :weight, now(), :proxy, :proxy_src
@@ -134,33 +131,31 @@ class BallotRepository extends AbstractRepository
                 weight = EXCLUDED.weight,
                 cast_at = now(),
                 is_proxy_vote = EXCLUDED.is_proxy_vote,
-                proxy_source_member_id = EXCLUDED.proxy_source_member_id",
+                proxy_source_member_id = EXCLUDED.proxy_source_member_id',
             [
                 ':tid' => $tenantId, ':mid' => $motionId, ':mem' => $memberId,
                 ':value' => $value, ':weight' => $weight,
                 ':proxy' => $isProxyVote ? 't' : 'f', ':proxy_src' => $proxySourceMemberId,
-            ]
+            ],
         );
     }
 
     /**
      * Trouve un bulletin par motion et membre (apres cast).
      */
-    public function findByMotionAndMember(string $motionId, string $memberId): ?array
-    {
+    public function findByMotionAndMember(string $motionId, string $memberId): ?array {
         return $this->selectOne(
             "SELECT motion_id, member_id, value, weight, cast_at, is_proxy_vote, proxy_source_member_id, COALESCE(source, 'tablet') AS source
              FROM ballots
              WHERE motion_id = :mid AND member_id = :mem",
-            [':mid' => $motionId, ':mem' => $memberId]
+            [':mid' => $motionId, ':mem' => $memberId],
         );
     }
 
     /**
      * Liste detaillee des bulletins pour une motion (pour rapport PV Annexe D).
      */
-    public function listDetailedForMotion(string $motionId): array
-    {
+    public function listDetailedForMotion(string $motionId): array {
         return $this->selectAll(
             "SELECT
                b.value::text AS choice,
@@ -175,43 +170,40 @@ class BallotRepository extends AbstractRepository
              LEFT JOIN members mr ON mr.id = b.proxy_source_member_id
              WHERE b.motion_id = :mid
              ORDER BY COALESCE(mg.full_name, ''), COALESCE(mr.full_name, '')",
-            [':mid' => $motionId]
+            [':mid' => $motionId],
         );
     }
 
     /**
      * Bulletins crees apres la cloture de leur motion (pour trust_checks).
      */
-    public function listVotesAfterClose(string $meetingId): array
-    {
+    public function listVotesAfterClose(string $meetingId): array {
         return $this->selectAll(
-            "SELECT b.id, m.title
+            'SELECT b.id, m.title
              FROM ballots b
              JOIN motions m ON m.id = b.motion_id
              WHERE m.meeting_id = :mid
                AND m.closed_at IS NOT NULL
-               AND b.cast_at > m.closed_at",
-            [':mid' => $meetingId]
+               AND b.cast_at > m.closed_at',
+            [':mid' => $meetingId],
         );
     }
 
     /**
      * Existe-t-il au moins un bulletin pour cette motion?
      */
-    public function existsForMotion(string $motionId): bool
-    {
-        return (bool)$this->scalar(
-            "SELECT 1 FROM ballots WHERE motion_id = :mid LIMIT 1",
-            [':mid' => $motionId]
+    public function existsForMotion(string $motionId): bool {
+        return (bool) $this->scalar(
+            'SELECT 1 FROM ballots WHERE motion_id = :mid LIMIT 1',
+            [':mid' => $motionId],
         );
     }
 
     /**
      * Compte les bulletins directs eligibles pour une motion (votant present/remote, actif, non checked_out).
      */
-    public function countEligibleDirect(string $meetingId, string $motionId): int
-    {
-        return (int)($this->scalar(
+    public function countEligibleDirect(string $meetingId, string $motionId): int {
+        return (int) ($this->scalar(
             "SELECT count(*)
              FROM ballots b
              JOIN members mem ON mem.id = b.member_id
@@ -221,16 +213,15 @@ class BallotRepository extends AbstractRepository
                AND mem.is_active = true
                AND a.checked_out_at IS NULL
                AND a.mode IN ('present','remote')",
-            [':mid' => $meetingId, ':moid' => $motionId]
+            [':mid' => $meetingId, ':moid' => $motionId],
         ) ?? 0);
     }
 
     /**
      * Compte les bulletins proxy eligibles pour une motion.
      */
-    public function countEligibleProxy(string $meetingId, string $motionId): int
-    {
-        return (int)($this->scalar(
+    public function countEligibleProxy(string $meetingId, string $motionId): int {
+        return (int) ($this->scalar(
             "SELECT count(*)
              FROM ballots b
              JOIN members mandant ON mandant.id = b.member_id
@@ -245,27 +236,25 @@ class BallotRepository extends AbstractRepository
                AND mandant.is_active = true
                AND a.checked_out_at IS NULL
                AND a.mode IN ('present','remote')",
-            [':mid' => $meetingId, ':mid2' => $meetingId, ':moid' => $motionId]
+            [':mid' => $meetingId, ':mid2' => $meetingId, ':moid' => $motionId],
         ) ?? 0);
     }
 
     /**
      * Compte le total de bulletins pour une motion (sans filtre tenant).
      */
-    public function countByMotionId(string $motionId): int
-    {
-        return (int)($this->scalar(
-            "SELECT count(*) FROM ballots WHERE motion_id = :mid",
-            [':mid' => $motionId]
+    public function countByMotionId(string $motionId): int {
+        return (int) ($this->scalar(
+            'SELECT count(*) FROM ballots WHERE motion_id = :mid',
+            [':mid' => $motionId],
         ) ?? 0);
     }
 
     /**
      * Compte les bulletins directs non eligibles pour une motion.
      */
-    public function countInvalidDirect(string $meetingId, string $motionId): int
-    {
-        return (int)($this->scalar(
+    public function countInvalidDirect(string $meetingId, string $motionId): int {
+        return (int) ($this->scalar(
             "SELECT count(*)
              FROM ballots b
              JOIN members mem ON mem.id = b.member_id
@@ -274,16 +263,15 @@ class BallotRepository extends AbstractRepository
                AND COALESCE(b.is_proxy_vote, false) = false
                AND mem.is_active = true
                AND (a.member_id IS NULL OR a.checked_out_at IS NOT NULL OR a.mode NOT IN ('present','remote'))",
-            [':mid' => $meetingId, ':moid' => $motionId]
+            [':mid' => $meetingId, ':moid' => $motionId],
         ) ?? 0);
     }
 
     /**
      * Compte les bulletins proxy non eligibles pour une motion.
      */
-    public function countInvalidProxy(string $meetingId, string $motionId): int
-    {
-        return (int)($this->scalar(
+    public function countInvalidProxy(string $meetingId, string $motionId): int {
+        return (int) ($this->scalar(
             "SELECT count(*)
              FROM ballots b
              JOIN members mandant ON mandant.id = b.member_id
@@ -302,7 +290,7 @@ class BallotRepository extends AbstractRepository
                     OR a.mode NOT IN ('present','remote')
                     OR p.id IS NULL
                )",
-            [':mid' => $meetingId, ':mid2' => $meetingId, ':moid' => $motionId]
+            [':mid' => $meetingId, ':mid2' => $meetingId, ':moid' => $motionId],
         ) ?? 0);
     }
 
@@ -310,11 +298,10 @@ class BallotRepository extends AbstractRepository
      * Supprime un ballot par motion et membre.
      * Utilise par ballots_cancel.php pour annuler un vote manuel.
      */
-    public function deleteByMotionAndMember(string $motionId, string $memberId, string $tenantId): int
-    {
+    public function deleteByMotionAndMember(string $motionId, string $memberId, string $tenantId): int {
         return $this->execute(
-            "DELETE FROM ballots WHERE motion_id = :mid AND member_id = :mem AND tenant_id = :tid",
-            [':mid' => $motionId, ':mem' => $memberId, ':tid' => $tenantId]
+            'DELETE FROM ballots WHERE motion_id = :mid AND member_id = :mem AND tenant_id = :tid',
+            [':mid' => $motionId, ':mem' => $memberId, ':tid' => $tenantId],
         );
     }
 
@@ -325,44 +312,40 @@ class BallotRepository extends AbstractRepository
     /**
      * Cree un bulletin papier.
      */
-    public function createPaperBallot(string $meetingId, string $motionId, string $code, string $codeHash): void
-    {
+    public function createPaperBallot(string $meetingId, string $motionId, string $code, string $codeHash): void {
         $this->execute(
-            "INSERT INTO paper_ballots(meeting_id, motion_id, code, code_hash) VALUES (:m, :mo, :c, :h)",
-            [':m' => $meetingId, ':mo' => $motionId, ':c' => $code, ':h' => $codeHash]
+            'INSERT INTO paper_ballots(meeting_id, motion_id, code, code_hash) VALUES (:m, :mo, :c, :h)',
+            [':m' => $meetingId, ':mo' => $motionId, ':c' => $code, ':h' => $codeHash],
         );
     }
 
     /**
      * Trouve un bulletin papier non utilise par son hash de code (avec tenant_id via meeting).
      */
-    public function findUnusedPaperBallotByHash(string $codeHash): ?array
-    {
+    public function findUnusedPaperBallotByHash(string $codeHash): ?array {
         return $this->selectOne(
-            "SELECT pb.*, m.tenant_id
+            'SELECT pb.*, m.tenant_id
              FROM paper_ballots pb
              JOIN meetings m ON m.id = pb.meeting_id
-             WHERE pb.code_hash = :hash AND pb.used_at IS NULL",
-            [':hash' => $codeHash]
+             WHERE pb.code_hash = :hash AND pb.used_at IS NULL',
+            [':hash' => $codeHash],
         );
     }
 
     /**
      * Marque un bulletin papier comme utilise.
      */
-    public function markPaperBallotUsed(string $id, string $tenantId): void
-    {
+    public function markPaperBallotUsed(string $id, string $tenantId): void {
         $this->execute(
-            "UPDATE paper_ballots SET used_at = NOW(), used_by_operator = true WHERE id = :id AND tenant_id = :tid",
-            [':id' => $id, ':tid' => $tenantId]
+            'UPDATE paper_ballots SET used_at = NOW(), used_by_operator = true WHERE id = :id AND tenant_id = :tid',
+            [':id' => $id, ':tid' => $tenantId],
         );
     }
 
     /**
      * Export audit CSV: ballots avec token, attendance, manual_action.
      */
-    public function listAuditExportForMeeting(string $meetingId): array
-    {
+    public function listAuditExportForMeeting(string $meetingId): array {
         return $this->selectAll(
             "SELECT
                 b.id AS ballot_id,
@@ -403,15 +386,14 @@ class BallotRepository extends AbstractRepository
              ) ma ON true
              WHERE mo.meeting_id = ?
              ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC, b.cast_at ASC",
-            [$meetingId]
+            [$meetingId],
         );
     }
 
     /**
      * Export votes CSV: ballots nominatifs pour une seance.
      */
-    public function listVotesExportForMeeting(string $meetingId): array
-    {
+    public function listVotesExportForMeeting(string $meetingId): array {
         return $this->selectAll(
             "SELECT
                 mo.title AS motion_title,
@@ -430,40 +412,37 @@ class BallotRepository extends AbstractRepository
              LEFT JOIN members ps ON ps.id = b.proxy_source_member_id
              WHERE mo.meeting_id = ?
              ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC, mb.full_name ASC NULLS LAST",
-            [$meetingId, $meetingId]
+            [$meetingId, $meetingId],
         );
     }
 
     /**
      * Liste les bulletins d'une motion avec source (pour anomalies).
      */
-    public function listForMotionWithSource(string $tenantId, string $meetingId, string $motionId): array
-    {
+    public function listForMotionWithSource(string $tenantId, string $meetingId, string $motionId): array {
         return $this->selectAll(
             "SELECT b.member_id, b.value::text AS value, b.cast_at, COALESCE(b.source,'tablet') AS source
              FROM ballots b
              WHERE b.tenant_id = :tid AND b.meeting_id = :mid AND b.motion_id = :mo
              ORDER BY b.cast_at ASC",
-            [':tid' => $tenantId, ':mid' => $meetingId, ':mo' => $motionId]
+            [':tid' => $tenantId, ':mid' => $meetingId, ':mo' => $motionId],
         );
     }
 
     /**
      * Supprime tous les bulletins d'une seance (reset demo).
      */
-    public function deleteByMeeting(string $meetingId, string $tenantId): void
-    {
+    public function deleteByMeeting(string $meetingId, string $tenantId): void {
         $this->execute(
-            "DELETE FROM ballots WHERE meeting_id = :mid AND tenant_id = :tid",
-            [':mid' => $meetingId, ':tid' => $tenantId]
+            'DELETE FROM ballots WHERE meeting_id = :mid AND tenant_id = :tid',
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
     /**
      * Liste les votes sans presence enregistree (anomalie trust).
      */
-    public function listVotesWithoutAttendance(string $meetingId, string $tenantId): array
-    {
+    public function listVotesWithoutAttendance(string $meetingId, string $tenantId): array {
         return $this->selectAll(
             "SELECT DISTINCT b.member_id, m.full_name, mo.title AS motion_title
              FROM ballots b
@@ -473,34 +452,32 @@ class BallotRepository extends AbstractRepository
              WHERE mo.meeting_id = :mid2
                AND (a.id IS NULL OR a.mode NOT IN ('present', 'remote'))
              ORDER BY m.full_name",
-            [':mid1' => $meetingId, ':tid' => $tenantId, ':mid2' => $meetingId]
+            [':mid1' => $meetingId, ':tid' => $tenantId, ':mid2' => $meetingId],
         );
     }
 
     /**
      * Liste les doubles votes (meme membre, meme motion, count > 1).
      */
-    public function listDuplicateVotes(string $meetingId): array
-    {
+    public function listDuplicateVotes(string $meetingId): array {
         return $this->selectAll(
-            "SELECT b.member_id, m.full_name, mo.title AS motion_title, COUNT(*) AS vote_count
+            'SELECT b.member_id, m.full_name, mo.title AS motion_title, COUNT(*) AS vote_count
              FROM ballots b
              JOIN motions mo ON mo.id = b.motion_id
              JOIN members m ON m.id = b.member_id
              WHERE mo.meeting_id = :mid
              GROUP BY b.member_id, b.motion_id, m.full_name, mo.title
-             HAVING COUNT(*) > 1",
-            [':mid' => $meetingId]
+             HAVING COUNT(*) > 1',
+            [':mid' => $meetingId],
         );
     }
 
     /**
      * Liste les incoherences de ponderation (ballot.weight != member.voting_power).
      */
-    public function listWeightMismatches(string $meetingId): array
-    {
+    public function listWeightMismatches(string $meetingId): array {
         return $this->selectAll(
-            "SELECT b.member_id, m.full_name, m.voting_power AS expected_weight,
+            'SELECT b.member_id, m.full_name, m.voting_power AS expected_weight,
                     b.weight AS actual_weight, mo.title AS motion_title
              FROM ballots b
              JOIN motions mo ON mo.id = b.motion_id
@@ -508,16 +485,15 @@ class BallotRepository extends AbstractRepository
              WHERE mo.meeting_id = :mid
                AND b.weight IS NOT NULL
                AND m.voting_power IS NOT NULL
-               AND ABS(b.weight - m.voting_power) > 0.01",
-            [':mid' => $meetingId]
+               AND ABS(b.weight - m.voting_power) > 0.01',
+            [':mid' => $meetingId],
         );
     }
 
     /**
      * Liste les votes manuels non justifies.
      */
-    public function listUnjustifiedManualVotes(string $meetingId): array
-    {
+    public function listUnjustifiedManualVotes(string $meetingId): array {
         // Manual votes without a corresponding manual_actions.notes entry
         return $this->selectAll(
             "SELECT b.id, m.full_name, mo.title AS motion_title
@@ -529,7 +505,7 @@ class BallotRepository extends AbstractRepository
              WHERE mo.meeting_id = :mid
                AND b.source = 'manual'
                AND (ma.notes IS NULL OR ma.notes = '')",
-            [':mid' => $meetingId]
+            [':mid' => $meetingId],
         );
     }
 }

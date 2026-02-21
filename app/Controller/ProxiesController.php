@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -12,10 +13,8 @@ use AgVote\Service\ProxiesService;
  *
  * Shared pattern: meeting_id + meeting not validated.
  */
-final class ProxiesController extends AbstractController
-{
-    public function listForMeeting(): void
-    {
+final class ProxiesController extends AbstractController {
+    public function listForMeeting(): void {
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
         $tenantId = api_current_tenant_id();
@@ -28,8 +27,7 @@ final class ProxiesController extends AbstractController
         ]);
     }
 
-    public function upsert(): void
-    {
+    public function upsert(): void {
         $in = api_request('POST');
 
         $meetingId = api_require_uuid($in, 'meeting_id');
@@ -37,8 +35,8 @@ final class ProxiesController extends AbstractController
         $giverId = api_require_uuid($in, 'giver_member_id');
 
         $tenantId = api_current_tenant_id();
-        $receiverRaw = trim((string)($in['receiver_member_id'] ?? ''));
-        $scope = trim((string)($in['scope'] ?? 'full'));
+        $receiverRaw = trim((string) ($in['receiver_member_id'] ?? ''));
+        $scope = trim((string) ($in['scope'] ?? 'full'));
 
         if ($receiverRaw === '') {
             ProxiesService::revoke($meetingId, $giverId);
@@ -76,12 +74,11 @@ final class ProxiesController extends AbstractController
         ]);
     }
 
-    public function delete(): void
-    {
+    public function delete(): void {
         $input = api_request('POST');
 
-        $meetingId = trim((string)($input['meeting_id'] ?? ''));
-        $proxyId = trim((string)($input['proxy_id'] ?? ''));
+        $meetingId = trim((string) ($input['meeting_id'] ?? ''));
+        $proxyId = trim((string) ($input['proxy_id'] ?? ''));
 
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);

@@ -1,24 +1,24 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
-use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\VoteTokenRepository;
+use DateTimeImmutable;
 
 /**
  * Consolidates vote_tokens_generate.php.
  */
-final class VoteTokenController extends AbstractController
-{
-    public function generate(): void
-    {
+final class VoteTokenController extends AbstractController {
+    public function generate(): void {
         $in = api_request('POST');
 
-        $meetingId = trim((string)($in['meeting_id'] ?? api_query('meeting_id')));
-        $motionId  = trim((string)($in['motion_id']  ?? api_query('motion_id')));
+        $meetingId = trim((string) ($in['meeting_id'] ?? api_query('meeting_id')));
+        $motionId = trim((string) ($in['motion_id'] ?? api_query('motion_id')));
 
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 400);
@@ -47,11 +47,11 @@ final class VoteTokenController extends AbstractController
 
         $voters = (new AttendanceRepository())->listEligibleVotersWithName($tenant, $meetingId);
 
-        $ttlMinutes = (int)($in['ttl_minutes'] ?? 0);
+        $ttlMinutes = (int) ($in['ttl_minutes'] ?? 0);
         if ($ttlMinutes <= 0) {
             $ttlMinutes = 180;
         }
-        $expiresAt = (new \DateTimeImmutable('+' . $ttlMinutes . ' minutes'))->format('Y-m-d H:i:sP');
+        $expiresAt = (new DateTimeImmutable('+' . $ttlMinutes . ' minutes'))->format('Y-m-d H:i:sP');
 
         $generated = [];
         $createdCount = 0;
@@ -68,25 +68,25 @@ final class VoteTokenController extends AbstractController
                 $createdCount++;
 
                 $generated[] = [
-                    'member_id'   => $v['member_id'],
+                    'member_id' => $v['member_id'],
                     'member_name' => $v['member_name'],
-                    'token'       => $raw,
-                    'url'         => "/vote.php?token=" . $raw,
+                    'token' => $raw,
+                    'url' => '/vote.php?token=' . $raw,
                 ];
             }
         });
 
         audit_log('vote_tokens_generated', 'motion', $motionId, [
-            'meeting_id'   => $meetingId,
-            'motion_id'    => $motionId,
-            'count'        => $createdCount,
-            'ttl_minutes'  => $ttlMinutes,
+            'meeting_id' => $meetingId,
+            'motion_id' => $motionId,
+            'count' => $createdCount,
+            'ttl_minutes' => $ttlMinutes,
         ]);
 
         api_ok([
-            'count'      => $createdCount,
+            'count' => $createdCount,
             'expires_in' => $ttlMinutes,
-            'tokens'     => $generated,
+            'tokens' => $generated,
         ]);
     }
 }

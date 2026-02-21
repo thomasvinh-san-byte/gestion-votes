@@ -1,13 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core\Security;
 
-use AgVote\Repository\UserRepository;
 use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MotionRepository;
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\UserRepository;
 use RuntimeException;
+use Throwable;
 
 /**
  * AuthMiddleware - Authentication and RBAC Authorization (two-level)
@@ -27,18 +29,17 @@ use RuntimeException;
  * Permission resolution:
  *   effective_permissions = permissions(system_role) ∪ permissions(meeting_roles)
  */
-final class AuthMiddleware
-{
+final class AuthMiddleware {
     // =========================================================================
     // CONSTANTS — delegated to Permissions (single source of truth)
     // =========================================================================
 
     /** System roles (subset of hierarchy with level >= viewer) */
     private const SYSTEM_ROLES = [
-        'admin'    => 100,
+        'admin' => 100,
         'operator' => 80,
-        'auditor'  => 50,
-        'viewer'   => 10,
+        'auditor' => 50,
+        'viewer' => 10,
     ];
 
     /** Meeting roles (no hierarchy, distinct permissions) */
@@ -51,7 +52,7 @@ final class AuthMiddleware
      * Role aliases for backward compatibility.
      */
     private const ROLE_ALIASES = [
-        'trust'    => 'assessor',
+        'trust' => 'assessor',
         'readonly' => 'viewer',
     ];
 
@@ -69,15 +70,13 @@ final class AuthMiddleware
     // INIT / CONFIG
     // =========================================================================
 
-    public static function init(array $config = []): void
-    {
-        self::$debug = (bool)($config['debug'] ?? (getenv('APP_DEBUG') === '1'));
+    public static function init(array $config = []): void {
+        self::$debug = (bool) ($config['debug'] ?? (getenv('APP_DEBUG') === '1'));
     }
 
-    public static function isEnabled(): bool
-    {
+    public static function isEnabled(): bool {
         $env = getenv('APP_AUTH_ENABLED');
-        return $env === '1' || strtolower((string)$env) === 'true';
+        return $env === '1' || strtolower((string) $env) === 'true';
     }
 
     // =========================================================================
@@ -89,8 +88,7 @@ final class AuthMiddleware
      * Must be called before can() / requireRole() when checking
      * permissions related to a specific meeting.
      */
-    public static function setMeetingContext(?string $meetingId): void
-    {
+    public static function setMeetingContext(?string $meetingId): void {
         if (self::$currentMeetingId !== $meetingId) {
             self::$currentMeetingId = $meetingId;
             self::$currentMeetingRoles = null; // force re-fetch
@@ -103,8 +101,7 @@ final class AuthMiddleware
      *
      * @return string[] e.g.: ['president'], ['assessor', 'voter'], []
      */
-    public static function getMeetingRoles(?string $meetingId = null): array
-    {
+    public static function getMeetingRoles(?string $meetingId = null): array {
         $mid = $meetingId ?? self::$currentMeetingId;
         if ($mid === null) {
             return [];
@@ -125,7 +122,7 @@ final class AuthMiddleware
             $roles = $repo->listUserRolesForMeeting(
                 $user['tenant_id'] ?? self::getDefaultTenantId(),
                 $mid,
-                $user['id']
+                $user['id'],
             );
 
             if ($mid === self::$currentMeetingId) {
@@ -133,8 +130,8 @@ final class AuthMiddleware
             }
 
             return $roles;
-        } catch (\Throwable $e) {
-            error_log("getMeetingRoles error: " . $e->getMessage());
+        } catch (Throwable $e) {
+            error_log('getMeetingRoles error: ' . $e->getMessage());
             return [];
         }
     }
@@ -145,8 +142,7 @@ final class AuthMiddleware
      *
      * @return string[] e.g.: ['operator', 'president']
      */
-    public static function getEffectiveRoles(?string $meetingId = null): array
-    {
+    public static function getEffectiveRoles(?string $meetingId = null): array {
         $roles = [];
 
         $systemRole = self::getCurrentRole();
@@ -165,8 +161,7 @@ final class AuthMiddleware
     /**
      * Normalizes a role name (lowercase + alias).
      */
-    private static function normalizeRole(string $role): string
-    {
+    private static function normalizeRole(string $role): string {
         $role = strtolower(trim($role));
         return self::ROLE_ALIASES[$role] ?? $role;
     }
@@ -174,16 +169,14 @@ final class AuthMiddleware
     /**
      * Checks if a role is a meeting role.
      */
-    public static function isMeetingRole(string $role): bool
-    {
+    public static function isMeetingRole(string $role): bool {
         return in_array(self::normalizeRole($role), self::MEETING_ROLES, true);
     }
 
     /**
      * Checks if a role is a system role.
      */
-    public static function isSystemRole(string $role): bool
-    {
+    public static function isSystemRole(string $role): bool {
         return isset(self::SYSTEM_ROLES[self::normalizeRole($role)]);
     }
 
@@ -198,8 +191,7 @@ final class AuthMiddleware
      * If a requested role is a meeting role (president, assessor, voter),
      * checks in meeting_roles for the meeting in context.
      */
-    public static function requireRole(string|array $roles, bool $strict = true): bool
-    {
+    public static function requireRole(string|array $roles, bool $strict = true): bool {
         // Bypass if auth disabled (DEV only) - handled in authenticate()
         if (!self::isEnabled()) {
             self::authenticate(); // Sets dev-user as admin
@@ -222,7 +214,7 @@ final class AuthMiddleware
             return false;
         }
 
-        $systemRole = self::normalizeRole((string)($user['role'] ?? 'anonymous'));
+        $systemRole = self::normalizeRole((string) ($user['role'] ?? 'anonymous'));
 
         // Admin has all rights
         if ($systemRole === 'admin') {
@@ -269,8 +261,7 @@ final class AuthMiddleware
     // AUTH : authenticate
     // =========================================================================
 
-    public static function authenticate(): ?array
-    {
+    public static function authenticate(): ?array {
         if (self::$currentUser !== null) {
             return self::$currentUser;
         }
@@ -311,7 +302,7 @@ final class AuthMiddleware
                     error_log(sprintf(
                         'SESSION_EXPIRED | user_id=%s | idle=%ds',
                         $_SESSION['auth_user']['id'] ?? 'unknown',
-                        $now - $lastActivity
+                        $now - $lastActivity,
                     ));
                     $_SESSION = [];
                     session_destroy();
@@ -337,14 +328,13 @@ final class AuthMiddleware
      * Checks if the current user has a specific permission.
      * Resolves permissions via: system role + meeting roles.
      */
-    public static function can(string $permission, ?string $meetingId = null): bool
-    {
+    public static function can(string $permission, ?string $meetingId = null): bool {
         $user = self::getCurrentUser();
         if (!$user) {
             return false;
         }
 
-        $systemRole = self::normalizeRole((string)($user['role'] ?? 'anonymous'));
+        $systemRole = self::normalizeRole((string) ($user['role'] ?? 'anonymous'));
 
         // Admin has all permissions
         if ($systemRole === 'admin') {
@@ -383,8 +373,7 @@ final class AuthMiddleware
     /**
      * Requires a specific permission
      */
-    public static function requirePermission(string $permission, ?string $meetingId = null): void
-    {
+    public static function requirePermission(string $permission, ?string $meetingId = null): void {
         if (!self::can($permission, $meetingId)) {
             self::logAccessAttempt($permission, false);
             self::deny('permission_denied', 403, [
@@ -400,39 +389,34 @@ final class AuthMiddleware
     // CURRENT USER GETTERS
     // =========================================================================
 
-    public static function getCurrentUser(): ?array
-    {
+    public static function getCurrentUser(): ?array {
         if (self::$currentUser === null) {
             self::authenticate();
         }
         return self::$currentUser;
     }
 
-    public static function getCurrentUserId(): ?string
-    {
+    public static function getCurrentUserId(): ?string {
         $user = self::getCurrentUser();
-        return $user ? (string)($user['id'] ?? null) : null;
+        return $user ? (string) ($user['id'] ?? null) : null;
     }
 
     /** Returns the SYSTEM role of the current user */
-    public static function getCurrentRole(): string
-    {
+    public static function getCurrentRole(): string {
         $user = self::getCurrentUser();
-        return self::normalizeRole((string)($user['role'] ?? 'anonymous'));
+        return self::normalizeRole((string) ($user['role'] ?? 'anonymous'));
     }
 
-    public static function getCurrentTenantId(): string
-    {
+    public static function getCurrentTenantId(): string {
         $user = self::getCurrentUser();
-        return (string)($user['tenant_id'] ?? self::getDefaultTenantId());
+        return (string) ($user['tenant_id'] ?? self::getDefaultTenantId());
     }
 
     // =========================================================================
     // MEETING ACCESS
     // =========================================================================
 
-    public static function canAccessMeeting(string $meetingId, string $action = 'read'): bool
-    {
+    public static function canAccessMeeting(string $meetingId, string $action = 'read'): bool {
         // Set meeting context for role resolution
         self::setMeetingContext($meetingId);
 
@@ -451,8 +435,8 @@ final class AuthMiddleware
         try {
             $repo = new MeetingRepository();
             return $repo->findByIdForTenant($meetingId, $tenantId) !== null;
-        } catch (\Throwable $e) {
-            error_log("Meeting access check error: " . $e->getMessage());
+        } catch (Throwable $e) {
+            error_log('Meeting access check error: ' . $e->getMessage());
             return false;
         }
     }
@@ -466,8 +450,7 @@ final class AuthMiddleware
      * 'president' transitions require meeting_role 'president'
      * OR system role 'admin'.
      */
-    public static function canTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): bool
-    {
+    public static function canTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): bool {
         $allowed = Permissions::TRANSITIONS[$fromStatus] ?? [];
         if (!isset($allowed[$toStatus])) {
             return false;
@@ -488,15 +471,12 @@ final class AuthMiddleware
 
         // Meeting role match (president transitions)
         $meetingRoles = self::getMeetingRoles($meetingId);
-        if (in_array($requiredRole, $meetingRoles, true)) {
-            return true;
-        }
+        return (bool) (in_array($requiredRole, $meetingRoles, true))
 
-        return false;
+        ;
     }
 
-    public static function requireTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): void
-    {
+    public static function requireTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): void {
         $allowed = Permissions::TRANSITIONS[$fromStatus] ?? [];
         if (!isset($allowed[$toStatus])) {
             self::deny('invalid_transition', 422, [
@@ -517,8 +497,7 @@ final class AuthMiddleware
         }
     }
 
-    public static function availableTransitions(string $currentStatus, ?string $meetingId = null): array
-    {
+    public static function availableTransitions(string $currentStatus, ?string $meetingId = null): array {
         $all = Permissions::TRANSITIONS[$currentStatus] ?? [];
         $result = [];
 
@@ -535,39 +514,33 @@ final class AuthMiddleware
     // ROLE INFO / LABELS
     // =========================================================================
 
-    public static function getSystemRoles(): array
-    {
+    public static function getSystemRoles(): array {
         return array_keys(self::SYSTEM_ROLES);
     }
 
-    public static function getSystemRoleLabels(): array
-    {
+    public static function getSystemRoleLabels(): array {
         return array_intersect_key(
             Permissions::LABELS['roles'],
-            self::SYSTEM_ROLES
+            self::SYSTEM_ROLES,
         );
     }
 
-    public static function getMeetingRoleLabels(): array
-    {
+    public static function getMeetingRoleLabels(): array {
         return array_intersect_key(
             Permissions::LABELS['roles'],
-            array_flip(self::MEETING_ROLES)
+            array_flip(self::MEETING_ROLES),
         );
     }
 
-    public static function getRoleLabels(): array
-    {
+    public static function getRoleLabels(): array {
         return Permissions::LABELS['roles'];
     }
 
-    public static function getMeetingStatusLabels(): array
-    {
+    public static function getMeetingStatusLabels(): array {
         return Permissions::LABELS['statuses'];
     }
 
-    public static function getAllRoles(): array
-    {
+    public static function getAllRoles(): array {
         return array_keys(Permissions::HIERARCHY);
     }
 
@@ -575,8 +548,7 @@ final class AuthMiddleware
     // PERMISSIONS INFO
     // =========================================================================
 
-    public static function getAvailablePermissions(?string $meetingId = null): array
-    {
+    public static function getAvailablePermissions(?string $meetingId = null): array {
         $effectiveRoles = self::getEffectiveRoles($meetingId);
         $permissions = [];
 
@@ -596,13 +568,11 @@ final class AuthMiddleware
         return array_unique($permissions);
     }
 
-    public static function getRoleLevel(string $role): int
-    {
+    public static function getRoleLevel(string $role): int {
         return Permissions::HIERARCHY[self::normalizeRole($role)] ?? 0;
     }
 
-    public static function isRoleAtLeast(string $role, string $minimumRole): bool
-    {
+    public static function isRoleAtLeast(string $role, string $minimumRole): bool {
         return self::getRoleLevel($role) >= self::getRoleLevel($minimumRole);
     }
 
@@ -610,13 +580,12 @@ final class AuthMiddleware
     // INTERNAL : API Key, auth, logging
     // =========================================================================
 
-    private static function extractApiKey(): ?string
-    {
+    private static function extractApiKey(): ?string {
         $key = $_SERVER['HTTP_X_API_KEY'] ?? '';
         if ($key === '' && function_exists('getallheaders')) {
             foreach (getallheaders() as $k => $v) {
                 if (strcasecmp($k, 'X-Api-Key') === 0 || strcasecmp($k, 'X-API-KEY') === 0) {
-                    $key = (string)$v;
+                    $key = (string) $v;
                     break;
                 }
             }
@@ -625,8 +594,7 @@ final class AuthMiddleware
         return $key !== '' ? $key : null;
     }
 
-    private static function findUserByApiKey(string $apiKey): ?array
-    {
+    private static function findUserByApiKey(string $apiKey): ?array {
         $secret = self::getAppSecret();
         $hash = hash_hmac('sha256', $apiKey, $secret);
 
@@ -645,26 +613,23 @@ final class AuthMiddleware
             }
 
             return $row;
-        } catch (\Throwable $e) {
-            error_log("API key lookup error: " . $e->getMessage());
+        } catch (Throwable $e) {
+            error_log('API key lookup error: ' . $e->getMessage());
             return null;
         }
     }
 
-    public static function generateApiKey(): array
-    {
+    public static function generateApiKey(): array {
         $key = bin2hex(random_bytes(32));
         $hash = hash_hmac('sha256', $key, self::getAppSecret());
         return ['key' => $key, 'hash' => $hash];
     }
 
-    public static function hashApiKey(string $key): string
-    {
+    public static function hashApiKey(string $key): string {
         return hash_hmac('sha256', $key, self::getAppSecret());
     }
 
-    private static function deny(string $code, int $httpCode = 401, array $extra = []): never
-    {
+    private static function deny(string $code, int $httpCode = 401, array $extra = []): never {
         self::logAuthFailure($code);
 
         $body = ['ok' => false, 'error' => $code];
@@ -675,22 +640,20 @@ final class AuthMiddleware
         throw new \AgVote\Core\Http\ApiResponseException(
             new \AgVote\Core\Http\JsonResponse($httpCode, $body, [
                 'WWW-Authenticate' => 'ApiKey realm="AG-Vote API"',
-            ])
+            ]),
         );
     }
 
-    private static function logAuthFailure(string $reason, ?string $credential = null): void
-    {
+    private static function logAuthFailure(string $reason, ?string $credential = null): void {
         error_log(sprintf(
-            "AUTH_FAILURE | reason=%s | ip=%s | uri=%s",
+            'AUTH_FAILURE | reason=%s | ip=%s | uri=%s',
             $reason,
             $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            $_SERVER['REQUEST_URI'] ?? 'unknown'
+            $_SERVER['REQUEST_URI'] ?? 'unknown',
         ));
     }
 
-    private static function logAccessAttempt(string $resource, bool $granted): void
-    {
+    private static function logAccessAttempt(string $resource, bool $granted): void {
         $user = self::getCurrentUser();
         self::$accessLog[] = [
             'timestamp' => date('c'),
@@ -702,48 +665,47 @@ final class AuthMiddleware
 
         if (!$granted) {
             error_log(sprintf(
-                "ACCESS_DENIED | user=%s | role=%s | resource=%s | uri=%s",
+                'ACCESS_DENIED | user=%s | role=%s | resource=%s | uri=%s',
                 $user['id'] ?? 'anonymous',
                 $user['role'] ?? 'anonymous',
                 $resource,
-                $_SERVER['REQUEST_URI'] ?? 'unknown'
+                $_SERVER['REQUEST_URI'] ?? 'unknown',
             ));
         }
     }
 
-    public static function getAccessLog(): array
-    {
+    public static function getAccessLog(): array {
         return self::$accessLog;
     }
 
-    public static function isOwner(string $resourceType, string $resourceId): bool
-    {
+    public static function isOwner(string $resourceType, string $resourceId): bool {
         $user = self::getCurrentUser();
         $userId = $user['id'] ?? null;
-        if (!$userId) return false;
+        if (!$userId) {
+            return false;
+        }
 
         try {
             return match($resourceType) {
                 'meeting' => (new MeetingRepository())->isOwnedByUser($resourceId, $userId),
-                'motion'  => (new MotionRepository())->isOwnedByUser($resourceId, $userId),
-                'member'  => (new MemberRepository())->isOwnedByUser($resourceId, $userId),
-                default   => false,
+                'motion' => (new MotionRepository())->isOwnedByUser($resourceId, $userId),
+                'member' => (new MemberRepository())->isOwnedByUser($resourceId, $userId),
+                default => false,
             };
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return false;
         }
     }
 
-    private static function getAppSecret(): string
-    {
+    private static function getAppSecret(): string {
         $secret = defined('APP_SECRET') ? APP_SECRET : getenv('APP_SECRET');
 
         // Strict validation: secret required if auth enabled or production
         if (!$secret || $secret === 'change-me-in-prod' || strlen($secret) < 32) {
             if (self::isEnabled()) {
-                throw new \RuntimeException(
+                throw new RuntimeException(
                     '[SECURITY] APP_SECRET must be set to a secure value (min 32 characters). ' .
-                    'Generate one with: php -r "echo bin2hex(random_bytes(32));"'
+                    'Generate one with: php -r "echo bin2hex(random_bytes(32));"',
                 );
             }
             // In dev mode only, log a warning
@@ -754,8 +716,7 @@ final class AuthMiddleware
         return $secret;
     }
 
-    private static function getDefaultTenantId(): string
-    {
+    private static function getDefaultTenantId(): string {
         return defined('DEFAULT_TENANT_ID')
             ? DEFAULT_TENANT_ID
             : 'aaaaaaaa-1111-2222-3333-444444444444';
@@ -765,13 +726,11 @@ final class AuthMiddleware
     // TEST HELPERS
     // =========================================================================
 
-    public static function setCurrentUser(?array $user): void
-    {
+    public static function setCurrentUser(?array $user): void {
         self::$currentUser = $user;
     }
 
-    public static function reset(): void
-    {
+    public static function reset(): void {
         self::$currentUser = null;
         self::$currentMeetingId = null;
         self::$currentMeetingRoles = null;

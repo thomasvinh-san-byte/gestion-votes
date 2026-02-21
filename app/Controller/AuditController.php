@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -11,10 +12,8 @@ use AgVote\Repository\MeetingRepository;
  *
  * Shared pattern: meeting_id validation, audit event formatting, payload parsing.
  */
-final class AuditController extends AbstractController
-{
-    public function timeline(): void
-    {
+final class AuditController extends AbstractController {
+    public function timeline(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -99,8 +98,7 @@ final class AuditController extends AbstractController
         ]);
     }
 
-    public function export(): void
-    {
+    public function export(): void {
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
         $format = strtolower(api_query('format', 'csv'));
@@ -196,8 +194,7 @@ final class AuditController extends AbstractController
         exit;
     }
 
-    public function meetingAudit(): void
-    {
+    public function meetingAudit(): void {
         api_request('GET');
 
         $meetingId = api_query('meeting_id');
@@ -220,8 +217,7 @@ final class AuditController extends AbstractController
         ]);
     }
 
-    public function meetingEvents(): void
-    {
+    public function meetingEvents(): void {
         api_request('GET');
 
         $meetingId = api_query('meeting_id');
@@ -240,8 +236,7 @@ final class AuditController extends AbstractController
         api_ok(['events' => self::formatEvents($rows)]);
     }
 
-    public function operatorEvents(): void
-    {
+    public function operatorEvents(): void {
         api_request('GET');
 
         $meetingId = api_query('meeting_id');
@@ -274,7 +269,7 @@ final class AuditController extends AbstractController
             $limit,
             $resourceType,
             $action,
-            $q
+            $q,
         );
 
         api_ok(['events' => self::formatEvents($rows)]);
@@ -283,37 +278,35 @@ final class AuditController extends AbstractController
     /**
      * Shared event formatting for meetingEvents and operatorEvents.
      */
-    private static function formatEvents(array $rows): array
-    {
+    private static function formatEvents(array $rows): array {
         $events = [];
         foreach ($rows as $r) {
             $payload = self::parsePayload($r['payload'] ?? null);
 
-            $message = (string)($payload['message'] ?? '');
+            $message = (string) ($payload['message'] ?? '');
             if ($message === '' && isset($payload['detail'])) {
-                $message = (string)$payload['detail'];
+                $message = (string) $payload['detail'];
             }
 
             $events[] = [
-                'id' => (string)$r['id'],
-                'action' => (string)($r['action'] ?? ''),
-                'resource_type' => (string)($r['resource_type'] ?? ''),
-                'resource_id' => (string)($r['resource_id'] ?? ''),
+                'id' => (string) $r['id'],
+                'action' => (string) ($r['action'] ?? ''),
+                'resource_type' => (string) ($r['resource_type'] ?? ''),
+                'resource_id' => (string) ($r['resource_id'] ?? ''),
                 'message' => $message,
-                'created_at' => (string)($r['created_at'] ?? ''),
+                'created_at' => (string) ($r['created_at'] ?? ''),
             ];
         }
         return $events;
     }
 
-    private static function parsePayload(mixed $payload): array
-    {
+    private static function parsePayload(mixed $payload): array {
         if (empty($payload)) {
             return [];
         }
         if (is_string($payload)) {
             return json_decode($payload, true) ?? [];
         }
-        return (array)$payload;
+        return (array) $payload;
     }
 }

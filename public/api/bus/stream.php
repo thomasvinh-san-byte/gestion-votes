@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -28,7 +29,9 @@ while (true) {
         if ($fh) {
             while (($line = fgets($fh)) !== false) {
                 $evt = json_decode($line, true);
-                if (!is_array($evt)) continue;
+                if (!is_array($evt)) {
+                    continue;
+                }
 
                 // Tenant isolation: skip events from other tenants
                 if (isset($evt['tenant_id']) && $evt['tenant_id'] !== $tenantId) {
@@ -50,6 +53,8 @@ while (true) {
     @ob_flush();
     @flush();
 
-    if (time() - $start > 25) break;
+    if (time() - $start > 25) {
+        break;
+    }
     sleep(1);
 }

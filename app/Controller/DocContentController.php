@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -8,13 +9,11 @@ namespace AgVote\Controller;
  * No authentication required — documentation is public.
  * Uses bootstrap.php (not api.php) — returns plain text, not JSON.
  */
-final class DocContentController
-{
-    public function show(): void
-    {
+final class DocContentController {
+    public function show(): void {
         header('Content-Type: text/plain; charset=utf-8');
 
-        $page = trim((string)($_GET['page'] ?? ''));
+        $page = trim((string) ($_GET['page'] ?? ''));
 
         if ($page === '') {
             http_response_code(400);

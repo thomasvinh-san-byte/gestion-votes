@@ -40,7 +40,7 @@
     $isActive = ($doc === $page) ? ' class="active"' : '';
     $label = $docNames[$doc] ?? basename($doc);
     $exists = file_exists($docsRoot . '/' . $doc . '.md');
-?>
+    ?>
 <?php if ($exists): ?>
                 <li<?= $isActive ?>><a href="/doc.php?page=<?= urlencode($doc) ?>"><?= htmlspecialchars($label) ?></a></li>
 <?php endif; ?>

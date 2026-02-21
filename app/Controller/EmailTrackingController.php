@@ -1,21 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\InvitationRepository;
 use AgVote\Repository\EmailEventRepository;
+use AgVote\Repository\InvitationRepository;
+use Throwable;
 
 /**
  * Consolidates email_pixel.php and email_redirect.php.
  * These endpoints use bootstrap.php (not api.php) and return non-JSON responses.
  */
-final class EmailTrackingController
-{
-    public function pixel(): void
-    {
-        $trackingEnabled = (bool)config('email_tracking_enabled', true);
-        $invitationId = trim((string)($_GET['id'] ?? ''));
+final class EmailTrackingController {
+    public function pixel(): void {
+        $trackingEnabled = (bool) config('email_tracking_enabled', true);
+        $invitationId = trim((string) ($_GET['id'] ?? ''));
 
         if ($invitationId === '' || !$trackingEnabled) {
             $this->outputPixel();
@@ -41,22 +41,23 @@ final class EmailTrackingController
                     null,
                     null,
                     $_SERVER['REMOTE_ADDR'] ?? null,
-                    $_SERVER['HTTP_USER_AGENT'] ?? null
+                    $_SERVER['HTTP_USER_AGENT'] ?? null,
                 );
             }
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
             error_log('Email pixel tracking error: ' . $e->getMessage());
         }
 
         $this->outputPixel();
     }
 
-    public function redirect(): void
-    {
-        $trackingEnabled = (bool)config('email_tracking_enabled', true);
-        $invitationId = trim((string)($_GET['id'] ?? ''));
-        $targetUrl = trim((string)($_GET['url'] ?? ''));
+    public function redirect(): void {
+        $trackingEnabled = (bool) config('email_tracking_enabled', true);
+        $invitationId = trim((string) ($_GET['id'] ?? ''));
+        $targetUrl = trim((string) ($_GET['url'] ?? ''));
 
         $fallbackUrl = config('app_url', 'http://localhost:8080');
 
@@ -96,11 +97,13 @@ final class EmailTrackingController
                             null,
                             ['target_url' => $targetUrl],
                             $_SERVER['REMOTE_ADDR'] ?? null,
-                            $_SERVER['HTTP_USER_AGENT'] ?? null
+                            $_SERVER['HTTP_USER_AGENT'] ?? null,
                         );
                     }
-                } catch (\Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+                } catch (Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                        throw $e;
+                    }
                     error_log('Email redirect tracking error: ' . $e->getMessage());
                 }
             }
@@ -110,8 +113,7 @@ final class EmailTrackingController
         exit;
     }
 
-    private function outputPixel(): never
-    {
+    private function outputPixel(): never {
         $gif = base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
 
         header('Content-Type: image/gif');

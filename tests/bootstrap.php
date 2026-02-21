@@ -28,13 +28,13 @@ putenv('APP_ENV=testing');
 putenv('APP_DEBUG=1');
 putenv('APP_AUTH_ENABLED=0');
 
-// Load security components (with namespaces)
-require_once PROJECT_ROOT . '/app/Core/Security/CsrfMiddleware.php';
-require_once PROJECT_ROOT . '/app/Core/Security/AuthMiddleware.php';
-require_once PROJECT_ROOT . '/app/Core/Security/RateLimiter.php';
-require_once PROJECT_ROOT . '/app/Core/Security/PermissionChecker.php';
-require_once PROJECT_ROOT . '/app/Core/Validation/InputValidator.php';
-require_once PROJECT_ROOT . '/app/Core/Logger.php';
+// Stub db() for tests — prevents "Call to undefined function db()" errors
+// when repositories are instantiated without explicit PDO injection.
+if (!function_exists('db')) {
+    function db(): PDO {
+        throw new \RuntimeException('No database connection available in test environment. Inject a PDO mock via constructor.');
+    }
+}
 
 // Use namespaced classes
 use AgVote\Core\Security\RateLimiter;

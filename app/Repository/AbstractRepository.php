@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Repository;
@@ -14,20 +15,17 @@ use PDO;
  *
  * Rule: a repository contains NO business logic.
  */
-abstract class AbstractRepository
-{
+abstract class AbstractRepository {
     protected PDO $pdo;
 
-    public function __construct(?PDO $pdo = null)
-    {
+    public function __construct(?PDO $pdo = null) {
         $this->pdo = $pdo ?? db();
     }
 
     /**
      * Executes a query and returns a single row (or null).
      */
-    protected function selectOne(string $sql, array $params = []): ?array
-    {
+    protected function selectOne(string $sql, array $params = []): ?array {
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         $row = $st->fetch(PDO::FETCH_ASSOC);
@@ -37,8 +35,7 @@ abstract class AbstractRepository
     /**
      * Executes a query and returns all rows.
      */
-    protected function selectAll(string $sql, array $params = []): array
-    {
+    protected function selectAll(string $sql, array $params = []): array {
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         return $st->fetchAll(PDO::FETCH_ASSOC);
@@ -47,8 +44,7 @@ abstract class AbstractRepository
     /**
      * Executes a modification query and returns the number of affected rows.
      */
-    protected function execute(string $sql, array $params = []): int
-    {
+    protected function execute(string $sql, array $params = []): int {
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         return $st->rowCount();
@@ -57,8 +53,7 @@ abstract class AbstractRepository
     /**
      * Executes a query and returns the first column of the first row.
      */
-    protected function scalar(string $sql, array $params = []): mixed
-    {
+    protected function scalar(string $sql, array $params = []): mixed {
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         return $st->fetchColumn();
@@ -67,8 +62,7 @@ abstract class AbstractRepository
     /**
      * Executes an INSERT...RETURNING and returns the inserted row.
      */
-    protected function insertReturning(string $sql, array $params = []): ?array
-    {
+    protected function insertReturning(string $sql, array $params = []): ?array {
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         $row = $st->fetch(PDO::FETCH_ASSOC);
@@ -78,8 +72,7 @@ abstract class AbstractRepository
     /**
      * Generates a UUID v4 via PostgreSQL.
      */
-    public function generateUuid(): string
-    {
-        return (string)$this->scalar("SELECT gen_random_uuid()");
+    public function generateUuid(): string {
+        return (string) $this->scalar('SELECT gen_random_uuid()');
     }
 }

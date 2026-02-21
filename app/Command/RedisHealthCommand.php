@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Command;
@@ -8,15 +9,14 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 #[AsCommand(
     name: 'redis:health',
     description: 'Check Redis connectivity and display info',
 )]
-final class RedisHealthCommand extends Command
-{
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
+final class RedisHealthCommand extends Command {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         if (!RedisProvider::isAvailable()) {
             $output->writeln('<comment>Redis extension (phpredis) is not installed. Falling back to file-based backends.</comment>');
             return Command::SUCCESS;
@@ -35,7 +35,7 @@ final class RedisHealthCommand extends Command
             $output->writeln(sprintf('  Keys in DB: %d', $dbSize));
 
             return Command::SUCCESS;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $output->writeln(sprintf('<error>Redis connection failed: %s</error>', $e->getMessage()));
             return Command::FAILURE;
         }

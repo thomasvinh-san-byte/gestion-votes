@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -8,16 +9,15 @@ use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Service\AttendancesService;
 use AgVote\WebSocket\EventBroadcaster;
+use Throwable;
 
 /**
  * Consolidates 4 attendance endpoints.
  *
  * Shared pattern: meeting_id validation + meeting not validated guard.
  */
-final class AttendancesController extends AbstractController
-{
-    public function listForMeeting(): void
-    {
+final class AttendancesController extends AbstractController {
+    public function listForMeeting(): void {
         api_request('GET');
 
         $meetingId = api_query('meeting_id');
@@ -37,14 +37,13 @@ final class AttendancesController extends AbstractController
         ]);
     }
 
-    public function upsert(): void
-    {
+    public function upsert(): void {
         $data = api_request('POST');
 
-        $meetingId = trim((string)($data['meeting_id'] ?? ''));
-        $memberId = trim((string)($data['member_id'] ?? ''));
-        $mode = trim((string)($data['mode'] ?? ''));
-        $notes = isset($data['notes']) ? (string)$data['notes'] : null;
+        $meetingId = trim((string) ($data['meeting_id'] ?? ''));
+        $memberId = trim((string) ($data['member_id'] ?? ''));
+        $mode = trim((string) ($data['mode'] ?? ''));
+        $notes = isset($data['notes']) ? (string) $data['notes'] : null;
 
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 400);
@@ -66,16 +65,15 @@ final class AttendancesController extends AbstractController
         api_ok(['attendance' => $row]);
     }
 
-    public function bulk(): void
-    {
+    public function bulk(): void {
         $input = api_request('POST');
 
-        $meetingId = trim((string)($input['meeting_id'] ?? ''));
+        $meetingId = trim((string) ($input['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
 
-        $mode = trim((string)($input['mode'] ?? $input['status'] ?? 'present'));
+        $mode = trim((string) ($input['mode'] ?? $input['status'] ?? 'present'));
         $validModes = ['present', 'absent', 'remote', 'proxy', 'excused'];
         if (!in_array($mode, $validModes, true)) {
             api_fail('invalid_mode', 400, ['valid' => $validModes]);
@@ -136,7 +134,7 @@ final class AttendancesController extends AbstractController
         try {
             $stats = $attendanceRepo->getStatsByMode($meetingId, $tenantId);
             EventBroadcaster::attendanceUpdated($meetingId, $stats);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Don't fail if broadcast fails
         }
 
@@ -148,15 +146,14 @@ final class AttendancesController extends AbstractController
         ]);
     }
 
-    public function setPresentFrom(): void
-    {
+    public function setPresentFrom(): void {
         $in = api_request('POST');
 
         $meetingId = api_require_uuid($in, 'meeting_id');
         api_guard_meeting_not_validated($meetingId);
         $memberId = api_require_uuid($in, 'member_id');
 
-        $presentFrom = trim((string)($in['present_from_at'] ?? ''));
+        $presentFrom = trim((string) ($in['present_from_at'] ?? ''));
 
         (new AttendanceRepository())->updatePresentFrom($meetingId, $memberId, $presentFrom === '' ? null : $presentFrom, api_current_tenant_id());
 

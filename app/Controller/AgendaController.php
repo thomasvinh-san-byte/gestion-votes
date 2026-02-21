@@ -1,19 +1,18 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\AgendaRepository;
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
+use AgVote\Repository\AgendaRepository;
+use AgVote\Repository\MeetingRepository;
 
 /**
  * Consolidates agendas.php and meeting_late_rules.php.
  */
-final class AgendaController extends AbstractController
-{
-    public function listForMeeting(): void
-    {
+final class AgendaController extends AbstractController {
+    public function listForMeeting(): void {
         $data = api_request('GET');
 
         $meetingId = api_require_uuid($data, 'meeting_id');
@@ -28,15 +27,14 @@ final class AgendaController extends AbstractController
         api_ok(['agendas' => $rows]);
     }
 
-    public function create(): void
-    {
+    public function create(): void {
         $data = api_request('POST');
 
         $v = ValidationSchemas::agenda()->validate($data);
         $v->failIfInvalid();
 
         $meetingId = $v->get('meeting_id');
-        $title     = $v->get('title');
+        $title = $v->get('title');
 
         $meetingRepo = new MeetingRepository();
         if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
@@ -44,22 +42,21 @@ final class AgendaController extends AbstractController
         }
 
         $agendaRepo = new AgendaRepository();
-        $id  = $agendaRepo->generateUuid();
+        $id = $agendaRepo->generateUuid();
         $idx = $agendaRepo->nextIdx($meetingId);
 
         $agendaRepo->create($id, api_current_tenant_id(), $meetingId, $idx, $title);
 
         audit_log('agenda_created', 'agenda', $id, [
             'meeting_id' => $meetingId,
-            'idx'        => $idx,
-            'title'      => $title,
+            'idx' => $idx,
+            'title' => $title,
         ]);
 
         api_ok(['agenda_id' => $id, 'idx' => $idx, 'title' => $title], 201);
     }
 
-    public function lateRules(): void
-    {
+    public function lateRules(): void {
         $method = api_method();
         $repo = new MeetingRepository();
 
@@ -74,8 +71,8 @@ final class AgendaController extends AbstractController
 
             api_ok([
                 'meeting_id' => $row['id'],
-                'late_rule_quorum' => (bool)$row['late_rule_quorum'],
-                'late_rule_vote' => (bool)$row['late_rule_vote'],
+                'late_rule_quorum' => (bool) $row['late_rule_quorum'],
+                'late_rule_vote' => (bool) $row['late_rule_vote'],
             ]);
         }
 
@@ -85,8 +82,8 @@ final class AgendaController extends AbstractController
 
             api_guard_meeting_not_validated($meetingId);
 
-            $lrq = (int)($in['late_rule_quorum'] ?? 1) ? true : false;
-            $lrv = (int)($in['late_rule_vote'] ?? 1) ? true : false;
+            $lrq = (int) ($in['late_rule_quorum'] ?? 1) ? true : false;
+            $lrv = (int) ($in['late_rule_vote'] ?? 1) ? true : false;
 
             $repo->updateLateRules($meetingId, api_current_tenant_id(), $lrq, $lrv);
 
@@ -101,8 +98,7 @@ final class AgendaController extends AbstractController
         api_fail('method_not_allowed', 405);
     }
 
-    public function listForMeetingPublic(): void
-    {
+    public function listForMeetingPublic(): void {
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
 
@@ -116,7 +112,7 @@ final class AgendaController extends AbstractController
 
         api_ok([
             'meeting_id' => $meetingId,
-            'agendas'    => $rows,
+            'agendas' => $rows,
         ]);
     }
 }

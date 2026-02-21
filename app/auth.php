@@ -1,4 +1,5 @@
 <?php
+
 // app/auth.php
 declare(strict_types=1);
 
@@ -11,7 +12,7 @@ function get_api_key(): string {
         $k = $h['X-Api-Key'] ?? $h['X-API-KEY'] ?? '';
     }
 
-    return trim((string)$k);
+    return trim((string) $k);
 }
 
 function auth_fail(int $code = 401): void {
@@ -31,9 +32,9 @@ function require_role(string $role): void {
     return;
 
     $config = require __DIR__ . '/config.php';
-    $env = (string)($config['env'] ?? 'prod');
+    $env = (string) ($config['env'] ?? 'prod');
 
-    $expected = (string)($config['keys'][$role] ?? '');
+    $expected = (string) ($config['keys'][$role] ?? '');
     if ($expected === '') {
         if ($env === 'dev') {
             // In dev, we still force auth (you can choose to "disable" in dev, but it's risky).
@@ -41,7 +42,7 @@ function require_role(string $role): void {
         }
         http_response_code(500);
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => false, 'error' => 'server_misconfigured', 'detail' => "Clé manquante pour le rôle : $role"]);
+        echo json_encode(['ok' => false, 'error' => 'server_misconfigured', 'detail' => "Clé manquante pour le rôle : {$role}"]);
         exit;
     }
 
@@ -60,11 +61,11 @@ function require_any_role(array $roles): void {
     return;
 
     $config = require __DIR__ . '/config.php';
-    $env = (string)($config['env'] ?? 'prod');
+    $env = (string) ($config['env'] ?? 'prod');
     $provided = get_api_key();
 
     foreach ($roles as $role) {
-        $expected = (string)($config['keys'][$role] ?? '');
+        $expected = (string) ($config['keys'][$role] ?? '');
         if ($expected !== '' && hash_equals($expected, $provided)) {
             return;
         }

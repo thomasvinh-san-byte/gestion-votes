@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -14,23 +15,22 @@ use AgVote\Repository\ProxyRepository;
 use AgVote\Repository\VoteTokenRepository;
 use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
+use Throwable;
 
 /**
  * Consolidates 3 operator endpoints.
  *
  * Shared pattern: operator role, meeting/motion/member/ballot repos, complex state queries.
  */
-final class OperatorController extends AbstractController
-{
-    public function workflowState(): void
-    {
+final class OperatorController extends AbstractController {
+    public function workflowState(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
 
         $minOpen = api_query_int('min_open', 900);
-        $minParticipation = (float)(api_query('min_participation', '0.5'));
+        $minParticipation = (float) (api_query('min_participation', '0.5'));
 
         $tenant = api_current_tenant_id();
 
@@ -57,16 +57,16 @@ final class OperatorController extends AbstractController
         $absentNames = [];
 
         foreach ($attRows as $r) {
-            $vp = (float)($r['voting_power'] ?? 0);
+            $vp = (float) ($r['voting_power'] ?? 0);
             $totalWeight += $vp;
-            $mode = (string)($r['attendance_mode'] ?? '');
+            $mode = (string) ($r['attendance_mode'] ?? '');
             if ($mode === 'present' || $mode === 'remote' || $mode === 'proxy') {
                 $presentCount++;
                 $presentWeight += $vp;
             } else {
-                $mid = (string)$r['member_id'];
+                $mid = (string) $r['member_id'];
                 $absentIds[] = $mid;
-                $absentNames[$mid] = (string)($r['full_name'] ?? '');
+                $absentNames[$mid] = (string) ($r['full_name'] ?? '');
             }
         }
 
@@ -77,7 +77,7 @@ final class OperatorController extends AbstractController
             $policyRepo = new PolicyRepository();
             $quorumPolicy = $policyRepo->findQuorumPolicyForTenant($quorumPolicyId, $tenant);
             if ($quorumPolicy && isset($quorumPolicy['threshold'])) {
-                $quorumThreshold = (float)$quorumPolicy['threshold'];
+                $quorumThreshold = (float) $quorumPolicy['threshold'];
             }
         }
         $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
@@ -86,7 +86,7 @@ final class OperatorController extends AbstractController
         $coveredRows = (new ProxyRepository())->listDistinctGivers($meetingId);
         $coveredSet = [];
         foreach ($coveredRows as $x) {
-            $coveredSet[(string)$x['giver_member_id']] = true;
+            $coveredSet[(string) $x['giver_member_id']] = true;
         }
 
         $missing = [];
@@ -95,7 +95,7 @@ final class OperatorController extends AbstractController
                 $missing[] = $mid;
             }
         }
-        $missingNames = array_values(array_filter(array_map(fn($id) => $absentNames[$id] ?? '', $missing)));
+        $missingNames = array_values(array_filter(array_map(fn ($id) => $absentNames[$id] ?? '', $missing)));
 
         $proxyActive = (new ProxyRepository())->countActive($meetingId);
 
@@ -105,7 +105,7 @@ final class OperatorController extends AbstractController
         $nextMotion = $motionRepo->findNextNotOpened($meetingId);
         $lastClosedMotion = $motionRepo->findLastClosedForProjector($meetingId);
 
-        $hasAnyMotion = ((int)($motions['total'] ?? 0)) > 0;
+        $hasAnyMotion = ((int) ($motions['total'] ?? 0)) > 0;
 
         $openBallots = 0;
         $openAgeSeconds = 0;
@@ -125,7 +125,7 @@ final class OperatorController extends AbstractController
                 $closeBlockers[] = "Délai minimum non atteint ({$openAgeSeconds}s / {$minOpen}s).";
             }
             if ($participationRatio < $minParticipation) {
-                $closeBlockers[] = "Participation insuffisante (" . round($participationRatio * 100) . "%, min " . round($minParticipation * 100) . "%).";
+                $closeBlockers[] = 'Participation insuffisante (' . round($participationRatio * 100) . '%, min ' . round($minParticipation * 100) . '%).';
             }
             $canCloseOpen = count($closeBlockers) === 0;
         }
@@ -133,19 +133,19 @@ final class OperatorController extends AbstractController
         $canOpenNext = $quorumOk && (count($missing) === 0) && ($openMotion === null) && ($nextMotion !== null);
 
         $hasClosed = $statsRepo->countClosedMotions($meetingId);
-        $canConsolidate = ((int)($motions['open'] ?? 0)) === 0 && $hasClosed > 0;
+        $canConsolidate = ((int) ($motions['open'] ?? 0)) === 0 && $hasClosed > 0;
         $consolidatedCount = $motionRepo->countConsolidatedMotions($meetingId);
         $consolidationDone = ($hasClosed > 0) && ($consolidatedCount >= $hasClosed);
 
         $consolidateDetail = $canConsolidate
-            ? "Motions fermées: $hasClosed. Vous pouvez consolider."
-            : (((int)($motions['open'] ?? 0)) > 0
-                ? "Fermez toutes les motions ouvertes avant consolidation."
-                : "Aucune motion fermée à consolider.");
+            ? "Motions fermées: {$hasClosed}. Vous pouvez consolider."
+            : (((int) ($motions['open'] ?? 0)) > 0
+                ? 'Fermez toutes les motions ouvertes avant consolidation.'
+                : 'Aucune motion fermée à consolider.');
 
         $validation = MeetingValidator::canBeValidated($meetingId, $tenant);
-        $ready = (bool)($validation['can'] ?? false);
-        $reasons = (array)($validation['reasons'] ?? []);
+        $ready = (bool) ($validation['can'] ?? false);
+        $reasons = (array) ($validation['reasons'] ?? []);
 
         NotificationsService::emitReadinessTransitions($meetingId, $validation, $tenant);
 
@@ -157,8 +157,8 @@ final class OperatorController extends AbstractController
                 'president_name' => $meeting['president_name'] ?? '',
             ],
             'motions' => [
-                'total' => (int)($motions['total'] ?? 0),
-                'open' => (int)($motions['open'] ?? 0),
+                'total' => (int) ($motions['total'] ?? 0),
+                'open' => (int) ($motions['open'] ?? 0),
             ],
             'attendance' => [
                 'ok' => $presentCount > 0,
@@ -207,24 +207,23 @@ final class OperatorController extends AbstractController
         ]);
     }
 
-    public function openVote(): void
-    {
+    public function openVote(): void {
         $input = api_request('POST');
 
-        $meetingId = trim((string)($input['meeting_id'] ?? ''));
+        $meetingId = trim((string) ($input['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 422);
         }
 
         api_guard_meeting_not_validated($meetingId);
 
-        $motionId = trim((string)($input['motion_id'] ?? ''));
+        $motionId = trim((string) ($input['motion_id'] ?? ''));
         if ($motionId !== '' && !api_is_uuid($motionId)) {
             api_fail('invalid_motion_id', 422);
         }
 
-        $listTokens = (string)($input['list'] ?? '') === '1';
-        $expiresMinutes = (int)($input['expires_minutes'] ?? 120);
+        $listTokens = (string) ($input['list'] ?? '') === '1';
+        $expiresMinutes = (int) ($input['expires_minutes'] ?? 120);
         if ($expiresMinutes < 10) {
             $expiresMinutes = 10;
         }
@@ -232,7 +231,7 @@ final class OperatorController extends AbstractController
             $expiresMinutes = 24 * 60;
         }
 
-        $secret = (string)(defined('APP_SECRET') ? APP_SECRET : config('app_secret', 'change-me-in-prod'));
+        $secret = (string) (defined('APP_SECRET') ? APP_SECRET : config('app_secret', 'change-me-in-prod'));
 
         $meetingRepo = new MeetingRepository();
         $motionRepo = new MotionRepository();
@@ -246,10 +245,10 @@ final class OperatorController extends AbstractController
                 api_fail('meeting_not_found', 404);
             }
             if (!empty($meeting['validated_at'])) {
-                api_fail('meeting_validated_locked', 409, ['detail' => "Séance validée : action interdite."]);
+                api_fail('meeting_validated_locked', 409, ['detail' => 'Séance validée : action interdite.']);
             }
 
-            $status = (string)($meeting['status'] ?? '');
+            $status = (string) ($meeting['status'] ?? '');
             if ($status !== 'live') {
                 $meetingRepo->updateFields($meetingId, api_current_tenant_id(), ['status' => 'live']);
             }
@@ -257,9 +256,9 @@ final class OperatorController extends AbstractController
             if ($motionId === '') {
                 $next = $motionRepo->findNextNotOpenedForUpdate(api_current_tenant_id(), $meetingId);
                 if (!$next) {
-                    api_fail('no_motion_to_open', 409, ['detail' => "Aucune résolution disponible à ouvrir."]);
+                    api_fail('no_motion_to_open', 409, ['detail' => 'Aucune résolution disponible à ouvrir.']);
                 }
-                $motionId = (string)$next['id'];
+                $motionId = (string) $next['id'];
             } else {
                 $row = $motionRepo->findByIdAndMeetingForUpdate(api_current_tenant_id(), $meetingId, $motionId);
                 if (!$row) {
@@ -268,10 +267,10 @@ final class OperatorController extends AbstractController
             }
 
             $open = $motionRepo->findCurrentOpen($meetingId, api_current_tenant_id());
-            if ($open && (string)$open['id'] !== $motionId) {
+            if ($open && (string) $open['id'] !== $motionId) {
                 api_fail('another_motion_active', 409, [
                     'detail' => "Une résolution est déjà ouverte : clôturez-la avant d'en ouvrir une autre.",
-                    'open_motion_id' => (string)$open['id'],
+                    'open_motion_id' => (string) $open['id'],
                 ]);
             }
 
@@ -287,18 +286,21 @@ final class OperatorController extends AbstractController
             $tokensOut = [];
 
             foreach ($eligible as $e) {
-                $memberId = (string)$e['member_id'];
+                $memberId = (string) $e['member_id'];
                 if ($memberId === '') {
                     continue;
                 }
 
                 $raw = sprintf(
                     '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-                    random_int(0, 0xffff), random_int(0, 0xffff),
+                    random_int(0, 0xffff),
+                    random_int(0, 0xffff),
                     random_int(0, 0xffff),
                     random_int(0, 0x0fff) | 0x4000,
                     random_int(0, 0x3fff) | 0x8000,
-                    random_int(0, 0xffff), random_int(0, 0xffff), random_int(0, 0xffff)
+                    random_int(0, 0xffff),
+                    random_int(0, 0xffff),
+                    random_int(0, 0xffff),
                 );
 
                 $hash = hash_hmac('sha256', $raw, $secret);
@@ -316,7 +318,7 @@ final class OperatorController extends AbstractController
                         $tokensOut[] = [
                             'member_id' => $memberId,
                             'token' => $raw,
-                            'url' => "/vote.php?token=" . $raw,
+                            'url' => '/vote.php?token=' . $raw,
                         ];
                     }
                 }
@@ -339,8 +341,7 @@ final class OperatorController extends AbstractController
         ]);
     }
 
-    public function anomalies(): void
-    {
+    public function anomalies(): void {
         api_request('GET');
 
         $meetingId = api_query('meeting_id');
@@ -366,7 +367,7 @@ final class OperatorController extends AbstractController
 
         if ($motionId === '') {
             $open = $motionRepo->findCurrentOpen($meetingId, api_current_tenant_id());
-            $motionId = $open ? (string)$open['id'] : '';
+            $motionId = $open ? (string) $open['id'] : '';
         }
 
         $motion = null;
@@ -385,31 +386,33 @@ final class OperatorController extends AbstractController
         $eligibleIds = [];
         $eligibleNames = [];
         foreach ($eligibleRows as $r) {
-            $id = (string)($r['member_id'] ?? '');
+            $id = (string) ($r['member_id'] ?? '');
             if ($id === '') {
                 continue;
             }
             $eligibleIds[] = $id;
-            $eligibleNames[$id] = (string)($r['full_name'] ?? '');
+            $eligibleNames[$id] = (string) ($r['full_name'] ?? '');
         }
 
         $eligibleCount = count($eligibleIds);
 
-        $proxyMax = (int)config('proxy_max_per_receiver', 99);
+        $proxyMax = (int) config('proxy_max_per_receiver', 99);
         $proxyCeilings = [];
         try {
             $rows = (new ProxyRepository())->listCeilingViolations(api_current_tenant_id(), $meetingId, $proxyMax);
             foreach ($rows as $r) {
-                $pid = (string)$r['proxy_id'];
+                $pid = (string) $r['proxy_id'];
                 $proxyCeilings[] = [
                     'proxy_id' => $pid,
                     'proxy_name' => $eligibleNames[$pid] ?? null,
-                    'count' => (int)$r['c'],
+                    'count' => (int) $r['c'],
                     'max' => $proxyMax,
                 ];
             }
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
             $proxyCeilings = [];
         }
 
@@ -437,7 +440,7 @@ final class OperatorController extends AbstractController
 
             $votedSet = [];
             foreach ($ballots as $b) {
-                $mid = (string)($b['member_id'] ?? '');
+                $mid = (string) ($b['member_id'] ?? '');
                 if ($mid === '') {
                     continue;
                 }
@@ -454,8 +457,8 @@ final class OperatorController extends AbstractController
                 if (!in_array($mid, $eligibleIds, true)) {
                     $ballotsNotEligible[] = [
                         'member_id' => $mid,
-                        'value' => (string)($b['value'] ?? ''),
-                        'source' => (string)($b['source'] ?? ''),
+                        'value' => (string) ($b['value'] ?? ''),
+                        'source' => (string) ($b['source'] ?? ''),
                         'cast_at' => $b['cast_at'],
                     ];
                 }
@@ -485,12 +488,12 @@ final class OperatorController extends AbstractController
         api_ok([
             'meeting' => [
                 'id' => $meetingId,
-                'status' => (string)($meeting['status'] ?? ''),
+                'status' => (string) ($meeting['status'] ?? ''),
                 'validated_at' => $meeting['validated_at'],
             ],
             'motion' => $motion ? [
-                'id' => (string)$motion['id'],
-                'title' => (string)($motion['title'] ?? ''),
+                'id' => (string) $motion['id'],
+                'title' => (string) ($motion['title'] ?? ''),
                 'opened_at' => $motion['opened_at'],
                 'closed_at' => $motion['closed_at'],
             ] : null,

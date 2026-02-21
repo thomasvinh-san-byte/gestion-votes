@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -9,19 +10,18 @@ use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
-use AgVote\Service\MeetingValidator;
 use AgVote\Service\MeetingReportService;
+use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
+use Throwable;
 
 /**
  * Consolidates 8 meeting CRUD + status endpoints.
  *
  * Shared pattern: MeetingRepository, tenant validation, meeting_id.
  */
-final class MeetingsController extends AbstractController
-{
-    public function index(): void
-    {
+final class MeetingsController extends AbstractController {
+    public function index(): void {
         api_request('GET');
 
         $limit = api_query_int('limit', 50);
@@ -41,21 +41,20 @@ final class MeetingsController extends AbstractController
         api_ok(['meetings' => $rows]);
     }
 
-    public function update(): void
-    {
+    public function update(): void {
         $input = api_request('POST');
 
-        $meetingId = trim((string)($input['meeting_id'] ?? ''));
+        $meetingId = trim((string) ($input['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400, ['detail' => 'meeting_id est obligatoire (uuid).']);
         }
 
         api_guard_meeting_not_validated($meetingId);
 
-        $title = array_key_exists('title', $input) ? trim((string)$input['title']) : null;
-        $presidentName = array_key_exists('president_name', $input) ? trim((string)$input['president_name']) : null;
-        $scheduledAt = array_key_exists('scheduled_at', $input) ? trim((string)$input['scheduled_at']) : null;
-        $meetingType = array_key_exists('meeting_type', $input) ? trim((string)$input['meeting_type']) : null;
+        $title = array_key_exists('title', $input) ? trim((string) $input['title']) : null;
+        $presidentName = array_key_exists('president_name', $input) ? trim((string) $input['president_name']) : null;
+        $scheduledAt = array_key_exists('scheduled_at', $input) ? trim((string) $input['scheduled_at']) : null;
+        $meetingType = array_key_exists('meeting_type', $input) ? trim((string) $input['meeting_type']) : null;
 
         if (array_key_exists('status', $input)) {
             api_fail('status_via_transition', 400, [
@@ -88,7 +87,7 @@ final class MeetingsController extends AbstractController
             api_fail('meeting_not_found', 404);
         }
 
-        if ((string)$current['status'] === 'archived') {
+        if ((string) $current['status'] === 'archived') {
             api_fail('meeting_archived_locked', 409, ['detail' => 'Séance archivée : modification interdite.']);
         }
 
@@ -119,8 +118,7 @@ final class MeetingsController extends AbstractController
         api_ok(['updated' => $updated > 0, 'meeting_id' => $meetingId]);
     }
 
-    public function archive(): void
-    {
+    public function archive(): void {
         api_request('GET');
 
         $from = api_query('from');
@@ -131,8 +129,7 @@ final class MeetingsController extends AbstractController
         api_ok(['meetings' => $rows]);
     }
 
-    public function archivesList(): void
-    {
+    public function archivesList(): void {
         api_request('GET');
 
         $repo = new MeetingRepository();
@@ -140,8 +137,7 @@ final class MeetingsController extends AbstractController
         api_ok(['items' => $rows]);
     }
 
-    public function status(): void
-    {
+    public function status(): void {
         api_request('GET');
 
         $repo = new MeetingRepository();
@@ -152,32 +148,32 @@ final class MeetingsController extends AbstractController
         }
 
         $statsRepo = new MeetingStatsRepository();
-        $counts = $statsRepo->countMotionStats((string)$meeting['meeting_id']);
+        $counts = $statsRepo->countMotionStats((string) $meeting['meeting_id']);
 
-        $totalMotions = (int)($counts['total_motions'] ?? 0);
-        $openMotions = (int)($counts['open_motions'] ?? 0);
-        $closedWithoutTally = (int)($counts['closed_without_tally'] ?? 0);
+        $totalMotions = (int) ($counts['total_motions'] ?? 0);
+        $openMotions = (int) ($counts['open_motions'] ?? 0);
+        $closedWithoutTally = (int) ($counts['closed_without_tally'] ?? 0);
 
-        $validation = MeetingValidator::canBeValidated((string)$meeting['meeting_id'], api_current_tenant_id());
-        $readyToSign = (bool)($validation['can'] ?? false);
+        $validation = MeetingValidator::canBeValidated((string) $meeting['meeting_id'], api_current_tenant_id());
+        $readyToSign = (bool) ($validation['can'] ?? false);
 
-        NotificationsService::emitReadinessTransitions((string)$meeting['meeting_id'], $validation, api_current_tenant_id());
+        NotificationsService::emitReadinessTransitions((string) $meeting['meeting_id'], $validation, api_current_tenant_id());
 
         $signStatus = 'not_ready';
-        $signMessage = "Séance en cours de traitement.";
+        $signMessage = 'Séance en cours de traitement.';
 
         if ($meeting['meeting_status'] === 'archived') {
             $signStatus = 'archived';
-            $signMessage = "Séance archivée le " . ($meeting['archived_at'] ?? '—');
+            $signMessage = 'Séance archivée le ' . ($meeting['archived_at'] ?? '—');
         } elseif ($readyToSign) {
             $signStatus = 'ready';
-            $signMessage = "Tout est prêt à être signé.";
+            $signMessage = 'Tout est prêt à être signé.';
         } elseif ($openMotions > 0) {
             $signStatus = 'open_motions';
-            $signMessage = "$openMotions résolution(s) encore ouverte(s).";
+            $signMessage = "{$openMotions} résolution(s) encore ouverte(s).";
         } elseif ($closedWithoutTally > 0) {
             $signStatus = 'missing_tally';
-            $signMessage = "$closedWithoutTally résolution(s) clôturée(s) sans comptage complet.";
+            $signMessage = "{$closedWithoutTally} résolution(s) clôturée(s) sans comptage complet.";
         }
 
         $response = array_merge($meeting, [
@@ -193,8 +189,7 @@ final class MeetingsController extends AbstractController
         api_ok($response);
     }
 
-    public function statusForMeeting(): void
-    {
+    public function statusForMeeting(): void {
         api_request('GET');
 
         $meetingId = api_query('meeting_id');
@@ -208,10 +203,10 @@ final class MeetingsController extends AbstractController
             api_fail('meeting_not_found', 404);
         }
 
-        $validation = MeetingValidator::canBeValidated((string)$meetingId, api_current_tenant_id());
-        $readyToSign = (bool)($validation['can'] ?? false);
+        $validation = MeetingValidator::canBeValidated((string) $meetingId, api_current_tenant_id());
+        $readyToSign = (bool) ($validation['can'] ?? false);
 
-        NotificationsService::emitReadinessTransitions((string)$meetingId, $validation, api_current_tenant_id());
+        NotificationsService::emitReadinessTransitions((string) $meetingId, $validation, api_current_tenant_id());
 
         $signStatus = 'not_ready';
         $signMessage = '';
@@ -240,8 +235,7 @@ final class MeetingsController extends AbstractController
         ]);
     }
 
-    public function summary(): void
-    {
+    public function summary(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -299,8 +293,7 @@ final class MeetingsController extends AbstractController
         ]);
     }
 
-    public function stats(): void
-    {
+    public function stats(): void {
         api_request('GET');
 
         $meetingId = api_query('meeting_id');
@@ -323,22 +316,22 @@ final class MeetingsController extends AbstractController
         $totalBallotsAllMotions = 0;
 
         foreach ($rows as $r) {
-            $ballotsTotal = (int)($r['ballots_total'] ?? 0);
+            $ballotsTotal = (int) ($r['ballots_total'] ?? 0);
 
             if ($ballotsTotal > 0) {
                 $source = 'ballots';
                 $total = $ballotsTotal;
-                $votes_for = (int)($r['ballots_for'] ?? 0);
-                $votes_against = (int)($r['ballots_against'] ?? 0);
-                $votes_abstain = (int)($r['ballots_abstain'] ?? 0);
-                $votes_nsp = (int)($r['ballots_nsp'] ?? 0);
+                $votes_for = (int) ($r['ballots_for'] ?? 0);
+                $votes_against = (int) ($r['ballots_against'] ?? 0);
+                $votes_abstain = (int) ($r['ballots_abstain'] ?? 0);
+                $votes_nsp = (int) ($r['ballots_nsp'] ?? 0);
                 $totalBallotsAllMotions += $ballotsTotal;
             } else {
                 $source = 'manual';
-                $total = (int)($r['manual_total'] ?? 0);
-                $votes_for = (int)($r['manual_for'] ?? 0);
-                $votes_against = (int)($r['manual_against'] ?? 0);
-                $votes_abstain = (int)($r['manual_abstain'] ?? 0);
+                $total = (int) ($r['manual_total'] ?? 0);
+                $votes_for = (int) ($r['manual_for'] ?? 0);
+                $votes_against = (int) ($r['manual_against'] ?? 0);
+                $votes_abstain = (int) ($r['manual_abstain'] ?? 0);
                 $votes_nsp = max(0, $total - $votes_for - $votes_against - $votes_abstain);
             }
 
@@ -351,10 +344,10 @@ final class MeetingsController extends AbstractController
                 'votes_abstain' => $votes_abstain,
                 'votes_nsp' => $votes_nsp,
                 'tally_source' => $source,
-                'manual_total' => (int)($r['manual_total'] ?? 0),
-                'manual_for' => (int)($r['manual_for'] ?? 0),
-                'manual_against' => (int)($r['manual_against'] ?? 0),
-                'manual_abstain' => (int)($r['manual_abstain'] ?? 0),
+                'manual_total' => (int) ($r['manual_total'] ?? 0),
+                'manual_for' => (int) ($r['manual_for'] ?? 0),
+                'manual_against' => (int) ($r['manual_against'] ?? 0),
+                'manual_abstain' => (int) ($r['manual_abstain'] ?? 0),
                 'ballots_total' => $ballotsTotal,
             ];
         }
@@ -368,23 +361,22 @@ final class MeetingsController extends AbstractController
 
         api_ok([
             'meeting_id' => $meetingId,
-            'motions_count' => (int)$motionsCount,
-            'distinct_voters' => (int)$distinctVoters,
+            'motions_count' => (int) $motionsCount,
+            'distinct_voters' => (int) $distinctVoters,
             'motions' => $motions,
         ]);
     }
 
-    public function createMeeting(): void
-    {
+    public function createMeeting(): void {
         $data = api_request('POST');
 
         $v = ValidationSchemas::meeting()->validate($data);
         $v->failIfInvalid();
 
-        $title       = $v->get('title');
+        $title = $v->get('title');
         $description = $v->get('description');
         $scheduledAt = $v->get('scheduled_at');
-        $location    = $v->get('location');
+        $location = $v->get('location');
         $meetingType = $v->get('meeting_type', 'ag_ordinaire');
 
         $repo = new MeetingRepository();
@@ -396,7 +388,7 @@ final class MeetingsController extends AbstractController
             $description ?: null,
             $scheduledAt ?: null,
             $location ?: null,
-            $meetingType
+            $meetingType,
         );
 
         $policyRepo = new PolicyRepository();
@@ -414,19 +406,18 @@ final class MeetingsController extends AbstractController
         }
 
         audit_log('meeting_created', 'meeting', $id, [
-            'title'       => $title,
+            'title' => $title,
             'scheduled_at' => $scheduledAt,
-            'location'    => $location,
+            'location' => $location,
         ]);
 
         api_ok([
             'meeting_id' => $id,
-            'title'      => $title,
+            'title' => $title,
         ], 201);
     }
 
-    public function voteSettings(): void
-    {
+    public function voteSettings(): void {
         $method = api_method();
         $repo = new MeetingRepository();
 
@@ -452,7 +443,7 @@ final class MeetingsController extends AbstractController
 
             api_guard_meeting_not_validated($meetingId);
 
-            $policyId = trim((string)($in['vote_policy_id'] ?? ''));
+            $policyId = trim((string) ($in['vote_policy_id'] ?? ''));
             if ($policyId !== '' && !api_is_uuid($policyId)) {
                 api_fail('invalid_vote_policy_id', 400, ['expected' => 'uuid or empty']);
             }
@@ -479,18 +470,17 @@ final class MeetingsController extends AbstractController
         api_fail('method_not_allowed', 405);
     }
 
-    public function validate(): void
-    {
+    public function validate(): void {
         $input = api_request('POST');
 
-        $meetingId = trim((string)($input['meeting_id'] ?? ''));
+        $meetingId = trim((string) ($input['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 400);
         }
 
         api_guard_meeting_not_validated($meetingId);
 
-        $presidentName = trim((string)($input['president_name'] ?? ''));
+        $presidentName = trim((string) ($input['president_name'] ?? ''));
         if ($presidentName === '') {
             api_fail('missing_president_name', 400);
         }
@@ -511,8 +501,10 @@ final class MeetingsController extends AbstractController
             });
 
             api_ok(['meeting_id' => $meetingId, 'status' => 'validated']);
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
             api_fail('validation_failed', 500, ['detail' => $e->getMessage()]);
         }
     }

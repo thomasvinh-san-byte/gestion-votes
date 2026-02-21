@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Event;
@@ -6,8 +7,7 @@ namespace AgVote\Event;
 /**
  * Event constants for vote-related domain events.
  */
-final class VoteEvents
-{
+final class VoteEvents {
     public const VOTE_CAST = 'vote.cast';
     public const VOTE_UPDATED = 'vote.updated';
     public const MOTION_OPENED = 'motion.opened';

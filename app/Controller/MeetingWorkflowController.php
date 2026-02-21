@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -15,20 +16,19 @@ use AgVote\Repository\VoteTokenRepository;
 use AgVote\Service\MeetingWorkflowService;
 use AgVote\Service\OfficialResultsService;
 use AgVote\WebSocket\EventBroadcaster;
+use Throwable;
 
 /**
  * Consolidates 6 meeting workflow endpoints.
  *
  * Shared pattern: state machine transitions, workflow validation, MeetingWorkflowService.
  */
-final class MeetingWorkflowController extends AbstractController
-{
-    public function transition(): void
-    {
+final class MeetingWorkflowController extends AbstractController {
+    public function transition(): void {
         $input = api_request('POST');
 
         $meetingId = api_require_uuid($input, 'meeting_id');
-        $toStatus = trim((string)($input['to_status'] ?? ''));
+        $toStatus = trim((string) ($input['to_status'] ?? ''));
 
         if ($toStatus === '') {
             api_fail('missing_to_status', 400, ['detail' => 'Le champ to_status est requis.']);
@@ -37,7 +37,7 @@ final class MeetingWorkflowController extends AbstractController
         $validStatuses = ['draft', 'scheduled', 'frozen', 'live', 'paused', 'closed', 'validated', 'archived'];
         if (!in_array($toStatus, $validStatuses, true)) {
             api_fail('invalid_status', 400, [
-                'detail' => "Statut '$toStatus' invalide.",
+                'detail' => "Statut '{$toStatus}' invalide.",
                 'valid' => $validStatuses,
             ]);
         }
@@ -53,7 +53,7 @@ final class MeetingWorkflowController extends AbstractController
 
         if ($fromStatus === $toStatus) {
             api_fail('already_in_status', 422, [
-                'detail' => "La séance est déjà au statut '$toStatus'.",
+                'detail' => "La séance est déjà au statut '{$toStatus}'.",
             ]);
         }
 
@@ -154,8 +154,10 @@ final class MeetingWorkflowController extends AbstractController
 
         try {
             EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), $toStatus, $fromStatus);
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
         }
 
         api_ok([
@@ -167,8 +169,7 @@ final class MeetingWorkflowController extends AbstractController
         ]);
     }
 
-    public function launch(): void
-    {
+    public function launch(): void {
         $input = api_request('POST');
 
         $meetingId = api_require_uuid($input, 'meeting_id');
@@ -202,7 +203,7 @@ final class MeetingWorkflowController extends AbstractController
                     break;
                 default:
                     api_fail('invalid_launch_status', 422, [
-                        'detail' => "Impossible de lancer depuis le statut '$fromStatus'.",
+                        'detail' => "Impossible de lancer depuis le statut '{$fromStatus}'.",
                     ]);
             }
 
@@ -267,8 +268,10 @@ final class MeetingWorkflowController extends AbstractController
 
         try {
             EventBroadcaster::meetingStatusChanged($meetingId, $tenant, 'live', $txResult['fromStatus']);
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
         }
 
         api_ok([
@@ -281,8 +284,7 @@ final class MeetingWorkflowController extends AbstractController
         ]);
     }
 
-    public function workflowCheck(): void
-    {
+    public function workflowCheck(): void {
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
         $toStatus = api_query('to_status');
@@ -303,8 +305,7 @@ final class MeetingWorkflowController extends AbstractController
         }
     }
 
-    public function readyCheck(): void
-    {
+    public function readyCheck(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -328,7 +329,7 @@ final class MeetingWorkflowController extends AbstractController
         $bad = [];
 
         // Check 1: Président renseigné
-        $pres = trim((string)($meeting['president_name'] ?? ''));
+        $pres = trim((string) ($meeting['president_name'] ?? ''));
         $checks[] = [
             'passed' => $pres !== '',
             'label' => 'Président renseigné',
@@ -353,20 +354,20 @@ final class MeetingWorkflowController extends AbstractController
         $checks[] = [
             'passed' => !$fallbackEligibleUsed,
             'label' => 'Présences saisies',
-            'detail' => $fallbackEligibleUsed ? "Règle de fallback utilisée (tous membres actifs)." : '',
+            'detail' => $fallbackEligibleUsed ? 'Règle de fallback utilisée (tous membres actifs).' : '',
         ];
 
         // Motions fermées
         $motions = $motionRepo->listClosedForMeetingWithManualTally($meetingId);
 
         foreach ($motions as $m) {
-            $motionId = (string)$m['id'];
-            $title = (string)($m['title'] ?? 'Motion');
+            $motionId = (string) $m['id'];
+            $title = (string) ($m['title'] ?? 'Motion');
 
-            $manualTotal = (int)($m['manual_total'] ?? 0);
-            $manualFor = (int)($m['manual_for'] ?? 0);
-            $manualAg = (int)($m['manual_against'] ?? 0);
-            $manualAb = (int)($m['manual_abstain'] ?? 0);
+            $manualTotal = (int) ($m['manual_total'] ?? 0);
+            $manualFor = (int) ($m['manual_for'] ?? 0);
+            $manualAg = (int) ($m['manual_against'] ?? 0);
+            $manualAb = (int) ($m['manual_abstain'] ?? 0);
 
             $manualOk = false;
             if ($manualTotal > 0) {
@@ -402,13 +403,13 @@ final class MeetingWorkflowController extends AbstractController
                 $bad[] = [
                     'motion_id' => $motionId,
                     'title' => $title,
-                    'detail' => "Aucun résultat exploitable: pas de comptage manuel cohérent et aucun bulletin e-vote éligible.",
+                    'detail' => 'Aucun résultat exploitable: pas de comptage manuel cohérent et aucun bulletin e-vote éligible.',
                 ];
             } elseif ($manualTotal > 0 && !$manualOk) {
                 $bad[] = [
                     'motion_id' => $motionId,
                     'title' => $title,
-                    'detail' => "Comptage manuel incohérent (pour+contre+abst != total).",
+                    'detail' => 'Comptage manuel incohérent (pour+contre+abst != total).',
                 ];
             }
         }
@@ -442,8 +443,7 @@ final class MeetingWorkflowController extends AbstractController
         ]);
     }
 
-    public function consolidate(): void
-    {
+    public function consolidate(): void {
         $body = api_request('POST');
 
         $meetingId = api_require_uuid($body, 'meeting_id');
@@ -473,13 +473,12 @@ final class MeetingWorkflowController extends AbstractController
         api_ok(['updated_motions' => $r['updated']]);
     }
 
-    public function resetDemo(): void
-    {
+    public function resetDemo(): void {
         $in = api_request('POST');
 
         $meetingId = api_require_uuid($in, 'meeting_id');
 
-        $confirm = (string)($in['confirm'] ?? '');
+        $confirm = (string) ($in['confirm'] ?? '');
         if ($confirm !== 'RESET') {
             api_fail('missing_confirm', 400, ['detail' => 'Envoyez {confirm:"RESET"} pour éviter les resets accidentels.']);
         }

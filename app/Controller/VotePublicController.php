@@ -1,13 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\VoteTokenRepository;
-use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\VoteTokenRepository;
 use AgVote\View\HtmlView;
+use RuntimeException;
 
 /**
  * Token-authenticated public voting interface.
@@ -17,31 +19,29 @@ use AgVote\View\HtmlView;
  *
  * Accessed at: /vote.php?token={token}
  */
-final class VotePublicController
-{
+final class VotePublicController {
     private const VOTE_MAP = [
-        'pour'       => 'for',
-        'contre'     => 'against',
+        'pour' => 'for',
+        'contre' => 'against',
         'abstention' => 'abstain',
-        'blanc'      => 'nsp',
+        'blanc' => 'nsp',
     ];
 
     private const VOTE_LABELS = [
-        'pour'       => 'Pour',
-        'contre'     => 'Contre',
+        'pour' => 'Pour',
+        'contre' => 'Contre',
         'abstention' => 'Abstention',
-        'blanc'      => 'Blanc',
+        'blanc' => 'Blanc',
     ];
 
-    public function vote(): void
-    {
+    public function vote(): void {
         // ── Validate token ──────────────────────────────────────────────
         $token = api_query('token');
         if ($token === '') {
             HtmlView::text('Token manquant', 400);
         }
 
-        $hash = hash_hmac('sha256', (string)$token, APP_SECRET);
+        $hash = hash_hmac('sha256', (string) $token, APP_SECRET);
 
         $tokenRepo = new VoteTokenRepository();
         $row = $tokenRepo->findValidByHash($hash);
@@ -52,7 +52,7 @@ final class VotePublicController
 
         // ── Verify motion/meeting state ─────────────────────────────────
         $motionRepo = new MotionRepository();
-        $ctx = $motionRepo->findWithBallotContext($row['motion_id'], (string)$row['tenant_id']);
+        $ctx = $motionRepo->findWithBallotContext($row['motion_id'], (string) $row['tenant_id']);
 
         if (!$ctx) {
             HtmlView::text('Motion introuvable', 404);
@@ -84,7 +84,7 @@ final class VotePublicController
         // Show confirmation page
         if (!$confirm) {
             HtmlView::render('vote_confirm', [
-                'vote'   => $vote,
+                'vote' => $vote,
                 'chosen' => self::VOTE_LABELS[$vote] ?? $vote,
             ]);
             return;
@@ -95,16 +95,16 @@ final class VotePublicController
 
         $memberRepo = new MemberRepository();
         $member = $memberRepo->findByIdForTenant($row['member_id'], $ctx['tenant_id']);
-        $weight = (float)($member['voting_power'] ?? 1.0);
+        $weight = (float) ($member['voting_power'] ?? 1.0);
         if ($weight < 0) {
             $weight = 0.0;
         }
 
         try {
             api_transaction(function () use ($tokenRepo, $hash, $row, $ctx, $dbVote, $weight) {
-                $consumed = $tokenRepo->consume($hash, (string)$row['tenant_id']);
+                $consumed = $tokenRepo->consume($hash, (string) $row['tenant_id']);
                 if ($consumed === 0) {
-                    throw new \RuntimeException('token_already_used');
+                    throw new RuntimeException('token_already_used');
                 }
 
                 $ballotRepo = new BallotRepository();
@@ -115,10 +115,10 @@ final class VotePublicController
                     $row['member_id'],
                     $dbVote,
                     $weight,
-                    'tablet'
+                    'tablet',
                 );
             });
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             if ($e->getMessage() === 'token_already_used') {
                 HtmlView::text('Token déjà utilisé', 409);
             }

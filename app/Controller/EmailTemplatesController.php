@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -9,10 +10,8 @@ use AgVote\Service\EmailTemplateService;
 /**
  * Consolidates email_templates.php CRUD operations.
  */
-final class EmailTemplatesController extends AbstractController
-{
-    public function list(): void
-    {
+final class EmailTemplatesController extends AbstractController {
+    public function list(): void {
         $repo = new EmailTemplateRepository();
         global $config;
         $service = new EmailTemplateService($config ?? []);
@@ -45,8 +44,7 @@ final class EmailTemplatesController extends AbstractController
         api_ok($result);
     }
 
-    public function create(): void
-    {
+    public function create(): void {
         $input = api_request('POST');
         $repo = new EmailTemplateRepository();
         global $config;
@@ -62,8 +60,8 @@ final class EmailTemplatesController extends AbstractController
 
         // Special action: duplicate
         if (isset($input['action']) && $input['action'] === 'duplicate') {
-            $sourceId = trim((string)($input['source_id'] ?? ''));
-            $newName = trim((string)($input['new_name'] ?? ''));
+            $sourceId = trim((string) ($input['source_id'] ?? ''));
+            $newName = trim((string) ($input['new_name'] ?? ''));
             if (!api_is_uuid($sourceId)) {
                 api_fail('invalid_source_id', 400);
             }
@@ -81,12 +79,12 @@ final class EmailTemplatesController extends AbstractController
             api_ok(['template' => $duplicate]);
         }
 
-        $name = trim((string)($input['name'] ?? ''));
-        $type = trim((string)($input['template_type'] ?? 'invitation'));
-        $subject = trim((string)($input['subject'] ?? ''));
-        $bodyHtml = trim((string)($input['body_html'] ?? ''));
-        $bodyText = isset($input['body_text']) ? trim((string)$input['body_text']) : null;
-        $isDefault = (bool)($input['is_default'] ?? false);
+        $name = trim((string) ($input['name'] ?? ''));
+        $type = trim((string) ($input['template_type'] ?? 'invitation'));
+        $subject = trim((string) ($input['subject'] ?? ''));
+        $bodyHtml = trim((string) ($input['body_html'] ?? ''));
+        $bodyText = isset($input['body_text']) ? trim((string) $input['body_text']) : null;
+        $isDefault = (bool) ($input['is_default'] ?? false);
 
         if ($name === '') {
             api_fail('missing_name', 400);
@@ -122,8 +120,7 @@ final class EmailTemplatesController extends AbstractController
         api_ok(['template' => $template], 201);
     }
 
-    public function update(): void
-    {
+    public function update(): void {
         $repo = new EmailTemplateRepository();
         $tenantId = api_current_tenant_id();
         $id = api_query('id');
@@ -138,11 +135,11 @@ final class EmailTemplatesController extends AbstractController
 
         $input = api_request('PUT');
 
-        $name = isset($input['name']) ? trim((string)$input['name']) : $existing['name'];
-        $subject = isset($input['subject']) ? trim((string)$input['subject']) : $existing['subject'];
-        $bodyHtml = isset($input['body_html']) ? trim((string)$input['body_html']) : $existing['body_html'];
-        $bodyText = isset($input['body_text']) ? trim((string)$input['body_text']) : $existing['body_text'];
-        $isDefault = isset($input['is_default']) ? (bool)$input['is_default'] : null;
+        $name = isset($input['name']) ? trim((string) $input['name']) : $existing['name'];
+        $subject = isset($input['subject']) ? trim((string) $input['subject']) : $existing['subject'];
+        $bodyHtml = isset($input['body_html']) ? trim((string) $input['body_html']) : $existing['body_html'];
+        $bodyText = isset($input['body_text']) ? trim((string) $input['body_text']) : $existing['body_text'];
+        $isDefault = isset($input['is_default']) ? (bool) $input['is_default'] : null;
 
         if ($name !== $existing['name'] && $repo->nameExists($tenantId, $name, $id)) {
             api_fail('template_name_exists', 400);
@@ -163,8 +160,7 @@ final class EmailTemplatesController extends AbstractController
         api_ok(['template' => $template]);
     }
 
-    public function delete(): void
-    {
+    public function delete(): void {
         $repo = new EmailTemplateRepository();
         $tenantId = api_current_tenant_id();
         $id = api_query('id');

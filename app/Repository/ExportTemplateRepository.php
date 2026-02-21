@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Repository;
@@ -8,8 +9,7 @@ namespace AgVote\Repository;
  *
  * Permet de gerer des modeles d'export avec selection et ordre des colonnes.
  */
-class ExportTemplateRepository extends AbstractRepository
-{
+class ExportTemplateRepository extends AbstractRepository {
     /**
      * Types d'export supportes.
      */
@@ -88,20 +88,19 @@ class ExportTemplateRepository extends AbstractRepository
     /**
      * Liste tous les templates d'un tenant.
      */
-    public function listForTenant(string $tenantId, ?string $type = null): array
-    {
-        $sql = "SELECT id, tenant_id, name, export_type, columns,
+    public function listForTenant(string $tenantId, ?string $type = null): array {
+        $sql = 'SELECT id, tenant_id, name, export_type, columns,
                        is_default, created_by, created_at, updated_at
                 FROM export_templates
-                WHERE tenant_id = :tenant_id";
+                WHERE tenant_id = :tenant_id';
         $params = [':tenant_id' => $tenantId];
 
         if ($type !== null) {
-            $sql .= " AND export_type = :type";
+            $sql .= ' AND export_type = :type';
             $params[':type'] = $type;
         }
 
-        $sql .= " ORDER BY is_default DESC, name ASC";
+        $sql .= ' ORDER BY is_default DESC, name ASC';
 
         $rows = $this->selectAll($sql, $params);
 
@@ -115,14 +114,13 @@ class ExportTemplateRepository extends AbstractRepository
     /**
      * Trouve un template par ID.
      */
-    public function findById(string $id, string $tenantId): ?array
-    {
+    public function findById(string $id, string $tenantId): ?array {
         $row = $this->selectOne(
-            "SELECT id, tenant_id, name, export_type, columns,
+            'SELECT id, tenant_id, name, export_type, columns,
                     is_default, created_by, created_at, updated_at
              FROM export_templates
-             WHERE id = :id AND tenant_id = :tenant_id",
-            [':id' => $id, ':tenant_id' => $tenantId]
+             WHERE id = :id AND tenant_id = :tenant_id',
+            [':id' => $id, ':tenant_id' => $tenantId],
         );
 
         if ($row) {
@@ -135,15 +133,14 @@ class ExportTemplateRepository extends AbstractRepository
     /**
      * Trouve le template par defaut pour un type donne.
      */
-    public function findDefault(string $tenantId, string $type): ?array
-    {
+    public function findDefault(string $tenantId, string $type): ?array {
         $row = $this->selectOne(
-            "SELECT id, tenant_id, name, export_type, columns,
+            'SELECT id, tenant_id, name, export_type, columns,
                     is_default, created_by, created_at, updated_at
              FROM export_templates
              WHERE tenant_id = :tenant_id AND export_type = :type AND is_default = true
-             LIMIT 1",
-            [':tenant_id' => $tenantId, ':type' => $type]
+             LIMIT 1',
+            [':tenant_id' => $tenantId, ':type' => $type],
         );
 
         if ($row) {
@@ -162,7 +159,7 @@ class ExportTemplateRepository extends AbstractRepository
         string $type,
         array $columns,
         bool $isDefault = false,
-        ?string $createdBy = null
+        ?string $createdBy = null,
     ): ?array {
         // Valider le type
         if (!in_array($type, self::TYPES, true)) {
@@ -173,9 +170,9 @@ class ExportTemplateRepository extends AbstractRepository
         $columns = $this->validateColumns($type, $columns);
 
         $row = $this->insertReturning(
-            "INSERT INTO export_templates (tenant_id, name, export_type, columns, is_default, created_by)
+            'INSERT INTO export_templates (tenant_id, name, export_type, columns, is_default, created_by)
              VALUES (:tenant_id, :name, :type, :columns, :is_default, :created_by)
-             RETURNING id, tenant_id, name, export_type, columns, is_default, created_by, created_at, updated_at",
+             RETURNING id, tenant_id, name, export_type, columns, is_default, created_by, created_at, updated_at',
             [
                 ':tenant_id' => $tenantId,
                 ':name' => $name,
@@ -183,7 +180,7 @@ class ExportTemplateRepository extends AbstractRepository
                 ':columns' => json_encode($columns, JSON_UNESCAPED_UNICODE),
                 ':is_default' => $isDefault ? 'true' : 'false',
                 ':created_by' => $createdBy,
-            ]
+            ],
         );
 
         if ($row) {
@@ -201,7 +198,7 @@ class ExportTemplateRepository extends AbstractRepository
         string $tenantId,
         string $name,
         array $columns,
-        ?bool $isDefault = null
+        ?bool $isDefault = null,
     ): ?array {
         $current = $this->findById($id, $tenantId);
         if (!$current) {
@@ -211,7 +208,7 @@ class ExportTemplateRepository extends AbstractRepository
         // Valider les colonnes
         $columns = $this->validateColumns($current['export_type'], $columns);
 
-        $setClause = "name = :name, columns = :columns, updated_at = now()";
+        $setClause = 'name = :name, columns = :columns, updated_at = now()';
         $params = [
             ':id' => $id,
             ':tenant_id' => $tenantId,
@@ -220,7 +217,7 @@ class ExportTemplateRepository extends AbstractRepository
         ];
 
         if ($isDefault !== null) {
-            $setClause .= ", is_default = :is_default";
+            $setClause .= ', is_default = :is_default';
             $params[':is_default'] = $isDefault ? 'true' : 'false';
         }
 
@@ -228,7 +225,7 @@ class ExportTemplateRepository extends AbstractRepository
             "UPDATE export_templates SET {$setClause}
              WHERE id = :id AND tenant_id = :tenant_id
              RETURNING id, tenant_id, name, export_type, columns, is_default, created_by, created_at, updated_at",
-            $params
+            $params,
         );
 
         if ($row) {
@@ -241,11 +238,10 @@ class ExportTemplateRepository extends AbstractRepository
     /**
      * Supprime un template.
      */
-    public function delete(string $id, string $tenantId): bool
-    {
+    public function delete(string $id, string $tenantId): bool {
         $rows = $this->execute(
-            "DELETE FROM export_templates WHERE id = :id AND tenant_id = :tenant_id",
-            [':id' => $id, ':tenant_id' => $tenantId]
+            'DELETE FROM export_templates WHERE id = :id AND tenant_id = :tenant_id',
+            [':id' => $id, ':tenant_id' => $tenantId],
         );
         return $rows > 0;
     }
@@ -253,8 +249,7 @@ class ExportTemplateRepository extends AbstractRepository
     /**
      * Duplique un template.
      */
-    public function duplicate(string $id, string $tenantId, string $newName): ?array
-    {
+    public function duplicate(string $id, string $tenantId, string $newName): ?array {
         $original = $this->findById($id, $tenantId);
         if (!$original) {
             return null;
@@ -266,20 +261,19 @@ class ExportTemplateRepository extends AbstractRepository
             $original['export_type'],
             $original['columns'],
             false,
-            null
+            null,
         );
     }
 
     /**
      * Verifie si un nom de template existe deja pour ce type.
      */
-    public function nameExists(string $tenantId, string $name, string $type, ?string $excludeId = null): bool
-    {
-        $sql = "SELECT 1 FROM export_templates WHERE tenant_id = :tenant_id AND name = :name AND export_type = :type";
+    public function nameExists(string $tenantId, string $name, string $type, ?string $excludeId = null): bool {
+        $sql = 'SELECT 1 FROM export_templates WHERE tenant_id = :tenant_id AND name = :name AND export_type = :type';
         $params = [':tenant_id' => $tenantId, ':name' => $name, ':type' => $type];
 
         if ($excludeId !== null) {
-            $sql .= " AND id != :exclude_id";
+            $sql .= ' AND id != :exclude_id';
             $params[':exclude_id'] = $excludeId;
         }
 
@@ -289,16 +283,14 @@ class ExportTemplateRepository extends AbstractRepository
     /**
      * Retourne les colonnes disponibles pour un type d'export.
      */
-    public function getAvailableColumns(string $type): array
-    {
+    public function getAvailableColumns(string $type): array {
         return self::AVAILABLE_COLUMNS[$type] ?? [];
     }
 
     /**
      * Retourne les colonnes par defaut pour un type d'export.
      */
-    public function getDefaultColumns(string $type): array
-    {
+    public function getDefaultColumns(string $type): array {
         $available = self::AVAILABLE_COLUMNS[$type] ?? [];
         $defaults = [];
         $order = 1;
@@ -319,8 +311,7 @@ class ExportTemplateRepository extends AbstractRepository
     /**
      * Valide et nettoie les colonnes.
      */
-    private function validateColumns(string $type, array $columns): array
-    {
+    private function validateColumns(string $type, array $columns): array {
         $available = self::AVAILABLE_COLUMNS[$type] ?? [];
         $validFields = array_column($available, 'field');
         $fieldLabels = array_column($available, 'label', 'field');
@@ -343,7 +334,7 @@ class ExportTemplateRepository extends AbstractRepository
         }
 
         // Trier par ordre
-        usort($validated, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+        usort($validated, fn ($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
 
         // Renumeroter
         foreach ($validated as $i => &$col) {

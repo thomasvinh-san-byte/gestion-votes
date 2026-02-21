@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use AgVote\Service\ExportService;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests unitaires pour ExportService.
@@ -12,12 +13,10 @@ use AgVote\Service\ExportService;
  * Toutes les méthodes sont des fonctions pures (pas de DB, pas d'IO)
  * sauf les méthodes d'output CSV/XLSX qui émettent des headers HTTP.
  */
-class ExportServiceTest extends TestCase
-{
+class ExportServiceTest extends TestCase {
     private ExportService $export;
 
-    protected function setUp(): void
-    {
+    protected function setUp(): void {
         $this->export = new ExportService();
     }
 
@@ -25,8 +24,7 @@ class ExportServiceTest extends TestCase
     // TRANSLATIONS
     // =========================================================================
 
-    public function testTranslateAttendanceMode(): void
-    {
+    public function testTranslateAttendanceMode(): void {
         $this->assertSame('Présent', $this->export->translateAttendanceMode('present'));
         $this->assertSame('À distance', $this->export->translateAttendanceMode('remote'));
         $this->assertSame('Représenté', $this->export->translateAttendanceMode('proxy'));
@@ -36,19 +34,16 @@ class ExportServiceTest extends TestCase
         $this->assertSame('Non renseigné', $this->export->translateAttendanceMode(null));
     }
 
-    public function testTranslateAttendanceModeCaseInsensitive(): void
-    {
+    public function testTranslateAttendanceModeCaseInsensitive(): void {
         $this->assertSame('Présent', $this->export->translateAttendanceMode('PRESENT'));
         $this->assertSame('À distance', $this->export->translateAttendanceMode('Remote'));
     }
 
-    public function testTranslateAttendanceModeUnknownPassthrough(): void
-    {
+    public function testTranslateAttendanceModeUnknownPassthrough(): void {
         $this->assertSame('unknown_mode', $this->export->translateAttendanceMode('unknown_mode'));
     }
 
-    public function testTranslateDecision(): void
-    {
+    public function testTranslateDecision(): void {
         $this->assertSame('Adoptée', $this->export->translateDecision('adopted'));
         $this->assertSame('Rejetée', $this->export->translateDecision('rejected'));
         $this->assertSame('En attente', $this->export->translateDecision('pending'));
@@ -57,8 +52,7 @@ class ExportServiceTest extends TestCase
         $this->assertSame('Non décidée', $this->export->translateDecision(null));
     }
 
-    public function testTranslateVoteChoice(): void
-    {
+    public function testTranslateVoteChoice(): void {
         $this->assertSame('Pour', $this->export->translateVoteChoice('for'));
         $this->assertSame('Contre', $this->export->translateVoteChoice('against'));
         $this->assertSame('Abstention', $this->export->translateVoteChoice('abstain'));
@@ -67,23 +61,20 @@ class ExportServiceTest extends TestCase
         $this->assertSame('Non exprimé', $this->export->translateVoteChoice(''));
     }
 
-    public function testTranslateMeetingStatus(): void
-    {
+    public function testTranslateMeetingStatus(): void {
         $this->assertSame('Brouillon', $this->export->translateMeetingStatus('draft'));
         $this->assertSame('Programmée', $this->export->translateMeetingStatus('scheduled'));
         $this->assertSame('En cours', $this->export->translateMeetingStatus('live'));
         $this->assertSame('Validée', $this->export->translateMeetingStatus('validated'));
     }
 
-    public function testTranslateVoteSource(): void
-    {
+    public function testTranslateVoteSource(): void {
         $this->assertSame('Électronique', $this->export->translateVoteSource('electronic'));
         $this->assertSame('Manuel', $this->export->translateVoteSource('manual'));
         $this->assertSame('Mode dégradé', $this->export->translateVoteSource('degraded'));
     }
 
-    public function testTranslateBoolean(): void
-    {
+    public function testTranslateBoolean(): void {
         $this->assertSame('Oui', $this->export->translateBoolean(true));
         $this->assertSame('Non', $this->export->translateBoolean(false));
         $this->assertSame('Oui', $this->export->translateBoolean('1'));
@@ -96,30 +87,25 @@ class ExportServiceTest extends TestCase
     // DATE/TIME FORMATTING
     // =========================================================================
 
-    public function testFormatDateWithTime(): void
-    {
+    public function testFormatDateWithTime(): void {
         $this->assertSame('15/01/2024 14:30', $this->export->formatDate('2024-01-15 14:30:00'));
     }
 
-    public function testFormatDateWithoutTime(): void
-    {
+    public function testFormatDateWithoutTime(): void {
         $this->assertSame('15/01/2024', $this->export->formatDate('2024-01-15 14:30:00', false));
     }
 
-    public function testFormatDateNull(): void
-    {
+    public function testFormatDateNull(): void {
         $this->assertSame('', $this->export->formatDate(null));
         $this->assertSame('', $this->export->formatDate(''));
     }
 
-    public function testFormatDateInvalidFallback(): void
-    {
+    public function testFormatDateInvalidFallback(): void {
         // Invalid date should return the original string
         $this->assertSame('not-a-date', $this->export->formatDate('not-a-date'));
     }
 
-    public function testFormatTime(): void
-    {
+    public function testFormatTime(): void {
         $this->assertSame('14:30', $this->export->formatTime('2024-01-15 14:30:00'));
         $this->assertSame('', $this->export->formatTime(null));
         $this->assertSame('', $this->export->formatTime(''));
@@ -129,27 +115,23 @@ class ExportServiceTest extends TestCase
     // NUMBER FORMATTING
     // =========================================================================
 
-    public function testFormatNumberInteger(): void
-    {
+    public function testFormatNumberInteger(): void {
         $this->assertSame('42', $this->export->formatNumber(42));
         $this->assertSame('0', $this->export->formatNumber(0));
         $this->assertSame('1 000', $this->export->formatNumber(1000));
     }
 
-    public function testFormatNumberDecimal(): void
-    {
+    public function testFormatNumberDecimal(): void {
         $this->assertSame('3,5', $this->export->formatNumber(3.5));
         $this->assertSame('1,25', $this->export->formatNumber(1.25));
     }
 
-    public function testFormatNumberNull(): void
-    {
+    public function testFormatNumberNull(): void {
         $this->assertSame('0', $this->export->formatNumber(null));
         $this->assertSame('0', $this->export->formatNumber(''));
     }
 
-    public function testFormatPercent(): void
-    {
+    public function testFormatPercent(): void {
         $this->assertSame('75 %', $this->export->formatPercent(0.75));
         $this->assertSame('100 %', $this->export->formatPercent(1.0));
         $this->assertSame('', $this->export->formatPercent(null));
@@ -159,20 +141,17 @@ class ExportServiceTest extends TestCase
     // FILENAME GENERATION
     // =========================================================================
 
-    public function testGenerateFilename(): void
-    {
+    public function testGenerateFilename(): void {
         $filename = $this->export->generateFilename('attendance', '', 'csv');
         $this->assertMatchesRegularExpression('/^Emargement_\d{4}-\d{2}-\d{2}\.csv$/', $filename);
     }
 
-    public function testGenerateFilenameWithTitle(): void
-    {
+    public function testGenerateFilenameWithTitle(): void {
         $filename = $this->export->generateFilename('votes', 'AG 2024', 'xlsx');
         $this->assertMatchesRegularExpression('/^Votes_.*_\d{4}-\d{2}-\d{2}\.xlsx$/', $filename);
     }
 
-    public function testGenerateFilenameMappings(): void
-    {
+    public function testGenerateFilenameMappings(): void {
         $this->assertStringStartsWith('Emargement_', $this->export->generateFilename('presences'));
         $this->assertStringStartsWith('Votes_', $this->export->generateFilename('ballots'));
         $this->assertStringStartsWith('Membres_', $this->export->generateFilename('membres'));
@@ -183,8 +162,7 @@ class ExportServiceTest extends TestCase
         $this->assertStringStartsWith('Export_complet_', $this->export->generateFilename('complet'));
     }
 
-    public function testSanitizeFilename(): void
-    {
+    public function testSanitizeFilename(): void {
         $this->assertMatchesRegularExpression('/^[a-z0-9_\-]+$/', $this->export->sanitizeFilename('AG Extraordinaire 2024!'));
         // Length limit
         $long = str_repeat('a', 100);
@@ -195,8 +173,7 @@ class ExportServiceTest extends TestCase
     // ROW FORMATTING
     // =========================================================================
 
-    public function testFormatAttendanceRow(): void
-    {
+    public function testFormatAttendanceRow(): void {
         $row = [
             'full_name' => 'Jean Dupont',
             'voting_power' => 2,
@@ -215,8 +192,7 @@ class ExportServiceTest extends TestCase
         $this->assertSame('15/01/2024 09:00', $result[3]); // formatted date
     }
 
-    public function testFormatVoteRow(): void
-    {
+    public function testFormatVoteRow(): void {
         $row = [
             'motion_title' => 'Résolution 1',
             'motion_position' => 1,
@@ -237,8 +213,7 @@ class ExportServiceTest extends TestCase
         $this->assertSame('Électronique', $result[8]); // translated source
     }
 
-    public function testFormatMemberRow(): void
-    {
+    public function testFormatMemberRow(): void {
         $row = [
             'full_name' => 'Pierre Durand',
             'email' => 'pierre@test.com',
@@ -258,8 +233,7 @@ class ExportServiceTest extends TestCase
         $this->assertSame('À distance', $result[4]); // translated mode
     }
 
-    public function testFormatMotionResultRow(): void
-    {
+    public function testFormatMotionResultRow(): void {
         $row = [
             'position' => 1,
             'title' => 'Budget 2024',
@@ -282,8 +256,7 @@ class ExportServiceTest extends TestCase
         $this->assertSame('Adoptée', $result[10]); // translated decision
     }
 
-    public function testFormatProxyRow(): void
-    {
+    public function testFormatProxyRow(): void {
         $row = [
             'grantor_name' => 'Alice',
             'grantee_name' => 'Bob',
@@ -303,8 +276,7 @@ class ExportServiceTest extends TestCase
     // HEADERS
     // =========================================================================
 
-    public function testHeadersReturnNonEmptyArrays(): void
-    {
+    public function testHeadersReturnNonEmptyArrays(): void {
         $this->assertNotEmpty($this->export->getAttendanceHeaders());
         $this->assertNotEmpty($this->export->getVotesHeaders());
         $this->assertNotEmpty($this->export->getMembersHeaders());
@@ -312,8 +284,7 @@ class ExportServiceTest extends TestCase
         $this->assertNotEmpty($this->export->getProxiesHeaders());
     }
 
-    public function testAttendanceHeadersMatchRowLength(): void
-    {
+    public function testAttendanceHeadersMatchRowLength(): void {
         $headers = $this->export->getAttendanceHeaders();
         $row = $this->export->formatAttendanceRow([
             'full_name' => 'Test',
@@ -323,8 +294,7 @@ class ExportServiceTest extends TestCase
         $this->assertCount(count($headers), $row);
     }
 
-    public function testVotesHeadersMatchRowLength(): void
-    {
+    public function testVotesHeadersMatchRowLength(): void {
         $headers = $this->export->getVotesHeaders();
         $row = $this->export->formatVoteRow([
             'motion_title' => 'Test',
@@ -334,22 +304,19 @@ class ExportServiceTest extends TestCase
         $this->assertCount(count($headers), $row);
     }
 
-    public function testMembersHeadersMatchRowLength(): void
-    {
+    public function testMembersHeadersMatchRowLength(): void {
         $headers = $this->export->getMembersHeaders();
         $row = $this->export->formatMemberRow(['full_name' => 'Test']);
         $this->assertCount(count($headers), $row);
     }
 
-    public function testMotionResultsHeadersMatchRowLength(): void
-    {
+    public function testMotionResultsHeadersMatchRowLength(): void {
         $headers = $this->export->getMotionResultsHeaders();
         $row = $this->export->formatMotionResultRow(['title' => 'Test']);
         $this->assertCount(count($headers), $row);
     }
 
-    public function testProxiesHeadersMatchRowLength(): void
-    {
+    public function testProxiesHeadersMatchRowLength(): void {
         $headers = $this->export->getProxiesHeaders();
         $row = $this->export->formatProxyRow(['grantor_name' => 'A', 'grantee_name' => 'B']);
         $this->assertCount(count($headers), $row);

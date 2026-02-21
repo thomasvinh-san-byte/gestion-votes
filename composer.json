@@ -1,4 +1,7 @@
 {
+    "name": "thomasvinh-san-byte/ag-vote",
+    "description": "Application de gestion de votes et assemblées générales",
+    "license": "proprietary",
     "require": {
         "php": ">=8.4",
         "dompdf/dompdf": "^3.1",
@@ -21,13 +24,20 @@
         "psr-4": {
             "AgVote\\": "app/",
             "AgVote\\Command\\": "app/Command/",
-            "AgVote\\Event\\": "app/Event/",
-            "AgVote\\Repository\\": "app/Repository/",
-            "AgVote\\Service\\": "app/Services/",
+            "AgVote\\Controller\\": "app/Controller/",
             "AgVote\\Core\\": "app/Core/",
             "AgVote\\Core\\Security\\": "app/Core/Security/",
             "AgVote\\Core\\Validation\\": "app/Core/Validation/",
+            "AgVote\\Event\\": "app/Event/",
+            "AgVote\\Repository\\": "app/Repository/",
+            "AgVote\\Service\\": "app/Services/",
+            "AgVote\\View\\": "app/View/",
             "AgVote\\WebSocket\\": "app/WebSocket/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AgVote\\Tests\\": "tests/"
         }
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
@@ -9,8 +10,7 @@ namespace AgVote\Service;
  * Centralizes API error code translations to provide
  * readable and consistent user messages.
  */
-final class ErrorDictionary
-{
+final class ErrorDictionary {
     /**
      * Error messages in French
      * Format: code => message
@@ -223,16 +223,14 @@ final class ErrorDictionary
     /**
      * Returns the French message for an error code
      */
-    public static function getMessage(string $code): string
-    {
+    public static function getMessage(string $code): string {
         return self::MESSAGES[$code] ?? self::getDefaultMessage($code);
     }
 
     /**
      * Generates a default message for unmapped codes
      */
-    private static function getDefaultMessage(string $code): string
-    {
+    private static function getDefaultMessage(string $code): string {
         // Transformer les underscores en espaces et capitaliser
         $readable = str_replace('_', ' ', $code);
         $readable = ucfirst($readable);
@@ -242,16 +240,14 @@ final class ErrorDictionary
     /**
      * Checks if an error code has a defined message
      */
-    public static function hasMessage(string $code): bool
-    {
+    public static function hasMessage(string $code): bool {
         return isset(self::MESSAGES[$code]);
     }
 
     /**
      * Retourne tous les codes d'erreur disponibles
      */
-    public static function getCodes(): array
-    {
+    public static function getCodes(): array {
         return array_keys(self::MESSAGES);
     }
 
@@ -260,10 +256,10 @@ final class ErrorDictionary
      *
      * @param string $code Error code
      * @param array $extra Additional data (may contain 'detail')
+     *
      * @return array Response enriched with 'message'
      */
-    public static function enrichError(string $code, array $extra = []): array
-    {
+    public static function enrichError(string $code, array $extra = []): array {
         $message = self::getMessage($code);
 
         // Si un 'detail' est fourni, l'ajouter au message

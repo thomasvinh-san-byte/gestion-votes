@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
@@ -9,6 +10,7 @@ use AgVote\Repository\MemberRepository;
 use AgVote\WebSocket\EventBroadcaster;
 use InvalidArgumentException;
 use RuntimeException;
+use Throwable;
 
 /**
  * Attendance (check-in) management per meeting.
@@ -18,15 +20,13 @@ use RuntimeException;
  * - A member is "absent" if no row exists
  * - effective_power is frozen at check-in time (member's voting_power)
  */
-final class AttendancesService
-{
+final class AttendancesService {
     /**
      * Indicates if a member is "present" (mode present/remote/proxy, not checked_out) for a meeting.
      *
      * Used for vote eligibility (public).
      */
-    public static function isPresent(string $meetingId, string $memberId, string $tenantId): bool
-    {
+    public static function isPresent(string $meetingId, string $memberId, string $tenantId): bool {
         $meetingId = trim($meetingId);
         $memberId = trim($memberId);
         if ($meetingId === '' || $memberId === '') {
@@ -42,8 +42,7 @@ final class AttendancesService
      *
      * Recommended for controlling vote eligibility to avoid proxy chains.
      */
-    public static function isPresentDirect(string $meetingId, string $memberId, string $tenantId): bool
-    {
+    public static function isPresentDirect(string $meetingId, string $memberId, string $tenantId): bool {
         $meetingId = trim($meetingId);
         $memberId = trim($memberId);
         if ($meetingId === '' || $memberId === '') {
@@ -59,8 +58,7 @@ final class AttendancesService
      *
      * @return array<int,array<string,mixed>>
      */
-    public static function listForMeeting(string $meetingId, string $tenantId): array
-    {
+    public static function listForMeeting(string $meetingId, string $tenantId): array {
         $meetingId = trim($meetingId);
         if ($meetingId === '') {
             throw new InvalidArgumentException('meeting_id est obligatoire');
@@ -75,8 +73,7 @@ final class AttendancesService
      *
      * @return array{present_count:int,present_weight:float}
      */
-    public static function summaryForMeeting(string $meetingId, string $tenantId): array
-    {
+    public static function summaryForMeeting(string $meetingId, string $tenantId): array {
         $meetingId = trim($meetingId);
         if ($meetingId === '') {
             throw new InvalidArgumentException('meeting_id est obligatoire');
@@ -93,8 +90,7 @@ final class AttendancesService
      *
      * @return array<string,mixed> attendance row (or {deleted:true})
      */
-    public static function upsert(string $meetingId, string $memberId, string $mode, string $tenantId, ?string $notes = null): array
-    {
+    public static function upsert(string $meetingId, string $memberId, string $mode, string $tenantId, ?string $notes = null): array {
         $meetingId = trim($meetingId);
         $memberId = trim($memberId);
         $mode = trim($mode);
@@ -103,9 +99,9 @@ final class AttendancesService
             throw new InvalidArgumentException('meeting_id et member_id sont obligatoires');
         }
 
-        $allowed = ['present','remote','proxy','excused','absent'];
+        $allowed = ['present', 'remote', 'proxy', 'excused', 'absent'];
         if (!in_array($mode, $allowed, true)) {
-            throw new InvalidArgumentException("mode invalide (present/remote/proxy/excused/absent)");
+            throw new InvalidArgumentException('mode invalide (present/remote/proxy/excused/absent)');
         }
 
         // Verify meeting belongs to tenant
@@ -114,7 +110,7 @@ final class AttendancesService
         if (!$meeting) {
             throw new RuntimeException('Séance introuvable');
         }
-        if ((string)$meeting['status'] === 'archived') {
+        if ((string) $meeting['status'] === 'archived') {
             throw new RuntimeException('Séance archivée : présence non modifiable');
         }
 
@@ -132,7 +128,7 @@ final class AttendancesService
             return ['deleted' => true, 'meeting_id' => $meetingId, 'member_id' => $memberId];
         }
 
-        $effective = (float)($member['voting_power'] ?? 1.0);
+        $effective = (float) ($member['voting_power'] ?? 1.0);
 
         $row = $attendanceRepo->upsert($tenantId, $meetingId, $memberId, $mode, $effective, $notes);
         if (!$row) {
@@ -146,12 +142,11 @@ final class AttendancesService
     /**
      * Broadcast attendance stats via WebSocket.
      */
-    private static function broadcastAttendanceStats(AttendanceRepository $repo, string $meetingId, string $tenantId): void
-    {
+    private static function broadcastAttendanceStats(AttendanceRepository $repo, string $meetingId, string $tenantId): void {
         try {
             $stats = $repo->getStatsByMode($meetingId, $tenantId);
             EventBroadcaster::attendanceUpdated($meetingId, $stats);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Don't fail if broadcast fails
         }
     }

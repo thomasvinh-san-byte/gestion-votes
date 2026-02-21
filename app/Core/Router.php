@@ -1,12 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core;
 
 use AgVote\Core\Http\ApiResponseException;
 use AgVote\Core\Middleware\MiddlewareInterface;
-use AgVote\Core\Middleware\RoleMiddleware;
 use AgVote\Core\Middleware\RateLimitGuard;
+use AgVote\Core\Middleware\RoleMiddleware;
 
 /**
  * Router with exact-match + parameterized route support.
@@ -25,8 +26,7 @@ use AgVote\Core\Middleware\RateLimitGuard;
  *   'role'       => string|array   — required role(s)
  *   'rate_limit' => [context, max, window]  — rate limiting
  */
-final class Router
-{
+final class Router {
     /** @var array<string, array<string, array{class: class-string, method: string, middleware: array}>> */
     private array $routes = [];
 
@@ -40,8 +40,7 @@ final class Router
      * Register a route for one or more HTTP methods.
      * Supports {param} placeholders for dynamic segments.
      */
-    public function map(string|array $httpMethods, string $uri, string $controllerClass, string $controllerMethod, array $middleware = []): self
-    {
+    public function map(string|array $httpMethods, string $uri, string $controllerClass, string $controllerMethod, array $middleware = []): self {
         if (is_string($httpMethods)) {
             $httpMethods = [$httpMethods];
         }
@@ -66,8 +65,7 @@ final class Router
     /**
      * Register a multi-method route.
      */
-    public function mapMulti(string $uri, array $methodMap): self
-    {
+    public function mapMulti(string $uri, array $methodMap): self {
         foreach ($methodMap as $httpMethod => $entry) {
             $handler = [
                 'class' => $entry[0],
@@ -87,16 +85,14 @@ final class Router
     /**
      * Register a route that accepts any HTTP method.
      */
-    public function mapAny(string $uri, string $controllerClass, string $controllerMethod, array $middleware = []): self
-    {
+    public function mapAny(string $uri, string $controllerClass, string $controllerMethod, array $middleware = []): self {
         return $this->map(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], $uri, $controllerClass, $controllerMethod, $middleware);
     }
 
     /**
      * Register a special route that uses bootstrap.php instead of api.php.
      */
-    public function mapBootstrap(string $uri, string $controllerClass, string $controllerMethod): self
-    {
+    public function mapBootstrap(string $uri, string $controllerClass, string $controllerMethod): self {
         $this->specialRoutes[$uri] = [
             'class' => $controllerClass,
             'method' => $controllerMethod,
@@ -110,8 +106,7 @@ final class Router
      *
      * @return bool true if a route was matched, false otherwise
      */
-    public function dispatch(string $httpMethod, string $uri): bool
-    {
+    public function dispatch(string $httpMethod, string $uri): bool {
         $httpMethod = strtoupper($httpMethod);
 
         // Normalize: strip query string, trailing slash
@@ -159,8 +154,7 @@ final class Router
         return false;
     }
 
-    private function dispatchRoute(array $methodMap, string $httpMethod, array $routeParams = []): bool
-    {
+    private function dispatchRoute(array $methodMap, string $httpMethod, array $routeParams = []): bool {
         if (!isset($methodMap[$httpMethod])) {
             if ($httpMethod === 'OPTIONS') {
                 return true;
@@ -198,8 +192,7 @@ final class Router
         return true;
     }
 
-    private function dispatchSpecial(array $handler): bool
-    {
+    private function dispatchSpecial(array $handler): bool {
         $controller = new $handler['class']();
         $controller->{$handler['method']}();
         return true;
@@ -211,8 +204,7 @@ final class Router
      * Register a parameterized route.
      * Converts /api/v1/meetings/{id} to regex /api/v1/meetings/([^/]+)
      */
-    private function addParamRoute(string $uri, array $httpMethods, array $handler): void
-    {
+    private function addParamRoute(string $uri, array $httpMethods, array $handler): void {
         // Extract param names and build regex
         $params = [];
         $regex = preg_replace_callback('/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/', function ($m) use (&$params) {
@@ -253,8 +245,7 @@ final class Router
      *
      * @return array{methods: array, params: array<string,string>}|null
      */
-    private function matchParamRoute(string $uri, string $httpMethod): ?array
-    {
+    private function matchParamRoute(string $uri, string $httpMethod): ?array {
         foreach ($this->paramRoutes as $route) {
             if (preg_match($route['regex'], $uri, $matches)) {
                 array_shift($matches); // remove full match
@@ -276,8 +267,7 @@ final class Router
      *
      * @return MiddlewareInterface[]
      */
-    private static function buildMiddleware(array $config): array
-    {
+    private static function buildMiddleware(array $config): array {
         $middlewares = [];
 
         if (isset($config['role'])) {
@@ -295,16 +285,14 @@ final class Router
     /**
      * Get all registered routes (for debugging/documentation).
      */
-    public function getRoutes(): array
-    {
+    public function getRoutes(): array {
         return $this->routes;
     }
 
     /**
      * Get all registered parameterized routes.
      */
-    public function getParamRoutes(): array
-    {
+    public function getParamRoutes(): array {
         return $this->paramRoutes;
     }
 }

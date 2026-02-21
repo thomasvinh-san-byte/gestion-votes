@@ -1,11 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 // Permet d'utiliser bootstrap.php en CLI (scripts) sans warning
 if (PHP_SAPI === 'cli' && !isset($_SERVER['REQUEST_METHOD'])) {
     $_SERVER['REQUEST_METHOD'] = 'CLI';
 }
-
 
 /**
  * Script de démo e-vote :
@@ -27,23 +27,20 @@ use AgVote\Service\VoteEngine;
 
 // ── Local PDO helpers (replaces deprecated db_select_one / db_scalar / db_execute) ──
 
-function seed_select_one(string $sql, array $params = []): ?array
-{
+function seed_select_one(string $sql, array $params = []): ?array {
     $st = db()->prepare($sql);
     $st->execute($params);
     $row = $st->fetch();
     return $row === false ? null : $row;
 }
 
-function seed_scalar(string $sql, array $params = []): mixed
-{
+function seed_scalar(string $sql, array $params = []): mixed {
     $st = db()->prepare($sql);
     $st->execute($params);
     return $st->fetchColumn();
 }
 
-function seed_execute(string $sql, array $params = []): int
-{
+function seed_execute(string $sql, array $params = []): int {
     $st = db()->prepare($sql);
     $st->execute($params);
     return $st->rowCount();
@@ -54,11 +51,10 @@ function seed_execute(string $sql, array $params = []): int
 /**
  * Retourne un UUID de tenant pour le slug donné, en le créant si besoin.
  */
-function seedTenant(string $slug, string $name): string
-{
+function seedTenant(string $slug, string $name): string {
     $row = seed_select_one(
-        "SELECT id FROM tenants WHERE slug = :slug",
-        [':slug' => $slug]
+        'SELECT id FROM tenants WHERE slug = :slug',
+        [':slug' => $slug],
     );
 
     if ($row && !empty($row['id'])) {
@@ -73,7 +69,7 @@ function seedTenant(string $slug, string $name): string
         [
             ':name' => $name,
             ':slug' => $slug,
-        ]
+        ],
     );
 
     echo "✔ Tenant créé : {$name} ({$id})\n";
@@ -83,14 +79,13 @@ function seedTenant(string $slug, string $name): string
 /**
  * Crée ou récupère un membre (unique par tenant + full_name).
  */
-function seedMember(string $tenantId, string $fullName, string $email, float $power): string
-{
+function seedMember(string $tenantId, string $fullName, string $email, float $power): string {
     $row = seed_select_one(
-        "SELECT id FROM members WHERE tenant_id = :tenant_id AND full_name = :full_name",
+        'SELECT id FROM members WHERE tenant_id = :tenant_id AND full_name = :full_name',
         [
-            ':tenant_id'  => $tenantId,
-            ':full_name'  => $fullName,
-        ]
+            ':tenant_id' => $tenantId,
+            ':full_name' => $fullName,
+        ],
     );
 
     if ($row && !empty($row['id'])) {
@@ -99,15 +94,15 @@ function seedMember(string $tenantId, string $fullName, string $email, float $po
     }
 
     $id = seed_scalar(
-        "INSERT INTO members (id, tenant_id, full_name, email, voting_power, is_active)
+        'INSERT INTO members (id, tenant_id, full_name, email, voting_power, is_active)
          VALUES (gen_random_uuid(), :tenant_id, :full_name, :email, :power, true)
-         RETURNING id",
+         RETURNING id',
         [
             ':tenant_id' => $tenantId,
             ':full_name' => $fullName,
-            ':email'     => $email,
-            ':power'     => $power,
-        ]
+            ':email' => $email,
+            ':power' => $power,
+        ],
     );
 
     echo "  • Membre créé : {$fullName} ({$id}), pouvoir = {$power}\n";
@@ -117,16 +112,15 @@ function seedMember(string $tenantId, string $fullName, string $email, float $po
 /**
  * Crée ou récupère une quorum policy (unique par tenant + name).
  */
-function seedQuorumPolicy(string $tenantId): string
-{
+function seedQuorumPolicy(string $tenantId): string {
     $name = 'Quorum 50 % membres (démo)';
 
     $row = seed_select_one(
-        "SELECT id FROM quorum_policies WHERE tenant_id = :tenant_id AND name = :name",
+        'SELECT id FROM quorum_policies WHERE tenant_id = :tenant_id AND name = :name',
         [
             ':tenant_id' => $tenantId,
-            ':name'      => $name,
-        ]
+            ':name' => $name,
+        ],
     );
 
     if ($row && !empty($row['id'])) {
@@ -151,10 +145,10 @@ function seedQuorumPolicy(string $tenantId): string
          )
          RETURNING id",
         [
-            ':tenant_id'   => $tenantId,
-            ':name'        => $name,
+            ':tenant_id' => $tenantId,
+            ':name' => $name,
             ':description' => 'Quorum atteint si au moins 50 % des membres éligibles participent au vote.',
-        ]
+        ],
     );
 
     echo "✔ Quorum policy créée : {$name} ({$id})\n";
@@ -164,16 +158,15 @@ function seedQuorumPolicy(string $tenantId): string
 /**
  * Crée ou récupère une vote policy (majorité simple sur exprimés).
  */
-function seedVotePolicy(string $tenantId): string
-{
+function seedVotePolicy(string $tenantId): string {
     $name = 'Majorité simple (1/2 exprimés – démo)';
 
     $row = seed_select_one(
-        "SELECT id FROM vote_policies WHERE tenant_id = :tenant_id AND name = :name",
+        'SELECT id FROM vote_policies WHERE tenant_id = :tenant_id AND name = :name',
         [
             ':tenant_id' => $tenantId,
-            ':name'      => $name,
-        ]
+            ':name' => $name,
+        ],
     );
 
     if ($row && !empty($row['id'])) {
@@ -197,10 +190,10 @@ function seedVotePolicy(string $tenantId): string
          )
          RETURNING id",
         [
-            ':tenant_id'   => $tenantId,
-            ':name'        => $name,
+            ':tenant_id' => $tenantId,
+            ':name' => $name,
             ':description' => 'Résolution adoptée si les voix « pour » représentent au moins 50 % des voix exprimées.',
-        ]
+        ],
     );
 
     echo "✔ Vote policy créée : {$name} ({$id})\n";
@@ -210,14 +203,13 @@ function seedVotePolicy(string $tenantId): string
 /**
  * Crée ou récupère une séance de démo "live".
  */
-function seedMeeting(string $tenantId, string $title, string $quorumPolicyId): string
-{
+function seedMeeting(string $tenantId, string $title, string $quorumPolicyId): string {
     $row = seed_select_one(
-        "SELECT id FROM meetings WHERE tenant_id = :tenant_id AND title = :title",
+        'SELECT id FROM meetings WHERE tenant_id = :tenant_id AND title = :title',
         [
             ':tenant_id' => $tenantId,
-            ':title'     => $title,
-        ]
+            ':title' => $title,
+        ],
     );
 
     if ($row && !empty($row['id'])) {
@@ -244,12 +236,12 @@ function seedMeeting(string $tenantId, string $title, string $quorumPolicyId): s
          )
          RETURNING id",
         [
-            ':tenant_id'        => $tenantId,
-            ':title'            => $title,
-            ':description'      => 'Séance de démonstration du module de vote électronique.',
-            ':location'         => 'Salle du conseil',
+            ':tenant_id' => $tenantId,
+            ':title' => $title,
+            ':description' => 'Séance de démonstration du module de vote électronique.',
+            ':location' => 'Salle du conseil',
             ':quorum_policy_id' => $quorumPolicyId,
-        ]
+        ],
     );
 
     echo "✔ Séance créée : {$title} ({$id})\n";
@@ -259,11 +251,10 @@ function seedMeeting(string $tenantId, string $title, string $quorumPolicyId): s
 /**
  * Crée ou récupère un point d'ODJ pour la séance.
  */
-function seedAgenda(string $meetingId): string
-{
+function seedAgenda(string $meetingId): string {
     $row = seed_select_one(
-        "SELECT id FROM agendas WHERE meeting_id = :meeting_id AND idx = 1",
-        [':meeting_id' => $meetingId]
+        'SELECT id FROM agendas WHERE meeting_id = :meeting_id AND idx = 1',
+        [':meeting_id' => $meetingId],
     );
 
     if ($row && !empty($row['id'])) {
@@ -272,7 +263,7 @@ function seedAgenda(string $meetingId): string
     }
 
     $id = seed_scalar(
-        "INSERT INTO agendas (id, meeting_id, idx, title, description)
+        'INSERT INTO agendas (id, meeting_id, idx, title, description)
          VALUES (
             gen_random_uuid(),
             :meeting_id,
@@ -280,12 +271,12 @@ function seedAgenda(string $meetingId): string
             :title,
             :description
          )
-         RETURNING id",
+         RETURNING id',
         [
-            ':meeting_id'  => $meetingId,
-            ':title'       => '1. Adoption du budget 2025',
+            ':meeting_id' => $meetingId,
+            ':title' => '1. Adoption du budget 2025',
             ':description' => 'Point de démo pour le vote électronique.',
-        ]
+        ],
     );
 
     echo "✔ Point d'ODJ créé (idx=1) ({$id})\n";
@@ -295,16 +286,15 @@ function seedAgenda(string $meetingId): string
 /**
  * Crée ou récupère une motion de démo ouverte.
  */
-function seedMotion(string $meetingId, string $agendaId, string $votePolicyId): string
-{
+function seedMotion(string $meetingId, string $agendaId, string $votePolicyId): string {
     $title = 'Adoption du budget 2025';
 
     $row = seed_select_one(
-        "SELECT id FROM motions WHERE meeting_id = :meeting_id AND title = :title",
+        'SELECT id FROM motions WHERE meeting_id = :meeting_id AND title = :title',
         [
             ':meeting_id' => $meetingId,
-            ':title'      => $title,
-        ]
+            ':title' => $title,
+        ],
     );
 
     if ($row && !empty($row['id'])) {
@@ -312,22 +302,22 @@ function seedMotion(string $meetingId, string $agendaId, string $votePolicyId): 
 
         // S'assurer qu'elle est ouverte et qu'elle utilise la bonne policy
         seed_execute(
-            "UPDATE motions
+            'UPDATE motions
              SET opened_at = COALESCE(opened_at, now()),
                  closed_at = NULL,
                  vote_policy_id = :vp_id
-             WHERE id = :id",
+             WHERE id = :id',
             [
-                ':id'    => $row['id'],
+                ':id' => $row['id'],
                 ':vp_id' => $votePolicyId,
-            ]
+            ],
         );
 
         return (string) $row['id'];
     }
 
     $id = seed_scalar(
-        "INSERT INTO motions (
+        'INSERT INTO motions (
             id, meeting_id, agenda_id,
             title, description,
             secret, vote_policy_id,
@@ -343,14 +333,14 @@ function seedMotion(string $meetingId, string $agendaId, string $votePolicyId): 
             :vote_policy_id,
             now()
          )
-         RETURNING id",
+         RETURNING id',
         [
-            ':meeting_id'     => $meetingId,
-            ':agenda_id'      => $agendaId,
-            ':title'          => $title,
-            ':description'    => 'Vote de démo sur le budget 2025.',
+            ':meeting_id' => $meetingId,
+            ':agenda_id' => $agendaId,
+            ':title' => $title,
+            ':description' => 'Vote de démo sur le budget 2025.',
             ':vote_policy_id' => $votePolicyId,
-        ]
+        ],
     );
 
     echo "✔ Motion créée : {$title} ({$id})\n";
@@ -360,16 +350,15 @@ function seedMotion(string $meetingId, string $agendaId, string $votePolicyId): 
 /**
  * Met à jour la séance pour pointer sur la motion courante.
  */
-function linkCurrentMotionToMeeting(string $meetingId, string $motionId): void
-{
+function linkCurrentMotionToMeeting(string $meetingId, string $motionId): void {
     seed_execute(
-        "UPDATE meetings
+        'UPDATE meetings
          SET current_motion_id = :motion_id
-         WHERE id = :meeting_id",
+         WHERE id = :meeting_id',
         [
-            ':motion_id'  => $motionId,
+            ':motion_id' => $motionId,
             ':meeting_id' => $meetingId,
-        ]
+        ],
     );
 
     echo "✔ current_motion_id mis à jour sur la séance\n";
@@ -381,8 +370,7 @@ function linkCurrentMotionToMeeting(string $meetingId, string $motionId): void
  * @param string $motionId
  * @param string[] $members
  */
-function seedBallots(string $motionId, array $members): void
-{
+function seedBallots(string $motionId, array $members): void {
     echo "✔ Enregistrement de bulletins de démo…\n";
 
     // On force quelques votes : 2 pour, 1 contre
@@ -396,14 +384,14 @@ function seedBallots(string $motionId, array $members): void
         $data = [
             'motion_id' => $motionId,
             'member_id' => $p['member'],
-            'value'     => $p['value'],
+            'value' => $p['value'],
         ];
 
         try {
             $ballot = BallotsService::castBallot($data);
             echo "  • Vote enregistré : motion {$ballot['motion_id']} / membre {$ballot['member_id']} = {$ballot['value']}\n";
         } catch (Throwable $e) {
-            echo "  ! Erreur enregistrement vote : " . $e->getMessage() . "\n";
+            echo '  ! Erreur enregistrement vote : ' . $e->getMessage() . "\n";
         }
     }
 }
@@ -411,14 +399,13 @@ function seedBallots(string $motionId, array $members): void
 /**
  * Affiche le résultat calculé par VoteEngine.
  */
-function showComputedResult(string $motionId): void
-{
+function showComputedResult(string $motionId): void {
     echo "\n=== Résultat calculé par VoteEngine ===\n";
     try {
         $result = VoteEngine::computeMotionResult($motionId);
         print_r($result);
     } catch (Throwable $e) {
-        echo "Erreur computeMotionResult: " . $e->getMessage() . "\n";
+        echo 'Erreur computeMotionResult: ' . $e->getMessage() . "\n";
     }
 }
 
@@ -438,12 +425,12 @@ $members = [$member1, $member2, $member3];
 
 // 3) Policies
 $quorumPolicyId = seedQuorumPolicy($tenantId);
-$votePolicyId   = seedVotePolicy($tenantId);
+$votePolicyId = seedVotePolicy($tenantId);
 
 // 4) Séance + ODJ + motion
 $meetingId = seedMeeting($tenantId, 'Séance de démo e-vote', $quorumPolicyId);
-$agendaId  = seedAgenda($meetingId);
-$motionId  = seedMotion($meetingId, $agendaId, $votePolicyId);
+$agendaId = seedAgenda($meetingId);
+$motionId = seedMotion($meetingId, $agendaId, $votePolicyId);
 linkCurrentMotionToMeeting($meetingId, $motionId);
 
 // 5) Bulletins

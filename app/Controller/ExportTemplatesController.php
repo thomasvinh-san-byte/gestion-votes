@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -8,10 +9,8 @@ use AgVote\Repository\ExportTemplateRepository;
 /**
  * Consolidates export_templates.php CRUD operations.
  */
-final class ExportTemplatesController extends AbstractController
-{
-    public function list(): void
-    {
+final class ExportTemplatesController extends AbstractController {
+    public function list(): void {
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
 
@@ -55,16 +54,15 @@ final class ExportTemplatesController extends AbstractController
         api_ok($result);
     }
 
-    public function create(): void
-    {
+    public function create(): void {
         $input = api_request('POST');
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
 
         // Special action: duplicate
         if (isset($input['action']) && $input['action'] === 'duplicate') {
-            $sourceId = trim((string)($input['source_id'] ?? ''));
-            $newName = trim((string)($input['new_name'] ?? ''));
+            $sourceId = trim((string) ($input['source_id'] ?? ''));
+            $newName = trim((string) ($input['new_name'] ?? ''));
             if (!api_is_uuid($sourceId)) {
                 api_fail('invalid_source_id', 400);
             }
@@ -83,10 +81,10 @@ final class ExportTemplatesController extends AbstractController
             return;
         }
 
-        $name = trim((string)($input['name'] ?? ''));
-        $type = trim((string)($input['export_type'] ?? ''));
+        $name = trim((string) ($input['name'] ?? ''));
+        $type = trim((string) ($input['export_type'] ?? ''));
         $columns = $input['columns'] ?? null;
-        $isDefault = (bool)($input['is_default'] ?? false);
+        $isDefault = (bool) ($input['is_default'] ?? false);
 
         if ($name === '' || mb_strlen($name) < 2 || mb_strlen($name) > 100) {
             api_fail('invalid_name', 422, ['detail' => 'Le nom doit contenir entre 2 et 100 caractères.']);
@@ -113,8 +111,7 @@ final class ExportTemplatesController extends AbstractController
         api_ok(['template' => $template], 201);
     }
 
-    public function update(): void
-    {
+    public function update(): void {
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
         $id = api_query('id');
@@ -129,9 +126,9 @@ final class ExportTemplatesController extends AbstractController
 
         $input = api_request('PUT');
 
-        $name = trim((string)($input['name'] ?? $existing['name']));
+        $name = trim((string) ($input['name'] ?? $existing['name']));
         $columns = $input['columns'] ?? $existing['columns'];
-        $isDefault = isset($input['is_default']) ? (bool)$input['is_default'] : null;
+        $isDefault = isset($input['is_default']) ? (bool) $input['is_default'] : null;
 
         if ($name === '' || mb_strlen($name) < 2 || mb_strlen($name) > 100) {
             api_fail('invalid_name', 422, ['detail' => 'Le nom doit contenir entre 2 et 100 caractères.']);
@@ -149,8 +146,7 @@ final class ExportTemplatesController extends AbstractController
         api_ok(['template' => $template]);
     }
 
-    public function delete(): void
-    {
+    public function delete(): void {
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
         $id = api_query('id');

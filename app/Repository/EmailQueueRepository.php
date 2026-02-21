@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Repository;
@@ -6,8 +7,7 @@ namespace AgVote\Repository;
 /**
  * Repository pour la file d'attente des emails.
  */
-class EmailQueueRepository extends AbstractRepository
-{
+class EmailQueueRepository extends AbstractRepository {
     /**
      * Ajoute un email a la file d'attente.
      */
@@ -23,17 +23,17 @@ class EmailQueueRepository extends AbstractRepository
         ?string $invitationId = null,
         ?string $templateId = null,
         ?string $recipientName = null,
-        int $priority = 0
+        int $priority = 0,
     ): ?array {
-        $scheduledAt = $scheduledAt ?? date('c');
+        $scheduledAt ??= date('c');
 
         return $this->insertReturning(
-            "INSERT INTO email_queue
+            'INSERT INTO email_queue
              (tenant_id, meeting_id, member_id, invitation_id, template_id,
               recipient_email, recipient_name, subject, body_html, body_text, scheduled_at, priority)
              VALUES (:tenant_id, :meeting_id, :member_id, :invitation_id, :template_id,
                      :recipient_email, :recipient_name, :subject, :body_html, :body_text, :scheduled_at, :priority)
-             RETURNING id, tenant_id, status, scheduled_at, created_at",
+             RETURNING id, tenant_id, status, scheduled_at, created_at',
             [
                 ':tenant_id' => $tenantId,
                 ':meeting_id' => $meetingId,
@@ -47,15 +47,14 @@ class EmailQueueRepository extends AbstractRepository
                 ':body_text' => $bodyText,
                 ':scheduled_at' => $scheduledAt,
                 ':priority' => $priority,
-            ]
+            ],
         );
     }
 
     /**
      * Recupere les emails a envoyer (pending et scheduled_at <= now).
      */
-    public function fetchPendingBatch(int $batchSize = 50): array
-    {
+    public function fetchPendingBatch(int $batchSize = 50): array {
         return $this->selectAll(
             "UPDATE email_queue
              SET status = 'processing', updated_at = now()
@@ -71,27 +70,25 @@ class EmailQueueRepository extends AbstractRepository
              RETURNING id, tenant_id, meeting_id, member_id, invitation_id, template_id,
                        recipient_email, recipient_name, subject, body_html, body_text,
                        scheduled_at, retry_count, created_at",
-            [':batch_size' => $batchSize]
+            [':batch_size' => $batchSize],
         );
     }
 
     /**
      * Marque un email comme envoye.
      */
-    public function markSent(string $id): void
-    {
+    public function markSent(string $id): void {
         $this->execute(
             "UPDATE email_queue SET status = 'sent', sent_at = now(), updated_at = now()
              WHERE id = :id",
-            [':id' => $id]
+            [':id' => $id],
         );
     }
 
     /**
      * Marque un email comme echoue (avec retry si possible).
      */
-    public function markFailed(string $id, string $error): void
-    {
+    public function markFailed(string $id, string $error): void {
         $this->execute(
             "UPDATE email_queue
              SET status = CASE
@@ -106,58 +103,54 @@ class EmailQueueRepository extends AbstractRepository
                  END,
                  updated_at = now()
              WHERE id = :id",
-            [':id' => $id, ':error' => $error]
+            [':id' => $id, ':error' => $error],
         );
     }
 
     /**
      * Annule tous les emails programmes pour une seance.
      */
-    public function cancelForMeeting(string $meetingId, string $tenantId): int
-    {
+    public function cancelForMeeting(string $meetingId, string $tenantId): int {
         return $this->execute(
             "UPDATE email_queue SET status = 'cancelled', updated_at = now()
              WHERE meeting_id = :meeting_id AND tenant_id = :tid AND status = 'pending'",
-            [':meeting_id' => $meetingId, ':tid' => $tenantId]
+            [':meeting_id' => $meetingId, ':tid' => $tenantId],
         );
     }
 
     /**
      * Liste les emails en file pour une seance.
      */
-    public function listForMeeting(string $meetingId, string $tenantId): array
-    {
+    public function listForMeeting(string $meetingId, string $tenantId): array {
         return $this->selectAll(
-            "SELECT eq.id, eq.recipient_email, eq.recipient_name, eq.subject,
+            'SELECT eq.id, eq.recipient_email, eq.recipient_name, eq.subject,
                     eq.status, eq.scheduled_at, eq.sent_at, eq.retry_count, eq.last_error,
                     m.full_name as member_name
              FROM email_queue eq
              LEFT JOIN members m ON m.id = eq.member_id
              WHERE eq.meeting_id = :meeting_id AND eq.tenant_id = :tenant_id
-             ORDER BY eq.scheduled_at DESC",
-            [':meeting_id' => $meetingId, ':tenant_id' => $tenantId]
+             ORDER BY eq.scheduled_at DESC',
+            [':meeting_id' => $meetingId, ':tenant_id' => $tenantId],
         );
     }
 
     /**
      * Compte les emails par statut pour une seance.
      */
-    public function countByStatusForMeeting(string $meetingId): array
-    {
+    public function countByStatusForMeeting(string $meetingId): array {
         return $this->selectAll(
-            "SELECT status, COUNT(*) as count
+            'SELECT status, COUNT(*) as count
              FROM email_queue
              WHERE meeting_id = :meeting_id
-             GROUP BY status",
-            [':meeting_id' => $meetingId]
+             GROUP BY status',
+            [':meeting_id' => $meetingId],
         );
     }
 
     /**
      * Statistiques globales de la file.
      */
-    public function getQueueStats(string $tenantId): array
-    {
+    public function getQueueStats(string $tenantId): array {
         $row = $this->selectOne(
             "SELECT
                  COUNT(*) as total,
@@ -169,7 +162,7 @@ class EmailQueueRepository extends AbstractRepository
              FROM email_queue
              WHERE tenant_id = :tenant_id
                AND created_at > now() - interval '7 days'",
-            [':tenant_id' => $tenantId]
+            [':tenant_id' => $tenantId],
         );
         return $row ?: ['total' => 0, 'pending' => 0, 'processing' => 0, 'sent' => 0, 'failed' => 0, 'cancelled' => 0];
     }
@@ -177,27 +170,25 @@ class EmailQueueRepository extends AbstractRepository
     /**
      * Nettoie les anciens emails envoyes (retention).
      */
-    public function cleanupOld(int $daysToKeep = 30): int
-    {
+    public function cleanupOld(int $daysToKeep = 30): int {
         return $this->execute(
             "DELETE FROM email_queue
              WHERE status IN ('sent', 'cancelled', 'failed')
                AND created_at < now() - interval '1 day' * :days",
-            [':days' => $daysToKeep]
+            [':days' => $daysToKeep],
         );
     }
 
     /**
      * Reset les emails bloques en 'processing' (timeout).
      */
-    public function resetStuckProcessing(int $timeoutMinutes = 30): int
-    {
+    public function resetStuckProcessing(int $timeoutMinutes = 30): int {
         return $this->execute(
             "UPDATE email_queue
              SET status = 'pending', updated_at = now()
              WHERE status = 'processing'
                AND updated_at < now() - interval '1 minute' * :timeout",
-            [':timeout' => $timeoutMinutes]
+            [':timeout' => $timeoutMinutes],
         );
     }
 }

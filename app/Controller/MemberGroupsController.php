@@ -1,20 +1,20 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
 use AgVote\Repository\MemberGroupRepository;
 use AgVote\Repository\MemberRepository;
+use InvalidArgumentException;
 
 /**
  * Consolidates member_groups.php and member_group_assignments.php.
  */
-final class MemberGroupsController extends AbstractController
-{
+final class MemberGroupsController extends AbstractController {
     // ── member_groups CRUD ──
 
-    public function list(): void
-    {
+    public function list(): void {
         $tenantId = api_current_tenant_id();
         $repo = new MemberGroupRepository();
         $groupId = api_query('id');
@@ -40,28 +40,27 @@ final class MemberGroupsController extends AbstractController
         api_ok(['groups' => $groups, 'total' => count($groups)]);
     }
 
-    public function create(): void
-    {
+    public function create(): void {
         $input = api_request('POST');
         $tenantId = api_current_tenant_id();
         $repo = new MemberGroupRepository();
 
-        $name = trim((string)($input['name'] ?? ''));
-        $description = trim((string)($input['description'] ?? '')) ?: null;
-        $color = trim((string)($input['color'] ?? '')) ?: null;
-        $sortOrder = isset($input['sort_order']) ? (int)$input['sort_order'] : null;
+        $name = trim((string) ($input['name'] ?? ''));
+        $description = trim((string) ($input['description'] ?? '')) ?: null;
+        $color = trim((string) ($input['color'] ?? '')) ?: null;
+        $sortOrder = isset($input['sort_order']) ? (int) $input['sort_order'] : null;
 
         if ($name === '') {
-            throw new \InvalidArgumentException('Le nom du groupe est requis');
+            throw new InvalidArgumentException('Le nom du groupe est requis');
         }
         if (mb_strlen($name) > 100) {
-            throw new \InvalidArgumentException('Le nom ne peut pas depasser 100 caracteres');
+            throw new InvalidArgumentException('Le nom ne peut pas depasser 100 caracteres');
         }
         if ($color !== null && !preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
-            throw new \InvalidArgumentException('Format de couleur invalide (attendu: #RRGGBB)');
+            throw new InvalidArgumentException('Format de couleur invalide (attendu: #RRGGBB)');
         }
         if ($repo->nameExists($name, $tenantId)) {
-            throw new \InvalidArgumentException('Un groupe avec ce nom existe deja');
+            throw new InvalidArgumentException('Un groupe avec ce nom existe deja');
         }
 
         $group = $repo->create($tenantId, $name, $description, $color, $sortOrder);
@@ -71,30 +70,29 @@ final class MemberGroupsController extends AbstractController
         api_ok(['group' => $group], 201);
     }
 
-    public function update(): void
-    {
+    public function update(): void {
         $input = api_request('PATCH');
         $tenantId = api_current_tenant_id();
         $repo = new MemberGroupRepository();
 
-        $groupId = trim((string)($input['id'] ?? ''));
-        $name = trim((string)($input['name'] ?? ''));
-        $description = isset($input['description']) ? trim((string)$input['description']) : null;
-        $color = isset($input['color']) ? trim((string)$input['color']) : null;
-        $sortOrder = isset($input['sort_order']) ? (int)$input['sort_order'] : null;
-        $isActive = isset($input['is_active']) ? (bool)$input['is_active'] : null;
+        $groupId = trim((string) ($input['id'] ?? ''));
+        $name = trim((string) ($input['name'] ?? ''));
+        $description = isset($input['description']) ? trim((string) $input['description']) : null;
+        $color = isset($input['color']) ? trim((string) $input['color']) : null;
+        $sortOrder = isset($input['sort_order']) ? (int) $input['sort_order'] : null;
+        $isActive = isset($input['is_active']) ? (bool) $input['is_active'] : null;
 
         if (!api_is_uuid($groupId)) {
-            throw new \InvalidArgumentException('ID de groupe invalide');
+            throw new InvalidArgumentException('ID de groupe invalide');
         }
         if ($name === '') {
-            throw new \InvalidArgumentException('Le nom du groupe est requis');
+            throw new InvalidArgumentException('Le nom du groupe est requis');
         }
         if (mb_strlen($name) > 100) {
-            throw new \InvalidArgumentException('Le nom ne peut pas depasser 100 caracteres');
+            throw new InvalidArgumentException('Le nom ne peut pas depasser 100 caracteres');
         }
         if ($color !== null && $color !== '' && !preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
-            throw new \InvalidArgumentException('Format de couleur invalide (attendu: #RRGGBB)');
+            throw new InvalidArgumentException('Format de couleur invalide (attendu: #RRGGBB)');
         }
 
         $existing = $repo->findById($groupId, $tenantId);
@@ -102,7 +100,7 @@ final class MemberGroupsController extends AbstractController
             api_fail('group_not_found', 404);
         }
         if ($repo->nameExists($name, $tenantId, $groupId)) {
-            throw new \InvalidArgumentException('Un groupe avec ce nom existe deja');
+            throw new InvalidArgumentException('Un groupe avec ce nom existe deja');
         }
 
         $group = $repo->update($groupId, $tenantId, $name, $description, $color ?: null, $sortOrder, $isActive);
@@ -112,14 +110,13 @@ final class MemberGroupsController extends AbstractController
         api_ok(['group' => $group]);
     }
 
-    public function delete(): void
-    {
+    public function delete(): void {
         $tenantId = api_current_tenant_id();
         $repo = new MemberGroupRepository();
         $groupId = api_query('id');
 
         if (!api_is_uuid($groupId)) {
-            throw new \InvalidArgumentException('ID de groupe invalide');
+            throw new InvalidArgumentException('ID de groupe invalide');
         }
 
         $existing = $repo->findById($groupId, $tenantId);
@@ -132,7 +129,7 @@ final class MemberGroupsController extends AbstractController
         if ($deleted) {
             audit_log('member_group_deleted', 'member_group', $groupId, [
                 'name' => $existing['name'],
-                'had_members' => (int)$existing['member_count'],
+                'had_members' => (int) $existing['member_count'],
             ]);
         }
 
@@ -141,8 +138,7 @@ final class MemberGroupsController extends AbstractController
 
     // ── member_group_assignments ──
 
-    public function assign(): void
-    {
+    public function assign(): void {
         $input = api_request('POST');
         $tenantId = api_current_tenant_id();
         $userId = api_current_user_id();
@@ -150,14 +146,14 @@ final class MemberGroupsController extends AbstractController
         $groupRepo = new MemberGroupRepository();
         $memberRepo = new MemberRepository();
 
-        $memberId = trim((string)($input['member_id'] ?? ''));
-        $groupId = trim((string)($input['group_id'] ?? ''));
+        $memberId = trim((string) ($input['member_id'] ?? ''));
+        $groupId = trim((string) ($input['group_id'] ?? ''));
 
         if (!api_is_uuid($memberId)) {
-            throw new \InvalidArgumentException('member_id invalide');
+            throw new InvalidArgumentException('member_id invalide');
         }
         if (!api_is_uuid($groupId)) {
-            throw new \InvalidArgumentException('group_id invalide');
+            throw new InvalidArgumentException('group_id invalide');
         }
 
         $member = $memberRepo->findByIdForTenant($memberId, $tenantId);
@@ -181,8 +177,7 @@ final class MemberGroupsController extends AbstractController
         api_ok(['assigned' => true, 'member_id' => $memberId, 'group_id' => $groupId]);
     }
 
-    public function unassign(): void
-    {
+    public function unassign(): void {
         $tenantId = api_current_tenant_id();
         $groupRepo = new MemberGroupRepository();
         $memberRepo = new MemberRepository();
@@ -191,10 +186,10 @@ final class MemberGroupsController extends AbstractController
         $groupId = api_query('group_id');
 
         if (!api_is_uuid($memberId)) {
-            throw new \InvalidArgumentException('member_id invalide');
+            throw new InvalidArgumentException('member_id invalide');
         }
         if (!api_is_uuid($groupId)) {
-            throw new \InvalidArgumentException('group_id invalide');
+            throw new InvalidArgumentException('group_id invalide');
         }
 
         $member = $memberRepo->findByIdForTenant($memberId, $tenantId);
@@ -220,22 +215,21 @@ final class MemberGroupsController extends AbstractController
         api_ok(['removed' => $removed, 'member_id' => $memberId, 'group_id' => $groupId]);
     }
 
-    public function setMemberGroups(): void
-    {
+    public function setMemberGroups(): void {
         $input = api_request('PUT');
         $tenantId = api_current_tenant_id();
         $userId = api_current_user_id();
         $groupRepo = new MemberGroupRepository();
         $memberRepo = new MemberRepository();
 
-        $memberId = trim((string)($input['member_id'] ?? ''));
+        $memberId = trim((string) ($input['member_id'] ?? ''));
         $groupIds = $input['group_ids'] ?? [];
 
         if (!api_is_uuid($memberId)) {
-            throw new \InvalidArgumentException('member_id invalide');
+            throw new InvalidArgumentException('member_id invalide');
         }
         if (!is_array($groupIds)) {
-            throw new \InvalidArgumentException('group_ids doit etre un tableau');
+            throw new InvalidArgumentException('group_ids doit etre un tableau');
         }
 
         $member = $memberRepo->findByIdForTenant($memberId, $tenantId);
@@ -245,13 +239,13 @@ final class MemberGroupsController extends AbstractController
 
         $validGroupIds = [];
         foreach ($groupIds as $groupId) {
-            $groupId = trim((string)$groupId);
+            $groupId = trim((string) $groupId);
             if (!api_is_uuid($groupId)) {
-                throw new \InvalidArgumentException("group_id invalide: {$groupId}");
+                throw new InvalidArgumentException("group_id invalide: {$groupId}");
             }
             $group = $groupRepo->findById($groupId, $tenantId);
             if (!$group) {
-                throw new \InvalidArgumentException("Groupe introuvable: {$groupId}");
+                throw new InvalidArgumentException("Groupe introuvable: {$groupId}");
             }
             $validGroupIds[] = $groupId;
         }
@@ -268,22 +262,21 @@ final class MemberGroupsController extends AbstractController
         api_ok(['member_id' => $memberId, 'groups' => $groups, 'total' => count($groups)]);
     }
 
-    public function bulkAssign(): void
-    {
+    public function bulkAssign(): void {
         $input = api_request('POST');
         $tenantId = api_current_tenant_id();
         $userId = api_current_user_id();
         $groupRepo = new MemberGroupRepository();
         $memberRepo = new MemberRepository();
 
-        $groupId = trim((string)($input['group_id'] ?? ''));
+        $groupId = trim((string) ($input['group_id'] ?? ''));
         $memberIds = $input['member_ids'] ?? [];
 
         if (!api_is_uuid($groupId)) {
-            throw new \InvalidArgumentException('group_id invalide');
+            throw new InvalidArgumentException('group_id invalide');
         }
         if (!is_array($memberIds) || empty($memberIds)) {
-            throw new \InvalidArgumentException('member_ids doit etre un tableau non vide');
+            throw new InvalidArgumentException('member_ids doit etre un tableau non vide');
         }
 
         $group = $groupRepo->findById($groupId, $tenantId);
@@ -293,7 +286,7 @@ final class MemberGroupsController extends AbstractController
 
         $validMemberIds = [];
         foreach ($memberIds as $memberId) {
-            $memberId = trim((string)$memberId);
+            $memberId = trim((string) $memberId);
             if (!api_is_uuid($memberId)) {
                 continue;
             }
@@ -304,7 +297,7 @@ final class MemberGroupsController extends AbstractController
         }
 
         if (empty($validMemberIds)) {
-            throw new \InvalidArgumentException('Aucun membre valide trouve');
+            throw new InvalidArgumentException('Aucun membre valide trouve');
         }
 
         $count = $groupRepo->bulkAssignToGroup($groupId, $validMemberIds, $userId);

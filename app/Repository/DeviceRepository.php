@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Repository;
@@ -6,8 +7,7 @@ namespace AgVote\Repository;
 /**
  * Acces donnees pour les devices (heartbeats, blocks, commands).
  */
-class DeviceRepository extends AbstractRepository
-{
+class DeviceRepository extends AbstractRepository {
     // =========================================================================
     // HEARTBEATS
     // =========================================================================
@@ -15,8 +15,7 @@ class DeviceRepository extends AbstractRepository
     /**
      * Liste les heartbeats avec block status (pour devices_list).
      */
-    public function listHeartbeats(string $tenantId, string $meetingId = ''): array
-    {
+    public function listHeartbeats(string $tenantId, string $meetingId = ''): array {
         return $this->selectAll(
             "SELECT
                 hb.device_id::text AS device_id,
@@ -37,7 +36,7 @@ class DeviceRepository extends AbstractRepository
              WHERE hb.tenant_id = ?::uuid
                AND (NULLIF(?,'') IS NULL OR hb.meeting_id = NULLIF(?,'')::uuid)
              ORDER BY hb.last_seen_at DESC LIMIT 500",
-            [$tenantId, $meetingId, $meetingId]
+            [$tenantId, $meetingId, $meetingId],
         );
     }
 
@@ -52,7 +51,7 @@ class DeviceRepository extends AbstractRepository
         string $ip,
         string $userAgent,
         ?int $batteryPct,
-        ?bool $isCharging
+        ?bool $isCharging,
     ): void {
         $this->execute(
             "INSERT INTO device_heartbeats (
@@ -70,20 +69,19 @@ class DeviceRepository extends AbstractRepository
                 battery_pct  = EXCLUDED.battery_pct,
                 is_charging  = EXCLUDED.is_charging,
                 last_seen_at = now()",
-            [$deviceId, $tenantId, $meetingId, $role, $ip, $userAgent, $batteryPct, $isCharging]
+            [$deviceId, $tenantId, $meetingId, $role, $ip, $userAgent, $batteryPct, $isCharging],
         );
     }
 
     /**
      * Trouve le heartbeat d'un device (pour audit context).
      */
-    public function findHeartbeat(string $tenantId, string $deviceId): ?array
-    {
+    public function findHeartbeat(string $tenantId, string $deviceId): ?array {
         return $this->selectOne(
-            "SELECT role, ip, user_agent, battery_pct, is_charging, last_seen_at
+            'SELECT role, ip, user_agent, battery_pct, is_charging, last_seen_at
              FROM device_heartbeats
-             WHERE tenant_id = ?::uuid AND device_id = ?::uuid LIMIT 1",
-            [$tenantId, $deviceId]
+             WHERE tenant_id = ?::uuid AND device_id = ?::uuid LIMIT 1',
+            [$tenantId, $deviceId],
         );
     }
 
@@ -94,8 +92,7 @@ class DeviceRepository extends AbstractRepository
     /**
      * Trouve le statut de blocage d'un device.
      */
-    public function findBlockStatus(string $tenantId, string $deviceId, string $meetingId = ''): ?array
-    {
+    public function findBlockStatus(string $tenantId, string $deviceId, string $meetingId = ''): ?array {
         return $this->selectOne(
             "SELECT is_blocked, reason
              FROM device_blocks
@@ -103,35 +100,33 @@ class DeviceRepository extends AbstractRepository
                AND device_id = ?::uuid
                AND (meeting_id IS NULL OR meeting_id = NULLIF(?,'')::uuid)
              ORDER BY updated_at DESC LIMIT 1",
-            [$tenantId, $deviceId, $meetingId]
+            [$tenantId, $deviceId, $meetingId],
         );
     }
 
     /**
      * Bloque un device.
      */
-    public function blockDevice(string $tenantId, string $meetingId, string $deviceId, string $reason): void
-    {
+    public function blockDevice(string $tenantId, string $meetingId, string $deviceId, string $reason): void {
         $this->execute(
             "INSERT INTO device_blocks (tenant_id, meeting_id, device_id, is_blocked, reason, blocked_at, updated_at)
              VALUES (?::uuid, NULLIF(?,'')::uuid, ?::uuid, true, NULLIF(?,'')::text, now(), now())
              ON CONFLICT (COALESCE(meeting_id, '00000000-0000-0000-0000-000000000000'::uuid), device_id)
              DO UPDATE SET is_blocked = true, reason = EXCLUDED.reason, updated_at = now()",
-            [$tenantId, $meetingId, $deviceId, $reason]
+            [$tenantId, $meetingId, $deviceId, $reason],
         );
     }
 
     /**
      * Debloque un device.
      */
-    public function unblockDevice(string $tenantId, string $meetingId, string $deviceId): void
-    {
+    public function unblockDevice(string $tenantId, string $meetingId, string $deviceId): void {
         $this->execute(
             "INSERT INTO device_blocks (tenant_id, meeting_id, device_id, is_blocked, reason, blocked_at, updated_at)
              VALUES (?::uuid, NULLIF(?,'')::uuid, ?::uuid, false, NULL, now(), now())
              ON CONFLICT (COALESCE(meeting_id, '00000000-0000-0000-0000-000000000000'::uuid), device_id)
              DO UPDATE SET is_blocked = false, reason = NULL, updated_at = now()",
-            [$tenantId, $meetingId, $deviceId]
+            [$tenantId, $meetingId, $deviceId],
         );
     }
 
@@ -142,38 +137,35 @@ class DeviceRepository extends AbstractRepository
     /**
      * Trouve la commande kick en attente pour un device.
      */
-    public function findPendingKick(string $tenantId, string $deviceId): ?array
-    {
+    public function findPendingKick(string $tenantId, string $deviceId): ?array {
         return $this->selectOne(
             "SELECT id, payload
              FROM device_commands
              WHERE tenant_id = ?::uuid AND device_id = ?::uuid
                AND command = 'kick' AND consumed_at IS NULL
              ORDER BY created_at DESC LIMIT 1",
-            [$tenantId, $deviceId]
+            [$tenantId, $deviceId],
         );
     }
 
     /**
      * Marque une commande comme consommee.
      */
-    public function consumeCommand(string $commandId, string $tenantId): void
-    {
+    public function consumeCommand(string $commandId, string $tenantId): void {
         $this->execute(
-            "UPDATE device_commands SET consumed_at = now() WHERE id = ?::uuid AND tenant_id = ?",
-            [$commandId, $tenantId]
+            'UPDATE device_commands SET consumed_at = now() WHERE id = ?::uuid AND tenant_id = ?',
+            [$commandId, $tenantId],
         );
     }
 
     /**
      * Insere une commande kick.
      */
-    public function insertKickCommand(string $tenantId, string $meetingId, string $deviceId, string $message): void
-    {
+    public function insertKickCommand(string $tenantId, string $meetingId, string $deviceId, string $message): void {
         $this->execute(
             "INSERT INTO device_commands (tenant_id, meeting_id, device_id, command, payload)
              VALUES (?::uuid, NULLIF(?,'')::uuid, ?::uuid, 'kick', ?::jsonb)",
-            [$tenantId, $meetingId, $deviceId, json_encode(['message' => $message])]
+            [$tenantId, $meetingId, $deviceId, json_encode(['message' => $message])],
         );
     }
 }

@@ -1,18 +1,18 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
 use AgVote\Repository\MeetingAttachmentRepository;
 use AgVote\Repository\MeetingRepository;
+use finfo;
 
 /**
  * Consolidates meeting_attachments.php.
  */
-final class MeetingAttachmentController extends AbstractController
-{
-    public function listForMeeting(): void
-    {
+final class MeetingAttachmentController extends AbstractController {
+    public function listForMeeting(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -24,10 +24,9 @@ final class MeetingAttachmentController extends AbstractController
         api_ok(['attachments' => $items]);
     }
 
-    public function upload(): void
-    {
+    public function upload(): void {
         $in = api_request('POST');
-        $meetingId = trim((string)($in['meeting_id'] ?? ''));
+        $meetingId = trim((string) ($in['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
@@ -42,7 +41,7 @@ final class MeetingAttachmentController extends AbstractController
         $file = api_file('file');
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
             $code = $file['error'] ?? UPLOAD_ERR_NO_FILE;
-            api_fail('upload_error', 400, ['detail' => "Upload error code: $code"]);
+            api_fail('upload_error', 400, ['detail' => "Upload error code: {$code}"]);
         }
         $maxSize = 10 * 1024 * 1024; // 10 MB
 
@@ -50,12 +49,12 @@ final class MeetingAttachmentController extends AbstractController
             api_fail('file_too_large', 400, ['detail' => 'Le fichier ne doit pas dépasser 10 Mo.']);
         }
 
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($file['tmp_name']);
         $allowedMimes = ['application/pdf'];
 
         if (!in_array($mime, $allowedMimes, true)) {
-            api_fail('invalid_mime_type', 400, ['detail' => "Seuls les fichiers PDF sont acceptés. Type détecté : $mime"]);
+            api_fail('invalid_mime_type', 400, ['detail' => "Seuls les fichiers PDF sont acceptés. Type détecté : {$mime}"]);
         }
 
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -65,7 +64,7 @@ final class MeetingAttachmentController extends AbstractController
 
         $uploadDir = dirname(__DIR__, 2) . '/storage/uploads/meetings/' . $meetingId;
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0750, true);
+            mkdir($uploadDir, 0o750, true);
         }
 
         $repo = new MeetingAttachmentRepository();
@@ -84,30 +83,29 @@ final class MeetingAttachmentController extends AbstractController
             basename($file['name']),
             $storedName,
             $mime,
-            (int)$file['size'],
-            api_current_user_id()
+            (int) $file['size'],
+            api_current_user_id(),
         );
 
         audit_log('meeting_attachment_uploaded', 'meeting_attachment', $id, [
             'meeting_id' => $meetingId,
             'original_name' => basename($file['name']),
-            'file_size' => (int)$file['size'],
+            'file_size' => (int) $file['size'],
         ]);
 
         api_ok([
             'attachment' => [
                 'id' => $id,
                 'original_name' => basename($file['name']),
-                'file_size' => (int)$file['size'],
+                'file_size' => (int) $file['size'],
                 'mime_type' => $mime,
             ],
         ], 201);
     }
 
-    public function delete(): void
-    {
+    public function delete(): void {
         $input = api_request('DELETE');
-        $id = trim((string)($input['id'] ?? ''));
+        $id = trim((string) ($input['id'] ?? ''));
         if ($id === '' || !api_is_uuid($id)) {
             api_fail('missing_id', 400);
         }

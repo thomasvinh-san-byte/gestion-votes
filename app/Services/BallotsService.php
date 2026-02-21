@@ -1,23 +1,22 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
 
-use AgVote\Repository\MotionRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
 use AgVote\WebSocket\EventBroadcaster;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
-final class BallotsService
-{
-    private static function isUuid(string $s): bool
-    {
-        return (bool)preg_match(
+final class BallotsService {
+    private static function isUuid(string $s): bool {
+        return (bool) preg_match(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
-            $s
+            $s,
         );
     }
 
@@ -25,13 +24,13 @@ final class BallotsService
      * Records or updates a ballot for a given motion.
      *
      * @param array<string,mixed> $data
+     *
      * @return array<string,mixed>
      */
-    public static function castBallot(array $data): array
-    {
-        $motionId = trim((string)($data['motion_id'] ?? ''));
-        $memberId = trim((string)($data['member_id'] ?? ''));
-        $value    = trim((string)($data['value'] ?? ''));
+    public static function castBallot(array $data): array {
+        $motionId = trim((string) ($data['motion_id'] ?? ''));
+        $memberId = trim((string) ($data['member_id'] ?? ''));
+        $value = trim((string) ($data['value'] ?? ''));
 
         if ($motionId === '' || $memberId === '' || $value === '') {
             throw new InvalidArgumentException('motion_id, member_id et value sont obligatoires');
@@ -44,15 +43,15 @@ final class BallotsService
 
         // Load motion + meeting + tenant (with tenant isolation when available)
         $motionRepo = new MotionRepository();
-        $callerTenantId = trim((string)($data['_tenant_id'] ?? ''));
+        $callerTenantId = trim((string) ($data['_tenant_id'] ?? ''));
         $context = $motionRepo->findWithBallotContext($motionId, $callerTenantId);
 
         if (!$context) {
             throw new RuntimeException('Motion introuvable');
         }
 
-        $tenantId      = (string)$context['tenant_id'];
-        $meetingStatus = (string)$context['meeting_status'];
+        $tenantId = (string) $context['tenant_id'];
+        $meetingStatus = (string) $context['meeting_status'];
 
         if ($meetingStatus !== 'live') {
             throw new RuntimeException('Impossible de voter sur une motion dont la séance n\'est pas en cours');
@@ -66,8 +65,8 @@ final class BallotsService
             throw new RuntimeException('Cette motion n\'est pas ouverte au vote');
         }
 
-        $isProxyVote = (bool)($data['is_proxy_vote'] ?? false);
-        $proxyVoterId = trim((string)($data['proxy_source_member_id'] ?? ''));
+        $isProxyVote = (bool) ($data['is_proxy_vote'] ?? false);
+        $proxyVoterId = trim((string) ($data['proxy_source_member_id'] ?? ''));
 
         // Load the represented member (the one whose vote is counted)
         $memberRepo = new MemberRepository();
@@ -84,9 +83,9 @@ final class BallotsService
         // - "Direct" vote: member must be present (present/remote) at the meeting.
         // - Proxy vote: proxy holder must be present (present/remote) and an active proxy must exist.
         //   The giver (member_id) may be absent.
-        $meetingId = (string)$context['meeting_id'];
+        $meetingId = (string) $context['meeting_id'];
 
-        $weight = (float)($member['voting_power'] ?? 1.0);
+        $weight = (float) ($member['voting_power'] ?? 1.0);
         if ($weight < 0) {
             $weight = 0.0;
         }
@@ -151,20 +150,20 @@ final class BallotsService
                 $value,
                 $weight,
                 $isProxyVote,
-                $isProxyVote ? $proxyVoterId : null
+                $isProxyVote ? $proxyVoterId : null,
             );
 
             if (function_exists('audit_log')) {
                 $auditData = [
                     'meeting_id' => $context['meeting_id'],
-                    'member_id'  => $memberId,
-                    'value'      => $value,
-                    'weight'     => $weight,
+                    'member_id' => $memberId,
+                    'value' => $value,
+                    'weight' => $weight,
                     'is_proxy_vote' => $isProxyVote,
                     'proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
                 ];
                 if (!empty($data['_idempotency_key'])) {
-                    $auditData['idempotency_key'] = (string)$data['_idempotency_key'];
+                    $auditData['idempotency_key'] = (string) $data['_idempotency_key'];
                 }
                 audit_log('ballot_cast', 'motion', $motionId, $auditData);
             }
@@ -183,8 +182,8 @@ final class BallotsService
         return $row ?? [
             'motion_id' => $motionId,
             'member_id' => $memberId,
-            'value'     => $value,
-            'weight'    => $weight,
+            'value' => $value,
+            'weight' => $weight,
         ];
     }
 }
