@@ -55,7 +55,7 @@ final class ExportController extends AbstractController {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('attendance', $mt['id'], 'csv');
 
-        $rows = (new AttendanceRepository())->listExportForMeeting($mt['id']);
+        $rows = (new AttendanceRepository())->listExportForMeeting($mt['id'], api_current_tenant_id());
         $export = new ExportService();
 
         $filename = $export->generateFilename('presences', $mt['title'] ?? '');
@@ -72,7 +72,7 @@ final class ExportController extends AbstractController {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('attendance', $mt['id'], 'xlsx');
 
-        $rows = (new AttendanceRepository())->listExportForMeeting($mt['id']);
+        $rows = (new AttendanceRepository())->listExportForMeeting($mt['id'], api_current_tenant_id());
         $export = new ExportService();
 
         $formattedRows = array_map([$export, 'formatAttendanceRow'], $rows);
@@ -90,7 +90,7 @@ final class ExportController extends AbstractController {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('votes', $mt['id'], 'csv');
 
-        $rows = (new BallotRepository())->listVotesExportForMeeting($mt['id']);
+        $rows = (new BallotRepository())->listVotesExportForMeeting($mt['id'], api_current_tenant_id());
         $export = new ExportService();
 
         $filename = $export->generateFilename('votes', $mt['title'] ?? '');
@@ -109,7 +109,7 @@ final class ExportController extends AbstractController {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('votes', $mt['id'], 'xlsx');
 
-        $rows = (new BallotRepository())->listVotesExportForMeeting($mt['id']);
+        $rows = (new BallotRepository())->listVotesExportForMeeting($mt['id'], api_current_tenant_id());
         $export = new ExportService();
 
         $formattedRows = [];
@@ -191,9 +191,10 @@ final class ExportController extends AbstractController {
         $this->auditExport('full', $meetingId, 'xlsx');
         $includeVotes = filter_var(api_query('include_votes', '1'), FILTER_VALIDATE_BOOLEAN);
 
-        $attendanceRows = (new AttendanceRepository())->listExportForMeeting($meetingId);
+        $tenantId = api_current_tenant_id();
+        $attendanceRows = (new AttendanceRepository())->listExportForMeeting($meetingId, $tenantId);
         $motionRows = (new MotionRepository())->listResultsExportForMeeting($meetingId);
-        $voteRows = $includeVotes ? (new BallotRepository())->listVotesExportForMeeting($meetingId) : [];
+        $voteRows = $includeVotes ? (new BallotRepository())->listVotesExportForMeeting($meetingId, $tenantId) : [];
 
         $export = new ExportService();
         $filename = $export->generateFilename('complet', $mt['title'] ?? '', 'xlsx');
@@ -210,7 +211,7 @@ final class ExportController extends AbstractController {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('ballots_audit', $mt['id'], 'csv');
 
-        $rows = (new BallotRepository())->listAuditExportForMeeting($mt['id']);
+        $rows = (new BallotRepository())->listAuditExportForMeeting($mt['id'], api_current_tenant_id());
         $export = new ExportService();
 
         $filename = $export->generateFilename('audit', $mt['title'] ?? '');

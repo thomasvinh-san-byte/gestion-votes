@@ -43,7 +43,7 @@ final class TrustController extends AbstractController {
         }
 
         // 2. Doubles votes potentiels
-        $duplicateVotes = (new BallotRepository())->listDuplicateVotes($meetingId);
+        $duplicateVotes = (new BallotRepository())->listDuplicateVotes($meetingId, $tenantId);
         foreach ($duplicateVotes as $row) {
             $anomalies[] = [
                 'id' => 'duplicate_vote_' . $row['member_id'],
@@ -58,7 +58,7 @@ final class TrustController extends AbstractController {
         }
 
         // 3. Incohérences de pondération
-        $weightMismatches = (new BallotRepository())->listWeightMismatches($meetingId);
+        $weightMismatches = (new BallotRepository())->listWeightMismatches($meetingId, $tenantId);
         foreach ($weightMismatches as $row) {
             $anomalies[] = [
                 'id' => 'weight_mismatch_' . $row['member_id'],
@@ -102,7 +102,7 @@ final class TrustController extends AbstractController {
         }
 
         // 6. Votes manuels non justifiés
-        $unjustifiedManualVotes = (new BallotRepository())->listUnjustifiedManualVotes($meetingId);
+        $unjustifiedManualVotes = (new BallotRepository())->listUnjustifiedManualVotes($meetingId, $tenantId);
         foreach ($unjustifiedManualVotes as $row) {
             $anomalies[] = [
                 'id' => 'unjustified_manual_' . $row['id'],
@@ -177,7 +177,7 @@ final class TrustController extends AbstractController {
         ];
 
         // 2. Au moins un membre présent
-        $presentCount = $statsRepo->countPresent($meetingId);
+        $presentCount = $statsRepo->countPresent($meetingId, $tenantId);
         $checks[] = [
             'id' => 'members_present',
             'label' => 'Membres présents',
@@ -204,9 +204,9 @@ final class TrustController extends AbstractController {
         ];
 
         // 4. Toutes les résolutions traitées
-        $totalMotions = $statsRepo->countMotions($meetingId);
-        $closedMotions = $statsRepo->countClosedMotions($meetingId);
-        $openMotions = $statsRepo->countOpenMotions($meetingId);
+        $totalMotions = $statsRepo->countMotions($meetingId, $tenantId);
+        $closedMotions = $statsRepo->countClosedMotions($meetingId, $tenantId);
+        $openMotions = $statsRepo->countOpenMotions($meetingId, $tenantId);
         $allMotionsClosed = $openMotions === 0;
         $checks[] = [
             'id' => 'all_motions_closed',
@@ -247,7 +247,7 @@ final class TrustController extends AbstractController {
         ];
 
         // 8. Pas de votes après clôture
-        $votesAfterClose = $ballotRepo->listVotesAfterClose($meetingId);
+        $votesAfterClose = $ballotRepo->listVotesAfterClose($meetingId, $tenantId);
         $noVotesAfterClose = count($votesAfterClose) === 0;
         $checks[] = [
             'id' => 'no_votes_after_close',

@@ -465,7 +465,7 @@ class MeetingWorkflowServiceTest extends TestCase {
 
     public function testCountOpenMotionsReturnsCountFromStatsRepo(): void {
         $this->statsRepo->method('countOpenMotions')
-            ->with(self::MEETING)
+            ->with(self::MEETING, $this->anything())
             ->willReturn(3);
 
         $this->assertSame(3, $this->service->countOpenMotions(self::MEETING));

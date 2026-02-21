@@ -15,7 +15,7 @@ class MeetingStatsRepository extends AbstractRepository {
     /**
      * Motion counters for a meeting (for meeting_status).
      */
-    public function countMotionStats(string $meetingId): array {
+    public function countMotionStats(string $meetingId, string $tenantId): array {
         $row = $this->selectOne(
             'SELECT
               COUNT(*) AS total_motions,
@@ -24,8 +24,8 @@ class MeetingStatsRepository extends AbstractRepository {
               SUM(CASE WHEN mo.closed_at IS NOT NULL
                         AND (mo.manual_total IS NULL OR mo.manual_total <= 0)
                    THEN 1 ELSE 0 END) AS closed_without_tally
-             FROM motions mo WHERE mo.meeting_id = :meeting_id',
-            [':meeting_id' => $meetingId],
+             FROM motions mo WHERE mo.meeting_id = :meeting_id AND mo.tenant_id = :tid',
+            [':meeting_id' => $meetingId, ':tid' => $tenantId],
         );
         return $row ?: ['total_motions' => 0, 'open_motions' => 0, 'closed_motions' => 0, 'closed_without_tally' => 0];
     }
@@ -43,97 +43,97 @@ class MeetingStatsRepository extends AbstractRepository {
     /**
      * Count present attendees for a meeting.
      */
-    public function countPresent(string $meetingId): int {
+    public function countPresent(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
             "SELECT COUNT(*) FROM attendances
-             WHERE meeting_id = :mid AND mode IN ('present', 'remote')",
-            [':mid' => $meetingId],
+             WHERE meeting_id = :mid AND tenant_id = :tid AND mode IN ('present', 'remote')",
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function countProxy(string $meetingId): int {
+    public function countProxy(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
-            "SELECT COUNT(*) FROM attendances WHERE meeting_id = :mid AND mode = 'proxy'",
-            [':mid' => $meetingId],
+            "SELECT COUNT(*) FROM attendances WHERE meeting_id = :mid AND tenant_id = :tid AND mode = 'proxy'",
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function countMotions(string $meetingId): int {
+    public function countMotions(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
-            'SELECT COUNT(*) FROM motions WHERE meeting_id = :mid',
-            [':mid' => $meetingId],
+            'SELECT COUNT(*) FROM motions WHERE meeting_id = :mid AND tenant_id = :tid',
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function countClosedMotions(string $meetingId): int {
+    public function countClosedMotions(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
-            'SELECT COUNT(*) FROM motions WHERE meeting_id = :mid AND closed_at IS NOT NULL',
-            [':mid' => $meetingId],
+            'SELECT COUNT(*) FROM motions WHERE meeting_id = :mid AND tenant_id = :tid AND closed_at IS NOT NULL',
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function countOpenMotions(string $meetingId): int {
+    public function countOpenMotions(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
             'SELECT COUNT(*) FROM motions
-             WHERE meeting_id = :mid AND opened_at IS NOT NULL AND closed_at IS NULL',
-            [':mid' => $meetingId],
+             WHERE meeting_id = :mid AND tenant_id = :tid AND opened_at IS NOT NULL AND closed_at IS NULL',
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function countAdoptedMotions(string $meetingId): int {
+    public function countAdoptedMotions(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
-            "SELECT COUNT(*) FROM motions WHERE meeting_id = :mid AND decision = 'adopted'",
-            [':mid' => $meetingId],
+            "SELECT COUNT(*) FROM motions WHERE meeting_id = :mid AND tenant_id = :tid AND decision = 'adopted'",
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function countRejectedMotions(string $meetingId): int {
+    public function countRejectedMotions(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
-            "SELECT COUNT(*) FROM motions WHERE meeting_id = :mid AND decision = 'rejected'",
-            [':mid' => $meetingId],
+            "SELECT COUNT(*) FROM motions WHERE meeting_id = :mid AND tenant_id = :tid AND decision = 'rejected'",
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function countBallots(string $meetingId): int {
+    public function countBallots(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
             'SELECT COUNT(*) FROM ballots b
              JOIN motions m ON m.id = b.motion_id
-             WHERE m.meeting_id = :mid',
-            [':mid' => $meetingId],
+             WHERE m.meeting_id = :mid AND b.tenant_id = :tid',
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function sumBallotWeight(string $meetingId): float {
+    public function sumBallotWeight(string $meetingId, string $tenantId): float {
         return (float) ($this->scalar(
             'SELECT COALESCE(SUM(b.weight), 0) FROM ballots b
              JOIN motions m ON m.id = b.motion_id
-             WHERE m.meeting_id = :mid',
-            [':mid' => $meetingId],
+             WHERE m.meeting_id = :mid AND b.tenant_id = :tid',
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function countProxies(string $meetingId): int {
+    public function countProxies(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
-            'SELECT COUNT(*) FROM proxies WHERE meeting_id = :mid',
-            [':mid' => $meetingId],
+            'SELECT COUNT(*) FROM proxies WHERE meeting_id = :mid AND tenant_id = :tid',
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function countIncidents(string $meetingId): int {
+    public function countIncidents(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
             "SELECT COUNT(*) FROM audit_events
-             WHERE resource_type = 'meeting' AND resource_id = :mid
+             WHERE resource_type = 'meeting' AND resource_id = :mid AND tenant_id = :tid
                AND action LIKE '%incident%'",
-            [':mid' => $meetingId],
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
-    public function countManualVotes(string $meetingId): int {
+    public function countManualVotes(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
             "SELECT COUNT(*) FROM ballots b
              JOIN motions m ON m.id = b.motion_id
-             WHERE m.meeting_id = :mid AND b.source = 'manual'",
-            [':mid' => $meetingId],
+             WHERE m.meeting_id = :mid AND b.tenant_id = :tid AND b.source = 'manual'",
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 

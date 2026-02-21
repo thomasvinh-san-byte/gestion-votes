@@ -97,7 +97,7 @@ final class MeetingWorkflowService {
 
         // live → paused: block if a vote is actively open
         if ($toStatus === 'paused' && $fromStatus === 'live') {
-            $openCount = $this->countOpenMotions($meetingId);
+            $openCount = $this->countOpenMotions($meetingId, $tenantId);
             if ($openCount > 0) {
                 $issues[] = ['code' => 'motion_open', 'msg' => "Impossible de mettre en pause : {$openCount} vote(s) en cours. Fermez le vote avant de mettre en pause."];
             }
@@ -105,7 +105,7 @@ final class MeetingWorkflowService {
 
         // live → closed
         if ($toStatus === 'closed' && ($fromStatus === 'live' || $fromStatus === 'paused')) {
-            $openCount = $this->countOpenMotions($meetingId);
+            $openCount = $this->countOpenMotions($meetingId, $tenantId);
             if ($openCount > 0) {
                 $issues[] = ['code' => 'motion_open', 'msg' => "{$openCount} résolution(s) encore ouverte(s)"];
             }
@@ -113,7 +113,7 @@ final class MeetingWorkflowService {
 
         // closed → validated
         if ($toStatus === 'validated' && $fromStatus === 'closed') {
-            $closed = $this->statsRepo->countClosedMotions($meetingId);
+            $closed = $this->statsRepo->countClosedMotions($meetingId, $tenantId);
             $bad = $this->motionRepo->countBadClosedMotions($meetingId);
 
             if ($bad > 0) {
@@ -178,15 +178,15 @@ final class MeetingWorkflowService {
     /**
      * Count open motions.
      */
-    public function countOpenMotions(string $meetingId): int {
-        return $this->statsRepo->countOpenMotions($meetingId);
+    public function countOpenMotions(string $meetingId, string $tenantId = ''): int {
+        return $this->statsRepo->countOpenMotions($meetingId, $tenantId);
     }
 
     /**
      * Check if all motions are closed.
      */
-    public function allMotionsClosed(string $meetingId): bool {
-        return $this->statsRepo->countOpenMotions($meetingId) === 0;
+    public function allMotionsClosed(string $meetingId, string $tenantId = ''): bool {
+        return $this->statsRepo->countOpenMotions($meetingId, $tenantId) === 0;
     }
 
     /**

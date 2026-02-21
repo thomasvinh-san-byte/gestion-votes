@@ -110,7 +110,7 @@ final class DashboardController extends AbstractController {
                 $reasons[] = 'Président non renseigné.';
             }
 
-            $openCount = $statsRepo->countOpenMotions($meetingId);
+            $openCount = $statsRepo->countOpenMotions($meetingId, $tenantId);
             if ($openCount > 0) {
                 $reasons[] = 'Une motion est encore ouverte.';
             }
@@ -154,25 +154,25 @@ final class DashboardController extends AbstractController {
             api_fail('meeting_not_found', 404);
         }
 
-        $membersCount = $wizardRepo->countAttendances($meetingId);
+        $membersCount = $wizardRepo->countAttendances($meetingId, $tenantId);
         if ($membersCount === 0) {
             $membersCount = $wizardRepo->countActiveMembers($tenantId);
         }
 
-        $presentCount = $wizardRepo->countPresentAttendances($meetingId);
+        $presentCount = $wizardRepo->countPresentAttendances($meetingId, $tenantId);
 
-        $motionsCounts = $wizardRepo->getMotionsCounts($meetingId);
+        $motionsCounts = $wizardRepo->getMotionsCounts($meetingId, $tenantId);
         $motionsTotal = $motionsCounts['total'];
         $motionsClosed = $motionsCounts['closed'];
 
-        $hasPresident = $wizardRepo->hasPresident($meetingId);
+        $hasPresident = $wizardRepo->hasPresident($meetingId, $tenantId);
 
         $quorumMet = false;
         if ($membersCount > 0) {
             $ratio = $presentCount / $membersCount;
             $quorumMet = $ratio > 0;
             if ($m['quorum_policy_id']) {
-                $threshold = $wizardRepo->getQuorumThreshold($m['quorum_policy_id']);
+                $threshold = $wizardRepo->getQuorumThreshold($m['quorum_policy_id'], $tenantId);
                 if ($threshold !== null) {
                     $quorumMet = $ratio >= $threshold;
                 }

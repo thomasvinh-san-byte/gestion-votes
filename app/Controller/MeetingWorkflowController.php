@@ -337,7 +337,7 @@ final class MeetingWorkflowController extends AbstractController {
         ];
 
         // Check 2: Motions ouvertes
-        $openCount = $statsRepo->countOpenMotions($meetingId);
+        $openCount = $statsRepo->countOpenMotions($meetingId, $tenant);
         $checks[] = [
             'passed' => $openCount === 0,
             'label' => 'Motions fermées',
@@ -345,7 +345,7 @@ final class MeetingWorkflowController extends AbstractController {
         ];
 
         // Check 3: Éligibles
-        $eligibleCount = $attendanceRepo->countEligible($meetingId);
+        $eligibleCount = $attendanceRepo->countEligible($meetingId, $tenant);
         $fallbackEligibleUsed = false;
         if ($eligibleCount <= 0) {
             $fallbackEligibleUsed = true;
@@ -374,11 +374,11 @@ final class MeetingWorkflowController extends AbstractController {
                 $manualOk = (($manualFor + $manualAg + $manualAb) === $manualTotal);
             }
 
-            $eligibleDirect = $ballotRepo->countEligibleDirect($meetingId, $motionId);
-            $eligibleProxy = $ballotRepo->countEligibleProxy($meetingId, $motionId);
+            $eligibleDirect = $ballotRepo->countEligibleDirect($meetingId, $motionId, $tenant);
+            $eligibleProxy = $ballotRepo->countEligibleProxy($meetingId, $motionId, $tenant);
             $eligibleBallots = $eligibleDirect + $eligibleProxy;
 
-            $ballotsTotal = $ballotRepo->countByMotionId($motionId);
+            $ballotsTotal = $ballotRepo->countByMotionId($motionId, $tenant);
             $missing = max(0, $eligibleCount - $ballotsTotal);
             if ($missing > 0) {
                 $bad[] = [
@@ -388,8 +388,8 @@ final class MeetingWorkflowController extends AbstractController {
                 ];
             }
 
-            $invalidDirect = $ballotRepo->countInvalidDirect($meetingId, $motionId);
-            $invalidProxy = $ballotRepo->countInvalidProxy($meetingId, $motionId);
+            $invalidDirect = $ballotRepo->countInvalidDirect($meetingId, $motionId, $tenant);
+            $invalidProxy = $ballotRepo->countInvalidProxy($meetingId, $motionId, $tenant);
 
             if ($invalidDirect > 0 || $invalidProxy > 0) {
                 $bad[] = [

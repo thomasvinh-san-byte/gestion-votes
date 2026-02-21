@@ -191,7 +191,7 @@ final class BallotsService {
             // Silently fail - don't break the vote if broadcast fails
         }
 
-        $row = $this->ballotRepo->findByMotionAndMember($motionId, $memberId);
+        $row = $this->ballotRepo->findByMotionAndMember($motionId, $memberId, $tenantId);
 
         return $row ?? [
             'motion_id' => $motionId,

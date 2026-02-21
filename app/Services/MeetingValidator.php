@@ -56,7 +56,7 @@ final class MeetingValidator {
             $codes[] = 'missing_president';
         }
 
-        $open = $this->statsRepo->countOpenMotions($meetingId);
+        $open = $this->statsRepo->countOpenMotions($meetingId, $tenantId);
         if ($open > 0) {
             $reasons[] = "{$open} motion(s) encore ouverte(s).";
             $codes[] = 'open_motions';
@@ -68,7 +68,7 @@ final class MeetingValidator {
             $codes[] = 'bad_closed_results';
         }
 
-        $closed = $this->statsRepo->countClosedMotions($meetingId);
+        $closed = $this->statsRepo->countClosedMotions($meetingId, $tenantId);
         $consolidated = $this->motionRepo->countConsolidatedMotions($meetingId);
 
         // Consolidation is required when there is at least one closed motion.

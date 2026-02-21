@@ -224,7 +224,7 @@ final class MeetingReportsController extends AbstractController {
                 $title = (string) ($m['title'] ?? 'Motion');
                 $isClosed = ($m['closed_at'] !== null);
 
-                $ballots = $ballotRepo->listDetailedForMotion($mid);
+                $ballots = $ballotRepo->listDetailedForMotion($mid, $tenant);
 
                 $rows = '';
                 $i = 0;

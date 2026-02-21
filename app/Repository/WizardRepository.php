@@ -25,20 +25,20 @@ class WizardRepository extends AbstractRepository {
     /**
      * Compte le nombre total de presences enregistrees pour une seance.
      */
-    public function countAttendances(string $meetingId): int {
+    public function countAttendances(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
-            'SELECT COUNT(*) FROM attendances WHERE meeting_id = :mid',
-            [':mid' => $meetingId],
+            'SELECT COUNT(*) FROM attendances WHERE meeting_id = :mid AND tenant_id = :tid',
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
     /**
      * Compte les presences eligibles (present, remote, proxy).
      */
-    public function countPresentAttendances(string $meetingId): int {
+    public function countPresentAttendances(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
-            "SELECT COUNT(*) FROM attendances WHERE meeting_id = :mid AND mode IN ('present','remote','proxy')",
-            [':mid' => $meetingId],
+            "SELECT COUNT(*) FROM attendances WHERE meeting_id = :mid AND tenant_id = :tid AND mode IN ('present','remote','proxy')",
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
@@ -55,12 +55,12 @@ class WizardRepository extends AbstractRepository {
     /**
      * Compte les motions et les motions fermees d'une seance.
      */
-    public function getMotionsCounts(string $meetingId): array {
+    public function getMotionsCounts(string $meetingId, string $tenantId): array {
         $row = $this->selectOne(
             'SELECT COUNT(*) AS total,
                     SUM(CASE WHEN closed_at IS NOT NULL THEN 1 ELSE 0 END) AS closed
-             FROM motions WHERE meeting_id = :mid',
-            [':mid' => $meetingId],
+             FROM motions WHERE meeting_id = :mid AND tenant_id = :tid',
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
         return [
             'total' => (int) ($row['total'] ?? 0),
@@ -71,22 +71,22 @@ class WizardRepository extends AbstractRepository {
     /**
      * Verifie si un president est assigne a la seance.
      */
-    public function hasPresident(string $meetingId): bool {
+    public function hasPresident(string $meetingId, string $tenantId): bool {
         return (bool) $this->scalar(
             "SELECT 1 FROM meeting_roles
-             WHERE meeting_id = :mid AND role = 'president' AND revoked_at IS NULL
+             WHERE meeting_id = :mid AND tenant_id = :tid AND role = 'president' AND revoked_at IS NULL
              LIMIT 1",
-            [':mid' => $meetingId],
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
     /**
      * Recupere le seuil de quorum pour une politique.
      */
-    public function getQuorumThreshold(string $policyId): ?float {
+    public function getQuorumThreshold(string $policyId, string $tenantId): ?float {
         $result = $this->scalar(
-            'SELECT threshold FROM quorum_policies WHERE id = :id',
-            [':id' => $policyId],
+            'SELECT threshold FROM quorum_policies WHERE id = :id AND tenant_id = :tid',
+            [':id' => $policyId, ':tid' => $tenantId],
         );
         return $result !== false ? (float) $result : null;
     }

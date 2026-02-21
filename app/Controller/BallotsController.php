@@ -137,7 +137,7 @@ final class BallotsController extends AbstractController {
                 ]);
             }
 
-            $ballot = $ballotRepo->findByMotionAndMember($motionId, $memberId);
+            $ballot = $ballotRepo->findByMotionAndMember($motionId, $memberId, $tenantId);
             if (!$ballot) {
                 api_fail('ballot_not_found', 404, [
                     'detail' => 'Aucun bulletin trouvé pour ce membre sur cette résolution.',
@@ -317,7 +317,7 @@ final class BallotsController extends AbstractController {
         $ballotRepo = new BallotRepository();
         $manualRepo = new ManualActionRepository();
 
-        $pb = $ballotRepo->findUnusedPaperBallotByHash($hash);
+        $pb = $ballotRepo->findUnusedPaperBallotByHash($hash, api_current_tenant_id());
         if (!$pb) {
             api_fail('paper_ballot_not_found_or_used', 404);
         }

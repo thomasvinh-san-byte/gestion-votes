@@ -141,10 +141,10 @@ class AttendanceRepository extends AbstractRepository {
     /**
      * Compte les presences eligibles (present/remote/proxy) pour une seance.
      */
-    public function countEligible(string $meetingId): int {
+    public function countEligible(string $meetingId, string $tenantId): int {
         return (int) ($this->scalar(
-            "SELECT count(*) FROM attendances WHERE meeting_id = :mid AND mode IN ('present','remote','proxy')",
-            [':mid' => $meetingId],
+            "SELECT count(*) FROM attendances WHERE meeting_id = :mid AND tenant_id = :tid AND mode IN ('present','remote','proxy')",
+            [':mid' => $meetingId, ':tid' => $tenantId],
         ) ?? 0);
     }
 
@@ -290,7 +290,7 @@ class AttendanceRepository extends AbstractRepository {
      * CSV export: attendance with member info and proxies.
      * Note: Reinforced tenant isolation on all JOINs to avoid cross-tenant leaks.
      */
-    public function listExportForMeeting(string $meetingId): array {
+    public function listExportForMeeting(string $meetingId, string $tenantId): array {
         return $this->selectAll(
             "SELECT
                 m.id AS member_id, m.full_name, m.voting_power,
@@ -300,7 +300,7 @@ class AttendanceRepository extends AbstractRepository {
                 r.full_name AS proxy_to_name,
                 COALESCE(rc.cnt, 0) AS proxies_received
              FROM members m
-             JOIN meetings mt ON mt.id = :mid1 AND mt.tenant_id = m.tenant_id
+             JOIN meetings mt ON mt.id = :mid1 AND mt.tenant_id = :tid
              LEFT JOIN attendances a ON a.meeting_id = mt.id AND a.member_id = m.id AND a.tenant_id = mt.tenant_id
              LEFT JOIN proxies pr ON pr.meeting_id = mt.id AND pr.giver_member_id = m.id AND pr.tenant_id = mt.tenant_id AND pr.revoked_at IS NULL
              LEFT JOIN members r ON r.id = pr.receiver_member_id AND r.tenant_id = mt.tenant_id
@@ -313,7 +313,7 @@ class AttendanceRepository extends AbstractRepository {
              ) rc ON rc.receiver_member_id = m.id
              WHERE m.tenant_id = mt.tenant_id AND m.is_active = true
              ORDER BY m.full_name ASC",
-            [':mid1' => $meetingId, ':mid2' => $meetingId],
+            [':mid1' => $meetingId, ':tid' => $tenantId, ':mid2' => $meetingId],
         );
     }
 

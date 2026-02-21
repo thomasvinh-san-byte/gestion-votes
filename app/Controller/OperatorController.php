@@ -132,7 +132,7 @@ final class OperatorController extends AbstractController {
 
         $canOpenNext = $quorumOk && (count($missing) === 0) && ($openMotion === null) && ($nextMotion !== null);
 
-        $hasClosed = $statsRepo->countClosedMotions($meetingId);
+        $hasClosed = $statsRepo->countClosedMotions($meetingId, $tenant);
         $canConsolidate = ((int) ($motions['open'] ?? 0)) === 0 && $hasClosed > 0;
         $consolidatedCount = $motionRepo->countConsolidatedMotions($meetingId);
         $consolidationDone = ($hasClosed > 0) && ($consolidatedCount >= $hasClosed);

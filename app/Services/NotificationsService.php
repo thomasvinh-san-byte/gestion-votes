@@ -44,7 +44,7 @@ final class NotificationsService {
         $codes = array_values(array_unique(array_map('strval', $codes)));
         sort($codes);
 
-        $prev = $this->notifRepo->findValidationState($meetingId);
+        $prev = $this->notifRepo->findValidationState($meetingId, $tenantId);
 
         $prevReady = null;
         $prevCodes = [];
@@ -176,7 +176,7 @@ final class NotificationsService {
         }
 
         // Best-effort deduplication: same code + message + meeting in last 10 seconds
-        $recent = $this->notifRepo->countRecentDuplicates($meetingId, $code, $message);
+        $recent = $this->notifRepo->countRecentDuplicates($meetingId, $code, $message, $tenantId);
         if ($recent > 0) {
             return;
         }
@@ -199,8 +199,8 @@ final class NotificationsService {
     /**
      * @return array<int,array<string,mixed>>
      */
-    public function list(string $meetingId, string $audience = 'operator', int $sinceId = 0, int $limit = 30): array {
-        return $this->notifRepo->listSinceId($meetingId, $sinceId, $limit, $audience);
+    public function list(string $meetingId, string $audience = 'operator', int $sinceId = 0, int $limit = 30, string $tenantId = ''): array {
+        return $this->notifRepo->listSinceId($meetingId, $sinceId, $limit, $audience, $tenantId);
     }
 
     /**
@@ -208,8 +208,8 @@ final class NotificationsService {
      *
      * @return array<int,array<string,mixed>>
      */
-    public function recent(string $meetingId, string $audience = 'operator', int $limit = 80): array {
-        return $this->notifRepo->listRecent($meetingId, $limit, $audience);
+    public function recent(string $meetingId, string $audience = 'operator', int $limit = 80, string $tenantId = ''): array {
+        return $this->notifRepo->listRecent($meetingId, $limit, $audience, $tenantId);
     }
 
     public function markRead(string $meetingId, int $id, string $tenantId): void {
