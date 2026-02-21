@@ -157,24 +157,45 @@
     });
   }
 
+  // Inline validation on create user form
+  Shared.liveValidate(document.getElementById('newName'), [
+    { test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }
+  ]);
+  Shared.liveValidate(document.getElementById('newEmail'), [
+    { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
+    { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
+  ]);
+  Shared.liveValidate(document.getElementById('newPassword'), [
+    { test: function(v) { return v.length >= 8; }, msg: 'Minimum 8 caract\u00e8res' }
+  ]);
+
   // Create user
   document.getElementById('btnCreateUser').addEventListener('click', async function() {
     const btn = this;
+    var valid = Shared.validateAll([
+      { input: document.getElementById('newName'), rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
+      { input: document.getElementById('newEmail'), rules: [
+        { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
+        { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
+      ]},
+      { input: document.getElementById('newPassword'), rules: [{ test: function(v) { return v.length >= 8; }, msg: 'Minimum 8 caract\u00e8res' }] }
+    ]);
+    if (!valid) return;
     const name = document.getElementById('newName').value.trim();
     const email = document.getElementById('newEmail').value.trim();
     const role = document.getElementById('newRole').value;
     const password = document.getElementById('newPassword').value;
-    if (!name || !email) { setNotif('error', 'Nom et e-mail requis'); return; }
-    if (!Utils.isValidEmail(email)) { setNotif('error', 'Adresse e-mail invalide'); return; }
-    if (!password || password.length < 8) { setNotif('error', 'Mot de passe requis (min. 8 caractères)'); return; }
     Shared.btnLoading(btn, true);
     try {
       const r = await api('/api/v1/admin_users.php', {action:'create', name:name, email:email, role:role, password:password});
       if (r.body && r.body.ok) {
-        setNotif('success', 'Utilisateur créé');
+        setNotif('success', 'Utilisateur cr\u00e9\u00e9');
         document.getElementById('newName').value = '';
         document.getElementById('newEmail').value = '';
         document.getElementById('newPassword').value = '';
+        Shared.fieldClear(document.getElementById('newName'));
+        Shared.fieldClear(document.getElementById('newEmail'));
+        Shared.fieldClear(document.getElementById('newPassword'));
         var strengthEl = document.getElementById('passwordStrength');
         if (strengthEl) strengthEl.hidden = true;
         loadUsers();
@@ -300,11 +321,19 @@
           '</div>',
         confirmText: 'Enregistrer',
         onConfirm: function(modal) {
-          const newName = modal.querySelector('#editName').value.trim();
-          const newEmail = modal.querySelector('#editEmail').value.trim();
+          var editNameEl = modal.querySelector('#editName');
+          var editEmailEl = modal.querySelector('#editEmail');
+          var valid = Shared.validateAll([
+            { input: editNameEl, rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
+            { input: editEmailEl, rules: [
+              { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
+              { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
+            ]}
+          ]);
+          if (!valid) return false;
+          const newName = editNameEl.value.trim();
+          const newEmail = editEmailEl.value.trim();
           const newRole = modal.querySelector('#editRole').value;
-          if (!newName || !newEmail) { setNotif('error', 'Nom et e-mail requis'); return false; }
-          if (!Utils.isValidEmail(newEmail)) { setNotif('error', 'Adresse e-mail invalide'); return false; }
           api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole})
             .then(function(r) {
               if (r.body && r.body.ok) { setNotif('success', 'Utilisateur mis à jour'); loadUsers(); }
@@ -534,25 +563,39 @@
           '</div>' +
         '</div>',
       confirmText: 'Assigner',
-      onConfirm: async function() {
+      onConfirm: async function(modal) {
         var role = document.getElementById('bulkRole').value;
         var checked = document.querySelectorAll('.bulk-user-cb:checked');
-        if (!checked.length) { setNotif('error', 'Sélectionnez au moins un utilisateur'); return; }
+        if (!checked.length) { setNotif('error', 'S\u00e9lectionnez au moins un utilisateur'); return false; }
+
+        // Disable confirm button and show progress
+        var confirmBtn = modal.querySelector('.modal-confirm-btn');
+        if (confirmBtn) Shared.btnLoading(confirmBtn, true);
 
         var success = 0;
         var errors = 0;
-        for (var i = 0; i < checked.length; i++) {
+        var errorNames = [];
+        var total = checked.length;
+
+        for (var i = 0; i < total; i++) {
+          var userId = checked[i].value;
+          var userName = checked[i].parentElement.textContent.trim().split('(')[0].trim();
           try {
             var r = await api('/api/v1/admin_meeting_roles.php', {
-              action: 'assign', meeting_id: meetingId, user_id: checked[i].value, role: role
+              action: 'assign', meeting_id: meetingId, user_id: userId, role: role
             });
             if (r.body && r.body.ok) success++;
-            else errors++;
-          } catch(e) { errors++; }
+            else { errors++; errorNames.push(userName); }
+          } catch(e) { errors++; errorNames.push(userName); }
         }
 
-        if (success > 0) setNotif('success', success + ' rôle' + (success > 1 ? 's' : '') + ' attribué' + (success > 1 ? 's' : ''));
-        if (errors > 0) setNotif('error', errors + ' erreur' + (errors > 1 ? 's' : ''));
+        if (confirmBtn) Shared.btnLoading(confirmBtn, false);
+
+        if (success > 0) setNotif('success', success + ' r\u00f4le' + (success > 1 ? 's' : '') + ' attribu\u00e9' + (success > 1 ? 's' : ''));
+        if (errors > 0) {
+          var detail = errorNames.length <= 3 ? errorNames.join(', ') : errorNames.slice(0,3).join(', ') + '\u2026';
+          setNotif('error', errors + ' \u00e9chec' + (errors > 1 ? 's' : '') + ' : ' + detail);
+        }
         loadMeetingRoles();
         loadUsers();
       }

@@ -389,20 +389,21 @@
 
   // Load audit log
   async function loadAuditLog(meetingId) {
-    try {
-      const { body } = await api(`/api/v1/audit_log.php?meeting_id=${meetingId}&limit=50`);
-
-      if (body && body.ok && body.data && Array.isArray(body.data.events)) {
-        currentAuditEntries = body.data.events;
-      } else {
-        currentAuditEntries = [];
+    var container = document.getElementById('auditLog');
+    await Shared.withRetry({
+      container: container,
+      errorMsg: 'Impossible de charger le journal d\u2019audit',
+      action: async function () {
+        var res = await api('/api/v1/audit_log.php?meeting_id=' + meetingId + '&limit=50');
+        var body = res.body;
+        if (body && body.ok && body.data && Array.isArray(body.data.events)) {
+          currentAuditEntries = body.data.events;
+        } else {
+          currentAuditEntries = [];
+        }
+        renderAuditLog();
       }
-      renderAuditLog();
-    } catch (err) {
-      currentAuditEntries = [];
-      renderAuditLog();
-      setNotif('error', 'Erreur chargement journal d\'audit');
-    }
+    });
   }
 
   // P6-2: Render audit log with filter support

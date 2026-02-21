@@ -53,13 +53,13 @@
 
         <!-- Meeting selector (shown if no meeting in context) -->
         <div class="card" id="meetingPicker" hidden>
-          <div class="card-body">
-            <p class="text-muted">S&eacute;lectionnez la s&eacute;ance &agrave; cl&ocirc;turer :</p>
-            <ag-searchable-select
-              id="meetingSelect"
-              placeholder="Rechercher une s&eacute;ance termin&eacute;e..."
-              empty-text="Aucune s&eacute;ance &agrave; cl&ocirc;turer"
-            ></ag-searchable-select>
+          <div class="card-body" style="text-align:center;padding:var(--space-8);">
+            <svg class="icon" style="width:48px;height:48px;margin:0 auto var(--space-4);color:var(--persona-postsession);opacity:0.6;" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg>
+            <h2 class="text-lg font-semibold mb-2">Parcours post-s&eacute;ance</h2>
+            <p class="text-muted text-sm mb-4">S&eacute;lectionnez la s&eacute;ance termin&eacute;e &agrave; traiter :</p>
+            <select class="form-input" id="meetingPickerSelect" style="max-width:400px;margin:0 auto;">
+              <option value="">Chargement des s&eacute;ances&hellip;</option>
+            </select>
           </div>
         </div>
 

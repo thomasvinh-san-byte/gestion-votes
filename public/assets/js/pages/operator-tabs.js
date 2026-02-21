@@ -425,6 +425,7 @@ window.OpS = { fn: {} };
       loadStatusChecklist(),
       loadDashboard(),
       loadDevices(),
+      loadEmergencyProcedures(),
       loadSpeechQueue(),
       loadProxies(),
       loadInvitationStats()
@@ -691,6 +692,39 @@ window.OpS = { fn: {} };
 
     if (hasMembers && hasAttendance && hasMotions && canLaunch) {
       Shared.show(banner, 'block');
+      // Clear any blockers message
+      var blockersEl = document.getElementById('launchBlockers');
+      if (blockersEl) blockersEl.hidden = true;
+    } else if (canLaunch) {
+      // Show the banner but with blockers explanation
+      Shared.show(banner, 'block');
+      var blockers = [];
+      if (!hasMembers) blockers.push('Aucun membre inscrit');
+      if (!hasAttendance) blockers.push('Aucun membre point\u00e9 pr\u00e9sent');
+      if (!hasMotions) blockers.push('Aucune r\u00e9solution cr\u00e9\u00e9e');
+
+      var blockersEl = document.getElementById('launchBlockers');
+      if (!blockersEl) {
+        blockersEl = document.createElement('div');
+        blockersEl.id = 'launchBlockers';
+        blockersEl.className = 'launch-blockers';
+        banner.appendChild(blockersEl);
+      }
+      blockersEl.hidden = false;
+      blockersEl.innerHTML =
+        '<div class="text-sm" style="color:var(--color-warning-text);margin-top:var(--space-2);">' +
+          '<strong>Pr\u00e9requis manquants :</strong> ' +
+          blockers.map(function(b) {
+            return '<span class="launch-blocker-item">' +
+              '<svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> ' +
+              Utils.escapeHtml(b) +
+            '</span>';
+          }).join(' \u00b7 ') +
+        '</div>';
+
+      // Disable the launch button
+      var launchBtn = document.getElementById('btnLaunchSession');
+      if (launchBtn) launchBtn.disabled = true;
     } else {
       Shared.hide(banner);
     }
@@ -1035,6 +1069,69 @@ window.OpS = { fn: {} };
     } catch (err) {
       setNotif('error', 'Erreur chargement appareils');
     }
+  }
+
+  // =========================================================================
+  // EMERGENCY PROCEDURES
+  // =========================================================================
+
+  async function loadEmergencyProcedures() {
+    if (!currentMeetingId) return;
+    var container = document.getElementById('emergencyChecklist');
+    if (!container) return;
+
+    await Shared.withRetry({
+      container: container,
+      errorMsg: 'Impossible de charger les proc\u00e9dures d\u2019urgence',
+      action: async function () {
+        var url = '/api/v1/emergency_procedures.php?audience=operator&meeting_id=' + currentMeetingId;
+        var res = await api(url);
+        var d = res.body;
+        if (!d || !d.ok) throw new Error(d && d.error || 'Erreur');
+
+        var items = (d.data && d.data.items) || [];
+        var checks = (d.data && d.data.checks) || [];
+
+        if (items.length === 0) {
+          container.innerHTML = '<p class="text-muted text-sm">Aucune proc\u00e9dure configur\u00e9e.</p>';
+          container.setAttribute('aria-busy', 'false');
+          return;
+        }
+
+        // Build a lookup for checked items
+        var checkedMap = {};
+        checks.forEach(function (c) {
+          checkedMap[c.procedure_code + ':' + c.item_index] = c.checked;
+        });
+
+        container.setAttribute('aria-busy', 'false');
+        container.innerHTML = items.map(function (proc, idx) {
+          var code = proc.code || proc.id;
+          var checked = checkedMap[code + ':' + idx] ? ' checked' : '';
+          return '<label class="emergency-item">' +
+            '<input type="checkbox" class="emergency-cb" data-code="' + escapeHtml(code) + '" data-index="' + idx + '"' + checked + '>' +
+            '<span>' + escapeHtml(proc.field || proc.code || '') + '</span>' +
+            '</label>';
+        }).join('');
+
+        // Bind toggles
+        container.querySelectorAll('.emergency-cb').forEach(function (cb) {
+          cb.addEventListener('change', function () {
+            var code = cb.dataset.code;
+            var index = parseInt(cb.dataset.index, 10);
+            api('/api/v1/emergency_check_toggle.php', {
+              meeting_id: currentMeetingId,
+              procedure_code: code,
+              item_index: index,
+              checked: cb.checked ? 1 : 0
+            }).catch(function () {
+              setNotif('error', 'Erreur de mise \u00e0 jour');
+              cb.checked = !cb.checked;
+            });
+          });
+        });
+      }
+    });
   }
 
   function showDeviceManagementModal() {
@@ -2235,6 +2332,74 @@ window.OpS = { fn: {} };
   document.getElementById('btnUnanimityFor')?.addEventListener('click', () => applyUnanimity('for'));
   document.getElementById('btnUnanimityAgainst')?.addEventListener('click', () => applyUnanimity('against'));
   document.getElementById('btnUnanimityAbstain')?.addEventListener('click', () => applyUnanimity('abstain'));
+
+  // Generate vote tokens
+  document.getElementById('btnGenerateTokens')?.addEventListener('click', function () {
+    if (!currentMeetingId) { setNotif('error', 'Aucune s\u00e9ance s\u00e9lectionn\u00e9e'); return; }
+    // Build motion select from cached motions
+    var openMotions = motionsCache.filter(function (m) { return !m.closed_at; });
+    if (!openMotions.length) { setNotif('error', 'Aucune r\u00e9solution ouverte pour g\u00e9n\u00e9rer des jetons'); return; }
+
+    var motionOpts = openMotions.map(function (m) {
+      return '<option value="' + escapeHtml(m.id) + '">' + escapeHtml(m.title || 'R\u00e9solution') + '</option>';
+    }).join('');
+
+    Shared.openModal({
+      title: 'G\u00e9n\u00e9rer les jetons de vote',
+      body:
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">R\u00e9solution</label>' +
+          '<select class="form-input" id="tokenMotionId">' + motionOpts + '</select>' +
+        '</div>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Dur\u00e9e de validit\u00e9 (minutes)</label>' +
+          '<input class="form-input" type="number" id="tokenTtl" value="180" min="1" max="1440">' +
+        '</div>' +
+        '<div id="tokenResult" hidden></div>',
+      confirmText: 'G\u00e9n\u00e9rer',
+      onConfirm: async function (modal) {
+        var motionId = modal.querySelector('#tokenMotionId').value;
+        var ttl = parseInt(modal.querySelector('#tokenTtl').value, 10) || 180;
+        var resultDiv = modal.querySelector('#tokenResult');
+        var confirmBtn = modal.querySelector('.modal-confirm-btn');
+
+        Shared.btnLoading(confirmBtn, true);
+        try {
+          var res = await api('/api/v1/vote_tokens_generate.php', {
+            meeting_id: currentMeetingId,
+            motion_id: motionId,
+            ttl_minutes: ttl
+          });
+          var d = res.body;
+          if (d && d.ok && d.data) {
+            var tokens = d.data.tokens || [];
+            resultDiv.hidden = false;
+            resultDiv.innerHTML =
+              '<div class="alert alert-success mb-2">' +
+                '<strong>' + tokens.length + ' jeton' + (tokens.length > 1 ? 's' : '') + ' g\u00e9n\u00e9r\u00e9' + (tokens.length > 1 ? 's' : '') + '</strong>' +
+                ' (expire dans ' + ttl + ' min)' +
+              '</div>' +
+              '<div style="max-height:200px;overflow-y:auto;font-size:0.85rem;">' +
+                tokens.map(function (t) {
+                  return '<div class="flex items-center justify-between py-1 border-b" style="border-color:var(--color-border-subtle)">' +
+                    '<span>' + escapeHtml(t.member_name || '') + '</span>' +
+                    '<code class="text-xs" style="user-select:all">' + escapeHtml(t.token.slice(0, 12)) + '\u2026</code>' +
+                  '</div>';
+                }).join('') +
+              '</div>';
+            setNotif('success', tokens.length + ' jetons g\u00e9n\u00e9r\u00e9s');
+          } else {
+            setNotif('error', (d && d.error) || 'Erreur de g\u00e9n\u00e9ration');
+          }
+        } catch (e) {
+          setNotif('error', 'Erreur r\u00e9seau');
+        } finally {
+          Shared.btnLoading(confirmBtn, false);
+        }
+        return false; // Keep modal open to show results
+      }
+    });
+  });
 
   // Settings save
   document.getElementById('btnSaveSettings')?.addEventListener('click', saveGeneralSettings);

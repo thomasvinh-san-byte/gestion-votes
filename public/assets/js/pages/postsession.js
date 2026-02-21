@@ -89,37 +89,35 @@
       }
     } catch (e) { /* silent */ }
 
-    // Load readiness checks
-    try {
-      var res2 = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + meetingId);
-      var d2 = res2.body;
-      var checklistEl = document.getElementById('verifyChecklist');
-      if (d2 && d2.ok && d2.data && checklistEl) {
-        var checks = d2.data.checks || [];
-        checklistEl.setAttribute('aria-busy', 'false');
-        if (checks.length === 0) {
-          checklistEl.innerHTML = '<p class="text-muted text-sm">Aucune v\u00e9rification disponible.</p>';
-        } else {
-          checklistEl.innerHTML = checks.map(function (c) {
-            var cls = c.passed ? 'passed' : (c.optional ? '' : 'failed');
-            return '<div class="checklist-item ' + cls + '">' +
-              '<svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-' + (c.passed ? 'check-circle' : 'x-circle') + '"></use></svg>' +
-              '<span>' + esc(c.label || '') + '</span>' +
-              '</div>';
-          }).join('');
+    // Load readiness checks with retry
+    var checklistEl = document.getElementById('verifyChecklist');
+    if (checklistEl) {
+      await Shared.withRetry({
+        container: checklistEl,
+        errorMsg: 'Impossible de charger les v\u00e9rifications',
+        action: async function () {
+          var res2 = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + meetingId);
+          var d2 = res2.body;
+          if (!d2 || !d2.ok) throw new Error(d2 && d2.error || 'Erreur');
+          var checks = d2.data.checks || [];
+          checklistEl.setAttribute('aria-busy', 'false');
+          if (checks.length === 0) {
+            checklistEl.innerHTML = '<p class="text-muted text-sm">Aucune v\u00e9rification disponible.</p>';
+          } else {
+            checklistEl.innerHTML = checks.map(function (c) {
+              var cls = c.passed ? 'passed' : (c.optional ? '' : 'failed');
+              return '<div class="checklist-item ' + cls + '">' +
+                '<svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-' + (c.passed ? 'check-circle' : 'x-circle') + '"></use></svg>' +
+                '<span>' + esc(c.label || '') + '</span>' +
+                '</div>';
+            }).join('');
+          }
+          // Enable next button if no critical failures
+          var hasCriticalFailure = checks.some(function (c) { return !c.passed && !c.optional; });
+          var btn = document.getElementById('btnToStep2');
+          if (btn) btn.disabled = hasCriticalFailure;
         }
-
-        // Enable next button if no critical failures
-        var hasCriticalFailure = checks.some(function (c) { return !c.passed && !c.optional; });
-        var btn = document.getElementById('btnToStep2');
-        if (btn) btn.disabled = hasCriticalFailure;
-      }
-    } catch (e) {
-      var cl = document.getElementById('verifyChecklist');
-      if (cl) {
-        cl.setAttribute('aria-busy', 'false');
-        cl.innerHTML = '<p class="text-muted text-sm">Erreur de chargement des v\u00e9rifications.</p>';
-      }
+      });
     }
 
     // Load anomalies
@@ -402,9 +400,33 @@
     }
 
     if (!meetingId) {
-      // Show meeting picker
+      // Show meeting picker with available closed/validated meetings
       var picker = document.getElementById('meetingPicker');
-      if (picker) picker.hidden = false;
+      if (picker) {
+        picker.hidden = false;
+        try {
+          var res = await window.api('/api/v1/meetings.php');
+          var meetings = (res.body && res.body.ok && res.body.data) ? (res.body.data.meetings || []) : [];
+          var eligible = meetings.filter(function (m) {
+            return m.status === 'closed' || m.status === 'validated' || m.status === 'archived';
+          });
+          var selectEl = document.getElementById('meetingPickerSelect');
+          if (selectEl && eligible.length) {
+            selectEl.innerHTML = '<option value="">\u2014 S\u00e9lectionner une s\u00e9ance \u2014</option>' +
+              eligible.map(function (m) {
+                var st = (Shared.MEETING_STATUS_MAP[m.status] || {}).text || m.status;
+                return '<option value="' + m.id + '">' + Utils.escapeHtml(m.title) + ' (' + Utils.escapeHtml(st) + ')</option>';
+              }).join('');
+            selectEl.addEventListener('change', function () {
+              if (selectEl.value) {
+                window.location.href = '/postsession.htmx.html?meeting_id=' + encodeURIComponent(selectEl.value);
+              }
+            });
+          } else if (selectEl) {
+            selectEl.innerHTML = '<option value="">Aucune s\u00e9ance termin\u00e9e</option>';
+          }
+        } catch (e) { /* silent */ }
+      }
       return;
     }
 

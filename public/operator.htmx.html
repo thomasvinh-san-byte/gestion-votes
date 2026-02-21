@@ -533,6 +533,14 @@
               </div>
             </div>
 
+            <!-- Procédures d'urgence -->
+            <div class="settings-section" id="emergencyCard">
+              <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Proc&eacute;dures d'urgence</h3>
+              <div id="emergencyChecklist" class="emergency-checklist" aria-busy="true">
+                <span class="text-muted text-sm">Chargement&hellip;</span>
+              </div>
+            </div>
+
             <!-- Appareils connectés -->
             <div class="settings-section" id="devicesCard" style="display:none;">
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg> Appareils connectés</h3>
@@ -626,8 +634,11 @@
         <div class="tab-content" id="tab-vote" role="tabpanel" aria-labelledby="tab-btn-vote" tabindex="0">
           <div class="tab-toolbar mb-4">
             <a href="/public.htmx.html" target="_blank" class="btn btn-secondary" id="btnOpenPublicScreen" data-meeting-link>
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg> Écran de projection
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg> &Eacute;cran de projection
             </a>
+            <button class="btn btn-secondary" id="btnGenerateTokens">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-key"></use></svg> G&eacute;n&eacute;rer les jetons de vote
+            </button>
           </div>
 
           <div id="noActiveVote" class="no-vote-state">

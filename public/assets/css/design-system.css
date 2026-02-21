@@ -911,6 +911,29 @@ h4, .h4 {
   margin-top: 0.25rem;
 }
 
+/* Inline field-level error (used by Shared.fieldError) */
+.field-error {
+  color: var(--color-danger);
+  font-size: var(--text-xs);
+  margin-top: 0.25rem;
+  animation: fieldErrorIn var(--duration-fast) var(--ease-out);
+}
+
+@keyframes fieldErrorIn {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Retry block (used by Shared.withRetry) */
+.retry-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  text-align: center;
+}
+
 .form-helper {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
