@@ -410,16 +410,8 @@
       formData.append('file', pendingFiles[i]);
 
       try {
-        var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-          || (window.CSRF && window.CSRF.token) || '';
-        var headers = {};
-        if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
-        await fetch('/api/v1/meeting_attachments.php', {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin',
-          headers: headers
-        });
+        var { body: attResp } = await apiUpload('/api/v1/meeting_attachments.php', formData);
+        if (attResp && !attResp.ok && attResp.error) throw new Error(attResp.error);
       } catch (err) {
         setNotif('warning', 'Échec de l\'envoi du fichier : ' + (pendingFiles[i]?.name || 'inconnu'));
       }

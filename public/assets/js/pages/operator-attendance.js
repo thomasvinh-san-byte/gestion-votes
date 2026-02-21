@@ -233,14 +233,7 @@
         const formData = new FormData();
         formData.append('csv_content', csvContent);
 
-        const csrfHeaders = (window.Utils && window.Utils.getCsrfToken) ? { 'X-CSRF-Token': window.Utils.getCsrfToken() } : {};
-        const resp = await fetch('/api/v1/members_import_csv.php', {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin',
-          headers: csrfHeaders
-        });
-        const data = await resp.json();
+        const { body: data } = await apiUpload('/api/v1/members_import_csv.php', formData);
 
         if (data.ok) {
           const count = data.data?.imported || 0;
@@ -623,14 +616,7 @@
         formData.append('meeting_id', O.currentMeetingId);
         formData.append('csv_content', csvContent);
 
-        const csrfHeaders2 = (window.Utils && window.Utils.getCsrfToken) ? { 'X-CSRF-Token': window.Utils.getCsrfToken() } : {};
-        const resp = await fetch('/api/v1/proxies_import_csv.php', {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin',
-          headers: csrfHeaders2
-        });
-        const data = await resp.json();
+        const { body: data } = await apiUpload('/api/v1/proxies_import_csv.php', formData);
 
         if (data.ok) {
           const count = data.data?.imported || data.imported || 0;

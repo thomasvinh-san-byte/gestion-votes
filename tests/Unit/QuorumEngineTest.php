@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
+use AgVote\Service\QuorumEngine;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for QuorumEngine service.
  *
- * These tests validate the quorum calculation algorithms and result structure.
+ * Tests both the mirrored ratio/threshold logic AND the real QuorumEngine
+ * methods via mocked repositories (computeForMotion, computeForMeeting).
  * Integration tests with real database are in tests/Integration/.
  */
 class QuorumEngineTest extends TestCase {
@@ -428,6 +435,360 @@ class QuorumEngineTest extends TestCase {
         );
 
         $this->assertStringContainsString('non atteint', $justification);
+    }
+
+    // =========================================================================
+    // QuorumEngine::computeForMeeting() — DIRECT SERVICE TESTS (mocked repos)
+    // =========================================================================
+
+    /**
+     * Build a QuorumEngine with all repos mocked.
+     */
+    private function buildEngine(array $overrides = []): QuorumEngine {
+        $motionRepo     = $overrides['motionRepo']     ?? $this->createMock(MotionRepository::class);
+        $policyRepo     = $overrides['policyRepo']     ?? $this->createMock(PolicyRepository::class);
+        $attendanceRepo = $overrides['attendanceRepo'] ?? $this->createMock(AttendanceRepository::class);
+        $memberRepo     = $overrides['memberRepo']     ?? $this->createMock(MemberRepository::class);
+        $meetingRepo    = $overrides['meetingRepo']     ?? $this->createMock(MeetingRepository::class);
+
+        return new QuorumEngine($motionRepo, $policyRepo, $attendanceRepo, $memberRepo, $meetingRepo);
+    }
+
+    public function testComputeForMeetingNoPolicyApplied(): void {
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'meeting_id' => 'm-1',
+            'tenant_id' => 't-1',
+            'quorum_policy_id' => null,
+            'convocation_no' => 1,
+        ]);
+
+        $engine = $this->buildEngine(['meetingRepo' => $meetingRepo]);
+        $result = $engine->computeForMeeting('m-1', 't-1');
+
+        $this->assertFalse($result['applied']);
+        $this->assertNull($result['met']);
+        $this->assertStringContainsString('Aucune politique', $result['justification']);
+    }
+
+    public function testComputeForMeetingSingleQuorumMet(): void {
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'meeting_id' => 'm-1',
+            'tenant_id' => 't-1',
+            'quorum_policy_id' => 'qp-1',
+            'convocation_no' => 1,
+        ]);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findQuorumPolicy')->willReturn([
+            'id' => 'qp-1',
+            'name' => 'Standard',
+            'mode' => 'single',
+            'denominator' => 'eligible_members',
+            'threshold' => 0.5,
+            'threshold_call2' => null,
+            'include_proxies' => true,
+            'count_remote' => true,
+        ]);
+
+        $attendanceRepo = $this->createMock(AttendanceRepository::class);
+        $attendanceRepo->method('countPresentMembers')->willReturn(60);
+        $attendanceRepo->method('sumPresentWeight')->willReturn(600.0);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(100);
+        $memberRepo->method('sumActiveWeight')->willReturn(1000.0);
+
+        $engine = $this->buildEngine([
+            'meetingRepo' => $meetingRepo,
+            'policyRepo' => $policyRepo,
+            'attendanceRepo' => $attendanceRepo,
+            'memberRepo' => $memberRepo,
+        ]);
+
+        $result = $engine->computeForMeeting('m-1', 't-1');
+
+        $this->assertTrue($result['applied']);
+        $this->assertTrue($result['met']);
+        $this->assertEquals('qp-1', $result['policy']['id']);
+        $this->assertEquals(0.6, $result['details']['primary']['ratio']);
+    }
+
+    public function testComputeForMeetingSingleQuorumNotMet(): void {
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'meeting_id' => 'm-1',
+            'tenant_id' => 't-1',
+            'quorum_policy_id' => 'qp-1',
+            'convocation_no' => 1,
+        ]);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findQuorumPolicy')->willReturn([
+            'id' => 'qp-1',
+            'name' => 'Standard',
+            'mode' => 'single',
+            'denominator' => 'eligible_members',
+            'threshold' => 0.5,
+            'threshold_call2' => null,
+            'include_proxies' => true,
+            'count_remote' => true,
+        ]);
+
+        $attendanceRepo = $this->createMock(AttendanceRepository::class);
+        $attendanceRepo->method('countPresentMembers')->willReturn(40);
+        $attendanceRepo->method('sumPresentWeight')->willReturn(400.0);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(100);
+        $memberRepo->method('sumActiveWeight')->willReturn(1000.0);
+
+        $engine = $this->buildEngine([
+            'meetingRepo' => $meetingRepo,
+            'policyRepo' => $policyRepo,
+            'attendanceRepo' => $attendanceRepo,
+            'memberRepo' => $memberRepo,
+        ]);
+
+        $result = $engine->computeForMeeting('m-1', 't-1');
+
+        $this->assertTrue($result['applied']);
+        $this->assertFalse($result['met']);
+        $this->assertStringContainsString('non atteint', $result['justification']);
+    }
+
+    public function testComputeForMeetingDoubleQuorum(): void {
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'meeting_id' => 'm-1',
+            'tenant_id' => 't-1',
+            'quorum_policy_id' => 'qp-2',
+            'convocation_no' => 1,
+        ]);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findQuorumPolicy')->willReturn([
+            'id' => 'qp-2',
+            'name' => 'Double Quorum',
+            'mode' => 'double',
+            'denominator' => 'eligible_members',
+            'threshold' => 0.5,
+            'denominator2' => 'eligible_weight',
+            'threshold2' => 0.5,
+            'threshold_call2' => null,
+            'include_proxies' => true,
+            'count_remote' => true,
+        ]);
+
+        // 60 members present (60/100 = 0.6 >= 0.5) but only 400 weight (400/1000 = 0.4 < 0.5)
+        $attendanceRepo = $this->createMock(AttendanceRepository::class);
+        $attendanceRepo->method('countPresentMembers')->willReturn(60);
+        $attendanceRepo->method('sumPresentWeight')->willReturn(400.0);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(100);
+        $memberRepo->method('sumActiveWeight')->willReturn(1000.0);
+
+        $engine = $this->buildEngine([
+            'meetingRepo' => $meetingRepo,
+            'policyRepo' => $policyRepo,
+            'attendanceRepo' => $attendanceRepo,
+            'memberRepo' => $memberRepo,
+        ]);
+
+        $result = $engine->computeForMeeting('m-1', 't-1');
+
+        $this->assertTrue($result['applied']);
+        // Primary met but secondary not → overall not met
+        $this->assertFalse($result['met']);
+        $this->assertTrue($result['details']['primary']['met']);
+        $this->assertFalse($result['details']['secondary']['met']);
+    }
+
+    public function testComputeForMeetingEvolvingSecondConvocation(): void {
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'meeting_id' => 'm-1',
+            'tenant_id' => 't-1',
+            'quorum_policy_id' => 'qp-3',
+            'convocation_no' => 2,
+        ]);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findQuorumPolicy')->willReturn([
+            'id' => 'qp-3',
+            'name' => 'Evolving',
+            'mode' => 'evolving',
+            'denominator' => 'eligible_members',
+            'threshold' => 0.5,
+            'threshold_call2' => 0.25,
+            'include_proxies' => true,
+            'count_remote' => true,
+        ]);
+
+        // 30% attendance — fails 1st call (50%) but passes 2nd call (25%)
+        $attendanceRepo = $this->createMock(AttendanceRepository::class);
+        $attendanceRepo->method('countPresentMembers')->willReturn(30);
+        $attendanceRepo->method('sumPresentWeight')->willReturn(300.0);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(100);
+        $memberRepo->method('sumActiveWeight')->willReturn(1000.0);
+
+        $engine = $this->buildEngine([
+            'meetingRepo' => $meetingRepo,
+            'policyRepo' => $policyRepo,
+            'attendanceRepo' => $attendanceRepo,
+            'memberRepo' => $memberRepo,
+        ]);
+
+        $result = $engine->computeForMeeting('m-1', 't-1');
+
+        $this->assertTrue($result['applied']);
+        $this->assertTrue($result['met']);
+        // Threshold should be the 2nd convocation value
+        $this->assertEquals(0.25, $result['details']['primary']['threshold']);
+    }
+
+    public function testComputeForMeetingEmptyIdThrows(): void {
+        $engine = $this->buildEngine();
+        $this->expectException(\InvalidArgumentException::class);
+        $engine->computeForMeeting('', 't-1');
+    }
+
+    public function testComputeForMeetingNotFoundThrows(): void {
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+
+        $engine = $this->buildEngine(['meetingRepo' => $meetingRepo]);
+        $this->expectException(\RuntimeException::class);
+        $engine->computeForMeeting('m-nonexistent', 't-1');
+    }
+
+    // =========================================================================
+    // QuorumEngine::computeForMotion() — DIRECT SERVICE TESTS (mocked repos)
+    // =========================================================================
+
+    public function testComputeForMotionNoPolicy(): void {
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithQuorumContext')->willReturn([
+            'motion_id' => 'mot-1',
+            'motion_title' => 'Test Motion',
+            'meeting_id' => 'm-1',
+            'tenant_id' => 't-1',
+            'convocation_no' => 1,
+            'motion_quorum_policy_id' => null,
+            'meeting_quorum_policy_id' => null,
+            'motion_opened_at' => null,
+        ]);
+
+        $engine = $this->buildEngine(['motionRepo' => $motionRepo]);
+        $result = $engine->computeForMotion('mot-1');
+
+        $this->assertFalse($result['applied']);
+        $this->assertNull($result['met']);
+    }
+
+    public function testComputeForMotionWithPolicy(): void {
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithQuorumContext')->willReturn([
+            'motion_id' => 'mot-1',
+            'motion_title' => 'Test Motion',
+            'meeting_id' => 'm-1',
+            'tenant_id' => 't-1',
+            'convocation_no' => 1,
+            'motion_quorum_policy_id' => 'qp-1',
+            'meeting_quorum_policy_id' => null,
+            'motion_opened_at' => null,
+        ]);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findQuorumPolicy')->willReturn([
+            'id' => 'qp-1',
+            'name' => 'Motion Quorum',
+            'mode' => 'single',
+            'denominator' => 'eligible_members',
+            'threshold' => 0.5,
+            'threshold_call2' => null,
+            'include_proxies' => true,
+            'count_remote' => true,
+        ]);
+
+        $attendanceRepo = $this->createMock(AttendanceRepository::class);
+        $attendanceRepo->method('countPresentMembers')->willReturn(60);
+        $attendanceRepo->method('sumPresentWeight')->willReturn(600.0);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(100);
+        $memberRepo->method('sumActiveWeight')->willReturn(1000.0);
+
+        $engine = $this->buildEngine([
+            'motionRepo' => $motionRepo,
+            'policyRepo' => $policyRepo,
+            'attendanceRepo' => $attendanceRepo,
+            'memberRepo' => $memberRepo,
+        ]);
+
+        $result = $engine->computeForMotion('mot-1');
+
+        $this->assertTrue($result['applied']);
+        $this->assertTrue($result['met']);
+        $this->assertEquals('qp-1', $result['policy']['id']);
+        $this->assertArrayHasKey('applies_to', $result);
+        $this->assertEquals('mot-1', $result['applies_to']['motion_id']);
+    }
+
+    public function testComputeForMotionEmptyIdThrows(): void {
+        $engine = $this->buildEngine();
+        $this->expectException(\InvalidArgumentException::class);
+        $engine->computeForMotion('');
+    }
+
+    public function testComputeForMotionFallsBackToMeetingPolicy(): void {
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithQuorumContext')->willReturn([
+            'motion_id' => 'mot-1',
+            'motion_title' => 'Test Motion',
+            'meeting_id' => 'm-1',
+            'tenant_id' => 't-1',
+            'convocation_no' => 1,
+            'motion_quorum_policy_id' => null, // No motion-level policy
+            'meeting_quorum_policy_id' => 'qp-meeting', // Falls back to meeting
+            'motion_opened_at' => null,
+        ]);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findQuorumPolicy')->with('qp-meeting')->willReturn([
+            'id' => 'qp-meeting',
+            'name' => 'Meeting Quorum',
+            'mode' => 'single',
+            'denominator' => 'eligible_members',
+            'threshold' => 0.5,
+            'threshold_call2' => null,
+            'include_proxies' => true,
+            'count_remote' => true,
+        ]);
+
+        $attendanceRepo = $this->createMock(AttendanceRepository::class);
+        $attendanceRepo->method('countPresentMembers')->willReturn(60);
+        $attendanceRepo->method('sumPresentWeight')->willReturn(600.0);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(100);
+        $memberRepo->method('sumActiveWeight')->willReturn(1000.0);
+
+        $engine = $this->buildEngine([
+            'motionRepo' => $motionRepo,
+            'policyRepo' => $policyRepo,
+            'attendanceRepo' => $attendanceRepo,
+            'memberRepo' => $memberRepo,
+        ]);
+
+        $result = $engine->computeForMotion('mot-1');
+
+        $this->assertTrue($result['applied']);
+        $this->assertEquals('qp-meeting', $result['policy']['id']);
     }
 
     // =========================================================================

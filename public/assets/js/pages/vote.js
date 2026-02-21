@@ -119,44 +119,36 @@
     if (!meetingId) return;
     const deviceId = getDeviceId();
     const bat = await readBattery();
-    try {
-      const hbHeaders = { 'Content-Type': 'application/json' };
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
-                     || (window.Utils?.csrfToken ? Utils.csrfToken() : null);
-      if (csrfToken) hbHeaders['X-CSRF-Token'] = csrfToken;
-      const r = await fetch(HEARTBEAT_URL, {
-        method: 'POST',
-        headers: hbHeaders,
-        credentials: 'same-origin',
-        body: JSON.stringify({
-          meeting_id: meetingId,
-          device_id: deviceId,
-          role: DEVICE_ROLE,
-          member_id: selectedMemberId() || null,
-          battery_level: bat ? bat.level : null,
-          battery_charging: bat ? bat.charging : null,
-          user_agent: navigator.userAgent || null
-        })
-      });
-      const out = await r.json().catch(()=>({}));
-      const data = out?.data || {};
-      if (data.blocked) {
-        setBlocked(true, data.block_reason || "Cet appareil a été bloqué.");
-      } else {
-        setBlocked(false);
-      }
+    const { status, body: out } = await api(HEARTBEAT_URL, {
+      meeting_id: meetingId,
+      device_id: deviceId,
+      role: DEVICE_ROLE,
+      member_id: selectedMemberId() || null,
+      battery_level: bat ? bat.level : null,
+      battery_charging: bat ? bat.charging : null,
+      user_agent: navigator.userAgent || null
+    });
 
-      // Soft kick: request reload
-      if (data.command && data.command.type === 'kick') {
-        notify('error', data.command.message || 'Reconnexion requise.');
-        setTimeout(()=>{ location.reload(); }, 800);
-      }
-      _heartbeatFailCount = 0;
-    } catch(e){
+    if (status === 0) {
       _heartbeatFailCount++;
       if (_heartbeatFailCount === 3) {
         notify('error', 'Connexion instable — vérifiez votre réseau.');
       }
+      return;
+    }
+
+    _heartbeatFailCount = 0;
+    const data = out?.data || {};
+    if (data.blocked) {
+      setBlocked(true, data.block_reason || "Cet appareil a été bloqué.");
+    } else {
+      setBlocked(false);
+    }
+
+    // Soft kick: request reload
+    if (data.command && data.command.type === 'kick') {
+      notify('error', data.command.message || 'Reconnexion requise.');
+      setTimeout(()=>{ location.reload(); }, 800);
     }
   }
 
@@ -247,39 +239,24 @@
 
   /**
    * Perform a GET request to the API.
-   * Uses Utils.apiGet if available, otherwise falls back to fetch.
    * @param {string} url - API endpoint URL
    * @returns {Promise<Object>} Parsed JSON response
    * @throws {Error} If request fails
    */
-  async function apiGet(url){
-    if (window.Utils && typeof Utils.apiGet === 'function') return Utils.apiGet(url);
-    const r = await fetch(url, { method: 'GET', credentials: 'same-origin' });
-    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'request_failed'); }
-    return r.json();
+  function apiGet(url){
+    return Utils.apiGet(url);
   }
 
   /**
    * Perform a POST request to the API.
-   * Uses Utils.apiPost if available, otherwise falls back to fetch.
    * @param {string} url - API endpoint URL
    * @param {Object} data - Data to send in request body
+   * @param {Object} [extraHeaders] - Additional headers (e.g. idempotency key)
    * @returns {Promise<Object>} Parsed JSON response
    * @throws {Error} If request fails
    */
-  async function apiPost(url, data, extraHeaders){
-    if (window.Utils && typeof Utils.apiPost === 'function') {
-      return Utils.apiPost(url, data, extraHeaders ? { headers: extraHeaders } : {});
-    }
-    const headers = { 'Content-Type': 'application/json', ...(extraHeaders || {}) };
-    const r = await fetch(url, {
-      method: 'POST',
-      headers,
-      credentials: 'same-origin',
-      body: JSON.stringify(data)
-    });
-    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'request_failed'); }
-    return r.json();
+  function apiPost(url, data, extraHeaders){
+    return Utils.apiPost(url, data, extraHeaders ? { headers: extraHeaders } : {});
   }
 
   /**
@@ -814,12 +791,9 @@
     if (!token) return false;
 
     try {
-      const resp = await fetch('/api/v1/invitations_redeem.php?token=' + encodeURIComponent(token), {
-        credentials: 'same-origin'
-      });
-      const data = await resp.json();
+      const { status, body: data } = await api('/api/v1/invitations_redeem.php?token=' + encodeURIComponent(token));
 
-      if (!resp.ok || !data.ok) {
+      if (status === 0 || !data.ok) {
         const code = data?.error || data?.detail || 'invalid_token';
         const msgs = {
           'missing_token': 'Lien d\u2019invitation incomplet.',
