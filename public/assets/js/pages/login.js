@@ -58,7 +58,7 @@
     var isPresident = mr.some(function(r) { return r.role === 'president'; });
     var isVoter = mr.some(function(r) { return r.role === 'voter'; });
     if (isPresident) {
-      window.location.href = '/operator.htmx.html';
+      window.location.href = '/operator.htmx.html?mode=president';
     } else if (isVoter) {
       window.location.href = '/vote.htmx.html';
     } else {

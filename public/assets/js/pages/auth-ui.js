@@ -77,12 +77,26 @@
 
   var ROLE_LABELS = {
     admin: 'Administrateur',
-    operator: 'Opérateur',
+    operator: 'Op\u00e9rateur',
     auditor: 'Auditeur',
     viewer: 'Observateur',
-    president: 'Président',
+    president: 'Pr\u00e9sident',
     assessor: 'Assesseur',
-    voter: 'Électeur'
+    voter: '\u00c9lecteur'
+  };
+
+  /**
+   * Persona-aware role descriptions for the auth banner.
+   * Maps system/meeting roles to the 7 personas defined in the UX audit.
+   */
+  var PERSONA_LABELS = {
+    admin: 'Administration syst\u00e8me',
+    operator: 'Pr\u00e9paration & pilotage',
+    auditor: 'Contr\u00f4le & conformit\u00e9',
+    viewer: 'Consultation',
+    president: 'Supervision de s\u00e9ance',
+    assessor: 'Contr\u00f4le de scrutin',
+    voter: 'Vote'
   };
 
   function esc(s) {
@@ -191,7 +205,8 @@
     if (nameEl) nameEl.textContent = displayName;
 
     var roleLabel = ROLE_LABELS[systemRole] || systemRole || '';
-    if (roleEl) roleEl.textContent = roleLabel;
+    var personaLabel = PERSONA_LABELS[systemRole] || '';
+    if (roleEl) roleEl.textContent = roleLabel + (personaLabel ? ' \u2014 ' + personaLabel : '');
 
     // Avatar initials
     if (avatarEl) {
@@ -490,6 +505,7 @@
 
   window.Auth.hasAccess = hasAccess;
   window.Auth.ROLE_LABELS = ROLE_LABELS;
+  window.Auth.PERSONA_LABELS = PERSONA_LABELS;
 
   ensureBanner();
   boot();

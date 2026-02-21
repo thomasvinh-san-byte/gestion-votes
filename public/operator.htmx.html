@@ -59,6 +59,29 @@
       </div>
     </section>
 
+    <!-- Mode indicator (shown in president mode) -->
+    <div class="mode-indicator" id="modeIndicator">
+      <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-eye"></use></svg>
+      <span>Mode pr&eacute;sident &mdash; supervision en lecture seule</span>
+    </div>
+
+    <!-- Meeting lifecycle visual indicator -->
+    <div class="lifecycle-bar" id="lifecycleBar" hidden aria-label="&Eacute;tat de la s&eacute;ance">
+      <span class="lifecycle-step" data-state="draft">Brouillon</span>
+      <span class="lifecycle-arrow" aria-hidden="true">&rsaquo;</span>
+      <span class="lifecycle-step" data-state="scheduled">Programm&eacute;e</span>
+      <span class="lifecycle-arrow" aria-hidden="true">&rsaquo;</span>
+      <span class="lifecycle-step" data-state="frozen">Verrouill&eacute;e</span>
+      <span class="lifecycle-arrow" aria-hidden="true">&rsaquo;</span>
+      <span class="lifecycle-step" data-state="live">En cours</span>
+      <span class="lifecycle-arrow" aria-hidden="true">&rsaquo;</span>
+      <span class="lifecycle-step" data-state="closed">Termin&eacute;e</span>
+      <span class="lifecycle-arrow" aria-hidden="true">&rsaquo;</span>
+      <span class="lifecycle-step" data-state="validated">Valid&eacute;e</span>
+      <span class="lifecycle-arrow" aria-hidden="true">&rsaquo;</span>
+      <span class="lifecycle-step" data-state="archived">Archiv&eacute;e</span>
+    </div>
+
     <!-- Tabs navigation (shown in setup mode when meeting selected) -->
     <nav class="tabs-nav" id="tabsNav" style="display: none;" role="tablist" aria-label="Sections de la séance">
       <!-- 4 preparation tabs — always visible -->

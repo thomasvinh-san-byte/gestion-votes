@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="fr" data-page-role="operator,president,admin">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Parcours post-séance : validation, PV, envoi, archivage — AG-VOTE">
+  <title>Cl&ocirc;ture &amp; PV — AG-VOTE</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/postsession.css">
+  <?php include __DIR__ . '/partials/_csrf_head.php'; ?>
+</head>
+<body>
+  <!-- Skip links -->
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
+
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar" data-include-sidebar data-page="postsession"></aside>
+
+    <!-- Drawer -->
+    <div class="drawer-backdrop" data-drawer-close hidden></div>
+    <aside class="drawer" id="drawer" aria-hidden="true">
+      <div class="drawer-header">
+        <h3 class="drawer-title" id="drawerTitle">Informations</h3>
+        <button class="btn btn-ghost btn-icon btn-sm" data-drawer-close aria-label="Fermer">&times;</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+
+    <!-- Header with persona accent stripe -->
+    <header class="app-header postsession-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold">
+            <svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg>
+            Cl&ocirc;ture de s&eacute;ance
+          </h1>
+          <p class="text-sm text-secondary" id="meetingTitle">Parcours guid&eacute; : validation &rarr; PV &rarr; envoi &rarr; archivage</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="S&eacute;ance en cours">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main" id="main-content" role="main">
+      <div class="container">
+
+        <!-- Meeting selector (shown if no meeting in context) -->
+        <div class="card" id="meetingPicker" hidden>
+          <div class="card-body">
+            <p class="text-muted">S&eacute;lectionnez la s&eacute;ance &agrave; cl&ocirc;turer :</p>
+            <ag-searchable-select
+              id="meetingSelect"
+              placeholder="Rechercher une s&eacute;ance termin&eacute;e..."
+              empty-text="Aucune s&eacute;ance &agrave; cl&ocirc;turer"
+            ></ag-searchable-select>
+          </div>
+        </div>
+
+        <!-- Stepper progress bar -->
+        <div class="ps-stepper" id="stepper" role="navigation" aria-label="&Eacute;tapes de cl&ocirc;ture">
+          <div class="ps-step active" data-step="1" aria-current="step">
+            <span class="ps-step-number">1</span>
+            <span class="ps-step-label">V&eacute;rification</span>
+          </div>
+          <div class="ps-step-connector"></div>
+          <div class="ps-step" data-step="2">
+            <span class="ps-step-number">2</span>
+            <span class="ps-step-label">Validation</span>
+          </div>
+          <div class="ps-step-connector"></div>
+          <div class="ps-step" data-step="3">
+            <span class="ps-step-number">3</span>
+            <span class="ps-step-label">Proc&egrave;s-verbal</span>
+          </div>
+          <div class="ps-step-connector"></div>
+          <div class="ps-step" data-step="4">
+            <span class="ps-step-number">4</span>
+            <span class="ps-step-label">Envoi &amp; Archivage</span>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             STEP 1: Vérification
+             ============================================================ -->
+        <section class="ps-panel" id="panel-1" aria-labelledby="step1-title">
+          <h2 id="step1-title" class="ps-panel-title">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-search"></use></svg>
+            V&eacute;rification des r&eacute;sultats
+          </h2>
+          <p class="text-sm text-secondary mb-4">V&eacute;rifiez que tous les votes ont &eacute;t&eacute; correctement enregistr&eacute;s et que les r&eacute;sultats sont coh&eacute;rents.</p>
+
+          <!-- Summary stats -->
+          <div class="stats-grid mb-6" id="summaryStats">
+            <div class="stat-item"><div class="stat-value" id="statMembers">—</div><div class="stat-label">Membres</div></div>
+            <div class="stat-item"><div class="stat-value" id="statPresent">—</div><div class="stat-label">Pr&eacute;sents</div></div>
+            <div class="stat-item"><div class="stat-value" id="statMotions">—</div><div class="stat-label">R&eacute;solutions</div></div>
+            <div class="stat-item"><div class="stat-value" id="statAdopted">—</div><div class="stat-label">Adopt&eacute;es</div></div>
+            <div class="stat-item"><div class="stat-value" id="statRejected">—</div><div class="stat-label">Rejet&eacute;es</div></div>
+            <div class="stat-item"><div class="stat-value" id="statBallots">—</div><div class="stat-label">Bulletins</div></div>
+          </div>
+
+          <!-- Checklist -->
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">Check-list de coh&eacute;rence</h3></div>
+            <div class="card-body">
+              <div class="checklist" id="verifyChecklist" aria-busy="true">
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alerts -->
+          <div class="card mb-4" id="alertsCard" hidden>
+            <div class="card-header"><h3 class="card-title">Alertes</h3></div>
+            <div class="card-body" id="alertsList"></div>
+          </div>
+
+          <div class="ps-actions">
+            <span></span>
+            <button class="btn btn-primary" id="btnToStep2" disabled>
+              Suivant : Validation
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             STEP 2: Validation
+             ============================================================ -->
+        <section class="ps-panel" id="panel-2" hidden aria-labelledby="step2-title">
+          <h2 id="step2-title" class="ps-panel-title">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+            Validation officielle
+          </h2>
+          <p class="text-sm text-secondary mb-4">Le pr&eacute;sident ou un administrateur valide officiellement les r&eacute;sultats. Cette action verrouille les donn&eacute;es.</p>
+
+          <!-- Meeting status transition -->
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">&Eacute;tat de la s&eacute;ance</h3></div>
+            <div class="card-body">
+              <div class="workflow-state" id="workflowState">
+                <div class="workflow-state-step" id="wsStep-closed"><span class="workflow-state-dot"></span><span class="workflow-state-label">Termin&eacute;e</span></div>
+                <div class="workflow-state-step" id="wsStep-validated"><span class="workflow-state-dot"></span><span class="workflow-state-label">Valid&eacute;e</span></div>
+                <div class="workflow-state-step" id="wsStep-archived"><span class="workflow-state-dot"></span><span class="workflow-state-label">Archiv&eacute;e</span></div>
+              </div>
+              <div id="transitionActions" class="mt-4"></div>
+            </div>
+          </div>
+
+          <div class="ps-actions">
+            <button class="btn btn-secondary" id="btnBackToStep1">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
+              Retour
+            </button>
+            <button class="btn btn-primary" id="btnToStep3" disabled>
+              Suivant : Proc&egrave;s-verbal
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             STEP 3: Procès-verbal
+             ============================================================ -->
+        <section class="ps-panel" id="panel-3" hidden aria-labelledby="step3-title">
+          <h2 id="step3-title" class="ps-panel-title">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
+            Proc&egrave;s-verbal
+          </h2>
+          <p class="text-sm text-secondary mb-4">G&eacute;n&eacute;rez et v&eacute;rifiez le PV avant envoi. Le hash d'int&eacute;grit&eacute; garantit que le document n'a pas &eacute;t&eacute; alt&eacute;r&eacute;.</p>
+
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">Pr&eacute;visualisation</h3>
+              <div class="card-actions">
+                <button class="btn btn-secondary btn-sm" id="btnGenerateReport">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg>
+                  G&eacute;n&eacute;rer
+                </button>
+                <a class="btn btn-primary btn-sm" id="btnExportPDF" href="#" target="_blank">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
+                  PDF
+                </a>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="pv-preview" id="pvPreview">
+                <p class="text-muted text-center p-8">Cliquez &laquo; G&eacute;n&eacute;rer &raquo; pour cr&eacute;er le proc&egrave;s-verbal.</p>
+              </div>
+            </div>
+            <div class="card-footer" id="pvHashBar" hidden>
+              <span class="text-xs text-muted">Hash d'int&eacute;grit&eacute; :</span>
+              <code class="text-xs" id="pvHash">—</code>
+            </div>
+          </div>
+
+          <div class="ps-actions">
+            <button class="btn btn-secondary" id="btnBackToStep2">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
+              Retour
+            </button>
+            <button class="btn btn-primary" id="btnToStep4">
+              Suivant : Envoi &amp; Archivage
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             STEP 4: Envoi & Archivage
+             ============================================================ -->
+        <section class="ps-panel" id="panel-4" hidden aria-labelledby="step4-title">
+          <h2 id="step4-title" class="ps-panel-title">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
+            Envoi &amp; Archivage
+          </h2>
+          <p class="text-sm text-secondary mb-4">Envoyez le PV aux participants et archivez la s&eacute;ance.</p>
+
+          <!-- Email send -->
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">Envoyer le proc&egrave;s-verbal</h3></div>
+            <div class="card-body">
+              <div class="form-group mb-4">
+                <label class="form-label" for="sendTo">Destinataires</label>
+                <select class="form-input" id="sendTo">
+                  <option value="all">Tous les membres pr&eacute;sents</option>
+                  <option value="all_members">Tous les membres (pr&eacute;sents + absents)</option>
+                  <option value="custom">Adresse personnalis&eacute;e</option>
+                </select>
+              </div>
+              <div class="form-group mb-4" id="customEmailGroup" hidden>
+                <label class="form-label" for="customEmail">Adresse email</label>
+                <input class="form-input" type="email" id="customEmail" placeholder="destinataire@exemple.fr">
+              </div>
+              <button class="btn btn-primary" id="btnSendReport">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
+                Envoyer le PV
+              </button>
+            </div>
+          </div>
+
+          <!-- Exports -->
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">Exports compl&eacute;mentaires</h3></div>
+            <div class="card-body">
+              <div class="ps-exports-grid">
+                <a class="btn btn-secondary btn-sm" id="exportAttendanceCsv" href="#">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+                  Pr&eacute;sences CSV
+                </a>
+                <a class="btn btn-secondary btn-sm" id="exportVotesCsv" href="#">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
+                  Votes CSV
+                </a>
+                <a class="btn btn-secondary btn-sm" id="exportResultsXlsx" href="#">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
+                  R&eacute;sultats XLSX
+                </a>
+                <a class="btn btn-secondary btn-sm" id="exportFullXlsx" href="#">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg>
+                  Export complet XLSX
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Archive action -->
+          <div class="card mb-4 card-danger" id="archiveCard">
+            <div class="card-header"><h3 class="card-title">Archivage d&eacute;finitif</h3></div>
+            <div class="card-body">
+              <p class="text-sm mb-4">L'archivage verrouille d&eacute;finitivement la s&eacute;ance. Les donn&eacute;es restent consultables mais ne peuvent plus &ecirc;tre modifi&eacute;es.</p>
+              <button class="btn btn-danger" id="btnArchive">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg>
+                Archiver la s&eacute;ance
+              </button>
+            </div>
+          </div>
+
+          <!-- Completion banner -->
+          <div class="ps-complete-banner" id="completeBanner" hidden>
+            <svg class="icon icon-xl" aria-hidden="true" style="color:var(--color-success);"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+            <div>
+              <h3>S&eacute;ance cl&ocirc;tur&eacute;e avec succ&egrave;s</h3>
+              <p class="text-sm text-secondary">Le PV a &eacute;t&eacute; g&eacute;n&eacute;r&eacute;, envoy&eacute; et la s&eacute;ance est archiv&eacute;e.</p>
+            </div>
+            <a href="/archives.htmx.html" class="btn btn-primary">Voir les archives</a>
+          </div>
+
+          <div class="ps-actions">
+            <button class="btn btn-secondary" id="btnBackToStep3">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
+              Retour
+            </button>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Notification -->
+  <div id="notif_box" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="/assets/js/core/utils.js"></script>
+  <script src="/assets/js/core/shared.js"></script>
+  <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/services/meeting-context.js"></script>
+  <script type="module" src="/assets/js/components/ag-searchable-select.js"></script>
+  <?php include __DIR__ . '/partials/_csrf_scripts.php'; ?>
+  <script src="/assets/js/pages/postsession.js"></script>
+</body>
+</html>

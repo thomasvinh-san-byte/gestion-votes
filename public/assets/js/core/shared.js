@@ -59,15 +59,29 @@
 
   const ROLE_LABELS_SYSTEM = {
     admin: 'Administrateur',
-    operator: 'Opérateur',
+    operator: 'Op\u00e9rateur',
     auditor: 'Auditeur',
     viewer: 'Observateur'
   };
 
   const ROLE_LABELS_MEETING = {
-    president: 'Président',
+    president: 'Pr\u00e9sident',
     assessor: 'Assesseur',
-    voter: 'Électeur'
+    voter: '\u00c9lecteur'
+  };
+
+  /**
+   * Persona descriptions — maps roles to the 7 UX personas.
+   * Used in UI to clarify what each role does, not just what it's called.
+   */
+  const PERSONA_DESCRIPTIONS = {
+    admin: 'Gestion du syst\u00e8me',
+    operator: 'Pr\u00e9paration & pilotage de s\u00e9ance',
+    auditor: 'Contr\u00f4le de conformit\u00e9',
+    viewer: 'Consultation des donn\u00e9es',
+    president: 'Supervision & validation',
+    assessor: 'Contr\u00f4le de scrutin',
+    voter: 'Vote en assembl\u00e9e'
   };
 
   const ROLE_LABELS_ALL = {};
@@ -298,6 +312,7 @@
     ROLE_LABELS_SYSTEM: ROLE_LABELS_SYSTEM,
     ROLE_LABELS_MEETING: ROLE_LABELS_MEETING,
     ROLE_LABELS_ALL: ROLE_LABELS_ALL,
+    PERSONA_DESCRIPTIONS: PERSONA_DESCRIPTIONS,
     MEETING_STATUS_MAP: MEETING_STATUS_MAP,
     btnLoading: btnLoading,
     openModal: openModal,

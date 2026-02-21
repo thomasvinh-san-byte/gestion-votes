@@ -16,21 +16,29 @@
   <!-- Skip link -->
   <a href="#vote-buttons" class="skip-link">Aller aux boutons de vote</a>
 
-  <div class="vote-app">
+  <div class="vote-app" id="voteApp">
     <!-- Page header -->
     <header class="page-header" role="banner">
       <div>
         <h1 class="page-header-title">Vote</h1>
-        <div class="page-header-subtitle">Interface tablette</div>
+        <div class="page-header-subtitle" id="voteSubtitle">Interface de vote s&eacute;curis&eacute;e</div>
       </div>
-      <div class="page-header-actions">
-        <a href="/public.htmx.html" class="btn btn-secondary btn-sm" target="_blank" aria-label="Voir l'écran public">Écran public</a>
-        <button class="btn btn-secondary btn-sm" id="btnRefresh" aria-label="Actualiser les données">Actualiser</button>
+      <div class="page-header-actions" id="headerActions">
+        <button class="btn btn-secondary btn-sm" id="btnRefresh" aria-label="Actualiser les donn&eacute;es">Actualiser</button>
       </div>
     </header>
 
-    <!-- Context bar -->
-    <div class="context-bar" role="region" aria-label="Sélection de séance et votant">
+    <!-- Simplified identity banner (shown in invitation mode) -->
+    <div class="vote-identity-banner" id="identityBanner" hidden>
+      <div class="member-avatar" id="identityAvatar" aria-hidden="true">?</div>
+      <div>
+        <div class="identity-name" id="identityName">—</div>
+        <div class="identity-meeting" id="identityMeeting">—</div>
+      </div>
+    </div>
+
+    <!-- Context bar (hidden in invitation mode) -->
+    <div class="context-bar" id="contextBar" role="region" aria-label="S&eacute;lection de s&eacute;ance et votant">
       <div class="form-group">
         <label class="form-label" for="meetingSelect">Séance</label>
         <ag-searchable-select
@@ -224,6 +232,22 @@
   <script src="/assets/js/core/utils.js"></script>
   <script src="/assets/js/pages/auth-ui.js"></script>
   <script src="/assets/js/pages/vote.js"></script>
+
+  <script>
+  // Invitation-mode detection: if URL has token=, hide the context bar
+  // and show the identity banner instead (grandmother-test optimization)
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('token') || params.get('invitation')) {
+      var app = document.getElementById('voteApp');
+      if (app) app.classList.add('invitation-mode');
+      var banner = document.getElementById('identityBanner');
+      if (banner) banner.hidden = false;
+      var subtitle = document.getElementById('voteSubtitle');
+      if (subtitle) subtitle.textContent = 'Votez en toute s\u00e9curit\u00e9';
+    }
+  })();
+  </script>
 
   <script>
   (function() {

@@ -51,103 +51,163 @@
       </div>
     </main>
 
-    <!-- Roles Section -->
+    <!-- Roles Section — mapped to the 7 personas -->
     <section id="roles-section" class="roles-section" aria-labelledby="roles-title">
       <div class="section-header">
         <h2 id="roles-title" class="section-title">Choisissez votre interface</h2>
         <p class="section-subtitle">
-          Chaque rôle dispose d'une interface dédiée optimisée pour ses besoins spécifiques
+          Chaque profil dispose d'une interface d&eacute;di&eacute;e, optimis&eacute;e pour son r&ocirc;le dans l'assembl&eacute;e
         </p>
       </div>
       <div class="roles-grid animate-stagger">
-        <article class="role-card">
+
+        <!-- P1 : Le Préparateur de séance -->
+        <article class="role-card" data-persona="preparateur">
           <div class="role-icon">
-            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path><path d="m9 13 2 2 4-4"></path></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
           </div>
-          <h3 class="role-title">Votant (Tablette)</h3>
+          <h3 class="role-title">Pr&eacute;parateur</h3>
+          <p class="role-persona">Secr&eacute;taire / assistant(e) de s&eacute;ance</p>
           <p class="role-desc">
-            Interface simplifiée pour tablette tactile. Exprimez votre vote en toute sécurité
-            avec confirmation visuelle immédiate.
+            Cr&eacute;ez la r&eacute;union, importez les membres, configurez quorum et politiques de vote, r&eacute;digez l'ordre du jour et envoyez les convocations.
+          </p>
+          <a href="/meetings.htmx.html" class="role-link">
+            <span>Pr&eacute;parer une s&eacute;ance</span>
+            <span>&rarr;</span>
+          </a>
+        </article>
+
+        <!-- P2 : Le Président de séance -->
+        <article class="role-card" data-persona="president">
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          </div>
+          <h3 class="role-title">Pr&eacute;sident</h3>
+          <p class="role-persona">Pr&eacute;side la s&eacute;ance, proclame les r&eacute;sultats</p>
+          <p class="role-desc">
+            Supervisez la s&eacute;ance en direct, validez les r&eacute;sultats de chaque vote et signez le proc&egrave;s-verbal. Vue lecture seule avec actions cl&eacute;s.
+          </p>
+          <a href="/operator.htmx.html?mode=president" class="role-link">
+            <span>Acc&eacute;der &agrave; la supervision</span>
+            <span>&rarr;</span>
+          </a>
+        </article>
+
+        <!-- P3 : L'Opérateur -->
+        <article class="role-card" data-persona="operateur">
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </div>
+          <h3 class="role-title">Op&eacute;rateur</h3>
+          <p class="role-persona">Assistant technique du pr&eacute;sident</p>
+          <p class="role-desc">
+            Pilotez la s&eacute;ance en direct : pr&eacute;sences, ouverture/fermeture des votes, saisie manuelle, gestion de la parole et des appareils.
+          </p>
+          <a href="/operator.htmx.html" class="role-link">
+            <span>Piloter la s&eacute;ance</span>
+            <span>&rarr;</span>
+          </a>
+        </article>
+
+        <!-- P4 : Les Votants -->
+        <article class="role-card" data-persona="votant">
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path><path d="m9 13 2 2 4-4"></path></svg>
+          </div>
+          <h3 class="role-title">Votant</h3>
+          <p class="role-persona">Membres de l'assembl&eacute;e</p>
+          <p class="role-desc">
+            Interface simplifi&eacute;e pour tablette, t&eacute;l&eacute;phone ou PC. Votez en toute s&eacute;curit&eacute; avec confirmation visuelle et re&ccedil;u imm&eacute;diat.
           </p>
           <a href="/vote.htmx.html" class="role-link">
-            <span>Accéder à l'interface</span>
-            <span>→</span>
+            <span>Acc&eacute;der au vote</span>
+            <span>&rarr;</span>
           </a>
+          <div class="role-difficulty" aria-label="Complexit&eacute; : tr&egrave;s facile">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><circle cx="4" cy="8" r="3"/><circle cx="12" cy="8" r="3" opacity=".2"/></svg>
+            <span>Interface simplifi&eacute;e — con&ccedil;ue pour tous</span>
+          </div>
         </article>
 
-        <article class="role-card">
+        <!-- P5 : Le Responsable post-séance -->
+        <article class="role-card" data-persona="postsession">
           <div class="role-icon">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           </div>
-          <h3 class="role-title">Opérateur</h3>
+          <h3 class="role-title">Post-s&eacute;ance</h3>
+          <p class="role-persona">Validation, PV et archivage</p>
           <p class="role-desc">
-            Préparez et pilotez la séance. Gérez présences, procurations, résolutions et parole.
-            Contrôlez le flux des votes en temps réel.
+            Validez les r&eacute;sultats, g&eacute;n&eacute;rez le proc&egrave;s-verbal, envoyez-le aux participants et archivez la s&eacute;ance. Parcours guid&eacute; &eacute;tape par &eacute;tape.
           </p>
-          <a href="/operator.htmx.html" class="role-link">
-            <span>Accéder à l'interface</span>
-            <span>→</span>
+          <a href="/postsession.htmx.html" class="role-link">
+            <span>Cl&ocirc;turer une s&eacute;ance</span>
+            <span>&rarr;</span>
           </a>
         </article>
 
-        <article class="role-card role-card-president">
+        <!-- P6 : L'Auditeur -->
+        <article class="role-card" data-persona="auditeur">
           <div class="role-icon">
-            <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
           </div>
-          <h3 class="role-title">Président</h3>
+          <h3 class="role-title">Auditeur</h3>
+          <p class="role-persona">Contr&ocirc;le de conformit&eacute;</p>
           <p class="role-desc">
-            Supervisez la séance, validez les résultats et signez le procès-verbal.
-            Accès lecture seule aux données de vote.
-          </p>
-          <a href="/operator.htmx.html" class="role-link">
-            <span>Accéder à la supervision</span>
-            <span>→</span>
-          </a>
-          <div class="role-note">Vue supervision : lecture seule, validation et signature du PV</div>
-        </article>
-
-        <article class="role-card">
-          <div class="role-icon">
-            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
-          </div>
-          <h3 class="role-title">Contrôle &amp; Audit</h3>
-          <p class="role-desc">
-            Surveillez les anomalies, vérifiez la cohérence des données en temps réel.
-            Documentez les incidents pour l'audit.
+            V&eacute;rifiez la conformit&eacute; des proc&eacute;dures de vote a posteriori. D&eacute;tectez les anomalies, exportez les pistes d'audit et les rapports d'int&eacute;grit&eacute;.
           </p>
           <a href="/trust.htmx.html" class="role-link">
-            <span>Accéder à l'interface</span>
-            <span>→</span>
+            <span>Acc&eacute;der &agrave; l'audit</span>
+            <span>&rarr;</span>
           </a>
         </article>
 
+        <!-- P7 : L'Administrateur système -->
+        <article class="role-card" data-persona="admin">
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </div>
+          <h3 class="role-title">Administrateur</h3>
+          <p class="role-persona">Gestion du syst&egrave;me</p>
+          <p class="role-desc">
+            G&eacute;rez les utilisateurs, les r&ocirc;les, les templates d'emails, les politiques de quorum et de vote. Surveillez la sant&eacute; du syst&egrave;me.
+          </p>
+          <a href="/admin.htmx.html" class="role-link">
+            <span>Administration</span>
+            <span>&rarr;</span>
+          </a>
+        </article>
+
+      </div>
+
+      <!-- Secondary access: public screen & archives (tools, not personas) -->
+      <div class="section-header" style="margin-top: var(--space-12);">
+        <h3 class="section-title" style="font-size: var(--text-xl);">Outils compl&eacute;mentaires</h3>
+      </div>
+      <div class="roles-grid" style="max-width: 700px;">
         <article class="role-card">
           <div class="role-icon">
-            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
           </div>
-          <h3 class="role-title">Écran public</h3>
+          <h3 class="role-title">&Eacute;cran public</h3>
           <p class="role-desc">
-            Affichage grand format pour projection. Visualisez en temps réel :
-            résolution active, quorum, résultats.
+            Affichage grand format pour projection. R&eacute;solution active, quorum et r&eacute;sultats en temps r&eacute;el.
           </p>
           <a href="/public.htmx.html" class="role-link">
-            <span>Accéder à l'interface</span>
-            <span>→</span>
+            <span>Ouvrir la projection</span>
+            <span>&rarr;</span>
           </a>
         </article>
-
         <article class="role-card">
           <div class="role-icon">
-            <svg viewBox="0 0 24 24"><path d="m21 8-2-2H5L3 8"></path><rect x="3" y="8" width="18" height="12" rx="1"></rect><path d="M10 12h4"></path></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 8-2-2H5L3 8"></path><rect x="3" y="8" width="18" height="12" rx="1"></rect><path d="M10 12h4"></path></svg>
           </div>
           <h3 class="role-title">Archives</h3>
           <p class="role-desc">
-            Consultez les séances passées, exportez les PV et audits en CSV/PDF.
-            Retrouvez l'historique complet des décisions.
+            Consultez les s&eacute;ances pass&eacute;es. Exportez PV, feuilles de pr&eacute;sence et audits en CSV/PDF.
           </p>
           <a href="/archives.htmx.html" class="role-link">
-            <span>Accéder aux archives</span>
-            <span>→</span>
+            <span>Consulter les archives</span>
+            <span>&rarr;</span>
           </a>
         </article>
       </div>

@@ -1139,3 +1139,83 @@
     padding: 4rem 2rem;
   }
 }
+
+/* =============================================================================
+   GRANDMOTHER-TEST ENHANCEMENTS
+   ============================================================================= */
+
+/* Persona accent stripe on vote page header */
+.vote-app .page-header {
+  border-top: 3px solid var(--persona-votant);
+}
+
+/* When user arrives via invitation token, hide context bar selectors
+   to reduce cognitive load — the system already knows who they are. */
+.vote-app.invitation-mode .context-bar {
+  display: none;
+}
+
+/* In invitation mode, show a simplified identity banner instead */
+.vote-identity-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  padding: 0.75rem 1.5rem;
+  background: var(--persona-votant-subtle);
+  border-bottom: 2px solid var(--persona-votant);
+  flex-shrink: 0;
+}
+
+.vote-identity-banner .identity-name {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.vote-identity-banner .identity-meeting {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+/* Success feedback after voting — enlarged and more visible */
+.vote-success-feedback {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: var(--color-success);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  z-index: 900;
+  animation: voteSuccessPop 0.6s var(--ease-bounce, ease) forwards;
+  pointer-events: none;
+}
+
+.vote-success-feedback svg {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+}
+
+@keyframes voteSuccessPop {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  50%  { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+  70%  { transform: translate(-50%, -50%) scale(0.95); }
+  85%  { transform: translate(-50%, -50%) scale(1); }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
+/* Larger touch area for speech hand-raise on mobile */
+@media (max-width: 768px) {
+  .speech-hand-btn {
+    min-width: 56px;
+    min-height: 56px;
+  }
+}

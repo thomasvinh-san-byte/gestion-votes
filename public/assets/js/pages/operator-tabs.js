@@ -367,7 +367,42 @@ window.OpS = { fn: {} };
       const base = link.getAttribute('href').split('?')[0];
       link.href = `${base}?meeting_id=${currentMeetingId}`;
     });
+
+    // Update lifecycle bar visual indicator
+    updateLifecycleBar(meeting.status);
   }
+
+  /**
+   * Update the lifecycle bar to show which phase the meeting is in.
+   * States flow: draft → scheduled → frozen → live → closed → validated → archived
+   */
+  function updateLifecycleBar(status) {
+    const bar = document.getElementById('lifecycleBar');
+    if (!bar) return;
+    bar.hidden = false;
+
+    const STATES = ['draft', 'scheduled', 'frozen', 'live', 'closed', 'validated', 'archived'];
+    const currentIdx = STATES.indexOf(status);
+
+    bar.querySelectorAll('.lifecycle-step').forEach(step => {
+      const state = step.getAttribute('data-state');
+      const idx = STATES.indexOf(state);
+      step.classList.remove('done', 'current');
+      if (idx < currentIdx) step.classList.add('done');
+      else if (idx === currentIdx) step.classList.add('current');
+    });
+  }
+
+  /**
+   * Detect president mode from URL param or meeting role.
+   */
+  function detectPresidentMode() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') === 'president') {
+      document.querySelector('.app-shell')?.setAttribute('data-mode', 'president');
+    }
+  }
+  detectPresidentMode();
 
   function updateURLParam(key, value) {
     const url = new URL(window.location);
