@@ -1,0 +1,5488 @@
+openapi: 3.0.3
+info:
+  title: AG-Vote API
+  description: |
+    REST API for AG-Vote, a deliberative voting management platform
+    for general assemblies and governance meetings.
+
+    ## Authentication
+    Session-based authentication via PHP session cookie.
+    CSRF token required for mutating requests (X-CSRF-Token header).
+
+    ## Roles
+    - **admin**: Full system administration
+    - **operator**: Meeting management and operations
+    - **president**: Meeting chair with validation rights
+    - **auditor**: Read-only access to audit trails
+    - **trust**: Assessor/scrutineer role
+    - **viewer**: Basic read access
+    - **public**: Authenticated user (any role)
+
+    ## Rate Limiting
+    Some endpoints are rate-limited. When exceeded, a 429 response
+    is returned with a Retry-After header.
+  version: 1.0.0
+  contact:
+    name: AG-Vote Team
+servers:
+  - url: /api/v1
+    description: API v1
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: PHPSESSID
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        data:
+          type: object
+    ErrorResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: false
+        error:
+          type: string
+        code:
+          type: integer
+tags:
+  - name: Administration
+  - name: Agendas
+  - name: Analytics
+  - name: Attendances
+  - name: Audit
+  - name: Authentication
+  - name: Ballots
+  - name: Dashboard
+  - name: Development
+  - name: Devices
+  - name: Documentation
+  - name: Email
+  - name: Emergency
+  - name: Export
+  - name: Import
+  - name: Invitations
+  - name: Meetings
+  - name: Members
+  - name: Motions
+  - name: Operator
+  - name: Policies
+  - name: Projector
+  - name: Proxies
+  - name: Quorum
+  - name: Reminders
+  - name: Reports
+  - name: Speech
+  - name: Trust
+  - name: Voting
+  - name: Workflow
+
+paths:
+  '/api/v1/admin_audit_log':
+    get:
+      tags: [Administration]
+      operationId: adminAuditLog
+      summary: 'Admin::auditLog()'
+      description: 'Role: admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Administration]
+      operationId: adminAuditLog
+      summary: 'Admin::auditLog()'
+      description: 'Role: admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/admin_meeting_roles':
+    get:
+      tags: [Administration]
+      operationId: adminMeetingRoles
+      summary: 'Admin::meetingRoles()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Administration]
+      operationId: adminMeetingRoles
+      summary: 'Admin::meetingRoles()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/admin_quorum_policies':
+    get:
+      tags: [Policies]
+      operationId: policiesAdminQuorum
+      summary: 'Policies::adminQuorum()'
+      description: 'Role: admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Policies]
+      operationId: policiesAdminQuorum
+      summary: 'Policies::adminQuorum()'
+      description: 'Role: admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/admin_reset_demo':
+    get:
+      tags: [Workflow]
+      operationId: meetingWorkflowResetDemo
+      summary: 'MeetingWorkflow::resetDemo()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Workflow]
+      operationId: meetingWorkflowResetDemo
+      summary: 'MeetingWorkflow::resetDemo()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/admin_roles':
+    get:
+      tags: [Administration]
+      operationId: adminRoles
+      summary: 'Admin::roles()'
+      description: 'Role: admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Administration]
+      operationId: adminRoles
+      summary: 'Admin::roles()'
+      description: 'Role: admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/admin_system_status':
+    get:
+      tags: [Administration]
+      operationId: adminSystemStatus
+      summary: 'Admin::systemStatus()'
+      description: 'Role: admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Administration]
+      operationId: adminSystemStatus
+      summary: 'Admin::systemStatus()'
+      description: 'Role: admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/admin_users':
+    get:
+      tags: [Administration]
+      operationId: adminUsers
+      summary: 'Admin::users()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Administration]
+      operationId: adminUsers
+      summary: 'Admin::users()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/admin_vote_policies':
+    get:
+      tags: [Policies]
+      operationId: policiesAdminVote
+      summary: 'Policies::adminVote()'
+      description: 'Role: admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Policies]
+      operationId: policiesAdminVote
+      summary: 'Policies::adminVote()'
+      description: 'Role: admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/agendas':
+    get:
+      tags: [Agendas]
+      operationId: agendaListForMeeting
+      summary: 'Agenda::listForMeeting()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Agendas]
+      operationId: agendaCreate
+      summary: 'Agenda::create()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/agendas_for_meeting':
+    get:
+      tags: [Agendas]
+      operationId: agendaListForMeetingPublic
+      summary: 'Agenda::listForMeetingPublic()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Agendas]
+      operationId: agendaListForMeetingPublic
+      summary: 'Agenda::listForMeetingPublic()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/analytics':
+    get:
+      tags: [Analytics]
+      operationId: analyticsAnalytics
+      summary: 'Analytics::analytics()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Analytics]
+      operationId: analyticsAnalytics
+      summary: 'Analytics::analytics()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/archives_list':
+    get:
+      tags: [Meetings]
+      operationId: meetingsArchivesList
+      summary: 'Meetings::archivesList()'
+      description: 'Role: viewer'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingsArchivesList
+      summary: 'Meetings::archivesList()'
+      description: 'Role: viewer'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/attendance_export':
+    get:
+      tags: [Export]
+      operationId: exportAttendanceCsv
+      summary: 'Export::attendanceCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportAttendanceCsv
+      summary: 'Export::attendanceCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/attendance_present_from':
+    get:
+      tags: [Attendances]
+      operationId: attendancesSetPresentFrom
+      summary: 'Attendances::setPresentFrom()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Attendances]
+      operationId: attendancesSetPresentFrom
+      summary: 'Attendances::setPresentFrom()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/attendances':
+    get:
+      tags: [Attendances]
+      operationId: attendancesListForMeeting
+      summary: 'Attendances::listForMeeting()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Attendances]
+      operationId: attendancesListForMeeting
+      summary: 'Attendances::listForMeeting()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/attendances_bulk':
+    get:
+      tags: [Attendances]
+      operationId: attendancesBulk
+      summary: 'Attendances::bulk()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Attendances]
+      operationId: attendancesBulk
+      summary: 'Attendances::bulk()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/attendances_import_csv':
+    get:
+      tags: [Import]
+      operationId: importAttendancesCsv
+      summary: 'Import::attendancesCsv()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Import]
+      operationId: importAttendancesCsv
+      summary: 'Import::attendancesCsv()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/attendances_import_xlsx':
+    get:
+      tags: [Import]
+      operationId: importAttendancesXlsx
+      summary: 'Import::attendancesXlsx()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Import]
+      operationId: importAttendancesXlsx
+      summary: 'Import::attendancesXlsx()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/attendances_upsert':
+    get:
+      tags: [Attendances]
+      operationId: attendancesUpsert
+      summary: 'Attendances::upsert()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Attendances]
+      operationId: attendancesUpsert
+      summary: 'Attendances::upsert()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/audit_export':
+    get:
+      tags: [Audit]
+      operationId: auditExport
+      summary: 'Audit::export()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Audit]
+      operationId: auditExport
+      summary: 'Audit::export()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/audit_log':
+    get:
+      tags: [Audit]
+      operationId: auditTimeline
+      summary: 'Audit::timeline()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Audit]
+      operationId: auditTimeline
+      summary: 'Audit::timeline()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/auth_csrf':
+    get:
+      tags: [Authentication]
+      operationId: authCsrf
+      summary: 'Auth::csrf()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Authentication]
+      operationId: authCsrf
+      summary: 'Auth::csrf()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/auth_login':
+    get:
+      tags: [Authentication]
+      operationId: authLogin
+      summary: 'Auth::login()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Authentication]
+      operationId: authLogin
+      summary: 'Auth::login()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/auth_logout':
+    get:
+      tags: [Authentication]
+      operationId: authLogout
+      summary: 'Auth::logout()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Authentication]
+      operationId: authLogout
+      summary: 'Auth::logout()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/ballots':
+    get:
+      tags: [Ballots]
+      operationId: ballotsListForMotion
+      summary: 'Ballots::listForMotion()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Ballots]
+      operationId: ballotsListForMotion
+      summary: 'Ballots::listForMotion()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/ballots_cancel':
+    get:
+      tags: [Ballots]
+      operationId: ballotsCancel
+      summary: 'Ballots::cancel()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Ballots]
+      operationId: ballotsCancel
+      summary: 'Ballots::cancel()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/ballots_cast':
+    get:
+      tags: [Ballots]
+      operationId: ballotsCast
+      summary: 'Ballots::cast()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Ballots]
+      operationId: ballotsCast
+      summary: 'Ballots::cast()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/ballots_result':
+    get:
+      tags: [Ballots]
+      operationId: ballotsResult
+      summary: 'Ballots::result()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Ballots]
+      operationId: ballotsResult
+      summary: 'Ballots::result()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/current_motion':
+    get:
+      tags: [Motions]
+      operationId: motionsCurrent
+      summary: 'Motions::current()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Motions]
+      operationId: motionsCurrent
+      summary: 'Motions::current()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/dashboard':
+    get:
+      tags: [Dashboard]
+      operationId: dashboardIndex
+      summary: 'Dashboard::index()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Dashboard]
+      operationId: dashboardIndex
+      summary: 'Dashboard::index()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/degraded_tally':
+    get:
+      tags: [Motions]
+      operationId: motionsDegradedTally
+      summary: 'Motions::degradedTally()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Motions]
+      operationId: motionsDegradedTally
+      summary: 'Motions::degradedTally()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/dev_seed_attendances':
+    get:
+      tags: [Development]
+      operationId: devSeedSeedAttendances
+      summary: 'DevSeed::seedAttendances()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Development]
+      operationId: devSeedSeedAttendances
+      summary: 'DevSeed::seedAttendances()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/dev_seed_members':
+    get:
+      tags: [Development]
+      operationId: devSeedSeedMembers
+      summary: 'DevSeed::seedMembers()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Development]
+      operationId: devSeedSeedMembers
+      summary: 'DevSeed::seedMembers()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/device_block':
+    get:
+      tags: [Devices]
+      operationId: devicesBlock
+      summary: 'Devices::block()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Devices]
+      operationId: devicesBlock
+      summary: 'Devices::block()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/device_heartbeat':
+    get:
+      tags: [Devices]
+      operationId: devicesHeartbeat
+      summary: 'Devices::heartbeat()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Devices]
+      operationId: devicesHeartbeat
+      summary: 'Devices::heartbeat()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/device_kick':
+    get:
+      tags: [Devices]
+      operationId: devicesKick
+      summary: 'Devices::kick()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Devices]
+      operationId: devicesKick
+      summary: 'Devices::kick()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/device_unblock':
+    get:
+      tags: [Devices]
+      operationId: devicesUnblock
+      summary: 'Devices::unblock()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Devices]
+      operationId: devicesUnblock
+      summary: 'Devices::unblock()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/devices_list':
+    get:
+      tags: [Devices]
+      operationId: devicesListDevices
+      summary: 'Devices::listDevices()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Devices]
+      operationId: devicesListDevices
+      summary: 'Devices::listDevices()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/doc_index':
+    get:
+      tags: [Documentation]
+      operationId: docIndex
+      summary: 'Doc::index()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Documentation]
+      operationId: docIndex
+      summary: 'Doc::index()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/email_templates':
+    get:
+      tags: [Email]
+      operationId: emailTemplatesList
+      summary: 'EmailTemplates::list()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Email]
+      operationId: emailTemplatesCreate
+      summary: 'EmailTemplates::create()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    put:
+      tags: [Email]
+      operationId: emailTemplatesUpdate
+      summary: 'EmailTemplates::update()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    delete:
+      tags: [Email]
+      operationId: emailTemplatesDelete
+      summary: 'EmailTemplates::delete()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/email_templates_preview':
+    get:
+      tags: [Email]
+      operationId: emailPreview
+      summary: 'Email::preview()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Email]
+      operationId: emailPreview
+      summary: 'Email::preview()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/emergency_check_toggle':
+    get:
+      tags: [Emergency]
+      operationId: emergencyCheckToggle
+      summary: 'Emergency::checkToggle()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Emergency]
+      operationId: emergencyCheckToggle
+      summary: 'Emergency::checkToggle()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/emergency_procedures':
+    get:
+      tags: [Emergency]
+      operationId: emergencyProcedures
+      summary: 'Emergency::procedures()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Emergency]
+      operationId: emergencyProcedures
+      summary: 'Emergency::procedures()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_attendance_csv':
+    get:
+      tags: [Export]
+      operationId: exportAttendanceCsv
+      summary: 'Export::attendanceCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportAttendanceCsv
+      summary: 'Export::attendanceCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_attendance_xlsx':
+    get:
+      tags: [Export]
+      operationId: exportAttendanceXlsx
+      summary: 'Export::attendanceXlsx()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportAttendanceXlsx
+      summary: 'Export::attendanceXlsx()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_ballots_audit_csv':
+    get:
+      tags: [Export]
+      operationId: exportBallotsAuditCsv
+      summary: 'Export::ballotsAuditCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportBallotsAuditCsv
+      summary: 'Export::ballotsAuditCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_full_xlsx':
+    get:
+      tags: [Export]
+      operationId: exportFullXlsx
+      summary: 'Export::fullXlsx()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportFullXlsx
+      summary: 'Export::fullXlsx()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_members_csv':
+    get:
+      tags: [Export]
+      operationId: exportMembersCsv
+      summary: 'Export::membersCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportMembersCsv
+      summary: 'Export::membersCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_motions_results_csv':
+    get:
+      tags: [Export]
+      operationId: exportMotionResultsCsv
+      summary: 'Export::motionResultsCsv()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportMotionResultsCsv
+      summary: 'Export::motionResultsCsv()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_pv_html':
+    get:
+      tags: [Reports]
+      operationId: meetingReportsExportPvHtml
+      summary: 'MeetingReports::exportPvHtml()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Reports]
+      operationId: meetingReportsExportPvHtml
+      summary: 'MeetingReports::exportPvHtml()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_results_xlsx':
+    get:
+      tags: [Export]
+      operationId: exportResultsXlsx
+      summary: 'Export::resultsXlsx()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportResultsXlsx
+      summary: 'Export::resultsXlsx()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_templates':
+    get:
+      tags: [Export]
+      operationId: exportTemplatesList
+      summary: 'ExportTemplates::list()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportTemplatesCreate
+      summary: 'ExportTemplates::create()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    put:
+      tags: [Export]
+      operationId: exportTemplatesUpdate
+      summary: 'ExportTemplates::update()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    delete:
+      tags: [Export]
+      operationId: exportTemplatesDelete
+      summary: 'ExportTemplates::delete()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_votes_csv':
+    get:
+      tags: [Export]
+      operationId: exportVotesCsv
+      summary: 'Export::votesCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportVotesCsv
+      summary: 'Export::votesCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/export_votes_xlsx':
+    get:
+      tags: [Export]
+      operationId: exportVotesXlsx
+      summary: 'Export::votesXlsx()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportVotesXlsx
+      summary: 'Export::votesXlsx()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/invitations_create':
+    get:
+      tags: [Invitations]
+      operationId: invitationsCreate
+      summary: 'Invitations::create()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Invitations]
+      operationId: invitationsCreate
+      summary: 'Invitations::create()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/invitations_list':
+    get:
+      tags: [Invitations]
+      operationId: invitationsListForMeeting
+      summary: 'Invitations::listForMeeting()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Invitations]
+      operationId: invitationsListForMeeting
+      summary: 'Invitations::listForMeeting()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/invitations_redeem':
+    get:
+      tags: [Invitations]
+      operationId: invitationsRedeem
+      summary: 'Invitations::redeem()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Invitations]
+      operationId: invitationsRedeem
+      summary: 'Invitations::redeem()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/invitations_schedule':
+    get:
+      tags: [Email]
+      operationId: emailSchedule
+      summary: 'Email::schedule()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Email]
+      operationId: emailSchedule
+      summary: 'Email::schedule()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/invitations_send_bulk':
+    get:
+      tags: [Email]
+      operationId: emailSendBulk
+      summary: 'Email::sendBulk()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Email]
+      operationId: emailSendBulk
+      summary: 'Email::sendBulk()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/invitations_stats':
+    get:
+      tags: [Invitations]
+      operationId: invitationsStats
+      summary: 'Invitations::stats()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Invitations]
+      operationId: invitationsStats
+      summary: 'Invitations::stats()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/manual_vote':
+    get:
+      tags: [Ballots]
+      operationId: ballotsManualVote
+      summary: 'Ballots::manualVote()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Ballots]
+      operationId: ballotsManualVote
+      summary: 'Ballots::manualVote()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_attachments':
+    get:
+      tags: [Meetings]
+      operationId: meetingAttachmentListForMeeting
+      summary: 'MeetingAttachment::listForMeeting()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingAttachmentUpload
+      summary: 'MeetingAttachment::upload()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    delete:
+      tags: [Meetings]
+      operationId: meetingAttachmentDelete
+      summary: 'MeetingAttachment::delete()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_audit':
+    get:
+      tags: [Audit]
+      operationId: auditMeetingAudit
+      summary: 'Audit::meetingAudit()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Audit]
+      operationId: auditMeetingAudit
+      summary: 'Audit::meetingAudit()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_audit_events':
+    get:
+      tags: [Audit]
+      operationId: auditMeetingEvents
+      summary: 'Audit::meetingEvents()'
+      description: 'Role: auditor'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Audit]
+      operationId: auditMeetingEvents
+      summary: 'Audit::meetingEvents()'
+      description: 'Role: auditor'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_consolidate':
+    get:
+      tags: [Workflow]
+      operationId: meetingWorkflowConsolidate
+      summary: 'MeetingWorkflow::consolidate()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Workflow]
+      operationId: meetingWorkflowConsolidate
+      summary: 'MeetingWorkflow::consolidate()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_generate_report':
+    get:
+      tags: [Reports]
+      operationId: meetingReportsGenerateReport
+      summary: 'MeetingReports::generateReport()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Reports]
+      operationId: meetingReportsGenerateReport
+      summary: 'MeetingReports::generateReport()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_generate_report_pdf':
+    get:
+      tags: [Reports]
+      operationId: meetingReportsGeneratePdf
+      summary: 'MeetingReports::generatePdf()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Reports]
+      operationId: meetingReportsGeneratePdf
+      summary: 'MeetingReports::generatePdf()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_late_rules':
+    get:
+      tags: [Agendas]
+      operationId: agendaLateRules
+      summary: 'Agenda::lateRules()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Agendas]
+      operationId: agendaLateRules
+      summary: 'Agenda::lateRules()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_launch':
+    get:
+      tags: [Workflow]
+      operationId: meetingWorkflowLaunch
+      summary: 'MeetingWorkflow::launch()'
+      description: 'Role: operator, president, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Workflow]
+      operationId: meetingWorkflowLaunch
+      summary: 'MeetingWorkflow::launch()'
+      description: 'Role: operator, president, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_quorum_settings':
+    get:
+      tags: [Quorum]
+      operationId: quorumMeetingSettings
+      summary: 'Quorum::meetingSettings()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Quorum]
+      operationId: quorumMeetingSettings
+      summary: 'Quorum::meetingSettings()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_ready_check':
+    get:
+      tags: [Workflow]
+      operationId: meetingWorkflowReadyCheck
+      summary: 'MeetingWorkflow::readyCheck()'
+      description: 'Role: auditor'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Workflow]
+      operationId: meetingWorkflowReadyCheck
+      summary: 'MeetingWorkflow::readyCheck()'
+      description: 'Role: auditor'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_report':
+    get:
+      tags: [Reports]
+      operationId: meetingReportsReport
+      summary: 'MeetingReports::report()'
+      description: 'Role: auditor'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Reports]
+      operationId: meetingReportsReport
+      summary: 'MeetingReports::report()'
+      description: 'Role: auditor'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_report_send':
+    get:
+      tags: [Reports]
+      operationId: meetingReportsSendReport
+      summary: 'MeetingReports::sendReport()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Reports]
+      operationId: meetingReportsSendReport
+      summary: 'MeetingReports::sendReport()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_reset_demo':
+    get:
+      tags: [Workflow]
+      operationId: meetingWorkflowResetDemo
+      summary: 'MeetingWorkflow::resetDemo()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Workflow]
+      operationId: meetingWorkflowResetDemo
+      summary: 'MeetingWorkflow::resetDemo()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_stats':
+    get:
+      tags: [Meetings]
+      operationId: meetingsStats
+      summary: 'Meetings::stats()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Meetings]
+      operationId: meetingsStats
+      summary: 'Meetings::stats()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/meeting_status':
+    get:
+      tags: [Meetings]
+      operationId: meetingsStatus
+      summary: 'Meetings::status()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingsStatus
+      summary: 'Meetings::status()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_status_for_meeting':
+    get:
+      tags: [Meetings]
+      operationId: meetingsStatusForMeeting
+      summary: 'Meetings::statusForMeeting()'
+      description: 'Role: auditor'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingsStatusForMeeting
+      summary: 'Meetings::statusForMeeting()'
+      description: 'Role: auditor'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_summary':
+    get:
+      tags: [Meetings]
+      operationId: meetingsSummary
+      summary: 'Meetings::summary()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingsSummary
+      summary: 'Meetings::summary()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_transition':
+    get:
+      tags: [Workflow]
+      operationId: meetingWorkflowTransition
+      summary: 'MeetingWorkflow::transition()'
+      description: 'Role: operator, president, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Workflow]
+      operationId: meetingWorkflowTransition
+      summary: 'MeetingWorkflow::transition()'
+      description: 'Role: operator, president, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_validate':
+    get:
+      tags: [Meetings]
+      operationId: meetingsValidate
+      summary: 'Meetings::validate()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingsValidate
+      summary: 'Meetings::validate()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_vote_settings':
+    get:
+      tags: [Meetings]
+      operationId: meetingsVoteSettings
+      summary: 'Meetings::voteSettings()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingsVoteSettings
+      summary: 'Meetings::voteSettings()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meeting_workflow_check':
+    get:
+      tags: [Workflow]
+      operationId: meetingWorkflowWorkflowCheck
+      summary: 'MeetingWorkflow::workflowCheck()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Workflow]
+      operationId: meetingWorkflowWorkflowCheck
+      summary: 'MeetingWorkflow::workflowCheck()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meetings':
+    get:
+      tags: [Meetings]
+      operationId: meetingsIndex
+      summary: 'Meetings::index()'
+      description: 'Role: viewer'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingsCreateMeeting
+      summary: 'Meetings::createMeeting()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meetings_archive':
+    get:
+      tags: [Meetings]
+      operationId: meetingsArchive
+      summary: 'Meetings::archive()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingsArchive
+      summary: 'Meetings::archive()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meetings_index':
+    get:
+      tags: [Meetings]
+      operationId: meetingsIndex
+      summary: 'Meetings::index()'
+      description: 'Role: viewer'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingsIndex
+      summary: 'Meetings::index()'
+      description: 'Role: viewer'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/meetings_update':
+    get:
+      tags: [Meetings]
+      operationId: meetingsUpdate
+      summary: 'Meetings::update()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Meetings]
+      operationId: meetingsUpdate
+      summary: 'Meetings::update()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/member_group_assignments':
+    post:
+      tags: [Members]
+      operationId: memberGroupsAssign
+      summary: 'MemberGroups::assign()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    put:
+      tags: [Members]
+      operationId: memberGroupsSetMemberGroups
+      summary: 'MemberGroups::setMemberGroups()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    delete:
+      tags: [Members]
+      operationId: memberGroupsUnassign
+      summary: 'MemberGroups::unassign()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/member_groups':
+    get:
+      tags: [Members]
+      operationId: memberGroupsList
+      summary: 'MemberGroups::list()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Members]
+      operationId: memberGroupsCreate
+      summary: 'MemberGroups::create()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    patch:
+      tags: [Members]
+      operationId: memberGroupsUpdate
+      summary: 'MemberGroups::update()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    delete:
+      tags: [Members]
+      operationId: memberGroupsDelete
+      summary: 'MemberGroups::delete()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/members':
+    get:
+      tags: [Members]
+      operationId: membersIndex
+      summary: 'Members::index()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Members]
+      operationId: membersCreate
+      summary: 'Members::create()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    patch:
+      tags: [Members]
+      operationId: membersUpdateMember
+      summary: 'Members::updateMember()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    put:
+      tags: [Members]
+      operationId: membersUpdateMember
+      summary: 'Members::updateMember()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    delete:
+      tags: [Members]
+      operationId: membersDelete
+      summary: 'Members::delete()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/members_export':
+    get:
+      tags: [Export]
+      operationId: exportMembersCsv
+      summary: 'Export::membersCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportMembersCsv
+      summary: 'Export::membersCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/members_export_csv':
+    get:
+      tags: [Export]
+      operationId: exportMembersCsv
+      summary: 'Export::membersCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportMembersCsv
+      summary: 'Export::membersCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/members_import_csv':
+    get:
+      tags: [Import]
+      operationId: importMembersCsv
+      summary: 'Import::membersCsv()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Import]
+      operationId: importMembersCsv
+      summary: 'Import::membersCsv()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/members_import_xlsx':
+    get:
+      tags: [Import]
+      operationId: importMembersXlsx
+      summary: 'Import::membersXlsx()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Import]
+      operationId: importMembersXlsx
+      summary: 'Import::membersXlsx()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/motion_create_simple':
+    get:
+      tags: [Motions]
+      operationId: motionsCreateSimple
+      summary: 'Motions::createSimple()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Motions]
+      operationId: motionsCreateSimple
+      summary: 'Motions::createSimple()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/motion_delete':
+    get:
+      tags: [Motions]
+      operationId: motionsDeleteMotion
+      summary: 'Motions::deleteMotion()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Motions]
+      operationId: motionsDeleteMotion
+      summary: 'Motions::deleteMotion()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/motion_reorder':
+    get:
+      tags: [Motions]
+      operationId: motionsReorder
+      summary: 'Motions::reorder()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Motions]
+      operationId: motionsReorder
+      summary: 'Motions::reorder()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/motion_tally':
+    get:
+      tags: [Motions]
+      operationId: motionsTally
+      summary: 'Motions::tally()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Motions]
+      operationId: motionsTally
+      summary: 'Motions::tally()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/motions':
+    get:
+      tags: [Motions]
+      operationId: motionsCreateOrUpdate
+      summary: 'Motions::createOrUpdate()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Motions]
+      operationId: motionsCreateOrUpdate
+      summary: 'Motions::createOrUpdate()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/motions_close':
+    get:
+      tags: [Motions]
+      operationId: motionsClose
+      summary: 'Motions::close()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Motions]
+      operationId: motionsClose
+      summary: 'Motions::close()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/motions_export':
+    get:
+      tags: [Export]
+      operationId: exportMotionResultsCsv
+      summary: 'Export::motionResultsCsv()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportMotionResultsCsv
+      summary: 'Export::motionResultsCsv()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/motions_for_meeting':
+    get:
+      tags: [Motions]
+      operationId: motionsListForMeeting
+      summary: 'Motions::listForMeeting()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Motions]
+      operationId: motionsListForMeeting
+      summary: 'Motions::listForMeeting()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/motions_import_csv':
+    get:
+      tags: [Import]
+      operationId: importMotionsCsv
+      summary: 'Import::motionsCsv()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Import]
+      operationId: importMotionsCsv
+      summary: 'Import::motionsCsv()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/motions_import_xlsx':
+    get:
+      tags: [Import]
+      operationId: importMotionsXlsx
+      summary: 'Import::motionsXlsx()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Import]
+      operationId: importMotionsXlsx
+      summary: 'Import::motionsXlsx()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/motions_open':
+    get:
+      tags: [Motions]
+      operationId: motionsOpen
+      summary: 'Motions::open()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Motions]
+      operationId: motionsOpen
+      summary: 'Motions::open()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/operator_anomalies':
+    get:
+      tags: [Operator]
+      operationId: operatorAnomalies
+      summary: 'Operator::anomalies()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Operator]
+      operationId: operatorAnomalies
+      summary: 'Operator::anomalies()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/operator_audit_events':
+    get:
+      tags: [Audit]
+      operationId: auditOperatorEvents
+      summary: 'Audit::operatorEvents()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Audit]
+      operationId: auditOperatorEvents
+      summary: 'Audit::operatorEvents()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/operator_open_vote':
+    get:
+      tags: [Operator]
+      operationId: operatorOpenVote
+      summary: 'Operator::openVote()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Operator]
+      operationId: operatorOpenVote
+      summary: 'Operator::openVote()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/operator_workflow_state':
+    get:
+      tags: [Operator]
+      operationId: operatorWorkflowState
+      summary: 'Operator::workflowState()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Operator]
+      operationId: operatorWorkflowState
+      summary: 'Operator::workflowState()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/paper_ballot_redeem':
+    get:
+      tags: [Ballots]
+      operationId: ballotsRedeemPaperBallot
+      summary: 'Ballots::redeemPaperBallot()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Ballots]
+      operationId: ballotsRedeemPaperBallot
+      summary: 'Ballots::redeemPaperBallot()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/ping':
+    get:
+      tags: [Authentication]
+      operationId: authPing
+      summary: 'Auth::ping()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Authentication]
+      operationId: authPing
+      summary: 'Auth::ping()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/presidents':
+    get:
+      tags: [Members]
+      operationId: membersPresidents
+      summary: 'Members::presidents()'
+      description: 'Role: auditor'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Members]
+      operationId: membersPresidents
+      summary: 'Members::presidents()'
+      description: 'Role: auditor'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/projector_state':
+    get:
+      tags: [Projector]
+      operationId: projectorState
+      summary: 'Projector::state()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Projector]
+      operationId: projectorState
+      summary: 'Projector::state()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/proxies':
+    get:
+      tags: [Proxies]
+      operationId: proxiesListForMeeting
+      summary: 'Proxies::listForMeeting()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Proxies]
+      operationId: proxiesListForMeeting
+      summary: 'Proxies::listForMeeting()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/proxies_delete':
+    get:
+      tags: [Proxies]
+      operationId: proxiesDelete
+      summary: 'Proxies::delete()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Proxies]
+      operationId: proxiesDelete
+      summary: 'Proxies::delete()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/proxies_import_csv':
+    get:
+      tags: [Import]
+      operationId: importProxiesCsv
+      summary: 'Import::proxiesCsv()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Import]
+      operationId: importProxiesCsv
+      summary: 'Import::proxiesCsv()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/proxies_import_xlsx':
+    get:
+      tags: [Import]
+      operationId: importProxiesXlsx
+      summary: 'Import::proxiesXlsx()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Import]
+      operationId: importProxiesXlsx
+      summary: 'Import::proxiesXlsx()'
+      description: 'Role: operator, admin (rate limited)'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/proxies_upsert':
+    get:
+      tags: [Proxies]
+      operationId: proxiesUpsert
+      summary: 'Proxies::upsert()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Proxies]
+      operationId: proxiesUpsert
+      summary: 'Proxies::upsert()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/quorum_card':
+    get:
+      tags: [Quorum]
+      operationId: quorumCard
+      summary: 'Quorum::card()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Quorum]
+      operationId: quorumCard
+      summary: 'Quorum::card()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/quorum_policies':
+    get:
+      tags: [Policies]
+      operationId: policiesListQuorum
+      summary: 'Policies::listQuorum()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Policies]
+      operationId: policiesListQuorum
+      summary: 'Policies::listQuorum()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/quorum_status':
+    get:
+      tags: [Quorum]
+      operationId: quorumStatus
+      summary: 'Quorum::status()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Quorum]
+      operationId: quorumStatus
+      summary: 'Quorum::status()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/reminders':
+    get:
+      tags: [Reminders]
+      operationId: reminderListForMeeting
+      summary: 'Reminder::listForMeeting()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Reminders]
+      operationId: reminderUpsert
+      summary: 'Reminder::upsert()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    delete:
+      tags: [Reminders]
+      operationId: reminderDelete
+      summary: 'Reminder::delete()'
+      description: 'Role: operator, admin'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/reports_aggregate':
+    get:
+      tags: [Analytics]
+      operationId: analyticsReportsAggregate
+      summary: 'Analytics::reportsAggregate()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Analytics]
+      operationId: analyticsReportsAggregate
+      summary: 'Analytics::reportsAggregate()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/speech_cancel':
+    get:
+      tags: [Speech]
+      operationId: speechCancel
+      summary: 'Speech::cancel()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Speech]
+      operationId: speechCancel
+      summary: 'Speech::cancel()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/speech_clear':
+    get:
+      tags: [Speech]
+      operationId: speechClear
+      summary: 'Speech::clear()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Speech]
+      operationId: speechClear
+      summary: 'Speech::clear()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/speech_current':
+    get:
+      tags: [Speech]
+      operationId: speechCurrent
+      summary: 'Speech::current()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Speech]
+      operationId: speechCurrent
+      summary: 'Speech::current()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/speech_end':
+    get:
+      tags: [Speech]
+      operationId: speechEnd
+      summary: 'Speech::end()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Speech]
+      operationId: speechEnd
+      summary: 'Speech::end()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/speech_grant':
+    get:
+      tags: [Speech]
+      operationId: speechGrant
+      summary: 'Speech::grant()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Speech]
+      operationId: speechGrant
+      summary: 'Speech::grant()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/speech_my_status':
+    get:
+      tags: [Speech]
+      operationId: speechMyStatus
+      summary: 'Speech::myStatus()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Speech]
+      operationId: speechMyStatus
+      summary: 'Speech::myStatus()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/speech_next':
+    get:
+      tags: [Speech]
+      operationId: speechNext
+      summary: 'Speech::next()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Speech]
+      operationId: speechNext
+      summary: 'Speech::next()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/speech_queue':
+    get:
+      tags: [Speech]
+      operationId: speechQueue
+      summary: 'Speech::queue()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Speech]
+      operationId: speechQueue
+      summary: 'Speech::queue()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/speech_request':
+    get:
+      tags: [Speech]
+      operationId: speechRequest
+      summary: 'Speech::request()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Speech]
+      operationId: speechRequest
+      summary: 'Speech::request()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/trust_anomalies':
+    get:
+      tags: [Trust]
+      operationId: trustAnomalies
+      summary: 'Trust::anomalies()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Trust]
+      operationId: trustAnomalies
+      summary: 'Trust::anomalies()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/trust_checks':
+    get:
+      tags: [Trust]
+      operationId: trustChecks
+      summary: 'Trust::checks()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Trust]
+      operationId: trustChecks
+      summary: 'Trust::checks()'
+      description: 'Role:  => ['
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/vote_incident':
+    get:
+      tags: [Ballots]
+      operationId: ballotsReportIncident
+      summary: 'Ballots::reportIncident()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+    post:
+      tags: [Ballots]
+      operationId: ballotsReportIncident
+      summary: 'Ballots::reportIncident()'
+      description: 'Role:  => '
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate limit exceeded
+  '/api/v1/vote_policies':
+    get:
+      tags: [Policies]
+      operationId: policiesListVote
+      summary: 'Policies::listVote()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Policies]
+      operationId: policiesListVote
+      summary: 'Policies::listVote()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/vote_tokens_generate':
+    get:
+      tags: [Voting]
+      operationId: voteTokenGenerate
+      summary: 'VoteToken::generate()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Voting]
+      operationId: voteTokenGenerate
+      summary: 'VoteToken::generate()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/votes_export':
+    get:
+      tags: [Export]
+      operationId: exportVotesCsv
+      summary: 'Export::votesCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Export]
+      operationId: exportVotesCsv
+      summary: 'Export::votesCsv()'
+      description: 'Role: operator'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/whoami':
+    get:
+      tags: [Authentication]
+      operationId: authWhoami
+      summary: 'Auth::whoami()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Authentication]
+      operationId: authWhoami
+      summary: 'Auth::whoami()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/api/v1/wizard_status':
+    get:
+      tags: [Dashboard]
+      operationId: dashboardWizardStatus
+      summary: 'Dashboard::wizardStatus()'
+      description: 'Role: viewer'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+    post:
+      tags: [Dashboard]
+      operationId: dashboardWizardStatus
+      summary: 'Dashboard::wizardStatus()'
+      description: 'Role: viewer'
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  '/doc':
+    get:
+      tags: [Documentation]
+      operationId: docView
+      summary: 'Doc::view()'
+      description: 'Role: public'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
