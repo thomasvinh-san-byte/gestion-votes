@@ -91,7 +91,7 @@
   font-size: 0.9rem;
   cursor: pointer;
   border-radius: 6px;
-  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
 }
 
 .help-tab:hover {
@@ -100,7 +100,7 @@
 
 .help-tab.active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-primary-text);
 }
 
 /* =============================================================================
@@ -141,7 +141,7 @@
   padding: 1rem;
   cursor: pointer;
   font-weight: 500;
-  transition: background 0.15s;
+  transition: background var(--duration-fast);
 }
 
 .faq-question:hover {
@@ -149,7 +149,7 @@
 }
 
 .faq-chevron {
-  transition: transform 0.2s;
+  transition: transform var(--duration-normal);
   flex-shrink: 0;
   margin-left: 0.5rem;
 }
@@ -208,7 +208,7 @@
   border-radius: 8px;
   text-decoration: none;
   color: var(--color-text);
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
 }
 
 .quick-link:hover {
@@ -273,7 +273,7 @@
   text-decoration: none;
   color: var(--color-text);
   font-size: 0.85rem;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
 }
 
 .doc-link:hover {

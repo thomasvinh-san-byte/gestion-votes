@@ -105,42 +105,34 @@
     errorBox.classList.remove('visible');
     successBox.classList.remove('visible');
 
-    try {
-      var resp = await fetch('/api/v1/auth_login.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, password: password }),
-        credentials: 'same-origin',
-      });
+    var { status, body } = await api('/api/v1/auth_login.php', { email: email, password: password });
 
-      var data = await resp.json();
+    if (status === 0) {
+      // Timeout or network error — api() already caught it
+      showError(body.message || 'Erreur réseau. Vérifiez votre connexion.');
+      submitBtn.disabled = false;
+      btnText.textContent = 'Se connecter';
+      spinner.style.display = 'none';
+      return;
+    }
 
-      if (resp.ok && data.ok) {
-        var user = data.user || (data.data && data.data.user) || {};
-        showSuccess('Connecté en tant que ' + (user.name || user.email || '') + ' (' + (roleLabel[user.role] || user.role) + ')');
-        btnText.textContent = 'Connecté';
-        spinner.style.display = 'none';
+    if (body.ok) {
+      var user = body.user || (body.data && body.data.user) || {};
+      showSuccess('Connecté en tant que ' + (user.name || user.email || '') + ' (' + (roleLabel[user.role] || user.role) + ')');
+      btnText.textContent = 'Connecté';
+      spinner.style.display = 'none';
 
-        setTimeout(function() {
-          fetch('/api/v1/whoami.php', { credentials: 'same-origin' })
-            .then(function(r) { return r.json(); })
-            .then(function(who) {
-              var mr = (who.data && who.data.meeting_roles) || [];
-              redirectByRole(user, mr);
-            })
-            .catch(function() {
-              window.location.href = '/meetings.htmx.html';
-            });
-        }, 600);
-      } else {
-        var detail = data.detail || data.error || 'Email ou mot de passe incorrect.';
-        showError(detail);
-        submitBtn.disabled = false;
-        btnText.textContent = 'Se connecter';
-        spinner.style.display = 'none';
-      }
-    } catch (err) {
-      showError('Erreur réseau. Vérifiez votre connexion.');
+      setTimeout(function() {
+        api('/api/v1/whoami.php')
+          .then(function(res) {
+            var who = res.body;
+            var mr = (who.data && who.data.meeting_roles) || [];
+            redirectByRole(user, mr);
+          });
+      }, 600);
+    } else {
+      var detail = Utils.getApiError(body, 'Email ou mot de passe incorrect.');
+      showError(detail);
       submitBtn.disabled = false;
       btnText.textContent = 'Se connecter';
       spinner.style.display = 'none';
@@ -156,9 +148,9 @@
   });
 
   // Auto-check : si deja connecte, rediriger selon le role
-  fetch('/api/v1/whoami.php', { credentials: 'same-origin' })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
+  api('/api/v1/whoami.php')
+    .then(function(res) {
+      var data = res.body;
       var user = (data.data && data.data.user) ? data.data.user : null;
       if (data.ok && user) {
         showSuccess('Déjà connecté : ' + (user.name || user.email) + ' (' + (roleLabel[user.role] || user.role) + '). Redirection...');
@@ -167,6 +159,5 @@
           redirectByRole(user, mr);
         }, 800);
       }
-    })
-    .catch(function() { /* not logged in, stay on page */ });
+    });
 })();

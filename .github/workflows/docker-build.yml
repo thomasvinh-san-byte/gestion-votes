@@ -43,8 +43,11 @@ jobs:
       - name: Verify platform requirements
         run: composer check-platform-reqs --no-dev
 
-      - name: Install dependencies (--no-dev, like Docker)
-        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+      - name: Install dependencies (with dev for tests)
+        run: composer install --optimize-autoloader --no-interaction --no-progress
+
+      - name: Run PHPUnit tests
+        run: vendor/bin/phpunit --no-coverage
 
       - name: PHP syntax check on app/
         run: find app/ -name '*.php' -print0 | xargs -0 -n1 php -l

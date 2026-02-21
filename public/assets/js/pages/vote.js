@@ -119,44 +119,36 @@
     if (!meetingId) return;
     const deviceId = getDeviceId();
     const bat = await readBattery();
-    try {
-      const hbHeaders = { 'Content-Type': 'application/json' };
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
-                     || (window.Utils?.csrfToken ? Utils.csrfToken() : null);
-      if (csrfToken) hbHeaders['X-CSRF-Token'] = csrfToken;
-      const r = await fetch(HEARTBEAT_URL, {
-        method: 'POST',
-        headers: hbHeaders,
-        credentials: 'same-origin',
-        body: JSON.stringify({
-          meeting_id: meetingId,
-          device_id: deviceId,
-          role: DEVICE_ROLE,
-          member_id: selectedMemberId() || null,
-          battery_level: bat ? bat.level : null,
-          battery_charging: bat ? bat.charging : null,
-          user_agent: navigator.userAgent || null
-        })
-      });
-      const out = await r.json().catch(()=>({}));
-      const data = out?.data || {};
-      if (data.blocked) {
-        setBlocked(true, data.block_reason || "Cet appareil a été bloqué.");
-      } else {
-        setBlocked(false);
-      }
+    const { status, body: out } = await api(HEARTBEAT_URL, {
+      meeting_id: meetingId,
+      device_id: deviceId,
+      role: DEVICE_ROLE,
+      member_id: selectedMemberId() || null,
+      battery_level: bat ? bat.level : null,
+      battery_charging: bat ? bat.charging : null,
+      user_agent: navigator.userAgent || null
+    });
 
-      // Soft kick: request reload
-      if (data.command && data.command.type === 'kick') {
-        notify('error', data.command.message || 'Reconnexion requise.');
-        setTimeout(()=>{ location.reload(); }, 800);
-      }
-      _heartbeatFailCount = 0;
-    } catch(e){
+    if (status === 0) {
       _heartbeatFailCount++;
       if (_heartbeatFailCount === 3) {
         notify('error', 'Connexion instable — vérifiez votre réseau.');
       }
+      return;
+    }
+
+    _heartbeatFailCount = 0;
+    const data = out?.data || {};
+    if (data.blocked) {
+      setBlocked(true, data.block_reason || "Cet appareil a été bloqué.");
+    } else {
+      setBlocked(false);
+    }
+
+    // Soft kick: request reload
+    if (data.command && data.command.type === 'kick') {
+      notify('error', data.command.message || 'Reconnexion requise.');
+      setTimeout(()=>{ location.reload(); }, 800);
     }
   }
 
@@ -247,39 +239,24 @@
 
   /**
    * Perform a GET request to the API.
-   * Uses Utils.apiGet if available, otherwise falls back to fetch.
    * @param {string} url - API endpoint URL
    * @returns {Promise<Object>} Parsed JSON response
    * @throws {Error} If request fails
    */
-  async function apiGet(url){
-    if (window.Utils && typeof Utils.apiGet === 'function') return Utils.apiGet(url);
-    const r = await fetch(url, { method: 'GET', credentials: 'same-origin' });
-    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'request_failed'); }
-    return r.json();
+  function apiGet(url){
+    return Utils.apiGet(url);
   }
 
   /**
    * Perform a POST request to the API.
-   * Uses Utils.apiPost if available, otherwise falls back to fetch.
    * @param {string} url - API endpoint URL
    * @param {Object} data - Data to send in request body
+   * @param {Object} [extraHeaders] - Additional headers (e.g. idempotency key)
    * @returns {Promise<Object>} Parsed JSON response
    * @throws {Error} If request fails
    */
-  async function apiPost(url, data, extraHeaders){
-    if (window.Utils && typeof Utils.apiPost === 'function') {
-      return Utils.apiPost(url, data, extraHeaders ? { headers: extraHeaders } : {});
-    }
-    const headers = { 'Content-Type': 'application/json', ...(extraHeaders || {}) };
-    const r = await fetch(url, {
-      method: 'POST',
-      headers,
-      credentials: 'same-origin',
-      body: JSON.stringify(data)
-    });
-    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || 'request_failed'); }
-    return r.json();
+  function apiPost(url, data, extraHeaders){
+    return Utils.apiPost(url, data, extraHeaders ? { headers: extraHeaders } : {});
   }
 
   /**
@@ -587,7 +564,7 @@
     const card = $("#motionBox");
 
     if (!m) {
-      if (title) title.textContent = 'En attente d\u2019une résolution';
+      if (title) { title.textContent = 'En attente d\u2019une résolution'; title.dataset.motionId = ''; }
       if (sub) sub.textContent = '';
       if (badges) badges.innerHTML = '';
       if (noEl) { noEl.textContent = ''; Shared.hide(noEl); }
@@ -598,7 +575,10 @@
     }
 
     if (card) { card.classList.add('active'); card.classList.remove('waiting'); }
-    if (title) title.textContent = m.title || 'Résolution';
+    if (title) {
+      title.textContent = m.title || 'Résolution';
+      title.dataset.motionId = m.id || m.motion_id || '';
+    }
     if (sub) sub.textContent = m.description || '';
 
     // Motion number pill
@@ -780,34 +760,20 @@
       throw new Error('Vous êtes hors ligne. Vérifiez votre connexion.');
     }
 
-    // Stable idempotency key for retries (same key across all attempts)
+    // Idempotency key — one attempt, no silent retry.
+    // If the vote fails the user sees the error and consciously retries.
     const idempotencyKey = `${_currentMotionId}:${memberId}:${Date.now()}`;
 
-    const MAX_RETRIES = 2;
-    let lastErr = null;
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice }, { 'X-Idempotency-Key': idempotencyKey });
-        notify("success", "Vote enregistré.");
-        return; // success — exit
-      } catch(e) {
-        lastErr = e;
-        // Parse known error codes from API for user-friendly messages
-        const errCode = e?.message || '';
-        if (ERROR_MESSAGES[errCode]) {
-          throw new Error(ERROR_MESSAGES[errCode]);
-        }
-        const isNetwork = !navigator.onLine || (e && /fetch|network|timeout|load/i.test(errCode));
-        if (isNetwork && attempt < MAX_RETRIES) {
-          // Wait before retry (exponential backoff: 1s, 2s)
-          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-          continue;
-        }
-        break; // non-retryable or exhausted retries
+    try {
+      await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice }, { 'X-Idempotency-Key': idempotencyKey });
+      notify("success", "Vote enregistré.");
+    } catch(e) {
+      const errCode = e?.message || '';
+      if (ERROR_MESSAGES[errCode]) {
+        throw new Error(ERROR_MESSAGES[errCode]);
       }
+      throw e;
     }
-    // All retries failed — propagate to caller so buttons are re-enabled
-    throw lastErr || new Error('Échec de l\'envoi du vote');
   }
 
   // ─── Invitation token auto-connect ──────────────────────
@@ -825,12 +791,9 @@
     if (!token) return false;
 
     try {
-      const resp = await fetch('/api/v1/invitations_redeem.php?token=' + encodeURIComponent(token), {
-        credentials: 'same-origin'
-      });
-      const data = await resp.json();
+      const { status, body: data } = await api('/api/v1/invitations_redeem.php?token=' + encodeURIComponent(token));
 
-      if (!resp.ok || !data.ok) {
+      if (status === 0 || !data.ok) {
         const code = data?.error || data?.detail || 'invalid_token';
         const msgs = {
           'missing_token': 'Lien d\u2019invitation incomplet.',
@@ -912,6 +875,8 @@
         MeetingContext.set(newId, { updateUrl: false });
       }
       sessionStorage.setItem("public.meeting_id", newId);
+      // Notify inline scripts (speech, confirmation overlay) to reset state
+      document.dispatchEvent(new CustomEvent('vote:meeting-changed'));
       await loadMembers();
       await refresh();
     });

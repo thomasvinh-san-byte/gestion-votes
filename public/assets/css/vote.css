@@ -180,7 +180,7 @@
   height: 40px;
   border-radius: 50%;
   background: var(--color-success);
-  color: #fff;
+  color: var(--color-text-inverse);
   flex-shrink: 0;
   animation: pulse 2s ease-in-out infinite;
 }
@@ -260,7 +260,7 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  transition: border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
+  transition: border-color var(--duration-slow), background-color var(--duration-slow), box-shadow var(--duration-slow);
 }
 
 /* --- State: main levee (waiting) --- */
@@ -294,7 +294,7 @@
   border: 3px solid var(--color-border);
   background: var(--color-bg-subtle);
   cursor: pointer;
-  transition: transform 0.15s, background-color 0.25s, border-color 0.25s, box-shadow 0.25s;
+  transition: transform var(--duration-fast), background-color var(--duration-normal), border-color var(--duration-normal), box-shadow var(--duration-normal);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -325,7 +325,7 @@
 }
 
 .speech-hand-btn[aria-pressed="true"] .speech-hand-icon {
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 /* Button: speaking state (green, no animation) */
@@ -337,13 +337,13 @@
 }
 
 .speech-panel.speaking .speech-hand-icon {
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 /* Hand icon */
 .speech-hand-icon {
   color: var(--color-text-muted);
-  transition: color 0.25s;
+  transition: color var(--duration-normal);
   display: flex;
   font-size: 2rem;
 }
@@ -377,7 +377,7 @@
   padding: 0 6px;
   border-radius: 13px;
   background: var(--color-danger);
-  color: #fff;
+  color: var(--color-text-inverse);
   font-size: 0.8rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -650,7 +650,7 @@
   border: none;
   border-radius: 16px;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.15s;
+  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
   position: relative;
   overflow: hidden;
   min-height: 180px;
@@ -795,7 +795,7 @@
   height: 100%;
   background: var(--color-primary);
   border-radius: 3px;
-  transition: width 0.5s ease;
+  transition: width var(--duration-slow) var(--ease-default);
 }
 
 .vote-participation-text {

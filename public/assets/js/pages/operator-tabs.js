@@ -2545,14 +2545,7 @@ window.OpS = { fn: {} };
         formData.append('meeting_id', currentMeetingId);
 
         try {
-          var csrfHeaders = (window.Utils && window.Utils.getCsrfToken) ? { 'X-CSRF-Token': window.Utils.getCsrfToken() } : {};
-          var response = await fetch('/api/v1/attendances_import_csv.php', {
-            method: 'POST',
-            body: formData,
-            credentials: 'same-origin',
-            headers: csrfHeaders
-          });
-          var d = await response.json();
+          var { body: d } = await apiUpload('/api/v1/attendances_import_csv.php', formData);
 
           var resultDiv = modal.querySelector('#attendanceImportResult');
           resultDiv.hidden = false;

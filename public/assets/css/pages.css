@@ -124,7 +124,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: transform 0.1s;
+  transition: transform var(--duration-fast);
 }
 
 .calendar-event:hover {
@@ -185,7 +185,7 @@
   border-bottom: 3px solid transparent;
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
 }
 
 .tab-btn:hover {
@@ -214,7 +214,7 @@
 
 .tab-btn.active .tab-count {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-primary-text);
 }
 
 .tab-content {
@@ -408,7 +408,7 @@
   border-radius: 8px;
   text-decoration: none;
   color: var(--color-text);
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
 }
 
 .export-card:hover {
@@ -508,7 +508,7 @@
 
 .speech-queue-item.speaking .speech-queue-position {
   background: var(--color-warning);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 /* =============================================================================
@@ -557,7 +557,7 @@
   border: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition: border-color var(--duration-normal) var(--ease-default), box-shadow var(--duration-normal) var(--ease-default), transform var(--duration-normal) var(--ease-default);
   box-shadow: var(--shadow-xs);
 }
 
@@ -717,7 +717,7 @@
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color var(--duration-normal) var(--ease-default), background-color var(--duration-normal) var(--ease-default);
 }
 
 .create-card:hover,
@@ -792,7 +792,7 @@
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-text-secondary);
-  transition: all 0.15s ease;
+  transition: all var(--duration-fast) var(--ease-default);
   cursor: pointer;
   user-select: none;
 }
@@ -815,7 +815,7 @@
   border-radius: 8px;
   padding: 1rem;
   text-align: center;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color var(--duration-normal) var(--ease-default), background var(--duration-normal) var(--ease-default);
   background: var(--color-bg-subtle);
 }
 
@@ -984,7 +984,7 @@
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: color var(--duration-fast) var(--ease-default), background-color var(--duration-fast) var(--ease-default), border-color var(--duration-fast) var(--ease-default), box-shadow var(--duration-fast) var(--ease-default);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -1065,7 +1065,7 @@
   align-items: center;
   gap: 0.25rem;
   font-size: 0.85rem;
-  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: color var(--duration-fast) var(--ease-default), background-color var(--duration-fast) var(--ease-default), border-color var(--duration-fast) var(--ease-default), box-shadow var(--duration-fast) var(--ease-default);
 }
 
 .view-toggle-btn:hover {
@@ -1080,41 +1080,18 @@
 }
 
 /* =============================================================================
-   EMPTY STATE
+   EMPTY STATE — extends design-system.css base with card appearance
    ============================================================================= */
 
 .empty-state {
   grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
   background: var(--color-surface);
   border: 2px dashed var(--color-border);
   border-radius: 12px;
 }
 
 .empty-state-icon {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 1.5rem;
-  color: var(--color-text-muted);
   opacity: 0.4;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 0.5rem 0;
-}
-
-.empty-state p {
-  color: var(--color-text-muted);
-  max-width: 300px;
-  margin: 0;
 }
 
 /* =============================================================================

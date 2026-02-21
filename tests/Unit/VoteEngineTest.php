@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use AgVote\Service\VoteEngine;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for VoteEngine service.
  *
- * These tests validate the vote calculation algorithms and result structure.
+ * Tests both the static computeDecision() method (pure calculation, no I/O)
+ * and the result structure / decision-status logic.
  * Integration tests with real database are in tests/Integration/.
  */
 class VoteEngineTest extends TestCase {
@@ -292,6 +294,313 @@ class VoteEngineTest extends TestCase {
         $adopted = $quorumMet !== false && $ratio >= $threshold;
 
         $this->assertTrue($adopted);
+    }
+
+    // =========================================================================
+    // VoteEngine::computeDecision() — DIRECT STATIC METHOD TESTS
+    // =========================================================================
+
+    public function testComputeDecisionResultStructure(): void {
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
+            forWeight: 60.0,
+            againstWeight: 30.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertArrayHasKey('quorum', $result);
+        $this->assertArrayHasKey('majority', $result);
+        $this->assertIsBool($result['quorum']['applied']);
+        $this->assertIsBool($result['majority']['applied']);
+    }
+
+    public function testComputeDecisionSimpleMajorityAdopted(): void {
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
+            forWeight: 60.0,
+            againstWeight: 30.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertTrue($result['majority']['met']);
+        $this->assertEquals(0.6, $result['majority']['ratio']);
+        $this->assertEquals('expressed', $result['majority']['base']);
+        $this->assertFalse($result['quorum']['applied']);
+    }
+
+    public function testComputeDecisionSimpleMajorityRejected(): void {
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
+            forWeight: 30.0,
+            againstWeight: 60.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertFalse($result['majority']['met']);
+        $this->assertEquals(0.3, $result['majority']['ratio']);
+    }
+
+    public function testComputeDecisionTwoThirdsMajority(): void {
+        // 65% for with 2/3 threshold → rejected
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 2 / 3],
+            forWeight: 65.0,
+            againstWeight: 25.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertFalse($result['majority']['met']);
+
+        // 70% for with 2/3 threshold → adopted
+        $result2 = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 2 / 3],
+            forWeight: 70.0,
+            againstWeight: 20.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertTrue($result2['majority']['met']);
+    }
+
+    public function testComputeDecisionEligibleBase(): void {
+        // 60 for out of 200 eligible = 30% < 50%
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'eligible', 'threshold' => 0.5],
+            forWeight: 60.0,
+            againstWeight: 20.0,
+            abstainWeight: 10.0,
+            expressedWeight: 90.0,
+            expressedMembers: 9,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertFalse($result['majority']['met']);
+        $this->assertEquals(0.3, $result['majority']['ratio']);
+        $this->assertEquals('eligible', $result['majority']['base']);
+    }
+
+    public function testComputeDecisionPresentBase(): void {
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'present', 'threshold' => 0.5],
+            forWeight: 60.0,
+            againstWeight: 20.0,
+            abstainWeight: 10.0,
+            expressedWeight: 90.0,
+            expressedMembers: 9,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+            presentWeight: 150.0,
+        );
+
+        // 60/150 = 0.4 < 0.5
+        $this->assertFalse($result['majority']['met']);
+        $this->assertEquals(0.4, $result['majority']['ratio']);
+        $this->assertEquals('present', $result['majority']['base']);
+    }
+
+    public function testComputeDecisionWithQuorumMet(): void {
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: ['denominator' => 'eligible_members', 'threshold' => 0.5],
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
+            forWeight: 60.0,
+            againstWeight: 30.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 15,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertTrue($result['quorum']['applied']);
+        $this->assertTrue($result['quorum']['met']);
+        $this->assertEquals(0.75, $result['quorum']['ratio']); // 15/20
+        $this->assertTrue($result['majority']['met']);
+    }
+
+    public function testComputeDecisionWithQuorumNotMet(): void {
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: ['denominator' => 'eligible_members', 'threshold' => 0.5],
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
+            forWeight: 60.0,
+            againstWeight: 30.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 8,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertTrue($result['quorum']['applied']);
+        $this->assertFalse($result['quorum']['met']);
+        // Quorum blocks adoption even though for > threshold
+        $this->assertFalse($result['majority']['met']);
+    }
+
+    public function testComputeDecisionQuorumByWeight(): void {
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: ['denominator' => 'eligible_weight', 'threshold' => 0.5],
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
+            forWeight: 60.0,
+            againstWeight: 30.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertTrue($result['quorum']['applied']);
+        $this->assertTrue($result['quorum']['met']); // 100/200 = 0.5 >= 0.5
+        $this->assertEquals('eligible_weight', $result['quorum']['basis']);
+    }
+
+    public function testComputeDecisionNoPolicies(): void {
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: null,
+            forWeight: 60.0,
+            againstWeight: 30.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertFalse($result['quorum']['applied']);
+        $this->assertNull($result['quorum']['met']);
+        $this->assertFalse($result['majority']['applied']);
+        $this->assertNull($result['majority']['met']);
+    }
+
+    public function testComputeDecisionZeroVotes(): void {
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
+            forWeight: 0.0,
+            againstWeight: 0.0,
+            abstainWeight: 0.0,
+            expressedWeight: 0.0,
+            expressedMembers: 0,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertEquals(0.0, $result['majority']['ratio']);
+        $this->assertFalse($result['majority']['met']);
+    }
+
+    public function testComputeDecisionZeroEligible(): void {
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: ['denominator' => 'eligible_weight', 'threshold' => 0.5],
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
+            forWeight: 0.0,
+            againstWeight: 0.0,
+            abstainWeight: 0.0,
+            expressedWeight: 0.0,
+            expressedMembers: 0,
+            eligibleMembers: 0,
+            eligibleWeight: 0.0,
+        );
+
+        $this->assertFalse($result['quorum']['met']);
+        $this->assertEquals(0.0, $result['quorum']['ratio']);
+    }
+
+    public function testComputeDecisionExactThreshold(): void {
+        // Exactly at threshold: 50/100 = 0.5 >= 0.5
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
+            forWeight: 50.0,
+            againstWeight: 40.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertTrue($result['majority']['met']);
+        $this->assertEquals(0.5, $result['majority']['ratio']);
+    }
+
+    public function testComputeDecisionJustBelowThreshold(): void {
+        // 49.9/100 = 0.499 < 0.5
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
+            forWeight: 49.9,
+            againstWeight: 40.1,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertFalse($result['majority']['met']);
+    }
+
+    public function testComputeDecisionUnanimity(): void {
+        // 100% threshold (unanimity)
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 1.0],
+            forWeight: 100.0,
+            againstWeight: 0.0,
+            abstainWeight: 0.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 10,
+            eligibleWeight: 100.0,
+        );
+
+        $this->assertTrue($result['majority']['met']);
+        $this->assertEquals(1.0, $result['majority']['ratio']);
+
+        // One against breaks unanimity
+        $result2 = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 1.0],
+            forWeight: 99.0,
+            againstWeight: 1.0,
+            abstainWeight: 0.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 10,
+            eligibleWeight: 100.0,
+        );
+
+        $this->assertFalse($result2['majority']['met']);
     }
 
     // =========================================================================

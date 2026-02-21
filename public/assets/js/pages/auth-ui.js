@@ -148,18 +148,7 @@
 
     b.querySelector('#auth-logout-btn').addEventListener('click', async function () {
       try {
-        var csrfResp = await fetch('/api/v1/auth_csrf.php', { credentials: 'same-origin' });
-        var csrfData = await csrfResp.json();
-        var csrfToken = csrfData.data ? csrfData.data.token : (csrfData.token || '');
-
-        await fetch('/api/v1/auth_logout.php', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken
-          }
-        });
+        await api('/api/v1/auth_logout.php', {});
       } catch (e) { /* best effort */ }
       window.Auth.user = null;
       window.Auth.role = null;
@@ -429,13 +418,14 @@
 
     document.getElementById('session-extend-btn').addEventListener('click', function () {
       // Ping whoami to refresh session on server
-      fetch('/api/v1/whoami.php', { credentials: 'same-origin' })
-        .then(function () {
-          warn.remove();
-          scheduleSessionWarning();
-        })
-        .catch(function () {
-          warn.textContent = 'Session expir\u00e9e. Veuillez vous reconnecter.';
+      api('/api/v1/whoami.php')
+        .then(function (res) {
+          if (res.status > 0) {
+            warn.remove();
+            scheduleSessionWarning();
+          } else {
+            warn.textContent = 'Session expir\u00e9e. Veuillez vous reconnecter.';
+          }
         });
     });
   }
@@ -445,48 +435,10 @@
   // =========================================================================
 
   async function boot() {
-    try {
-      var resp = await fetch('/api/v1/whoami.php', { credentials: 'same-origin' });
-      var data = await resp.json();
+    var { status, body: data } = await api('/api/v1/whoami.php');
 
-      var user = (data.data && data.data.user) ? data.data.user : (data.user || null);
-      var authEnabled = data.auth_enabled !== undefined ? data.auth_enabled
-        : (data.data ? data.data.auth_enabled : false);
-      var meetingRoles = (data.data && data.data.meeting_roles) ? data.data.meeting_roles : [];
-
-      var linkedMember = (data.data && data.data.member) ? data.data.member : null;
-
-      window.Auth.enabled = !!authEnabled;
-      window.Auth.user = user;
-      window.Auth.role = user ? user.role : null;
-      window.Auth.member = linkedMember;
-      window.Auth.meetingRoles = meetingRoles;
-
-      if (!authEnabled) {
-        setStatus('auth d\u00e9sactiv\u00e9e (dev)', 'ok', false);
-        setUserIdentity(null, null, []);
-      } else if (!user) {
-        setStatus('Non connect\u00e9', 'danger', false);
-        setUserIdentity(null, null, []);
-      } else {
-        setStatus('', 'ok', true);
-        setUserIdentity(user, user.role, meetingRoles);
-        showMeetingRolesBadge(meetingRoles);
-      }
-
-      applyVisibility();
-      enforcePageRole();
-
-      // Filter sidebar: apply now if already loaded, and watch for async inclusion
-      filterSidebar();
-      observeSidebarInclusion();
-
-      // Session expiry warning
-      if (window.Auth.user) {
-        scheduleSessionWarning();
-      }
-
-    } catch (e) {
+    if (status === 0) {
+      // Network/timeout failure
       window.Auth.enabled = true;
       window.Auth.user = null;
       window.Auth.role = null;
@@ -494,6 +446,45 @@
       setStatus('Non connecté', 'danger', false);
       applyVisibility();
       enforcePageRole();
+      _resolveReady();
+      return;
+    }
+
+    var user = (data.data && data.data.user) ? data.data.user : (data.user || null);
+    var authEnabled = data.auth_enabled !== undefined ? data.auth_enabled
+      : (data.data ? data.data.auth_enabled : false);
+    var meetingRoles = (data.data && data.data.meeting_roles) ? data.data.meeting_roles : [];
+
+    var linkedMember = (data.data && data.data.member) ? data.data.member : null;
+
+    window.Auth.enabled = !!authEnabled;
+    window.Auth.user = user;
+    window.Auth.role = user ? user.role : null;
+    window.Auth.member = linkedMember;
+    window.Auth.meetingRoles = meetingRoles;
+
+    if (!authEnabled) {
+      setStatus('auth d\u00e9sactiv\u00e9e (dev)', 'ok', false);
+      setUserIdentity(null, null, []);
+    } else if (!user) {
+      setStatus('Non connect\u00e9', 'danger', false);
+      setUserIdentity(null, null, []);
+    } else {
+      setStatus('', 'ok', true);
+      setUserIdentity(user, user.role, meetingRoles);
+      showMeetingRolesBadge(meetingRoles);
+    }
+
+    applyVisibility();
+    enforcePageRole();
+
+    // Filter sidebar: apply now if already loaded, and watch for async inclusion
+    filterSidebar();
+    observeSidebarInclusion();
+
+    // Session expiry warning
+    if (window.Auth.user) {
+      scheduleSessionWarning();
     }
 
     _resolveReady();

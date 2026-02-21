@@ -80,7 +80,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   cursor: pointer;
   color: var(--color-text-muted);
   font-size: 0.85rem;
-  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
 }
 
 .period-btn:hover {
@@ -271,7 +271,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   top: 0.75rem;
   right: 0.75rem;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity var(--duration-normal);
 }
 
 .chart-card:hover .chart-export-btn {
@@ -353,7 +353,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   font-size: 0.9rem;
   color: var(--color-text-muted);
   border-radius: 6px 6px 0 0;
-  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
 }
 
 .analytics-tab:hover {
@@ -381,7 +381,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .progress-bar-fill {
   height: 100%;
   border-radius: 4px;
-  transition: width 0.3s;
+  transition: width var(--duration-slow);
 }
 
 .progress-bar-fill.success {

@@ -632,6 +632,52 @@ async function api(url, data = null, method = null, timeoutMs = API_TIMEOUT_MS) 
 }
 
 /**
+ * Upload files via FormData — simplified wrapper like api() but for multipart.
+ * Does NOT set Content-Type (browser sets multipart boundary automatically).
+ *
+ * @param {string} url - API endpoint
+ * @param {FormData} formData - FormData with file(s) and fields
+ * @param {number} [timeoutMs=30000] - Timeout in ms (default 30 s for uploads)
+ * @returns {Promise<{status: number, body: object}>}
+ */
+const UPLOAD_TIMEOUT_MS = 30000;
+
+async function apiUpload(url, formData, timeoutMs = UPLOAD_TIMEOUT_MS) {
+  const headers = {};
+
+  // Add CSRF token
+  if (window.Utils && window.Utils.getCsrfToken) {
+    const token = window.Utils.getCsrfToken();
+    if (token) headers['X-CSRF-Token'] = token;
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      credentials: 'same-origin',
+      body: formData,
+      signal: controller.signal,
+    });
+
+    const body = await response.json().catch(() => ({}));
+    return { status: response.status, body };
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      console.error('Upload Timeout:', url);
+      return { status: 0, body: { ok: false, error: 'timeout', message: 'Le téléversement a expiré (délai dépassé)' } };
+    }
+    console.error('Upload Error:', err);
+    return { status: 0, body: { ok: false, error: 'network_error', message: err.message } };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * Create SVG icon from sprite
  * @param {string} name - Icon name (without 'icon-' prefix)
  * @param {string} className - Additional CSS classes

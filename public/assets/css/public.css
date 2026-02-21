@@ -608,7 +608,7 @@ body.projection-body {
   background: var(--color-surface);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--duration-fast), color var(--duration-fast);
 }
 
 .projection-btn:hover {
@@ -680,7 +680,7 @@ body.projection-body {
   border: 2px solid var(--color-border);
   border-radius: var(--radius-lg, 12px);
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
   text-align: left;
 }
 
@@ -714,41 +714,8 @@ body.projection-body.projection-dark {
   --color-text-muted: #64748b;
   --color-border: #334155;
   --color-bg-subtle: #1e293b;
-  background: #0f172a;
-  color: #f1f5f9;
-}
-
-body.projection-dark .projection-header {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-body.projection-dark .projection-footer {
-  border-color: #334155;
-}
-
-body.projection-dark .resolution-box {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-body.projection-dark .decision-card {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-body.projection-dark .secret-block {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-body.projection-dark .meeting-picker {
-  background: #1e293b;
-}
-
-body.projection-dark .meeting-picker-card {
-  background: #0f172a;
-  border-color: #334155;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 /* =============================================================================
