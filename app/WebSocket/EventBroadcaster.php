@@ -1,17 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\WebSocket;
 
 use AgVote\Core\Providers\RedisProvider;
+use Redis;
+use Throwable;
 
 /**
  * EventBroadcaster - Service pour envoyer des evenements au serveur WebSocket.
  *
  * Uses Redis LPUSH/LRANGE+DEL when available, falls back to file-based queue.
  */
-class EventBroadcaster
-{
+class EventBroadcaster {
     private const QUEUE_KEY = 'ws:event_queue';
     private const QUEUE_FILE = '/tmp/agvote-ws-queue.json';
     private const LOCK_FILE = '/tmp/agvote-ws-queue.lock';
@@ -20,8 +22,7 @@ class EventBroadcaster
     /**
      * Broadcast un evenement a un meeting.
      */
-    public static function toMeeting(string $meetingId, string $eventType, array $data = []): void
-    {
+    public static function toMeeting(string $meetingId, string $eventType, array $data = []): void {
         self::queue([
             'target' => 'meeting',
             'meeting_id' => $meetingId,
@@ -33,8 +34,7 @@ class EventBroadcaster
     /**
      * Broadcast un evenement a un tenant.
      */
-    public static function toTenant(string $tenantId, string $eventType, array $data = []): void
-    {
+    public static function toTenant(string $tenantId, string $eventType, array $data = []): void {
         self::queue([
             'target' => 'tenant',
             'tenant_id' => $tenantId,
@@ -45,62 +45,54 @@ class EventBroadcaster
 
     // ── Pre-defined events ──────────────────────────────────────────────
 
-    public static function motionOpened(string $meetingId, string $motionId, array $motionData = []): void
-    {
+    public static function motionOpened(string $meetingId, string $motionId, array $motionData = []): void {
         self::toMeeting($meetingId, 'motion.opened', [
             'motion_id' => $motionId,
             'motion' => $motionData,
         ]);
     }
 
-    public static function motionClosed(string $meetingId, string $motionId, array $results = []): void
-    {
+    public static function motionClosed(string $meetingId, string $motionId, array $results = []): void {
         self::toMeeting($meetingId, 'motion.closed', [
             'motion_id' => $motionId,
             'results' => $results,
         ]);
     }
 
-    public static function motionUpdated(string $meetingId, string $motionId, array $changes = []): void
-    {
+    public static function motionUpdated(string $meetingId, string $motionId, array $changes = []): void {
         self::toMeeting($meetingId, 'motion.updated', [
             'motion_id' => $motionId,
             'changes' => $changes,
         ]);
     }
 
-    public static function voteCast(string $meetingId, string $motionId, array $tally = []): void
-    {
+    public static function voteCast(string $meetingId, string $motionId, array $tally = []): void {
         self::toMeeting($meetingId, 'vote.cast', [
             'motion_id' => $motionId,
             'tally' => $tally,
         ]);
     }
 
-    public static function voteUpdated(string $meetingId, string $motionId, array $tally = []): void
-    {
+    public static function voteUpdated(string $meetingId, string $motionId, array $tally = []): void {
         self::toMeeting($meetingId, 'vote.updated', [
             'motion_id' => $motionId,
             'tally' => $tally,
         ]);
     }
 
-    public static function attendanceUpdated(string $meetingId, array $stats = []): void
-    {
+    public static function attendanceUpdated(string $meetingId, array $stats = []): void {
         self::toMeeting($meetingId, 'attendance.updated', [
             'stats' => $stats,
         ]);
     }
 
-    public static function quorumUpdated(string $meetingId, array $quorumData = []): void
-    {
+    public static function quorumUpdated(string $meetingId, array $quorumData = []): void {
         self::toMeeting($meetingId, 'quorum.updated', [
             'quorum' => $quorumData,
         ]);
     }
 
-    public static function meetingStatusChanged(string $meetingId, string $tenantId, string $newStatus, string $oldStatus = ''): void
-    {
+    public static function meetingStatusChanged(string $meetingId, string $tenantId, string $newStatus, string $oldStatus = ''): void {
         self::toMeeting($meetingId, 'meeting.status_changed', [
             'meeting_id' => $meetingId,
             'new_status' => $newStatus,
@@ -113,8 +105,7 @@ class EventBroadcaster
         ]);
     }
 
-    public static function speechQueueUpdated(string $meetingId, array $queue = []): void
-    {
+    public static function speechQueueUpdated(string $meetingId, array $queue = []): void {
         self::toMeeting($meetingId, 'speech.queue_updated', [
             'queue' => $queue,
         ]);
@@ -125,8 +116,7 @@ class EventBroadcaster
     /**
      * Ajoute un evenement a la queue.
      */
-    private static function queue(array $event): void
-    {
+    private static function queue(array $event): void {
         $event['queued_at'] = microtime(true);
 
         if (self::useRedis()) {
@@ -140,8 +130,7 @@ class EventBroadcaster
      * Recupere et vide les evenements de la queue.
      * Utilise par le serveur WebSocket.
      */
-    public static function dequeue(): array
-    {
+    public static function dequeue(): array {
         if (self::useRedis()) {
             return self::dequeueRedis();
         }
@@ -151,8 +140,7 @@ class EventBroadcaster
     /**
      * Verifie si le serveur WebSocket est actif.
      */
-    public static function isServerRunning(): bool
-    {
+    public static function isServerRunning(): bool {
         $pidFile = '/tmp/agvote-ws.pid';
         if (!file_exists($pidFile)) {
             return false;
@@ -168,50 +156,47 @@ class EventBroadcaster
 
     // ── Redis backend ───────────────────────────────────────────────────
 
-    private static function useRedis(): bool
-    {
+    private static function useRedis(): bool {
         if (!RedisProvider::isAvailable()) {
             return false;
         }
         try {
             RedisProvider::connection();
             return true;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }
 
-    private static function queueRedis(array $event): void
-    {
+    private static function queueRedis(array $event): void {
         try {
             $redis = RedisProvider::connection();
             // Temporarily disable JSON serializer for raw string push
-            $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
             $redis->rPush(self::QUEUE_KEY, json_encode($event));
 
             // Trim to max size (keep most recent)
             $redis->lTrim(self::QUEUE_KEY, -self::MAX_QUEUE_SIZE, -1);
-            $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_JSON);
-        } catch (\Throwable $e) {
+            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
+        } catch (Throwable $e) {
             error_log('EventBroadcaster Redis push failed: ' . $e->getMessage());
             // Fallback to file
             self::queueFile($event);
         }
     }
 
-    private static function dequeueRedis(): array
-    {
+    private static function dequeueRedis(): array {
         try {
             $redis = RedisProvider::connection();
-            $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
 
             // Atomic: get all + delete
-            $pipe = $redis->multi(\Redis::PIPELINE);
+            $pipe = $redis->multi(Redis::PIPELINE);
             $pipe->lRange(self::QUEUE_KEY, 0, -1);
             $pipe->del(self::QUEUE_KEY);
             $results = $pipe->exec();
 
-            $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_JSON);
+            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
 
             $raw = $results[0] ?? [];
             if (!is_array($raw)) {
@@ -219,10 +204,10 @@ class EventBroadcaster
             }
 
             return array_map(
-                fn($item) => is_string($item) ? (json_decode($item, true) ?? []) : $item,
-                $raw
+                fn ($item) => is_string($item) ? (json_decode($item, true) ?? []) : $item,
+                $raw,
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             error_log('EventBroadcaster Redis dequeue failed: ' . $e->getMessage());
             return self::dequeueFile();
         }
@@ -230,8 +215,7 @@ class EventBroadcaster
 
     // ── File backend (fallback) ─────────────────────────────────────────
 
-    private static function queueFile(array $event): void
-    {
+    private static function queueFile(array $event): void {
         $lockFile = fopen(self::LOCK_FILE, 'c');
         if (!$lockFile || !flock($lockFile, LOCK_EX)) {
             return;
@@ -257,8 +241,7 @@ class EventBroadcaster
         }
     }
 
-    private static function dequeueFile(): array
-    {
+    private static function dequeueFile(): array {
         $lockFile = fopen(self::LOCK_FILE, 'c');
         if (!$lockFile || !flock($lockFile, LOCK_EX)) {
             return [];

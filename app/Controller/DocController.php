@@ -1,20 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
 use AgVote\View\HtmlView;
+use Parsedown;
 
 /**
  * Consolidates doc_index.php (JSON API) and doc.php (HTML viewer).
  */
-final class DocController extends AbstractController
-{
+final class DocController extends AbstractController {
     private const CATEGORIES = [
         'Utilisateur' => ['FAQ', 'UTILISATION_LIVE', 'RECETTE_DEMO', 'ANALYTICS_ETHICS'],
         'Installation' => ['INSTALL_MAC', 'DOCKER_INSTALL', 'dev/INSTALLATION'],
-        'Technique'   => ['dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
-        'Conformité'  => ['dev/MIGRATION', 'dev/WEB_COMPONENTS'],
+        'Technique' => ['dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
+        'Conformité' => ['dev/MIGRATION', 'dev/WEB_COMPONENTS'],
     ];
 
     private const DOC_NAMES = [
@@ -37,8 +38,7 @@ final class DocController extends AbstractController
     /**
      * JSON API: list available documentation.
      */
-    public function index(): void
-    {
+    public function index(): void {
         $docsRoot = dirname(__DIR__, 2) . '/docs';
 
         $result = [];
@@ -65,8 +65,7 @@ final class DocController extends AbstractController
      *
      * Accessed at: /doc.php?page={page}
      */
-    public function view(): void
-    {
+    public function view(): void {
         $docsRoot = dirname(__DIR__, 2) . '/docs';
 
         $page = api_query('page');
@@ -94,7 +93,7 @@ final class DocController extends AbstractController
             // Suppress Parsedown deprecation warnings on PHP 8.4+
             $prevErrorLevel = error_reporting(E_ALL & ~E_DEPRECATED);
 
-            $parsedown = new \Parsedown();
+            $parsedown = new Parsedown();
             $parsedown->setSafeMode(true);
             $htmlContent = $parsedown->text(file_get_contents($filePath));
 
@@ -120,7 +119,7 @@ final class DocController extends AbstractController
                     $tocItems[] = ['id' => $id, 'text' => $text, 'level' => $level];
                     return "<{$tag}{$m[2]} id=\"{$id}\">{$m[3]}</{$tag}>";
                 },
-                $htmlContent
+                $htmlContent,
             );
 
             if (count($tocItems) > 2) {
@@ -136,20 +135,20 @@ final class DocController extends AbstractController
         // View categories for sidebar (subset matching original doc.php)
         $categories = [
             'Utilisateur' => ['FAQ', 'UTILISATION_LIVE', 'RECETTE_DEMO', 'ANALYTICS_ETHICS'],
-            'Technique'   => ['dev/INSTALLATION', 'dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
-            'Conformité'  => ['dev/MIGRATION', 'dev/WEB_COMPONENTS'],
+            'Technique' => ['dev/INSTALLATION', 'dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
+            'Conformité' => ['dev/MIGRATION', 'dev/WEB_COMPONENTS'],
         ];
 
         $statusCode = ($title === 'Document introuvable') ? 404 : 200;
 
         HtmlView::render('doc_page', [
-            'title'       => $title,
+            'title' => $title,
             'htmlContent' => $htmlContent,
-            'toc'         => $toc,
-            'page'        => $page,
-            'categories'  => $categories,
-            'docNames'    => self::DOC_NAMES,
-            'docsRoot'    => $docsRoot,
+            'toc' => $toc,
+            'page' => $page,
+            'categories' => $categories,
+            'docNames' => self::DOC_NAMES,
+            'docsRoot' => $docsRoot,
         ], $statusCode);
     }
 }

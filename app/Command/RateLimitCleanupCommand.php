@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Command;
@@ -14,15 +15,12 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'ratelimit:cleanup',
     description: 'Remove expired rate-limit tracking files',
 )]
-final class RateLimitCleanupCommand extends Command
-{
-    protected function configure(): void
-    {
+final class RateLimitCleanupCommand extends Command {
+    protected function configure(): void {
         $this->addOption('max-age', null, InputOption::VALUE_REQUIRED, 'Max age in seconds', '3600');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $maxAge = (int) $input->getOption('max-age');
 
         $cleaned = RateLimiter::cleanup($maxAge);

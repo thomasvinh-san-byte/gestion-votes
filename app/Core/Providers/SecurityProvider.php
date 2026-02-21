@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core\Providers;
@@ -11,13 +12,11 @@ use AgVote\Core\Security\RateLimiter;
  *
  * Sends security headers, handles CORS, and initializes auth/rate-limit.
  */
-final class SecurityProvider
-{
+final class SecurityProvider {
     /**
      * Send standard security headers (CSP, HSTS, etc.).
      */
-    public static function headers(): void
-    {
+    public static function headers(): void {
         if (headers_sent()) {
             return;
         }
@@ -43,8 +42,7 @@ final class SecurityProvider
     /**
      * Handle CORS preflight and response headers.
      */
-    public static function cors(array $corsConfig): void
-    {
+    public static function cors(array $corsConfig): void {
         $allowed = $corsConfig['allowed_origins'] ?? [];
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
@@ -67,8 +65,7 @@ final class SecurityProvider
     /**
      * Initialize auth middleware and rate limiter.
      */
-    public static function init(bool $debug = false): void
-    {
+    public static function init(bool $debug = false): void {
         RateLimiter::configure([
             'storage_dir' => sys_get_temp_dir() . '/ag-vote-ratelimit',
         ]);

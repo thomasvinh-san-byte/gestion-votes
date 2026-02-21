@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Repository;
@@ -6,8 +7,7 @@ namespace AgVote\Repository;
 /**
  * Repository pour les evenements email (tracking).
  */
-class EmailEventRepository extends AbstractRepository
-{
+class EmailEventRepository extends AbstractRepository {
     /**
      * Enregistre un evenement email.
      */
@@ -18,13 +18,13 @@ class EmailEventRepository extends AbstractRepository
         ?string $queueId = null,
         ?array $eventData = null,
         ?string $ipAddress = null,
-        ?string $userAgent = null
+        ?string $userAgent = null,
     ): ?array {
         return $this->insertReturning(
-            "INSERT INTO email_events
+            'INSERT INTO email_events
              (tenant_id, invitation_id, queue_id, event_type, event_data, ip_address, user_agent)
              VALUES (:tenant_id, :invitation_id, :queue_id, :event_type, :event_data, :ip_address, :user_agent)
-             RETURNING id, event_type, created_at",
+             RETURNING id, event_type, created_at',
             [
                 ':tenant_id' => $tenantId,
                 ':invitation_id' => $invitationId,
@@ -33,31 +33,29 @@ class EmailEventRepository extends AbstractRepository
                 ':event_data' => $eventData ? json_encode($eventData) : '{}',
                 ':ip_address' => $ipAddress,
                 ':user_agent' => $userAgent,
-            ]
+            ],
         );
     }
 
     /**
      * Liste les evenements pour une invitation.
      */
-    public function listForInvitation(string $invitationId): array
-    {
+    public function listForInvitation(string $invitationId): array {
         return $this->selectAll(
-            "SELECT id, event_type, event_data, ip_address, user_agent, created_at
+            'SELECT id, event_type, event_data, ip_address, user_agent, created_at
              FROM email_events
              WHERE invitation_id = :invitation_id
-             ORDER BY created_at ASC",
-            [':invitation_id' => $invitationId]
+             ORDER BY created_at ASC',
+            [':invitation_id' => $invitationId],
         );
     }
 
     /**
      * Liste les evenements recents pour un tenant.
      */
-    public function listRecent(string $tenantId, int $limit = 100): array
-    {
+    public function listRecent(string $tenantId, int $limit = 100): array {
         return $this->selectAll(
-            "SELECT ee.id, ee.invitation_id, ee.queue_id, ee.event_type, ee.event_data,
+            'SELECT ee.id, ee.invitation_id, ee.queue_id, ee.event_type, ee.event_data,
                     ee.ip_address, ee.created_at,
                     i.email as invitation_email, m.full_name as member_name, mt.title as meeting_title
              FROM email_events ee
@@ -66,35 +64,33 @@ class EmailEventRepository extends AbstractRepository
              LEFT JOIN meetings mt ON mt.id = i.meeting_id
              WHERE ee.tenant_id = :tenant_id
              ORDER BY ee.created_at DESC
-             LIMIT :limit",
-            [':tenant_id' => $tenantId, ':limit' => $limit]
+             LIMIT :limit',
+            [':tenant_id' => $tenantId, ':limit' => $limit],
         );
     }
 
     /**
      * Compte les evenements par type pour une seance.
      */
-    public function countByTypeForMeeting(string $meetingId): array
-    {
+    public function countByTypeForMeeting(string $meetingId): array {
         return $this->selectAll(
-            "SELECT ee.event_type, COUNT(*) as count
+            'SELECT ee.event_type, COUNT(*) as count
              FROM email_events ee
              JOIN invitations i ON i.id = ee.invitation_id
              WHERE i.meeting_id = :meeting_id
-             GROUP BY ee.event_type",
-            [':meeting_id' => $meetingId]
+             GROUP BY ee.event_type',
+            [':meeting_id' => $meetingId],
         );
     }
 
     /**
      * Statistiques detaillees pour une seance.
      */
-    public function getStatsForMeeting(string $meetingId, string $tenantId): array
-    {
+    public function getStatsForMeeting(string $meetingId, string $tenantId): array {
         $row = $this->selectOne(
-            "SELECT * FROM email_stats_by_meeting
-             WHERE meeting_id = :meeting_id AND tenant_id = :tenant_id",
-            [':meeting_id' => $meetingId, ':tenant_id' => $tenantId]
+            'SELECT * FROM email_stats_by_meeting
+             WHERE meeting_id = :meeting_id AND tenant_id = :tenant_id',
+            [':meeting_id' => $meetingId, ':tenant_id' => $tenantId],
         );
 
         return $row ?: [

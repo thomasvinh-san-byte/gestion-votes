@@ -1,7 +1,8 @@
 <?php
+
 /**
  * _csrf_head.php - Partial à inclure dans le <head> de chaque page HTMX
- * 
+ *
  * Usage: <?php include __DIR__ . '/partials/_csrf_head.php'; ?>
  */
 

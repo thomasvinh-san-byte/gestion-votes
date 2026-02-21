@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use PHPUnit\Framework\TestCase;
-use AgVote\Core\Validation\InputValidator;
 use AgVote\Core\Security\CsrfMiddleware;
 use AgVote\Core\Security\RateLimiter;
+use AgVote\Core\Validation\InputValidator;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests de validation du workflow et des composants de sécurité.
@@ -15,10 +15,8 @@ use AgVote\Core\Security\RateLimiter;
  * Vérifie que les composants critiques fonctionnent correctement
  * pour le chemin critique de l'administrateur.
  */
-class WorkflowValidationTest extends TestCase
-{
-    protected function setUp(): void
-    {
+class WorkflowValidationTest extends TestCase {
+    protected function setUp(): void {
         // Nettoyer le rate limiter avant chaque test
         RateLimiter::configure(['storage_dir' => '/tmp/ag-vote-test-ratelimit']);
         RateLimiter::reset('test-context', 'test-user');
@@ -28,8 +26,7 @@ class WorkflowValidationTest extends TestCase
     // VALIDATION DES ENTRÉES
     // =========================================================================
 
-    public function testUserCreationValidation(): void
-    {
+    public function testUserCreationValidation(): void {
         $validator = InputValidator::schema()
             ->email('email')->required()
             ->string('name')->required()->minLength(2)->maxLength(100)
@@ -49,8 +46,7 @@ class WorkflowValidationTest extends TestCase
         $this->assertEquals('newuser@example.com', $result->get('email'));
     }
 
-    public function testUserCreationValidationFailsOnWeakPassword(): void
-    {
+    public function testUserCreationValidationFailsOnWeakPassword(): void {
         $validator = InputValidator::schema()
             ->string('password')->required()->minLength(8);
 
@@ -58,8 +54,7 @@ class WorkflowValidationTest extends TestCase
         $this->assertFalse($result->isValid());
     }
 
-    public function testUserCreationValidationFailsOnInvalidEmail(): void
-    {
+    public function testUserCreationValidationFailsOnInvalidEmail(): void {
         $validator = InputValidator::schema()
             ->email('email')->required();
 
@@ -67,8 +62,7 @@ class WorkflowValidationTest extends TestCase
         $this->assertFalse($result->isValid());
     }
 
-    public function testUserCreationValidationFailsOnInvalidRole(): void
-    {
+    public function testUserCreationValidationFailsOnInvalidRole(): void {
         $validator = InputValidator::schema()
             ->enum('role', ['admin', 'operator', 'auditor', 'viewer'])->required();
 
@@ -80,8 +74,7 @@ class WorkflowValidationTest extends TestCase
     // VALIDATION DE RÉUNION
     // =========================================================================
 
-    public function testMeetingCreationValidation(): void
-    {
+    public function testMeetingCreationValidation(): void {
         $validator = InputValidator::schema()
             ->string('title')->required()->minLength(3)->maxLength(255)
             ->string('description')->optional()->maxLength(5000)
@@ -99,8 +92,7 @@ class WorkflowValidationTest extends TestCase
         $this->assertTrue($result->isValid());
     }
 
-    public function testMeetingValidationFailsOnEmptyTitle(): void
-    {
+    public function testMeetingValidationFailsOnEmptyTitle(): void {
         $validator = InputValidator::schema()
             ->string('title')->required()->minLength(3);
 
@@ -112,8 +104,7 @@ class WorkflowValidationTest extends TestCase
     // VALIDATION DE MOTION
     // =========================================================================
 
-    public function testMotionCreationValidation(): void
-    {
+    public function testMotionCreationValidation(): void {
         $validator = InputValidator::schema()
             ->uuid('meeting_id')->required()
             ->string('title')->required()->minLength(3)->maxLength(500)
@@ -133,8 +124,7 @@ class WorkflowValidationTest extends TestCase
         $this->assertTrue($result->isValid());
     }
 
-    public function testMotionValidationRequiresValidUUID(): void
-    {
+    public function testMotionValidationRequiresValidUUID(): void {
         $validator = InputValidator::schema()
             ->uuid('meeting_id')->required();
 
@@ -146,8 +136,7 @@ class WorkflowValidationTest extends TestCase
     // VALIDATION DE MEMBRE
     // =========================================================================
 
-    public function testMemberCreationValidation(): void
-    {
+    public function testMemberCreationValidation(): void {
         $validator = InputValidator::schema()
             ->string('full_name')->required()->minLength(2)->maxLength(200)
             ->email('email')->optional()
@@ -165,8 +154,7 @@ class WorkflowValidationTest extends TestCase
         $this->assertTrue($result->isValid());
     }
 
-    public function testMemberVotingPowerMustBePositive(): void
-    {
+    public function testMemberVotingPowerMustBePositive(): void {
         $validator = InputValidator::schema()
             ->number('voting_power')->optional()->min(0);
 
@@ -178,8 +166,7 @@ class WorkflowValidationTest extends TestCase
     // VALIDATION DE VOTE
     // =========================================================================
 
-    public function testBallotCastValidation(): void
-    {
+    public function testBallotCastValidation(): void {
         $validator = InputValidator::schema()
             ->uuid('motion_id')->required()
             ->uuid('member_id')->required()
@@ -197,8 +184,7 @@ class WorkflowValidationTest extends TestCase
         $this->assertTrue($result->isValid());
     }
 
-    public function testBallotValueMustBeValid(): void
-    {
+    public function testBallotValueMustBeValid(): void {
         $validator = InputValidator::schema()
             ->enum('value', ['for', 'against', 'abstain', 'nsp'])->required();
 
@@ -210,8 +196,7 @@ class WorkflowValidationTest extends TestCase
     // VALIDATION DES POLITIQUES
     // =========================================================================
 
-    public function testQuorumPolicyValidation(): void
-    {
+    public function testQuorumPolicyValidation(): void {
         $validator = InputValidator::schema()
             ->string('name')->required()->minLength(3)->maxLength(100)
             ->enum('mode', ['single', 'evolving', 'double'])->required()
@@ -233,8 +218,7 @@ class WorkflowValidationTest extends TestCase
         $this->assertTrue($result->isValid());
     }
 
-    public function testVotePolicyValidation(): void
-    {
+    public function testVotePolicyValidation(): void {
         $validator = InputValidator::schema()
             ->string('name')->required()->minLength(3)->maxLength(100)
             ->enum('base', ['expressed', 'total_eligible'])->required()
@@ -256,8 +240,7 @@ class WorkflowValidationTest extends TestCase
     // PROTECTION XSS
     // =========================================================================
 
-    public function testXssSanitization(): void
-    {
+    public function testXssSanitization(): void {
         $validator = InputValidator::schema()
             ->string('title')->required();
 
@@ -272,8 +255,7 @@ class WorkflowValidationTest extends TestCase
         $this->assertStringContainsString('&lt;script&gt;', $sanitized);
     }
 
-    public function testRawOptionBypassesSanitization(): void
-    {
+    public function testRawOptionBypassesSanitization(): void {
         $validator = InputValidator::schema()
             ->string('html_content')->required()->raw();
 
@@ -289,14 +271,12 @@ class WorkflowValidationTest extends TestCase
     // RATE LIMITING
     // =========================================================================
 
-    public function testRateLimiterAllowsNormalUsage(): void
-    {
+    public function testRateLimiterAllowsNormalUsage(): void {
         $allowed = RateLimiter::check('test-context', 'test-user', 10, 60, false);
         $this->assertTrue($allowed);
     }
 
-    public function testRateLimiterBlocksExcessiveRequests(): void
-    {
+    public function testRateLimiterBlocksExcessiveRequests(): void {
         // Faire 10 requêtes (limite)
         for ($i = 0; $i < 10; $i++) {
             RateLimiter::check('rate-test', 'user-' . $i, 10, 60, false);
@@ -314,22 +294,19 @@ class WorkflowValidationTest extends TestCase
     // CSRF PROTECTION
     // =========================================================================
 
-    public function testCsrfTokenGeneration(): void
-    {
+    public function testCsrfTokenGeneration(): void {
         $token1 = CsrfMiddleware::getToken();
         $this->assertNotEmpty($token1);
         $this->assertEquals(64, strlen($token1)); // 32 bytes en hex = 64 caractères
     }
 
-    public function testCsrfTokenConsistency(): void
-    {
+    public function testCsrfTokenConsistency(): void {
         $token1 = CsrfMiddleware::getToken();
         $token2 = CsrfMiddleware::getToken();
         $this->assertEquals($token1, $token2);
     }
 
-    public function testCsrfFieldGeneration(): void
-    {
+    public function testCsrfFieldGeneration(): void {
         $field = CsrfMiddleware::field();
         $this->assertStringContainsString('type="hidden"', $field);
         $this->assertStringContainsString('name="csrf_token"', $field);
@@ -339,8 +316,7 @@ class WorkflowValidationTest extends TestCase
     // RÉSUMÉ DU CHEMIN CRITIQUE
     // =========================================================================
 
-    public function testCriticalPathValidationsSummary(): void
-    {
+    public function testCriticalPathValidationsSummary(): void {
         // Ce test résume toutes les validations critiques qui doivent passer
 
         // 1. Création utilisateur

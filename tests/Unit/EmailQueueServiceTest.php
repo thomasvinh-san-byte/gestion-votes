@@ -20,14 +20,12 @@ require_once __DIR__ . '/../../app/Services/MailerService.php';
  * TODO: Refactor EmailQueueService to accept dependencies via constructor
  *       injection, enabling proper unit testing with mocks.
  */
-class EmailQueueServiceTest extends TestCase
-{
+class EmailQueueServiceTest extends TestCase {
     /**
      * Verify that processQueue returns early when SMTP is not configured.
      * This is the guard clause at line 53 of EmailQueueService.
      */
-    public function testMailerIsNotConfiguredPreventsProcessing(): void
-    {
+    public function testMailerIsNotConfiguredPreventsProcessing(): void {
         $mailer = new MailerService([]);
         $this->assertFalse($mailer->isConfigured());
 
@@ -44,8 +42,7 @@ class EmailQueueServiceTest extends TestCase
      * Verify that sendInvitationsNow returns error when SMTP is not configured.
      * This is the guard clause at line 283 of EmailQueueService.
      */
-    public function testSendInvitationsNowReturnsSmtpError(): void
-    {
+    public function testSendInvitationsNowReturnsSmtpError(): void {
         $mailer = new MailerService([]);
         $this->assertFalse($mailer->isConfigured());
 
@@ -61,8 +58,7 @@ class EmailQueueServiceTest extends TestCase
      * Verify MailerService send() returns error when not configured,
      * which is what EmailQueueService relies on in processQueue.
      */
-    public function testMailerSendFailsGracefullyWhenNotConfigured(): void
-    {
+    public function testMailerSendFailsGracefullyWhenNotConfigured(): void {
         $mailer = new MailerService([]);
         $result = $mailer->send('test@example.com', 'Subject', '<p>Body</p>');
 
@@ -74,8 +70,7 @@ class EmailQueueServiceTest extends TestCase
      * Verify MailerService handles connection failure gracefully.
      * EmailQueueService processQueue marks emails as failed on send error.
      */
-    public function testMailerSendReturnsStructuredErrorOnFailure(): void
-    {
+    public function testMailerSendReturnsStructuredErrorOnFailure(): void {
         $mailer = new MailerService([
             'smtp' => [
                 'host' => '127.0.0.1',
@@ -94,8 +89,7 @@ class EmailQueueServiceTest extends TestCase
     /**
      * Verify MailerService configuration with full SMTP settings.
      */
-    public function testMailerConfigurationWithAllSettings(): void
-    {
+    public function testMailerConfigurationWithAllSettings(): void {
         $mailer = new MailerService([
             'smtp' => [
                 'host' => 'smtp.example.com',

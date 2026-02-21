@@ -1,7 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core;
+
+use AuthMiddleware;
+use Throwable;
 
 /**
  * Logger - Logging structure pour AG-Vote.
@@ -9,8 +13,7 @@ namespace AgVote\Core;
  * Fournit un logging JSON structure avec contexte utilisateur.
  * Compatible avec les standards PSR-3 (interface simplifiee).
  */
-class Logger
-{
+class Logger {
     /** @var string Chemin du fichier de log (null = error_log PHP) */
     private static ?string $logFile = null;
 
@@ -19,21 +22,20 @@ class Logger
 
     /** @var array Niveaux de log et leur priorite */
     private const LEVELS = [
-        'debug'     => 100,
-        'info'      => 200,
-        'notice'    => 250,
-        'warning'   => 300,
-        'error'     => 400,
-        'critical'  => 500,
-        'alert'     => 550,
+        'debug' => 100,
+        'info' => 200,
+        'notice' => 250,
+        'warning' => 300,
+        'error' => 400,
+        'critical' => 500,
+        'alert' => 550,
         'emergency' => 600,
     ];
 
     /**
      * Configure le logger.
      */
-    public static function configure(array $config = []): void
-    {
+    public static function configure(array $config = []): void {
         if (isset($config['file'])) {
             self::$logFile = $config['file'];
         }
@@ -45,72 +47,63 @@ class Logger
     /**
      * Log un message de niveau DEBUG.
      */
-    public static function debug(string $message, array $context = []): void
-    {
+    public static function debug(string $message, array $context = []): void {
         self::log('debug', $message, $context);
     }
 
     /**
      * Log un message de niveau INFO.
      */
-    public static function info(string $message, array $context = []): void
-    {
+    public static function info(string $message, array $context = []): void {
         self::log('info', $message, $context);
     }
 
     /**
      * Log un message de niveau NOTICE.
      */
-    public static function notice(string $message, array $context = []): void
-    {
+    public static function notice(string $message, array $context = []): void {
         self::log('notice', $message, $context);
     }
 
     /**
      * Log un message de niveau WARNING.
      */
-    public static function warning(string $message, array $context = []): void
-    {
+    public static function warning(string $message, array $context = []): void {
         self::log('warning', $message, $context);
     }
 
     /**
      * Log un message de niveau ERROR.
      */
-    public static function error(string $message, array $context = []): void
-    {
+    public static function error(string $message, array $context = []): void {
         self::log('error', $message, $context);
     }
 
     /**
      * Log un message de niveau CRITICAL.
      */
-    public static function critical(string $message, array $context = []): void
-    {
+    public static function critical(string $message, array $context = []): void {
         self::log('critical', $message, $context);
     }
 
     /**
      * Log un message de niveau ALERT.
      */
-    public static function alert(string $message, array $context = []): void
-    {
+    public static function alert(string $message, array $context = []): void {
         self::log('alert', $message, $context);
     }
 
     /**
      * Log un message de niveau EMERGENCY.
      */
-    public static function emergency(string $message, array $context = []): void
-    {
+    public static function emergency(string $message, array $context = []): void {
         self::log('emergency', $message, $context);
     }
 
     /**
      * Log principal.
      */
-    public static function log(string $level, string $message, array $context = []): void
-    {
+    public static function log(string $level, string $message, array $context = []): void {
         $level = strtolower($level);
 
         // Verifier le niveau minimum
@@ -125,8 +118,7 @@ class Logger
     /**
      * Log une exception avec stack trace.
      */
-    public static function exception(\Throwable $e, array $context = []): void
-    {
+    public static function exception(Throwable $e, array $context = []): void {
         $context['exception'] = [
             'class' => get_class($e),
             'message' => $e->getMessage(),
@@ -146,8 +138,7 @@ class Logger
     /**
      * Log un acces API.
      */
-    public static function api(string $method, string $uri, int $statusCode, float $duration, array $context = []): void
-    {
+    public static function api(string $method, string $uri, int $statusCode, float $duration, array $context = []): void {
         $context['http'] = [
             'method' => $method,
             'uri' => $uri,
@@ -162,8 +153,7 @@ class Logger
     /**
      * Log un evenement d'authentification.
      */
-    public static function auth(string $event, bool $success, array $context = []): void
-    {
+    public static function auth(string $event, bool $success, array $context = []): void {
         $context['auth_event'] = $event;
         $context['auth_success'] = $success;
 
@@ -176,8 +166,7 @@ class Logger
     /**
      * Log un evenement de securite.
      */
-    public static function security(string $event, array $context = []): void
-    {
+    public static function security(string $event, array $context = []): void {
         $context['security_event'] = $event;
         self::warning("Security: {$event}", $context);
     }
@@ -185,8 +174,7 @@ class Logger
     /**
      * Verifie si le niveau doit etre logge.
      */
-    private static function shouldLog(string $level): bool
-    {
+    private static function shouldLog(string $level): bool {
         $levelPriority = self::LEVELS[$level] ?? 0;
         $minPriority = self::LEVELS[self::$minLevel] ?? 0;
         return $levelPriority >= $minPriority;
@@ -195,8 +183,7 @@ class Logger
     /**
      * Construit l'entree de log.
      */
-    private static function buildEntry(string $level, string $message, array $context): array
-    {
+    private static function buildEntry(string $level, string $message, array $context): array {
         $entry = [
             'timestamp' => date('c'),
             'level' => strtoupper($level),
@@ -232,14 +219,13 @@ class Logger
     /**
      * Ecrit l'entree de log.
      */
-    private static function write(array $entry): void
-    {
+    private static function write(array $entry): void {
         $json = json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         if (self::$logFile !== null) {
             $dir = dirname(self::$logFile);
             if (!is_dir($dir)) {
-                @mkdir($dir, 0755, true);
+                @mkdir($dir, 0o755, true);
             }
             file_put_contents(self::$logFile, $json . PHP_EOL, FILE_APPEND | LOCK_EX);
         } else {
@@ -250,8 +236,7 @@ class Logger
     /**
      * Retourne un ID de requete unique.
      */
-    private static function getRequestId(): string
-    {
+    private static function getRequestId(): string {
         static $requestId = null;
 
         if ($requestId === null) {
@@ -266,11 +251,10 @@ class Logger
     /**
      * Recupere l'utilisateur courant.
      */
-    private static function getCurrentUser(): ?array
-    {
+    private static function getCurrentUser(): ?array {
         // Utiliser AuthMiddleware si disponible
-        if (class_exists(\AuthMiddleware::class) && method_exists(\AuthMiddleware::class, 'getCurrentUser')) {
-            return \AuthMiddleware::getCurrentUser();
+        if (class_exists(AuthMiddleware::class) && method_exists(AuthMiddleware::class, 'getCurrentUser')) {
+            return AuthMiddleware::getCurrentUser();
         }
 
         // Fallback sur la session
@@ -284,8 +268,7 @@ class Logger
     /**
      * Formate une stack trace pour le log.
      */
-    private static function formatTrace(array $trace): array
-    {
+    private static function formatTrace(array $trace): array {
         $result = [];
         foreach (array_slice($trace, 0, 10) as $i => $frame) {
             $result[] = sprintf(
@@ -295,7 +278,7 @@ class Logger
                 $frame['type'] ?? '',
                 $frame['function'] ?? 'unknown',
                 $frame['file'] ?? 'unknown',
-                $frame['line'] ?? 0
+                $frame['line'] ?? 0,
             );
         }
         return $result;
@@ -304,8 +287,7 @@ class Logger
     /**
      * Reset pour les tests.
      */
-    public static function reset(): void
-    {
+    public static function reset(): void {
         self::$logFile = null;
         self::$minLevel = 'debug';
     }

@@ -1,18 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\ReminderScheduleRepository;
 use AgVote\Repository\EmailTemplateRepository;
+use AgVote\Repository\ReminderScheduleRepository;
 
 /**
  * Consolidates reminders.php.
  */
-final class ReminderController extends AbstractController
-{
-    public function listForMeeting(): void
-    {
+final class ReminderController extends AbstractController {
+    public function listForMeeting(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -34,17 +33,16 @@ final class ReminderController extends AbstractController
         ]);
     }
 
-    public function upsert(): void
-    {
+    public function upsert(): void {
         $input = api_request('POST');
         $tenantId = api_current_tenant_id();
         $repo = new ReminderScheduleRepository();
 
-        $meetingId = trim((string)($input['meeting_id'] ?? ''));
-        $daysBefore = isset($input['days_before']) ? (int)$input['days_before'] : null;
-        $templateId = isset($input['template_id']) ? trim((string)$input['template_id']) : null;
-        $sendTime = isset($input['send_time']) ? trim((string)$input['send_time']) : '09:00';
-        $isActive = !isset($input['is_active']) || (bool)$input['is_active'];
+        $meetingId = trim((string) ($input['meeting_id'] ?? ''));
+        $daysBefore = isset($input['days_before']) ? (int) $input['days_before'] : null;
+        $templateId = isset($input['template_id']) ? trim((string) $input['template_id']) : null;
+        $sendTime = isset($input['send_time']) ? trim((string) $input['send_time']) : '09:00';
+        $isActive = !isset($input['is_active']) || (bool) $input['is_active'];
 
         // Special action: setup defaults
         if (isset($input['action']) && $input['action'] === 'setup_defaults') {
@@ -102,8 +100,7 @@ final class ReminderController extends AbstractController
         api_ok(['reminder' => $reminder], 201);
     }
 
-    public function delete(): void
-    {
+    public function delete(): void {
         $id = api_query('id');
         if (!api_is_uuid($id)) {
             api_fail('invalid_reminder_id', 400);

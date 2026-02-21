@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core\Security;
@@ -12,20 +13,19 @@ namespace AgVote\Core\Security;
  * System roles: admin, operator, auditor, viewer
  * Meeting roles: president, assessor, voter
  */
-final class Permissions
-{
+final class Permissions {
     /**
      * Role hierarchy levels.
      */
     public const HIERARCHY = [
-        'admin'     => 100,
-        'operator'  => 80,
+        'admin' => 100,
+        'operator' => 80,
         'president' => 70,
-        'assessor'  => 60,
-        'auditor'   => 50,
-        'voter'     => 10,
-        'viewer'    => 5,
-        'public'    => 3,
+        'assessor' => 60,
+        'auditor' => 50,
+        'voter' => 10,
+        'viewer' => 5,
+        'public' => 3,
         'anonymous' => 0,
     ];
 
@@ -34,67 +34,67 @@ final class Permissions
      */
     public const PERMISSIONS = [
         // Meetings - Lifecycle
-        'meeting:create'       => ['admin', 'operator'],
-        'meeting:read'         => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor', 'voter'],
-        'meeting:update'       => ['admin', 'operator'],
-        'meeting:delete'       => ['admin'],
-        'meeting:freeze'       => ['admin', 'president'],
-        'meeting:unfreeze'     => ['admin'],
-        'meeting:open'         => ['admin', 'president'],
-        'meeting:close'        => ['admin', 'president'],
-        'meeting:validate'     => ['admin', 'president'],
-        'meeting:archive'      => ['admin', 'operator'],
+        'meeting:create' => ['admin', 'operator'],
+        'meeting:read' => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor', 'voter'],
+        'meeting:update' => ['admin', 'operator'],
+        'meeting:delete' => ['admin'],
+        'meeting:freeze' => ['admin', 'president'],
+        'meeting:unfreeze' => ['admin'],
+        'meeting:open' => ['admin', 'president'],
+        'meeting:close' => ['admin', 'president'],
+        'meeting:validate' => ['admin', 'president'],
+        'meeting:archive' => ['admin', 'operator'],
         'meeting:assign_roles' => ['admin', 'operator'],
 
         // Motions - Resolutions
         'motion:create' => ['admin', 'operator'],
-        'motion:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor', 'voter'],
+        'motion:read' => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor', 'voter'],
         'motion:update' => ['admin', 'operator'],
         'motion:delete' => ['admin', 'operator'],
-        'motion:open'   => ['admin', 'operator'],
-        'motion:close'  => ['admin', 'operator', 'president'],
+        'motion:open' => ['admin', 'operator'],
+        'motion:close' => ['admin', 'operator', 'president'],
 
         // Votes
-        'vote:cast'   => ['admin', 'operator', 'voter'],
-        'vote:read'   => ['admin', 'operator', 'auditor', 'president', 'assessor'],
+        'vote:cast' => ['admin', 'operator', 'voter'],
+        'vote:read' => ['admin', 'operator', 'auditor', 'president', 'assessor'],
         'vote:manual' => ['admin', 'operator'],
 
         // Members
         'member:create' => ['admin', 'operator'],
-        'member:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
+        'member:read' => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
         'member:update' => ['admin', 'operator'],
         'member:delete' => ['admin'],
         'member:import' => ['admin', 'operator'],
 
         // Attendance
         'attendance:create' => ['admin', 'operator'],
-        'attendance:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
+        'attendance:read' => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
         'attendance:update' => ['admin', 'operator'],
 
         // Proxies
         'proxy:create' => ['admin', 'operator'],
-        'proxy:read'   => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
+        'proxy:read' => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
         'proxy:delete' => ['admin', 'operator'],
 
         // Speech
         'speech:request' => ['admin', 'operator', 'president', 'voter'],
-        'speech:grant'   => ['admin', 'operator', 'president'],
-        'speech:end'     => ['admin', 'operator', 'president'],
+        'speech:grant' => ['admin', 'operator', 'president'],
+        'speech:end' => ['admin', 'operator', 'president'],
 
         // Audit
-        'audit:read'   => ['admin', 'auditor', 'president', 'assessor'],
+        'audit:read' => ['admin', 'auditor', 'president', 'assessor'],
         'audit:export' => ['admin', 'auditor', 'president'],
 
         // Admin
-        'admin:users'    => ['admin'],
+        'admin:users' => ['admin'],
         'admin:policies' => ['admin'],
-        'admin:system'   => ['admin'],
-        'admin:roles'    => ['admin'],
+        'admin:system' => ['admin'],
+        'admin:roles' => ['admin'],
 
         // Reports
         'report:generate' => ['admin', 'operator', 'president'],
-        'report:read'     => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
-        'report:export'   => ['admin', 'operator', 'auditor', 'president'],
+        'report:read' => ['admin', 'operator', 'auditor', 'viewer', 'president', 'assessor'],
+        'report:export' => ['admin', 'operator', 'auditor', 'president'],
     ];
 
     /**
@@ -104,14 +104,14 @@ final class Permissions
     public const TRANSITIONS = [
         'draft' => [
             'scheduled' => 'operator',
-            'frozen'    => 'president',
+            'frozen' => 'president',
         ],
         'scheduled' => [
             'frozen' => 'president',
-            'draft'  => 'admin',
+            'draft' => 'admin',
         ],
         'frozen' => [
-            'live'      => 'president',
+            'live' => 'president',
             'scheduled' => 'admin',
         ],
         'live' => [
@@ -119,7 +119,7 @@ final class Permissions
             'closed' => 'president',
         ],
         'paused' => [
-            'live'   => 'operator',
+            'live' => 'operator',
             'closed' => 'president',
         ],
         'closed' => [
@@ -136,68 +136,63 @@ final class Permissions
      */
     public const LABELS = [
         'roles' => [
-            'admin'     => 'Administrateur',
-            'operator'  => 'Opérateur',
-            'auditor'   => 'Auditeur',
-            'viewer'    => 'Observateur',
+            'admin' => 'Administrateur',
+            'operator' => 'Opérateur',
+            'auditor' => 'Auditeur',
+            'viewer' => 'Observateur',
             'president' => 'Président de séance',
-            'assessor'  => 'Assesseur / Scrutateur',
-            'voter'     => 'Électeur',
+            'assessor' => 'Assesseur / Scrutateur',
+            'voter' => 'Électeur',
         ],
         'statuses' => [
-            'draft'     => 'Brouillon',
+            'draft' => 'Brouillon',
             'scheduled' => 'Planifiée',
-            'frozen'    => 'Verrouillée',
-            'live'      => 'En cours',
-            'paused'    => 'En pause',
-            'closed'    => 'Clôturée',
+            'frozen' => 'Verrouillée',
+            'live' => 'En cours',
+            'paused' => 'En pause',
+            'closed' => 'Clôturée',
             'validated' => 'Validée',
-            'archived'  => 'Archivée',
+            'archived' => 'Archivée',
         ],
     ];
 
     /**
      * Get all configuration as array (for backward compatibility).
      */
-    public static function getConfig(): array
-    {
+    public static function getConfig(): array {
         return [
-            'hierarchy'   => self::HIERARCHY,
+            'hierarchy' => self::HIERARCHY,
             'permissions' => self::PERMISSIONS,
             'transitions' => self::TRANSITIONS,
-            'labels'      => self::LABELS,
+            'labels' => self::LABELS,
         ];
     }
 
     /**
      * Get role hierarchy.
      */
-    public static function getHierarchy(): array
-    {
+    public static function getHierarchy(): array {
         return self::HIERARCHY;
     }
 
     /**
      * Get permissions.
      */
-    public static function getPermissions(): array
-    {
+    public static function getPermissions(): array {
         return self::PERMISSIONS;
     }
 
     /**
      * Get transitions.
      */
-    public static function getTransitions(): array
-    {
+    public static function getTransitions(): array {
         return self::TRANSITIONS;
     }
 
     /**
      * Get labels.
      */
-    public static function getLabels(): array
-    {
+    public static function getLabels(): array {
         return self::LABELS;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
@@ -7,8 +8,7 @@ use PHPUnit\Framework\TestCase;
  * Tests unitaires pour la logique de calcul du quorum
  * Valide les algorithmes de quorum sans base de donnees
  */
-class QuorumLogicTest extends TestCase
-{
+class QuorumLogicTest extends TestCase {
     // =========================================================================
     // RATIO CALCULATION
     // =========================================================================
@@ -21,11 +21,11 @@ class QuorumLogicTest extends TestCase
         int $presentMembers,
         float $presentWeight,
         int $eligibleMembers,
-        float $eligibleWeight
+        float $eligibleWeight,
     ): float {
         if ($basis === 'eligible_members') {
             $denominator = max(1, $eligibleMembers);
-            $numerator = (float)$presentMembers;
+            $numerator = (float) $presentMembers;
         } else {
             $denominator = $eligibleWeight > 0 ? $eligibleWeight : 0.0001;
             $numerator = $presentWeight;
@@ -37,8 +37,7 @@ class QuorumLogicTest extends TestCase
     /**
      * Determine si le quorum est atteint
      */
-    private function isQuorumMet(float $ratio, float $threshold): bool
-    {
+    private function isQuorumMet(float $ratio, float $threshold): bool {
         return $ratio >= $threshold;
     }
 
@@ -46,8 +45,7 @@ class QuorumLogicTest extends TestCase
     // BASIC QUORUM TESTS
     // =========================================================================
 
-    public function testQuorumMetByMemberCount(): void
-    {
+    public function testQuorumMetByMemberCount(): void {
         // 60 presents sur 100 eligibles = 60% >= 50%
         $ratio = $this->computeQuorumRatio('eligible_members', 60, 0, 100, 0);
 
@@ -55,8 +53,7 @@ class QuorumLogicTest extends TestCase
         $this->assertTrue($this->isQuorumMet($ratio, 0.5));
     }
 
-    public function testQuorumNotMetByMemberCount(): void
-    {
+    public function testQuorumNotMetByMemberCount(): void {
         // 40 presents sur 100 eligibles = 40% < 50%
         $ratio = $this->computeQuorumRatio('eligible_members', 40, 0, 100, 0);
 
@@ -64,8 +61,7 @@ class QuorumLogicTest extends TestCase
         $this->assertFalse($this->isQuorumMet($ratio, 0.5));
     }
 
-    public function testQuorumExactlyAtThreshold(): void
-    {
+    public function testQuorumExactlyAtThreshold(): void {
         // 50 presents sur 100 eligibles = 50% >= 50%
         $ratio = $this->computeQuorumRatio('eligible_members', 50, 0, 100, 0);
 
@@ -77,8 +73,7 @@ class QuorumLogicTest extends TestCase
     // WEIGHTED QUORUM TESTS
     // =========================================================================
 
-    public function testQuorumMetByWeight(): void
-    {
+    public function testQuorumMetByWeight(): void {
         // 600 voix presentes sur 1000 eligibles = 60% >= 50%
         $ratio = $this->computeQuorumRatio('eligible_weight', 0, 600.0, 0, 1000.0);
 
@@ -86,8 +81,7 @@ class QuorumLogicTest extends TestCase
         $this->assertTrue($this->isQuorumMet($ratio, 0.5));
     }
 
-    public function testQuorumNotMetByWeight(): void
-    {
+    public function testQuorumNotMetByWeight(): void {
         // 400 voix presentes sur 1000 eligibles = 40% < 50%
         $ratio = $this->computeQuorumRatio('eligible_weight', 0, 400.0, 0, 1000.0);
 
@@ -95,8 +89,7 @@ class QuorumLogicTest extends TestCase
         $this->assertFalse($this->isQuorumMet($ratio, 0.5));
     }
 
-    public function testWeightedQuorumWithUnequalShares(): void
-    {
+    public function testWeightedQuorumWithUnequalShares(): void {
         // Grands actionnaires presents
         // 3 membres presents avec 300 voix chacun = 900
         // Total eligibles = 1500 voix (mais 100 membres)
@@ -110,9 +103,8 @@ class QuorumLogicTest extends TestCase
     // THRESHOLD VARIATIONS
     // =========================================================================
 
-    public function testThresholdOneThird(): void
-    {
-        $threshold = 1/3;
+    public function testThresholdOneThird(): void {
+        $threshold = 1 / 3;
 
         // 35 sur 100 = 35% >= 33.33%
         $ratio = $this->computeQuorumRatio('eligible_members', 35, 0, 100, 0);
@@ -123,9 +115,8 @@ class QuorumLogicTest extends TestCase
         $this->assertFalse($this->isQuorumMet($ratio2, $threshold));
     }
 
-    public function testThresholdTwoThirds(): void
-    {
-        $threshold = 2/3;
+    public function testThresholdTwoThirds(): void {
+        $threshold = 2 / 3;
 
         // 70 sur 100 = 70% >= 66.67%
         $ratio = $this->computeQuorumRatio('eligible_members', 70, 0, 100, 0);
@@ -136,8 +127,7 @@ class QuorumLogicTest extends TestCase
         $this->assertFalse($this->isQuorumMet($ratio2, $threshold));
     }
 
-    public function testThresholdMajority(): void
-    {
+    public function testThresholdMajority(): void {
         $threshold = 0.5;
 
         // Exactly half
@@ -156,13 +146,11 @@ class QuorumLogicTest extends TestCase
     /**
      * Verifie le double quorum
      */
-    private function isDoubleQuorumMet(bool $primaryMet, bool $secondaryMet): bool
-    {
+    private function isDoubleQuorumMet(bool $primaryMet, bool $secondaryMet): bool {
         return $primaryMet && $secondaryMet;
     }
 
-    public function testDoubleQuorumBothMet(): void
-    {
+    public function testDoubleQuorumBothMet(): void {
         // Quorum 1: 60 membres sur 100 >= 50%
         $ratio1 = $this->computeQuorumRatio('eligible_members', 60, 0, 100, 0);
         $met1 = $this->isQuorumMet($ratio1, 0.5);
@@ -174,8 +162,7 @@ class QuorumLogicTest extends TestCase
         $this->assertTrue($this->isDoubleQuorumMet($met1, $met2));
     }
 
-    public function testDoubleQuorumFirstNotMet(): void
-    {
+    public function testDoubleQuorumFirstNotMet(): void {
         // Quorum 1: 40 membres sur 100 < 50%
         $ratio1 = $this->computeQuorumRatio('eligible_members', 40, 0, 100, 0);
         $met1 = $this->isQuorumMet($ratio1, 0.5);
@@ -187,8 +174,7 @@ class QuorumLogicTest extends TestCase
         $this->assertFalse($this->isDoubleQuorumMet($met1, $met2));
     }
 
-    public function testDoubleQuorumSecondNotMet(): void
-    {
+    public function testDoubleQuorumSecondNotMet(): void {
         // Quorum 1: 60 membres sur 100 >= 50%
         $ratio1 = $this->computeQuorumRatio('eligible_members', 60, 0, 100, 0);
         $met1 = $this->isQuorumMet($ratio1, 0.5);
@@ -210,7 +196,7 @@ class QuorumLogicTest extends TestCase
     private function getEvolvingThreshold(
         int $convocationNo,
         float $threshold1,
-        ?float $threshold2
+        ?float $threshold2,
     ): float {
         if ($convocationNo === 2 && $threshold2 !== null) {
             return $threshold2;
@@ -218,8 +204,7 @@ class QuorumLogicTest extends TestCase
         return $threshold1;
     }
 
-    public function testEvolvingQuorumFirstCall(): void
-    {
+    public function testEvolvingQuorumFirstCall(): void {
         // Premiere convocation: seuil 50%
         $threshold = $this->getEvolvingThreshold(1, 0.5, 0.25);
         $this->assertEquals(0.5, $threshold);
@@ -229,8 +214,7 @@ class QuorumLogicTest extends TestCase
         $this->assertFalse($this->isQuorumMet($ratio, $threshold));
     }
 
-    public function testEvolvingQuorumSecondCall(): void
-    {
+    public function testEvolvingQuorumSecondCall(): void {
         // Deuxieme convocation: seuil reduit a 25%
         $threshold = $this->getEvolvingThreshold(2, 0.5, 0.25);
         $this->assertEquals(0.25, $threshold);
@@ -240,8 +224,7 @@ class QuorumLogicTest extends TestCase
         $this->assertTrue($this->isQuorumMet($ratio, $threshold));
     }
 
-    public function testEvolvingQuorumNoSecondThreshold(): void
-    {
+    public function testEvolvingQuorumNoSecondThreshold(): void {
         // Si pas de seuil 2 configure, utiliser le seuil 1
         $threshold = $this->getEvolvingThreshold(2, 0.5, null);
         $this->assertEquals(0.5, $threshold);
@@ -254,15 +237,13 @@ class QuorumLogicTest extends TestCase
     /**
      * Compte les presents selon les modes autorises
      */
-    private function countPresentByModes(array $attendance, array $allowedModes): int
-    {
-        return array_reduce($attendance, function($count, $a) use ($allowedModes) {
+    private function countPresentByModes(array $attendance, array $allowedModes): int {
+        return array_reduce($attendance, function ($count, $a) use ($allowedModes) {
             return $count + (in_array($a['mode'], $allowedModes, true) ? 1 : 0);
         }, 0);
     }
 
-    public function testCountOnlyPhysicallyPresent(): void
-    {
+    public function testCountOnlyPhysicallyPresent(): void {
         $attendance = [
             ['member_id' => 1, 'mode' => 'present'],
             ['member_id' => 2, 'mode' => 'present'],
@@ -275,8 +256,7 @@ class QuorumLogicTest extends TestCase
         $this->assertEquals(2, $count);
     }
 
-    public function testCountPresentAndRemote(): void
-    {
+    public function testCountPresentAndRemote(): void {
         $attendance = [
             ['member_id' => 1, 'mode' => 'present'],
             ['member_id' => 2, 'mode' => 'present'],
@@ -289,8 +269,7 @@ class QuorumLogicTest extends TestCase
         $this->assertEquals(3, $count);
     }
 
-    public function testCountAllParticipationModes(): void
-    {
+    public function testCountAllParticipationModes(): void {
         $attendance = [
             ['member_id' => 1, 'mode' => 'present'],
             ['member_id' => 2, 'mode' => 'present'],
@@ -307,37 +286,32 @@ class QuorumLogicTest extends TestCase
     // EDGE CASES
     // =========================================================================
 
-    public function testZeroEligibleMembers(): void
-    {
+    public function testZeroEligibleMembers(): void {
         // Devrait eviter division par zero
         $ratio = $this->computeQuorumRatio('eligible_members', 0, 0, 0, 0);
         $this->assertEquals(0.0, $ratio);
     }
 
-    public function testZeroEligibleWeight(): void
-    {
+    public function testZeroEligibleWeight(): void {
         // Devrait utiliser un petit denominateur pour eviter division par zero
         $ratio = $this->computeQuorumRatio('eligible_weight', 0, 100.0, 0, 0.0);
         $this->assertGreaterThan(0, $ratio);
     }
 
-    public function testMorePresentThanEligible(): void
-    {
+    public function testMorePresentThanEligible(): void {
         // Cas anormal mais code doit etre robuste
         $ratio = $this->computeQuorumRatio('eligible_members', 150, 0, 100, 0);
         $this->assertEquals(1.5, $ratio); // 150%
         $this->assertTrue($this->isQuorumMet($ratio, 0.5));
     }
 
-    public function testVeryLowThreshold(): void
-    {
+    public function testVeryLowThreshold(): void {
         // Seuil tres bas (0.01 = 1%)
         $ratio = $this->computeQuorumRatio('eligible_members', 2, 0, 100, 0);
         $this->assertTrue($this->isQuorumMet($ratio, 0.01));
     }
 
-    public function testVeryHighThreshold(): void
-    {
+    public function testVeryHighThreshold(): void {
         // Seuil tres haut (0.99 = 99%)
         $ratio = $this->computeQuorumRatio('eligible_members', 98, 0, 100, 0);
         $this->assertFalse($this->isQuorumMet($ratio, 0.99));

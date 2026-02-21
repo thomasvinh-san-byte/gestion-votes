@@ -7,10 +7,12 @@ declare(strict_types=1);
  * - $reportUrl    (string)
  * - $appUrl       (string)
  */
-$meetingTitle = $meetingTitle ?? 'Séance';
-$reportUrl    = $reportUrl ?? '#';
+$meetingTitle ??= 'Séance';
+$reportUrl ??= '#';
 
-function e(string $s): string { return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+function e(string $s): string {
+    return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
 
 $preheader = "PV / Résultats – {$meetingTitle}";
 ?>

@@ -1,0 +1,34 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 5
+    paths:
+        - app/
+    excludePaths:
+        - app/bootstrap.php
+        - app/api.php
+        - app/auth.php
+        - app/config.php
+        - app/Templates/
+        - app/View/
+    scanDirectories:
+        - app/
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # Global helper functions defined at runtime
+        - '#Function api_\w+ not found\.#'
+        - '#Function audit_log not found\.#'
+        - '#Function config not found\.#'
+        - '#Function api_current_\w+ not found\.#'
+        - '#Function api_query not found\.#'
+        - '#Function api_method not found\.#'
+        - '#Function api_transaction not found\.#'
+        - '#Function api_guard_\w+ not found\.#'
+        - '#Function api_is_uuid not found\.#'
+        - '#Function api_require_uuid not found\.#'
+        # Constants defined at runtime
+        - '#Constant APP_SECRET not found\.#'
+        - '#Constant DEFAULT_TENANT_ID not found\.#'
+        - '#Constant PROJECT_ROOT not found\.#'

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
@@ -16,8 +17,27 @@ use RuntimeException;
  *
  * Single source of truth for quorum/majority calculation.
  */
-final class VoteEngine
-{
+final class VoteEngine {
+    private MotionRepository $motionRepo;
+    private BallotRepository $ballotRepo;
+    private MemberRepository $memberRepo;
+    private PolicyRepository $policyRepo;
+    private AttendanceRepository $attendanceRepo;
+
+    public function __construct(
+        ?MotionRepository $motionRepo = null,
+        ?BallotRepository $ballotRepo = null,
+        ?MemberRepository $memberRepo = null,
+        ?PolicyRepository $policyRepo = null,
+        ?AttendanceRepository $attendanceRepo = null,
+    ) {
+        $this->motionRepo = $motionRepo ?? new MotionRepository();
+        $this->ballotRepo = $ballotRepo ?? new BallotRepository();
+        $this->memberRepo = $memberRepo ?? new MemberRepository();
+        $this->policyRepo = $policyRepo ?? new PolicyRepository();
+        $this->attendanceRepo = $attendanceRepo ?? new AttendanceRepository();
+    }
+
     /**
      * Pure quorum/majority calculation. No I/O — takes all inputs as parameters.
      * Used by both computeMotionResult() and OfficialResultsService::decideWithPolicies().
@@ -37,22 +57,22 @@ final class VoteEngine
         ?float $presentWeight = null,
     ): array {
         // Quorum calculation
-        $quorumMet         = null;
-        $quorumRatio       = null;
-        $quorumThreshold   = null;
+        $quorumMet = null;
+        $quorumRatio = null;
+        $quorumThreshold = null;
         $quorumDenominator = null;
-        $quorumBasis       = null;
+        $quorumBasis = null;
 
         if ($quorumPolicy) {
-            $quorumBasis     = (string)$quorumPolicy['denominator'];
-            $quorumThreshold = (float)$quorumPolicy['threshold'];
+            $quorumBasis = (string) $quorumPolicy['denominator'];
+            $quorumThreshold = (float) $quorumPolicy['threshold'];
 
             if ($quorumBasis === 'eligible_members') {
                 $denominator = max(1, $eligibleMembers);
-                $numerator   = $expressedMembers;
+                $numerator = $expressedMembers;
             } else {
                 $denominator = $eligibleWeight;
-                $numerator   = $expressedWeight;
+                $numerator = $expressedWeight;
             }
 
             if ($denominator <= 0) {
@@ -66,16 +86,16 @@ final class VoteEngine
         }
 
         // Majority calculation
-        $adopted           = null;
-        $majorityRatio     = null;
+        $adopted = null;
+        $majorityRatio = null;
         $majorityThreshold = null;
-        $majorityBase      = null;
-        $abstAsAgainst     = null;
+        $majorityBase = null;
+        $abstAsAgainst = null;
 
         if ($votePolicy) {
-            $majorityBase      = (string)$votePolicy['base'];
-            $majorityThreshold = (float)$votePolicy['threshold'];
-            $abstAsAgainst     = (bool)($votePolicy['abstention_as_against'] ?? false);
+            $majorityBase = (string) $votePolicy['base'];
+            $majorityThreshold = (float) $votePolicy['threshold'];
+            $abstAsAgainst = (bool) ($votePolicy['abstention_as_against'] ?? false);
 
             if ($majorityBase === 'expressed') {
                 $baseTotal = $expressedWeight;
@@ -101,19 +121,19 @@ final class VoteEngine
 
         return [
             'quorum' => [
-                'applied'     => (bool)$quorumPolicy,
-                'met'         => $quorumMet,
-                'basis'       => $quorumBasis,
-                'ratio'       => $quorumRatio,
-                'threshold'   => $quorumThreshold,
+                'applied' => (bool) $quorumPolicy,
+                'met' => $quorumMet,
+                'basis' => $quorumBasis,
+                'ratio' => $quorumRatio,
+                'threshold' => $quorumThreshold,
                 'denominator' => $quorumDenominator,
             ],
             'majority' => [
-                'applied'               => (bool)$votePolicy,
-                'met'                   => $adopted,
-                'base'                  => $majorityBase,
-                'ratio'                 => $majorityRatio,
-                'threshold'             => $majorityThreshold,
+                'applied' => (bool) $votePolicy,
+                'met' => $adopted,
+                'base' => $majorityBase,
+                'ratio' => $majorityRatio,
+                'threshold' => $majorityThreshold,
                 'abstention_as_against' => $abstAsAgainst,
             ],
         ];
@@ -123,34 +143,32 @@ final class VoteEngine
      * Computes motion results from ballots and policies.
      *
      * @param string $motionId
+     *
      * @return array<string,mixed>
      */
-    public static function computeMotionResult(string $motionId): array
-    {
+    public function computeMotionResult(string $motionId): array {
         $motionId = trim($motionId);
         if ($motionId === '') {
             throw new InvalidArgumentException('motion_id obligatoire');
         }
 
-        $motionRepo = new MotionRepository();
-        $motion = $motionRepo->findWithVoteContext($motionId);
+        $motion = $this->motionRepo->findWithVoteContext($motionId);
 
         if (!$motion) {
             throw new RuntimeException('Motion introuvable');
         }
 
-        $tenantId   = (string)$motion['tenant_id'];
-        $meetingId  = (string)$motion['meeting_id'];
+        $tenantId = (string) $motion['tenant_id'];
+        $meetingId = (string) $motion['meeting_id'];
 
         // Aggregate ballots by value
-        $ballotRepo = new BallotRepository();
-        $t = $ballotRepo->tally($motionId, $tenantId);
+        $t = $this->ballotRepo->tally($motionId, $tenantId);
 
         $tallies = [
-            'for'     => ['count' => (int)$t['count_for'],     'weight' => (float)$t['weight_for']],
-            'against' => ['count' => (int)$t['count_against'],  'weight' => (float)$t['weight_against']],
-            'abstain' => ['count' => (int)$t['count_abstain'],  'weight' => (float)$t['weight_abstain']],
-            'nsp'     => ['count' => (int)$t['count_nsp'],      'weight' => 0.0],
+            'for' => ['count' => (int) $t['count_for'],     'weight' => (float) $t['weight_for']],
+            'against' => ['count' => (int) $t['count_against'],  'weight' => (float) $t['weight_against']],
+            'abstain' => ['count' => (int) $t['count_abstain'],  'weight' => (float) $t['weight_abstain']],
+            'nsp' => ['count' => (int) $t['count_nsp'],      'weight' => 0.0],
         ];
 
         $expressedMembers = $tallies['for']['count']
@@ -162,33 +180,29 @@ final class VoteEngine
             + $tallies['abstain']['weight'];
 
         // Eligible voters (by tenant)
-        $memberRepo = new MemberRepository();
-        $eligibleMembers = $memberRepo->countActive($tenantId);
-        $eligibleWeight  = $memberRepo->sumActiveWeight($tenantId);
+        $eligibleMembers = $this->memberRepo->countActive($tenantId);
+        $eligibleWeight = $this->memberRepo->sumActiveWeight($tenantId);
 
         // Load policies if any
-        $policyRepo = new PolicyRepository();
-
         $quorumPolicy = null;
         if (!empty($motion['quorum_policy_id'])) {
-            $quorumPolicy = $policyRepo->findQuorumPolicy((string)$motion['quorum_policy_id']);
+            $quorumPolicy = $this->policyRepo->findQuorumPolicy((string) $motion['quorum_policy_id']);
         }
 
         // Resolve vote policy: motion-level > meeting-level
         $appliedVotePolicyId = !empty($motion['vote_policy_id'])
-            ? (string)$motion['vote_policy_id']
-            : (!empty($motion['meeting_vote_policy_id']) ? (string)$motion['meeting_vote_policy_id'] : '');
+            ? (string) $motion['vote_policy_id']
+            : (!empty($motion['meeting_vote_policy_id']) ? (string) $motion['meeting_vote_policy_id'] : '');
 
         $votePolicy = null;
         if ($appliedVotePolicyId !== '') {
-            $votePolicy = $policyRepo->findVotePolicy($appliedVotePolicyId);
+            $votePolicy = $this->policyRepo->findVotePolicy($appliedVotePolicyId);
         }
 
         // Resolve present weight for 'present' majority base
         $presentWeight = null;
         if ($votePolicy && ($votePolicy['base'] ?? '') === 'present') {
-            $attendanceRepo = new \AgVote\Repository\AttendanceRepository();
-            $presentWeight = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
+            $presentWeight = $this->attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
         }
 
         // Compute decision using the shared engine
@@ -206,7 +220,7 @@ final class VoteEngine
         );
 
         $quorumMet = $calc['quorum']['met'];
-        $adopted   = $calc['majority']['met'];
+        $adopted = $calc['majority']['met'];
 
         // Human-readable global status
         $decisionStatus = 'no_votes';
@@ -233,22 +247,22 @@ final class VoteEngine
 
         return [
             'motion' => [
-                'id'               => $motion['motion_id'],
-                'title'            => $motion['motion_title'],
-                'meeting_id'       => $meetingId,
-                'tenant_id'        => $tenantId,
-                'vote_policy_id'   => $appliedVotePolicyId,
+                'id' => $motion['motion_id'],
+                'title' => $motion['motion_title'],
+                'meeting_id' => $meetingId,
+                'tenant_id' => $tenantId,
+                'vote_policy_id' => $appliedVotePolicyId,
                 'quorum_policy_id' => $motion['quorum_policy_id'],
-                'secret'           => (bool)$motion['secret'],
+                'secret' => (bool) $motion['secret'],
             ],
             'tallies' => $tallies,
             'eligible' => [
                 'members' => $eligibleMembers,
-                'weight'  => $eligibleWeight,
+                'weight' => $eligibleWeight,
             ],
             'expressed' => [
                 'members' => $expressedMembers,
-                'weight'  => $expressedWeight,
+                'weight' => $expressedWeight,
             ],
             'quorum' => $calc['quorum'],
             'majority' => $calc['majority'],

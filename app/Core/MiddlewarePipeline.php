@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core;
@@ -13,13 +14,11 @@ use AgVote\Core\Middleware\MiddlewareInterface;
  *   $pipeline->pipe(new RateLimitGuard('import', 10, 3600));
  *   $pipeline->then(fn() => $controller->handle('method'));
  */
-final class MiddlewarePipeline
-{
+final class MiddlewarePipeline {
     /** @var MiddlewareInterface[] */
     private array $stack = [];
 
-    public function pipe(MiddlewareInterface $middleware): self
-    {
+    public function pipe(MiddlewareInterface $middleware): self {
         $this->stack[] = $middleware;
         return $this;
     }
@@ -27,12 +26,11 @@ final class MiddlewarePipeline
     /**
      * Run the pipeline, then call $handler at the end.
      */
-    public function then(callable $handler): void
-    {
+    public function then(callable $handler): void {
         $pipeline = array_reduce(
             array_reverse($this->stack),
-            fn(callable $next, MiddlewareInterface $mw) => fn() => $mw->process($next),
-            $handler
+            fn (callable $next, MiddlewareInterface $mw) => fn () => $mw->process($next),
+            $handler,
         );
         $pipeline();
     }

@@ -8,11 +8,13 @@ declare(strict_types=1);
  * - $voteUrl      (string)
  * - $appUrl       (string)
  */
-$meetingTitle = $meetingTitle ?? 'Séance';
-$memberName   = $memberName ?? '';
-$voteUrl      = $voteUrl ?? '#';
+$meetingTitle ??= 'Séance';
+$memberName ??= '';
+$voteUrl ??= '#';
 
-function e(string $s): string { return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+function e(string $s): string {
+    return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
 
 $preheader = "Votre lien de vote pour: {$meetingTitle}";
 ?>

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 // Backward-compat stub — delegates to DocController via front controller.
 // Parsedown loaded via Composer autoload (included in bootstrap.php).

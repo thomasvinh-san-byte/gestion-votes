@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Repository;
@@ -6,8 +7,7 @@ namespace AgVote\Repository;
 /**
  * Repository pour les rapports agreges multi-seances.
  */
-class AggregateReportRepository extends AbstractRepository
-{
+class AggregateReportRepository extends AbstractRepository {
     /**
      * Rapport de participation: taux de presence par membre sur N seances.
      */
@@ -15,7 +15,7 @@ class AggregateReportRepository extends AbstractRepository
         string $tenantId,
         ?array $meetingIds = null,
         ?string $fromDate = null,
-        ?string $toDate = null
+        ?string $toDate = null,
     ): array {
         $params = [':tid' => $tenantId];
         $meetingFilter = $this->buildMeetingFilter($meetingIds, $fromDate, $toDate, $params);
@@ -47,7 +47,7 @@ class AggregateReportRepository extends AbstractRepository
             WHERE m.tenant_id = :tid AND m.is_active = true AND m.deleted_at IS NULL
             GROUP BY m.id, m.full_name, m.email, m.voting_power
             ORDER BY participation_rate DESC, m.full_name ASC",
-            $params
+            $params,
         );
     }
 
@@ -58,7 +58,7 @@ class AggregateReportRepository extends AbstractRepository
         string $tenantId,
         ?array $meetingIds = null,
         ?string $fromDate = null,
-        ?string $toDate = null
+        ?string $toDate = null,
     ): array {
         $params = [':tid' => $tenantId];
         $meetingFilter = $this->buildMeetingFilter($meetingIds, $fromDate, $toDate, $params);
@@ -89,7 +89,7 @@ class AggregateReportRepository extends AbstractRepository
               AND mo.status IN ('closed', 'validated')
               {$meetingFilter}
             ORDER BY mt.scheduled_at DESC, mo.position ASC",
-            $params
+            $params,
         );
     }
 
@@ -100,7 +100,7 @@ class AggregateReportRepository extends AbstractRepository
         string $tenantId,
         ?array $meetingIds = null,
         ?string $fromDate = null,
-        ?string $toDate = null
+        ?string $toDate = null,
     ): array {
         $params = [':tid' => $tenantId];
         $meetingFilter = $this->buildMeetingFilter($meetingIds, $fromDate, $toDate, $params);
@@ -126,7 +126,7 @@ class AggregateReportRepository extends AbstractRepository
               {$meetingFilter}
             GROUP BY mt.id, mt.title, mt.scheduled_at
             ORDER BY mt.scheduled_at DESC",
-            $params
+            $params,
         );
     }
 
@@ -137,7 +137,7 @@ class AggregateReportRepository extends AbstractRepository
         string $tenantId,
         ?array $meetingIds = null,
         ?string $fromDate = null,
-        ?string $toDate = null
+        ?string $toDate = null,
     ): array {
         $params = [':tid' => $tenantId];
         $meetingFilter = $this->buildMeetingFilter($meetingIds, $fromDate, $toDate, $params);
@@ -176,7 +176,7 @@ class AggregateReportRepository extends AbstractRepository
               {$meetingFilter}
             GROUP BY mt.id, mt.title, mt.scheduled_at
             ORDER BY mt.scheduled_at DESC",
-            $params
+            $params,
         );
     }
 
@@ -187,7 +187,7 @@ class AggregateReportRepository extends AbstractRepository
         string $tenantId,
         ?array $meetingIds = null,
         ?string $fromDate = null,
-        ?string $toDate = null
+        ?string $toDate = null,
     ): array {
         $params = [':tid' => $tenantId];
         $meetingFilter = $this->buildMeetingFilter($meetingIds, $fromDate, $toDate, $params);
@@ -224,7 +224,7 @@ class AggregateReportRepository extends AbstractRepository
               {$meetingFilter}
             GROUP BY mt.id, mt.title, mt.scheduled_at, mt.status, qp.threshold_value, qp.unit
             ORDER BY mt.scheduled_at DESC",
-            $params
+            $params,
         );
     }
 
@@ -235,7 +235,7 @@ class AggregateReportRepository extends AbstractRepository
         string $tenantId,
         ?array $meetingIds = null,
         ?string $fromDate = null,
-        ?string $toDate = null
+        ?string $toDate = null,
     ): array {
         $params = [':tid' => $tenantId];
         $meetingFilter = $this->buildMeetingFilter($meetingIds, $fromDate, $toDate, $params);
@@ -257,7 +257,7 @@ class AggregateReportRepository extends AbstractRepository
             WHERE mt.tenant_id = :tid
               AND mt.status IN ('live', 'closed', 'validated', 'archived')
               {$meetingFilter}",
-            $params
+            $params,
         );
 
         return $row ?: [
@@ -278,18 +278,18 @@ class AggregateReportRepository extends AbstractRepository
     public function listAvailableMeetings(
         string $tenantId,
         ?string $fromDate = null,
-        ?string $toDate = null
+        ?string $toDate = null,
     ): array {
         $params = [':tid' => $tenantId];
         $dateFilter = '';
 
         if ($fromDate !== null) {
-            $dateFilter .= " AND mt.scheduled_at >= :from_date";
+            $dateFilter .= ' AND mt.scheduled_at >= :from_date';
             $params[':from_date'] = $fromDate;
         }
 
         if ($toDate !== null) {
-            $dateFilter .= " AND mt.scheduled_at <= :to_date";
+            $dateFilter .= ' AND mt.scheduled_at <= :to_date';
             $params[':to_date'] = $toDate;
         }
 
@@ -306,15 +306,14 @@ class AggregateReportRepository extends AbstractRepository
               AND mt.status IN ('live', 'closed', 'validated', 'archived')
               {$dateFilter}
             ORDER BY mt.scheduled_at DESC",
-            $params
+            $params,
         );
     }
 
     /**
      * Construit le filtre de seances pour les requetes.
      */
-    private function buildMeetingFilter(?array $meetingIds, ?string $fromDate, ?string $toDate, array &$params): string
-    {
+    private function buildMeetingFilter(?array $meetingIds, ?string $fromDate, ?string $toDate, array &$params): string {
         $filter = '';
 
         if (!empty($meetingIds)) {
@@ -324,16 +323,16 @@ class AggregateReportRepository extends AbstractRepository
                 $placeholders[] = $key;
                 $params[$key] = $id;
             }
-            $filter .= " AND mt.id IN (" . implode(',', $placeholders) . ")";
+            $filter .= ' AND mt.id IN (' . implode(',', $placeholders) . ')';
         }
 
         if ($fromDate !== null) {
-            $filter .= " AND mt.scheduled_at >= :from_date";
+            $filter .= ' AND mt.scheduled_at >= :from_date';
             $params[':from_date'] = $fromDate;
         }
 
         if ($toDate !== null) {
-            $filter .= " AND mt.scheduled_at <= :to_date";
+            $filter .= ' AND mt.scheduled_at <= :to_date';
             $params[':to_date'] = $toDate;
         }
 

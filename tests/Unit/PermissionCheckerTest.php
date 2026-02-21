@@ -1,18 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
 use AgVote\Core\Security\PermissionChecker;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests unitaires pour PermissionChecker
  */
-class PermissionCheckerTest extends TestCase
-{
+class PermissionCheckerTest extends TestCase {
     private PermissionChecker $checker;
 
-    protected function setUp(): void
-    {
+    protected function setUp(): void {
         $this->checker = new PermissionChecker();
     }
 
@@ -20,8 +19,7 @@ class PermissionCheckerTest extends TestCase
     // ADMIN TESTS
     // =========================================================================
 
-    public function testAdminHasAllPermissions(): void
-    {
+    public function testAdminHasAllPermissions(): void {
         $admin = ['id' => '1', 'role' => 'admin', 'tenant_id' => 'test'];
 
         $this->assertTrue($this->checker->check($admin, 'meeting:create'));
@@ -31,8 +29,7 @@ class PermissionCheckerTest extends TestCase
         $this->assertTrue($this->checker->check($admin, 'vote:cast'));
     }
 
-    public function testAdminCanDoAllTransitions(): void
-    {
+    public function testAdminCanDoAllTransitions(): void {
         $admin = ['id' => '1', 'role' => 'admin', 'tenant_id' => 'test'];
 
         $this->assertTrue($this->checker->canTransition($admin, 'draft', 'scheduled'));
@@ -46,8 +43,7 @@ class PermissionCheckerTest extends TestCase
     // OPERATOR TESTS
     // =========================================================================
 
-    public function testOperatorCanCreateMeeting(): void
-    {
+    public function testOperatorCanCreateMeeting(): void {
         $operator = ['id' => '2', 'role' => 'operator', 'tenant_id' => 'test'];
 
         $this->assertTrue($this->checker->check($operator, 'meeting:create'));
@@ -56,8 +52,7 @@ class PermissionCheckerTest extends TestCase
         $this->assertTrue($this->checker->check($operator, 'member:create'));
     }
 
-    public function testOperatorCannotDeleteMeeting(): void
-    {
+    public function testOperatorCannotDeleteMeeting(): void {
         $operator = ['id' => '2', 'role' => 'operator', 'tenant_id' => 'test'];
 
         $this->assertFalse($this->checker->check($operator, 'meeting:delete'));
@@ -65,8 +60,7 @@ class PermissionCheckerTest extends TestCase
         $this->assertFalse($this->checker->check($operator, 'admin:system'));
     }
 
-    public function testOperatorCanTransitionDraftToScheduled(): void
-    {
+    public function testOperatorCanTransitionDraftToScheduled(): void {
         $operator = ['id' => '2', 'role' => 'operator', 'tenant_id' => 'test'];
 
         $this->assertTrue($this->checker->canTransition($operator, 'draft', 'scheduled'));
@@ -78,8 +72,7 @@ class PermissionCheckerTest extends TestCase
     // AUDITOR TESTS
     // =========================================================================
 
-    public function testAuditorCanReadButNotModify(): void
-    {
+    public function testAuditorCanReadButNotModify(): void {
         $auditor = ['id' => '3', 'role' => 'auditor', 'tenant_id' => 'test'];
 
         // Can read
@@ -99,8 +92,7 @@ class PermissionCheckerTest extends TestCase
     // VIEWER TESTS
     // =========================================================================
 
-    public function testViewerCanOnlyRead(): void
-    {
+    public function testViewerCanOnlyRead(): void {
         $viewer = ['id' => '4', 'role' => 'viewer', 'tenant_id' => 'test'];
 
         // Can read basic info
@@ -120,8 +112,7 @@ class PermissionCheckerTest extends TestCase
     // ROLE ALIASES TESTS
     // =========================================================================
 
-    public function testRoleAliases(): void
-    {
+    public function testRoleAliases(): void {
         $trust = ['id' => '5', 'role' => 'trust', 'tenant_id' => 'test'];
 
         // 'trust' is aliased to 'assessor'
@@ -139,8 +130,7 @@ class PermissionCheckerTest extends TestCase
     // TRANSITION TESTS
     // =========================================================================
 
-    public function testValidTransitions(): void
-    {
+    public function testValidTransitions(): void {
         $president = ['id' => '7', 'role' => 'president', 'tenant_id' => 'test'];
 
         // President can do meeting state transitions
@@ -151,8 +141,7 @@ class PermissionCheckerTest extends TestCase
         $this->assertTrue($this->checker->canTransition($president, 'closed', 'validated'));
     }
 
-    public function testInvalidTransitions(): void
-    {
+    public function testInvalidTransitions(): void {
         $admin = ['id' => '1', 'role' => 'admin', 'tenant_id' => 'test'];
 
         // Cannot skip states
@@ -165,8 +154,7 @@ class PermissionCheckerTest extends TestCase
         $this->assertFalse($this->checker->canTransition($admin, 'closed', 'live'));
     }
 
-    public function testAvailableTransitions(): void
-    {
+    public function testAvailableTransitions(): void {
         $president = ['id' => '7', 'role' => 'president', 'tenant_id' => 'test'];
 
         $transitions = $this->checker->availableTransitions($president, 'draft');
@@ -182,8 +170,7 @@ class PermissionCheckerTest extends TestCase
     // ANONYMOUS USER TESTS
     // =========================================================================
 
-    public function testAnonymousHasNoPermissions(): void
-    {
+    public function testAnonymousHasNoPermissions(): void {
         $anonymous = ['id' => null, 'role' => 'anonymous', 'tenant_id' => 'test'];
 
         $this->assertFalse($this->checker->check($anonymous, 'meeting:read'));
@@ -191,8 +178,7 @@ class PermissionCheckerTest extends TestCase
         $this->assertFalse($this->checker->check($anonymous, 'admin:users'));
     }
 
-    public function testMissingRoleDefaultsToAnonymous(): void
-    {
+    public function testMissingRoleDefaultsToAnonymous(): void {
         $noRole = ['id' => '8', 'tenant_id' => 'test'];
 
         $this->assertFalse($this->checker->check($noRole, 'meeting:read'));
@@ -202,8 +188,7 @@ class PermissionCheckerTest extends TestCase
     // hasRole TESTS
     // =========================================================================
 
-    public function testHasRoleWithSingleRole(): void
-    {
+    public function testHasRoleWithSingleRole(): void {
         $operator = ['id' => '2', 'role' => 'operator', 'tenant_id' => 'test'];
 
         $this->assertTrue($this->checker->hasRole($operator, ['operator']));
@@ -211,8 +196,7 @@ class PermissionCheckerTest extends TestCase
         $this->assertFalse($this->checker->hasRole($operator, ['admin']));
     }
 
-    public function testHasRoleWithHierarchy(): void
-    {
+    public function testHasRoleWithHierarchy(): void {
         $admin = ['id' => '1', 'role' => 'admin', 'tenant_id' => 'test'];
 
         // Admin matches all system roles due to "always true"
@@ -225,8 +209,7 @@ class PermissionCheckerTest extends TestCase
     // getPermissions TESTS
     // =========================================================================
 
-    public function testGetPermissionsForAdmin(): void
-    {
+    public function testGetPermissionsForAdmin(): void {
         $admin = ['id' => '1', 'role' => 'admin', 'tenant_id' => 'test'];
 
         $permissions = $this->checker->getPermissions($admin);
@@ -238,8 +221,7 @@ class PermissionCheckerTest extends TestCase
         $this->assertContains('vote:cast', $permissions);
     }
 
-    public function testGetPermissionsForViewer(): void
-    {
+    public function testGetPermissionsForViewer(): void {
         $viewer = ['id' => '4', 'role' => 'viewer', 'tenant_id' => 'test'];
 
         $permissions = $this->checker->getPermissions($viewer);
@@ -254,8 +236,7 @@ class PermissionCheckerTest extends TestCase
     // CONFIG TESTS
     // =========================================================================
 
-    public function testGetConfigReturnsStructure(): void
-    {
+    public function testGetConfigReturnsStructure(): void {
         $config = $this->checker->getConfig();
 
         $this->assertArrayHasKey('permissions', $config);
@@ -267,8 +248,7 @@ class PermissionCheckerTest extends TestCase
         $this->assertIsArray($config['hierarchy']);
     }
 
-    public function testPermissionsContainExpectedResources(): void
-    {
+    public function testPermissionsContainExpectedResources(): void {
         $config = $this->checker->getConfig();
         $permissions = $config['permissions'];
 
@@ -291,8 +271,7 @@ class PermissionCheckerTest extends TestCase
         $this->assertArrayHasKey('admin:system', $permissions);
     }
 
-    public function testTransitionsContainAllStates(): void
-    {
+    public function testTransitionsContainAllStates(): void {
         $config = $this->checker->getConfig();
         $transitions = $config['transitions'];
 

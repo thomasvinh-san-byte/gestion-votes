@@ -1,7 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Repository;
+
+use InvalidArgumentException;
 
 /**
  * Data access for meetings.
@@ -9,25 +12,22 @@ namespace AgVote\Repository;
  * All SQL queries for the meetings table are centralized here.
  * No business logic (transitions, validations) - only CRUD.
  */
-class MeetingRepository extends AbstractRepository
-{
+class MeetingRepository extends AbstractRepository {
     // =========================================================================
     // READ
     // =========================================================================
 
-    public function findByIdForTenant(string $id, string $tenantId): ?array
-    {
+    public function findByIdForTenant(string $id, string $tenantId): ?array {
         return $this->selectOne(
-            "SELECT * FROM meetings WHERE id = :id AND tenant_id = :tenant_id",
-            [':id' => $id, ':tenant_id' => $tenantId]
+            'SELECT * FROM meetings WHERE id = :id AND tenant_id = :tenant_id',
+            [':id' => $id, ':tenant_id' => $tenantId],
         );
     }
 
-    public function existsForTenant(string $id, string $tenantId): bool
-    {
-        return (bool)$this->scalar(
-            "SELECT 1 FROM meetings WHERE id = :id AND tenant_id = :tenant_id",
-            [':id' => $id, ':tenant_id' => $tenantId]
+    public function existsForTenant(string $id, string $tenantId): bool {
+        return (bool) $this->scalar(
+            'SELECT 1 FROM meetings WHERE id = :id AND tenant_id = :tenant_id',
+            [':id' => $id, ':tenant_id' => $tenantId],
         );
     }
 
@@ -35,22 +35,20 @@ class MeetingRepository extends AbstractRepository
      * Checks if a meeting has been validated (validated_at IS NOT NULL).
      * Used by ballots_cancel.php to guard against modifications after validation.
      */
-    public function isValidated(string $id, string $tenantId): bool
-    {
-        return (bool)$this->scalar(
-            "SELECT 1 FROM meetings WHERE id = :id AND tenant_id = :tid AND validated_at IS NOT NULL",
-            [':id' => $id, ':tid' => $tenantId]
+    public function isValidated(string $id, string $tenantId): bool {
+        return (bool) $this->scalar(
+            'SELECT 1 FROM meetings WHERE id = :id AND tenant_id = :tid AND validated_at IS NOT NULL',
+            [':id' => $id, ':tid' => $tenantId],
         );
     }
 
     /**
      * Finds a meeting by its slug (URL obfuscation).
      */
-    public function findBySlugForTenant(string $slug, string $tenantId): ?array
-    {
+    public function findBySlugForTenant(string $slug, string $tenantId): ?array {
         return $this->selectOne(
-            "SELECT * FROM meetings WHERE slug = :slug AND tenant_id = :tenant_id",
-            [':slug' => $slug, ':tenant_id' => $tenantId]
+            'SELECT * FROM meetings WHERE slug = :slug AND tenant_id = :tenant_id',
+            [':slug' => $slug, ':tenant_id' => $tenantId],
         );
     }
 
@@ -58,8 +56,7 @@ class MeetingRepository extends AbstractRepository
      * Finds a meeting by ID or slug (dual support).
      * Automatically detects if the identifier is a UUID or slug.
      */
-    public function findByIdOrSlugForTenant(string $identifier, string $tenantId): ?array
-    {
+    public function findByIdOrSlugForTenant(string $identifier, string $tenantId): ?array {
         // Check if it's a UUID
         if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
             return $this->findByIdForTenant($identifier, $tenantId);
@@ -71,10 +68,9 @@ class MeetingRepository extends AbstractRepository
     /**
      * Lists all meetings for a tenant (for meetings.php GET).
      */
-    public function listByTenant(string $tenantId): array
-    {
+    public function listByTenant(string $tenantId): array {
         return $this->selectAll(
-            "SELECT
+            'SELECT
                 id, tenant_id, title, description,
                 status::text AS status,
                 scheduled_at, started_at, ended_at,
@@ -83,8 +79,8 @@ class MeetingRepository extends AbstractRepository
                 created_at, updated_at
              FROM meetings
              WHERE tenant_id = :tenant_id
-             ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC",
-            [':tenant_id' => $tenantId]
+             ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC',
+            [':tenant_id' => $tenantId],
         );
     }
 
@@ -92,8 +88,7 @@ class MeetingRepository extends AbstractRepository
      * Lists active meetings (excludes validated and archived).
      * Used for selection dropdowns.
      */
-    public function listActiveByTenant(string $tenantId): array
-    {
+    public function listActiveByTenant(string $tenantId): array {
         return $this->selectAll(
             "SELECT
                 id, tenant_id, title, description,
@@ -106,31 +101,29 @@ class MeetingRepository extends AbstractRepository
              WHERE tenant_id = :tenant_id
                AND status NOT IN ('validated', 'archived')
              ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC",
-            [':tenant_id' => $tenantId]
+            [':tenant_id' => $tenantId],
         );
     }
 
     /**
      * Compact list (for meetings_index.php).
      */
-    public function listByTenantCompact(string $tenantId, int $limit = 50): array
-    {
+    public function listByTenantCompact(string $tenantId, int $limit = 50): array {
         return $this->selectAll(
-            "SELECT id AS meeting_id, id, title, status::text AS status,
+            'SELECT id AS meeting_id, id, title, status::text AS status,
                     created_at, started_at, ended_at, archived_at, validated_at
              FROM meetings
              WHERE tenant_id = :tenant_id
              ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC
-             LIMIT " . max(1, min($limit, 200)),
-            [':tenant_id' => $tenantId]
+             LIMIT ' . max(1, min($limit, 200)),
+            [':tenant_id' => $tenantId],
         );
     }
 
     /**
      * Compact list of active meetings (excludes validated and archived).
      */
-    public function listActiveByTenantCompact(string $tenantId, int $limit = 50): array
-    {
+    public function listActiveByTenantCompact(string $tenantId, int $limit = 50): array {
         return $this->selectAll(
             "SELECT id AS meeting_id, id, title, status::text AS status,
                     created_at, started_at, ended_at, archived_at, validated_at
@@ -139,16 +132,15 @@ class MeetingRepository extends AbstractRepository
                AND status NOT IN ('validated', 'archived')
              ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC
              LIMIT " . max(1, min($limit, 200)),
-            [':tenant_id' => $tenantId]
+            [':tenant_id' => $tenantId],
         );
     }
 
     /**
      * Lists archived/closed meetings (for meetings_archive.php).
      */
-    public function listArchived(string $tenantId, string $from = '', string $to = ''): array
-    {
-        $conditions = ["tenant_id = :tenant_id", "status IN ('closed','archived')"];
+    public function listArchived(string $tenantId, string $from = '', string $to = ''): array {
+        $conditions = ['tenant_id = :tenant_id', "status IN ('closed','archived')"];
         $params = [':tenant_id' => $tenantId];
 
         if ($from !== '') {
@@ -167,15 +159,14 @@ class MeetingRepository extends AbstractRepository
              WHERE {$where}
              ORDER BY created_at DESC
              LIMIT 500",
-            $params
+            $params,
         );
     }
 
     /**
      * Liste les seances pour le dashboard operateur.
      */
-    public function listForDashboard(string $tenantId, int $limit = 50): array
-    {
+    public function listForDashboard(string $tenantId, int $limit = 50): array {
         return $this->selectAll(
             "SELECT id, title, status, scheduled_at, started_at, ended_at, archived_at, validated_at
              FROM meetings
@@ -184,28 +175,26 @@ class MeetingRepository extends AbstractRepository
                CASE status WHEN 'live' THEN 0 WHEN 'draft' THEN 1 WHEN 'archived' THEN 3 ELSE 2 END,
                COALESCE(started_at, scheduled_at, created_at) DESC
              LIMIT " . max(1, min($limit, 500)),
-            [':tid' => $tenantId]
+            [':tid' => $tenantId],
         );
     }
 
     /**
      * Titre d'une seance par son ID.
      */
-    public function findTitle(string $meetingId): ?string
-    {
+    public function findTitle(string $meetingId): ?string {
         $val = $this->scalar(
-            "SELECT title FROM meetings WHERE id = :id",
-            [':id' => $meetingId]
+            'SELECT title FROM meetings WHERE id = :id',
+            [':id' => $meetingId],
         );
-        return $val !== null ? (string)$val : null;
+        return $val !== null ? (string) $val : null;
     }
 
     /**
      * Trouve la seance courante (non archivee) pour un tenant.
      * Priorite : live > closed > draft.
      */
-    public function findCurrentForTenant(string $tenantId): ?array
-    {
+    public function findCurrentForTenant(string $tenantId): ?array {
         return $this->selectOne(
             "SELECT
                 m.id AS meeting_id, m.title AS meeting_title,
@@ -225,78 +214,72 @@ class MeetingRepository extends AbstractRepository
                 END,
                 m.created_at DESC
              LIMIT 1",
-            [':tenant_id' => $tenantId]
+            [':tenant_id' => $tenantId],
         );
     }
 
     /**
      * Trouve une seance avec champs specifiques (pour meeting_status_for_meeting).
      */
-    public function findStatusFields(string $meetingId, string $tenantId): ?array
-    {
+    public function findStatusFields(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            "SELECT id AS meeting_id, title AS meeting_title, status AS meeting_status,
+            'SELECT id AS meeting_id, title AS meeting_title, status AS meeting_status,
                     started_at, ended_at, archived_at, validated_at,
                     president_name, ready_to_sign
-             FROM meetings WHERE tenant_id = :tenant_id AND id = :id",
-            [':tenant_id' => $tenantId, ':id' => $meetingId]
+             FROM meetings WHERE tenant_id = :tenant_id AND id = :id',
+            [':tenant_id' => $tenantId, ':id' => $meetingId],
         );
     }
 
     /**
      * Trouve les reglages de vote d'une seance.
      */
-    public function findVoteSettings(string $meetingId, string $tenantId): ?array
-    {
+    public function findVoteSettings(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            "SELECT id AS meeting_id, title, vote_policy_id
-             FROM meetings WHERE tenant_id = :tenant_id AND id = :id",
-            [':tenant_id' => $tenantId, ':id' => $meetingId]
+            'SELECT id AS meeting_id, title, vote_policy_id
+             FROM meetings WHERE tenant_id = :tenant_id AND id = :id',
+            [':tenant_id' => $tenantId, ':id' => $meetingId],
         );
     }
 
     /**
      * Trouve les reglages de quorum d'une seance.
      */
-    public function findQuorumSettings(string $meetingId, string $tenantId): ?array
-    {
+    public function findQuorumSettings(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            "SELECT id AS meeting_id, title, quorum_policy_id,
+            'SELECT id AS meeting_id, title, quorum_policy_id,
                     COALESCE(convocation_no, 1) AS convocation_no
-             FROM meetings WHERE tenant_id = :tenant_id AND id = :id",
-            [':tenant_id' => $tenantId, ':id' => $meetingId]
+             FROM meetings WHERE tenant_id = :tenant_id AND id = :id',
+            [':tenant_id' => $tenantId, ':id' => $meetingId],
         );
     }
 
     /**
      * Trouve les regles tardives d'une seance.
      */
-    public function findLateRules(string $meetingId, string $tenantId): ?array
-    {
+    public function findLateRules(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            "SELECT id, late_rule_quorum, late_rule_vote
-             FROM meetings WHERE tenant_id = :tenant_id AND id = :id",
-            [':tenant_id' => $tenantId, ':id' => $meetingId]
+            'SELECT id, late_rule_quorum, late_rule_vote
+             FROM meetings WHERE tenant_id = :tenant_id AND id = :id',
+            [':tenant_id' => $tenantId, ':id' => $meetingId],
         );
     }
 
     /**
      * Resume de seance pour meeting_summary.
      */
-    public function findSummaryFields(string $meetingId, string $tenantId): ?array
-    {
+    public function findSummaryFields(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            "SELECT id, title, status, president_name, validated_at
-             FROM meetings WHERE tenant_id = :tenant_id AND id = :id",
-            [':tenant_id' => $tenantId, ':id' => $meetingId]
+            'SELECT id, title, status, president_name, validated_at
+             FROM meetings WHERE tenant_id = :tenant_id AND id = :id',
+            [':tenant_id' => $tenantId, ':id' => $meetingId],
         );
     }
 
     /**
      * Liste les seances archivees avec info rapport (pour archives_list).
      */
-    public function listArchivedWithReports(string $tenantId): array
-    {
+    public function listArchivedWithReports(string $tenantId): array {
         return $this->selectAll(
             "SELECT mt.id, mt.title, mt.archived_at, mt.validated_at, mt.president_name,
                     COALESCE(mr.sha256, NULL) AS report_sha256,
@@ -306,44 +289,40 @@ class MeetingRepository extends AbstractRepository
              LEFT JOIN meeting_reports mr ON mr.meeting_id = mt.id
              WHERE mt.tenant_id = :tid AND mt.status = 'archived'
              ORDER BY mt.archived_at DESC NULLS LAST, mt.validated_at DESC NULLS LAST",
-            [':tid' => $tenantId]
+            [':tid' => $tenantId],
         );
     }
 
     /**
      * Compte toutes les seances d'un tenant.
      */
-    public function countForTenant(string $tenantId): int
-    {
-        return (int)($this->scalar(
-            "SELECT COUNT(*) FROM meetings WHERE tenant_id = :tid",
-            [':tid' => $tenantId]
+    public function countForTenant(string $tenantId): int {
+        return (int) ($this->scalar(
+            'SELECT COUNT(*) FROM meetings WHERE tenant_id = :tid',
+            [':tid' => $tenantId],
         ) ?? 0);
     }
-
 
     /**
      * Compte les seances live d'un tenant.
      */
-    public function countLive(string $tenantId): int
-    {
-        return (int)($this->scalar(
+    public function countLive(string $tenantId): int {
+        return (int) ($this->scalar(
             "SELECT COUNT(*) FROM meetings WHERE tenant_id = :tid AND status = 'live'",
-            [':tid' => $tenantId]
+            [':tid' => $tenantId],
         ) ?? 0);
     }
 
     /**
      * Liste les seances live d'un tenant (pour le selecteur projecteur).
      */
-    public function listLiveForTenant(string $tenantId): array
-    {
+    public function listLiveForTenant(string $tenantId): array {
         return $this->selectAll(
             "SELECT id, title, started_at, status
              FROM meetings
              WHERE tenant_id = :tid AND status IN ('live', 'paused')
              ORDER BY started_at DESC NULLS LAST, created_at DESC",
-            [':tid' => $tenantId]
+            [':tid' => $tenantId],
         );
     }
 
@@ -361,7 +340,7 @@ class MeetingRepository extends AbstractRepository
         ?string $description,
         ?string $scheduledAt,
         ?string $location,
-        string $meetingType = 'ag_ordinaire'
+        string $meetingType = 'ag_ordinaire',
     ): void {
         $this->execute(
             "INSERT INTO meetings (id, tenant_id, title, description, meeting_type, status, scheduled_at, location, created_at, updated_at)
@@ -374,7 +353,7 @@ class MeetingRepository extends AbstractRepository
                 ':meeting_type' => $meetingType,
                 ':scheduled_at' => $scheduledAt ?: null,
                 ':location' => $location ?: null,
-            ]
+            ],
         );
     }
 
@@ -391,83 +370,79 @@ class MeetingRepository extends AbstractRepository
      *
      * @param array<string,mixed> $fields Cle=colonne SQL, valeur=nouvelle valeur
      */
-    public function updateFields(string $meetingId, string $tenantId, array $fields): int
-    {
-        if (empty($fields)) return 0;
+    public function updateFields(string $meetingId, string $tenantId, array $fields): int {
+        if (empty($fields)) {
+            return 0;
+        }
 
         $sets = [];
         $params = [':tid' => $tenantId, ':id' => $meetingId];
         foreach ($fields as $col => $val) {
             if (!in_array($col, self::UPDATABLE_FIELDS, true)) {
-                throw new \InvalidArgumentException("Colonne non autorisée : {$col}");
+                throw new InvalidArgumentException("Colonne non autorisée : {$col}");
             }
             $param = ':f_' . $col;
             $sets[] = "\"{$col}\" = {$param}";
             $params[$param] = $val;
         }
-        $sets[] = "updated_at = now()";
+        $sets[] = 'updated_at = now()';
 
-        $sql = "UPDATE meetings SET " . implode(', ', $sets) . " WHERE tenant_id = :tid AND id = :id";
+        $sql = 'UPDATE meetings SET ' . implode(', ', $sets) . ' WHERE tenant_id = :tid AND id = :id';
         return $this->execute($sql, $params);
     }
 
     /**
      * Met a jour la politique de vote d'une seance.
      */
-    public function updateVotePolicy(string $meetingId, string $tenantId, ?string $policyId): void
-    {
+    public function updateVotePolicy(string $meetingId, string $tenantId, ?string $policyId): void {
         $this->execute(
-            "UPDATE meetings SET vote_policy_id = :pid, updated_at = NOW()
-             WHERE tenant_id = :tid AND id = :mid",
-            [':pid' => $policyId, ':tid' => $tenantId, ':mid' => $meetingId]
+            'UPDATE meetings SET vote_policy_id = :pid, updated_at = NOW()
+             WHERE tenant_id = :tid AND id = :mid',
+            [':pid' => $policyId, ':tid' => $tenantId, ':mid' => $meetingId],
         );
     }
 
     /**
      * Met a jour la politique de quorum + numero de convocation.
      */
-    public function updateQuorumPolicy(string $meetingId, string $tenantId, ?string $policyId, int $convocationNo): void
-    {
+    public function updateQuorumPolicy(string $meetingId, string $tenantId, ?string $policyId, int $convocationNo): void {
         $this->execute(
-            "UPDATE meetings SET quorum_policy_id = :pid, convocation_no = :c, updated_at = NOW()
-             WHERE tenant_id = :tid AND id = :mid",
-            [':pid' => $policyId, ':c' => $convocationNo, ':tid' => $tenantId, ':mid' => $meetingId]
+            'UPDATE meetings SET quorum_policy_id = :pid, convocation_no = :c, updated_at = NOW()
+             WHERE tenant_id = :tid AND id = :mid',
+            [':pid' => $policyId, ':c' => $convocationNo, ':tid' => $tenantId, ':mid' => $meetingId],
         );
     }
 
     /**
      * Met a jour les regles tardives.
      */
-    public function updateLateRules(string $meetingId, string $tenantId, bool $lateRuleQuorum, bool $lateRuleVote): void
-    {
+    public function updateLateRules(string $meetingId, string $tenantId, bool $lateRuleQuorum, bool $lateRuleVote): void {
         $this->execute(
-            "UPDATE meetings SET late_rule_quorum = :q, late_rule_vote = :v, updated_at = NOW()
-             WHERE tenant_id = :tid AND id = :id",
-            [':q' => $lateRuleQuorum, ':v' => $lateRuleVote, ':tid' => $tenantId, ':id' => $meetingId]
+            'UPDATE meetings SET late_rule_quorum = :q, late_rule_vote = :v, updated_at = NOW()
+             WHERE tenant_id = :tid AND id = :id',
+            [':q' => $lateRuleQuorum, ':v' => $lateRuleVote, ':tid' => $tenantId, ':id' => $meetingId],
         );
     }
 
     /**
      * Marque une seance comme validee.
      */
-    public function markValidated(string $meetingId, string $tenantId): void
-    {
+    public function markValidated(string $meetingId, string $tenantId): void {
         $this->execute(
             "UPDATE meetings SET status = 'validated', validated_at = NOW()
              WHERE tenant_id = :tid AND id = :id",
-            [':tid' => $tenantId, ':id' => $meetingId]
+            [':tid' => $tenantId, ':id' => $meetingId],
         );
     }
 
     /**
      * Met a jour le current_motion_id d'une seance.
      */
-    public function updateCurrentMotion(string $meetingId, string $tenantId, ?string $motionId): void
-    {
+    public function updateCurrentMotion(string $meetingId, string $tenantId, ?string $motionId): void {
         $this->execute(
-            "UPDATE meetings SET current_motion_id = :mo, updated_at = now()
-             WHERE tenant_id = :tid AND id = :mid",
-            [':mo' => $motionId, ':tid' => $tenantId, ':mid' => $meetingId]
+            'UPDATE meetings SET current_motion_id = :mo, updated_at = now()
+             WHERE tenant_id = :tid AND id = :mid',
+            [':mo' => $motionId, ':tid' => $tenantId, ':mid' => $meetingId],
         );
     }
 
@@ -479,13 +454,13 @@ class MeetingRepository extends AbstractRepository
         string $procedureCode,
         int $itemIndex,
         bool $checked,
-        ?string $checkedBy
+        ?string $checkedBy,
     ): void {
         $this->execute(
-            "INSERT INTO meeting_emergency_checks(meeting_id, procedure_code, item_index, checked, checked_at, checked_by)
+            'INSERT INTO meeting_emergency_checks(meeting_id, procedure_code, item_index, checked, checked_at, checked_by)
              VALUES (:m,:p,:i,:c, CASE WHEN :c2 THEN NOW() ELSE NULL END, :by)
              ON CONFLICT (meeting_id, procedure_code, item_index)
-             DO UPDATE SET checked = EXCLUDED.checked, checked_at = EXCLUDED.checked_at, checked_by = EXCLUDED.checked_by",
+             DO UPDATE SET checked = EXCLUDED.checked, checked_at = EXCLUDED.checked_at, checked_by = EXCLUDED.checked_by',
             [
                 ':m' => $meetingId,
                 ':p' => $procedureCode,
@@ -493,60 +468,56 @@ class MeetingRepository extends AbstractRepository
                 ':c' => $checked,
                 ':c2' => $checked,
                 ':by' => $checkedBy,
-            ]
+            ],
         );
     }
 
     /**
      * Lock meeting row pour eviter les conflits concurrents (FOR UPDATE).
      */
-    public function lockForUpdate(string $meetingId, string $tenantId): ?array
-    {
+    public function lockForUpdate(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            "SELECT id, validated_at, status FROM meetings
-             WHERE tenant_id = :tid AND id = :id FOR UPDATE",
-            [':tid' => $tenantId, ':id' => $meetingId]
+            'SELECT id, validated_at, status FROM meetings
+             WHERE tenant_id = :tid AND id = :id FOR UPDATE',
+            [':tid' => $tenantId, ':id' => $meetingId],
         );
     }
 
     /**
      * Trouve une seance avec le nom du validateur.
      */
-    public function findWithValidator(string $meetingId): ?array
-    {
+    public function findWithValidator(string $meetingId): ?array {
         return $this->selectOne(
-            "SELECT m.*, u.display_name AS validated_by
+            'SELECT m.*, u.display_name AS validated_by
              FROM meetings m
              LEFT JOIN users u ON u.id = m.validated_by_user_id
-             WHERE m.id = :id",
-            [':id' => $meetingId]
+             WHERE m.id = :id',
+            [':id' => $meetingId],
         );
     }
 
     /**
      * Reinitialise les champs live d'une seance (reset demo).
      */
-    public function resetForDemo(string $meetingId, string $tenantId): void
-    {
+    public function resetForDemo(string $meetingId, string $tenantId): void {
         $this->execute(
             "UPDATE meetings
              SET current_motion_id = NULL, status = 'live', updated_at = now()
              WHERE id = :mid AND tenant_id = :tid",
-            [':mid' => $meetingId, ':tid' => $tenantId]
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
     /**
      * Verifie si une seance a ete creee par un utilisateur.
      */
-    public function isOwnedByUser(string $meetingId, string $userId): bool
-    {
+    public function isOwnedByUser(string $meetingId, string $userId): bool {
         // Check if user belongs to the same tenant as the meeting
-        return (bool)$this->scalar(
-            "SELECT 1 FROM meetings m
+        return (bool) $this->scalar(
+            'SELECT 1 FROM meetings m
              JOIN users u ON u.tenant_id = m.tenant_id
-             WHERE m.id = :id AND u.id = :uid",
-            [':id' => $meetingId, ':uid' => $userId]
+             WHERE m.id = :id AND u.id = :uid',
+            [':id' => $meetingId, ':uid' => $userId],
         );
     }
 }

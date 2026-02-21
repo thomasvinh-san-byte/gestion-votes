@@ -1,14 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MeetingStatsRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\UserRepository;
+use Throwable;
 
 /**
  * MeetingWorkflowService
@@ -23,23 +24,41 @@ use AgVote\Repository\UserRepository;
  * - live → closed: no open motions
  * - closed → validated: all motions closed, consolidated
  */
-final class MeetingWorkflowService
-{
+final class MeetingWorkflowService {
+    private MeetingRepository $meetingRepo;
+    private MotionRepository $motionRepo;
+    private AttendanceRepository $attendanceRepo;
+    private UserRepository $userRepo;
+    private MeetingStatsRepository $statsRepo;
+
+    public function __construct(
+        ?MeetingRepository $meetingRepo = null,
+        ?MotionRepository $motionRepo = null,
+        ?AttendanceRepository $attendanceRepo = null,
+        ?UserRepository $userRepo = null,
+        ?MeetingStatsRepository $statsRepo = null,
+    ) {
+        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+        $this->motionRepo = $motionRepo ?? new MotionRepository();
+        $this->attendanceRepo = $attendanceRepo ?? new AttendanceRepository();
+        $this->userRepo = $userRepo ?? new UserRepository();
+        $this->statsRepo = $statsRepo ?? new MeetingStatsRepository();
+    }
+
     /**
      * Check issues before allowing a transition.
      *
      * @param string $meetingId
      * @param string $tenantId
      * @param string $toStatus Target status
+     *
      * @return array ['issues' => [], 'warnings' => [], 'can_proceed' => bool]
      */
-    public static function issuesBeforeTransition(string $meetingId, string $tenantId, string $toStatus, ?string $fromStatusOverride = null): array
-    {
+    public function issuesBeforeTransition(string $meetingId, string $tenantId, string $toStatus, ?string $fromStatusOverride = null): array {
         $issues = [];
         $warnings = [];
 
-        $meetingRepo = new MeetingRepository();
-        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+        $meeting = $this->meetingRepo->findByIdForTenant($meetingId, $tenantId);
 
         if (!$meeting) {
             return [
@@ -53,57 +72,55 @@ final class MeetingWorkflowService
 
         // draft → scheduled
         if ($toStatus === 'scheduled' && $fromStatus === 'draft') {
-            if (!self::hasMotions($meetingId)) {
+            if (!$this->hasMotions($meetingId)) {
                 $issues[] = ['code' => 'no_motions', 'msg' => 'Aucune résolution créée'];
             }
         }
 
         // scheduled → frozen
         if ($toStatus === 'frozen' && $fromStatus === 'scheduled') {
-            if (!self::hasAttendance($meetingId, $tenantId)) {
+            if (!$this->hasAttendance($meetingId, $tenantId)) {
                 $issues[] = ['code' => 'no_attendance', 'msg' => 'Aucune présence pointée'];
             }
             // President is optional but we warn
-            if (!self::hasPresident($meetingId, $tenantId)) {
+            if (!$this->hasPresident($meetingId, $tenantId)) {
                 $warnings[] = ['code' => 'no_president', 'msg' => 'Aucun président assigné (optionnel)'];
             }
         }
 
         // frozen → live
         if ($toStatus === 'live' && $fromStatus === 'frozen') {
-            if (!self::quorumMet($meetingId, $tenantId)) {
+            if (!$this->quorumMet($meetingId, $tenantId)) {
                 $warnings[] = ['code' => 'quorum_not_met', 'msg' => 'Quorum non atteint (vous pouvez continuer)'];
             }
         }
 
         // live → paused: block if a vote is actively open
         if ($toStatus === 'paused' && $fromStatus === 'live') {
-            $openCount = self::countOpenMotions($meetingId);
+            $openCount = $this->countOpenMotions($meetingId);
             if ($openCount > 0) {
-                $issues[] = ['code' => 'motion_open', 'msg' => "Impossible de mettre en pause : $openCount vote(s) en cours. Fermez le vote avant de mettre en pause."];
+                $issues[] = ['code' => 'motion_open', 'msg' => "Impossible de mettre en pause : {$openCount} vote(s) en cours. Fermez le vote avant de mettre en pause."];
             }
         }
 
         // live → closed
         if ($toStatus === 'closed' && ($fromStatus === 'live' || $fromStatus === 'paused')) {
-            $openCount = self::countOpenMotions($meetingId);
+            $openCount = $this->countOpenMotions($meetingId);
             if ($openCount > 0) {
-                $issues[] = ['code' => 'motion_open', 'msg' => "$openCount résolution(s) encore ouverte(s)"];
+                $issues[] = ['code' => 'motion_open', 'msg' => "{$openCount} résolution(s) encore ouverte(s)"];
             }
         }
 
         // closed → validated
         if ($toStatus === 'validated' && $fromStatus === 'closed') {
-            $motionRepo = new MotionRepository();
-            $statsRepo = new MeetingStatsRepository();
-            $closed = $statsRepo->countClosedMotions($meetingId);
-            $bad = $motionRepo->countBadClosedMotions($meetingId);
+            $closed = $this->statsRepo->countClosedMotions($meetingId);
+            $bad = $this->motionRepo->countBadClosedMotions($meetingId);
 
             if ($bad > 0) {
-                $issues[] = ['code' => 'bad_results', 'msg' => "$bad résolution(s) sans résultat exploitable"];
+                $issues[] = ['code' => 'bad_results', 'msg' => "{$bad} résolution(s) sans résultat exploitable"];
             }
 
-            $consolidated = $motionRepo->countConsolidatedMotions($meetingId);
+            $consolidated = $this->motionRepo->countConsolidatedMotions($meetingId);
             if ($closed > 0 && $consolidated < $closed) {
                 $warnings[] = ['code' => 'not_consolidated', 'msg' => 'Résultats non consolidés (officialisation recommandée)'];
             }
@@ -124,41 +141,36 @@ final class MeetingWorkflowService
     /**
      * Check if meeting has any motions.
      */
-    public static function hasMotions(string $meetingId): bool
-    {
-        $motionRepo = new MotionRepository();
-        return $motionRepo->countForMeeting($meetingId) > 0;
+    public function hasMotions(string $meetingId): bool {
+        return $this->motionRepo->countForMeeting($meetingId) > 0;
     }
 
     /**
      * Check if meeting has any attendance records (present or remote).
      */
-    public static function hasAttendance(string $meetingId, string $tenantId): bool
-    {
-        $attendanceRepo = new AttendanceRepository();
-        $count = $attendanceRepo->countPresentOrRemote($meetingId, $tenantId);
+    public function hasAttendance(string $meetingId, string $tenantId): bool {
+        $count = $this->attendanceRepo->countPresentOrRemote($meetingId, $tenantId);
         return $count > 0;
     }
 
     /**
      * Check if meeting has a president assigned.
      */
-    public static function hasPresident(string $meetingId, string $tenantId): bool
-    {
-        if ($tenantId === '') return false;
-        $userRepo = new UserRepository();
-        return $userRepo->findExistingPresident($tenantId, $meetingId) !== null;
+    public function hasPresident(string $meetingId, string $tenantId): bool {
+        if ($tenantId === '') {
+            return false;
+        }
+        return $this->userRepo->findExistingPresident($tenantId, $meetingId) !== null;
     }
 
     /**
      * Check if quorum is met.
      */
-    public static function quorumMet(string $meetingId, string $tenantId): bool
-    {
+    public function quorumMet(string $meetingId, string $tenantId): bool {
         try {
-            $result = QuorumEngine::computeForMeeting($meetingId, $tenantId);
+            $result = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
             return $result['met'] ?? false;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return true; // On error, don't block
         }
     }
@@ -166,28 +178,22 @@ final class MeetingWorkflowService
     /**
      * Count open motions.
      */
-    public static function countOpenMotions(string $meetingId): int
-    {
-        $statsRepo = new MeetingStatsRepository();
-        return $statsRepo->countOpenMotions($meetingId);
+    public function countOpenMotions(string $meetingId): int {
+        return $this->statsRepo->countOpenMotions($meetingId);
     }
 
     /**
      * Check if all motions are closed.
      */
-    public static function allMotionsClosed(string $meetingId): bool
-    {
-        $statsRepo = new MeetingStatsRepository();
-        return $statsRepo->countOpenMotions($meetingId) === 0;
+    public function allMotionsClosed(string $meetingId): bool {
+        return $this->statsRepo->countOpenMotions($meetingId) === 0;
     }
 
     /**
      * Get a summary of meeting readiness for each possible transition.
      */
-    public static function getTransitionReadiness(string $meetingId, string $tenantId): array
-    {
-        $meetingRepo = new MeetingRepository();
-        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+    public function getTransitionReadiness(string $meetingId, string $tenantId): array {
+        $meeting = $this->meetingRepo->findByIdForTenant($meetingId, $tenantId);
 
         if (!$meeting) {
             return ['error' => 'meeting_not_found'];
@@ -214,7 +220,7 @@ final class MeetingWorkflowService
         ];
 
         foreach ($nextStates as $toStatus) {
-            $check = self::issuesBeforeTransition($meetingId, $tenantId, $toStatus);
+            $check = $this->issuesBeforeTransition($meetingId, $tenantId, $toStatus);
             $result['transitions'][$toStatus] = [
                 'can_proceed' => $check['can_proceed'],
                 'issues' => $check['issues'],

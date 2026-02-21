@@ -1,143 +1,135 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Repository;
 
+use Throwable;
+
 /**
  * Acces donnees pour les utilisateurs (users).
  */
-class UserRepository extends AbstractRepository
-{
+class UserRepository extends AbstractRepository {
     /**
      * Trouve un utilisateur par hash de cle API.
      */
-    public function findByApiKeyHash(string $tenantId, string $hash): ?array
-    {
+    public function findByApiKeyHash(string $tenantId, string $hash): ?array {
         return $this->selectOne(
-            "SELECT id, tenant_id, email, name, role, is_active
+            'SELECT id, tenant_id, email, name, role, is_active
              FROM users
              WHERE tenant_id = :tid AND api_key_hash = :hash
-             LIMIT 1",
-            [':tid' => $tenantId, ':hash' => $hash]
+             LIMIT 1',
+            [':tid' => $tenantId, ':hash' => $hash],
         );
     }
 
     /**
      * Trouve un utilisateur par hash de cle API (sans filtre tenant, phase auth).
      */
-    public function findByApiKeyHashGlobal(string $hash): ?array
-    {
+    public function findByApiKeyHashGlobal(string $hash): ?array {
         return $this->selectOne(
-            "SELECT id, tenant_id, email, name, role, is_active
+            'SELECT id, tenant_id, email, name, role, is_active
              FROM users
              WHERE api_key_hash = :hash
-             LIMIT 1",
-            [':hash' => $hash]
+             LIMIT 1',
+            [':hash' => $hash],
         );
     }
 
     /**
      * Trouve un utilisateur par email (pour auth par mot de passe).
      */
-    public function findByEmail(string $tenantId, string $email): ?array
-    {
+    public function findByEmail(string $tenantId, string $email): ?array {
         return $this->selectOne(
-            "SELECT id, tenant_id, email, name, role, password_hash, is_active
+            'SELECT id, tenant_id, email, name, role, password_hash, is_active
              FROM users
              WHERE tenant_id = :tid AND email = :email
-             LIMIT 1",
-            [':tid' => $tenantId, ':email' => $email]
+             LIMIT 1',
+            [':tid' => $tenantId, ':email' => $email],
         );
     }
 
     /**
      * Trouve un utilisateur par email sans filtre tenant (phase login).
      */
-    public function findByEmailGlobal(string $email): ?array
-    {
+    public function findByEmailGlobal(string $email): ?array {
         return $this->selectOne(
-            "SELECT id, tenant_id, email, name, role, password_hash, is_active
+            'SELECT id, tenant_id, email, name, role, password_hash, is_active
              FROM users
              WHERE email = :email
-             LIMIT 1",
-            [':email' => $email]
+             LIMIT 1',
+            [':email' => $email],
         );
     }
 
     /**
      * Met a jour le mot de passe d'un utilisateur.
      */
-    public function setPasswordHash(string $tenantId, string $userId, string $hash): void
-    {
+    public function setPasswordHash(string $tenantId, string $userId, string $hash): void {
         $this->execute(
-            "UPDATE users SET password_hash = :h, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
-            [':h' => $hash, ':t' => $tenantId, ':id' => $userId]
+            'UPDATE users SET password_hash = :h, updated_at = NOW() WHERE tenant_id = :t AND id = :id',
+            [':h' => $hash, ':t' => $tenantId, ':id' => $userId],
         );
     }
 
     /**
      * Liste les noms de roles actifs d'un utilisateur pour une seance donnee.
      */
-    public function listUserRolesForMeeting(string $tenantId, string $meetingId, string $userId): array
-    {
+    public function listUserRolesForMeeting(string $tenantId, string $meetingId, string $userId): array {
         return array_column(
             $this->selectAll(
-                "SELECT role FROM meeting_roles
+                'SELECT role FROM meeting_roles
                  WHERE tenant_id = :tid AND meeting_id = :mid AND user_id = :uid
-                   AND revoked_at IS NULL",
-                [':tid' => $tenantId, ':mid' => $meetingId, ':uid' => $userId]
+                   AND revoked_at IS NULL',
+                [':tid' => $tenantId, ':mid' => $meetingId, ':uid' => $userId],
             ),
-            'role'
+            'role',
         );
     }
 
     /**
      * Liste toutes les permissions par role (table role_permissions).
      */
-    public function listRolePermissions(): array
-    {
+    public function listRolePermissions(): array {
         return $this->selectAll(
-            "SELECT role, permission, description FROM role_permissions ORDER BY role, permission"
+            'SELECT role, permission, description FROM role_permissions ORDER BY role, permission',
         );
     }
 
     /**
      * Compte les utilisateurs actifs par role systeme pour un tenant.
      */
-    public function countBySystemRole(string $tenantId): array
-    {
+    public function countBySystemRole(string $tenantId): array {
         return $this->selectAll(
-            "SELECT role, COUNT(*) as count FROM users WHERE tenant_id = :tid AND is_active = true GROUP BY role ORDER BY role",
-            [':tid' => $tenantId]
+            'SELECT role, COUNT(*) as count FROM users WHERE tenant_id = :tid AND is_active = true GROUP BY role ORDER BY role',
+            [':tid' => $tenantId],
         );
     }
 
     /**
      * Compte les assignations actives par role de seance pour un tenant.
      */
-    public function countByMeetingRole(string $tenantId): array
-    {
+    public function countByMeetingRole(string $tenantId): array {
         return $this->selectAll(
-            "SELECT role, COUNT(DISTINCT user_id) as users, COUNT(DISTINCT meeting_id) as meetings
-             FROM meeting_roles WHERE tenant_id = :tid AND revoked_at IS NULL GROUP BY role ORDER BY role",
-            [':tid' => $tenantId]
+            'SELECT role, COUNT(DISTINCT user_id) as users, COUNT(DISTINCT meeting_id) as meetings
+             FROM meeting_roles WHERE tenant_id = :tid AND revoked_at IS NULL GROUP BY role ORDER BY role',
+            [':tid' => $tenantId],
         );
     }
 
     /**
      * Enregistre un echec d'authentification (best-effort).
      */
-    public function logAuthFailure(string $ip, string $userAgent, string $keyPrefix, string $reason = 'invalid_key'): void
-    {
+    public function logAuthFailure(string $ip, string $userAgent, string $keyPrefix, string $reason = 'invalid_key'): void {
         $this->execute(
-            "INSERT INTO auth_failures (ip, user_agent, key_prefix, reason, created_at)
-             VALUES (:ip, :ua, :prefix, :reason, NOW())",
+            'INSERT INTO auth_failures (ip, user_agent, key_prefix, reason, created_at)
+             VALUES (:ip, :ua, :prefix, :reason, NOW())',
             [
                 ':ip' => $ip,
                 ':ua' => substr($userAgent, 0, 200),
                 ':prefix' => $keyPrefix,
                 ':reason' => $reason,
-            ]
+            ],
         );
     }
 
@@ -148,12 +140,11 @@ class UserRepository extends AbstractRepository
     /**
      * Liste les utilisateurs d'un tenant avec filtre optionnel par role.
      */
-    public function listByTenant(string $tenantId, ?string $roleFilter = null): array
-    {
+    public function listByTenant(string $tenantId, ?string $roleFilter = null): array {
         $params = [':tid' => $tenantId];
-        $where = "WHERE u.tenant_id = :tid";
+        $where = 'WHERE u.tenant_id = :tid';
         if ($roleFilter !== null && $roleFilter !== '') {
-            $where .= " AND u.role = :role";
+            $where .= ' AND u.role = :role';
             $params[':role'] = $roleFilter;
         }
         return $this->selectAll(
@@ -163,63 +154,58 @@ class UserRepository extends AbstractRepository
              FROM users u
              {$where}
              ORDER BY u.role ASC, u.name ASC",
-            $params
+            $params,
         );
     }
 
     /**
      * Liste les roles de seance actifs d'un utilisateur.
      */
-    public function listActiveMeetingRolesForUser(string $userId, string $tenantId): array
-    {
+    public function listActiveMeetingRolesForUser(string $userId, string $tenantId): array {
         return $this->selectAll(
-            "SELECT mr.role, mr.meeting_id, m.title AS meeting_title
+            'SELECT mr.role, mr.meeting_id, m.title AS meeting_title
              FROM meeting_roles mr
              JOIN meetings m ON m.id = mr.meeting_id
              WHERE mr.user_id = :uid AND mr.tenant_id = :tid AND mr.revoked_at IS NULL
-             ORDER BY mr.assigned_at DESC",
-            [':uid' => $userId, ':tid' => $tenantId]
+             ORDER BY mr.assigned_at DESC',
+            [':uid' => $userId, ':tid' => $tenantId],
         );
     }
 
     /**
      * Met a jour le hash de cle API d'un utilisateur (rotation).
      */
-    public function rotateApiKey(string $tenantId, string $userId, string $hash): void
-    {
+    public function rotateApiKey(string $tenantId, string $userId, string $hash): void {
         $this->execute(
-            "UPDATE users SET api_key_hash = :h, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
-            [':h' => $hash, ':t' => $tenantId, ':id' => $userId]
+            'UPDATE users SET api_key_hash = :h, updated_at = NOW() WHERE tenant_id = :t AND id = :id',
+            [':h' => $hash, ':t' => $tenantId, ':id' => $userId],
         );
     }
 
     /**
      * Supprime la cle API d'un utilisateur (revocation).
      */
-    public function revokeApiKey(string $tenantId, string $userId): void
-    {
+    public function revokeApiKey(string $tenantId, string $userId): void {
         $this->execute(
-            "UPDATE users SET api_key_hash = NULL, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
-            [':t' => $tenantId, ':id' => $userId]
+            'UPDATE users SET api_key_hash = NULL, updated_at = NOW() WHERE tenant_id = :t AND id = :id',
+            [':t' => $tenantId, ':id' => $userId],
         );
     }
 
     /**
      * Active ou desactive un utilisateur.
      */
-    public function toggleActive(string $tenantId, string $userId, bool $isActive): void
-    {
+    public function toggleActive(string $tenantId, string $userId, bool $isActive): void {
         $this->execute(
-            "UPDATE users SET is_active = :a, updated_at = NOW() WHERE tenant_id = :t AND id = :id",
-            [':a' => $isActive ? 'true' : 'false', ':t' => $tenantId, ':id' => $userId]
+            'UPDATE users SET is_active = :a, updated_at = NOW() WHERE tenant_id = :t AND id = :id',
+            [':a' => $isActive ? 'true' : 'false', ':t' => $tenantId, ':id' => $userId],
         );
     }
 
     /**
      * Supprime un utilisateur (soft delete : desactive et anonymise).
      */
-    public function deleteUser(string $tenantId, string $userId): int
-    {
+    public function deleteUser(string $tenantId, string $userId): int {
         return $this->execute(
             "UPDATE users SET
                 is_active = false,
@@ -229,35 +215,33 @@ class UserRepository extends AbstractRepository
                 name = CONCAT('Utilisateur supprimé #', SUBSTRING(id::text, 1, 8)),
                 updated_at = NOW()
              WHERE tenant_id = :t AND id = :id",
-            [':t' => $tenantId, ':id' => $userId]
+            [':t' => $tenantId, ':id' => $userId],
         );
     }
 
     /**
      * Met a jour les champs d'un utilisateur.
      */
-    public function updateUser(string $tenantId, string $userId, string $email, string $name, ?string $role = null): void
-    {
-        $setClauses = ["email = :e", "name = :n", "updated_at = NOW()"];
+    public function updateUser(string $tenantId, string $userId, string $email, string $name, ?string $role = null): void {
+        $setClauses = ['email = :e', 'name = :n', 'updated_at = NOW()'];
         $params = [':e' => $email, ':n' => $name, ':t' => $tenantId, ':id' => $userId];
         if ($role !== null && $role !== '') {
-            $setClauses[] = "role = :r";
+            $setClauses[] = 'role = :r';
             $params[':r'] = $role;
         }
-        $sql = "UPDATE users SET " . implode(', ', $setClauses) . " WHERE tenant_id = :t AND id = :id";
+        $sql = 'UPDATE users SET ' . implode(', ', $setClauses) . ' WHERE tenant_id = :t AND id = :id';
         $this->execute($sql, $params);
     }
 
     /**
      * Retourne l'ID d'un utilisateur par email (pour verifier unicite).
      */
-    public function findIdByEmail(string $tenantId, string $email): ?string
-    {
+    public function findIdByEmail(string $tenantId, string $email): ?string {
         $val = $this->scalar(
-            "SELECT id FROM users WHERE tenant_id = :t AND email = :e",
-            [':t' => $tenantId, ':e' => $email]
+            'SELECT id FROM users WHERE tenant_id = :t AND email = :e',
+            [':t' => $tenantId, ':e' => $email],
         );
-        return $val !== false && $val !== null ? (string)$val : null;
+        return $val !== false && $val !== null ? (string) $val : null;
     }
 
     /**
@@ -269,12 +253,12 @@ class UserRepository extends AbstractRepository
         string $email,
         string $name,
         string $role,
-        string $passwordHash
+        string $passwordHash,
     ): void {
         $this->execute(
-            "INSERT INTO users (id, tenant_id, email, name, role, password_hash, is_active, created_at, updated_at)
-             VALUES (:id, :t, :e, :n, :r, :h, true, NOW(), NOW())",
-            [':id' => $id, ':t' => $tenantId, ':e' => $email, ':n' => $name, ':r' => $role, ':h' => $passwordHash]
+            'INSERT INTO users (id, tenant_id, email, name, role, password_hash, is_active, created_at, updated_at)
+             VALUES (:id, :t, :e, :n, :r, :h, true, NOW(), NOW())',
+            [':id' => $id, ':t' => $tenantId, ':e' => $email, ':n' => $name, ':r' => $role, ':h' => $passwordHash],
         );
     }
 
@@ -285,26 +269,24 @@ class UserRepository extends AbstractRepository
     /**
      * Liste les roles assignes pour une seance (avec infos utilisateur et assignateur).
      */
-    public function listMeetingRolesForMeeting(string $tenantId, string $meetingId): array
-    {
+    public function listMeetingRolesForMeeting(string $tenantId, string $meetingId): array {
         return $this->selectAll(
-            "SELECT mr.id, mr.user_id, mr.role, mr.assigned_at, mr.revoked_at,
+            'SELECT mr.id, mr.user_id, mr.role, mr.assigned_at, mr.revoked_at,
                     u.name AS user_name, u.email AS user_email, u.role AS system_role,
                     a.name AS assigned_by_name
              FROM meeting_roles mr
              JOIN users u ON u.id = mr.user_id
              LEFT JOIN users a ON a.id = mr.assigned_by
              WHERE mr.tenant_id = :t AND mr.meeting_id = :m AND mr.revoked_at IS NULL
-             ORDER BY mr.role ASC, u.name ASC",
-            [':t' => $tenantId, ':m' => $meetingId]
+             ORDER BY mr.role ASC, u.name ASC',
+            [':t' => $tenantId, ':m' => $meetingId],
         );
     }
 
     /**
      * Resume des roles par seance (toutes les seances avec des roles assignes).
      */
-    public function listMeetingRolesSummary(string $tenantId): array
-    {
+    public function listMeetingRolesSummary(string $tenantId): array {
         return $this->selectAll(
             "SELECT m.id AS meeting_id, m.title, m.status,
                     json_agg(json_build_object(
@@ -318,43 +300,40 @@ class UserRepository extends AbstractRepository
              WHERE mr.tenant_id = :t AND mr.revoked_at IS NULL
              GROUP BY m.id, m.title, m.status
              ORDER BY m.title",
-            [':t' => $tenantId]
+            [':t' => $tenantId],
         );
     }
 
     /**
      * Trouve un utilisateur actif par ID et tenant (id, name).
      */
-    public function findActiveById(string $userId, string $tenantId): ?array
-    {
+    public function findActiveById(string $userId, string $tenantId): ?array {
         return $this->selectOne(
-            "SELECT id, name FROM users WHERE id = :id AND tenant_id = :t AND is_active = true",
-            [':id' => $userId, ':t' => $tenantId]
+            'SELECT id, name FROM users WHERE id = :id AND tenant_id = :t AND is_active = true',
+            [':id' => $userId, ':t' => $tenantId],
         );
     }
 
     /**
      * Trouve le user_id du president actuel d'une seance.
      */
-    public function findExistingPresident(string $tenantId, string $meetingId): ?string
-    {
+    public function findExistingPresident(string $tenantId, string $meetingId): ?string {
         $val = $this->scalar(
             "SELECT user_id FROM meeting_roles
              WHERE tenant_id = :t AND meeting_id = :m AND role = 'president' AND revoked_at IS NULL",
-            [':t' => $tenantId, ':m' => $meetingId]
+            [':t' => $tenantId, ':m' => $meetingId],
         );
-        return $val !== false && $val !== null ? (string)$val : null;
+        return $val !== false && $val !== null ? (string) $val : null;
     }
 
     /**
      * Revoque le role de president pour une seance.
      */
-    public function revokePresidentRole(string $tenantId, string $meetingId): void
-    {
+    public function revokePresidentRole(string $tenantId, string $meetingId): void {
         $this->execute(
             "UPDATE meeting_roles SET revoked_at = NOW()
              WHERE tenant_id = :t AND meeting_id = :m AND role = 'president' AND revoked_at IS NULL",
-            [':t' => $tenantId, ':m' => $meetingId]
+            [':t' => $tenantId, ':m' => $meetingId],
         );
     }
 
@@ -366,13 +345,13 @@ class UserRepository extends AbstractRepository
         string $meetingId,
         string $userId,
         string $role,
-        string $assignedBy
+        string $assignedBy,
     ): void {
         $this->execute(
-            "INSERT INTO meeting_roles (tenant_id, meeting_id, user_id, role, assigned_by, assigned_at)
+            'INSERT INTO meeting_roles (tenant_id, meeting_id, user_id, role, assigned_by, assigned_at)
              VALUES (:t, :m, :u, :r, :by, NOW())
              ON CONFLICT (tenant_id, meeting_id, user_id, role) DO UPDATE
-             SET revoked_at = NULL, assigned_by = :by2, assigned_at = NOW()",
+             SET revoked_at = NULL, assigned_by = :by2, assigned_at = NOW()',
             [
                 ':t' => $tenantId,
                 ':m' => $meetingId,
@@ -380,24 +359,23 @@ class UserRepository extends AbstractRepository
                 ':r' => $role,
                 ':by' => $assignedBy,
                 ':by2' => $assignedBy,
-            ]
+            ],
         );
     }
 
     /**
      * Revoque un role de seance (tous les roles si role est null).
      */
-    public function revokeMeetingRole(string $tenantId, string $meetingId, string $userId, ?string $role = null): void
-    {
-        $where = "tenant_id = :t AND meeting_id = :m AND user_id = :u AND revoked_at IS NULL";
+    public function revokeMeetingRole(string $tenantId, string $meetingId, string $userId, ?string $role = null): void {
+        $where = 'tenant_id = :t AND meeting_id = :m AND user_id = :u AND revoked_at IS NULL';
         $params = [':t' => $tenantId, ':m' => $meetingId, ':u' => $userId];
         if ($role !== null && $role !== '') {
-            $where .= " AND role = :r";
+            $where .= ' AND role = :r';
             $params[':r'] = $role;
         }
         $this->execute(
-            "UPDATE meeting_roles SET revoked_at = NOW() WHERE $where",
-            $params
+            "UPDATE meeting_roles SET revoked_at = NOW() WHERE {$where}",
+            $params,
         );
     }
 
@@ -408,13 +386,12 @@ class UserRepository extends AbstractRepository
     /**
      * Ping la base de donnees et retourne la latence en ms (ou null si erreur).
      */
-    public function dbPing(): ?float
-    {
+    public function dbPing(): ?float {
         $t0 = microtime(true);
         try {
-            $this->scalar("SELECT 1");
+            $this->scalar('SELECT 1');
             return (microtime(true) - $t0) * 1000.0;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return null;
         }
     }
@@ -422,12 +399,11 @@ class UserRepository extends AbstractRepository
     /**
      * Retourne le nombre de connexions actives (ou null si erreur).
      */
-    public function dbActiveConnections(): ?int
-    {
+    public function dbActiveConnections(): ?int {
         try {
-            $val = $this->scalar("SELECT COUNT(*) FROM pg_stat_activity WHERE datname = current_database()");
-            return $val !== null ? (int)$val : null;
-        } catch (\Throwable $e) {
+            $val = $this->scalar('SELECT COUNT(*) FROM pg_stat_activity WHERE datname = current_database()');
+            return $val !== null ? (int) $val : null;
+        } catch (Throwable $e) {
             return null;
         }
     }
@@ -435,14 +411,13 @@ class UserRepository extends AbstractRepository
     /**
      * Compte les evenements d'audit d'un tenant.
      */
-    public function countAuditEvents(string $tenantId): ?int
-    {
+    public function countAuditEvents(string $tenantId): ?int {
         try {
-            return (int)($this->scalar(
-                "SELECT COUNT(*) FROM audit_events WHERE tenant_id = :t",
-                [':t' => $tenantId]
+            return (int) ($this->scalar(
+                'SELECT COUNT(*) FROM audit_events WHERE tenant_id = :t',
+                [':t' => $tenantId],
             ) ?? 0);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return null;
         }
     }
@@ -450,13 +425,12 @@ class UserRepository extends AbstractRepository
     /**
      * Compte les echecs d'authentification des 15 dernieres minutes.
      */
-    public function countAuthFailures15m(): ?int
-    {
+    public function countAuthFailures15m(): ?int {
         try {
-            return (int)($this->scalar(
-                "SELECT COUNT(*) FROM auth_failures WHERE created_at > NOW() - INTERVAL '15 minutes'"
+            return (int) ($this->scalar(
+                "SELECT COUNT(*) FROM auth_failures WHERE created_at > NOW() - INTERVAL '15 minutes'",
             ) ?? 0);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return null;
         }
     }
@@ -464,11 +438,10 @@ class UserRepository extends AbstractRepository
     /**
      * Insere une ligne dans system_metrics.
      */
-    public function insertSystemMetric(array $data): void
-    {
+    public function insertSystemMetric(array $data): void {
         $this->execute(
-            "INSERT INTO system_metrics(server_time, db_latency_ms, db_active_connections, disk_free_bytes, disk_total_bytes, count_meetings, count_motions, count_vote_tokens, count_audit_events, auth_failures_15m)
-             VALUES (:st,:lat,:ac,:free,:tot,:cm,:cmo,:ct,:ca,:af)",
+            'INSERT INTO system_metrics(server_time, db_latency_ms, db_active_connections, disk_free_bytes, disk_total_bytes, count_meetings, count_motions, count_vote_tokens, count_audit_events, auth_failures_15m)
+             VALUES (:st,:lat,:ac,:free,:tot,:cm,:cmo,:ct,:ca,:af)',
             [
                 ':st' => $data['server_time'],
                 ':lat' => $data['db_latency_ms'],
@@ -480,42 +453,39 @@ class UserRepository extends AbstractRepository
                 ':ct' => $data['count_vote_tokens'],
                 ':ca' => $data['count_audit_events'],
                 ':af' => $data['auth_failures_15m'],
-            ]
+            ],
         );
     }
 
     /**
      * Verifie si une alerte systeme recente existe (10 min) pour un code donne.
      */
-    public function findRecentAlert(string $code): bool
-    {
-        return (bool)$this->scalar(
+    public function findRecentAlert(string $code): bool {
+        return (bool) $this->scalar(
             "SELECT 1 FROM system_alerts WHERE code = :c AND created_at > NOW() - INTERVAL '10 minutes' LIMIT 1",
-            [':c' => $code]
+            [':c' => $code],
         );
     }
 
     /**
      * Insere une alerte systeme.
      */
-    public function insertSystemAlert(string $code, string $severity, string $message, ?string $detailsJson): void
-    {
+    public function insertSystemAlert(string $code, string $severity, string $message, ?string $detailsJson): void {
         $this->execute(
-            "INSERT INTO system_alerts(code, severity, message, details_json, created_at) VALUES (:c,:s,:m,:d,NOW())",
-            [':c' => $code, ':s' => $severity, ':m' => $message, ':d' => $detailsJson]
+            'INSERT INTO system_alerts(code, severity, message, details_json, created_at) VALUES (:c,:s,:m,:d,NOW())',
+            [':c' => $code, ':s' => $severity, ':m' => $message, ':d' => $detailsJson],
         );
     }
 
     /**
      * Liste les alertes systeme recentes.
      */
-    public function listRecentAlerts(int $limit = 20): array
-    {
+    public function listRecentAlerts(int $limit = 20): array {
         try {
             return $this->selectAll(
-                "SELECT id, created_at, code, severity, message, details_json FROM system_alerts ORDER BY created_at DESC LIMIT " . max(1, $limit)
+                'SELECT id, created_at, code, severity, message, details_json FROM system_alerts ORDER BY created_at DESC LIMIT ' . max(1, $limit),
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return [];
         }
     }

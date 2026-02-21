@@ -1,9 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core\Security;
 
 use AgVote\Repository\UserRepository;
+use Throwable;
 
 /**
  * PermissionChecker - RBAC permission verification service.
@@ -11,14 +13,12 @@ use AgVote\Repository\UserRepository;
  * Encapsulates permission logic in a testable service.
  * Delegates to AuthMiddleware but provides a cleaner API.
  */
-class PermissionChecker
-{
+class PermissionChecker {
     private array $permissions;
     private array $transitions;
     private array $roleHierarchy;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->permissions = Permissions::PERMISSIONS;
         $this->transitions = Permissions::TRANSITIONS;
         $this->roleHierarchy = Permissions::HIERARCHY;
@@ -27,8 +27,7 @@ class PermissionChecker
     /**
      * Verifie si un utilisateur a une permission.
      */
-    public function check(array $user, string $permission, ?string $meetingId = null): bool
-    {
+    public function check(array $user, string $permission, ?string $meetingId = null): bool {
         $systemRole = $this->normalizeRole($user['role'] ?? 'anonymous');
 
         // Admin a toutes les permissions
@@ -71,8 +70,7 @@ class PermissionChecker
     /**
      * Verifie si une transition d'etat est autorisee.
      */
-    public function canTransition(array $user, string $from, string $to, ?string $meetingId = null): bool
-    {
+    public function canTransition(array $user, string $from, string $to, ?string $meetingId = null): bool {
         $allowed = $this->transitions[$from] ?? [];
         if (!isset($allowed[$to])) {
             return false;
@@ -99,8 +97,7 @@ class PermissionChecker
     /**
      * Retourne les transitions disponibles pour un etat donne.
      */
-    public function availableTransitions(array $user, string $currentStatus, ?string $meetingId = null): array
-    {
+    public function availableTransitions(array $user, string $currentStatus, ?string $meetingId = null): array {
         $all = $this->transitions[$currentStatus] ?? [];
         $result = [];
 
@@ -119,8 +116,7 @@ class PermissionChecker
     /**
      * Verifie si l'utilisateur a au moins un des roles requis.
      */
-    public function hasRole(array $user, array $roles, ?string $meetingId = null): bool
-    {
+    public function hasRole(array $user, array $roles, ?string $meetingId = null): bool {
         $systemRole = $this->normalizeRole($user['role'] ?? 'anonymous');
 
         // Admin a tous les roles
@@ -158,8 +154,7 @@ class PermissionChecker
     /**
      * Retourne toutes les permissions d'un utilisateur.
      */
-    public function getPermissions(array $user, ?string $meetingId = null): array
-    {
+    public function getPermissions(array $user, ?string $meetingId = null): array {
         $result = [];
         foreach (array_keys($this->permissions) as $permission) {
             if ($this->check($user, $permission, $meetingId)) {
@@ -172,8 +167,7 @@ class PermissionChecker
     /**
      * Normalise un nom de role.
      */
-    private function normalizeRole(string $role): string
-    {
+    private function normalizeRole(string $role): string {
         $role = strtolower(trim($role));
         $aliases = [
             'trust' => 'assessor',
@@ -185,16 +179,14 @@ class PermissionChecker
     /**
      * Verifie si un role est un role de seance.
      */
-    private function isMeetingRole(string $role): bool
-    {
+    private function isMeetingRole(string $role): bool {
         return in_array($role, ['president', 'assessor', 'voter'], true);
     }
 
     /**
      * Recupere les roles de seance d'un utilisateur.
      */
-    private function getMeetingRoles(array $user, ?string $meetingId): array
-    {
+    private function getMeetingRoles(array $user, ?string $meetingId): array {
         if ($meetingId === null || !isset($user['id'])) {
             return [];
         }
@@ -203,7 +195,7 @@ class PermissionChecker
             $repo = new UserRepository();
             $tenantId = $user['tenant_id'] ?? $this->getDefaultTenantId();
             return $repo->listUserRolesForMeeting($tenantId, $meetingId, $user['id']);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return [];
         }
     }
@@ -211,8 +203,7 @@ class PermissionChecker
     /**
      * Retourne le tenant par defaut.
      */
-    private function getDefaultTenantId(): string
-    {
+    private function getDefaultTenantId(): string {
         return defined('DEFAULT_TENANT_ID')
             ? DEFAULT_TENANT_ID
             : 'aaaaaaaa-1111-2222-3333-444444444444';
@@ -221,8 +212,7 @@ class PermissionChecker
     /**
      * Retourne la configuration des permissions.
      */
-    public function getConfig(): array
-    {
+    public function getConfig(): array {
         return [
             'permissions' => $this->permissions,
             'transitions' => $this->transitions,

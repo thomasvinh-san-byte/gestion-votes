@@ -1,20 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
-use AgVote\Repository\BallotRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\ProxyRepository;
 
-final class TrustController extends AbstractController
-{
-    public function anomalies(): void
-    {
+final class TrustController extends AbstractController {
+    public function anomalies(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -54,7 +53,7 @@ final class TrustController extends AbstractController
                 'description' => sprintf('%s a %d votes sur "%s"', $row['full_name'], $row['vote_count'], $row['motion_title']),
                 'member_id' => $row['member_id'],
                 'member_name' => $row['full_name'],
-                'vote_count' => (int)$row['vote_count'],
+                'vote_count' => (int) $row['vote_count'],
             ];
         }
 
@@ -69,8 +68,8 @@ final class TrustController extends AbstractController
                 'description' => sprintf('%s: poids voté %.2f ≠ poids membre %.2f sur "%s"', $row['full_name'], $row['actual_weight'], $row['expected_weight'], $row['motion_title']),
                 'member_id' => $row['member_id'],
                 'member_name' => $row['full_name'],
-                'expected_weight' => (float)$row['expected_weight'],
-                'actual_weight' => (float)$row['actual_weight'],
+                'expected_weight' => (float) $row['expected_weight'],
+                'actual_weight' => (float) $row['actual_weight'],
             ];
         }
 
@@ -119,18 +118,24 @@ final class TrustController extends AbstractController
         foreach ($anomalies as &$a) {
             $a['message'] = $a['description'] ?? '';
             $parts = [];
-            if (!empty($a['member_name'])) $parts[] = $a['member_name'];
-            if (!empty($a['motion_title'])) $parts[] = $a['motion_title'];
-            if (!empty($a['giver_name'])) $parts[] = $a['giver_name'] . ' → ' . ($a['receiver_name'] ?? '');
+            if (!empty($a['member_name'])) {
+                $parts[] = $a['member_name'];
+            }
+            if (!empty($a['motion_title'])) {
+                $parts[] = $a['motion_title'];
+            }
+            if (!empty($a['giver_name'])) {
+                $parts[] = $a['giver_name'] . ' → ' . ($a['receiver_name'] ?? '');
+            }
             $a['context'] = implode(' · ', $parts) ?: null;
         }
         unset($a);
 
         $summary = [
             'total' => count($anomalies),
-            'danger' => count(array_filter($anomalies, fn($a) => $a['severity'] === 'danger')),
-            'warning' => count(array_filter($anomalies, fn($a) => $a['severity'] === 'warning')),
-            'info' => count(array_filter($anomalies, fn($a) => $a['severity'] === 'info')),
+            'danger' => count(array_filter($anomalies, fn ($a) => $a['severity'] === 'danger')),
+            'warning' => count(array_filter($anomalies, fn ($a) => $a['severity'] === 'warning')),
+            'info' => count(array_filter($anomalies, fn ($a) => $a['severity'] === 'info')),
         ];
 
         api_ok([
@@ -140,8 +145,7 @@ final class TrustController extends AbstractController
         ]);
     }
 
-    public function checks(): void
-    {
+    public function checks(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -150,11 +154,11 @@ final class TrustController extends AbstractController
         $tenantId = api_current_tenant_id();
 
         $meetingRepo = new MeetingRepository();
-        $statsRepo   = new MeetingStatsRepository();
-        $memberRepo  = new MemberRepository();
-        $motionRepo  = new MotionRepository();
-        $ballotRepo  = new BallotRepository();
-        $policyRepo  = new PolicyRepository();
+        $statsRepo = new MeetingStatsRepository();
+        $memberRepo = new MemberRepository();
+        $motionRepo = new MotionRepository();
+        $ballotRepo = new BallotRepository();
+        $policyRepo = new PolicyRepository();
 
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
@@ -187,10 +191,10 @@ final class TrustController extends AbstractController
         if ($meeting['quorum_policy_id']) {
             $policy = $policyRepo->findQuorumPolicy($meeting['quorum_policy_id']);
             if ($policy) {
-                $quorumThreshold = (float)($policy['threshold'] ?? 0.5);
+                $quorumThreshold = (float) ($policy['threshold'] ?? 0.5);
             }
         }
-        $quorumRequired = (int)ceil($totalMembers * $quorumThreshold);
+        $quorumRequired = (int) ceil($totalMembers * $quorumThreshold);
         $quorumMet = $presentCount >= $quorumRequired;
         $checks[] = [
             'id' => 'quorum_met',
@@ -270,7 +274,7 @@ final class TrustController extends AbstractController
             'detail' => $quorumPolicyDefined ? 'Politique de quorum définie' : 'Aucune politique de quorum définie (défaut 50%)',
         ];
 
-        $passedCount = count(array_filter($checks, fn($c) => $c['passed']));
+        $passedCount = count(array_filter($checks, fn ($c) => $c['passed']));
         $failedCount = count($checks) - $passedCount;
 
         api_ok([

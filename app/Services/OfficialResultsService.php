@@ -1,12 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
 
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -21,50 +23,64 @@ use RuntimeException;
  * - Uses the same quorum/majority logic as VoteEngine (quorum_policies / vote_policies).
  * - In manual mode, applies these policies on manual totals (with expressed_members approx = manual_total).
  */
-final class OfficialResultsService
-{
+final class OfficialResultsService {
+    private MotionRepository $motionRepo;
+    private BallotRepository $ballotRepo;
+    private MemberRepository $memberRepo;
+    private PolicyRepository $policyRepo;
+    private AttendanceRepository $attendanceRepo;
+
+    public function __construct(
+        ?MotionRepository $motionRepo = null,
+        ?BallotRepository $ballotRepo = null,
+        ?MemberRepository $memberRepo = null,
+        ?PolicyRepository $policyRepo = null,
+        ?AttendanceRepository $attendanceRepo = null,
+    ) {
+        $this->motionRepo = $motionRepo ?? new MotionRepository();
+        $this->ballotRepo = $ballotRepo ?? new BallotRepository();
+        $this->memberRepo = $memberRepo ?? new MemberRepository();
+        $this->policyRepo = $policyRepo ?? new PolicyRepository();
+        $this->attendanceRepo = $attendanceRepo ?? new AttendanceRepository();
+    }
+
     /**
      * Applies quorum/majority policies to weighted vote totals.
      * Delegates the core calculation to VoteEngine::computeDecision() (single source of truth).
      *
      * @return array{decision:string,reason:string,quorum_met:bool|null,majority_ratio:float|null,majority_threshold:float|null,majority_base:string|null}
      */
-    private static function decideWithPolicies(array $motion, float $forWeight, float $againstWeight, float $abstainWeight, float $expressedWeight, int $expressedMembersApprox): array
-    {
-        $tenantId = (string)$motion['tenant_id'];
+    private function decideWithPolicies(array $motion, float $forWeight, float $againstWeight, float $abstainWeight, float $expressedWeight, int $expressedMembersApprox): array {
+        $tenantId = (string) $motion['tenant_id'];
 
-        $memberRepo = new MemberRepository();
-        $eligibleMembers = $memberRepo->countActive($tenantId);
-        $eligibleWeight  = $memberRepo->sumActiveWeight($tenantId);
+        $eligibleMembers = $this->memberRepo->countActive($tenantId);
+        $eligibleWeight = $this->memberRepo->sumActiveWeight($tenantId);
 
         // Quorum policy: motion-level > meeting-level (inheritance)
         $appliedQuorumPolicyId = !empty($motion['quorum_policy_id'])
-            ? (string)$motion['quorum_policy_id']
-            : (!empty($motion['meeting_quorum_policy_id']) ? (string)$motion['meeting_quorum_policy_id'] : '');
-
-        $policyRepo = new PolicyRepository();
+            ? (string) $motion['quorum_policy_id']
+            : (!empty($motion['meeting_quorum_policy_id']) ? (string) $motion['meeting_quorum_policy_id'] : '');
 
         $quorumPolicy = null;
         if ($appliedQuorumPolicyId !== '') {
-            $quorumPolicy = $policyRepo->findQuorumPolicy($appliedQuorumPolicyId);
+            $quorumPolicy = $this->policyRepo->findQuorumPolicy($appliedQuorumPolicyId);
         }
 
         // Vote policy: motion-level > meeting-level (inheritance)
         $appliedVotePolicyId = !empty($motion['vote_policy_id'])
-            ? (string)$motion['vote_policy_id']
-            : (!empty($motion['meeting_vote_policy_id']) ? (string)$motion['meeting_vote_policy_id'] : '');
+            ? (string) $motion['vote_policy_id']
+            : (!empty($motion['meeting_vote_policy_id']) ? (string) $motion['meeting_vote_policy_id'] : '');
 
         $votePolicy = null;
         if ($appliedVotePolicyId !== '') {
-            $votePolicy = $policyRepo->findVotePolicy($appliedVotePolicyId);
+            $votePolicy = $this->policyRepo->findVotePolicy($appliedVotePolicyId);
         }
 
         // Resolve present weight for 'present' majority base
         $presentWeight = null;
         if ($votePolicy && ($votePolicy['base'] ?? '') === 'present') {
-            $meetingId = (string)($motion['meeting_id'] ?? '');
-            $attendanceRepo = new \AgVote\Repository\AttendanceRepository();
-            $presentWeight = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
+            $meetingId = (string) ($motion['meeting_id'] ?? '');
+            $presentWeight = $this->attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
         }
 
         // Delegate to VoteEngine (single source of truth for quorum/majority)
@@ -81,14 +97,14 @@ final class OfficialResultsService
             $presentWeight,
         );
 
-        $quorumMet         = $calc['quorum']['met'];
-        $quorumRatio       = $calc['quorum']['ratio'];
-        $quorumThreshold   = $calc['quorum']['threshold'];
-        $quorumBasis       = $calc['quorum']['basis'];
-        $adopted           = $calc['majority']['met'];
-        $majorityRatio     = $calc['majority']['ratio'];
+        $quorumMet = $calc['quorum']['met'];
+        $quorumRatio = $calc['quorum']['ratio'];
+        $quorumThreshold = $calc['quorum']['threshold'];
+        $quorumBasis = $calc['quorum']['basis'];
+        $adopted = $calc['majority']['met'];
+        $majorityRatio = $calc['majority']['ratio'];
         $majorityThreshold = $calc['majority']['threshold'];
-        $majorityBase      = $calc['majority']['base'];
+        $majorityBase = $calc['majority']['base'];
 
         // Build explicit French reason
         $status = 'rejected';
@@ -150,15 +166,14 @@ final class OfficialResultsService
     /**
      * Formats a percentage for decision reasons
      */
-    private static function formatPct(?float $value): string
-    {
+    private static function formatPct(?float $value): string {
         if ($value === null) {
             return '0%';
         }
         $pct = $value * 100;
         // Display without decimals if integer, otherwise 1 decimal
         if (abs($pct - round($pct)) < 0.01) {
-            return number_format((int)round($pct), 0, ',', ' ') . '%';
+            return number_format((int) round($pct), 0, ',', ' ') . '%';
         }
         return number_format($pct, 1, ',', ' ') . '%';
     }
@@ -166,10 +181,9 @@ final class OfficialResultsService
     /**
      * Formats a weight for decision reasons
      */
-    private static function formatWeight(float $value): string
-    {
+    private static function formatWeight(float $value): string {
         if (abs($value - round($value)) < 0.0001) {
-            return number_format((int)round($value), 0, ',', ' ');
+            return number_format((int) round($value), 0, ',', ' ');
         }
         return number_format($value, 2, ',', ' ');
     }
@@ -177,8 +191,7 @@ final class OfficialResultsService
     /**
      * Returns the French label for majority base
      */
-    private static function getMajorityBaseLabel(?string $base): string
-    {
+    private static function getMajorityBaseLabel(?string $base): string {
         return match ($base) {
             'expressed' => 'des exprimés',
             'eligible' => 'des éligibles',
@@ -190,8 +203,7 @@ final class OfficialResultsService
     /**
      * Builds an explicit reason from VoteEngine data
      */
-    private static function buildExplicitReasonFromVoteEngine(array $result, float $forWeight, float $againstWeight, string $status): string
-    {
+    private static function buildExplicitReasonFromVoteEngine(array $result, float $forWeight, float $againstWeight, string $status): string {
         $quorum = $result['quorum'] ?? [];
         $majority = $result['majority'] ?? [];
 
@@ -243,33 +255,33 @@ final class OfficialResultsService
     /**
      * @return array{source:string,for:float,against:float,abstain:float,total:float,decision:string,reason:string}
      */
-    public static function computeOfficialTallies(string $motionId): array
-    {
+    public function computeOfficialTallies(string $motionId): array {
         $motionId = trim($motionId);
-        if ($motionId === '') throw new InvalidArgumentException('motion_id obligatoire');
+        if ($motionId === '') {
+            throw new InvalidArgumentException('motion_id obligatoire');
+        }
 
-        $motionRepo = new MotionRepository();
-        $motion = $motionRepo->findWithOfficialContext($motionId);
+        $motion = $this->motionRepo->findWithOfficialContext($motionId);
         if (!$motion) {
             throw new RuntimeException('motion_not_found');
         }
 
-        $manualTotal = (float)($motion['manual_total'] ?? 0);
-        $manualFor   = (float)($motion['manual_for'] ?? 0);
-        $manualAg    = (float)($motion['manual_against'] ?? 0);
-        $manualAb    = (float)($motion['manual_abstain'] ?? 0);
+        $manualTotal = (float) ($motion['manual_total'] ?? 0);
+        $manualFor = (float) ($motion['manual_for'] ?? 0);
+        $manualAg = (float) ($motion['manual_against'] ?? 0);
+        $manualAb = (float) ($motion['manual_abstain'] ?? 0);
 
         $manualOk = ($manualTotal > 0) && abs(($manualFor + $manualAg + $manualAb) - $manualTotal) < 0.000001;
 
         if ($manualOk) {
             $expressedWeight = $manualFor + $manualAg + $manualAb;
-            $decision = self::decideWithPolicies(
+            $decision = $this->decideWithPolicies(
                 $motion,
                 $manualFor,
                 $manualAg,
                 $manualAb,
                 $expressedWeight,
-                (int)round($manualTotal)
+                (int) round($manualTotal),
             );
 
             return [
@@ -284,16 +296,15 @@ final class OfficialResultsService
         }
 
         // EVOTE: totals from ballots + decision from VoteEngine
-        $ballotRepo = new BallotRepository();
-        $t = $ballotRepo->tally($motionId, (string)$motion['tenant_id']);
+        $t = $this->ballotRepo->tally($motionId, (string) $motion['tenant_id']);
 
-        $forW = (float)$t['weight_for'];
-        $agW  = (float)$t['weight_against'];
-        $abW  = (float)$t['weight_abstain'];
-        $totW = (float)$t['weight_total'];
+        $forW = (float) $t['weight_for'];
+        $agW = (float) $t['weight_against'];
+        $abW = (float) $t['weight_abstain'];
+        $totW = (float) $t['weight_total'];
 
-        $r = VoteEngine::computeMotionResult($motionId);
-        $status = (string)($r['decision']['status'] ?? (($forW > $agW) ? 'adopted' : 'rejected'));
+        $r = (new VoteEngine())->computeMotionResult($motionId);
+        $status = (string) ($r['decision']['status'] ?? (($forW > $agW) ? 'adopted' : 'rejected'));
 
         // Build explicit reason from VoteEngine data
         $reason = self::buildExplicitReasonFromVoteEngine($r, $forW, $agW, $status);
@@ -311,14 +322,13 @@ final class OfficialResultsService
 
     /**
      * Compute and persist official results for a single motion.
+     *
      * @return array{source:string,for:float,against:float,abstain:float,total:float,decision:string,reason:string}
      */
-    public static function computeAndPersistMotion(string $motionId, string $tenantId): array
-    {
-        $o = self::computeOfficialTallies($motionId);
+    public function computeAndPersistMotion(string $motionId, string $tenantId): array {
+        $o = $this->computeOfficialTallies($motionId);
 
-        $motionRepo = new MotionRepository();
-        $motionRepo->updateOfficialResults(
+        $this->motionRepo->updateOfficialResults(
             $motionId,
             $o['source'],
             $o['for'],
@@ -327,25 +337,23 @@ final class OfficialResultsService
             $o['total'],
             $o['decision'],
             $o['reason'],
-            $tenantId
+            $tenantId,
         );
 
         return $o;
     }
 
     /** @return array{updated:int} */
-    public static function consolidateMeeting(string $meetingId, string $tenantId): array
-    {
-        $motionRepo = new MotionRepository();
-        $motions = $motionRepo->listClosedForMeeting($meetingId, $tenantId);
+    public function consolidateMeeting(string $meetingId, string $tenantId): array {
+        $motions = $this->motionRepo->listClosedForMeeting($meetingId, $tenantId);
 
         $updated = 0;
-        api_transaction(function () use ($motions, $motionRepo, $tenantId, &$updated) {
+        api_transaction(function () use ($motions, $tenantId, &$updated) {
             foreach ($motions as $m) {
-                $mid = (string)$m['id'];
-                $o = self::computeOfficialTallies($mid);
+                $mid = (string) $m['id'];
+                $o = $this->computeOfficialTallies($mid);
 
-                $motionRepo->updateOfficialResults(
+                $this->motionRepo->updateOfficialResults(
                     $mid,
                     $o['source'],
                     $o['for'],
@@ -354,7 +362,7 @@ final class OfficialResultsService
                     $o['total'],
                     $o['decision'],
                     $o['reason'],
-                    $tenantId
+                    $tenantId,
                 );
                 $updated++;
             }

@@ -1,34 +1,31 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\PolicyRepository;
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
+use AgVote\Repository\PolicyRepository;
 
 /**
  * Consolidates 4 policy endpoints (quorum + vote, public list + admin CRUD).
  *
  * The two admin methods share the same GET/POST/delete/upsert skeleton.
  */
-final class PoliciesController extends AbstractController
-{
-    public function listQuorum(): void
-    {
+final class PoliciesController extends AbstractController {
+    public function listQuorum(): void {
         api_request('GET');
         $rows = (new PolicyRepository())->listQuorumPolicies(api_current_tenant_id());
         api_ok(['items' => $rows]);
     }
 
-    public function listVote(): void
-    {
+    public function listVote(): void {
         api_request('GET');
         $rows = (new PolicyRepository())->listVotePolicies(api_current_tenant_id());
         api_ok(['items' => $rows]);
     }
 
-    public function adminQuorum(): void
-    {
+    public function adminQuorum(): void {
         $method = api_method();
         $repo = new PolicyRepository();
         $tenantId = api_current_tenant_id();
@@ -40,10 +37,10 @@ final class PoliciesController extends AbstractController
 
         if ($method === 'POST') {
             $in = api_request('POST');
-            $action = trim((string)($in['action'] ?? ''));
+            $action = trim((string) ($in['action'] ?? ''));
 
             if ($action === 'delete') {
-                $id = trim((string)($in['id'] ?? ''));
+                $id = trim((string) ($in['id'] ?? ''));
                 if ($id === '' || !api_is_uuid($id)) {
                     api_fail('missing_id', 400);
                 }
@@ -52,7 +49,7 @@ final class PoliciesController extends AbstractController
                 api_ok(['deleted' => true, 'id' => $id]);
             }
 
-            $id = trim((string)($in['id'] ?? ''));
+            $id = trim((string) ($in['id'] ?? ''));
             $v = ValidationSchemas::quorumPolicy()->validate($in);
             $v->failIfInvalid();
 
@@ -72,16 +69,34 @@ final class PoliciesController extends AbstractController
                     api_fail('invalid_id', 400);
                 }
                 $repo->updateQuorumPolicy(
-                    $id, $tenantId, $name, $desc,
-                    $mode, $den, $threshold, $thresholdCall2,
-                    $den2, $threshold2, $includeProxies, $countRemote
+                    $id,
+                    $tenantId,
+                    $name,
+                    $desc,
+                    $mode,
+                    $den,
+                    $threshold,
+                    $thresholdCall2,
+                    $den2,
+                    $threshold2,
+                    $includeProxies,
+                    $countRemote,
                 );
             } else {
                 $id = $repo->generateUuid();
                 $repo->createQuorumPolicy(
-                    $id, $tenantId, $name, $mode, $den, $threshold,
-                    $threshold2, $den2,
-                    $includeProxies, $countRemote, $thresholdCall2, $desc
+                    $id,
+                    $tenantId,
+                    $name,
+                    $mode,
+                    $den,
+                    $threshold,
+                    $threshold2,
+                    $den2,
+                    $includeProxies,
+                    $countRemote,
+                    $thresholdCall2,
+                    $desc,
                 );
             }
 
@@ -92,8 +107,7 @@ final class PoliciesController extends AbstractController
         api_fail('method_not_allowed', 405);
     }
 
-    public function adminVote(): void
-    {
+    public function adminVote(): void {
         $method = api_method();
         $repo = new PolicyRepository();
         $tenantId = api_current_tenant_id();
@@ -105,10 +119,10 @@ final class PoliciesController extends AbstractController
 
         if ($method === 'POST') {
             $in = api_request('POST');
-            $action = trim((string)($in['action'] ?? ''));
+            $action = trim((string) ($in['action'] ?? ''));
 
             if ($action === 'delete') {
-                $id = trim((string)($in['id'] ?? ''));
+                $id = trim((string) ($in['id'] ?? ''));
                 if ($id === '' || !api_is_uuid($id)) {
                     api_fail('missing_id', 400);
                 }
@@ -117,7 +131,7 @@ final class PoliciesController extends AbstractController
                 api_ok(['deleted' => true, 'id' => $id]);
             }
 
-            $id = trim((string)($in['id'] ?? ''));
+            $id = trim((string) ($in['id'] ?? ''));
             $v = ValidationSchemas::votePolicy()->validate($in);
             $v->failIfInvalid();
 

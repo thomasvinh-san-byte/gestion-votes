@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -17,16 +18,15 @@ use AgVote\Service\OfficialResultsService;
 use AgVote\Service\VoteEngine;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use Throwable;
 
 /**
  * Consolidates 5 meeting report endpoints.
  *
  * Shared pattern: meeting validation, report generation (HTML/PDF), MeetingRepository.
  */
-final class MeetingReportsController extends AbstractController
-{
-    public function report(): void
-    {
+final class MeetingReportsController extends AbstractController {
+    public function report(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -55,11 +55,13 @@ final class MeetingReportsController extends AbstractController
                 $snap = (new MeetingReportRepository())->findSnapshot($meetingId);
                 if ($snap && !empty($snap['html'])) {
                     header('Content-Type: text/html; charset=utf-8');
-                    echo (string)$snap['html'];
+                    echo (string) $snap['html'];
                     exit;
                 }
-            } catch (\Throwable $e) {
-                if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+            } catch (Throwable $e) {
+                if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                    throw $e;
+                }
             }
         }
 
@@ -69,20 +71,24 @@ final class MeetingReportsController extends AbstractController
         $proxies = [];
         try {
             $proxies = (new ProxyRepository())->listForReport($meetingId);
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
         }
 
         $tokens = [];
         try {
             $tokens = $invitationRepo->listTokensForReport($meetingId);
-        } catch (\Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+        } catch (Throwable $e) {
+            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                throw $e;
+            }
         }
 
         $rowsHtml = '';
         foreach ($motions as $m) {
-            $mid = (string)$m['id'];
+            $mid = (string) $m['id'];
 
             $votePolicy = null;
             if (!empty($m['vote_policy_id'])) {
@@ -93,14 +99,14 @@ final class MeetingReportsController extends AbstractController
                 $quorumPolicy = $policyRepo->findQuorumPolicy($m['quorum_policy_id']);
             }
 
-            $src = (string)($m['official_source'] ?? '');
+            $src = (string) ($m['official_source'] ?? '');
             $hasOfficial = $src !== '' && $m['official_total'] !== null;
 
             $detail = ['quorum_met' => null, 'quorum_ratio' => null, 'majority_ratio' => null, 'majority_threshold' => null, 'majority_base' => null];
 
             if (!$hasOfficial && $m['closed_at'] !== null) {
                 try {
-                    $o = OfficialResultsService::computeOfficialTallies($mid);
+                    $o = (new OfficialResultsService())->computeOfficialTallies($mid);
                     $src = $o['source'];
                     $of = $o['for'];
                     $og = $o['against'];
@@ -109,8 +115,10 @@ final class MeetingReportsController extends AbstractController
                     $dec = $o['decision'];
                     $reas = $o['reason'];
                     $note = ' (calculé)';
-                } catch (\Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+                } catch (Throwable $e) {
+                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                        throw $e;
+                    }
                     $src = '—';
                     $of = $og = $oa = $ot = 0.0;
                     $dec = '—';
@@ -118,47 +126,49 @@ final class MeetingReportsController extends AbstractController
                     $note = ' (erreur calc)';
                 }
             } else {
-                $of = (float)($m['official_for'] ?? 0);
-                $og = (float)($m['official_against'] ?? 0);
-                $oa = (float)($m['official_abstain'] ?? 0);
-                $ot = (float)($m['official_total'] ?? 0);
-                $dec = (string)($m['decision'] ?? '—');
-                $reas = (string)($m['decision_reason'] ?? '');
+                $of = (float) ($m['official_for'] ?? 0);
+                $og = (float) ($m['official_against'] ?? 0);
+                $oa = (float) ($m['official_abstain'] ?? 0);
+                $ot = (float) ($m['official_total'] ?? 0);
+                $dec = (string) ($m['decision'] ?? '—');
+                $reas = (string) ($m['decision_reason'] ?? '');
                 $note = '';
             }
 
             try {
                 if ($src === 'evote') {
-                    $r = VoteEngine::computeMotionResult($mid);
+                    $r = (new VoteEngine())->computeMotionResult($mid);
                     $detail['quorum_met'] = $r['quorum']['met'] ?? null;
                     $detail['quorum_ratio'] = $r['quorum']['ratio'] ?? null;
                     $detail['majority_ratio'] = $r['decision']['ratio'] ?? ($r['majority']['ratio'] ?? null);
                     $detail['majority_threshold'] = $r['decision']['threshold'] ?? ($r['majority']['threshold'] ?? null);
                     $detail['majority_base'] = $r['decision']['base'] ?? ($r['majority']['base'] ?? null);
                 }
-            } catch (\Throwable $e) {
-                if ($e instanceof \AgVote\Core\Http\ApiResponseException) throw $e;
+            } catch (Throwable $e) {
+                if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
+                    throw $e;
+                }
             }
 
             $pol = self::policyLabel($votePolicy, $quorumPolicy);
             $detailLines = [];
             if ($detail['quorum_met'] !== null) {
                 $qm = $detail['quorum_met'] ? 'oui' : 'non';
-                $qr = ($detail['quorum_ratio'] !== null) ? number_format((float)$detail['quorum_ratio'], 4, '.', '') : '—';
-                $detailLines[] = "Quorum atteint: $qm (ratio: $qr)";
+                $qr = ($detail['quorum_ratio'] !== null) ? number_format((float) $detail['quorum_ratio'], 4, '.', '') : '—';
+                $detailLines[] = "Quorum atteint: {$qm} (ratio: {$qr})";
             }
             if ($detail['majority_ratio'] !== null) {
-                $mr = number_format((float)$detail['majority_ratio'], 4, '.', '');
-                $mt = ($detail['majority_threshold'] !== null) ? number_format((float)$detail['majority_threshold'], 4, '.', '') : '—';
+                $mr = number_format((float) $detail['majority_ratio'], 4, '.', '');
+                $mt = ($detail['majority_threshold'] !== null) ? number_format((float) $detail['majority_threshold'], 4, '.', '') : '—';
                 $mb = $detail['majority_base'] ?? '—';
-                $detailLines[] = "Majorité: base $mb · ratio $mr · seuil $mt";
+                $detailLines[] = "Majorité: base {$mb} · ratio {$mr} · seuil {$mt}";
             }
 
             $detailHtml = '';
             if ($pol || $detailLines) {
-                $detailHtml .= "<div class='muted tiny'>" . self::h($pol) . "</div>";
+                $detailHtml .= "<div class='muted tiny'>" . self::h($pol) . '</div>';
                 if ($detailLines) {
-                    $detailHtml .= "<div class='muted tiny'>" . self::h(implode(' · ', $detailLines)) . "</div>";
+                    $detailHtml .= "<div class='muted tiny'>" . self::h(implode(' · ', $detailLines)) . '</div>';
                 }
             }
 
@@ -179,39 +189,39 @@ final class MeetingReportsController extends AbstractController
         $presentWeight = 0.0;
         $totalWeight = 0.0;
         foreach ($attendance as $r) {
-            $mode = (string)($r['mode'] ?? '');
-            $name = (string)($r['full_name'] ?? '');
-            $vp = (float)($r['voting_power'] ?? 0);
+            $mode = (string) ($r['mode'] ?? '');
+            $name = (string) ($r['full_name'] ?? '');
+            $vp = (float) ($r['voting_power'] ?? 0);
             $totalWeight += $vp;
             $isPresent = in_array($mode, ['present', 'remote', 'proxy'], true);
             if ($isPresent) {
                 $presentCount++;
                 $presentWeight += $vp;
             }
-            $attRows .= "<tr><td>" . self::h($name) . "</td><td>" . self::h(self::modeLabel($mode)) . "</td><td class='num'>" . self::h(self::fmtNum($vp)) . "</td><td class='tiny muted'>" . self::h((string)($r['checked_in_at'] ?? '')) . "</td></tr>";
+            $attRows .= '<tr><td>' . self::h($name) . '</td><td>' . self::h(self::modeLabel($mode)) . "</td><td class='num'>" . self::h(self::fmtNum($vp)) . "</td><td class='tiny muted'>" . self::h((string) ($r['checked_in_at'] ?? '')) . '</td></tr>';
         }
-        $attSummary = "Présents: $presentCount (poids " . number_format($presentWeight, 2, '.', '') . ") · Poids total: " . number_format($totalWeight, 2, '.', '') . "";
+        $attSummary = "Présents: {$presentCount} (poids " . number_format($presentWeight, 2, '.', '') . ') · Poids total: ' . number_format($totalWeight, 2, '.', '') . '';
 
         // Annex B: Proxies
         $proxyRows = '';
         foreach ($proxies as $p) {
-            $proxyRows .= "<tr><td>" . self::h($p['giver_name'] ?? '') . "</td><td>" . self::h($p['receiver_name'] ?? '') . "</td><td class='tiny muted'>" . self::h((string)($p['revoked_at'] ?? '')) . "</td></tr>";
+            $proxyRows .= '<tr><td>' . self::h($p['giver_name'] ?? '') . '</td><td>' . self::h($p['receiver_name'] ?? '') . "</td><td class='tiny muted'>" . self::h((string) ($p['revoked_at'] ?? '')) . '</td></tr>';
         }
-        $proxySummary = $proxies ? "Procurations: " . count($proxies) : "Procurations: 0";
+        $proxySummary = $proxies ? 'Procurations: ' . count($proxies) : 'Procurations: 0';
 
         // Annex C: Tokens
         $tokenRows = '';
         foreach ($tokens as $t) {
-            $tokenRows .= "<tr><td>" . self::h($t['full_name'] ?? '') . "</td><td class='tiny muted'>" . self::h((string)($t['created_at'] ?? '')) . "</td><td class='tiny muted'>" . self::h((string)($t['last_used_at'] ?? '')) . "</td><td class='tiny muted'>" . self::h((string)($t['revoked_at'] ?? '')) . "</td></tr>";
+            $tokenRows .= '<tr><td>' . self::h($t['full_name'] ?? '') . "</td><td class='tiny muted'>" . self::h((string) ($t['created_at'] ?? '')) . "</td><td class='tiny muted'>" . self::h((string) ($t['last_used_at'] ?? '')) . "</td><td class='tiny muted'>" . self::h((string) ($t['revoked_at'] ?? '')) . '</td></tr>';
         }
-        $tokenSummary = $tokens ? "Tokens: " . count($tokens) : "Tokens: 0";
+        $tokenSummary = $tokens ? 'Tokens: ' . count($tokens) : 'Tokens: 0';
 
         // Annex D: Vote details
         $votesByMotionHtml = '';
         if ($showVoters) {
             foreach ($motions as $m) {
-                $mid = (string)$m['id'];
-                $title = (string)($m['title'] ?? 'Motion');
+                $mid = (string) $m['id'];
+                $title = (string) ($m['title'] ?? 'Motion');
                 $isClosed = ($m['closed_at'] !== null);
 
                 $ballots = $ballotRepo->listDetailedForMotion($mid);
@@ -220,20 +230,20 @@ final class MeetingReportsController extends AbstractController
                 $i = 0;
                 foreach ($ballots as $b) {
                     $i++;
-                    $choice = (string)($b['choice'] ?? '');
-                    $w = (float)($b['effective_power'] ?? 0);
+                    $choice = (string) ($b['choice'] ?? '');
+                    $w = (float) ($b['effective_power'] ?? 0);
                     $isProxy = !empty($b['is_proxy_vote']);
-                    $giver = (string)($b['giver_name'] ?? '');
-                    $receiver = (string)($b['receiver_name'] ?? '');
+                    $giver = (string) ($b['giver_name'] ?? '');
+                    $receiver = (string) ($b['receiver_name'] ?? '');
 
                     $who = $isProxy
-                        ? (self::h($giver ?: '—') . " (mandant) ← " . self::h($receiver ?: '—') . " (mandataire)")
+                        ? (self::h($giver ?: '—') . ' (mandant) ← ' . self::h($receiver ?: '—') . ' (mandataire)')
                         : self::h($giver ?: '—');
 
-                    $rows .= "<tr><td class='num'>" . self::h((string)$i) . "</td><td>" . self::h(self::choiceLabel($choice)) . "</td><td class='num'>" . self::h(self::fmtNum($w)) . "</td><td>" . ($isProxy ? "Procuration" : "Direct") . "</td><td>" . $who . "</td></tr>";
+                    $rows .= "<tr><td class='num'>" . self::h((string) $i) . '</td><td>' . self::h(self::choiceLabel($choice)) . "</td><td class='num'>" . self::h(self::fmtNum($w)) . '</td><td>' . ($isProxy ? 'Procuration' : 'Direct') . '</td><td>' . $who . '</td></tr>';
                 }
 
-                $votesByMotionHtml .= "<h3 style='font-size:14px;margin:16px 0 6px;'>" . self::h($title) . "</h3>";
+                $votesByMotionHtml .= "<h3 style='font-size:14px;margin:16px 0 6px;'>" . self::h($title) . '</h3>';
                 if (!$isClosed) {
                     $votesByMotionHtml .= "<div class='muted tiny'>Attention: motion non clôturée; la liste peut évoluer.</div>";
                 }
@@ -242,7 +252,7 @@ final class MeetingReportsController extends AbstractController
                 } else {
                     $votesByMotionHtml .= "<table class='tbl'><thead><tr>
                         <th class='num'>#</th><th>Choix</th><th class='num'>Poids</th><th>Type</th><th>Votant</th>
-                    </tr></thead><tbody>" . $rows . "</tbody></table>";
+                    </tr></thead><tbody>" . $rows . '</tbody></table>';
                 }
             }
         } else {
@@ -250,95 +260,94 @@ final class MeetingReportsController extends AbstractController
         }
 
         $html = <<<HTML
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>PV — {$meeting['title']}</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:24px;color:#111827}
-h1{font-size:20px;margin:0 0 4px}
-h2{font-size:16px;margin:22px 0 6px}
-.muted{color:#6b7280;font-size:12px}
-.tiny{font-size:12px}
-.mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
-.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;background:#f3f4f6;border:1px solid #e5e7eb}
-.badge.success{background:#dcfce7;border-color:#bbf7d0}
-.badge.danger{background:#fee2e2;border-color:#fecaca}
-.badge.muted{background:#f3f4f6;border-color:transparent;color:#6b7280}
-.tbl{width:100%;border-collapse:collapse;margin-top:10px}
-.tbl th,.tbl td{border-bottom:1px solid #eef2f7;padding:8px 8px;vertical-align:top}
-.tbl th{text-align:left;font-size:12px;color:#6b7280}
-.num{text-align:right;font-variant-numeric:tabular-nums}
-.toolbar{position:sticky;top:0;background:#fff;padding:10px 0;border-bottom:1px solid #eef2f7;margin-bottom:12px}
-.btn{padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;cursor:pointer}
-@media print{.toolbar{display:none} body{margin:0}}
-</style>
-</head>
-<body>
-<div class="toolbar"><button class="btn" onclick="window.print()">Imprimer</button></div>
-<h1>Procès-verbal</h1>
-<div class="muted">
-Séance: <strong>{$meeting['title']}</strong> · Statut: <strong>{$meeting['status']}</strong> · Président: <strong>{$meeting['president_name']}</strong><br>
-Créée: {$meeting['created_at']} · Validée: {$meeting['validated_at']} · Archivée: {$meeting['archived_at']}
-</div>
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+            <meta charset="UTF-8">
+            <title>PV — {$meeting['title']}</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+            body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:24px;color:#111827}
+            h1{font-size:20px;margin:0 0 4px}
+            h2{font-size:16px;margin:22px 0 6px}
+            .muted{color:#6b7280;font-size:12px}
+            .tiny{font-size:12px}
+            .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+            .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;background:#f3f4f6;border:1px solid #e5e7eb}
+            .badge.success{background:#dcfce7;border-color:#bbf7d0}
+            .badge.danger{background:#fee2e2;border-color:#fecaca}
+            .badge.muted{background:#f3f4f6;border-color:transparent;color:#6b7280}
+            .tbl{width:100%;border-collapse:collapse;margin-top:10px}
+            .tbl th,.tbl td{border-bottom:1px solid #eef2f7;padding:8px 8px;vertical-align:top}
+            .tbl th{text-align:left;font-size:12px;color:#6b7280}
+            .num{text-align:right;font-variant-numeric:tabular-nums}
+            .toolbar{position:sticky;top:0;background:#fff;padding:10px 0;border-bottom:1px solid #eef2f7;margin-bottom:12px}
+            .btn{padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;cursor:pointer}
+            @media print{.toolbar{display:none} body{margin:0}}
+            </style>
+            </head>
+            <body>
+            <div class="toolbar"><button class="btn" onclick="window.print()">Imprimer</button></div>
+            <h1>Procès-verbal</h1>
+            <div class="muted">
+            Séance: <strong>{$meeting['title']}</strong> · Statut: <strong>{$meeting['status']}</strong> · Président: <strong>{$meeting['president_name']}</strong><br>
+            Créée: {$meeting['created_at']} · Validée: {$meeting['validated_at']} · Archivée: {$meeting['archived_at']}
+            </div>
 
-<h2>Résolutions</h2>
-<table class="tbl">
-  <thead>
-    <tr>
-      <th>Motion</th>
-      <th>Source officielle</th>
-      <th class="num">Pour</th>
-      <th class="num">Contre</th>
-      <th class="num">Abst.</th>
-      <th class="num">Total</th>
-      <th>Décision</th>
-    </tr>
-  </thead>
-  <tbody>
-    {$rowsHtml}
-  </tbody>
-</table>
+            <h2>Résolutions</h2>
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Motion</th>
+                  <th>Source officielle</th>
+                  <th class="num">Pour</th>
+                  <th class="num">Contre</th>
+                  <th class="num">Abst.</th>
+                  <th class="num">Total</th>
+                  <th>Décision</th>
+                </tr>
+              </thead>
+              <tbody>
+                {$rowsHtml}
+              </tbody>
+            </table>
 
-<h2>Annexe A — Présences</h2>
-<div class="muted">{$attSummary}</div>
-<table class="tbl">
-  <thead><tr><th>Membre</th><th>Statut</th><th class="num">Pouvoir</th><th>Check-in</th></tr></thead>
-  <tbody>{$attRows}</tbody>
-</table>
+            <h2>Annexe A — Présences</h2>
+            <div class="muted">{$attSummary}</div>
+            <table class="tbl">
+              <thead><tr><th>Membre</th><th>Statut</th><th class="num">Pouvoir</th><th>Check-in</th></tr></thead>
+              <tbody>{$attRows}</tbody>
+            </table>
 
-<h2>Annexe B — Procurations</h2>
-<div class="muted">{$proxySummary}</div>
-<table class="tbl">
-  <thead><tr><th>Mandant</th><th>Mandataire</th><th>Révoquée le</th></tr></thead>
-  <tbody>{$proxyRows}</tbody>
-</table>
+            <h2>Annexe B — Procurations</h2>
+            <div class="muted">{$proxySummary}</div>
+            <table class="tbl">
+              <thead><tr><th>Mandant</th><th>Mandataire</th><th>Révoquée le</th></tr></thead>
+              <tbody>{$proxyRows}</tbody>
+            </table>
 
-<h2>Annexe C — Tokens (invitations)</h2>
-<div class="muted">{$tokenSummary}</div>
-<table class="tbl">
-  <thead><tr><th>Membre</th><th>Créé le</th><th>Dernière utilisation</th><th>Révoqué le</th></tr></thead>
-  <tbody>{$tokenRows}</tbody>
-</table>
+            <h2>Annexe C — Tokens (invitations)</h2>
+            <div class="muted">{$tokenSummary}</div>
+            <table class="tbl">
+              <thead><tr><th>Membre</th><th>Créé le</th><th>Dernière utilisation</th><th>Révoqué le</th></tr></thead>
+              <tbody>{$tokenRows}</tbody>
+            </table>
 
-<h2>Annexe D — Détails des votes</h2>
-{$votesByMotionHtml}
+            <h2>Annexe D — Détails des votes</h2>
+            {$votesByMotionHtml}
 
-<div class="muted tiny" style="margin-top:10px;">
-Les valeurs officielles proviennent des colonnes official_* après consolidation/validation. Annexe D est optionnelle (usage interne).
-</div>
-</body>
-</html>
-HTML;
+            <div class="muted tiny" style="margin-top:10px;">
+            Les valeurs officielles proviennent des colonnes official_* après consolidation/validation. Annexe D est optionnelle (usage interne).
+            </div>
+            </body>
+            </html>
+            HTML;
 
         header('Content-Type: text/html; charset=utf-8');
         echo $html;
     }
 
-    public function generatePdf(): void
-    {
+    public function generatePdf(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 400);
@@ -348,7 +357,7 @@ HTML;
         $tenantId = api_current_tenant_id();
 
         $meeting = (new MeetingRepository())->findWithValidator($meetingId);
-        if (!$meeting || (string)($meeting['tenant_id'] ?? '') !== $tenantId) {
+        if (!$meeting || (string) ($meeting['tenant_id'] ?? '') !== $tenantId) {
             api_fail('meeting_not_found', 404);
         }
 
@@ -414,9 +423,9 @@ HTML;
 
         // Attendance section
         $html .= '<h2>1. Feuille de présence</h2>';
-        $pCount = count(array_filter($attendances, fn($a) => in_array($a['mode'], ['present', 'remote'])));
+        $pCount = count(array_filter($attendances, fn ($a) => in_array($a['mode'], ['present', 'remote'])));
         $totalPower = array_sum(array_column($attendances, 'voting_power'));
-        $presentPower = array_sum(array_map(fn($a) => in_array($a['mode'], ['present', 'remote', 'proxy']) ? ($a['voting_power'] ?? 0) : 0, $attendances));
+        $presentPower = array_sum(array_map(fn ($a) => in_array($a['mode'], ['present', 'remote', 'proxy']) ? ($a['voting_power'] ?? 0) : 0, $attendances));
 
         $html .= '<p><strong>' . $pCount . '</strong> membres présents sur <strong>' . count($attendances) . '</strong> inscrits';
         $html .= ' — Pouvoir représenté : <strong>' . number_format($presentPower, 2) . '</strong> / ' . number_format($totalPower, 2) . '</p>';
@@ -457,10 +466,10 @@ HTML;
             }
 
             $html .= '<table><tr><th>Vote</th><th>Poids</th></tr>';
-            $html .= '<tr><td>✅ Pour</td><td>' . number_format((float)($m['official_for'] ?? 0), 2) . '</td></tr>';
-            $html .= '<tr><td>❌ Contre</td><td>' . number_format((float)($m['official_against'] ?? 0), 2) . '</td></tr>';
-            $html .= '<tr><td>⚪ Abstention</td><td>' . number_format((float)($m['official_abstain'] ?? 0), 2) . '</td></tr>';
-            $html .= '<tr><td><strong>Total</strong></td><td><strong>' . number_format((float)($m['official_total'] ?? 0), 2) . '</strong></td></tr>';
+            $html .= '<tr><td>✅ Pour</td><td>' . number_format((float) ($m['official_for'] ?? 0), 2) . '</td></tr>';
+            $html .= '<tr><td>❌ Contre</td><td>' . number_format((float) ($m['official_against'] ?? 0), 2) . '</td></tr>';
+            $html .= '<tr><td>⚪ Abstention</td><td>' . number_format((float) ($m['official_abstain'] ?? 0), 2) . '</td></tr>';
+            $html .= '<tr><td><strong>Total</strong></td><td><strong>' . number_format((float) ($m['official_total'] ?? 0), 2) . '</strong></td></tr>';
             $html .= '</table>';
 
             $decisionClass = ($m['decision'] === 'adopted') ? '' : 'result-rejected';
@@ -520,10 +529,9 @@ HTML;
         echo $pdfContent;
     }
 
-    public function generateReport(): void
-    {
+    public function generateReport(): void {
         $in = api_request('GET');
-        $meetingId = trim((string)($in['meeting_id'] ?? '')) ?: api_query('meeting_id');
+        $meetingId = trim((string) ($in['meeting_id'] ?? '')) ?: api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 400);
         }
@@ -569,7 +577,7 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
             echo '<h2>Résolution ' . ($i + 1) . ' – ' . htmlspecialchars($mo['title']) . '</h2>';
             echo '<table><tr><th>Vote</th><th>Nombre</th><th>Pondération</th></tr>';
             foreach (['for' => 'Pour', 'against' => 'Contre', 'abstain' => 'Abstention', 'nsp' => 'Blanc'] as $k => $lbl) {
-                echo '<tr><td>' . $lbl . '</td><td>' . (int)($t[$k]['count'] ?? 0) . '</td><td>' . (float)($t[$k]['weight'] ?? 0) . '</td></tr>';
+                echo '<tr><td>' . $lbl . '</td><td>' . (int) ($t[$k]['count'] ?? 0) . '</td><td>' . (float) ($t[$k]['weight'] ?? 0) . '</td></tr>';
             }
             echo '</table>';
         }
@@ -584,12 +592,11 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         echo $html;
     }
 
-    public function sendReport(): void
-    {
+    public function sendReport(): void {
         $input = api_request('POST');
 
-        $meetingId = trim((string)($input['meeting_id'] ?? ''));
-        $toEmail = trim((string)($input['email'] ?? ''));
+        $meetingId = trim((string) ($input['meeting_id'] ?? ''));
+        $toEmail = trim((string) ($input['email'] ?? ''));
 
         if ($meetingId === '' || $toEmail === '') {
             api_fail('missing_meeting_or_email', 400);
@@ -605,10 +612,10 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         $tenantId = api_current_tenant_id();
         $repo = new MeetingRepository();
         $meeting = $repo->findByIdForTenant($meetingId, $tenantId);
-        $meetingTitle = (string)(($meeting['title'] ?? '') ?: $meetingId);
+        $meetingTitle = (string) (($meeting['title'] ?? '') ?: $meetingId);
 
-        $appUrl = (string)(($config['app']['url'] ?? '') ?: 'http://localhost:8080');
-        $reportUrl = rtrim($appUrl, '/') . "/api/v1/meeting_report.php?meeting_id=" . rawurlencode($meetingId);
+        $appUrl = (string) (($config['app']['url'] ?? '') ?: 'http://localhost:8080');
+        $reportUrl = rtrim($appUrl, '/') . '/api/v1/meeting_report.php?meeting_id=' . rawurlencode($meetingId);
 
         $mailer = new MailerService($config ?? []);
         if (!$mailer->isConfigured()) {
@@ -619,7 +626,7 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         include __DIR__ . '/../Templates/email_report.php';
         $html = ob_get_clean();
 
-        $subject = "PV / Résultats – " . $meetingTitle;
+        $subject = 'PV / Résultats – ' . $meetingTitle;
         $res = $mailer->send($toEmail, $subject, $html);
 
         if (!$res['ok']) {
@@ -633,19 +640,18 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         api_ok(['ok' => true]);
     }
 
-    public function exportPvHtml(): void
-    {
+    public function exportPvHtml(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             http_response_code(400);
             header('Content-Type: text/plain; charset=utf-8');
-            echo "missing_meeting_id";
+            echo 'missing_meeting_id';
             exit;
         }
 
         $showVoters = (api_query('show_voters') === '1');
 
-        $html = MeetingReportService::renderHtml($meetingId, $showVoters);
+        $html = (new MeetingReportService())->renderHtml($meetingId, $showVoters);
 
         header('Content-Type: text/html; charset=utf-8');
         header('X-Content-Type-Options: nosniff');
@@ -654,13 +660,11 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
 
     // --- Private helpers for report() HTML generation ---
 
-    private static function h(string $s): string
-    {
+    private static function h(string $s): string {
         return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
-    private static function decisionLabel(string $dec): string
-    {
+    private static function decisionLabel(string $dec): string {
         return match ($dec) {
             'adopted' => 'Adoptée', 'rejected' => 'Rejetée', 'no_quorum' => 'Sans quorum',
             'no_votes' => 'Sans votes', 'no_policy' => 'Sans règle', 'cancelled' => 'Annulée',
@@ -668,44 +672,40 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         };
     }
 
-    private static function fmtNum(float $n): string
-    {
+    private static function fmtNum(float $n): string {
         if (abs($n - round($n)) < 0.000001) {
-            return (string)intval(round($n));
+            return (string) intval(round($n));
         }
         return rtrim(rtrim(number_format($n, 4, '.', ''), '0'), '.');
     }
 
-    private static function modeLabel(string $mode): string
-    {
+    private static function modeLabel(string $mode): string {
         return match ($mode) {
             'present' => 'Présent', 'remote' => 'À distance', 'proxy' => 'Représenté',
             'excused' => 'Excusé', 'absent', '' => 'Absent', default => $mode,
         };
     }
 
-    private static function choiceLabel(string $choice): string
-    {
+    private static function choiceLabel(string $choice): string {
         return match ($choice) {
             'for' => 'Pour', 'against' => 'Contre', 'abstain' => 'Abstention',
             'nsp' => 'Ne se prononce pas', 'blank' => 'Blanc', default => $choice,
         };
     }
 
-    private static function policyLabel(?array $votePolicy, ?array $quorumPolicy): string
-    {
+    private static function policyLabel(?array $votePolicy, ?array $quorumPolicy): string {
         $parts = [];
         if ($quorumPolicy) {
-            $parts[] = "Quorum: " . ($quorumPolicy['denominator'] ?? '—') . " ≥ " . ($quorumPolicy['threshold'] ?? '—');
+            $parts[] = 'Quorum: ' . ($quorumPolicy['denominator'] ?? '—') . ' ≥ ' . ($quorumPolicy['threshold'] ?? '—');
         } else {
-            $parts[] = "Quorum: —";
+            $parts[] = 'Quorum: —';
         }
         if ($votePolicy) {
-            $abst = !empty($votePolicy['abstention_as_against']) ? " (abst→contre)" : "";
-            $parts[] = "Majorité: " . ($votePolicy['base'] ?? '—') . " ≥ " . ($votePolicy['threshold'] ?? '—') . $abst;
+            $abst = !empty($votePolicy['abstention_as_against']) ? ' (abst→contre)' : '';
+            $parts[] = 'Majorité: ' . ($votePolicy['base'] ?? '—') . ' ≥ ' . ($votePolicy['threshold'] ?? '—') . $abst;
         } else {
-            $parts[] = "Majorité: —";
+            $parts[] = 'Majorité: —';
         }
-        return implode(" · ", $parts);
+        return implode(' · ', $parts);
     }
 }

@@ -1,24 +1,23 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MemberGroupRepository;
-use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\ProxyRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MemberGroupRepository;
+use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
+use AgVote\Repository\ProxyRepository;
 use AgVote\Service\ImportService;
 
-final class ImportController extends AbstractController
-{
+final class ImportController extends AbstractController {
     // =========================================================================
     // Public API methods — Members
     // =========================================================================
 
-    public function membersCsv(): void
-    {
+    public function membersCsv(): void {
         $in = api_request('POST');
 
         // Support 3 modes: file upload, csv_content as FormData, csv_content as JSON
@@ -32,18 +31,26 @@ final class ImportController extends AbstractController
 
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $validation = ImportService::validateUploadedFile($file, 'csv');
-            if (!$validation['ok']) api_fail('invalid_file', 400, ['detail' => $validation['error']]);
+            if (!$validation['ok']) {
+                api_fail('invalid_file', 400, ['detail' => $validation['error']]);
+            }
             $result = ImportService::readCsvFile($file['tmp_name']);
-            if ($result['error']) api_fail('file_read_error', 400, ['detail' => $result['error']]);
+            if ($result['error']) {
+                api_fail('file_read_error', 400, ['detail' => $result['error']]);
+            }
             $headers = $result['headers'];
             $rows = $result['rows'];
         } elseif ($csvContent && is_string($csvContent) && strlen($csvContent) > 0) {
-            if (strlen($csvContent) > 5 * 1024 * 1024) api_fail('file_too_large', 400, ['detail' => 'Max 5 MB.']);
+            if (strlen($csvContent) > 5 * 1024 * 1024) {
+                api_fail('file_too_large', 400, ['detail' => 'Max 5 MB.']);
+            }
             $tmpPath = tempnam(sys_get_temp_dir(), 'csv_');
             file_put_contents($tmpPath, $csvContent);
             $result = ImportService::readCsvFile($tmpPath);
             unlink($tmpPath);
-            if ($result['error']) api_fail('file_read_error', 400, ['detail' => $result['error']]);
+            if ($result['error']) {
+                api_fail('file_read_error', 400, ['detail' => $result['error']]);
+            }
             $headers = $result['headers'];
             $rows = $result['rows'];
         } else {
@@ -59,7 +66,9 @@ final class ImportController extends AbstractController
         }
 
         $tenantId = api_current_tenant_id();
-        $imported = 0; $skipped = 0; $errors = [];
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
 
         self::wrapApiCall(function () use ($rows, $hasName, $hasFirstLast, $colIndex, $tenantId, &$imported, &$skipped, &$errors) {
             api_transaction(function () use ($rows, $hasName, $hasFirstLast, $colIndex, $tenantId, &$imported, &$skipped, &$errors) {
@@ -74,8 +83,7 @@ final class ImportController extends AbstractController
         api_ok(['imported' => $imported, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20)]);
     }
 
-    public function membersXlsx(): void
-    {
+    public function membersXlsx(): void {
         api_request('POST');
 
         [$headers, $rows] = $this->readImportFile('xlsx');
@@ -89,7 +97,9 @@ final class ImportController extends AbstractController
         }
 
         $tenantId = api_current_tenant_id();
-        $imported = 0; $skipped = 0; $errors = [];
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
 
         self::wrapApiCall(function () use ($rows, $hasName, $hasFirstLast, $colIndex, $tenantId, &$imported, &$skipped, &$errors) {
             api_transaction(function () use ($rows, $hasName, $hasFirstLast, $colIndex, $tenantId, &$imported, &$skipped, &$errors) {
@@ -109,8 +119,7 @@ final class ImportController extends AbstractController
     // Public API methods — Attendances
     // =========================================================================
 
-    public function attendancesCsv(): void
-    {
+    public function attendancesCsv(): void {
         $in = api_request('POST');
         [$meetingId, $meeting] = $this->requireWritableMeeting($in);
         $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -125,7 +134,10 @@ final class ImportController extends AbstractController
         $tenantId = api_current_tenant_id();
         [$membersByEmail, $membersByName] = $this->buildMemberLookups($tenantId);
 
-        $imported = 0; $skipped = 0; $errors = []; $preview = [];
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $preview = [];
 
         self::wrapApiCall(function () use ($rows, $colIndex, $membersByEmail, $membersByName, $tenantId, $meetingId, $dryRun, &$imported, &$skipped, &$errors, &$preview) {
             $work = function () use ($rows, $colIndex, $membersByEmail, $membersByName, $tenantId, $meetingId, $dryRun, &$imported, &$skipped, &$errors, &$preview) {
@@ -142,12 +154,13 @@ final class ImportController extends AbstractController
         }
 
         $response = ['imported' => $imported, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20), 'dry_run' => $dryRun];
-        if ($dryRun) $response['preview'] = array_slice($preview, 0, 50);
+        if ($dryRun) {
+            $response['preview'] = array_slice($preview, 0, 50);
+        }
         api_ok($response);
     }
 
-    public function attendancesXlsx(): void
-    {
+    public function attendancesXlsx(): void {
         $in = api_request('POST');
         [$meetingId, $meeting] = $this->requireWritableMeeting($in);
         $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -162,7 +175,10 @@ final class ImportController extends AbstractController
         $tenantId = api_current_tenant_id();
         [$membersByEmail, $membersByName] = $this->buildMemberLookups($tenantId);
 
-        $imported = 0; $skipped = 0; $errors = []; $preview = [];
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $preview = [];
 
         self::wrapApiCall(function () use ($rows, $colIndex, $membersByEmail, $membersByName, $tenantId, $meetingId, $dryRun, &$imported, &$skipped, &$errors, &$preview) {
             $work = function () use ($rows, $colIndex, $membersByEmail, $membersByName, $tenantId, $meetingId, $dryRun, &$imported, &$skipped, &$errors, &$preview) {
@@ -179,7 +195,9 @@ final class ImportController extends AbstractController
         }
 
         $response = ['imported' => $imported, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20), 'dry_run' => $dryRun];
-        if ($dryRun) $response['preview'] = array_slice($preview, 0, 50);
+        if ($dryRun) {
+            $response['preview'] = array_slice($preview, 0, 50);
+        }
         api_ok($response);
     }
 
@@ -187,12 +205,11 @@ final class ImportController extends AbstractController
     // Public API methods — Proxies
     // =========================================================================
 
-    public function proxiesCsv(): void
-    {
+    public function proxiesCsv(): void {
         $in = api_request('POST');
         [$meetingId, $meeting] = $this->requireWritableMeeting($in);
         $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $maxProxiesPerReceiver = (int)config('proxy_max_per_receiver', 3);
+        $maxProxiesPerReceiver = (int) config('proxy_max_per_receiver', 3);
 
         [$headers, $rows] = $this->readImportFile('csv');
 
@@ -210,13 +227,17 @@ final class ImportController extends AbstractController
 
         $proxyRepo = new ProxyRepository();
         $existingProxies = $proxyRepo->listForMeeting($meetingId, $tenantId);
-        $proxiesPerReceiver = []; $existingGivers = [];
+        $proxiesPerReceiver = [];
+        $existingGivers = [];
         foreach ($existingProxies as $p) {
             $proxiesPerReceiver[$p['receiver_member_id']] = ($proxiesPerReceiver[$p['receiver_member_id']] ?? 0) + 1;
             $existingGivers[$p['giver_member_id']] = $p['receiver_member_id'];
         }
 
-        $imported = 0; $skipped = 0; $errors = []; $preview = [];
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $preview = [];
 
         self::wrapApiCall(function () use ($rows, $colIndex, $findMember, $tenantId, $meetingId, $dryRun, $maxProxiesPerReceiver, &$proxiesPerReceiver, &$existingGivers, &$imported, &$skipped, &$errors, &$preview) {
             $work = function () use ($rows, $colIndex, $findMember, $tenantId, $meetingId, $dryRun, $maxProxiesPerReceiver, &$proxiesPerReceiver, &$existingGivers, &$imported, &$skipped, &$errors, &$preview) {
@@ -233,16 +254,17 @@ final class ImportController extends AbstractController
         }
 
         $response = ['imported' => $imported, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20), 'dry_run' => $dryRun, 'max_proxies_per_receiver' => $maxProxiesPerReceiver];
-        if ($dryRun) $response['preview'] = array_slice($preview, 0, 50);
+        if ($dryRun) {
+            $response['preview'] = array_slice($preview, 0, 50);
+        }
         api_ok($response);
     }
 
-    public function proxiesXlsx(): void
-    {
+    public function proxiesXlsx(): void {
         $in = api_request('POST');
         [$meetingId, $meeting] = $this->requireWritableMeeting($in);
         $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $maxProxiesPerReceiver = (int)config('proxy_max_per_receiver', 3);
+        $maxProxiesPerReceiver = (int) config('proxy_max_per_receiver', 3);
 
         [$headers, $rows] = $this->readImportFile('xlsx');
 
@@ -260,13 +282,17 @@ final class ImportController extends AbstractController
 
         $proxyRepo = new ProxyRepository();
         $existingProxies = $proxyRepo->listForMeeting($meetingId, $tenantId);
-        $proxiesPerReceiver = []; $existingGivers = [];
+        $proxiesPerReceiver = [];
+        $existingGivers = [];
         foreach ($existingProxies as $p) {
             $proxiesPerReceiver[$p['receiver_member_id']] = ($proxiesPerReceiver[$p['receiver_member_id']] ?? 0) + 1;
             $existingGivers[$p['giver_member_id']] = $p['receiver_member_id'];
         }
 
-        $imported = 0; $skipped = 0; $errors = []; $preview = [];
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $preview = [];
 
         self::wrapApiCall(function () use ($rows, $colIndex, $findMember, $tenantId, $meetingId, $dryRun, $maxProxiesPerReceiver, &$proxiesPerReceiver, &$existingGivers, &$imported, &$skipped, &$errors, &$preview) {
             $work = function () use ($rows, $colIndex, $findMember, $tenantId, $meetingId, $dryRun, $maxProxiesPerReceiver, &$proxiesPerReceiver, &$existingGivers, &$imported, &$skipped, &$errors, &$preview) {
@@ -283,7 +309,9 @@ final class ImportController extends AbstractController
         }
 
         $response = ['imported' => $imported, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20), 'dry_run' => $dryRun, 'max_proxies_per_receiver' => $maxProxiesPerReceiver];
-        if ($dryRun) $response['preview'] = array_slice($preview, 0, 50);
+        if ($dryRun) {
+            $response['preview'] = array_slice($preview, 0, 50);
+        }
         api_ok($response);
     }
 
@@ -291,8 +319,7 @@ final class ImportController extends AbstractController
     // Public API methods — Motions
     // =========================================================================
 
-    public function motionsCsv(): void
-    {
+    public function motionsCsv(): void {
         $in = api_request('POST');
         [$meetingId, $meeting] = $this->requireWritableMeeting($in);
         $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -308,7 +335,10 @@ final class ImportController extends AbstractController
         $motionRepo = new MotionRepository();
         $nextPosition = $motionRepo->countForMeeting($meetingId) + 1;
 
-        $imported = 0; $skipped = 0; $errors = []; $preview = [];
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $preview = [];
 
         self::wrapApiCall(function () use ($rows, $colIndex, $tenantId, $meetingId, $dryRun, &$nextPosition, &$imported, &$skipped, &$errors, &$preview) {
             $work = function () use ($rows, $colIndex, $tenantId, $meetingId, $dryRun, &$nextPosition, &$imported, &$skipped, &$errors, &$preview) {
@@ -325,12 +355,13 @@ final class ImportController extends AbstractController
         }
 
         $response = ['imported' => $imported, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20), 'dry_run' => $dryRun];
-        if ($dryRun) $response['preview'] = array_slice($preview, 0, 50);
+        if ($dryRun) {
+            $response['preview'] = array_slice($preview, 0, 50);
+        }
         api_ok($response);
     }
 
-    public function motionsXlsx(): void
-    {
+    public function motionsXlsx(): void {
         $in = api_request('POST');
         [$meetingId, $meeting] = $this->requireWritableMeeting($in);
         $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -346,7 +377,10 @@ final class ImportController extends AbstractController
         $motionRepo = new MotionRepository();
         $nextPosition = $motionRepo->countForMeeting($meetingId) + 1;
 
-        $imported = 0; $skipped = 0; $errors = []; $preview = [];
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $preview = [];
 
         self::wrapApiCall(function () use ($rows, $colIndex, $tenantId, $meetingId, $dryRun, &$nextPosition, &$imported, &$skipped, &$errors, &$preview) {
             $work = function () use ($rows, $colIndex, $tenantId, $meetingId, $dryRun, &$nextPosition, &$imported, &$skipped, &$errors, &$preview) {
@@ -363,7 +397,9 @@ final class ImportController extends AbstractController
         }
 
         $response = ['imported' => $imported, 'skipped' => $skipped, 'errors' => array_slice($errors, 0, 20), 'dry_run' => $dryRun];
-        if ($dryRun) $response['preview'] = array_slice($preview, 0, 50);
+        if ($dryRun) {
+            $response['preview'] = array_slice($preview, 0, 50);
+        }
         api_ok($response);
     }
 
@@ -376,21 +412,28 @@ final class ImportController extends AbstractController
      *
      * @return array{0: array, 1: array} [$headers, $rows]
      */
-    private function readImportFile(string $format): array
-    {
+    private function readImportFile(string $format): array {
         $fileKeys = $format === 'csv' ? ['file', 'csv_file'] : ['file', 'xlsx_file'];
         $file = api_file(...$fileKeys);
-        if (!$file) api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
+        if (!$file) {
+            api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
+        }
 
         $validation = ImportService::validateUploadedFile($file, $format);
-        if (!$validation['ok']) api_fail('invalid_file', 400, ['detail' => $validation['error']]);
+        if (!$validation['ok']) {
+            api_fail('invalid_file', 400, ['detail' => $validation['error']]);
+        }
 
         if ($format === 'csv') {
             $result = ImportService::readCsvFile($file['tmp_name']);
-            if ($result['error']) api_fail('file_read_error', 400, ['detail' => $result['error']]);
+            if ($result['error']) {
+                api_fail('file_read_error', 400, ['detail' => $result['error']]);
+            }
         } else {
             $result = ImportService::readXlsxFile($file['tmp_name']);
-            if ($result['error']) api_fail('file_read_error', 400, ['detail' => $result['error']]);
+            if ($result['error']) {
+                api_fail('file_read_error', 400, ['detail' => $result['error']]);
+            }
         }
 
         return [$result['headers'], $result['rows']];
@@ -401,14 +444,17 @@ final class ImportController extends AbstractController
      *
      * @return array{0: string, 1: array} [$meetingId, $meeting]
      */
-    private function requireWritableMeeting(array $in): array
-    {
-        $meetingId = trim((string)($in['meeting_id'] ?? ''));
-        if (!api_is_uuid($meetingId)) api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
+    private function requireWritableMeeting(array $in): array {
+        $meetingId = trim((string) ($in['meeting_id'] ?? ''));
+        if (!api_is_uuid($meetingId)) {
+            api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
+        }
 
         $tenantId = api_current_tenant_id();
         $meeting = (new MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
-        if (!$meeting) api_fail('meeting_not_found', 404);
+        if (!$meeting) {
+            api_fail('meeting_not_found', 404);
+        }
         if (in_array($meeting['status'], ['validated', 'archived'], true)) {
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
@@ -421,12 +467,14 @@ final class ImportController extends AbstractController
      *
      * @return array{0: array, 1: array} [$membersByEmail, $membersByName]
      */
-    private function buildMemberLookups(string $tenantId): array
-    {
+    private function buildMemberLookups(string $tenantId): array {
         $allMembers = (new MemberRepository())->listByTenant($tenantId);
-        $membersByEmail = []; $membersByName = [];
+        $membersByEmail = [];
+        $membersByName = [];
         foreach ($allMembers as $m) {
-            if (!empty($m['email'])) $membersByEmail[strtolower($m['email'])] = $m;
+            if (!empty($m['email'])) {
+                $membersByEmail[strtolower($m['email'])] = $m;
+            }
             $membersByName[mb_strtolower($m['full_name'])] = $m;
         }
         return [$membersByEmail, $membersByName];
@@ -435,16 +483,19 @@ final class ImportController extends AbstractController
     /**
      * Creates a callable that finds a member by name/email fields in a proxy row.
      */
-    private function buildProxyMemberFinder(array $colIndex, array $membersByEmail, array $membersByName): callable
-    {
+    private function buildProxyMemberFinder(array $colIndex, array $membersByEmail, array $membersByName): callable {
         return function (array $row, string $nameField, string $emailField) use ($colIndex, $membersByEmail, $membersByName): ?array {
             if (isset($colIndex[$emailField])) {
                 $email = strtolower(trim($row[$colIndex[$emailField]] ?? ''));
-                if ($email !== '' && isset($membersByEmail[$email])) return $membersByEmail[$email];
+                if ($email !== '' && isset($membersByEmail[$email])) {
+                    return $membersByEmail[$email];
+                }
             }
             if (isset($colIndex[$nameField])) {
                 $name = mb_strtolower(trim($row[$colIndex[$nameField]] ?? ''));
-                if ($name !== '' && isset($membersByName[$name])) return $membersByName[$name];
+                if ($name !== '' && isset($membersByName[$name])) {
+                    return $membersByName[$name];
+                }
             }
             return null;
         };
@@ -458,8 +509,14 @@ final class ImportController extends AbstractController
      * Processes member import rows: creates or updates members and assigns groups.
      */
     private function processMemberRows(
-        array $rows, array $colIndex, bool $hasName, bool $hasFirstLast,
-        string $tenantId, int &$imported, int &$skipped, array &$errors
+        array $rows,
+        array $colIndex,
+        bool $hasName,
+        bool $hasFirstLast,
+        string $tenantId,
+        int &$imported,
+        int &$skipped,
+        array &$errors,
     ): void {
         $memberRepo = new MemberRepository();
         $groupRepo = new MemberGroupRepository();
@@ -471,9 +528,13 @@ final class ImportController extends AbstractController
 
         $findOrCreateGroup = function (string $name) use ($groupRepo, $tenantId, &$existingGroups): ?string {
             $name = trim($name);
-            if ($name === '') return null;
+            if ($name === '') {
+                return null;
+            }
             $key = mb_strtolower($name);
-            if (isset($existingGroups[$key])) return $existingGroups[$key];
+            if (isset($existingGroups[$key])) {
+                return $existingGroups[$key];
+            }
             $group = $groupRepo->create($tenantId, $name);
             $existingGroups[$key] = $group['id'];
             return $group['id'];
@@ -489,22 +550,32 @@ final class ImportController extends AbstractController
                 $data['full_name'] = trim(trim($row[$colIndex['first_name']] ?? '') . ' ' . trim($row[$colIndex['last_name']] ?? ''));
             }
 
-            if (isset($colIndex['email'])) $data['email'] = strtolower(trim($row[$colIndex['email']] ?? ''));
+            if (isset($colIndex['email'])) {
+                $data['email'] = strtolower(trim($row[$colIndex['email']] ?? ''));
+            }
             $data['voting_power'] = isset($colIndex['voting_power'])
                 ? ImportService::parseVotingPower($row[$colIndex['voting_power']] ?? '1') : 1.0;
             $data['is_active'] = isset($colIndex['is_active'])
                 ? ImportService::parseBoolean($row[$colIndex['is_active']] ?? '1') : true;
 
             if (empty($data['full_name']) || mb_strlen($data['full_name']) < 2) {
-                $errors[] = ['line' => $lineNumber, 'error' => 'Nom invalide']; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => 'Nom invalide'];
+                $skipped++;
+                continue;
             }
             if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                $errors[] = ['line' => $lineNumber, 'error' => 'Email invalide']; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => 'Email invalide'];
+                $skipped++;
+                continue;
             }
 
             $existing = null;
-            if (!empty($data['email'])) $existing = $memberRepo->findByEmail($tenantId, $data['email']);
-            if (!$existing) $existing = $memberRepo->findByFullName($tenantId, $data['full_name']);
+            if (!empty($data['email'])) {
+                $existing = $memberRepo->findByEmail($tenantId, $data['email']);
+            }
+            if (!$existing) {
+                $existing = $memberRepo->findByFullName($tenantId, $data['full_name']);
+            }
 
             $groupNames = [];
             if (isset($colIndex['groups'])) {
@@ -527,9 +598,13 @@ final class ImportController extends AbstractController
                 $groupIds = [];
                 foreach ($groupNames as $gn) {
                     $gid = $findOrCreateGroup($gn);
-                    if ($gid) $groupIds[] = $gid;
+                    if ($gid) {
+                        $groupIds[] = $gid;
+                    }
                 }
-                if (!empty($groupIds)) $groupRepo->setMemberGroups($memberId, $groupIds);
+                if (!empty($groupIds)) {
+                    $groupRepo->setMemberGroups($memberId, $groupIds);
+                }
             }
 
             $imported++;
@@ -540,9 +615,17 @@ final class ImportController extends AbstractController
      * Processes attendance import rows: upserts attendance records or builds preview.
      */
     private function processAttendanceRows(
-        array $rows, array $colIndex, array $membersByEmail, array $membersByName,
-        string $tenantId, string $meetingId, bool $dryRun,
-        int &$imported, int &$skipped, array &$errors, array &$preview
+        array $rows,
+        array $colIndex,
+        array $membersByEmail,
+        array $membersByName,
+        string $tenantId,
+        string $meetingId,
+        bool $dryRun,
+        int &$imported,
+        int &$skipped,
+        array &$errors,
+        array &$preview,
     ): void {
         $attendanceRepo = new AttendanceRepository();
 
@@ -552,15 +635,21 @@ final class ImportController extends AbstractController
             $member = null;
             if (isset($colIndex['email'])) {
                 $email = strtolower(trim($row[$colIndex['email']] ?? ''));
-                if ($email !== '' && isset($membersByEmail[$email])) $member = $membersByEmail[$email];
+                if ($email !== '' && isset($membersByEmail[$email])) {
+                    $member = $membersByEmail[$email];
+                }
             }
             if (!$member && isset($colIndex['name'])) {
                 $name = mb_strtolower(trim($row[$colIndex['name']] ?? ''));
-                if ($name !== '' && isset($membersByName[$name])) $member = $membersByName[$name];
+                if ($name !== '' && isset($membersByName[$name])) {
+                    $member = $membersByName[$name];
+                }
             }
             if (!$member) {
                 $identifier = isset($colIndex['email']) ? ($row[$colIndex['email']] ?? '') : ($row[$colIndex['name']] ?? '');
-                $errors[] = ['line' => $lineNumber, 'error' => "Membre introuvable: {$identifier}"]; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => "Membre introuvable: {$identifier}"];
+                $skipped++;
+                continue;
             }
 
             $mode = 'present';
@@ -568,18 +657,22 @@ final class ImportController extends AbstractController
                 $modeRaw = trim($row[$colIndex['mode']] ?? '');
                 $parsedMode = ImportService::parseAttendanceMode($modeRaw);
                 if ($parsedMode === null && $modeRaw !== '') {
-                    $errors[] = ['line' => $lineNumber, 'error' => "Mode invalide: {$modeRaw}"]; $skipped++; continue;
+                    $errors[] = ['line' => $lineNumber, 'error' => "Mode invalide: {$modeRaw}"];
+                    $skipped++;
+                    continue;
                 }
                 $mode = $parsedMode ?? 'present';
             }
 
             $notes = null;
-            if (isset($colIndex['notes'])) $notes = trim($row[$colIndex['notes']] ?? '') ?: null;
+            if (isset($colIndex['notes'])) {
+                $notes = trim($row[$colIndex['notes']] ?? '') ?: null;
+            }
 
             if ($dryRun) {
                 $preview[] = ['line' => $lineNumber, 'member_id' => $member['id'], 'member_name' => $member['full_name'], 'mode' => $mode, 'notes' => $notes];
             } else {
-                $attendanceRepo->upsert($tenantId, $meetingId, $member['id'], $mode, (float)($member['voting_power'] ?? 1), $notes);
+                $attendanceRepo->upsert($tenantId, $meetingId, $member['id'], $mode, (float) ($member['voting_power'] ?? 1), $notes);
             }
             $imported++;
         }
@@ -589,10 +682,19 @@ final class ImportController extends AbstractController
      * Processes proxy import rows: creates proxies or builds preview with validation.
      */
     private function processProxyRows(
-        array $rows, array $colIndex, callable $findMember,
-        string $tenantId, string $meetingId, bool $dryRun, int $maxPerReceiver,
-        array &$proxiesPerReceiver, array &$existingGivers,
-        int &$imported, int &$skipped, array &$errors, array &$preview
+        array $rows,
+        array $colIndex,
+        callable $findMember,
+        string $tenantId,
+        string $meetingId,
+        bool $dryRun,
+        int $maxPerReceiver,
+        array &$proxiesPerReceiver,
+        array &$existingGivers,
+        int &$imported,
+        int &$skipped,
+        array &$errors,
+        array &$preview,
     ): void {
         $proxyRepo = new ProxyRepository();
 
@@ -602,28 +704,40 @@ final class ImportController extends AbstractController
             $giver = $findMember($row, 'giver_name', 'giver_email');
             if (!$giver) {
                 $identifier = $row[$colIndex['giver_email'] ?? $colIndex['giver_name'] ?? 0] ?? 'inconnu';
-                $errors[] = ['line' => $lineNumber, 'error' => "Mandant introuvable: {$identifier}"]; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => "Mandant introuvable: {$identifier}"];
+                $skipped++;
+                continue;
             }
 
             $receiver = $findMember($row, 'receiver_name', 'receiver_email');
             if (!$receiver) {
                 $identifier = $row[$colIndex['receiver_email'] ?? $colIndex['receiver_name'] ?? 0] ?? 'inconnu';
-                $errors[] = ['line' => $lineNumber, 'error' => "Mandataire introuvable: {$identifier}"]; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => "Mandataire introuvable: {$identifier}"];
+                $skipped++;
+                continue;
             }
 
             if ($giver['id'] === $receiver['id']) {
-                $errors[] = ['line' => $lineNumber, 'error' => 'Auto-délégation interdite']; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => 'Auto-délégation interdite'];
+                $skipped++;
+                continue;
             }
             if (isset($existingGivers[$giver['id']])) {
-                $errors[] = ['line' => $lineNumber, 'error' => "Le mandant {$giver['full_name']} a déjà une procuration active"]; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => "Le mandant {$giver['full_name']} a déjà une procuration active"];
+                $skipped++;
+                continue;
             }
             if (isset($existingGivers[$receiver['id']])) {
-                $errors[] = ['line' => $lineNumber, 'error' => "Chaîne de procuration interdite: {$receiver['full_name']} est déjà mandant"]; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => "Chaîne de procuration interdite: {$receiver['full_name']} est déjà mandant"];
+                $skipped++;
+                continue;
             }
 
             $currentCount = $proxiesPerReceiver[$receiver['id']] ?? 0;
             if ($currentCount >= $maxPerReceiver) {
-                $errors[] = ['line' => $lineNumber, 'error' => "Plafond atteint: {$receiver['full_name']} a déjà {$currentCount} procurations (max: {$maxPerReceiver})"]; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => "Plafond atteint: {$receiver['full_name']} a déjà {$currentCount} procurations (max: {$maxPerReceiver})"];
+                $skipped++;
+                continue;
             }
 
             if ($dryRun) {
@@ -641,9 +755,16 @@ final class ImportController extends AbstractController
      * Processes motion import rows: creates motions or builds preview.
      */
     private function processMotionRows(
-        array $rows, array $colIndex, string $tenantId, string $meetingId,
-        bool $dryRun, int &$nextPosition,
-        int &$imported, int &$skipped, array &$errors, array &$preview
+        array $rows,
+        array $colIndex,
+        string $tenantId,
+        string $meetingId,
+        bool $dryRun,
+        int &$nextPosition,
+        int &$imported,
+        int &$skipped,
+        array &$errors,
+        array &$preview,
     ): void {
         $motionRepo = new MotionRepository();
 
@@ -656,7 +777,9 @@ final class ImportController extends AbstractController
             $position = null;
             if (isset($colIndex['position'])) {
                 $posVal = trim($row[$colIndex['position']] ?? '');
-                if ($posVal !== '' && is_numeric($posVal)) $position = (int)$posVal;
+                if ($posVal !== '' && is_numeric($posVal)) {
+                    $position = (int) $posVal;
+                }
             }
             if ($position === null) {
                 $position = $nextPosition++;
@@ -670,10 +793,14 @@ final class ImportController extends AbstractController
             }
 
             if (empty($title) || mb_strlen($title) < 2) {
-                $errors[] = ['line' => $lineNumber, 'error' => 'Titre invalide ou trop court']; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => 'Titre invalide ou trop court'];
+                $skipped++;
+                continue;
             }
             if (mb_strlen($title) > 500) {
-                $errors[] = ['line' => $lineNumber, 'error' => 'Titre trop long (max 500 caractères)']; $skipped++; continue;
+                $errors[] = ['line' => $lineNumber, 'error' => 'Titre trop long (max 500 caractères)'];
+                $skipped++;
+                continue;
             }
 
             if ($dryRun) {

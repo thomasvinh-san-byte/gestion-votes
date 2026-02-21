@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -11,6 +12,7 @@ use AgVote\Repository\MotionRepository;
 use AgVote\Service\BallotsService;
 use AgVote\Service\VoteEngine;
 use AgVote\WebSocket\EventBroadcaster;
+use Throwable;
 
 /**
  * Consolidates 7 ballot/voting endpoints.
@@ -18,10 +20,8 @@ use AgVote\WebSocket\EventBroadcaster;
  * Ranges from trivial (vote_incident: 5 lines) to complex
  * (manual_vote, ballots_cancel: transactions with multi-step validation).
  */
-final class BallotsController extends AbstractController
-{
-    public function listForMotion(): void
-    {
+final class BallotsController extends AbstractController {
+    public function listForMotion(): void {
         api_request('GET');
 
         $motionId = api_query('motion_id');
@@ -39,8 +39,7 @@ final class BallotsController extends AbstractController
         api_ok(['ballots' => $ballots]);
     }
 
-    public function cast(): void
-    {
+    public function cast(): void {
         $data = api_request('POST');
 
         $idempotencyKey = $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] ?? null;
@@ -51,7 +50,7 @@ final class BallotsController extends AbstractController
         // Pass tenant_id for defense-in-depth tenant isolation in the query
         $data['_tenant_id'] = api_current_tenant_id();
 
-        $ballot = BallotsService::castBallot($data);
+        $ballot = (new BallotsService())->castBallot($data);
 
         $motionId = $data['motion_id'] ?? $ballot['motion_id'] ?? null;
         $meetingId = $ballot['meeting_id'] ?? $data['meeting_id'] ?? null;
@@ -63,13 +62,12 @@ final class BallotsController extends AbstractController
         api_ok(['ballot' => $ballot], 201);
     }
 
-    public function cancel(): void
-    {
+    public function cancel(): void {
         $in = api_request('POST');
 
         $motionId = api_require_uuid($in, 'motion_id');
         $memberId = api_require_uuid($in, 'member_id');
-        $reason = trim((string)($in['reason'] ?? ''));
+        $reason = trim((string) ($in['reason'] ?? ''));
 
         if ($reason === '') {
             api_fail('missing_reason', 400, ['detail' => 'Une justification est requise pour annuler un vote.']);
@@ -136,7 +134,7 @@ final class BallotsController extends AbstractController
                 'ballot_cancelled' => true,
                 'member_id' => $memberId,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Don't fail if broadcast fails
         }
 
@@ -147,29 +145,27 @@ final class BallotsController extends AbstractController
         ]);
     }
 
-    public function result(): void
-    {
+    public function result(): void {
         $params = api_request('GET');
 
-        $motionId = trim((string)($params['motion_id'] ?? ''));
+        $motionId = trim((string) ($params['motion_id'] ?? ''));
         if ($motionId === '') {
             api_fail('missing_motion_id', 422, ['detail' => 'Paramètre motion_id obligatoire']);
         }
 
-        $result = VoteEngine::computeMotionResult($motionId);
+        $result = (new VoteEngine())->computeMotionResult($motionId);
         api_ok($result);
     }
 
-    public function manualVote(): void
-    {
+    public function manualVote(): void {
         $data = api_request('POST');
 
         $tenantId = api_current_tenant_id();
-        $meetingId = trim((string)($data['meeting_id'] ?? ''));
-        $motionId = trim((string)($data['motion_id'] ?? ''));
-        $memberId = trim((string)($data['member_id'] ?? ''));
-        $voteUi = trim((string)($data['vote'] ?? ''));
-        $justif = trim((string)($data['justification'] ?? ''));
+        $meetingId = trim((string) ($data['meeting_id'] ?? ''));
+        $motionId = trim((string) ($data['motion_id'] ?? ''));
+        $memberId = trim((string) ($data['member_id'] ?? ''));
+        $voteUi = trim((string) ($data['vote'] ?? ''));
+        $justif = trim((string) ($data['justification'] ?? ''));
 
         if ($meetingId === '' || $motionId === '' || $memberId === '') {
             api_fail('missing_fields', 400, ['required' => ['meeting_id', 'motion_id', 'member_id']]);
@@ -214,7 +210,7 @@ final class BallotsController extends AbstractController
             api_fail('member_not_found', 404);
         }
 
-        $weight = (string)($member['voting_power'] ?? '1.0');
+        $weight = (string) ($member['voting_power'] ?? '1.0');
 
         try {
             $ballotId = api_transaction(function () use ($ballotRepo, $manualRepo, $tenantId, $meetingId, $motionId, $memberId, $value, $weight, $justif) {
@@ -229,15 +225,18 @@ final class BallotsController extends AbstractController
                 ];
 
                 $manualRepo->create(
-                    $tenantId, $meetingId, $motionId, $memberId,
+                    $tenantId,
+                    $meetingId,
+                    $motionId,
+                    $memberId,
                     'manual_vote',
                     json_encode($val, JSON_UNESCAPED_UNICODE),
-                    $justif
+                    $justif,
                 );
 
                 return $ballotId;
             });
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $msg = $e->getMessage();
             if (stripos($msg, 'unique') !== false || stripos($msg, 'ballots_motion_id_member_id') !== false) {
                 api_fail('already_voted', 409);
@@ -254,21 +253,20 @@ final class BallotsController extends AbstractController
         api_ok(['ballot_id' => $ballotId, 'value' => $value, 'source' => 'manual']);
     }
 
-    public function redeemPaperBallot(): void
-    {
+    public function redeemPaperBallot(): void {
         $in = api_request('POST');
 
-        $code = trim((string)($in['code'] ?? ''));
+        $code = trim((string) ($in['code'] ?? ''));
         if ($code === '' || !api_is_uuid($code)) {
             api_fail('invalid_code', 400);
         }
 
-        $vote = trim((string)($in['vote_value'] ?? ''));
+        $vote = trim((string) ($in['vote_value'] ?? ''));
         if (!in_array($vote, ['pour', 'contre', 'abstention', 'blanc'], true)) {
             api_fail('invalid_vote_value', 400);
         }
 
-        $just = trim((string)($in['justification'] ?? 'vote papier (secours)'));
+        $just = trim((string) ($in['justification'] ?? 'vote papier (secours)'));
         if ($just === '') {
             api_fail('missing_justification', 400);
         }
@@ -284,7 +282,7 @@ final class BallotsController extends AbstractController
         }
 
         api_transaction(function () use ($ballotRepo, $manualRepo, $pb, $vote, $just) {
-            $ballotRepo->markPaperBallotUsed($pb['id'], (string)$pb['tenant_id']);
+            $ballotRepo->markPaperBallotUsed($pb['id'], (string) $pb['tenant_id']);
             $manualRepo->createPaperBallotAction($pb['tenant_id'], $pb['meeting_id'], $pb['motion_id'], $vote, $just);
         });
 
@@ -297,13 +295,12 @@ final class BallotsController extends AbstractController
         api_ok(['saved' => true]);
     }
 
-    public function reportIncident(): void
-    {
+    public function reportIncident(): void {
         $in = api_request('POST');
 
-        $kind = trim((string)($in['kind'] ?? 'network'));
-        $detail = trim((string)($in['detail'] ?? ''));
-        $tokenHash = trim((string)($in['token_hash'] ?? ''));
+        $kind = trim((string) ($in['kind'] ?? 'network'));
+        $detail = trim((string) ($in['detail'] ?? ''));
+        $tokenHash = trim((string) ($in['token_hash'] ?? ''));
 
         if ($kind === '') {
             api_fail('missing_kind', 400);

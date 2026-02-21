@@ -1,33 +1,32 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberRepository;
-use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MotionRepository;
-use AgVote\Repository\BallotRepository;
 use AgVote\Repository\ProxyRepository;
 use AgVote\Repository\WizardRepository;
 
 /**
  * Consolidates dashboard.php and wizard_status.php.
  */
-final class DashboardController extends AbstractController
-{
-    public function index(): void
-    {
+final class DashboardController extends AbstractController {
+    public function index(): void {
         $meetingId = api_query('meeting_id');
         $tenantId = api_current_tenant_id();
 
         $meetingRepo = new MeetingRepository();
-        $statsRepo   = new MeetingStatsRepository();
-        $memberRepo  = new MemberRepository();
-        $attRepo     = new AttendanceRepository();
-        $motionRepo  = new MotionRepository();
-        $ballotRepo  = new BallotRepository();
+        $statsRepo = new MeetingStatsRepository();
+        $memberRepo = new MemberRepository();
+        $attRepo = new AttendanceRepository();
+        $motionRepo = new MotionRepository();
+        $ballotRepo = new BallotRepository();
 
         $meetings = $meetingRepo->listForDashboard($tenantId);
 
@@ -43,7 +42,7 @@ final class DashboardController extends AbstractController
         }
 
         if ($meetingId === '') {
-            $meetingId = (string)($suggested ?? '');
+            $meetingId = (string) ($suggested ?? '');
         }
 
         $data = [
@@ -68,24 +67,24 @@ final class DashboardController extends AbstractController
             }
             $data['meeting'] = $meeting;
 
-            $eligibleCount  = $memberRepo->countNotDeleted($tenantId);
+            $eligibleCount = $memberRepo->countNotDeleted($tenantId);
             $eligibleWeight = $memberRepo->sumNotDeletedVoteWeight($tenantId);
             $att = $attRepo->dashboardSummary($tenantId, $meetingId);
 
             $data['attendance'] = [
                 'eligible_count' => $eligibleCount,
                 'eligible_weight' => $eligibleWeight,
-                'present_count' => (int)$att['present_count'],
-                'present_weight' => (int)$att['present_weight'],
+                'present_count' => (int) $att['present_count'],
+                'present_weight' => (int) $att['present_weight'],
             ];
 
             $data['proxies'] = ['count' => (new ProxyRepository())->countActive($meetingId)];
 
-            $currentMotionId = (string)($meeting['current_motion_id'] ?? '');
+            $currentMotionId = (string) ($meeting['current_motion_id'] ?? '');
             if ($currentMotionId === '') {
                 $openMotion = $motionRepo->findCurrentOpen($meetingId, $tenantId);
                 if ($openMotion) {
-                    $currentMotionId = (string)$openMotion['id'];
+                    $currentMotionId = (string) $openMotion['id'];
                 }
             }
 
@@ -95,10 +94,10 @@ final class DashboardController extends AbstractController
 
                 $t = $ballotRepo->tally($currentMotionId, $tenantId);
                 $data['current_motion_votes'] = [
-                    'ballots_count'  => (int)$t['total_ballots'],
-                    'weight_for'     => (int)$t['weight_for'],
-                    'weight_against' => (int)$t['weight_against'],
-                    'weight_abstain' => (int)$t['weight_abstain'],
+                    'ballots_count' => (int) $t['total_ballots'],
+                    'weight_for' => (int) $t['weight_for'],
+                    'weight_against' => (int) $t['weight_against'],
+                    'weight_abstain' => (int) $t['weight_abstain'],
                 ];
             }
 
@@ -106,29 +105,29 @@ final class DashboardController extends AbstractController
 
             $reasons = [];
 
-            $pres = trim((string)($meeting['president_name'] ?? ''));
+            $pres = trim((string) ($meeting['president_name'] ?? ''));
             if ($pres === '') {
-                $reasons[] = "Président non renseigné.";
+                $reasons[] = 'Président non renseigné.';
             }
 
             $openCount = $statsRepo->countOpenMotions($meetingId);
             if ($openCount > 0) {
-                $reasons[] = "Une motion est encore ouverte.";
+                $reasons[] = 'Une motion est encore ouverte.';
             }
 
             $closed = $motionRepo->listClosedWithManualTally($tenantId, $meetingId);
 
             foreach ($closed as $mo) {
-                $manualTotal = (int)($mo['manual_total'] ?? 0);
-                $sumManual = (int)($mo['manual_for'] ?? 0) + (int)($mo['manual_against'] ?? 0) + (int)($mo['manual_abstain'] ?? 0);
+                $manualTotal = (int) ($mo['manual_total'] ?? 0);
+                $sumManual = (int) ($mo['manual_for'] ?? 0) + (int) ($mo['manual_against'] ?? 0) + (int) ($mo['manual_abstain'] ?? 0);
 
-                $ballotsCount = $ballotRepo->countForMotion($tenantId, $meetingId, (string)$mo['id']);
+                $ballotsCount = $ballotRepo->countForMotion($tenantId, $meetingId, (string) $mo['id']);
 
                 $manualOk = ($manualTotal > 0 && $manualTotal === $sumManual);
-                $evoteOk  = ($ballotsCount > 0);
+                $evoteOk = ($ballotsCount > 0);
 
                 if (!$manualOk && !$evoteOk) {
-                    $reasons[] = "Comptage manquant pour: " . (string)$mo['title'];
+                    $reasons[] = 'Comptage manquant pour: ' . (string) $mo['title'];
                 }
             }
 
@@ -141,8 +140,7 @@ final class DashboardController extends AbstractController
         api_ok($data);
     }
 
-    public function wizardStatus(): void
-    {
+    public function wizardStatus(): void {
         $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422);
@@ -182,16 +180,16 @@ final class DashboardController extends AbstractController
         }
 
         api_ok([
-            'meeting_id'        => $m['id'],
-            'meeting_title'     => $m['title'],
-            'meeting_status'    => $m['status'],
+            'meeting_id' => $m['id'],
+            'meeting_title' => $m['title'],
+            'meeting_status' => $m['status'],
             'current_motion_id' => $m['current_motion_id'],
-            'members_count'     => $membersCount,
-            'present_count'     => $presentCount,
-            'motions_total'     => $motionsTotal,
-            'motions_closed'    => $motionsClosed,
-            'has_president'     => $hasPresident,
-            'quorum_met'        => $quorumMet,
+            'members_count' => $membersCount,
+            'present_count' => $presentCount,
+            'motions_total' => $motionsTotal,
+            'motions_closed' => $motionsClosed,
+            'has_president' => $hasPresident,
+            'quorum_met' => $quorumMet,
             'policies_assigned' => !empty($m['vote_policy_id']) && !empty($m['quorum_policy_id']),
         ]);
     }

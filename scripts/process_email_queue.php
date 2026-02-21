@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -29,32 +30,31 @@ $options = getopt('', ['batch:', 'cleanup', 'reminders', 'verbose', 'help']);
 
 if (isset($options['help'])) {
     echo <<<HELP
-Usage: php process_email_queue.php [options]
+        Usage: php process_email_queue.php [options]
 
-Options:
-  --batch=N       Nombre d'emails a traiter par lot (defaut: 50)
-  --cleanup       Nettoyer les anciens emails (30 jours)
-  --reminders     Traiter les rappels programmes
-  --verbose       Afficher les details
-  --help          Afficher cette aide
+        Options:
+          --batch=N       Nombre d'emails a traiter par lot (defaut: 50)
+          --cleanup       Nettoyer les anciens emails (30 jours)
+          --reminders     Traiter les rappels programmes
+          --verbose       Afficher les details
+          --help          Afficher cette aide
 
-Exemples:
-  php process_email_queue.php                    # Traiter la file d'attente
-  php process_email_queue.php --batch=100        # Traiter 100 emails
-  php process_email_queue.php --reminders        # Traiter les rappels
-  php process_email_queue.php --cleanup          # Nettoyer les anciens
+        Exemples:
+          php process_email_queue.php                    # Traiter la file d'attente
+          php process_email_queue.php --batch=100        # Traiter 100 emails
+          php process_email_queue.php --reminders        # Traiter les rappels
+          php process_email_queue.php --cleanup          # Nettoyer les anciens
 
-HELP;
+        HELP;
     exit(0);
 }
 
-$batchSize = isset($options['batch']) ? (int)$options['batch'] : 50;
+$batchSize = isset($options['batch']) ? (int) $options['batch'] : 50;
 $doCleanup = isset($options['cleanup']);
 $doReminders = isset($options['reminders']);
 $verbose = isset($options['verbose']);
 
-function log_msg(string $msg, bool $verbose): void
-{
+function log_msg(string $msg, bool $verbose): void {
     $timestamp = date('Y-m-d H:i:s');
     if ($verbose) {
         echo "[{$timestamp}] {$msg}\n";
@@ -67,7 +67,7 @@ try {
     global $config;
     $service = new EmailQueueService($config ?? []);
 
-    log_msg("Demarrage du worker email", $verbose);
+    log_msg('Demarrage du worker email', $verbose);
 
     // 1. Traiter la file d'attente
     log_msg("Traitement de la file d'attente (batch: {$batchSize})", $verbose);
@@ -75,10 +75,10 @@ try {
     $result = $service->processQueue($batchSize);
 
     log_msg(sprintf(
-        "File traitee: %d traites, %d envoyes, %d echecs",
+        'File traitee: %d traites, %d envoyes, %d echecs',
         $result['processed'],
         $result['sent'],
-        $result['failed']
+        $result['failed'],
     ), $verbose);
 
     if (!empty($result['errors'])) {
@@ -89,34 +89,34 @@ try {
 
     // 2. Traiter les rappels si demande
     if ($doReminders) {
-        log_msg("Traitement des rappels programmes", $verbose);
+        log_msg('Traitement des rappels programmes', $verbose);
 
         $reminderResult = $service->processReminders();
 
         log_msg(sprintf(
-            "Rappels traites: %d traites, %d envoyes",
+            'Rappels traites: %d traites, %d envoyes',
             $reminderResult['processed'],
-            $reminderResult['sent']
+            $reminderResult['sent'],
         ), $verbose);
     }
 
     // 3. Nettoyage si demande
     if ($doCleanup) {
-        log_msg("Nettoyage des anciens emails (>30 jours)", $verbose);
+        log_msg('Nettoyage des anciens emails (>30 jours)', $verbose);
 
         $cleaned = $service->cleanup(30);
 
         log_msg("Nettoyes: {$cleaned} emails supprimes", $verbose);
     }
 
-    log_msg("Worker termine avec succes", $verbose);
+    log_msg('Worker termine avec succes', $verbose);
 
     // Code de sortie base sur les erreurs
     $exitCode = empty($result['errors']) ? 0 : 1;
     exit($exitCode);
 
 } catch (\Throwable $e) {
-    log_msg("ERREUR FATALE: " . $e->getMessage(), true);
-    log_msg("Trace: " . $e->getTraceAsString(), $verbose);
+    log_msg('ERREUR FATALE: ' . $e->getMessage(), true);
+    log_msg('Trace: ' . $e->getTraceAsString(), $verbose);
     exit(2);
 }

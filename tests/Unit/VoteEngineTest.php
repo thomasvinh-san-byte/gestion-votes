@@ -12,8 +12,7 @@ use PHPUnit\Framework\TestCase;
  * These tests validate the vote calculation algorithms and result structure.
  * Integration tests with real database are in tests/Integration/.
  */
-class VoteEngineTest extends TestCase
-{
+class VoteEngineTest extends TestCase {
     // =========================================================================
     // RESULT STRUCTURE TESTS
     // =========================================================================
@@ -21,8 +20,7 @@ class VoteEngineTest extends TestCase
     /**
      * Validates the expected structure of computeMotionResult output.
      */
-    public function testResultStructureKeys(): void
-    {
+    public function testResultStructureKeys(): void {
         $expectedKeys = [
             'motion',
             'tallies',
@@ -41,8 +39,7 @@ class VoteEngineTest extends TestCase
         }
     }
 
-    public function testMotionStructure(): void
-    {
+    public function testMotionStructure(): void {
         $result = $this->createMockResult();
 
         $this->assertArrayHasKey('id', $result['motion']);
@@ -52,8 +49,7 @@ class VoteEngineTest extends TestCase
         $this->assertArrayHasKey('secret', $result['motion']);
     }
 
-    public function testTalliesStructure(): void
-    {
+    public function testTalliesStructure(): void {
         $result = $this->createMockResult();
 
         $expectedVoteValues = ['for', 'against', 'abstain', 'nsp'];
@@ -65,8 +61,7 @@ class VoteEngineTest extends TestCase
         }
     }
 
-    public function testQuorumStructure(): void
-    {
+    public function testQuorumStructure(): void {
         $result = $this->createMockResult();
 
         $this->assertArrayHasKey('applied', $result['quorum']);
@@ -76,8 +71,7 @@ class VoteEngineTest extends TestCase
         $this->assertArrayHasKey('threshold', $result['quorum']);
     }
 
-    public function testMajorityStructure(): void
-    {
+    public function testMajorityStructure(): void {
         $result = $this->createMockResult();
 
         $this->assertArrayHasKey('applied', $result['majority']);
@@ -88,8 +82,7 @@ class VoteEngineTest extends TestCase
         $this->assertArrayHasKey('abstention_as_against', $result['majority']);
     }
 
-    public function testDecisionStructure(): void
-    {
+    public function testDecisionStructure(): void {
         $result = $this->createMockResult();
 
         $this->assertArrayHasKey('status', $result['decision']);
@@ -103,80 +96,74 @@ class VoteEngineTest extends TestCase
     /**
      * Test decision status computation logic.
      */
-    public function testDecisionStatusNoVotes(): void
-    {
+    public function testDecisionStatusNoVotes(): void {
         $status = $this->computeDecisionStatus(
             expressedMembers: 0,
             nspCount: 0,
             quorumMet: null,
             hasVotePolicy: true,
-            adopted: null
+            adopted: null,
         );
 
         $this->assertEquals('no_votes', $status);
     }
 
-    public function testDecisionStatusNoQuorum(): void
-    {
+    public function testDecisionStatusNoQuorum(): void {
         $status = $this->computeDecisionStatus(
             expressedMembers: 10,
             nspCount: 0,
             quorumMet: false,
             hasVotePolicy: true,
-            adopted: false
+            adopted: false,
         );
 
         $this->assertEquals('no_quorum', $status);
     }
 
-    public function testDecisionStatusAdopted(): void
-    {
+    public function testDecisionStatusAdopted(): void {
         $status = $this->computeDecisionStatus(
             expressedMembers: 10,
             nspCount: 0,
             quorumMet: true,
             hasVotePolicy: true,
-            adopted: true
+            adopted: true,
         );
 
         $this->assertEquals('adopted', $status);
     }
 
-    public function testDecisionStatusRejected(): void
-    {
+    public function testDecisionStatusRejected(): void {
         $status = $this->computeDecisionStatus(
             expressedMembers: 10,
             nspCount: 0,
             quorumMet: true,
             hasVotePolicy: true,
-            adopted: false
+            adopted: false,
         );
 
         $this->assertEquals('rejected', $status);
     }
 
-    public function testDecisionStatusNoPolicy(): void
-    {
+    public function testDecisionStatusNoPolicy(): void {
         $status = $this->computeDecisionStatus(
             expressedMembers: 10,
             nspCount: 0,
             quorumMet: null,
             hasVotePolicy: false,
-            adopted: null
+            adopted: null,
         );
 
         $this->assertEquals('no_policy', $status);
     }
 
-    public function testDecisionStatusWithNspOnly(): void
-    {
+    public function testDecisionStatusWithNspOnly(): void {
         // Even with only NSP votes (no expressed), there are votes
         $status = $this->computeDecisionStatus(
             expressedMembers: 0,
             nspCount: 5,
             quorumMet: true,
             hasVotePolicy: true,
-            adopted: false
+            adopted: false,
         );
 
         $this->assertEquals('rejected', $status);
@@ -186,8 +173,7 @@ class VoteEngineTest extends TestCase
     // MAJORITY CALCULATION TESTS
     // =========================================================================
 
-    public function testMajorityCalculationExpressedBase(): void
-    {
+    public function testMajorityCalculationExpressedBase(): void {
         $tallies = [
             'for' => ['weight' => 60.0],
             'against' => ['weight' => 30.0],
@@ -204,8 +190,7 @@ class VoteEngineTest extends TestCase
         $this->assertTrue($adopted);
     }
 
-    public function testMajorityCalculationWithAbstentionAsAgainst(): void
-    {
+    public function testMajorityCalculationWithAbstentionAsAgainst(): void {
         $tallies = [
             'for' => ['weight' => 45.0],
             'against' => ['weight' => 35.0],
@@ -226,8 +211,7 @@ class VoteEngineTest extends TestCase
         $this->assertEquals(55.0, $effectiveAgainst);
     }
 
-    public function testMajorityCalculationEligibleBase(): void
-    {
+    public function testMajorityCalculationEligibleBase(): void {
         $tallies = [
             'for' => ['weight' => 60.0],
             'against' => ['weight' => 20.0],
@@ -249,8 +233,7 @@ class VoteEngineTest extends TestCase
     // TALLY AGGREGATION TESTS
     // =========================================================================
 
-    public function testExpressedCalculation(): void
-    {
+    public function testExpressedCalculation(): void {
         $tallies = [
             'for' => ['count' => 10, 'weight' => 100.0],
             'against' => ['count' => 5, 'weight' => 50.0],
@@ -278,8 +261,7 @@ class VoteEngineTest extends TestCase
     // EDGE CASES
     // =========================================================================
 
-    public function testZeroExpressedWeight(): void
-    {
+    public function testZeroExpressedWeight(): void {
         $expressedWeight = 0.0;
         $forWeight = 0.0;
 
@@ -289,8 +271,7 @@ class VoteEngineTest extends TestCase
         $this->assertEquals(0.0, $ratio);
     }
 
-    public function testQuorumBlocksAdoption(): void
-    {
+    public function testQuorumBlocksAdoption(): void {
         // Even with 100% for votes, if quorum not met, motion fails
         $ratio = 1.0; // 100% for
         $threshold = 0.5;
@@ -301,8 +282,7 @@ class VoteEngineTest extends TestCase
         $this->assertFalse($adopted);
     }
 
-    public function testNoQuorumPolicyAllowsVote(): void
-    {
+    public function testNoQuorumPolicyAllowsVote(): void {
         // Without quorum policy, quorumMet is null
         $ratio = 0.6;
         $threshold = 0.5;
@@ -321,8 +301,7 @@ class VoteEngineTest extends TestCase
     /**
      * Create a mock result structure for testing.
      */
-    private function createMockResult(): array
-    {
+    private function createMockResult(): array {
         return [
             'motion' => [
                 'id' => 'test-motion-id',
@@ -379,7 +358,7 @@ class VoteEngineTest extends TestCase
         int $nspCount,
         ?bool $quorumMet,
         bool $hasVotePolicy,
-        ?bool $adopted
+        ?bool $adopted,
     ): string {
         $hasVotes = ($expressedMembers + $nspCount) > 0;
 

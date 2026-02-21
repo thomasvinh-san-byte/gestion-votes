@@ -1,12 +1,13 @@
 #!/usr/bin/env php
 <?php
+
 declare(strict_types=1);
 
 /**
  * test_api_integration.php - Tests d'intégration API automatisés
- * 
+ *
  * Usage: php scripts/test_api_integration.php [--base-url=http://localhost:8080]
- * 
+ *
  * Teste les principaux endpoints de l'API AG-VOTE.
  */
 
@@ -27,7 +28,7 @@ echo "║           AG-VOTE - Tests d'intégration API                       ║
 echo "╚═══════════════════════════════════════════════════════════════════╝\n";
 echo "\n";
 echo "Base URL: {$baseUrl}\n";
-echo "Date: " . date('Y-m-d H:i:s') . "\n";
+echo 'Date: ' . date('Y-m-d H:i:s') . "\n";
 echo str_repeat('─', 70) . "\n\n";
 
 $passed = 0;
@@ -36,9 +37,9 @@ $errors = [];
 
 function test(string $name, callable $testFn): void {
     global $passed, $failed, $errors;
-    
+
     echo "🧪 {$name}... ";
-    
+
     try {
         $result = $testFn();
         if ($result === true || $result === null) {
@@ -50,7 +51,7 @@ function test(string $name, callable $testFn): void {
             $errors[] = "{$name}: {$result}";
         }
     } catch (Throwable $e) {
-        echo "❌ ERROR: " . $e->getMessage() . "\n";
+        echo '❌ ERROR: ' . $e->getMessage() . "\n";
         $failed++;
         $errors[] = "{$name}: " . $e->getMessage();
     }
@@ -64,13 +65,13 @@ function apiGet(string $url): array {
         CURLOPT_TIMEOUT => 10,
         CURLOPT_HTTPHEADER => [
             'Accept: application/json',
-            'X-Api-Key: dev-test-key'
+            'X-Api-Key: dev-test-key',
         ],
     ]);
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    
+
     return [
         'code' => $httpCode,
         'body' => json_decode($response ?: '{}', true) ?: [],
@@ -90,13 +91,13 @@ function apiPost(string $url, array $data): array {
             'Content-Type: application/json',
             'Accept: application/json',
             'X-Api-Key: dev-test-key',
-            'X-CSRF-Token: test-csrf-token'
+            'X-CSRF-Token: test-csrf-token',
         ],
     ]);
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    
+
     return [
         'code' => $httpCode,
         'body' => json_decode($response ?: '{}', true) ?: [],
@@ -111,16 +112,22 @@ function apiPost(string $url, array $data): array {
 echo "📋 Tests de base\n";
 echo str_repeat('─', 70) . "\n";
 
-test("Ping API", function() {
+test('Ping API', function () {
     $r = apiGet('/api/v1/ping.php');
-    if ($r['code'] !== 200) return "HTTP {$r['code']}";
-    if (!isset($r['body']['ok'])) return "Missing 'ok' field";
+    if ($r['code'] !== 200) {
+        return "HTTP {$r['code']}";
+    }
+    if (!isset($r['body']['ok'])) {
+        return "Missing 'ok' field";
+    }
     return true;
 });
 
-test("Whoami endpoint", function() {
+test('Whoami endpoint', function () {
     $r = apiGet('/api/v1/whoami.php');
-    if ($r['code'] !== 200 && $r['code'] !== 401) return "HTTP {$r['code']}";
+    if ($r['code'] !== 200 && $r['code'] !== 401) {
+        return "HTTP {$r['code']}";
+    }
     return true;
 });
 
@@ -131,16 +138,22 @@ test("Whoami endpoint", function() {
 echo "\n📋 Tests Séances (Meetings)\n";
 echo str_repeat('─', 70) . "\n";
 
-test("Liste des séances", function() {
+test('Liste des séances', function () {
     $r = apiGet('/api/v1/meetings.php');
-    if ($r['code'] !== 200) return "HTTP {$r['code']}";
-    if (!isset($r['body']['ok'])) return "Missing 'ok' field";
+    if ($r['code'] !== 200) {
+        return "HTTP {$r['code']}";
+    }
+    if (!isset($r['body']['ok'])) {
+        return "Missing 'ok' field";
+    }
     return true;
 });
 
-test("Dashboard", function() {
+test('Dashboard', function () {
     $r = apiGet('/api/v1/dashboard.php');
-    if ($r['code'] !== 200) return "HTTP {$r['code']}";
+    if ($r['code'] !== 200) {
+        return "HTTP {$r['code']}";
+    }
     return true;
 });
 
@@ -151,9 +164,11 @@ test("Dashboard", function() {
 echo "\n📋 Tests Membres\n";
 echo str_repeat('─', 70) . "\n";
 
-test("Liste des membres", function() {
+test('Liste des membres', function () {
     $r = apiGet('/api/v1/members.php');
-    if ($r['code'] !== 200) return "HTTP {$r['code']}";
+    if ($r['code'] !== 200) {
+        return "HTTP {$r['code']}";
+    }
     return true;
 });
 
@@ -164,15 +179,19 @@ test("Liste des membres", function() {
 echo "\n📋 Tests Politiques\n";
 echo str_repeat('─', 70) . "\n";
 
-test("Politiques de quorum", function() {
+test('Politiques de quorum', function () {
     $r = apiGet('/api/v1/quorum_policies.php');
-    if ($r['code'] !== 200) return "HTTP {$r['code']}";
+    if ($r['code'] !== 200) {
+        return "HTTP {$r['code']}";
+    }
     return true;
 });
 
-test("Politiques de vote", function() {
+test('Politiques de vote', function () {
     $r = apiGet('/api/v1/vote_policies.php');
-    if ($r['code'] !== 200) return "HTTP {$r['code']}";
+    if ($r['code'] !== 200) {
+        return "HTTP {$r['code']}";
+    }
     return true;
 });
 
@@ -183,9 +202,11 @@ test("Politiques de vote", function() {
 echo "\n📋 Tests Administration\n";
 echo str_repeat('─', 70) . "\n";
 
-test("Statut système", function() {
+test('Statut système', function () {
     $r = apiGet('/api/v1/admin_system_status.php');
-    if ($r['code'] !== 200) return "HTTP {$r['code']}";
+    if ($r['code'] !== 200) {
+        return "HTTP {$r['code']}";
+    }
     return true;
 });
 
@@ -196,9 +217,11 @@ test("Statut système", function() {
 echo "\n📋 Tests Archives\n";
 echo str_repeat('─', 70) . "\n";
 
-test("Liste archives", function() {
+test('Liste archives', function () {
     $r = apiGet('/api/v1/archives_list.php');
-    if ($r['code'] !== 200) return "HTTP {$r['code']}";
+    if ($r['code'] !== 200) {
+        return "HTTP {$r['code']}";
+    }
     return true;
 });
 
@@ -209,7 +232,7 @@ test("Liste archives", function() {
 echo "\n📋 Tests Sécurité\n";
 echo str_repeat('─', 70) . "\n";
 
-test("Headers de sécurité présents", function() {
+test('Headers de sécurité présents', function () {
     global $baseUrl;
     $ch = curl_init("{$baseUrl}/api/v1/ping.php");
     curl_setopt_array($ch, [
@@ -220,16 +243,18 @@ test("Headers de sécurité présents", function() {
     ]);
     $response = curl_exec($ch);
     curl_close($ch);
-    
+
     $hasCSP = stripos($response, 'Content-Security-Policy') !== false;
     $hasXFrame = stripos($response, 'X-Frame-Options') !== false;
     $hasXContent = stripos($response, 'X-Content-Type-Options') !== false;
-    
-    if (!$hasXContent) return "Missing X-Content-Type-Options";
+
+    if (!$hasXContent) {
+        return 'Missing X-Content-Type-Options';
+    }
     return true;
 });
 
-test("Méthode OPTIONS (CORS preflight)", function() {
+test('Méthode OPTIONS (CORS preflight)', function () {
     global $baseUrl;
     $ch = curl_init("{$baseUrl}/api/v1/meetings.php");
     curl_setopt_array($ch, [
@@ -240,8 +265,10 @@ test("Méthode OPTIONS (CORS preflight)", function() {
     curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    
-    if ($httpCode !== 204 && $httpCode !== 200) return "HTTP {$httpCode}";
+
+    if ($httpCode !== 204 && $httpCode !== 200) {
+        return "HTTP {$httpCode}";
+    }
     return true;
 });
 
@@ -262,7 +289,7 @@ $pages = [
 ];
 
 foreach ($pages as $path => $name) {
-    test("Page {$name}", function() use ($baseUrl, $path) {
+    test("Page {$name}", function () use ($baseUrl, $path) {
         $ch = curl_init("{$baseUrl}{$path}");
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
@@ -271,10 +298,12 @@ foreach ($pages as $path => $name) {
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        
-        if ($httpCode !== 200) return "HTTP {$httpCode}";
+
+        if ($httpCode !== 200) {
+            return "HTTP {$httpCode}";
+        }
         if (stripos($response, '<!DOCTYPE html>') === false && stripos($response, '<!doctype html>') === false) {
-            return "Not HTML";
+            return 'Not HTML';
         }
         return true;
     });
@@ -307,7 +336,6 @@ if (count($errors) > 0) {
 if ($failed === 0) {
     echo "🎉 Tous les tests sont passés !\n\n";
     exit(0);
-} else {
-    echo "⚠️  Certains tests ont échoué. Vérifiez les erreurs ci-dessus.\n\n";
-    exit(1);
 }
+echo "⚠️  Certains tests ont échoué. Vérifiez les erreurs ci-dessus.\n\n";
+exit(1);

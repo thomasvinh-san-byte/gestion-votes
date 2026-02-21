@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
-use PHPUnit\Framework\TestCase;
 use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Core\Security\PermissionChecker;
-use AgVote\Service\MeetingWorkflowService;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests d'intégration pour le chemin critique de l'administrateur.
@@ -19,16 +18,14 @@ use AgVote\Service\MeetingWorkflowService;
  * 4. Cycle de vie complet d'une réunion (draft -> archived)
  * 5. Génération de rapports
  */
-class AdminCriticalPathTest extends TestCase
-{
+class AdminCriticalPathTest extends TestCase {
     private PermissionChecker $checker;
     private array $adminUser;
     private array $operatorUser;
     private array $presidentUser;
     private array $voterUser;
 
-    protected function setUp(): void
-    {
+    protected function setUp(): void {
         $this->checker = new PermissionChecker();
 
         $this->adminUser = [
@@ -70,22 +67,19 @@ class AdminCriticalPathTest extends TestCase
     // PHASE 1: AUTHENTIFICATION & AUTORISATION
     // =========================================================================
 
-    public function testAdminCanAccessAllAdminFunctions(): void
-    {
+    public function testAdminCanAccessAllAdminFunctions(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'admin:users'));
         $this->assertTrue($this->checker->check($this->adminUser, 'admin:policies'));
         $this->assertTrue($this->checker->check($this->adminUser, 'admin:system'));
         $this->assertTrue($this->checker->check($this->adminUser, 'admin:roles'));
     }
 
-    public function testAdminCanManageUsers(): void
-    {
+    public function testAdminCanManageUsers(): void {
         // Admin peut créer, lire, modifier, supprimer des utilisateurs
         $this->assertTrue($this->checker->check($this->adminUser, 'admin:users'));
     }
 
-    public function testOperatorCannotAccessAdminFunctions(): void
-    {
+    public function testOperatorCannotAccessAdminFunctions(): void {
         $this->assertFalse($this->checker->check($this->operatorUser, 'admin:users'));
         $this->assertFalse($this->checker->check($this->operatorUser, 'admin:policies'));
         $this->assertFalse($this->checker->check($this->operatorUser, 'admin:system'));
@@ -95,18 +89,15 @@ class AdminCriticalPathTest extends TestCase
     // PHASE 2: CRÉATION DE RÉUNION
     // =========================================================================
 
-    public function testAdminCanCreateMeeting(): void
-    {
+    public function testAdminCanCreateMeeting(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'meeting:create'));
     }
 
-    public function testOperatorCanCreateMeeting(): void
-    {
+    public function testOperatorCanCreateMeeting(): void {
         $this->assertTrue($this->checker->check($this->operatorUser, 'meeting:create'));
     }
 
-    public function testVoterCannotCreateMeeting(): void
-    {
+    public function testVoterCannotCreateMeeting(): void {
         $this->assertFalse($this->checker->check($this->voterUser, 'meeting:create'));
     }
 
@@ -114,29 +105,25 @@ class AdminCriticalPathTest extends TestCase
     // PHASE 3: PRÉPARATION DE RÉUNION
     // =========================================================================
 
-    public function testAdminCanManageMembers(): void
-    {
+    public function testAdminCanManageMembers(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'member:create'));
         $this->assertTrue($this->checker->check($this->adminUser, 'member:update'));
         $this->assertTrue($this->checker->check($this->adminUser, 'member:delete'));
         $this->assertTrue($this->checker->check($this->adminUser, 'member:import'));
     }
 
-    public function testAdminCanManageMotions(): void
-    {
+    public function testAdminCanManageMotions(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'motion:create'));
         $this->assertTrue($this->checker->check($this->adminUser, 'motion:update'));
         $this->assertTrue($this->checker->check($this->adminUser, 'motion:delete'));
     }
 
-    public function testAdminCanManageAttendance(): void
-    {
+    public function testAdminCanManageAttendance(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'attendance:create'));
         $this->assertTrue($this->checker->check($this->adminUser, 'attendance:update'));
     }
 
-    public function testAdminCanManageProxies(): void
-    {
+    public function testAdminCanManageProxies(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'proxy:create'));
         $this->assertTrue($this->checker->check($this->adminUser, 'proxy:delete'));
     }
@@ -145,16 +132,14 @@ class AdminCriticalPathTest extends TestCase
     // PHASE 4: TRANSITIONS D'ÉTAT DE RÉUNION
     // =========================================================================
 
-    public function testDraftToScheduledTransition(): void
-    {
+    public function testDraftToScheduledTransition(): void {
         // Operator peut passer de draft à scheduled
         $this->assertTrue($this->checker->canTransition($this->operatorUser, 'draft', 'scheduled'));
         // Admin aussi
         $this->assertTrue($this->checker->canTransition($this->adminUser, 'draft', 'scheduled'));
     }
 
-    public function testScheduledToFrozenTransition(): void
-    {
+    public function testScheduledToFrozenTransition(): void {
         // President peut passer de scheduled à frozen
         $this->assertTrue($this->checker->canTransition($this->presidentUser, 'scheduled', 'frozen'));
         // Admin aussi
@@ -163,40 +148,35 @@ class AdminCriticalPathTest extends TestCase
         $this->assertFalse($this->checker->canTransition($this->operatorUser, 'scheduled', 'frozen'));
     }
 
-    public function testFrozenToLiveTransition(): void
-    {
+    public function testFrozenToLiveTransition(): void {
         // President peut ouvrir la séance
         $this->assertTrue($this->checker->canTransition($this->presidentUser, 'frozen', 'live'));
         // Admin aussi
         $this->assertTrue($this->checker->canTransition($this->adminUser, 'frozen', 'live'));
     }
 
-    public function testLiveToClosedTransition(): void
-    {
+    public function testLiveToClosedTransition(): void {
         // President peut clôturer la séance
         $this->assertTrue($this->checker->canTransition($this->presidentUser, 'live', 'closed'));
         // Admin aussi
         $this->assertTrue($this->checker->canTransition($this->adminUser, 'live', 'closed'));
     }
 
-    public function testClosedToValidatedTransition(): void
-    {
+    public function testClosedToValidatedTransition(): void {
         // President peut valider la séance
         $this->assertTrue($this->checker->canTransition($this->presidentUser, 'closed', 'validated'));
         // Admin aussi
         $this->assertTrue($this->checker->canTransition($this->adminUser, 'closed', 'validated'));
     }
 
-    public function testValidatedToArchivedTransition(): void
-    {
+    public function testValidatedToArchivedTransition(): void {
         // Seul admin peut archiver
         $this->assertTrue($this->checker->canTransition($this->adminUser, 'validated', 'archived'));
         // President ne peut pas archiver
         $this->assertFalse($this->checker->canTransition($this->presidentUser, 'validated', 'archived'));
     }
 
-    public function testCompleteForwardLifecycle(): void
-    {
+    public function testCompleteForwardLifecycle(): void {
         // Test du cycle complet: draft -> scheduled -> frozen -> live -> closed -> validated -> archived
         $states = ['draft', 'scheduled', 'frozen', 'live', 'closed', 'validated', 'archived'];
 
@@ -207,13 +187,12 @@ class AdminCriticalPathTest extends TestCase
             // Admin peut faire toutes les transitions
             $this->assertTrue(
                 $this->checker->canTransition($this->adminUser, $from, $to),
-                "Admin should be able to transition from $from to $to"
+                "Admin should be able to transition from {$from} to {$to}",
             );
         }
     }
 
-    public function testCannotSkipStates(): void
-    {
+    public function testCannotSkipStates(): void {
         // On ne peut pas sauter d'états
         $this->assertFalse($this->checker->canTransition($this->adminUser, 'draft', 'live'));
         $this->assertFalse($this->checker->canTransition($this->adminUser, 'draft', 'closed'));
@@ -225,23 +204,19 @@ class AdminCriticalPathTest extends TestCase
     // PHASE 5: VOTES
     // =========================================================================
 
-    public function testAdminCanOpenMotionVote(): void
-    {
+    public function testAdminCanOpenMotionVote(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'motion:open'));
     }
 
-    public function testAdminCanCloseMotionVote(): void
-    {
+    public function testAdminCanCloseMotionVote(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'motion:close'));
     }
 
-    public function testVoterCanCastVote(): void
-    {
+    public function testVoterCanCastVote(): void {
         $this->assertTrue($this->checker->check($this->voterUser, 'vote:cast'));
     }
 
-    public function testAdminCanManualVote(): void
-    {
+    public function testAdminCanManualVote(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'vote:manual'));
     }
 
@@ -249,15 +224,13 @@ class AdminCriticalPathTest extends TestCase
     // PHASE 6: RAPPORTS ET EXPORTS
     // =========================================================================
 
-    public function testAdminCanGenerateReports(): void
-    {
+    public function testAdminCanGenerateReports(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'report:generate'));
         $this->assertTrue($this->checker->check($this->adminUser, 'report:read'));
         $this->assertTrue($this->checker->check($this->adminUser, 'report:export'));
     }
 
-    public function testAdminCanExportAuditLogs(): void
-    {
+    public function testAdminCanExportAuditLogs(): void {
         $this->assertTrue($this->checker->check($this->adminUser, 'audit:read'));
         $this->assertTrue($this->checker->check($this->adminUser, 'audit:export'));
     }
@@ -266,19 +239,17 @@ class AdminCriticalPathTest extends TestCase
     // PHASE 7: SÉCURITÉ POST-VALIDATION
     // =========================================================================
 
-    public function testCannotModifyAfterArchived(): void
-    {
+    public function testCannotModifyAfterArchived(): void {
         // Archived est un état terminal - aucune transition possible
         $transitions = $this->checker->availableTransitions($this->adminUser, 'archived');
-        $this->assertEmpty($transitions, "No transitions should be available from archived state");
+        $this->assertEmpty($transitions, 'No transitions should be available from archived state');
     }
 
     // =========================================================================
     // TESTS DE RÔLES DE SÉANCE
     // =========================================================================
 
-    public function testMeetingRolesPermissions(): void
-    {
+    public function testMeetingRolesPermissions(): void {
         // President peut lire les audits
         $this->assertTrue($this->checker->check($this->presidentUser, 'audit:read'));
 
@@ -294,8 +265,7 @@ class AdminCriticalPathTest extends TestCase
     // TESTS DE HIÉRARCHIE DE RÔLES
     // =========================================================================
 
-    public function testRoleHierarchy(): void
-    {
+    public function testRoleHierarchy(): void {
         // Admin > Operator > Auditor > Viewer
         $this->assertTrue($this->checker->hasRole($this->adminUser, ['admin']));
         $this->assertTrue($this->checker->hasRole($this->adminUser, ['operator']));
@@ -307,8 +277,7 @@ class AdminCriticalPathTest extends TestCase
     // VALIDATION DU WORKFLOW COMPLET
     // =========================================================================
 
-    public function testAdminWorkflowSummary(): void
-    {
+    public function testAdminWorkflowSummary(): void {
         // Ce test résume le chemin critique complet de l'admin
 
         // 1. Admin peut gérer les utilisateurs

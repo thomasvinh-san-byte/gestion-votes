@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
@@ -21,12 +22,23 @@ use AgVote\Repository\MotionRepository;
  * - (optional) consolidation done: official_source present on all closed motions
  */
 
-final class MeetingValidator
-{
-    public static function canBeValidated(string $meetingId, string $tenantId): array
-    {
-        $meetingRepo = new MeetingRepository();
-        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+final class MeetingValidator {
+    private MeetingRepository $meetingRepo;
+    private MotionRepository $motionRepo;
+    private MeetingStatsRepository $statsRepo;
+
+    public function __construct(
+        ?MeetingRepository $meetingRepo = null,
+        ?MotionRepository $motionRepo = null,
+        ?MeetingStatsRepository $statsRepo = null,
+    ) {
+        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+        $this->motionRepo = $motionRepo ?? new MotionRepository();
+        $this->statsRepo = $statsRepo ?? new MeetingStatsRepository();
+    }
+
+    public function canBeValidated(string $meetingId, string $tenantId): array {
+        $meeting = $this->meetingRepo->findByIdForTenant($meetingId, $tenantId);
 
         if (!$meeting) {
             return [
@@ -39,28 +51,25 @@ final class MeetingValidator
         $reasons = [];
         $codes = [];
 
-        if (trim((string)($meeting['president_name'] ?? '')) === '') {
+        if (trim((string) ($meeting['president_name'] ?? '')) === '') {
             $reasons[] = 'Président non renseigné.';
             $codes[] = 'missing_president';
         }
 
-        $motionRepo = new MotionRepository();
-        $statsRepo = new MeetingStatsRepository();
-
-        $open = $statsRepo->countOpenMotions($meetingId);
+        $open = $this->statsRepo->countOpenMotions($meetingId);
         if ($open > 0) {
-            $reasons[] = "$open motion(s) encore ouverte(s).";
+            $reasons[] = "{$open} motion(s) encore ouverte(s).";
             $codes[] = 'open_motions';
         }
 
-        $bad = $motionRepo->countBadClosedMotions($meetingId);
+        $bad = $this->motionRepo->countBadClosedMotions($meetingId);
         if ($bad > 0) {
-            $reasons[] = "$bad motion(s) fermée(s) sans résultat exploitable (manuel cohérent ou e-vote).";
+            $reasons[] = "{$bad} motion(s) fermée(s) sans résultat exploitable (manuel cohérent ou e-vote).";
             $codes[] = 'bad_closed_results';
         }
 
-        $closed = $statsRepo->countClosedMotions($meetingId);
-        $consolidated = $motionRepo->countConsolidatedMotions($meetingId);
+        $closed = $this->statsRepo->countClosedMotions($meetingId);
+        $consolidated = $this->motionRepo->countConsolidatedMotions($meetingId);
 
         // Consolidation is required when there is at least one closed motion.
         $needsConsolidation = $closed > 0;

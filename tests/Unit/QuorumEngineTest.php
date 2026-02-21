@@ -12,8 +12,7 @@ use PHPUnit\Framework\TestCase;
  * These tests validate the quorum calculation algorithms and result structure.
  * Integration tests with real database are in tests/Integration/.
  */
-class QuorumEngineTest extends TestCase
-{
+class QuorumEngineTest extends TestCase {
     // =========================================================================
     // RESULT STRUCTURE TESTS
     // =========================================================================
@@ -21,8 +20,7 @@ class QuorumEngineTest extends TestCase
     /**
      * Validates the expected structure of computeForMeeting output.
      */
-    public function testResultStructureKeys(): void
-    {
+    public function testResultStructureKeys(): void {
         $expectedKeys = [
             'applied',
             'met',
@@ -38,8 +36,7 @@ class QuorumEngineTest extends TestCase
         }
     }
 
-    public function testResultWithPolicyIncludesPolicy(): void
-    {
+    public function testResultWithPolicyIncludesPolicy(): void {
         $result = $this->createMockResultWithPolicy();
 
         $this->assertArrayHasKey('policy', $result);
@@ -48,8 +45,7 @@ class QuorumEngineTest extends TestCase
         $this->assertArrayHasKey('mode', $result['policy']);
     }
 
-    public function testNoPolicyResult(): void
-    {
+    public function testNoPolicyResult(): void {
         $result = $this->createNoPolicyResult();
 
         $this->assertFalse($result['applied']);
@@ -61,8 +57,7 @@ class QuorumEngineTest extends TestCase
     // QUORUM MODE TESTS
     // =========================================================================
 
-    public function testSingleModeQuorumMet(): void
-    {
+    public function testSingleModeQuorumMet(): void {
         $mode = 'single';
         $primary = $this->computeRatioBlock(
             basis: 'eligible_members',
@@ -70,37 +65,35 @@ class QuorumEngineTest extends TestCase
             numMembers: 60,
             numWeight: 0,
             eligibleMembers: 100,
-            eligibleWeight: 0
+            eligibleWeight: 0,
         );
 
         $this->assertTrue($primary['met']);
         $this->assertEquals(0.6, $primary['ratio']);
     }
 
-    public function testSingleModeQuorumNotMet(): void
-    {
+    public function testSingleModeQuorumNotMet(): void {
         $primary = $this->computeRatioBlock(
             basis: 'eligible_members',
             threshold: 0.5,
             numMembers: 40,
             numWeight: 0,
             eligibleMembers: 100,
-            eligibleWeight: 0
+            eligibleWeight: 0,
         );
 
         $this->assertFalse($primary['met']);
         $this->assertEquals(0.4, $primary['ratio']);
     }
 
-    public function testDoubleModeQuorumBothMet(): void
-    {
+    public function testDoubleModeQuorumBothMet(): void {
         $primary = $this->computeRatioBlock(
             basis: 'eligible_members',
             threshold: 0.5,
             numMembers: 60,
             numWeight: 600,
             eligibleMembers: 100,
-            eligibleWeight: 1000
+            eligibleWeight: 1000,
         );
 
         $secondary = $this->computeRatioBlock(
@@ -109,7 +102,7 @@ class QuorumEngineTest extends TestCase
             numMembers: 60,
             numWeight: 600,
             eligibleMembers: 100,
-            eligibleWeight: 1000
+            eligibleWeight: 1000,
         );
 
         $doubleQuorumMet = $primary['met'] && $secondary['met'];
@@ -117,15 +110,14 @@ class QuorumEngineTest extends TestCase
         $this->assertTrue($doubleQuorumMet);
     }
 
-    public function testDoubleModeQuorumPrimaryNotMet(): void
-    {
+    public function testDoubleModeQuorumPrimaryNotMet(): void {
         $primary = $this->computeRatioBlock(
             basis: 'eligible_members',
             threshold: 0.5,
             numMembers: 40,
             numWeight: 600,
             eligibleMembers: 100,
-            eligibleWeight: 1000
+            eligibleWeight: 1000,
         );
 
         $secondary = $this->computeRatioBlock(
@@ -134,7 +126,7 @@ class QuorumEngineTest extends TestCase
             numMembers: 40,
             numWeight: 600,
             eligibleMembers: 100,
-            eligibleWeight: 1000
+            eligibleWeight: 1000,
         );
 
         $doubleQuorumMet = $primary['met'] && $secondary['met'];
@@ -144,15 +136,14 @@ class QuorumEngineTest extends TestCase
         $this->assertTrue($secondary['met']);
     }
 
-    public function testDoubleModeQuorumSecondaryNotMet(): void
-    {
+    public function testDoubleModeQuorumSecondaryNotMet(): void {
         $primary = $this->computeRatioBlock(
             basis: 'eligible_members',
             threshold: 0.5,
             numMembers: 60,
             numWeight: 400,
             eligibleMembers: 100,
-            eligibleWeight: 1000
+            eligibleWeight: 1000,
         );
 
         $secondary = $this->computeRatioBlock(
@@ -161,7 +152,7 @@ class QuorumEngineTest extends TestCase
             numMembers: 60,
             numWeight: 400,
             eligibleMembers: 100,
-            eligibleWeight: 1000
+            eligibleWeight: 1000,
         );
 
         $doubleQuorumMet = $primary['met'] && $secondary['met'];
@@ -175,42 +166,38 @@ class QuorumEngineTest extends TestCase
     // EVOLVING THRESHOLD TESTS
     // =========================================================================
 
-    public function testEvolvingThresholdFirstConvocation(): void
-    {
+    public function testEvolvingThresholdFirstConvocation(): void {
         $threshold = $this->getEvolvingThreshold(
             convocationNo: 1,
             threshold1: 0.5,
-            threshold2: 0.25
+            threshold2: 0.25,
         );
 
         $this->assertEquals(0.5, $threshold);
     }
 
-    public function testEvolvingThresholdSecondConvocation(): void
-    {
+    public function testEvolvingThresholdSecondConvocation(): void {
         $threshold = $this->getEvolvingThreshold(
             convocationNo: 2,
             threshold1: 0.5,
-            threshold2: 0.25
+            threshold2: 0.25,
         );
 
         $this->assertEquals(0.25, $threshold);
     }
 
-    public function testEvolvingThresholdNoSecondThreshold(): void
-    {
+    public function testEvolvingThresholdNoSecondThreshold(): void {
         // Falls back to first threshold if second is null
         $threshold = $this->getEvolvingThreshold(
             convocationNo: 2,
             threshold1: 0.5,
-            threshold2: null
+            threshold2: null,
         );
 
         $this->assertEquals(0.5, $threshold);
     }
 
-    public function testEvolvingThresholdAllowsQuorumOnSecondCall(): void
-    {
+    public function testEvolvingThresholdAllowsQuorumOnSecondCall(): void {
         // First call: 40% attendance, 50% threshold = not met
         $threshold1 = $this->getEvolvingThreshold(1, 0.5, 0.25);
         $ratio1 = 0.4;
@@ -228,8 +215,7 @@ class QuorumEngineTest extends TestCase
     // ATTENDANCE MODE TESTS
     // =========================================================================
 
-    public function testAttendanceModesPresent(): void
-    {
+    public function testAttendanceModesPresent(): void {
         $modes = ['present'];
 
         $attendance = [
@@ -243,8 +229,7 @@ class QuorumEngineTest extends TestCase
         $this->assertEquals(2, $count);
     }
 
-    public function testAttendanceModesPresentAndRemote(): void
-    {
+    public function testAttendanceModesPresentAndRemote(): void {
         $modes = ['present', 'remote'];
 
         $attendance = [
@@ -258,8 +243,7 @@ class QuorumEngineTest extends TestCase
         $this->assertEquals(3, $count);
     }
 
-    public function testAttendanceModesAll(): void
-    {
+    public function testAttendanceModesAll(): void {
         $modes = ['present', 'remote', 'proxy'];
 
         $attendance = [
@@ -273,8 +257,7 @@ class QuorumEngineTest extends TestCase
         $this->assertEquals(4, $count);
     }
 
-    public function testAttendanceModesFromPolicy(): void
-    {
+    public function testAttendanceModesFromPolicy(): void {
         $policy = [
             'include_proxies' => true,
             'count_remote' => true,
@@ -287,8 +270,7 @@ class QuorumEngineTest extends TestCase
         $this->assertContains('proxy', $modes);
     }
 
-    public function testAttendanceModesNoProxies(): void
-    {
+    public function testAttendanceModesNoProxies(): void {
         $policy = [
             'include_proxies' => false,
             'count_remote' => true,
@@ -301,8 +283,7 @@ class QuorumEngineTest extends TestCase
         $this->assertNotContains('proxy', $modes);
     }
 
-    public function testAttendanceModesNoRemote(): void
-    {
+    public function testAttendanceModesNoRemote(): void {
         $policy = [
             'include_proxies' => true,
             'count_remote' => false,
@@ -319,15 +300,14 @@ class QuorumEngineTest extends TestCase
     // BASIS CALCULATION TESTS
     // =========================================================================
 
-    public function testBasisEligibleMembers(): void
-    {
+    public function testBasisEligibleMembers(): void {
         $result = $this->computeRatioBlock(
             basis: 'eligible_members',
             threshold: 0.5,
             numMembers: 60,
             numWeight: 6000,
             eligibleMembers: 100,
-            eligibleWeight: 10000
+            eligibleWeight: 10000,
         );
 
         // Should use member count, not weight
@@ -336,15 +316,14 @@ class QuorumEngineTest extends TestCase
         $this->assertEquals(100, $result['denominator']);
     }
 
-    public function testBasisEligibleWeight(): void
-    {
+    public function testBasisEligibleWeight(): void {
         $result = $this->computeRatioBlock(
             basis: 'eligible_weight',
             threshold: 0.5,
             numMembers: 60,
             numWeight: 6000,
             eligibleMembers: 100,
-            eligibleWeight: 10000
+            eligibleWeight: 10000,
         );
 
         // Should use weight, not count
@@ -357,15 +336,14 @@ class QuorumEngineTest extends TestCase
     // EDGE CASES
     // =========================================================================
 
-    public function testZeroEligibleMembers(): void
-    {
+    public function testZeroEligibleMembers(): void {
         $result = $this->computeRatioBlock(
             basis: 'eligible_members',
             threshold: 0.5,
             numMembers: 0,
             numWeight: 0,
             eligibleMembers: 0,
-            eligibleWeight: 0
+            eligibleWeight: 0,
         );
 
         // Should use 1 as minimum denominator to avoid division by zero
@@ -373,30 +351,28 @@ class QuorumEngineTest extends TestCase
         $this->assertEquals(1, $result['denominator']);
     }
 
-    public function testZeroEligibleWeight(): void
-    {
+    public function testZeroEligibleWeight(): void {
         $result = $this->computeRatioBlock(
             basis: 'eligible_weight',
             threshold: 0.5,
             numMembers: 0,
             numWeight: 100,
             eligibleMembers: 0,
-            eligibleWeight: 0
+            eligibleWeight: 0,
         );
 
         // Should use small positive denominator to avoid division by zero
         $this->assertGreaterThan(0, $result['ratio']);
     }
 
-    public function testExactThreshold(): void
-    {
+    public function testExactThreshold(): void {
         $result = $this->computeRatioBlock(
             basis: 'eligible_members',
             threshold: 0.5,
             numMembers: 50,
             numWeight: 0,
             eligibleMembers: 100,
-            eligibleWeight: 0
+            eligibleWeight: 0,
         );
 
         // Exactly at threshold should pass (>=)
@@ -404,15 +380,14 @@ class QuorumEngineTest extends TestCase
         $this->assertTrue($result['met']);
     }
 
-    public function testJustBelowThreshold(): void
-    {
+    public function testJustBelowThreshold(): void {
         $result = $this->computeRatioBlock(
             basis: 'eligible_members',
             threshold: 0.5,
             numMembers: 49,
             numWeight: 0,
             eligibleMembers: 100,
-            eligibleWeight: 0
+            eligibleWeight: 0,
         );
 
         $this->assertEquals(0.49, $result['ratio']);
@@ -423,8 +398,7 @@ class QuorumEngineTest extends TestCase
     // JUSTIFICATION TESTS
     // =========================================================================
 
-    public function testJustificationFormat(): void
-    {
+    public function testJustificationFormat(): void {
         $justification = $this->generateJustification(
             name: 'Standard Quorum',
             mode: 'single',
@@ -432,7 +406,7 @@ class QuorumEngineTest extends TestCase
             modes: ['present', 'remote'],
             ratio: 0.6,
             threshold: 0.5,
-            met: true
+            met: true,
         );
 
         $this->assertStringContainsString('Standard Quorum', $justification);
@@ -442,8 +416,7 @@ class QuorumEngineTest extends TestCase
         $this->assertStringContainsString('atteint', $justification);
     }
 
-    public function testJustificationNotMet(): void
-    {
+    public function testJustificationNotMet(): void {
         $justification = $this->generateJustification(
             name: 'Standard Quorum',
             mode: 'single',
@@ -451,7 +424,7 @@ class QuorumEngineTest extends TestCase
             modes: ['present'],
             ratio: 0.4,
             threshold: 0.5,
-            met: false
+            met: false,
         );
 
         $this->assertStringContainsString('non atteint', $justification);
@@ -461,8 +434,7 @@ class QuorumEngineTest extends TestCase
     // HELPER METHODS
     // =========================================================================
 
-    private function createMockResult(): array
-    {
+    private function createMockResult(): array {
         return [
             'applied' => true,
             'met' => true,
@@ -483,8 +455,7 @@ class QuorumEngineTest extends TestCase
         ];
     }
 
-    private function createMockResultWithPolicy(): array
-    {
+    private function createMockResultWithPolicy(): array {
         return array_merge($this->createMockResult(), [
             'policy' => [
                 'id' => 'test-policy-id',
@@ -494,8 +465,7 @@ class QuorumEngineTest extends TestCase
         ]);
     }
 
-    private function createNoPolicyResult(): array
-    {
+    private function createNoPolicyResult(): array {
         return [
             'applied' => false,
             'met' => null,
@@ -518,7 +488,7 @@ class QuorumEngineTest extends TestCase
         int $numMembers,
         float $numWeight,
         int $eligibleMembers,
-        float $eligibleWeight
+        float $eligibleWeight,
     ): array {
         if ($basis === 'eligible_members') {
             $den = max(1, $eligibleMembers);
@@ -544,8 +514,7 @@ class QuorumEngineTest extends TestCase
     /**
      * Get threshold based on convocation number (evolving mode).
      */
-    private function getEvolvingThreshold(int $convocationNo, float $threshold1, ?float $threshold2): float
-    {
+    private function getEvolvingThreshold(int $convocationNo, float $threshold1, ?float $threshold2): float {
         if ($convocationNo === 2 && $threshold2 !== null) {
             return $threshold2;
         }
@@ -556,8 +525,7 @@ class QuorumEngineTest extends TestCase
     /**
      * Count attendance by allowed modes.
      */
-    private function countByModes(array $attendance, array $allowedModes): int
-    {
+    private function countByModes(array $attendance, array $allowedModes): int {
         return array_reduce($attendance, function ($count, $a) use ($allowedModes) {
             return $count + (in_array($a['mode'], $allowedModes, true) ? 1 : 0);
         }, 0);
@@ -566,8 +534,7 @@ class QuorumEngineTest extends TestCase
     /**
      * Get allowed attendance modes from policy.
      */
-    private function getAllowedModes(array $policy): array
-    {
+    private function getAllowedModes(array $policy): array {
         $modes = ['present'];
 
         if ($policy['count_remote'] ?? true) {
@@ -591,7 +558,7 @@ class QuorumEngineTest extends TestCase
         array $modes,
         float $ratio,
         float $threshold,
-        ?bool $met
+        ?bool $met,
     ): string {
         $status = ($met === null) ? 'non applicable' : ($met ? 'atteint' : 'non atteint');
         $modesLabel = implode(', ', $modes);
@@ -605,7 +572,7 @@ class QuorumEngineTest extends TestCase
             $ratioStr,
             $thrStr,
             $modesLabel,
-            $status
+            $status,
         );
     }
 }

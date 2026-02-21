@@ -1,20 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Service;
 
-use AgVote\Repository\EmailQueueRepository;
 use AgVote\Repository\EmailEventRepository;
+use AgVote\Repository\EmailQueueRepository;
+use AgVote\Repository\EmailTemplateRepository;
 use AgVote\Repository\InvitationRepository;
-use AgVote\Repository\ReminderScheduleRepository;
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\ReminderScheduleRepository;
 
 /**
  * Service for managing the email sending queue.
  * Can be executed as a cron worker.
  */
-final class EmailQueueService
-{
+final class EmailQueueService {
     private EmailQueueRepository $queueRepo;
     private EmailEventRepository $eventRepo;
     private InvitationRepository $invitationRepo;
@@ -22,18 +23,29 @@ final class EmailQueueService
     private MemberRepository $memberRepo;
     private MailerService $mailer;
     private EmailTemplateService $templateService;
+    private EmailTemplateRepository $emailTemplateRepo;
     private array $config;
 
-    public function __construct(array $config)
-    {
+    public function __construct(
+        array $config,
+        ?EmailQueueRepository $queueRepo = null,
+        ?EmailEventRepository $eventRepo = null,
+        ?InvitationRepository $invitationRepo = null,
+        ?ReminderScheduleRepository $reminderRepo = null,
+        ?MemberRepository $memberRepo = null,
+        ?MailerService $mailer = null,
+        ?EmailTemplateService $templateService = null,
+        ?EmailTemplateRepository $emailTemplateRepo = null,
+    ) {
         $this->config = $config;
-        $this->queueRepo = new EmailQueueRepository();
-        $this->eventRepo = new EmailEventRepository();
-        $this->invitationRepo = new InvitationRepository();
-        $this->reminderRepo = new ReminderScheduleRepository();
-        $this->memberRepo = new MemberRepository();
-        $this->mailer = new MailerService($config);
-        $this->templateService = new EmailTemplateService($config);
+        $this->queueRepo = $queueRepo ?? new EmailQueueRepository();
+        $this->eventRepo = $eventRepo ?? new EmailEventRepository();
+        $this->invitationRepo = $invitationRepo ?? new InvitationRepository();
+        $this->reminderRepo = $reminderRepo ?? new ReminderScheduleRepository();
+        $this->memberRepo = $memberRepo ?? new MemberRepository();
+        $this->mailer = $mailer ?? new MailerService($config);
+        $this->templateService = $templateService ?? new EmailTemplateService($config);
+        $this->emailTemplateRepo = $emailTemplateRepo ?? new EmailTemplateRepository();
     }
 
     /**
@@ -41,8 +53,7 @@ final class EmailQueueService
      *
      * @return array{processed:int,sent:int,failed:int,errors:array}
      */
-    public function processQueue(int $batchSize = 50): array
-    {
+    public function processQueue(int $batchSize = 50): array {
         $result = [
             'processed' => 0,
             'sent' => 0,
@@ -66,7 +77,7 @@ final class EmailQueueService
                 $email['recipient_email'],
                 $email['subject'],
                 $email['body_html'],
-                $email['body_text']
+                $email['body_text'],
             );
 
             if ($sendResult['ok']) {
@@ -77,12 +88,12 @@ final class EmailQueueService
                     $email['tenant_id'],
                     'sent',
                     $email['invitation_id'],
-                    $email['id']
+                    $email['id'],
                 );
 
                 // Update invitation status if linked
                 if ($email['invitation_id']) {
-                    $this->invitationRepo->markSent($email['invitation_id'], (string)$email['tenant_id']);
+                    $this->invitationRepo->markSent($email['invitation_id'], (string) $email['tenant_id']);
                 }
 
                 $result['sent']++;
@@ -96,7 +107,7 @@ final class EmailQueueService
                     'failed',
                     $email['invitation_id'],
                     $email['id'],
-                    ['error' => $error]
+                    ['error' => $error],
                 );
 
                 $result['errors'][] = [
@@ -119,7 +130,7 @@ final class EmailQueueService
         string $meetingId,
         ?string $templateId = null,
         ?string $scheduledAt = null,
-        bool $onlyUnsent = true
+        bool $onlyUnsent = true,
     ): array {
         $result = [
             'scheduled' => 0,
@@ -132,14 +143,14 @@ final class EmailQueueService
 
         // Default template if not specified
         if (!$templateId) {
-            $defaultTemplate = (new \AgVote\Repository\EmailTemplateRepository())
+            $defaultTemplate = $this->emailTemplateRepo
                 ->findDefault($tenantId, 'invitation');
             $templateId = $defaultTemplate['id'] ?? null;
         }
 
         foreach ($members as $member) {
-            $memberId = (string)$member['id'];
-            $email = trim((string)($member['email'] ?? ''));
+            $memberId = (string) $member['id'];
+            $email = trim((string) ($member['email'] ?? ''));
 
             if ($email === '') {
                 $result['skipped']++;
@@ -166,7 +177,7 @@ final class EmailQueueService
                 $email,
                 $token,
                 'pending',
-                null
+                null,
             );
 
             // Retrieve invitation ID
@@ -180,7 +191,7 @@ final class EmailQueueService
                     $templateId,
                     $meetingId,
                     $memberId,
-                    $token
+                    $token,
                 );
                 if (!$rendered['ok']) {
                     // Fallback to service default template
@@ -209,7 +220,7 @@ final class EmailQueueService
                 $memberId,
                 $invitationId,
                 $templateId,
-                $member['full_name'] ?? null
+                $member['full_name'] ?? null,
             );
 
             if ($queued) {
@@ -218,7 +229,7 @@ final class EmailQueueService
                     $tenantId,
                     'queued',
                     $invitationId,
-                    $queued['id']
+                    $queued['id'],
                 );
                 $result['scheduled']++;
             } else {
@@ -232,8 +243,7 @@ final class EmailQueueService
     /**
      * Processes scheduled reminders.
      */
-    public function processReminders(): array
-    {
+    public function processReminders(): array {
         $result = [
             'processed' => 0,
             'sent' => 0,
@@ -251,7 +261,7 @@ final class EmailQueueService
                 $reminder['meeting_id'],
                 $reminder['template_id'],
                 null, // Immediate send
-                false // Send to all (reminder)
+                false, // Send to all (reminder)
             );
 
             $result['sent'] += $scheduled['scheduled'];
@@ -272,7 +282,7 @@ final class EmailQueueService
         string $meetingId,
         ?string $templateId = null,
         bool $onlyUnsent = true,
-        int $limit = 0
+        int $limit = 0,
     ): array {
         $result = [
             'sent' => 0,
@@ -290,8 +300,8 @@ final class EmailQueueService
         }
 
         foreach ($members as $member) {
-            $memberId = (string)$member['id'];
-            $email = trim((string)($member['email'] ?? ''));
+            $memberId = (string) $member['id'];
+            $email = trim((string) ($member['email'] ?? ''));
 
             if ($email === '') {
                 $result['skipped']++;
@@ -315,9 +325,9 @@ final class EmailQueueService
                     $templateId,
                     $meetingId,
                     $memberId,
-                    $token
+                    $token,
                 );
-                $subject = $rendered['ok'] ? $rendered['subject'] : "Invitation de vote";
+                $subject = $rendered['ok'] ? $rendered['subject'] : 'Invitation de vote';
                 $bodyHtml = $rendered['ok'] ? $rendered['body_html'] : '';
             } else {
                 $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, $token);
@@ -336,7 +346,7 @@ final class EmailQueueService
                     $email,
                     $token,
                     'sent',
-                    date('c')
+                    date('c'),
                 );
 
                 $invitation = $this->invitationRepo->findByMeetingAndMember($meetingId, $memberId);
@@ -361,24 +371,21 @@ final class EmailQueueService
     /**
      * Queue statistics.
      */
-    public function getQueueStats(string $tenantId): array
-    {
+    public function getQueueStats(string $tenantId): array {
         return $this->queueRepo->getQueueStats($tenantId);
     }
 
     /**
      * Cancels all scheduled emails for a meeting.
      */
-    public function cancelMeetingEmails(string $meetingId, string $tenantId): int
-    {
+    public function cancelMeetingEmails(string $meetingId, string $tenantId): int {
         return $this->queueRepo->cancelForMeeting($meetingId, $tenantId);
     }
 
     /**
      * Cleans up old emails.
      */
-    public function cleanup(int $daysToKeep = 30): int
-    {
+    public function cleanup(int $daysToKeep = 30): int {
         return $this->queueRepo->cleanupOld($daysToKeep);
     }
 }

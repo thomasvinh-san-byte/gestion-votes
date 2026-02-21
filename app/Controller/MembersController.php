@@ -1,19 +1,18 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MemberGroupRepository;
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
+use AgVote\Repository\MemberGroupRepository;
+use AgVote\Repository\MemberRepository;
 
 /**
  * Consolidates members CRUD endpoint.
  */
-final class MembersController extends AbstractController
-{
-    public function index(): void
-    {
+final class MembersController extends AbstractController {
+    public function index(): void {
         $data = api_request('GET');
 
         $repo = new MemberRepository();
@@ -31,8 +30,7 @@ final class MembersController extends AbstractController
         api_ok(['members' => $members]);
     }
 
-    public function create(): void
-    {
+    public function create(): void {
         $input = api_request('POST');
 
         // Normalize legacy field name
@@ -43,10 +41,10 @@ final class MembersController extends AbstractController
         $v = ValidationSchemas::member()->validate($input);
         $v->failIfInvalid();
 
-        $full_name    = $v->get('full_name');
-        $email        = $v->get('email', '');
+        $full_name = $v->get('full_name');
+        $email = $v->get('email', '');
         $voting_power = $v->get('voting_power', 1);
-        $is_active    = $v->get('is_active', true);
+        $is_active = $v->get('is_active', true);
         $id = api_uuid4();
 
         $repo = new MemberRepository();
@@ -59,8 +57,7 @@ final class MembersController extends AbstractController
         api_ok(['member_id' => $id, 'full_name' => $full_name], 201);
     }
 
-    public function updateMember(): void
-    {
+    public function updateMember(): void {
         $input = api_request('PATCH', 'PUT');
 
         $id = trim($input['id'] ?? $input['member_id'] ?? '');
@@ -83,10 +80,10 @@ final class MembersController extends AbstractController
         $v = ValidationSchemas::member()->validate($input);
         $v->failIfInvalid();
 
-        $full_name    = $v->get('full_name');
-        $email        = $v->get('email', '');
+        $full_name = $v->get('full_name');
+        $email = $v->get('email', '');
         $voting_power = $v->get('voting_power', 1);
-        $is_active    = $v->get('is_active', true);
+        $is_active = $v->get('is_active', true);
 
         $repo->updateImport($id, $full_name, $email ?: null, $voting_power, $is_active, $tenantId);
 
@@ -95,8 +92,7 @@ final class MembersController extends AbstractController
         api_ok(['member_id' => $id, 'full_name' => $full_name]);
     }
 
-    public function delete(): void
-    {
+    public function delete(): void {
         $input = api_request('DELETE');
 
         $id = trim($input['id'] ?? $input['member_id'] ?? '');
@@ -118,8 +114,7 @@ final class MembersController extends AbstractController
         api_ok(['member_id' => $id, 'deleted' => true]);
     }
 
-    public function presidents(): void
-    {
+    public function presidents(): void {
         api_request('GET');
 
         $repo = new MemberRepository();

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Core\Providers;
@@ -8,10 +9,8 @@ namespace AgVote\Core\Providers;
  *
  * Minimal dotenv implementation — does not overwrite existing env vars.
  */
-final class EnvProvider
-{
-    public static function load(string $envFile): void
-    {
+final class EnvProvider {
+    public static function load(string $envFile): void {
         if (!file_exists($envFile)) {
             return;
         }
@@ -29,7 +28,7 @@ final class EnvProvider
             $key = trim($key);
             $val = trim($val);
             if (!getenv($key)) {
-                putenv("$key=$val");
+                putenv("{$key}={$val}");
                 $_ENV[$key] = $val;
             }
         }

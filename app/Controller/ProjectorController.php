@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Controller;
@@ -10,15 +11,13 @@ use AgVote\Repository\MotionRepository;
 /**
  * Consolidates projector_state.php.
  */
-final class ProjectorController extends AbstractController
-{
-    public function state(): void
-    {
+final class ProjectorController extends AbstractController {
+    public function state(): void {
         api_request('GET');
 
         $meetingRepo = new MeetingRepository();
-        $motionRepo  = new MotionRepository();
-        $tenantId    = api_current_tenant_id();
+        $motionRepo = new MotionRepository();
+        $tenantId = api_current_tenant_id();
 
         $requestedId = api_query('meeting_id');
 
@@ -28,9 +27,9 @@ final class ProjectorController extends AbstractController
             if (!$meeting || ($meeting['status'] ?? '') === 'archived') {
                 api_fail('meeting_not_found', 404);
             }
-            $meetingId     = (string)$meeting['id'];
-            $meetingTitle  = (string)$meeting['title'];
-            $meetingStatus = (string)$meeting['status'];
+            $meetingId = (string) $meeting['id'];
+            $meetingTitle = (string) $meeting['title'];
+            $meetingStatus = (string) $meeting['status'];
         } else {
             $liveMeetings = $meetingRepo->listLiveForTenant($tenantId);
 
@@ -40,61 +39,61 @@ final class ProjectorController extends AbstractController
 
             if (count($liveMeetings) > 1) {
                 api_ok([
-                    'choose'   => true,
-                    'meetings' => array_map(fn($m) => [
-                        'id'         => (string)$m['id'],
-                        'title'      => (string)$m['title'],
-                        'started_at' => (string)($m['started_at'] ?? ''),
+                    'choose' => true,
+                    'meetings' => array_map(fn ($m) => [
+                        'id' => (string) $m['id'],
+                        'title' => (string) $m['title'],
+                        'started_at' => (string) ($m['started_at'] ?? ''),
                     ], $liveMeetings),
                 ]);
             }
 
             $m = $liveMeetings[0];
-            $meetingId     = (string)$m['id'];
-            $meetingTitle  = (string)$m['title'];
-            $meetingStatus = (string)($m['status'] ?? 'live');
+            $meetingId = (string) $m['id'];
+            $meetingTitle = (string) $m['title'];
+            $meetingStatus = (string) ($m['status'] ?? 'live');
         }
 
         // --- Motion state ---
-        $open   = $motionRepo->findOpenForProjector($meetingId);
+        $open = $motionRepo->findOpenForProjector($meetingId);
         $closed = $motionRepo->findLastClosedForProjector($meetingId);
 
-        $phase  = 'idle';
+        $phase = 'idle';
         $motion = null;
 
         if ($open) {
             $phase = 'active';
             $motion = [
-                'id'          => (string)$open['id'],
-                'title'       => (string)$open['title'],
-                'description' => (string)($open['description'] ?? ''),
-                'body'        => (string)($open['body'] ?? ''),
-                'secret'      => (bool)$open['secret'],
-                'position'    => $open['position'] !== null ? (int)$open['position'] : null,
+                'id' => (string) $open['id'],
+                'title' => (string) $open['title'],
+                'description' => (string) ($open['description'] ?? ''),
+                'body' => (string) ($open['body'] ?? ''),
+                'secret' => (bool) $open['secret'],
+                'position' => $open['position'] !== null ? (int) $open['position'] : null,
             ];
         } elseif ($closed) {
             $phase = 'closed';
             $motion = [
-                'id'          => (string)$closed['id'],
-                'title'       => (string)$closed['title'],
-                'description' => (string)($closed['description'] ?? ''),
-                'body'        => (string)($closed['body'] ?? ''),
-                'secret'      => (bool)$closed['secret'],
-                'position'    => $closed['position'] !== null ? (int)$closed['position'] : null,
+                'id' => (string) $closed['id'],
+                'title' => (string) $closed['title'],
+                'description' => (string) ($closed['description'] ?? ''),
+                'body' => (string) ($closed['body'] ?? ''),
+                'secret' => (bool) $closed['secret'],
+                'position' => $closed['position'] !== null ? (int) $closed['position'] : null,
             ];
         }
 
-        $totalMotions  = $motionRepo->countForMeeting($meetingId);
-        $statsRepo     = new MeetingStatsRepository();
+        $totalMotions = $motionRepo->countForMeeting($meetingId);
+        $statsRepo = new MeetingStatsRepository();
         $eligibleCount = $statsRepo->countActiveMembers($tenantId);
 
         api_ok([
-            'meeting_id'     => $meetingId,
-            'meeting_title'  => $meetingTitle,
+            'meeting_id' => $meetingId,
+            'meeting_title' => $meetingTitle,
             'meeting_status' => $meetingStatus,
-            'phase'          => $phase,
-            'motion'         => $motion,
-            'total_motions'  => $totalMotions,
+            'phase' => $phase,
+            'motion' => $motion,
+            'total_motions' => $totalMotions,
             'eligible_count' => $eligibleCount,
         ]);
     }

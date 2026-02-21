@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AgVote\Command;
@@ -15,17 +16,14 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'email:process-queue',
     description: 'Process pending emails from the queue',
 )]
-final class EmailProcessQueueCommand extends Command
-{
-    protected function configure(): void
-    {
+final class EmailProcessQueueCommand extends Command {
+    protected function configure(): void {
         $this
             ->addOption('batch-size', 'b', InputOption::VALUE_REQUIRED, 'Number of emails to process per batch', '50')
             ->addOption('reminders', 'r', InputOption::VALUE_NONE, 'Also process scheduled reminders');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $batchSize = (int) $input->getOption('batch-size');
         $processReminders = (bool) $input->getOption('reminders');
 
@@ -40,7 +38,7 @@ final class EmailProcessQueueCommand extends Command
             '  Processed: %d | Sent: %d | Failed: %d',
             $result['processed'],
             $result['sent'],
-            $result['failed']
+            $result['failed'],
         ));
 
         if (!empty($result['errors'])) {
@@ -48,7 +46,7 @@ final class EmailProcessQueueCommand extends Command
                 $output->writeln(sprintf(
                     '  <error>  Error: %s -> %s</error>',
                     $err['email'] ?? $err['queue_id'] ?? '?',
-                    $err['error'] ?? 'unknown'
+                    $err['error'] ?? 'unknown',
                 ));
             }
         }
@@ -59,7 +57,7 @@ final class EmailProcessQueueCommand extends Command
             $output->writeln(sprintf(
                 '  Processed: %d | Sent: %d',
                 $remResult['processed'],
-                $remResult['sent']
+                $remResult['sent'],
             ));
         }
 
