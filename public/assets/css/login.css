@@ -81,7 +81,7 @@
   font-size: var(--text-base);
   background: var(--color-bg);
   color: var(--color-text);
-  transition: border-color 0.15s;
+  transition: border-color var(--duration-fast);
   box-sizing: border-box;
 }
 
@@ -105,7 +105,7 @@
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: opacity var(--duration-fast);
 }
 
 .login-btn:hover {

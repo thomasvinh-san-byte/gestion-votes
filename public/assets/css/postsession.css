@@ -59,7 +59,7 @@
 /* Active step */
 .ps-step.active .ps-step-number {
   background: var(--persona-postsession);
-  color: #fff;
+  color: var(--color-text-inverse);
   border-color: var(--persona-postsession);
 }
 
@@ -71,7 +71,7 @@
 /* Done step */
 .ps-step.done .ps-step-number {
   background: var(--color-success);
-  color: #fff;
+  color: var(--color-text-inverse);
   border-color: var(--color-success);
 }
 

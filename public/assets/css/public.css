@@ -608,7 +608,7 @@ body.projection-body {
   background: var(--color-surface);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--duration-fast), color var(--duration-fast);
 }
 
 .projection-btn:hover {
@@ -680,7 +680,7 @@ body.projection-body {
   border: 2px solid var(--color-border);
   border-radius: var(--radius-lg, 12px);
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
   text-align: left;
 }
 
