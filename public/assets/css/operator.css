@@ -706,6 +706,21 @@
 }
 
 /* Tab footer actions — "next step" navigation */
+.readiness-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-top: 1.5rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--color-bg-subtle, #f8f9fa);
+  border: 1px solid var(--color-border-subtle, #e5e7eb);
+}
+
+.readiness-strip:empty {
+  display: none;
+}
+
 .tab-footer-actions {
   display: flex;
   align-items: center;

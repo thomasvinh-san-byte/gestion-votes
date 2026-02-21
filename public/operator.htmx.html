@@ -208,6 +208,10 @@
                   <option value="2">2ème convocation</option>
                 </select>
               </div>
+              <div class="alert alert-warning text-sm" id="noPoliciesWarning" hidden>
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+                <span>Sans politique de quorum ni de vote, les résultats de scrutin ne seront pas calculés automatiquement.</span>
+              </div>
             </div>
 
             <div class="settings-section">
@@ -235,6 +239,7 @@
               </div>
             </div>
           </div>
+          <div class="readiness-strip" data-readiness-strip></div>
           <div class="tab-footer-actions">
             <button class="btn btn-primary" id="btnSaveSettings"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-save"></use></svg> Enregistrer</button>
             <button class="btn btn-secondary" data-tab-switch="participants">Étape suivante : Participants <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg></button>
@@ -311,6 +316,7 @@
             <!-- Rendered by JS -->
           </div>
 
+          <div class="readiness-strip" data-readiness-strip></div>
           <div class="tab-footer-actions">
             <a href="/members.htmx.html" class="btn btn-secondary">Gestion avancée des membres</a>
             <button class="btn btn-secondary" data-tab-switch="ordre-du-jour">Étape suivante : Ordre du jour <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg></button>
@@ -363,6 +369,7 @@
             </div>
           </div>
 
+          <div class="readiness-strip" data-readiness-strip></div>
           <div class="tab-footer-actions">
             <button class="btn btn-secondary" data-tab-switch="controle">Étape suivante : Contrôle <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg></button>
           </div>

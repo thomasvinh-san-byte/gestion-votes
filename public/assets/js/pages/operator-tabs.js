@@ -1452,9 +1452,44 @@ window.OpS = { fn: {} };
       // Update tab counts
       document.getElementById('tabCountResolutions').textContent = d.motions_total || 0;
       document.getElementById('tabCountPresences').textContent = d.present_count || 0;
+
+      // Update readiness strips on tabs 1-3
+      var required = checks.filter(function(c) { return !c.optional; });
+      var doneCount = required.filter(function(c) { return c.done; }).length;
+      var totalRequired = required.length;
+      var stripHtml = '';
+      if (doneCount < totalRequired) {
+        var missing = required.filter(function(c) { return !c.done; });
+        stripHtml = '<div class="flex items-center gap-3 text-sm">' +
+          '<span class="text-muted">' + doneCount + '/' + totalRequired + ' pr\u00e9requis</span>' +
+          missing.map(function(c) {
+            return '<span class="badge badge-neutral">' + icon('circle', 'icon-xs') + ' ' + c.text + '</span>';
+          }).join('') +
+          '</div>';
+      } else {
+        stripHtml = '<div class="flex items-center gap-2 text-sm text-success">' +
+          icon('check-circle', 'icon-sm icon-success') +
+          ' Pr\u00eat pour le lancement' +
+          '</div>';
+      }
+      document.querySelectorAll('[data-readiness-strip]').forEach(function(el) {
+        el.innerHTML = stripHtml;
+      });
+
+      // Update policies warning
+      updatePoliciesWarning();
     } catch (err) {
       setNotif('error', 'Erreur chargement checklist');
     }
+  }
+
+  function updatePoliciesWarning() {
+    var qSelect = document.getElementById('settingQuorumPolicy');
+    var vSelect = document.getElementById('settingVotePolicy');
+    var warning = document.getElementById('noPoliciesWarning');
+    if (!warning || !qSelect || !vSelect) return;
+    var bothEmpty = !qSelect.value && !vSelect.value;
+    warning.hidden = !bothEmpty;
   }
 
   // =========================================================================
@@ -2655,6 +2690,10 @@ window.OpS = { fn: {} };
 
   // President change handler
   document.getElementById('settingPresident')?.addEventListener('change', savePresident);
+
+  // Policy change handlers — update warning inline
+  document.getElementById('settingQuorumPolicy')?.addEventListener('change', updatePoliciesWarning);
+  document.getElementById('settingVotePolicy')?.addEventListener('change', updatePoliciesWarning);
 
   // Add assessor button
   document.getElementById('btnAddAssessor')?.addEventListener('click', addAssessor);
