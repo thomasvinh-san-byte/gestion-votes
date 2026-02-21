@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -19,16 +20,16 @@ if (file_exists($autoload)) {
     // Fallback PSR-4 autoloader (works without composer install)
     spl_autoload_register(function (string $class): void {
         $map = [
-            'AgVote\\Core\\Security\\'    => __DIR__ . '/Core/Security/',
-            'AgVote\\Core\\Validation\\'  => __DIR__ . '/Core/Validation/',
-            'AgVote\\Core\\Providers\\'   => __DIR__ . '/Core/Providers/',
-            'AgVote\\Core\\Http\\'        => __DIR__ . '/Core/Http/',
-            'AgVote\\Core\\'              => __DIR__ . '/Core/',
-            'AgVote\\Controller\\'        => __DIR__ . '/Controller/',
-            'AgVote\\Repository\\'        => __DIR__ . '/Repository/',
-            'AgVote\\Service\\'           => __DIR__ . '/Services/',
-            'AgVote\\View\\'              => __DIR__ . '/View/',
-            'AgVote\\WebSocket\\'         => __DIR__ . '/WebSocket/',
+            'AgVote\\Core\\Security\\' => __DIR__ . '/Core/Security/',
+            'AgVote\\Core\\Validation\\' => __DIR__ . '/Core/Validation/',
+            'AgVote\\Core\\Providers\\' => __DIR__ . '/Core/Providers/',
+            'AgVote\\Core\\Http\\' => __DIR__ . '/Core/Http/',
+            'AgVote\\Core\\' => __DIR__ . '/Core/',
+            'AgVote\\Controller\\' => __DIR__ . '/Controller/',
+            'AgVote\\Repository\\' => __DIR__ . '/Repository/',
+            'AgVote\\Service\\' => __DIR__ . '/Services/',
+            'AgVote\\View\\' => __DIR__ . '/View/',
+            'AgVote\\WebSocket\\' => __DIR__ . '/WebSocket/',
         ];
         foreach ($map as $prefix => $dir) {
             $len = strlen($prefix);
@@ -72,7 +73,7 @@ function audit_log(
     string $resourceType,
     ?string $resourceId = null,
     array $payload = [],
-    ?string $meetingId = null
+    ?string $meetingId = null,
 ): void {
     try {
         $repo = new \AgVote\Repository\AuditEventRepository();
@@ -84,10 +85,10 @@ function audit_log(
             $action,
             $resourceType,
             $resourceId,
-            $payload
+            $payload,
         );
     } catch (\Throwable $e) {
-        error_log("audit_log failed: " . $e->getMessage());
+        error_log('audit_log failed: ' . $e->getMessage());
     }
 }
 
