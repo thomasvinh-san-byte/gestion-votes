@@ -1,0 +1,235 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Call to an undefined method AgVote\\Service\\ExportService\:\:autoSizeColumns\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Controller/AnalyticsController.php
+
+		-
+			message: '#^Call to an undefined method AgVote\\Service\\ExportService\:\:formatBoolean\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Controller/AnalyticsController.php
+
+		-
+			message: '#^Call to an undefined method AgVote\\Service\\ExportService\:\:writeCsvBom\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Controller/AnalyticsController.php
+
+		-
+			message: '#^Method AgVote\\Service\\ExportService\:\:createSpreadsheet\(\) invoked with 1 parameter, 2\-3 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Controller/AnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$headers of method AgVote\\Service\\ExportService\:\:createSpreadsheet\(\) expects array, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Controller/AnalyticsController.php
+
+		-
+			message: '#^Call to static method authenticate\(\) on an unknown class AuthMiddleware\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Controller/AuthController.php
+
+		-
+			message: '#^Call to static method isEnabled\(\) on an unknown class AuthMiddleware\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Controller/AuthController.php
+
+		-
+			message: '#^Call to static method reset\(\) on an unknown class AuthMiddleware\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Controller/AuthController.php
+
+		-
+			message: '#^Anonymous function has an unused use \$reason\.$#'
+			identifier: closure.unusedUse
+			count: 1
+			path: app/Controller/BallotsController.php
+
+		-
+			message: '#^Variable \$ballotId might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Controller/BallotsController.php
+
+		-
+			message: '#^Offset ''ANALYTICS_ETHICS''\|''dev/API''\|''dev/ARCHITECTURE''\|''dev/INSTALLATION''\|''dev/MIGRATION''\|''dev/SECURITY''\|''dev/TESTS''\|''dev/WEB_COMPONENTS''\|''DOCKER_INSTALL''\|''FAQ''\|''INSTALL_MAC''\|''RECETTE_DEMO''\|''UTILISATION_LIVE'' on array\{FAQ\: ''FAQ'', UTILISATION_LIVE\: ''Guide opérateur'', RECETTE_DEMO\: ''Démo guidée'', ANALYTICS_ETHICS\: ''Éthique & RGPD'', README\: ''Introduction'', INSTALL_MAC\: ''Installation macOS'', DOCKER_INSTALL\: ''Installation Docker…'', ''dev/INSTALLATION''\: ''Installation …'', \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Controller/DocController.php
+
+		-
+			message: '#^Variable \$headers might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Controller/ImportController.php
+
+		-
+			message: '#^Variable \$rows might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Controller/ImportController.php
+
+		-
+			message: '#^Call to an undefined method AgVote\\Repository\\MeetingRepository\:\:setCurrentMotion\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Controller/MotionsController.php
+
+		-
+			message: '#^Method AgVote\\Repository\\MotionRepository\:\:markOpened\(\) invoked with 4 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Controller/MotionsController.php
+
+		-
+			message: '#^Method AgVote\\Service\\NotificationsService\:\:emit\(\) invoked with 6 parameters, 7 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Controller/MotionsController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Controller/MotionsController.php
+
+		-
+			message: '#^Offset ''description'' on array\{id\: non\-falsy\-string, type\: ''duplicate_vote'', severity\: ''danger'', title\: ''Votes multiples…'', description\: string, member_id\: mixed, member_name\: mixed, vote_count\: int\}\|array\{id\: non\-falsy\-string, type\: ''orphan_proxy'', severity\: ''warning'', title\: ''Procuration…'', description\: string, giver_name\: mixed, receiver_name\: mixed\}\|array\{id\: non\-falsy\-string, type\: ''unclosed_motion'', severity\: ''info'', title\: ''Résolution non close'', description\: string, motion_id\: mixed, motion_title\: mixed\}\|array\{id\: non\-falsy\-string, type\: ''unjustified_manual…'', severity\: ''warning'', title\: ''Vote manuel non…'', description\: string, member_name\: mixed\}\|array\{id\: non\-falsy\-string, type\: ''vote_without…'', severity\: ''warning'', title\: ''Vote sans présence'', description\: string, member_id\: mixed, member_name\: mixed\}\|array\{id\: non\-falsy\-string, type\: ''weight_mismatch'', severity\: ''warning'', title\: ''Pondération…'', description\: string, member_id\: mixed, member_name\: mixed, expected_weight\: float, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Controller/TrustController.php
+
+		-
+			message: '#^Offset ''abstention''\|''blanc''\|''contre''\|''pour'' on array\{pour\: ''Pour'', contre\: ''Contre'', abstention\: ''Abstention'', blanc\: ''Blanc''\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Controller/VotePublicController.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ''AuthMiddleware'' and ''getCurrentUser'' will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Core/Logger.php
+
+		-
+			message: '#^Offset ''admin''\|''assessor''\|''auditor''\|''operator''\|''president''\|''viewer''\|''voter'' on array\{admin\: 100, operator\: 80, president\: 70, assessor\: 60, auditor\: 50, voter\: 10, viewer\: 5, public\: 3, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Core/Security/AuthMiddleware.php
+
+		-
+			message: '#^Function db not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: app/Repository/AbstractRepository.php
+
+		-
+			message: '#^Offset ''default'' on array\{field\: ''abstain_count'', label\: ''Abstention'', default\: true\}\|array\{field\: ''action'', label\: ''Action'', default\: true\}\|array\{field\: ''actor'', label\: ''Acteur'', default\: true\}\|array\{field\: ''against_count'', label\: ''Contre'', default\: true\}\|array\{field\: ''cast_at'', label\: ''Date/Heure'', default\: true\}\|array\{field\: ''checked_in_at'', label\: ''Arrivée'', default\: true\}\|array\{field\: ''checked_out_at'', label\: ''Départ'', default\: true\}\|array\{field\: ''choice'', label\: ''Vote'', default\: true\}\|array\{field\: ''closed_at'', label\: ''Clôture'', default\: true\}\|array\{field\: ''created_at'', label\: ''Créé le'', default\: false\}\|array\{field\: ''created_at'', label\: ''Créée le'', default\: true\}\|array\{field\: ''decision'', label\: ''Décision'', default\: true\}\|array\{field\: ''description'', label\: ''Description'', default\: false\}\|array\{field\: ''details'', label\: ''Détails'', default\: true\}\|array\{field\: ''email'', label\: ''Email'', default\: bool\}\|array\{field\: ''entity_id'', label\: ''ID Entité'', default\: true\}\|array\{field\: ''entity_type'', label\: ''Entité'', default\: true\}\|array\{field\: ''for_count'', label\: ''Pour'', default\: true\}\|array\{field\: ''full_name'', label\: ''Nom'', default\: true\}\|array\{field\: ''giver_email'', label\: ''Email mandant'', default\: false\}\|array\{field\: ''giver_name'', label\: ''Mandant'', default\: true\}\|array\{field\: ''ip_address'', label\: ''Adresse IP'', default\: false\}\|array\{field\: ''is_active'', label\: ''Actif'', default\: true\}\|array\{field\: ''is_proxy'', label\: ''Par procuration'', default\: true\}\|array\{field\: ''member_name'', label\: ''Votant'', default\: true\}\|array\{field\: ''mode'', label\: ''Mode de présence'', default\: true\}\|array\{field\: ''motion_position''\|''position'', label\: ''N°'', default\: true\}\|array\{field\: ''motion_title''\|''title'', label\: ''Résolution'', default\: true\}\|array\{field\: ''notes'', label\: ''Notes'', default\: false\}\|array\{field\: ''nspp_count'', label\: ''NSPP'', default\: true\}\|array\{field\: ''on_behalf_of'', label\: ''Au nom de'', default\: true\}\|array\{field\: ''opened_at'', label\: ''Ouverture'', default\: true\}\|array\{field\: ''phone'', label\: ''Téléphone'', default\: false\}\|array\{field\: ''proxies_received'', label\: ''Procurations…'', default\: true\}\|array\{field\: ''proxy_to_name'', label\: ''Représenté par'', default\: true\}\|array\{field\: ''receiver_email'', label\: ''Email mandataire'', default\: false\}\|array\{field\: ''receiver_name'', label\: ''Mandataire'', default\: true\}\|array\{field\: ''revoked_at'', label\: ''Révoquée le'', default\: true\}\|array\{field\: ''role'', label\: ''Rôle'', default\: true\}\|array\{field\: ''scope'', label\: ''Portée'', default\: true\}\|array\{field\: ''source'', label\: ''Mode'', default\: true\}\|array\{field\: ''timestamp'', label\: ''Horodatage'', default\: true\}\|array\{field\: ''total_expressed'', label\: ''Total exprimés'', default\: true\}\|array\{field\: ''voter_count'', label\: ''Nb votants'', default\: true\}\|array\{field\: ''voting_power'', label\: ''Pouvoir de vote'', default\: true\}\|array\{field\: ''weight'', label\: ''Poids'', default\: true\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Repository/ExportTemplateRepository.php
+
+		-
+			message: '#^Offset ''order'' on array\{field\: ''abstain_count''\|''action''\|''actor''\|''against_count''\|''cast_at''\|''checked_in_at''\|''checked_out_at''\|''choice''\|''closed_at''\|''created_at''\|''decision''\|''description''\|''details''\|''email''\|''entity_id''\|''entity_type''\|''for_count''\|''full_name''\|''giver_email''\|''giver_name''\|''ip_address''\|''is_active''\|''is_proxy''\|''member_name''\|''mode''\|''motion_position''\|''motion_title''\|''notes''\|''nspp_count''\|''on_behalf_of''\|''opened_at''\|''phone''\|''position''\|''proxies_received''\|''proxy_to_name''\|''receiver_email''\|''receiver_name''\|''revoked_at''\|''role''\|''scope''\|''source''\|''timestamp''\|''title''\|''total_expressed''\|''voter_count''\|''voting_power''\|''weight'', label\: mixed, order\: mixed\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: app/Repository/ExportTemplateRepository.php
+
+		-
+			message: '#^Deprecated in PHP 8\.0\: Required parameter \$tenantId follows optional parameter \$audience\.$#'
+			identifier: parameter.requiredAfterOptional
+			count: 2
+			path: app/Repository/NotificationRepository.php
+
+		-
+			message: '#^Property AgVote\\Service\\EmailQueueService\:\:\$config is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Services/EmailQueueService.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Services/EmailTemplateService.php
+
+		-
+			message: '#^Offset 0 on array\{list\<string\>, list\<non\-empty\-string\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/EmailTemplateService.php
+
+		-
+			message: '#^Array has 2 duplicate keys with value ''missing_motion_ids'' \(''missing_motion_ids'', ''missing_motion_ids''\)\.$#'
+			identifier: array.duplicateKey
+			count: 1
+			path: app/Services/ErrorDictionary.php
+
+		-
+			message: '#^Array has 2 duplicate keys with value 0 \(false, ''0''\)\.$#'
+			identifier: array.duplicateKey
+			count: 1
+			path: app/Services/ExportService.php
+
+		-
+			message: '#^Array has 2 duplicate keys with value 1 \(true, ''1''\)\.$#'
+			identifier: array.duplicateKey
+			count: 1
+			path: app/Services/ExportService.php
+
+		-
+			message: '#^Property AgVote\\Service\\MailerService\:\:\$appUrl is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Services/MailerService.php
+
+		-
+			message: '#^Static method AgVote\\Service\\MailerService\:\:encodeHeader\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Services/MailerService.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Services/MeetingReportService.php
+
+		-
+			message: '#^Deprecated in PHP 8\.0\: Required parameter \$tenantId follows optional parameter \$data\.$#'
+			identifier: parameter.requiredAfterOptional
+			count: 1
+			path: app/Services/NotificationsService.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$tenantId with type string\|null is not subtype of native type string\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Services/ProxiesService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Services/ProxiesService.php
+
+		-
+			message: '#^Method AgVote\\Service\\VoteEngine\:\:computeDecision\(\) should return array\{quorum\: array, majority\: array, decision\: array\} but returns array\{quorum\: array\{applied\: bool, met\: bool\|null, basis\: string\|null, ratio\: float\|int\|null, threshold\: float\|null, denominator\: float\|int\<1, max\>\|null\}, majority\: array\{applied\: bool, met\: bool\|null, base\: string\|null, ratio\: float\|null, threshold\: float\|null, abstention_as_against\: bool\|null\}\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/VoteEngine.php
+
+		-
+			message: '#^Deprecated in PHP 8\.0\: Required parameter \$tenantId follows optional parameter \$ttlSeconds\.$#'
+			identifier: parameter.requiredAfterOptional
+			count: 1
+			path: app/Services/VoteTokenService.php
