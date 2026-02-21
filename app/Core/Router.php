@@ -9,16 +9,17 @@ use AgVote\Core\Middleware\RoleMiddleware;
 use AgVote\Core\Middleware\RateLimitGuard;
 
 /**
- * Simple exact-match router with middleware support.
+ * Router with exact-match + parameterized route support.
  *
  * Routes are declared as:
  *   $router->map('GET', '/api/v1/meetings', MeetingsController::class, 'index', ['role' => 'viewer']);
+ *   $router->map('GET', '/api/v1/meetings/{id}', MeetingsController::class, 'show', ['role' => 'viewer']);
  *
- * Multi-method endpoints can use a dispatch map:
- *   $router->mapMulti('/api/v1/members', [
- *       'GET'    => [MembersController::class, 'index',        ['role' => 'operator']],
- *       'POST'   => [MembersController::class, 'create',       ['role' => 'operator']],
- *   ]);
+ * Parameterized routes use {name} placeholders. Matched values are available
+ * via $_REQUEST['_route_params'] and individual $_REQUEST keys.
+ *
+ * Exact-match routes are checked first (O(1)), then parameterized routes
+ * are checked in registration order (O(n) on parameterized routes only).
  *
  * Middleware config keys:
  *   'role'       => string|array   — required role(s)
@@ -29,44 +30,56 @@ final class Router
     /** @var array<string, array<string, array{class: class-string, method: string, middleware: array}>> */
     private array $routes = [];
 
+    /** @var list<array{pattern: string, regex: string, params: list<string>, methods: array<string, array{class: class-string, method: string, middleware: array}>}> */
+    private array $paramRoutes = [];
+
     /** @var array<string, array{class: class-string, method: string, bootstrap: bool}> */
     private array $specialRoutes = [];
 
     /**
      * Register a route for one or more HTTP methods.
+     * Supports {param} placeholders for dynamic segments.
      */
     public function map(string|array $httpMethods, string $uri, string $controllerClass, string $controllerMethod, array $middleware = []): self
     {
         if (is_string($httpMethods)) {
             $httpMethods = [$httpMethods];
         }
-        foreach ($httpMethods as $method) {
-            $this->routes[$uri][strtoupper($method)] = [
-                'class' => $controllerClass,
-                'method' => $controllerMethod,
-                'middleware' => $middleware,
-            ];
+
+        $handler = [
+            'class' => $controllerClass,
+            'method' => $controllerMethod,
+            'middleware' => $middleware,
+        ];
+
+        if (str_contains($uri, '{')) {
+            $this->addParamRoute($uri, $httpMethods, $handler);
+        } else {
+            foreach ($httpMethods as $method) {
+                $this->routes[$uri][strtoupper($method)] = $handler;
+            }
         }
+
         return $this;
     }
 
     /**
      * Register a multi-method route.
-     *
-     * Each entry can be [Controller::class, 'method'] or [Controller::class, 'method', ['role' => ...]].
      */
     public function mapMulti(string $uri, array $methodMap): self
     {
         foreach ($methodMap as $httpMethod => $entry) {
-            $controllerClass = $entry[0];
-            $controllerMethod = $entry[1];
-            $middleware = $entry[2] ?? [];
-
-            $this->routes[$uri][strtoupper($httpMethod)] = [
-                'class' => $controllerClass,
-                'method' => $controllerMethod,
-                'middleware' => $middleware,
+            $handler = [
+                'class' => $entry[0],
+                'method' => $entry[1],
+                'middleware' => $entry[2] ?? [],
             ];
+
+            if (str_contains($uri, '{')) {
+                $this->addParamRoute($uri, [strtoupper($httpMethod)], $handler);
+            } else {
+                $this->routes[$uri][strtoupper($httpMethod)] = $handler;
+            }
         }
         return $this;
     }
@@ -76,14 +89,7 @@ final class Router
      */
     public function mapAny(string $uri, string $controllerClass, string $controllerMethod, array $middleware = []): self
     {
-        foreach (['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as $method) {
-            $this->routes[$uri][$method] = [
-                'class' => $controllerClass,
-                'method' => $controllerMethod,
-                'middleware' => $middleware,
-            ];
-        }
-        return $this;
+        return $this->map(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], $uri, $controllerClass, $controllerMethod, $middleware);
     }
 
     /**
@@ -116,17 +122,29 @@ final class Router
         $uriWithoutPhp = preg_replace('/\.php$/', '', $uri);
 
         try {
-            // Try exact match first
+            // 1. Try exact match first (O(1))
             if (isset($this->routes[$uri])) {
                 return $this->dispatchRoute($this->routes[$uri], $httpMethod);
             }
 
-            // Try without .php
             if ($uriWithoutPhp !== $uri && isset($this->routes[$uriWithoutPhp])) {
                 return $this->dispatchRoute($this->routes[$uriWithoutPhp], $httpMethod);
             }
 
-            // Try special routes
+            // 2. Try parameterized routes
+            $paramMatch = $this->matchParamRoute($uri, $httpMethod);
+            if ($paramMatch !== null) {
+                return $this->dispatchRoute($paramMatch['methods'], $httpMethod, $paramMatch['params']);
+            }
+
+            if ($uriWithoutPhp !== $uri) {
+                $paramMatch = $this->matchParamRoute($uriWithoutPhp, $httpMethod);
+                if ($paramMatch !== null) {
+                    return $this->dispatchRoute($paramMatch['methods'], $httpMethod, $paramMatch['params']);
+                }
+            }
+
+            // 3. Try special routes
             if (isset($this->specialRoutes[$uri])) {
                 return $this->dispatchSpecial($this->specialRoutes[$uri]);
             }
@@ -141,13 +159,21 @@ final class Router
         return false;
     }
 
-    private function dispatchRoute(array $methodMap, string $httpMethod): bool
+    private function dispatchRoute(array $methodMap, string $httpMethod, array $routeParams = []): bool
     {
         if (!isset($methodMap[$httpMethod])) {
             if ($httpMethod === 'OPTIONS') {
                 return true;
             }
             api_fail('method_not_allowed', 405);
+        }
+
+        // Expose route params via $_REQUEST (safe: only set by router, not user input)
+        if (!empty($routeParams)) {
+            $_REQUEST['_route_params'] = $routeParams;
+            foreach ($routeParams as $key => $value) {
+                $_REQUEST[$key] = $value;
+            }
         }
 
         $handler = $methodMap[$httpMethod];
@@ -179,6 +205,72 @@ final class Router
         return true;
     }
 
+    // ── Parameterized route support ─────────────────────────────────────
+
+    /**
+     * Register a parameterized route.
+     * Converts /api/v1/meetings/{id} to regex /api/v1/meetings/([^/]+)
+     */
+    private function addParamRoute(string $uri, array $httpMethods, array $handler): void
+    {
+        // Extract param names and build regex
+        $params = [];
+        $regex = preg_replace_callback('/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/', function ($m) use (&$params) {
+            $params[] = $m[1];
+            return '([^/]+)';
+        }, $uri);
+        $regex = '#^' . $regex . '$#';
+
+        // Find existing paramRoute entry for this pattern
+        $found = false;
+        foreach ($this->paramRoutes as &$route) {
+            if ($route['pattern'] === $uri) {
+                foreach ($httpMethods as $method) {
+                    $route['methods'][strtoupper($method)] = $handler;
+                }
+                $found = true;
+                break;
+            }
+        }
+        unset($route);
+
+        if (!$found) {
+            $methods = [];
+            foreach ($httpMethods as $method) {
+                $methods[strtoupper($method)] = $handler;
+            }
+            $this->paramRoutes[] = [
+                'pattern' => $uri,
+                'regex' => $regex,
+                'params' => $params,
+                'methods' => $methods,
+            ];
+        }
+    }
+
+    /**
+     * Match a URI against parameterized routes.
+     *
+     * @return array{methods: array, params: array<string,string>}|null
+     */
+    private function matchParamRoute(string $uri, string $httpMethod): ?array
+    {
+        foreach ($this->paramRoutes as $route) {
+            if (preg_match($route['regex'], $uri, $matches)) {
+                array_shift($matches); // remove full match
+                $params = [];
+                foreach ($route['params'] as $i => $name) {
+                    $params[$name] = rawurldecode($matches[$i] ?? '');
+                }
+                return [
+                    'methods' => $route['methods'],
+                    'params' => $params,
+                ];
+            }
+        }
+        return null;
+    }
+
     /**
      * Build middleware instances from config array.
      *
@@ -206,5 +298,13 @@ final class Router
     public function getRoutes(): array
     {
         return $this->routes;
+    }
+
+    /**
+     * Get all registered parameterized routes.
+     */
+    public function getParamRoutes(): array
+    {
+        return $this->paramRoutes;
     }
 }

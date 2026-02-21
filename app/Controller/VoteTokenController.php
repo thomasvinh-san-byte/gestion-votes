@@ -17,8 +17,8 @@ final class VoteTokenController extends AbstractController
     {
         $in = api_request('POST');
 
-        $meetingId = trim((string)($in['meeting_id'] ?? ($_GET['meeting_id'] ?? '')));
-        $motionId  = trim((string)($in['motion_id']  ?? ($_GET['motion_id']  ?? '')));
+        $meetingId = trim((string)($in['meeting_id'] ?? api_query('meeting_id')));
+        $motionId  = trim((string)($in['motion_id']  ?? api_query('motion_id')));
 
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 400);
@@ -57,8 +57,7 @@ final class VoteTokenController extends AbstractController
         $createdCount = 0;
         $voteTokenRepo = new VoteTokenRepository();
 
-        db()->beginTransaction();
-        try {
+        api_transaction(function () use ($voters, $voteTokenRepo, $meetingId, $motionId, $tenant, $expiresAt, &$generated, &$createdCount) {
             foreach ($voters as $v) {
                 $raw = api_uuid4();
                 $hash = hash_hmac('sha256', $raw, APP_SECRET);
@@ -75,12 +74,7 @@ final class VoteTokenController extends AbstractController
                     'url'         => "/vote.php?token=" . $raw,
                 ];
             }
-            db()->commit();
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
-            db()->rollBack();
-            api_fail('token_generation_failed', 500, ['detail' => 'Erreur lors de la génération des tokens.']);
-        }
+        });
 
         audit_log('vote_tokens_generated', 'motion', $motionId, [
             'meeting_id'   => $meetingId,

@@ -15,11 +15,11 @@ final class ImportController extends AbstractController
 {
     public function membersCsv(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
         // Support 3 modes: file upload, csv_content as FormData, csv_content as JSON
-        $file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
-        $csvContent = $_POST['csv_content'] ?? null;
+        $file = api_file('file', 'csv_file');
+        $csvContent = $in['csv_content'] ?? null;
 
         if (!$file && !$csvContent) {
             $jsonBody = json_decode(file_get_contents('php://input'), true);
@@ -98,77 +98,75 @@ final class ImportController extends AbstractController
             return $group['id'];
         };
 
-        db()->beginTransaction();
-
         try {
-            while (($row = fgetcsv($handle, 0, $separator)) !== false) {
-                $lineNumber++;
-                if (empty(array_filter($row))) continue;
+            api_transaction(function () use ($handle, $separator, $hasName, $hasFirstLast, $colIndex, $memberRepo, $groupRepo, $findOrCreateGroup, $tenantId, &$imported, &$skipped, &$errors, &$lineNumber) {
+                while (($row = fgetcsv($handle, 0, $separator)) !== false) {
+                    $lineNumber++;
+                    if (empty(array_filter($row))) continue;
 
-                $data = [];
-                if ($hasName && isset($colIndex['name'])) {
-                    $data['full_name'] = trim($row[$colIndex['name']] ?? '');
-                } elseif ($hasFirstLast) {
-                    $data['full_name'] = trim(trim($row[$colIndex['first_name']] ?? '') . ' ' . trim($row[$colIndex['last_name']] ?? ''));
-                }
-
-                if (isset($colIndex['email'])) $data['email'] = strtolower(trim($row[$colIndex['email']] ?? ''));
-                if (isset($colIndex['voting_power'])) {
-                    $vp = (float)($row[$colIndex['voting_power']] ?? 1);
-                    $data['voting_power'] = max(0, min($vp, 100000));
-                } else {
-                    $data['voting_power'] = 1.0;
-                }
-                if (isset($colIndex['is_active'])) {
-                    $val = strtolower(trim($row[$colIndex['is_active']] ?? '1'));
-                    $data['is_active'] = in_array($val, ['1', 'true', 'oui', 'yes', 'actif'], true);
-                } else {
-                    $data['is_active'] = true;
-                }
-
-                if (empty($data['full_name']) || mb_strlen($data['full_name']) < 2) {
-                    $errors[] = ['line' => $lineNumber, 'error' => 'Nom invalide']; $skipped++; continue;
-                }
-                if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                    $errors[] = ['line' => $lineNumber, 'error' => 'Email invalide']; $skipped++; continue;
-                }
-
-                $existing = null;
-                if (!empty($data['email'])) $existing = $memberRepo->findByEmail($tenantId, $data['email']);
-                if (!$existing) $existing = $memberRepo->findByFullName($tenantId, $data['full_name']);
-
-                $groupNames = [];
-                if (isset($colIndex['groups'])) {
-                    $groupsRaw = trim($row[$colIndex['groups']] ?? '');
-                    if ($groupsRaw !== '') {
-                        $groupNames = preg_split('/[|;]/', $groupsRaw);
-                        $groupNames = array_filter(array_map('trim', $groupNames));
+                    $data = [];
+                    if ($hasName && isset($colIndex['name'])) {
+                        $data['full_name'] = trim($row[$colIndex['name']] ?? '');
+                    } elseif ($hasFirstLast) {
+                        $data['full_name'] = trim(trim($row[$colIndex['first_name']] ?? '') . ' ' . trim($row[$colIndex['last_name']] ?? ''));
                     }
-                }
 
-                $memberId = null;
-                if ($existing) {
-                    $memberId = $existing['id'];
-                    $memberRepo->updateImport($memberId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active'], $tenantId);
-                } else {
-                    $memberId = $memberRepo->createImport($tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
-                }
-
-                if (!empty($groupNames) && $memberId) {
-                    $groupIds = [];
-                    foreach ($groupNames as $gn) {
-                        $gid = $findOrCreateGroup($gn);
-                        if ($gid) $groupIds[] = $gid;
+                    if (isset($colIndex['email'])) $data['email'] = strtolower(trim($row[$colIndex['email']] ?? ''));
+                    if (isset($colIndex['voting_power'])) {
+                        $vp = (float)($row[$colIndex['voting_power']] ?? 1);
+                        $data['voting_power'] = max(0, min($vp, 100000));
+                    } else {
+                        $data['voting_power'] = 1.0;
                     }
-                    if (!empty($groupIds)) $groupRepo->setMemberGroups($memberId, $groupIds);
-                }
+                    if (isset($colIndex['is_active'])) {
+                        $val = strtolower(trim($row[$colIndex['is_active']] ?? '1'));
+                        $data['is_active'] = in_array($val, ['1', 'true', 'oui', 'yes', 'actif'], true);
+                    } else {
+                        $data['is_active'] = true;
+                    }
 
-                $imported++;
-            }
-            db()->commit();
+                    if (empty($data['full_name']) || mb_strlen($data['full_name']) < 2) {
+                        $errors[] = ['line' => $lineNumber, 'error' => 'Nom invalide']; $skipped++; continue;
+                    }
+                    if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                        $errors[] = ['line' => $lineNumber, 'error' => 'Email invalide']; $skipped++; continue;
+                    }
+
+                    $existing = null;
+                    if (!empty($data['email'])) $existing = $memberRepo->findByEmail($tenantId, $data['email']);
+                    if (!$existing) $existing = $memberRepo->findByFullName($tenantId, $data['full_name']);
+
+                    $groupNames = [];
+                    if (isset($colIndex['groups'])) {
+                        $groupsRaw = trim($row[$colIndex['groups']] ?? '');
+                        if ($groupsRaw !== '') {
+                            $groupNames = preg_split('/[|;]/', $groupsRaw);
+                            $groupNames = array_filter(array_map('trim', $groupNames));
+                        }
+                    }
+
+                    $memberId = null;
+                    if ($existing) {
+                        $memberId = $existing['id'];
+                        $memberRepo->updateImport($memberId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active'], $tenantId);
+                    } else {
+                        $memberId = $memberRepo->createImport($tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
+                    }
+
+                    if (!empty($groupNames) && $memberId) {
+                        $groupIds = [];
+                        foreach ($groupNames as $gn) {
+                            $gid = $findOrCreateGroup($gn);
+                            if ($gid) $groupIds[] = $gid;
+                        }
+                        if (!empty($groupIds)) $groupRepo->setMemberGroups($memberId, $groupIds);
+                    }
+
+                    $imported++;
+                }
+            });
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
-            db()->rollBack();
             fclose($handle);
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
         }
@@ -186,7 +184,7 @@ final class ImportController extends AbstractController
     {
         api_request('POST');
 
-        $file = $_FILES['file'] ?? $_FILES['xlsx_file'] ?? null;
+        $file = api_file('file', 'xlsx_file');
         if (!$file) api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
 
         $validation = ImportService::validateUploadedFile($file, 'xlsx');
@@ -228,68 +226,66 @@ final class ImportController extends AbstractController
             return $group['id'];
         };
 
-        db()->beginTransaction();
-
         try {
-            foreach ($rows as $lineIndex => $row) {
-                $lineNumber = $lineIndex + 2;
+            api_transaction(function () use ($rows, $hasName, $hasFirstLast, $colIndex, $memberRepo, $groupRepo, $findOrCreateGroup, $tenantId, &$imported, &$skipped, &$errors) {
+                foreach ($rows as $lineIndex => $row) {
+                    $lineNumber = $lineIndex + 2;
 
-                $data = [];
-                if ($hasName && isset($colIndex['name'])) {
-                    $data['full_name'] = trim($row[$colIndex['name']] ?? '');
-                } elseif ($hasFirstLast) {
-                    $data['full_name'] = trim(trim($row[$colIndex['first_name']] ?? '') . ' ' . trim($row[$colIndex['last_name']] ?? ''));
-                }
-
-                if (isset($colIndex['email'])) $data['email'] = strtolower(trim($row[$colIndex['email']] ?? ''));
-                $data['voting_power'] = isset($colIndex['voting_power'])
-                    ? ImportService::parseVotingPower($row[$colIndex['voting_power']] ?? '1') : 1.0;
-                $data['is_active'] = isset($colIndex['is_active'])
-                    ? ImportService::parseBoolean($row[$colIndex['is_active']] ?? '1') : true;
-
-                if (empty($data['full_name']) || mb_strlen($data['full_name']) < 2) {
-                    $errors[] = ['line' => $lineNumber, 'error' => 'Nom invalide']; $skipped++; continue;
-                }
-                if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                    $errors[] = ['line' => $lineNumber, 'error' => 'Email invalide']; $skipped++; continue;
-                }
-
-                $existing = null;
-                if (!empty($data['email'])) $existing = $memberRepo->findByEmail($tenantId, $data['email']);
-                if (!$existing) $existing = $memberRepo->findByFullName($tenantId, $data['full_name']);
-
-                $groupNames = [];
-                if (isset($colIndex['groups'])) {
-                    $groupsRaw = trim($row[$colIndex['groups']] ?? '');
-                    if ($groupsRaw !== '') {
-                        $groupNames = preg_split('/[|;]/', $groupsRaw);
-                        $groupNames = array_filter(array_map('trim', $groupNames));
+                    $data = [];
+                    if ($hasName && isset($colIndex['name'])) {
+                        $data['full_name'] = trim($row[$colIndex['name']] ?? '');
+                    } elseif ($hasFirstLast) {
+                        $data['full_name'] = trim(trim($row[$colIndex['first_name']] ?? '') . ' ' . trim($row[$colIndex['last_name']] ?? ''));
                     }
-                }
 
-                $memberId = null;
-                if ($existing) {
-                    $memberId = $existing['id'];
-                    $memberRepo->updateImport($memberId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active'], $tenantId);
-                } else {
-                    $memberId = $memberRepo->createImport($tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
-                }
+                    if (isset($colIndex['email'])) $data['email'] = strtolower(trim($row[$colIndex['email']] ?? ''));
+                    $data['voting_power'] = isset($colIndex['voting_power'])
+                        ? ImportService::parseVotingPower($row[$colIndex['voting_power']] ?? '1') : 1.0;
+                    $data['is_active'] = isset($colIndex['is_active'])
+                        ? ImportService::parseBoolean($row[$colIndex['is_active']] ?? '1') : true;
 
-                if (!empty($groupNames) && $memberId) {
-                    $groupIds = [];
-                    foreach ($groupNames as $gn) {
-                        $gid = $findOrCreateGroup($gn);
-                        if ($gid) $groupIds[] = $gid;
+                    if (empty($data['full_name']) || mb_strlen($data['full_name']) < 2) {
+                        $errors[] = ['line' => $lineNumber, 'error' => 'Nom invalide']; $skipped++; continue;
                     }
-                    if (!empty($groupIds)) $groupRepo->setMemberGroups($memberId, $groupIds);
-                }
+                    if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                        $errors[] = ['line' => $lineNumber, 'error' => 'Email invalide']; $skipped++; continue;
+                    }
 
-                $imported++;
-            }
-            db()->commit();
+                    $existing = null;
+                    if (!empty($data['email'])) $existing = $memberRepo->findByEmail($tenantId, $data['email']);
+                    if (!$existing) $existing = $memberRepo->findByFullName($tenantId, $data['full_name']);
+
+                    $groupNames = [];
+                    if (isset($colIndex['groups'])) {
+                        $groupsRaw = trim($row[$colIndex['groups']] ?? '');
+                        if ($groupsRaw !== '') {
+                            $groupNames = preg_split('/[|;]/', $groupsRaw);
+                            $groupNames = array_filter(array_map('trim', $groupNames));
+                        }
+                    }
+
+                    $memberId = null;
+                    if ($existing) {
+                        $memberId = $existing['id'];
+                        $memberRepo->updateImport($memberId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active'], $tenantId);
+                    } else {
+                        $memberId = $memberRepo->createImport($tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
+                    }
+
+                    if (!empty($groupNames) && $memberId) {
+                        $groupIds = [];
+                        foreach ($groupNames as $gn) {
+                            $gid = $findOrCreateGroup($gn);
+                            if ($gid) $groupIds[] = $gid;
+                        }
+                        if (!empty($groupIds)) $groupRepo->setMemberGroups($memberId, $groupIds);
+                    }
+
+                    $imported++;
+                }
+            });
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
-            db()->rollBack();
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
         }
 
@@ -302,9 +298,9 @@ final class ImportController extends AbstractController
 
     public function attendancesCsv(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
 
         $tenantId = api_current_tenant_id();
@@ -314,9 +310,9 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
+        $file = api_file('file', 'csv_file');
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) api_fail('upload_error', 400, ['detail' => 'Fichier manquant ou erreur upload.']);
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if ($ext !== 'csv') api_fail('invalid_file_type', 400, ['detail' => 'Seuls les fichiers CSV sont acceptés.']);
@@ -364,9 +360,7 @@ final class ImportController extends AbstractController
 
         $imported = 0; $skipped = 0; $errors = []; $lineNumber = 1; $preview = [];
 
-        if (!$dryRun) db()->beginTransaction();
-
-        try {
+        $work = function () use ($handle, $separator, $colIndex, $membersByEmail, $membersByName, $attendanceRepo, $tenantId, $meetingId, $dryRun, &$imported, &$skipped, &$errors, &$lineNumber, &$preview) {
             while (($row = fgetcsv($handle, 0, $separator)) !== false) {
                 $lineNumber++;
                 if (empty(array_filter($row))) continue;
@@ -405,10 +399,16 @@ final class ImportController extends AbstractController
                 }
                 $imported++;
             }
-            if (!$dryRun) db()->commit();
+        };
+
+        try {
+            if ($dryRun) {
+                $work();
+            } else {
+                api_transaction($work);
+            }
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
-            if (!$dryRun) db()->rollBack();
             fclose($handle);
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
         }
@@ -428,9 +428,9 @@ final class ImportController extends AbstractController
 
     public function attendancesXlsx(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
 
         $tenantId = api_current_tenant_id();
@@ -440,9 +440,9 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $file = $_FILES['file'] ?? $_FILES['xlsx_file'] ?? null;
+        $file = api_file('file', 'xlsx_file');
         if (!$file) api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
 
         $validation = ImportService::validateUploadedFile($file, 'xlsx');
@@ -473,9 +473,7 @@ final class ImportController extends AbstractController
 
         $imported = 0; $skipped = 0; $errors = []; $preview = [];
 
-        if (!$dryRun) db()->beginTransaction();
-
-        try {
+        $work = function () use ($rows, $colIndex, $membersByEmail, $membersByName, $attendanceRepo, $tenantId, $meetingId, $dryRun, &$imported, &$skipped, &$errors, &$preview) {
             foreach ($rows as $lineIndex => $row) {
                 $lineNumber = $lineIndex + 2;
 
@@ -513,10 +511,16 @@ final class ImportController extends AbstractController
                 }
                 $imported++;
             }
-            if (!$dryRun) db()->commit();
+        };
+
+        try {
+            if ($dryRun) {
+                $work();
+            } else {
+                api_transaction($work);
+            }
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
-            if (!$dryRun) db()->rollBack();
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
         }
 
@@ -533,9 +537,9 @@ final class ImportController extends AbstractController
 
     public function proxiesCsv(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
 
         $tenantId = api_current_tenant_id();
@@ -545,10 +549,10 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $maxProxiesPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 3);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $maxProxiesPerReceiver = (int)config('proxy_max_per_receiver', 3);
 
-        $file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
+        $file = api_file('file', 'csv_file');
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) api_fail('upload_error', 400, ['detail' => 'Fichier manquant ou erreur upload.']);
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if ($ext !== 'csv') api_fail('invalid_file_type', 400, ['detail' => 'Seuls les fichiers CSV sont acceptés.']);
@@ -619,9 +623,7 @@ final class ImportController extends AbstractController
         $tempProxiesPerReceiver = $proxiesPerReceiver;
         $tempExistingGivers = $existingGivers;
 
-        if (!$dryRun) db()->beginTransaction();
-
-        try {
+        $work = function () use ($handle, $separator, $colIndex, $findMember, $proxyRepo, $tenantId, $meetingId, $dryRun, $maxProxiesPerReceiver, &$imported, &$skipped, &$errors, &$lineNumber, &$preview, &$tempProxiesPerReceiver, &$tempExistingGivers, &$proxiesPerReceiver, &$existingGivers) {
             while (($row = fgetcsv($handle, 0, $separator)) !== false) {
                 $lineNumber++;
                 if (empty(array_filter($row))) continue;
@@ -664,10 +666,16 @@ final class ImportController extends AbstractController
                 }
                 $imported++;
             }
-            if (!$dryRun) db()->commit();
+        };
+
+        try {
+            if ($dryRun) {
+                $work();
+            } else {
+                api_transaction($work);
+            }
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
-            if (!$dryRun) db()->rollBack();
             fclose($handle);
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
         }
@@ -687,9 +695,9 @@ final class ImportController extends AbstractController
 
     public function proxiesXlsx(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
 
         $tenantId = api_current_tenant_id();
@@ -699,10 +707,10 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $maxProxiesPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 3);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $maxProxiesPerReceiver = (int)config('proxy_max_per_receiver', 3);
 
-        $file = $_FILES['file'] ?? $_FILES['xlsx_file'] ?? null;
+        $file = api_file('file', 'xlsx_file');
         if (!$file) api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
 
         $validation = ImportService::validateUploadedFile($file, 'xlsx');
@@ -756,9 +764,7 @@ final class ImportController extends AbstractController
         $tempProxiesPerReceiver = $proxiesPerReceiver;
         $tempExistingGivers = $existingGivers;
 
-        if (!$dryRun) db()->beginTransaction();
-
-        try {
+        $work = function () use ($rows, $colIndex, $findMember, $proxyRepo, $tenantId, $meetingId, $dryRun, $maxProxiesPerReceiver, &$imported, &$skipped, &$errors, &$preview, &$tempProxiesPerReceiver, &$tempExistingGivers, &$proxiesPerReceiver, &$existingGivers) {
             foreach ($rows as $lineIndex => $row) {
                 $lineNumber = $lineIndex + 2;
 
@@ -800,10 +806,16 @@ final class ImportController extends AbstractController
                 }
                 $imported++;
             }
-            if (!$dryRun) db()->commit();
+        };
+
+        try {
+            if ($dryRun) {
+                $work();
+            } else {
+                api_transaction($work);
+            }
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
-            if (!$dryRun) db()->rollBack();
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
         }
 
@@ -820,9 +832,9 @@ final class ImportController extends AbstractController
 
     public function motionsCsv(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
         }
@@ -836,9 +848,9 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
+        $file = api_file('file', 'csv_file');
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
             api_fail('upload_error', 400, ['detail' => 'Fichier manquant ou erreur upload.']);
         }
@@ -883,9 +895,7 @@ final class ImportController extends AbstractController
 
         $imported = 0; $skipped = 0; $errors = []; $lineNumber = 1; $preview = [];
 
-        if (!$dryRun) db()->beginTransaction();
-
-        try {
+        $work = function () use ($handle, $separator, $colIndex, $motionRepo, $tenantId, $meetingId, $dryRun, &$imported, &$skipped, &$errors, &$lineNumber, &$preview, &$nextPosition) {
             while (($row = fgetcsv($handle, 0, $separator)) !== false) {
                 $lineNumber++;
                 if (empty(array_filter($row))) continue;
@@ -930,10 +940,16 @@ final class ImportController extends AbstractController
                 }
                 $imported++;
             }
-            if (!$dryRun) db()->commit();
+        };
+
+        try {
+            if ($dryRun) {
+                $work();
+            } else {
+                api_transaction($work);
+            }
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
-            if (!$dryRun) db()->rollBack();
             fclose($handle);
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
         }
@@ -953,9 +969,9 @@ final class ImportController extends AbstractController
 
     public function motionsXlsx(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
         }
@@ -969,9 +985,9 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $file = $_FILES['file'] ?? $_FILES['xlsx_file'] ?? null;
+        $file = api_file('file', 'xlsx_file');
         if (!$file) api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
 
         $validation = ImportService::validateUploadedFile($file, 'xlsx');
@@ -996,9 +1012,7 @@ final class ImportController extends AbstractController
 
         $imported = 0; $skipped = 0; $errors = []; $preview = [];
 
-        if (!$dryRun) db()->beginTransaction();
-
-        try {
+        $work = function () use ($rows, $colIndex, $motionRepo, $tenantId, $meetingId, $dryRun, &$imported, &$skipped, &$errors, &$preview, &$nextPosition) {
             foreach ($rows as $lineIndex => $row) {
                 $lineNumber = $lineIndex + 2;
 
@@ -1041,10 +1055,16 @@ final class ImportController extends AbstractController
                 }
                 $imported++;
             }
-            if (!$dryRun) db()->commit();
+        };
+
+        try {
+            if ($dryRun) {
+                $work();
+            } else {
+                api_transaction($work);
+            }
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
-            if (!$dryRun) db()->rollBack();
             api_fail('import_failed', 500, ['detail' => $e->getMessage()]);
         }
 

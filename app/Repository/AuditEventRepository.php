@@ -12,6 +12,36 @@ namespace AgVote\Repository;
 class AuditEventRepository extends AbstractRepository
 {
     /**
+     * Insert an audit event.
+     */
+    public function insert(
+        ?string $tenantId,
+        ?string $meetingId,
+        ?string $actorUserId,
+        ?string $actorRole,
+        string $action,
+        string $resourceType,
+        ?string $resourceId,
+        array $payload
+    ): void {
+        $this->execute(
+            "INSERT INTO audit_events
+                (tenant_id, meeting_id, actor_user_id, actor_role, action, resource_type, resource_id, payload, created_at)
+                VALUES (:tid, :mid, :uid, :role, :action, :rtype, :rid, :payload::jsonb, NOW())",
+            [
+                ':tid' => $tenantId,
+                ':mid' => $meetingId,
+                ':uid' => $actorUserId,
+                ':role' => $actorRole,
+                ':action' => $action,
+                ':rtype' => $resourceType,
+                ':rid' => $resourceId,
+                ':payload' => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            ]
+        );
+    }
+
+    /**
      * Searches admin audit events with optional filters.
      *
      * @return array List of audit event rows

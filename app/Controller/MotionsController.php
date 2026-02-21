@@ -64,58 +64,55 @@ final class MotionsController extends AbstractController
             api_fail('quorum_policy_not_found', 404);
         }
 
-        db()->beginTransaction();
-
         if ($motionId === '') {
-            $motionId = $motionRepo->generateUuid();
-            $motionRepo->create(
-                $motionId, $tenantId, $agenda['meeting_id'], $agendaId,
-                $title, $description, $secret,
+            $newMotionId = api_transaction(function () use ($motionRepo, $tenantId, $agenda, $agendaId, $title, $description, $secret, $votePolicyId, $quorumPolicyId) {
+                $motionId = $motionRepo->generateUuid();
+                $motionRepo->create(
+                    $motionId, $tenantId, $agenda['meeting_id'], $agendaId,
+                    $title, $description, $secret,
+                    $votePolicyId ?: null, $quorumPolicyId ?: null
+                );
+                audit_log('motion_created', 'motion', (string)$motionId, [
+                    'meeting_id' => (string)$agenda['meeting_id'],
+                    'agenda_id' => $agendaId,
+                    'title' => $title,
+                    'secret' => $secret,
+                    'vote_policy_id' => $votePolicyId ?: null,
+                    'quorum_policy_id' => $quorumPolicyId ?: null,
+                ]);
+                return (string)$motionId;
+            });
+            api_ok(['motion_id' => $newMotionId, 'created' => true]);
+        }
+
+        api_transaction(function () use ($motionRepo, $motionId, $tenantId, $agendaId, $title, $description, $secret, $votePolicyId, $quorumPolicyId) {
+            $motion = $motionRepo->findByIdForTenant($motionId, $tenantId);
+            if (!$motion) {
+                api_fail('motion_not_found', 404);
+            }
+            if ((string)$motion['agenda_id'] !== $agendaId) {
+                api_fail('agenda_mismatch', 409, ['detail' => 'La motion appartient à un autre agenda.']);
+            }
+            if (!empty($motion['opened_at']) && empty($motion['closed_at'])) {
+                api_fail('motion_active_locked', 409, ['detail' => 'Motion active : édition interdite pendant le vote.']);
+            }
+            if (!empty($motion['closed_at'])) {
+                api_fail('motion_closed_locked', 409, ['detail' => 'Motion clôturée : édition interdite.']);
+            }
+
+            $motionRepo->update(
+                $motionId, $tenantId, $title, $description, $secret,
                 $votePolicyId ?: null, $quorumPolicyId ?: null
             );
-            audit_log('motion_created', 'motion', (string)$motionId, [
-                'meeting_id' => (string)$agenda['meeting_id'],
+            audit_log('motion_updated', 'motion', (string)$motionId, [
+                'meeting_id' => (string)$motion['meeting_id'],
                 'agenda_id' => $agendaId,
                 'title' => $title,
                 'secret' => $secret,
                 'vote_policy_id' => $votePolicyId ?: null,
                 'quorum_policy_id' => $quorumPolicyId ?: null,
             ]);
-            db()->commit();
-            api_ok(['motion_id' => (string)$motionId, 'created' => true]);
-        }
-
-        $motion = $motionRepo->findByIdForTenant($motionId, $tenantId);
-        if (!$motion) {
-            db()->rollBack();
-            api_fail('motion_not_found', 404);
-        }
-        if ((string)$motion['agenda_id'] !== $agendaId) {
-            db()->rollBack();
-            api_fail('agenda_mismatch', 409, ['detail' => 'La motion appartient à un autre agenda.']);
-        }
-        if (!empty($motion['opened_at']) && empty($motion['closed_at'])) {
-            db()->rollBack();
-            api_fail('motion_active_locked', 409, ['detail' => 'Motion active : édition interdite pendant le vote.']);
-        }
-        if (!empty($motion['closed_at'])) {
-            db()->rollBack();
-            api_fail('motion_closed_locked', 409, ['detail' => 'Motion clôturée : édition interdite.']);
-        }
-
-        $motionRepo->update(
-            $motionId, $tenantId, $title, $description, $secret,
-            $votePolicyId ?: null, $quorumPolicyId ?: null
-        );
-        audit_log('motion_updated', 'motion', (string)$motionId, [
-            'meeting_id' => (string)$motion['meeting_id'],
-            'agenda_id' => $agendaId,
-            'title' => $title,
-            'secret' => $secret,
-            'vote_policy_id' => $votePolicyId ?: null,
-            'quorum_policy_id' => $quorumPolicyId ?: null,
-        ]);
-        db()->commit();
+        });
         api_ok(['motion_id' => (string)$motionId, 'created' => false]);
     }
 
@@ -341,7 +338,7 @@ final class MotionsController extends AbstractController
     {
         $in = api_request('GET');
 
-        $motionId = trim((string)($in['motion_id'] ?? ($_GET['motion_id'] ?? '')));
+        $motionId = trim((string)($in['motion_id'] ?? api_query('motion_id')));
         if ($motionId === '' || !api_is_uuid($motionId)) {
             api_fail('invalid_motion_id', 400);
         }
@@ -379,7 +376,7 @@ final class MotionsController extends AbstractController
     {
         api_request('GET');
 
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_request', 422);
         }
@@ -418,51 +415,59 @@ final class MotionsController extends AbstractController
         $meetingRepo = new MeetingRepository();
         $policyRepo = new PolicyRepository();
 
-        db()->beginTransaction();
-
-        $motion = $repo->findByIdForTenantForUpdate($motionId, $tenantId);
-        if (!$motion) {
-            db()->rollBack();
-            api_fail('motion_not_found', 404);
-        }
-
-        $meetingId = (string)$motion['meeting_id'];
-        api_guard_meeting_not_validated($meetingId);
-
-        if (!empty($motion['opened_at'])) {
-            db()->rollBack();
-            api_fail('motion_already_opened', 409);
-        }
-
-        // Policy resolution: motion → meeting → tenant default
-        $votePolicyId = $motion['vote_policy_id'] ?? null;
-        if (!$votePolicyId) {
-            $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
-            $votePolicyId = $meeting['vote_policy_id'] ?? null;
-        }
-        if (!$votePolicyId) {
-            $defaults = $policyRepo->listVotePolicies($tenantId);
-            if (!empty($defaults)) {
-                $votePolicyId = $defaults[0]['id'];
+        $txResult = api_transaction(function () use ($repo, $meetingRepo, $policyRepo, $motionId, $tenantId) {
+            $motion = $repo->findByIdForTenantForUpdate($motionId, $tenantId);
+            if (!$motion) {
+                api_fail('motion_not_found', 404);
             }
-        }
 
-        $quorumPolicyId = $motion['quorum_policy_id'] ?? null;
-        if (!$quorumPolicyId) {
-            $meeting = $meeting ?? $meetingRepo->findByIdForTenant($meetingId, $tenantId);
-            $quorumPolicyId = $meeting['quorum_policy_id'] ?? null;
-        }
-        if (!$quorumPolicyId) {
-            $defaults = $policyRepo->listQuorumPolicies($tenantId);
-            if (!empty($defaults)) {
-                $quorumPolicyId = $defaults[0]['id'];
+            $meetingId = (string)$motion['meeting_id'];
+            api_guard_meeting_not_validated($meetingId);
+
+            if (!empty($motion['opened_at'])) {
+                api_fail('motion_already_opened', 409);
             }
-        }
 
-        $repo->markOpened($motionId, $tenantId, $votePolicyId, $quorumPolicyId);
-        $meetingRepo->setCurrentMotion($meetingId, $tenantId, $motionId);
+            // Policy resolution: motion → meeting → tenant default
+            $votePolicyId = $motion['vote_policy_id'] ?? null;
+            if (!$votePolicyId) {
+                $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+                $votePolicyId = $meeting['vote_policy_id'] ?? null;
+            }
+            if (!$votePolicyId) {
+                $defaults = $policyRepo->listVotePolicies($tenantId);
+                if (!empty($defaults)) {
+                    $votePolicyId = $defaults[0]['id'];
+                }
+            }
 
-        db()->commit();
+            $quorumPolicyId = $motion['quorum_policy_id'] ?? null;
+            if (!$quorumPolicyId) {
+                $meeting = $meeting ?? $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+                $quorumPolicyId = $meeting['quorum_policy_id'] ?? null;
+            }
+            if (!$quorumPolicyId) {
+                $defaults = $policyRepo->listQuorumPolicies($tenantId);
+                if (!empty($defaults)) {
+                    $quorumPolicyId = $defaults[0]['id'];
+                }
+            }
+
+            $repo->markOpened($motionId, $tenantId, $votePolicyId, $quorumPolicyId);
+            $meetingRepo->setCurrentMotion($meetingId, $tenantId, $motionId);
+
+            return [
+                'meetingId' => $meetingId,
+                'votePolicyId' => $votePolicyId,
+                'quorumPolicyId' => $quorumPolicyId,
+                'title' => (string)$motion['title'],
+                'secret' => (bool)$motion['secret'],
+            ];
+        });
+
+        $meetingId = $txResult['meetingId'];
+        $votePolicyId = $txResult['votePolicyId'];
+        $quorumPolicyId = $txResult['quorumPolicyId'];
 
         try {
             audit_log('motion_opened', 'motion', $motionId, [
@@ -477,8 +482,8 @@ final class MotionsController extends AbstractController
 
         try {
             EventBroadcaster::motionOpened($meetingId, $motionId, [
-                'title' => (string)$motion['title'],
-                'secret' => (bool)$motion['secret'],
+                'title' => $txResult['title'],
+                'secret' => $txResult['secret'],
             ]);
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
@@ -502,27 +507,19 @@ final class MotionsController extends AbstractController
             api_fail('invalid_motion_id', 422);
         }
 
-        try {
-            $repo = new MotionRepository();
+        $repo = new MotionRepository();
 
-            db()->beginTransaction();
-
+        $txResult = api_transaction(function () use ($repo, $motionId) {
             $motion = $repo->findByIdForTenantForUpdate($motionId, api_current_tenant_id());
             if (!$motion) {
-                db()->rollBack();
                 api_fail('motion_not_found', 404);
-                exit;
             }
 
             if (empty($motion['opened_at'])) {
-                db()->rollBack();
                 api_fail('motion_not_open', 409);
-                exit;
             }
             if (!empty($motion['closed_at'])) {
-                db()->rollBack();
                 api_fail('motion_already_closed', 409);
-                exit;
             }
 
             $repo->markClosed($motionId, api_current_tenant_id());
@@ -535,70 +532,67 @@ final class MotionsController extends AbstractController
                 api_current_tenant_id()
             );
 
-            db()->commit();
+            return ['motion' => $motion, 'o' => $o];
+        });
 
-            try {
-                VoteTokenService::revokeForMotion($motionId, api_current_tenant_id());
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        $motion = $txResult['motion'];
+        $o = $txResult['o'];
+
+        try {
+            VoteTokenService::revokeForMotion($motionId, api_current_tenant_id());
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $tokenErr) {
-                error_log('[motions_close] token revocation failed after commit: ' . $tokenErr->getMessage());
-            }
+            error_log('[motions_close] token revocation failed after commit: ' . $tokenErr->getMessage());
+        }
 
-            try {
-                audit_log('motion_closed', 'motion', $motionId, [
-                    'meeting_id' => (string)$motion['meeting_id'],
-                ]);
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $auditErr) {
-                error_log('[motions_close] audit_log failed after commit: ' . $auditErr->getMessage());
-            }
-
-            try {
-                EventBroadcaster::motionClosed((string)$motion['meeting_id'], $motionId, [
-                    'for' => $o['for'] ?? 0,
-                    'against' => $o['against'] ?? 0,
-                    'abstain' => $o['abstain'] ?? 0,
-                    'total' => $o['total'] ?? 0,
-                    'decision' => $o['decision'] ?? 'unknown',
-                    'reason' => $o['reason'] ?? null,
-                ]);
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $wsErr) {
-                error_log('[motions_close] EventBroadcaster failed after commit: ' . $wsErr->getMessage());
-            }
-
-            $eligibleCount = 0;
-            try {
-                $attendanceRepo = new AttendanceRepository();
-                $eligibleCount = $attendanceRepo->countByModes(
-                    (string)$motion['meeting_id'],
-                    api_current_tenant_id(),
-                    ['present', 'remote']
-                );
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) { /* non-critical */ }
-
-            api_ok([
-                'meeting_id'       => (string)$motion['meeting_id'],
-                'closed_motion_id' => $motionId,
-                'results'          => [
-                    'for'      => $o['for'] ?? 0,
-                    'against'  => $o['against'] ?? 0,
-                    'abstain'  => $o['abstain'] ?? 0,
-                    'total'    => $o['total'] ?? 0,
-                    'decision' => $o['decision'] ?? 'unknown',
-                    'reason'   => $o['reason'] ?? null,
-                ],
-                'eligible_count'   => $eligibleCount,
-                'votes_cast'       => $o['total'] ?? 0,
+        try {
+            audit_log('motion_closed', 'motion', $motionId, [
+                'meeting_id' => (string)$motion['meeting_id'],
             ]);
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
-            if (db()->inTransaction()) {
-                db()->rollBack();
-            }
-            api_fail('motion_close_failed', 500, ['detail' => $e->getMessage()]);
+        } catch (\Throwable $auditErr) {
+            error_log('[motions_close] audit_log failed after commit: ' . $auditErr->getMessage());
         }
+
+        try {
+            EventBroadcaster::motionClosed((string)$motion['meeting_id'], $motionId, [
+                'for' => $o['for'] ?? 0,
+                'against' => $o['against'] ?? 0,
+                'abstain' => $o['abstain'] ?? 0,
+                'total' => $o['total'] ?? 0,
+                'decision' => $o['decision'] ?? 'unknown',
+                'reason' => $o['reason'] ?? null,
+            ]);
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $wsErr) {
+            error_log('[motions_close] EventBroadcaster failed after commit: ' . $wsErr->getMessage());
+        }
+
+        $eligibleCount = 0;
+        try {
+            $attendanceRepo = new AttendanceRepository();
+            $eligibleCount = $attendanceRepo->countByModes(
+                (string)$motion['meeting_id'],
+                api_current_tenant_id(),
+                ['present', 'remote']
+            );
+        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        } catch (\Throwable $e) { /* non-critical */ }
+
+        api_ok([
+            'meeting_id'       => (string)$motion['meeting_id'],
+            'closed_motion_id' => $motionId,
+            'results'          => [
+                'for'      => $o['for'] ?? 0,
+                'against'  => $o['against'] ?? 0,
+                'abstain'  => $o['abstain'] ?? 0,
+                'total'    => $o['total'] ?? 0,
+                'decision' => $o['decision'] ?? 'unknown',
+                'reason'   => $o['reason'] ?? null,
+            ],
+            'eligible_count'   => $eligibleCount,
+            'votes_cast'       => $o['total'] ?? 0,
+        ]);
     }
 
     public function degradedTally(): void
@@ -642,19 +636,17 @@ final class MotionsController extends AbstractController
             api_fail('inconsistent_tally', 422, ['detail' => 'Pour + Contre + Abstentions doit être égal au total.', 'total' => $total, 'sum' => $sum]);
         }
 
-        db()->beginTransaction();
+        api_transaction(function () use ($motionId, $total, $for, $against, $abstain, $tenantId, $meetingId, $justification) {
+            (new MotionRepository())->updateManualTally($motionId, $total, $for, $against, $abstain, $tenantId);
 
-        (new MotionRepository())->updateManualTally($motionId, $total, $for, $against, $abstain, $tenantId);
-
-        (new ManualActionRepository())->createManualTally(
-            $tenantId,
-            $meetingId,
-            $motionId,
-            json_encode(['total' => $total, 'for' => $for, 'against' => $against, 'abstain' => $abstain], JSON_UNESCAPED_UNICODE),
-            $justification
-        );
-
-        db()->commit();
+            (new ManualActionRepository())->createManualTally(
+                $tenantId,
+                $meetingId,
+                $motionId,
+                json_encode(['total' => $total, 'for' => $for, 'against' => $against, 'abstain' => $abstain], JSON_UNESCAPED_UNICODE),
+                $justification
+            );
+        });
 
         audit_log('manual_tally_set', 'motion', $motionId, [
             'meeting_id' => $meetingId,

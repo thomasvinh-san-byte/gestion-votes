@@ -377,10 +377,8 @@ final class OfficialResultsService
         $motionRepo = new MotionRepository();
         $motions = $motionRepo->listClosedForMeeting($meetingId, $tenantId);
 
-        $pdo = \db();
-        $pdo->beginTransaction();
-        try {
-            $updated = 0;
+        $updated = 0;
+        api_transaction(function () use ($motions, $motionRepo, $tenantId, &$updated) {
             foreach ($motions as $m) {
                 $mid = (string)$m['id'];
                 $o = self::computeOfficialTallies($mid);
@@ -398,11 +396,7 @@ final class OfficialResultsService
                 );
                 $updated++;
             }
-            $pdo->commit();
-        } catch (\Throwable $e) {
-            $pdo->rollBack();
-            throw $e;
-        }
+        });
 
         return ['updated' => $updated];
     }

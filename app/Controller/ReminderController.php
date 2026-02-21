@@ -13,7 +13,7 @@ final class ReminderController extends AbstractController
 {
     public function listForMeeting(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
@@ -104,7 +104,7 @@ final class ReminderController extends AbstractController
 
     public function delete(): void
     {
-        $id = trim((string)($_GET['id'] ?? ''));
+        $id = api_query('id');
         if (!api_is_uuid($id)) {
             api_fail('invalid_reminder_id', 400);
         }

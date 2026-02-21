@@ -18,9 +18,9 @@ final class EmailTemplatesController extends AbstractController
         $service = new EmailTemplateService($config ?? []);
         $tenantId = api_current_tenant_id();
 
-        $id = trim((string)($_GET['id'] ?? ''));
-        $type = trim((string)($_GET['type'] ?? ''));
-        $includeVariables = isset($_GET['include_variables']);
+        $id = api_query('id');
+        $type = api_query('type');
+        $includeVariables = api_query('include_variables') !== '';
 
         if ($id !== '') {
             if (!api_is_uuid($id)) {
@@ -126,7 +126,7 @@ final class EmailTemplatesController extends AbstractController
     {
         $repo = new EmailTemplateRepository();
         $tenantId = api_current_tenant_id();
-        $id = trim((string)($_GET['id'] ?? ''));
+        $id = api_query('id');
         if (!api_is_uuid($id)) {
             api_fail('invalid_template_id', 400);
         }
@@ -167,7 +167,7 @@ final class EmailTemplatesController extends AbstractController
     {
         $repo = new EmailTemplateRepository();
         $tenantId = api_current_tenant_id();
-        $id = trim((string)($_GET['id'] ?? ''));
+        $id = api_query('id');
         if (!api_is_uuid($id)) {
             api_fail('invalid_template_id', 400);
         }

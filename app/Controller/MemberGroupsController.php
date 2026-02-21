@@ -17,8 +17,8 @@ final class MemberGroupsController extends AbstractController
     {
         $tenantId = api_current_tenant_id();
         $repo = new MemberGroupRepository();
-        $groupId = trim((string)($_GET['id'] ?? ''));
-        $includeInactive = ($_GET['include_inactive'] ?? '') === '1';
+        $groupId = api_query('id');
+        $includeInactive = api_query('include_inactive') === '1';
 
         if ($groupId !== '') {
             if (!api_is_uuid($groupId)) {
@@ -116,7 +116,7 @@ final class MemberGroupsController extends AbstractController
     {
         $tenantId = api_current_tenant_id();
         $repo = new MemberGroupRepository();
-        $groupId = trim((string)($_GET['id'] ?? ''));
+        $groupId = api_query('id');
 
         if (!api_is_uuid($groupId)) {
             throw new \InvalidArgumentException('ID de groupe invalide');
@@ -187,8 +187,8 @@ final class MemberGroupsController extends AbstractController
         $groupRepo = new MemberGroupRepository();
         $memberRepo = new MemberRepository();
 
-        $memberId = trim((string)($_GET['member_id'] ?? ''));
-        $groupId = trim((string)($_GET['group_id'] ?? ''));
+        $memberId = api_query('member_id');
+        $groupId = api_query('group_id');
 
         if (!api_is_uuid($memberId)) {
             throw new \InvalidArgumentException('member_id invalide');

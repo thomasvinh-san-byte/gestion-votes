@@ -105,8 +105,18 @@ class MeetingTransitionTest extends TestCase
     {
         $allowed = self::TRANSITIONS['live'];
 
+        $this->assertContains('paused', $allowed);
         $this->assertContains('closed', $allowed);
-        $this->assertCount(1, $allowed);
+        $this->assertCount(2, $allowed);
+    }
+
+    public function testPausedTransitions(): void
+    {
+        $allowed = self::TRANSITIONS['paused'];
+
+        $this->assertContains('live', $allowed);
+        $this->assertContains('closed', $allowed);
+        $this->assertCount(2, $allowed);
     }
 
     public function testClosedTransitions(): void

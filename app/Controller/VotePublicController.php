@@ -36,8 +36,8 @@ final class VotePublicController
     public function vote(): void
     {
         // ── Validate token ──────────────────────────────────────────────
-        $token = $_GET['token'] ?? null;
-        if (!$token) {
+        $token = api_query('token');
+        if ($token === '') {
             HtmlView::text('Token manquant', 400);
         }
 
@@ -73,8 +73,9 @@ final class VotePublicController
         }
 
         // ── POST: process vote ──────────────────────────────────────────
-        $vote = $_POST['vote'] ?? null;
-        $confirm = ($_POST['confirm'] ?? '0') === '1';
+        $postData = api_request('POST');
+        $vote = $postData['vote'] ?? null;
+        $confirm = ($postData['confirm'] ?? '0') === '1';
 
         if (!is_string($vote) || !isset(self::VOTE_MAP[$vote])) {
             HtmlView::text('Vote invalide', 400);
@@ -99,30 +100,27 @@ final class VotePublicController
             $weight = 0.0;
         }
 
-        $pdo = \db();
-        $pdo->beginTransaction();
         try {
-            $consumed = $tokenRepo->consume($hash, (string)$row['tenant_id']);
-            if ($consumed === 0) {
-                $pdo->rollBack();
+            api_transaction(function () use ($tokenRepo, $hash, $row, $ctx, $dbVote, $weight) {
+                $consumed = $tokenRepo->consume($hash, (string)$row['tenant_id']);
+                if ($consumed === 0) {
+                    throw new \RuntimeException('token_already_used');
+                }
+
+                $ballotRepo = new BallotRepository();
+                $ballotRepo->insertFromToken(
+                    $ctx['tenant_id'],
+                    $row['meeting_id'],
+                    $row['motion_id'],
+                    $row['member_id'],
+                    $dbVote,
+                    $weight,
+                    'tablet'
+                );
+            });
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'token_already_used') {
                 HtmlView::text('Token déjà utilisé', 409);
-            }
-
-            $ballotRepo = new BallotRepository();
-            $ballotRepo->insertFromToken(
-                $ctx['tenant_id'],
-                $row['meeting_id'],
-                $row['motion_id'],
-                $row['member_id'],
-                $dbVote,
-                $weight,
-                'tablet'
-            );
-
-            $pdo->commit();
-        } catch (\Throwable $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
             }
             throw $e;
         }

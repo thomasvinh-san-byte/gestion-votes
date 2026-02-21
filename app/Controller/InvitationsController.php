@@ -59,7 +59,7 @@ final class InvitationsController extends AbstractController
 
     public function listForMeeting(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
@@ -70,7 +70,7 @@ final class InvitationsController extends AbstractController
 
     public function redeem(): void
     {
-        $token = trim((string)($_GET['token'] ?? ''));
+        $token = api_query('token');
         if ($token === '') {
             api_fail('missing_token', 400);
         }

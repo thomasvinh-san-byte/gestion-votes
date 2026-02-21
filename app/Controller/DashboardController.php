@@ -17,7 +17,7 @@ final class DashboardController extends AbstractController
 {
     public function index(): void
     {
-        $meetingId = isset($_GET['meeting_id']) ? (string)$_GET['meeting_id'] : '';
+        $meetingId = api_query('meeting_id');
         $tenantId = api_current_tenant_id();
 
         $meetingRepo = new MeetingRepository();
@@ -140,7 +140,7 @@ final class DashboardController extends AbstractController
 
     public function wizardStatus(): void
     {
-        $meetingId = trim($_GET['meeting_id'] ?? '');
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422);
         }

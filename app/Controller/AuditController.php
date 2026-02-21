@@ -14,13 +14,13 @@ final class AuditController extends AbstractController
 {
     public function timeline(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
 
-        $limit = min(200, max(1, (int)($_GET['limit'] ?? 50)));
-        $offset = max(0, (int)($_GET['offset'] ?? 0));
+        $limit = min(200, max(1, api_query_int('limit', 50)));
+        $offset = max(0, api_query_int('offset', 0));
 
         $tenantId = api_current_tenant_id();
         $repo = new MeetingRepository();
@@ -101,7 +101,7 @@ final class AuditController extends AbstractController
     {
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
-        $format = strtolower(trim((string)($_GET['format'] ?? 'csv')));
+        $format = strtolower(api_query('format', 'csv'));
 
         $repo = new MeetingRepository();
         $tenantId = api_current_tenant_id();
@@ -197,7 +197,7 @@ final class AuditController extends AbstractController
     {
         api_request('GET');
 
-        $meetingId = trim($_GET['meeting_id'] ?? '');
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '') {
             api_fail('missing_meeting_id', 422);
         }
@@ -220,7 +220,7 @@ final class AuditController extends AbstractController
     {
         api_request('GET');
 
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422);
         }
@@ -239,12 +239,12 @@ final class AuditController extends AbstractController
     {
         api_request('GET');
 
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422);
         }
 
-        $limit = (int)($_GET['limit'] ?? 200);
+        $limit = api_query_int('limit', 200);
         if ($limit <= 0) {
             $limit = 200;
         }
@@ -252,9 +252,9 @@ final class AuditController extends AbstractController
             $limit = 500;
         }
 
-        $resourceType = trim((string)($_GET['resource_type'] ?? ''));
-        $action = trim((string)($_GET['action'] ?? ''));
-        $q = trim((string)($_GET['q'] ?? ''));
+        $resourceType = api_query('resource_type');
+        $action = api_query('action');
+        $q = api_query('q');
 
         $meetingRepo = new MeetingRepository();
 

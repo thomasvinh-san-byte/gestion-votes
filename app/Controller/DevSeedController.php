@@ -13,7 +13,7 @@ final class DevSeedController extends AbstractController
 {
     private function guardProduction(): void
     {
-        $env = getenv('APP_ENV') ?: 'dev';
+        $env = config('env', 'dev');
         if (in_array($env, ['production', 'prod'], true)) {
             api_fail('endpoint_disabled', 403, [
                 'detail' => 'Cet endpoint de développement est désactivé en production.',

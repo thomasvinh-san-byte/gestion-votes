@@ -22,13 +22,13 @@ final class OperatorController extends AbstractController
 {
     public function workflowState(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
 
-        $minOpen = (int)($_GET['min_open'] ?? 900);
-        $minParticipation = (float)($_GET['min_participation'] ?? 0.5);
+        $minOpen = api_query_int('min_open', 900);
+        $minParticipation = (float)(api_query('min_participation', '0.5'));
 
         $tenant = api_current_tenant_id();
 
@@ -229,9 +229,7 @@ final class OperatorController extends AbstractController
             $expiresMinutes = 24 * 60;
         }
 
-        $secret = (defined('APP_SECRET') && (string)APP_SECRET !== '')
-            ? (string)APP_SECRET
-            : (getenv('APP_SECRET') ?: 'change-me-in-prod');
+        $secret = (string)(defined('APP_SECRET') ? APP_SECRET : config('app_secret', 'change-me-in-prod'));
 
         $meetingRepo = new MeetingRepository();
         $motionRepo = new MotionRepository();
@@ -239,15 +237,12 @@ final class OperatorController extends AbstractController
         $attendanceRepo = new AttendanceRepository();
         $tokenRepo = new VoteTokenRepository();
 
-        db()->beginTransaction();
-        try {
+        $txResult = api_transaction(function () use ($meetingRepo, $motionRepo, $memberRepo, $attendanceRepo, $tokenRepo, $meetingId, &$motionId, $secret, $listTokens, $expiresMinutes) {
             $meeting = $meetingRepo->lockForUpdate($meetingId, api_current_tenant_id());
             if (!$meeting) {
-                db()->rollBack();
                 api_fail('meeting_not_found', 404);
             }
             if (!empty($meeting['validated_at'])) {
-                db()->rollBack();
                 api_fail('meeting_validated_locked', 409, ['detail' => "Séance validée : action interdite."]);
             }
 
@@ -259,21 +254,18 @@ final class OperatorController extends AbstractController
             if ($motionId === '') {
                 $next = $motionRepo->findNextNotOpenedForUpdate(api_current_tenant_id(), $meetingId);
                 if (!$next) {
-                    db()->rollBack();
                     api_fail('no_motion_to_open', 409, ['detail' => "Aucune résolution disponible à ouvrir."]);
                 }
                 $motionId = (string)$next['id'];
             } else {
                 $row = $motionRepo->findByIdAndMeetingForUpdate(api_current_tenant_id(), $meetingId, $motionId);
                 if (!$row) {
-                    db()->rollBack();
                     api_fail('motion_not_found', 404);
                 }
             }
 
             $open = $motionRepo->findCurrentOpen($meetingId, api_current_tenant_id());
             if ($open && (string)$open['id'] !== $motionId) {
-                db()->rollBack();
                 api_fail('another_motion_active', 409, [
                     'detail' => "Une résolution est déjà ouverte : clôturez-la avant d'en ouvrir une autre.",
                     'open_motion_id' => (string)$open['id'],
@@ -327,39 +319,33 @@ final class OperatorController extends AbstractController
                 }
             }
 
-            db()->commit();
+            return ['inserted' => $inserted, 'tokensOut' => $tokensOut];
+        });
 
-            audit_log('vote_tokens_generated', 'motion', $motionId, [
-                'meeting_id' => $meetingId,
-                'inserted' => $inserted,
-                'expires_minutes' => $expiresMinutes,
-            ]);
+        audit_log('vote_tokens_generated', 'motion', $motionId, [
+            'meeting_id' => $meetingId,
+            'inserted' => $txResult['inserted'],
+            'expires_minutes' => $expiresMinutes,
+        ]);
 
-            api_ok([
-                'meeting_id' => $meetingId,
-                'motion_id' => $motionId,
-                'generated' => $inserted,
-                'tokens' => $listTokens ? $tokensOut : null,
-            ]);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
-            if (db()->inTransaction()) {
-                db()->rollBack();
-            }
-            api_fail('operator_open_vote_failed', 500, ['detail' => $e->getMessage()]);
-        }
+        api_ok([
+            'meeting_id' => $meetingId,
+            'motion_id' => $motionId,
+            'generated' => $txResult['inserted'],
+            'tokens' => $listTokens ? $txResult['tokensOut'] : null,
+        ]);
     }
 
     public function anomalies(): void
     {
         api_request('GET');
 
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 422);
         }
 
-        $motionId = trim((string)($_GET['motion_id'] ?? ''));
+        $motionId = api_query('motion_id');
         if ($motionId !== '' && !api_is_uuid($motionId)) {
             api_fail('invalid_motion_id', 422);
         }
@@ -406,7 +392,7 @@ final class OperatorController extends AbstractController
 
         $eligibleCount = count($eligibleIds);
 
-        $proxyMax = (int)($_ENV['PROXY_MAX_PER_RECEIVER'] ?? getenv('PROXY_MAX_PER_RECEIVER') ?? 99);
+        $proxyMax = (int)config('proxy_max_per_receiver', 99);
         $proxyCeilings = [];
         try {
             $rows = $meetingRepo->listProxyCeilingViolations(api_current_tenant_id(), $meetingId, $proxyMax);

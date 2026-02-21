@@ -135,15 +135,12 @@ final class BallotsService
         $meetingRepo = new \AgVote\Repository\MeetingRepository();
 
         // Wrap ballot insert + audit log in a transaction for atomicity
-        $pdo = \db();
-        $pdo->beginTransaction();
-        try {
+        api_transaction(function () use ($meetingRepo, $meetingId, $tenantId, $ballotRepo, $motionId, $memberId, $value, $weight, $isProxyVote, $proxyVoterId, $context, $data) {
             // Lock the meeting row to prevent TOCTOU race: meeting could
             // transition from 'live' to 'closed' between the initial check
             // and the ballot INSERT.
             $lockedMeeting = $meetingRepo->lockForUpdate($meetingId, $tenantId);
             if (!$lockedMeeting || $lockedMeeting['status'] !== 'live') {
-                $pdo->rollBack();
                 throw new RuntimeException('Séance non disponible pour le vote');
             }
 
@@ -171,12 +168,7 @@ final class BallotsService
                 }
                 audit_log('ballot_cast', 'motion', $motionId, $auditData);
             }
-
-            $pdo->commit();
-        } catch (Throwable $e) {
-            $pdo->rollBack();
-            throw $e;
-        }
+        });
 
         // Broadcast WebSocket event with updated tally (outside transaction)
         try {

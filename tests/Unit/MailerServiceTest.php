@@ -8,9 +8,9 @@ use PHPUnit\Framework\TestCase;
 require_once __DIR__ . '/../../app/Services/MailerService.php';
 
 /**
- * Unit tests for MailerService.
+ * Unit tests for MailerService (symfony/mailer backend).
  *
- * Tests the configuration, header sanitization, and message building
+ * Tests configuration checks, input validation, and helper methods
  * without requiring a real SMTP server.
  */
 class MailerServiceTest extends TestCase
@@ -71,103 +71,65 @@ class MailerServiceTest extends TestCase
 
     public function testSanitizeHeaderRemovesNewlines(): void
     {
-        // Use reflection to test private method
-        $mailer = new MailerService([]);
-        $ref = new \ReflectionMethod($mailer, 'sanitizeHeader');
+        $ref = new \ReflectionMethod(MailerService::class, 'sanitizeHeader');
         $ref->setAccessible(true);
 
-        $this->assertSame('Hello World', $ref->invoke($mailer, "Hello\r\nWorld"));
-        $this->assertSame('Hello World', $ref->invoke($mailer, "Hello\rWorld"));
-        $this->assertSame('Hello World', $ref->invoke($mailer, "Hello\nWorld"));
-        $this->assertSame('Clean text', $ref->invoke($mailer, '  Clean text  '));
+        $this->assertSame('Hello  World', $ref->invoke(null, "Hello\r\nWorld"));
+        $this->assertSame('Hello World', $ref->invoke(null, "Hello\rWorld"));
+        $this->assertSame('Hello World', $ref->invoke(null, "Hello\nWorld"));
+        $this->assertSame('Clean text', $ref->invoke(null, '  Clean text  '));
     }
 
     public function testSanitizeEmailRejectsInvalid(): void
     {
-        $mailer = new MailerService([]);
-        $ref = new \ReflectionMethod($mailer, 'sanitizeEmail');
+        $ref = new \ReflectionMethod(MailerService::class, 'sanitizeEmail');
         $ref->setAccessible(true);
 
-        $this->assertSame('', $ref->invoke($mailer, ''));
-        $this->assertSame('', $ref->invoke($mailer, 'not-an-email'));
-        $this->assertSame('', $ref->invoke($mailer, '@no-local'));
-        $this->assertSame('user@example.com', $ref->invoke($mailer, ' user@example.com '));
-    }
-
-    public function testBuildMessageContainsRequiredHeaders(): void
-    {
-        $mailer = new MailerService([]);
-        $ref = new \ReflectionMethod($mailer, 'buildMessage');
-        $ref->setAccessible(true);
-
-        $msg = $ref->invoke(
-            $mailer,
-            'Test Sender',
-            'sender@example.com',
-            'recipient@example.com',
-            'Test Subject',
-            '<p>Hello</p>',
-            null
-        );
-
-        // Check required SMTP headers
-        $this->assertStringContainsString('From:', $msg);
-        $this->assertStringContainsString('To:', $msg);
-        $this->assertStringContainsString('Subject:', $msg);
-        $this->assertStringContainsString('Date:', $msg);
-        $this->assertStringContainsString('Message-ID:', $msg);
-        $this->assertStringContainsString('MIME-Version: 1.0', $msg);
-        $this->assertStringContainsString('multipart/alternative', $msg);
-        $this->assertStringContainsString('text/plain', $msg);
-        $this->assertStringContainsString('text/html', $msg);
-    }
-
-    public function testBuildMessageContainsHtmlAndTextParts(): void
-    {
-        $mailer = new MailerService([]);
-        $ref = new \ReflectionMethod($mailer, 'buildMessage');
-        $ref->setAccessible(true);
-
-        $msg = $ref->invoke(
-            $mailer,
-            'Sender',
-            'sender@example.com',
-            'to@example.com',
-            'Subject',
-            '<p>Hello <b>world</b></p>',
-            'Hello world'
-        );
-
-        // Both parts present
-        $this->assertStringContainsString('Hello world', $msg);
-        $this->assertStringContainsString('Hello <b>world</b>', $msg);
+        $this->assertSame('', $ref->invoke(null, ''));
+        $this->assertSame('', $ref->invoke(null, 'not-an-email'));
+        $this->assertSame('', $ref->invoke(null, '@no-local'));
+        $this->assertSame('user@example.com', $ref->invoke(null, ' user@example.com '));
     }
 
     public function testEncodeHeaderHandlesUnicode(): void
     {
-        $mailer = new MailerService([]);
-        $ref = new \ReflectionMethod($mailer, 'encodeHeader');
+        $ref = new \ReflectionMethod(MailerService::class, 'encodeHeader');
         $ref->setAccessible(true);
 
         // ASCII stays unchanged
-        $this->assertSame('Hello World', $ref->invoke($mailer, 'Hello World'));
+        $this->assertSame('Hello World', $ref->invoke(null, 'Hello World'));
 
         // Unicode gets RFC2047 encoded
-        $encoded = $ref->invoke($mailer, 'Séance AG');
+        $encoded = $ref->invoke(null, 'Séance AG');
         $this->assertStringStartsWith('=?UTF-8?B?', $encoded);
         $this->assertStringEndsWith('?=', $encoded);
     }
 
     public function testHtmlToTextStripsTagsPreservesNewlines(): void
     {
-        $mailer = new MailerService([]);
-        $ref = new \ReflectionMethod($mailer, 'htmlToText');
+        $ref = new \ReflectionMethod(MailerService::class, 'htmlToText');
         $ref->setAccessible(true);
 
-        $result = $ref->invoke($mailer, '<p>Hello</p><br>World<br/>End');
+        $result = $ref->invoke(null, '<p>Hello</p><br>World<br/>End');
         $this->assertStringContainsString('Hello', $result);
         $this->assertStringContainsString('World', $result);
         $this->assertStringNotContainsString('<p>', $result);
         $this->assertStringNotContainsString('<br', $result);
+    }
+
+    public function testSendFailsGracefullyOnConnectionError(): void
+    {
+        $mailer = new MailerService([
+            'smtp' => [
+                'host' => '127.0.0.1',
+                'port' => 19999, // non-existent port
+                'tls' => 'none',
+                'from_email' => 'test@example.com',
+            ],
+        ]);
+
+        $result = $mailer->send('user@example.com', 'Test', '<p>Hello</p>');
+        $this->assertFalse($result['ok']);
+        $this->assertNotNull($result['error']);
     }
 }
