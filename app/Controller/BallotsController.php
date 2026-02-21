@@ -79,24 +79,20 @@ final class BallotsController extends AbstractController
         $motionRepo = new MotionRepository();
         $ballotRepo = new BallotRepository();
 
-        db()->beginTransaction();
-        try {
+        $result = api_transaction(function () use ($motionRepo, $ballotRepo, $motionId, $memberId, $tenantId, $reason) {
             $motion = $motionRepo->findByIdForTenantForUpdate($motionId, $tenantId);
             if (!$motion) {
-                db()->rollBack();
                 api_fail('motion_not_found', 404);
             }
 
             $meetingId = $motion['meeting_id'];
             if ((new MeetingRepository())->isValidated($meetingId, $tenantId)) {
-                db()->rollBack();
                 api_fail('meeting_validated', 409, [
                     'detail' => 'Séance validée : modification interdite (séance figée).',
                 ]);
             }
 
             if (!empty($motion['closed_at'])) {
-                db()->rollBack();
                 api_fail('motion_closed', 409, [
                     'detail' => 'Impossible d\'annuler un vote sur une résolution déjà clôturée.',
                 ]);
@@ -104,7 +100,6 @@ final class BallotsController extends AbstractController
 
             $ballot = $ballotRepo->findByMotionAndMember($motionId, $memberId);
             if (!$ballot) {
-                db()->rollBack();
                 api_fail('ballot_not_found', 404, [
                     'detail' => 'Aucun bulletin trouvé pour ce membre sur cette résolution.',
                 ]);
@@ -112,45 +107,44 @@ final class BallotsController extends AbstractController
 
             $source = $ballot['source'] ?? 'tablet';
             if ($source !== 'manual') {
-                db()->rollBack();
                 api_fail('not_manual_vote', 422, [
                     'detail' => 'Seuls les votes manuels (source=manual) peuvent être annulés par l\'opérateur.',
                 ]);
             }
 
             $ballotRepo->deleteByMotionAndMember($motionId, $memberId, $tenantId);
-            db()->commit();
 
-            audit_log('ballot_cancelled', 'ballot', $motionId, [
-                'member_id' => $memberId,
-                'value' => $ballot['value'] ?? null,
-                'weight' => $ballot['weight'] ?? null,
-                'reason' => $reason,
-                'motion_title' => $motion['title'] ?? '',
-            ], $motion['meeting_id']);
+            return [
+                'motion' => $motion,
+                'ballot' => $ballot,
+            ];
+        });
 
-            try {
-                EventBroadcaster::motionUpdated($motion['meeting_id'], $motionId, [
-                    'ballot_cancelled' => true,
-                    'member_id' => $memberId,
-                ]);
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
-                // Don't fail if broadcast fails
-            }
+        $motion = $result['motion'];
+        $ballot = $result['ballot'];
 
-            api_ok([
-                'cancelled' => true,
-                'motion_id' => $motionId,
+        audit_log('ballot_cancelled', 'ballot', $motionId, [
+            'member_id' => $memberId,
+            'value' => $ballot['value'] ?? null,
+            'weight' => $ballot['weight'] ?? null,
+            'reason' => $reason,
+            'motion_title' => $motion['title'] ?? '',
+        ], $motion['meeting_id']);
+
+        try {
+            EventBroadcaster::motionUpdated($motion['meeting_id'], $motionId, [
+                'ballot_cancelled' => true,
                 'member_id' => $memberId,
             ]);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
-            if (db()->inTransaction()) {
-                db()->rollBack();
-            }
-            api_fail('cancel_failed', 500, ['detail' => 'Échec de l\'annulation du vote.']);
+            // Don't fail if broadcast fails
         }
+
+        api_ok([
+            'cancelled' => true,
+            'motion_id' => $motionId,
+            'member_id' => $memberId,
+        ]);
     }
 
     public function result(): void
@@ -222,43 +216,42 @@ final class BallotsController extends AbstractController
 
         $weight = (string)($member['voting_power'] ?? '1.0');
 
-        db()->beginTransaction();
         try {
-            $ballotId = $ballotRepo->insertManual($tenantId, $meetingId, $motionId, $memberId, $value, $weight);
+            $ballotId = api_transaction(function () use ($ballotRepo, $manualRepo, $tenantId, $meetingId, $motionId, $memberId, $value, $weight, $justif) {
+                $ballotId = $ballotRepo->insertManual($tenantId, $meetingId, $motionId, $memberId, $value, $weight);
 
-            $val = [
-                'ballot_id' => $ballotId,
-                'motion_id' => $motionId,
-                'member_id' => $memberId,
-                'value' => $value,
-                'weight' => $weight,
-            ];
+                $val = [
+                    'ballot_id' => $ballotId,
+                    'motion_id' => $motionId,
+                    'member_id' => $memberId,
+                    'value' => $value,
+                    'weight' => $weight,
+                ];
 
-            $manualRepo->create(
-                $tenantId, $meetingId, $motionId, $memberId,
-                'manual_vote',
-                json_encode($val, JSON_UNESCAPED_UNICODE),
-                $justif
-            );
+                $manualRepo->create(
+                    $tenantId, $meetingId, $motionId, $memberId,
+                    'manual_vote',
+                    json_encode($val, JSON_UNESCAPED_UNICODE),
+                    $justif
+                );
 
-            db()->commit();
-
-            audit_log('ballot.manual_vote', 'ballot', $ballotId, [
-                'motion_id' => $motionId,
-                'member_id' => $memberId,
-                'value' => $value,
-            ], $meetingId);
-
-            api_ok(['ballot_id' => $ballotId, 'value' => $value, 'source' => 'manual']);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+                return $ballotId;
+            });
         } catch (\Throwable $e) {
-            db()->rollBack();
             $msg = $e->getMessage();
             if (stripos($msg, 'unique') !== false || stripos($msg, 'ballots_motion_id_member_id') !== false) {
                 api_fail('already_voted', 409);
             }
             api_fail('server_error', 500, ['detail' => 'manual_vote_failed']);
         }
+
+        audit_log('ballot.manual_vote', 'ballot', $ballotId, [
+            'motion_id' => $motionId,
+            'member_id' => $memberId,
+            'value' => $value,
+        ], $meetingId);
+
+        api_ok(['ballot_id' => $ballotId, 'value' => $value, 'source' => 'manual']);
     }
 
     public function redeemPaperBallot(): void
@@ -290,16 +283,10 @@ final class BallotsController extends AbstractController
             api_fail('paper_ballot_not_found_or_used', 404);
         }
 
-        db()->beginTransaction();
-        try {
+        api_transaction(function () use ($ballotRepo, $manualRepo, $pb, $vote, $just) {
             $ballotRepo->markPaperBallotUsed($pb['id'], (string)$pb['tenant_id']);
             $manualRepo->createPaperBallotAction($pb['tenant_id'], $pb['meeting_id'], $pb['motion_id'], $vote, $just);
-            db()->commit();
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
-            db()->rollBack();
-            api_fail('paper_ballot_redeem_failed', 500, ['detail' => 'Erreur lors de l\'enregistrement du vote papier.']);
-        }
+        });
 
         audit_log('paper_ballot_redeemed', 'motion', $pb['motion_id'], [
             'meeting_id' => $pb['meeting_id'],

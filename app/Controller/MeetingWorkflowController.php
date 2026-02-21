@@ -176,14 +176,10 @@ final class MeetingWorkflowController extends AbstractController
         $tenant = api_current_tenant_id();
         $userId = api_current_user_id();
 
-        $pdo = db();
-        $pdo->beginTransaction();
-
-        try {
+        $txResult = api_transaction(function () use ($repo, $meetingId, $tenant, $userId) {
             $meeting = $repo->lockForUpdate($meetingId, $tenant);
 
             if (!$meeting) {
-                $pdo->rollBack();
                 api_fail('meeting_not_found', 404);
             }
 
@@ -201,11 +197,9 @@ final class MeetingWorkflowController extends AbstractController
                     $path = ['live'];
                     break;
                 case 'live':
-                    $pdo->rollBack();
                     api_fail('already_in_status', 422, ['detail' => 'La séance est déjà en cours.']);
                     break;
                 default:
-                    $pdo->rollBack();
                     api_fail('invalid_launch_status', 422, [
                         'detail' => "Impossible de lancer depuis le statut '$fromStatus'.",
                     ]);
@@ -213,7 +207,7 @@ final class MeetingWorkflowController extends AbstractController
 
             // Check prerequisites for EACH step in the launch path, not just the final target.
             // Without this, launching from 'draft' would skip motions/attendance checks
-            // that are specific to intermediate transitions (draft→scheduled, scheduled→frozen).
+            // that are specific to intermediate transitions (draft->scheduled, scheduled->frozen).
             $allIssues = [];
             $allWarnings = [];
             $simulatedFrom = $fromStatus;
@@ -225,15 +219,12 @@ final class MeetingWorkflowController extends AbstractController
             }
 
             if (count($allIssues) > 0) {
-                $pdo->rollBack();
                 api_fail('workflow_issues', 422, [
                     'detail' => 'Lancement bloqué par des pré-requis',
                     'issues' => $allIssues,
                     'warnings' => $allWarnings,
                 ]);
             }
-
-            $workflowCheck = ['warnings' => $allWarnings];
 
             $now = date('Y-m-d H:i:s');
             $currentStatus = $fromStatus;
@@ -270,29 +261,23 @@ final class MeetingWorkflowController extends AbstractController
                 'title' => $meeting['title'],
             ], $meetingId);
 
-            $pdo->commit();
+            return ['fromStatus' => $fromStatus, 'path' => $path, 'warnings' => $allWarnings];
+        });
 
-            try {
-                EventBroadcaster::meetingStatusChanged($meetingId, $tenant, 'live', $fromStatus);
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
-            }
-
-            api_ok([
-                'meeting_id' => $meetingId,
-                'from_status' => $fromStatus,
-                'to_status' => 'live',
-                'path' => $path,
-                'transitioned_at' => date('c'),
-                'warnings' => $workflowCheck['warnings'] ?? [],
-            ]);
+        try {
+            EventBroadcaster::meetingStatusChanged($meetingId, $tenant, 'live', $txResult['fromStatus']);
         } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
         } catch (\Throwable $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            throw $e;
         }
+
+        api_ok([
+            'meeting_id' => $meetingId,
+            'from_status' => $txResult['fromStatus'],
+            'to_status' => 'live',
+            'path' => $txResult['path'],
+            'transitioned_at' => date('c'),
+            'warnings' => $txResult['warnings'],
+        ]);
     }
 
     public function workflowCheck(): void
@@ -507,8 +492,7 @@ final class MeetingWorkflowController extends AbstractController
 
         $tenantId = api_current_tenant_id();
 
-        db()->beginTransaction();
-        try {
+        api_transaction(function () use ($meetingId, $tenantId, $mt) {
             (new BallotRepository())->deleteByMeeting($meetingId, $tenantId);
             (new VoteTokenRepository())->deleteByMeetingMotions($meetingId, $tenantId);
             (new ManualActionRepository())->deleteByMeeting($meetingId, $tenantId);
@@ -521,14 +505,8 @@ final class MeetingWorkflowController extends AbstractController
                 'title' => $mt['title'] ?? '',
                 'reset_by' => api_current_user_id(),
             ], $meetingId);
+        });
 
-            db()->commit();
-
-            api_ok(['ok' => true, 'meeting_id' => $meetingId]);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
-            db()->rollBack();
-            api_fail('reset_failed', 500, ['detail' => 'Reset demo échoué']);
-        }
+        api_ok(['ok' => true, 'meeting_id' => $meetingId]);
     }
 }

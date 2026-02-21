@@ -65,7 +65,7 @@ final class ProxiesService
      */
     public static function upsert(string $meetingId, string $giverMemberId, string $receiverMemberId, string $tenantId): void
     {
-        $maxPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 99);
+        $maxPerReceiver = (int)config('proxy_max_per_receiver', 99);
         $repo = new ProxyRepository();
 
         if ($giverMemberId === '') {
@@ -93,30 +93,19 @@ final class ProxiesService
 
         // Wrap chain check + cap check + upsert in a transaction with row-level
         // locking to prevent TOCTOU race conditions on concurrent proxy creation.
-        $pdo = \db();
-        $pdo->beginTransaction();
-        try {
+        api_transaction(function () use ($repo, $meetingId, $receiverMemberId, $maxPerReceiver, $tenantId, $giverMemberId) {
             // Anti-proxy-chain: lock and check if receiver already delegates
             if ($repo->countActiveAsGiverForUpdate($meetingId, $receiverMemberId) > 0) {
-                $pdo->rollBack();
                 throw new InvalidArgumentException('Chaîne de procuration interdite (le mandataire délègue déjà).');
             }
 
             // Cap: lock and check max active proxies per receiver
             if ($repo->countActiveAsReceiverForUpdate($meetingId, $receiverMemberId) >= $maxPerReceiver) {
-                $pdo->rollBack();
                 throw new InvalidArgumentException("Plafond procurations atteint (max {$maxPerReceiver}).");
             }
 
             $repo->upsertProxy($tenantId, $meetingId, $giverMemberId, $receiverMemberId);
-            $pdo->commit();
-        } catch (InvalidArgumentException $e) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
-            throw $e;
-        } catch (\Throwable $e) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
-            throw $e;
-        }
+        });
     }
 
     /**

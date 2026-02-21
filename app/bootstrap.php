@@ -59,6 +59,10 @@ function db(): PDO {
     return \AgVote\Core\Providers\DatabaseProvider::pdo();
 }
 
+function config(string $key, mixed $default = null): mixed {
+    return \AgVote\Core\Application::config($key) ?? $default;
+}
+
 // =============================================================================
 // AUDIT LOGGING
 // =============================================================================

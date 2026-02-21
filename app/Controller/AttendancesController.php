@@ -105,12 +105,11 @@ final class AttendancesController extends AbstractController
             api_fail('no_members', 400, ['detail' => 'Aucun membre à traiter']);
         }
 
-        db()->beginTransaction();
-        try {
-            $updated = 0;
-            $created = 0;
-            $attendanceRepo = new AttendanceRepository();
+        $updated = 0;
+        $created = 0;
+        $attendanceRepo = new AttendanceRepository();
 
+        api_transaction(function () use ($memberIds, $memberRepo, $attendanceRepo, $meetingId, $mode, $tenantId, &$created, &$updated) {
             foreach ($memberIds as $memberId) {
                 if (!api_is_uuid($memberId)) {
                     continue;
@@ -125,35 +124,28 @@ final class AttendancesController extends AbstractController
                     $updated++;
                 }
             }
+        });
 
-            db()->commit();
+        audit_log('attendances_bulk_update', 'attendance', $meetingId, [
+            'mode' => $mode,
+            'created' => $created,
+            'updated' => $updated,
+            'total' => $created + $updated,
+        ], $meetingId);
 
-            audit_log('attendances_bulk_update', 'attendance', $meetingId, [
-                'mode' => $mode,
-                'created' => $created,
-                'updated' => $updated,
-                'total' => $created + $updated,
-            ], $meetingId);
-
-            try {
-                $stats = $attendanceRepo->getStatsByMode($meetingId, $tenantId);
-                EventBroadcaster::attendanceUpdated($meetingId, $stats);
-            } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
+        try {
+            $stats = $attendanceRepo->getStatsByMode($meetingId, $tenantId);
+            EventBroadcaster::attendanceUpdated($meetingId, $stats);
         } catch (\Throwable $e) {
-                // Don't fail if broadcast fails
-            }
-
-            api_ok([
-                'created' => $created,
-                'updated' => $updated,
-                'total' => $created + $updated,
-                'mode' => $mode,
-            ]);
-        } catch (\AgVote\Core\Http\ApiResponseException $__apiResp) { throw $__apiResp;
-        } catch (\Throwable $e) {
-            db()->rollBack();
-            api_fail('database_error', 500, ['detail' => $e->getMessage()]);
+            // Don't fail if broadcast fails
         }
+
+        api_ok([
+            'created' => $created,
+            'updated' => $updated,
+            'total' => $created + $updated,
+            'mode' => $mode,
+        ]);
     }
 
     public function setPresentFrom(): void

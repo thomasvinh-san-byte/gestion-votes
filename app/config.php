@@ -50,6 +50,16 @@ return [
     'prefix'   => getenv('REDIS_PREFIX') ?: 'agvote:',
   ],
 
+  // Application
+  'app_url' => getenv('APP_URL') ?: 'http://localhost:8080',
+  'app_secret' => getenv('APP_SECRET') ?: 'change-me-in-prod',
+
+  // Email tracking
+  'email_tracking_enabled' => getenv('EMAIL_TRACKING_ENABLED') !== '0',
+
+  // Proxies
+  'proxy_max_per_receiver' => (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 3),
+
   // Tenant (mono-tenant MVP). Override via TENANT_ID if needed.
   'default_tenant_id' => getenv('TENANT_ID') ?: 'aaaaaaaa-1111-2222-3333-444444444444',
 ];

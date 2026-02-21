@@ -73,9 +73,15 @@ class ApiHelpersTest extends TestCase
         $files = glob($controllerDir . '*.php');
         $this->assertNotEmpty($files);
 
+        // Non-API controllers use bootstrap.php (not api.php) and don't have api_query()
+        $nonApiControllers = ['EmailTrackingController.php', 'DocContentController.php'];
+
         $violations = [];
         foreach ($files as $file) {
             $basename = basename($file);
+            if (in_array($basename, $nonApiControllers, true)) {
+                continue;
+            }
             $content = file_get_contents($file);
 
             // Count $_GET occurrences (excluding comments)
