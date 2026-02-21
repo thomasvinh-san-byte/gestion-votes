@@ -1462,14 +1462,17 @@ window.OpS = { fn: {} };
   // =========================================================================
 
   async function saveGeneralSettings() {
-    const title = document.getElementById('settingTitle').value.trim();
-    const scheduledAt = document.getElementById('settingDate').value;
-    const meetingType = document.querySelector('input[name="meetingType"]:checked')?.value || 'ag_ordinaire';
+    var titleInput = document.getElementById('settingTitle');
+    var dateInput = document.getElementById('settingDate');
 
-    if (!title) {
-      setNotif('error', 'Le titre est obligatoire');
-      return;
-    }
+    // Inline validation
+    if (!Shared.validateField(titleInput, [
+      { test: function (v) { return v.length > 0; }, msg: 'Le titre de la séance est obligatoire' }
+    ])) return;
+
+    const title = titleInput.value.trim();
+    const scheduledAt = dateInput.value;
+    const meetingType = document.querySelector('input[name="meetingType"]:checked')?.value || 'ag_ordinaire';
 
     const btn = document.getElementById('btnSaveSettings');
     Shared.btnLoading(btn, true);
@@ -1510,6 +1513,19 @@ window.OpS = { fn: {} };
       loadStatusChecklist();
 
       setNotif('success', 'Paramètres enregistrés');
+
+      // Brief visual confirmation on button
+      Shared.btnLoading(btn, false);
+      btn.classList.add('btn-success');
+      btn.classList.remove('btn-primary');
+      var origHTML = btn.innerHTML;
+      btn.innerHTML = '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Enregistré';
+      setTimeout(function () {
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-primary');
+        btn.innerHTML = origHTML;
+      }, 2000);
+      return; // skip the finally block's btnLoading
     } catch (err) {
       setNotif('error', err.message);
     } finally {
@@ -2416,16 +2432,19 @@ window.OpS = { fn: {} };
       voters = voters.filter(v => (v.full_name || '').toLowerCase().includes(searchTerm));
     }
 
-    list.innerHTML = voters.slice(0, 20).map(function(v) {
-      const vote = ballotsCache[v.member_id];
+    var shown = voters.slice(0, 20);
+    var remaining = voters.length - shown.length;
+    list.innerHTML = shown.map(function(v) {
+      var vote = ballotsCache[v.member_id];
       return '<div class="exec-manual-vote-row" data-member-id="' + v.member_id + '">'
-        + '<span class="text-sm">' + escapeHtml(v.full_name || '—') + '</span>'
+        + '<span class="text-sm">' + escapeHtml(v.full_name || '\u2014') + '</span>'
         + '<div class="flex gap-1">'
-        + '<button class="btn btn-xs ' + (vote === 'for' ? 'btn-success' : 'btn-ghost') + '" data-vote="for" title="Pour">P</button>'
-        + '<button class="btn btn-xs ' + (vote === 'against' ? 'btn-danger' : 'btn-ghost') + '" data-vote="against" title="Contre">C</button>'
-        + '<button class="btn btn-xs ' + (vote === 'abstain' ? 'btn-warning' : 'btn-ghost') + '" data-vote="abstain" title="Abstention">A</button>'
+        + '<button class="btn btn-xs ' + (vote === 'for' ? 'btn-success' : 'btn-ghost') + '" data-vote="for" aria-label="Pour \u2014 ' + escapeHtml(v.full_name || '') + '">Pour</button>'
+        + '<button class="btn btn-xs ' + (vote === 'against' ? 'btn-danger' : 'btn-ghost') + '" data-vote="against" aria-label="Contre \u2014 ' + escapeHtml(v.full_name || '') + '">Contre</button>'
+        + '<button class="btn btn-xs ' + (vote === 'abstain' ? 'btn-warning' : 'btn-ghost') + '" data-vote="abstain" aria-label="Abstention \u2014 ' + escapeHtml(v.full_name || '') + '">Abst.</button>'
         + '</div></div>';
-    }).join('') || '<span class="text-muted text-sm">Aucun votant</span>';
+    }).join('') + (remaining > 0 ? '<div class="text-xs text-muted text-center mt-2">+ ' + remaining + ' votants non affichés</div>' : '')
+    || '<span class="text-muted text-sm">Aucun votant</span>';
 
     // Bind vote buttons
     list.querySelectorAll('[data-vote]').forEach(function(btn) {
@@ -2622,6 +2641,14 @@ window.OpS = { fn: {} };
       }
     });
   });
+
+  // Settings: live validation on title
+  var _settingTitle = document.getElementById('settingTitle');
+  if (_settingTitle) {
+    Shared.liveValidate(_settingTitle, [
+      { test: function (v) { return v.length > 0; }, msg: 'Le titre est obligatoire' }
+    ]);
+  }
 
   // Settings save
   document.getElementById('btnSaveSettings')?.addEventListener('click', saveGeneralSettings);
@@ -2864,16 +2891,25 @@ window.OpS = { fn: {} };
   });
 
   // Exec view: close vote button
-  document.getElementById('execBtnCloseVote')?.addEventListener('click', () => {
-    if (currentOpenMotion) closeVote(currentOpenMotion.id);
+  document.getElementById('execBtnCloseVote')?.addEventListener('click', async function () {
+    var btn = this;
+    if (!currentOpenMotion) return;
+    Shared.btnLoading(btn, true);
+    try {
+      await closeVote(currentOpenMotion.id);
+    } finally {
+      Shared.btnLoading(btn, false);
+    }
   });
 
   // Exec view: speech action buttons
-  document.getElementById('execBtnEndSpeech')?.addEventListener('click', () => {
-    endCurrentSpeech();
+  document.getElementById('execBtnEndSpeech')?.addEventListener('click', async function () {
+    Shared.btnLoading(this, true);
+    try { await endCurrentSpeech(); } finally { Shared.btnLoading(this, false); }
   });
-  document.getElementById('execBtnNextSpeaker')?.addEventListener('click', () => {
-    nextSpeaker();
+  document.getElementById('execBtnNextSpeaker')?.addEventListener('click', async function () {
+    Shared.btnLoading(this, true);
+    try { await nextSpeaker(); } finally { Shared.btnLoading(this, false); }
   });
 
   // Setup view: manual vote search (P3-5)

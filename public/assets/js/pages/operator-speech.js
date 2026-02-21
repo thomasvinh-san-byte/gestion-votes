@@ -25,7 +25,7 @@
       for (const req of newQueue) {
         if (!O.previousQueueIds.has(req.id)) {
           const name = req.member_name || req.full_name || 'Un membre';
-          setNotif('info', `🖐️ ${name} demande la parole`);
+          setNotif('info', name + ' demande la parole');
           break;
         }
       }

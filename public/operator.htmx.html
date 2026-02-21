@@ -857,7 +857,7 @@
           <div class="exec-card" id="execVoteCard">
             <div class="exec-card-header">
               <h2>Vote en cours</h2>
-              <span class="live-badge" id="execLiveBadge" hidden><span class="pulse"></span> LIVE</span>
+              <span class="live-badge" id="execLiveBadge" hidden aria-label="Vote en direct"><span class="pulse"></span> LIVE</span>
             </div>
             <div class="exec-card-body">
               <div id="execNoVote" class="text-center p-4 text-muted">
@@ -868,7 +868,7 @@
               </div>
               <div id="execActiveVote" hidden>
                 <div class="exec-vote-title" id="execVoteTitle">—</div>
-                <div class="exec-vote-kpis">
+                <div class="exec-vote-kpis" aria-live="polite" aria-atomic="true">
                   <div class="exec-kpi for">
                     <span class="exec-kpi-value" id="execVoteFor">0</span>
                     <span class="exec-kpi-label">Pour</span>
@@ -963,7 +963,7 @@
               <span class="meeting-bar-chip"><strong id="execAlertCount">0</strong> actives</span>
             </div>
             <div class="exec-card-body">
-              <div id="execAlertsList" class="alerts-list">
+              <div id="execAlertsList" class="alerts-list" aria-live="polite">
                 <div class="alert-empty">Aucune alerte.</div>
               </div>
             </div>
