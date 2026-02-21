@@ -147,7 +147,7 @@ final class AuthMiddleware
         'paused'    => ['live' => 'operator', 'closed' => 'president'],
         'closed'    => ['validated' => 'president'],
         'validated' => ['archived' => 'admin'],
-        'archived'  => ['validated' => 'admin'],
+        // 'archived' is terminal — no transitions allowed
     ];
 
     // =========================================================================

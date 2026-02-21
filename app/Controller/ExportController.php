@@ -23,7 +23,7 @@ final class ExportController extends AbstractController
 {
     private function requireMeetingId(): string
     {
-        $id = trim((string)($_GET['meeting_id'] ?? ''));
+        $id = api_query('meeting_id');
         if ($id === '' || !api_is_uuid($id)) {
             api_fail('missing_meeting_id', 400);
         }
@@ -200,7 +200,7 @@ final class ExportController extends AbstractController
         $meetingId = $this->requireMeetingId();
         $mt = $this->requireValidatedMeeting($meetingId);
         $this->auditExport('full', $meetingId, 'xlsx');
-        $includeVotes = (bool)($_GET['include_votes'] ?? true);
+        $includeVotes = filter_var(api_query('include_votes', '1'), FILTER_VALIDATE_BOOLEAN);
 
         $attendanceRows = (new AttendanceRepository())->listExportForMeeting($meetingId);
         $motionRows = (new MotionRepository())->listResultsExportForMeeting($meetingId);

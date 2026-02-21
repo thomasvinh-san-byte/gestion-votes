@@ -21,7 +21,7 @@ final class AuthController extends AbstractController
         $rawBody = \AgVote\Core\Http\Request::getRawBody();
         $input = json_decode($rawBody, true);
         if (!is_array($input)) {
-            $input = $_POST;
+            $input = api_request('POST');
         }
 
         $userRepo = new UserRepository();

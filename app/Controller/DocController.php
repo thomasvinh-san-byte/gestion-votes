@@ -69,7 +69,7 @@ final class DocController extends AbstractController
     {
         $docsRoot = dirname(__DIR__, 2) . '/docs';
 
-        $page = $_GET['page'] ?? '';
+        $page = api_query('page');
         if ($page === '') {
             header('Location: /help.htmx.html');
             exit;

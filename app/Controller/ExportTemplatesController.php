@@ -15,11 +15,11 @@ final class ExportTemplatesController extends AbstractController
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
 
-        $id = trim((string)($_GET['id'] ?? ''));
-        $type = trim((string)($_GET['type'] ?? ''));
-        $includeColumns = isset($_GET['include_columns']) || isset($_GET['available_columns']);
+        $id = api_query('id');
+        $type = api_query('type');
+        $includeColumns = api_query('include_columns') !== '' || api_query('available_columns') !== '';
 
-        if (isset($_GET['available_columns'])) {
+        if (api_query('available_columns') !== '') {
             $result = [
                 'types' => ExportTemplateRepository::TYPES,
                 'columns_by_type' => [],
@@ -117,7 +117,7 @@ final class ExportTemplatesController extends AbstractController
     {
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
-        $id = trim((string)($_GET['id'] ?? ''));
+        $id = api_query('id');
         if (!api_is_uuid($id)) {
             api_fail('invalid_template_id', 400);
         }
@@ -153,7 +153,7 @@ final class ExportTemplatesController extends AbstractController
     {
         $repo = new ExportTemplateRepository();
         $tenantId = api_current_tenant_id();
-        $id = trim((string)($_GET['id'] ?? ''));
+        $id = api_query('id');
         if (!api_is_uuid($id)) {
             api_fail('invalid_template_id', 400);
         }

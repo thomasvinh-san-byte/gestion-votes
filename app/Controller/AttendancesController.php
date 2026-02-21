@@ -20,7 +20,7 @@ final class AttendancesController extends AbstractController
     {
         api_request('GET');
 
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_request', 422, ['detail' => 'meeting_id est obligatoire']);
         }

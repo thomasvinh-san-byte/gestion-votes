@@ -2,7 +2,7 @@
     "require": {
         "dompdf/dompdf": "^3.1",
         "phpoffice/phpspreadsheet": "^1.29",
-        "erusev/parsedown": "^1.7",
+        "erusev/parsedown": "^1.8",
         "symfony/mailer": "^8.0",
         "symfony/console": "^8.0"
     },

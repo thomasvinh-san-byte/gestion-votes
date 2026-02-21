@@ -13,7 +13,7 @@ final class MeetingAttachmentController extends AbstractController
 {
     public function listForMeeting(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
@@ -26,7 +26,8 @@ final class MeetingAttachmentController extends AbstractController
 
     public function upload(): void
     {
-        $meetingId = trim((string)($_POST['meeting_id'] ?? ''));
+        $in = api_request('POST');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
@@ -38,12 +39,11 @@ final class MeetingAttachmentController extends AbstractController
             api_fail('meeting_not_found', 404);
         }
 
-        if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-            $code = $_FILES['file']['error'] ?? UPLOAD_ERR_NO_FILE;
+        $file = api_file('file');
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            $code = $file['error'] ?? UPLOAD_ERR_NO_FILE;
             api_fail('upload_error', 400, ['detail' => "Upload error code: $code"]);
         }
-
-        $file = $_FILES['file'];
         $maxSize = 10 * 1024 * 1024; // 10 MB
 
         if ($file['size'] > $maxSize) {

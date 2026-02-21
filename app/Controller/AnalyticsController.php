@@ -15,9 +15,9 @@ final class AnalyticsController extends AbstractController
         api_request('GET');
 
         $tenantId = api_current_tenant_id();
-        $type = trim($_GET['type'] ?? 'overview');
-        $period = trim($_GET['period'] ?? 'year');
-        $limit = min(100, max(1, (int)($_GET['limit'] ?? 20)));
+        $type = api_query('type', 'overview');
+        $period = api_query('period', 'year');
+        $limit = min(100, max(1, api_query_int('limit', 20)));
 
         $memberRepo = new MemberRepository();
         $analyticsRepo = new AnalyticsRepository();
@@ -52,22 +52,23 @@ final class AnalyticsController extends AbstractController
 
     public function reportsAggregate(): void
     {
+        $q = api_request('GET');
         $repo = new AggregateReportRepository();
         $tenantId = api_current_tenant_id();
 
         // Liste des séances disponibles
-        if (isset($_GET['list_meetings'])) {
-            $fromDate = isset($_GET['from_date']) ? trim($_GET['from_date']) : null;
-            $toDate = isset($_GET['to_date']) ? trim($_GET['to_date']) : null;
-            $meetings = $repo->listAvailableMeetings($tenantId, $fromDate, $toDate);
+        if (api_query('list_meetings') !== '') {
+            $fromDateVal = api_query('from_date');
+            $toDateVal = api_query('to_date');
+            $meetings = $repo->listAvailableMeetings($tenantId, $fromDateVal !== '' ? $fromDateVal : null, $toDateVal !== '' ? $toDateVal : null);
             api_ok(['meetings' => $meetings]);
         }
 
-        $reportType = trim($_GET['report_type'] ?? 'summary');
-        $format = strtolower(trim($_GET['format'] ?? 'json'));
-        $fromDate = isset($_GET['from_date']) && $_GET['from_date'] !== '' ? trim($_GET['from_date']) : null;
-        $toDate = isset($_GET['to_date']) && $_GET['to_date'] !== '' ? trim($_GET['to_date']) : null;
-        $meetingIds = $_GET['meeting_ids'] ?? [];
+        $reportType = api_query('report_type', 'summary');
+        $format = strtolower(api_query('format', 'json'));
+        $fromDate = api_query('from_date') !== '' ? api_query('from_date') : null;
+        $toDate = api_query('to_date') !== '' ? api_query('to_date') : null;
+        $meetingIds = $q['meeting_ids'] ?? [];
 
         if (!empty($meetingIds) && is_array($meetingIds)) {
             $meetingIds = array_filter($meetingIds, fn($id) => api_is_uuid($id));

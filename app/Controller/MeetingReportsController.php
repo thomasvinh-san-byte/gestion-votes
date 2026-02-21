@@ -25,12 +25,12 @@ final class MeetingReportsController extends AbstractController
 {
     public function report(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
 
-        $showVoters = ((string)($_GET['show_voters'] ?? '') === '1');
+        $showVoters = (api_query('show_voters') === '1');
         $tenant = api_current_tenant_id();
 
         $meetingRepo = new MeetingRepository();
@@ -45,7 +45,7 @@ final class MeetingReportsController extends AbstractController
             api_fail('meeting_not_found', 404);
         }
 
-        $regen = ((string)($_GET['regen'] ?? '') === '1');
+        $regen = (api_query('regen') === '1');
 
         // Serve cached snapshot if available (audit-defensible)
         if (!$regen) {
@@ -337,12 +337,12 @@ HTML;
 
     public function generatePdf(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 400);
         }
 
-        $isPreview = !empty($_GET['preview']) || !empty($_GET['draft']);
+        $isPreview = api_query('preview') !== '' || api_query('draft') !== '';
         $tenantId = api_current_tenant_id();
 
         $meeting = (new MeetingRepository())->findWithValidator($meetingId);
@@ -521,7 +521,7 @@ HTML;
     public function generateReport(): void
     {
         $in = api_request('GET');
-        $meetingId = trim((string)($in['meeting_id'] ?? ($_GET['meeting_id'] ?? '')));
+        $meetingId = trim((string)($in['meeting_id'] ?? '')) ?: api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 400);
         }
@@ -633,7 +633,7 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
 
     public function exportPvHtml(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             http_response_code(400);
             header('Content-Type: text/plain; charset=utf-8');
@@ -641,7 +641,7 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
             exit;
         }
 
-        $showVoters = ((string)($_GET['show_voters'] ?? '') === '1');
+        $showVoters = (api_query('show_voters') === '1');
 
         $html = MeetingReportService::renderHtml($meetingId, $showVoters);
 

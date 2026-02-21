@@ -17,8 +17,8 @@ final class VoteTokenController extends AbstractController
     {
         $in = api_request('POST');
 
-        $meetingId = trim((string)($in['meeting_id'] ?? ($_GET['meeting_id'] ?? '')));
-        $motionId  = trim((string)($in['motion_id']  ?? ($_GET['motion_id']  ?? '')));
+        $meetingId = trim((string)($in['meeting_id'] ?? api_query('meeting_id')));
+        $motionId  = trim((string)($in['motion_id']  ?? api_query('motion_id')));
 
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 400);

@@ -15,11 +15,11 @@ final class ImportController extends AbstractController
 {
     public function membersCsv(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
         // Support 3 modes: file upload, csv_content as FormData, csv_content as JSON
-        $file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
-        $csvContent = $_POST['csv_content'] ?? null;
+        $file = api_file('file', 'csv_file');
+        $csvContent = $in['csv_content'] ?? null;
 
         if (!$file && !$csvContent) {
             $jsonBody = json_decode(file_get_contents('php://input'), true);
@@ -186,7 +186,7 @@ final class ImportController extends AbstractController
     {
         api_request('POST');
 
-        $file = $_FILES['file'] ?? $_FILES['xlsx_file'] ?? null;
+        $file = api_file('file', 'xlsx_file');
         if (!$file) api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
 
         $validation = ImportService::validateUploadedFile($file, 'xlsx');
@@ -302,9 +302,9 @@ final class ImportController extends AbstractController
 
     public function attendancesCsv(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
 
         $tenantId = api_current_tenant_id();
@@ -314,9 +314,9 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
+        $file = api_file('file', 'csv_file');
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) api_fail('upload_error', 400, ['detail' => 'Fichier manquant ou erreur upload.']);
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if ($ext !== 'csv') api_fail('invalid_file_type', 400, ['detail' => 'Seuls les fichiers CSV sont acceptés.']);
@@ -428,9 +428,9 @@ final class ImportController extends AbstractController
 
     public function attendancesXlsx(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
 
         $tenantId = api_current_tenant_id();
@@ -440,9 +440,9 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $file = $_FILES['file'] ?? $_FILES['xlsx_file'] ?? null;
+        $file = api_file('file', 'xlsx_file');
         if (!$file) api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
 
         $validation = ImportService::validateUploadedFile($file, 'xlsx');
@@ -533,9 +533,9 @@ final class ImportController extends AbstractController
 
     public function proxiesCsv(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
 
         $tenantId = api_current_tenant_id();
@@ -545,10 +545,10 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $maxProxiesPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 3);
 
-        $file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
+        $file = api_file('file', 'csv_file');
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) api_fail('upload_error', 400, ['detail' => 'Fichier manquant ou erreur upload.']);
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if ($ext !== 'csv') api_fail('invalid_file_type', 400, ['detail' => 'Seuls les fichiers CSV sont acceptés.']);
@@ -687,9 +687,9 @@ final class ImportController extends AbstractController
 
     public function proxiesXlsx(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
 
         $tenantId = api_current_tenant_id();
@@ -699,10 +699,10 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $maxProxiesPerReceiver = (int)(getenv('PROXY_MAX_PER_RECEIVER') ?: 3);
 
-        $file = $_FILES['file'] ?? $_FILES['xlsx_file'] ?? null;
+        $file = api_file('file', 'xlsx_file');
         if (!$file) api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
 
         $validation = ImportService::validateUploadedFile($file, 'xlsx');
@@ -820,9 +820,9 @@ final class ImportController extends AbstractController
 
     public function motionsCsv(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
         }
@@ -836,9 +836,9 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $file = $_FILES['file'] ?? $_FILES['csv_file'] ?? null;
+        $file = api_file('file', 'csv_file');
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
             api_fail('upload_error', 400, ['detail' => 'Fichier manquant ou erreur upload.']);
         }
@@ -953,9 +953,9 @@ final class ImportController extends AbstractController
 
     public function motionsXlsx(): void
     {
-        api_request('POST');
+        $in = api_request('POST');
 
-        $meetingId = trim($_POST['meeting_id'] ?? '');
+        $meetingId = trim((string)($in['meeting_id'] ?? ''));
         if (!api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id requis et valide.']);
         }
@@ -969,9 +969,9 @@ final class ImportController extends AbstractController
             api_fail('meeting_locked', 403, ['detail' => 'Séance validée ou archivée, modifications interdites.']);
         }
 
-        $dryRun = filter_var($_POST['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $file = $_FILES['file'] ?? $_FILES['xlsx_file'] ?? null;
+        $file = api_file('file', 'xlsx_file');
         if (!$file) api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
 
         $validation = ImportService::validateUploadedFile($file, 'xlsx');

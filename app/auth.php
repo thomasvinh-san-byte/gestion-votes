@@ -11,12 +11,6 @@ function get_api_key(): string {
         $k = $h['X-Api-Key'] ?? $h['X-API-KEY'] ?? '';
     }
 
-    // Fallback (MVP): support api_key in querystring for use cases like <iframe>
-    // Note: should be reserved for DEV / internal use.
-    if ($k === '' && isset($_GET['api_key'])) {
-        $k = (string)$_GET['api_key'];
-    }
-
     return trim((string)$k);
 }
 

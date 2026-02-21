@@ -13,8 +13,8 @@ final class QuorumController extends AbstractController
 {
     public function card(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        $motionId  = trim((string)($_GET['motion_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
+        $motionId  = api_query('motion_id');
 
         if ($meetingId !== '' && !api_is_uuid($meetingId)) {
             http_response_code(422);
@@ -86,8 +86,8 @@ final class QuorumController extends AbstractController
     {
         api_request('GET');
 
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
-        $motionId  = trim((string)($_GET['motion_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
+        $motionId  = api_query('motion_id');
 
         if ($meetingId !== '' && !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 422);

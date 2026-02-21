@@ -19,7 +19,7 @@ final class ProjectorController extends AbstractController
         $motionRepo  = new MotionRepository();
         $tenantId    = api_current_tenant_id();
 
-        $requestedId = trim((string)($_GET['meeting_id'] ?? ''));
+        $requestedId = api_query('meeting_id');
 
         // --- Meeting resolution ---
         if ($requestedId !== '') {

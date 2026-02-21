@@ -341,7 +341,7 @@ final class MotionsController extends AbstractController
     {
         $in = api_request('GET');
 
-        $motionId = trim((string)($in['motion_id'] ?? ($_GET['motion_id'] ?? '')));
+        $motionId = trim((string)($in['motion_id'] ?? api_query('motion_id')));
         if ($motionId === '' || !api_is_uuid($motionId)) {
             api_fail('invalid_motion_id', 400);
         }
@@ -379,7 +379,7 @@ final class MotionsController extends AbstractController
     {
         api_request('GET');
 
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_request', 422);
         }

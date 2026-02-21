@@ -36,8 +36,8 @@ final class VotePublicController
     public function vote(): void
     {
         // ── Validate token ──────────────────────────────────────────────
-        $token = $_GET['token'] ?? null;
-        if (!$token) {
+        $token = api_query('token');
+        if ($token === '') {
             HtmlView::text('Token manquant', 400);
         }
 
@@ -73,8 +73,9 @@ final class VotePublicController
         }
 
         // ── POST: process vote ──────────────────────────────────────────
-        $vote = $_POST['vote'] ?? null;
-        $confirm = ($_POST['confirm'] ?? '0') === '1';
+        $postData = api_request('POST');
+        $vote = $postData['vote'] ?? null;
+        $confirm = ($postData['confirm'] ?? '0') === '1';
 
         if (!is_string($vote) || !isset(self::VOTE_MAP[$vote])) {
             HtmlView::text('Vote invalide', 400);

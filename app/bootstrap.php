@@ -59,50 +59,6 @@ function db(): PDO {
     return \AgVote\Core\Providers\DatabaseProvider::pdo();
 }
 
-/** @deprecated Use a Repository instead. */
-function db_select_one(string $sql, array $params = []): ?array {
-    $st = db()->prepare($sql);
-    $st->execute($params);
-    $row = $st->fetch();
-    return $row === false ? null : $row;
-}
-
-/** @deprecated Alias for db_select_one(). Use a Repository. */
-function db_one(string $sql, array $params = []): ?array {
-    return db_select_one($sql, $params);
-}
-
-/** @deprecated Use a Repository instead. */
-function db_select_all(string $sql, array $params = []): array {
-    $st = db()->prepare($sql);
-    $st->execute($params);
-    return $st->fetchAll();
-}
-
-/** @deprecated Alias for db_select_all(). Use a Repository. */
-function db_all(string $sql, array $params = []): array {
-    return db_select_all($sql, $params);
-}
-
-/** @deprecated Use a Repository instead. */
-function db_execute(string $sql, array $params = []): int {
-    $st = db()->prepare($sql);
-    $st->execute($params);
-    return $st->rowCount();
-}
-
-/** @deprecated Alias for db_execute(). Use a Repository. */
-function db_exec(string $sql, array $params = []): int {
-    return db_execute($sql, $params);
-}
-
-/** @deprecated Use a Repository instead. */
-function db_scalar(string $sql, array $params = []): mixed {
-    $st = db()->prepare($sql);
-    $st->execute($params);
-    return $st->fetchColumn();
-}
-
 // =============================================================================
 // AUDIT LOGGING
 // =============================================================================
@@ -115,24 +71,17 @@ function audit_log(
     ?string $meetingId = null
 ): void {
     try {
-        $userId = \AgVote\Core\Security\AuthMiddleware::getCurrentUserId();
-        $userRole = \AgVote\Core\Security\AuthMiddleware::getCurrentRole();
-        $tenantId = \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId();
-
-        $sql = "INSERT INTO audit_events
-                (tenant_id, meeting_id, actor_user_id, actor_role, action, resource_type, resource_id, payload, created_at)
-                VALUES (:tid, :mid, :uid, :role, :action, :rtype, :rid, :payload::jsonb, NOW())";
-
-        db()->prepare($sql)->execute([
-            ':tid' => $tenantId,
-            ':mid' => $meetingId,
-            ':uid' => $userId,
-            ':role' => $userRole,
-            ':action' => $action,
-            ':rtype' => $resourceType,
-            ':rid' => $resourceId,
-            ':payload' => json_encode($payload, JSON_UNESCAPED_UNICODE),
-        ]);
+        $repo = new \AgVote\Repository\AuditEventRepository();
+        $repo->insert(
+            \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId(),
+            $meetingId,
+            \AgVote\Core\Security\AuthMiddleware::getCurrentUserId(),
+            \AgVote\Core\Security\AuthMiddleware::getCurrentRole(),
+            $action,
+            $resourceType,
+            $resourceId,
+            $payload
+        );
     } catch (\Throwable $e) {
         error_log("audit_log failed: " . $e->getMessage());
     }

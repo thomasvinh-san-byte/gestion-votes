@@ -115,6 +115,11 @@ final class Permissions
             'scheduled' => 'admin',
         ],
         'live' => [
+            'paused' => 'operator',
+            'closed' => 'president',
+        ],
+        'paused' => [
+            'live'   => 'operator',
             'closed' => 'president',
         ],
         'closed' => [
@@ -123,9 +128,7 @@ final class Permissions
         'validated' => [
             'archived' => 'admin',
         ],
-        'archived' => [
-            'validated' => 'admin',
-        ],
+        // 'archived' is terminal — no transitions allowed
     ];
 
     /**
@@ -146,6 +149,7 @@ final class Permissions
             'scheduled' => 'Planifiee',
             'frozen'    => 'Verrouillee',
             'live'      => 'En cours',
+            'paused'    => 'En pause',
             'closed'    => 'Cloturee',
             'validated' => 'Validee',
             'archived'  => 'Archivee',

@@ -34,7 +34,7 @@ final class AdminController extends AbstractController
         if ($method === 'GET') {
             api_request('GET');
 
-            $roleFilter = trim((string)($_GET['role'] ?? ''));
+            $roleFilter = api_query('role');
             $filterValue = ($roleFilter !== '' && in_array($roleFilter, $validSystemRoles, true)) ? $roleFilter : null;
 
             $rows = $userRepo->listByTenant(api_current_tenant_id(), $filterValue);
@@ -217,7 +217,7 @@ final class AdminController extends AbstractController
         if ($method === 'GET') {
             api_request('GET');
 
-            $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+            $meetingId = api_query('meeting_id');
 
             if ($meetingId !== '' && api_is_uuid($meetingId)) {
                 $rows = $userRepo->listMeetingRolesForMeeting(api_current_tenant_id(), $meetingId);
@@ -422,10 +422,10 @@ final class AdminController extends AbstractController
         api_request('GET');
 
         $tenantId = api_current_tenant_id();
-        $limit = min(200, max(1, (int)($_GET['limit'] ?? 100)));
-        $offset = max(0, (int)($_GET['offset'] ?? 0));
-        $action = trim((string)($_GET['action'] ?? ''));
-        $q = trim((string)($_GET['q'] ?? ''));
+        $limit = min(200, max(1, api_query_int('limit', 100)));
+        $offset = max(0, api_query_int('offset', 0));
+        $action = api_query('action');
+        $q = api_query('q');
 
         $repo = new AuditEventRepository();
 

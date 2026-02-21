@@ -25,14 +25,38 @@ require __DIR__ . '/../app/bootstrap.php';
 use AgVote\Service\BallotsService;
 use AgVote\Service\VoteEngine;
 
-global $pdo;
+// ── Local PDO helpers (replaces deprecated db_select_one / db_scalar / db_execute) ──
+
+function seed_select_one(string $sql, array $params = []): ?array
+{
+    $st = db()->prepare($sql);
+    $st->execute($params);
+    $row = $st->fetch();
+    return $row === false ? null : $row;
+}
+
+function seed_scalar(string $sql, array $params = []): mixed
+{
+    $st = db()->prepare($sql);
+    $st->execute($params);
+    return $st->fetchColumn();
+}
+
+function seed_execute(string $sql, array $params = []): int
+{
+    $st = db()->prepare($sql);
+    $st->execute($params);
+    return $st->rowCount();
+}
+
+// ── Seed functions ──
 
 /**
  * Retourne un UUID de tenant pour le slug donné, en le créant si besoin.
  */
 function seedTenant(string $slug, string $name): string
 {
-    $row = db_select_one(
+    $row = seed_select_one(
         "SELECT id FROM tenants WHERE slug = :slug",
         [':slug' => $slug]
     );
@@ -42,7 +66,7 @@ function seedTenant(string $slug, string $name): string
         return (string) $row['id'];
     }
 
-    $id = db_scalar(
+    $id = seed_scalar(
         "INSERT INTO tenants (id, name, slug, timezone)
          VALUES (gen_random_uuid(), :name, :slug, 'Europe/Paris')
          RETURNING id",
@@ -61,7 +85,7 @@ function seedTenant(string $slug, string $name): string
  */
 function seedMember(string $tenantId, string $fullName, string $email, float $power): string
 {
-    $row = db_select_one(
+    $row = seed_select_one(
         "SELECT id FROM members WHERE tenant_id = :tenant_id AND full_name = :full_name",
         [
             ':tenant_id'  => $tenantId,
@@ -74,7 +98,7 @@ function seedMember(string $tenantId, string $fullName, string $email, float $po
         return (string) $row['id'];
     }
 
-    $id = db_scalar(
+    $id = seed_scalar(
         "INSERT INTO members (id, tenant_id, full_name, email, voting_power, is_active)
          VALUES (gen_random_uuid(), :tenant_id, :full_name, :email, :power, true)
          RETURNING id",
@@ -97,7 +121,7 @@ function seedQuorumPolicy(string $tenantId): string
 {
     $name = 'Quorum 50 % membres (démo)';
 
-    $row = db_select_one(
+    $row = seed_select_one(
         "SELECT id FROM quorum_policies WHERE tenant_id = :tenant_id AND name = :name",
         [
             ':tenant_id' => $tenantId,
@@ -110,7 +134,7 @@ function seedQuorumPolicy(string $tenantId): string
         return (string) $row['id'];
     }
 
-    $id = db_scalar(
+    $id = seed_scalar(
         "INSERT INTO quorum_policies (
             id, tenant_id, name, description,
             denominator, include_proxies, count_remote, threshold
@@ -144,7 +168,7 @@ function seedVotePolicy(string $tenantId): string
 {
     $name = 'Majorité simple (1/2 exprimés – démo)';
 
-    $row = db_select_one(
+    $row = seed_select_one(
         "SELECT id FROM vote_policies WHERE tenant_id = :tenant_id AND name = :name",
         [
             ':tenant_id' => $tenantId,
@@ -157,7 +181,7 @@ function seedVotePolicy(string $tenantId): string
         return (string) $row['id'];
     }
 
-    $id = db_scalar(
+    $id = seed_scalar(
         "INSERT INTO vote_policies (
             id, tenant_id, name, description,
             base, threshold, abstention_as_against
@@ -188,7 +212,7 @@ function seedVotePolicy(string $tenantId): string
  */
 function seedMeeting(string $tenantId, string $title, string $quorumPolicyId): string
 {
-    $row = db_select_one(
+    $row = seed_select_one(
         "SELECT id FROM meetings WHERE tenant_id = :tenant_id AND title = :title",
         [
             ':tenant_id' => $tenantId,
@@ -201,7 +225,7 @@ function seedMeeting(string $tenantId, string $title, string $quorumPolicyId): s
         return (string) $row['id'];
     }
 
-    $id = db_scalar(
+    $id = seed_scalar(
         "INSERT INTO meetings (
             id, tenant_id, title, description,
             status, scheduled_at, started_at, location,
@@ -233,21 +257,21 @@ function seedMeeting(string $tenantId, string $title, string $quorumPolicyId): s
 }
 
 /**
- * Crée ou récupère un point d’ODJ pour la séance.
+ * Crée ou récupère un point d'ODJ pour la séance.
  */
 function seedAgenda(string $meetingId): string
 {
-    $row = db_select_one(
+    $row = seed_select_one(
         "SELECT id FROM agendas WHERE meeting_id = :meeting_id AND idx = 1",
         [':meeting_id' => $meetingId]
     );
 
     if ($row && !empty($row['id'])) {
-        echo "✔ Point d’ODJ déjà présent (idx=1) ({$row['id']})\n";
+        echo "✔ Point d'ODJ déjà présent (idx=1) ({$row['id']})\n";
         return (string) $row['id'];
     }
 
-    $id = db_scalar(
+    $id = seed_scalar(
         "INSERT INTO agendas (id, meeting_id, idx, title, description)
          VALUES (
             gen_random_uuid(),
@@ -264,7 +288,7 @@ function seedAgenda(string $meetingId): string
         ]
     );
 
-    echo "✔ Point d’ODJ créé (idx=1) ({$id})\n";
+    echo "✔ Point d'ODJ créé (idx=1) ({$id})\n";
     return (string) $id;
 }
 
@@ -275,7 +299,7 @@ function seedMotion(string $meetingId, string $agendaId, string $votePolicyId): 
 {
     $title = 'Adoption du budget 2025';
 
-    $row = db_select_one(
+    $row = seed_select_one(
         "SELECT id FROM motions WHERE meeting_id = :meeting_id AND title = :title",
         [
             ':meeting_id' => $meetingId,
@@ -287,7 +311,7 @@ function seedMotion(string $meetingId, string $agendaId, string $votePolicyId): 
         echo "✔ Motion déjà présente : {$title} ({$row['id']})\n";
 
         // S'assurer qu'elle est ouverte et qu'elle utilise la bonne policy
-        db_execute(
+        seed_execute(
             "UPDATE motions
              SET opened_at = COALESCE(opened_at, now()),
                  closed_at = NULL,
@@ -302,7 +326,7 @@ function seedMotion(string $meetingId, string $agendaId, string $votePolicyId): 
         return (string) $row['id'];
     }
 
-    $id = db_scalar(
+    $id = seed_scalar(
         "INSERT INTO motions (
             id, meeting_id, agenda_id,
             title, description,
@@ -338,7 +362,7 @@ function seedMotion(string $meetingId, string $agendaId, string $votePolicyId): 
  */
 function linkCurrentMotionToMeeting(string $meetingId, string $motionId): void
 {
-    db_execute(
+    seed_execute(
         "UPDATE meetings
          SET current_motion_id = :motion_id
          WHERE id = :meeting_id",

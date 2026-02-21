@@ -132,6 +132,33 @@ function api_request(string ...$methods): array {
     return array_merge($_GET, $data);
 }
 
+/**
+ * Get a query string parameter.
+ */
+function api_query(string $key, string $default = ''): string {
+    return trim((string)($_GET[$key] ?? $default));
+}
+
+/**
+ * Get a query string parameter as int.
+ */
+function api_query_int(string $key, int $default = 0): int {
+    return (int)($_GET[$key] ?? $default);
+}
+
+/**
+ * Get an uploaded file array from $_FILES.
+ * Returns null if no file was uploaded for the given key.
+ */
+function api_file(string ...$keys): ?array {
+    foreach ($keys as $key) {
+        if (!empty($_FILES[$key]) && ($_FILES[$key]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            return $_FILES[$key];
+        }
+    }
+    return null;
+}
+
 // =============================================================================
 // API FUNCTIONS - CURRENT USER
 // =============================================================================
@@ -162,10 +189,8 @@ function api_current_tenant_id(): string {
  */
 function api_guard_meeting_not_validated(string $meetingId): void {
     if ($meetingId === '') return;
-    $st = db()->prepare("SELECT validated_at FROM meetings WHERE tenant_id = :tid AND id = :mid");
-    $st->execute([':tid' => api_current_tenant_id(), ':mid' => $meetingId]);
-    $mt = $st->fetch();
-    if ($mt && !empty($mt['validated_at'])) {
+    $repo = new \AgVote\Repository\MeetingRepository();
+    if ($repo->isValidated($meetingId, api_current_tenant_id())) {
         api_fail('meeting_validated', 409, [
             'detail' => 'Séance validée : modification interdite (séance figée).'
         ]);
@@ -177,9 +202,8 @@ function api_guard_meeting_not_validated(string $meetingId): void {
  * Fatal 404 if not found.
  */
 function api_guard_meeting_exists(string $meetingId): array {
-    $st = db()->prepare("SELECT * FROM meetings WHERE tenant_id = :tid AND id = :mid");
-    $st->execute([':tid' => api_current_tenant_id(), ':mid' => $meetingId]);
-    $mt = $st->fetch();
+    $repo = new \AgVote\Repository\MeetingRepository();
+    $mt = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
     if (!$mt) {
         api_fail('meeting_not_found', 404);
     }

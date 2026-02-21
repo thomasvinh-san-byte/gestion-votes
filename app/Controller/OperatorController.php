@@ -22,13 +22,13 @@ final class OperatorController extends AbstractController
 {
     public function workflowState(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
 
-        $minOpen = (int)($_GET['min_open'] ?? 900);
-        $minParticipation = (float)($_GET['min_participation'] ?? 0.5);
+        $minOpen = api_query_int('min_open', 900);
+        $minParticipation = (float)(api_query('min_participation', '0.5'));
 
         $tenant = api_current_tenant_id();
 
@@ -354,12 +354,12 @@ final class OperatorController extends AbstractController
     {
         api_request('GET');
 
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('invalid_meeting_id', 422);
         }
 
-        $motionId = trim((string)($_GET['motion_id'] ?? ''));
+        $motionId = api_query('motion_id');
         if ($motionId !== '' && !api_is_uuid($motionId)) {
             api_fail('invalid_motion_id', 422);
         }

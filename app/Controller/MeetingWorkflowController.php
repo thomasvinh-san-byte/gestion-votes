@@ -297,8 +297,9 @@ final class MeetingWorkflowController extends AbstractController
 
     public function workflowCheck(): void
     {
-        $meetingId = api_require_uuid($_GET, 'meeting_id');
-        $toStatus = trim((string)($_GET['to_status'] ?? ''));
+        $q = api_request('GET');
+        $meetingId = api_require_uuid($q, 'meeting_id');
+        $toStatus = api_query('to_status');
 
         $tenantId = api_current_tenant_id();
 
@@ -318,7 +319,7 @@ final class MeetingWorkflowController extends AbstractController
 
     public function readyCheck(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }

@@ -24,7 +24,7 @@ final class BallotsController extends AbstractController
     {
         api_request('GET');
 
-        $motionId = trim((string)($_GET['motion_id'] ?? ''));
+        $motionId = api_query('motion_id');
         if ($motionId === '' || !api_is_uuid($motionId)) {
             api_fail('missing_motion_id', 422, ['detail' => 'motion_id requis']);
         }

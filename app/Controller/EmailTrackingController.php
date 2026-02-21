@@ -15,7 +15,7 @@ final class EmailTrackingController
     public function pixel(): void
     {
         $trackingEnabled = getenv('EMAIL_TRACKING_ENABLED') !== '0';
-        $invitationId = trim((string)($_GET['id'] ?? ''));
+        $invitationId = api_query('id');
 
         if ($invitationId === '' || !$trackingEnabled) {
             $this->outputPixel();
@@ -55,8 +55,8 @@ final class EmailTrackingController
     public function redirect(): void
     {
         $trackingEnabled = getenv('EMAIL_TRACKING_ENABLED') !== '0';
-        $invitationId = trim((string)($_GET['id'] ?? ''));
-        $targetUrl = trim((string)($_GET['url'] ?? ''));
+        $invitationId = api_query('id');
+        $targetUrl = api_query('url');
 
         $fallbackUrl = getenv('APP_URL') ?: 'http://localhost:8080';
 

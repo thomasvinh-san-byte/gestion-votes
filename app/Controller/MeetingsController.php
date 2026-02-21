@@ -22,12 +22,12 @@ final class MeetingsController extends AbstractController
     {
         api_request('GET');
 
-        $limit = (int)($_GET['limit'] ?? 50);
+        $limit = api_query_int('limit', 50);
         if ($limit <= 0 || $limit > 200) {
             $limit = 50;
         }
 
-        $activeOnly = filter_var($_GET['active_only'] ?? '0', FILTER_VALIDATE_BOOLEAN);
+        $activeOnly = filter_var(api_query('active_only', '0'), FILTER_VALIDATE_BOOLEAN);
 
         $repo = new MeetingRepository();
         if ($activeOnly) {
@@ -121,8 +121,8 @@ final class MeetingsController extends AbstractController
     {
         api_request('GET');
 
-        $from = trim($_GET['from'] ?? '');
-        $to = trim($_GET['to'] ?? '');
+        $from = api_query('from');
+        $to = api_query('to');
 
         $repo = new MeetingRepository();
         $rows = $repo->listArchived(api_current_tenant_id(), $from, $to);
@@ -194,7 +194,7 @@ final class MeetingsController extends AbstractController
     {
         api_request('GET');
 
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422);
         }
@@ -239,7 +239,7 @@ final class MeetingsController extends AbstractController
 
     public function summary(): void
     {
-        $meetingId = trim((string)($_GET['meeting_id'] ?? ''));
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
@@ -299,7 +299,7 @@ final class MeetingsController extends AbstractController
     {
         api_request('GET');
 
-        $meetingId = trim($_GET['meeting_id'] ?? '');
+        $meetingId = api_query('meeting_id');
         if ($meetingId === '') {
             api_fail('missing_meeting_id', 422);
         }
