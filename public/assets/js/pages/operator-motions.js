@@ -17,7 +17,7 @@
   async function loadResolutions() {
     try {
       const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${O.currentMeetingId}`);
-      O.motionsCache = body?.data?.motions || [];
+      O.motionsCache = body?.data?.items || [];
       O.currentOpenMotion = O.motionsCache.find(m => m.opened_at && !m.closed_at) || null;
       renderResolutions();
       document.getElementById('tabCountResolutions').textContent = O.motionsCache.length;
@@ -399,7 +399,7 @@
   async function loadBallots(motionId) {
     try {
       const { body } = await api(`/api/v1/ballots.php?motion_id=${motionId}`);
-      const ballots = body?.data?.ballots || body?.ballots || [];
+      const ballots = body?.data?.items || [];
       O.ballotsCache = {};
       O.ballotSourceCache = {};
       let forCount = 0, againstCount = 0, abstainCount = 0;

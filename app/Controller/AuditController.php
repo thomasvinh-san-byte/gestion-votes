@@ -94,7 +94,7 @@ final class AuditController extends AbstractController {
             'total' => $total,
             'limit' => $limit,
             'offset' => $offset,
-            'events' => $formatted,
+            'items' => $formatted,
         ]);
     }
 
@@ -213,7 +213,7 @@ final class AuditController extends AbstractController {
 
         api_ok([
             'meeting_id' => $meetingId,
-            'events' => $rows,
+            'items' => $rows,
         ]);
     }
 
@@ -233,7 +233,7 @@ final class AuditController extends AbstractController {
 
         $auditRepo = new AuditEventRepository();
         $rows = $auditRepo->listForMeeting($meetingId, api_current_tenant_id());
-        api_ok(['events' => self::formatEvents($rows)]);
+        api_ok(['items' => self::formatEvents($rows)]);
     }
 
     public function operatorEvents(): void {
@@ -272,7 +272,7 @@ final class AuditController extends AbstractController {
             $q,
         );
 
-        api_ok(['events' => self::formatEvents($rows)]);
+        api_ok(['items' => self::formatEvents($rows)]);
     }
 
     /**

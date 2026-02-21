@@ -47,7 +47,7 @@ final class ExportTemplatesController extends AbstractController {
         }
 
         $templates = $repo->listForTenant($tenantId, $type !== '' ? $type : null);
-        $result = ['templates' => $templates];
+        $result = ['items' => $templates];
         if ($includeColumns && $type !== '') {
             $result['available_columns'] = $repo->getAvailableColumns($type);
         }

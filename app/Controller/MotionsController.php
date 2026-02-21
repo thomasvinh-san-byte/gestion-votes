@@ -204,7 +204,7 @@ final class MotionsController extends AbstractController {
         api_ok([
             'meeting_id' => $meetingId,
             'current_motion_id' => $currentMotionId,
-            'motions' => $motions,
+            'items' => $motions,
         ]);
     }
 

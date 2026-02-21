@@ -37,7 +37,7 @@ final class BallotsController extends AbstractController {
         }
 
         $ballots = (new BallotRepository())->listForMotion($motionId, api_current_tenant_id());
-        api_ok(['ballots' => $ballots]);
+        api_ok(['items' => $ballots]);
     }
 
     public function cast(): void {

@@ -23,7 +23,7 @@ final class ProxiesController extends AbstractController {
         api_ok([
             'meeting_id' => $meetingId,
             'count' => count($rows),
-            'proxies' => $rows,
+            'items' => $rows,
         ]);
     }
 

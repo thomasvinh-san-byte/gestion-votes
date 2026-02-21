@@ -51,7 +51,7 @@
       const raw = await fetchJson(`/api/v1/attendances.php?meeting_id=${encodeURIComponent(mid)}`);
       att = raw?.data || raw;
     } catch (_) { errors.push('présences'); }
-    const members = att?.attendances || att?.members || [];
+    const members = att?.items || [];
 
     let mot = null;
     try {
@@ -63,7 +63,7 @@
       const el = document.getElementById('pvMeta');
       if (el) el.textContent += ' — Chargement partiel (données manquantes : ' + errors.join(', ') + ')';
     }
-    const motions = (mot?.motions || []).map(m => ({
+    const motions = (mot?.items || []).map(m => ({
       ...m,
       id: m.motion_id || m.id,
       title: m.motion_title || m.title || '',

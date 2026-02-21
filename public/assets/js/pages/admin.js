@@ -364,7 +364,7 @@
     try {
       const r = await api('/api/v1/meetings.php?active_only=1');
       if (r.body && r.body.ok && r.body.data) {
-        _meetings = r.body.data.meetings || r.body.data.items || [];
+        _meetings = r.body.data.items || [];
         const meetingSel = document.getElementById('mrMeeting');
         const statusMap = Shared.MEETING_STATUS_MAP || {};
 
@@ -1091,7 +1091,7 @@
     try {
       var r = await api('/api/v1/meetings.php');
       if (r.body && r.body.ok && r.body.data) {
-        var meetings = r.body.data.meetings || r.body.data.items || r.body.data || [];
+        var meetings = r.body.data.items || [];
 
         // --- State stats ---
         var counts = {
@@ -1328,10 +1328,10 @@
           });
         }
 
-        if (!d.events || d.events.length === 0) {
+        if (!d.items || d.items.length === 0) {
           list.innerHTML = '<div class="text-center p-4 text-muted">Aucun événement admin</div>';
         } else {
-          list.innerHTML = d.events.map(function(e) {
+          list.innerHTML = d.items.map(function(e) {
             var ts = new Date(e.timestamp).toLocaleString('fr-FR');
             var detail = e.detail ? ' — <span class="text-muted">' + escapeHtml(e.detail) + '</span>' : '';
             var ip = e.ip_address ? '<span class="text-xs text-muted">' + escapeHtml(e.ip_address) + '</span>' : '';
@@ -1348,7 +1348,7 @@
         var pagination = document.getElementById('adminAuditPagination');
         if (d.total > 0) {
           pagination.style.display = 'flex';
-          document.getElementById('adminAuditCount').textContent = (d.offset + 1) + '-' + Math.min(d.offset + d.events.length, d.total) + ' sur ' + d.total;
+          document.getElementById('adminAuditCount').textContent = (d.offset + 1) + '-' + Math.min(d.offset + d.items.length, d.total) + ' sur ' + d.total;
           document.getElementById('adminAuditPrev').disabled = d.offset === 0;
           document.getElementById('adminAuditNext').disabled = (d.offset + _auditLimit) >= d.total;
         } else {

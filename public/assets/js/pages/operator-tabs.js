@@ -273,9 +273,9 @@ window.OpS = { fn: {} };
   async function loadMeetings() {
     try {
       const { body } = await api('/api/v1/meetings_index.php?active_only=1');
-      if (body?.ok && body?.data?.meetings) {
+      if (body?.ok && body?.data?.items) {
         meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
-        body.data.meetings.forEach(m => {
+        body.data.items.forEach(m => {
           const opt = document.createElement('option');
           opt.value = m.id;
           opt.textContent = `${m.title} (${m.status || 'draft'})`;
@@ -573,7 +573,7 @@ window.OpS = { fn: {} };
   async function loadMembers() {
     try {
       const { body } = await api('/api/v1/members.php');
-      membersCache = body?.data?.members || [];
+      membersCache = body?.data?.items || [];
       renderMembersCard();
     } catch (err) {
       setNotif('error', 'Erreur chargement membres');
@@ -1090,7 +1090,7 @@ window.OpS = { fn: {} };
         var res = await api('/api/v1/agendas.php?meeting_id=' + currentMeetingId);
         var d = res.body;
         if (!d || !d.ok) throw new Error((d && d.error) || 'Erreur');
-        agendaCache = (d.data && d.data.agendas) || d.agendas || [];
+        agendaCache = (d.data && d.data.items) || [];
         container.setAttribute('aria-busy', 'false');
         renderAgenda();
       }

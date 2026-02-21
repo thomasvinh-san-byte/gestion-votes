@@ -37,7 +37,7 @@ final class MemberGroupsController extends AbstractController {
         }
 
         $groups = $repo->listForTenant($tenantId, !$includeInactive);
-        api_ok(['groups' => $groups, 'total' => count($groups)]);
+        api_ok(['items' => $groups, 'total' => count($groups)]);
     }
 
     public function create(): void {
@@ -259,7 +259,7 @@ final class MemberGroupsController extends AbstractController {
         ]);
 
         $groups = $groupRepo->listGroupsForMember($memberId, $tenantId);
-        api_ok(['member_id' => $memberId, 'groups' => $groups, 'total' => count($groups)]);
+        api_ok(['member_id' => $memberId, 'items' => $groups, 'total' => count($groups)]);
     }
 
     public function bulkAssign(): void {

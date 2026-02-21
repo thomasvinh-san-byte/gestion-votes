@@ -63,7 +63,7 @@ final class InvitationsController extends AbstractController {
         }
 
         $rows = (new InvitationRepository())->listForMeeting($meetingId, api_current_tenant_id());
-        api_ok(['invitations' => $rows]);
+        api_ok(['items' => $rows]);
     }
 
     public function redeem(): void {

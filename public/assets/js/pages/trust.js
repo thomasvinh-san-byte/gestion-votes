@@ -13,7 +13,7 @@
     try {
       const { body } = await api('/api/v1/meetings.php');
 
-      const meetings = (body && body.ok && body.data) ? (body.data.meetings || []) : [];
+      const meetings = (body && body.ok && body.data) ? (body.data.items || []) : [];
       meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
 
       meetings.forEach(m => {
@@ -310,8 +310,8 @@
       const tbody = document.getElementById('motionsTbody');
       const kpi = document.getElementById('kpiMotions');
 
-      if (body && body.ok && body.data && Array.isArray(body.data.motions)) {
-        const motions = body.data.motions;
+      if (body && body.ok && body.data && Array.isArray(body.data.items)) {
+        const motions = body.data.items;
         kpi.textContent = motions.length;
 
         if (motions.length === 0) {
@@ -396,8 +396,8 @@
       action: async function () {
         var res = await api('/api/v1/audit_log.php?meeting_id=' + meetingId + '&limit=50');
         var body = res.body;
-        if (body && body.ok && body.data && Array.isArray(body.data.events)) {
-          currentAuditEntries = body.data.events;
+        if (body && body.ok && body.data && Array.isArray(body.data.items)) {
+          currentAuditEntries = body.data.items;
         } else {
           currentAuditEntries = [];
         }

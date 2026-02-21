@@ -14,7 +14,7 @@
   async function loadAttendance() {
     try {
       const { body } = await api(`/api/v1/attendances.php?meeting_id=${O.currentMeetingId}`);
-      O.attendanceCache = body?.data?.attendances || [];
+      O.attendanceCache = body?.data?.items || [];
       renderAttendance();
     } catch (err) {
       setNotif('error', 'Erreur chargement présences');
@@ -270,7 +270,7 @@
 
     try {
       const { body } = await api(`/api/v1/proxies.php?meeting_id=${O.currentMeetingId}`);
-      O.proxiesCache = body?.data?.proxies || body?.proxies || [];
+      O.proxiesCache = body?.data?.items || [];
       renderProxies();
     } catch (err) {
       setNotif('error', 'Erreur chargement procurations');

@@ -38,7 +38,7 @@ final class MeetingsController extends AbstractController {
             $rows = $repo->listByTenantCompact(api_current_tenant_id(), $limit);
         }
 
-        api_ok(['meetings' => $rows]);
+        api_ok(['items' => $rows]);
     }
 
     public function update(): void {
@@ -126,7 +126,7 @@ final class MeetingsController extends AbstractController {
 
         $repo = new MeetingRepository();
         $rows = $repo->listArchived(api_current_tenant_id(), $from, $to);
-        api_ok(['meetings' => $rows]);
+        api_ok(['items' => $rows]);
     }
 
     public function archivesList(): void {
@@ -364,7 +364,7 @@ final class MeetingsController extends AbstractController {
             'meeting_id' => $meetingId,
             'motions_count' => (int) $motionsCount,
             'distinct_voters' => (int) $distinctVoters,
-            'motions' => $motions,
+            'items' => $motions,
         ]);
     }
 

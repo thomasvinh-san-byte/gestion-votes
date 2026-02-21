@@ -502,7 +502,7 @@ final class AdminController extends AbstractController {
             'total' => $total,
             'limit' => $limit,
             'offset' => $offset,
-            'events' => $formatted,
+            'items' => $formatted,
             'action_types' => $actionTypes,
         ]);
     }

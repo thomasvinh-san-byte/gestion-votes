@@ -418,7 +418,7 @@
         picker.hidden = false;
         try {
           var res = await window.api('/api/v1/meetings.php');
-          var meetings = (res.body && res.body.ok && res.body.data) ? (res.body.data.meetings || []) : [];
+          var meetings = (res.body && res.body.ok && res.body.data) ? (res.body.data.items || []) : [];
           var eligible = meetings.filter(function (m) {
             return m.status === 'closed' || m.status === 'validated' || m.status === 'archived';
           });

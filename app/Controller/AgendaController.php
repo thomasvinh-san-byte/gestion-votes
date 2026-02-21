@@ -24,7 +24,7 @@ final class AgendaController extends AbstractController {
 
         $agendaRepo = new AgendaRepository();
         $rows = $agendaRepo->listForMeeting($meetingId);
-        api_ok(['agendas' => $rows]);
+        api_ok(['items' => $rows]);
     }
 
     public function create(): void {
@@ -112,7 +112,7 @@ final class AgendaController extends AbstractController {
 
         api_ok([
             'meeting_id' => $meetingId,
-            'agendas' => $rows,
+            'items' => $rows,
         ]);
     }
 }
