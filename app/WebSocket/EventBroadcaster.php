@@ -3,16 +3,19 @@ declare(strict_types=1);
 
 namespace AgVote\WebSocket;
 
+use AgVote\Core\Providers\RedisProvider;
+
 /**
  * EventBroadcaster - Service pour envoyer des evenements au serveur WebSocket.
  *
- * Utilise un fichier de queue pour communiquer avec le serveur WS
- * (pattern simple sans necessiter ZMQ ou Redis).
+ * Uses Redis LPUSH/LRANGE+DEL when available, falls back to file-based queue.
  */
 class EventBroadcaster
 {
+    private const QUEUE_KEY = 'ws:event_queue';
     private const QUEUE_FILE = '/tmp/agvote-ws-queue.json';
     private const LOCK_FILE = '/tmp/agvote-ws-queue.lock';
+    private const MAX_QUEUE_SIZE = 1000;
 
     /**
      * Broadcast un evenement a un meeting.
@@ -40,9 +43,8 @@ class EventBroadcaster
         ]);
     }
 
-    /**
-     * Events pre-definis pour les motions.
-     */
+    // ── Pre-defined events ──────────────────────────────────────────────
+
     public static function motionOpened(string $meetingId, string $motionId, array $motionData = []): void
     {
         self::toMeeting($meetingId, 'motion.opened', [
@@ -67,9 +69,6 @@ class EventBroadcaster
         ]);
     }
 
-    /**
-     * Events pre-definis pour les votes.
-     */
     public static function voteCast(string $meetingId, string $motionId, array $tally = []): void
     {
         self::toMeeting($meetingId, 'vote.cast', [
@@ -86,9 +85,6 @@ class EventBroadcaster
         ]);
     }
 
-    /**
-     * Events pre-definis pour la presence.
-     */
     public static function attendanceUpdated(string $meetingId, array $stats = []): void
     {
         self::toMeeting($meetingId, 'attendance.updated', [
@@ -96,9 +92,6 @@ class EventBroadcaster
         ]);
     }
 
-    /**
-     * Events pre-definis pour le quorum.
-     */
     public static function quorumUpdated(string $meetingId, array $quorumData = []): void
     {
         self::toMeeting($meetingId, 'quorum.updated', [
@@ -106,9 +99,6 @@ class EventBroadcaster
         ]);
     }
 
-    /**
-     * Events pre-definis pour les changements de statut.
-     */
     public static function meetingStatusChanged(string $meetingId, string $tenantId, string $newStatus, string $oldStatus = ''): void
     {
         self::toMeeting($meetingId, 'meeting.status_changed', [
@@ -117,22 +107,20 @@ class EventBroadcaster
             'old_status' => $oldStatus,
         ]);
 
-        // Aussi notifier le tenant pour la liste des meetings
         self::toTenant($tenantId, 'meeting.status_changed', [
             'meeting_id' => $meetingId,
             'new_status' => $newStatus,
         ]);
     }
 
-    /**
-     * Events pour la file de parole.
-     */
     public static function speechQueueUpdated(string $meetingId, array $queue = []): void
     {
         self::toMeeting($meetingId, 'speech.queue_updated', [
             'queue' => $queue,
         ]);
     }
+
+    // ── Queue operations ────────────────────────────────────────────────
 
     /**
      * Ajoute un evenement a la queue.
@@ -141,29 +129,10 @@ class EventBroadcaster
     {
         $event['queued_at'] = microtime(true);
 
-        $lockFile = fopen(self::LOCK_FILE, 'c');
-        if (!$lockFile || !flock($lockFile, LOCK_EX)) {
-            return; // Silently fail si lock impossible
-        }
-
-        try {
-            $queue = [];
-            if (file_exists(self::QUEUE_FILE)) {
-                $content = file_get_contents(self::QUEUE_FILE);
-                $queue = json_decode($content, true) ?? [];
-            }
-
-            $queue[] = $event;
-
-            // Limiter la taille de la queue (garder les 1000 derniers)
-            if (count($queue) > 1000) {
-                $queue = array_slice($queue, -1000);
-            }
-
-            file_put_contents(self::QUEUE_FILE, json_encode($queue));
-        } finally {
-            flock($lockFile, LOCK_UN);
-            fclose($lockFile);
+        if (self::useRedis()) {
+            self::queueRedis($event);
+        } else {
+            self::queueFile($event);
         }
     }
 
@@ -173,27 +142,10 @@ class EventBroadcaster
      */
     public static function dequeue(): array
     {
-        $lockFile = fopen(self::LOCK_FILE, 'c');
-        if (!$lockFile || !flock($lockFile, LOCK_EX)) {
-            return [];
+        if (self::useRedis()) {
+            return self::dequeueRedis();
         }
-
-        try {
-            if (!file_exists(self::QUEUE_FILE)) {
-                return [];
-            }
-
-            $content = file_get_contents(self::QUEUE_FILE);
-            $queue = json_decode($content, true) ?? [];
-
-            // Vider la queue
-            file_put_contents(self::QUEUE_FILE, '[]');
-
-            return $queue;
-        } finally {
-            flock($lockFile, LOCK_UN);
-            fclose($lockFile);
-        }
+        return self::dequeueFile();
     }
 
     /**
@@ -211,7 +163,121 @@ class EventBroadcaster
             return false;
         }
 
-        // Verifier si le process existe
         return posix_kill($pid, 0);
+    }
+
+    // ── Redis backend ───────────────────────────────────────────────────
+
+    private static function useRedis(): bool
+    {
+        if (!RedisProvider::isAvailable()) {
+            return false;
+        }
+        try {
+            RedisProvider::connection();
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    private static function queueRedis(array $event): void
+    {
+        try {
+            $redis = RedisProvider::connection();
+            // Temporarily disable JSON serializer for raw string push
+            $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+            $redis->rPush(self::QUEUE_KEY, json_encode($event));
+
+            // Trim to max size (keep most recent)
+            $redis->lTrim(self::QUEUE_KEY, -self::MAX_QUEUE_SIZE, -1);
+            $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_JSON);
+        } catch (\Throwable $e) {
+            error_log('EventBroadcaster Redis push failed: ' . $e->getMessage());
+            // Fallback to file
+            self::queueFile($event);
+        }
+    }
+
+    private static function dequeueRedis(): array
+    {
+        try {
+            $redis = RedisProvider::connection();
+            $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+
+            // Atomic: get all + delete
+            $pipe = $redis->multi(\Redis::PIPELINE);
+            $pipe->lRange(self::QUEUE_KEY, 0, -1);
+            $pipe->del(self::QUEUE_KEY);
+            $results = $pipe->exec();
+
+            $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_JSON);
+
+            $raw = $results[0] ?? [];
+            if (!is_array($raw)) {
+                return [];
+            }
+
+            return array_map(
+                fn($item) => is_string($item) ? (json_decode($item, true) ?? []) : $item,
+                $raw
+            );
+        } catch (\Throwable $e) {
+            error_log('EventBroadcaster Redis dequeue failed: ' . $e->getMessage());
+            return self::dequeueFile();
+        }
+    }
+
+    // ── File backend (fallback) ─────────────────────────────────────────
+
+    private static function queueFile(array $event): void
+    {
+        $lockFile = fopen(self::LOCK_FILE, 'c');
+        if (!$lockFile || !flock($lockFile, LOCK_EX)) {
+            return;
+        }
+
+        try {
+            $queue = [];
+            if (file_exists(self::QUEUE_FILE)) {
+                $content = file_get_contents(self::QUEUE_FILE);
+                $queue = json_decode($content, true) ?? [];
+            }
+
+            $queue[] = $event;
+
+            if (count($queue) > self::MAX_QUEUE_SIZE) {
+                $queue = array_slice($queue, -self::MAX_QUEUE_SIZE);
+            }
+
+            file_put_contents(self::QUEUE_FILE, json_encode($queue));
+        } finally {
+            flock($lockFile, LOCK_UN);
+            fclose($lockFile);
+        }
+    }
+
+    private static function dequeueFile(): array
+    {
+        $lockFile = fopen(self::LOCK_FILE, 'c');
+        if (!$lockFile || !flock($lockFile, LOCK_EX)) {
+            return [];
+        }
+
+        try {
+            if (!file_exists(self::QUEUE_FILE)) {
+                return [];
+            }
+
+            $content = file_get_contents(self::QUEUE_FILE);
+            $queue = json_decode($content, true) ?? [];
+
+            file_put_contents(self::QUEUE_FILE, '[]');
+
+            return $queue;
+        } finally {
+            flock($lockFile, LOCK_UN);
+            fclose($lockFile);
+        }
     }
 }

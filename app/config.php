@@ -41,6 +41,15 @@ return [
     'timeout'    => (int)(getenv('MAIL_TIMEOUT') ?: 10),
   ],
 
+  // Redis
+  'redis' => [
+    'host'     => getenv('REDIS_HOST') ?: '127.0.0.1',
+    'port'     => (int)(getenv('REDIS_PORT') ?: 6379),
+    'password' => getenv('REDIS_PASSWORD') ?: '',
+    'database' => (int)(getenv('REDIS_DATABASE') ?: 0),
+    'prefix'   => getenv('REDIS_PREFIX') ?: 'agvote:',
+  ],
+
   // Tenant (mono-tenant MVP). Override via TENANT_ID if needed.
   'default_tenant_id' => getenv('TENANT_ID') ?: 'aaaaaaaa-1111-2222-3333-444444444444',
 ];

@@ -27,11 +27,15 @@ services:
       DB_DATABASE: "${DB_DATABASE:-vote_app}"
       DB_USERNAME: "${DB_USER:-vote_app}"
       DB_PASSWORD: "${DB_PASS:?DB_PASS requis — definir dans .env}"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       LOAD_DEMO_DATA: "${LOAD_DEMO_DATA:-1}"
     volumes:
       - app-storage:/tmp/ag-vote    # logs, cache PDF, fonts
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/"]
@@ -79,6 +83,32 @@ services:
           cpus: "0.5"
         reservations:
           memory: 64M
+
+  # ---------------------------------------------------------------------------
+  # Redis — Queue, rate limiter, cache
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: agvote-redis
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru", "--save", ""]
+    ports:
+      - "127.0.0.1:${REDIS_EXTERNAL_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+        reservations:
+          memory: 32M
 
 volumes:
   pgdata:

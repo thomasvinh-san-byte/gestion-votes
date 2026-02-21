@@ -5,10 +5,14 @@ namespace AgVote\Core;
 
 use AgVote\Core\Providers\EnvProvider;
 use AgVote\Core\Providers\DatabaseProvider;
+use AgVote\Core\Providers\RedisProvider;
 use AgVote\Core\Providers\SecurityProvider;
 use AgVote\Core\Security\CsrfMiddleware;
 use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Core\Security\RateLimiter;
+use AgVote\Event\Listener\WebSocketListener;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Application bootstrap orchestrator.
@@ -21,6 +25,7 @@ final class Application
     private static bool $booted = false;
     private static array $config = [];
     private static bool $debug = false;
+    private static ?EventDispatcherInterface $dispatcher = null;
 
     /**
      * Boot the application. Idempotent — safe to call multiple times.
@@ -57,6 +62,32 @@ final class Application
 
         // 9. Auth & rate limiter
         SecurityProvider::init(self::$debug);
+
+        // 10. Redis (optional — graceful if unavailable)
+        RedisProvider::configure(self::$config['redis'] ?? []);
+
+        // 11. Event dispatcher
+        self::initEventDispatcher();
+    }
+
+    /**
+     * Boot for CLI context (no HTTP headers, CORS, or security headers).
+     * Used by bin/console commands.
+     */
+    public static function bootCli(): void
+    {
+        if (self::$booted) {
+            return;
+        }
+        self::$booted = true;
+
+        EnvProvider::load(dirname(__DIR__, 2) . '/.env');
+        self::registerClassAliases();
+        self::loadConfig();
+        self::configureErrors();
+        DatabaseProvider::connect(self::$config['db'] ?? [], self::$debug);
+        RedisProvider::configure(self::$config['redis'] ?? []);
+        self::initEventDispatcher();
     }
 
     /**
@@ -73,6 +104,17 @@ final class Application
     public static function isDebug(): bool
     {
         return self::$debug;
+    }
+
+    /**
+     * Get the event dispatcher instance.
+     */
+    public static function dispatcher(): EventDispatcherInterface
+    {
+        if (self::$dispatcher === null) {
+            self::initEventDispatcher();
+        }
+        return self::$dispatcher;
     }
 
     // ── Internal methods ────────────────────────────────────────────────
@@ -121,6 +163,15 @@ final class Application
         }
 
         self::$debug = (bool)(self::$config['debug'] ?? false);
+    }
+
+    private static function initEventDispatcher(): void
+    {
+        if (self::$dispatcher !== null) {
+            return;
+        }
+        self::$dispatcher = new EventDispatcher();
+        WebSocketListener::subscribe(self::$dispatcher);
     }
 
     private static function configureErrors(): void

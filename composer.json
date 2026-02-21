@@ -2,7 +2,9 @@
     "require": {
         "dompdf/dompdf": "^3.1",
         "phpoffice/phpspreadsheet": "^1.29",
-        "erusev/parsedown": "^1.7"
+        "erusev/parsedown": "^1.7",
+        "symfony/mailer": "^8.0",
+        "symfony/console": "^8.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5",
@@ -11,6 +13,8 @@
     "autoload": {
         "psr-4": {
             "AgVote\\": "app/",
+            "AgVote\\Command\\": "app/Command/",
+            "AgVote\\Event\\": "app/Event/",
             "AgVote\\Repository\\": "app/Repository/",
             "AgVote\\Service\\": "app/Services/",
             "AgVote\\Core\\": "app/Core/",
