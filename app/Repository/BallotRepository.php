@@ -109,7 +109,8 @@ class BallotRepository extends AbstractRepository {
     }
 
     /**
-     * Upsert un bulletin de vote (cast ou re-vote).
+     * Inserts a ballot (strict INSERT — no silent upsert).
+     * Throws on duplicate (motion_id, member_id) constraint violation.
      */
     public function castBallot(
         string $tenantId,
@@ -125,13 +126,7 @@ class BallotRepository extends AbstractRepository {
               id, tenant_id, motion_id, member_id, value, weight, cast_at, is_proxy_vote, proxy_source_member_id
             ) VALUES (
               gen_random_uuid(), :tid, :mid, :mem, :value, :weight, now(), :proxy, :proxy_src
-            )
-            ON CONFLICT (motion_id, member_id) DO UPDATE
-            SET value = EXCLUDED.value,
-                weight = EXCLUDED.weight,
-                cast_at = now(),
-                is_proxy_vote = EXCLUDED.is_proxy_vote,
-                proxy_source_member_id = EXCLUDED.proxy_source_member_id',
+            )',
             [
                 ':tid' => $tenantId, ':mid' => $motionId, ':mem' => $memberId,
                 ':value' => $value, ':weight' => $weight,

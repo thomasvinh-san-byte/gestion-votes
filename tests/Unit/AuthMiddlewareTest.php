@@ -41,8 +41,24 @@ class AuthMiddlewareTest extends TestCase {
         putenv('APP_AUTH_ENABLED=');
     }
 
-    public function testIsEnabledReturnsFalseByDefault(): void {
+    public function testIsEnabledReturnsTrueByDefault(): void {
         putenv('APP_AUTH_ENABLED=');
+
+        $result = AuthMiddleware::isEnabled();
+
+        $this->assertTrue($result, 'Auth must be enabled by default (deny-by-default)');
+    }
+
+    public function testIsEnabledReturnsFalseWhenExplicitlyDisabled(): void {
+        putenv('APP_AUTH_ENABLED=0');
+
+        $result = AuthMiddleware::isEnabled();
+
+        $this->assertFalse($result);
+    }
+
+    public function testIsEnabledReturnsFalseWithFalseString(): void {
+        putenv('APP_AUTH_ENABLED=false');
 
         $result = AuthMiddleware::isEnabled();
 

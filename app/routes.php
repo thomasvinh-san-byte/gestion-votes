@@ -268,7 +268,7 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/current_motion", MotionsController::class, 'current', ['role' => 'public', 'rate_limit' => ['current_motion', 120, 60]]);
     $router->mapAny("{$prefix}/motions_open", MotionsController::class, 'open', $op);
     $router->mapAny("{$prefix}/motions_close", MotionsController::class, 'close', ['role' => ['operator', 'president', 'admin']]);
-    $router->mapAny("{$prefix}/degraded_tally", MotionsController::class, 'degradedTally', ['role' => ['operator', 'auditor']]);
+    $router->mapAny("{$prefix}/degraded_tally", MotionsController::class, 'degradedTally', $op);
 
     // ── Operator ──
     $router->mapAny("{$prefix}/operator_anomalies", OperatorController::class, 'anomalies', $op);

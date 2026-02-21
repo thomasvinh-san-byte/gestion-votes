@@ -153,49 +153,50 @@ final class BallotsService {
         }
 
         // Wrap ballot insert + audit log in a transaction for atomicity
-        api_transaction(function () use ($meetingId, $tenantId, $motionId, $memberId, $value, $weight, $isProxyVote, $proxyVoterId, $context, $data) {
-            // Lock the meeting row to prevent TOCTOU race: meeting could
-            // transition from 'live' to 'closed' between the initial check
-            // and the ballot INSERT.
-            $lockedMeeting = $this->meetingRepo->lockForUpdate($meetingId, $tenantId);
-            if (!$lockedMeeting || $lockedMeeting['status'] !== 'live') {
-                throw new RuntimeException('Séance non disponible pour le vote');
-            }
-
-            // Detect existing ballot BEFORE upsert for change tracking
-            $previousBallot = $this->ballotRepo->findByMotionAndMember($motionId, $memberId);
-
-            $this->ballotRepo->castBallot(
-                $tenantId,
-                $motionId,
-                $memberId,
-                $value,
-                $weight,
-                $isProxyVote,
-                $isProxyVote ? $proxyVoterId : null,
-            );
-
-            if (function_exists('audit_log')) {
-                $isUpdate = $previousBallot !== null;
-                $auditAction = $isUpdate ? 'ballot_changed' : 'ballot_cast';
-                $auditData = [
-                    'meeting_id' => $context['meeting_id'],
-                    'member_id' => $memberId,
-                    'value' => $value,
-                    'weight' => $weight,
-                    'is_proxy_vote' => $isProxyVote,
-                    'proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
-                ];
-                if ($isUpdate) {
-                    $auditData['previous_value'] = $previousBallot['value'] ?? null;
-                    $auditData['previous_weight'] = (float) ($previousBallot['weight'] ?? 0);
+        try {
+            api_transaction(function () use ($meetingId, $tenantId, $motionId, $memberId, $value, $weight, $isProxyVote, $proxyVoterId, $context, $data) {
+                // Lock the meeting row to prevent TOCTOU race: meeting could
+                // transition from 'live' to 'closed' between the initial check
+                // and the ballot INSERT.
+                $lockedMeeting = $this->meetingRepo->lockForUpdate($meetingId, $tenantId);
+                if (!$lockedMeeting || $lockedMeeting['status'] !== 'live') {
+                    throw new RuntimeException('Séance non disponible pour le vote');
                 }
-                if (!empty($data['_idempotency_key'])) {
-                    $auditData['idempotency_key'] = (string) $data['_idempotency_key'];
+
+                // Strict INSERT — duplicate votes are rejected, not silently overwritten
+                $this->ballotRepo->castBallot(
+                    $tenantId,
+                    $motionId,
+                    $memberId,
+                    $value,
+                    $weight,
+                    $isProxyVote,
+                    $isProxyVote ? $proxyVoterId : null,
+                );
+
+                if (function_exists('audit_log')) {
+                    $auditData = [
+                        'meeting_id' => $context['meeting_id'],
+                        'member_id' => $memberId,
+                        'value' => $value,
+                        'weight' => $weight,
+                        'is_proxy_vote' => $isProxyVote,
+                        'proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
+                    ];
+                    if (!empty($data['_idempotency_key'])) {
+                        $auditData['idempotency_key'] = (string) $data['_idempotency_key'];
+                    }
+                    audit_log('ballot_cast', 'motion', $motionId, $auditData);
                 }
-                audit_log($auditAction, 'motion', $motionId, $auditData);
+            });
+        } catch (Throwable $e) {
+            // Unique constraint violation = member already voted on this motion
+            $msg = $e->getMessage();
+            if (stripos($msg, 'unique') !== false || stripos($msg, 'ballots_motion_id_member_id') !== false || stripos($msg, 'duplicate key') !== false) {
+                throw new RuntimeException('Ce membre a déjà voté sur cette résolution. Un re-vote nécessite une annulation préalable par l\'opérateur.');
             }
-        });
+            throw $e;
+        }
 
         // Broadcast WebSocket event with updated tally (outside transaction)
         try {

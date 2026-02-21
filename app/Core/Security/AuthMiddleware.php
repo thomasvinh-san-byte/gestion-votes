@@ -34,13 +34,8 @@ final class AuthMiddleware {
     // CONSTANTS — delegated to Permissions (single source of truth)
     // =========================================================================
 
-    /** System roles (subset of hierarchy with level >= viewer) */
-    private const SYSTEM_ROLES = [
-        'admin' => 100,
-        'operator' => 80,
-        'auditor' => 50,
-        'viewer' => 10,
-    ];
+    /** System roles — derived from Permissions::HIERARCHY minus meeting roles */
+    private const SYSTEM_ROLES = ['admin', 'operator', 'auditor', 'viewer'];
 
     /** Meeting roles (no hierarchy, distinct permissions) */
     private const MEETING_ROLES = ['president', 'assessor', 'voter'];
@@ -76,7 +71,12 @@ final class AuthMiddleware {
 
     public static function isEnabled(): bool {
         $env = getenv('APP_AUTH_ENABLED');
-        return $env === '1' || strtolower((string) $env) === 'true';
+        // Deny-by-default: auth is enabled unless explicitly disabled.
+        // Only APP_AUTH_ENABLED=0 or =false disables auth.
+        if ($env === '0' || strtolower((string) $env) === 'false') {
+            return false;
+        }
+        return true;
     }
 
     // =========================================================================
@@ -177,7 +177,7 @@ final class AuthMiddleware {
      * Checks if a role is a system role.
      */
     public static function isSystemRole(string $role): bool {
-        return isset(self::SYSTEM_ROLES[self::normalizeRole($role)]);
+        return in_array(self::normalizeRole($role), self::SYSTEM_ROLES, true);
     }
 
     // =========================================================================
@@ -515,13 +515,13 @@ final class AuthMiddleware {
     // =========================================================================
 
     public static function getSystemRoles(): array {
-        return array_keys(self::SYSTEM_ROLES);
+        return self::SYSTEM_ROLES;
     }
 
     public static function getSystemRoleLabels(): array {
         return array_intersect_key(
             Permissions::LABELS['roles'],
-            self::SYSTEM_ROLES,
+            array_flip(self::SYSTEM_ROLES),
         );
     }
 
@@ -700,17 +700,11 @@ final class AuthMiddleware {
     private static function getAppSecret(): string {
         $secret = defined('APP_SECRET') ? APP_SECRET : getenv('APP_SECRET');
 
-        // Strict validation: secret required if auth enabled or production
         if (!$secret || $secret === 'change-me-in-prod' || strlen($secret) < 32) {
-            if (self::isEnabled()) {
-                throw new RuntimeException(
-                    '[SECURITY] APP_SECRET must be set to a secure value (min 32 characters). ' .
-                    'Generate one with: php -r "echo bin2hex(random_bytes(32));"',
-                );
-            }
-            // In dev mode only, log a warning
-            error_log('[WARNING] Using insecure APP_SECRET in dev mode. Do NOT use in production.');
-            return 'dev-secret-not-for-production-' . str_repeat('x', 32);
+            throw new RuntimeException(
+                '[SECURITY] APP_SECRET must be set to a secure value (min 32 characters). ' .
+                'Generate one with: php -r "echo bin2hex(random_bytes(32));"',
+            );
         }
 
         return $secret;

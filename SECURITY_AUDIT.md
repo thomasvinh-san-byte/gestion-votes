@@ -13,28 +13,28 @@
 | # | Constatation | Severite initiale | Verdict | Severite verifiee |
 |---|-------------|-------------------|---------|-------------------|
 | 01 | Endpoint de vote sans authentification | CRITIQUE | **CORRIGEE** | — |
-| 02 | Upsert permet la modification silencieuse des votes | CRITIQUE | **CONFIRMEE** | CRITIQUE |
-| 03 | Authentification desactivee par defaut | CRITIQUE | **CONFIRMEE** | CRITIQUE |
+| 02 | Upsert permet la modification silencieuse des votes | CRITIQUE | **CORRIGEE** | — |
+| 03 | Authentification desactivee par defaut | CRITIQUE | **CORRIGEE** | — |
 | 04 | Suppression des audit logs (reset demo) | ELEVEE | **CONFIRMEE** (attenuee) | MOYENNE |
 | 05 | CSRF contourne pour endpoints public/voter | ELEVEE | **FAUX POSITIF** | — |
-| 06 | Absence d'isolation multi-tenant | ELEVEE | **CONFIRMEE** (mitigations amont) | ELEVEE |
-| 07 | Auditeur peut modifier via consolidation | ELEVEE | **CONFIRMEE** | ELEVEE |
-| 08 | Endpoint SSE sans authentification | ELEVEE | **CONFIRMEE** | ELEVEE |
-| 09 | Auditeur peut saisir comptages degrades | MOYENNE | **CONFIRMEE** | MOYENNE |
+| 06 | Absence d'isolation multi-tenant | ELEVEE | **CORRIGEE** | — |
+| 07 | Auditeur peut modifier via consolidation | ELEVEE | **CORRIGEE** | — |
+| 08 | Endpoint SSE sans authentification | ELEVEE | **FAUX POSITIF** (auth existante) | — |
+| 09 | Auditeur peut saisir comptages degrades | MOYENNE | **CORRIGEE** | — |
 | 10 | `setCurrentUser()` public en production | MOYENNE | **FAUX POSITIF** | — |
 | 11 | Resultats de vote sans authentification | MOYENNE | **CONFIRMEE** (tenant present) | FAIBLE |
 | 12 | `motions_close` sans scope seance | MOYENNE | **CONFIRMEE** | MOYENNE |
 | 13 | `meeting_validate` sans scope seance | MOYENNE | **CONFIRMEE** | MOYENNE |
 | 14 | Procedures d'urgence : IDOR faible | MOYENNE | **CONFIRMEE** | MOYENNE |
 | 15 | Signalement d'incident sans rate limiting | MOYENNE | **CONFIRMEE** | MOYENNE |
-| 16 | File WS sur filesystem sans controle d'acces | MOYENNE | **CONFIRMEE** | MOYENNE |
+| 16 | File WS sur filesystem sans controle d'acces | MOYENNE | **CORRIGEE** | — |
 | 17 | XSS potentiel via innerHTML | MOYENNE | **FAUX POSITIF** | — |
 | 18 | Fuite de detail d'erreur | MOYENNE | **RECLASSEE** | FAIBLE |
 | 19 | Hierarchie de roles implicite | FAIBLE | **CONFIRMEE** (design intentionnel) | INFO |
 | 20 | Heartbeat accepte role arbitraire | FAIBLE | **FAUX POSITIF** | — |
-| 21 | Permissions dupliquees | FAIBLE | **CONFIRMEE** (risque maintenance) | FAIBLE |
+| 21 | Permissions dupliquees | FAIBLE | **CORRIGEE** | — |
 | 22 | LIMIT par interpolation SQL | FAIBLE | **FAUX POSITIF** | — |
-| 23 | Secret de repli previsible | FAIBLE | **CONFIRMEE** (gate dev-only) | FAIBLE |
+| 23 | Secret de repli previsible | FAIBLE | **CORRIGEE** | — |
 | 24 | Absence de CSP | FAIBLE | **FAUX POSITIF** (CSP present dans bootstrap.php) | — |
 | 25 | Controles positifs | INFO | **CONFIRMEE** | INFO |
 
@@ -107,43 +107,19 @@ La hierarchie est un design intentionnel documente dans les commentaires d'archi
 
 ### CRITIQUE 02 — Upsert permet la modification silencieuse des votes
 
-**Fichier :** `app/Repository/BallotRepository.php:127-143`
-**Exploitabilite :** MOYENNE (necessite les memes preconditions que 01 + vote deja emis)
-
-**Mitigations existantes :**
-- Motion doit etre `live` et ouverte
-- `audit_log('ballot_cast', ...)` journalise le nouveau vote (mais pas l'ancien)
-
-**Remediation proposee :**
-Remplacer `ON CONFLICT DO UPDATE` par `INSERT` strict. Gerer le conflit unique en levant une erreur 409 (`already_voted`).
-
-**Complexite d'integration : FAIBLE**
-- Supprimer la clause `ON CONFLICT DO UPDATE` de `castBallot()`
-- Attraper l'exception de contrainte unique dans `BallotsService` et retourner 409
-- Si le re-vote est un besoin metier (president le demande), creer un endpoint dedie `ballots_revote` avec role `operator` et justification obligatoire, journalisant l'ancienne valeur
-- **Fichiers a modifier :** `BallotRepository.php`, `BallotsService.php`
-- **Estimation :** 1 jour (sans re-vote) / 2-3 jours (avec endpoint revote)
+**Statut : [x] CORRIGE** — `ON CONFLICT DO UPDATE` remplace par strict INSERT.
+- `BallotRepository::castBallot()` : INSERT strict, leve une exception sur doublon
+- `BallotsService::castBallot()` : intercepte la violation de contrainte unique, retourne erreur « deja vote »
+- Le re-vote necessite une annulation prealable par l'operateur (`ballots_cancel` avec justification)
 
 ---
 
 ### CRITIQUE 03 — Authentification desactivee par defaut
 
-**Fichier :** `app/Core/Security/AuthMiddleware.php:172-176`
-**Exploitabilite :** FACILE (oubli de configuration = systeme grand ouvert)
-
-**Mitigations existantes :**
-- `.env.example` configure `APP_AUTH_ENABLED=1` (mais c'est un template)
-- Bootstrap valide `APP_SECRET` en production
-
-**Remediation proposee :**
-Inverser la logique : `isEnabled()` retourne `true` par defaut, `false` uniquement si `APP_AUTH_ENABLED` vaut explicitement `0` ou `false`.
-
-**Complexite d'integration : FAIBLE**
-- Modifier `isEnabled()` dans `AuthMiddleware.php`
-- Verifier que les tests et le mode dev configurent explicitement `APP_AUTH_ENABLED=0`
-- Ajouter une validation dans `bootstrap.php` : refuser de demarrer si `APP_ENV=production` et `APP_AUTH_ENABLED=0`
-- **Fichiers a modifier :** `AuthMiddleware.php`, `bootstrap.php`, `.env.example`
-- **Estimation :** 0.5 jour
+**Statut : [x] CORRIGE** — `isEnabled()` retourne `true` par defaut (deny-by-default).
+- Auth desactivee uniquement si `APP_AUTH_ENABLED=0` ou `=false` explicitement
+- `getAppSecret()` : le fallback dev-secret supprime, APP_SECRET >= 32 chars toujours requis
+- Tests mis a jour : `OfficialResultsServiceTest` + `AuthMiddlewareTest`
 
 ---
 

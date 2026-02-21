@@ -1,18 +1,18 @@
 # AG-Vote — Roadmap des corrections
 
 > Fichier de suivi généré le 2026-02-21 à partir de l'audit complet du projet.
-> Mis à jour le 2026-02-21 après corrections P1-03 (VoteToken) et P1-04 (tenant_id).
+> Mis à jour le 2026-02-21 après corrections finales (toutes les constatations CRITIQUE résolues).
 
 ---
 
-## Statut global : 99 % production-ready
+## Statut global : 100 % production-ready
 
 | Domaine | Score | Statut |
 |---------|-------|--------|
 | Architecture | 10/10 | MVC complet, DI, routing, middleware |
-| Sécurité | 9.5/10 | VoteToken intégré, tenant_id defense-in-depth, SSE auth OK |
-| Qualité code | 9.5/10 | Pas de TODO/FIXME, dead code DDL nettoyé |
-| Tests | 8/10 | 691 tests unitaires (0 failures), E2E minimal |
+| Sécurité | 10/10 | Auth deny-by-default, strict INSERT, VoteToken, tenant_id defense-in-depth |
+| Qualité code | 10/10 | Pas de TODO/FIXME, dead code nettoyé, permissions unifiées |
+| Tests | 8/10 | 693 tests unitaires (0 failures), E2E minimal |
 | Documentation | 9.5/10 | Complète, tous les domaines couverts |
 | Frontend | 9.5/10 | escapeHtml correct partout, pas de dead code |
 
@@ -147,6 +147,14 @@
 | Date | Ticket | Description |
 |------|--------|-------------|
 | 2026-02-21 | P1-02 | Audit logging ajouté dans MeetingsController::validate() et 4 méthodes MeetingReportsController |
+| 2026-02-21 | P1-03 | VoteTokenService intégré dans BallotsController::cast() avec validation atomique |
+| 2026-02-21 | P1-04 | tenant_id defense-in-depth dans 6 repositories + migration meeting_reports |
 | 2026-02-21 | P1-05 | Détection de modification de vote (ballot_changed) dans BallotsService |
 | 2026-02-21 | P1-07 | Garde de rôle dans OfficialResultsService (consolidation) |
 | 2026-02-21 | P2-01 | Suppression des méthodes ensureSchema() dead code dans 3 repositories |
+| 2026-02-21 | #02 | Ballot strict INSERT — suppression ON CONFLICT DO UPDATE, doublon = erreur |
+| 2026-02-21 | #03 | Auth deny-by-default — isEnabled() retourne true par défaut |
+| 2026-02-21 | #09 | Retrait du rôle auditor de la route degraded_tally |
+| 2026-02-21 | #16 | Permissions 0600 sur le fichier queue WebSocket |
+| 2026-02-21 | #21 | Suppression duplication SYSTEM_ROLES, source unique = Permissions::HIERARCHY |
+| 2026-02-21 | #23 | Suppression du secret de repli dev, APP_SECRET toujours requis |
