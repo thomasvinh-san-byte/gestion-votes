@@ -18,6 +18,7 @@ final class EmailTemplateService {
     private EmailTemplateRepository $templateRepo;
     private MeetingRepository $meetingRepo;
     private MemberRepository $memberRepo;
+    private MeetingStatsRepository $statsRepo;
     private string $appUrl;
 
     /**
@@ -157,10 +158,17 @@ final class EmailTemplateService {
         </html>
         HTML;
 
-    public function __construct(array $config = []) {
-        $this->templateRepo = new EmailTemplateRepository();
-        $this->meetingRepo = new MeetingRepository();
-        $this->memberRepo = new MemberRepository();
+    public function __construct(
+        array $config = [],
+        ?EmailTemplateRepository $templateRepo = null,
+        ?MeetingRepository $meetingRepo = null,
+        ?MemberRepository $memberRepo = null,
+        ?MeetingStatsRepository $statsRepo = null,
+    ) {
+        $this->templateRepo = $templateRepo ?? new EmailTemplateRepository();
+        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+        $this->memberRepo = $memberRepo ?? new MemberRepository();
+        $this->statsRepo = $statsRepo ?? new MeetingStatsRepository();
         $this->appUrl = (string) (($config['app']['url'] ?? '') ?: 'http://localhost:8080');
     }
 
@@ -198,8 +206,7 @@ final class EmailTemplateService {
         $firstName = $nameParts[0] ?? '';
 
         // Motion count
-        $statsRepo = new MeetingStatsRepository();
-        $motionsCount = (int) ($statsRepo->countMotions($meetingId) ?? 0);
+        $motionsCount = (int) ($this->statsRepo->countMotions($meetingId) ?? 0);
 
         return [
             '{{member_name}}' => $fullName,

@@ -67,7 +67,7 @@ final class MeetingWorkflowController extends AbstractController {
         AuthMiddleware::requireTransition($fromStatus, $toStatus, $meetingId);
 
         $forceTransition = filter_var($input['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $workflowCheck = MeetingWorkflowService::issuesBeforeTransition($meetingId, api_current_tenant_id(), $toStatus);
+        $workflowCheck = (new MeetingWorkflowService())->issuesBeforeTransition($meetingId, api_current_tenant_id(), $toStatus);
 
         if ($forceTransition && api_current_role() !== 'admin') {
             api_fail('force_requires_admin', 403, [
@@ -214,7 +214,7 @@ final class MeetingWorkflowController extends AbstractController {
             $allWarnings = [];
             $simulatedFrom = $fromStatus;
             foreach ($path as $step) {
-                $stepCheck = MeetingWorkflowService::issuesBeforeTransition($meetingId, $tenant, $step, $simulatedFrom);
+                $stepCheck = (new MeetingWorkflowService())->issuesBeforeTransition($meetingId, $tenant, $step, $simulatedFrom);
                 $allIssues = array_merge($allIssues, $stepCheck['issues']);
                 $allWarnings = array_merge($allWarnings, $stepCheck['warnings']);
                 $simulatedFrom = $step;
@@ -292,10 +292,10 @@ final class MeetingWorkflowController extends AbstractController {
         $tenantId = api_current_tenant_id();
 
         if ($toStatus === '') {
-            $result = MeetingWorkflowService::getTransitionReadiness($meetingId, $tenantId);
+            $result = (new MeetingWorkflowService())->getTransitionReadiness($meetingId, $tenantId);
             api_ok($result);
         } else {
-            $result = MeetingWorkflowService::issuesBeforeTransition($meetingId, $tenantId, $toStatus);
+            $result = (new MeetingWorkflowService())->issuesBeforeTransition($meetingId, $tenantId, $toStatus);
             api_ok([
                 'to_status' => $toStatus,
                 'can_proceed' => $result['can_proceed'],
@@ -463,7 +463,7 @@ final class MeetingWorkflowController extends AbstractController {
             ]);
         }
 
-        $r = OfficialResultsService::consolidateMeeting($meetingId, $tenantId);
+        $r = (new OfficialResultsService())->consolidateMeeting($meetingId, $tenantId);
 
         audit_log('meeting.consolidate', 'meeting', $meetingId, [
             'updated_motions' => $r['updated'],

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
@@ -17,6 +18,26 @@ use RuntimeException;
  * Single source of truth for quorum/majority calculation.
  */
 final class VoteEngine {
+    private MotionRepository $motionRepo;
+    private BallotRepository $ballotRepo;
+    private MemberRepository $memberRepo;
+    private PolicyRepository $policyRepo;
+    private AttendanceRepository $attendanceRepo;
+
+    public function __construct(
+        ?MotionRepository $motionRepo = null,
+        ?BallotRepository $ballotRepo = null,
+        ?MemberRepository $memberRepo = null,
+        ?PolicyRepository $policyRepo = null,
+        ?AttendanceRepository $attendanceRepo = null,
+    ) {
+        $this->motionRepo = $motionRepo ?? new MotionRepository();
+        $this->ballotRepo = $ballotRepo ?? new BallotRepository();
+        $this->memberRepo = $memberRepo ?? new MemberRepository();
+        $this->policyRepo = $policyRepo ?? new PolicyRepository();
+        $this->attendanceRepo = $attendanceRepo ?? new AttendanceRepository();
+    }
+
     /**
      * Pure quorum/majority calculation. No I/O — takes all inputs as parameters.
      * Used by both computeMotionResult() and OfficialResultsService::decideWithPolicies().
@@ -125,14 +146,13 @@ final class VoteEngine {
      *
      * @return array<string,mixed>
      */
-    public static function computeMotionResult(string $motionId): array {
+    public function computeMotionResult(string $motionId): array {
         $motionId = trim($motionId);
         if ($motionId === '') {
             throw new InvalidArgumentException('motion_id obligatoire');
         }
 
-        $motionRepo = new MotionRepository();
-        $motion = $motionRepo->findWithVoteContext($motionId);
+        $motion = $this->motionRepo->findWithVoteContext($motionId);
 
         if (!$motion) {
             throw new RuntimeException('Motion introuvable');
@@ -142,8 +162,7 @@ final class VoteEngine {
         $meetingId = (string) $motion['meeting_id'];
 
         // Aggregate ballots by value
-        $ballotRepo = new BallotRepository();
-        $t = $ballotRepo->tally($motionId, $tenantId);
+        $t = $this->ballotRepo->tally($motionId, $tenantId);
 
         $tallies = [
             'for' => ['count' => (int) $t['count_for'],     'weight' => (float) $t['weight_for']],
@@ -161,16 +180,13 @@ final class VoteEngine {
             + $tallies['abstain']['weight'];
 
         // Eligible voters (by tenant)
-        $memberRepo = new MemberRepository();
-        $eligibleMembers = $memberRepo->countActive($tenantId);
-        $eligibleWeight = $memberRepo->sumActiveWeight($tenantId);
+        $eligibleMembers = $this->memberRepo->countActive($tenantId);
+        $eligibleWeight = $this->memberRepo->sumActiveWeight($tenantId);
 
         // Load policies if any
-        $policyRepo = new PolicyRepository();
-
         $quorumPolicy = null;
         if (!empty($motion['quorum_policy_id'])) {
-            $quorumPolicy = $policyRepo->findQuorumPolicy((string) $motion['quorum_policy_id']);
+            $quorumPolicy = $this->policyRepo->findQuorumPolicy((string) $motion['quorum_policy_id']);
         }
 
         // Resolve vote policy: motion-level > meeting-level
@@ -180,14 +196,13 @@ final class VoteEngine {
 
         $votePolicy = null;
         if ($appliedVotePolicyId !== '') {
-            $votePolicy = $policyRepo->findVotePolicy($appliedVotePolicyId);
+            $votePolicy = $this->policyRepo->findVotePolicy($appliedVotePolicyId);
         }
 
         // Resolve present weight for 'present' majority base
         $presentWeight = null;
         if ($votePolicy && ($votePolicy['base'] ?? '') === 'present') {
-            $attendanceRepo = new \AgVote\Repository\AttendanceRepository();
-            $presentWeight = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
+            $presentWeight = $this->attendanceRepo->sumPresentWeight($meetingId, $tenantId, ['present', 'remote']);
         }
 
         // Compute decision using the shared engine

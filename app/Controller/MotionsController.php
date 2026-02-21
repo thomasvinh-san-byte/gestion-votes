@@ -533,7 +533,7 @@ final class MotionsController extends AbstractController {
 
             $repo->markClosed($motionId, api_current_tenant_id());
 
-            $o = OfficialResultsService::computeOfficialTallies((string) $motionId);
+            $o = (new OfficialResultsService())->computeOfficialTallies((string) $motionId);
             $repo->updateOfficialResults(
                 (string) $motionId,
                 $o['source'],
@@ -553,7 +553,7 @@ final class MotionsController extends AbstractController {
         $o = $txResult['o'];
 
         try {
-            VoteTokenService::revokeForMotion($motionId, api_current_tenant_id());
+            (new VoteTokenService())->revokeForMotion($motionId, api_current_tenant_id());
         } catch (Throwable $tokenErr) {
             if ($tokenErr instanceof \AgVote\Core\Http\ApiResponseException) {
                 throw $tokenErr;
@@ -677,7 +677,7 @@ final class MotionsController extends AbstractController {
             'justification' => $justification,
         ]);
 
-        NotificationsService::emit(
+        (new NotificationsService())->emit(
             $meetingId,
             'warn',
             'degraded_manual_tally',

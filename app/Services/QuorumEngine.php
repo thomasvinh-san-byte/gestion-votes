@@ -33,6 +33,26 @@ use RuntimeException;
  * @package AgVote\Service
  */
 final class QuorumEngine {
+    private MotionRepository $motionRepo;
+    private PolicyRepository $policyRepo;
+    private AttendanceRepository $attendanceRepo;
+    private MemberRepository $memberRepo;
+    private MeetingRepository $meetingRepo;
+
+    public function __construct(
+        ?MotionRepository $motionRepo = null,
+        ?PolicyRepository $policyRepo = null,
+        ?AttendanceRepository $attendanceRepo = null,
+        ?MemberRepository $memberRepo = null,
+        ?MeetingRepository $meetingRepo = null,
+    ) {
+        $this->motionRepo = $motionRepo ?? new MotionRepository();
+        $this->policyRepo = $policyRepo ?? new PolicyRepository();
+        $this->attendanceRepo = $attendanceRepo ?? new AttendanceRepository();
+        $this->memberRepo = $memberRepo ?? new MemberRepository();
+        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+    }
+
     /**
      * Compute quorum status for a specific motion.
      *
@@ -45,14 +65,13 @@ final class QuorumEngine {
      *
      * @return array{applied: bool, met: ?bool, details: array, justification: string, meeting: array, policy?: array}
      */
-    public static function computeForMotion(string $motionId): array {
+    public function computeForMotion(string $motionId): array {
         $motionId = trim($motionId);
         if ($motionId === '') {
             throw new InvalidArgumentException('motion_id obligatoire');
         }
 
-        $motionRepo = new MotionRepository();
-        $row = $motionRepo->findWithQuorumContext($motionId);
+        $row = $this->motionRepo->findWithQuorumContext($motionId);
         if (!$row) {
             throw new RuntimeException('Motion introuvable');
         }
@@ -62,15 +81,14 @@ final class QuorumEngine {
             return self::noPolicy((string) $row['meeting_id'], (string) $row['tenant_id']);
         }
 
-        $policyRepo = new PolicyRepository();
-        $policy = $policyRepo->findQuorumPolicy($policyId);
+        $policy = $this->policyRepo->findQuorumPolicy($policyId);
         if (!$policy) {
             return self::noPolicy((string) $row['meeting_id'], (string) $row['tenant_id']);
         }
 
         $openedAt = $row['motion_opened_at'] ?? null;
 
-        return self::computeInternal((string) $row['meeting_id'], (string) $row['tenant_id'], (int) $row['convocation_no'], $policy, $openedAt) + [
+        return $this->computeInternal((string) $row['meeting_id'], (string) $row['tenant_id'], (int) $row['convocation_no'], $policy, $openedAt) + [
             'policy' => ['id' => (string) $policy['id'], 'name' => (string) $policy['name'], 'mode' => (string) $policy['mode']],
             'applies_to' => ['motion_id' => (string) $row['motion_id'], 'motion_title' => (string) $row['motion_title']],
         ];
@@ -82,7 +100,7 @@ final class QuorumEngine {
      * @param string $meetingId Meeting ID
      * @param string|null $expectedTenantId If provided, validates meeting belongs to this tenant
      */
-    public static function computeForMeeting(string $meetingId, ?string $expectedTenantId = null): array {
+    public function computeForMeeting(string $meetingId, ?string $expectedTenantId = null): array {
         $meetingId = trim($meetingId);
         if ($meetingId === '') {
             throw new InvalidArgumentException('meeting_id obligatoire');
@@ -90,8 +108,7 @@ final class QuorumEngine {
 
         $expectedTenantId = $expectedTenantId ?: api_current_tenant_id();
 
-        $meetingRepo = new MeetingRepository();
-        $row = $meetingRepo->findByIdForTenant($meetingId, $expectedTenantId);
+        $row = $this->meetingRepo->findByIdForTenant($meetingId, $expectedTenantId);
         if (!$row) {
             throw new RuntimeException('Séance introuvable');
         }
@@ -104,13 +121,12 @@ final class QuorumEngine {
             return self::noPolicy($meetingId, $tenantId);
         }
 
-        $policyRepo = new PolicyRepository();
-        $policy = $policyRepo->findQuorumPolicy($policyId);
+        $policy = $this->policyRepo->findQuorumPolicy($policyId);
         if (!$policy) {
             return self::noPolicy($meetingId, $tenantId);
         }
 
-        return self::computeInternal($meetingId, $tenantId, $convocationNo, $policy, null) + [
+        return $this->computeInternal($meetingId, $tenantId, $convocationNo, $policy, null) + [
             'policy' => ['id' => (string) $policy['id'], 'name' => (string) $policy['name'], 'mode' => (string) $policy['mode']],
         ];
     }
@@ -144,7 +160,7 @@ final class QuorumEngine {
      *
      * @return array Quorum calculation results
      */
-    private static function computeInternal(string $meetingId, string $tenantId, int $convocationNo, array $policy, $motionOpenedAt): array {
+    private function computeInternal(string $meetingId, string $tenantId, int $convocationNo, array $policy, $motionOpenedAt): array {
         $includeProxies = (bool) ($policy['include_proxies'] ?? true);
         $countRemote = (bool) ($policy['count_remote'] ?? true);
         $mode = (string) ($policy['mode'] ?? 'single');
@@ -166,13 +182,11 @@ final class QuorumEngine {
 
         $lateCutoff = ($motionOpenedAt !== null) ? (string) $motionOpenedAt : null;
 
-        $attendanceRepo = new AttendanceRepository();
-        $numMembers = $attendanceRepo->countPresentMembers($meetingId, $tenantId, $allowed, $lateCutoff);
-        $numWeight = $attendanceRepo->sumPresentWeight($meetingId, $tenantId, $allowed, $lateCutoff);
+        $numMembers = $this->attendanceRepo->countPresentMembers($meetingId, $tenantId, $allowed, $lateCutoff);
+        $numWeight = $this->attendanceRepo->sumPresentWeight($meetingId, $tenantId, $allowed, $lateCutoff);
 
-        $memberRepo = new MemberRepository();
-        $eligibleMembers = $memberRepo->countActive($tenantId);
-        $eligibleWeight = $memberRepo->sumActiveWeight($tenantId);
+        $eligibleMembers = $this->memberRepo->countActive($tenantId);
+        $eligibleWeight = $this->memberRepo->sumActiveWeight($tenantId);
 
         $primary = self::ratioBlock($den1, $thr1, $numMembers, $numWeight, $eligibleMembers, $eligibleWeight);
         $met = $primary['met'];

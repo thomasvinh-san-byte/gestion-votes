@@ -22,12 +22,23 @@ final class VoteTokenService {
     private const TOKEN_BYTES = 32;
     private const DEFAULT_TTL_SECONDS = 3600; // 1h
 
+    private MeetingRepository $meetingRepo;
+    private VoteTokenRepository $tokenRepo;
+
+    public function __construct(
+        ?MeetingRepository $meetingRepo = null,
+        ?VoteTokenRepository $tokenRepo = null,
+    ) {
+        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+        $this->tokenRepo = $tokenRepo ?? new VoteTokenRepository();
+    }
+
     /**
      * Generates a vote token and persists its hash.
      *
      * @return array{token: string, token_hash: string, expires_at: string}
      */
-    public static function generate(
+    public function generate(
         string $meetingId,
         string $memberId,
         string $motionId,
@@ -41,8 +52,7 @@ final class VoteTokenService {
         if ($meetingId === '' || $memberId === '' || $motionId === '') {
             throw new InvalidArgumentException('meeting_id, member_id et motion_id sont obligatoires');
         }
-        $meetingRepo = new MeetingRepository();
-        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+        $meeting = $this->meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             throw new RuntimeException('Séance introuvable');
         }
@@ -54,8 +64,7 @@ final class VoteTokenService {
         $ttlSeconds = max(60, $ttlSeconds);
         $expiresAt = gmdate('Y-m-d\TH:i:s\Z', time() + $ttlSeconds);
 
-        $tokenRepo = new VoteTokenRepository();
-        $tokenRepo->insert($tokenHash, $tenantId, $meetingId, $memberId, $motionId, $expiresAt);
+        $this->tokenRepo->insert($tokenHash, $tenantId, $meetingId, $memberId, $motionId, $expiresAt);
 
         return [
             'token' => $tokenRaw,
@@ -69,7 +78,7 @@ final class VoteTokenService {
      *
      * @return array{valid: bool, token_hash: string, meeting_id?: string, member_id?: string, motion_id?: string, reason?: string}
      */
-    public static function validate(string $token): array {
+    public function validate(string $token): array {
         $token = trim($token);
         if ($token === '') {
             return ['valid' => false, 'token_hash' => '', 'reason' => 'token_empty'];
@@ -77,8 +86,7 @@ final class VoteTokenService {
 
         $tokenHash = hash('sha256', $token);
 
-        $tokenRepo = new VoteTokenRepository();
-        $row = $tokenRepo->findByHash($tokenHash);
+        $row = $this->tokenRepo->findByHash($tokenHash);
 
         if (!$row) {
             return ['valid' => false, 'token_hash' => $tokenHash, 'reason' => 'token_not_found'];
@@ -105,7 +113,7 @@ final class VoteTokenService {
     /**
      * Marks a token as used (consumed).
      */
-    public static function consume(string $token, string $tenantId = ''): bool {
+    public function consume(string $token, string $tenantId = ''): bool {
         $token = trim($token);
         if ($token === '') {
             return false;
@@ -113,17 +121,15 @@ final class VoteTokenService {
 
         $tokenHash = hash('sha256', $token);
 
-        $tokenRepo = new VoteTokenRepository();
-
         if ($tenantId === '') {
-            $row = $tokenRepo->findByHash($tokenHash);
+            $row = $this->tokenRepo->findByHash($tokenHash);
             if (!$row) {
                 return false;
             }
             $tenantId = (string) $row['tenant_id'];
         }
 
-        $affected = $tokenRepo->consume($tokenHash, $tenantId);
+        $affected = $this->tokenRepo->consume($tokenHash, $tenantId);
 
         return $affected > 0;
     }
@@ -134,7 +140,7 @@ final class VoteTokenService {
      *
      * @return array{valid: bool, token_hash: string, meeting_id?: string, member_id?: string, motion_id?: string, reason?: string}
      */
-    public static function validateAndConsume(string $token): array {
+    public function validateAndConsume(string $token): array {
         $token = trim($token);
         if ($token === '') {
             return ['valid' => false, 'token_hash' => '', 'reason' => 'token_empty'];
@@ -142,12 +148,11 @@ final class VoteTokenService {
 
         $tokenHash = hash('sha256', $token);
 
-        $tokenRepo = new VoteTokenRepository();
-        $row = $tokenRepo->consumeIfValid($tokenHash);
+        $row = $this->tokenRepo->consumeIfValid($tokenHash);
 
         if (!$row) {
             // Token not found, already used, or expired — check which
-            $existing = $tokenRepo->findByHash($tokenHash);
+            $existing = $this->tokenRepo->findByHash($tokenHash);
             if (!$existing) {
                 return ['valid' => false, 'token_hash' => $tokenHash, 'reason' => 'token_not_found'];
             }
@@ -169,8 +174,7 @@ final class VoteTokenService {
     /**
      * Revokes all unused tokens for a given motion.
      */
-    public static function revokeForMotion(string $motionId, string $tenantId): int {
-        $tokenRepo = new VoteTokenRepository();
-        return $tokenRepo->revokeForMotion($motionId, $tenantId);
+    public function revokeForMotion(string $motionId, string $tenantId): int {
+        return $this->tokenRepo->revokeForMotion($motionId, $tenantId);
     }
 }

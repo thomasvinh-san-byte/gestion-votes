@@ -19,7 +19,7 @@ final class ProxiesController extends AbstractController {
         $meetingId = api_require_uuid($q, 'meeting_id');
         $tenantId = api_current_tenant_id();
 
-        $rows = ProxiesService::listForMeeting($meetingId, $tenantId);
+        $rows = (new ProxiesService())->listForMeeting($meetingId, $tenantId);
         api_ok([
             'meeting_id' => $meetingId,
             'count' => count($rows),
@@ -39,7 +39,7 @@ final class ProxiesController extends AbstractController {
         $scope = trim((string) ($in['scope'] ?? 'full'));
 
         if ($receiverRaw === '') {
-            ProxiesService::revoke($meetingId, $giverId);
+            (new ProxiesService())->revoke($meetingId, $giverId);
             audit_log('proxy_revoked', 'meeting', $meetingId, [
                 'giver_member_id' => $giverId,
             ]);
@@ -57,7 +57,7 @@ final class ProxiesController extends AbstractController {
             ]);
         }
 
-        ProxiesService::upsert($meetingId, $giverId, $receiverRaw, $tenantId);
+        (new ProxiesService())->upsert($meetingId, $giverId, $receiverRaw, $tenantId);
 
         audit_log('proxy_upsert', 'meeting', $meetingId, [
             'giver_member_id' => $giverId,

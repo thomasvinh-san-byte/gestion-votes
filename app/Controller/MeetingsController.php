@@ -154,10 +154,10 @@ final class MeetingsController extends AbstractController {
         $openMotions = (int) ($counts['open_motions'] ?? 0);
         $closedWithoutTally = (int) ($counts['closed_without_tally'] ?? 0);
 
-        $validation = MeetingValidator::canBeValidated((string) $meeting['meeting_id'], api_current_tenant_id());
+        $validation = (new MeetingValidator())->canBeValidated((string) $meeting['meeting_id'], api_current_tenant_id());
         $readyToSign = (bool) ($validation['can'] ?? false);
 
-        NotificationsService::emitReadinessTransitions((string) $meeting['meeting_id'], $validation, api_current_tenant_id());
+        (new NotificationsService())->emitReadinessTransitions((string) $meeting['meeting_id'], $validation, api_current_tenant_id());
 
         $signStatus = 'not_ready';
         $signMessage = 'Séance en cours de traitement.';
@@ -203,10 +203,10 @@ final class MeetingsController extends AbstractController {
             api_fail('meeting_not_found', 404);
         }
 
-        $validation = MeetingValidator::canBeValidated((string) $meetingId, api_current_tenant_id());
+        $validation = (new MeetingValidator())->canBeValidated((string) $meetingId, api_current_tenant_id());
         $readyToSign = (bool) ($validation['can'] ?? false);
 
-        NotificationsService::emitReadinessTransitions((string) $meetingId, $validation, api_current_tenant_id());
+        (new NotificationsService())->emitReadinessTransitions((string) $meetingId, $validation, api_current_tenant_id());
 
         $signStatus = 'not_ready';
         $signMessage = '';
@@ -495,7 +495,7 @@ final class MeetingsController extends AbstractController {
 
         try {
             api_transaction(function () use ($repo, $meetingId, $tenant) {
-                $pvHtml = MeetingReportService::renderHtml($meetingId, true);
+                $pvHtml = (new MeetingReportService())->renderHtml($meetingId, true);
                 $repo->markValidated($meetingId, $tenant);
                 (new MeetingReportRepository())->storeHtml($meetingId, $pvHtml);
             });

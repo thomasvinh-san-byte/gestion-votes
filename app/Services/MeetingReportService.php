@@ -14,35 +14,49 @@ use RuntimeException;
 use Throwable;
 
 final class MeetingReportService {
-    public static function renderHtml(string $meetingId, bool $showVoters = false): string {
+    private MeetingRepository $meetingRepo;
+    private MotionRepository $motionRepo;
+    private AttendanceRepository $attendanceRepo;
+    private ManualActionRepository $manualActionRepo;
+    private PolicyRepository $policyRepo;
+
+    public function __construct(
+        ?MeetingRepository $meetingRepo = null,
+        ?MotionRepository $motionRepo = null,
+        ?AttendanceRepository $attendanceRepo = null,
+        ?ManualActionRepository $manualActionRepo = null,
+        ?PolicyRepository $policyRepo = null,
+    ) {
+        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+        $this->motionRepo = $motionRepo ?? new MotionRepository();
+        $this->attendanceRepo = $attendanceRepo ?? new AttendanceRepository();
+        $this->manualActionRepo = $manualActionRepo ?? new ManualActionRepository();
+        $this->policyRepo = $policyRepo ?? new PolicyRepository();
+    }
+
+    public function renderHtml(string $meetingId, bool $showVoters = false, ?string $tenantId = null): string {
         $meetingId = trim($meetingId);
         if ($meetingId === '') {
             throw new InvalidArgumentException('meeting_id obligatoire');
         }
 
-        $tenant = \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId() ?: DEFAULT_TENANT_ID;
+        $tenant = $tenantId ?? \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId() ?? DEFAULT_TENANT_ID;
 
-        $meetingRepo = new MeetingRepository();
-        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
+        $meeting = $this->meetingRepo->findByIdForTenant($meetingId, $tenant);
         if (!$meeting) {
             throw new RuntimeException('meeting_not_found');
         }
 
-        $motionRepo = new MotionRepository();
-        $motions = $motionRepo->listForReport($meetingId);
+        $motions = $this->motionRepo->listForReport($meetingId);
 
-        $attRepo = new AttendanceRepository();
-        $attendance = $attRepo->listForReport($meetingId, $tenant);
+        $attendance = $this->attendanceRepo->listForReport($meetingId, $tenant);
 
         $manualActions = [];
         try {
-            $maRepo = new ManualActionRepository();
-            $manualActions = $maRepo->listForMeeting($meetingId);
+            $manualActions = $this->manualActionRepo->listForMeeting($meetingId);
         } catch (Throwable $e) {
             $manualActions = [];
         }
-
-        $policyRepo = new PolicyRepository();
 
         $h = fn ($s) => htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
@@ -130,7 +144,7 @@ final class MeetingReportService {
             $hasOfficial = ($src !== '') && ($m['official_total'] !== null);
 
             if (!$hasOfficial && $m['closed_at'] !== null) {
-                $o = OfficialResultsService::computeOfficialTallies($mid);
+                $o = (new OfficialResultsService())->computeOfficialTallies($mid);
                 $src = $o['source'];
                 $of = (float) $o['for'];
                 $og = (float) $o['against'];
@@ -153,18 +167,18 @@ final class MeetingReportService {
             // Policy labels + justifications
             $votePolicy = null;
             if (!empty($m['vote_policy_id'])) {
-                $votePolicy = $policyRepo->findVotePolicy($m['vote_policy_id']);
+                $votePolicy = $this->policyRepo->findVotePolicy($m['vote_policy_id']);
             }
             $quorumPolicy = null;
             if (!empty($m['quorum_policy_id'])) {
-                $quorumPolicy = $policyRepo->findQuorumPolicy($m['quorum_policy_id']);
+                $quorumPolicy = $this->policyRepo->findQuorumPolicy($m['quorum_policy_id']);
             }
 
             $policyLine = self::policyLine($votePolicy, $quorumPolicy);
 
             $quorumJust = null;
             try {
-                $qr = QuorumEngine::computeForMotion($mid);
+                $qr = (new QuorumEngine())->computeForMotion($mid);
                 $quorumJust = (string) ($qr['justification'] ?? null);
             } catch (Throwable $e) {
                 $quorumJust = null;
@@ -172,7 +186,7 @@ final class MeetingReportService {
 
             $majorityJust = null;
             try {
-                $vr = VoteEngine::computeMotionResult($mid);
+                $vr = (new VoteEngine())->computeMotionResult($mid);
                 $maj = $vr['majority'] ?? null;
                 if (is_array($maj)) {
                     $majorityJust = self::majorityLine($maj);

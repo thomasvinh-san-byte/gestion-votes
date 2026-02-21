@@ -388,7 +388,7 @@ function seedBallots(string $motionId, array $members): void {
         ];
 
         try {
-            $ballot = BallotsService::castBallot($data);
+            $ballot = (new BallotsService())->castBallot($data);
             echo "  • Vote enregistré : motion {$ballot['motion_id']} / membre {$ballot['member_id']} = {$ballot['value']}\n";
         } catch (Throwable $e) {
             echo '  ! Erreur enregistrement vote : ' . $e->getMessage() . "\n";
@@ -402,7 +402,7 @@ function seedBallots(string $motionId, array $members): void {
 function showComputedResult(string $motionId): void {
     echo "\n=== Résultat calculé par VoteEngine ===\n";
     try {
-        $result = VoteEngine::computeMotionResult($motionId);
+        $result = (new VoteEngine())->computeMotionResult($motionId);
         print_r($result);
     } catch (Throwable $e) {
         echo 'Erreur computeMotionResult: ' . $e->getMessage() . "\n";

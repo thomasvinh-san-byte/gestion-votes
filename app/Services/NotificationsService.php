@@ -14,19 +14,27 @@ use AgVote\Repository\NotificationRepository;
  * - Best-effort anti-spam: deduplication within a short window
  */
 final class NotificationsService {
+    private MeetingRepository $meetingRepo;
+    private NotificationRepository $notifRepo;
+
+    public function __construct(
+        ?MeetingRepository $meetingRepo = null,
+        ?NotificationRepository $notifRepo = null,
+    ) {
+        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+        $this->notifRepo = $notifRepo ?? new NotificationRepository();
+    }
+
     /**
      * Emits notifications when readiness state changes (without spam).
      *
      * @param array<string,mixed> $validation Return from MeetingValidator::canBeValidated
      */
-    public static function emitReadinessTransitions(string $meetingId, array $validation, string $tenantId): void {
-        $meetingRepo = new MeetingRepository();
-        $row = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+    public function emitReadinessTransitions(string $meetingId, array $validation, string $tenantId): void {
+        $row = $this->meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$row) {
             return;
         }
-
-        $notifRepo = new NotificationRepository();
 
         $ready = (bool) ($validation['can'] ?? false);
         $codes = $validation['codes'] ?? [];
@@ -36,7 +44,7 @@ final class NotificationsService {
         $codes = array_values(array_unique(array_map('strval', $codes)));
         sort($codes);
 
-        $prev = $notifRepo->findValidationState($meetingId);
+        $prev = $this->notifRepo->findValidationState($meetingId);
 
         $prevReady = null;
         $prevCodes = [];
@@ -51,7 +59,7 @@ final class NotificationsService {
         }
 
         // State upsert (before emitting to avoid duplicates on concurrent calls)
-        $notifRepo->upsertValidationState($meetingId, $tenantId, $ready, json_encode($codes, JSON_UNESCAPED_UNICODE));
+        $this->notifRepo->upsertValidationState($meetingId, $tenantId, $ready, json_encode($codes, JSON_UNESCAPED_UNICODE));
 
         // First pass: initialize silently.
         if ($prevReady === null) {
@@ -60,7 +68,7 @@ final class NotificationsService {
 
         // Global transition
         if ($prevReady === false && $ready === true) {
-            self::emit($meetingId, 'info', 'readiness_ready', 'Séance prête à validation du Président.', ['operator', 'trust'], [
+            $this->emit($meetingId, 'info', 'readiness_ready', 'Séance prête à validation du Président.', ['operator', 'trust'], [
                 'action_label' => 'Aller à la validation',
                 'action_url' => '/trust.htmx.html',
             ], $tenantId);
@@ -68,7 +76,7 @@ final class NotificationsService {
         }
         if ($prevReady === true && $ready === false) {
             // Don't spam with all details here: "reasons" follow via per-code notifications (below).
-            self::emit($meetingId, 'warn', 'readiness_not_ready', 'Séance n\'est plus prête à être validée.', ['operator', 'trust'], [
+            $this->emit($meetingId, 'warn', 'readiness_not_ready', 'Séance n\'est plus prête à être validée.', ['operator', 'trust'], [
                 'action_label' => 'Voir les blocages',
                 'action_url' => '/operator.htmx.html',
             ], $tenantId);
@@ -79,19 +87,19 @@ final class NotificationsService {
         $removed = array_values(array_diff($prevCodes, $codes));
 
         foreach ($added as $code) {
-            $tpl = self::readinessTemplate($code, true);
-            self::emit($meetingId, $tpl['severity'], 'readiness_' . $code, $tpl['message'], $tpl['audience'], $tpl['data'], $tenantId);
+            $tpl = $this->readinessTemplate($code, true);
+            $this->emit($meetingId, $tpl['severity'], 'readiness_' . $code, $tpl['message'], $tpl['audience'], $tpl['data'], $tenantId);
         }
         foreach ($removed as $code) {
-            $tpl = self::readinessTemplate($code, false);
-            self::emit($meetingId, $tpl['severity'], 'readiness_' . $code . '_resolved', $tpl['message'], $tpl['audience'], $tpl['data'], $tenantId);
+            $tpl = $this->readinessTemplate($code, false);
+            $this->emit($meetingId, $tpl['severity'], 'readiness_' . $code . '_resolved', $tpl['message'], $tpl['audience'], $tpl['data'], $tenantId);
         }
     }
 
     /**
      * @return array{severity:string,message:string,audience:array<int,string>,data:array<string,mixed>}
      */
-    private static function readinessTemplate(string $code, bool $added): array {
+    private function readinessTemplate(string $code, bool $added): array {
         // Default: blocker for operator + president (trust)
         $aud = ['operator', 'trust'];
 
@@ -153,7 +161,7 @@ final class NotificationsService {
      * @param array<string,mixed> $data
      * @param array<int,string> $audience
      */
-    public static function emit(
+    public function emit(
         string $meetingId,
         string $severity,
         string $code,
@@ -162,16 +170,13 @@ final class NotificationsService {
         array $data = [],
         string $tenantId,
     ): void {
-        $meetingRepo = new MeetingRepository();
-        $row = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+        $row = $this->meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$row) {
             return;
         }
 
-        $notifRepo = new NotificationRepository();
-
         // Best-effort deduplication: same code + message + meeting in last 10 seconds
-        $recent = $notifRepo->countRecentDuplicates($meetingId, $code, $message);
+        $recent = $this->notifRepo->countRecentDuplicates($meetingId, $code, $message);
         if ($recent > 0) {
             return;
         }
@@ -188,15 +193,14 @@ final class NotificationsService {
             return '"' . $x . '"';
         }, $aud)) . '}';
 
-        $notifRepo->insert($tenantId, $meetingId, $severity, $code, $message, $audLiteral, json_encode($data, JSON_UNESCAPED_UNICODE));
+        $this->notifRepo->insert($tenantId, $meetingId, $severity, $code, $message, $audLiteral, json_encode($data, JSON_UNESCAPED_UNICODE));
     }
 
     /**
      * @return array<int,array<string,mixed>>
      */
-    public static function list(string $meetingId, string $audience = 'operator', int $sinceId = 0, int $limit = 30): array {
-        $notifRepo = new NotificationRepository();
-        return $notifRepo->listSinceId($meetingId, $sinceId, $limit, $audience);
+    public function list(string $meetingId, string $audience = 'operator', int $sinceId = 0, int $limit = 30): array {
+        return $this->notifRepo->listSinceId($meetingId, $sinceId, $limit, $audience);
     }
 
     /**
@@ -204,20 +208,19 @@ final class NotificationsService {
      *
      * @return array<int,array<string,mixed>>
      */
-    public static function recent(string $meetingId, string $audience = 'operator', int $limit = 80): array {
-        $notifRepo = new NotificationRepository();
-        return $notifRepo->listRecent($meetingId, $limit, $audience);
+    public function recent(string $meetingId, string $audience = 'operator', int $limit = 80): array {
+        return $this->notifRepo->listRecent($meetingId, $limit, $audience);
     }
 
-    public static function markRead(string $meetingId, int $id, string $tenantId): void {
-        (new NotificationRepository())->markRead($meetingId, $id, $tenantId);
+    public function markRead(string $meetingId, int $id, string $tenantId): void {
+        $this->notifRepo->markRead($meetingId, $id, $tenantId);
     }
 
-    public static function markAllRead(string $meetingId, string $audience, string $tenantId): void {
-        (new NotificationRepository())->markAllRead($meetingId, $audience, $tenantId);
+    public function markAllRead(string $meetingId, string $audience, string $tenantId): void {
+        $this->notifRepo->markAllRead($meetingId, $audience, $tenantId);
     }
 
-    public static function clear(string $meetingId, string $audience, string $tenantId): void {
-        (new NotificationRepository())->clear($meetingId, $audience, $tenantId);
+    public function clear(string $meetingId, string $audience, string $tenantId): void {
+        $this->notifRepo->clear($meetingId, $audience, $tenantId);
     }
 }

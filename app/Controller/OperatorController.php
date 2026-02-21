@@ -143,11 +143,11 @@ final class OperatorController extends AbstractController {
                 ? 'Fermez toutes les motions ouvertes avant consolidation.'
                 : 'Aucune motion fermée à consolider.');
 
-        $validation = MeetingValidator::canBeValidated($meetingId, $tenant);
+        $validation = (new MeetingValidator())->canBeValidated($meetingId, $tenant);
         $ready = (bool) ($validation['can'] ?? false);
         $reasons = (array) ($validation['reasons'] ?? []);
 
-        NotificationsService::emitReadinessTransitions($meetingId, $validation, $tenant);
+        (new NotificationsService())->emitReadinessTransitions($meetingId, $validation, $tenant);
 
         api_ok([
             'meeting' => [

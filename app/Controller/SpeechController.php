@@ -20,8 +20,9 @@ final class SpeechController extends AbstractController {
             api_fail('meeting_not_found', 404);
         }
 
-        SpeechService::toggleRequest($meetingId, $memberId, $tenantId);
-        $out = SpeechService::getMyStatus($meetingId, $memberId, $tenantId);
+        $svc = new SpeechService();
+        $svc->toggleRequest($meetingId, $memberId, $tenantId);
+        $out = $svc->getMyStatus($meetingId, $memberId, $tenantId);
 
         audit_log('speech.requested', 'meeting', $meetingId, [
             'member_id' => $memberId,
@@ -52,7 +53,7 @@ final class SpeechController extends AbstractController {
             }
         }
 
-        $out = SpeechService::grant($meetingId, $memberId !== '' ? $memberId : null, $tenantId);
+        $out = (new SpeechService())->grant($meetingId, $memberId !== '' ? $memberId : null, $tenantId);
 
         audit_log('speech.granted', 'meeting', $meetingId, [
             'member_id' => $memberId ?: ($out['speaker']['member_id'] ?? null),
@@ -66,7 +67,7 @@ final class SpeechController extends AbstractController {
         $meetingId = api_require_uuid($data, 'meeting_id');
         $tenantId = api_current_tenant_id();
 
-        $out = SpeechService::endCurrent($meetingId, $tenantId);
+        $out = (new SpeechService())->endCurrent($meetingId, $tenantId);
 
         audit_log('speech.ended', 'meeting', $meetingId, [], $meetingId);
         api_ok($out);
@@ -78,7 +79,7 @@ final class SpeechController extends AbstractController {
         $requestId = api_require_uuid($data, 'request_id');
         $tenantId = api_current_tenant_id();
 
-        $out = SpeechService::cancelRequest($meetingId, $requestId, $tenantId);
+        $out = (new SpeechService())->cancelRequest($meetingId, $requestId, $tenantId);
 
         audit_log('speech.cancelled', 'meeting', $meetingId, [
             'request_id' => $requestId,
@@ -92,7 +93,7 @@ final class SpeechController extends AbstractController {
         $meetingId = api_require_uuid($data, 'meeting_id');
         $tenantId = api_current_tenant_id();
 
-        $out = SpeechService::clearHistory($meetingId, $tenantId);
+        $out = (new SpeechService())->clearHistory($meetingId, $tenantId);
 
         audit_log('speech.cleared', 'meeting', $meetingId, [], $meetingId);
         api_ok($out);
@@ -103,7 +104,7 @@ final class SpeechController extends AbstractController {
         $meetingId = api_require_uuid($data, 'meeting_id');
         $tenantId = api_current_tenant_id();
 
-        $out = SpeechService::grant($meetingId, null, $tenantId);
+        $out = (new SpeechService())->grant($meetingId, null, $tenantId);
 
         audit_log('speech.next', 'meeting', $meetingId, [
             'member_id' => $out['speaker']['member_id'] ?? null,
@@ -117,7 +118,7 @@ final class SpeechController extends AbstractController {
         $meetingId = api_require_uuid($q, 'meeting_id');
         $tenantId = api_current_tenant_id();
 
-        $out = SpeechService::getQueue($meetingId, $tenantId);
+        $out = (new SpeechService())->getQueue($meetingId, $tenantId);
 
         $queue = $out['queue'] ?? [];
         foreach ($queue as &$item) {
@@ -137,7 +138,7 @@ final class SpeechController extends AbstractController {
         $meetingId = api_require_uuid($q, 'meeting_id');
         $tenantId = api_current_tenant_id();
 
-        $out = SpeechService::getQueue($meetingId, $tenantId);
+        $out = (new SpeechService())->getQueue($meetingId, $tenantId);
         $speaker = $out['speaker'] ?? null;
         $queueCount = count($out['queue'] ?? []);
 
@@ -175,6 +176,6 @@ final class SpeechController extends AbstractController {
         $memberId = api_require_uuid($q, 'member_id');
 
         $tenantId = api_current_tenant_id();
-        api_ok(SpeechService::getMyStatus($meetingId, $memberId, $tenantId));
+        api_ok((new SpeechService())->getMyStatus($meetingId, $memberId, $tenantId));
     }
 }

@@ -39,9 +39,14 @@ use InvalidArgumentException;
  * @see PROXY_MAX_PER_RECEIVER Environment variable for the cap
  */
 final class ProxiesService {
-    public static function listForMeeting(string $meetingId, string $tenantId): array {
-        $repo = new ProxyRepository();
-        return $repo->listForMeeting($meetingId, $tenantId);
+    private ProxyRepository $repo;
+
+    public function __construct(?ProxyRepository $repo = null) {
+        $this->repo = $repo ?? new ProxyRepository();
+    }
+
+    public function listForMeeting(string $meetingId, string $tenantId): array {
+        return $this->repo->listForMeeting($meetingId, $tenantId);
     }
 
     /**
@@ -63,9 +68,9 @@ final class ProxiesService {
      *
      * @throws InvalidArgumentException If validation fails
      */
-    public static function upsert(string $meetingId, string $giverMemberId, string $receiverMemberId, string $tenantId): void {
+    public function upsert(string $meetingId, string $giverMemberId, string $receiverMemberId, string $tenantId): void {
         $maxPerReceiver = (int) config('proxy_max_per_receiver', 99);
-        $repo = new ProxyRepository();
+        $repo = $this->repo;
 
         if ($giverMemberId === '') {
             throw new InvalidArgumentException('giver_member_id manquant');
@@ -110,16 +115,14 @@ final class ProxiesService {
     /**
      * Revokes all active proxies from a giver.
      */
-    public static function revoke(string $meetingId, string $giverMemberId): void {
-        $repo = new ProxyRepository();
-        $repo->revokeForGiver($meetingId, $giverMemberId);
+    public function revoke(string $meetingId, string $giverMemberId): void {
+        $this->repo->revokeForGiver($meetingId, $giverMemberId);
     }
 
     /**
      * Checks if an active proxy exists between a giver and receiver.
      */
-    public static function hasActiveProxy(string $meetingId, string $giverMemberId, string $receiverMemberId): bool {
-        $repo = new ProxyRepository();
-        return $repo->hasActiveProxy($meetingId, $giverMemberId, $receiverMemberId);
+    public function hasActiveProxy(string $meetingId, string $giverMemberId, string $receiverMemberId): bool {
+        return $this->repo->hasActiveProxy($meetingId, $giverMemberId, $receiverMemberId);
     }
 }

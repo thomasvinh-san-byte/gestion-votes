@@ -32,11 +32,11 @@ final class QuorumController extends AbstractController {
             $tenantId = api_current_tenant_id();
 
             if ($motionId !== '') {
-                $r = QuorumEngine::computeForMotion($motionId);
+                $r = (new QuorumEngine())->computeForMotion($motionId);
                 $title = $r['applies_to']['motion_title'] ?? 'Motion';
                 $scope = 'Motion';
             } elseif ($meetingId !== '') {
-                $r = QuorumEngine::computeForMeeting($meetingId, $tenantId);
+                $r = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
                 $title = null;
                 $scope = 'Séance';
             } else {
@@ -107,9 +107,9 @@ final class QuorumController extends AbstractController {
         $tenantId = api_current_tenant_id();
 
         if ($motionId !== '') {
-            $res = QuorumEngine::computeForMotion($motionId);
+            $res = (new QuorumEngine())->computeForMotion($motionId);
         } elseif ($meetingId !== '') {
-            $res = QuorumEngine::computeForMeeting($meetingId, $tenantId);
+            $res = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
         } else {
             api_fail('missing_params', 400, ['detail' => 'meeting_id ou motion_id requis']);
         }

@@ -50,7 +50,7 @@ final class BallotsController extends AbstractController {
         // Pass tenant_id for defense-in-depth tenant isolation in the query
         $data['_tenant_id'] = api_current_tenant_id();
 
-        $ballot = BallotsService::castBallot($data);
+        $ballot = (new BallotsService())->castBallot($data);
 
         $motionId = $data['motion_id'] ?? $ballot['motion_id'] ?? null;
         $meetingId = $ballot['meeting_id'] ?? $data['meeting_id'] ?? null;
@@ -153,7 +153,7 @@ final class BallotsController extends AbstractController {
             api_fail('missing_motion_id', 422, ['detail' => 'Paramètre motion_id obligatoire']);
         }
 
-        $result = VoteEngine::computeMotionResult($motionId);
+        $result = (new VoteEngine())->computeMotionResult($motionId);
         api_ok($result);
     }
 

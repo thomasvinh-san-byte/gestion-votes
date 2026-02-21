@@ -31,9 +31,10 @@ final class AttendancesController extends AbstractController {
             api_fail('meeting_not_found', 404, ['detail' => 'Séance introuvable']);
         }
 
+        $svc = new AttendancesService();
         api_ok([
-            'attendances' => AttendancesService::listForMeeting($meetingId, $tenantId),
-            'summary' => AttendancesService::summaryForMeeting($meetingId, $tenantId),
+            'attendances' => $svc->listForMeeting($meetingId, $tenantId),
+            'summary' => $svc->summaryForMeeting($meetingId, $tenantId),
         ]);
     }
 
@@ -55,7 +56,7 @@ final class AttendancesController extends AbstractController {
         api_guard_meeting_not_validated($meetingId);
         $tenantId = api_current_tenant_id();
 
-        $row = AttendancesService::upsert($meetingId, $memberId, $mode, $tenantId, $notes);
+        $row = (new AttendancesService())->upsert($meetingId, $memberId, $mode, $tenantId, $notes);
 
         audit_log('attendance.upsert', 'attendance', $memberId, [
             'meeting_id' => $meetingId,

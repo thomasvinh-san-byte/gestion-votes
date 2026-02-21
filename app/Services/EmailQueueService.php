@@ -6,6 +6,7 @@ namespace AgVote\Service;
 
 use AgVote\Repository\EmailEventRepository;
 use AgVote\Repository\EmailQueueRepository;
+use AgVote\Repository\EmailTemplateRepository;
 use AgVote\Repository\InvitationRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\ReminderScheduleRepository;
@@ -22,17 +23,29 @@ final class EmailQueueService {
     private MemberRepository $memberRepo;
     private MailerService $mailer;
     private EmailTemplateService $templateService;
+    private EmailTemplateRepository $emailTemplateRepo;
     private array $config;
 
-    public function __construct(array $config) {
+    public function __construct(
+        array $config,
+        ?EmailQueueRepository $queueRepo = null,
+        ?EmailEventRepository $eventRepo = null,
+        ?InvitationRepository $invitationRepo = null,
+        ?ReminderScheduleRepository $reminderRepo = null,
+        ?MemberRepository $memberRepo = null,
+        ?MailerService $mailer = null,
+        ?EmailTemplateService $templateService = null,
+        ?EmailTemplateRepository $emailTemplateRepo = null,
+    ) {
         $this->config = $config;
-        $this->queueRepo = new EmailQueueRepository();
-        $this->eventRepo = new EmailEventRepository();
-        $this->invitationRepo = new InvitationRepository();
-        $this->reminderRepo = new ReminderScheduleRepository();
-        $this->memberRepo = new MemberRepository();
-        $this->mailer = new MailerService($config);
-        $this->templateService = new EmailTemplateService($config);
+        $this->queueRepo = $queueRepo ?? new EmailQueueRepository();
+        $this->eventRepo = $eventRepo ?? new EmailEventRepository();
+        $this->invitationRepo = $invitationRepo ?? new InvitationRepository();
+        $this->reminderRepo = $reminderRepo ?? new ReminderScheduleRepository();
+        $this->memberRepo = $memberRepo ?? new MemberRepository();
+        $this->mailer = $mailer ?? new MailerService($config);
+        $this->templateService = $templateService ?? new EmailTemplateService($config);
+        $this->emailTemplateRepo = $emailTemplateRepo ?? new EmailTemplateRepository();
     }
 
     /**
@@ -130,7 +143,7 @@ final class EmailQueueService {
 
         // Default template if not specified
         if (!$templateId) {
-            $defaultTemplate = (new \AgVote\Repository\EmailTemplateRepository())
+            $defaultTemplate = $this->emailTemplateRepo
                 ->findDefault($tenantId, 'invitation');
             $templateId = $defaultTemplate['id'] ?? null;
         }

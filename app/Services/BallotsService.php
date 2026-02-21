@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\WebSocket\EventBroadcaster;
@@ -13,7 +14,30 @@ use RuntimeException;
 use Throwable;
 
 final class BallotsService {
-    private static function isUuid(string $s): bool {
+    private BallotRepository $ballotRepo;
+    private MotionRepository $motionRepo;
+    private MemberRepository $memberRepo;
+    private MeetingRepository $meetingRepo;
+    private AttendancesService $attendancesService;
+    private ProxiesService $proxiesService;
+
+    public function __construct(
+        ?BallotRepository $ballotRepo = null,
+        ?MotionRepository $motionRepo = null,
+        ?MemberRepository $memberRepo = null,
+        ?MeetingRepository $meetingRepo = null,
+        ?AttendancesService $attendancesService = null,
+        ?ProxiesService $proxiesService = null,
+    ) {
+        $this->ballotRepo = $ballotRepo ?? new BallotRepository();
+        $this->motionRepo = $motionRepo ?? new MotionRepository();
+        $this->memberRepo = $memberRepo ?? new MemberRepository();
+        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+        $this->attendancesService = $attendancesService ?? new AttendancesService();
+        $this->proxiesService = $proxiesService ?? new ProxiesService();
+    }
+
+    private function isUuid(string $s): bool {
         return (bool) preg_match(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
             $s,
@@ -27,7 +51,7 @@ final class BallotsService {
      *
      * @return array<string,mixed>
      */
-    public static function castBallot(array $data): array {
+    public function castBallot(array $data): array {
         $motionId = trim((string) ($data['motion_id'] ?? ''));
         $memberId = trim((string) ($data['member_id'] ?? ''));
         $value = trim((string) ($data['value'] ?? ''));
@@ -42,9 +66,8 @@ final class BallotsService {
         }
 
         // Load motion + meeting + tenant (with tenant isolation when available)
-        $motionRepo = new MotionRepository();
         $callerTenantId = trim((string) ($data['_tenant_id'] ?? ''));
-        $context = $motionRepo->findWithBallotContext($motionId, $callerTenantId);
+        $context = $this->motionRepo->findWithBallotContext($motionId, $callerTenantId);
 
         if (!$context) {
             throw new RuntimeException('Motion introuvable');
@@ -69,8 +92,7 @@ final class BallotsService {
         $proxyVoterId = trim((string) ($data['proxy_source_member_id'] ?? ''));
 
         // Load the represented member (the one whose vote is counted)
-        $memberRepo = new MemberRepository();
-        $member = $memberRepo->findByIdForTenant($memberId, $tenantId);
+        $member = $this->memberRepo->findByIdForTenant($memberId, $tenantId);
         if (!$member) {
             throw new RuntimeException('Membre inconnu');
         }
@@ -93,11 +115,11 @@ final class BallotsService {
         // Proxy vote (MVP)
         // Convention: member_id = giver (vote counted), proxy_source_member_id = proxy holder (the one voting)
         if ($isProxyVote) {
-            if ($proxyVoterId === '' || !self::isUuid($proxyVoterId)) {
+            if ($proxyVoterId === '' || !$this->isUuid($proxyVoterId)) {
                 throw new InvalidArgumentException('proxy_source_member_id est obligatoire (UUID) pour un vote par procuration');
             }
 
-            $proxyVoter = $memberRepo->findByIdForTenant($proxyVoterId, $tenantId);
+            $proxyVoter = $this->memberRepo->findByIdForTenant($proxyVoterId, $tenantId);
             if (!$proxyVoter) {
                 throw new RuntimeException('Mandataire inconnu');
             }
@@ -109,7 +131,7 @@ final class BallotsService {
             // We exclude 'proxy' mode to avoid proxy chains.
             $proxyModeOk = false;
             try {
-                $proxyModeOk = AttendancesService::isPresentDirect($meetingId, $proxyVoterId, $tenantId);
+                $proxyModeOk = $this->attendancesService->isPresentDirect($meetingId, $proxyVoterId, $tenantId);
             } catch (Throwable $e) {
                 $proxyModeOk = false;
             }
@@ -118,32 +140,29 @@ final class BallotsService {
             }
 
             // Verify an active proxy exists for this meeting
-            if (!ProxiesService::hasActiveProxy($meetingId, $memberId, $proxyVoterId)) {
+            if (!$this->proxiesService->hasActiveProxy($meetingId, $memberId, $proxyVoterId)) {
                 throw new RuntimeException('Aucune procuration active ne permet à ce mandataire de voter pour ce membre');
             }
         } else {
             // Direct vote: member must be present (present/remote) at the meeting.
             // Note: AttendancesService also counts 'proxy'; we don't want that here.
             // So we explicitly check for present/remote modes.
-            if (!AttendancesService::isPresentDirect($meetingId, $memberId, $tenantId)) {
+            if (!$this->attendancesService->isPresentDirect($meetingId, $memberId, $tenantId)) {
                 throw new RuntimeException('Membre non enregistré comme présent, vote impossible');
             }
         }
 
-        $ballotRepo = new BallotRepository();
-        $meetingRepo = new \AgVote\Repository\MeetingRepository();
-
         // Wrap ballot insert + audit log in a transaction for atomicity
-        api_transaction(function () use ($meetingRepo, $meetingId, $tenantId, $ballotRepo, $motionId, $memberId, $value, $weight, $isProxyVote, $proxyVoterId, $context, $data) {
+        api_transaction(function () use ($meetingId, $tenantId, $motionId, $memberId, $value, $weight, $isProxyVote, $proxyVoterId, $context, $data) {
             // Lock the meeting row to prevent TOCTOU race: meeting could
             // transition from 'live' to 'closed' between the initial check
             // and the ballot INSERT.
-            $lockedMeeting = $meetingRepo->lockForUpdate($meetingId, $tenantId);
+            $lockedMeeting = $this->meetingRepo->lockForUpdate($meetingId, $tenantId);
             if (!$lockedMeeting || $lockedMeeting['status'] !== 'live') {
                 throw new RuntimeException('Séance non disponible pour le vote');
             }
 
-            $ballotRepo->castBallot(
+            $this->ballotRepo->castBallot(
                 $tenantId,
                 $motionId,
                 $memberId,
@@ -171,13 +190,13 @@ final class BallotsService {
 
         // Broadcast WebSocket event with updated tally (outside transaction)
         try {
-            $tally = $ballotRepo->tally($motionId, $tenantId);
+            $tally = $this->ballotRepo->tally($motionId, $tenantId);
             EventBroadcaster::voteCast($meetingId, $motionId, $tally);
         } catch (Throwable $e) {
             // Silently fail - don't break the vote if broadcast fails
         }
 
-        $row = $ballotRepo->findByMotionAndMember($motionId, $memberId);
+        $row = $this->ballotRepo->findByMotionAndMember($motionId, $memberId);
 
         return $row ?? [
             'motion_id' => $motionId,

@@ -106,7 +106,7 @@ final class MeetingReportsController extends AbstractController {
 
             if (!$hasOfficial && $m['closed_at'] !== null) {
                 try {
-                    $o = OfficialResultsService::computeOfficialTallies($mid);
+                    $o = (new OfficialResultsService())->computeOfficialTallies($mid);
                     $src = $o['source'];
                     $of = $o['for'];
                     $og = $o['against'];
@@ -137,7 +137,7 @@ final class MeetingReportsController extends AbstractController {
 
             try {
                 if ($src === 'evote') {
-                    $r = VoteEngine::computeMotionResult($mid);
+                    $r = (new VoteEngine())->computeMotionResult($mid);
                     $detail['quorum_met'] = $r['quorum']['met'] ?? null;
                     $detail['quorum_ratio'] = $r['quorum']['ratio'] ?? null;
                     $detail['majority_ratio'] = $r['decision']['ratio'] ?? ($r['majority']['ratio'] ?? null);
@@ -651,7 +651,7 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
 
         $showVoters = (api_query('show_voters') === '1');
 
-        $html = MeetingReportService::renderHtml($meetingId, $showVoters);
+        $html = (new MeetingReportService())->renderHtml($meetingId, $showVoters);
 
         header('Content-Type: text/html; charset=utf-8');
         header('X-Content-Type-Options: nosniff');
