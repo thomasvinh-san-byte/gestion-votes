@@ -311,7 +311,7 @@ final class MeetingsController extends AbstractController {
         }
 
         $motionsCount = $statsRepo->countMotions($meetingId, $tenantId);
-        $rows = $motionRepo->listStatsForMeeting($meetingId);
+        $rows = $motionRepo->listStatsForMeeting($meetingId, $tenantId);
 
         $motions = [];
         $totalBallotsAllMotions = 0;
@@ -355,9 +355,9 @@ final class MeetingsController extends AbstractController {
 
         $distinctVoters = 0;
         if ($totalBallotsAllMotions > 0) {
-            $distinctVoters = $motionRepo->countDistinctVoters($meetingId);
+            $distinctVoters = $motionRepo->countDistinctVoters($meetingId, $tenantId);
         } else {
-            $distinctVoters = $motionRepo->maxManualTotal($meetingId);
+            $distinctVoters = $motionRepo->maxManualTotal($meetingId, $tenantId);
         }
 
         api_ok([

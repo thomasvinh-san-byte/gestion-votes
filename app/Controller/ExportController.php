@@ -153,8 +153,9 @@ final class ExportController extends AbstractController {
     public function motionResultsCsv(): void {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('motion_results', $mt['id'], 'csv');
+        $tenantId = api_current_tenant_id();
 
-        $rows = (new MotionRepository())->listResultsExportForMeeting($mt['id']);
+        $rows = (new MotionRepository())->listResultsExportForMeeting($mt['id'], $tenantId);
         $export = new ExportService();
 
         $filename = $export->generateFilename('resultats', $mt['title'] ?? '');
@@ -170,8 +171,9 @@ final class ExportController extends AbstractController {
     public function resultsXlsx(): void {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('motion_results', $mt['id'], 'xlsx');
+        $tenantId = api_current_tenant_id();
 
-        $rows = (new MotionRepository())->listResultsExportForMeeting($mt['id']);
+        $rows = (new MotionRepository())->listResultsExportForMeeting($mt['id'], $tenantId);
         $export = new ExportService();
 
         $formattedRows = array_map([$export, 'formatMotionResultRow'], $rows);
@@ -193,7 +195,7 @@ final class ExportController extends AbstractController {
 
         $tenantId = api_current_tenant_id();
         $attendanceRows = (new AttendanceRepository())->listExportForMeeting($meetingId, $tenantId);
-        $motionRows = (new MotionRepository())->listResultsExportForMeeting($meetingId);
+        $motionRows = (new MotionRepository())->listResultsExportForMeeting($meetingId, $tenantId);
         $voteRows = $includeVotes ? (new BallotRepository())->listVotesExportForMeeting($meetingId, $tenantId) : [];
 
         $export = new ExportService();

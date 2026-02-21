@@ -99,12 +99,12 @@ final class ProxiesService {
         // locking to prevent TOCTOU race conditions on concurrent proxy creation.
         api_transaction(function () use ($repo, $meetingId, $receiverMemberId, $maxPerReceiver, $tenantId, $giverMemberId) {
             // Anti-proxy-chain: lock and check if receiver already delegates
-            if ($repo->countActiveAsGiverForUpdate($meetingId, $receiverMemberId) > 0) {
+            if ($repo->countActiveAsGiverForUpdate($meetingId, $receiverMemberId, $tenantId) > 0) {
                 throw new InvalidArgumentException('Chaîne de procuration interdite (le mandataire délègue déjà).');
             }
 
             // Cap: lock and check max active proxies per receiver
-            if ($repo->countActiveAsReceiverForUpdate($meetingId, $receiverMemberId) >= $maxPerReceiver) {
+            if ($repo->countActiveAsReceiverForUpdate($meetingId, $receiverMemberId, $tenantId) >= $maxPerReceiver) {
                 throw new InvalidArgumentException("Plafond procurations atteint (max {$maxPerReceiver}).");
             }
 
@@ -122,7 +122,10 @@ final class ProxiesService {
     /**
      * Checks if an active proxy exists between a giver and receiver.
      */
-    public function hasActiveProxy(string $meetingId, string $giverMemberId, string $receiverMemberId): bool {
-        return $this->repo->hasActiveProxy($meetingId, $giverMemberId, $receiverMemberId);
+    public function hasActiveProxy(string $meetingId, string $giverMemberId, string $receiverMemberId, string $tenantId = ''): bool {
+        if ($tenantId === '') {
+            $tenantId = \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId() ?? DEFAULT_TENANT_ID;
+        }
+        return $this->repo->hasActiveProxy($meetingId, $giverMemberId, $receiverMemberId, $tenantId);
     }
 }

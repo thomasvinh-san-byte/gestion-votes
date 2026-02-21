@@ -91,6 +91,14 @@
       return;
     }
 
+    if (window.Utils && Utils.isValidPassword) {
+      var pwCheck = Utils.isValidPassword(password);
+      if (!pwCheck.valid) {
+        showError(pwCheck.message);
+        return;
+      }
+    }
+
     submitBtn.disabled = true;
     btnText.textContent = 'Connexion...';
     spinner.style.display = 'inline-block';

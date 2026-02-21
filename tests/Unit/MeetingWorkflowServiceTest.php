@@ -80,7 +80,7 @@ class MeetingWorkflowServiceTest extends TestCase {
             ->willReturn($this->meetingWithStatus('draft'));
 
         $this->motionRepo->method('countForMeeting')
-            ->with(self::MEETING)
+            ->with(self::MEETING, self::TENANT)
             ->willReturn(0);
 
         $result = $this->service->issuesBeforeTransition(self::MEETING, self::TENANT, 'scheduled');
@@ -95,7 +95,7 @@ class MeetingWorkflowServiceTest extends TestCase {
             ->willReturn($this->meetingWithStatus('draft'));
 
         $this->motionRepo->method('countForMeeting')
-            ->with(self::MEETING)
+            ->with(self::MEETING, self::TENANT)
             ->willReturn(3);
 
         $result = $this->service->issuesBeforeTransition(self::MEETING, self::TENANT, 'scheduled');
@@ -268,7 +268,7 @@ class MeetingWorkflowServiceTest extends TestCase {
             ->willReturn(5);
 
         $this->motionRepo->method('countBadClosedMotions')
-            ->with(self::MEETING)
+            ->with(self::MEETING, self::TENANT)
             ->willReturn(2);
 
         $this->motionRepo->method('countConsolidatedMotions')
@@ -401,18 +401,18 @@ class MeetingWorkflowServiceTest extends TestCase {
 
     public function testHasMotionsReturnsTrueWhenMotionsExist(): void {
         $this->motionRepo->method('countForMeeting')
-            ->with(self::MEETING)
+            ->with(self::MEETING, self::TENANT)
             ->willReturn(3);
 
-        $this->assertTrue($this->service->hasMotions(self::MEETING));
+        $this->assertTrue($this->service->hasMotions(self::MEETING, self::TENANT));
     }
 
     public function testHasMotionsReturnsFalseWhenNoMotions(): void {
         $this->motionRepo->method('countForMeeting')
-            ->with(self::MEETING)
+            ->with(self::MEETING, self::TENANT)
             ->willReturn(0);
 
-        $this->assertFalse($this->service->hasMotions(self::MEETING));
+        $this->assertFalse($this->service->hasMotions(self::MEETING, self::TENANT));
     }
 
     // =========================================================================

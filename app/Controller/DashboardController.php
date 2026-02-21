@@ -78,7 +78,7 @@ final class DashboardController extends AbstractController {
                 'present_weight' => (int) $att['present_weight'],
             ];
 
-            $data['proxies'] = ['count' => (new ProxyRepository())->countActive($meetingId)];
+            $data['proxies'] = ['count' => (new ProxyRepository())->countActive($meetingId, $tenantId)];
 
             $currentMotionId = (string) ($meeting['current_motion_id'] ?? '');
             if ($currentMotionId === '') {

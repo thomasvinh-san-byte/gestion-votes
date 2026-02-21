@@ -154,7 +154,7 @@ final class InvitationsController extends AbstractController {
 
         api_ok([
             'meeting_id' => $meetingId,
-            'invitations' => [
+            'items' => [
                 'total' => $total,
                 'pending' => (int) $invitationStats['pending'],
                 'sent' => $sent,

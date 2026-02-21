@@ -74,7 +74,7 @@ final class TrustController extends AbstractController {
         }
 
         // 4. Procurations orphelines
-        $orphanProxies = (new ProxyRepository())->listOrphans($meetingId);
+        $orphanProxies = (new ProxyRepository())->listOrphans($meetingId, $tenantId);
         foreach ($orphanProxies as $row) {
             $anomalies[] = [
                 'id' => 'orphan_proxy_' . $row['id'],
@@ -88,7 +88,7 @@ final class TrustController extends AbstractController {
         }
 
         // 5. Résolutions non closes
-        $unclosedMotions = (new MotionRepository())->listUnclosed($meetingId);
+        $unclosedMotions = (new MotionRepository())->listUnclosed($meetingId, $tenantId);
         foreach ($unclosedMotions as $row) {
             $anomalies[] = [
                 'id' => 'unclosed_motion_' . $row['id'],
@@ -225,7 +225,7 @@ final class TrustController extends AbstractController {
         ];
 
         // 6. Procurations valides (pas de cycle)
-        $proxyCycles = (new ProxyRepository())->findCycles($meetingId);
+        $proxyCycles = (new ProxyRepository())->findCycles($meetingId, $tenantId);
         $proxyOk = count($proxyCycles) === 0;
         $checks[] = [
             'id' => 'proxies_valid',
@@ -235,7 +235,7 @@ final class TrustController extends AbstractController {
         ];
 
         // 7. Totaux de vote cohérents
-        $motionsWithoutVotes = $motionRepo->listClosedWithoutVotes($meetingId);
+        $motionsWithoutVotes = $motionRepo->listClosedWithoutVotes($meetingId, $tenantId);
         $totalsOk = count($motionsWithoutVotes) === 0;
         $checks[] = [
             'id' => 'totals_consistent',

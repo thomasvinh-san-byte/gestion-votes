@@ -62,14 +62,14 @@ final class MeetingValidator {
             $codes[] = 'open_motions';
         }
 
-        $bad = $this->motionRepo->countBadClosedMotions($meetingId);
+        $bad = $this->motionRepo->countBadClosedMotions($meetingId, $tenantId);
         if ($bad > 0) {
             $reasons[] = "{$bad} motion(s) fermée(s) sans résultat exploitable (manuel cohérent ou e-vote).";
             $codes[] = 'bad_closed_results';
         }
 
         $closed = $this->statsRepo->countClosedMotions($meetingId, $tenantId);
-        $consolidated = $this->motionRepo->countConsolidatedMotions($meetingId);
+        $consolidated = $this->motionRepo->countConsolidatedMotions($meetingId, $tenantId);
 
         // Consolidation is required when there is at least one closed motion.
         $needsConsolidation = $closed > 0;

@@ -83,7 +83,7 @@ final class ProjectorController extends AbstractController {
             ];
         }
 
-        $totalMotions = $motionRepo->countForMeeting($meetingId);
+        $totalMotions = $motionRepo->countForMeeting($meetingId, $tenantId);
         $statsRepo = new MeetingStatsRepository();
         $eligibleCount = $statsRepo->countActiveMembers($tenantId);
 

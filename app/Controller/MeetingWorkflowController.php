@@ -358,7 +358,8 @@ final class MeetingWorkflowController extends AbstractController {
         ];
 
         // Motions fermées
-        $motions = $motionRepo->listClosedForMeetingWithManualTally($meetingId);
+        $tenantId = api_current_tenant_id();
+        $motions = $motionRepo->listClosedForMeetingWithManualTally($meetingId, $tenantId);
 
         foreach ($motions as $m) {
             $motionId = (string) $m['id'];

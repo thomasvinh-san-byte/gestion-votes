@@ -72,7 +72,7 @@ final class MeetingWorkflowService {
 
         // draft → scheduled
         if ($toStatus === 'scheduled' && $fromStatus === 'draft') {
-            if (!$this->hasMotions($meetingId)) {
+            if (!$this->hasMotions($meetingId, $tenantId)) {
                 $issues[] = ['code' => 'no_motions', 'msg' => 'Aucune résolution créée'];
             }
         }
@@ -114,13 +114,13 @@ final class MeetingWorkflowService {
         // closed → validated
         if ($toStatus === 'validated' && $fromStatus === 'closed') {
             $closed = $this->statsRepo->countClosedMotions($meetingId, $tenantId);
-            $bad = $this->motionRepo->countBadClosedMotions($meetingId);
+            $bad = $this->motionRepo->countBadClosedMotions($meetingId, $tenantId);
 
             if ($bad > 0) {
                 $issues[] = ['code' => 'bad_results', 'msg' => "{$bad} résolution(s) sans résultat exploitable"];
             }
 
-            $consolidated = $this->motionRepo->countConsolidatedMotions($meetingId);
+            $consolidated = $this->motionRepo->countConsolidatedMotions($meetingId, $tenantId);
             if ($closed > 0 && $consolidated < $closed) {
                 $warnings[] = ['code' => 'not_consolidated', 'msg' => 'Résultats non consolidés (officialisation recommandée)'];
             }
@@ -141,8 +141,11 @@ final class MeetingWorkflowService {
     /**
      * Check if meeting has any motions.
      */
-    public function hasMotions(string $meetingId): bool {
-        return $this->motionRepo->countForMeeting($meetingId) > 0;
+    public function hasMotions(string $meetingId, string $tenantId = ''): bool {
+        if ($tenantId === '') {
+            $tenantId = \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId() ?? DEFAULT_TENANT_ID;
+        }
+        return $this->motionRepo->countForMeeting($meetingId, $tenantId) > 0;
     }
 
     /**

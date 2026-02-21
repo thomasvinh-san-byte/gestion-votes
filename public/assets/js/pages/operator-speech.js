@@ -120,6 +120,7 @@
   }
 
   async function grantSpeech(memberId) {
+    if (!Utils.isValidUUID(memberId)) { setNotif('error', 'ID membre invalide'); return; }
     try {
       await api('/api/v1/speech_grant.php', {
         meeting_id: O.currentMeetingId,
@@ -153,6 +154,7 @@
   }
 
   async function cancelSpeechRequest(requestId) {
+    if (!Utils.isValidUUID(requestId)) { setNotif('error', 'ID demande invalide'); return; }
     try {
       await api('/api/v1/speech_cancel.php', {
         meeting_id: O.currentMeetingId,
@@ -222,6 +224,7 @@
           setNotif('error', 'Sélectionnez un membre');
           return;
         }
+        if (!Utils.isValidUUID(memberId)) { setNotif('error', 'ID membre invalide'); return; }
         Shared.btnLoading(btnConfirm, true);
         try {
           await api('/api/v1/speech_request.php', {

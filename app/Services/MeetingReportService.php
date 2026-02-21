@@ -47,7 +47,7 @@ final class MeetingReportService {
             throw new RuntimeException('meeting_not_found');
         }
 
-        $motions = $this->motionRepo->listForReport($meetingId);
+        $motions = $this->motionRepo->listForReport($meetingId, $tenant);
 
         $attendance = $this->attendanceRepo->listForReport($meetingId, $tenant);
 

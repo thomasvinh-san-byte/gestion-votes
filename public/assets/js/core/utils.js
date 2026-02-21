@@ -382,6 +382,21 @@ window.Utils = window.Utils || {};
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id.trim());
   };
 
+  /**
+   * Validate password meets minimum requirements.
+   * @param {string} password - Password to validate
+   * @returns {{valid: boolean, message: string}} Validation result
+   */
+  Utils.isValidPassword = function(password) {
+    if (!password || typeof password !== 'string') {
+      return { valid: false, message: 'Le mot de passe est requis.' };
+    }
+    if (password.length < 8) {
+      return { valid: false, message: 'Le mot de passe doit contenir au moins 8 caractères.' };
+    }
+    return { valid: true, message: '' };
+  };
+
   // ==========================================================================
   // CSV UTILITIES
   // ==========================================================================

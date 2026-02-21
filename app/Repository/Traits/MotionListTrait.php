@@ -11,7 +11,7 @@ namespace AgVote\Repository\Traits;
  * All methods delegate to AbstractRepository::selectAll().
  */
 trait MotionListTrait {
-    public function listForMeetingJson(string $meetingId): ?array {
+    public function listForMeetingJson(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
             'SELECT json_agg(t ORDER BY t.position ASC NULLS LAST, t.created_at ASC) AS motions
              FROM (
@@ -26,9 +26,9 @@ trait MotionListTrait {
                     a.id AS agenda_id, a.title AS agenda_title, a.idx AS agenda_idx
                 FROM motions mo
                 LEFT JOIN agendas a ON a.id = mo.agenda_id
-                WHERE mo.meeting_id = :mid
+                WHERE mo.meeting_id = :mid AND mo.tenant_id = :tid
              ) AS t',
-            [':mid' => $meetingId],
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
@@ -39,7 +39,7 @@ trait MotionListTrait {
         );
     }
 
-    public function listForReport(string $meetingId): array {
+    public function listForReport(string $meetingId, string $tenantId): array {
         return $this->selectAll(
             'SELECT
                id, title, description, opened_at, closed_at,
@@ -48,19 +48,19 @@ trait MotionListTrait {
                decision, decision_reason,
                manual_total, manual_for, manual_against, manual_abstain
              FROM motions
-             WHERE meeting_id = :mid
+             WHERE meeting_id = :mid AND tenant_id = :tid
              ORDER BY position ASC NULLS LAST, created_at ASC',
-            [':mid' => $meetingId],
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
-    public function listForQuorumDisplay(string $meetingId): array {
+    public function listForQuorumDisplay(string $meetingId, string $tenantId): array {
         return $this->selectAll(
             'SELECT id, title, status, opened_at, closed_at, quorum_policy_id
              FROM motions
-             WHERE meeting_id = :m
+             WHERE meeting_id = :m AND tenant_id = :tid
              ORDER BY position NULLS LAST, created_at ASC',
-            [':m' => $meetingId],
+            [':m' => $meetingId, ':tid' => $tenantId],
         );
     }
 
@@ -86,7 +86,7 @@ trait MotionListTrait {
         );
     }
 
-    public function listResultsExportForMeeting(string $meetingId): array {
+    public function listResultsExportForMeeting(string $meetingId, string $tenantId): array {
         return $this->selectAll(
             "SELECT
                 mo.title,
@@ -103,54 +103,55 @@ trait MotionListTrait {
                 COALESCE(mo.decision_reason, '') AS decision_reason
              FROM motions mo
              LEFT JOIN ballots b ON b.motion_id = mo.id
-             WHERE mo.meeting_id = ?
+             WHERE mo.meeting_id = :mid AND mo.tenant_id = :tid
              GROUP BY mo.id, mo.title, mo.position, mo.opened_at, mo.closed_at, mo.decision, mo.decision_reason
              ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC",
-            [$meetingId],
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
-    public function listForReportGeneration(string $meetingId): array {
+    public function listForReportGeneration(string $meetingId, string $tenantId): array {
         return $this->selectAll(
             'SELECT title, evote_results
              FROM motions
-             WHERE meeting_id = :mid
+             WHERE meeting_id = :mid AND tenant_id = :tid
              ORDER BY COALESCE(position, 0) ASC',
-            [':mid' => $meetingId],
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
-    public function listClosedForMeetingWithManualTally(string $meetingId): array {
+    public function listClosedForMeetingWithManualTally(string $meetingId, string $tenantId): array {
         return $this->selectAll(
             'SELECT id, title, manual_total, manual_for, manual_against, manual_abstain, opened_at, closed_at
              FROM motions
-             WHERE meeting_id = :mid AND closed_at IS NOT NULL
+             WHERE meeting_id = :mid AND tenant_id = :tid AND closed_at IS NOT NULL
              ORDER BY closed_at ASC NULLS LAST',
-            [':mid' => $meetingId],
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
-    public function listClosedWithoutVotes(string $meetingId): array {
+    public function listClosedWithoutVotes(string $meetingId, string $tenantId): array {
         return $this->selectAll(
             'SELECT m.id, m.title
              FROM motions m
              LEFT JOIN ballots b ON b.motion_id = m.id
-             WHERE m.meeting_id = :mid AND m.closed_at IS NOT NULL
+             WHERE m.meeting_id = :mid AND m.tenant_id = :tid AND m.closed_at IS NOT NULL
              GROUP BY m.id, m.title
              HAVING COUNT(b.id) = 0',
-            [':mid' => $meetingId],
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
-    public function listUnclosed(string $meetingId): array {
+    public function listUnclosed(string $meetingId, string $tenantId): array {
         return $this->selectAll(
             'SELECT id, title, opened_at
              FROM motions
              WHERE meeting_id = :mid
+               AND tenant_id = :tid
                AND opened_at IS NOT NULL
                AND closed_at IS NULL
              ORDER BY opened_at',
-            [':mid' => $meetingId],
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 }

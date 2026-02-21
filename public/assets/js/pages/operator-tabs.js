@@ -2710,7 +2710,7 @@ window.OpS = { fn: {} };
     try {
       const { body } = await api(`/api/v1/invitations_stats.php?meeting_id=${currentMeetingId}`);
       if (body?.ok && body?.data) {
-        const inv = body.data.invitations || {};
+        const inv = body.data.items || {};
         const eng = body.data.engagement || {};
         setText('invTotal', inv.total || 0);
         setText('invSent', inv.sent || 0);

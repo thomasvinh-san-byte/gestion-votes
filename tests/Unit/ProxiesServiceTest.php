@@ -77,13 +77,13 @@ class ProxiesServiceTest extends TestCase {
         // No chain: receiver has not delegated
         $this->proxyRepo
             ->method('countActiveAsGiverForUpdate')
-            ->with(self::MEETING_ID, self::RECEIVER_ID)
+            ->with(self::MEETING_ID, self::RECEIVER_ID, self::TENANT_ID)
             ->willReturn(0);
 
         // Cap not reached
         $this->proxyRepo
             ->method('countActiveAsReceiverForUpdate')
-            ->with(self::MEETING_ID, self::RECEIVER_ID)
+            ->with(self::MEETING_ID, self::RECEIVER_ID, self::TENANT_ID)
             ->willReturn(0);
 
         // Expect the upsert to be called
@@ -132,7 +132,7 @@ class ProxiesServiceTest extends TestCase {
         // Chain detected: receiver already delegates
         $this->proxyRepo
             ->method('countActiveAsGiverForUpdate')
-            ->with(self::MEETING_ID, self::RECEIVER_ID)
+            ->with(self::MEETING_ID, self::RECEIVER_ID, self::TENANT_ID)
             ->willReturn(1);
 
         $this->expectException(InvalidArgumentException::class);
@@ -155,7 +155,7 @@ class ProxiesServiceTest extends TestCase {
         // Cap reached (99 is the default from config())
         $this->proxyRepo
             ->method('countActiveAsReceiverForUpdate')
-            ->with(self::MEETING_ID, self::RECEIVER_ID)
+            ->with(self::MEETING_ID, self::RECEIVER_ID, self::TENANT_ID)
             ->willReturn(99);
 
         $this->expectException(InvalidArgumentException::class);
@@ -221,10 +221,10 @@ class ProxiesServiceTest extends TestCase {
     public function testHasActiveProxyReturnsTrueWhenProxyExists(): void {
         $this->proxyRepo
             ->method('hasActiveProxy')
-            ->with(self::MEETING_ID, self::GIVER_ID, self::RECEIVER_ID)
+            ->with(self::MEETING_ID, self::GIVER_ID, self::RECEIVER_ID, self::TENANT_ID)
             ->willReturn(true);
 
-        $result = $this->service->hasActiveProxy(self::MEETING_ID, self::GIVER_ID, self::RECEIVER_ID);
+        $result = $this->service->hasActiveProxy(self::MEETING_ID, self::GIVER_ID, self::RECEIVER_ID, self::TENANT_ID);
 
         $this->assertTrue($result);
     }
@@ -232,10 +232,10 @@ class ProxiesServiceTest extends TestCase {
     public function testHasActiveProxyReturnsFalseWhenNoProxy(): void {
         $this->proxyRepo
             ->method('hasActiveProxy')
-            ->with(self::MEETING_ID, self::GIVER_ID, self::RECEIVER_ID)
+            ->with(self::MEETING_ID, self::GIVER_ID, self::RECEIVER_ID, self::TENANT_ID)
             ->willReturn(false);
 
-        $result = $this->service->hasActiveProxy(self::MEETING_ID, self::GIVER_ID, self::RECEIVER_ID);
+        $result = $this->service->hasActiveProxy(self::MEETING_ID, self::GIVER_ID, self::RECEIVER_ID, self::TENANT_ID);
 
         $this->assertFalse($result);
     }
@@ -245,12 +245,12 @@ class ProxiesServiceTest extends TestCase {
 
         $this->proxyRepo
             ->method('hasActiveProxy')
-            ->willReturnCallback(function (string $meetingId, string $giverId, string $receiverId): bool {
+            ->willReturnCallback(function (string $meetingId, string $giverId, string $receiverId, string $tenantId): bool {
                 return $meetingId === self::MEETING_ID;
             });
 
-        $this->assertTrue($this->service->hasActiveProxy(self::MEETING_ID, self::GIVER_ID, self::RECEIVER_ID));
-        $this->assertFalse($this->service->hasActiveProxy($otherMeetingId, self::GIVER_ID, self::RECEIVER_ID));
+        $this->assertTrue($this->service->hasActiveProxy(self::MEETING_ID, self::GIVER_ID, self::RECEIVER_ID, self::TENANT_ID));
+        $this->assertFalse($this->service->hasActiveProxy($otherMeetingId, self::GIVER_ID, self::RECEIVER_ID, self::TENANT_ID));
     }
 }
 
