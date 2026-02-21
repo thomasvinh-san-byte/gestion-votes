@@ -679,7 +679,7 @@ h4, .h4 {
 
 .btn-success {
   background: var(--color-success);
-  color: white;
+  color: var(--color-text-inverse);
   border-color: var(--color-success);
 }
 
@@ -689,7 +689,7 @@ h4, .h4 {
 
 .btn-danger {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-text-inverse);
   border-color: var(--color-danger);
 }
 
@@ -1542,19 +1542,19 @@ body:has(.drawer-backdrop.open) {
 
 .vote-btn-for {
   background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-hover) 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 30px rgb(22 163 74 / 0.3);
 }
 
 .vote-btn-against {
   background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-hover) 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 30px rgb(220 38 38 / 0.3);
 }
 
 .vote-btn-abstain {
   background: linear-gradient(135deg, var(--color-neutral) 0%, var(--color-neutral-hover) 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 30px rgb(100 116 139 / 0.3);
 }
 
@@ -1599,7 +1599,7 @@ body:has(.drawer-backdrop.open) {
 
 .stepper-item.active .stepper-number {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-primary-text);
 }
 
 .stepper-item.done {
@@ -1610,7 +1610,7 @@ body:has(.drawer-backdrop.open) {
 
 .stepper-item.done .stepper-number {
   background: var(--color-success);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 /* ─── Timeline / Activity ─── */
@@ -1806,7 +1806,7 @@ body:has(.drawer-backdrop.open) {
   z-index: 10000;
   padding: var(--space-3) var(--space-4);
   background: var(--color-primary);
-  color: white;
+  color: var(--color-primary-text);
   font-weight: var(--font-semibold);
   text-decoration: none;
   border-radius: 0 0 var(--radius-md) 0;
@@ -2164,7 +2164,7 @@ textarea:focus-visible,
   height: 56px;
   border-radius: 50%;
   background: var(--color-primary);
-  color: white;
+  color: var(--color-primary-text);
   border: none;
   box-shadow: var(--shadow-lg);
   cursor: pointer;

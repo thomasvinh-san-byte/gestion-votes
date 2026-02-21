@@ -133,28 +133,28 @@
 
 .calendar-event.status-live {
   background: var(--color-success);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 .calendar-event.status-frozen {
   background: var(--color-info);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 .calendar-event.status-scheduled {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-primary-text);
 }
 
 .calendar-event.status-draft {
   background: var(--color-text-muted);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 .calendar-event.status-closed,
 .calendar-event.status-validated {
   background: var(--color-warning);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 .calendar-event.status-archived {

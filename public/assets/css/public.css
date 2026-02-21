@@ -219,7 +219,7 @@ body.projection-body {
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   position: relative;
-  color: white;
+  color: var(--color-text-inverse);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 

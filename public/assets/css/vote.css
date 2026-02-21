@@ -123,7 +123,7 @@
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background: var(--color-danger);
-  color: white;
+  color: var(--color-text-inverse);
   font-weight: 700;
   font-size: 0.875rem;
   text-align: center;
@@ -684,7 +684,7 @@
 
 .vote-btn-for {
   background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-hover) 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 40px rgb(22 163 74 / 0.3);
 }
 
@@ -694,7 +694,7 @@
 
 .vote-btn-against {
   background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-hover) 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 40px rgb(220 38 38 / 0.3);
 }
 
@@ -704,7 +704,7 @@
 
 .vote-btn-abstain {
   background: linear-gradient(135deg, var(--color-neutral) 0%, var(--color-neutral-hover) 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 40px rgb(100 116 139 / 0.3);
 }
 
@@ -714,7 +714,7 @@
 
 .vote-btn-blanc {
   background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 40px rgb(148 163 184 / 0.3);
 }
 
@@ -753,7 +753,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--color-surface);
   color: currentColor;
   border-radius: 50%;
   font-size: 1rem;
@@ -1186,7 +1186,7 @@
   height: 200px;
   border-radius: 50%;
   background: var(--color-success);
-  color: white;
+  color: var(--color-text-inverse);
   display: flex;
   flex-direction: column;
   align-items: center;

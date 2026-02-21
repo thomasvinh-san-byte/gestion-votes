@@ -60,12 +60,12 @@
 
 .check-row.pass .check-icon {
   background: var(--color-success);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 .check-row.fail .check-icon {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 /* =============================================================================
@@ -207,7 +207,7 @@
 
 .severity-pill.active {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-primary-text);
   border-color: var(--color-primary);
 }
 
