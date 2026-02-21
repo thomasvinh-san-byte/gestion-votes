@@ -343,6 +343,11 @@ final class MeetingReportsController extends AbstractController {
             </html>
             HTML;
 
+        audit_log('report.view_html', 'meeting', $meetingId, [
+            'show_voters' => $showVoters,
+            'regenerated' => $regen,
+        ], $meetingId);
+
         header('Content-Type: text/html; charset=utf-8');
         echo $html;
     }
@@ -520,6 +525,11 @@ final class MeetingReportsController extends AbstractController {
         $prefix = $isPreview ? 'BROUILLON_PV_' : 'PV_';
         $filename = $prefix . preg_replace('/[^a-zA-Z0-9]/', '_', $meeting['title'] ?? 'seance') . '_' . date('Ymd') . '.pdf';
 
+        audit_log('report.generate_pdf', 'meeting', $meetingId, [
+            'preview' => $isPreview,
+            'sha256' => $hash,
+        ], $meetingId);
+
         header('Content-Type: application/pdf');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Content-Length: ' . strlen($pdfContent));
@@ -588,6 +598,10 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
 
         (new MeetingReportRepository())->upsertHash($meetingId, $hash);
 
+        audit_log('report.generate_html', 'meeting', $meetingId, [
+            'sha256' => $hash,
+        ], $meetingId);
+
         header('Content-Type: text/html; charset=utf-8');
         echo $html;
     }
@@ -652,6 +666,10 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         $showVoters = (api_query('show_voters') === '1');
 
         $html = (new MeetingReportService())->renderHtml($meetingId, $showVoters);
+
+        audit_log('report.export_pv_html', 'meeting', $meetingId, [
+            'show_voters' => $showVoters,
+        ], $meetingId);
 
         header('Content-Type: text/html; charset=utf-8');
         header('X-Content-Type-Options: nosniff');

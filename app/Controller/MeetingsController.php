@@ -500,6 +500,10 @@ final class MeetingsController extends AbstractController {
                 (new MeetingReportRepository())->storeHtml($meetingId, $pvHtml);
             });
 
+            audit_log('meeting.validated', 'meeting', $meetingId, [
+                'president_name' => $presidentName,
+            ], $meetingId);
+
             api_ok(['meeting_id' => $meetingId, 'status' => 'validated']);
         } catch (Throwable $e) {
             if ($e instanceof \AgVote\Core\Http\ApiResponseException) {

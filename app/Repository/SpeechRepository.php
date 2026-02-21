@@ -9,23 +9,6 @@ namespace AgVote\Repository;
  */
 class SpeechRepository extends AbstractRepository {
     /**
-     * Creation best-effort de la table speech_requests si absente.
-     */
-    public function ensureSchema(): void {
-        $this->execute("CREATE TABLE IF NOT EXISTS speech_requests (
-            id uuid PRIMARY KEY,
-            tenant_id uuid NOT NULL,
-            meeting_id uuid NOT NULL,
-            member_id uuid NOT NULL,
-            status text NOT NULL CHECK (status IN ('waiting','speaking','finished','cancelled')),
-            created_at timestamptz NOT NULL DEFAULT now(),
-            updated_at timestamptz NOT NULL DEFAULT now()
-        )");
-        $this->execute('CREATE INDEX IF NOT EXISTS idx_speech_requests_meeting_status ON speech_requests (meeting_id, status, created_at)');
-        $this->execute('CREATE INDEX IF NOT EXISTS idx_speech_requests_member ON speech_requests (meeting_id, member_id, updated_at DESC)');
-    }
-
-    /**
      * Trouve une demande de parole par son ID.
      */
     public function findById(string $id, string $tenantId): ?array {

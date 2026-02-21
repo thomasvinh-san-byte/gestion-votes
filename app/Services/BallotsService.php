@@ -162,6 +162,9 @@ final class BallotsService {
                 throw new RuntimeException('Séance non disponible pour le vote');
             }
 
+            // Detect existing ballot BEFORE upsert for change tracking
+            $previousBallot = $this->ballotRepo->findByMotionAndMember($motionId, $memberId);
+
             $this->ballotRepo->castBallot(
                 $tenantId,
                 $motionId,
@@ -173,6 +176,8 @@ final class BallotsService {
             );
 
             if (function_exists('audit_log')) {
+                $isUpdate = $previousBallot !== null;
+                $auditAction = $isUpdate ? 'ballot_changed' : 'ballot_cast';
                 $auditData = [
                     'meeting_id' => $context['meeting_id'],
                     'member_id' => $memberId,
@@ -181,10 +186,14 @@ final class BallotsService {
                     'is_proxy_vote' => $isProxyVote,
                     'proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
                 ];
+                if ($isUpdate) {
+                    $auditData['previous_value'] = $previousBallot['value'] ?? null;
+                    $auditData['previous_weight'] = (float) ($previousBallot['weight'] ?? 0);
+                }
                 if (!empty($data['_idempotency_key'])) {
                     $auditData['idempotency_key'] = (string) $data['_idempotency_key'];
                 }
-                audit_log('ballot_cast', 'motion', $motionId, $auditData);
+                audit_log($auditAction, 'motion', $motionId, $auditData);
             }
         });
 
