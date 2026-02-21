@@ -9,35 +9,6 @@ namespace AgVote\Repository;
  * et le cache d'etat de validation (meeting_validation_state).
  */
 class NotificationRepository extends AbstractRepository {
-    /**
-     * Creation best-effort des tables meeting_notifications + meeting_validation_state.
-     */
-    public function ensureSchema(): void {
-        $this->execute("CREATE TABLE IF NOT EXISTS meeting_notifications (
-            id bigserial PRIMARY KEY,
-            tenant_id uuid NOT NULL,
-            meeting_id uuid NOT NULL,
-            severity text NOT NULL CHECK (severity IN ('blocking','warn','info')),
-            code text NOT NULL,
-            message text NOT NULL,
-            audience text[] NOT NULL DEFAULT ARRAY['operator','trust'],
-            data jsonb NOT NULL DEFAULT '{}'::jsonb,
-            read_at timestamptz,
-            created_at timestamptz NOT NULL DEFAULT now()
-        )");
-        $this->execute('CREATE INDEX IF NOT EXISTS idx_meeting_notifications_meeting_id ON meeting_notifications(meeting_id, id DESC)');
-        $this->execute('CREATE INDEX IF NOT EXISTS idx_meeting_notifications_audience ON meeting_notifications USING gin(audience)');
-
-        $this->execute("CREATE TABLE IF NOT EXISTS meeting_validation_state (
-            meeting_id uuid PRIMARY KEY,
-            tenant_id uuid NOT NULL,
-            ready boolean NOT NULL,
-            codes jsonb NOT NULL DEFAULT '[]'::jsonb,
-            updated_at timestamptz NOT NULL DEFAULT now()
-        )");
-        $this->execute('CREATE INDEX IF NOT EXISTS idx_meeting_validation_state_tenant ON meeting_validation_state(tenant_id)');
-    }
-
     // =========================================================================
     // VALIDATION STATE
     // =========================================================================

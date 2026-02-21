@@ -109,7 +109,8 @@ class BallotRepository extends AbstractRepository {
     }
 
     /**
-     * Upsert un bulletin de vote (cast ou re-vote).
+     * Inserts a ballot (strict INSERT — no silent upsert).
+     * Throws on duplicate (motion_id, member_id) constraint violation.
      */
     public function castBallot(
         string $tenantId,
@@ -125,13 +126,7 @@ class BallotRepository extends AbstractRepository {
               id, tenant_id, motion_id, member_id, value, weight, cast_at, is_proxy_vote, proxy_source_member_id
             ) VALUES (
               gen_random_uuid(), :tid, :mid, :mem, :value, :weight, now(), :proxy, :proxy_src
-            )
-            ON CONFLICT (motion_id, member_id) DO UPDATE
-            SET value = EXCLUDED.value,
-                weight = EXCLUDED.weight,
-                cast_at = now(),
-                is_proxy_vote = EXCLUDED.is_proxy_vote,
-                proxy_source_member_id = EXCLUDED.proxy_source_member_id',
+            )',
             [
                 ':tid' => $tenantId, ':mid' => $motionId, ':mem' => $memberId,
                 ':value' => $value, ':weight' => $weight,
@@ -312,10 +307,10 @@ class BallotRepository extends AbstractRepository {
     /**
      * Cree un bulletin papier.
      */
-    public function createPaperBallot(string $meetingId, string $motionId, string $code, string $codeHash): void {
+    public function createPaperBallot(string $tenantId, string $meetingId, string $motionId, string $code, string $codeHash): void {
         $this->execute(
-            'INSERT INTO paper_ballots(meeting_id, motion_id, code, code_hash) VALUES (:m, :mo, :c, :h)',
-            [':m' => $meetingId, ':mo' => $motionId, ':c' => $code, ':h' => $codeHash],
+            'INSERT INTO paper_ballots(tenant_id, meeting_id, motion_id, code, code_hash) VALUES (:tid, :m, :mo, :c, :h)',
+            [':tid' => $tenantId, ':m' => $meetingId, ':mo' => $motionId, ':c' => $code, ':h' => $codeHash],
         );
     }
 
@@ -324,9 +319,8 @@ class BallotRepository extends AbstractRepository {
      */
     public function findUnusedPaperBallotByHash(string $codeHash): ?array {
         return $this->selectOne(
-            'SELECT pb.*, m.tenant_id
+            'SELECT pb.*
              FROM paper_ballots pb
-             JOIN meetings m ON m.id = pb.meeting_id
              WHERE pb.code_hash = :hash AND pb.used_at IS NULL',
             [':hash' => $codeHash],
         );

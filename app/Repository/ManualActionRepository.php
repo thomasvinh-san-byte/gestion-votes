@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Repository;
 
-use Throwable;
-
 /**
  * Acces donnees pour les actions manuelles (audit trail append-only).
  */
@@ -68,31 +66,6 @@ class ManualActionRepository extends AbstractRepository {
              ORDER BY created_at ASC',
             [':mid' => $meetingId],
         );
-    }
-
-    /**
-     * Cree la table manual_actions si elle n'existe pas (best-effort).
-     */
-    public function ensureSchema(): void {
-        try {
-            $this->execute(
-                "CREATE TABLE IF NOT EXISTS manual_actions (
-                  id bigserial PRIMARY KEY,
-                  tenant_id uuid NOT NULL,
-                  meeting_id uuid NOT NULL,
-                  motion_id uuid,
-                  member_id uuid,
-                  action_type text NOT NULL,
-                  value jsonb NOT NULL DEFAULT '{}'::jsonb,
-                  justification text,
-                  operator_user_id uuid,
-                  signature_hash text,
-                  created_at timestamptz NOT NULL DEFAULT now()
-                )",
-            );
-            $this->execute('CREATE INDEX IF NOT EXISTS idx_manual_actions_meeting ON manual_actions(meeting_id, created_at DESC)');
-        } catch (Throwable $e) { /* best-effort */
-        }
     }
 
     /**

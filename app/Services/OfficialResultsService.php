@@ -44,6 +44,18 @@ final class OfficialResultsService {
         $this->attendanceRepo = $attendanceRepo ?? new AttendanceRepository();
     }
 
+    private const WRITE_ROLES = ['operator', 'admin'];
+
+    /**
+     * Defense-in-depth: ensure only operator/admin can persist official results.
+     */
+    private function guardWriteAccess(): void {
+        $role = \AgVote\Core\Security\AuthMiddleware::getCurrentRole();
+        if ($role !== '' && !in_array($role, self::WRITE_ROLES, true)) {
+            throw new RuntimeException('consolidation_forbidden: role ' . $role . ' cannot modify official results');
+        }
+    }
+
     /**
      * Applies quorum/majority policies to weighted vote totals.
      * Delegates the core calculation to VoteEngine::computeDecision() (single source of truth).
@@ -323,9 +335,12 @@ final class OfficialResultsService {
     /**
      * Compute and persist official results for a single motion.
      *
+     * Only operators and admins may persist official results (defense-in-depth).
+     *
      * @return array{source:string,for:float,against:float,abstain:float,total:float,decision:string,reason:string}
      */
     public function computeAndPersistMotion(string $motionId, string $tenantId): array {
+        $this->guardWriteAccess();
         $o = $this->computeOfficialTallies($motionId);
 
         $this->motionRepo->updateOfficialResults(
@@ -343,8 +358,15 @@ final class OfficialResultsService {
         return $o;
     }
 
-    /** @return array{updated:int} */
+    /**
+     * Consolidate official results for all closed motions of a meeting.
+     *
+     * Only operators and admins may consolidate (defense-in-depth).
+     *
+     * @return array{updated:int}
+     */
     public function consolidateMeeting(string $meetingId, string $tenantId): array {
+        $this->guardWriteAccess();
         $motions = $this->motionRepo->listClosedForMeeting($meetingId, $tenantId);
 
         $updated = 0;

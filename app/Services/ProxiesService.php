@@ -86,7 +86,7 @@ final class ProxiesService {
 
         // Revoke if receiver is empty
         if (trim($receiverMemberId) === '') {
-            $repo->revokeForGiver($meetingId, $giverMemberId);
+            $repo->revokeForGiver($meetingId, $giverMemberId, $tenantId);
             return;
         }
 
@@ -115,8 +115,8 @@ final class ProxiesService {
     /**
      * Revokes all active proxies from a giver.
      */
-    public function revoke(string $meetingId, string $giverMemberId): void {
-        $this->repo->revokeForGiver($meetingId, $giverMemberId);
+    public function revoke(string $meetingId, string $giverMemberId, string $tenantId = ''): void {
+        $this->repo->revokeForGiver($meetingId, $giverMemberId, $tenantId);
     }
 
     /**

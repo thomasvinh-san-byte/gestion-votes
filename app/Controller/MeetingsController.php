@@ -497,8 +497,12 @@ final class MeetingsController extends AbstractController {
             api_transaction(function () use ($repo, $meetingId, $tenant) {
                 $pvHtml = (new MeetingReportService())->renderHtml($meetingId, true);
                 $repo->markValidated($meetingId, $tenant);
-                (new MeetingReportRepository())->storeHtml($meetingId, $pvHtml);
+                (new MeetingReportRepository())->storeHtml($meetingId, $pvHtml, $tenant);
             });
+
+            audit_log('meeting.validated', 'meeting', $meetingId, [
+                'president_name' => $presidentName,
+            ], $meetingId);
 
             api_ok(['meeting_id' => $meetingId, 'status' => 'validated']);
         } catch (Throwable $e) {

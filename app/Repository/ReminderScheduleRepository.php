@@ -100,12 +100,20 @@ class ReminderScheduleRepository extends AbstractRepository {
     /**
      * Marque un rappel comme execute.
      */
-    public function markExecuted(string $id): void {
-        $this->execute(
-            'UPDATE reminder_schedules SET last_executed_at = now(), updated_at = now()
-             WHERE id = :id',
-            [':id' => $id],
-        );
+    public function markExecuted(string $id, string $tenantId = ''): void {
+        if ($tenantId !== '') {
+            $this->execute(
+                'UPDATE reminder_schedules SET last_executed_at = now(), updated_at = now()
+                 WHERE id = :id AND tenant_id = :tid',
+                [':id' => $id, ':tid' => $tenantId],
+            );
+        } else {
+            $this->execute(
+                'UPDATE reminder_schedules SET last_executed_at = now(), updated_at = now()
+                 WHERE id = :id',
+                [':id' => $id],
+            );
+        }
     }
 
     /**

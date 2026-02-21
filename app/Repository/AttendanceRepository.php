@@ -281,7 +281,7 @@ class AttendanceRepository extends AbstractRepository {
         $this->execute(
             'INSERT INTO attendances (id, tenant_id, meeting_id, member_id, mode, checked_in_at, created_at, updated_at)
              VALUES (:id, :tid, :mid, :mem, :mode, now(), now(), now())
-             ON CONFLICT (meeting_id, member_id) DO UPDATE SET mode = EXCLUDED.mode, updated_at = now()',
+             ON CONFLICT (tenant_id, meeting_id, member_id) DO UPDATE SET mode = EXCLUDED.mode, updated_at = now()',
             [':id' => $id, ':tid' => $tenantId, ':mid' => $meetingId, ':mem' => $memberId, ':mode' => $mode],
         );
     }

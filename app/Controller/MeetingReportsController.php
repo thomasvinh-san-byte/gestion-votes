@@ -52,7 +52,7 @@ final class MeetingReportsController extends AbstractController {
         // Serve cached snapshot if available (audit-defensible)
         if (!$regen) {
             try {
-                $snap = (new MeetingReportRepository())->findSnapshot($meetingId);
+                $snap = (new MeetingReportRepository())->findSnapshot($meetingId, $tenant);
                 if ($snap && !empty($snap['html'])) {
                     header('Content-Type: text/html; charset=utf-8');
                     echo (string) $snap['html'];
@@ -343,6 +343,11 @@ final class MeetingReportsController extends AbstractController {
             </html>
             HTML;
 
+        audit_log('report.view_html', 'meeting', $meetingId, [
+            'show_voters' => $showVoters,
+            'regenerated' => $regen,
+        ], $meetingId);
+
         header('Content-Type: text/html; charset=utf-8');
         echo $html;
     }
@@ -514,11 +519,16 @@ final class MeetingReportsController extends AbstractController {
         $hash = hash('sha256', $pdfContent);
 
         if (!$isPreview) {
-            (new MeetingReportRepository())->upsertFull($meetingId, $html, $hash);
+            (new MeetingReportRepository())->upsertFull($meetingId, $html, $hash, $tenantId);
         }
 
         $prefix = $isPreview ? 'BROUILLON_PV_' : 'PV_';
         $filename = $prefix . preg_replace('/[^a-zA-Z0-9]/', '_', $meeting['title'] ?? 'seance') . '_' . date('Ymd') . '.pdf';
+
+        audit_log('report.generate_pdf', 'meeting', $meetingId, [
+            'preview' => $isPreview,
+            'sha256' => $hash,
+        ], $meetingId);
 
         header('Content-Type: application/pdf');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -586,7 +596,12 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         $html = ob_get_clean();
         $hash = hash('sha256', $html);
 
-        (new MeetingReportRepository())->upsertHash($meetingId, $hash);
+        $tenantId = api_current_tenant_id();
+        (new MeetingReportRepository())->upsertHash($meetingId, $hash, $tenantId);
+
+        audit_log('report.generate_html', 'meeting', $meetingId, [
+            'sha256' => $hash,
+        ], $meetingId);
 
         header('Content-Type: text/html; charset=utf-8');
         echo $html;
@@ -652,6 +667,10 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         $showVoters = (api_query('show_voters') === '1');
 
         $html = (new MeetingReportService())->renderHtml($meetingId, $showVoters);
+
+        audit_log('report.export_pv_html', 'meeting', $meetingId, [
+            'show_voters' => $showVoters,
+        ], $meetingId);
 
         header('Content-Type: text/html; charset=utf-8');
         header('X-Content-Type-Options: nosniff');

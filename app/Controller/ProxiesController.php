@@ -39,7 +39,7 @@ final class ProxiesController extends AbstractController {
         $scope = trim((string) ($in['scope'] ?? 'full'));
 
         if ($receiverRaw === '') {
-            (new ProxiesService())->revoke($meetingId, $giverId);
+            (new ProxiesService())->revoke($meetingId, $giverId, $tenantId);
             audit_log('proxy_revoked', 'meeting', $meetingId, [
                 'giver_member_id' => $giverId,
             ]);

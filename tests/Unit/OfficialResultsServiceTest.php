@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Tests\Unit;
 
+use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MemberRepository;
@@ -33,6 +34,13 @@ class OfficialResultsServiceTest extends TestCase {
     private OfficialResultsService $service;
 
     protected function setUp(): void {
+        // Set mock admin user for write-access guard checks
+        AuthMiddleware::setCurrentUser([
+            'id' => 'test-admin',
+            'role' => 'admin',
+            'tenant_id' => self::TENANT_ID,
+        ]);
+
         $this->motionRepo = $this->createMock(MotionRepository::class);
         $this->ballotRepo = $this->createMock(BallotRepository::class);
         $this->memberRepo = $this->createMock(MemberRepository::class);
@@ -46,6 +54,10 @@ class OfficialResultsServiceTest extends TestCase {
             $this->policyRepo,
             $this->attendanceRepo,
         );
+    }
+
+    protected function tearDown(): void {
+        AuthMiddleware::reset();
     }
 
     // =========================================================================

@@ -153,40 +153,35 @@ final class BallotsService {
         }
 
         // Wrap ballot insert + audit log in a transaction for atomicity
-        api_transaction(function () use ($meetingId, $tenantId, $motionId, $memberId, $value, $weight, $isProxyVote, $proxyVoterId, $context, $data) {
-            // Lock the meeting row to prevent TOCTOU race: meeting could
-            // transition from 'live' to 'closed' between the initial check
-            // and the ballot INSERT.
-            $lockedMeeting = $this->meetingRepo->lockForUpdate($meetingId, $tenantId);
-            if (!$lockedMeeting || $lockedMeeting['status'] !== 'live') {
-                throw new RuntimeException('Séance non disponible pour le vote');
-            }
-
-            $this->ballotRepo->castBallot(
-                $tenantId,
-                $motionId,
-                $memberId,
-                $value,
-                $weight,
-                $isProxyVote,
-                $isProxyVote ? $proxyVoterId : null,
-            );
-
-            if (function_exists('audit_log')) {
-                $auditData = [
-                    'meeting_id' => $context['meeting_id'],
-                    'member_id' => $memberId,
-                    'value' => $value,
-                    'weight' => $weight,
-                    'is_proxy_vote' => $isProxyVote,
-                    'proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
-                ];
-                if (!empty($data['_idempotency_key'])) {
-                    $auditData['idempotency_key'] = (string) $data['_idempotency_key'];
+        try {
+            api_transaction(function () use ($meetingId, $tenantId, $motionId, $memberId, $value, $weight, $isProxyVote, $proxyVoterId, $context, $data) {
+                // Lock the meeting row to prevent TOCTOU race: meeting could
+                // transition from 'live' to 'closed' between the initial check
+                // and the ballot INSERT.
+                $lockedMeeting = $this->meetingRepo->lockForUpdate($meetingId, $tenantId);
+                if (!$lockedMeeting || $lockedMeeting['status'] !== 'live') {
+                    throw new RuntimeException('Séance non disponible pour le vote');
                 }
-                audit_log('ballot_cast', 'motion', $motionId, $auditData);
+
+                // Strict INSERT — duplicate votes are rejected, not silently overwritten
+                $this->ballotRepo->castBallot(
+                    $tenantId,
+                    $motionId,
+                    $memberId,
+                    $value,
+                    $weight,
+                    $isProxyVote,
+                    $isProxyVote ? $proxyVoterId : null,
+                );
+            });
+        } catch (Throwable $e) {
+            // Unique constraint violation = member already voted on this motion
+            $msg = $e->getMessage();
+            if (stripos($msg, 'unique') !== false || stripos($msg, 'ballots_motion_id_member_id') !== false || stripos($msg, 'duplicate key') !== false) {
+                throw new RuntimeException('Ce membre a déjà voté sur cette résolution. Un re-vote nécessite une annulation préalable par l\'opérateur.');
             }
-        });
+            throw $e;
+        }
 
         // Broadcast WebSocket event with updated tally (outside transaction)
         try {

@@ -235,6 +235,7 @@ class EventBroadcaster {
             }
 
             file_put_contents(self::QUEUE_FILE, json_encode($queue));
+            chmod(self::QUEUE_FILE, 0600);
         } finally {
             flock($lockFile, LOCK_UN);
             fclose($lockFile);
@@ -256,6 +257,7 @@ class EventBroadcaster {
             $queue = json_decode($content, true) ?? [];
 
             file_put_contents(self::QUEUE_FILE, '[]');
+            chmod(self::QUEUE_FILE, 0600);
 
             return $queue;
         } finally {
