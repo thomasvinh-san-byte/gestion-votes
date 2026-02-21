@@ -328,8 +328,8 @@
         if (btn.disabled) return;
         _triggerBtn = btn;
         pendingVote = btn.dataset.choice;
-        // Capture current motion ID for change detection
-        _overlayMotionId = document.getElementById('motionTitle')?.textContent || null;
+        // Capture current motion ID for change detection (use data attribute, not text)
+        _overlayMotionId = document.getElementById('motionTitle')?.dataset?.motionId || null;
         fillConfirmContext(pendingVote);
         confirmOverlay.classList.add('show');
         confirmOverlay.setAttribute('aria-hidden', 'false');
@@ -337,20 +337,22 @@
       });
     });
 
-    // Watch for resolution changes while confirmation overlay is open
+    // Watch for motion changes while confirmation overlay is open.
+    // Uses data-motion-id (stable UUID) instead of textContent to avoid
+    // false positives from cosmetic text changes.
+    const motionTitleEl = document.getElementById('motionTitle');
     const motionTitleObserver = new MutationObserver(() => {
       if (!confirmOverlay.classList.contains('show') || !_overlayMotionId) return;
-      const currentTitle = document.getElementById('motionTitle')?.textContent || null;
-      if (currentTitle && currentTitle !== _overlayMotionId && currentTitle !== 'En attente d\u2019une résolution') {
-        // Resolution changed while voting!
+      const currentId = motionTitleEl?.dataset?.motionId || null;
+      if (currentId !== _overlayMotionId) {
+        // Motion changed while voting — close and warn
         closeConfirm();
         setNotif('error', 'La résolution a changé pendant votre vote. Veuillez revoter.');
         _overlayMotionId = null;
       }
     });
-    const motionTitleEl = document.getElementById('motionTitle');
     if (motionTitleEl) {
-      motionTitleObserver.observe(motionTitleEl, { childList: true, characterData: true, subtree: true });
+      motionTitleObserver.observe(motionTitleEl, { attributes: true, attributeFilter: ['data-motion-id'] });
     }
 
     function closeConfirm() {
@@ -788,6 +790,30 @@
         e.preventDefault();
         btn.click();
       }
+    });
+
+    // Reset state when meeting changes — prevents stale speech/vote data
+    document.addEventListener('vote:meeting-changed', () => {
+      // Close confirmation overlay if open
+      if (confirmOverlay.classList.contains('show')) closeConfirm();
+      // Reset vote state
+      hasVoted = false;
+      voteButtons.forEach(b => b.disabled = false);
+      // Reset speech state
+      handRaised = false;
+      speakingNow = false;
+      queuePosition = null;
+      queueSize = 0;
+      _prevPosition = null;
+      updateHandUI();
+      // Reset speaker banner
+      _lastSpeakerId = null;
+      _speakerStartTime = null;
+      if (_speakerTimerInterval) { clearInterval(_speakerTimerInterval); _speakerTimerInterval = null; }
+      if (speakerBanner) speakerBanner.hidden = true;
+      // Clear receipt
+      const receipt = document.getElementById('voteReceipt');
+      if (receipt) { receipt.textContent = ''; receipt.hidden = true; }
     });
 
     // Cleanup on page unload to prevent memory leaks

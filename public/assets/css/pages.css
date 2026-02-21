@@ -1080,41 +1080,18 @@
 }
 
 /* =============================================================================
-   EMPTY STATE
+   EMPTY STATE — extends design-system.css base with card appearance
    ============================================================================= */
 
 .empty-state {
   grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
   background: var(--color-surface);
   border: 2px dashed var(--color-border);
   border-radius: 12px;
 }
 
 .empty-state-icon {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 1.5rem;
-  color: var(--color-text-muted);
   opacity: 0.4;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 0.5rem 0;
-}
-
-.empty-state p {
-  color: var(--color-text-muted);
-  max-width: 300px;
-  margin: 0;
 }
 
 /* =============================================================================
