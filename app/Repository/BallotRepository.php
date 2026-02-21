@@ -307,10 +307,10 @@ class BallotRepository extends AbstractRepository {
     /**
      * Cree un bulletin papier.
      */
-    public function createPaperBallot(string $meetingId, string $motionId, string $code, string $codeHash): void {
+    public function createPaperBallot(string $tenantId, string $meetingId, string $motionId, string $code, string $codeHash): void {
         $this->execute(
-            'INSERT INTO paper_ballots(meeting_id, motion_id, code, code_hash) VALUES (:m, :mo, :c, :h)',
-            [':m' => $meetingId, ':mo' => $motionId, ':c' => $code, ':h' => $codeHash],
+            'INSERT INTO paper_ballots(tenant_id, meeting_id, motion_id, code, code_hash) VALUES (:tid, :m, :mo, :c, :h)',
+            [':tid' => $tenantId, ':m' => $meetingId, ':mo' => $motionId, ':c' => $code, ':h' => $codeHash],
         );
     }
 
@@ -319,9 +319,8 @@ class BallotRepository extends AbstractRepository {
      */
     public function findUnusedPaperBallotByHash(string $codeHash): ?array {
         return $this->selectOne(
-            'SELECT pb.*, m.tenant_id
+            'SELECT pb.*
              FROM paper_ballots pb
-             JOIN meetings m ON m.id = pb.meeting_id
              WHERE pb.code_hash = :hash AND pb.used_at IS NULL',
             [':hash' => $codeHash],
         );

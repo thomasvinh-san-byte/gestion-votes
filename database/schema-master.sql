@@ -1048,6 +1048,7 @@ CREATE INDEX IF NOT EXISTS idx_meeting_reports_tenant ON meeting_reports(tenant_
 
 CREATE TABLE IF NOT EXISTS paper_ballots (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
   motion_id uuid NOT NULL REFERENCES motions(id) ON DELETE CASCADE,
   code text NOT NULL,
@@ -1058,6 +1059,7 @@ CREATE TABLE IF NOT EXISTS paper_ballots (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_paper_ballots_code_hash ON paper_ballots(code_hash);
 CREATE INDEX IF NOT EXISTS idx_paper_ballots_unused ON paper_ballots(code_hash) WHERE used_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_paper_ballots_tenant ON paper_ballots(tenant_id);
 
 CREATE TABLE IF NOT EXISTS emergency_procedures (
   code text PRIMARY KEY,

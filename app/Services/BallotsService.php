@@ -173,21 +173,6 @@ final class BallotsService {
                     $isProxyVote,
                     $isProxyVote ? $proxyVoterId : null,
                 );
-
-                if (function_exists('audit_log')) {
-                    $auditData = [
-                        'meeting_id' => $context['meeting_id'],
-                        'member_id' => $memberId,
-                        'value' => $value,
-                        'weight' => $weight,
-                        'is_proxy_vote' => $isProxyVote,
-                        'proxy_source_member_id' => $isProxyVote ? $proxyVoterId : null,
-                    ];
-                    if (!empty($data['_idempotency_key'])) {
-                        $auditData['idempotency_key'] = (string) $data['_idempotency_key'];
-                    }
-                    audit_log('ballot_cast', 'motion', $motionId, $auditData);
-                }
             });
         } catch (Throwable $e) {
             // Unique constraint violation = member already voted on this motion

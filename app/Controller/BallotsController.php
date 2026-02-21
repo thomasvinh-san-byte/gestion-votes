@@ -87,10 +87,16 @@ final class BallotsController extends AbstractController {
         $meetingId = $ballot['meeting_id'] ?? $data['meeting_id'] ?? null;
         $auditData = [
             'member_id' => $data['member_id'] ?? $ballot['member_id'] ?? null,
-            'choice' => $ballot['choice'] ?? $data['choice'] ?? null,
+            'value' => $ballot['value'] ?? $data['value'] ?? null,
+            'weight' => $ballot['weight'] ?? null,
+            'is_proxy_vote' => $ballot['is_proxy_vote'] ?? ($data['is_proxy_vote'] ?? false),
+            'proxy_source_member_id' => $ballot['proxy_source_member_id'] ?? null,
         ];
         if ($tokenHash !== null) {
             $auditData['token_hash'] = $tokenHash;
+        }
+        if (!empty($data['_idempotency_key'])) {
+            $auditData['idempotency_key'] = (string) $data['_idempotency_key'];
         }
         audit_log('ballot.cast', 'motion', $motionId, $auditData, $meetingId);
 
