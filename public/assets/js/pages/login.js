@@ -86,6 +86,11 @@
       return;
     }
 
+    if (window.Utils && Utils.isValidEmail && !Utils.isValidEmail(email)) {
+      showError('Format d\u2019adresse e-mail invalide.');
+      return;
+    }
+
     submitBtn.disabled = true;
     btnText.textContent = 'Connexion...';
     spinner.style.display = 'inline-block';

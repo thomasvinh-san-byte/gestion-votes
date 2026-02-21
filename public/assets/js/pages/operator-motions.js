@@ -551,6 +551,7 @@
 
   async function castManualVote(memberId, vote) {
     if (!O.currentOpenMotion) return;
+    if (!Utils.isValidUUID(memberId)) { setNotif('error', 'ID membre invalide'); return; }
 
     // Validate vote type
     if (!VALID_VOTE_TYPES.includes(vote)) {
@@ -694,6 +695,7 @@
   }
 
   async function openVote(motionId) {
+    if (!Utils.isValidUUID(motionId)) { setNotif('error', 'ID résolution invalide'); return; }
     // P3-1: Confirmation modale avant ouverture
     const motion = O.motionsCache.find(m => String(m.id) === String(motionId));
     const motionTitle = motion ? escapeHtml(motion.title || '—') : 'cette résolution';
@@ -765,6 +767,7 @@
   }
 
   async function closeVote(motionId) {
+    if (!Utils.isValidUUID(motionId)) { setNotif('error', 'ID résolution invalide'); return; }
     // P2-4 / P3: Modale de confirmation avec récapitulatif au lieu de confirm()
     const motion = O.motionsCache.find(m => String(m.id) === String(motionId));
     const motionTitle = motion ? escapeHtml(motion.title || '—') : 'ce vote';

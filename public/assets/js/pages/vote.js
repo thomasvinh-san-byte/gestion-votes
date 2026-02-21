@@ -771,6 +771,10 @@
     const memberId = selectedMemberId();
     if (!_currentMotionId || !memberId) return;
 
+    if (window.Utils?.isValidUUID && (!Utils.isValidUUID(_currentMotionId) || !Utils.isValidUUID(memberId))) {
+      throw new Error('Identifiants invalides. Rechargez la page.');
+    }
+
     // Check offline before attempting
     if (!navigator.onLine) {
       throw new Error('Vous êtes hors ligne. Vérifiez votre connexion.');

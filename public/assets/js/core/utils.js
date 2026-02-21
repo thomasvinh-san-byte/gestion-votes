@@ -372,6 +372,16 @@ window.Utils = window.Utils || {};
     return emailRegex.test(email.trim());
   };
 
+  /**
+   * Validate a UUID v4 string.
+   * @param {string} id - String to validate
+   * @returns {boolean} True if valid UUID format
+   */
+  Utils.isValidUUID = function(id) {
+    if (!id || typeof id !== 'string') return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id.trim());
+  };
+
   // ==========================================================================
   // CSV UTILITIES
   // ==========================================================================

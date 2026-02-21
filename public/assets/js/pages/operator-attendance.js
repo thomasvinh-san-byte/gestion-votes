@@ -92,6 +92,7 @@
   }
 
   async function updateAttendance(memberId, mode) {
+    if (!Utils.isValidUUID(memberId)) { setNotif('error', 'ID membre invalide'); return; }
     const m = O.attendanceCache.find(a => String(a.member_id) === String(memberId));
     const prevMode = m ? m.mode : undefined;
 
@@ -470,6 +471,11 @@
           return;
         }
 
+        if (!Utils.isValidUUID(giverId) || !Utils.isValidUUID(receiverId)) {
+          setNotif('error', 'Identifiants membre invalides');
+          return;
+        }
+
         btnConfirm.disabled = true;
         btnCancel.disabled = true;
         const originalText = btnConfirm.textContent;
@@ -575,13 +581,20 @@
       let html = '<div style="max-height:200px;overflow:auto;"><table class="table table-sm"><thead><tr><th>Mandant</th><th>Mandataire</th></tr></thead><tbody>';
       let validCount = 0;
 
+      let invalidEmails = 0;
       for (const row of parsed.rows) {
         const giver = row.giver_email || row[Object.keys(row)[0]] || '';
         const receiver = row.receiver_email || row[Object.keys(row)[1]] || '';
         if (giver && receiver) {
-          html += '<tr><td>' + escapeHtml(giver) + '</td><td>' + escapeHtml(receiver) + '</td></tr>';
+          const giverOk = Utils.isValidEmail(giver);
+          const receiverOk = Utils.isValidEmail(receiver);
+          if (!giverOk || !receiverOk) invalidEmails++;
+          html += '<tr><td' + (giverOk ? '' : ' class="text-danger"') + '>' + escapeHtml(giver) + '</td><td' + (receiverOk ? '' : ' class="text-danger"') + '>' + escapeHtml(receiver) + '</td></tr>';
           validCount++;
         }
+      }
+      if (invalidEmails > 0) {
+        html += '<p class="text-sm text-danger mt-1">' + invalidEmails + ' ligne(s) avec e-mail invalide (en rouge)</p>';
       }
 
       html += '</tbody></table></div>';
