@@ -16,10 +16,10 @@ class NotificationRepository extends AbstractRepository {
     /**
      * Trouve l'etat de validation precedent pour une seance.
      */
-    public function findValidationState(string $meetingId): ?array {
+    public function findValidationState(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            'SELECT ready, codes FROM meeting_validation_state WHERE meeting_id = ?',
-            [$meetingId],
+            'SELECT ready, codes FROM meeting_validation_state WHERE meeting_id = ? AND tenant_id = ?',
+            [$meetingId, $tenantId],
         );
     }
 
@@ -42,12 +42,12 @@ class NotificationRepository extends AbstractRepository {
     /**
      * Dedoublonnage: compte les notifications recentes avec meme code+message.
      */
-    public function countRecentDuplicates(string $meetingId, string $code, string $message): int {
+    public function countRecentDuplicates(string $meetingId, string $code, string $message, string $tenantId): int {
         return (int) ($this->scalar(
             "SELECT count(*) FROM meeting_notifications
-             WHERE meeting_id = ? AND code = ? AND message = ?
+             WHERE meeting_id = ? AND code = ? AND message = ? AND tenant_id = ?
                AND created_at > (now() - interval '10 seconds')",
-            [$meetingId, $code, $message],
+            [$meetingId, $code, $message, $tenantId],
         ) ?? 0);
     }
 
@@ -73,53 +73,45 @@ class NotificationRepository extends AbstractRepository {
     /**
      * Liste les notifications par audience (depuis un ID, ordre ASC).
      */
-    public function listSinceId(string $meetingId, int $sinceId, int $limit, string $audience = ''): array {
+    public function listSinceId(string $meetingId, int $sinceId, int $limit, string $audience = '', string $tenantId = ''): array {
         $limit = max(1, min(100, $limit));
         if ($audience === '' || $audience === 'all') {
-            return $this->selectAll(
-                'SELECT id, severity, code, message, data, read_at, created_at
+            $sql = 'SELECT id, severity, code, message, data, read_at, created_at
                  FROM meeting_notifications
-                 WHERE meeting_id = ? AND id > ?
-                 ORDER BY id ASC
-                 LIMIT ' . $limit,
-                [$meetingId, $sinceId],
-            );
+                 WHERE meeting_id = ? AND id > ?';
+            $params = [$meetingId, $sinceId];
+            if ($tenantId !== '') { $sql .= ' AND tenant_id = ?'; $params[] = $tenantId; }
+            return $this->selectAll($sql . ' ORDER BY id ASC LIMIT ' . $limit, $params);
         }
-        return $this->selectAll(
-            'SELECT id, severity, code, message, data, read_at, created_at
+        $sql = 'SELECT id, severity, code, message, data, read_at, created_at
              FROM meeting_notifications
              WHERE meeting_id = ? AND id > ?
-               AND (audience @> ARRAY[?]::text[])
-             ORDER BY id ASC
-             LIMIT ' . $limit,
-            [$meetingId, $sinceId, $audience],
-        );
+               AND (audience @> ARRAY[?]::text[])';
+        $params = [$meetingId, $sinceId, $audience];
+        if ($tenantId !== '') { $sql .= ' AND tenant_id = ?'; $params[] = $tenantId; }
+        return $this->selectAll($sql . ' ORDER BY id ASC LIMIT ' . $limit, $params);
     }
 
     /**
      * Dernieres notifications (ordre DESC, pour init UI).
      */
-    public function listRecent(string $meetingId, int $limit, string $audience = ''): array {
+    public function listRecent(string $meetingId, int $limit, string $audience = '', string $tenantId = ''): array {
         $limit = max(1, min(200, $limit));
         if ($audience === '' || $audience === 'all') {
-            return $this->selectAll(
-                'SELECT id, severity, code, message, data, read_at, created_at
+            $sql = 'SELECT id, severity, code, message, data, read_at, created_at
                  FROM meeting_notifications
-                 WHERE meeting_id = ?
-                 ORDER BY id DESC
-                 LIMIT ' . $limit,
-                [$meetingId],
-            );
+                 WHERE meeting_id = ?';
+            $params = [$meetingId];
+            if ($tenantId !== '') { $sql .= ' AND tenant_id = ?'; $params[] = $tenantId; }
+            return $this->selectAll($sql . ' ORDER BY id DESC LIMIT ' . $limit, $params);
         }
-        return $this->selectAll(
-            'SELECT id, severity, code, message, data, read_at, created_at
+        $sql = 'SELECT id, severity, code, message, data, read_at, created_at
              FROM meeting_notifications
              WHERE meeting_id = ?
-               AND (audience @> ARRAY[?]::text[])
-             ORDER BY id DESC
-             LIMIT ' . $limit,
-            [$meetingId, $audience],
-        );
+               AND (audience @> ARRAY[?]::text[])';
+        $params = [$meetingId, $audience];
+        if ($tenantId !== '') { $sql .= ' AND tenant_id = ?'; $params[] = $tenantId; }
+        return $this->selectAll($sql . ' ORDER BY id DESC LIMIT ' . $limit, $params);
     }
 
     /**

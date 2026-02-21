@@ -48,6 +48,98 @@
   flex-direction: column;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
+  border-top: 3px solid var(--persona-operateur);
+}
+
+/* President mode accent override */
+.app-shell[data-mode="president"] .meeting-bar {
+  border-top-color: var(--persona-president);
+}
+
+/* ─── Meeting Lifecycle Indicator (visual phase tracker) ─── */
+.lifecycle-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 6px 16px;
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.lifecycle-step {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  border-radius: var(--radius-full);
+  transition: all var(--duration-fast);
+}
+
+.lifecycle-step.current {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  font-weight: var(--font-bold);
+}
+
+.lifecycle-step.done {
+  color: var(--color-success-text);
+}
+
+.lifecycle-step.done::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+  margin-right: 2px;
+}
+
+.lifecycle-step.current::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  margin-right: 2px;
+  animation: lifecyclePulse 1.5s ease-in-out infinite;
+}
+
+.lifecycle-arrow {
+  color: var(--color-border-strong);
+  font-size: 10px;
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+@keyframes lifecyclePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ─── Mode indicator banner ─── */
+.mode-indicator {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 16px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.app-shell[data-mode="president"] .mode-indicator {
+  display: flex;
+  background: var(--persona-president-subtle);
+  color: var(--persona-president-text);
+  border-bottom: 1px solid var(--persona-president);
 }
 
 .meeting-bar-top {
@@ -614,6 +706,21 @@
 }
 
 /* Tab footer actions — "next step" navigation */
+.readiness-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-top: 1.5rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--color-bg-subtle, #f8f9fa);
+  border: 1px solid var(--color-border-subtle, #e5e7eb);
+}
+
+.readiness-strip:empty {
+  display: none;
+}
+
 .tab-footer-actions {
   display: flex;
   align-items: center;
@@ -2266,6 +2373,87 @@
   color: var(--color-success);
 }
 
+/* Launch blockers (prerequisites not met) */
+.launch-blockers {
+  width: 100%;
+}
+
+.launch-blocker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-warning);
+}
+
+/* Emergency procedures checklist */
+.emergency-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.emergency-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background var(--duration-fast);
+}
+
+.emergency-item:hover {
+  background: var(--color-bg-subtle);
+}
+
+.emergency-item input[type="checkbox"]:checked + span {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+/* Agenda items */
+.agenda-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.agenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+  transition: background var(--duration-fast);
+}
+
+.agenda-item:hover {
+  background: var(--color-bg-subtle);
+}
+
+.agenda-item-number {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--persona-preparateur-subtle);
+  color: var(--persona-preparateur);
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.agenda-item-title {
+  font-size: 0.9rem;
+}
+
 /* =============================================================================
    LAUNCH CONFIRMATION MODAL
    ============================================================================= */
@@ -2378,4 +2566,43 @@
 
 .exec-manual-vote-row:last-child {
   border-bottom: none;
+}
+
+/* =============================================================================
+   QUORUM STATUS CARD (vote tab)
+   ============================================================================= */
+
+.quorum-status-card {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg, 10px);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: border-color var(--duration-fast, 150ms) ease, background var(--duration-fast, 150ms) ease;
+}
+
+.quorum-status-card .icon-md {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.quorum-status-card.quorum-met {
+  border-color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 6%, var(--color-surface));
+}
+
+.quorum-status-card.quorum-met .icon-md {
+  color: var(--color-success);
+}
+
+.quorum-status-card.quorum-unmet {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 6%, var(--color-surface));
+}
+
+.quorum-status-card.quorum-unmet .icon-md {
+  color: var(--color-danger);
 }

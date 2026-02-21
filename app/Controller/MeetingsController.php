@@ -38,7 +38,7 @@ final class MeetingsController extends AbstractController {
             $rows = $repo->listByTenantCompact(api_current_tenant_id(), $limit);
         }
 
-        api_ok(['meetings' => $rows]);
+        api_ok(['items' => $rows]);
     }
 
     public function update(): void {
@@ -126,7 +126,7 @@ final class MeetingsController extends AbstractController {
 
         $repo = new MeetingRepository();
         $rows = $repo->listArchived(api_current_tenant_id(), $from, $to);
-        api_ok(['meetings' => $rows]);
+        api_ok(['items' => $rows]);
     }
 
     public function archivesList(): void {
@@ -148,7 +148,7 @@ final class MeetingsController extends AbstractController {
         }
 
         $statsRepo = new MeetingStatsRepository();
-        $counts = $statsRepo->countMotionStats((string) $meeting['meeting_id']);
+        $counts = $statsRepo->countMotionStats((string) $meeting['meeting_id'], api_current_tenant_id());
 
         $totalMotions = (int) ($counts['total_motions'] ?? 0);
         $openMotions = (int) ($counts['open_motions'] ?? 0);
@@ -251,22 +251,22 @@ final class MeetingsController extends AbstractController {
         }
 
         $totalMembers = $statsRepo->countActiveMembers($tenantId);
-        $presentCount = $statsRepo->countPresent($meetingId);
-        $proxyCount = $statsRepo->countProxy($meetingId);
+        $presentCount = $statsRepo->countPresent($meetingId, $tenantId);
+        $proxyCount = $statsRepo->countProxy($meetingId, $tenantId);
         $absentCount = $totalMembers - $presentCount - $proxyCount;
 
-        $motionsCount = $statsRepo->countMotions($meetingId);
-        $closedMotionsCount = $statsRepo->countClosedMotions($meetingId);
-        $openMotionsCount = $statsRepo->countOpenMotions($meetingId);
+        $motionsCount = $statsRepo->countMotions($meetingId, $tenantId);
+        $closedMotionsCount = $statsRepo->countClosedMotions($meetingId, $tenantId);
+        $openMotionsCount = $statsRepo->countOpenMotions($meetingId, $tenantId);
 
-        $adoptedCount = $statsRepo->countAdoptedMotions($meetingId);
-        $rejectedCount = $statsRepo->countRejectedMotions($meetingId);
+        $adoptedCount = $statsRepo->countAdoptedMotions($meetingId, $tenantId);
+        $rejectedCount = $statsRepo->countRejectedMotions($meetingId, $tenantId);
 
-        $ballotsCount = $statsRepo->countBallots($meetingId);
-        $totalVotedWeight = $statsRepo->sumBallotWeight($meetingId);
-        $proxiesCount = $statsRepo->countProxies($meetingId);
-        $incidentsCount = $statsRepo->countIncidents($meetingId);
-        $manualVotesCount = $statsRepo->countManualVotes($meetingId);
+        $ballotsCount = $statsRepo->countBallots($meetingId, $tenantId);
+        $totalVotedWeight = $statsRepo->sumBallotWeight($meetingId, $tenantId);
+        $proxiesCount = $statsRepo->countProxies($meetingId, $tenantId);
+        $incidentsCount = $statsRepo->countIncidents($meetingId, $tenantId);
+        $manualVotesCount = $statsRepo->countManualVotes($meetingId, $tenantId);
 
         api_ok([
             'meeting_id' => $meetingId,
@@ -305,12 +305,13 @@ final class MeetingsController extends AbstractController {
         $statsRepo = new MeetingStatsRepository();
         $motionRepo = new MotionRepository();
 
-        if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
+        $tenantId = api_current_tenant_id();
+        if (!$meetingRepo->existsForTenant($meetingId, $tenantId)) {
             api_fail('meeting_not_found', 404);
         }
 
-        $motionsCount = $statsRepo->countMotions($meetingId);
-        $rows = $motionRepo->listStatsForMeeting($meetingId);
+        $motionsCount = $statsRepo->countMotions($meetingId, $tenantId);
+        $rows = $motionRepo->listStatsForMeeting($meetingId, $tenantId);
 
         $motions = [];
         $totalBallotsAllMotions = 0;
@@ -354,16 +355,16 @@ final class MeetingsController extends AbstractController {
 
         $distinctVoters = 0;
         if ($totalBallotsAllMotions > 0) {
-            $distinctVoters = $motionRepo->countDistinctVoters($meetingId);
+            $distinctVoters = $motionRepo->countDistinctVoters($meetingId, $tenantId);
         } else {
-            $distinctVoters = $motionRepo->maxManualTotal($meetingId);
+            $distinctVoters = $motionRepo->maxManualTotal($meetingId, $tenantId);
         }
 
         api_ok([
             'meeting_id' => $meetingId,
             'motions_count' => (int) $motionsCount,
             'distinct_voters' => (int) $distinctVoters,
-            'motions' => $motions,
+            'items' => $motions,
         ]);
     }
 

@@ -141,7 +141,7 @@ final class MotionsController extends AbstractController {
             api_fail('meeting_not_found', 404);
         }
 
-        $row = $motionRepo->listForMeetingJson($meetingId);
+        $row = $motionRepo->listForMeetingJson($meetingId, $tenantId);
         $motions = [];
         if ($row && isset($row['motions']) && $row['motions'] !== null) {
             if (is_string($row['motions'])) {
@@ -154,7 +154,7 @@ final class MotionsController extends AbstractController {
             }
         }
 
-        $stats = $motionRepo->listStatsForMeeting($meetingId);
+        $stats = $motionRepo->listStatsForMeeting($meetingId, $tenantId);
         $statsMap = [];
         foreach ($stats as $s) {
             $statsMap[(string) $s['motion_id']] = $s;
@@ -204,7 +204,7 @@ final class MotionsController extends AbstractController {
         api_ok([
             'meeting_id' => $meetingId,
             'current_motion_id' => $currentMotionId,
-            'motions' => $motions,
+            'items' => $motions,
         ]);
     }
 
@@ -357,7 +357,7 @@ final class MotionsController extends AbstractController {
             api_fail('motion_not_found', 404);
         }
 
-        $rows = $repo->getTally($motionId);
+        $rows = $repo->getTally($motionId, api_current_tenant_id());
         $result = [
             'for' => ['count' => 0, 'weight' => 0],
             'against' => ['count' => 0, 'weight' => 0],
@@ -392,7 +392,7 @@ final class MotionsController extends AbstractController {
         $motionRepo = new MotionRepository();
         $motion = $motionRepo->findCurrentOpen($meetingId, $tenantId);
 
-        $totalMotions = $motionRepo->countForMeeting($meetingId);
+        $totalMotions = $motionRepo->countForMeeting($meetingId, $tenantId);
         $eligibleCount = (new MeetingStatsRepository())->countActiveMembers($tenantId);
 
         $ballotsCast = 0;

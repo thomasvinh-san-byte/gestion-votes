@@ -33,7 +33,7 @@ final class AttendancesController extends AbstractController {
 
         $svc = new AttendancesService();
         api_ok([
-            'attendances' => $svc->listForMeeting($meetingId, $tenantId),
+            'items' => $svc->listForMeeting($meetingId, $tenantId),
             'summary' => $svc->summaryForMeeting($meetingId, $tenantId),
         ]);
     }

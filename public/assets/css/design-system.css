@@ -221,6 +221,39 @@ table {
   --ring-color: rgba(79, 70, 229, 0.35);
   --ring-offset: 2px;
 
+  /* ─── Persona Accent Colors ───
+     Each persona gets a distinct accent hue used for sidebar indicator,
+     page header stripe, and role card border on the landing page.
+     Naming: --persona-{key} / --persona-{key}-subtle / --persona-{key}-text
+  */
+  --persona-preparateur: #6366f1;        /* Indigo — setup & configuration */
+  --persona-preparateur-subtle: #eef2ff;
+  --persona-preparateur-text: #4338ca;
+
+  --persona-president: #d97706;          /* Amber — authority & governance */
+  --persona-president-subtle: #fffbeb;
+  --persona-president-text: #92400e;
+
+  --persona-operateur: #0891b2;          /* Cyan — live piloting */
+  --persona-operateur-subtle: #ecfeff;
+  --persona-operateur-text: #155e75;
+
+  --persona-votant: #16a34a;             /* Green — action & validation */
+  --persona-votant-subtle: #f0fdf4;
+  --persona-votant-text: #166534;
+
+  --persona-postsession: #7c3aed;        /* Violet — closing & reports */
+  --persona-postsession-subtle: #f5f3ff;
+  --persona-postsession-text: #5b21b6;
+
+  --persona-auditeur: #dc2626;           /* Red — vigilance & compliance */
+  --persona-auditeur-subtle: #fef2f2;
+  --persona-auditeur-text: #991b1b;
+
+  --persona-admin: #334155;              /* Slate — infrastructure */
+  --persona-admin-subtle: #f1f5f9;
+  --persona-admin-text: #0f172a;
+
 }
 
 /* ─── Dark Theme ─── */
@@ -257,6 +290,28 @@ table {
     --color-info-subtle: rgba(96, 165, 250, 0.15);
     --color-neutral: #64748b;
     --color-neutral-subtle: rgba(100, 116, 139, 0.15);
+
+    --persona-preparateur: #818cf8;
+    --persona-preparateur-subtle: rgba(129, 140, 248, 0.15);
+    --persona-preparateur-text: #c7d2fe;
+    --persona-president: #fbbf24;
+    --persona-president-subtle: rgba(251, 191, 36, 0.15);
+    --persona-president-text: #fde68a;
+    --persona-operateur: #22d3ee;
+    --persona-operateur-subtle: rgba(34, 211, 238, 0.15);
+    --persona-operateur-text: #a5f3fc;
+    --persona-votant: #4ade80;
+    --persona-votant-subtle: rgba(74, 222, 128, 0.15);
+    --persona-votant-text: #bbf7d0;
+    --persona-postsession: #a78bfa;
+    --persona-postsession-subtle: rgba(167, 139, 250, 0.15);
+    --persona-postsession-text: #ddd6fe;
+    --persona-auditeur: #f87171;
+    --persona-auditeur-subtle: rgba(248, 113, 113, 0.15);
+    --persona-auditeur-text: #fecaca;
+    --persona-admin: #94a3b8;
+    --persona-admin-subtle: rgba(148, 163, 184, 0.15);
+    --persona-admin-text: #e2e8f0;
   }
 }
 
@@ -312,6 +367,35 @@ table {
   --color-neutral-text: #cbd5e1;
 
   --ring-color: rgba(129, 140, 248, 0.4);
+
+  /* ─── Persona Accents (dark) ─── */
+  --persona-preparateur: #818cf8;
+  --persona-preparateur-subtle: rgba(129, 140, 248, 0.15);
+  --persona-preparateur-text: #c7d2fe;
+
+  --persona-president: #fbbf24;
+  --persona-president-subtle: rgba(251, 191, 36, 0.15);
+  --persona-president-text: #fde68a;
+
+  --persona-operateur: #22d3ee;
+  --persona-operateur-subtle: rgba(34, 211, 238, 0.15);
+  --persona-operateur-text: #a5f3fc;
+
+  --persona-votant: #4ade80;
+  --persona-votant-subtle: rgba(74, 222, 128, 0.15);
+  --persona-votant-text: #bbf7d0;
+
+  --persona-postsession: #a78bfa;
+  --persona-postsession-subtle: rgba(167, 139, 250, 0.15);
+  --persona-postsession-text: #ddd6fe;
+
+  --persona-auditeur: #f87171;
+  --persona-auditeur-subtle: rgba(248, 113, 113, 0.15);
+  --persona-auditeur-text: #fecaca;
+
+  --persona-admin: #94a3b8;
+  --persona-admin-subtle: rgba(148, 163, 184, 0.15);
+  --persona-admin-text: #e2e8f0;
 
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.2);
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
@@ -825,6 +909,29 @@ h4, .h4 {
   color: var(--color-danger);
   font-size: var(--text-sm);
   margin-top: 0.25rem;
+}
+
+/* Inline field-level error (used by Shared.fieldError) */
+.field-error {
+  color: var(--color-danger);
+  font-size: var(--text-xs);
+  margin-top: 0.25rem;
+  animation: fieldErrorIn var(--duration-fast) var(--ease-out);
+}
+
+@keyframes fieldErrorIn {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Retry block (used by Shared.withRetry) */
+.retry-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  text-align: center;
 }
 
 .form-helper {

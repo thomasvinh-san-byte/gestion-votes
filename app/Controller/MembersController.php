@@ -27,7 +27,7 @@ final class MembersController extends AbstractController {
             }
         }
 
-        api_ok(['members' => $members]);
+        api_ok(['items' => $members]);
     }
 
     public function create(): void {
@@ -120,6 +120,6 @@ final class MembersController extends AbstractController {
         $repo = new MemberRepository();
         $rows = $repo->listActiveForPresident(api_current_tenant_id());
 
-        api_ok(['presidents' => $rows]);
+        api_ok(['items' => $rows]);
     }
 }

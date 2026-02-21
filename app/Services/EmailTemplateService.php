@@ -206,7 +206,7 @@ final class EmailTemplateService {
         $firstName = $nameParts[0] ?? '';
 
         // Motion count
-        $motionsCount = (int) ($this->statsRepo->countMotions($meetingId) ?? 0);
+        $motionsCount = (int) ($this->statsRepo->countMotions($meetingId, $tenantId) ?? 0);
 
         return [
             '{{member_name}}' => $fullName,

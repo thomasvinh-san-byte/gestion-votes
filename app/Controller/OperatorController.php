@@ -83,7 +83,7 @@ final class OperatorController extends AbstractController {
         $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
         $quorumOk = $presentCount > 0 && $quorumRatio >= $quorumThreshold;
 
-        $coveredRows = (new ProxyRepository())->listDistinctGivers($meetingId);
+        $coveredRows = (new ProxyRepository())->listDistinctGivers($meetingId, $tenant);
         $coveredSet = [];
         foreach ($coveredRows as $x) {
             $coveredSet[(string) $x['giver_member_id']] = true;
@@ -97,9 +97,9 @@ final class OperatorController extends AbstractController {
         }
         $missingNames = array_values(array_filter(array_map(fn ($id) => $absentNames[$id] ?? '', $missing)));
 
-        $proxyActive = (new ProxyRepository())->countActive($meetingId);
+        $proxyActive = (new ProxyRepository())->countActive($meetingId, $tenant);
 
-        $motions = $motionRepo->countWorkflowSummary($meetingId);
+        $motions = $motionRepo->countWorkflowSummary($meetingId, $tenant);
 
         $openMotion = $motionRepo->findCurrentOpen($meetingId, $tenant);
         $nextMotion = $motionRepo->findNextNotOpened($meetingId);
@@ -132,9 +132,9 @@ final class OperatorController extends AbstractController {
 
         $canOpenNext = $quorumOk && (count($missing) === 0) && ($openMotion === null) && ($nextMotion !== null);
 
-        $hasClosed = $statsRepo->countClosedMotions($meetingId);
+        $hasClosed = $statsRepo->countClosedMotions($meetingId, $tenant);
         $canConsolidate = ((int) ($motions['open'] ?? 0)) === 0 && $hasClosed > 0;
-        $consolidatedCount = $motionRepo->countConsolidatedMotions($meetingId);
+        $consolidatedCount = $motionRepo->countConsolidatedMotions($meetingId, $tenant);
         $consolidationDone = ($hasClosed > 0) && ($consolidatedCount >= $hasClosed);
 
         $consolidateDetail = $canConsolidate

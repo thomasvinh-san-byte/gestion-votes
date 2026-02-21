@@ -320,7 +320,7 @@
     const sel = $("#meetingSelect");
     if (!sel) return;
     const r = await apiGet("/api/v1/meetings_index.php?active_only=1");
-    const meetings = r?.data?.meetings || [];
+    const meetings = r?.data?.items || [];
 
     if (isSearchableSelect(sel)) {
       // Use ag-searchable-select API
@@ -400,7 +400,7 @@
     let filled = 0;
     try {
       const r = await apiGet(`/api/v1/attendances.php?meeting_id=${encodeURIComponent(meetingId)}`);
-      const rows = r?.data?.attendances || [];
+      const rows = r?.data?.items || [];
       const modeLabels = { present: 'Présent', remote: 'À distance', proxy: 'Procuration' };
 
       for (const x of rows){
@@ -436,7 +436,7 @@
     // Fallback: if no attendance recorded, still display all members
     if (filled === 0) {
       const r = await apiGet("/api/v1/members.php");
-      const rows = r?.data?.members || r?.data?.rows || [];
+      const rows = r?.data?.items || [];
       for (const x of rows){
         if (useSearchable) {
           memberOptions.push({
@@ -770,6 +770,10 @@
   async function cast(choice){
     const memberId = selectedMemberId();
     if (!_currentMotionId || !memberId) return;
+
+    if (window.Utils?.isValidUUID && (!Utils.isValidUUID(_currentMotionId) || !Utils.isValidUUID(memberId))) {
+      throw new Error('Identifiants invalides. Rechargez la page.');
+    }
 
     // Check offline before attempting
     if (!navigator.onLine) {

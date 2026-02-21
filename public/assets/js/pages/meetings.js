@@ -276,24 +276,21 @@
       meetingsList.innerHTML = '<div class="text-center p-6 text-muted" style="grid-column: 1 / -1;">Chargement...</div>';
     }
 
-    try {
-      const { body } = await api('/api/v1/meetings_index.php');
-      allMeetings = body?.data?.meetings || [];
-      updateStats(allMeetings);
-      renderMeetings(allMeetings);
+    await Shared.withRetry({
+      container: meetingsList,
+      maxRetries: 1,
+      errorMsg: 'Impossible de charger les séances',
+      action: async function () {
+        const { body } = await api('/api/v1/meetings_index.php');
+        allMeetings = body?.data?.items || [];
+        updateStats(allMeetings);
+        renderMeetings(allMeetings);
 
-      if (calendarView) {
-        calendarView.setEvents(filterMeetings(allMeetings, currentFilter));
+        if (calendarView) {
+          calendarView.setEvents(filterMeetings(allMeetings, currentFilter));
+        }
       }
-    } catch (err) {
-      if (meetingsList) {
-        meetingsList.innerHTML = `
-          <div class="alert alert-danger" style="grid-column: 1 / -1;">
-            Erreur: ${escapeHtml(err.message)}
-          </div>
-        `;
-      }
-    }
+    });
   }
 
   // ==========================================================================
@@ -434,19 +431,18 @@
   // ==========================================================================
 
   async function createMeeting() {
-    const title = titleInput?.value.trim();
-    if (!title) {
-      setNotif('error', 'Le titre est requis');
-      titleInput?.focus();
-      return;
-    }
+    // Inline validation
+    var valid = true;
+    if (!Shared.validateField(titleInput, [
+      { test: function (v) { return v.length > 0; }, msg: 'Le titre de la séance est requis' }
+    ])) valid = false;
+    if (!Shared.validateField(dateInput, [
+      { test: function (v) { return v.length > 0; }, msg: 'La date est requise' }
+    ])) valid = false;
+    if (!valid) return;
 
-    const scheduled_at = dateInput?.value || null;
-    if (!scheduled_at) {
-      setNotif('error', 'La date de la séance est requise');
-      dateInput?.focus();
-      return;
-    }
+    const title = titleInput.value.trim();
+    const scheduled_at = dateInput.value;
 
     const meetingTypeRadio = document.querySelector('input[name="meetingTypeCreate"]:checked');
     const meeting_type = meetingTypeRadio ? meetingTypeRadio.value : 'ag_ordinaire';
@@ -464,8 +460,8 @@
         }
 
         setNotif('success', 'Séance créée — passons à la préparation');
-        if (titleInput) titleInput.value = '';
-        if (dateInput) dateInput.value = '';
+        if (titleInput) { titleInput.value = ''; Shared.fieldClear(titleInput); }
+        if (dateInput) { dateInput.value = ''; Shared.fieldClear(dateInput); }
         pendingFiles = [];
         renderFileList();
 
@@ -608,11 +604,19 @@
       createBtn.addEventListener('click', createMeeting);
     }
 
-    // Enter key in title input
+    // Live validation on create form fields
     if (titleInput) {
+      Shared.liveValidate(titleInput, [
+        { test: function (v) { return v.length > 0; }, msg: 'Le titre est requis' }
+      ]);
       titleInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') createMeeting();
       });
+    }
+    if (dateInput) {
+      Shared.liveValidate(dateInput, [
+        { test: function (v) { return v.length > 0; }, msg: 'La date est requise' }
+      ]);
     }
 
     // Initialize date picker enhancements

@@ -140,7 +140,7 @@ final class BallotsService {
             }
 
             // Verify an active proxy exists for this meeting
-            if (!$this->proxiesService->hasActiveProxy($meetingId, $memberId, $proxyVoterId)) {
+            if (!$this->proxiesService->hasActiveProxy($meetingId, $memberId, $proxyVoterId, $tenantId)) {
                 throw new RuntimeException('Aucune procuration active ne permet à ce mandataire de voter pour ce membre');
             }
         } else {
@@ -191,7 +191,7 @@ final class BallotsService {
             // Silently fail - don't break the vote if broadcast fails
         }
 
-        $row = $this->ballotRepo->findByMotionAndMember($motionId, $memberId);
+        $row = $this->ballotRepo->findByMotionAndMember($motionId, $memberId, $tenantId);
 
         return $row ?? [
             'motion_id' => $motionId,

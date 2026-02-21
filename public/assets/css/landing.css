@@ -203,6 +203,56 @@
   font-style: italic;
 }
 
+/* ─── Persona-colored card accents ─── */
+.role-card[data-persona="preparateur"] { border-top: 3px solid var(--persona-preparateur); }
+.role-card[data-persona="preparateur"] .role-icon { background: var(--persona-preparateur-subtle); color: var(--persona-preparateur); }
+.role-card[data-persona="preparateur"] .role-link { color: var(--persona-preparateur); }
+
+.role-card[data-persona="president"] { border-top: 3px solid var(--persona-president); }
+.role-card[data-persona="president"] .role-icon { background: var(--persona-president-subtle); color: var(--persona-president); }
+.role-card[data-persona="president"] .role-link { color: var(--persona-president); }
+
+.role-card[data-persona="operateur"] { border-top: 3px solid var(--persona-operateur); }
+.role-card[data-persona="operateur"] .role-icon { background: var(--persona-operateur-subtle); color: var(--persona-operateur); }
+.role-card[data-persona="operateur"] .role-link { color: var(--persona-operateur); }
+
+.role-card[data-persona="votant"] { border-top: 3px solid var(--persona-votant); }
+.role-card[data-persona="votant"] .role-icon { background: var(--persona-votant-subtle); color: var(--persona-votant); }
+.role-card[data-persona="votant"] .role-link { color: var(--persona-votant); }
+
+.role-card[data-persona="postsession"] { border-top: 3px solid var(--persona-postsession); }
+.role-card[data-persona="postsession"] .role-icon { background: var(--persona-postsession-subtle); color: var(--persona-postsession); }
+.role-card[data-persona="postsession"] .role-link { color: var(--persona-postsession); }
+
+.role-card[data-persona="auditeur"] { border-top: 3px solid var(--persona-auditeur); }
+.role-card[data-persona="auditeur"] .role-icon { background: var(--persona-auditeur-subtle); color: var(--persona-auditeur); }
+.role-card[data-persona="auditeur"] .role-link { color: var(--persona-auditeur); }
+
+.role-card[data-persona="admin"] { border-top: 3px solid var(--persona-admin); }
+.role-card[data-persona="admin"] .role-icon { background: var(--persona-admin-subtle); color: var(--persona-admin); }
+.role-card[data-persona="admin"] .role-link { color: var(--persona-admin); }
+
+/* Persona subtitle under role title */
+.role-persona {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-medium);
+  margin-top: 2px;
+  margin-bottom: var(--space-2);
+}
+
+/* Grandmother-test indicator */
+.role-difficulty {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
 /* =============================================================================
    FEATURES SECTION
    ============================================================================= */

@@ -344,7 +344,7 @@ final class AdminController extends AbstractController {
         }
 
         $cntMeet = $meetingRepo->countForTenant($tenantId);
-        $cntMot = $motionRepo->countAll();
+        $cntMot = $motionRepo->countAll($tenantId);
         $cntMembers = $memberRepo->countActive($tenantId);
         $cntLive = $meetingRepo->countLive($tenantId);
         $cntTok = $voteTokenRepo->countAll();
@@ -502,7 +502,7 @@ final class AdminController extends AbstractController {
             'total' => $total,
             'limit' => $limit,
             'offset' => $offset,
-            'events' => $formatted,
+            'items' => $formatted,
             'action_types' => $actionTypes,
         ]);
     }

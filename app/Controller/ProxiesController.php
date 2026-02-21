@@ -23,7 +23,7 @@ final class ProxiesController extends AbstractController {
         api_ok([
             'meeting_id' => $meetingId,
             'count' => count($rows),
-            'proxies' => $rows,
+            'items' => $rows,
         ]);
     }
 
@@ -100,7 +100,7 @@ final class ProxiesController extends AbstractController {
         }
 
         $proxyRepo = new ProxyRepository();
-        $proxy = $proxyRepo->findWithNames($proxyId, $meetingId);
+        $proxy = $proxyRepo->findWithNames($proxyId, $meetingId, $tenantId);
         if (!$proxy) {
             api_fail('proxy_not_found', 404);
         }

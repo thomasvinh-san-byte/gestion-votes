@@ -242,7 +242,7 @@ window.OpS = { fn: {} };
         loadInvitationStats();
       }
       if (tabId === 'parole') await loadSpeechQueue();
-      if (tabId === 'vote') await loadVoteTab();
+      if (tabId === 'vote') { await loadVoteTab(); loadQuorumStatus(); }
       if (tabId === 'resultats') await loadResults();
     }
   }
@@ -273,9 +273,9 @@ window.OpS = { fn: {} };
   async function loadMeetings() {
     try {
       const { body } = await api('/api/v1/meetings_index.php?active_only=1');
-      if (body?.ok && body?.data?.meetings) {
+      if (body?.ok && body?.data?.items) {
         meetingSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
-        body.data.meetings.forEach(m => {
+        body.data.items.forEach(m => {
           const opt = document.createElement('option');
           opt.value = m.id;
           opt.textContent = `${m.title} (${m.status || 'draft'})`;
@@ -367,7 +367,42 @@ window.OpS = { fn: {} };
       const base = link.getAttribute('href').split('?')[0];
       link.href = `${base}?meeting_id=${currentMeetingId}`;
     });
+
+    // Update lifecycle bar visual indicator
+    updateLifecycleBar(meeting.status);
   }
+
+  /**
+   * Update the lifecycle bar to show which phase the meeting is in.
+   * States flow: draft → scheduled → frozen → live → closed → validated → archived
+   */
+  function updateLifecycleBar(status) {
+    const bar = document.getElementById('lifecycleBar');
+    if (!bar) return;
+    bar.hidden = false;
+
+    const STATES = ['draft', 'scheduled', 'frozen', 'live', 'closed', 'validated', 'archived'];
+    const currentIdx = STATES.indexOf(status);
+
+    bar.querySelectorAll('.lifecycle-step').forEach(step => {
+      const state = step.getAttribute('data-state');
+      const idx = STATES.indexOf(state);
+      step.classList.remove('done', 'current');
+      if (idx < currentIdx) step.classList.add('done');
+      else if (idx === currentIdx) step.classList.add('current');
+    });
+  }
+
+  /**
+   * Detect president mode from URL param or meeting role.
+   */
+  function detectPresidentMode() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') === 'president') {
+      document.querySelector('.app-shell')?.setAttribute('data-mode', 'president');
+    }
+  }
+  detectPresidentMode();
 
   function updateURLParam(key, value) {
     const url = new URL(window.location);
@@ -388,8 +423,10 @@ window.OpS = { fn: {} };
       loadPolicies(),
       loadRoles(),
       loadStatusChecklist(),
+      loadAgenda(),
       loadDashboard(),
       loadDevices(),
+      loadEmergencyProcedures(),
       loadSpeechQueue(),
       loadProxies(),
       loadInvitationStats()
@@ -536,7 +573,7 @@ window.OpS = { fn: {} };
   async function loadMembers() {
     try {
       const { body } = await api('/api/v1/members.php');
-      membersCache = body?.data?.members || [];
+      membersCache = body?.data?.items || [];
       renderMembersCard();
     } catch (err) {
       setNotif('error', 'Erreur chargement membres');
@@ -656,6 +693,39 @@ window.OpS = { fn: {} };
 
     if (hasMembers && hasAttendance && hasMotions && canLaunch) {
       Shared.show(banner, 'block');
+      // Clear any blockers message
+      var blockersEl = document.getElementById('launchBlockers');
+      if (blockersEl) blockersEl.hidden = true;
+    } else if (canLaunch) {
+      // Show the banner but with blockers explanation
+      Shared.show(banner, 'block');
+      var blockers = [];
+      if (!hasMembers) blockers.push('Aucun membre inscrit');
+      if (!hasAttendance) blockers.push('Aucun membre point\u00e9 pr\u00e9sent');
+      if (!hasMotions) blockers.push('Aucune r\u00e9solution cr\u00e9\u00e9e');
+
+      var blockersEl = document.getElementById('launchBlockers');
+      if (!blockersEl) {
+        blockersEl = document.createElement('div');
+        blockersEl.id = 'launchBlockers';
+        blockersEl.className = 'launch-blockers';
+        banner.appendChild(blockersEl);
+      }
+      blockersEl.hidden = false;
+      blockersEl.innerHTML =
+        '<div class="text-sm" style="color:var(--color-warning-text);margin-top:var(--space-2);">' +
+          '<strong>Pr\u00e9requis manquants :</strong> ' +
+          blockers.map(function(b) {
+            return '<span class="launch-blocker-item">' +
+              '<svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> ' +
+              Utils.escapeHtml(b) +
+            '</span>';
+          }).join(' \u00b7 ') +
+        '</div>';
+
+      // Disable the launch button
+      var launchBtn = document.getElementById('btnLaunchSession');
+      if (launchBtn) launchBtn.disabled = true;
     } else {
       Shared.hide(banner);
     }
@@ -1002,6 +1072,223 @@ window.OpS = { fn: {} };
     }
   }
 
+  // =========================================================================
+  // AGENDA MANAGEMENT
+  // =========================================================================
+
+  let agendaCache = [];
+
+  async function loadAgenda() {
+    if (!currentMeetingId) return;
+    var container = document.getElementById('agendaList');
+    if (!container) return;
+
+    await Shared.withRetry({
+      container: container,
+      errorMsg: 'Impossible de charger l\u2019ordre du jour',
+      action: async function () {
+        var res = await api('/api/v1/agendas.php?meeting_id=' + currentMeetingId);
+        var d = res.body;
+        if (!d || !d.ok) throw new Error((d && d.error) || 'Erreur');
+        agendaCache = (d.data && d.data.items) || [];
+        container.setAttribute('aria-busy', 'false');
+        renderAgenda();
+      }
+    });
+  }
+
+  function renderAgenda() {
+    var container = document.getElementById('agendaList');
+    if (!container) return;
+
+    if (agendaCache.length === 0) {
+      container.innerHTML = Shared.emptyState({
+        icon: 'generic',
+        title: 'Aucun point \u00e0 l\u2019ordre du jour',
+        description: 'Ajoutez les points qui structureront votre s\u00e9ance.'
+      });
+      return;
+    }
+
+    container.innerHTML = '<ol class="agenda-items">' +
+      agendaCache.map(function (item, i) {
+        return '<li class="agenda-item" data-id="' + escapeHtml(item.id || '') + '">' +
+          '<span class="agenda-item-number">' + (i + 1) + '</span>' +
+          '<span class="agenda-item-title">' + escapeHtml(item.title || '') + '</span>' +
+        '</li>';
+      }).join('') +
+    '</ol>';
+  }
+
+  // Add agenda item
+  document.getElementById('btnAddAgendaItem')?.addEventListener('click', function () {
+    if (!currentMeetingId) { setNotif('error', 'Aucune s\u00e9ance s\u00e9lectionn\u00e9e'); return; }
+
+    Shared.openModal({
+      title: 'Ajouter un point \u00e0 l\u2019ordre du jour',
+      body:
+        '<div class="form-group">' +
+          '<label class="form-label">Intitul\u00e9 du point</label>' +
+          '<input class="form-input" type="text" id="agendaItemTitle" placeholder="Ex: Approbation du proc\u00e8s-verbal" maxlength="500" autofocus>' +
+        '</div>',
+      confirmText: 'Ajouter',
+      onConfirm: async function (modal) {
+        var titleInput = modal.querySelector('#agendaItemTitle');
+        if (!Shared.validateField(titleInput, [{ test: function (v) { return v.length > 0; }, msg: 'L\u2019intitul\u00e9 est requis' }])) return false;
+
+        var confirmBtn = modal.querySelector('.modal-confirm-btn');
+        Shared.btnLoading(confirmBtn, true);
+        try {
+          var res = await api('/api/v1/agendas.php', {
+            meeting_id: currentMeetingId,
+            title: titleInput.value.trim()
+          });
+          if (res.body && res.body.ok) {
+            setNotif('success', 'Point ajout\u00e9');
+            loadAgenda();
+          } else {
+            setNotif('error', (res.body && res.body.error) || 'Erreur');
+            Shared.btnLoading(confirmBtn, false);
+            return false;
+          }
+        } catch (e) {
+          setNotif('error', 'Erreur r\u00e9seau');
+          Shared.btnLoading(confirmBtn, false);
+          return false;
+        }
+      }
+    });
+  });
+
+  // =========================================================================
+  // EMERGENCY PROCEDURES
+  // =========================================================================
+
+  async function loadEmergencyProcedures() {
+    if (!currentMeetingId) return;
+    var container = document.getElementById('emergencyChecklist');
+    if (!container) return;
+
+    await Shared.withRetry({
+      container: container,
+      errorMsg: 'Impossible de charger les proc\u00e9dures d\u2019urgence',
+      action: async function () {
+        var url = '/api/v1/emergency_procedures.php?audience=operator&meeting_id=' + currentMeetingId;
+        var res = await api(url);
+        var d = res.body;
+        if (!d || !d.ok) throw new Error(d && d.error || 'Erreur');
+
+        var items = (d.data && d.data.items) || [];
+        var checks = (d.data && d.data.checks) || [];
+
+        if (items.length === 0) {
+          container.innerHTML = '<p class="text-muted text-sm">Aucune proc\u00e9dure configur\u00e9e.</p>';
+          container.setAttribute('aria-busy', 'false');
+          return;
+        }
+
+        // Build a lookup for checked items
+        var checkedMap = {};
+        checks.forEach(function (c) {
+          checkedMap[c.procedure_code + ':' + c.item_index] = c.checked;
+        });
+
+        container.setAttribute('aria-busy', 'false');
+        container.innerHTML = items.map(function (proc, idx) {
+          var code = proc.code || proc.id;
+          var checked = checkedMap[code + ':' + idx] ? ' checked' : '';
+          return '<label class="emergency-item">' +
+            '<input type="checkbox" class="emergency-cb" data-code="' + escapeHtml(code) + '" data-index="' + idx + '"' + checked + '>' +
+            '<span>' + escapeHtml(proc.field || proc.code || '') + '</span>' +
+            '</label>';
+        }).join('');
+
+        // Bind toggles
+        container.querySelectorAll('.emergency-cb').forEach(function (cb) {
+          cb.addEventListener('change', function () {
+            var code = cb.dataset.code;
+            var index = parseInt(cb.dataset.index, 10);
+            api('/api/v1/emergency_check_toggle.php', {
+              meeting_id: currentMeetingId,
+              procedure_code: code,
+              item_index: index,
+              checked: cb.checked ? 1 : 0
+            }).catch(function () {
+              setNotif('error', 'Erreur de mise \u00e0 jour');
+              cb.checked = !cb.checked;
+            });
+          });
+        });
+      }
+    });
+  }
+
+  // =========================================================================
+  // QUORUM STATUS (vote tab card)
+  // =========================================================================
+
+  async function loadQuorumStatus() {
+    if (!currentMeetingId) return;
+    var card = document.getElementById('quorumStatusCard');
+    if (!card) return;
+
+    // Only show when a quorum policy is set
+    if (!currentMeeting || !currentMeeting.quorum_policy_id) {
+      card.hidden = true;
+      return;
+    }
+
+    try {
+      var res = await api('/api/v1/quorum_status.php?meeting_id=' + currentMeetingId);
+      var d = res.body;
+      if (!d || !d.ok) { card.hidden = true; return; }
+
+      var data = d.data || d;
+      var applied = data.applied;
+      var met = data.met;
+      var justification = data.justification || '';
+      var present = data.present || 0;
+      var required = data.required || 0;
+      var totalEligible = data.total_eligible || 0;
+
+      var label = document.getElementById('quorumStatusLabel');
+      var detail = document.getElementById('quorumStatusDetail');
+      var badge = document.getElementById('quorumStatusBadge');
+
+      if (!applied) {
+        label.textContent = 'Quorum';
+        detail.textContent = 'Aucune politique appliquée';
+        badge.textContent = '—';
+        badge.className = 'badge ml-auto';
+        card.hidden = false;
+        card.className = 'quorum-status-card mb-4';
+        return;
+      }
+
+      label.textContent = present + ' / ' + required + ' requis';
+      detail.textContent = justification || (present + ' présents sur ' + totalEligible + ' éligibles');
+
+      if (met === true) {
+        badge.textContent = 'Atteint';
+        badge.className = 'badge badge-success ml-auto';
+        card.className = 'quorum-status-card mb-4 quorum-met';
+      } else if (met === false) {
+        badge.textContent = 'Non atteint';
+        badge.className = 'badge badge-danger ml-auto';
+        card.className = 'quorum-status-card mb-4 quorum-unmet';
+      } else {
+        badge.textContent = '—';
+        badge.className = 'badge ml-auto';
+        card.className = 'quorum-status-card mb-4';
+      }
+
+      card.hidden = false;
+    } catch (e) {
+      console.warn('loadQuorumStatus error:', e);
+      card.hidden = true;
+    }
+  }
+
   function showDeviceManagementModal() {
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
@@ -1165,9 +1452,44 @@ window.OpS = { fn: {} };
       // Update tab counts
       document.getElementById('tabCountResolutions').textContent = d.motions_total || 0;
       document.getElementById('tabCountPresences').textContent = d.present_count || 0;
+
+      // Update readiness strips on tabs 1-3
+      var required = checks.filter(function(c) { return !c.optional; });
+      var doneCount = required.filter(function(c) { return c.done; }).length;
+      var totalRequired = required.length;
+      var stripHtml = '';
+      if (doneCount < totalRequired) {
+        var missing = required.filter(function(c) { return !c.done; });
+        stripHtml = '<div class="flex items-center gap-3 text-sm">' +
+          '<span class="text-muted">' + doneCount + '/' + totalRequired + ' pr\u00e9requis</span>' +
+          missing.map(function(c) {
+            return '<span class="badge badge-neutral">' + icon('circle', 'icon-xs') + ' ' + c.text + '</span>';
+          }).join('') +
+          '</div>';
+      } else {
+        stripHtml = '<div class="flex items-center gap-2 text-sm text-success">' +
+          icon('check-circle', 'icon-sm icon-success') +
+          ' Pr\u00eat pour le lancement' +
+          '</div>';
+      }
+      document.querySelectorAll('[data-readiness-strip]').forEach(function(el) {
+        el.innerHTML = stripHtml;
+      });
+
+      // Update policies warning
+      updatePoliciesWarning();
     } catch (err) {
       setNotif('error', 'Erreur chargement checklist');
     }
+  }
+
+  function updatePoliciesWarning() {
+    var qSelect = document.getElementById('settingQuorumPolicy');
+    var vSelect = document.getElementById('settingVotePolicy');
+    var warning = document.getElementById('noPoliciesWarning');
+    if (!warning || !qSelect || !vSelect) return;
+    var bothEmpty = !qSelect.value && !vSelect.value;
+    warning.hidden = !bothEmpty;
   }
 
   // =========================================================================
@@ -1175,14 +1497,17 @@ window.OpS = { fn: {} };
   // =========================================================================
 
   async function saveGeneralSettings() {
-    const title = document.getElementById('settingTitle').value.trim();
-    const scheduledAt = document.getElementById('settingDate').value;
-    const meetingType = document.querySelector('input[name="meetingType"]:checked')?.value || 'ag_ordinaire';
+    var titleInput = document.getElementById('settingTitle');
+    var dateInput = document.getElementById('settingDate');
 
-    if (!title) {
-      setNotif('error', 'Le titre est obligatoire');
-      return;
-    }
+    // Inline validation
+    if (!Shared.validateField(titleInput, [
+      { test: function (v) { return v.length > 0; }, msg: 'Le titre de la séance est obligatoire' }
+    ])) return;
+
+    const title = titleInput.value.trim();
+    const scheduledAt = dateInput.value;
+    const meetingType = document.querySelector('input[name="meetingType"]:checked')?.value || 'ag_ordinaire';
 
     const btn = document.getElementById('btnSaveSettings');
     Shared.btnLoading(btn, true);
@@ -1223,6 +1548,19 @@ window.OpS = { fn: {} };
       loadStatusChecklist();
 
       setNotif('success', 'Paramètres enregistrés');
+
+      // Brief visual confirmation on button
+      Shared.btnLoading(btn, false);
+      btn.classList.add('btn-success');
+      btn.classList.remove('btn-primary');
+      var origHTML = btn.innerHTML;
+      btn.innerHTML = '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Enregistré';
+      setTimeout(function () {
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-primary');
+        btn.innerHTML = origHTML;
+      }, 2000);
+      return; // skip the finally block's btnLoading
     } catch (err) {
       setNotif('error', err.message);
     } finally {
@@ -2129,16 +2467,19 @@ window.OpS = { fn: {} };
       voters = voters.filter(v => (v.full_name || '').toLowerCase().includes(searchTerm));
     }
 
-    list.innerHTML = voters.slice(0, 20).map(function(v) {
-      const vote = ballotsCache[v.member_id];
+    var shown = voters.slice(0, 20);
+    var remaining = voters.length - shown.length;
+    list.innerHTML = shown.map(function(v) {
+      var vote = ballotsCache[v.member_id];
       return '<div class="exec-manual-vote-row" data-member-id="' + v.member_id + '">'
-        + '<span class="text-sm">' + escapeHtml(v.full_name || '—') + '</span>'
+        + '<span class="text-sm">' + escapeHtml(v.full_name || '\u2014') + '</span>'
         + '<div class="flex gap-1">'
-        + '<button class="btn btn-xs ' + (vote === 'for' ? 'btn-success' : 'btn-ghost') + '" data-vote="for" title="Pour">P</button>'
-        + '<button class="btn btn-xs ' + (vote === 'against' ? 'btn-danger' : 'btn-ghost') + '" data-vote="against" title="Contre">C</button>'
-        + '<button class="btn btn-xs ' + (vote === 'abstain' ? 'btn-warning' : 'btn-ghost') + '" data-vote="abstain" title="Abstention">A</button>'
+        + '<button class="btn btn-xs ' + (vote === 'for' ? 'btn-success' : 'btn-ghost') + '" data-vote="for" aria-label="Pour \u2014 ' + escapeHtml(v.full_name || '') + '">Pour</button>'
+        + '<button class="btn btn-xs ' + (vote === 'against' ? 'btn-danger' : 'btn-ghost') + '" data-vote="against" aria-label="Contre \u2014 ' + escapeHtml(v.full_name || '') + '">Contre</button>'
+        + '<button class="btn btn-xs ' + (vote === 'abstain' ? 'btn-warning' : 'btn-ghost') + '" data-vote="abstain" aria-label="Abstention \u2014 ' + escapeHtml(v.full_name || '') + '">Abst.</button>'
         + '</div></div>';
-    }).join('') || '<span class="text-muted text-sm">Aucun votant</span>';
+    }).join('') + (remaining > 0 ? '<div class="text-xs text-muted text-center mt-2">+ ' + remaining + ' votants non affichés</div>' : '')
+    || '<span class="text-muted text-sm">Aucun votant</span>';
 
     // Bind vote buttons
     list.querySelectorAll('[data-vote]').forEach(function(btn) {
@@ -2169,8 +2510,78 @@ window.OpS = { fn: {} };
   document.getElementById('presenceSearch')?.addEventListener('input', debounce(renderAttendance));
   document.getElementById('btnMarkAllPresent')?.addEventListener('click', markAllPresent);
 
-  // Import CSV button
+  // Import CSV button (members)
   document.getElementById('btnImportCSV')?.addEventListener('click', showImportCSVModal);
+
+  // Import attendance CSV button
+  document.getElementById('btnImportAttendanceCSV')?.addEventListener('click', function () {
+    if (!currentMeetingId) { setNotif('error', 'Aucune s\u00e9ance s\u00e9lectionn\u00e9e'); return; }
+
+    Shared.openModal({
+      title: 'Importer les pr\u00e9sences (CSV)',
+      body:
+        '<p class="text-muted text-sm mb-3">' +
+          'Format attendu : <code>name,email,mode,notes</code> (en-t\u00eate requis).<br>' +
+          'Colonnes requises : <code>name</code> ou <code>email</code>. Mode : present, absent, excused, proxy.' +
+        '</p>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Fichier CSV</label>' +
+          '<input type="file" class="form-input" id="attendanceCsvFile" accept=".csv,.txt">' +
+        '</div>' +
+        '<div id="attendanceImportResult" hidden></div>',
+      confirmText: 'Importer',
+      onConfirm: async function (modal) {
+        var fileInput = modal.querySelector('#attendanceCsvFile');
+        if (!fileInput.files.length) {
+          Shared.fieldError(fileInput, 'S\u00e9lectionnez un fichier CSV');
+          return false;
+        }
+
+        var confirmBtn = modal.querySelector('.modal-confirm-btn');
+        Shared.btnLoading(confirmBtn, true);
+
+        var formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('meeting_id', currentMeetingId);
+
+        try {
+          var csrfHeaders = (window.Utils && window.Utils.getCsrfToken) ? { 'X-CSRF-Token': window.Utils.getCsrfToken() } : {};
+          var response = await fetch('/api/v1/attendances_import_csv.php', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: csrfHeaders
+          });
+          var d = await response.json();
+
+          var resultDiv = modal.querySelector('#attendanceImportResult');
+          resultDiv.hidden = false;
+
+          if (d.ok) {
+            var imported = d.data ? d.data.imported : (d.imported || 0);
+            var skipped = d.data ? d.data.skipped : (d.skipped || 0);
+            var errors = d.data ? d.data.errors : (d.errors || []);
+
+            resultDiv.innerHTML =
+              '<div class="alert alert-success mb-2"><strong>' + imported + ' pr\u00e9sence' + (imported > 1 ? 's' : '') + ' import\u00e9e' + (imported > 1 ? 's' : '') + '</strong>' +
+              (skipped > 0 ? ', ' + skipped + ' ignor\u00e9e' + (skipped > 1 ? 's' : '') : '') +
+              '</div>' +
+              (errors.length > 0 ? '<div class="text-sm text-danger">' + errors.slice(0, 5).map(function (e) { return 'Ligne ' + e.line + ' : ' + escapeHtml(e.error); }).join('<br>') + '</div>' : '');
+
+            setNotif('success', imported + ' pr\u00e9sences import\u00e9es');
+            loadAttendance();
+          } else {
+            resultDiv.innerHTML = '<div class="alert alert-danger">' + escapeHtml(d.error || 'Erreur d\u2019import') + '</div>';
+          }
+        } catch (e) {
+          setNotif('error', 'Erreur r\u00e9seau');
+        } finally {
+          Shared.btnLoading(confirmBtn, false);
+        }
+        return false; // Keep modal open to show results
+      }
+    });
+  });
 
   // Add proxy button
   document.getElementById('btnAddProxy')?.addEventListener('click', showAddProxyModal);
@@ -2201,11 +2612,91 @@ window.OpS = { fn: {} };
   document.getElementById('btnUnanimityAgainst')?.addEventListener('click', () => applyUnanimity('against'));
   document.getElementById('btnUnanimityAbstain')?.addEventListener('click', () => applyUnanimity('abstain'));
 
+  // Generate vote tokens
+  document.getElementById('btnGenerateTokens')?.addEventListener('click', function () {
+    if (!currentMeetingId) { setNotif('error', 'Aucune s\u00e9ance s\u00e9lectionn\u00e9e'); return; }
+    // Build motion select from cached motions
+    var openMotions = motionsCache.filter(function (m) { return !m.closed_at; });
+    if (!openMotions.length) { setNotif('error', 'Aucune r\u00e9solution ouverte pour g\u00e9n\u00e9rer des jetons'); return; }
+
+    var motionOpts = openMotions.map(function (m) {
+      return '<option value="' + escapeHtml(m.id) + '">' + escapeHtml(m.title || 'R\u00e9solution') + '</option>';
+    }).join('');
+
+    Shared.openModal({
+      title: 'G\u00e9n\u00e9rer les jetons de vote',
+      body:
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">R\u00e9solution</label>' +
+          '<select class="form-input" id="tokenMotionId">' + motionOpts + '</select>' +
+        '</div>' +
+        '<div class="form-group mb-3">' +
+          '<label class="form-label">Dur\u00e9e de validit\u00e9 (minutes)</label>' +
+          '<input class="form-input" type="number" id="tokenTtl" value="180" min="1" max="1440">' +
+        '</div>' +
+        '<div id="tokenResult" hidden></div>',
+      confirmText: 'G\u00e9n\u00e9rer',
+      onConfirm: async function (modal) {
+        var motionId = modal.querySelector('#tokenMotionId').value;
+        var ttl = parseInt(modal.querySelector('#tokenTtl').value, 10) || 180;
+        var resultDiv = modal.querySelector('#tokenResult');
+        var confirmBtn = modal.querySelector('.modal-confirm-btn');
+
+        Shared.btnLoading(confirmBtn, true);
+        try {
+          var res = await api('/api/v1/vote_tokens_generate.php', {
+            meeting_id: currentMeetingId,
+            motion_id: motionId,
+            ttl_minutes: ttl
+          });
+          var d = res.body;
+          if (d && d.ok && d.data) {
+            var tokens = d.data.tokens || [];
+            resultDiv.hidden = false;
+            resultDiv.innerHTML =
+              '<div class="alert alert-success mb-2">' +
+                '<strong>' + tokens.length + ' jeton' + (tokens.length > 1 ? 's' : '') + ' g\u00e9n\u00e9r\u00e9' + (tokens.length > 1 ? 's' : '') + '</strong>' +
+                ' (expire dans ' + ttl + ' min)' +
+              '</div>' +
+              '<div style="max-height:200px;overflow-y:auto;font-size:0.85rem;">' +
+                tokens.map(function (t) {
+                  return '<div class="flex items-center justify-between py-1 border-b" style="border-color:var(--color-border-subtle)">' +
+                    '<span>' + escapeHtml(t.member_name || '') + '</span>' +
+                    '<code class="text-xs" style="user-select:all">' + escapeHtml(t.token.slice(0, 12)) + '\u2026</code>' +
+                  '</div>';
+                }).join('') +
+              '</div>';
+            setNotif('success', tokens.length + ' jetons g\u00e9n\u00e9r\u00e9s');
+          } else {
+            setNotif('error', (d && d.error) || 'Erreur de g\u00e9n\u00e9ration');
+          }
+        } catch (e) {
+          setNotif('error', 'Erreur r\u00e9seau');
+        } finally {
+          Shared.btnLoading(confirmBtn, false);
+        }
+        return false; // Keep modal open to show results
+      }
+    });
+  });
+
+  // Settings: live validation on title
+  var _settingTitle = document.getElementById('settingTitle');
+  if (_settingTitle) {
+    Shared.liveValidate(_settingTitle, [
+      { test: function (v) { return v.length > 0; }, msg: 'Le titre est obligatoire' }
+    ]);
+  }
+
   // Settings save
   document.getElementById('btnSaveSettings')?.addEventListener('click', saveGeneralSettings);
 
   // President change handler
   document.getElementById('settingPresident')?.addEventListener('change', savePresident);
+
+  // Policy change handlers — update warning inline
+  document.getElementById('settingQuorumPolicy')?.addEventListener('change', updatePoliciesWarning);
+  document.getElementById('settingVotePolicy')?.addEventListener('change', updatePoliciesWarning);
 
   // Add assessor button
   document.getElementById('btnAddAssessor')?.addEventListener('click', addAssessor);
@@ -2219,7 +2710,7 @@ window.OpS = { fn: {} };
     try {
       const { body } = await api(`/api/v1/invitations_stats.php?meeting_id=${currentMeetingId}`);
       if (body?.ok && body?.data) {
-        const inv = body.data.invitations || {};
+        const inv = body.data.items || {};
         const eng = body.data.engagement || {};
         setText('invTotal', inv.total || 0);
         setText('invSent', inv.sent || 0);
@@ -2442,16 +2933,25 @@ window.OpS = { fn: {} };
   });
 
   // Exec view: close vote button
-  document.getElementById('execBtnCloseVote')?.addEventListener('click', () => {
-    if (currentOpenMotion) closeVote(currentOpenMotion.id);
+  document.getElementById('execBtnCloseVote')?.addEventListener('click', async function () {
+    var btn = this;
+    if (!currentOpenMotion) return;
+    Shared.btnLoading(btn, true);
+    try {
+      await closeVote(currentOpenMotion.id);
+    } finally {
+      Shared.btnLoading(btn, false);
+    }
   });
 
   // Exec view: speech action buttons
-  document.getElementById('execBtnEndSpeech')?.addEventListener('click', () => {
-    endCurrentSpeech();
+  document.getElementById('execBtnEndSpeech')?.addEventListener('click', async function () {
+    Shared.btnLoading(this, true);
+    try { await endCurrentSpeech(); } finally { Shared.btnLoading(this, false); }
   });
-  document.getElementById('execBtnNextSpeaker')?.addEventListener('click', () => {
-    nextSpeaker();
+  document.getElementById('execBtnNextSpeaker')?.addEventListener('click', async function () {
+    Shared.btnLoading(this, true);
+    try { await nextSpeaker(); } finally { Shared.btnLoading(this, false); }
   });
 
   // Setup view: manual vote search (P3-5)
@@ -2650,6 +3150,9 @@ window.OpS = { fn: {} };
       } else if (onVoteTab) {
         loadVoteTab();
       }
+
+      // Refresh quorum when on vote tab
+      if (onVoteTab) loadQuorumStatus();
 
       // Refresh bimodal UI
       renderConformityChecklist();

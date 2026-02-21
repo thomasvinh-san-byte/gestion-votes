@@ -59,15 +59,29 @@
 
   const ROLE_LABELS_SYSTEM = {
     admin: 'Administrateur',
-    operator: 'Opérateur',
+    operator: 'Op\u00e9rateur',
     auditor: 'Auditeur',
     viewer: 'Observateur'
   };
 
   const ROLE_LABELS_MEETING = {
-    president: 'Président',
+    president: 'Pr\u00e9sident',
     assessor: 'Assesseur',
-    voter: 'Électeur'
+    voter: '\u00c9lecteur'
+  };
+
+  /**
+   * Persona descriptions — maps roles to the 7 UX personas.
+   * Used in UI to clarify what each role does, not just what it's called.
+   */
+  const PERSONA_DESCRIPTIONS = {
+    admin: 'Gestion du syst\u00e8me',
+    operator: 'Pr\u00e9paration & pilotage de s\u00e9ance',
+    auditor: 'Contr\u00f4le de conformit\u00e9',
+    viewer: 'Consultation des donn\u00e9es',
+    president: 'Supervision & validation',
+    assessor: 'Contr\u00f4le de scrutin',
+    voter: 'Vote en assembl\u00e9e'
   };
 
   const ROLE_LABELS_ALL = {};
@@ -291,6 +305,154 @@
   }
 
   // =========================================================================
+  // FORM VALIDATION HELPERS
+  // =========================================================================
+
+  /**
+   * Show an inline validation error on a form field.
+   * Adds .is-invalid to the input and inserts/updates a .field-error message.
+   * @param {HTMLElement} input - The form input element
+   * @param {string} message - Error message to display
+   */
+  function fieldError(input, message) {
+    if (!input) return;
+    input.classList.add('is-invalid');
+    input.classList.remove('is-valid');
+    input.setAttribute('aria-invalid', 'true');
+    var container = input.closest('.form-group') || input.parentElement;
+    var errEl = container.querySelector('.field-error');
+    if (!errEl) {
+      errEl = document.createElement('div');
+      errEl.className = 'field-error';
+      errEl.setAttribute('role', 'alert');
+      container.appendChild(errEl);
+    }
+    errEl.textContent = message;
+  }
+
+  /**
+   * Clear inline validation error on a form field.
+   * @param {HTMLElement} input - The form input element
+   */
+  function fieldClear(input) {
+    if (!input) return;
+    input.classList.remove('is-invalid', 'is-valid');
+    input.removeAttribute('aria-invalid');
+    var container = input.closest('.form-group') || input.parentElement;
+    var errEl = container.querySelector('.field-error');
+    if (errEl) errEl.remove();
+  }
+
+  /**
+   * Mark a field as valid (green border).
+   * @param {HTMLElement} input - The form input element
+   */
+  function fieldValid(input) {
+    if (!input) return;
+    fieldClear(input);
+    input.classList.add('is-valid');
+  }
+
+  /**
+   * Validate a single field and show/clear error inline.
+   * @param {HTMLElement} input - The form input element
+   * @param {Array} rules - Array of {test: fn(value) => bool, msg: string}
+   * @returns {boolean} true if valid
+   */
+  function validateField(input, rules) {
+    if (!input) return true;
+    var value = (input.value || '').trim();
+    for (var i = 0; i < rules.length; i++) {
+      if (!rules[i].test(value)) {
+        fieldError(input, rules[i].msg);
+        return false;
+      }
+    }
+    if (value) fieldValid(input);
+    else fieldClear(input);
+    return true;
+  }
+
+  /**
+   * Attach live validation to a field (on blur and input).
+   * @param {HTMLElement} input - The form input element
+   * @param {Array} rules - Array of {test: fn(value) => bool, msg: string}
+   */
+  function liveValidate(input, rules) {
+    if (!input) return;
+    input.addEventListener('blur', function () { validateField(input, rules); });
+    input.addEventListener('input', function () {
+      if (input.classList.contains('is-invalid')) {
+        validateField(input, rules);
+      }
+    });
+  }
+
+  /**
+   * Validate multiple fields at once. Returns true if all pass.
+   * @param {Array} fieldRules - Array of {input: HTMLElement, rules: Array}
+   * @returns {boolean}
+   */
+  function validateAll(fieldRules) {
+    var allValid = true;
+    var firstInvalid = null;
+    for (var i = 0; i < fieldRules.length; i++) {
+      var ok = validateField(fieldRules[i].input, fieldRules[i].rules);
+      if (!ok && allValid) {
+        allValid = false;
+        firstInvalid = fieldRules[i].input;
+      }
+    }
+    if (firstInvalid) firstInvalid.focus();
+    return allValid;
+  }
+
+  // =========================================================================
+  // RETRY WRAPPER
+  // =========================================================================
+
+  /**
+   * Wrap an async action with retry-on-failure and an optional "Réessayer" button.
+   * @param {object} opts
+   * @param {function} opts.action - Async function to execute
+   * @param {HTMLElement} [opts.container] - Where to show retry button on failure
+   * @param {string} [opts.errorMsg] - User-visible error message
+   * @param {number} [opts.maxRetries=1] - Max automatic retries (0 = manual only)
+   * @returns {Promise<*>} Result of action()
+   */
+  async function withRetry(opts) {
+    var retries = opts.maxRetries || 0;
+    var attempt = 0;
+    while (true) {
+      try {
+        return await opts.action();
+      } catch (e) {
+        attempt++;
+        if (attempt <= retries) continue;
+        // Show retry button in container
+        if (opts.container) {
+          var msg = opts.errorMsg || 'Erreur de chargement';
+          opts.container.innerHTML =
+            '<div class="retry-block">' +
+              '<p class="text-muted text-sm">' + Utils.escapeHtml(msg) + '</p>' +
+              '<button class="btn btn-secondary btn-sm retry-btn" type="button">' +
+                '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg>' +
+                ' R\u00e9essayer' +
+              '</button>' +
+            '</div>';
+          return new Promise(function (resolve) {
+            opts.container.querySelector('.retry-btn').addEventListener('click', function () {
+              opts.container.innerHTML = '<div class="text-center p-4 text-muted">Chargement\u2026</div>';
+              resolve(withRetry(opts));
+            });
+          });
+        }
+        throw e;
+      }
+    }
+  }
+
+  // =========================================================================
   // EXPORTS
   // =========================================================================
 
@@ -298,6 +460,7 @@
     ROLE_LABELS_SYSTEM: ROLE_LABELS_SYSTEM,
     ROLE_LABELS_MEETING: ROLE_LABELS_MEETING,
     ROLE_LABELS_ALL: ROLE_LABELS_ALL,
+    PERSONA_DESCRIPTIONS: PERSONA_DESCRIPTIONS,
     MEETING_STATUS_MAP: MEETING_STATUS_MAP,
     btnLoading: btnLoading,
     openModal: openModal,
@@ -305,7 +468,14 @@
     hide: hide,
     emptyState: emptyState,
     formatWeight: formatWeight,
-    formatPct: formatPct
+    formatPct: formatPct,
+    fieldError: fieldError,
+    fieldClear: fieldClear,
+    fieldValid: fieldValid,
+    validateField: validateField,
+    liveValidate: liveValidate,
+    validateAll: validateAll,
+    withRetry: withRetry
   };
 
 })();

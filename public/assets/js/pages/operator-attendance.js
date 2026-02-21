@@ -14,7 +14,7 @@
   async function loadAttendance() {
     try {
       const { body } = await api(`/api/v1/attendances.php?meeting_id=${O.currentMeetingId}`);
-      O.attendanceCache = body?.data?.attendances || [];
+      O.attendanceCache = body?.data?.items || [];
       renderAttendance();
     } catch (err) {
       setNotif('error', 'Erreur chargement présences');
@@ -92,6 +92,7 @@
   }
 
   async function updateAttendance(memberId, mode) {
+    if (!Utils.isValidUUID(memberId)) { setNotif('error', 'ID membre invalide'); return; }
     const m = O.attendanceCache.find(a => String(a.member_id) === String(memberId));
     const prevMode = m ? m.mode : undefined;
 
@@ -232,12 +233,12 @@
         const formData = new FormData();
         formData.append('csv_content', csvContent);
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || (window.CSRF && window.CSRF.token) || '';
+        const csrfHeaders = (window.Utils && window.Utils.getCsrfToken) ? { 'X-CSRF-Token': window.Utils.getCsrfToken() } : {};
         const resp = await fetch('/api/v1/members_import_csv.php', {
           method: 'POST',
           body: formData,
           credentials: 'same-origin',
-          headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {}
+          headers: csrfHeaders
         });
         const data = await resp.json();
 
@@ -270,7 +271,7 @@
 
     try {
       const { body } = await api(`/api/v1/proxies.php?meeting_id=${O.currentMeetingId}`);
-      O.proxiesCache = body?.data?.proxies || body?.proxies || [];
+      O.proxiesCache = body?.data?.items || [];
       renderProxies();
     } catch (err) {
       setNotif('error', 'Erreur chargement procurations');
@@ -470,6 +471,11 @@
           return;
         }
 
+        if (!Utils.isValidUUID(giverId) || !Utils.isValidUUID(receiverId)) {
+          setNotif('error', 'Identifiants membre invalides');
+          return;
+        }
+
         btnConfirm.disabled = true;
         btnCancel.disabled = true;
         const originalText = btnConfirm.textContent;
@@ -575,13 +581,20 @@
       let html = '<div style="max-height:200px;overflow:auto;"><table class="table table-sm"><thead><tr><th>Mandant</th><th>Mandataire</th></tr></thead><tbody>';
       let validCount = 0;
 
+      let invalidEmails = 0;
       for (const row of parsed.rows) {
         const giver = row.giver_email || row[Object.keys(row)[0]] || '';
         const receiver = row.receiver_email || row[Object.keys(row)[1]] || '';
         if (giver && receiver) {
-          html += '<tr><td>' + escapeHtml(giver) + '</td><td>' + escapeHtml(receiver) + '</td></tr>';
+          const giverOk = Utils.isValidEmail(giver);
+          const receiverOk = Utils.isValidEmail(receiver);
+          if (!giverOk || !receiverOk) invalidEmails++;
+          html += '<tr><td' + (giverOk ? '' : ' class="text-danger"') + '>' + escapeHtml(giver) + '</td><td' + (receiverOk ? '' : ' class="text-danger"') + '>' + escapeHtml(receiver) + '</td></tr>';
           validCount++;
         }
+      }
+      if (invalidEmails > 0) {
+        html += '<p class="text-sm text-danger mt-1">' + invalidEmails + ' ligne(s) avec e-mail invalide (en rouge)</p>';
       }
 
       html += '</tbody></table></div>';
@@ -610,12 +623,12 @@
         formData.append('meeting_id', O.currentMeetingId);
         formData.append('csv_content', csvContent);
 
-        const csrfTok = document.querySelector('meta[name="csrf-token"]')?.content || (window.CSRF && window.CSRF.token) || '';
+        const csrfHeaders2 = (window.Utils && window.Utils.getCsrfToken) ? { 'X-CSRF-Token': window.Utils.getCsrfToken() } : {};
         const resp = await fetch('/api/v1/proxies_import_csv.php', {
           method: 'POST',
           body: formData,
           credentials: 'same-origin',
-          headers: csrfTok ? { 'X-CSRF-Token': csrfTok } : {}
+          headers: csrfHeaders2
         });
         const data = await resp.json();
 

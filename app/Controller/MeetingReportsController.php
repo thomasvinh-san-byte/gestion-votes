@@ -65,12 +65,12 @@ final class MeetingReportsController extends AbstractController {
             }
         }
 
-        $motions = $motionRepo->listForReport($meetingId);
+        $motions = $motionRepo->listForReport($meetingId, $tenant);
         $attendance = $attendanceRepo->listForReport($meetingId, $tenant);
 
         $proxies = [];
         try {
-            $proxies = (new ProxyRepository())->listForReport($meetingId);
+            $proxies = (new ProxyRepository())->listForReport($meetingId, $tenant);
         } catch (Throwable $e) {
             if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
                 throw $e;
@@ -224,7 +224,7 @@ final class MeetingReportsController extends AbstractController {
                 $title = (string) ($m['title'] ?? 'Motion');
                 $isClosed = ($m['closed_at'] !== null);
 
-                $ballots = $ballotRepo->listDetailedForMotion($mid);
+                $ballots = $ballotRepo->listDetailedForMotion($mid, $tenant);
 
                 $rows = '';
                 $i = 0;
@@ -373,8 +373,8 @@ final class MeetingReportsController extends AbstractController {
         }
 
         $attendances = (new AttendanceRepository())->listForReport($meetingId, $tenantId);
-        $motions = (new MotionRepository())->listForReport($meetingId);
-        $proxies = (new ProxyRepository())->listForReport($meetingId);
+        $motions = (new MotionRepository())->listForReport($meetingId, $tenantId);
+        $proxies = (new ProxyRepository())->listForReport($meetingId, $tenantId);
 
         // Build the full HTML for PDF
         $html = '<!DOCTYPE html>
@@ -557,7 +557,8 @@ final class MeetingReportsController extends AbstractController {
             api_fail('meeting_not_validated', 409);
         }
 
-        $motions = $motionRepo->listForReportGeneration($meetingId);
+        $tenantId = api_current_tenant_id();
+        $motions = $motionRepo->listForReportGeneration($meetingId, $tenantId);
 
         ob_start();
         echo '<!doctype html>

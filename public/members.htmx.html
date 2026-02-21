@@ -26,7 +26,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <a class="btn btn-secondary btn-sm" href="/api/v1/members_export_csv.php" target="_blank">
+        <a class="btn btn-secondary btn-sm" href="/api/v1/export_members_csv.php" target="_blank">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
           Exporter CSV
         </a>
@@ -437,15 +437,17 @@
     // ==========================================
 
     async function fetchGroups() {
-      try {
-        const { body } = await api('/api/v1/member_groups.php');
-        allGroups = body?.data?.groups || [];
-        renderGroups();
-        renderGroupFilters();
-      } catch (err) {
-        console.error('Fetch groups error:', err);
-        groupsList.innerHTML = '<div class="text-danger text-sm">Erreur de chargement</div>';
-      }
+      await Shared.withRetry({
+        container: groupsList,
+        errorMsg: 'Impossible de charger les groupes',
+        action: async function () {
+          var r = await api('/api/v1/member_groups.php');
+          if (!r.body || !r.body.ok) throw new Error(r.body?.error || 'Erreur');
+          allGroups = r.body.data?.groups || [];
+          renderGroups();
+          renderGroupFilters();
+        }
+      });
     }
 
     function renderGroups() {
@@ -582,28 +584,34 @@
       });
     };
 
-    window.deleteGroup = async function(groupId) {
+    window.deleteGroup = function(groupId) {
       const group = allGroups.find(g => g.id === groupId);
       if (!group) return;
 
-      if (!confirm(`Supprimer le groupe "${group.name}" ? Les membres ne seront pas supprimés.`)) return;
-
-      try {
-        const { body } = await api(`/api/v1/member_groups.php?id=${encodeURIComponent(groupId)}`, null, 'DELETE');
-
-        if (body?.ok) {
-          setNotif('success', 'Groupe supprimé');
-          if (currentGroupFilter === groupId) {
-            currentGroupFilter = null;
+      Shared.openModal({
+        title: 'Supprimer le groupe',
+        body: '<p>Supprimer le groupe <strong>' + escapeHtml(group.name) + '</strong> ?</p>' +
+              '<p class="text-sm text-muted">Les membres ne seront pas supprim\u00e9s.</p>',
+        confirmText: 'Supprimer',
+        confirmClass: 'btn btn-danger',
+        onConfirm: async function() {
+          try {
+            var r = await api('/api/v1/member_groups.php?id=' + encodeURIComponent(groupId), null, 'DELETE');
+            if (r.body?.ok) {
+              setNotif('success', 'Groupe supprim\u00e9');
+              if (currentGroupFilter === groupId) {
+                currentGroupFilter = null;
+              }
+              await fetchGroups();
+              await fetchMembers();
+            } else {
+              setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
+            }
+          } catch (err) {
+            setNotif('error', err.message);
           }
-          await fetchGroups();
-          await fetchMembers();
-        } else {
-          setNotif('error', body?.detail || body?.error || 'Erreur');
         }
-      } catch (err) {
-        setNotif('error', err.message);
-      }
+      });
     };
 
     function getMemberGroupBadges(memberId) {
@@ -773,34 +781,57 @@
     // ==========================================
 
     async function fetchMembers() {
-      membersList.innerHTML = '<div class="text-center p-6 text-muted members-loading">Chargement...</div>';
+      membersList.innerHTML = '<div class="text-center p-6 text-muted members-loading">Chargement\u2026</div>';
 
-      try {
-        const { body } = await api('/api/v1/members.php?include_groups=1');
-        allMembers = body?.data?.members || [];
-        await fetchMemberGroups();
-        updateStats(allMembers);
-        renderMembers(allMembers);
-      } catch (err) {
-        membersList.innerHTML = `<div class="alert alert-danger members-loading">Erreur: ${escapeHtml(err.message)}</div>`;
-      }
+      await Shared.withRetry({
+        container: membersList,
+        errorMsg: 'Impossible de charger les membres',
+        action: async function () {
+          const { body } = await api('/api/v1/members.php?include_groups=1');
+          if (!body || !body.ok) throw new Error(body?.error || 'Erreur serveur');
+          allMembers = body.data?.members || [];
+          await fetchMemberGroups();
+          updateStats(allMembers);
+          renderMembers(allMembers);
+        }
+      });
     }
 
     // ==========================================
     // CREATE MEMBER
     // ==========================================
 
-    document.getElementById('btnCreate').addEventListener('click', async () => {
-      const full_name = document.getElementById('mName').value.trim();
-      const email = document.getElementById('mEmail').value.trim();
-      const voting_power = parseInt(document.getElementById('mPower').value) || 1;
-      const is_active = document.getElementById('mActive').checked;
+    // Live inline validation on create form
+    var mNameInput = document.getElementById('mName');
+    var mEmailInput = document.getElementById('mEmail');
+    var mPowerInput = document.getElementById('mPower');
 
-      if (!full_name) {
-        setNotif('error', 'Le nom est requis');
-        document.getElementById('mName').focus();
-        return;
-      }
+    Shared.liveValidate(mNameInput, [
+      { test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }
+    ]);
+    Shared.liveValidate(mEmailInput, [
+      { test: function(v) { return !v || Utils.isValidEmail(v); }, msg: 'Format d\u2019email invalide' }
+    ]);
+    Shared.liveValidate(mPowerInput, [
+      { test: function(v) { return v !== '' && parseFloat(v) >= 0; }, msg: 'Le nombre de voix doit \u00eatre \u2265 0' }
+    ]);
+
+    document.getElementById('btnCreate').addEventListener('click', async () => {
+      var nameInput = document.getElementById('mName');
+      var emailInput = document.getElementById('mEmail');
+      var powerInput = document.getElementById('mPower');
+
+      var valid = Shared.validateAll([
+        { input: nameInput, rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
+        { input: emailInput, rules: [{ test: function(v) { return !v || Utils.isValidEmail(v); }, msg: 'Format d\u2019email invalide' }] },
+        { input: powerInput, rules: [{ test: function(v) { return v !== '' && parseFloat(v) >= 0; }, msg: 'Le nombre de voix doit \u00eatre \u2265 0' }] }
+      ]);
+      if (!valid) return;
+
+      const full_name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const voting_power = parseInt(powerInput.value) || 1;
+      const is_active = document.getElementById('mActive').checked;
 
       const btn = document.getElementById('btnCreate');
       Shared.btnLoading(btn, true);
@@ -814,11 +845,14 @@
         });
 
         if (body?.ok) {
-          setNotif('success', 'Membre ajouté');
+          setNotif('success', 'Membre ajout\u00e9');
           document.getElementById('mName').value = '';
           document.getElementById('mEmail').value = '';
           document.getElementById('mPower').value = '1';
           document.getElementById('mActive').checked = true;
+          Shared.fieldClear(nameInput);
+          Shared.fieldClear(emailInput);
+          Shared.fieldClear(powerInput);
           await fetchMembers();
         } else {
           setNotif('error', body?.detail || body?.error || 'Erreur');
@@ -860,20 +894,29 @@
     };
 
     window.deleteMember = async function(memberId) {
-      if (!confirm('Supprimer ce membre ?')) return;
+      var member = allMembers.find(function(m) { return m.id === memberId; });
+      var memberName = member ? (member.full_name || member.name || 'ce membre') : 'ce membre';
 
-      try {
-        const { body } = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
-
-        if (body?.ok) {
-          setNotif('success', 'Membre supprimé');
-          await fetchMembers();
-        } else {
-          setNotif('error', body?.detail || body?.error || 'Erreur');
+      Shared.openModal({
+        title: 'Supprimer le membre',
+        body: '<p>Supprimer d\u00e9finitivement <strong>' + escapeHtml(memberName) + '</strong> ?</p>' +
+              '<p class="text-sm text-muted">Cette action est irr\u00e9versible.</p>',
+        confirmText: 'Supprimer',
+        confirmClass: 'btn btn-danger',
+        onConfirm: async function() {
+          try {
+            var r = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
+            if (r.body?.ok) {
+              setNotif('success', 'Membre supprim\u00e9');
+              await fetchMembers();
+            } else {
+              setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
+            }
+          } catch (err) {
+            setNotif('error', err.message);
+          }
         }
-      } catch (err) {
-        setNotif('error', err.message);
-      }
+      });
     };
 
     window.editMember = function(memberId) {
@@ -926,17 +969,23 @@
         `,
         confirmText: 'Enregistrer',
         onConfirm: async function(modal) {
-          const newName = modal.querySelector('#editMemberName').value.trim();
-          const newEmail = modal.querySelector('#editMemberEmail').value.trim();
-          const newPower = parseInt(modal.querySelector('#editMemberPower').value) || 1;
+          var editNameEl = modal.querySelector('#editMemberName');
+          var editEmailEl = modal.querySelector('#editMemberEmail');
+          var editPowerEl = modal.querySelector('#editMemberPower');
+
+          var valid = Shared.validateAll([
+            { input: editNameEl, rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
+            { input: editEmailEl, rules: [{ test: function(v) { return !v || Utils.isValidEmail(v); }, msg: 'Format d\u2019email invalide' }] },
+            { input: editPowerEl, rules: [{ test: function(v) { return v !== '' && parseFloat(v) >= 0; }, msg: 'Nombre de voix invalide' }] }
+          ]);
+          if (!valid) return false;
+
+          const newName = editNameEl.value.trim();
+          const newEmail = editEmailEl.value.trim();
+          const newPower = parseInt(editPowerEl.value) || 1;
           const newActive = modal.querySelector('#editMemberActive').checked;
 
           const selectedGroups = Array.from(modal.querySelectorAll('input[name="memberGroup"]:checked')).map(cb => cb.value);
-
-          if (!newName) {
-            setNotif('error', 'Le nom est requis');
-            return false;
-          }
 
           try {
             const { body } = await api('/api/v1/members.php', {
@@ -1097,26 +1146,30 @@
     });
 
     // Generate seed members
-    document.getElementById('btnSeed').addEventListener('click', async () => {
-      if (!confirm('Générer 10 membres fictifs ?')) return;
-
-      const btn = document.getElementById('btnSeed');
-      Shared.btnLoading(btn, true);
-
-      try {
-        const { body } = await api('/api/v1/dev_seed_members.php', { count: 10 });
-
-        if (body?.ok) {
-          setNotif('success', `${body.data?.created || 0} membres générés`);
-          await fetchMembers();
-        } else {
-          setNotif('error', body?.detail || body?.error || 'Erreur');
+    document.getElementById('btnSeed').addEventListener('click', function () {
+      Shared.openModal({
+        title: 'G\u00e9n\u00e9rer des membres fictifs',
+        body: '<p>G\u00e9n\u00e9rer <strong>10 membres fictifs</strong> pour tester l\u2019application ?</p>' +
+              '<p class="text-sm text-muted">Les membres g\u00e9n\u00e9r\u00e9s pourront \u00eatre supprim\u00e9s individuellement.</p>',
+        confirmText: 'G\u00e9n\u00e9rer',
+        onConfirm: async function() {
+          var btn = document.getElementById('btnSeed');
+          Shared.btnLoading(btn, true);
+          try {
+            var r = await api('/api/v1/dev_seed_members.php', { count: 10 });
+            if (r.body?.ok) {
+              setNotif('success', (r.body.data?.created || 0) + ' membres g\u00e9n\u00e9r\u00e9s');
+              await fetchMembers();
+            } else {
+              setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
+            }
+          } catch (err) {
+            setNotif('error', err.message);
+          } finally {
+            Shared.btnLoading(btn, false);
+          }
         }
-      } catch (err) {
-        setNotif('error', err.message);
-      } finally {
-        Shared.btnLoading(btn, false);
-      }
+      });
     });
 
     // Enter key shortcuts

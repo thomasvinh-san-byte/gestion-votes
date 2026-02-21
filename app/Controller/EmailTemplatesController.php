@@ -37,7 +37,7 @@ final class EmailTemplatesController extends AbstractController {
         }
 
         $templates = $repo->listForTenant($tenantId, $type !== '' ? $type : null);
-        $result = ['templates' => $templates];
+        $result = ['items' => $templates];
         if ($includeVariables) {
             $result['available_variables'] = $service->listAvailableVariables();
         }

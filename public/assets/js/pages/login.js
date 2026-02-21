@@ -58,7 +58,7 @@
     var isPresident = mr.some(function(r) { return r.role === 'president'; });
     var isVoter = mr.some(function(r) { return r.role === 'voter'; });
     if (isPresident) {
-      window.location.href = '/operator.htmx.html';
+      window.location.href = '/operator.htmx.html?mode=president';
     } else if (isVoter) {
       window.location.href = '/vote.htmx.html';
     } else {
@@ -84,6 +84,19 @@
     if (!email || !password) {
       showError('Veuillez saisir votre email et votre mot de passe.');
       return;
+    }
+
+    if (window.Utils && Utils.isValidEmail && !Utils.isValidEmail(email)) {
+      showError('Format d\u2019adresse e-mail invalide.');
+      return;
+    }
+
+    if (window.Utils && Utils.isValidPassword) {
+      var pwCheck = Utils.isValidPassword(password);
+      if (!pwCheck.valid) {
+        showError(pwCheck.message);
+        return;
+      }
     }
 
     submitBtn.disabled = true;

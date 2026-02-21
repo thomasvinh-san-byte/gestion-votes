@@ -279,6 +279,10 @@
     // DATA LOADING
     // =========================================================================
 
+    function chartErrorHtml(msg) {
+      return '<div class="text-center p-6 text-muted"><p>' + escapeHtml(msg) + '</p></div>';
+    }
+
     async function loadAllData() {
       await Promise.all([
         loadOverview(),
@@ -447,7 +451,9 @@
           `;
         }
       } catch (err) {
-        console.error('Participation error:', err);
+        var pChart = document.getElementById('participationChart');
+        if (pChart) pChart.parentElement.innerHTML = chartErrorHtml('Erreur de chargement des participations');
+        document.getElementById('participationTable').innerHTML = '';
       }
     }
 
@@ -512,7 +518,10 @@
           });
         }
       } catch (err) {
-        console.error('Motions error:', err);
+        var mChart = document.getElementById('motionsChart');
+        if (mChart) mChart.parentElement.innerHTML = chartErrorHtml('Erreur de chargement des résolutions');
+        var mtChart = document.getElementById('motionsTrendChart');
+        if (mtChart) mtChart.parentElement.innerHTML = '';
       }
     }
 
@@ -550,7 +559,8 @@
           });
         }
       } catch (err) {
-        console.error('Vote duration error:', err);
+        var dChart = document.getElementById('durationChart');
+        if (dChart) dChart.parentElement.innerHTML = chartErrorHtml('Erreur de chargement des durées');
       }
     }
 
@@ -588,7 +598,8 @@
           });
         }
       } catch (err) {
-        console.error('Vote timing error:', err);
+        var rtChart = document.getElementById('responseTimeChart');
+        if (rtChart) rtChart.parentElement.innerHTML = chartErrorHtml('Erreur de chargement des temps de réponse');
       }
     }
 
@@ -608,42 +619,42 @@
         overviewContainer.innerHTML = `
           <div class="anomaly-indicators">
             <div class="anomaly-item ${indicators.low_participation_count > 0 ? 'warning' : 'ok'}">
-              <div class="anomaly-icon">${indicators.low_participation_count > 0 ? '⚠️' : '✓'}</div>
+              <div class="anomaly-icon">${indicators.low_participation_count > 0 ? icon('alert-triangle', 'icon-md icon-warning') : icon('check-circle', 'icon-md icon-success')}</div>
               <div class="anomaly-content">
                 <div class="anomaly-label">Participation faible (&lt;50%)</div>
                 <div class="anomaly-value">${indicators.low_participation_count || 0} séance(s)</div>
               </div>
             </div>
             <div class="anomaly-item ${indicators.quorum_issues_count > 0 ? 'warning' : 'ok'}">
-              <div class="anomaly-icon">${indicators.quorum_issues_count > 0 ? '⚠️' : '✓'}</div>
+              <div class="anomaly-icon">${indicators.quorum_issues_count > 0 ? icon('alert-triangle', 'icon-md icon-warning') : icon('check-circle', 'icon-md icon-success')}</div>
               <div class="anomaly-content">
                 <div class="anomaly-label">Problèmes de quorum</div>
                 <div class="anomaly-value">${indicators.quorum_issues_count || 0} séance(s)</div>
               </div>
             </div>
             <div class="anomaly-item ${indicators.incomplete_votes_count > 0 ? 'info' : 'ok'}">
-              <div class="anomaly-icon">${indicators.incomplete_votes_count > 0 ? 'ℹ️' : '✓'}</div>
+              <div class="anomaly-icon">${indicators.incomplete_votes_count > 0 ? icon('info', 'icon-md icon-info') : icon('check-circle', 'icon-md icon-success')}</div>
               <div class="anomaly-content">
                 <div class="anomaly-label">Résolutions sans décision</div>
                 <div class="anomaly-value">${indicators.incomplete_votes_count || 0} résolution(s)</div>
               </div>
             </div>
             <div class="anomaly-item ${indicators.high_proxy_concentration > 0 ? 'warning' : 'ok'}">
-              <div class="anomaly-icon">${indicators.high_proxy_concentration > 0 ? '⚠️' : '✓'}</div>
+              <div class="anomaly-icon">${indicators.high_proxy_concentration > 0 ? icon('alert-triangle', 'icon-md icon-warning') : icon('check-circle', 'icon-md icon-success')}</div>
               <div class="anomaly-content">
                 <div class="anomaly-label">Concentration procurations (&gt;3/membre)</div>
                 <div class="anomaly-value">${indicators.high_proxy_concentration || 0} cas</div>
               </div>
             </div>
             <div class="anomaly-item ${indicators.abstention_rate > 20 ? 'info' : 'ok'}">
-              <div class="anomaly-icon">${indicators.abstention_rate > 20 ? 'ℹ️' : '✓'}</div>
+              <div class="anomaly-icon">${indicators.abstention_rate > 20 ? icon('info', 'icon-md icon-info') : icon('check-circle', 'icon-md icon-success')}</div>
               <div class="anomaly-content">
                 <div class="anomaly-label">Taux d'abstention moyen</div>
                 <div class="anomaly-value">${indicators.abstention_rate || 0}%</div>
               </div>
             </div>
             <div class="anomaly-item ${indicators.very_short_votes_count > 0 ? 'info' : 'ok'}">
-              <div class="anomaly-icon">${indicators.very_short_votes_count > 0 ? 'ℹ️' : '✓'}</div>
+              <div class="anomaly-icon">${indicators.very_short_votes_count > 0 ? icon('info', 'icon-md icon-info') : icon('check-circle', 'icon-md icon-success')}</div>
               <div class="anomaly-content">
                 <div class="anomaly-label">Votes très courts (&lt;30s)</div>
                 <div class="anomaly-value">${indicators.very_short_votes_count || 0} vote(s)</div>

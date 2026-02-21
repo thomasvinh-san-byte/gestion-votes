@@ -62,7 +62,7 @@ final class AnalyticsController extends AbstractController {
             $fromDateVal = api_query('from_date');
             $toDateVal = api_query('to_date');
             $meetings = $repo->listAvailableMeetings($tenantId, $fromDateVal !== '' ? $fromDateVal : null, $toDateVal !== '' ? $toDateVal : null);
-            api_ok(['meetings' => $meetings]);
+            api_ok(['items' => $meetings]);
         }
 
         $reportType = api_query('report_type', 'summary');

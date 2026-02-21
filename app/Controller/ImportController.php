@@ -333,7 +333,7 @@ final class ImportController extends AbstractController {
 
         $tenantId = api_current_tenant_id();
         $motionRepo = new MotionRepository();
-        $nextPosition = $motionRepo->countForMeeting($meetingId) + 1;
+        $nextPosition = $motionRepo->countForMeeting($meetingId, $tenantId) + 1;
 
         $imported = 0;
         $skipped = 0;
@@ -375,7 +375,7 @@ final class ImportController extends AbstractController {
 
         $tenantId = api_current_tenant_id();
         $motionRepo = new MotionRepository();
-        $nextPosition = $motionRepo->countForMeeting($meetingId) + 1;
+        $nextPosition = $motionRepo->countForMeeting($meetingId, $tenantId) + 1;
 
         $imported = 0;
         $skipped = 0;

@@ -63,7 +63,7 @@ final class InvitationsController extends AbstractController {
         }
 
         $rows = (new InvitationRepository())->listForMeeting($meetingId, api_current_tenant_id());
-        api_ok(['invitations' => $rows]);
+        api_ok(['items' => $rows]);
     }
 
     public function redeem(): void {
@@ -154,7 +154,7 @@ final class InvitationsController extends AbstractController {
 
         api_ok([
             'meeting_id' => $meetingId,
-            'invitations' => [
+            'items' => [
                 'total' => $total,
                 'pending' => (int) $invitationStats['pending'],
                 'sent' => $sent,
