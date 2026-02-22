@@ -228,38 +228,45 @@ trait MotionFinderTrait {
         );
     }
 
-    public function findOpenForProjector(string $meetingId): ?array {
-        return $this->selectOne(
-            'SELECT id, title, description, body, secret, position, opened_at
+    public function findOpenForProjector(string $meetingId, string $tenantId = ''): ?array {
+        $sql = 'SELECT id, title, description, body, secret, position, opened_at
              FROM motions
              WHERE meeting_id = :meeting_id
                AND opened_at IS NOT NULL
-               AND closed_at IS NULL
-             ORDER BY opened_at DESC
-             LIMIT 1',
-            [':meeting_id' => $meetingId],
-        );
+               AND closed_at IS NULL';
+        $params = [':meeting_id' => $meetingId];
+        if ($tenantId !== '') {
+            $sql .= ' AND tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        $sql .= ' ORDER BY opened_at DESC LIMIT 1';
+        return $this->selectOne($sql, $params);
     }
 
-    public function findLastClosedForProjector(string $meetingId): ?array {
-        return $this->selectOne(
-            'SELECT id, title, description, body, secret, position, closed_at
+    public function findLastClosedForProjector(string $meetingId, string $tenantId = ''): ?array {
+        $sql = 'SELECT id, title, description, body, secret, position, closed_at
              FROM motions
              WHERE meeting_id = :meeting_id
-               AND closed_at IS NOT NULL
-             ORDER BY closed_at DESC
-             LIMIT 1',
-            [':meeting_id' => $meetingId],
-        );
+               AND closed_at IS NOT NULL';
+        $params = [':meeting_id' => $meetingId];
+        if ($tenantId !== '') {
+            $sql .= ' AND tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        $sql .= ' ORDER BY closed_at DESC LIMIT 1';
+        return $this->selectOne($sql, $params);
     }
 
-    public function findNextNotOpened(string $meetingId): ?array {
-        return $this->selectOne(
-            'SELECT id, title FROM motions
-             WHERE meeting_id = :mid AND opened_at IS NULL
-             ORDER BY position ASC NULLS LAST, created_at ASC LIMIT 1',
-            [':mid' => $meetingId],
-        );
+    public function findNextNotOpened(string $meetingId, string $tenantId = ''): ?array {
+        $sql = 'SELECT id, title FROM motions
+             WHERE meeting_id = :mid AND opened_at IS NULL';
+        $params = [':mid' => $meetingId];
+        if ($tenantId !== '') {
+            $sql .= ' AND tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        $sql .= ' ORDER BY position ASC NULLS LAST, created_at ASC LIMIT 1';
+        return $this->selectOne($sql, $params);
     }
 
     public function findNextNotOpenedForUpdate(string $tenantId, string $meetingId): ?array {

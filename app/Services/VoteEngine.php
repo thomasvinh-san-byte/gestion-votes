@@ -196,7 +196,7 @@ final class VoteEngine {
 
         $quorumPolicy = null;
         if ($appliedQuorumPolicyId !== '') {
-            $quorumPolicy = $this->policyRepo->findQuorumPolicy($appliedQuorumPolicyId);
+            $quorumPolicy = $this->policyRepo->findQuorumPolicy($appliedQuorumPolicyId, $tenantId);
         }
 
         // Resolve vote policy: motion-level > meeting-level
@@ -206,7 +206,7 @@ final class VoteEngine {
 
         $votePolicy = null;
         if ($appliedVotePolicyId !== '') {
-            $votePolicy = $this->policyRepo->findVotePolicy($appliedVotePolicyId);
+            $votePolicy = $this->policyRepo->findVotePolicy($appliedVotePolicyId, $tenantId);
         }
 
         // Resolve present weight for 'present' majority base

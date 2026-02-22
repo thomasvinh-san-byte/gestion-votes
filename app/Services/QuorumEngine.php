@@ -81,7 +81,7 @@ final class QuorumEngine {
             return self::noPolicy((string) $row['meeting_id'], (string) $row['tenant_id']);
         }
 
-        $policy = $this->policyRepo->findQuorumPolicy($policyId);
+        $policy = $this->policyRepo->findQuorumPolicy($policyId, (string) $row['tenant_id']);
         if (!$policy) {
             return self::noPolicy((string) $row['meeting_id'], (string) $row['tenant_id']);
         }
@@ -121,7 +121,7 @@ final class QuorumEngine {
             return self::noPolicy($meetingId, $tenantId);
         }
 
-        $policy = $this->policyRepo->findQuorumPolicy($policyId);
+        $policy = $this->policyRepo->findQuorumPolicy($policyId, $tenantId);
         if (!$policy) {
             return self::noPolicy($meetingId, $tenantId);
         }

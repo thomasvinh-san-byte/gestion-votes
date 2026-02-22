@@ -92,11 +92,11 @@ final class MeetingReportsController extends AbstractController {
 
             $votePolicy = null;
             if (!empty($m['vote_policy_id'])) {
-                $votePolicy = $policyRepo->findVotePolicy($m['vote_policy_id']);
+                $votePolicy = $policyRepo->findVotePolicy($m['vote_policy_id'], $tenant);
             }
             $quorumPolicy = null;
             if (!empty($m['quorum_policy_id'])) {
-                $quorumPolicy = $policyRepo->findQuorumPolicy($m['quorum_policy_id']);
+                $quorumPolicy = $policyRepo->findQuorumPolicy($m['quorum_policy_id'], $tenant);
             }
 
             $src = (string) ($m['official_source'] ?? '');

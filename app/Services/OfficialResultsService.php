@@ -75,7 +75,7 @@ final class OfficialResultsService {
 
         $quorumPolicy = null;
         if ($appliedQuorumPolicyId !== '') {
-            $quorumPolicy = $this->policyRepo->findQuorumPolicy($appliedQuorumPolicyId);
+            $quorumPolicy = $this->policyRepo->findQuorumPolicy($appliedQuorumPolicyId, $tenantId);
         }
 
         // Vote policy: motion-level > meeting-level (inheritance)
@@ -85,7 +85,7 @@ final class OfficialResultsService {
 
         $votePolicy = null;
         if ($appliedVotePolicyId !== '') {
-            $votePolicy = $this->policyRepo->findVotePolicy($appliedVotePolicyId);
+            $votePolicy = $this->policyRepo->findVotePolicy($appliedVotePolicyId, $tenantId);
         }
 
         // Resolve present weight for 'present' majority base

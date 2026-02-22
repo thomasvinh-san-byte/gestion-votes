@@ -43,6 +43,9 @@ final class AuthMiddleware {
     /** Session timeout in seconds (30 minutes) */
     private const SESSION_TIMEOUT = 1800;
 
+    /** Interval (seconds) between DB re-validation of session user (is_active, role) */
+    private const SESSION_REVALIDATE_INTERVAL = 60;
+
     /**
      * Role aliases for backward compatibility.
      */
@@ -307,6 +310,36 @@ final class AuthMiddleware {
                     $_SESSION = [];
                     session_destroy();
                     return null;
+                }
+
+                // Periodic DB re-validation: detect deactivated users / role changes.
+                $lastDbCheck = $_SESSION['auth_last_db_check'] ?? 0;
+                if (($now - $lastDbCheck) >= self::SESSION_REVALIDATE_INTERVAL) {
+                    try {
+                        $repo = new UserRepository();
+                        $fresh = $repo->findForSessionRevalidation(
+                            (string) ($_SESSION['auth_user']['id'] ?? ''),
+                        );
+                        if (!$fresh || empty($fresh['is_active'])) {
+                            error_log(sprintf(
+                                'SESSION_REVOKED | user_id=%s | reason=%s',
+                                $_SESSION['auth_user']['id'] ?? 'unknown',
+                                !$fresh ? 'user_deleted' : 'user_deactivated',
+                            ));
+                            $_SESSION = [];
+                            session_destroy();
+                            return null;
+                        }
+                        // Refresh role and name from DB (admin may have changed them)
+                        $_SESSION['auth_user']['role'] = $fresh['role'];
+                        $_SESSION['auth_user']['name'] = $fresh['name'];
+                        $_SESSION['auth_user']['email'] = $fresh['email'];
+                        $_SESSION['auth_user']['is_active'] = $fresh['is_active'];
+                    } catch (Throwable $e) {
+                        // DB failure: keep session alive, try again next interval
+                        error_log('Session revalidation DB error: ' . $e->getMessage());
+                    }
+                    $_SESSION['auth_last_db_check'] = $now;
                 }
 
                 // Update last activity timestamp

@@ -122,9 +122,8 @@ final class EmailController extends AbstractController {
         $memberRepo = new MemberRepository();
         $invitationRepo = new InvitationRepository();
 
-        $meetingTitle = $meetingRepo->findTitle($meetingId) ?? $meetingId;
-
         $tenantId = api_current_tenant_id();
+        $meetingTitle = $meetingRepo->findTitle($meetingId, $tenantId) ?? $meetingId;
         $members = $memberRepo->listActiveWithEmail($tenantId);
 
         if ($limit > 0) {

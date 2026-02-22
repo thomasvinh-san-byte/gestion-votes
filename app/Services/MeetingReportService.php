@@ -167,11 +167,11 @@ final class MeetingReportService {
             // Policy labels + justifications
             $votePolicy = null;
             if (!empty($m['vote_policy_id'])) {
-                $votePolicy = $this->policyRepo->findVotePolicy($m['vote_policy_id']);
+                $votePolicy = $this->policyRepo->findVotePolicy($m['vote_policy_id'], $tenant);
             }
             $quorumPolicy = null;
             if (!empty($m['quorum_policy_id'])) {
-                $quorumPolicy = $this->policyRepo->findQuorumPolicy($m['quorum_policy_id']);
+                $quorumPolicy = $this->policyRepo->findQuorumPolicy($m['quorum_policy_id'], $tenant);
             }
 
             $policyLine = self::policyLine($votePolicy, $quorumPolicy);

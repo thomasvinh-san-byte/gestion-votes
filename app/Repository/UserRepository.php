@@ -63,6 +63,20 @@ class UserRepository extends AbstractRepository {
     }
 
     /**
+     * Lightweight session re-validation: returns current is_active, role, name.
+     * Used by AuthMiddleware to detect deactivated users and role changes.
+     */
+    public function findForSessionRevalidation(string $userId): ?array {
+        return $this->selectOne(
+            'SELECT id, tenant_id, email, name, role, is_active
+             FROM users
+             WHERE id = :id
+             LIMIT 1',
+            [':id' => $userId],
+        );
+    }
+
+    /**
      * Met a jour le mot de passe d'un utilisateur.
      */
     public function setPasswordHash(string $tenantId, string $userId, string $hash): void {

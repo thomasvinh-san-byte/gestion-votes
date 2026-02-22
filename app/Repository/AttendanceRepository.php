@@ -103,7 +103,7 @@ class AttendanceRepository extends AbstractRepository {
         $row = $this->selectOne(
             "SELECT
                 COUNT(*) FILTER (WHERE a.mode IN ('present','remote'))::int AS present_count,
-                COALESCE(SUM(COALESCE(m.voting_power, 1.0)) FILTER (WHERE a.mode IN ('present','remote')),0)::int AS present_weight
+                COALESCE(SUM(COALESCE(m.voting_power, 1.0)) FILTER (WHERE a.mode IN ('present','remote')),0)::float8 AS present_weight
              FROM attendances a
              JOIN members m ON m.id = a.member_id
              WHERE a.tenant_id = :tid AND a.meeting_id = :mid",
