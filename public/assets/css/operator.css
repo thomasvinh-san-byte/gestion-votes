@@ -705,6 +705,91 @@
   color: var(--color-primary);
 }
 
+/* =============================================================================
+   TAB EMPTY STATE GUIDES — Shown when prerequisite data is missing
+   ============================================================================= */
+
+.tab-empty-guide {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  border-radius: 10px;
+  border: 1px dashed var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  animation: tabFadeIn var(--duration-normal) var(--ease-out);
+}
+
+.tab-empty-guide[hidden] { display: none; }
+
+.tab-empty-guide > .icon {
+  color: var(--color-primary);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.tab-empty-guide-text {
+  flex: 1;
+}
+
+.tab-empty-guide-text strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.tab-empty-guide-text p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Conformity item hint text (shown under label when pending) */
+.conformity-hint {
+  display: none;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.conformity-item:not(.done) .conformity-hint {
+  display: block;
+}
+
+/* Conformity item clickable states */
+.conformity-item[data-goto-tab] {
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.conformity-item[data-goto-tab]:hover {
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg-subtle));
+  border-left-color: var(--color-primary);
+}
+
+.conformity-item[data-goto-tab]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* Conformity label column: make label+hint stack vertically */
+.conformity-item:not(.done) {
+  flex-wrap: wrap;
+}
+
+.conformity-item:not(.done) .conformity-label {
+  flex-basis: auto;
+}
+
+@media (max-width: 768px) {
+  .tab-empty-guide {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+}
+
 /* Tab footer actions — "next step" navigation */
 .readiness-strip {
   display: flex;

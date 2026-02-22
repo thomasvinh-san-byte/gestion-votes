@@ -2199,34 +2199,50 @@ window.OpS = { fn: {} };
     const steps = [
       {
         key: 'members',
-        label: 'Registre des membres',
+        label: 'Membres inscrits',
         done: hasMembers,
-        status: hasMembers ? membersCache.length + ' membre(s)' : 'à faire'
+        status: hasMembers ? membersCache.length + ' membre' + (membersCache.length > 1 ? 's' : '') : 'à faire',
+        hint: 'Au moins un membre actif'
       },
       {
         key: 'attendance',
-        label: 'Présences & procurations',
+        label: 'Présences enregistrées',
         done: hasPresent,
         status: hasPresent
-          ? presentCount + ' présent(s)' + (activeProxies ? ', ' + activeProxies + ' proc.' : '')
-          : 'à faire'
-      },
-      {
-        key: 'convocations',
-        label: 'Convocations',
-        done: true,
-        optional: true,
-        status: 'optionnel'
+          ? presentCount + ' présent' + (presentCount > 1 ? 's' : '') + (activeProxies ? ', ' + activeProxies + ' proc.' : '')
+          : 'à faire',
+        hint: 'Marquer au moins un membre comme présent'
       },
       {
         key: 'rules',
-        label: 'Règlement & présidence',
+        label: 'Politique de vote ou président',
         done: hasRules,
         status: hasRules
-          ? (hasPresident ? 'président assigné' : 'politiques configurées')
-          : 'à faire'
+          ? (hasPresident ? 'président assigné' : 'politique configurée')
+          : 'à faire',
+        hint: 'Définir une politique de vote ou nommer un président'
+      },
+      {
+        key: 'convocations',
+        label: 'Invitations envoyées',
+        done: true,
+        optional: true,
+        status: 'optionnel'
       }
     ];
+
+    // Show/hide guided empty states in tabs
+    var noMembersGuide = document.getElementById('noMembersGuide');
+    var noResolutionsGuide = document.getElementById('noResolutionsGuide');
+    var presenceToolbar = document.getElementById('presenceToolbar');
+    if (noMembersGuide) {
+      noMembersGuide.hidden = hasMembers;
+      // Hide presence toolbar when no members
+      if (presenceToolbar) presenceToolbar.style.display = hasMembers ? '' : 'none';
+    }
+    if (noResolutionsGuide) {
+      noResolutionsGuide.hidden = motionsCache.length > 0;
+    }
 
     // Score only counts non-optional items
     const mandatorySteps = steps.filter(s => !s.optional);
@@ -2241,11 +2257,13 @@ window.OpS = { fn: {} };
       const optClass = s.optional ? 'optional' : '';
       const iconClass = s.done ? 'done' : 'pending';
       const tab = stepTabMap[s.key] || '';
+      const hintHtml = s.hint && !s.done ? '<span class="conformity-hint">' + escapeHtml(s.hint) + '</span>' : '';
       return '<div class="conformity-item ' + doneClass + ' ' + optClass + '" data-step="' + s.key + '"'
-        + (tab && !s.done ? ' data-goto-tab="' + tab + '" style="cursor:pointer" title="Aller à l\'onglet"' : '')
+        + (tab && !s.done ? ' data-goto-tab="' + tab + '" role="button" tabindex="0" title="Aller à l\'onglet"' : '')
         + '>'
         + '<span class="conformity-icon ' + iconClass + '"></span>'
         + '<span class="conformity-label">' + s.label + (s.optional ? ' <span class="text-xs text-muted">(optionnel)</span>' : '') + '</span>'
+        + hintHtml
         + '<span class="conformity-status">' + s.status + '</span>'
         + '</div>';
     }).join('');
@@ -2760,6 +2778,13 @@ window.OpS = { fn: {} };
   document.getElementById('resolutionSearch')?.addEventListener('input', debounce(renderResolutions));
   document.getElementById('btnAddResolution')?.addEventListener('click', () => {
     Shared.show(document.getElementById('addResolutionForm'), 'block');
+  });
+  // Guide button for empty state also triggers the add form
+  document.getElementById('btnGuideAddResolution')?.addEventListener('click', () => {
+    Shared.show(document.getElementById('addResolutionForm'), 'block');
+    document.getElementById('noResolutionsGuide')?.setAttribute('hidden', '');
+    var titleInput = document.getElementById('resolutionTitle');
+    if (titleInput) titleInput.focus();
   });
   document.getElementById('btnCancelResolution')?.addEventListener('click', () => {
     Shared.hide(document.getElementById('addResolutionForm'));

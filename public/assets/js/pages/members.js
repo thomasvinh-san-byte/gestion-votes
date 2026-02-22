@@ -33,6 +33,13 @@
   let currentPage = 1;
   let pageSize = 12;
 
+  // Onboarding elements
+  var onboardingEl = document.getElementById('membersOnboarding');
+  var onbStepMembers = document.getElementById('onbStepMembers');
+  var onbStepWeights = document.getElementById('onbStepWeights');
+  var onbStepGroups = document.getElementById('onbStepGroups');
+  var onbStepMeeting = document.getElementById('onbStepMeeting');
+
   const paginPrev = document.getElementById('paginPrev');
   const paginNext = document.getElementById('paginNext');
   const paginInfo = document.getElementById('paginInfo');
@@ -108,6 +115,85 @@
     }
   }
 
+  // Update onboarding strip based on data state
+  function updateOnboarding() {
+    if (!onboardingEl) return;
+
+    var hasMembers = allMembers.length > 0;
+    var activeMembers = allMembers.filter(function(m) { return m.is_active; });
+    var hasCustomWeights = activeMembers.some(function(m) {
+      var vp = parseFloat(m.voting_power) || 1;
+      return vp !== 1;
+    });
+    var allWeightOne = activeMembers.length > 0 && !hasCustomWeights;
+    var hasGroups = allGroups.length > 0;
+
+    // Show onboarding strip when setup is incomplete
+    var allDone = hasMembers && hasGroups;
+    onboardingEl.hidden = false; // Always show — it provides navigation context
+
+    // Step 1: Members
+    setStepState(onbStepMembers, hasMembers,
+      hasMembers ? activeMembers.length + ' membre' + (activeMembers.length > 1 ? 's' : '') + ' actif' + (activeMembers.length > 1 ? 's' : '') : 'Ajouter des membres');
+
+    // Step 2: Weights — done if either custom weights exist or if user acknowledged all-1
+    // We mark it done if members exist (user can always come back to adjust)
+    setStepState(onbStepWeights, hasMembers,
+      hasMembers ? (allWeightOne ? 'Toutes à 1 voix' : 'Pondérées') : 'Vérifier les pondérations');
+
+    // Step 3: Groups (optional)
+    setStepState(onbStepGroups, hasGroups,
+      hasGroups ? allGroups.length + ' groupe' + (allGroups.length > 1 ? 's' : '') : 'Organiser en groupes');
+
+    // Step 4: Meeting link — always show as action if members ready
+    if (onbStepMeeting) {
+      if (hasMembers) {
+        onbStepMeeting.classList.remove('pending');
+        onbStepMeeting.classList.add('action');
+        onbStepMeeting.innerHTML = '<span class="onboarding-step-num">→</span> <a href="/operator.htmx.html">Préparer une séance</a>';
+      } else {
+        onbStepMeeting.classList.remove('action');
+        onbStepMeeting.classList.add('pending');
+        onbStepMeeting.innerHTML = '<span class="onboarding-step-num">4</span> Préparer une séance';
+      }
+    }
+  }
+
+  function setStepState(el, done, label) {
+    if (!el) return;
+    el.classList.remove('done', 'pending');
+    el.classList.add(done ? 'done' : 'pending');
+    // Preserve the number span, update text
+    var numSpan = el.querySelector('.onboarding-step-num');
+    var optSpan = el.querySelector('.onboarding-optional');
+    var numHtml = numSpan ? numSpan.outerHTML : '';
+    var optHtml = optSpan ? ' ' + optSpan.outerHTML : '';
+    if (done) {
+      el.innerHTML = '<span class="onboarding-step-num">✓</span> ' + escapeHtml(label) + optHtml;
+    } else {
+      el.innerHTML = numHtml + ' ' + escapeHtml(label) + optHtml;
+    }
+  }
+
+  // Onboarding step click: scroll to relevant section
+  if (onboardingEl) {
+    onboardingEl.addEventListener('click', function(e) {
+      var step = e.target.closest('[data-scroll-to]');
+      if (!step) return;
+      var target = step.dataset.scrollTo;
+      if (target === 'groups-panel') {
+        // Switch to groups tab if not already active
+        var groupsTab = document.querySelector('[data-mgmt-tab="groups"]');
+        if (groupsTab && !groupsTab.classList.contains('active')) groupsTab.click();
+        var panel = document.querySelector('[data-scroll-target="groups-panel"]');
+        if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        var el = document.getElementById(target);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
+
   // Filter members
   function filterMembers(members, filter, search, groupId) {
     search = search || '';
@@ -166,13 +252,18 @@
         allGroups = r.body.data?.groups || [];
         renderGroups();
         renderGroupFilters();
+        updateOnboarding();
       }
     });
   }
 
   function renderGroups() {
     if (!allGroups.length) {
-      groupsList.innerHTML = '<div class="text-muted text-sm">Aucun groupe créé</div>';
+      groupsList.innerHTML = '<div class="groups-empty-hint">' +
+        '<p class="text-muted text-sm">Aucun groupe créé.</p>' +
+        '<p class="text-muted text-xs">Les groupes permettent de catégoriser vos membres par collège, département ou tout autre critère. ' +
+        'Utile pour le filtrage et les statistiques par catégorie.</p>' +
+      '</div>';
       return;
     }
 
@@ -448,11 +539,35 @@
     updatePagination(n);
 
     if (!n) {
-      membersList.innerHTML = Shared.emptyState({
-        icon: 'members',
-        title: 'Aucun membre',
-        description: 'Ajoutez des membres avec le formulaire ci-dessus ou importez un fichier CSV.'
-      });
+      // Contextual empty state: different message when truly empty vs filtered to zero
+      var isFiltered = currentFilter !== 'all' || searchInput.value.trim() || currentGroupFilter;
+      if (allMembers.length === 0) {
+        membersList.innerHTML = '<div class="empty-state-guided">' +
+          '<svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>' +
+          '<h3>Aucun membre enregistré</h3>' +
+          '<p>Commencez par ajouter vos participants. Deux options :</p>' +
+          '<div class="empty-state-actions">' +
+            '<button class="btn btn-primary" onclick="document.getElementById(\'mName\').focus();">' +
+              '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user-plus"></use></svg> Ajouter manuellement' +
+            '</button>' +
+            '<button class="btn btn-secondary" onclick="document.querySelector(\'[data-mgmt-tab=import]\').click();">' +
+              '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg> Importer un CSV' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+      } else if (isFiltered) {
+        membersList.innerHTML = Shared.emptyState({
+          icon: 'members',
+          title: 'Aucun résultat',
+          description: 'Aucun membre ne correspond aux filtres actuels.'
+        });
+      } else {
+        membersList.innerHTML = Shared.emptyState({
+          icon: 'members',
+          title: 'Aucun membre',
+          description: 'Ajoutez des membres avec le formulaire ci-dessus ou importez un fichier CSV.'
+        });
+      }
       return;
     }
 
@@ -513,6 +628,7 @@
         await fetchMemberGroups();
         updateStats(allMembers);
         renderMembers(allMembers);
+        updateOnboarding();
       }
     });
   }
