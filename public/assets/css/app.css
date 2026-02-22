@@ -755,12 +755,7 @@
   background: var(--color-danger-subtle);
 }
 
-/* ─── Button extra sizes ─── */
-.btn-xs {
-  padding: 2px var(--space-2);
-  font-size: var(--text-xs);
-  border-radius: var(--radius-sm);
-}
+/* .btn-xs moved to design-system.css */
 
 /* ─── Responsive grid collapse for 2-col forms ─── */
 @media (max-width: 768px) {
