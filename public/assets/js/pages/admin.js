@@ -42,7 +42,11 @@
         _allUsers = r.body.data.items || [];
         filterAndRenderUsers();
       }
-    } catch (e) { setNotif('error', 'Erreur chargement utilisateurs'); }
+    } catch (e) {
+      setNotif('error', 'Erreur chargement utilisateurs');
+      var c = document.getElementById('usersTableBody');
+      if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+    }
   }
 
   function filterAndRenderUsers() {
@@ -624,7 +628,11 @@
         _quorumPolicies = r.body.data.items;
         renderQuorumList(_quorumPolicies);
       }
-    } catch(e) { setNotif('error', 'Erreur chargement politiques de quorum'); }
+    } catch(e) {
+      setNotif('error', 'Erreur chargement politiques de quorum');
+      var c = document.getElementById('quorumList');
+      if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+    }
   }
 
   function renderQuorumList(items) {
@@ -817,7 +825,11 @@
         _votePolicies = r.body.data.items;
         renderVoteList(_votePolicies);
       }
-    } catch(e) { setNotif('error', 'Erreur chargement politiques de vote'); }
+    } catch(e) {
+      setNotif('error', 'Erreur chargement politiques de vote');
+      var c = document.getElementById('voteList');
+      if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+    }
   }
 
   function renderVoteList(items) {
@@ -1030,7 +1042,13 @@
         });
       }
 
-    } catch (e) { setNotif('error', 'Erreur chargement rôles'); }
+    } catch (e) {
+      setNotif('error', 'Erreur chargement rôles');
+      ['permMatrix', 'systemRolesInfo', 'meetingRolesInfo'].forEach(function(id) {
+        var c = document.getElementById(id);
+        if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+      });
+    }
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1078,7 +1096,13 @@
       // Load state stats + archived meetings (single API call)
       loadStateStatsAndArchived();
 
-    } catch (e) { setNotif('error', 'Erreur chargement états'); }
+    } catch (e) {
+      setNotif('error', 'Erreur chargement états');
+      ['stateFlow', 'transitionsBody'].forEach(function(id) {
+        var c = document.getElementById(id);
+        if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+      });
+    }
   }
 
   // Load statistics by state + archived meetings list (single API call)

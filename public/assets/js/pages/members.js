@@ -666,7 +666,7 @@
 
     const full_name = nameInput.value.trim();
     const email = emailInput.value.trim();
-    const voting_power = parseInt(powerInput.value) || 1;
+    const voting_power = parseFloat(powerInput.value) || 1;
     const is_active = document.getElementById('mActive').checked;
 
     const btn = document.getElementById('btnCreate');

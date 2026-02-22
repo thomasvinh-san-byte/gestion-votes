@@ -2035,13 +2035,8 @@ textarea:focus-visible,
   }
 }
 
-/* ─── Small phones (< 480px) ─── */
-@media (max-width: 480px) {
-  :root {
-    --text-base: 0.9375rem; /* 15px for better readability on small screens */
-  }
-
-  /* Ensure touch-friendly minimum target size */
+/* ─── Touch devices (< 768px) — WCAG 2.5.8 target size ─── */
+@media (max-width: 768px) {
   .btn,
   .nav-item,
   button,
@@ -2051,6 +2046,20 @@ textarea:focus-visible,
   input[type="radio"] {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Small action buttons keep compact size in dense layouts */
+  .btn-xs,
+  .btn-icon.btn-sm {
+    min-height: 32px;
+    min-width: 32px;
+  }
+}
+
+/* ─── Small phones (< 480px) ─── */
+@media (max-width: 480px) {
+  :root {
+    --text-base: 0.9375rem; /* 15px for better readability on small screens */
   }
 
   /* Improve form inputs for mobile */
