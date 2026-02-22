@@ -157,9 +157,8 @@ trait MotionFinderTrait {
         return $this->selectOne($sql, $params);
     }
 
-    public function findWithBallotContext(string $motionId, string $tenantId): ?array {
-        return $this->selectOne(
-            'SELECT
+    public function findWithBallotContext(string $motionId, string $tenantId = ''): ?array {
+        $sql = 'SELECT
               m.id          AS motion_id,
               m.opened_at   AS motion_opened_at,
               m.closed_at   AS motion_closed_at,
@@ -169,9 +168,13 @@ trait MotionFinderTrait {
               mt.tenant_id  AS tenant_id
             FROM motions m
             JOIN meetings mt ON mt.id = m.meeting_id
-            WHERE m.id = :mid AND m.tenant_id = :tid',
-            [':mid' => $motionId, ':tid' => $tenantId],
-        );
+            WHERE m.id = :mid';
+        $params = [':mid' => $motionId];
+        if ($tenantId !== '') {
+            $sql .= ' AND mt.tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        return $this->selectOne($sql, $params);
     }
 
     public function findByIdAndMeeting(string $motionId, string $meetingId): ?array {

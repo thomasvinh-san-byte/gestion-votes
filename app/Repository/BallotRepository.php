@@ -114,6 +114,7 @@ class BallotRepository extends AbstractRepository {
      */
     public function castBallot(
         string $tenantId,
+        string $meetingId,
         string $motionId,
         string $memberId,
         string $value,
@@ -123,12 +124,12 @@ class BallotRepository extends AbstractRepository {
     ): void {
         $this->execute(
             'INSERT INTO ballots (
-              id, tenant_id, motion_id, member_id, value, weight, cast_at, is_proxy_vote, proxy_source_member_id
+              id, tenant_id, meeting_id, motion_id, member_id, value, weight, cast_at, is_proxy_vote, proxy_source_member_id
             ) VALUES (
-              gen_random_uuid(), :tid, :mid, :mem, :value, :weight, now(), :proxy, :proxy_src
+              gen_random_uuid(), :tid, :mtg, :mid, :mem, :value, :weight, now(), :proxy, :proxy_src
             )',
             [
-                ':tid' => $tenantId, ':mid' => $motionId, ':mem' => $memberId,
+                ':tid' => $tenantId, ':mtg' => $meetingId, ':mid' => $motionId, ':mem' => $memberId,
                 ':value' => $value, ':weight' => $weight,
                 ':proxy' => $isProxyVote ? 't' : 'f', ':proxy_src' => $proxySourceMemberId,
             ],

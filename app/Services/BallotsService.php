@@ -39,7 +39,7 @@ final class BallotsService {
 
     private function isUuid(string $s): bool {
         return (bool) preg_match(
-            '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
             $s,
         );
     }
@@ -183,6 +183,7 @@ final class BallotsService {
                 // Strict INSERT — duplicate votes are rejected, not silently overwritten
                 $this->ballotRepo->castBallot(
                     $tenantId,
+                    $meetingId,
                     $motionId,
                     $memberId,
                     $value,

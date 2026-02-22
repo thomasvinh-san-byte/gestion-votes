@@ -93,5 +93,4 @@ header('Content-Type: application/json; charset=utf-8');
 echo json_encode([
     'ok' => false,
     'error' => 'not_found',
-    'detail' => 'No route matched: ' . $uri,
 ], JSON_UNESCAPED_UNICODE);

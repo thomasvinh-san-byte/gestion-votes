@@ -84,8 +84,8 @@ function api_require_role(string|array $roles): void {
     $csrfEnabled = getenv('CSRF_ENABLED') !== '0';
 
     if ($csrfEnabled && in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-        // 'public' role or voter endpoints = no CSRF (vote token serves as proof)
-        if (!in_array('public', $roles, true) && !in_array('voter', $roles, true)) {
+        // 'public' endpoints skip CSRF (unauthenticated, no session to protect)
+        if (!in_array('public', $roles, true)) {
             CsrfMiddleware::validate();
         }
     }

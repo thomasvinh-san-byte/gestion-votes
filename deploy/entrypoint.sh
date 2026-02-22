@@ -108,7 +108,7 @@ MIGRATION_COUNT=0
 for f in /var/www/database/migrations/*.sql; do
   [ -f "$f" ] || continue
   echo "  migration: $(basename "$f")"
-  pg -f "$f"
+  pg -f "$f" || { echo "[FATAL] Migration failed: $(basename "$f")"; exit 1; }
   MIGRATION_COUNT=$((MIGRATION_COUNT + 1))
 done
 [ "$MIGRATION_COUNT" -gt 0 ] && echo "Migrations appliquees: ${MIGRATION_COUNT}."

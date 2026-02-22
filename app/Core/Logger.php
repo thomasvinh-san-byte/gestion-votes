@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Core;
 
-use AuthMiddleware;
+use AgVote\Core\Security\AuthMiddleware;
 use Throwable;
 
 /**

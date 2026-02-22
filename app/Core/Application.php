@@ -137,13 +137,18 @@ final class Application {
             define('APP_SECRET', $secret);
         }
 
-        // Validate secret in production
+        // Validate secret in production / demo / when auth is enabled
         $env = getenv('APP_ENV') ?: (self::$config['env'] ?? 'dev');
-        $isProduction = in_array($env, ['production', 'prod'], true);
+        $isProduction = in_array($env, ['production', 'prod', 'demo'], true);
         $authEnabled = getenv('APP_AUTH_ENABLED') === '1'
             || strtolower((string) getenv('APP_AUTH_ENABLED')) === 'true';
 
-        if (($isProduction || $authEnabled) && (APP_SECRET === 'change-me-in-prod' || strlen(APP_SECRET) < 32)) {
+        $insecureSecrets = [
+            'change-me-in-prod',
+            'dev-secret-do-not-use-in-production-change-me-now-please-64chr',
+        ];
+
+        if (($isProduction || $authEnabled) && (in_array(APP_SECRET, $insecureSecrets, true) || strlen(APP_SECRET) < 32)) {
             throw new RuntimeException(
                 '[SECURITY] APP_SECRET must be set to a secure value (min 32 characters) in production. '
                 . 'Generate one with: php -r "echo bin2hex(random_bytes(32));"',

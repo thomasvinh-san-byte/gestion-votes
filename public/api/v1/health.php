@@ -20,8 +20,20 @@ $status = 'ok';
 $checks = ['php' => true, 'database' => false];
 
 try {
-    require_once dirname(__DIR__, 2) . '/app/bootstrap.php';
-    $pdo = db();
+    // Minimal DB check — avoids full Application::boot() overhead
+    // (security headers, CORS, Redis, event dispatcher, etc.)
+    $dsn = getenv('DB_DSN') ?: '';
+    $user = getenv('DB_USER') ?: getenv('DB_USERNAME') ?: 'vote_app';
+    $pass = getenv('DB_PASS') ?: getenv('DB_PASSWORD') ?: '';
+
+    if ($dsn === '') {
+        throw new RuntimeException('DB_DSN not configured');
+    }
+
+    $pdo = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_TIMEOUT => 3,
+    ]);
     $pdo->query('SELECT 1');
     $checks['database'] = true;
 } catch (Throwable $e) {
