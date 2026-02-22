@@ -183,6 +183,7 @@ final class BallotsService {
                 // Strict INSERT — duplicate votes are rejected, not silently overwritten
                 $this->ballotRepo->castBallot(
                     $tenantId,
+                    $meetingId,
                     $motionId,
                     $memberId,
                     $value,

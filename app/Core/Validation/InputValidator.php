@@ -446,14 +446,9 @@ final class ValidationResult {
 
     public function failIfInvalid(): self {
         if (!$this->isValid()) {
-            http_response_code(422);
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode([
-                'ok' => false,
-                'error' => 'validation_failed',
-                'details' => $this->errors,
-            ], JSON_UNESCAPED_UNICODE);
-            exit;
+            throw new \AgVote\Core\Http\ApiResponseException(
+                \AgVote\Core\Http\JsonResponse::fail('validation_failed', 422, ['details' => $this->errors]),
+            );
         }
         return $this;
     }

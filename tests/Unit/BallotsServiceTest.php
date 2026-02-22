@@ -403,6 +403,7 @@ class BallotsServiceTest extends TestCase {
             ->method('castBallot')
             ->with(
                 self::TENANT,
+                self::MEETING,
                 self::MOTION,
                 self::MEMBER,
                 'for',
@@ -461,6 +462,7 @@ class BallotsServiceTest extends TestCase {
             ->method('castBallot')
             ->with(
                 self::TENANT,
+                self::MEETING,
                 self::MOTION,
                 self::MEMBER,
                 'for',

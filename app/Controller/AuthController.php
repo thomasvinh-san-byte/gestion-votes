@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Core\Security\CsrfMiddleware;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\UserRepository;
-use AuthMiddleware;
 use Throwable;
 
 /**
@@ -115,7 +115,8 @@ final class AuthController extends AbstractController {
 
         // ── Create session ──
         if (session_status() === PHP_SESSION_NONE) {
-            $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+            $secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
             session_set_cookie_params([
                 'lifetime' => 0,
                 'path' => '/',
