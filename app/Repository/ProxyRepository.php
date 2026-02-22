@@ -141,25 +141,15 @@ class ProxyRepository extends AbstractRepository {
     /**
      * Revoque les procurations actives d'un mandant.
      */
-    public function revokeForGiver(string $meetingId, string $giverMemberId, string $tenantId = ''): void {
-        if ($tenantId !== '') {
-            $this->execute(
-                'UPDATE proxies SET revoked_at = now()
-                 WHERE meeting_id = :meeting_id
-                   AND giver_member_id = :giver
-                   AND tenant_id = :tid
-                   AND revoked_at IS NULL',
-                [':meeting_id' => $meetingId, ':giver' => $giverMemberId, ':tid' => $tenantId],
-            );
-        } else {
-            $this->execute(
-                'UPDATE proxies SET revoked_at = now()
-                 WHERE meeting_id = :meeting_id
-                   AND giver_member_id = :giver
-                   AND revoked_at IS NULL',
-                [':meeting_id' => $meetingId, ':giver' => $giverMemberId],
-            );
-        }
+    public function revokeForGiver(string $meetingId, string $giverMemberId, string $tenantId): void {
+        $this->execute(
+            'UPDATE proxies SET revoked_at = now()
+             WHERE meeting_id = :meeting_id
+               AND giver_member_id = :giver
+               AND tenant_id = :tid
+               AND revoked_at IS NULL',
+            [':meeting_id' => $meetingId, ':giver' => $giverMemberId, ':tid' => $tenantId],
+        );
     }
 
     /**

@@ -53,7 +53,7 @@ final class MeetingReportService {
 
         $manualActions = [];
         try {
-            $manualActions = $this->manualActionRepo->listForMeeting($meetingId);
+            $manualActions = $this->manualActionRepo->listForMeeting($meetingId, $tenant);
         } catch (Throwable $e) {
             $manualActions = [];
         }

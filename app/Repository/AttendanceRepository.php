@@ -153,6 +153,9 @@ class AttendanceRepository extends AbstractRepository {
      * Utilise par motions_close pour le compte d'eligibles post-cloture.
      */
     public function countByModes(string $meetingId, string $tenantId, array $modes): int {
+        if (count($modes) === 0) {
+            return 0;
+        }
         $ph = implode(',', array_fill(0, count($modes), '?'));
         return (int) ($this->scalar(
             "SELECT COUNT(*) FROM attendances
@@ -199,6 +202,9 @@ class AttendanceRepository extends AbstractRepository {
      * Utilise par QuorumEngine.
      */
     public function sumPresentWeight(string $meetingId, string $tenantId, array $modes, ?string $lateCutoff = null): float {
+        if (count($modes) === 0) {
+            return 0.0;
+        }
         $ph = implode(',', array_fill(0, count($modes), '?'));
         $sql = "SELECT COALESCE(SUM(a.effective_power), 0) FROM attendances a
                 JOIN meetings mt ON mt.id = a.meeting_id

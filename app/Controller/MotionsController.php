@@ -241,7 +241,7 @@ final class MotionsController extends AbstractController {
 
         $result = api_transaction(function () use ($meetingId, $tenantId, $title, $description, $secret) {
             $agendaRepo = new AgendaRepository();
-            $agendas = $agendaRepo->listForMeetingCompact($meetingId);
+            $agendas = $agendaRepo->listForMeetingCompact($meetingId, $tenantId);
 
             $agendaId = null;
             if (empty($agendas)) {
