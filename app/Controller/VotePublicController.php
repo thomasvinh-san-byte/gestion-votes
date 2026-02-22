@@ -105,8 +105,11 @@ final class VotePublicController {
 
         try {
             api_transaction(function () use ($tokenRepo, $hash, $row, $ctx, $dbVote, $weight) {
-                $consumed = $tokenRepo->consume($hash, (string) $row['tenant_id']);
-                if ($consumed === 0) {
+                // Atomic validate+consume: re-checks used_at AND expires_at in a
+                // single UPDATE…RETURNING, eliminating the TOCTOU window between
+                // the initial findValidByHash() and consumption.
+                $consumed = $tokenRepo->consumeIfValid($hash);
+                if (!$consumed) {
                     throw new RuntimeException('token_already_used');
                 }
 
@@ -123,7 +126,7 @@ final class VotePublicController {
             });
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'token_already_used') {
-                HtmlView::text('Token déjà utilisé', 409);
+                HtmlView::text('Token déjà utilisé ou expiré', 409);
             }
             throw $e;
         }

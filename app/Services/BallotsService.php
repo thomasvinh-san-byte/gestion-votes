@@ -174,6 +174,12 @@ final class BallotsService {
                     throw new RuntimeException('Cette motion n\'est pas ouverte au vote');
                 }
 
+                // Re-validate proxy inside the transaction: a proxy could be
+                // revoked between the initial check and lock acquisition.
+                if ($isProxyVote && !$this->proxiesService->hasActiveProxy($meetingId, $memberId, $proxyVoterId, $tenantId)) {
+                    throw new RuntimeException('Procuration révoquée avant le vote');
+                }
+
                 // Strict INSERT — duplicate votes are rejected, not silently overwritten
                 $this->ballotRepo->castBallot(
                     $tenantId,
