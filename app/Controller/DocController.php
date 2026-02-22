@@ -83,6 +83,13 @@ final class DocController extends AbstractController {
         $page = preg_replace('/\.md$/i', '', $page);
         $filePath = $docsRoot . '/' . $page . '.md';
 
+        // Defense-in-depth: verify resolved path stays inside /docs
+        $docsRealRoot = realpath($docsRoot);
+        $realPath = realpath($filePath);
+        if ($docsRealRoot !== false && $realPath !== false && !str_starts_with($realPath, $docsRealRoot . '/')) {
+            HtmlView::text('Chemin invalide.', 400);
+        }
+
         if (!file_exists($filePath) || !is_file($filePath)) {
             $title = 'Document introuvable';
             $htmlContent = '<div class="doc-not-found"><h2>Document introuvable</h2>'

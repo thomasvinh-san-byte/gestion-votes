@@ -13,7 +13,7 @@ final class CsrfMiddleware {
     private const TOKEN_NAME = 'csrf_token';
     private const TOKEN_HEADER = 'X-CSRF-Token';
     private const TOKEN_LENGTH = 32;
-    private const TOKEN_LIFETIME = 3600; // 1 hour
+    private const TOKEN_LIFETIME = 1800; // 30 min — must match AuthMiddleware::SESSION_TIMEOUT
 
     /**
      * Initializes CSRF protection
