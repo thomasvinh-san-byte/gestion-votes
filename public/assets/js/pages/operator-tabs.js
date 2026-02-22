@@ -49,6 +49,7 @@ window.OpS = { fn: {} };
   let proxiesCache = [];  // Cache for proxies
   let currentMode = 'setup'; // 'setup' | 'exec'
   let lastSetupTab = 'seance'; // Remember last active prep tab for seamless mode switching
+  let _settingsSnapshot = null;  // Captured after populateSettingsForm to track dirty state
 
   // Safe DOM text setter — avoids null reference errors if element is missing
   function setText(id, value) {
@@ -217,6 +218,14 @@ window.OpS = { fn: {} };
   async function switchTab(tabId) {
     // Resolve legacy aliases
     tabId = TAB_ALIASES[tabId] || tabId;
+
+    // Warn if leaving Séance tab with unsaved changes
+    var currentTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
+    if (currentTab === 'seance' && tabId !== 'seance' && _isSettingsDirty()) {
+      if (!confirm('Vous avez des modifications non enregistrées dans l\'onglet Séance. Quitter sans sauvegarder ?')) {
+        return;
+      }
+    }
 
     tabButtons.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabId);
@@ -852,6 +861,35 @@ window.OpS = { fn: {} };
     // Convocation
     const convSelect = document.getElementById('settingConvocation');
     if (convSelect) convSelect.value = currentMeeting.convocation_no || 1;
+
+    // Capture snapshot for dirty-state tracking
+    _captureSettingsSnapshot();
+  }
+
+  function _captureSettingsSnapshot() {
+    _settingsSnapshot = {
+      title: (document.getElementById('settingTitle')?.value || '').trim(),
+      date: document.getElementById('settingDate')?.value || '',
+      type: document.querySelector('input[name="meetingType"]:checked')?.value || '',
+      quorum: document.getElementById('settingQuorumPolicy')?.value || '',
+      vote: document.getElementById('settingVotePolicy')?.value || '',
+      convocation: document.getElementById('settingConvocation')?.value || ''
+    };
+  }
+
+  function _isSettingsDirty() {
+    if (!_settingsSnapshot) return false;
+    var current = {
+      title: (document.getElementById('settingTitle')?.value || '').trim(),
+      date: document.getElementById('settingDate')?.value || '',
+      type: document.querySelector('input[name="meetingType"]:checked')?.value || '',
+      quorum: document.getElementById('settingQuorumPolicy')?.value || '',
+      vote: document.getElementById('settingVotePolicy')?.value || '',
+      convocation: document.getElementById('settingConvocation')?.value || ''
+    };
+    return Object.keys(_settingsSnapshot).some(function(k) {
+      return _settingsSnapshot[k] !== current[k];
+    });
   }
 
   async function loadPolicies() {
@@ -1511,29 +1549,40 @@ window.OpS = { fn: {} };
     Shared.btnLoading(btn, true);
 
     try {
-      // Save title, date, and meeting type
-      await api('/api/v1/meetings_update.php', {
-        meeting_id: currentMeetingId,
-        title: title,
-        scheduled_at: scheduledAt || null,
-        meeting_type: meetingType
-      });
-
-      // Save policies
+      // Gather all values before firing requests
       const quorumPolicyId = document.getElementById('settingQuorumPolicy').value || null;
       const votePolicyId = document.getElementById('settingVotePolicy').value || null;
       const convocationNo = parseInt(document.getElementById('settingConvocation').value) || 1;
 
-      await api('/api/v1/meeting_quorum_settings.php', {
-        meeting_id: currentMeetingId,
-        quorum_policy_id: quorumPolicyId,
-        convocation_no: convocationNo
-      });
+      // Fire all 3 saves in parallel — avoids partial save on sequential failure
+      var results = await Promise.allSettled([
+        api('/api/v1/meetings_update.php', {
+          meeting_id: currentMeetingId,
+          title: title,
+          scheduled_at: scheduledAt || null,
+          meeting_type: meetingType
+        }),
+        api('/api/v1/meeting_quorum_settings.php', {
+          meeting_id: currentMeetingId,
+          quorum_policy_id: quorumPolicyId,
+          convocation_no: convocationNo
+        }),
+        api('/api/v1/meeting_vote_settings.php', {
+          meeting_id: currentMeetingId,
+          vote_policy_id: votePolicyId
+        })
+      ]);
 
-      await api('/api/v1/meeting_vote_settings.php', {
-        meeting_id: currentMeetingId,
-        vote_policy_id: votePolicyId
-      });
+      // Check for partial failures
+      var failures = results.filter(function(r) { return r.status === 'rejected'; });
+      if (failures.length > 0) {
+        var errMsg = failures.map(function(r) { return r.reason?.message || 'Erreur inconnue'; }).join(', ');
+        if (failures.length === results.length) {
+          throw new Error(errMsg);
+        }
+        // Partial success — warn but continue
+        setNotif('warning', 'Sauvegarde partielle : ' + errMsg);
+      }
 
       // Update local state and header
       currentMeeting.title = title;
@@ -1545,7 +1594,12 @@ window.OpS = { fn: {} };
       updateHeader(currentMeeting);
       loadStatusChecklist();
 
-      setNotif('success', 'Paramètres enregistrés');
+      if (failures.length === 0) {
+        setNotif('success', 'Paramètres enregistrés');
+      }
+
+      // Reset dirty-state snapshot
+      _captureSettingsSnapshot();
 
       // Brief visual confirmation on button
       Shared.btnLoading(btn, false);
@@ -1838,11 +1892,8 @@ window.OpS = { fn: {} };
     if (currentMode === 'setup') {
       if (['draft', 'scheduled', 'frozen'].includes(currentMeetingStatus)) {
         const score = getConformityScore();
-        // Attendance is mandatory for launch — score alone is insufficient
-        // because "Convocations" always adds +1, making it possible to reach
-        // 3/4 without attendance (members + convocations + rules = 3).
-        const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
-        btnPrimary.disabled = score < 3 || !hasAttendance;
+        // All 3 mandatory prerequisites must be met (members, attendance, rules)
+        btnPrimary.disabled = score < 3;
         btnPrimary.textContent = 'Ouvrir la séance';
         primaryAction = 'launch';
       } else if (currentMeetingStatus === 'live') {
@@ -1913,10 +1964,10 @@ window.OpS = { fn: {} };
         contextHint.textContent = 'Séance en cours — basculez en exécution.';
       } else {
         const score = getConformityScore();
-        if (score >= 4) {
+        if (score >= 3) {
           contextHint.textContent = 'Séance prête — vous pouvez lancer.';
         } else {
-          contextHint.textContent = 'Préparez la séance (' + score + '/4 pré-requis validés).';
+          contextHint.textContent = 'Préparez la séance (' + score + '/3 pré-requis validés).';
         }
       }
     } else {
@@ -2004,13 +2055,12 @@ window.OpS = { fn: {} };
     if (membersCache.length > 0) score++;
     // 2. Attendance
     if (attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote')) score++;
-    // 3. Convocations (optional — always counts)
-    score++;
-    // 4. Rules & presidency
+    // 3. Rules & presidency
     const hasQuorum = !!(currentMeeting && currentMeeting.quorum_policy_id);
     const presEl = document.getElementById('settingPresident');
     const hasPresident = !!(presEl && presEl.value);
     if (hasQuorum || hasPresident) score++;
+    // Note: Convocations is optional and not counted in the mandatory score
     return score;
   }
 
@@ -2059,7 +2109,10 @@ window.OpS = { fn: {} };
       }
     ];
 
-    const score = steps.filter(s => s.done).length;
+    // Score only counts non-optional items
+    const mandatorySteps = steps.filter(s => !s.optional);
+    const score = mandatorySteps.filter(s => s.done).length;
+    const maxScore = mandatorySteps.length;
 
     // Map checklist steps to tabs for navigation
     const stepTabMap = { members: 'participants', attendance: 'participants', convocations: 'controle', rules: 'seance' };
@@ -2073,7 +2126,7 @@ window.OpS = { fn: {} };
         + (tab && !s.done ? ' data-goto-tab="' + tab + '" style="cursor:pointer" title="Aller à l\'onglet"' : '')
         + '>'
         + '<span class="conformity-icon ' + iconClass + '"></span>'
-        + '<span class="conformity-label">' + s.label + '</span>'
+        + '<span class="conformity-label">' + s.label + (s.optional ? ' <span class="text-xs text-muted">(optionnel)</span>' : '') + '</span>'
         + '<span class="conformity-status">' + s.status + '</span>'
         + '</div>';
     }).join('');
@@ -2085,18 +2138,19 @@ window.OpS = { fn: {} };
 
     // Update score display
     const setupScoreEl = document.getElementById('setupScore');
-    if (setupScoreEl) setupScoreEl.textContent = score + '/4';
+    if (setupScoreEl) setupScoreEl.textContent = score + '/' + maxScore;
 
     // Update health chip
-    updateHealthChip(score);
+    updateHealthChip(score, maxScore);
 
     // Update primary button and context
     updatePrimaryButton();
     updateContextHint();
   }
 
-  function updateHealthChip(score) {
+  function updateHealthChip(score, maxScore) {
     if (!healthChip) return;
+    var max = maxScore || 3;
 
     if (!currentMeetingId) {
       healthChip.hidden = true;
@@ -2104,14 +2158,14 @@ window.OpS = { fn: {} };
     }
 
     healthChip.hidden = false;
-    if (healthScore) healthScore.textContent = score + '/4';
+    if (healthScore) healthScore.textContent = score + '/' + max;
     if (healthHint) healthHint.textContent = 'pré-requis';
 
     const dot = healthChip.querySelector('.health-dot');
     if (dot) {
       dot.classList.remove('ok', 'warn', 'danger');
-      if (score >= 4) dot.classList.add('ok');
-      else if (score >= 2) dot.classList.add('warn');
+      if (score >= max) dot.classList.add('ok');
+      else if (score >= Math.ceil(max / 2)) dot.classList.add('warn');
       else dot.classList.add('danger');
     }
   }
@@ -2125,7 +2179,7 @@ window.OpS = { fn: {} };
 
     if (!currentMeetingId) return alerts;
 
-    // Specific missing prerequisites (replaces generic "score X/4")
+    // Specific missing prerequisites
     const hasMembers = membersCache.length > 0;
     const hasPresent = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
     const hasMotions = motionsCache.length > 0;

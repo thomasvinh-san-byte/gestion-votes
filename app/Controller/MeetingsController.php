@@ -418,6 +418,35 @@ final class MeetingsController extends AbstractController {
         ], 201);
     }
 
+    public function deleteMeeting(): void {
+        $input = api_request('POST');
+
+        $meetingId = trim((string) ($input['meeting_id'] ?? ''));
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
+            api_fail('missing_meeting_id', 400, ['detail' => 'meeting_id est obligatoire (uuid).']);
+        }
+
+        $repo = new MeetingRepository();
+        $current = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
+        if (!$current) {
+            api_fail('meeting_not_found', 404);
+        }
+
+        if ((string) $current['status'] !== 'draft') {
+            api_fail('meeting_not_draft', 409, [
+                'detail' => 'Seules les séances en brouillon peuvent être supprimées.',
+            ]);
+        }
+
+        $deleted = $repo->deleteDraft($meetingId, api_current_tenant_id());
+
+        audit_log('meeting_deleted', 'meeting', $meetingId, [
+            'title' => $current['title'],
+        ]);
+
+        api_ok(['deleted' => $deleted > 0, 'meeting_id' => $meetingId]);
+    }
+
     public function voteSettings(): void {
         $method = api_method();
         $repo = new MeetingRepository();

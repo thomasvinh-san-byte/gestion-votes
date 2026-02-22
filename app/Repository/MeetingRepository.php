@@ -111,6 +111,7 @@ class MeetingRepository extends AbstractRepository {
     public function listByTenantCompact(string $tenantId, int $limit = 50): array {
         return $this->selectAll(
             'SELECT id AS meeting_id, id, title, status::text AS status,
+                    meeting_type, scheduled_at,
                     created_at, started_at, ended_at, archived_at, validated_at
              FROM meetings
              WHERE tenant_id = :tenant_id
@@ -126,6 +127,7 @@ class MeetingRepository extends AbstractRepository {
     public function listActiveByTenantCompact(string $tenantId, int $limit = 50): array {
         return $this->selectAll(
             "SELECT id AS meeting_id, id, title, status::text AS status,
+                    meeting_type, scheduled_at,
                     created_at, started_at, ended_at, archived_at, validated_at
              FROM meetings
              WHERE tenant_id = :tenant_id
@@ -508,6 +510,17 @@ class MeetingRepository extends AbstractRepository {
              SET current_motion_id = NULL, status = 'live', updated_at = now()
              WHERE id = :mid AND tenant_id = :tid",
             [':mid' => $meetingId, ':tid' => $tenantId],
+        );
+    }
+
+    /**
+     * Supprime une seance en brouillon et ses donnees associees.
+     * Ne fonctionne que pour les seances au statut 'draft'.
+     */
+    public function deleteDraft(string $meetingId, string $tenantId): int {
+        return $this->execute(
+            "DELETE FROM meetings WHERE id = :id AND tenant_id = :tid AND status = 'draft'",
+            [':id' => $meetingId, ':tid' => $tenantId],
         );
     }
 

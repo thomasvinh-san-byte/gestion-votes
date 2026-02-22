@@ -206,6 +206,7 @@ return function (Router $router): void {
     ]);
     $router->mapAny("{$prefix}/meetings_index", MeetingsController::class, 'index', $view);
     $router->mapAny("{$prefix}/meetings_update", MeetingsController::class, 'update', $op);
+    $router->mapAny("{$prefix}/meetings_delete", MeetingsController::class, 'deleteMeeting', ['role' => 'admin']);
     $router->mapAny("{$prefix}/meetings_archive", MeetingsController::class, 'archive', $op);
     $router->mapAny("{$prefix}/archives_list", MeetingsController::class, 'archivesList', $view);
     $router->mapAny("{$prefix}/meeting_status", MeetingsController::class, 'status', $op);
