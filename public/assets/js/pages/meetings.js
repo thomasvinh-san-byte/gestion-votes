@@ -153,6 +153,8 @@
     const isDraft = m.status === 'draft';
     const isScheduled = m.status === 'scheduled' || m.status === 'frozen';
     const isArchived = ['closed', 'validated', 'archived'].includes(m.status);
+    const canEdit = isDraft || isScheduled;
+    const canDelete = isDraft;
 
     let cardClass = '';
     if (isLive) cardClass = 'is-live';
@@ -182,10 +184,26 @@
     const motionsLabel = motionsCount === 1 ? 'résolution' : 'résolutions';
     const attendeesLabel = attendeesCount === 1 ? 'présent' : 'présents';
 
+    // Build contextual action buttons
+    var secondaryActions = '';
+    if (canEdit) {
+      secondaryActions += '<button class="btn btn-xs btn-ghost meeting-action-edit" data-edit-id="' + m.id + '" title="Modifier">' +
+        '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>' +
+        '</button>';
+    }
+    if (canDelete) {
+      secondaryActions += '<button class="btn btn-xs btn-ghost text-danger meeting-action-delete" data-delete-id="' + m.id + '" title="Supprimer">' +
+        '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>' +
+        '</button>';
+    }
+
     return `
       <div class="meeting-card ${cardClass}" data-meeting-id="${m.id}" data-search-text="${escapeHtml((m.title || '') + ' ' + (m.status || ''))}">
         <div class="meeting-card-header">
-          <h3 class="meeting-card-title">${title}</h3>
+          <div class="flex items-center gap-2" style="justify-content:space-between;">
+            <h3 class="meeting-card-title">${title}</h3>
+            ${secondaryActions ? '<div class="flex items-center gap-1">' + secondaryActions + '</div>' : ''}
+          </div>
           <div class="meeting-card-meta">
             <span class="badge ${badgeClass}">${statusInfo.text}</span>
             ${typeLabel ? `<span class="badge badge-muted badge-sm">${typeLabel}</span>` : ''}
@@ -265,6 +283,179 @@
         });
       }
     }
+  }
+
+  // ==========================================================================
+  // EDIT / DELETE MEETINGS
+  // ==========================================================================
+
+  function findMeetingById(id) {
+    return allMeetings.find(function(m) { return m.id === id || m.meeting_id === id; });
+  }
+
+  function openEditModal(meetingId) {
+    var m = findMeetingById(meetingId);
+    if (!m) return;
+
+    var modal = document.getElementById('editMeetingModal');
+    if (!modal) return;
+
+    document.getElementById('editMeetingId').value = m.id || m.meeting_id;
+    document.getElementById('editMeetingTitle').value = m.title || '';
+    document.getElementById('editMeetingDate').value = m.scheduled_at ? m.scheduled_at.slice(0, 10) : '';
+
+    // Set type radio
+    var typeVal = m.meeting_type || 'ag_ordinaire';
+    var typeRadio = modal.querySelector('input[name="editMeetingType"][value="' + typeVal + '"]');
+    if (typeRadio) typeRadio.checked = true;
+
+    modal.hidden = false;
+    document.getElementById('editMeetingTitle').focus();
+  }
+
+  function closeEditModal() {
+    var modal = document.getElementById('editMeetingModal');
+    if (modal) modal.hidden = true;
+  }
+
+  async function saveEditMeeting() {
+    var meetingId = document.getElementById('editMeetingId').value;
+    var titleEl = document.getElementById('editMeetingTitle');
+    var dateEl = document.getElementById('editMeetingDate');
+    var modal = document.getElementById('editMeetingModal');
+
+    if (!Shared.validateField(titleEl, [
+      { test: function(v) { return v.length > 0; }, msg: 'Le titre est requis' }
+    ])) return;
+
+    var title = titleEl.value.trim();
+    var scheduledAt = dateEl.value;
+    var typeRadio = modal.querySelector('input[name="editMeetingType"]:checked');
+    var meetingType = typeRadio ? typeRadio.value : 'ag_ordinaire';
+
+    var saveBtn = document.getElementById('editMeetingSaveBtn');
+    Shared.btnLoading(saveBtn, true);
+
+    try {
+      var resp = await api('/api/v1/meetings_update.php', {
+        meeting_id: meetingId,
+        title: title,
+        scheduled_at: scheduledAt || null,
+        meeting_type: meetingType
+      });
+
+      if (resp.body && resp.body.ok) {
+        setNotif('success', 'Séance modifiée');
+        closeEditModal();
+        fetchMeetings();
+      } else {
+        setNotif('error', resp.body?.message || resp.body?.error || 'Erreur lors de la modification');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(saveBtn, false);
+    }
+  }
+
+  function openDeleteModal(meetingId) {
+    var m = findMeetingById(meetingId);
+    if (!m) return;
+
+    var modal = document.getElementById('deleteMeetingModal');
+    if (!modal) return;
+
+    document.getElementById('deleteMeetingId').value = m.id || m.meeting_id;
+    document.getElementById('deleteMeetingName').textContent = m.title || '(sans titre)';
+
+    modal.hidden = false;
+  }
+
+  function closeDeleteModal() {
+    var modal = document.getElementById('deleteMeetingModal');
+    if (modal) modal.hidden = true;
+  }
+
+  async function confirmDeleteMeeting() {
+    var meetingId = document.getElementById('deleteMeetingId').value;
+    var btn = document.getElementById('deleteMeetingConfirmBtn');
+
+    Shared.btnLoading(btn, true);
+    try {
+      var resp = await api('/api/v1/meetings_delete.php', { meeting_id: meetingId });
+
+      if (resp.body && resp.body.ok) {
+        setNotif('success', 'Séance supprimée');
+        closeDeleteModal();
+        fetchMeetings();
+      } else {
+        setNotif('error', resp.body?.message || resp.body?.error || 'Erreur lors de la suppression');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
+    }
+  }
+
+  // Event delegation for edit/delete buttons on meeting cards
+  function initCardActions() {
+    if (!meetingsList) return;
+
+    meetingsList.addEventListener('click', function(e) {
+      var editBtn = e.target.closest('.meeting-action-edit');
+      if (editBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openEditModal(editBtn.dataset.editId);
+        return;
+      }
+
+      var deleteBtn = e.target.closest('.meeting-action-delete');
+      if (deleteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openDeleteModal(deleteBtn.dataset.deleteId);
+        return;
+      }
+    });
+  }
+
+  // Modal close handlers
+  function initModals() {
+    // Edit modal
+    var editModal = document.getElementById('editMeetingModal');
+    if (editModal) {
+      editModal.querySelectorAll('[data-close-modal]').forEach(function(btn) {
+        btn.addEventListener('click', closeEditModal);
+      });
+      editModal.addEventListener('click', function(e) {
+        if (e.target === editModal) closeEditModal();
+      });
+      var saveBtn = document.getElementById('editMeetingSaveBtn');
+      if (saveBtn) saveBtn.addEventListener('click', saveEditMeeting);
+    }
+
+    // Delete modal
+    var deleteModal = document.getElementById('deleteMeetingModal');
+    if (deleteModal) {
+      deleteModal.querySelectorAll('[data-close-modal]').forEach(function(btn) {
+        btn.addEventListener('click', closeDeleteModal);
+      });
+      deleteModal.addEventListener('click', function(e) {
+        if (e.target === deleteModal) closeDeleteModal();
+      });
+      var confirmBtn = document.getElementById('deleteMeetingConfirmBtn');
+      if (confirmBtn) confirmBtn.addEventListener('click', confirmDeleteMeeting);
+    }
+
+    // Escape key closes modals
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        if (editModal && !editModal.hidden) closeEditModal();
+        if (deleteModal && !deleteModal.hidden) closeDeleteModal();
+      }
+    });
   }
 
   // ==========================================================================
@@ -404,16 +595,19 @@
   }
 
   async function uploadAttachments(meetingId) {
-    for (var i = 0; i < pendingFiles.length; i++) {
+    // Snapshot the files array to avoid race condition if pendingFiles is
+    // cleared by the caller before all uploads complete.
+    var filesToUpload = pendingFiles.slice();
+    for (var i = 0; i < filesToUpload.length; i++) {
       var formData = new FormData();
       formData.append('meeting_id', meetingId);
-      formData.append('file', pendingFiles[i]);
+      formData.append('file', filesToUpload[i]);
 
       try {
         var { body: attResp } = await apiUpload('/api/v1/meeting_attachments.php', formData);
         if (attResp && !attResp.ok && attResp.error) throw new Error(attResp.error);
       } catch (err) {
-        setNotif('warning', 'Échec de l\'envoi du fichier : ' + (pendingFiles[i]?.name || 'inconnu'));
+        setNotif('warning', 'Échec de l\'envoi du fichier : ' + (filesToUpload[i]?.name || 'inconnu'));
       }
     }
   }
@@ -616,6 +810,12 @@
 
     // Initialize file upload zone
     initFileUpload();
+
+    // Initialize edit/delete card actions (event delegation)
+    initCardActions();
+
+    // Initialize edit/delete modals
+    initModals();
 
     // Initial data load
     fetchMeetings();

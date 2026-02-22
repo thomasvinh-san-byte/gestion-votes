@@ -174,6 +174,9 @@
               <span class="vote-btn-hint">Confirmation requise</span>
             </button>
           </div>
+          <div class="vote-hint" id="voteHint" role="status" aria-live="polite">
+            <span class="text-muted text-sm">Sélectionnez une séance et un votant ci-dessus pour pouvoir voter.</span>
+          </div>
           <div class="vote-participation" id="voteParticipation" hidden>
             <div class="vote-participation-bar">
               <div class="vote-participation-fill" id="voteParticipationFill" style="width: 0%"></div>
@@ -309,15 +312,22 @@
         cMotion.textContent = document.getElementById('motionTitle')?.textContent || '—';
       }
 
-      // Copy resolution text to confirmation if available
+      // Always show resolution context in confirmation — title always visible,
+      // body text shown if available
       const resoText = document.getElementById('resoText');
       const confirmResoDetails = document.getElementById('confirmResoDetails');
       const confirmResoText = document.getElementById('confirmResoText');
-      if (resoText && confirmResoDetails && confirmResoText) {
-        const hasText = (resoText.textContent || '').trim().length > 0;
-        confirmResoDetails.hidden = !hasText;
-        if (hasText) {
-          confirmResoText.textContent = resoText.textContent;
+      if (confirmResoDetails && confirmResoText) {
+        const bodyText = (resoText?.textContent || '').trim();
+        const motionTitleText = (document.getElementById('motionTitle')?.textContent || '').trim();
+        if (bodyText) {
+          confirmResoText.textContent = bodyText;
+          confirmResoDetails.hidden = false;
+        } else if (motionTitleText && motionTitleText !== 'En attente d\u2019une r\u00e9solution') {
+          confirmResoText.textContent = motionTitleText;
+          confirmResoDetails.hidden = false;
+        } else {
+          confirmResoDetails.hidden = true;
         }
       }
     }

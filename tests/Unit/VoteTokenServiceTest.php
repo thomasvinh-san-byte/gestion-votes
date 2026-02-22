@@ -55,8 +55,8 @@ class VoteTokenServiceTest extends TestCase {
             self::MEETING_ID,
             self::MEMBER_ID,
             self::MOTION_ID,
-            3600,
             self::TENANT_ID,
+            3600,
         );
 
         $this->assertArrayHasKey('token', $result);
@@ -76,8 +76,8 @@ class VoteTokenServiceTest extends TestCase {
             self::MEETING_ID,
             self::MEMBER_ID,
             '',
-            3600,
             self::TENANT_ID,
+            3600,
         );
     }
 
@@ -88,8 +88,8 @@ class VoteTokenServiceTest extends TestCase {
             '',
             self::MEMBER_ID,
             self::MOTION_ID,
-            3600,
             self::TENANT_ID,
+            3600,
         );
     }
 
@@ -100,8 +100,8 @@ class VoteTokenServiceTest extends TestCase {
             self::MEETING_ID,
             '',
             self::MOTION_ID,
-            3600,
             self::TENANT_ID,
+            3600,
         );
     }
 
@@ -117,8 +117,8 @@ class VoteTokenServiceTest extends TestCase {
             self::MEETING_ID,
             self::MEMBER_ID,
             self::MOTION_ID,
-            3600,
             self::TENANT_ID,
+            3600,
         );
     }
 
@@ -146,8 +146,8 @@ class VoteTokenServiceTest extends TestCase {
             self::MEETING_ID,
             self::MEMBER_ID,
             self::MOTION_ID,
-            10, // below minimum of 60
             self::TENANT_ID,
+            10, // below minimum of 60
         );
 
         // The expiry should be at least 60 seconds from now, not 10
@@ -179,8 +179,8 @@ class VoteTokenServiceTest extends TestCase {
             self::MEETING_ID,
             self::MEMBER_ID,
             self::MOTION_ID,
-            3600,
             self::TENANT_ID,
+            3600,
         );
 
         // The hash stored in DB should match the returned token_hash
@@ -211,8 +211,8 @@ class VoteTokenServiceTest extends TestCase {
             self::MEETING_ID,
             self::MEMBER_ID,
             self::MOTION_ID,
-            3600,
             self::TENANT_ID,
+            3600,
         );
 
         $this->assertSame(self::TENANT_ID, $capturedTenantId);
@@ -530,16 +530,16 @@ class VoteTokenServiceTest extends TestCase {
             self::MEETING_ID,
             self::MEMBER_ID,
             self::MOTION_ID,
-            3600,
             self::TENANT_ID,
+            3600,
         );
 
         $result2 = $this->service->generate(
             self::MEETING_ID,
             self::MEMBER_ID,
             self::MOTION_ID,
-            3600,
             self::TENANT_ID,
+            3600,
         );
 
         $this->assertNotSame($result1['token'], $result2['token']);
@@ -553,8 +553,8 @@ class VoteTokenServiceTest extends TestCase {
             '  ',
             self::MEMBER_ID,
             self::MOTION_ID,
-            3600,
             self::TENANT_ID,
+            3600,
         );
     }
 }

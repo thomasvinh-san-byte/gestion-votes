@@ -282,12 +282,18 @@
   }
 
   // Move resolution up or down
+  var _movePending = false;
   async function moveResolution(motionId, direction) {
+    if (_movePending) return; // Prevent race conditions from rapid clicks
     const idx = O.motionsCache.findIndex(m => m.id === motionId);
     if (idx < 0) return;
 
     const newIdx = idx + direction;
     if (newIdx < 0 || newIdx >= O.motionsCache.length) return;
+
+    _movePending = true;
+    // Disable all move buttons while operation in flight
+    document.querySelectorAll('.btn-move-up, .btn-move-down').forEach(b => b.disabled = true);
 
     // Swap in local cache for immediate feedback
     const ids = O.motionsCache.map(m => m.id);
@@ -305,13 +311,16 @@
       });
 
       if (body?.ok !== true) {
-        // Revert on error
         loadResolutions();
         setNotif('error', getApiError(body, 'Erreur lors du réordonnancement'));
       }
     } catch (err) {
       loadResolutions();
       setNotif('error', err.message);
+    } finally {
+      _movePending = false;
+      // Re-enable move buttons (renderResolutions already re-rendered fresh buttons)
+      document.querySelectorAll('.btn-move-up, .btn-move-down').forEach(b => b.disabled = false);
     }
   }
 
@@ -626,7 +635,7 @@
           <h3 id="unanimityConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('alert-triangle', 'icon-sm icon-text')} Vote unanime</h3>
           <p style="margin:0 0 0.5rem;">Résolution : <strong>${motionTitle}</strong></p>
           <p style="margin:0 0 0.5rem;">Vote : <strong style="color:${voteColors[voteType]}">${voteLabels[voteType]}</strong> pour <strong>${voters.length}</strong> votant(s)</p>
-          ${alreadyVoted > 0 ? `<p style="margin:0 0 0.5rem;color:var(--color-warning);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} ${alreadyVoted} votant(s) ont déjà voté — leur vote existant sera conservé.</p>` : ''}
+          ${alreadyVoted > 0 ? `<p style="margin:0 0 0.5rem;color:var(--color-danger);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} ${alreadyVoted} votant(s) ont déjà voté — leur vote sera <strong>remplacé</strong> par le vote unanime.</p>` : ''}
           <p style="margin:0 0 1.5rem;color:var(--color-text-muted);font-size:0.875rem;">Cette action enregistrera un vote manuel pour chaque votant présent ou à distance.</p>
           <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
             <button class="btn btn-secondary" data-action="cancel">Annuler</button>
@@ -1183,6 +1192,15 @@
         O.fn.loadMeetings();
         O.fn.setMode('setup', { tab: 'resultats' });
         O.announce('Séance clôturée.');
+        var nextBlock = document.getElementById('closeSessionNext');
+        if (nextBlock) {
+          nextBlock.hidden = false;
+          var links = nextBlock.querySelectorAll('a[href]');
+          links.forEach(function(a) {
+            var sep = a.href.includes('?') ? '&' : '?';
+            a.href += sep + 'meeting_id=' + encodeURIComponent(O.currentMeetingId);
+          });
+        }
       } else {
         setNotif('error', getApiError(body, 'Erreur lors de la clôture'));
       }

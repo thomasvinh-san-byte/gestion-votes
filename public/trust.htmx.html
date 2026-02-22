@@ -40,13 +40,13 @@
         <button class="btn btn-secondary" id="btnRefresh">
           <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
         </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="anomalies" title="Anomalies">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="anomalies" title="Anomalies" aria-label="Anomalies">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
         </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance" aria-label="Informations séance">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
         </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
@@ -115,7 +115,7 @@
                 <ag-popover title="Empreinte d'intégrité" content="Hash SHA-256 calculé sur l'ensemble des votes, présences et résolutions de la séance. Toute modification des données produira une empreinte différente, garantissant la détection de toute altération." position="top"></ag-popover>
               </span>
               <code class="integrity-hash-value" id="integrityHashValue">—</code>
-              <button class="btn btn-xs btn-ghost" id="btnCopyHash" title="Copier l'empreinte">
+              <button class="btn btn-xs btn-ghost" id="btnCopyHash" title="Copier l'empreinte" aria-label="Copier l'empreinte">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-copy"></use></svg>
               </button>
             </div>
@@ -220,10 +220,10 @@
             </div>
           </div>
           <div class="card-body p-0">
-            <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--color-border);">
+            <div class="audit-log-filter">
               <input class="form-input" type="search" id="auditLogFilter" placeholder="Filtrer par action, acteur ou détail..." aria-label="Filtrer le journal d'audit">
             </div>
-            <div id="auditLog" style="max-height: 400px; overflow-y: auto;">
+            <div id="auditLog" class="audit-log-scroll">
               <div class="text-center p-6 text-muted">
                 Sélectionnez une séance pour voir le journal d'audit
               </div>

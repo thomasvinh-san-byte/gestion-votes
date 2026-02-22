@@ -5,7 +5,7 @@
 
 /* Google Fonts — loaded via <link rel="preconnect"> + <link rel="stylesheet">
  * in each HTML <head> for non-render-blocking paint.
- * Do NOT use @import url() here — it creates a blocking waterfall.
+ * Do NOT @import Google Fonts here — it creates a blocking waterfall.
  */
 
 /* Import Design System (foundation + legacy compat) */
@@ -603,10 +603,20 @@
   font-weight: var(--font-semibold);
 }
 
-.perm-matrix td:first-child {
+.perm-matrix td:first-child,
+.perm-matrix th:first-child {
   text-align: left;
   font-family: var(--font-mono);
   font-weight: 500;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-surface);
+}
+
+.perm-matrix th:first-child {
+  background: var(--color-bg-subtle);
+  z-index: 2;
 }
 
 .perm-check { color: var(--color-success); font-weight: bold; }
@@ -755,12 +765,7 @@
   background: var(--color-danger-subtle);
 }
 
-/* ─── Button extra sizes ─── */
-.btn-xs {
-  padding: 2px var(--space-2);
-  font-size: var(--text-xs);
-  border-radius: var(--radius-sm);
-}
+/* .btn-xs moved to design-system.css */
 
 /* ─── Responsive grid collapse for 2-col forms ─── */
 @media (max-width: 768px) {

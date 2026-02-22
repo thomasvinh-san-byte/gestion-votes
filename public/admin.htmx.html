@@ -34,8 +34,8 @@
       </div>
       <div class="flex items-center gap-2">
         <button class="btn btn-secondary btn-sm" id="btnRefresh">Actualiser</button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="guide" title="Guide">?</button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg></button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="guide" title="Guide" aria-label="Guide">?</button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg></button>
       </div>
     </header>
 
@@ -87,7 +87,7 @@
                   </div>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Rôle système</label>
+                  <label class="form-label" for="newRole">Rôle système</label>
                   <select class="form-input" id="newRole">
                     <option value="viewer">Observateur</option>
                     <option value="operator">Opérateur</option>

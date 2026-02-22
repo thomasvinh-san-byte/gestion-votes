@@ -140,7 +140,7 @@
 
       <!-- No meeting state -->
       <div id="noMeetingState" class="no-meeting-state">
-        <svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+        <svg class="icon icon-3x" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
         <h2>Sélectionnez une séance</h2>
         <p>Choisissez une séance dans la liste ci-dessus pour accéder à la gestion complète.</p>
         <a href="/meetings.htmx.html" class="btn btn-primary mt-4">Voir toutes les séances</a>
@@ -150,6 +150,20 @@
            VIEW: SETUP (Préparation) — dashboard + checklist + tabs
            ================================================================ -->
       <section id="viewSetup" hidden aria-label="Mode préparation">
+
+        <!-- Onboarding banner for freshly created meetings -->
+        <div id="onboardingBanner" class="onboarding-banner" hidden>
+          <div class="onboarding-banner-content">
+            <div class="onboarding-banner-icon">
+              <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+            </div>
+            <div>
+              <strong>Séance créée !</strong>
+              <span id="onboardingText">Complétez les 3 étapes pour pouvoir lancer la séance.</span>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-ghost" id="onboardingDismiss" aria-label="Fermer">&times;</button>
+        </div>
 
         <!-- Setup content -->
         <div id="advancedMode" class="advanced-mode">
@@ -296,8 +310,21 @@
             </div>
           </div>
 
+          <!-- Empty state: no members registered yet -->
+          <div id="noMembersGuide" class="tab-empty-guide" hidden>
+            <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+            <div class="tab-empty-guide-text">
+              <strong>Aucun membre enregistré</strong>
+              <p>Ajoutez des membres dans le registre avant de pouvoir gérer les présences.</p>
+            </div>
+            <a href="/members.htmx.html" class="btn btn-primary btn-sm">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user-plus"></use></svg>
+              Gérer les membres
+            </a>
+          </div>
+
           <!-- Section: Présences -->
-          <div class="tab-toolbar">
+          <div class="tab-toolbar" id="presenceToolbar">
             <div class="flex gap-2">
               <button class="btn btn-sm btn-primary" id="btnAddMember">+ Ajouter un membre</button>
               <button class="btn btn-sm btn-success" id="btnMarkAllPresent"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Tous pr&eacute;sents</button>
@@ -372,6 +399,19 @@
             <!-- Rendered by JS -->
           </div>
 
+          <!-- Empty state: no resolutions yet -->
+          <div id="noResolutionsGuide" class="tab-empty-guide" hidden>
+            <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+            <div class="tab-empty-guide-text">
+              <strong>Aucune résolution créée</strong>
+              <p>Créez au moins une résolution pour que les participants puissent voter.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnGuideAddResolution">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
+              Créer une résolution
+            </button>
+          </div>
+
           <!-- Add resolution form (hidden by default) -->
           <div id="addResolutionForm" class="settings-section add-resolution-form" style="display: none;">
             <h3>Nouvelle résolution</h3>
@@ -415,29 +455,32 @@
             <div class="setup-card">
               <div class="setup-card-header">
                 <h2>Préparation</h2>
-                <span class="meeting-bar-chip"><strong id="setupScore">0/4</strong> validés</span>
+                <span class="meeting-bar-chip"><strong id="setupScore">0/3</strong> validés</span>
               </div>
               <div class="setup-card-body">
                 <div class="conformity-checklist" id="conformityChecklist">
-                  <div class="conformity-item" data-step="members">
+                  <div class="conformity-item" data-step="members" data-goto-tab="participants">
                     <span class="conformity-icon pending"></span>
-                    <span class="conformity-label">Registre des membres</span>
+                    <span class="conformity-label">Membres inscrits</span>
+                    <span class="conformity-hint">Au moins un membre actif</span>
                     <span class="conformity-status">à faire</span>
                   </div>
-                  <div class="conformity-item" data-step="attendance">
+                  <div class="conformity-item" data-step="attendance" data-goto-tab="participants">
                     <span class="conformity-icon pending"></span>
-                    <span class="conformity-label">Présences &amp; procurations</span>
+                    <span class="conformity-label">Présences enregistrées</span>
+                    <span class="conformity-hint">Au moins un membre marqué présent</span>
                     <span class="conformity-status">à faire</span>
                   </div>
-                  <div class="conformity-item" data-step="convocations">
+                  <div class="conformity-item" data-step="rules" data-goto-tab="seance">
                     <span class="conformity-icon pending"></span>
-                    <span class="conformity-label">Convocations</span>
+                    <span class="conformity-label">Politique de vote ou président</span>
+                    <span class="conformity-hint">Définir une politique de vote ou nommer un président</span>
+                    <span class="conformity-status">à faire</span>
+                  </div>
+                  <div class="conformity-item optional" data-step="convocations">
+                    <span class="conformity-icon pending"></span>
+                    <span class="conformity-label">Invitations envoyées</span>
                     <span class="conformity-status">optionnel</span>
-                  </div>
-                  <div class="conformity-item" data-step="rules">
-                    <span class="conformity-icon pending"></span>
-                    <span class="conformity-label">Règlement &amp; présidence</span>
-                    <span class="conformity-status">à faire</span>
                   </div>
                 </div>
               </div>
@@ -457,7 +500,12 @@
             </div>
           </div>
 
-          <div class="settings-grid mt-4">
+          <!-- Communication & Cycle de vie -->
+          <h2 class="controle-section-title mt-4">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
+            Communication &amp; cycle de vie
+          </h2>
+          <div class="settings-grid">
             <!-- Invitations card -->
             <div class="settings-section" id="invitationsCard">
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Invitations</h3>
@@ -577,6 +625,14 @@
               </div>
             </div>
 
+          </div>
+
+          <!-- Avancé -->
+          <h2 class="controle-section-title mt-4">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
+            Avancé
+          </h2>
+          <div class="settings-grid">
             <!-- Procédures d'urgence -->
             <div class="settings-section" id="emergencyCard">
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Proc&eacute;dures d'urgence</h3>
@@ -828,6 +884,17 @@
             <button class="btn btn-lg btn-danger w-full" id="btnCloseSession">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance
             </button>
+            <div class="close-session-next" id="closeSessionNext" hidden>
+              <p class="text-sm text-muted mb-3">Séance clôturée. Poursuivez le parcours :</p>
+              <div class="flex gap-2 flex-wrap">
+                <a href="/postsession.htmx.html" class="btn btn-primary">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg> Clôture &amp; PV
+                </a>
+                <a href="/validate.htmx.html" class="btn btn-secondary">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield-check"></use></svg> Validation
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 

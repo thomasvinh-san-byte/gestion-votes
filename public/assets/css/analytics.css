@@ -207,7 +207,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   border-radius: 8px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .charts-controls {
     flex-direction: column;
     align-items: stretch;
@@ -234,7 +234,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   margin-bottom: 2rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .charts-grid {
     grid-template-columns: 1fr;
   }

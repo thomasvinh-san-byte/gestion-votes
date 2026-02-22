@@ -36,7 +36,7 @@
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
           Exporter CSV
         </a>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
@@ -70,12 +70,39 @@
           <span class="stat-label">Couv. email</span>
         </div>
       </div>
+
+      <!-- Onboarding strip: guides user through member setup -->
+      <div class="members-onboarding" id="membersOnboarding" hidden>
+        <div class="onboarding-steps" id="onboardingSteps">
+          <span class="onboarding-step pending" id="onbStepMembers" data-scroll-to="create-form">
+            <span class="onboarding-step-num">1</span>
+            Ajouter des membres
+          </span>
+          <span class="onboarding-arrow">›</span>
+          <span class="onboarding-step pending" id="onbStepWeights">
+            <span class="onboarding-step-num">2</span>
+            Vérifier les pondérations
+          </span>
+          <span class="onboarding-arrow">›</span>
+          <span class="onboarding-step pending" id="onbStepGroups" data-scroll-to="groups-panel">
+            <span class="onboarding-step-num">3</span>
+            Organiser en groupes
+            <span class="onboarding-optional">optionnel</span>
+          </span>
+          <span class="onboarding-arrow">›</span>
+          <span class="onboarding-step pending" id="onbStepMeeting">
+            <span class="onboarding-step-num">4</span>
+            Préparer une séance
+          </span>
+        </div>
+      </div>
+
       <div id="notif_box" class="alert hidden mb-4" style="margin: 1rem 1.5rem 0;"></div>
 
       <!-- Management panels (collapsible, above the two-column layout) -->
       <div class="members-management">
         <!-- Create member card -->
-        <div class="create-card">
+        <div class="create-card" id="create-form">
           <h3>
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user-plus"></use></svg>
             Ajouter un membre
@@ -124,7 +151,7 @@
           </div>
 
           <!-- Groups tab panel -->
-          <div class="mgmt-tab-panel" id="groupsPanel" role="tabpanel">
+          <div class="mgmt-tab-panel" id="groupsPanel" data-scroll-target="groups-panel" role="tabpanel">
             <p class="text-sm text-muted mb-4">
               Organisez vos membres par catégories, collèges électoraux, départements, etc.
               <ag-popover title="Groupes de membres" content="Catégorisez vos membres par collèges électoraux, départements, ou tout autre critère. Les groupes facilitent le filtrage et permettent d'obtenir des statistiques par catégorie." position="right" trigger="click"></ag-popover>
@@ -164,7 +191,7 @@
             <div class="upload-zone" id="uploadZone">
               <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;" aria-label="Importer un fichier CSV">
               <div class="upload-zone-icon">
-                <svg class="icon" style="width:2rem;height:2rem;" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
+                <svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
               </div>
               <div class="upload-zone-text">Glisser un fichier CSV ici</div>
               <div class="upload-zone-hint">ou cliquer pour sélectionner</div>

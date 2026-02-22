@@ -655,6 +655,12 @@ h4, .h4 {
 }
 
 /* Button sizes */
+.btn-xs {
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-sm);
+}
+
 .btn-sm {
   padding: var(--space-1) var(--space-3);
   font-size: var(--text-xs);
@@ -685,6 +691,21 @@ h4, .h4 {
 
 .btn-icon.btn-lg {
   padding: var(--space-3);
+}
+
+/* Text-link button — looks like a link, behaves like a button */
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  color: var(--color-primary-hover);
 }
 
 /* ─── Cards ─── */
@@ -1721,13 +1742,6 @@ body:has(.drawer-backdrop.open) {
   padding-right: 0.25rem;
 }
 
-/* Truncate */
-.truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* SR Only (screen reader) */
 .sr-only {
   position: absolute;
@@ -1886,26 +1900,12 @@ textarea:focus-visible,
   }
 }
 
-@keyframes slideInUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-.animate-spin { animation: spin 1s linear infinite; }
-.animate-pulse { animation: pulse 2s ease-in-out infinite; }
 .animate-fade-in { animation: fadeIn var(--duration-normal) var(--ease-out); }
-.animate-slide-up { animation: slideInUp var(--duration-normal) var(--ease-out); }
 
 /* Staggered entrance for card grids */
 @keyframes cardEntrance {
@@ -1954,8 +1954,7 @@ textarea:focus-visible,
   .animate-stagger > *,
   .app-main,
   .badge-animate,
-  .animate-fade-in,
-  .animate-slide-up {
+  .animate-fade-in {
     animation: none !important;
   }
 }
@@ -2036,13 +2035,8 @@ textarea:focus-visible,
   }
 }
 
-/* ─── Small phones (< 480px) ─── */
-@media (max-width: 480px) {
-  :root {
-    --text-base: 0.9375rem; /* 15px for better readability on small screens */
-  }
-
-  /* Ensure touch-friendly minimum target size */
+/* ─── Touch devices (< 768px) — WCAG 2.5.8 target size ─── */
+@media (max-width: 768px) {
   .btn,
   .nav-item,
   button,
@@ -2052,6 +2046,20 @@ textarea:focus-visible,
   input[type="radio"] {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Small action buttons keep compact size in dense layouts */
+  .btn-xs,
+  .btn-icon.btn-sm {
+    min-height: 32px;
+    min-width: 32px;
+  }
+}
+
+/* ─── Small phones (< 480px) ─── */
+@media (max-width: 480px) {
+  :root {
+    --text-base: 0.9375rem; /* 15px for better readability on small screens */
   }
 
   /* Improve form inputs for mobile */
@@ -2068,14 +2076,16 @@ textarea:focus-visible,
     padding: var(--space-3);
   }
 
-  /* Full width buttons on small screens */
+  /* Full width buttons on small screens — exclude inline actions */
   .btn {
     width: 100%;
     justify-content: center;
   }
 
   .btn.btn-icon,
-  .btn.btn-sm {
+  .btn.btn-sm,
+  .btn.btn-xs,
+  .btn.btn-ghost {
     width: auto;
   }
 
@@ -2476,8 +2486,6 @@ textarea:focus-visible,
 .row { display: flex; align-items: center; gap: var(--space-3); }
 .row.between { justify-content: space-between; }
 .row.wrap { flex-wrap: wrap; }
-.col { display: flex; flex-direction: column; gap: var(--space-3); }
-.stack { display: flex; flex-direction: column; gap: var(--space-3); }
 
 /* Separators */
 .hr { border-top: 1px solid var(--color-border); }

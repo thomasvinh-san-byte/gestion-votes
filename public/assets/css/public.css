@@ -702,6 +702,13 @@ body.projection-body {
   color: var(--color-text-muted);
 }
 
+.meeting-picker-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--space-lg) var(--space-md);
+  font-style: italic;
+}
+
 /* =============================================================================
    REDUCED MOTION
    ============================================================================= */

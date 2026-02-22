@@ -108,7 +108,7 @@ final class VotePublicController {
                 // Atomic validate+consume: re-checks used_at AND expires_at in a
                 // single UPDATE…RETURNING, eliminating the TOCTOU window between
                 // the initial findValidByHash() and consumption.
-                $consumed = $tokenRepo->consumeIfValid($hash);
+                $consumed = $tokenRepo->consumeIfValid($hash, $ctx['tenant_id']);
                 if (!$consumed) {
                     throw new RuntimeException('token_already_used');
                 }

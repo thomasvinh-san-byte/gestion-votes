@@ -794,19 +794,7 @@
   opacity: 0.5;
 }
 
-.btn-link {
-  background: none;
-  border: none;
-  color: var(--color-primary);
-  cursor: pointer;
-  padding: 0;
-  font: inherit;
-  text-decoration: underline;
-}
-
-.btn-link:hover {
-  color: var(--color-primary-hover);
-}
+/* .btn-link moved to design-system.css */
 
 .file-list {
   display: flex;

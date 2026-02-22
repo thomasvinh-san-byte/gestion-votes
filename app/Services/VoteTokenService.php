@@ -53,8 +53,8 @@ final class VoteTokenService {
         string $meetingId,
         string $memberId,
         string $motionId,
-        int $ttlSeconds = self::DEFAULT_TTL_SECONDS,
         string $tenantId,
+        int $ttlSeconds = self::DEFAULT_TTL_SECONDS,
     ): array {
         $meetingId = trim($meetingId);
         $memberId = trim($memberId);
@@ -155,7 +155,7 @@ final class VoteTokenService {
      *
      * @return array{valid: bool, token_hash: string, meeting_id?: string, member_id?: string, motion_id?: string, reason?: string}
      */
-    public function validateAndConsume(string $token): array {
+    public function validateAndConsume(string $token, string $tenantId = ''): array {
         $token = trim($token);
         if ($token === '') {
             return ['valid' => false, 'token_hash' => '', 'reason' => 'token_empty'];
@@ -163,7 +163,7 @@ final class VoteTokenService {
 
         $tokenHash = self::hashToken($token);
 
-        $row = $this->tokenRepo->consumeIfValid($tokenHash);
+        $row = $this->tokenRepo->consumeIfValid($tokenHash, $tenantId);
 
         if (!$row) {
             // Single diagnostic query to determine failure reason

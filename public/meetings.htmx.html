@@ -33,7 +33,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
@@ -79,7 +79,7 @@
           <div class="create-form">
             <div class="form-group form-group-title">
               <label class="form-label" for="meeting_title">Titre de la séance <span class="text-danger">*</span></label>
-              <input class="form-input" type="text" id="meeting_title" placeholder="Ex : Assemblée Générale 2024" required autocomplete="off">
+              <input class="form-input" type="text" id="meeting_title" placeholder="Ex : Assemblée Générale 2024" required autocomplete="off" maxlength="255">
             </div>
             <div class="form-group form-group-date">
               <label class="form-label" for="meeting_date">Date <span class="text-danger">*</span></label>
@@ -159,10 +159,10 @@
           <div class="flex items-center gap-4">
             <span class="text-sm text-muted" id="meetingsCount">0 séances</span>
             <div class="view-toggle">
-              <button class="view-toggle-btn active" data-view="grid" title="Vue grille">
+              <button class="view-toggle-btn active" data-view="grid" title="Vue grille" aria-label="Vue grille">
                 <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-grid"></use></svg>
               </button>
-              <button class="view-toggle-btn" data-view="calendar" title="Vue calendrier">
+              <button class="view-toggle-btn" data-view="calendar" title="Vue calendrier" aria-label="Vue calendrier">
                 <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
               </button>
             </div>
@@ -196,6 +196,67 @@
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Edit meeting modal -->
+  <div class="modal-backdrop" id="editMeetingModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle" style="max-width:480px;">
+      <header class="modal-header">
+        <h3 class="modal-title" id="editModalTitle">Modifier la séance</h3>
+        <button class="btn btn-icon btn-ghost modal-close-btn" data-close-modal aria-label="Fermer">&times;</button>
+      </header>
+      <div class="modal-body">
+        <input type="hidden" id="editMeetingId">
+        <div class="form-group">
+          <label class="form-label" for="editMeetingTitle">Titre <span class="text-danger">*</span></label>
+          <input class="form-input" type="text" id="editMeetingTitle" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editMeetingDate">Date</label>
+          <input class="form-input date-picker-input" type="date" id="editMeetingDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <div class="meeting-type-chips">
+            <label class="type-chip"><input type="radio" name="editMeetingType" value="ag_ordinaire"><span class="type-chip-label">AG ordinaire</span></label>
+            <label class="type-chip"><input type="radio" name="editMeetingType" value="ag_extraordinaire"><span class="type-chip-label">AG extra.</span></label>
+            <label class="type-chip"><input type="radio" name="editMeetingType" value="conseil"><span class="type-chip-label">Conseil</span></label>
+            <label class="type-chip"><input type="radio" name="editMeetingType" value="bureau"><span class="type-chip-label">Bureau</span></label>
+            <label class="type-chip"><input type="radio" name="editMeetingType" value="autre"><span class="type-chip-label">Autre</span></label>
+          </div>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-secondary" data-close-modal>Annuler</button>
+        <button class="btn btn-primary" id="editMeetingSaveBtn">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
+          Enregistrer
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Delete meeting confirmation modal -->
+  <div class="modal-backdrop" id="deleteMeetingModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle" style="max-width:420px;">
+      <header class="modal-header">
+        <h3 class="modal-title" id="deleteModalTitle">Supprimer la séance</h3>
+        <button class="btn btn-icon btn-ghost modal-close-btn" data-close-modal aria-label="Fermer">&times;</button>
+      </header>
+      <div class="modal-body">
+        <p>Êtes-vous sûr de vouloir supprimer cette séance ?</p>
+        <p class="text-sm text-muted">Cette action est irréversible. Seules les séances en brouillon peuvent être supprimées.</p>
+        <p class="font-semibold mt-2" id="deleteMeetingName"></p>
+        <input type="hidden" id="deleteMeetingId">
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn-secondary" data-close-modal>Annuler</button>
+        <button class="btn btn-danger" id="deleteMeetingConfirmBtn">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
+          Supprimer
+        </button>
+      </footer>
+    </div>
   </div>
 
   <!-- Drawer -->

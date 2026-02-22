@@ -49,6 +49,7 @@ window.OpS = { fn: {} };
   let proxiesCache = [];  // Cache for proxies
   let currentMode = 'setup'; // 'setup' | 'exec'
   let lastSetupTab = 'seance'; // Remember last active prep tab for seamless mode switching
+  let _settingsSnapshot = null;  // Captured after populateSettingsForm to track dirty state
 
   // Safe DOM text setter — avoids null reference errors if element is missing
   function setText(id, value) {
@@ -218,6 +219,14 @@ window.OpS = { fn: {} };
     // Resolve legacy aliases
     tabId = TAB_ALIASES[tabId] || tabId;
 
+    // Warn if leaving Séance tab with unsaved changes
+    var currentTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
+    if (currentTab === 'seance' && tabId !== 'seance' && _isSettingsDirty()) {
+      if (!confirm('Vous avez des modifications non enregistrées dans l\'onglet Séance. Quitter sans sauvegarder ?')) {
+        return;
+      }
+    }
+
     tabButtons.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabId);
     });
@@ -298,6 +307,7 @@ window.OpS = { fn: {} };
     }
 
     currentMeetingId = meetingId;
+    _hasAutoNavigated = false; // Reset for new meeting
     updateURLParam('meeting_id', meetingId);
 
     try {
@@ -311,7 +321,7 @@ window.OpS = { fn: {} };
         await loadAllData();
       }
     } catch (err) {
-      setNotif('error', 'Erreur: ' + err.message);
+      setNotif('error', 'Impossible de charger la séance. Vérifiez votre connexion et réessayez.');
     }
   }
 
@@ -452,6 +462,9 @@ window.OpS = { fn: {} };
     if (currentOpenMotion && currentMeetingStatus === 'live' && currentMode === 'setup') {
       setMode('exec');
     }
+
+    // Smart default tab: guide user to the first incomplete step
+    autoNavigateToNextStep();
 
     // P2-1/P2-2/P2-6: Adapt UI based on user's role
     applyRoleAwareUI();
@@ -852,6 +865,35 @@ window.OpS = { fn: {} };
     // Convocation
     const convSelect = document.getElementById('settingConvocation');
     if (convSelect) convSelect.value = currentMeeting.convocation_no || 1;
+
+    // Capture snapshot for dirty-state tracking
+    _captureSettingsSnapshot();
+  }
+
+  function _captureSettingsSnapshot() {
+    _settingsSnapshot = {
+      title: (document.getElementById('settingTitle')?.value || '').trim(),
+      date: document.getElementById('settingDate')?.value || '',
+      type: document.querySelector('input[name="meetingType"]:checked')?.value || '',
+      quorum: document.getElementById('settingQuorumPolicy')?.value || '',
+      vote: document.getElementById('settingVotePolicy')?.value || '',
+      convocation: document.getElementById('settingConvocation')?.value || ''
+    };
+  }
+
+  function _isSettingsDirty() {
+    if (!_settingsSnapshot) return false;
+    var current = {
+      title: (document.getElementById('settingTitle')?.value || '').trim(),
+      date: document.getElementById('settingDate')?.value || '',
+      type: document.querySelector('input[name="meetingType"]:checked')?.value || '',
+      quorum: document.getElementById('settingQuorumPolicy')?.value || '',
+      vote: document.getElementById('settingVotePolicy')?.value || '',
+      convocation: document.getElementById('settingConvocation')?.value || ''
+    };
+    return Object.keys(_settingsSnapshot).some(function(k) {
+      return _settingsSnapshot[k] !== current[k];
+    });
   }
 
   async function loadPolicies() {
@@ -1394,6 +1436,11 @@ window.OpS = { fn: {} };
   }
 
   async function unblockDevice(deviceId, modal) {
+    var ok = await confirmModal({
+      title: 'Débloquer l\u2019appareil',
+      body: '<p>L\u2019appareil pourra à nouveau voter. Confirmer ?</p>'
+    });
+    if (!ok) return;
     try {
       await api('/api/v1/device_unblock.php', { device_id: deviceId });
       setNotif('success', 'Appareil débloqué');
@@ -1405,6 +1452,11 @@ window.OpS = { fn: {} };
   }
 
   async function kickDevice(deviceId, modal) {
+    var ok = await confirmModal({
+      title: 'Forcer la reconnexion',
+      body: '<p>L\u2019appareil sera déconnecté et devra se reconnecter. Confirmer ?</p>'
+    });
+    if (!ok) return;
     try {
       await api('/api/v1/device_kick.php', { device_id: deviceId, message: 'Reconnexion demandée par opérateur' });
       setNotif('success', 'Demande de reconnexion envoyée');
@@ -1451,33 +1503,148 @@ window.OpS = { fn: {} };
       document.getElementById('tabCountResolutions').textContent = d.motions_total || 0;
       document.getElementById('tabCountPresences').textContent = d.present_count || 0;
 
-      // Update readiness strips on tabs 1-3
+      // Update readiness strips on tabs 1-3 — clickable progress steps
       var required = checks.filter(function(c) { return !c.optional; });
       var doneCount = required.filter(function(c) { return c.done; }).length;
       var totalRequired = required.length;
+
+      // Map each check to the tab that resolves it
+      var checkTabMap = {
+        'Membres ajoutés': 'participants',
+        'Présences pointées': 'participants',
+        'Résolutions créées': 'ordre-du-jour'
+      };
+
       var stripHtml = '';
       if (doneCount < totalRequired) {
-        var missing = required.filter(function(c) { return !c.done; });
-        stripHtml = '<div class="flex items-center gap-3 text-sm">' +
-          '<span class="text-muted">' + doneCount + '/' + totalRequired + ' pr\u00e9requis</span>' +
-          missing.map(function(c) {
-            return '<span class="badge badge-neutral">' + icon('circle', 'icon-xs') + ' ' + c.text + '</span>';
-          }).join('') +
+        stripHtml = '<div class="readiness-steps">' +
+          required.map(function(c) {
+            var cls = c.done ? 'readiness-step done' : 'readiness-step pending';
+            var iconName = c.done ? 'check-circle' : 'circle';
+            var iconCls = c.done ? 'icon-xs icon-success' : 'icon-xs';
+            var targetTab = checkTabMap[c.text] || '';
+            var clickAttr = (!c.done && targetTab) ? ' data-goto-tab="' + targetTab + '" role="button" tabindex="0"' : '';
+            return '<span class="' + cls + '"' + clickAttr + '>' +
+              icon(iconName, iconCls) + ' ' + c.text + '</span>';
+          }).join('<span class="readiness-arrow" aria-hidden="true">\u203A</span>') +
           '</div>';
       } else {
-        stripHtml = '<div class="flex items-center gap-2 text-sm text-success">' +
+        stripHtml = '<div class="readiness-steps all-done">' +
           icon('check-circle', 'icon-sm icon-success') +
-          ' Pr\u00eat pour le lancement' +
+          ' <strong>Prêt pour le lancement</strong> — cliquez sur « Ouvrir la séance »' +
           '</div>';
       }
       document.querySelectorAll('[data-readiness-strip]').forEach(function(el) {
         el.innerHTML = stripHtml;
+        // Wire up clickable steps
+        el.querySelectorAll('[data-goto-tab]').forEach(function(step) {
+          step.addEventListener('click', function() { switchTab(step.dataset.gotoTab); });
+          step.addEventListener('keydown', function(e) { if (e.key === 'Enter') switchTab(step.dataset.gotoTab); });
+        });
       });
+
+      // Update contextual footer CTAs
+      updateFooterCTAs(required);
 
       // Update policies warning
       updatePoliciesWarning();
     } catch (err) {
       setNotif('error', 'Erreur chargement checklist');
+    }
+  }
+
+  // =========================================================================
+  // GUIDED FLOW — Smart navigation + contextual CTAs
+  // =========================================================================
+
+  /**
+   * After initial data load, auto-navigate to the first incomplete step
+   * for draft meetings. Only fires on the first load (not polling refreshes).
+   */
+  var _hasAutoNavigated = false;
+  function autoNavigateToNextStep() {
+    // Only auto-navigate on initial load, not on polling
+    if (_hasAutoNavigated) return;
+    _hasAutoNavigated = true;
+
+    // Skip if not in setup mode, or if URL had an explicit tab request
+    if (currentMode !== 'setup') return;
+    var urlTab = new URLSearchParams(window.location.search).get('tab');
+    if (urlTab) return;
+
+    // Only for draft/scheduled meetings (the "preparation" phase)
+    if (!['draft', 'scheduled'].includes(currentMeetingStatus)) return;
+
+    // Determine the first incomplete step
+    var hasMembers = membersCache.length > 0;
+    var hasAttendance = attendanceCache.some(function(a) { return a.mode === 'present' || a.mode === 'remote'; });
+    var hasMotions = motionsCache.length > 0;
+
+    // Show onboarding banner for fresh drafts (no data yet)
+    var isFreshDraft = currentMeetingStatus === 'draft' && !hasMembers && !hasMotions;
+    var banner = document.getElementById('onboardingBanner');
+    if (banner && isFreshDraft) {
+      banner.hidden = false;
+    }
+
+    var targetTab = null;
+    if (!hasMembers || !hasAttendance) {
+      targetTab = 'participants';
+    } else if (!hasMotions) {
+      targetTab = 'ordre-du-jour';
+    }
+
+    if (targetTab) {
+      switchTab(targetTab);
+    }
+  }
+
+  /**
+   * Update the "next step" footer buttons dynamically based on what's missing.
+   */
+  function updateFooterCTAs(requiredChecks) {
+    if (!requiredChecks) return;
+
+    // Determine what's the logical next step after each tab
+    var hasMembers = requiredChecks[0]?.done;
+    var hasAttendance = requiredChecks[1]?.done;
+    var hasMotions = requiredChecks[2]?.done;
+    var allDone = requiredChecks.every(function(c) { return c.done; });
+
+    // Tab Séance footer: what to do next?
+    var seanceFooter = document.querySelector('#tab-seance [data-tab-switch="participants"]');
+    if (seanceFooter) {
+      if (!hasMembers) {
+        seanceFooter.innerHTML = icon('arrow-right', 'icon-text') + ' Ajouter des participants';
+      } else if (!hasAttendance) {
+        seanceFooter.innerHTML = icon('arrow-right', 'icon-text') + ' Pointer les présences';
+      } else {
+        seanceFooter.innerHTML = 'Participants ' + icon('arrow-right', 'icon-text');
+      }
+    }
+
+    // Tab Participants footer: what to do next?
+    var partFooter = document.querySelector('#tab-participants [data-tab-switch="ordre-du-jour"]');
+    if (partFooter) {
+      if (!hasMotions) {
+        partFooter.innerHTML = icon('arrow-right', 'icon-text') + ' Créer des résolutions';
+      } else {
+        partFooter.innerHTML = 'Ordre du jour ' + icon('arrow-right', 'icon-text');
+      }
+    }
+
+    // Tab Ordre du jour footer: contextual guidance
+    var odjFooter = document.querySelector('#tab-ordre-du-jour [data-tab-switch="controle"]');
+    if (odjFooter) {
+      if (allDone) {
+        odjFooter.innerHTML = icon('check-circle', 'icon-text icon-success') + ' Prêt — vérifier et lancer';
+        odjFooter.classList.remove('btn-secondary');
+        odjFooter.classList.add('btn-primary');
+      } else {
+        odjFooter.innerHTML = 'Contrôle ' + icon('arrow-right', 'icon-text');
+        odjFooter.classList.remove('btn-primary');
+        odjFooter.classList.add('btn-secondary');
+      }
     }
   }
 
@@ -1511,29 +1678,40 @@ window.OpS = { fn: {} };
     Shared.btnLoading(btn, true);
 
     try {
-      // Save title, date, and meeting type
-      await api('/api/v1/meetings_update.php', {
-        meeting_id: currentMeetingId,
-        title: title,
-        scheduled_at: scheduledAt || null,
-        meeting_type: meetingType
-      });
-
-      // Save policies
+      // Gather all values before firing requests
       const quorumPolicyId = document.getElementById('settingQuorumPolicy').value || null;
       const votePolicyId = document.getElementById('settingVotePolicy').value || null;
       const convocationNo = parseInt(document.getElementById('settingConvocation').value) || 1;
 
-      await api('/api/v1/meeting_quorum_settings.php', {
-        meeting_id: currentMeetingId,
-        quorum_policy_id: quorumPolicyId,
-        convocation_no: convocationNo
-      });
+      // Fire all 3 saves in parallel — avoids partial save on sequential failure
+      var results = await Promise.allSettled([
+        api('/api/v1/meetings_update.php', {
+          meeting_id: currentMeetingId,
+          title: title,
+          scheduled_at: scheduledAt || null,
+          meeting_type: meetingType
+        }),
+        api('/api/v1/meeting_quorum_settings.php', {
+          meeting_id: currentMeetingId,
+          quorum_policy_id: quorumPolicyId,
+          convocation_no: convocationNo
+        }),
+        api('/api/v1/meeting_vote_settings.php', {
+          meeting_id: currentMeetingId,
+          vote_policy_id: votePolicyId
+        })
+      ]);
 
-      await api('/api/v1/meeting_vote_settings.php', {
-        meeting_id: currentMeetingId,
-        vote_policy_id: votePolicyId
-      });
+      // Check for partial failures
+      var failures = results.filter(function(r) { return r.status === 'rejected'; });
+      if (failures.length > 0) {
+        var errMsg = failures.map(function(r) { return r.reason?.message || 'Erreur inconnue'; }).join(', ');
+        if (failures.length === results.length) {
+          throw new Error(errMsg);
+        }
+        // Partial success — warn but continue
+        setNotif('warning', 'Sauvegarde partielle : ' + errMsg);
+      }
 
       // Update local state and header
       currentMeeting.title = title;
@@ -1545,7 +1723,12 @@ window.OpS = { fn: {} };
       updateHeader(currentMeeting);
       loadStatusChecklist();
 
-      setNotif('success', 'Paramètres enregistrés');
+      if (failures.length === 0) {
+        setNotif('success', 'Paramètres enregistrés');
+      }
+
+      // Reset dirty-state snapshot
+      _captureSettingsSnapshot();
 
       // Brief visual confirmation on button
       Shared.btnLoading(btn, false);
@@ -1838,13 +2021,23 @@ window.OpS = { fn: {} };
     if (currentMode === 'setup') {
       if (['draft', 'scheduled', 'frozen'].includes(currentMeetingStatus)) {
         const score = getConformityScore();
-        // Attendance is mandatory for launch — score alone is insufficient
-        // because "Convocations" always adds +1, making it possible to reach
-        // 3/4 without attendance (members + convocations + rules = 3).
-        const hasAttendance = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
-        btnPrimary.disabled = score < 3 || !hasAttendance;
+        // All 3 mandatory prerequisites must be met (members, attendance, rules)
+        btnPrimary.disabled = score < 3;
         btnPrimary.textContent = 'Ouvrir la séance';
         primaryAction = 'launch';
+        // Explain why button is disabled
+        if (score < 3) {
+          var missing = [];
+          if (membersCache.length === 0) missing.push('membres');
+          if (!attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote')) missing.push('présences');
+          var hasQ = !!(currentMeeting && currentMeeting.quorum_policy_id);
+          var presEl = document.getElementById('settingPresident');
+          var hasP = !!(presEl && presEl.value);
+          if (!hasQ && !hasP) missing.push('politique de vote ou président');
+          btnPrimary.title = 'Manque : ' + missing.join(', ');
+        } else {
+          btnPrimary.title = '';
+        }
       } else if (currentMeetingStatus === 'live') {
         btnPrimary.disabled = false;
         btnPrimary.textContent = 'Passer en exécution';
@@ -1913,10 +2106,10 @@ window.OpS = { fn: {} };
         contextHint.textContent = 'Séance en cours — basculez en exécution.';
       } else {
         const score = getConformityScore();
-        if (score >= 4) {
+        if (score >= 3) {
           contextHint.textContent = 'Séance prête — vous pouvez lancer.';
         } else {
-          contextHint.textContent = 'Préparez la séance (' + score + '/4 pré-requis validés).';
+          contextHint.textContent = 'Préparez la séance (' + score + '/3 pré-requis validés).';
         }
       }
     } else {
@@ -2004,13 +2197,12 @@ window.OpS = { fn: {} };
     if (membersCache.length > 0) score++;
     // 2. Attendance
     if (attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote')) score++;
-    // 3. Convocations (optional — always counts)
-    score++;
-    // 4. Rules & presidency
+    // 3. Rules & presidency
     const hasQuorum = !!(currentMeeting && currentMeeting.quorum_policy_id);
     const presEl = document.getElementById('settingPresident');
     const hasPresident = !!(presEl && presEl.value);
     if (hasQuorum || hasPresident) score++;
+    // Note: Convocations is optional and not counted in the mandatory score
     return score;
   }
 
@@ -2030,36 +2222,55 @@ window.OpS = { fn: {} };
     const steps = [
       {
         key: 'members',
-        label: 'Registre des membres',
+        label: 'Membres inscrits',
         done: hasMembers,
-        status: hasMembers ? membersCache.length + ' membre(s)' : 'à faire'
+        status: hasMembers ? membersCache.length + ' membre' + (membersCache.length > 1 ? 's' : '') : 'à faire',
+        hint: 'Au moins un membre actif'
       },
       {
         key: 'attendance',
-        label: 'Présences & procurations',
+        label: 'Présences enregistrées',
         done: hasPresent,
         status: hasPresent
-          ? presentCount + ' présent(s)' + (activeProxies ? ', ' + activeProxies + ' proc.' : '')
-          : 'à faire'
-      },
-      {
-        key: 'convocations',
-        label: 'Convocations',
-        done: true,
-        optional: true,
-        status: 'optionnel'
+          ? presentCount + ' présent' + (presentCount > 1 ? 's' : '') + (activeProxies ? ', ' + activeProxies + ' proc.' : '')
+          : 'à faire',
+        hint: 'Marquer au moins un membre comme présent'
       },
       {
         key: 'rules',
-        label: 'Règlement & présidence',
+        label: 'Politique de vote ou président',
         done: hasRules,
         status: hasRules
-          ? (hasPresident ? 'président assigné' : 'politiques configurées')
-          : 'à faire'
+          ? (hasPresident ? 'président assigné' : 'politique configurée')
+          : 'à faire',
+        hint: 'Définir une politique de vote ou nommer un président'
+      },
+      {
+        key: 'convocations',
+        label: 'Invitations envoyées',
+        done: true,
+        optional: true,
+        status: 'optionnel'
       }
     ];
 
-    const score = steps.filter(s => s.done).length;
+    // Show/hide guided empty states in tabs
+    var noMembersGuide = document.getElementById('noMembersGuide');
+    var noResolutionsGuide = document.getElementById('noResolutionsGuide');
+    var presenceToolbar = document.getElementById('presenceToolbar');
+    if (noMembersGuide) {
+      noMembersGuide.hidden = hasMembers;
+      // Hide presence toolbar when no members
+      if (presenceToolbar) presenceToolbar.style.display = hasMembers ? '' : 'none';
+    }
+    if (noResolutionsGuide) {
+      noResolutionsGuide.hidden = motionsCache.length > 0;
+    }
+
+    // Score only counts non-optional items
+    const mandatorySteps = steps.filter(s => !s.optional);
+    const score = mandatorySteps.filter(s => s.done).length;
+    const maxScore = mandatorySteps.length;
 
     // Map checklist steps to tabs for navigation
     const stepTabMap = { members: 'participants', attendance: 'participants', convocations: 'controle', rules: 'seance' };
@@ -2069,11 +2280,13 @@ window.OpS = { fn: {} };
       const optClass = s.optional ? 'optional' : '';
       const iconClass = s.done ? 'done' : 'pending';
       const tab = stepTabMap[s.key] || '';
+      const hintHtml = s.hint && !s.done ? '<span class="conformity-hint">' + escapeHtml(s.hint) + '</span>' : '';
       return '<div class="conformity-item ' + doneClass + ' ' + optClass + '" data-step="' + s.key + '"'
-        + (tab && !s.done ? ' data-goto-tab="' + tab + '" style="cursor:pointer" title="Aller à l\'onglet"' : '')
+        + (tab && !s.done ? ' data-goto-tab="' + tab + '" role="button" tabindex="0" title="Aller à l\'onglet"' : '')
         + '>'
         + '<span class="conformity-icon ' + iconClass + '"></span>'
-        + '<span class="conformity-label">' + s.label + '</span>'
+        + '<span class="conformity-label">' + s.label + (s.optional ? ' <span class="text-xs text-muted">(optionnel)</span>' : '') + '</span>'
+        + hintHtml
         + '<span class="conformity-status">' + s.status + '</span>'
         + '</div>';
     }).join('');
@@ -2085,18 +2298,19 @@ window.OpS = { fn: {} };
 
     // Update score display
     const setupScoreEl = document.getElementById('setupScore');
-    if (setupScoreEl) setupScoreEl.textContent = score + '/4';
+    if (setupScoreEl) setupScoreEl.textContent = score + '/' + maxScore;
 
     // Update health chip
-    updateHealthChip(score);
+    updateHealthChip(score, maxScore);
 
     // Update primary button and context
     updatePrimaryButton();
     updateContextHint();
   }
 
-  function updateHealthChip(score) {
+  function updateHealthChip(score, maxScore) {
     if (!healthChip) return;
+    var max = maxScore || 3;
 
     if (!currentMeetingId) {
       healthChip.hidden = true;
@@ -2104,14 +2318,14 @@ window.OpS = { fn: {} };
     }
 
     healthChip.hidden = false;
-    if (healthScore) healthScore.textContent = score + '/4';
+    if (healthScore) healthScore.textContent = score + '/' + max;
     if (healthHint) healthHint.textContent = 'pré-requis';
 
     const dot = healthChip.querySelector('.health-dot');
     if (dot) {
       dot.classList.remove('ok', 'warn', 'danger');
-      if (score >= 4) dot.classList.add('ok');
-      else if (score >= 2) dot.classList.add('warn');
+      if (score >= max) dot.classList.add('ok');
+      else if (score >= Math.ceil(max / 2)) dot.classList.add('warn');
       else dot.classList.add('danger');
     }
   }
@@ -2125,7 +2339,7 @@ window.OpS = { fn: {} };
 
     if (!currentMeetingId) return alerts;
 
-    // Specific missing prerequisites (replaces generic "score X/4")
+    // Specific missing prerequisites
     const hasMembers = membersCache.length > 0;
     const hasPresent = attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote');
     const hasMotions = motionsCache.length > 0;
@@ -2588,6 +2802,13 @@ window.OpS = { fn: {} };
   document.getElementById('btnAddResolution')?.addEventListener('click', () => {
     Shared.show(document.getElementById('addResolutionForm'), 'block');
   });
+  // Guide button for empty state also triggers the add form
+  document.getElementById('btnGuideAddResolution')?.addEventListener('click', () => {
+    Shared.show(document.getElementById('addResolutionForm'), 'block');
+    document.getElementById('noResolutionsGuide')?.setAttribute('hidden', '');
+    var titleInput = document.getElementById('resolutionTitle');
+    if (titleInput) titleInput.focus();
+  });
   document.getElementById('btnCancelResolution')?.addEventListener('click', () => {
     Shared.hide(document.getElementById('addResolutionForm'));
   });
@@ -2863,26 +3084,6 @@ window.OpS = { fn: {} };
   // Quick member add
   document.getElementById('btnAddMember')?.addEventListener('click', addMemberQuick);
 
-  // Quick all present
-  document.getElementById('btnQuickAllPresent')?.addEventListener('click', async () => {
-    const confirmed = await confirmModal({
-      title: 'Marquer tous présents',
-      body: '<p>Marquer <strong>tous les membres</strong> comme présents ?</p>'
-    });
-    if (!confirmed) return;
-    try {
-      await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
-      attendanceCache.forEach(m => m.mode = 'present');
-      renderAttendance();
-      updateQuickStats();
-      loadStatusChecklist();
-      checkLaunchReady();
-      setNotif('success', 'Tous marqués présents');
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  });
-
   // Launch session button
   document.getElementById('btnLaunchSession')?.addEventListener('click', launchSession);
 
@@ -2892,6 +3093,12 @@ window.OpS = { fn: {} };
   // Tab switch buttons
   document.querySelectorAll('[data-tab-switch]').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tabSwitch));
+  });
+
+  // Onboarding banner dismiss
+  document.getElementById('onboardingDismiss')?.addEventListener('click', function() {
+    var banner = document.getElementById('onboardingBanner');
+    if (banner) banner.hidden = true;
   });
 
   // Close session buttons (Résultats tab + Exec view)

@@ -34,6 +34,10 @@
       document.getElementById('exportAttendanceXlsx').href = `/api/v1/export_attendance_xlsx.php?meeting_id=${currentMeetingId}`;
       document.getElementById('exportVotesXlsx').href = `/api/v1/export_votes_xlsx.php?meeting_id=${currentMeetingId}`;
       document.getElementById('exportResultsXlsx').href = `/api/v1/export_results_xlsx.php?meeting_id=${currentMeetingId}`;
+
+      // Navigation link
+      var archiveLink = document.getElementById('reportToArchives');
+      if (archiveLink) archiveLink.href = `/archives.htmx.html?meeting_id=${encodeURIComponent(currentMeetingId)}`;
     }
 
     // Disable export buttons

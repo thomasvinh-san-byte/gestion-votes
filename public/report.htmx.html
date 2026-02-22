@@ -32,10 +32,10 @@
         <a class="btn btn-primary" id="btnExportPDF" href="#" target="_blank">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg> Exporter PDF
         </a>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance" aria-label="Informations séance">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
         </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
@@ -166,6 +166,13 @@
               </a>
             </div>
           </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex gap-2 justify-end mt-4">
+          <a href="/archives.htmx.html" class="btn btn-secondary btn-sm" id="reportToArchives">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg> Voir les archives
+          </a>
         </div>
       </div>
     </main>

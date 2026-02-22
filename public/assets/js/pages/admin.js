@@ -42,7 +42,11 @@
         _allUsers = r.body.data.items || [];
         filterAndRenderUsers();
       }
-    } catch (e) { setNotif('error', 'Erreur chargement utilisateurs'); }
+    } catch (e) {
+      setNotif('error', 'Erreur chargement utilisateurs');
+      var c = document.getElementById('usersTableBody');
+      if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+    }
   }
 
   function filterAndRenderUsers() {
@@ -80,7 +84,7 @@
   function renderUsersTable(users) {
     var container = document.getElementById('usersTableBody');
     if (!users.length) {
-      container.innerHTML = '<div class="text-center p-4 text-muted">Aucun utilisateur trouvé</div>';
+      container.innerHTML = Shared.emptyState({ icon: 'members', title: 'Aucun utilisateur trouvé', description: 'Créez un compte depuis le formulaire ci-dessus.' });
       return;
     }
     container.innerHTML = users.map(function(u) {
@@ -249,17 +253,16 @@
             '<input class="form-input" type="password" id="confirmPassword" placeholder="Confirmer le mot de passe" autocomplete="new-password">' +
           '</div>',
         confirmText: 'Enregistrer',
-        onConfirm: function(modal) {
+        onConfirm: async function(modal) {
           const pw = modal.querySelector('#setPassword').value;
           const confirm = modal.querySelector('#confirmPassword').value;
-          if (!pw || pw.length < 8) { setNotif('error', 'Le mot de passe doit contenir au moins 8 caractères'); return false; }
-          if (pw !== confirm) { setNotif('error', 'Les mots de passe ne correspondent pas'); return false; }
-          api('/api/v1/admin_users.php', {action:'set_password', user_id:userId, password:pw})
-            .then(function(r) {
-              if (r.body && r.body.ok) { setNotif('success', 'Mot de passe défini'); loadUsers(); }
-              else { setNotif('error', getApiError(r.body)); }
-            })
-            .catch(function(err) { setNotif('error', err.message); });
+          if (!pw || pw.length < 8) { Shared.fieldError(modal.querySelector('#setPassword'), 'Minimum 8 caractères'); return false; }
+          if (pw !== confirm) { Shared.fieldError(modal.querySelector('#confirmPassword'), 'Les mots de passe ne correspondent pas'); return false; }
+          try {
+            var r = await api('/api/v1/admin_users.php', {action:'set_password', user_id:userId, password:pw});
+            if (r.body && r.body.ok) { setNotif('success', 'Mot de passe défini'); loadUsers(); }
+            else { setNotif('error', getApiError(r.body)); return false; }
+          } catch(err) { setNotif('error', err.message); return false; }
         }
       });
       return;
@@ -320,7 +323,7 @@
             '<select class="form-input" id="editRole">' + roleOptions + '</select>' +
           '</div>',
         confirmText: 'Enregistrer',
-        onConfirm: function(modal) {
+        onConfirm: async function(modal) {
           var editNameEl = modal.querySelector('#editName');
           var editEmailEl = modal.querySelector('#editEmail');
           var valid = Shared.validateAll([
@@ -334,12 +337,11 @@
           const newName = editNameEl.value.trim();
           const newEmail = editEmailEl.value.trim();
           const newRole = modal.querySelector('#editRole').value;
-          api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole})
-            .then(function(r) {
-              if (r.body && r.body.ok) { setNotif('success', 'Utilisateur mis à jour'); loadUsers(); }
-              else { setNotif('error', getApiError(r.body)); }
-            })
-            .catch(function(err) { setNotif('error', err.message); });
+          try {
+            var r = await api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole});
+            if (r.body && r.body.ok) { setNotif('success', 'Utilisateur mis à jour'); loadUsers(); }
+            else { setNotif('error', getApiError(r.body)); return false; }
+          } catch(err) { setNotif('error', err.message); return false; }
         }
       });
       return;
@@ -429,7 +431,7 @@
       if (r.body && r.body.ok && r.body.data) {
         const items = r.body.data.items || [];
         if (!items.length) {
-          tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Aucun rôle attribué</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4">' + Shared.emptyState({ icon: 'meetings', title: 'Aucun rôle attribué', description: 'Sélectionnez une séance et assignez des rôles depuis le formulaire ci-dessus.' }) + '</td></tr>';
           return;
         }
         tbody.innerHTML = items.map(function(row) {
@@ -626,13 +628,17 @@
         _quorumPolicies = r.body.data.items;
         renderQuorumList(_quorumPolicies);
       }
-    } catch(e) { setNotif('error', 'Erreur chargement politiques de quorum'); }
+    } catch(e) {
+      setNotif('error', 'Erreur chargement politiques de quorum');
+      var c = document.getElementById('quorumList');
+      if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+    }
   }
 
   function renderQuorumList(items) {
     const el = document.getElementById('quorumList');
     if (!items.length) {
-      el.innerHTML = '<div class="text-center text-muted">Aucune politique de quorum</div>';
+      el.innerHTML = Shared.emptyState({ icon: 'generic', title: 'Aucune politique de quorum', description: 'Créez une politique depuis le formulaire ci-dessus.' });
       return;
     }
     el.innerHTML = items.map(function(p) {
@@ -723,7 +729,7 @@
           '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpRemote"' + (p.count_remote ? ' checked' : '') + '> Compter les distants</label>' +
         '</div>',
       confirmText: isEdit ? 'Enregistrer' : 'Créer',
-      onConfirm: function(modal) {
+      onConfirm: async function(modal) {
         const name = modal.querySelector('#qpName').value.trim();
         if (!name) { setNotif('error', 'Nom requis'); return false; }
         var thresholdVal = parseFloat(modal.querySelector('#qpThreshold').value);
@@ -749,12 +755,11 @@
           if (t2 !== '') payload.threshold2 = parseFloat(t2);
         }
         if (isEdit) payload.id = p.id;
-        api('/api/v1/admin_quorum_policies.php', payload)
-          .then(function(r) {
-            if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadQuorumPolicies(); }
-            else { setNotif('error', getApiError(r.body)); }
-          })
-          .catch(function(err) { setNotif('error', err.message); });
+        try {
+          var r = await api('/api/v1/admin_quorum_policies.php', payload);
+          if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadQuorumPolicies(); }
+          else { setNotif('error', getApiError(r.body)); return false; }
+        } catch(err) { setNotif('error', err.message); return false; }
       }
     });
 
@@ -820,13 +825,17 @@
         _votePolicies = r.body.data.items;
         renderVoteList(_votePolicies);
       }
-    } catch(e) { setNotif('error', 'Erreur chargement politiques de vote'); }
+    } catch(e) {
+      setNotif('error', 'Erreur chargement politiques de vote');
+      var c = document.getElementById('voteList');
+      if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+    }
   }
 
   function renderVoteList(items) {
     const el = document.getElementById('voteList');
     if (!items.length) {
-      el.innerHTML = '<div class="text-center text-muted">Aucune politique de vote</div>';
+      el.innerHTML = Shared.emptyState({ icon: 'votes', title: 'Aucune politique de vote', description: 'Créez une politique depuis le formulaire ci-dessus.' });
       return;
     }
     el.innerHTML = items.map(function(p) {
@@ -881,7 +890,7 @@
           ' Compter les abstentions comme contre' +
         '</label>',
       confirmText: isEdit ? 'Enregistrer' : 'Créer',
-      onConfirm: function(modal) {
+      onConfirm: async function(modal) {
         const name = modal.querySelector('#vpName').value.trim();
         if (!name) { setNotif('error', 'Nom requis'); return false; }
         var thresholdVal = parseFloat(modal.querySelector('#vpThreshold').value);
@@ -896,12 +905,11 @@
           abstention_as_against: modal.querySelector('#vpAbstention').checked ? 1 : 0
         };
         if (isEdit) payload.id = p.id;
-        api('/api/v1/admin_vote_policies.php', payload)
-          .then(function(r) {
-            if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadVotePolicies(); }
-            else { setNotif('error', getApiError(r.body)); }
-          })
-          .catch(function(err) { setNotif('error', err.message); });
+        try {
+          var r = await api('/api/v1/admin_vote_policies.php', payload);
+          if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadVotePolicies(); }
+          else { setNotif('error', getApiError(r.body)); return false; }
+        } catch(err) { setNotif('error', err.message); return false; }
       }
     });
   }
@@ -1034,7 +1042,13 @@
         });
       }
 
-    } catch (e) { setNotif('error', 'Erreur chargement rôles'); }
+    } catch (e) {
+      setNotif('error', 'Erreur chargement rôles');
+      ['permMatrix', 'systemRolesInfo', 'meetingRolesInfo'].forEach(function(id) {
+        var c = document.getElementById(id);
+        if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+      });
+    }
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1082,7 +1096,13 @@
       // Load state stats + archived meetings (single API call)
       loadStateStatsAndArchived();
 
-    } catch (e) { setNotif('error', 'Erreur chargement états'); }
+    } catch (e) {
+      setNotif('error', 'Erreur chargement états');
+      ['stateFlow', 'transitionsBody'].forEach(function(id) {
+        var c = document.getElementById(id);
+        if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+      });
+    }
   }
 
   // Load statistics by state + archived meetings list (single API call)
@@ -1232,7 +1252,7 @@
         var alerts = r.body.data.alerts || [];
         if (alertsContainer) {
           if (!alerts.length) {
-            alertsContainer.innerHTML = '<div class="text-center p-3 text-muted text-sm">Aucune alerte récente</div>';
+            alertsContainer.innerHTML = Shared.emptyState({ icon: 'generic', title: 'Aucune alerte récente', description: 'Le système fonctionne normalement.' });
           } else {
             alertsContainer.innerHTML = alerts.map(function(a) {
               var sevClass = a.severity === 'critical' ? 'danger' : (a.severity === 'warn' ? 'warning' : 'info');

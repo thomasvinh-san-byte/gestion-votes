@@ -611,7 +611,13 @@
   margin-top: 0.375rem;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1024px) {
+  .exec-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
   .exec-grid {
     grid-template-columns: 1fr;
   }
@@ -705,6 +711,91 @@
   color: var(--color-primary);
 }
 
+/* =============================================================================
+   TAB EMPTY STATE GUIDES — Shown when prerequisite data is missing
+   ============================================================================= */
+
+.tab-empty-guide {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  border-radius: 10px;
+  border: 1px dashed var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  animation: tabFadeIn var(--duration-normal) var(--ease-out);
+}
+
+.tab-empty-guide[hidden] { display: none; }
+
+.tab-empty-guide > .icon {
+  color: var(--color-primary);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.tab-empty-guide-text {
+  flex: 1;
+}
+
+.tab-empty-guide-text strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.tab-empty-guide-text p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Conformity item hint text (shown under label when pending) */
+.conformity-hint {
+  display: none;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.conformity-item:not(.done) .conformity-hint {
+  display: block;
+}
+
+/* Conformity item clickable states */
+.conformity-item[data-goto-tab] {
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.conformity-item[data-goto-tab]:hover {
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg-subtle));
+  border-left-color: var(--color-primary);
+}
+
+.conformity-item[data-goto-tab]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* Conformity label column: make label+hint stack vertically */
+.conformity-item:not(.done) {
+  flex-wrap: wrap;
+}
+
+.conformity-item:not(.done) .conformity-label {
+  flex-basis: auto;
+}
+
+@media (max-width: 768px) {
+  .tab-empty-guide {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+}
+
 /* Tab footer actions — "next step" navigation */
 .readiness-strip {
   display: flex;
@@ -719,6 +810,105 @@
 
 .readiness-strip:empty {
   display: none;
+}
+
+/* Readiness steps: horizontal progress indicator */
+.readiness-steps {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.readiness-steps.all-done {
+  color: var(--color-success);
+}
+
+.readiness-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm, 0.25rem);
+  white-space: nowrap;
+}
+
+.readiness-step.done {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+}
+
+.readiness-step.pending {
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border: 1px dashed var(--color-border);
+}
+
+.readiness-step.pending[data-goto-tab] {
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.readiness-step.pending[data-goto-tab]:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+}
+
+.readiness-arrow {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  opacity: 0.5;
+}
+
+/* Onboarding banner for freshly created meetings */
+.onboarding-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  margin: 0.75rem 1rem 0;
+  border-radius: var(--radius-md, 0.5rem);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  animation: onboarding-slide-in 300ms ease-out;
+}
+
+.onboarding-banner[hidden] { display: none; }
+
+.onboarding-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.onboarding-banner-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+@keyframes onboarding-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tab Contrôle section headings */
+.controle-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: 1rem;
 }
 
 .tab-footer-actions {
@@ -1808,6 +1998,14 @@
   padding: 0.5rem 0.75rem;
 }
 
+.close-session-next {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-success-subtle);
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-md);
+}
+
 /* =============================================================================
    EXEC CLOSE SESSION BANNER
    ============================================================================= */
@@ -2062,11 +2260,6 @@
    ICON SIZE VARIANTS
    ============================================================================= */
 
-.icon-xl {
-  width: 4rem;
-  height: 4rem;
-}
-
 .icon-3x {
   width: 3rem;
   height: 3rem;
@@ -2163,7 +2356,7 @@
   text-align: right;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1024px) {
   .exec-kpi-strip {
     flex-wrap: wrap;
   }

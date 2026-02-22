@@ -136,6 +136,9 @@
       await api('/api/v1/attendances_bulk.php', { meeting_id: O.currentMeetingId, mode: 'present' });
       O.attendanceCache.forEach(m => m.mode = 'present');
       renderAttendance();
+      if (O.fn.updateQuickStats) O.fn.updateQuickStats();
+      if (O.fn.loadStatusChecklist) O.fn.loadStatusChecklist();
+      if (O.fn.checkLaunchReady) O.fn.checkLaunchReady();
       setNotif('success', 'Tous marqués présents');
     } catch (err) {
       setNotif('error', err.message);
