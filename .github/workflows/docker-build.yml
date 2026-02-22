@@ -109,3 +109,18 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          load: true
+
+      - name: Smoke test — verify container starts and PHP extensions load
+        run: |
+          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -1)
+          echo "Running smoke test on $IMAGE_TAG"
+          # Verify PHP loads all required extensions inside the built image
+          docker run --rm "$IMAGE_TAG" php -r '
+            $required = ["gd","intl","zip","pdo_pgsql","pgsql","mbstring","redis","opcache"];
+            $missing = array_filter($required, fn($e) => !extension_loaded($e));
+            if ($missing) { fwrite(STDERR, "Missing extensions: ".implode(", ", $missing)."\n"); exit(1); }
+            echo "All extensions OK\n";
+          '
+          # Verify composer autoload works
+          docker run --rm "$IMAGE_TAG" php -r 'require "/var/www/vendor/autoload.php"; echo "Autoload OK\n";'
