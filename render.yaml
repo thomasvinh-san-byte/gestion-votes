@@ -15,7 +15,7 @@ services:
     name: ag-vote
     runtime: docker
     plan: free
-    healthCheckPath: /
+    healthCheckPath: /api/v1/health.php
     envVars:
       - key: DB_HOST
         fromDatabase:

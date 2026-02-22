@@ -46,11 +46,11 @@ RUN chown -R www-data:www-data /var/www \
     && chown -R www-data:www-data /tmp/ag-vote \
     && chmod +x /var/www/deploy/entrypoint.sh
 
-# HTTP only — WebSocket proxied via nginx /ws path (port 8081 internal only)
+# HTTP only (real-time updates via HTTP polling, not WebSocket)
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD curl -f http://127.0.0.1:8080/ || exit 1
+    CMD curl -f http://127.0.0.1:8080/api/v1/health.php || exit 1
 
 ENTRYPOINT ["/var/www/deploy/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
