@@ -207,7 +207,7 @@
 .filter-chip.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-primary-text, #fff);
+  color: var(--color-primary-text);
 }
 
 .group-color-dot-sm {
@@ -1019,13 +1019,13 @@ dialog.member-detail-dialog::backdrop {
 
 .onboarding-step.done .onboarding-step-num {
   background: var(--color-success);
-  color: var(--color-text-inverse, #fff);
+  color: var(--color-text-inverse);
   border: none;
 }
 
 .onboarding-step.action .onboarding-step-num {
   background: var(--color-primary);
-  color: var(--color-primary-text, #fff);
+  color: var(--color-primary-text);
   border: none;
 }
 

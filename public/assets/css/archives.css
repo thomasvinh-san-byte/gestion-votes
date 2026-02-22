@@ -208,3 +208,6 @@
   background: var(--color-warning-subtle);
   color: var(--color-warning-text);
 }
+
+/* Archive search input width (replaces inline style) */
+.archive-search-input { width: 180px; }
