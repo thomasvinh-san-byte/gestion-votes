@@ -53,8 +53,8 @@ final class VoteTokenService {
         string $meetingId,
         string $memberId,
         string $motionId,
-        int $ttlSeconds = self::DEFAULT_TTL_SECONDS,
         string $tenantId,
+        int $ttlSeconds = self::DEFAULT_TTL_SECONDS,
     ): array {
         $meetingId = trim($meetingId);
         $memberId = trim($memberId);

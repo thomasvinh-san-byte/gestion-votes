@@ -482,7 +482,7 @@ class MeetingRepository extends AbstractRepository {
      */
     public function lockForUpdate(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            'SELECT id, validated_at, status FROM meetings
+            'SELECT id, title, status, validated_at, started_at, scheduled_at, ended_at FROM meetings
              WHERE tenant_id = :tid AND id = :id FOR UPDATE',
             [':tid' => $tenantId, ':id' => $meetingId],
         );
