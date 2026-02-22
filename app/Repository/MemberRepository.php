@@ -113,11 +113,11 @@ class MemberRepository extends AbstractRepository {
     /**
      * Sum of voting_power for non-deleted members (for dashboard eligible weight).
      */
-    public function sumNotDeletedVoteWeight(string $tenantId): int {
-        return (int) ($this->scalar(
+    public function sumNotDeletedVoteWeight(string $tenantId): float {
+        return (float) ($this->scalar(
             'SELECT COALESCE(SUM(COALESCE(voting_power, 1.0)), 0) FROM members WHERE tenant_id = :tid AND deleted_at IS NULL',
             [':tid' => $tenantId],
-        ) ?? 0);
+        ) ?? 0.0);
     }
 
     /**

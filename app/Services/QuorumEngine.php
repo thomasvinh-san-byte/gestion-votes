@@ -237,7 +237,7 @@ final class QuorumEngine {
      */
     private static function ratioBlock(string $basis, float $threshold, int $numMembers, float $numWeight, int $eligibleMembers, float $eligibleWeight): array {
         if ($basis === 'eligible_members') {
-            $den = max(1, $eligibleMembers);
+            $den = $eligibleMembers;
             $num = (float) $numMembers;
         } else {
             $den = $eligibleWeight;

@@ -119,7 +119,7 @@ final class QuorumController extends AbstractController {
         $res['threshold'] = $primary['threshold'] ?? 0.5;
         $res['present'] = $res['numerator']['members'] ?? 0;
         $res['total_eligible'] = $res['eligible']['members'] ?? 0;
-        $res['required'] = (int) ceil(($primary['threshold'] ?? 0.5) * max(1, $res['eligible']['members'] ?? 0));
+        $res['required'] = (int) ceil(($primary['threshold'] ?? 0.5) * ($res['eligible']['members'] ?? 0));
         $res['mode'] = $primary['basis'] ?? 'simple';
 
         api_ok($res);

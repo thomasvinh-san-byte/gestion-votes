@@ -353,9 +353,10 @@ class QuorumEngineTest extends TestCase {
             eligibleWeight: 0,
         );
 
-        // Should use 1 as minimum denominator to avoid division by zero
+        // Zero eligible → denominator 0, quorum fails (guard prevents div-by-zero)
         $this->assertEquals(0.0, $result['ratio']);
-        $this->assertEquals(1, $result['denominator']);
+        $this->assertEquals(0, $result['denominator']);
+        $this->assertFalse($result['met']);
     }
 
     public function testZeroEligibleWeight(): void {
@@ -852,7 +853,7 @@ class QuorumEngineTest extends TestCase {
         float $eligibleWeight,
     ): array {
         if ($basis === 'eligible_members') {
-            $den = max(1, $eligibleMembers);
+            $den = $eligibleMembers;
             $num = (float) $numMembers;
         } else {
             $den = $eligibleWeight > 0 ? $eligibleWeight : 0.0001;

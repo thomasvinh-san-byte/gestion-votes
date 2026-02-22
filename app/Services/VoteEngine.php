@@ -68,7 +68,7 @@ final class VoteEngine {
             $quorumThreshold = (float) $quorumPolicy['threshold'];
 
             if ($quorumBasis === 'eligible_members') {
-                $denominator = max(1, $eligibleMembers);
+                $denominator = $eligibleMembers;
                 $numerator = $expressedMembers;
             } else {
                 $denominator = $eligibleWeight;
