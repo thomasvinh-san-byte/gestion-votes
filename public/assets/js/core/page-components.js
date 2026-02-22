@@ -419,8 +419,8 @@
         let eventsHtml = '';
         dayEvents.slice(0, 3).forEach(event => {
           const title = esc(this.getEventTitle(event)).slice(0, 20);
-          const status = this.getEventStatus(event);
-          eventsHtml += `<div class="calendar-event status-${status}" data-event-id="${event.id}" title="${esc(this.getEventTitle(event))}">${title}</div>`;
+          const status = esc(this.getEventStatus(event));
+          eventsHtml += `<div class="calendar-event status-${status}" data-event-id="${esc(String(event.id))}" title="${esc(this.getEventTitle(event))}">${title}</div>`;
         });
         if (dayEvents.length > 3) {
           eventsHtml += `<div class="text-muted" style="font-size:0.65rem;">+${dayEvents.length - 3} autres</div>`;

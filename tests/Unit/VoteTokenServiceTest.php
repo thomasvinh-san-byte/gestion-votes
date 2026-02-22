@@ -65,8 +65,8 @@ class VoteTokenServiceTest extends TestCase {
 
         // Token should be a 64-char hex string (32 random bytes)
         $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $result['token']);
-        // Hash should be SHA-256 of the token
-        $this->assertSame(hash('sha256', $result['token']), $result['token_hash']);
+        // Hash should be HMAC-SHA256 of the token (keyed with APP_SECRET)
+        $this->assertSame(hash_hmac('sha256', $result['token'], APP_SECRET), $result['token_hash']);
     }
 
     public function testGenerateThrowsOnEmptyMotionId(): void {
@@ -224,7 +224,7 @@ class VoteTokenServiceTest extends TestCase {
 
     public function testValidateWithValidTokenReturnsValid(): void {
         $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
 
         $this->tokenRepo
             ->method('findByHash')
@@ -250,7 +250,7 @@ class VoteTokenServiceTest extends TestCase {
 
     public function testValidateWithExpiredTokenReturnsInvalid(): void {
         $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
 
         $this->tokenRepo
             ->method('findByHash')
@@ -273,7 +273,7 @@ class VoteTokenServiceTest extends TestCase {
 
     public function testValidateWithAlreadyUsedTokenReturnsInvalid(): void {
         $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
 
         $this->tokenRepo
             ->method('findByHash')
@@ -318,7 +318,7 @@ class VoteTokenServiceTest extends TestCase {
 
     public function testValidateAndConsumeWithValidTokenReturnsBallotData(): void {
         $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
 
         $this->tokenRepo
             ->method('consumeIfValid')
@@ -344,7 +344,7 @@ class VoteTokenServiceTest extends TestCase {
 
     public function testValidateAndConsumeWithExpiredTokenReturnsExpiredReason(): void {
         $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
 
         // consumeIfValid returns null (token is expired or invalid)
         $this->tokenRepo
@@ -352,19 +352,11 @@ class VoteTokenServiceTest extends TestCase {
             ->with($tokenHash)
             ->willReturn(null);
 
-        // findByHash returns the existing record to determine the exact reason
+        // diagnoseFailure returns the reason in a single query
         $this->tokenRepo
-            ->method('findByHash')
+            ->method('diagnoseFailure')
             ->with($tokenHash)
-            ->willReturn([
-                'token_hash' => $tokenHash,
-                'tenant_id' => self::TENANT_ID,
-                'meeting_id' => self::MEETING_ID,
-                'member_id' => self::MEMBER_ID,
-                'motion_id' => self::MOTION_ID,
-                'expires_at' => gmdate('Y-m-d\TH:i:s\Z', time() - 100),
-                'used_at' => null,
-            ]);
+            ->willReturn('token_expired');
 
         $result = $this->service->validateAndConsume($rawToken);
 
@@ -374,19 +366,16 @@ class VoteTokenServiceTest extends TestCase {
 
     public function testValidateAndConsumeWithAlreadyUsedTokenReturnsUsedReason(): void {
         $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
 
         $this->tokenRepo
             ->method('consumeIfValid')
             ->willReturn(null);
 
         $this->tokenRepo
-            ->method('findByHash')
+            ->method('diagnoseFailure')
             ->with($tokenHash)
-            ->willReturn([
-                'token_hash' => $tokenHash,
-                'used_at' => '2025-01-01T12:00:00Z',
-            ]);
+            ->willReturn('token_already_used');
 
         $result = $this->service->validateAndConsume($rawToken);
 
@@ -396,15 +385,16 @@ class VoteTokenServiceTest extends TestCase {
 
     public function testValidateAndConsumeWithNotFoundTokenReturnsNotFoundReason(): void {
         $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
 
         $this->tokenRepo
             ->method('consumeIfValid')
             ->willReturn(null);
 
         $this->tokenRepo
-            ->method('findByHash')
-            ->willReturn(null);
+            ->method('diagnoseFailure')
+            ->with($tokenHash)
+            ->willReturn('token_not_found');
 
         $result = $this->service->validateAndConsume($rawToken);
 
@@ -432,7 +422,7 @@ class VoteTokenServiceTest extends TestCase {
 
     public function testConsumeWithValidTokenReturnsTrue(): void {
         $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
 
         $this->tokenRepo
             ->method('findByHash')
@@ -460,7 +450,7 @@ class VoteTokenServiceTest extends TestCase {
 
     public function testConsumeWithExplicitTenantId(): void {
         $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $rawToken);
+        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
 
         $this->tokenRepo
             ->expects($this->once())
@@ -515,9 +505,9 @@ class VoteTokenServiceTest extends TestCase {
     // EDGE CASES
     // =========================================================================
 
-    public function testTokenHashIsConsistentSha256(): void {
+    public function testTokenHashIsConsistentHmacSha256(): void {
         $rawToken = 'a1b2c3d4e5f6';
-        $expectedHash = hash('sha256', $rawToken);
+        $expectedHash = hash_hmac('sha256', $rawToken, APP_SECRET);
 
         $this->tokenRepo
             ->method('findByHash')

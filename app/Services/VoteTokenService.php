@@ -13,10 +13,13 @@ use RuntimeException;
  * VoteTokenService - Vote token management (vote_tokens table).
  *
  * Flow:
- *  1. generate() creates a random token, stores its SHA-256 hash in DB.
+ *  1. generate() creates a random token, stores its HMAC-SHA256 hash in DB.
  *  2. The raw token is sent to the voter (QR, link, etc.).
- *  3. validate() verifies the hash, expiration and non-usage.
- *  4. consume() marks the token as used.
+ *  3. validateAndConsume() atomically verifies + consumes the token.
+ *
+ * IMPORTANT: Token hashes use hash_hmac('sha256', $token, APP_SECRET) —
+ * this MUST match VoteTokenController::generate() and VotePublicController::vote().
+ * Never use plain hash('sha256') for vote tokens.
  */
 final class VoteTokenService {
     private const TOKEN_BYTES = 32;
@@ -31,6 +34,14 @@ final class VoteTokenService {
     ) {
         $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
         $this->tokenRepo = $tokenRepo ?? new VoteTokenRepository();
+    }
+
+    /**
+     * Computes the HMAC-SHA256 hash of a raw token.
+     * Must match VoteTokenController and VotePublicController.
+     */
+    private static function hashToken(string $rawToken): string {
+        return hash_hmac('sha256', $rawToken, APP_SECRET);
     }
 
     /**
@@ -57,9 +68,9 @@ final class VoteTokenService {
             throw new RuntimeException('Séance introuvable');
         }
 
-        // Generate raw token (hex) and its SHA-256 hash
+        // Generate raw token (hex) and its HMAC-SHA256 hash (keyed with APP_SECRET)
         $tokenRaw = bin2hex(random_bytes(self::TOKEN_BYTES));
-        $tokenHash = hash('sha256', $tokenRaw);
+        $tokenHash = self::hashToken($tokenRaw);
 
         $ttlSeconds = max(60, $ttlSeconds);
         $expiresAt = gmdate('Y-m-d\TH:i:s\Z', time() + $ttlSeconds);
@@ -76,6 +87,8 @@ final class VoteTokenService {
     /**
      * Validates a token: exists, not expired, not used.
      *
+     * @deprecated Use validateAndConsume() for atomic validate+consume (no TOCTOU race).
+     *
      * @return array{valid: bool, token_hash: string, meeting_id?: string, member_id?: string, motion_id?: string, reason?: string}
      */
     public function validate(string $token): array {
@@ -84,7 +97,7 @@ final class VoteTokenService {
             return ['valid' => false, 'token_hash' => '', 'reason' => 'token_empty'];
         }
 
-        $tokenHash = hash('sha256', $token);
+        $tokenHash = self::hashToken($token);
 
         $row = $this->tokenRepo->findByHash($tokenHash);
 
@@ -112,6 +125,8 @@ final class VoteTokenService {
 
     /**
      * Marks a token as used (consumed).
+     *
+     * @deprecated Use validateAndConsume() for atomic validate+consume (no TOCTOU race).
      */
     public function consume(string $token, string $tenantId = ''): bool {
         $token = trim($token);
@@ -119,7 +134,7 @@ final class VoteTokenService {
             return false;
         }
 
-        $tokenHash = hash('sha256', $token);
+        $tokenHash = self::hashToken($token);
 
         if ($tenantId === '') {
             $row = $this->tokenRepo->findByHash($tokenHash);
@@ -146,20 +161,14 @@ final class VoteTokenService {
             return ['valid' => false, 'token_hash' => '', 'reason' => 'token_empty'];
         }
 
-        $tokenHash = hash('sha256', $token);
+        $tokenHash = self::hashToken($token);
 
         $row = $this->tokenRepo->consumeIfValid($tokenHash);
 
         if (!$row) {
-            // Token not found, already used, or expired — check which
-            $existing = $this->tokenRepo->findByHash($tokenHash);
-            if (!$existing) {
-                return ['valid' => false, 'token_hash' => $tokenHash, 'reason' => 'token_not_found'];
-            }
-            if ($existing['used_at'] !== null) {
-                return ['valid' => false, 'token_hash' => $tokenHash, 'reason' => 'token_already_used'];
-            }
-            return ['valid' => false, 'token_hash' => $tokenHash, 'reason' => 'token_expired'];
+            // Single diagnostic query to determine failure reason
+            $reason = $this->tokenRepo->diagnoseFailure($tokenHash);
+            return ['valid' => false, 'token_hash' => $tokenHash, 'reason' => $reason];
         }
 
         return [

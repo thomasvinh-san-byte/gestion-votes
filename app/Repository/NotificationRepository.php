@@ -18,8 +18,8 @@ class NotificationRepository extends AbstractRepository {
      */
     public function findValidationState(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            'SELECT ready, codes FROM meeting_validation_state WHERE meeting_id = ? AND tenant_id = ?',
-            [$meetingId, $tenantId],
+            'SELECT ready, codes FROM meeting_validation_state WHERE meeting_id = :mid AND tenant_id = :tid',
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
@@ -29,9 +29,9 @@ class NotificationRepository extends AbstractRepository {
     public function upsertValidationState(string $meetingId, string $tenantId, bool $ready, string $codesJson): void {
         $this->execute(
             'INSERT INTO meeting_validation_state (meeting_id, tenant_id, ready, codes)
-             VALUES (?, ?, ?, ?::jsonb)
+             VALUES (:mid, :tid, :ready, :codes::jsonb)
              ON CONFLICT (meeting_id) DO UPDATE SET ready = EXCLUDED.ready, codes = EXCLUDED.codes, updated_at = now()',
-            [$meetingId, $tenantId, $ready, $codesJson],
+            [':mid' => $meetingId, ':tid' => $tenantId, ':ready' => $ready, ':codes' => $codesJson],
         );
     }
 
@@ -45,9 +45,9 @@ class NotificationRepository extends AbstractRepository {
     public function countRecentDuplicates(string $meetingId, string $code, string $message, string $tenantId): int {
         return (int) ($this->scalar(
             "SELECT count(*) FROM meeting_notifications
-             WHERE meeting_id = ? AND code = ? AND message = ? AND tenant_id = ?
+             WHERE meeting_id = :mid AND code = :code AND message = :msg AND tenant_id = :tid
                AND created_at > (now() - interval '10 seconds')",
-            [$meetingId, $code, $message, $tenantId],
+            [':mid' => $meetingId, ':code' => $code, ':msg' => $message, ':tid' => $tenantId],
         ) ?? 0);
     }
 
@@ -65,8 +65,11 @@ class NotificationRepository extends AbstractRepository {
     ): void {
         $this->execute(
             'INSERT INTO meeting_notifications (tenant_id, meeting_id, severity, code, message, audience, data)
-             VALUES (?, ?, ?, ?, ?, ?::text[], ?::jsonb)',
-            [$tenantId, $meetingId, $severity, $code, $message, $audienceLiteral, $dataJson],
+             VALUES (:tid, :mid, :sev, :code, :msg, :aud::text[], :data::jsonb)',
+            [
+                ':tid' => $tenantId, ':mid' => $meetingId, ':sev' => $severity,
+                ':code' => $code, ':msg' => $message, ':aud' => $audienceLiteral, ':data' => $dataJson,
+            ],
         );
     }
 
@@ -76,20 +79,34 @@ class NotificationRepository extends AbstractRepository {
     public function listSinceId(string $meetingId, int $sinceId, int $limit, string $audience = '', string $tenantId = ''): array {
         $limit = max(1, min(100, $limit));
         if ($audience === '' || $audience === 'all') {
-            $sql = 'SELECT id, severity, code, message, data, read_at, created_at
+            $params = [':mid' => $meetingId, ':since' => $sinceId, ':lim' => $limit];
+            $tenantClause = '';
+            if ($tenantId !== '') {
+                $tenantClause = ' AND tenant_id = :tid';
+                $params[':tid'] = $tenantId;
+            }
+            return $this->selectAll(
+                "SELECT id, severity, code, message, data, read_at, created_at
                  FROM meeting_notifications
-                 WHERE meeting_id = ? AND id > ?';
-            $params = [$meetingId, $sinceId];
-            if ($tenantId !== '') { $sql .= ' AND tenant_id = ?'; $params[] = $tenantId; }
-            return $this->selectAll($sql . ' ORDER BY id ASC LIMIT ' . $limit, $params);
+                 WHERE meeting_id = :mid AND id > :since{$tenantClause}
+                 ORDER BY id ASC LIMIT :lim",
+                $params,
+            );
         }
-        $sql = 'SELECT id, severity, code, message, data, read_at, created_at
+        $params = [':mid' => $meetingId, ':since' => $sinceId, ':aud' => $audience, ':lim' => $limit];
+        $tenantClause = '';
+        if ($tenantId !== '') {
+            $tenantClause = ' AND tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        return $this->selectAll(
+            "SELECT id, severity, code, message, data, read_at, created_at
              FROM meeting_notifications
-             WHERE meeting_id = ? AND id > ?
-               AND (audience @> ARRAY[?]::text[])';
-        $params = [$meetingId, $sinceId, $audience];
-        if ($tenantId !== '') { $sql .= ' AND tenant_id = ?'; $params[] = $tenantId; }
-        return $this->selectAll($sql . ' ORDER BY id ASC LIMIT ' . $limit, $params);
+             WHERE meeting_id = :mid AND id > :since
+               AND (audience @> ARRAY[:aud]::text[]){$tenantClause}
+             ORDER BY id ASC LIMIT :lim",
+            $params,
+        );
     }
 
     /**
@@ -98,20 +115,34 @@ class NotificationRepository extends AbstractRepository {
     public function listRecent(string $meetingId, int $limit, string $audience = '', string $tenantId = ''): array {
         $limit = max(1, min(200, $limit));
         if ($audience === '' || $audience === 'all') {
-            $sql = 'SELECT id, severity, code, message, data, read_at, created_at
+            $params = [':mid' => $meetingId, ':lim' => $limit];
+            $tenantClause = '';
+            if ($tenantId !== '') {
+                $tenantClause = ' AND tenant_id = :tid';
+                $params[':tid'] = $tenantId;
+            }
+            return $this->selectAll(
+                "SELECT id, severity, code, message, data, read_at, created_at
                  FROM meeting_notifications
-                 WHERE meeting_id = ?';
-            $params = [$meetingId];
-            if ($tenantId !== '') { $sql .= ' AND tenant_id = ?'; $params[] = $tenantId; }
-            return $this->selectAll($sql . ' ORDER BY id DESC LIMIT ' . $limit, $params);
+                 WHERE meeting_id = :mid{$tenantClause}
+                 ORDER BY id DESC LIMIT :lim",
+                $params,
+            );
         }
-        $sql = 'SELECT id, severity, code, message, data, read_at, created_at
+        $params = [':mid' => $meetingId, ':aud' => $audience, ':lim' => $limit];
+        $tenantClause = '';
+        if ($tenantId !== '') {
+            $tenantClause = ' AND tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        return $this->selectAll(
+            "SELECT id, severity, code, message, data, read_at, created_at
              FROM meeting_notifications
-             WHERE meeting_id = ?
-               AND (audience @> ARRAY[?]::text[])';
-        $params = [$meetingId, $audience];
-        if ($tenantId !== '') { $sql .= ' AND tenant_id = ?'; $params[] = $tenantId; }
-        return $this->selectAll($sql . ' ORDER BY id DESC LIMIT ' . $limit, $params);
+             WHERE meeting_id = :mid
+               AND (audience @> ARRAY[:aud]::text[]){$tenantClause}
+             ORDER BY id DESC LIMIT :lim",
+            $params,
+        );
     }
 
     /**
@@ -123,8 +154,8 @@ class NotificationRepository extends AbstractRepository {
         }
         $this->execute(
             'UPDATE meeting_notifications SET read_at = now()
-             WHERE meeting_id = ? AND id = ? AND tenant_id = ? AND read_at IS NULL',
-            [$meetingId, $id, $tenantId],
+             WHERE meeting_id = :mid AND id = :id AND tenant_id = :tid AND read_at IS NULL',
+            [':mid' => $meetingId, ':id' => $id, ':tid' => $tenantId],
         );
     }
 
@@ -132,21 +163,18 @@ class NotificationRepository extends AbstractRepository {
      * Marque toutes les notifications comme lues (par audience).
      */
     public function markAllRead(string $meetingId, string $audience = '', string $tenantId): void {
-        $params = [$meetingId, $tenantId];
-
         if ($audience === '' || $audience === 'all') {
             $this->execute(
                 'UPDATE meeting_notifications SET read_at = now()
-                 WHERE meeting_id = ? AND tenant_id = ? AND read_at IS NULL',
-                $params,
+                 WHERE meeting_id = :mid AND tenant_id = :tid AND read_at IS NULL',
+                [':mid' => $meetingId, ':tid' => $tenantId],
             );
             return;
         }
-        $params[] = $audience;
         $this->execute(
             'UPDATE meeting_notifications SET read_at = now()
-             WHERE meeting_id = ? AND tenant_id = ? AND read_at IS NULL AND (audience @> ARRAY[?]::text[])',
-            $params,
+             WHERE meeting_id = :mid AND tenant_id = :tid AND read_at IS NULL AND (audience @> ARRAY[:aud]::text[])',
+            [':mid' => $meetingId, ':tid' => $tenantId, ':aud' => $audience],
         );
     }
 
@@ -154,16 +182,14 @@ class NotificationRepository extends AbstractRepository {
      * Supprime les notifications (par audience).
      */
     public function clear(string $meetingId, string $audience = '', string $tenantId): void {
-        $params = [$meetingId, $tenantId];
-
         if ($audience === '' || $audience === 'all') {
-            $this->execute('DELETE FROM meeting_notifications WHERE meeting_id = ? AND tenant_id = ?', $params);
+            $this->execute('DELETE FROM meeting_notifications WHERE meeting_id = :mid AND tenant_id = :tid',
+                [':mid' => $meetingId, ':tid' => $tenantId]);
             return;
         }
-        $params[] = $audience;
         $this->execute(
-            'DELETE FROM meeting_notifications WHERE meeting_id = ? AND tenant_id = ? AND (audience @> ARRAY[?]::text[])',
-            $params,
+            'DELETE FROM meeting_notifications WHERE meeting_id = :mid AND tenant_id = :tid AND (audience @> ARRAY[:aud]::text[])',
+            [':mid' => $meetingId, ':tid' => $tenantId, ':aud' => $audience],
         );
     }
 }
