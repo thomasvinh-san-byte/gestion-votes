@@ -706,6 +706,28 @@ h4, .h4 {
   background: var(--color-danger-hover);
 }
 
+.btn-warning {
+  background: var(--color-warning);
+  color: var(--color-text-inverse);
+  border-color: var(--color-warning);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: var(--color-warning-hover);
+  border-color: var(--color-warning-hover);
+}
+
+.btn-info {
+  background: var(--color-info);
+  color: var(--color-text-inverse);
+  border-color: var(--color-info);
+}
+
+.btn-info:hover:not(:disabled) {
+  background: var(--color-info-hover);
+  border-color: var(--color-info-hover);
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--color-text-secondary);

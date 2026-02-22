@@ -4,6 +4,8 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Administration — AG-VOTE">
   <title>Administration — AG-VOTE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -182,7 +184,7 @@
                   <tr><th scope="col">Séance</th><th scope="col">Utilisateur</th><th scope="col">Rôle</th><th scope="col" class="table-col-actions-sm">Actions</th></tr>
                 </thead>
                 <tbody id="meetingRolesBody">
-                  <tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr>
+                  <tr><td colspan="4"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></td></tr>
                 </tbody>
               </table>
             </div>
@@ -233,7 +235,7 @@
               <div class="mb-3">
                 <input class="form-input" type="search" id="permSearch" placeholder="Filtrer les permissions..." aria-label="Filtrer les permissions">
               </div>
-              <div id="permMatrix" aria-live="polite" aria-busy="true">Chargement...</div>
+              <div id="permMatrix" aria-live="polite" aria-busy="true"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -245,7 +247,7 @@
                 </h3>
                 <p class="card-description">Permanents, liés au compte</p>
               </div>
-              <div class="card-body" id="systemRolesInfo">Chargement...</div>
+              <div class="card-body" id="systemRolesInfo"><div class="skeleton-row"><div class="skeleton skeleton-line" style="width:60%"></div></div></div>
             </div>
             <div class="card">
               <div class="card-header">
@@ -255,7 +257,7 @@
                 </h3>
                 <p class="card-description">Temporaires, attribués par séance</p>
               </div>
-              <div class="card-body" id="meetingRolesInfo">Chargement...</div>
+              <div class="card-body" id="meetingRolesInfo"><div class="skeleton-row"><div class="skeleton skeleton-line" style="width:60%"></div></div></div>
             </div>
           </div>
         </div>
@@ -270,7 +272,7 @@
               <p class="card-description">Visualisation des états et transitions possibles</p>
             </div>
             <div class="card-body">
-              <div class="state-flow-visual" id="stateFlow">Chargement...</div>
+              <div class="state-flow-visual" id="stateFlow"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
             </div>
           </div>
 
@@ -292,7 +294,7 @@
             <div class="card">
               <div class="card-header"><h3 class="card-title">Statistiques actuelles</h3></div>
               <div class="card-body" id="stateStats">
-                <div class="text-center p-4 text-muted">Chargement...</div>
+                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
               </div>
             </div>
           </div>
@@ -302,7 +304,7 @@
             <div class="card-body p-0">
               <table class="users-table" id="transitionsTable">
                 <thead><tr><th scope="col">De</th><th scope="col">Vers</th><th scope="col">Rôle requis</th><th scope="col">Description</th></tr></thead>
-                <tbody id="transitionsBody"><tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr></tbody>
+                <tbody id="transitionsBody"><tr><td colspan="4"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></td></tr></tbody>
               </table>
             </div>
           </div>
@@ -314,7 +316,7 @@
               <p class="card-description">Restaurer une séance archivée vers l'état « Validée » pour corrections</p>
             </div>
             <div class="card-body p-0" id="archivedMeetingsList">
-              <div class="text-center p-4 text-muted">Chargement...</div>
+              <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
             </div>
           </div>
         </div>
@@ -361,7 +363,7 @@
               </div>
             </div>
             <div class="card-body p-0" id="systemStats">
-              <div class="system-stat"><span class="system-stat-label">Base de données</span><span class="system-stat-value" id="statDbStatus">Chargement...</span></div>
+              <div class="system-stat"><span class="system-stat-label">Base de données</span><span class="system-stat-value" id="statDbStatus"><span class="skeleton skeleton-line" style="width:60px;display:inline-block"></span></span></div>
               <div class="system-stat"><span class="system-stat-label">Latence DB <ag-popover title="Latence de la base de données" content="Temps de réponse pour une requête simple. Normal : < 10ms. Acceptable : < 50ms. Lent : > 100ms." position="right"></ag-popover></span><span class="system-stat-value" id="statDbLatency">—</span></div>
               <div class="system-stat"><span class="system-stat-label">Connexions actives</span><span class="system-stat-value" id="statDbConnections">—</span></div>
               <div class="system-stat"><span class="system-stat-label">Séances en cours</span><span class="system-stat-value" id="statActiveMeetings">—</span></div>
@@ -378,7 +380,7 @@
               <p class="card-description">Alertes automatiques : latence, disque, authentification</p>
             </div>
             <div class="card-body p-0" id="systemAlerts">
-              <div class="text-center p-3 text-muted text-sm">Chargement...</div>
+              <div class="skeleton-row"><div class="skeleton skeleton-cell"></div></div>
             </div>
           </div>
 
@@ -400,7 +402,7 @@
             </div>
             <div class="card-body p-0">
               <div id="adminAuditList" style="max-height:400px;overflow:auto;">
-                <div class="text-center p-4 text-muted">Chargement...</div>
+                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
               </div>
               <div class="flex items-center justify-between p-3 border-top" id="adminAuditPagination" style="display:none;">
                 <span class="text-sm text-muted" id="adminAuditCount"></span>

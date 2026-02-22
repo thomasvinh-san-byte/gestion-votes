@@ -4,6 +4,8 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Documentation - AG-VOTE">
   <title>Documentation — AG-VOTE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,13 +36,13 @@
         <aside class="doc-sidebar">
           <nav class="doc-index" id="docIndex" aria-label="Index des documents">
             <h4>Documentation</h4>
-            <div class="text-muted text-sm" style="padding:0.5rem">Chargement...</div>
+            <div class="p-2"><div class="skeleton skeleton-line" style="width:80%"></div><div class="skeleton skeleton-line mt-2" style="width:60%"></div></div>
           </nav>
         </aside>
 
         <!-- CENTER: rendered Markdown -->
         <article class="doc-content prose" id="docContent">
-          <div style="text-align:center;padding:3rem;color:var(--color-text-muted)">Chargement du document...</div>
+          <div class="text-center p-6"><div class="spinner"></div></div>
         </article>
 
         <!-- RIGHT: Table of Contents (sticky) -->
