@@ -166,69 +166,7 @@
   color: var(--color-text);
 }
 
-/* =============================================================================
-   TABS NAVIGATION (operator-style)
-   ============================================================================= */
-
-.tabs-nav {
-  display: flex;
-  gap: 0;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  padding: 0 1.5rem;
-  overflow-x: auto;
-}
-
-.tab-btn {
-  padding: 0.875rem 1.25rem;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-text-muted);
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
-}
-
-.tab-btn:hover {
-  color: var(--color-text);
-  background: var(--color-bg-subtle);
-}
-
-.tab-btn.active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
-}
-
-.tab-btn .tab-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  margin-left: 0.5rem;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  background: var(--color-bg-subtle);
-  border-radius: 10px;
-}
-
-.tab-btn.active .tab-count {
-  background: var(--color-primary);
-  color: var(--color-primary-text);
-}
-
-.tab-content {
-  display: none;
-  padding: 1.5rem;
-}
-
-.tab-content.active {
-  display: block;
-}
+/* Tabs navigation rules live in operator.css — single source of truth */
 
 /* =============================================================================
    TAB TOOLBAR
@@ -1156,15 +1094,6 @@
   .session-selector select {
     min-width: auto;
     width: 100%;
-  }
-
-  .tabs-nav {
-    padding: 0 0.5rem;
-  }
-
-  .tab-btn {
-    padding: 0.75rem 0.75rem;
-    font-size: 0.8rem;
   }
 
   /* Meetings grid responsive */

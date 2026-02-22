@@ -716,7 +716,7 @@ dialog.member-detail-dialog {
 }
 
 dialog.member-detail-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--color-backdrop);
 }
 
 .dialog-header {

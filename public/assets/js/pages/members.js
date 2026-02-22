@@ -819,13 +819,12 @@
     const importOut = document.getElementById('importOut');
 
     try {
-      const resp = await fetch('/api/v1/members_import_csv.php', {
-        method: 'POST',
-        body: formData
-      });
-      const body = await resp.json();
+      const { status, body } = await apiUpload('/api/v1/members_import_csv.php', formData);
 
       importOut.style.display = 'block';
+      if (status === 0) {
+        throw new Error(body?.message || 'Le téléversement a échoué (réseau ou délai)');
+      }
       if (body?.ok) {
         const d = body.data || {};
         const imported = d.imported || 0;
