@@ -2200,7 +2200,7 @@
    ============================================================================= */
 
 /* Hide sidebar on operator page earlier (more horizontal space needed) */
-@media (max-width: 980px) {
+@media (max-width: 1024px) {
   [data-page-role="operator"] .app-shell {
     grid-template-columns: 1fr;
     grid-template-areas:

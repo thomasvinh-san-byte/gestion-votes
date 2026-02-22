@@ -279,6 +279,44 @@
   }
 
   // =========================================================================
+  // SKELETON LOADING HELPERS
+  // =========================================================================
+
+  /**
+   * Set a container to a skeleton loading state.
+   * Replaces innerHTML with skeleton rows.
+   * @param {HTMLElement} el - Container element
+   * @param {object} [opts]
+   * @param {number} [opts.rows=2] - Number of skeleton rows
+   * @param {number} [opts.cols=3] - Cells per row
+   */
+  function skeleton(el, opts) {
+    if (!el) return;
+    opts = opts || {};
+    var rows = opts.rows || 2;
+    var cols = opts.cols || 3;
+    var html = '';
+    for (var r = 0; r < rows; r++) {
+      html += '<div class="skeleton-row">';
+      for (var c = 0; c < cols; c++) {
+        html += '<div class="skeleton skeleton-cell"></div>';
+      }
+      html += '</div>';
+    }
+    el.innerHTML = html;
+    el.setAttribute('aria-busy', 'true');
+  }
+
+  /**
+   * Clear skeleton state from a container.
+   * @param {HTMLElement} el - Container element
+   */
+  function clearSkeleton(el) {
+    if (!el) return;
+    el.removeAttribute('aria-busy');
+  }
+
+  // =========================================================================
   // NUMBER FORMATTING HELPERS
   // =========================================================================
 
@@ -475,7 +513,9 @@
     validateField: validateField,
     liveValidate: liveValidate,
     validateAll: validateAll,
-    withRetry: withRetry
+    withRetry: withRetry,
+    skeleton: skeleton,
+    clearSkeleton: clearSkeleton
   };
 
 })();

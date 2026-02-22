@@ -659,7 +659,25 @@
 }
 
 .vote-btn:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.95);
+  transition-duration: 80ms;
+}
+
+/* Ripple feedback ring on tap */
+.vote-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.vote-btn:active:not(:disabled)::after {
+  opacity: 1;
+  transition-duration: 0s;
 }
 
 .vote-btn:focus-visible {
