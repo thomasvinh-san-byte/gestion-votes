@@ -1192,6 +1192,15 @@
         O.fn.loadMeetings();
         O.fn.setMode('setup', { tab: 'resultats' });
         O.announce('Séance clôturée.');
+        var nextBlock = document.getElementById('closeSessionNext');
+        if (nextBlock) {
+          nextBlock.hidden = false;
+          var links = nextBlock.querySelectorAll('a[href]');
+          links.forEach(function(a) {
+            var sep = a.href.includes('?') ? '&' : '?';
+            a.href += sep + 'meeting_id=' + encodeURIComponent(O.currentMeetingId);
+          });
+        }
       } else {
         setNotif('error', getApiError(body, 'Erreur lors de la clôture'));
       }

@@ -884,6 +884,17 @@
             <button class="btn btn-lg btn-danger w-full" id="btnCloseSession">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance
             </button>
+            <div class="close-session-next" id="closeSessionNext" hidden>
+              <p class="text-sm text-muted mb-3">Séance clôturée. Poursuivez le parcours :</p>
+              <div class="flex gap-2 flex-wrap">
+                <a href="/postsession.htmx.html" class="btn btn-primary">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg> Clôture &amp; PV
+                </a>
+                <a href="/validate.htmx.html" class="btn btn-secondary">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield-check"></use></svg> Validation
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 

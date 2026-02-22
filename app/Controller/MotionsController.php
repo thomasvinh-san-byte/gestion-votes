@@ -400,11 +400,18 @@ final class MotionsController extends AbstractController {
             $ballotsCast = (new BallotRepository())->countByMotionId((string) $motion['id'], $tenantId);
         }
 
+        $meetingStatus = null;
+        $meeting = (new MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
+        if ($meeting) {
+            $meetingStatus = $meeting['status'] ?? null;
+        }
+
         api_ok([
             'motion' => $motion,
             'total_motions' => $totalMotions,
             'eligible_count' => $eligibleCount,
             'ballots_cast' => $ballotsCast,
+            'meeting_status' => $meetingStatus,
         ]);
     }
 

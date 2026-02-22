@@ -553,7 +553,7 @@
    * Uses dedicated elements instead of replacing innerHTML of the entire card.
    * @param {Object|null} m - Motion data object or null
    */
-  function updateMotionCard(m) {
+  function updateMotionCard(m, state) {
     const title = $("#motionTitle");
     const sub = $("#motionSub");
     const badges = $("#motionBadges");
@@ -565,13 +565,20 @@
     const card = $("#motionBox");
 
     if (!m) {
-      if (title) { title.textContent = 'En attente d\u2019une résolution'; title.dataset.motionId = ''; }
-      if (sub) sub.textContent = 'L\u2019op\u00e9rateur ouvrira le vote quand la r\u00e9solution sera pr\u00eate. Cette page se met \u00e0 jour automatiquement.';
+      if (state === 'ended') {
+        if (title) { title.textContent = 'Séance terminée'; title.dataset.motionId = ''; }
+        if (sub) sub.textContent = 'Tous les votes sont clos. Merci pour votre participation.';
+        if (phaseEl) phaseEl.textContent = 'Terminé';
+        if (card) { card.classList.remove('active', 'waiting'); card.classList.add('ended'); }
+      } else {
+        if (title) { title.textContent = 'En attente d\u2019une résolution'; title.dataset.motionId = ''; }
+        if (sub) sub.textContent = 'L\u2019op\u00e9rateur ouvrira le vote quand la r\u00e9solution sera pr\u00eate. Cette page se met \u00e0 jour automatiquement.';
+        if (phaseEl) phaseEl.textContent = 'En attente';
+        if (card) { card.classList.remove('active', 'ended'); card.classList.add('waiting'); }
+      }
       if (badges) badges.innerHTML = '';
       if (noEl) { noEl.textContent = ''; Shared.hide(noEl); }
-      if (phaseEl) phaseEl.textContent = 'En attente';
       if (resoDetails) resoDetails.hidden = true;
-      if (card) { card.classList.remove('active'); card.classList.add('waiting'); }
       return;
     }
 
@@ -700,7 +707,12 @@
       const m = d?.motion;
       if (!m){
         _currentMotionId = null;
-        updateMotionCard(null);
+        var meetingStatus = d?.meeting_status;
+        if (meetingStatus === 'closed' || meetingStatus === 'validated' || meetingStatus === 'archived') {
+          updateMotionCard(null, 'ended');
+        } else {
+          updateMotionCard(null);
+        }
         updateMotionProgress(null, null);
         updateVoteParticipation(null);
         setVoteButtonsEnabled(false);

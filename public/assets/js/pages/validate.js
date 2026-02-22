@@ -243,7 +243,12 @@
             Shared.btnLoading(btn, false);
             Shared.show(msgDiv, 'block');
             msgDiv.className = 'alert alert-success';
-            msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès ! Redirection…`;
+            var meetingParam = currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : '';
+            msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès !`
+              + `<div class="flex gap-2 mt-3">`
+              + `<a href="/postsession.htmx.html${meetingParam}" class="btn btn-primary btn-sm">${icon('check-square', 'icon-sm icon-text')} Clôture &amp; PV</a>`
+              + `<a href="/archives.htmx.html${meetingParam}" class="btn btn-secondary btn-sm">${icon('archive', 'icon-sm icon-text')} Archives</a>`
+              + `</div>`;
 
             setNotif('success', 'Séance validée !');
 

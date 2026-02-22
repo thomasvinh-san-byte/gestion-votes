@@ -440,6 +440,19 @@
   font-style: italic;
 }
 
+.motion-card.ended {
+  border-color: var(--color-success);
+  background: var(--color-success-subtle);
+}
+
+.motion-card.ended .motion-title {
+  color: var(--color-success);
+}
+
+.motion-card.ended .motion-sub {
+  font-weight: 400;
+}
+
 .motion-card-header {
   display: flex;
   align-items: center;
