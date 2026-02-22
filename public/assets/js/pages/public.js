@@ -30,15 +30,22 @@ function updateUrl() {
 function showMeetingPicker(meetings) {
   var list = document.getElementById('meeting_picker_list');
   list.innerHTML = '';
-  meetings.forEach(function(m) {
-    var btn = document.createElement('button');
-    btn.className = 'meeting-picker-card';
-    var time = m.started_at ? new Date(m.started_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
-    btn.innerHTML = '<span class="meeting-picker-card-title">' + escapeHtml(m.title || 'Sans titre') + '</span>'
-      + (time ? '<span class="meeting-picker-card-time">Démarrée à ' + escapeHtml(time) + '</span>' : '');
-    btn.addEventListener('click', function() { selectMeeting(m.id); });
-    list.appendChild(btn);
-  });
+  if (!meetings || meetings.length === 0) {
+    var msg = document.createElement('p');
+    msg.className = 'meeting-picker-empty';
+    msg.textContent = 'Aucune séance en cours. La page se rafraîchit automatiquement.';
+    list.appendChild(msg);
+  } else {
+    meetings.forEach(function(m) {
+      var btn = document.createElement('button');
+      btn.className = 'meeting-picker-card';
+      var time = m.started_at ? new Date(m.started_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+      btn.innerHTML = '<span class="meeting-picker-card-title">' + escapeHtml(m.title || 'Sans titre') + '</span>'
+        + (time ? '<span class="meeting-picker-card-time">Démarrée à ' + escapeHtml(time) + '</span>' : '');
+      btn.addEventListener('click', function() { selectMeeting(m.id); });
+      list.appendChild(btn);
+    });
+  }
   document.getElementById('meeting_picker').hidden = false;
 }
 
@@ -460,6 +467,7 @@ function getDeviceId() {
   } catch(e) { return 'anon-' + Date.now(); }
 }
 
+var _heartbeatFails = 0;
 async function heartbeat() {
   if (!MEETING_ID) return;
   try {
@@ -468,7 +476,18 @@ async function heartbeat() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ meeting_id: MEETING_ID, device_id: getDeviceId(), role: 'projector' })
     });
-  } catch(e) {}
+    _heartbeatFails = 0;
+  } catch(e) {
+    _heartbeatFails++;
+    if (_heartbeatFails >= 3) {
+      console.warn('[projection] heartbeat: ' + _heartbeatFails + ' échecs consécutifs');
+      var err = document.getElementById('error_box');
+      if (err) {
+        err.textContent = 'Connexion instable — le projecteur peut ne plus être détecté.';
+        err.classList.add('visible');
+      }
+    }
+  }
 }
 
 // Fullscreen toggle

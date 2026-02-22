@@ -753,7 +753,12 @@
 
   async function cast(choice){
     const memberId = selectedMemberId();
-    if (!_currentMotionId || !memberId) return;
+    if (!_currentMotionId) {
+      throw new Error('Aucune résolution en cours. Patientez l\'ouverture du vote.');
+    }
+    if (!memberId) {
+      throw new Error('Veuillez sélectionner votre nom avant de voter.');
+    }
 
     if (window.Utils?.isValidUUID && (!Utils.isValidUUID(_currentMotionId) || !Utils.isValidUUID(memberId))) {
       throw new Error('Identifiants invalides. Rechargez la page.');
