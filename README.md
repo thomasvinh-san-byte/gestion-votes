@@ -65,6 +65,7 @@ PHP 8.3 · PostgreSQL 16 · JavaScript vanilla · Docker · Nginx · WebSocket
 | [Guide opérateur](docs/UTILISATION_LIVE.md) | Conduite d'une séance |
 | [Démo guidée](docs/RECETTE_DEMO.md) | Scénario de test (~10 min) |
 | [FAQ](docs/FAQ.md) | Questions fréquentes |
+| [Deploiement Render](docs/DEPLOIEMENT_RENDER.md) | Deployer sur Render (demo et production) |
 
 Documentation technique : [Architecture](docs/dev/ARCHITECTURE.md) · [API](docs/dev/API.md) · [Sécurité](docs/dev/SECURITY.md) · [Tests](docs/dev/TESTS.md) · [Conformité](docs/dev/CONFORMITE_CDC.md)
 
