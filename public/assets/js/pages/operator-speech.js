@@ -144,6 +144,14 @@
   }
 
   async function endCurrentSpeech() {
+    if (!O.currentSpeakerCache) return;
+    var speakerName = O.currentSpeakerCache.member_name || 'l\u2019orateur';
+    var ok = await O.confirmModal({
+      title: 'Fin de parole',
+      body: '<p>Mettre fin à la prise de parole de <strong>' + escapeHtml(speakerName) + '</strong> ?</p>',
+      confirmText: 'Terminer'
+    });
+    if (!ok) return;
     try {
       await api('/api/v1/speech_end.php', { meeting_id: O.currentMeetingId });
       setNotif('success', 'Parole terminée');

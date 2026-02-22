@@ -1436,6 +1436,11 @@ window.OpS = { fn: {} };
   }
 
   async function unblockDevice(deviceId, modal) {
+    var ok = await confirmModal({
+      title: 'Débloquer l\u2019appareil',
+      body: '<p>L\u2019appareil pourra à nouveau voter. Confirmer ?</p>'
+    });
+    if (!ok) return;
     try {
       await api('/api/v1/device_unblock.php', { device_id: deviceId });
       setNotif('success', 'Appareil débloqué');
@@ -1447,6 +1452,11 @@ window.OpS = { fn: {} };
   }
 
   async function kickDevice(deviceId, modal) {
+    var ok = await confirmModal({
+      title: 'Forcer la reconnexion',
+      body: '<p>L\u2019appareil sera déconnecté et devra se reconnecter. Confirmer ?</p>'
+    });
+    if (!ok) return;
     try {
       await api('/api/v1/device_kick.php', { device_id: deviceId, message: 'Reconnexion demandée par opérateur' });
       setNotif('success', 'Demande de reconnexion envoyée');
@@ -2015,6 +2025,19 @@ window.OpS = { fn: {} };
         btnPrimary.disabled = score < 3;
         btnPrimary.textContent = 'Ouvrir la séance';
         primaryAction = 'launch';
+        // Explain why button is disabled
+        if (score < 3) {
+          var missing = [];
+          if (membersCache.length === 0) missing.push('membres');
+          if (!attendanceCache.some(a => a.mode === 'present' || a.mode === 'remote')) missing.push('présences');
+          var hasQ = !!(currentMeeting && currentMeeting.quorum_policy_id);
+          var presEl = document.getElementById('settingPresident');
+          var hasP = !!(presEl && presEl.value);
+          if (!hasQ && !hasP) missing.push('politique de vote ou président');
+          btnPrimary.title = 'Manque : ' + missing.join(', ');
+        } else {
+          btnPrimary.title = '';
+        }
       } else if (currentMeetingStatus === 'live') {
         btnPrimary.disabled = false;
         btnPrimary.textContent = 'Passer en exécution';

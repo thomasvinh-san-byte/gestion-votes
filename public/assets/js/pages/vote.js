@@ -566,7 +566,7 @@
 
     if (!m) {
       if (title) { title.textContent = 'En attente d\u2019une résolution'; title.dataset.motionId = ''; }
-      if (sub) sub.textContent = '';
+      if (sub) sub.textContent = 'L\u2019op\u00e9rateur ouvrira le vote quand la r\u00e9solution sera pr\u00eate. Cette page se met \u00e0 jour automatiquement.';
       if (badges) badges.innerHTML = '';
       if (noEl) { noEl.textContent = ''; Shared.hide(noEl); }
       if (phaseEl) phaseEl.textContent = 'En attente';
@@ -730,6 +730,9 @@
       const el=$(id);
       if (el) el.disabled = !on;
     });
+    // Show/hide hint when buttons are disabled and no motion is active
+    var hint = document.getElementById('voteHint');
+    if (hint) hint.hidden = on;
   }
 
   /**
