@@ -27,7 +27,8 @@ try {
 } catch (Throwable $e) {
     $status = 'degraded';
     $checks['database'] = false;
-    $checks['db_error'] = $e->getMessage();
+    // Never leak connection details to unauthenticated callers.
+    error_log('health: db check failed: ' . $e->getMessage());
 }
 
 $httpCode = $status === 'ok' ? 200 : 503;

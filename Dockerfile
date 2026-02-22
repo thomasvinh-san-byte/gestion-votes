@@ -5,12 +5,14 @@ LABEL org.opencontainers.image.title="AG-VOTE" \
       org.opencontainers.image.source="https://github.com/thomasvinh-san-byte/gestion-votes" \
       org.opencontainers.image.licenses="MIT"
 
-# System dependencies
+# Build-time deps (headers) + runtime deps (libs) in one layer.
+# The -dev packages are removed after extension compilation below.
 RUN apk add --no-cache \
-    nginx supervisor postgresql-dev libpng-dev libjpeg-turbo-dev \
-    freetype-dev libzip-dev icu-dev oniguruma-dev curl postgresql-client
+    nginx supervisor curl postgresql-client \
+    postgresql-dev libpng-dev libjpeg-turbo-dev \
+    freetype-dev libzip-dev icu-dev oniguruma-dev
 
-# PHP extensions
+# PHP extensions (compile against -dev headers)
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo_pgsql pgsql gd zip intl mbstring opcache
@@ -21,14 +23,21 @@ RUN apk add --no-cache --virtual .redis-deps $PHPIZE_DEPS \
     && docker-php-ext-enable redis \
     && apk del .redis-deps
 
-# Composer
+# Remove build-time headers — runtime libs (libpng, icu-libs, etc.) stay.
+RUN apk del --no-cache \
+    postgresql-dev libpng-dev libjpeg-turbo-dev \
+    freetype-dev libzip-dev icu-dev oniguruma-dev \
+    && rm -rf /tmp/pear
+
+# Composer (install deps then remove — not needed at runtime)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# Dependencies (cached layer — lock file required, no error masking)
+# Dependencies (cached layer — lock file required)
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress \
+    && rm -f /usr/bin/composer
 
 # Application
 COPY . .
@@ -50,7 +59,7 @@ RUN chown -R www-data:www-data /var/www \
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD curl -f http://127.0.0.1:8080/api/v1/health.php || exit 1
+    CMD curl -sf http://127.0.0.1:8080/api/v1/health.php || exit 1
 
 ENTRYPOINT ["/var/www/deploy/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
