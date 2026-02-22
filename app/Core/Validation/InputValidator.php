@@ -234,7 +234,7 @@ final class InputValidator {
 
     private function validateUuid(string $name, mixed $value, array $def): array {
         $value = trim((string) $value);
-        $pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i';
+        $pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
 
         if (!preg_match($pattern, $value)) {
             return ['valid' => false, 'error' => "'{$name}' doit être un UUID valide."];
@@ -385,8 +385,17 @@ final class FieldBuilder {
         return $this->build()->datetime($name);
     }
 
+    private bool $registered = false;
+
+    private function ensureRegistered(): void {
+        if (!$this->registered) {
+            $this->validator->registerField($this->name, $this->definition);
+            $this->registered = true;
+        }
+    }
+
     public function build(): InputValidator {
-        $this->validator->registerField($this->name, $this->definition);
+        $this->ensureRegistered();
         return $this->validator;
     }
 
@@ -395,12 +404,12 @@ final class FieldBuilder {
      * Allows calling validate() directly on the FieldBuilder chain.
      */
     public function validate(array $input): ValidationResult {
-        $this->validator->registerField($this->name, $this->definition);
+        $this->ensureRegistered();
         return $this->validator->validate($input);
     }
 
     public function __destruct() {
-        $this->validator->registerField($this->name, $this->definition);
+        $this->ensureRegistered();
     }
 }
 

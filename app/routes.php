@@ -93,12 +93,12 @@ return function (Router $router): void {
         'GET' => [AgendaController::class, 'listForMeeting', $op],
         'POST' => [AgendaController::class, 'create',         $op],
     ]);
-    $router->mapAny("{$prefix}/agendas_for_meeting", AgendaController::class, 'listForMeetingPublic', $pub);
+    $router->map('GET', "{$prefix}/agendas_for_meeting", AgendaController::class, 'listForMeetingPublic', $pub);
     $router->mapAny("{$prefix}/meeting_late_rules", AgendaController::class, 'lateRules', $op);
 
     // ── Analytics ──
-    $router->mapAny("{$prefix}/analytics", AnalyticsController::class, 'analytics', $op);
-    $router->mapAny("{$prefix}/reports_aggregate", AnalyticsController::class, 'reportsAggregate', ['role' => ['operator', 'admin', 'auditor']]);
+    $router->map('GET', "{$prefix}/analytics", AnalyticsController::class, 'analytics', $op);
+    $router->map('GET', "{$prefix}/reports_aggregate", AnalyticsController::class, 'reportsAggregate', ['role' => ['operator', 'admin', 'auditor']]);
 
     // ── Attendances ──
     $router->mapAny("{$prefix}/attendances", AttendancesController::class, 'listForMeeting', ['role' => ['operator', 'trust', 'admin']]);
@@ -116,17 +116,17 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/operator_audit_events", AuditController::class, 'operatorEvents', ['role' => ['operator', 'admin', 'trust']]);
 
     // ── Ballots ──
-    $router->mapAny("{$prefix}/ballots", BallotsController::class, 'listForMotion', ['role' => ['operator', 'admin', 'president']]);
+    $router->map('GET', "{$prefix}/ballots", BallotsController::class, 'listForMotion', ['role' => ['operator', 'admin', 'president']]);
     $router->mapAny("{$prefix}/ballots_cancel", BallotsController::class, 'cancel', $opAdm);
     $router->mapAny("{$prefix}/ballots_cast", BallotsController::class, 'cast', ['role' => 'public', 'rate_limit' => ['ballot_cast', 60, 60]]);
-    $router->mapAny("{$prefix}/ballots_result", BallotsController::class, 'result', ['role' => 'public', 'rate_limit' => ['ballot_result', 120, 60]]);
+    $router->map('GET', "{$prefix}/ballots_result", BallotsController::class, 'result', ['role' => 'public', 'rate_limit' => ['ballot_result', 120, 60]]);
     $router->mapAny("{$prefix}/manual_vote", BallotsController::class, 'manualVote', $op);
     $router->mapAny("{$prefix}/paper_ballot_redeem", BallotsController::class, 'redeemPaperBallot', $op);
     $router->mapAny("{$prefix}/vote_incident", BallotsController::class, 'reportIncident', ['role' => 'public', 'rate_limit' => ['vote_incident', 30, 60]]);
 
     // ── Dashboard ──
-    $router->mapAny("{$prefix}/dashboard", DashboardController::class, 'index', $op);
-    $router->mapAny("{$prefix}/wizard_status", DashboardController::class, 'wizardStatus', $view);
+    $router->map('GET', "{$prefix}/dashboard", DashboardController::class, 'index', $op);
+    $router->map('GET', "{$prefix}/wizard_status", DashboardController::class, 'wizardStatus', $view);
 
     // ── Devices ──
     $router->mapAny("{$prefix}/device_block", DevicesController::class, 'block', $opAdm);
@@ -204,15 +204,15 @@ return function (Router $router): void {
         'GET' => [MeetingsController::class, 'index',         $view],
         'POST' => [MeetingsController::class, 'createMeeting', $op],
     ]);
-    $router->mapAny("{$prefix}/meetings_index", MeetingsController::class, 'index', $view);
+    $router->map('GET', "{$prefix}/meetings_index", MeetingsController::class, 'index', $view);
     $router->mapAny("{$prefix}/meetings_update", MeetingsController::class, 'update', $op);
     $router->mapAny("{$prefix}/meetings_delete", MeetingsController::class, 'deleteMeeting', ['role' => 'admin']);
     $router->mapAny("{$prefix}/meetings_archive", MeetingsController::class, 'archive', $op);
-    $router->mapAny("{$prefix}/archives_list", MeetingsController::class, 'archivesList', $view);
+    $router->map('GET', "{$prefix}/archives_list", MeetingsController::class, 'archivesList', $view);
     $router->mapAny("{$prefix}/meeting_status", MeetingsController::class, 'status', $op);
     $router->mapAny("{$prefix}/meeting_status_for_meeting", MeetingsController::class, 'statusForMeeting', $audit);
-    $router->mapAny("{$prefix}/meeting_summary", MeetingsController::class, 'summary', ['role' => ['operator', 'president', 'admin', 'auditor']]);
-    $router->mapAny("{$prefix}/meeting_stats", MeetingsController::class, 'stats', ['role' => 'public', 'rate_limit' => ['meeting_stats', 120, 60]]);
+    $router->map('GET', "{$prefix}/meeting_summary", MeetingsController::class, 'summary', ['role' => ['operator', 'president', 'admin', 'auditor']]);
+    $router->map('GET', "{$prefix}/meeting_stats", MeetingsController::class, 'stats', ['role' => 'public', 'rate_limit' => ['meeting_stats', 120, 60]]);
     $router->mapAny("{$prefix}/meeting_validate", MeetingsController::class, 'validate', ['role' => ['president', 'admin']]);
     $router->mapAny("{$prefix}/meeting_vote_settings", MeetingsController::class, 'voteSettings', $opAdm);
 
@@ -246,7 +246,7 @@ return function (Router $router): void {
         'PUT' => [MembersController::class, 'updateMember', $op],
         'DELETE' => [MembersController::class, 'delete',       $op],
     ]);
-    $router->mapAny("{$prefix}/presidents", MembersController::class, 'presidents', $audit);
+    $router->map('GET', "{$prefix}/presidents", MembersController::class, 'presidents', $audit);
 
     // ── Member groups ──
     $router->mapMulti("{$prefix}/member_groups", [
@@ -263,12 +263,12 @@ return function (Router $router): void {
 
     // ── Motions ──
     $router->mapAny("{$prefix}/motions", MotionsController::class, 'createOrUpdate', $op);
-    $router->mapAny("{$prefix}/motions_for_meeting", MotionsController::class, 'listForMeeting', ['role' => 'public', 'rate_limit' => ['motions_for_meeting', 120, 60]]);
+    $router->map('GET', "{$prefix}/motions_for_meeting", MotionsController::class, 'listForMeeting', ['role' => 'public', 'rate_limit' => ['motions_for_meeting', 120, 60]]);
     $router->mapAny("{$prefix}/motion_create_simple", MotionsController::class, 'createSimple', $op);
     $router->mapAny("{$prefix}/motion_delete", MotionsController::class, 'deleteMotion', $op);
     $router->mapAny("{$prefix}/motion_reorder", MotionsController::class, 'reorder', $op);
     $router->mapAny("{$prefix}/motion_tally", MotionsController::class, 'tally', $op);
-    $router->mapAny("{$prefix}/current_motion", MotionsController::class, 'current', ['role' => 'public', 'rate_limit' => ['current_motion', 120, 60]]);
+    $router->map('GET', "{$prefix}/current_motion", MotionsController::class, 'current', ['role' => 'public', 'rate_limit' => ['current_motion', 120, 60]]);
     $router->mapAny("{$prefix}/motions_open", MotionsController::class, 'open', $op);
     $router->mapAny("{$prefix}/motions_close", MotionsController::class, 'close', ['role' => ['operator', 'president', 'admin']]);
     $router->mapAny("{$prefix}/degraded_tally", MotionsController::class, 'degradedTally', $op);
@@ -279,7 +279,7 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/operator_workflow_state", OperatorController::class, 'workflowState', $op);
 
     // ── Projector ──
-    $router->mapAny("{$prefix}/projector_state", ProjectorController::class, 'state', $pub);
+    $router->map('GET', "{$prefix}/projector_state", ProjectorController::class, 'state', $pub);
 
     // ── Proxies ──
     $router->mapAny("{$prefix}/proxies", ProxiesController::class, 'listForMeeting', ['role' => ['operator', 'trust', 'admin']]);
@@ -289,7 +289,7 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/proxies_import_xlsx", ImportController::class, 'proxiesXlsx', $rlXlsx);
 
     // ── Quorum ──
-    $router->mapAny("{$prefix}/quorum_card", QuorumController::class, 'card', $pub);
+    $router->map('GET', "{$prefix}/quorum_card", QuorumController::class, 'card', $pub);
     $router->mapAny("{$prefix}/quorum_status", QuorumController::class, 'status', $op);
     $router->mapAny("{$prefix}/meeting_quorum_settings", QuorumController::class, 'meetingSettings', $opAdm);
 
@@ -303,12 +303,12 @@ return function (Router $router): void {
     // ── Speech ──
     $router->mapAny("{$prefix}/speech_cancel", SpeechController::class, 'cancel', ['role' => ['operator', 'trust', 'president', 'admin']]);
     $router->mapAny("{$prefix}/speech_clear", SpeechController::class, 'clear', ['role' => ['operator', 'trust', 'president', 'admin']]);
-    $router->mapAny("{$prefix}/speech_current", SpeechController::class, 'current', ['role' => 'public', 'rate_limit' => ['speech_current', 120, 60]]);
+    $router->map('GET', "{$prefix}/speech_current", SpeechController::class, 'current', ['role' => 'public', 'rate_limit' => ['speech_current', 120, 60]]);
     $router->mapAny("{$prefix}/speech_end", SpeechController::class, 'end', ['role' => ['operator', 'trust', 'president', 'admin']]);
     $router->mapAny("{$prefix}/speech_grant", SpeechController::class, 'grant', ['role' => ['operator', 'trust', 'president', 'admin']]);
-    $router->mapAny("{$prefix}/speech_my_status", SpeechController::class, 'myStatus', ['role' => 'public', 'rate_limit' => ['speech_my_status', 120, 60]]);
+    $router->map('GET', "{$prefix}/speech_my_status", SpeechController::class, 'myStatus', ['role' => 'public', 'rate_limit' => ['speech_my_status', 120, 60]]);
     $router->mapAny("{$prefix}/speech_next", SpeechController::class, 'next', ['role' => ['operator', 'president', 'admin']]);
-    $router->mapAny("{$prefix}/speech_queue", SpeechController::class, 'queue', ['role' => 'public', 'rate_limit' => ['speech_queue', 120, 60]]);
+    $router->map('GET', "{$prefix}/speech_queue", SpeechController::class, 'queue', ['role' => 'public', 'rate_limit' => ['speech_queue', 120, 60]]);
     $router->mapAny("{$prefix}/speech_request", SpeechController::class, 'request', ['role' => 'public', 'rate_limit' => ['speech_request', 30, 60]]);
 
     // ── Trust ──

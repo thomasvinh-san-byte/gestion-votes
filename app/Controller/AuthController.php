@@ -14,6 +14,9 @@ use Throwable;
  * Consolidates auth endpoints: login, logout, whoami, csrf, ping.
  */
 final class AuthController extends AbstractController {
+    /** Dummy hash for constant-time comparison when user doesn't exist. */
+    private const DUMMY_HASH = '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01234';
+
     public function login(): void {
         if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
             api_fail('method_not_allowed', 405);
@@ -33,9 +36,7 @@ final class AuthController extends AbstractController {
         $email = trim((string) ($input['email'] ?? ''));
         $password = (string) ($input['password'] ?? '');
 
-        // Dummy hash for constant-time comparison when user doesn't exist.
-        // Prevents timing-based user enumeration: password_verify() always runs.
-        static $dummyHash = '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01234';
+        // Dummy hash prevents timing-based user enumeration: password_verify() always runs.
 
         if ($email !== '' && $password !== '') {
             $authMethod = 'password';
@@ -45,7 +46,7 @@ final class AuthController extends AbstractController {
             // Always run password_verify regardless of user existence (constant-time).
             $hashToVerify = ($user && !empty($user['password_hash']))
                 ? $user['password_hash']
-                : $dummyHash;
+                : self::DUMMY_HASH;
             $passwordValid = password_verify($password, $hashToVerify);
 
             if (!$user || empty($user['password_hash']) || !$passwordValid) {

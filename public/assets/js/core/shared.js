@@ -137,7 +137,7 @@
    *
    * @param {object} opts
    * @param {string} opts.title - Modal title
-   * @param {string} opts.body  - HTML body content
+   * @param {string} opts.body  - Raw HTML body content. Callers MUST escape user data with Utils.escapeHtml().
    * @param {string} [opts.confirmText='Confirmer']
    * @param {string} [opts.cancelText='Annuler']
    * @param {string} [opts.confirmClass='btn-primary']

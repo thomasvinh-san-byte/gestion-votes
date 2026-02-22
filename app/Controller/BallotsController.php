@@ -257,6 +257,7 @@ final class BallotsController extends AbstractController {
         }
         $weight = (string) $weight;
 
+        $ballotId = '';
         try {
             $ballotId = api_transaction(function () use ($ballotRepo, $manualRepo, $tenantId, $meetingId, $motionId, $memberId, $value, $weight, $justif) {
                 $ballotId = $ballotRepo->insertManual($tenantId, $meetingId, $motionId, $memberId, $value, $weight);
