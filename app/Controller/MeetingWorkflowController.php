@@ -43,7 +43,10 @@ final class MeetingWorkflowController extends AbstractController {
         }
 
         $repo = new MeetingRepository();
-        $meeting = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
+        $tenantId = api_current_tenant_id();
+
+        // Pre-flight: read without lock for fast-fail on obviously bad requests
+        $meeting = $repo->findByIdForTenant($meetingId, $tenantId);
 
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
@@ -57,7 +60,6 @@ final class MeetingWorkflowController extends AbstractController {
             ]);
         }
 
-        // Archived is terminal. No force, no bypass, no exceptions.
         if ($fromStatus === 'archived') {
             api_fail('archived_immutable', 403, [
                 'detail' => 'Séance archivée : aucune transition autorisée.',
@@ -67,7 +69,7 @@ final class MeetingWorkflowController extends AbstractController {
         AuthMiddleware::requireTransition($fromStatus, $toStatus, $meetingId);
 
         $forceTransition = filter_var($input['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $workflowCheck = (new MeetingWorkflowService())->issuesBeforeTransition($meetingId, api_current_tenant_id(), $toStatus);
+        $workflowCheck = (new MeetingWorkflowService())->issuesBeforeTransition($meetingId, $tenantId, $toStatus);
 
         if ($forceTransition && api_current_role() !== 'admin') {
             api_fail('force_requires_admin', 403, [
@@ -84,73 +86,101 @@ final class MeetingWorkflowController extends AbstractController {
             ]);
         }
 
-        $fields = ['status' => $toStatus];
         $userId = api_current_user_id();
 
-        switch ($toStatus) {
-            case 'frozen':
-                $fields['frozen_at'] = date('Y-m-d H:i:s');
-                $fields['frozen_by'] = $userId;
-                break;
+        // Critical section: lock the meeting row to prevent concurrent transitions
+        // from racing (e.g. two operators both transitioning live→paused and live→closed).
+        $txResult = api_transaction(function () use ($repo, $meetingId, $tenantId, $toStatus, $userId, $forceTransition) {
+            $meeting = $repo->lockForUpdate($meetingId, $tenantId);
+            if (!$meeting) {
+                api_fail('meeting_not_found', 404);
+            }
 
-            case 'live':
-                $now = date('Y-m-d H:i:s');
-                if (empty($meeting['started_at'])) {
-                    $fields['started_at'] = $now;
-                }
-                if (!empty($meeting['scheduled_at']) && $meeting['scheduled_at'] > $now) {
-                    $fields['scheduled_at'] = $now;
-                }
-                $fields['opened_by'] = $userId;
-                if ($fromStatus === 'paused') {
-                    $fields['paused_at'] = null;
-                    $fields['paused_by'] = null;
-                }
-                break;
+            $fromStatus = $meeting['status'];
 
-            case 'paused':
-                $fields['paused_at'] = date('Y-m-d H:i:s');
-                $fields['paused_by'] = $userId;
-                break;
+            // Re-validate after lock: status may have changed since pre-flight check
+            if ($fromStatus === $toStatus) {
+                api_fail('already_in_status', 422, [
+                    'detail' => "La séance est déjà au statut '{$toStatus}'.",
+                ]);
+            }
+            if ($fromStatus === 'archived') {
+                api_fail('archived_immutable', 403, [
+                    'detail' => 'Séance archivée : aucune transition autorisée.',
+                ]);
+            }
 
-            case 'closed':
-                if (empty($meeting['ended_at'])) {
-                    $fields['ended_at'] = date('Y-m-d H:i:s');
-                }
-                $fields['closed_by'] = $userId;
-                break;
+            $fields = ['status' => $toStatus];
 
-            case 'archived':
-                $fields['archived_at'] = date('Y-m-d H:i:s');
-                break;
+            switch ($toStatus) {
+                case 'frozen':
+                    $fields['frozen_at'] = date('Y-m-d H:i:s');
+                    $fields['frozen_by'] = $userId;
+                    break;
 
-            case 'scheduled':
-                if ($fromStatus === 'frozen') {
-                    $fields['frozen_at'] = null;
-                    $fields['frozen_by'] = null;
-                }
-                break;
+                case 'live':
+                    $now = date('Y-m-d H:i:s');
+                    if (empty($meeting['started_at'])) {
+                        $fields['started_at'] = $now;
+                    }
+                    if (!empty($meeting['scheduled_at']) && $meeting['scheduled_at'] > $now) {
+                        $fields['scheduled_at'] = $now;
+                    }
+                    $fields['opened_by'] = $userId;
+                    if ($fromStatus === 'paused') {
+                        $fields['paused_at'] = null;
+                        $fields['paused_by'] = null;
+                    }
+                    break;
 
-            case 'validated':
-                if (empty($meeting['validated_at'])) {
-                    $fields['validated_at'] = date('Y-m-d H:i:s');
-                    $fields['validated_by'] = api_current_user()['name'] ?? 'unknown';
-                    $fields['validated_by_user_id'] = $userId;
-                }
-                break;
-        }
+                case 'paused':
+                    $fields['paused_at'] = date('Y-m-d H:i:s');
+                    $fields['paused_by'] = $userId;
+                    break;
 
-        $repo->updateFields($meetingId, api_current_tenant_id(), $fields);
+                case 'closed':
+                    if (empty($meeting['ended_at'])) {
+                        $fields['ended_at'] = date('Y-m-d H:i:s');
+                    }
+                    $fields['closed_by'] = $userId;
+                    break;
 
-        $auditData = [
-            'from_status' => $fromStatus,
-            'to_status' => $toStatus,
-            'title' => $meeting['title'],
-        ];
-        if ($forceTransition) {
-            $auditData['forced'] = true;
-        }
-        audit_log('meeting.transition', 'meeting', $meetingId, $auditData, $meetingId);
+                case 'archived':
+                    $fields['archived_at'] = date('Y-m-d H:i:s');
+                    break;
+
+                case 'scheduled':
+                    if ($fromStatus === 'frozen') {
+                        $fields['frozen_at'] = null;
+                        $fields['frozen_by'] = null;
+                    }
+                    break;
+
+                case 'validated':
+                    if (empty($meeting['validated_at'])) {
+                        $fields['validated_at'] = date('Y-m-d H:i:s');
+                        $fields['validated_by'] = api_current_user()['name'] ?? 'unknown';
+                        $fields['validated_by_user_id'] = $userId;
+                    }
+                    break;
+            }
+
+            $repo->updateFields($meetingId, $tenantId, $fields);
+
+            $auditData = [
+                'from_status' => $fromStatus,
+                'to_status' => $toStatus,
+                'title' => $meeting['title'],
+            ];
+            if ($forceTransition) {
+                $auditData['forced'] = true;
+            }
+            audit_log('meeting.transition', 'meeting', $meetingId, $auditData, $meetingId);
+
+            return $fromStatus;
+        });
+
+        $fromStatus = $txResult;
 
         try {
             EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), $toStatus, $fromStatus);

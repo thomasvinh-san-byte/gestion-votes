@@ -96,8 +96,8 @@ final class VotePublicController {
         $memberRepo = new MemberRepository();
         $member = $memberRepo->findByIdForTenant($row['member_id'], $ctx['tenant_id']);
         $weight = (float) ($member['voting_power'] ?? 1.0);
-        if ($weight < 0.0 || !is_finite($weight)) {
-            $weight = 0.0;
+        if (!is_finite($weight) || $weight < 0.0) {
+            HtmlView::text('Poids de vote invalide (doit être un nombre fini >= 0)', 422);
         }
         if ($weight > 1e6) {
             HtmlView::text('Poids de vote invalide', 422);

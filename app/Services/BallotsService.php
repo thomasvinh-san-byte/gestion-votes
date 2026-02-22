@@ -166,6 +166,14 @@ final class BallotsService {
                     throw new RuntimeException('Séance non disponible pour le vote');
                 }
 
+                // Re-validate motion state inside the transaction: a concurrent
+                // request could have closed the motion between the initial check
+                // and the acquisition of the meeting lock.
+                $freshContext = $this->motionRepo->findWithBallotContext($motionId, $tenantId);
+                if (!$freshContext || empty($freshContext['motion_opened_at']) || !empty($freshContext['motion_closed_at'])) {
+                    throw new RuntimeException('Cette motion n\'est pas ouverte au vote');
+                }
+
                 // Strict INSERT — duplicate votes are rejected, not silently overwritten
                 $this->ballotRepo->castBallot(
                     $tenantId,
