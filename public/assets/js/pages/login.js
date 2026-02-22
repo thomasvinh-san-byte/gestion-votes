@@ -128,6 +128,10 @@
             var who = res.body;
             var mr = (who.data && who.data.meeting_roles) || [];
             redirectByRole(user, mr);
+          })
+          .catch(function() {
+            // whoami failed — redirect based on login response role alone
+            redirectByRole(user, []);
           });
       }, 600);
     } else {

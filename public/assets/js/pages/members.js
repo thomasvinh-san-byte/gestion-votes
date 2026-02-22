@@ -839,10 +839,16 @@
 
           const groupsChanged = JSON.stringify(selectedGroups.sort()) !== JSON.stringify(currentMemberGroups.sort());
           if (groupsChanged) {
-            await api('/api/v1/member_group_assignments.php', {
+            var grpRes = await api('/api/v1/member_group_assignments.php', {
               member_id: memberId,
               group_ids: selectedGroups
             }, 'PUT');
+            if (!grpRes.body?.ok) {
+              setNotif('warning', 'Membre modifié mais les groupes n\u2019ont pas été mis à jour.');
+              await fetchGroups();
+              await fetchMembers();
+              return true;
+            }
           }
 
           setNotif('success', 'Membre modifié');
@@ -882,6 +888,7 @@
 
   // Sort
   sortSelect.addEventListener('change', () => {
+    currentPage = 1;
     renderMembers(allMembers);
   });
 
