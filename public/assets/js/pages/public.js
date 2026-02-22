@@ -480,18 +480,14 @@ function toggleFullscreen() {
   }
 }
 
-// Theme toggle
+// Theme toggle — unified with the rest of the app (data-theme + ag-vote-theme key).
+// The inline <head> script already applies the theme before first paint.
 function toggleTheme() {
-  var body = document.body;
-  var isDark = body.classList.toggle('projection-dark');
-  localStorage.setItem('projection-theme', isDark ? 'dark' : 'light');
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var next = isDark ? 'light' : 'dark';
+  localStorage.setItem('ag-vote-theme', next);
+  document.documentElement.setAttribute('data-theme', next);
 }
-
-// Restore saved theme
-(function() {
-  var saved = localStorage.getItem('projection-theme');
-  if (saved === 'dark') document.body.classList.add('projection-dark');
-})();
 
 // Init
 document.addEventListener('DOMContentLoaded', function() {

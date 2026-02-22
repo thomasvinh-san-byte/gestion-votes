@@ -642,15 +642,22 @@
     let successCount = 0;
     let errorCount = 0;
 
-    // Show loading state with spinner
+    // Show loading state with progress counter
     const btns = ['btnUnanimityFor', 'btnUnanimityAgainst', 'btnUnanimityAbstain']
       .map(id => document.getElementById(id))
       .filter(Boolean);
     btns.forEach(btn => {
       btn.disabled = true;
       btn.dataset.origHtml = btn.innerHTML;
-      btn.innerHTML = '<span class="spinner spinner-sm"></span> Traitement…';
+      btn.innerHTML = '<span class="spinner spinner-sm"></span> 0/' + voters.length + ' votes…';
     });
+
+    function updateProgress() {
+      var done = successCount + errorCount;
+      btns.forEach(btn => {
+        btn.innerHTML = '<span class="spinner spinner-sm"></span> ' + done + '/' + voters.length + ' votes…';
+      });
+    }
 
     try {
       // Process votes in parallel batches for speed
@@ -677,6 +684,7 @@
             errorCount++;
           }
         });
+        updateProgress();
       }
 
       // Refresh display

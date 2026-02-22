@@ -432,17 +432,6 @@
    DARK MODE ADJUSTMENTS
    ============================================================================= */
 
-@media (prefers-color-scheme: dark) {
-  .prose pre {
-    background: rgba(0, 0, 0, 0.2);
-    border-color: var(--color-border);
-  }
-
-  .prose blockquote {
-    background: rgba(0, 0, 0, 0.15);
-  }
-}
-
 [data-theme="dark"] .prose pre {
   background: rgba(0, 0, 0, 0.2);
   border-color: var(--color-border);

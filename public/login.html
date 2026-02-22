@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Connexion à la plateforme de vote — AG-VOTE">
   <title>AG-VOTE — Connexion</title>
+  <script>!function(){var t=localStorage.getItem('ag-vote-theme');if(!t&&matchMedia('(prefers-color-scheme:dark)').matches)t='dark';if(t)document.documentElement.setAttribute('data-theme',t)}()</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
@@ -73,17 +74,13 @@
   </main>
 
   <script>
-    // Theme toggle (syncs with shell.js via same localStorage key)
+    // Theme toggle (initial detection handled by inline <head> script)
     (function() {
-      var KEY = 'ag-vote-theme';
-      var saved = localStorage.getItem(KEY);
-      if (saved) document.documentElement.setAttribute('data-theme', saved);
       var btn = document.getElementById('btnTheme');
       if (btn) btn.addEventListener('click', function() {
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-          (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         var next = isDark ? 'light' : 'dark';
-        localStorage.setItem(KEY, next);
+        localStorage.setItem('ag-vote-theme', next);
         document.documentElement.setAttribute('data-theme', next);
       });
     })();
