@@ -75,7 +75,7 @@ final class DashboardController extends AbstractController {
                 'eligible_count' => $eligibleCount,
                 'eligible_weight' => $eligibleWeight,
                 'present_count' => (int) $att['present_count'],
-                'present_weight' => (int) $att['present_weight'],
+                'present_weight' => (float) $att['present_weight'],
             ];
 
             $data['proxies'] = ['count' => (new ProxyRepository())->countActive($meetingId, $tenantId)];

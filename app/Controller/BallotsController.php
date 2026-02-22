@@ -194,7 +194,7 @@ final class BallotsController extends AbstractController {
             api_fail('missing_motion_id', 422, ['detail' => 'Paramètre motion_id obligatoire']);
         }
 
-        $result = (new VoteEngine())->computeMotionResult($motionId);
+        $result = (new VoteEngine())->computeMotionResult($motionId, api_current_tenant_id());
         api_ok($result);
     }
 
@@ -251,7 +251,11 @@ final class BallotsController extends AbstractController {
             api_fail('member_not_found', 404);
         }
 
-        $weight = (string) ($member['voting_power'] ?? '1.0');
+        $weight = (float) ($member['voting_power'] ?? 1.0);
+        if ($weight < 0.0 || $weight > 1e6 || !is_finite($weight)) {
+            api_fail('invalid_weight', 422, ['detail' => 'Poids de vote invalide']);
+        }
+        $weight = (string) $weight;
 
         try {
             $ballotId = api_transaction(function () use ($ballotRepo, $manualRepo, $tenantId, $meetingId, $motionId, $memberId, $value, $weight, $justif) {

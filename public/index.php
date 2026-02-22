@@ -60,6 +60,8 @@ $isBootstrap = in_array($uri, $bootstrapRoutes, true)
     || in_array($uriWithoutPhp, $bootstrapRoutes, true);
 
 if (!$isBootstrap) {
+    // Signal that the Router is handling middleware (prevents double enforcement in api.php)
+    define('AG_ROUTER_ACTIVE', true);
     // Load the full API layer (session, auth, CSRF, api_* helpers)
     require_once $appDir . '/api.php';
 }

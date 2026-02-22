@@ -103,7 +103,7 @@ class AttendanceRepository extends AbstractRepository {
         $row = $this->selectOne(
             "SELECT
                 COUNT(*) FILTER (WHERE a.mode IN ('present','remote'))::int AS present_count,
-                COALESCE(SUM(COALESCE(m.voting_power, 1.0)) FILTER (WHERE a.mode IN ('present','remote')),0)::int AS present_weight
+                COALESCE(SUM(COALESCE(m.voting_power, 1.0)) FILTER (WHERE a.mode IN ('present','remote')),0)::float8 AS present_weight
              FROM attendances a
              JOIN members m ON m.id = a.member_id
              WHERE a.tenant_id = :tid AND a.meeting_id = :mid",
@@ -153,6 +153,9 @@ class AttendanceRepository extends AbstractRepository {
      * Utilise par motions_close pour le compte d'eligibles post-cloture.
      */
     public function countByModes(string $meetingId, string $tenantId, array $modes): int {
+        if (count($modes) === 0) {
+            return 0;
+        }
         $ph = implode(',', array_fill(0, count($modes), '?'));
         return (int) ($this->scalar(
             "SELECT COUNT(*) FROM attendances
@@ -199,6 +202,9 @@ class AttendanceRepository extends AbstractRepository {
      * Utilise par QuorumEngine.
      */
     public function sumPresentWeight(string $meetingId, string $tenantId, array $modes, ?string $lateCutoff = null): float {
+        if (count($modes) === 0) {
+            return 0.0;
+        }
         $ph = implode(',', array_fill(0, count($modes), '?'));
         $sql = "SELECT COALESCE(SUM(a.effective_power), 0) FROM attendances a
                 JOIN meetings mt ON mt.id = a.meeting_id

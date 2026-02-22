@@ -18,7 +18,7 @@
 }
 
 .analytics-page-header h1 {
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   font-weight: 600;
   margin: 0;
   display: flex;
@@ -79,7 +79,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   border-radius: 4px;
   cursor: pointer;
   color: var(--color-text-muted);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
 }
 
@@ -142,7 +142,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 .overview-card-label {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -150,7 +150,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 .overview-card-value {
-  font-size: 2rem;
+  font-size: var(--text-3xl);
   font-weight: 700;
   line-height: 1;
 }
@@ -177,7 +177,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--color-text-muted);
   margin-top: 0.25rem;
@@ -258,7 +258,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 .chart-card-title {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: var(--text-base);
   margin: 0;
 }
 
@@ -290,7 +290,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .data-table th,
@@ -303,7 +303,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .data-table th {
   font-weight: 600;
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   text-transform: uppercase;
 }
 
@@ -459,11 +459,11 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 .anomaly-icon {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
 }
 
 .anomaly-label {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 

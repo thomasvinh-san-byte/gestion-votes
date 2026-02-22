@@ -94,7 +94,7 @@ window.OpS = { fn: {} };
    * @param {boolean} [options.closeOnBackdrop=true] - Close when clicking backdrop
    * @returns {HTMLElement} The modal element
    */
-  function createModal({ id, title, content, maxWidth = '500px', closeOnBackdrop = true }) {
+  function createModal({ id, title, content, maxWidth = '500px', closeOnBackdrop = true, onDismiss = null }) {
     const modalId = id || 'modal-' + Date.now();
     const titleId = modalId + '-title';
 
@@ -104,7 +104,7 @@ window.OpS = { fn: {} };
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-labelledby', titleId);
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
+    modal.style.cssText = 'position:fixed;inset:0;background:var(--color-backdrop);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
 
     modal.innerHTML = `
       <div class="modal-content" style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:${maxWidth};width:90%;max-height:90vh;overflow:auto;" role="document">
@@ -114,30 +114,27 @@ window.OpS = { fn: {} };
 
     document.body.appendChild(modal);
 
-    // Centralized destroy function — removes element AND cleans up listener
     const handleEscape = (e) => {
       if (e.key === 'Escape' && document.body.contains(modal)) {
-        destroyModal();
+        destroyModal(true);
       }
     };
 
-    function destroyModal() {
+    function destroyModal(isDismiss) {
       document.removeEventListener('keydown', handleEscape);
       if (document.body.contains(modal)) modal.remove();
+      if (isDismiss && onDismiss) onDismiss();
     }
-    modal._destroy = destroyModal;
+    modal._destroy = () => destroyModal(false);
 
-    // Close on backdrop click
     if (closeOnBackdrop) {
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) destroyModal();
+        if (e.target === modal) destroyModal(true);
       });
     }
 
-    // Close on Escape key
     document.addEventListener('keydown', handleEscape);
 
-    // Focus trap - keep focus inside modal
     const focusableElements = modal.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
@@ -1292,7 +1289,7 @@ window.OpS = { fn: {} };
   function showDeviceManagementModal() {
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
+    modal.style.cssText = 'position:fixed;inset:0;background:var(--color-backdrop);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
 
     modal.innerHTML = `
       <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:80vh;overflow:auto;">
@@ -1367,6 +1364,7 @@ window.OpS = { fn: {} };
       const m = createModal({
         id: 'blockDeviceReasonModal',
         title: 'Bloquer l\'appareil',
+        onDismiss: () => resolve(null),
         content: `
           <div class="form-group mb-4">
             <label class="form-label">Raison du blocage (optionnel)</label>
@@ -1627,7 +1625,7 @@ window.OpS = { fn: {} };
     // Show modal or prompt for user selection
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
+    modal.style.cssText = 'position:fixed;inset:0;background:var(--color-backdrop);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
 
     // Support both wizard and advanced contexts
     const wizPres = document.getElementById('wizPresident');
@@ -2743,6 +2741,7 @@ window.OpS = { fn: {} };
       const modal = createModal({
         id: 'sendInvitationsModal',
         title: 'Envoyer les invitations',
+        onDismiss: () => resolve(false),
         content: `
           <h3 id="sendInvitationsModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('mail', 'icon-sm icon-text')} Envoyer les invitations ?</h3>
           <p style="margin:0 0 0.75rem;">${membersWithEmail} membre${membersWithEmail > 1 ? 's' : ''} avec email recevront une invitation de vote.</p>

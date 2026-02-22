@@ -33,35 +33,28 @@ final class AuthController extends AbstractController {
         $email = trim((string) ($input['email'] ?? ''));
         $password = (string) ($input['password'] ?? '');
 
+        // Dummy hash for constant-time comparison when user doesn't exist.
+        // Prevents timing-based user enumeration: password_verify() always runs.
+        static $dummyHash = '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01234';
+
         if ($email !== '' && $password !== '') {
             $authMethod = 'password';
 
             $user = $userRepo->findByEmailGlobal($email);
 
-            if (!$user || empty($user['password_hash'])) {
+            // Always run password_verify regardless of user existence (constant-time).
+            $hashToVerify = ($user && !empty($user['password_hash']))
+                ? $user['password_hash']
+                : $dummyHash;
+            $passwordValid = password_verify($password, $hashToVerify);
+
+            if (!$user || empty($user['password_hash']) || !$passwordValid) {
                 try {
                     $userRepo->logAuthFailure(
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                         $_SERVER['HTTP_USER_AGENT'] ?? '',
                         $email,
                         'invalid_credentials',
-                    );
-                } catch (Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                        throw $e;
-                    }
-                    /* best effort */
-                }
-                api_fail('invalid_credentials', 401, ['detail' => 'Email ou mot de passe incorrect.']);
-            }
-
-            if (!password_verify($password, $user['password_hash'])) {
-                try {
-                    $userRepo->logAuthFailure(
-                        $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                        $_SERVER['HTTP_USER_AGENT'] ?? '',
-                        $email,
-                        'wrong_password',
                     );
                 } catch (Throwable $e) {
                     if ($e instanceof \AgVote\Core\Http\ApiResponseException) {

@@ -96,14 +96,20 @@ final class VotePublicController {
         $memberRepo = new MemberRepository();
         $member = $memberRepo->findByIdForTenant($row['member_id'], $ctx['tenant_id']);
         $weight = (float) ($member['voting_power'] ?? 1.0);
-        if ($weight < 0) {
-            $weight = 0.0;
+        if (!is_finite($weight) || $weight < 0.0) {
+            HtmlView::text('Poids de vote invalide (doit être un nombre fini >= 0)', 422);
+        }
+        if ($weight > 1e6) {
+            HtmlView::text('Poids de vote invalide', 422);
         }
 
         try {
             api_transaction(function () use ($tokenRepo, $hash, $row, $ctx, $dbVote, $weight) {
-                $consumed = $tokenRepo->consume($hash, (string) $row['tenant_id']);
-                if ($consumed === 0) {
+                // Atomic validate+consume: re-checks used_at AND expires_at in a
+                // single UPDATE…RETURNING, eliminating the TOCTOU window between
+                // the initial findValidByHash() and consumption.
+                $consumed = $tokenRepo->consumeIfValid($hash);
+                if (!$consumed) {
                     throw new RuntimeException('token_already_used');
                 }
 
@@ -120,7 +126,7 @@ final class VotePublicController {
             });
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'token_already_used') {
-                HtmlView::text('Token déjà utilisé', 409);
+                HtmlView::text('Token déjà utilisé ou expiré', 409);
             }
             throw $e;
         }

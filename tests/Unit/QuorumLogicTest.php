@@ -24,7 +24,7 @@ class QuorumLogicTest extends TestCase {
         float $eligibleWeight,
     ): float {
         if ($basis === 'eligible_members') {
-            $denominator = max(1, $eligibleMembers);
+            $denominator = $eligibleMembers;
             $numerator = (float) $presentMembers;
         } else {
             $denominator = $eligibleWeight > 0 ? $eligibleWeight : 0.0001;

@@ -65,13 +65,13 @@ final class QuorumEngine {
      *
      * @return array{applied: bool, met: ?bool, details: array, justification: string, meeting: array, policy?: array}
      */
-    public function computeForMotion(string $motionId): array {
+    public function computeForMotion(string $motionId, string $tenantId = ''): array {
         $motionId = trim($motionId);
         if ($motionId === '') {
             throw new InvalidArgumentException('motion_id obligatoire');
         }
 
-        $row = $this->motionRepo->findWithQuorumContext($motionId);
+        $row = $this->motionRepo->findWithQuorumContext($motionId, $tenantId);
         if (!$row) {
             throw new RuntimeException('Motion introuvable');
         }
@@ -81,7 +81,7 @@ final class QuorumEngine {
             return self::noPolicy((string) $row['meeting_id'], (string) $row['tenant_id']);
         }
 
-        $policy = $this->policyRepo->findQuorumPolicy($policyId);
+        $policy = $this->policyRepo->findQuorumPolicy($policyId, (string) $row['tenant_id']);
         if (!$policy) {
             return self::noPolicy((string) $row['meeting_id'], (string) $row['tenant_id']);
         }
@@ -121,7 +121,7 @@ final class QuorumEngine {
             return self::noPolicy($meetingId, $tenantId);
         }
 
-        $policy = $this->policyRepo->findQuorumPolicy($policyId);
+        $policy = $this->policyRepo->findQuorumPolicy($policyId, $tenantId);
         if (!$policy) {
             return self::noPolicy($meetingId, $tenantId);
         }
@@ -237,7 +237,7 @@ final class QuorumEngine {
      */
     private static function ratioBlock(string $basis, float $threshold, int $numMembers, float $numWeight, int $eligibleMembers, float $eligibleWeight): array {
         if ($basis === 'eligible_members') {
-            $den = max(1, $eligibleMembers);
+            $den = $eligibleMembers;
             $num = (float) $numMembers;
         } else {
             $den = $eligibleWeight;

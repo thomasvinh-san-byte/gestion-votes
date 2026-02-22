@@ -219,7 +219,7 @@ body.projection-body {
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   position: relative;
-  color: white;
+  color: var(--color-text-inverse);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
@@ -623,11 +623,11 @@ body.projection-body {
 .meeting-picker-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: var(--z-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--color-backdrop);
   backdrop-filter: blur(4px);
 }
 

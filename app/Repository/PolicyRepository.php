@@ -12,11 +12,14 @@ class PolicyRepository extends AbstractRepository {
     // QUORUM POLICIES
     // =========================================================================
 
-    public function findQuorumPolicy(string $id): ?array {
-        return $this->selectOne(
-            'SELECT * FROM quorum_policies WHERE id = :id',
-            [':id' => $id],
-        );
+    public function findQuorumPolicy(string $id, string $tenantId = ''): ?array {
+        $sql = 'SELECT * FROM quorum_policies WHERE id = :id';
+        $params = [':id' => $id];
+        if ($tenantId !== '') {
+            $sql .= ' AND tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        return $this->selectOne($sql, $params);
     }
 
     public function findQuorumPolicyForTenant(string $id, string $tenantId): ?array {
@@ -114,11 +117,14 @@ class PolicyRepository extends AbstractRepository {
     // VOTE POLICIES
     // =========================================================================
 
-    public function findVotePolicy(string $id): ?array {
-        return $this->selectOne(
-            'SELECT * FROM vote_policies WHERE id = :id',
-            [':id' => $id],
-        );
+    public function findVotePolicy(string $id, string $tenantId = ''): ?array {
+        $sql = 'SELECT * FROM vote_policies WHERE id = :id';
+        $params = [':id' => $id];
+        if ($tenantId !== '') {
+            $sql .= ' AND tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        return $this->selectOne($sql, $params);
     }
 
     public function findVotePolicyForTenant(string $id, string $tenantId): ?array {

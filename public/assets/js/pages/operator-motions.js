@@ -164,6 +164,7 @@
           const modal = O.createModal({
             id: 'deleteMotionModal',
             title: 'Supprimer la résolution',
+            onDismiss: () => resolve(false),
             content: `
               <h3 id="deleteMotionModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('trash-2', 'icon-sm icon-text')} Supprimer ?</h3>
               <p style="margin:0 0 1.5rem;">Résolution : <strong>${title}</strong></p>
@@ -211,7 +212,7 @@
 
     const modal = document.createElement('div');
     modal.className = 'modal-backdrop';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
+    modal.style.cssText = 'position:fixed;inset:0;background:var(--color-backdrop);z-index:var(--z-modal-backdrop, 400);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;';
 
     modal.innerHTML = `
       <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:80vh;overflow:auto;">
@@ -468,6 +469,7 @@
             const modal = O.createModal({
               id: 'correctVoteModal',
               title: 'Modifier le vote',
+              onDismiss: () => resolve(false),
               content: `
                 <h3 id="correctVoteModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Modifier le vote ?</h3>
                 <p style="margin:0 0 0.5rem;">Membre : <strong>${escapeHtml(memberName)}</strong></p>
@@ -501,6 +503,7 @@
           const modal = O.createModal({
             id: 'cancelBallotModal',
             title: 'Annuler le vote manuel',
+            onDismiss: () => resolve(null),
             content: `
               <h3 id="cancelBallotModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Annuler ce vote ?</h3>
               <p>Membre : <strong>${escapeHtml(memberName)}</strong></p>
@@ -618,6 +621,7 @@
       const modal = O.createModal({
         id: 'unanimityConfirmModal',
         title: 'Confirmer le vote unanime',
+        onDismiss: () => resolve(false),
         content: `
           <h3 id="unanimityConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('alert-triangle', 'icon-sm icon-text')} Vote unanime</h3>
           <p style="margin:0 0 0.5rem;">Résolution : <strong>${motionTitle}</strong></p>
@@ -704,6 +708,7 @@
       const modal = O.createModal({
         id: 'openVoteConfirmModal',
         title: 'Confirmer l\'ouverture du vote',
+        onDismiss: () => resolve(false),
         content: `
           <h3 id="openVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('alert-triangle', 'icon-sm icon-text')} Ouvrir le vote ?</h3>
           <p style="margin:0 0 0.5rem;">Résolution : <strong>${motionTitle}</strong></p>
@@ -780,6 +785,7 @@
       const modal = O.createModal({
         id: 'closeVoteConfirmModal',
         title: 'Terminer le scrutin',
+        onDismiss: () => resolve(false),
         content: `
           <h3 id="closeVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Terminer le scrutin ?</h3>
           <p style="margin:0 0 0.75rem;">Résolution : <strong>${motionTitle}</strong></p>
@@ -1112,6 +1118,7 @@
         id: 'closeSessionConfirmModal',
         title: 'Clôturer la séance',
         maxWidth: '540px',
+        onDismiss: () => resolve(false),
         content: `
           <h3 id="closeSessionConfirmModal-title" style="margin:0 0 1rem;font-size:1.125rem;display:flex;align-items:center;gap:0.5rem;">
             ${icon('square', 'icon-sm')} Clôturer la séance

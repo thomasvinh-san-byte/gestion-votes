@@ -71,6 +71,22 @@
   flex-shrink: 0;
 }
 
+.nav-section-dot.dot-prep { background: var(--persona-preparateur); }
+.nav-section-dot.dot-ops { background: var(--persona-operateur); }
+.nav-section-dot.dot-post { background: var(--persona-postsession); }
+.nav-section-dot.dot-audit { background: var(--persona-auditeur); }
+.nav-section-dot.dot-admin { background: var(--persona-admin); }
+
+/* Noscript fallback warning */
+.noscript-warning {
+  padding: 2rem;
+  text-align: center;
+  background: var(--color-warning-subtle, #fef3cd);
+  border: 1px solid var(--color-warning, #ffc107);
+  margin: 1rem;
+  border-radius: var(--radius-md);
+}
+
 /* Disabled nav item (no permission) */
 .nav-item.disabled,
 .nav-item[aria-disabled="true"] {
@@ -462,6 +478,15 @@
   gap: var(--space-2, 0.5rem);
   padding: var(--space-3, 0.75rem) 0;
 }
+
+/* Skeleton width modifiers (replace inline style="width:N%") */
+.skeleton-w-45 { width: 45%; }
+.skeleton-w-50 { width: 50%; }
+.skeleton-w-55 { width: 55%; }
+.skeleton-w-60 { width: 60%; }
+.skeleton-w-65 { width: 65%; }
+.skeleton-w-70 { width: 70%; }
+.skeleton-w-80 { width: 80%; }
 
 /* ─── Admin Tabs (shared pattern) ─── */
 .admin-tabs {

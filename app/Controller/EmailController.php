@@ -122,9 +122,8 @@ final class EmailController extends AbstractController {
         $memberRepo = new MemberRepository();
         $invitationRepo = new InvitationRepository();
 
-        $meetingTitle = $meetingRepo->findTitle($meetingId) ?? $meetingId;
-
         $tenantId = api_current_tenant_id();
+        $meetingTitle = $meetingRepo->findTitle($meetingId, $tenantId) ?? $meetingId;
         $members = $memberRepo->listActiveWithEmail($tenantId);
 
         if ($limit > 0) {
@@ -153,7 +152,7 @@ final class EmailController extends AbstractController {
             }
 
             if ($onlyUnsent) {
-                $st = $invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId);
+                $st = $invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId, $tenantId);
                 if ($st === 'sent') {
                     $skipped++;
                     $skippedAlreadySent[] = $memberName ?: $email;

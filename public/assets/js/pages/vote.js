@@ -916,16 +916,19 @@
     if (window._voteMotionPollTimer) clearInterval(window._voteMotionPollTimer);
     if (window._voteHeartbeatTimer) clearInterval(window._voteHeartbeatTimer);
     window._voteMotionPollTimer = setInterval(()=>{
-      if (!document.hidden) refresh().catch(()=>{});
+      if (!document.hidden) refresh().catch(e => console.error('vote refresh error:', e));
     }, 3000);
     // Heartbeat every 15s
-    window._voteHeartbeatTimer = setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(()=>{}); }, 15000);
+    window._voteHeartbeatTimer = setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(e => console.error('heartbeat error:', e)); }, 15000);
 
-    // Cleanup on page unload to prevent memory leaks
-    window.addEventListener('pagehide', ()=>{
-      clearInterval(window._voteMotionPollTimer);
-      clearInterval(window._voteHeartbeatTimer);
-    });
+    // Cleanup on page unload — guard to prevent stacking listeners on re-init
+    if (!window._votePagehideRegistered) {
+      window._votePagehideRegistered = true;
+      window.addEventListener('pagehide', ()=>{
+        clearInterval(window._voteMotionPollTimer);
+        clearInterval(window._voteHeartbeatTimer);
+      });
+    }
   }
 
   // Expose cast as global submitVote for vote.htmx.html confirmation overlay

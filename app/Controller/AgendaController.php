@@ -23,7 +23,7 @@ final class AgendaController extends AbstractController {
         }
 
         $agendaRepo = new AgendaRepository();
-        $rows = $agendaRepo->listForMeeting($meetingId);
+        $rows = $agendaRepo->listForMeeting($meetingId, api_current_tenant_id());
         api_ok(['items' => $rows]);
     }
 
@@ -108,7 +108,7 @@ final class AgendaController extends AbstractController {
         }
 
         $agendaRepo = new AgendaRepository();
-        $rows = $agendaRepo->listForMeetingCompact($meetingId);
+        $rows = $agendaRepo->listForMeetingCompact($meetingId, api_current_tenant_id());
 
         api_ok([
             'meeting_id' => $meetingId,

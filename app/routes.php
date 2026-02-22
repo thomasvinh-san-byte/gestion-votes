@@ -66,22 +66,24 @@ return function (Router $router): void {
     $audit = ['role' => 'auditor'];
 
     // ── Admin ──
+    $rlAdmin = ['role' => 'admin', 'rate_limit' => ['admin_ops', 30, 60]];
+    $rlOpAdm = ['role' => ['operator', 'admin'], 'rate_limit' => ['admin_ops', 30, 60]];
     $router->mapAny("{$prefix}/admin_audit_log", AdminController::class, 'auditLog', $admin);
-    $router->mapAny("{$prefix}/admin_meeting_roles", AdminController::class, 'meetingRoles', $opAdm);
-    $router->mapAny("{$prefix}/admin_reset_demo", MeetingWorkflowController::class, 'resetDemo', $opAdm);
+    $router->mapAny("{$prefix}/admin_meeting_roles", AdminController::class, 'meetingRoles', $rlOpAdm);
+    $router->mapAny("{$prefix}/admin_reset_demo", MeetingWorkflowController::class, 'resetDemo', $rlOpAdm);
     $router->mapAny("{$prefix}/admin_roles", AdminController::class, 'roles', $admin);
-    $router->mapAny("{$prefix}/admin_system_status", AdminController::class, 'systemStatus', $admin);
-    $router->mapAny("{$prefix}/admin_users", AdminController::class, 'users', $opAdm);
+    $router->mapAny("{$prefix}/admin_system_status", AdminController::class, 'systemStatus', $rlAdmin);
+    $router->mapAny("{$prefix}/admin_users", AdminController::class, 'users', $rlOpAdm);
 
     // ── Policies ──
-    $router->mapAny("{$prefix}/admin_quorum_policies", PoliciesController::class, 'adminQuorum', $admin);
-    $router->mapAny("{$prefix}/admin_vote_policies", PoliciesController::class, 'adminVote', $admin);
+    $router->mapAny("{$prefix}/admin_quorum_policies", PoliciesController::class, 'adminQuorum', $rlAdmin);
+    $router->mapAny("{$prefix}/admin_vote_policies", PoliciesController::class, 'adminVote', $rlAdmin);
     $router->mapAny("{$prefix}/quorum_policies", PoliciesController::class, 'listQuorum', $op);
     $router->mapAny("{$prefix}/vote_policies", PoliciesController::class, 'listVote', $op);
 
     // ── Auth (controller handles its own auth) ──
     $router->mapAny("{$prefix}/auth_csrf", AuthController::class, 'csrf');
-    $router->mapAny("{$prefix}/auth_login", AuthController::class, 'login');
+    $router->mapAny("{$prefix}/auth_login", AuthController::class, 'login', ['rate_limit' => ['auth_login', 10, 300]]);
     $router->mapAny("{$prefix}/auth_logout", AuthController::class, 'logout');
     $router->mapAny("{$prefix}/ping", AuthController::class, 'ping');
     $router->mapAny("{$prefix}/whoami", AuthController::class, 'whoami');

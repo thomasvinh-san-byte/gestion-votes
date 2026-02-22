@@ -72,13 +72,13 @@
 }
 
 .page-header-title {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   margin: 0;
 }
 
 .page-header-subtitle {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -106,7 +106,7 @@
 }
 
 .context-bar .form-label {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   text-transform: uppercase;
   margin-bottom: 0.25rem;
@@ -123,9 +123,9 @@
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background: var(--color-danger);
-  color: white;
+  color: var(--color-text-inverse);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   text-align: center;
   flex-shrink: 0;
 }
@@ -199,7 +199,7 @@
 
 .current-speaker-name {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
@@ -215,7 +215,7 @@
 .current-speaker-timer {
   font-variant-numeric: tabular-nums;
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   color: var(--color-text);
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border);
@@ -235,7 +235,7 @@
 
 .current-speaker-queue-count {
   font-weight: 800;
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: var(--color-warning);
 }
 
@@ -345,7 +345,7 @@
   color: var(--color-text-muted);
   transition: color var(--duration-normal);
   display: flex;
-  font-size: 2rem;
+  font-size: var(--text-3xl);
 }
 
 .icon-xl {
@@ -383,7 +383,7 @@
   font-variant-numeric: tabular-nums;
   box-shadow: var(--shadow-danger-glow);
   pointer-events: none;
-  z-index: 1;
+  z-index: var(--z-base);
   animation: badge-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -456,7 +456,7 @@
 
 .motion-card-label {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
@@ -478,7 +478,7 @@
   border-radius: 100px;
   border: 2px solid var(--color-border);
   background: var(--color-surface);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 800;
   white-space: nowrap;
   color: var(--color-text);
@@ -547,7 +547,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.625rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .reso-details summary::-webkit-details-marker {
@@ -555,7 +555,7 @@
 }
 
 .reso-note {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   color: var(--color-text-muted);
   white-space: nowrap;
@@ -563,7 +563,7 @@
 
 .reso-text {
   margin-top: 0.625rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   line-height: 1.6;
   color: var(--color-text);
   max-height: 200px;
@@ -599,7 +599,7 @@
 
 .vote-section-label {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
@@ -643,7 +643,7 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 3rem 1.5rem;
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -684,7 +684,7 @@
 
 .vote-btn-for {
   background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-hover) 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 40px rgb(22 163 74 / 0.3);
 }
 
@@ -694,7 +694,7 @@
 
 .vote-btn-against {
   background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-hover) 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 40px rgb(220 38 38 / 0.3);
 }
 
@@ -704,7 +704,7 @@
 
 .vote-btn-abstain {
   background: linear-gradient(135deg, var(--color-neutral) 0%, var(--color-neutral-hover) 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 40px rgb(100 116 139 / 0.3);
 }
 
@@ -714,7 +714,7 @@
 
 .vote-btn-blanc {
   background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-  color: white;
+  color: var(--color-text-inverse);
   box-shadow: 0 10px 40px rgb(148 163 184 / 0.3);
 }
 
@@ -729,14 +729,14 @@
   padding: 0.25rem 0.5rem;
   border-radius: 8px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 800;
   color: rgba(255, 255, 255, 0.6);
   background: rgba(255, 255, 255, 0.1);
 }
 
 .vote-btn-hint {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   opacity: 0.6;
   text-transform: none;
@@ -753,10 +753,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--color-surface);
   color: currentColor;
   border-radius: 50%;
-  font-size: 1rem;
+  font-size: var(--text-base);
 }
 
 /* =============================================================================
@@ -844,7 +844,7 @@
 }
 
 .member-weight {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -863,7 +863,7 @@
   border-radius: 100px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--color-text-muted);
   white-space: nowrap;
@@ -901,12 +901,12 @@
 .vote-confirmation {
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.45);
+  background: var(--color-backdrop);
   display: none;
   align-items: flex-end;
   justify-content: center;
   padding: 1rem;
-  z-index: 100;
+  z-index: var(--z-modal-backdrop);
 }
 
 .vote-confirmation.show {
@@ -918,7 +918,7 @@
   background: var(--color-surface);
   border: 2px solid var(--color-border);
   border-radius: 16px;
-  box-shadow: 0 10px 28px rgba(17, 24, 39, 0.08);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
 }
 
@@ -931,7 +931,7 @@
 .confirm-sheet-header strong {
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
@@ -956,7 +956,7 @@
 }
 
 .confirm-meta {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--color-text-muted);
   display: flex;
@@ -994,7 +994,7 @@
 
 .confirm-sheet-actions .btn {
   padding: 0.875rem 1.25rem;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 700;
   min-height: 48px;
 }
@@ -1015,7 +1015,7 @@
   }
 
   .current-speaker-timer {
-    font-size: 1rem;
+    font-size: var(--text-base);
     padding: 0.125rem 0.5rem;
   }
 
@@ -1039,7 +1039,7 @@
   }
 
   .vote-btn-icon {
-    font-size: 2.5rem;
+    font-size: var(--text-4xl);
   }
 
   .vote-btn-kbd {
@@ -1060,12 +1060,12 @@
 
   .confirm-sheet-actions .btn {
     padding: 1.25rem 1.5rem;
-    font-size: 1.125rem;
+    font-size: var(--text-lg);
     min-height: 56px;
   }
 
   .confirm-choice {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 
   .reso-text {
@@ -1124,12 +1124,12 @@
   .vote-btn.selected::after {
     width: 34px;
     height: 34px;
-    font-size: 1.25rem;
+    font-size: var(--text-xl);
   }
 
   .confirm-sheet-actions .btn {
     padding: 1.125rem 1.5rem;
-    font-size: 1.125rem;
+    font-size: var(--text-lg);
     min-height: 52px;
   }
 }
@@ -1168,11 +1168,11 @@
 
 .vote-identity-banner .identity-name {
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
 }
 
 .vote-identity-banner .identity-meeting {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
 
@@ -1186,14 +1186,14 @@
   height: 200px;
   border-radius: 50%;
   background: var(--color-success);
-  color: white;
+  color: var(--color-text-inverse);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 800;
-  z-index: 900;
+  z-index: var(--z-overlay);
   animation: voteSuccessPop 0.6s var(--ease-bounce, ease) forwards;
   pointer-events: none;
 }

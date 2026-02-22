@@ -330,8 +330,9 @@ class DocContentControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocContentController.php');
 
-        $this->assertStringContainsString('file_exists', $source);
-        $this->assertStringContainsString('is_file', $source);
+        // Uses realpath() for path traversal protection (replaces file_exists/is_file)
+        $this->assertStringContainsString('realpath', $source);
+        $this->assertStringContainsString('str_starts_with', $source);
     }
 
     public function testSourceSetsHttpResponseCodes(): void

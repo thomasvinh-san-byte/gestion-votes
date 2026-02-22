@@ -79,7 +79,7 @@ final class MeetingReportsController extends AbstractController {
 
         $tokens = [];
         try {
-            $tokens = $invitationRepo->listTokensForReport($meetingId);
+            $tokens = $invitationRepo->listTokensForReport($meetingId, $tenant);
         } catch (Throwable $e) {
             if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
                 throw $e;
@@ -92,11 +92,11 @@ final class MeetingReportsController extends AbstractController {
 
             $votePolicy = null;
             if (!empty($m['vote_policy_id'])) {
-                $votePolicy = $policyRepo->findVotePolicy($m['vote_policy_id']);
+                $votePolicy = $policyRepo->findVotePolicy($m['vote_policy_id'], $tenant);
             }
             $quorumPolicy = null;
             if (!empty($m['quorum_policy_id'])) {
-                $quorumPolicy = $policyRepo->findQuorumPolicy($m['quorum_policy_id']);
+                $quorumPolicy = $policyRepo->findQuorumPolicy($m['quorum_policy_id'], $tenant);
             }
 
             $src = (string) ($m['official_source'] ?? '');
@@ -106,7 +106,7 @@ final class MeetingReportsController extends AbstractController {
 
             if (!$hasOfficial && $m['closed_at'] !== null) {
                 try {
-                    $o = (new OfficialResultsService())->computeOfficialTallies($mid);
+                    $o = (new OfficialResultsService())->computeOfficialTallies($mid, api_current_tenant_id());
                     $src = $o['source'];
                     $of = $o['for'];
                     $og = $o['against'];
@@ -137,7 +137,7 @@ final class MeetingReportsController extends AbstractController {
 
             try {
                 if ($src === 'evote') {
-                    $r = (new VoteEngine())->computeMotionResult($mid);
+                    $r = (new VoteEngine())->computeMotionResult($mid, api_current_tenant_id());
                     $detail['quorum_met'] = $r['quorum']['met'] ?? null;
                     $detail['quorum_ratio'] = $r['quorum']['ratio'] ?? null;
                     $detail['majority_ratio'] = $r['decision']['ratio'] ?? ($r['majority']['ratio'] ?? null);

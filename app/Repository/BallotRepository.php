@@ -378,9 +378,9 @@ class BallotRepository extends AbstractRepository {
                 ORDER BY created_at DESC
                 LIMIT 1
              ) ma ON true
-             WHERE mo.meeting_id = ? AND b.tenant_id = ?
+             WHERE mo.meeting_id = :mid AND b.tenant_id = :tid
              ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC, b.cast_at ASC",
-            [$meetingId, $tenantId],
+            [':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
@@ -400,13 +400,13 @@ class BallotRepository extends AbstractRepository {
                 b.cast_at,
                 COALESCE(b.source, 'electronic') AS source
              FROM motions mo
-             JOIN meetings mt ON mt.id = mo.meeting_id AND mt.id = ? AND mt.tenant_id = ?
+             JOIN meetings mt ON mt.id = mo.meeting_id AND mt.id = :mid AND mt.tenant_id = :tid
              LEFT JOIN ballots b ON b.motion_id = mo.id
              LEFT JOIN members mb ON mb.id = b.member_id
              LEFT JOIN members ps ON ps.id = b.proxy_source_member_id
-             WHERE mo.meeting_id = ?
+             WHERE mo.meeting_id = :mid2
              ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC, mb.full_name ASC NULLS LAST",
-            [$meetingId, $tenantId, $meetingId],
+            [':mid' => $meetingId, ':tid' => $tenantId, ':mid2' => $meetingId],
         );
     }
 

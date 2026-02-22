@@ -45,9 +45,13 @@ final class ImportController extends AbstractController {
                 api_fail('file_too_large', 400, ['detail' => 'Max 5 MB.']);
             }
             $tmpPath = tempnam(sys_get_temp_dir(), 'csv_');
+            chmod($tmpPath, 0600);
             file_put_contents($tmpPath, $csvContent);
-            $result = ImportService::readCsvFile($tmpPath);
-            unlink($tmpPath);
+            try {
+                $result = ImportService::readCsvFile($tmpPath);
+            } finally {
+                unlink($tmpPath);
+            }
             if ($result['error']) {
                 api_fail('file_read_error', 400, ['detail' => $result['error']]);
             }

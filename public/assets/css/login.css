@@ -99,7 +99,7 @@
   width: 100%;
   padding: var(--space-3);
   background: var(--color-primary);
-  color: white;
+  color: var(--color-primary-text);
   border: none;
   border-radius: var(--radius-md);
   font-size: var(--text-base);

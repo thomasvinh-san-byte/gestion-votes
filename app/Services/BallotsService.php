@@ -108,8 +108,11 @@ final class BallotsService {
         $meetingId = (string) $context['meeting_id'];
 
         $weight = (float) ($member['voting_power'] ?? 1.0);
-        if ($weight < 0) {
-            $weight = 0.0;
+        if (!is_finite($weight) || $weight < 0.0) {
+            throw new InvalidArgumentException('Poids de vote invalide (doit être un nombre fini >= 0)');
+        }
+        if ($weight > 1e6) {
+            throw new InvalidArgumentException('Poids de vote excessif');
         }
 
         // Proxy vote (MVP)
@@ -161,6 +164,20 @@ final class BallotsService {
                 $lockedMeeting = $this->meetingRepo->lockForUpdate($meetingId, $tenantId);
                 if (!$lockedMeeting || $lockedMeeting['status'] !== 'live') {
                     throw new RuntimeException('Séance non disponible pour le vote');
+                }
+
+                // Re-validate motion state inside the transaction: a concurrent
+                // request could have closed the motion between the initial check
+                // and the acquisition of the meeting lock.
+                $freshContext = $this->motionRepo->findWithBallotContext($motionId, $tenantId);
+                if (!$freshContext || empty($freshContext['motion_opened_at']) || !empty($freshContext['motion_closed_at'])) {
+                    throw new RuntimeException('Cette motion n\'est pas ouverte au vote');
+                }
+
+                // Re-validate proxy inside the transaction: a proxy could be
+                // revoked between the initial check and lock acquisition.
+                if ($isProxyVote && !$this->proxiesService->hasActiveProxy($meetingId, $memberId, $proxyVoterId, $tenantId)) {
+                    throw new RuntimeException('Procuration révoquée avant le vote');
                 }
 
                 // Strict INSERT — duplicate votes are rejected, not silently overwritten

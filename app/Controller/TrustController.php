@@ -189,7 +189,7 @@ final class TrustController extends AbstractController {
         $totalMembers = $memberRepo->countActive($tenantId);
         $quorumThreshold = 0.5;
         if ($meeting['quorum_policy_id']) {
-            $policy = $policyRepo->findQuorumPolicy($meeting['quorum_policy_id']);
+            $policy = $policyRepo->findQuorumPolicy($meeting['quorum_policy_id'], $tenantId);
             if ($policy) {
                 $quorumThreshold = (float) ($policy['threshold'] ?? 0.5);
             }

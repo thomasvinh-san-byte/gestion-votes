@@ -83,6 +83,23 @@ class VoteTokenRepository extends AbstractRepository {
     }
 
     /**
+     * Diagnoses why consumeIfValid() returned null.
+     * Single query with CASE — avoids N+1 pattern.
+     */
+    public function diagnoseFailure(string $tokenHash): string {
+        $row = $this->selectOne(
+            "SELECT CASE
+                WHEN used_at IS NOT NULL THEN 'token_already_used'
+                WHEN expires_at <= NOW() THEN 'token_expired'
+                ELSE 'token_unknown_error'
+             END AS reason
+             FROM vote_tokens WHERE token_hash = :hash",
+            [':hash' => $tokenHash],
+        );
+        return $row ? (string) $row['reason'] : 'token_not_found';
+    }
+
+    /**
      * Compte tous les tokens de vote (global).
      */
     public function countAll(): ?int {

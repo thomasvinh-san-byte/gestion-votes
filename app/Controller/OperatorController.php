@@ -102,8 +102,8 @@ final class OperatorController extends AbstractController {
         $motions = $motionRepo->countWorkflowSummary($meetingId, $tenant);
 
         $openMotion = $motionRepo->findCurrentOpen($meetingId, $tenant);
-        $nextMotion = $motionRepo->findNextNotOpened($meetingId);
-        $lastClosedMotion = $motionRepo->findLastClosedForProjector($meetingId);
+        $nextMotion = $motionRepo->findNextNotOpened($meetingId, $tenant);
+        $lastClosedMotion = $motionRepo->findLastClosedForProjector($meetingId, $tenant);
 
         $hasAnyMotion = ((int) ($motions['total'] ?? 0)) > 0;
 

@@ -32,7 +32,7 @@ final class QuorumController extends AbstractController {
             $tenantId = api_current_tenant_id();
 
             if ($motionId !== '') {
-                $r = (new QuorumEngine())->computeForMotion($motionId);
+                $r = (new QuorumEngine())->computeForMotion($motionId, $tenantId);
                 $title = $r['applies_to']['motion_title'] ?? 'Motion';
                 $scope = 'Motion';
             } elseif ($meetingId !== '') {
@@ -107,7 +107,7 @@ final class QuorumController extends AbstractController {
         $tenantId = api_current_tenant_id();
 
         if ($motionId !== '') {
-            $res = (new QuorumEngine())->computeForMotion($motionId);
+            $res = (new QuorumEngine())->computeForMotion($motionId, $tenantId);
         } elseif ($meetingId !== '') {
             $res = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
         } else {
@@ -119,7 +119,7 @@ final class QuorumController extends AbstractController {
         $res['threshold'] = $primary['threshold'] ?? 0.5;
         $res['present'] = $res['numerator']['members'] ?? 0;
         $res['total_eligible'] = $res['eligible']['members'] ?? 0;
-        $res['required'] = (int) ceil(($primary['threshold'] ?? 0.5) * max(1, $res['eligible']['members'] ?? 0));
+        $res['required'] = (int) ceil(($primary['threshold'] ?? 0.5) * ($res['eligible']['members'] ?? 0));
         $res['mode'] = $primary['basis'] ?? 'simple';
 
         api_ok($res);

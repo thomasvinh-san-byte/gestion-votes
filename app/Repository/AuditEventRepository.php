@@ -55,32 +55,34 @@ class AuditEventRepository extends AbstractRepository {
         int $limit = 100,
         int $offset = 0,
     ): array {
-        $where = 'WHERE tenant_id = ?';
-        $params = [$tenantId];
-
-        $where .= " AND (action LIKE 'admin.%' OR action LIKE 'admin\\_%')";
+        $where = "WHERE tenant_id = :tid AND (action LIKE 'admin.%' OR action LIKE 'admin\\_%')";
+        $params = [':tid' => $tenantId];
 
         if ($action !== null && $action !== '') {
-            $where .= ' AND action = ?';
-            $params[] = $action;
+            $where .= ' AND action = :action';
+            $params[':action'] = $action;
         }
 
         if ($query !== null && $query !== '') {
-            $where .= ' AND (action ILIKE ? OR CAST(payload AS text) ILIKE ? OR actor_role ILIKE ?)';
+            $where .= ' AND (action ILIKE :q1 OR CAST(payload AS text) ILIKE :q2 OR actor_role ILIKE :q3)';
             $like = '%' . $query . '%';
-            $params[] = $like;
-            $params[] = $like;
-            $params[] = $like;
+            $params[':q1'] = $like;
+            $params[':q2'] = $like;
+            $params[':q3'] = $like;
         }
 
-        $sql = "SELECT id, action, resource_type, resource_id, actor_user_id, actor_role,
-                       payload, ip_address, created_at
-                FROM audit_events
-                {$where}
-                ORDER BY created_at DESC
-                LIMIT {$limit} OFFSET {$offset}";
+        $params[':lim'] = max(1, min($limit, 500));
+        $params[':off'] = max(0, $offset);
 
-        return $this->selectAll($sql, $params);
+        return $this->selectAll(
+            "SELECT id, action, resource_type, resource_id, actor_user_id, actor_role,
+                    payload, ip_address, created_at
+             FROM audit_events
+             {$where}
+             ORDER BY created_at DESC
+             LIMIT :lim OFFSET :off",
+            $params,
+        );
     }
 
     /**
@@ -91,22 +93,20 @@ class AuditEventRepository extends AbstractRepository {
         ?string $action = null,
         ?string $query = null,
     ): int {
-        $where = 'WHERE tenant_id = ?';
-        $params = [$tenantId];
-
-        $where .= " AND (action LIKE 'admin.%' OR action LIKE 'admin\\_%')";
+        $where = "WHERE tenant_id = :tid AND (action LIKE 'admin.%' OR action LIKE 'admin\\_%')";
+        $params = [':tid' => $tenantId];
 
         if ($action !== null && $action !== '') {
-            $where .= ' AND action = ?';
-            $params[] = $action;
+            $where .= ' AND action = :action';
+            $params[':action'] = $action;
         }
 
         if ($query !== null && $query !== '') {
-            $where .= ' AND (action ILIKE ? OR CAST(payload AS text) ILIKE ? OR actor_role ILIKE ?)';
+            $where .= ' AND (action ILIKE :q1 OR CAST(payload AS text) ILIKE :q2 OR actor_role ILIKE :q3)';
             $like = '%' . $query . '%';
-            $params[] = $like;
-            $params[] = $like;
-            $params[] = $like;
+            $params[':q1'] = $like;
+            $params[':q2'] = $like;
+            $params[':q3'] = $like;
         }
 
         return (int) ($this->scalar("SELECT COUNT(*) FROM audit_events {$where}", $params) ?? 0);
@@ -118,9 +118,9 @@ class AuditEventRepository extends AbstractRepository {
     public function listDistinctAdminActions(string $tenantId): array {
         return $this->selectAll(
             "SELECT DISTINCT action FROM audit_events
-             WHERE tenant_id = ? AND (action LIKE 'admin.%' OR action LIKE 'admin\\_%')
+             WHERE tenant_id = :tid AND (action LIKE 'admin.%' OR action LIKE 'admin\\_%')
              ORDER BY action",
-            [$tenantId],
+            [':tid' => $tenantId],
         );
     }
 
@@ -154,8 +154,8 @@ class AuditEventRepository extends AbstractRepository {
                     OR (resource_type = 'motion' AND resource_id IN (
                         SELECT id FROM motions WHERE meeting_id = :mid2)))
              ORDER BY created_at {$order}
-             LIMIT " . max(1, $limit),
-            [':tid' => $tenantId, ':mid' => $meetingId, ':mid2' => $meetingId],
+             LIMIT :lim",
+            [':tid' => $tenantId, ':mid' => $meetingId, ':mid2' => $meetingId, ':lim' => max(1, $limit)],
         );
     }
 
@@ -170,34 +170,36 @@ class AuditEventRepository extends AbstractRepository {
         string $action = '',
         string $q = '',
     ): array {
-        $where = "WHERE tenant_id = ? AND (
-            (resource_type = 'meeting' AND resource_id = ?)
+        $where = "WHERE tenant_id = :tid AND (
+            (resource_type = 'meeting' AND resource_id = :mid)
             OR
-            (resource_type = 'motion' AND resource_id IN (SELECT id FROM motions WHERE meeting_id = ?))
+            (resource_type = 'motion' AND resource_id IN (SELECT id FROM motions WHERE meeting_id = :mid2))
         )";
-        $params = [$tenantId, $meetingId, $meetingId];
+        $params = [':tid' => $tenantId, ':mid' => $meetingId, ':mid2' => $meetingId];
 
         if ($resourceType !== '') {
-            $where .= ' AND resource_type = ?';
-            $params[] = $resourceType;
+            $where .= ' AND resource_type = :rtype';
+            $params[':rtype'] = $resourceType;
         }
         if ($action !== '') {
-            $where .= ' AND action ILIKE ?';
-            $params[] = '%' . $action . '%';
+            $where .= ' AND action ILIKE :action';
+            $params[':action'] = '%' . $action . '%';
         }
         if ($q !== '') {
-            $where .= ' AND (action ILIKE ? OR resource_id ILIKE ? OR payload::text ILIKE ?)';
-            $params[] = '%' . $q . '%';
-            $params[] = '%' . $q . '%';
-            $params[] = '%' . $q . '%';
+            $where .= ' AND (action ILIKE :q1 OR resource_id ILIKE :q2 OR payload::text ILIKE :q3)';
+            $params[':q1'] = '%' . $q . '%';
+            $params[':q2'] = '%' . $q . '%';
+            $params[':q3'] = '%' . $q . '%';
         }
+
+        $params[':lim'] = max(1, min($limit, 500));
 
         return $this->selectAll(
             "SELECT id, action, resource_type, resource_id, payload, created_at
              FROM audit_events
              {$where}
              ORDER BY created_at DESC
-             LIMIT " . max(1, min($limit, 500)),
+             LIMIT :lim",
             $params,
         );
     }
@@ -223,20 +225,24 @@ class AuditEventRepository extends AbstractRepository {
                 ae.ip_address,
                 ae.created_at
             FROM audit_events ae
-            WHERE ae.tenant_id = ?
+            WHERE ae.tenant_id = :tid
               AND (
-                ae.meeting_id = ?
-                OR (ae.resource_type = 'meeting' AND ae.resource_id = ?)
+                ae.meeting_id = :mid
+                OR (ae.resource_type = 'meeting' AND ae.resource_id = :mid2)
                 OR (ae.resource_type = 'motion' AND ae.resource_id IN (
-                    SELECT id FROM motions WHERE meeting_id = ?
+                    SELECT id FROM motions WHERE meeting_id = :mid3
                 ))
                 OR (ae.resource_type = 'attendance' AND ae.resource_id IN (
-                    SELECT id FROM attendances WHERE meeting_id = ?
+                    SELECT id FROM attendances WHERE meeting_id = :mid4
                 ))
               )
             ORDER BY ae.created_at DESC
-            LIMIT ? OFFSET ?",
-            [$tenantId, $meetingId, $meetingId, $meetingId, $meetingId, $limit, $offset],
+            LIMIT :lim OFFSET :off",
+            [
+                ':tid' => $tenantId, ':mid' => $meetingId, ':mid2' => $meetingId,
+                ':mid3' => $meetingId, ':mid4' => $meetingId,
+                ':lim' => max(1, $limit), ':off' => max(0, $offset),
+            ],
         );
     }
 
@@ -247,15 +253,15 @@ class AuditEventRepository extends AbstractRepository {
         return (int) ($this->scalar(
             "SELECT COUNT(*)
             FROM audit_events ae
-            WHERE ae.tenant_id = ?
+            WHERE ae.tenant_id = :tid
               AND (
-                ae.meeting_id = ?
-                OR (ae.resource_type = 'meeting' AND ae.resource_id = ?)
+                ae.meeting_id = :mid
+                OR (ae.resource_type = 'meeting' AND ae.resource_id = :mid2)
                 OR (ae.resource_type = 'motion' AND ae.resource_id IN (
-                    SELECT id FROM motions WHERE meeting_id = ?
+                    SELECT id FROM motions WHERE meeting_id = :mid3
                 ))
               )",
-            [$tenantId, $meetingId, $meetingId, $meetingId],
+            [':tid' => $tenantId, ':mid' => $meetingId, ':mid2' => $meetingId, ':mid3' => $meetingId],
         ) ?? 0);
     }
 

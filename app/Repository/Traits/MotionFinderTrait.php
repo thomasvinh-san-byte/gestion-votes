@@ -103,37 +103,43 @@ trait MotionFinderTrait {
         );
     }
 
-    public function findWithQuorumContext(string $motionId): ?array {
-        return $this->selectOne(
-            'SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id,
+    public function findWithQuorumContext(string $motionId, string $tenantId = ''): ?array {
+        $sql = 'SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id,
                     mo.quorum_policy_id AS motion_quorum_policy_id,
                     mo.opened_at AS motion_opened_at,
                     mt.tenant_id, mt.quorum_policy_id AS meeting_quorum_policy_id,
                     COALESCE(mt.convocation_no, 1) AS convocation_no
              FROM motions mo
              JOIN meetings mt ON mt.id = mo.meeting_id
-             WHERE mo.id = :id',
-            [':id' => $motionId],
-        );
+             WHERE mo.id = :id';
+        $params = [':id' => $motionId];
+        if ($tenantId !== '') {
+            $sql .= ' AND mt.tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        return $this->selectOne($sql, $params);
     }
 
-    public function findWithVoteContext(string $motionId): ?array {
-        return $this->selectOne(
-            'SELECT m.id AS motion_id, m.title AS motion_title,
-                    m.vote_policy_id, m.secret,
+    public function findWithVoteContext(string $motionId, string $tenantId = ''): ?array {
+        $sql = 'SELECT m.id AS motion_id, m.title AS motion_title,
+                    m.vote_policy_id, m.quorum_policy_id,
+                    m.secret,
                     mt.id AS meeting_id, mt.tenant_id,
-                    mt.quorum_policy_id,
+                    mt.quorum_policy_id AS meeting_quorum_policy_id,
                     mt.vote_policy_id AS meeting_vote_policy_id
              FROM motions m
              JOIN meetings mt ON mt.id = m.meeting_id
-             WHERE m.id = :id',
-            [':id' => $motionId],
-        );
+             WHERE m.id = :id';
+        $params = [':id' => $motionId];
+        if ($tenantId !== '') {
+            $sql .= ' AND mt.tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        return $this->selectOne($sql, $params);
     }
 
-    public function findWithOfficialContext(string $motionId): ?array {
-        return $this->selectOne(
-            'SELECT m.id, m.title, m.meeting_id,
+    public function findWithOfficialContext(string $motionId, string $tenantId = ''): ?array {
+        $sql = 'SELECT m.id, m.title, m.meeting_id,
                     m.vote_policy_id, m.quorum_policy_id,
                     m.secret, m.closed_at,
                     m.manual_total, m.manual_for, m.manual_against, m.manual_abstain,
@@ -142,9 +148,13 @@ trait MotionFinderTrait {
                     mt.vote_policy_id AS meeting_vote_policy_id
              FROM motions m
              JOIN meetings mt ON mt.id = m.meeting_id
-             WHERE m.id = :id',
-            [':id' => $motionId],
-        );
+             WHERE m.id = :id';
+        $params = [':id' => $motionId];
+        if ($tenantId !== '') {
+            $sql .= ' AND mt.tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        return $this->selectOne($sql, $params);
     }
 
     public function findWithBallotContext(string $motionId, string $tenantId): ?array {
@@ -189,14 +199,17 @@ trait MotionFinderTrait {
         );
     }
 
-    public function findWithMeetingTenant(string $motionId): ?array {
-        return $this->selectOne(
-            'SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id, m.tenant_id
+    public function findWithMeetingTenant(string $motionId, string $tenantId = ''): ?array {
+        $sql = 'SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id, m.tenant_id
              FROM motions mo
              JOIN meetings m ON m.id = mo.meeting_id
-             WHERE mo.id = :id',
-            [':id' => $motionId],
-        );
+             WHERE mo.id = :id';
+        $params = [':id' => $motionId];
+        if ($tenantId !== '') {
+            $sql .= ' AND m.tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        return $this->selectOne($sql, $params);
     }
 
     public function findByIdAndMeetingForUpdate(string $tenantId, string $meetingId, string $motionId): ?array {
@@ -215,38 +228,45 @@ trait MotionFinderTrait {
         );
     }
 
-    public function findOpenForProjector(string $meetingId): ?array {
-        return $this->selectOne(
-            'SELECT id, title, description, body, secret, position, opened_at
+    public function findOpenForProjector(string $meetingId, string $tenantId = ''): ?array {
+        $sql = 'SELECT id, title, description, body, secret, position, opened_at
              FROM motions
              WHERE meeting_id = :meeting_id
                AND opened_at IS NOT NULL
-               AND closed_at IS NULL
-             ORDER BY opened_at DESC
-             LIMIT 1',
-            [':meeting_id' => $meetingId],
-        );
+               AND closed_at IS NULL';
+        $params = [':meeting_id' => $meetingId];
+        if ($tenantId !== '') {
+            $sql .= ' AND tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        $sql .= ' ORDER BY opened_at DESC LIMIT 1';
+        return $this->selectOne($sql, $params);
     }
 
-    public function findLastClosedForProjector(string $meetingId): ?array {
-        return $this->selectOne(
-            'SELECT id, title, description, body, secret, position, closed_at
+    public function findLastClosedForProjector(string $meetingId, string $tenantId = ''): ?array {
+        $sql = 'SELECT id, title, description, body, secret, position, closed_at
              FROM motions
              WHERE meeting_id = :meeting_id
-               AND closed_at IS NOT NULL
-             ORDER BY closed_at DESC
-             LIMIT 1',
-            [':meeting_id' => $meetingId],
-        );
+               AND closed_at IS NOT NULL';
+        $params = [':meeting_id' => $meetingId];
+        if ($tenantId !== '') {
+            $sql .= ' AND tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        $sql .= ' ORDER BY closed_at DESC LIMIT 1';
+        return $this->selectOne($sql, $params);
     }
 
-    public function findNextNotOpened(string $meetingId): ?array {
-        return $this->selectOne(
-            'SELECT id, title FROM motions
-             WHERE meeting_id = :mid AND opened_at IS NULL
-             ORDER BY position ASC NULLS LAST, created_at ASC LIMIT 1',
-            [':mid' => $meetingId],
-        );
+    public function findNextNotOpened(string $meetingId, string $tenantId = ''): ?array {
+        $sql = 'SELECT id, title FROM motions
+             WHERE meeting_id = :mid AND opened_at IS NULL';
+        $params = [':mid' => $meetingId];
+        if ($tenantId !== '') {
+            $sql .= ' AND tenant_id = :tid';
+            $params[':tid'] = $tenantId;
+        }
+        $sql .= ' ORDER BY position ASC NULLS LAST, created_at ASC LIMIT 1';
+        return $this->selectOne($sql, $params);
     }
 
     public function findNextNotOpenedForUpdate(string $tenantId, string $meetingId): ?array {

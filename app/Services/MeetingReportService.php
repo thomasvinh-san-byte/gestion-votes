@@ -53,7 +53,7 @@ final class MeetingReportService {
 
         $manualActions = [];
         try {
-            $manualActions = $this->manualActionRepo->listForMeeting($meetingId);
+            $manualActions = $this->manualActionRepo->listForMeeting($meetingId, $tenant);
         } catch (Throwable $e) {
             $manualActions = [];
         }
@@ -144,7 +144,7 @@ final class MeetingReportService {
             $hasOfficial = ($src !== '') && ($m['official_total'] !== null);
 
             if (!$hasOfficial && $m['closed_at'] !== null) {
-                $o = (new OfficialResultsService())->computeOfficialTallies($mid);
+                $o = (new OfficialResultsService())->computeOfficialTallies($mid, $tenant);
                 $src = $o['source'];
                 $of = (float) $o['for'];
                 $og = (float) $o['against'];
@@ -167,18 +167,18 @@ final class MeetingReportService {
             // Policy labels + justifications
             $votePolicy = null;
             if (!empty($m['vote_policy_id'])) {
-                $votePolicy = $this->policyRepo->findVotePolicy($m['vote_policy_id']);
+                $votePolicy = $this->policyRepo->findVotePolicy($m['vote_policy_id'], $tenant);
             }
             $quorumPolicy = null;
             if (!empty($m['quorum_policy_id'])) {
-                $quorumPolicy = $this->policyRepo->findQuorumPolicy($m['quorum_policy_id']);
+                $quorumPolicy = $this->policyRepo->findQuorumPolicy($m['quorum_policy_id'], $tenant);
             }
 
             $policyLine = self::policyLine($votePolicy, $quorumPolicy);
 
             $quorumJust = null;
             try {
-                $qr = (new QuorumEngine())->computeForMotion($mid);
+                $qr = (new QuorumEngine())->computeForMotion($mid, $tenant);
                 $quorumJust = (string) ($qr['justification'] ?? null);
             } catch (Throwable $e) {
                 $quorumJust = null;
@@ -186,7 +186,7 @@ final class MeetingReportService {
 
             $majorityJust = null;
             try {
-                $vr = (new VoteEngine())->computeMotionResult($mid);
+                $vr = (new VoteEngine())->computeMotionResult($mid, $tenant);
                 $maj = $vr['majority'] ?? null;
                 if (is_array($maj)) {
                     $majorityJust = self::majorityLine($maj);

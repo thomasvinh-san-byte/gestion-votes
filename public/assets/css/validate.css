@@ -39,12 +39,12 @@
 
 .check-item.pass .check-icon {
   background: var(--color-success);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 .check-item.fail .check-icon {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 /* =============================================================================
@@ -77,8 +77,8 @@
 .validate-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 500;
+  background: var(--color-backdrop);
+  z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -106,7 +106,7 @@
 
 .validate-modal-header h3 {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--color-danger-text);
 }

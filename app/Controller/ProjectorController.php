@@ -55,8 +55,8 @@ final class ProjectorController extends AbstractController {
         }
 
         // --- Motion state ---
-        $open = $motionRepo->findOpenForProjector($meetingId);
-        $closed = $motionRepo->findLastClosedForProjector($meetingId);
+        $open = $motionRepo->findOpenForProjector($meetingId, $tenantId);
+        $closed = $motionRepo->findLastClosedForProjector($meetingId, $tenantId);
 
         $phase = 'idle';
         $motion = null;
