@@ -63,7 +63,7 @@
   right: 4px;
   width: 8px;
   height: 8px;
-  background: var(--color-danger, #ef4444);
+  background: var(--color-danger);
   border-radius: 50%;
   animation: blink-subtle 2s ease-in-out infinite;
 }
@@ -459,7 +459,16 @@
 
 .password-strength-text {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   white-space: nowrap;
   min-width: 4rem;
 }
+
+/* ─── Audit log section (replaces inline styles) ─── */
+.audit-filter { max-width: 220px; }
+.audit-search { max-width: 200px; }
+.audit-log-scroll { max-height: 400px; overflow: auto; }
+
+/* Skeleton inline variant (display:inline-block + fixed width) */
+.skeleton-inline { display: inline-block; }
+.skeleton-w-60px { width: 60px; }

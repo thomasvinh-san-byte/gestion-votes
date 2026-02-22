@@ -9,6 +9,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="/assets/css/app.css">
+    <style>
+      /* PV print-specific styles */
+      .pv-section-title { font-size: var(--text-base); }
+      .pv-table { width: 100%; border-collapse: collapse; }
+      .pv-table th { text-align: left; padding: var(--space-2); border-bottom: 1px solid var(--color-border); }
+      .pv-table th.text-right { text-align: right; }
+      .pv-motions-grid { display: grid; gap: 10px; }
+      .pv-signatures { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+      .pv-signature-line { margin-top: 60px; border-top: 1px solid var(--color-border); padding-top: var(--space-2); }
+    </style>
 </head>
 <body>
   <div class="wrap">
@@ -27,7 +37,7 @@
       <section class="card">
         <div class="row">
           <div>
-            <div class="k" style="font-size:16px;">Résumé</div>
+            <div class="k pv-section-title">Résumé</div>
             <div class="text-muted">Statut : <span id="pvStatus" class="pill">—</span></div>
           </div>
           <div class="controls">
@@ -38,16 +48,16 @@
       </section>
 
       <section class="card">
-        <div class="k" style="font-size:16px;">Feuille de présence</div>
+        <div class="k pv-section-title">Feuille de présence</div>
         <div class="hr"></div>
-        <div style="overflow:auto;">
-          <table style="width:100%; border-collapse:collapse;">
+        <div class="overflow-auto">
+          <table class="pv-table">
             <thead>
               <tr class="text-muted text-xs">
-                <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border-color);">Nom</th>
-                <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border-color);">Prénom</th>
-                <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border-color);">Statut</th>
-                <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border-color);">Poids</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Statut</th>
+                <th class="text-right">Poids</th>
               </tr>
             </thead>
             <tbody id="pvAttendanceBody"></tbody>
@@ -56,23 +66,23 @@
       </section>
 
       <section class="card">
-        <div class="k" style="font-size:16px;">Résolutions</div>
+        <div class="k pv-section-title">Résolutions</div>
         <div class="text-muted text-xs">Résultats figés si les motions sont clôturées.</div>
         <div class="hr"></div>
-        <div id="pvMotions" style="display:grid; gap:10px;"></div>
+        <div id="pvMotions" class="pv-motions-grid"></div>
       </section>
 
       <section class="card">
-        <div class="k" style="font-size:16px;">Signatures</div>
+        <div class="k pv-section-title">Signatures</div>
         <div class="hr"></div>
-        <div class="grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap:18px;">
+        <div class="grid pv-signatures">
           <div>
             <div class="text-muted text-xs">Président</div>
-            <div style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:8px;">Signature</div>
+            <div class="pv-signature-line">Signature</div>
           </div>
           <div>
             <div class="text-muted text-xs">Secrétaire / Opérateur</div>
-            <div style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:8px;">Signature</div>
+            <div class="pv-signature-line">Signature</div>
           </div>
         </div>
       </section>

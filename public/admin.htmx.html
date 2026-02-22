@@ -248,7 +248,7 @@
                 </h3>
                 <p class="card-description">Permanents, liés au compte</p>
               </div>
-              <div class="card-body" id="systemRolesInfo"><div class="skeleton-row"><div class="skeleton skeleton-line" style="width:60%"></div></div></div>
+              <div class="card-body" id="systemRolesInfo"><div class="skeleton-row"><div class="skeleton skeleton-line skeleton-w-60"></div></div></div>
             </div>
             <div class="card">
               <div class="card-header">
@@ -258,7 +258,7 @@
                 </h3>
                 <p class="card-description">Temporaires, attribués par séance</p>
               </div>
-              <div class="card-body" id="meetingRolesInfo"><div class="skeleton-row"><div class="skeleton skeleton-line" style="width:60%"></div></div></div>
+              <div class="card-body" id="meetingRolesInfo"><div class="skeleton-row"><div class="skeleton skeleton-line skeleton-w-60"></div></div></div>
             </div>
           </div>
         </div>
@@ -364,7 +364,7 @@
               </div>
             </div>
             <div class="card-body p-0" id="systemStats">
-              <div class="system-stat"><span class="system-stat-label">Base de données</span><span class="system-stat-value" id="statDbStatus"><span class="skeleton skeleton-line" style="width:60px;display:inline-block"></span></span></div>
+              <div class="system-stat"><span class="system-stat-label">Base de données</span><span class="system-stat-value" id="statDbStatus"><span class="skeleton skeleton-line skeleton-w-60px skeleton-inline"></span></span></div>
               <div class="system-stat"><span class="system-stat-label">Latence DB <ag-popover title="Latence de la base de données" content="Temps de réponse pour une requête simple. Normal : < 10ms. Acceptable : < 50ms. Lent : > 100ms." position="right"></ag-popover></span><span class="system-stat-value" id="statDbLatency">—</span></div>
               <div class="system-stat"><span class="system-stat-label">Connexions actives</span><span class="system-stat-value" id="statDbConnections">—</span></div>
               <div class="system-stat"><span class="system-stat-label">Séances en cours</span><span class="system-stat-value" id="statActiveMeetings">—</span></div>
@@ -394,15 +394,15 @@
                   <p class="card-description">Historique des créations, modifications et suppressions d'utilisateurs, rôles et politiques</p>
                 </div>
                 <div class="flex gap-2 items-center">
-                  <select class="form-input form-input-sm" id="adminAuditAction" style="max-width:220px;" aria-label="Filtrer par type d'action">
+                  <select class="form-input form-input-sm audit-filter" id="adminAuditAction" aria-label="Filtrer par type d'action">
                     <option value="">Toutes les actions</option>
                   </select>
-                  <input class="form-input form-input-sm" type="search" id="adminAuditSearch" placeholder="Rechercher..." style="max-width:200px;" aria-label="Rechercher dans le journal">
+                  <input class="form-input form-input-sm audit-search" type="search" id="adminAuditSearch" placeholder="Rechercher..." aria-label="Rechercher dans le journal">
                 </div>
               </div>
             </div>
             <div class="card-body p-0">
-              <div id="adminAuditList" style="max-height:400px;overflow:auto;">
+              <div id="adminAuditList" class="audit-log-scroll">
                 <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
               </div>
               <div class="flex items-center justify-between p-3 border-top" id="adminAuditPagination" style="display:none;">
