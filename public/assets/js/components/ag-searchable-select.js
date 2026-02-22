@@ -65,6 +65,7 @@ class AgSearchableSelect extends HTMLElement {
       this.updateDisabledState();
     } else {
       this.render();
+      this.setupEventListeners();
     }
   }
 
@@ -588,6 +589,9 @@ class AgSearchableSelect extends HTMLElement {
   // ==========================================================================
 
   setupEventListeners() {
+    // Clean up old document-level listeners to prevent accumulation on re-setup
+    this.removeEventListeners();
+
     const trigger = this.shadowRoot.querySelector('.select-trigger');
     const dropdown = this.shadowRoot.querySelector('.dropdown');
     const searchInput = this.shadowRoot.querySelector('.search-input');

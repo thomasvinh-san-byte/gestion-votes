@@ -62,12 +62,17 @@ function changeMeeting() {
   refresh();
 }
 
-// Inject API key
+// Inject API key — only for same-origin requests to avoid leaking key cross-origin
 (function() {
   var originalFetch = window.fetch.bind(window);
   window.fetch = function(input, init) {
     var url = (typeof input === "string") ? input : (input?.url || "");
     if (!url.includes("/api/")) return originalFetch(input, init);
+    // Only inject API key for relative URLs or same-origin absolute URLs
+    try {
+      var parsed = new URL(url, window.location.origin);
+      if (parsed.origin !== window.location.origin) return originalFetch(input, init);
+    } catch (e) { /* relative URL — safe */ }
     var headers = new Headers(init?.headers || {});
     if (!headers.has("X-Api-Key")) headers.set("X-Api-Key", window.APP_API_KEY);
     return originalFetch(input, { ...init, headers: headers });
@@ -172,9 +177,9 @@ async function loadResults(motionId, reveal) {
 
       var expW = d.expressed?.weight ?? 0;
       var eligW = d.eligible?.weight ?? 1;
-      var pct = (expW / eligW * 100) || 0;
+      var pct = (eligW > 0) ? Math.min(100, Math.max(0, expW / eligW * 100)) : 0;
 
-      document.getElementById('participation_bar').style.width = Math.min(100, pct) + '%';
+      document.getElementById('participation_bar').style.width = pct.toFixed(0) + '%';
       document.getElementById('participation_pct').textContent = pct.toFixed(0);
       return;
     }
@@ -495,7 +500,12 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btnChangeMeeting')?.addEventListener('click', changeMeeting);
   startClock();
   refresh();
-  setInterval(refresh, 3000);
+  var _refreshInFlight = false;
+  setInterval(function() {
+    if (document.hidden || _refreshInFlight) return;
+    _refreshInFlight = true;
+    refresh().finally(function() { _refreshInFlight = false; });
+  }, 3000);
   heartbeat();
   setInterval(function() { if (!document.hidden) heartbeat(); }, 15000);
 });

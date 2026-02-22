@@ -912,14 +912,23 @@
       })
       .catch((e) => notify("error", e?.message || String(e)));
 
-    // Poll current motion every 3s — clear previous timers to prevent accumulation
+    // Poll current motion every 3s — guard against concurrent refreshes
+    // (if a slow response arrives after a newer one, it must not overwrite)
     if (window._voteMotionPollTimer) clearInterval(window._voteMotionPollTimer);
     if (window._voteHeartbeatTimer) clearInterval(window._voteHeartbeatTimer);
+    var _refreshInFlight = false;
     window._voteMotionPollTimer = setInterval(()=>{
-      if (!document.hidden) refresh().catch(e => console.error('vote refresh error:', e));
+      if (document.hidden || _refreshInFlight) return;
+      _refreshInFlight = true;
+      refresh().catch(e => console.error('vote refresh error:', e)).finally(() => { _refreshInFlight = false; });
     }, 3000);
     // Heartbeat every 15s
-    window._voteHeartbeatTimer = setInterval(()=>{ if(!document.hidden) sendHeartbeat().catch(e => console.error('heartbeat error:', e)); }, 15000);
+    var _heartbeatInFlight = false;
+    window._voteHeartbeatTimer = setInterval(()=>{
+      if (document.hidden || _heartbeatInFlight) return;
+      _heartbeatInFlight = true;
+      sendHeartbeat().catch(e => console.error('heartbeat error:', e)).finally(() => { _heartbeatInFlight = false; });
+    }, 15000);
 
     // Cleanup on page unload — guard to prevent stacking listeners on re-init
     if (!window._votePagehideRegistered) {

@@ -329,6 +329,19 @@ window.Utils = window.Utils || {};
     Utils.initCsrfForms();
   });
 
+  // HTMX error handling — show user feedback on failed requests
+  document.body.addEventListener('htmx:responseError', function(e) {
+    const status = e.detail.xhr?.status || 0;
+    const msg = status === 403 ? 'Session expir\u00e9e — veuillez vous reconnecter.'
+              : status >= 500 ? 'Erreur serveur. R\u00e9essayez.'
+              : 'Erreur de chargement (HTTP ' + status + ')';
+    if (typeof setNotif === 'function') setNotif('error', msg);
+  });
+
+  document.body.addEventListener('htmx:sendError', function() {
+    if (typeof setNotif === 'function') setNotif('error', 'Erreur r\u00e9seau — v\u00e9rifiez votre connexion.');
+  });
+
   // ==========================================================================
   // MISSING UTILITY FUNCTIONS
   // ==========================================================================
