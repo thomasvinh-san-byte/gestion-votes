@@ -603,10 +603,20 @@
   font-weight: var(--font-semibold);
 }
 
-.perm-matrix td:first-child {
+.perm-matrix td:first-child,
+.perm-matrix th:first-child {
   text-align: left;
   font-family: var(--font-mono);
   font-weight: 500;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-surface);
+}
+
+.perm-matrix th:first-child {
+  background: var(--color-bg-subtle);
+  z-index: 2;
 }
 
 .perm-check { color: var(--color-success); font-weight: bold; }

@@ -256,8 +256,8 @@
         onConfirm: async function(modal) {
           const pw = modal.querySelector('#setPassword').value;
           const confirm = modal.querySelector('#confirmPassword').value;
-          if (!pw || pw.length < 8) { setNotif('error', 'Le mot de passe doit contenir au moins 8 caractères'); return false; }
-          if (pw !== confirm) { setNotif('error', 'Les mots de passe ne correspondent pas'); return false; }
+          if (!pw || pw.length < 8) { Shared.fieldError(modal.querySelector('#setPassword'), 'Minimum 8 caractères'); return false; }
+          if (pw !== confirm) { Shared.fieldError(modal.querySelector('#confirmPassword'), 'Les mots de passe ne correspondent pas'); return false; }
           try {
             var r = await api('/api/v1/admin_users.php', {action:'set_password', user_id:userId, password:pw});
             if (r.body && r.body.ok) { setNotif('success', 'Mot de passe défini'); loadUsers(); }

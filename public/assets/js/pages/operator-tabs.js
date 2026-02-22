@@ -321,7 +321,7 @@ window.OpS = { fn: {} };
         await loadAllData();
       }
     } catch (err) {
-      setNotif('error', 'Erreur: ' + err.message);
+      setNotif('error', 'Impossible de charger la séance. Vérifiez votre connexion et réessayez.');
     }
   }
 
