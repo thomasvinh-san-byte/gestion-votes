@@ -307,6 +307,7 @@ window.OpS = { fn: {} };
     }
 
     currentMeetingId = meetingId;
+    _hasAutoNavigated = false; // Reset for new meeting
     updateURLParam('meeting_id', meetingId);
 
     try {
@@ -461,6 +462,9 @@ window.OpS = { fn: {} };
     if (currentOpenMotion && currentMeetingStatus === 'live' && currentMode === 'setup') {
       setMode('exec');
     }
+
+    // Smart default tab: guide user to the first incomplete step
+    autoNavigateToNextStep();
 
     // P2-1/P2-2/P2-6: Adapt UI based on user's role
     applyRoleAwareUI();
@@ -1489,33 +1493,148 @@ window.OpS = { fn: {} };
       document.getElementById('tabCountResolutions').textContent = d.motions_total || 0;
       document.getElementById('tabCountPresences').textContent = d.present_count || 0;
 
-      // Update readiness strips on tabs 1-3
+      // Update readiness strips on tabs 1-3 — clickable progress steps
       var required = checks.filter(function(c) { return !c.optional; });
       var doneCount = required.filter(function(c) { return c.done; }).length;
       var totalRequired = required.length;
+
+      // Map each check to the tab that resolves it
+      var checkTabMap = {
+        'Membres ajoutés': 'participants',
+        'Présences pointées': 'participants',
+        'Résolutions créées': 'ordre-du-jour'
+      };
+
       var stripHtml = '';
       if (doneCount < totalRequired) {
-        var missing = required.filter(function(c) { return !c.done; });
-        stripHtml = '<div class="flex items-center gap-3 text-sm">' +
-          '<span class="text-muted">' + doneCount + '/' + totalRequired + ' pr\u00e9requis</span>' +
-          missing.map(function(c) {
-            return '<span class="badge badge-neutral">' + icon('circle', 'icon-xs') + ' ' + c.text + '</span>';
-          }).join('') +
+        stripHtml = '<div class="readiness-steps">' +
+          required.map(function(c) {
+            var cls = c.done ? 'readiness-step done' : 'readiness-step pending';
+            var iconName = c.done ? 'check-circle' : 'circle';
+            var iconCls = c.done ? 'icon-xs icon-success' : 'icon-xs';
+            var targetTab = checkTabMap[c.text] || '';
+            var clickAttr = (!c.done && targetTab) ? ' data-goto-tab="' + targetTab + '" role="button" tabindex="0"' : '';
+            return '<span class="' + cls + '"' + clickAttr + '>' +
+              icon(iconName, iconCls) + ' ' + c.text + '</span>';
+          }).join('<span class="readiness-arrow" aria-hidden="true">\u203A</span>') +
           '</div>';
       } else {
-        stripHtml = '<div class="flex items-center gap-2 text-sm text-success">' +
+        stripHtml = '<div class="readiness-steps all-done">' +
           icon('check-circle', 'icon-sm icon-success') +
-          ' Pr\u00eat pour le lancement' +
+          ' <strong>Prêt pour le lancement</strong> — cliquez sur « Ouvrir la séance »' +
           '</div>';
       }
       document.querySelectorAll('[data-readiness-strip]').forEach(function(el) {
         el.innerHTML = stripHtml;
+        // Wire up clickable steps
+        el.querySelectorAll('[data-goto-tab]').forEach(function(step) {
+          step.addEventListener('click', function() { switchTab(step.dataset.gotoTab); });
+          step.addEventListener('keydown', function(e) { if (e.key === 'Enter') switchTab(step.dataset.gotoTab); });
+        });
       });
+
+      // Update contextual footer CTAs
+      updateFooterCTAs(required);
 
       // Update policies warning
       updatePoliciesWarning();
     } catch (err) {
       setNotif('error', 'Erreur chargement checklist');
+    }
+  }
+
+  // =========================================================================
+  // GUIDED FLOW — Smart navigation + contextual CTAs
+  // =========================================================================
+
+  /**
+   * After initial data load, auto-navigate to the first incomplete step
+   * for draft meetings. Only fires on the first load (not polling refreshes).
+   */
+  var _hasAutoNavigated = false;
+  function autoNavigateToNextStep() {
+    // Only auto-navigate on initial load, not on polling
+    if (_hasAutoNavigated) return;
+    _hasAutoNavigated = true;
+
+    // Skip if not in setup mode, or if URL had an explicit tab request
+    if (currentMode !== 'setup') return;
+    var urlTab = new URLSearchParams(window.location.search).get('tab');
+    if (urlTab) return;
+
+    // Only for draft/scheduled meetings (the "preparation" phase)
+    if (!['draft', 'scheduled'].includes(currentMeetingStatus)) return;
+
+    // Determine the first incomplete step
+    var hasMembers = membersCache.length > 0;
+    var hasAttendance = attendanceCache.some(function(a) { return a.mode === 'present' || a.mode === 'remote'; });
+    var hasMotions = motionsCache.length > 0;
+
+    // Show onboarding banner for fresh drafts (no data yet)
+    var isFreshDraft = currentMeetingStatus === 'draft' && !hasMembers && !hasMotions;
+    var banner = document.getElementById('onboardingBanner');
+    if (banner && isFreshDraft) {
+      banner.hidden = false;
+    }
+
+    var targetTab = null;
+    if (!hasMembers || !hasAttendance) {
+      targetTab = 'participants';
+    } else if (!hasMotions) {
+      targetTab = 'ordre-du-jour';
+    }
+
+    if (targetTab) {
+      switchTab(targetTab);
+    }
+  }
+
+  /**
+   * Update the "next step" footer buttons dynamically based on what's missing.
+   */
+  function updateFooterCTAs(requiredChecks) {
+    if (!requiredChecks) return;
+
+    // Determine what's the logical next step after each tab
+    var hasMembers = requiredChecks[0]?.done;
+    var hasAttendance = requiredChecks[1]?.done;
+    var hasMotions = requiredChecks[2]?.done;
+    var allDone = requiredChecks.every(function(c) { return c.done; });
+
+    // Tab Séance footer: what to do next?
+    var seanceFooter = document.querySelector('#tab-seance [data-tab-switch="participants"]');
+    if (seanceFooter) {
+      if (!hasMembers) {
+        seanceFooter.innerHTML = icon('arrow-right', 'icon-text') + ' Ajouter des participants';
+      } else if (!hasAttendance) {
+        seanceFooter.innerHTML = icon('arrow-right', 'icon-text') + ' Pointer les présences';
+      } else {
+        seanceFooter.innerHTML = 'Participants ' + icon('arrow-right', 'icon-text');
+      }
+    }
+
+    // Tab Participants footer: what to do next?
+    var partFooter = document.querySelector('#tab-participants [data-tab-switch="ordre-du-jour"]');
+    if (partFooter) {
+      if (!hasMotions) {
+        partFooter.innerHTML = icon('arrow-right', 'icon-text') + ' Créer des résolutions';
+      } else {
+        partFooter.innerHTML = 'Ordre du jour ' + icon('arrow-right', 'icon-text');
+      }
+    }
+
+    // Tab Ordre du jour footer: contextual guidance
+    var odjFooter = document.querySelector('#tab-ordre-du-jour [data-tab-switch="controle"]');
+    if (odjFooter) {
+      if (allDone) {
+        odjFooter.innerHTML = icon('check-circle', 'icon-text icon-success') + ' Prêt — vérifier et lancer';
+        odjFooter.classList.remove('btn-secondary');
+        odjFooter.classList.add('btn-primary');
+      } else {
+        odjFooter.innerHTML = 'Contrôle ' + icon('arrow-right', 'icon-text');
+        odjFooter.classList.remove('btn-primary');
+        odjFooter.classList.add('btn-secondary');
+      }
     }
   }
 
@@ -2946,6 +3065,12 @@ window.OpS = { fn: {} };
   // Tab switch buttons
   document.querySelectorAll('[data-tab-switch]').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tabSwitch));
+  });
+
+  // Onboarding banner dismiss
+  document.getElementById('onboardingDismiss')?.addEventListener('click', function() {
+    var banner = document.getElementById('onboardingBanner');
+    if (banner) banner.hidden = true;
   });
 
   // Close session buttons (Résultats tab + Exec view)

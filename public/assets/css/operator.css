@@ -721,6 +721,105 @@
   display: none;
 }
 
+/* Readiness steps: horizontal progress indicator */
+.readiness-steps {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.readiness-steps.all-done {
+  color: var(--color-success);
+}
+
+.readiness-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm, 0.25rem);
+  white-space: nowrap;
+}
+
+.readiness-step.done {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+}
+
+.readiness-step.pending {
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border: 1px dashed var(--color-border);
+}
+
+.readiness-step.pending[data-goto-tab] {
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.readiness-step.pending[data-goto-tab]:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+}
+
+.readiness-arrow {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  opacity: 0.5;
+}
+
+/* Onboarding banner for freshly created meetings */
+.onboarding-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  margin: 0.75rem 1rem 0;
+  border-radius: var(--radius-md, 0.5rem);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  animation: onboarding-slide-in 300ms ease-out;
+}
+
+.onboarding-banner[hidden] { display: none; }
+
+.onboarding-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.onboarding-banner-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+@keyframes onboarding-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tab Contrôle section headings */
+.controle-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: 1rem;
+}
+
 .tab-footer-actions {
   display: flex;
   align-items: center;

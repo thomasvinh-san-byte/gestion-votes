@@ -151,6 +151,20 @@
            ================================================================ -->
       <section id="viewSetup" hidden aria-label="Mode préparation">
 
+        <!-- Onboarding banner for freshly created meetings -->
+        <div id="onboardingBanner" class="onboarding-banner" hidden>
+          <div class="onboarding-banner-content">
+            <div class="onboarding-banner-icon">
+              <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+            </div>
+            <div>
+              <strong>Séance créée !</strong>
+              <span id="onboardingText">Complétez les 3 étapes pour pouvoir lancer la séance.</span>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-ghost" id="onboardingDismiss" aria-label="Fermer">&times;</button>
+        </div>
+
         <!-- Setup content -->
         <div id="advancedMode" class="advanced-mode">
 
@@ -457,7 +471,12 @@
             </div>
           </div>
 
-          <div class="settings-grid mt-4">
+          <!-- Communication & Cycle de vie -->
+          <h2 class="controle-section-title mt-4">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
+            Communication &amp; cycle de vie
+          </h2>
+          <div class="settings-grid">
             <!-- Invitations card -->
             <div class="settings-section" id="invitationsCard">
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Invitations</h3>
@@ -577,6 +596,14 @@
               </div>
             </div>
 
+          </div>
+
+          <!-- Avancé -->
+          <h2 class="controle-section-title mt-4">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
+            Avancé
+          </h2>
+          <div class="settings-grid">
             <!-- Procédures d'urgence -->
             <div class="settings-section" id="emergencyCard">
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Proc&eacute;dures d'urgence</h3>
