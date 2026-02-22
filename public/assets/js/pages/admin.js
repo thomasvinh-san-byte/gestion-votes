@@ -84,7 +84,7 @@
   function renderUsersTable(users) {
     var container = document.getElementById('usersTableBody');
     if (!users.length) {
-      container.innerHTML = '<div class="text-center p-4 text-muted">Aucun utilisateur trouvé</div>';
+      container.innerHTML = Shared.emptyState({ icon: 'members', title: 'Aucun utilisateur trouvé', description: 'Créez un compte depuis le formulaire ci-dessus.' });
       return;
     }
     container.innerHTML = users.map(function(u) {
@@ -431,7 +431,7 @@
       if (r.body && r.body.ok && r.body.data) {
         const items = r.body.data.items || [];
         if (!items.length) {
-          tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Aucun rôle attribué</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4">' + Shared.emptyState({ icon: 'meetings', title: 'Aucun rôle attribué', description: 'Sélectionnez une séance et assignez des rôles depuis le formulaire ci-dessus.' }) + '</td></tr>';
           return;
         }
         tbody.innerHTML = items.map(function(row) {
@@ -638,7 +638,7 @@
   function renderQuorumList(items) {
     const el = document.getElementById('quorumList');
     if (!items.length) {
-      el.innerHTML = '<div class="text-center text-muted">Aucune politique de quorum</div>';
+      el.innerHTML = Shared.emptyState({ icon: 'generic', title: 'Aucune politique de quorum', description: 'Créez une politique depuis le formulaire ci-dessus.' });
       return;
     }
     el.innerHTML = items.map(function(p) {
@@ -835,7 +835,7 @@
   function renderVoteList(items) {
     const el = document.getElementById('voteList');
     if (!items.length) {
-      el.innerHTML = '<div class="text-center text-muted">Aucune politique de vote</div>';
+      el.innerHTML = Shared.emptyState({ icon: 'votes', title: 'Aucune politique de vote', description: 'Créez une politique depuis le formulaire ci-dessus.' });
       return;
     }
     el.innerHTML = items.map(function(p) {
@@ -1252,7 +1252,7 @@
         var alerts = r.body.data.alerts || [];
         if (alertsContainer) {
           if (!alerts.length) {
-            alertsContainer.innerHTML = '<div class="text-center p-3 text-muted text-sm">Aucune alerte récente</div>';
+            alertsContainer.innerHTML = Shared.emptyState({ icon: 'generic', title: 'Aucune alerte récente', description: 'Le système fonctionne normalement.' });
           } else {
             alertsContainer.innerHTML = alerts.map(function(a) {
               var sevClass = a.severity === 'critical' ? 'danger' : (a.severity === 'warn' ? 'warning' : 'info');

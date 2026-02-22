@@ -57,7 +57,7 @@ final class BallotsController extends AbstractController {
         $tokenHash = null;
         if ($voteToken !== '') {
             $tokenService = new VoteTokenService();
-            $tokenResult = $tokenService->validateAndConsume($voteToken);
+            $tokenResult = $tokenService->validateAndConsume($voteToken, api_current_tenant_id());
             if (!$tokenResult['valid']) {
                 api_fail('invalid_vote_token', 401, [
                     'detail' => 'Token de vote invalide ou expiré.',

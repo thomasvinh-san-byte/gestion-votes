@@ -2076,14 +2076,16 @@ textarea:focus-visible,
     padding: var(--space-3);
   }
 
-  /* Full width buttons on small screens */
+  /* Full width buttons on small screens — exclude inline actions */
   .btn {
     width: 100%;
     justify-content: center;
   }
 
   .btn.btn-icon,
-  .btn.btn-sm {
+  .btn.btn-sm,
+  .btn.btn-xs,
+  .btn.btn-ghost {
     width: auto;
   }
 

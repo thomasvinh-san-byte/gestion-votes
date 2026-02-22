@@ -5,7 +5,7 @@
 
 /* Google Fonts — loaded via <link rel="preconnect"> + <link rel="stylesheet">
  * in each HTML <head> for non-render-blocking paint.
- * Do NOT use @import url() here — it creates a blocking waterfall.
+ * Do NOT @import Google Fonts here — it creates a blocking waterfall.
  */
 
 /* Import Design System (foundation + legacy compat) */
