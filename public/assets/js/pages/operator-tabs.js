@@ -2263,6 +2263,9 @@ window.OpS = { fn: {} };
       // Hide presence toolbar when no members
       if (presenceToolbar) presenceToolbar.style.display = hasMembers ? '' : 'none';
     }
+    // Show hint on Séance tab when no members registered
+    var noMembersHint = document.getElementById('noMembersHint');
+    if (noMembersHint) noMembersHint.hidden = hasMembers;
     if (noResolutionsGuide) {
       noResolutionsGuide.hidden = motionsCache.length > 0;
     }

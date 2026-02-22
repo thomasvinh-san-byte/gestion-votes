@@ -172,6 +172,11 @@
              Tab 1: SÉANCE — Définir la réunion
              ============================================================ -->
         <div class="tab-content" id="tab-seance" role="tabpanel" aria-labelledby="tab-btn-seance" tabindex="0">
+          <!-- Contextual guidance: no members yet -->
+          <div id="noMembersHint" class="alert alert-info mb-4" hidden>
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+            <span>Aucun membre enregistré. <a href="/members.htmx.html">Ajoutez des membres</a> pour pouvoir gérer les présences et lancer la séance.</span>
+          </div>
           <div class="settings-grid">
             <div class="settings-section">
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg> Informations générales</h3>

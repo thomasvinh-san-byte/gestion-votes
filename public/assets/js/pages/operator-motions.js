@@ -804,16 +804,16 @@
         title: 'Terminer le scrutin',
         onDismiss: () => resolve(false),
         content: `
-          <h3 id="closeVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">Terminer le scrutin ?</h3>
-          <p style="margin:0 0 0.75rem;">Résolution : <strong>${motionTitle}</strong></p>
-          <div style="display:flex;gap:1rem;margin:0 0 1rem;font-size:0.9375rem;">
-            <span style="color:var(--color-success);">${icon('check', 'icon-sm icon-text')} ${vFor}</span>
-            <span style="color:var(--color-danger);">${icon('x', 'icon-sm icon-text')} ${vAgainst}</span>
-            <span style="color:var(--color-text-muted);">&#9675; ${vAbstain}</span>
+          <h3 id="closeVoteConfirmModal-title" class="text-lg font-semibold mb-3">Terminer le scrutin ?</h3>
+          <p class="mb-3">Résolution : <strong>${motionTitle}</strong></p>
+          <div class="flex gap-4 mb-4 text-sm">
+            <span class="text-success">${icon('check', 'icon-sm icon-text')} ${vFor}</span>
+            <span class="text-danger">${icon('x', 'icon-sm icon-text')} ${vAgainst}</span>
+            <span class="text-muted">&#9675; ${vAbstain}</span>
             <span class="text-muted">&mdash; ${vTotal} vote(s)</span>
           </div>
-          <p style="margin:0 0 1.5rem;color:var(--color-warning);font-size:0.875rem;">${icon('alert-triangle', 'icon-sm icon-text')} Les résultats seront figés définitivement. Plus aucun vote ne sera accepté.</p>
-          <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+          <p class="mb-6 text-warning text-sm">${icon('alert-triangle', 'icon-sm icon-text')} Les résultats seront figés définitivement. Plus aucun vote ne sera accepté.</p>
+          <div class="flex gap-3 justify-end">
             <button class="btn btn-secondary" data-action="cancel">Annuler</button>
             <button class="btn btn-warning" data-action="confirm">${icon('check-circle', 'icon-sm icon-text')} Terminer le scrutin</button>
           </div>

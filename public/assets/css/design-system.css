@@ -1333,6 +1333,12 @@ body:has(.drawer-backdrop.open) {
   color: var(--color-info-text);
 }
 
+.alert a {
+  color: inherit;
+  font-weight: var(--font-semibold);
+  text-decoration: underline;
+}
+
 /* ─── Progress ─── */
 .progress {
   height: 8px;
