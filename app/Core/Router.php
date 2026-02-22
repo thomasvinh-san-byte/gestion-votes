@@ -283,6 +283,46 @@ final class Router {
     }
 
     /**
+     * Resolve the middleware config for a request without dispatching.
+     *
+     * Used by api.php to enforce auth/rate-limiting when requests bypass
+     * the front controller (direct .php file access, no URL rewriting).
+     *
+     * @return array|null  Middleware config (e.g. ['role' => 'admin']), or null if no route matched
+     */
+    public function resolveMiddlewareConfig(string $httpMethod, string $uri): ?array {
+        $httpMethod = strtoupper($httpMethod);
+        $uri = strtok($uri, '?');
+        $uri = rtrim($uri, '/');
+        $uriWithoutPhp = preg_replace('/\.php$/', '', $uri);
+
+        $handler = $this->findHandler($httpMethod, $uri, $uriWithoutPhp);
+        return $handler ? ($handler['middleware'] ?? null) : null;
+    }
+
+    private function findHandler(string $httpMethod, string $uri, ?string $uriWithoutPhp = null): ?array {
+        if (isset($this->routes[$uri][$httpMethod])) {
+            return $this->routes[$uri][$httpMethod];
+        }
+        if ($uriWithoutPhp && $uriWithoutPhp !== $uri && isset($this->routes[$uriWithoutPhp][$httpMethod])) {
+            return $this->routes[$uriWithoutPhp][$httpMethod];
+        }
+
+        $paramMatch = $this->matchParamRoute($uri, $httpMethod);
+        if ($paramMatch && isset($paramMatch['methods'][$httpMethod])) {
+            return $paramMatch['methods'][$httpMethod];
+        }
+        if ($uriWithoutPhp && $uriWithoutPhp !== $uri) {
+            $paramMatch = $this->matchParamRoute($uriWithoutPhp, $httpMethod);
+            if ($paramMatch && isset($paramMatch['methods'][$httpMethod])) {
+                return $paramMatch['methods'][$httpMethod];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Get all registered routes (for debugging/documentation).
      */
     public function getRoutes(): array {

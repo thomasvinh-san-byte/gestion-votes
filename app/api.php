@@ -268,3 +268,36 @@ function api_transaction(callable $fn): mixed {
         throw $e;
     }
 }
+
+// =============================================================================
+// AUTO-ENFORCE AUTH FROM ROUTE TABLE (direct file access protection)
+//
+// When requests bypass the front controller (no URL rewriting), the
+// /public/api/v1/*.php files are served directly — skipping the Router
+// and its RoleMiddleware. This block loads the route table and enforces
+// the declared role + rate-limit middleware, closing the auth bypass gap.
+//
+// Skipped when the Router is active (AG_ROUTER_ACTIVE), since the
+// front controller already runs middleware via the pipeline.
+// =============================================================================
+
+if (!defined('AG_ROUTER_ACTIVE')) {
+    $__router = new \AgVote\Core\Router();
+    ($__configRoutes = require __DIR__ . '/routes.php')($__router);
+
+    $__mw = $__router->resolveMiddlewareConfig(
+        strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'),
+        $_SERVER['REQUEST_URI'] ?? '/',
+    );
+
+    if ($__mw !== null) {
+        if (isset($__mw['role'])) {
+            api_require_role($__mw['role']);
+        }
+        if (isset($__mw['rate_limit'])) {
+            api_rate_limit($__mw['rate_limit'][0], $__mw['rate_limit'][1] ?? 100, $__mw['rate_limit'][2] ?? 60);
+        }
+    }
+
+    unset($__router, $__configRoutes, $__mw);
+}
