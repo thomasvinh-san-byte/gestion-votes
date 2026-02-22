@@ -71,7 +71,7 @@
   margin-top: 1rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .mgmt-panels-row {
     grid-template-columns: 1fr;
   }
@@ -104,7 +104,7 @@
   align-items: end;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .create-form {
     grid-template-columns: 1fr 1fr;
   }
@@ -121,7 +121,7 @@
   min-height: calc(100vh - 320px);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .members-layout {
     grid-template-columns: 1fr;
   }
@@ -1104,7 +1104,7 @@ dialog.member-detail-dialog::backdrop {
    RESPONSIVE
    ============================================================================= */
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .members-filters-panel {
     border-right: none;
     border-bottom: 1px solid var(--color-border);
@@ -1130,7 +1130,7 @@ dialog.member-detail-dialog::backdrop {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .stats-bar {
     padding: 0.75rem 1rem;
     gap: 0.5rem;

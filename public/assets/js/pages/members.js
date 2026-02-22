@@ -277,8 +277,8 @@
           </div>
         </div>
         <div class="group-actions">
-          <button class="member-action-btn" data-action="edit-group" data-id="${g.id}" title="Modifier"><svg class="icon"><use href="/assets/icons.svg#icon-edit"></use></svg></button>
-          <button class="member-action-btn danger" data-action="delete-group" data-id="${g.id}" title="Supprimer"><svg class="icon"><use href="/assets/icons.svg#icon-trash"></use></svg></button>
+          <button class="member-action-btn" data-action="edit-group" data-id="${g.id}" title="Modifier" aria-label="Modifier"><svg class="icon"><use href="/assets/icons.svg#icon-edit"></use></svg></button>
+          <button class="member-action-btn danger" data-action="delete-group" data-id="${g.id}" title="Supprimer" aria-label="Supprimer"><svg class="icon"><use href="/assets/icons.svg#icon-trash"></use></svg></button>
         </div>
       </div>
     `).join('');

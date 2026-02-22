@@ -1742,13 +1742,6 @@ body:has(.drawer-backdrop.open) {
   padding-right: 0.25rem;
 }
 
-/* Truncate */
-.truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* SR Only (screen reader) */
 .sr-only {
   position: absolute;
@@ -1907,26 +1900,12 @@ textarea:focus-visible,
   }
 }
 
-@keyframes slideInUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-.animate-spin { animation: spin 1s linear infinite; }
-.animate-pulse { animation: pulse 2s ease-in-out infinite; }
 .animate-fade-in { animation: fadeIn var(--duration-normal) var(--ease-out); }
-.animate-slide-up { animation: slideInUp var(--duration-normal) var(--ease-out); }
 
 /* Staggered entrance for card grids */
 @keyframes cardEntrance {
@@ -1975,8 +1954,7 @@ textarea:focus-visible,
   .animate-stagger > *,
   .app-main,
   .badge-animate,
-  .animate-fade-in,
-  .animate-slide-up {
+  .animate-fade-in {
     animation: none !important;
   }
 }
@@ -2497,8 +2475,6 @@ textarea:focus-visible,
 .row { display: flex; align-items: center; gap: var(--space-3); }
 .row.between { justify-content: space-between; }
 .row.wrap { flex-wrap: wrap; }
-.col { display: flex; flex-direction: column; gap: var(--space-3); }
-.stack { display: flex; flex-direction: column; gap: var(--space-3); }
 
 /* Separators */
 .hr { border-top: 1px solid var(--color-border); }
