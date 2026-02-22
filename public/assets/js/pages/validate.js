@@ -240,9 +240,10 @@
           });
 
           if (body && body.ok) {
+            Shared.btnLoading(btn, false);
             Shared.show(msgDiv, 'block');
             msgDiv.className = 'alert alert-success';
-            msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès !`;
+            msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès ! Redirection…`;
 
             setNotif('success', 'Séance validée !');
 

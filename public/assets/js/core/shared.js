@@ -210,10 +210,17 @@
       if (e.target === backdrop) close();
     });
 
-    modal.querySelector('.modal-confirm-btn').addEventListener('click', function () {
+    var confirmBtn = modal.querySelector('.modal-confirm-btn');
+    confirmBtn.addEventListener('click', async function () {
       if (opts.onConfirm) {
-        const result = opts.onConfirm(modal);
-        if (result === false) return; // prevent close
+        confirmBtn.disabled = true;
+        try {
+          const result = await opts.onConfirm(modal);
+          if (result === false) { confirmBtn.disabled = false; return; }
+        } catch (e) {
+          confirmBtn.disabled = false;
+          return;
+        }
       }
       close();
     });

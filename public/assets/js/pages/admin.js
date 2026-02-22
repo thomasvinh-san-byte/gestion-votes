@@ -249,17 +249,16 @@
             '<input class="form-input" type="password" id="confirmPassword" placeholder="Confirmer le mot de passe" autocomplete="new-password">' +
           '</div>',
         confirmText: 'Enregistrer',
-        onConfirm: function(modal) {
+        onConfirm: async function(modal) {
           const pw = modal.querySelector('#setPassword').value;
           const confirm = modal.querySelector('#confirmPassword').value;
           if (!pw || pw.length < 8) { setNotif('error', 'Le mot de passe doit contenir au moins 8 caractères'); return false; }
           if (pw !== confirm) { setNotif('error', 'Les mots de passe ne correspondent pas'); return false; }
-          api('/api/v1/admin_users.php', {action:'set_password', user_id:userId, password:pw})
-            .then(function(r) {
-              if (r.body && r.body.ok) { setNotif('success', 'Mot de passe défini'); loadUsers(); }
-              else { setNotif('error', getApiError(r.body)); }
-            })
-            .catch(function(err) { setNotif('error', err.message); });
+          try {
+            var r = await api('/api/v1/admin_users.php', {action:'set_password', user_id:userId, password:pw});
+            if (r.body && r.body.ok) { setNotif('success', 'Mot de passe défini'); loadUsers(); }
+            else { setNotif('error', getApiError(r.body)); return false; }
+          } catch(err) { setNotif('error', err.message); return false; }
         }
       });
       return;
@@ -320,7 +319,7 @@
             '<select class="form-input" id="editRole">' + roleOptions + '</select>' +
           '</div>',
         confirmText: 'Enregistrer',
-        onConfirm: function(modal) {
+        onConfirm: async function(modal) {
           var editNameEl = modal.querySelector('#editName');
           var editEmailEl = modal.querySelector('#editEmail');
           var valid = Shared.validateAll([
@@ -334,12 +333,11 @@
           const newName = editNameEl.value.trim();
           const newEmail = editEmailEl.value.trim();
           const newRole = modal.querySelector('#editRole').value;
-          api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole})
-            .then(function(r) {
-              if (r.body && r.body.ok) { setNotif('success', 'Utilisateur mis à jour'); loadUsers(); }
-              else { setNotif('error', getApiError(r.body)); }
-            })
-            .catch(function(err) { setNotif('error', err.message); });
+          try {
+            var r = await api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole});
+            if (r.body && r.body.ok) { setNotif('success', 'Utilisateur mis à jour'); loadUsers(); }
+            else { setNotif('error', getApiError(r.body)); return false; }
+          } catch(err) { setNotif('error', err.message); return false; }
         }
       });
       return;
@@ -723,7 +721,7 @@
           '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpRemote"' + (p.count_remote ? ' checked' : '') + '> Compter les distants</label>' +
         '</div>',
       confirmText: isEdit ? 'Enregistrer' : 'Créer',
-      onConfirm: function(modal) {
+      onConfirm: async function(modal) {
         const name = modal.querySelector('#qpName').value.trim();
         if (!name) { setNotif('error', 'Nom requis'); return false; }
         var thresholdVal = parseFloat(modal.querySelector('#qpThreshold').value);
@@ -749,12 +747,11 @@
           if (t2 !== '') payload.threshold2 = parseFloat(t2);
         }
         if (isEdit) payload.id = p.id;
-        api('/api/v1/admin_quorum_policies.php', payload)
-          .then(function(r) {
-            if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadQuorumPolicies(); }
-            else { setNotif('error', getApiError(r.body)); }
-          })
-          .catch(function(err) { setNotif('error', err.message); });
+        try {
+          var r = await api('/api/v1/admin_quorum_policies.php', payload);
+          if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadQuorumPolicies(); }
+          else { setNotif('error', getApiError(r.body)); return false; }
+        } catch(err) { setNotif('error', err.message); return false; }
       }
     });
 
@@ -881,7 +878,7 @@
           ' Compter les abstentions comme contre' +
         '</label>',
       confirmText: isEdit ? 'Enregistrer' : 'Créer',
-      onConfirm: function(modal) {
+      onConfirm: async function(modal) {
         const name = modal.querySelector('#vpName').value.trim();
         if (!name) { setNotif('error', 'Nom requis'); return false; }
         var thresholdVal = parseFloat(modal.querySelector('#vpThreshold').value);
@@ -896,12 +893,11 @@
           abstention_as_against: modal.querySelector('#vpAbstention').checked ? 1 : 0
         };
         if (isEdit) payload.id = p.id;
-        api('/api/v1/admin_vote_policies.php', payload)
-          .then(function(r) {
-            if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadVotePolicies(); }
-            else { setNotif('error', getApiError(r.body)); }
-          })
-          .catch(function(err) { setNotif('error', err.message); });
+        try {
+          var r = await api('/api/v1/admin_vote_policies.php', payload);
+          if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadVotePolicies(); }
+          else { setNotif('error', getApiError(r.body)); return false; }
+        } catch(err) { setNotif('error', err.message); return false; }
       }
     });
   }

@@ -3084,26 +3084,6 @@ window.OpS = { fn: {} };
   // Quick member add
   document.getElementById('btnAddMember')?.addEventListener('click', addMemberQuick);
 
-  // Quick all present
-  document.getElementById('btnQuickAllPresent')?.addEventListener('click', async () => {
-    const confirmed = await confirmModal({
-      title: 'Marquer tous présents',
-      body: '<p>Marquer <strong>tous les membres</strong> comme présents ?</p>'
-    });
-    if (!confirmed) return;
-    try {
-      await api('/api/v1/attendances_bulk.php', { meeting_id: currentMeetingId, mode: 'present' });
-      attendanceCache.forEach(m => m.mode = 'present');
-      renderAttendance();
-      updateQuickStats();
-      loadStatusChecklist();
-      checkLaunchReady();
-      setNotif('success', 'Tous marqués présents');
-    } catch (err) {
-      setNotif('error', err.message);
-    }
-  });
-
   // Launch session button
   document.getElementById('btnLaunchSession')?.addEventListener('click', launchSession);
 
