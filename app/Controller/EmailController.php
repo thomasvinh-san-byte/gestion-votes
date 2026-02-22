@@ -152,7 +152,7 @@ final class EmailController extends AbstractController {
             }
 
             if ($onlyUnsent) {
-                $st = $invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId);
+                $st = $invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId, $tenantId);
                 if ($st === 'sent') {
                     $skipped++;
                     $skippedAlreadySent[] = $memberName ?: $email;

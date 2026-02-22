@@ -159,7 +159,7 @@ final class EmailQueueService {
 
             // Check if already sent
             if ($onlyUnsent) {
-                $status = $this->invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId);
+                $status = $this->invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId, $tenantId);
                 if ($status === 'sent') {
                     $result['skipped']++;
                     continue;
@@ -181,7 +181,7 @@ final class EmailQueueService {
             );
 
             // Retrieve invitation ID
-            $invitation = $this->invitationRepo->findByMeetingAndMember($meetingId, $memberId);
+            $invitation = $this->invitationRepo->findByMeetingAndMember($meetingId, $memberId, $tenantId);
             $invitationId = $invitation['id'] ?? null;
 
             // Rendre le template
@@ -309,7 +309,7 @@ final class EmailQueueService {
             }
 
             if ($onlyUnsent) {
-                $status = $this->invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId);
+                $status = $this->invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId, $tenantId);
                 if ($status === 'sent') {
                     $result['skipped']++;
                     continue;
@@ -349,7 +349,7 @@ final class EmailQueueService {
                     date('c'),
                 );
 
-                $invitation = $this->invitationRepo->findByMeetingAndMember($meetingId, $memberId);
+                $invitation = $this->invitationRepo->findByMeetingAndMember($meetingId, $memberId, $tenantId);
                 if ($invitation) {
                     $this->eventRepo->logEvent($tenantId, 'sent', $invitation['id']);
                 }

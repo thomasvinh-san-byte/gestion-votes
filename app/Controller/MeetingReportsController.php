@@ -79,7 +79,7 @@ final class MeetingReportsController extends AbstractController {
 
         $tokens = [];
         try {
-            $tokens = $invitationRepo->listTokensForReport($meetingId);
+            $tokens = $invitationRepo->listTokensForReport($meetingId, $tenant);
         } catch (Throwable $e) {
             if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
                 throw $e;
