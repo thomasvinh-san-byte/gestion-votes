@@ -262,95 +262,10 @@ table {
 
 }
 
-/* ─── Dark Theme (shared token set for both triggers) ─── */
-
-/* Auto-detected system preference — applies unless the user explicitly chose light. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg: #0f172a;
-    --color-bg-subtle: #1e293b;
-    --color-surface: #1e293b;
-    --color-surface-raised: #334155;
-    --color-surface-overlay: rgba(15, 23, 42, 0.96);
-
-    --color-text: #f1f5f9;
-    --color-text-secondary: #cbd5e1;
-    --color-text-muted: #64748b;
-    --color-text-inverse: #0f172a;
-
-    --color-border: #334155;
-    --color-border-subtle: #1e293b;
-    --color-border-strong: #475569;
-
-    --color-primary: #818cf8;
-    --color-primary-hover: #a5b4fc;
-    --color-primary-active: #c7d2fe;
-    --color-primary-subtle: rgba(129, 140, 248, 0.15);
-    --color-primary-text: #0f172a;
-
-    --color-success: #4ade80;
-    --color-success-hover: #86efac;
-    --color-success-subtle: rgba(74, 222, 128, 0.15);
-    --color-success-text: #bbf7d0;
-
-    --color-warning: #fbbf24;
-    --color-warning-hover: #fcd34d;
-    --color-warning-subtle: rgba(251, 191, 36, 0.15);
-    --color-warning-text: #fde68a;
-
-    --color-danger: #f87171;
-    --color-danger-hover: #fca5a5;
-    --color-danger-subtle: rgba(248, 113, 113, 0.15);
-    --color-danger-text: #fecaca;
-
-    --color-info: #60a5fa;
-    --color-info-hover: #93c5fd;
-    --color-info-subtle: rgba(96, 165, 250, 0.15);
-    --color-info-text: #bfdbfe;
-
-    --color-accent: #c084fc;
-    --color-accent-subtle: rgba(192, 132, 252, 0.15);
-    --color-accent-text: #e9d5ff;
-
-    --color-neutral: #64748b;
-    --color-neutral-hover: #94a3b8;
-    --color-neutral-subtle: rgba(100, 116, 139, 0.15);
-    --color-neutral-text: #cbd5e1;
-
-    --ring-color: rgba(129, 140, 248, 0.4);
-
-    --persona-preparateur: #818cf8;
-    --persona-preparateur-subtle: rgba(129, 140, 248, 0.15);
-    --persona-preparateur-text: #c7d2fe;
-    --persona-president: #fbbf24;
-    --persona-president-subtle: rgba(251, 191, 36, 0.15);
-    --persona-president-text: #fde68a;
-    --persona-operateur: #22d3ee;
-    --persona-operateur-subtle: rgba(34, 211, 238, 0.15);
-    --persona-operateur-text: #a5f3fc;
-    --persona-votant: #4ade80;
-    --persona-votant-subtle: rgba(74, 222, 128, 0.15);
-    --persona-votant-text: #bbf7d0;
-    --persona-postsession: #a78bfa;
-    --persona-postsession-subtle: rgba(167, 139, 250, 0.15);
-    --persona-postsession-text: #ddd6fe;
-    --persona-auditeur: #f87171;
-    --persona-auditeur-subtle: rgba(248, 113, 113, 0.15);
-    --persona-auditeur-text: #fecaca;
-    --persona-admin: #94a3b8;
-    --persona-admin-subtle: rgba(148, 163, 184, 0.15);
-    --persona-admin-text: #e2e8f0;
-
-    --color-backdrop: rgba(0, 0, 0, 0.7);
-
-    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.2);
-    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
-    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.2);
-    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
-  }
-}
-
-/* Explicit data-attribute toggle (used by JS theme switcher). */
+/* ─── Dark Theme ─── */
+/* Single definition: an inline <script> in <head> materializes data-theme
+   from localStorage or system preference before first paint, so only the
+   attribute selector is needed. No @media duplication. */
 [data-theme="dark"] {
   --color-bg: #0f172a;
   --color-bg-subtle: #1e293b;
@@ -704,6 +619,28 @@ h4, .h4 {
 
 .btn-danger:hover:not(:disabled) {
   background: var(--color-danger-hover);
+}
+
+.btn-warning {
+  background: var(--color-warning);
+  color: var(--color-text-inverse);
+  border-color: var(--color-warning);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: var(--color-warning-hover);
+  border-color: var(--color-warning-hover);
+}
+
+.btn-info {
+  background: var(--color-info);
+  color: var(--color-text-inverse);
+  border-color: var(--color-info);
+}
+
+.btn-info:hover:not(:disabled) {
+  background: var(--color-info-hover);
+  border-color: var(--color-info-hover);
 }
 
 .btn-ghost {
@@ -1080,12 +1017,6 @@ h4, .h4 {
 [data-theme="dark"] .theme-icon-light,
 [data-theme="dark"] .theme-label-light { display: none; }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .theme-icon-dark,
-  :root:not([data-theme="light"]) .theme-label-dark { display: inline; }
-  :root:not([data-theme="light"]) .theme-icon-light,
-  :root:not([data-theme="light"]) .theme-label-light { display: none; }
-}
 
 /* ─── Tabs ─── */
 .tabs {
@@ -1422,6 +1353,26 @@ body:has(.drawer-backdrop.open) {
   background: var(--color-danger);
   border-radius: 50%;
   animation: pulse 2s ease-in-out infinite;
+}
+
+/* ─── Search Input with Icon ─── */
+.search-input-wrap {
+  position: relative;
+}
+
+.search-input-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search-input-field {
+  padding-left: 2.25rem !important;
 }
 
 /* =============================================================================
@@ -2252,8 +2203,8 @@ textarea:focus-visible,
   /* Increase checkbox/radio hit area */
   input[type="checkbox"],
   input[type="radio"] {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 
   /* Increase spacing between interactive elements */
@@ -2273,9 +2224,12 @@ textarea:focus-visible,
 /* ─── Safe area insets for notched devices ─── */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .vote-footer,
-  .app-footer,
-  .mobile-nav-toggle {
+  .app-footer {
     padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  }
+
+  .mobile-nav-toggle {
+    bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
   }
 
   .app-sidebar.mobile-open {

@@ -35,7 +35,7 @@
 }
 
 .stat-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -172,27 +172,6 @@
   font-weight: 500;
   color: var(--color-text-muted);
   margin-bottom: 0.375rem;
-}
-
-/* Search input with icon */
-
-.search-input-wrap {
-  position: relative;
-}
-
-.search-input-icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: var(--color-text-muted);
-  pointer-events: none;
-}
-
-.search-input-field {
-  padding-left: 2.25rem !important;
 }
 
 /* Filter chips */

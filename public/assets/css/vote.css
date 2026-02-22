@@ -26,19 +26,6 @@
   --color-warning-border-25: rgba(251, 191, 36, 0.20);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --shadow-warning-ring: 0 0 0 4px rgba(251, 191, 36, 0.15);
-    --shadow-warning-glow: 0 4px 20px rgba(251, 191, 36, 0.35);
-    --shadow-warning-glow-lg: 0 6px 28px rgba(251, 191, 36, 0.50);
-    --shadow-success-ring: 0 0 0 4px rgba(74, 222, 128, 0.15);
-    --shadow-success-glow: 0 4px 20px rgba(74, 222, 128, 0.30);
-    --shadow-danger-glow: 0 2px 6px rgba(248, 113, 113, 0.30);
-    --color-warning-bg-8: rgba(251, 191, 36, 0.10);
-    --color-warning-border-25: rgba(251, 191, 36, 0.20);
-  }
-}
-
 /* =============================================================================
    FULL HEIGHT APP FOR TABLETS
    ============================================================================= */
@@ -659,7 +646,25 @@
 }
 
 .vote-btn:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.95);
+  transition-duration: 80ms;
+}
+
+/* Ripple feedback ring on tap */
+.vote-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.vote-btn:active:not(:disabled)::after {
+  opacity: 1;
+  transition-duration: 0s;
 }
 
 .vote-btn:focus-visible {

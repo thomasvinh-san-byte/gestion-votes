@@ -231,3 +231,28 @@
 .field-wrap {
   position: relative;
 }
+
+/* =============================================================================
+   THEME TOGGLE
+   ============================================================================= */
+
+.login-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: var(--space-2);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  vertical-align: middle;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.login-theme-toggle:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}

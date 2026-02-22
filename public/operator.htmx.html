@@ -4,8 +4,11 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Console opérateur - AG-VOTE">
   <title>Fiche séance — AG-VOTE</title>
+  <script>!function(){var t=localStorage.getItem('ag-vote-theme');if(!t&&matchMedia('(prefers-color-scheme:dark)').matches)t='dark';if(t)document.documentElement.setAttribute('data-theme',t)}()</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
@@ -159,7 +162,7 @@
             <div class="settings-section">
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg> Informations générales</h3>
               <div class="form-group mb-3">
-                <label class="form-label">Titre de la séance</label>
+                <label class="form-label" for="settingTitle">Titre de la séance</label>
                 <input type="text" class="form-input" id="settingTitle" placeholder="Ex: Assemblée Générale 2024" maxlength="255">
               </div>
               <div class="form-group mb-3">
@@ -183,7 +186,7 @@
                 </div>
               </div>
               <div class="form-group">
-                <label class="form-label">Date de la séance</label>
+                <label class="form-label" for="settingDate">Date de la séance</label>
                 <input type="date" class="form-input" id="settingDate">
               </div>
             </div>
@@ -373,11 +376,11 @@
           <div id="addResolutionForm" class="settings-section add-resolution-form" style="display: none;">
             <h3>Nouvelle résolution</h3>
             <div class="form-group mb-3">
-              <label class="form-label">Titre</label>
+              <label class="form-label" for="newResolutionTitle">Titre</label>
               <input type="text" class="form-input" id="newResolutionTitle" placeholder="Ex: Approbation des comptes 2023" maxlength="500">
             </div>
             <div class="form-group mb-3">
-              <label class="form-label">Description / Texte complet</label>
+              <label class="form-label" for="newResolutionDesc">Description / Texte complet</label>
               <textarea class="form-input" id="newResolutionDesc" rows="6" placeholder="Considérant que..." maxlength="10000"></textarea>
             </div>
             <div class="flex gap-2">
@@ -402,7 +405,7 @@
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
               <span>Tous les pré-requis sont remplis. Vous pouvez lancer la séance.</span>
             </div>
-            <button class="btn btn-success" id="btnLaunchSession">
+            <button class="btn btn-lg btn-success" id="btnLaunchSession">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg> Lancer la séance
             </button>
           </div>
@@ -822,7 +825,7 @@
             <div id="closeSessionStatus" class="mb-4">
               <!-- Status rendered by JS -->
             </div>
-            <button class="btn btn-lg btn-warning w-full" id="btnCloseSession">
+            <button class="btn btn-lg btn-danger w-full" id="btnCloseSession">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance
             </button>
           </div>
@@ -873,7 +876,7 @@
             <button class="btn btn-sm btn-secondary" id="execBtnSwitchResults">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg> Résultats
             </button>
-            <button class="btn btn-warning" id="execBtnCloseSession">
+            <button class="btn btn-danger" id="execBtnCloseSession">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer la séance
             </button>
           </div>
@@ -1036,7 +1039,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" id="launchModalCancel">Annuler</button>
-        <button class="btn btn-success" id="launchModalConfirm">
+        <button class="btn btn-lg btn-success" id="launchModalConfirm">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
           Confirmer le lancement
         </button>

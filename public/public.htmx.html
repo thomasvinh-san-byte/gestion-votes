@@ -4,8 +4,11 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Écran de projection - Résultats en direct">
   <title>Écran public — AG-VOTE</title>
+  <script>!function(){var t=localStorage.getItem('ag-vote-theme');if(!t&&matchMedia('(prefers-color-scheme:dark)').matches)t='dark';if(t)document.documentElement.setAttribute('data-theme',t)}()</script>
   <link rel="stylesheet" href="/assets/css/design-system.css">
   <link rel="stylesheet" href="/assets/css/public.css">
 </head>
@@ -13,11 +16,11 @@
 
 <header class="projection-header">
   <div class="header-left">
-    <span class="status-badge off" id="badge">hors seance</span>
+    <span class="status-badge off" id="badge">hors séance</span>
     <span class="motion-counter" id="motionCounter" hidden>
       <span id="motionCounterText">— / —</span>
     </span>
-    <span class="meeting-title" id="meeting_title">Aucune seance</span>
+    <span class="meeting-title" id="meeting_title">Aucune séance</span>
   </div>
   <div class="clock" id="clock">--:--</div>
   <div class="projection-controls">
@@ -78,7 +81,7 @@
       </svg>
     </div>
     <h4 class="secret-title">Vote secret</h4>
-    <p class="secret-text">Resultats affiches a la cloture</p>
+    <p class="secret-text">Résultats affichés à la clôture</p>
     <div class="participation-bar">
       <div class="participation-fill" id="participation_bar" style="width: 0%;"></div>
     </div>
