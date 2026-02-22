@@ -113,7 +113,7 @@
 
 .lifecycle-arrow {
   color: var(--color-border-strong);
-  font-size: 10px;
+  font-size: 12px;
   margin: 0 2px;
   flex-shrink: 0;
 }
@@ -938,7 +938,7 @@
 }
 
 .quick-count-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   margin-top: 0.25rem;
   text-transform: uppercase;
@@ -2285,9 +2285,9 @@
   }
 
   .attendance-card .mode-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 0.7rem;
+    width: 36px;
+    height: 36px;
+    font-size: 0.75rem;
   }
 
   .exports-grid {

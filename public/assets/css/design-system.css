@@ -2252,8 +2252,8 @@ textarea:focus-visible,
   /* Increase checkbox/radio hit area */
   input[type="checkbox"],
   input[type="radio"] {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 
   /* Increase spacing between interactive elements */
@@ -2273,9 +2273,12 @@ textarea:focus-visible,
 /* ─── Safe area insets for notched devices ─── */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .vote-footer,
-  .app-footer,
-  .mobile-nav-toggle {
+  .app-footer {
     padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  }
+
+  .mobile-nav-toggle {
+    bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
   }
 
   .app-sidebar.mobile-open {

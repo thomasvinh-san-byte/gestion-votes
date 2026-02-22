@@ -163,7 +163,7 @@
     box.className = "notif " + (type === "error" ? "error" : "success");
     Shared.show(box, 'block');
     box.textContent = msg;
-    setTimeout(()=>{ Shared.hide(box); }, 3000);
+    setTimeout(()=>{ Shared.hide(box); }, type === 'error' ? 6000 : 3000);
   }
 
   /**
@@ -201,6 +201,7 @@
     ]);
     if (_policyErrors.length) {
       console.warn('[vote] Policy fetch partial failure:', _policyErrors.join(', '));
+      notify('error', 'Certaines règles de vote n\u2019ont pas pu être chargées. Les badges de politique peuvent être absents.');
     }
     (vp?.data?.items || vp?.items || []).forEach(p => { _votePoliciesById[p.id] = p; });
     (qp?.data?.items || qp?.items || []).forEach(p => { _quorumPoliciesById[p.id] = p; });
