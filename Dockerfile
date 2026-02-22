@@ -5,10 +5,13 @@ LABEL org.opencontainers.image.title="AG-VOTE" \
       org.opencontainers.image.source="https://github.com/thomasvinh-san-byte/gestion-votes" \
       org.opencontainers.image.licenses="MIT"
 
-# Build-time deps (headers) + runtime deps (libs) in one layer.
-# The -dev packages are removed after extension compilation below.
+# Runtime libs (explicit install so they survive apk del of -dev headers)
 RUN apk add --no-cache \
     nginx supervisor curl postgresql-client \
+    libpng libjpeg-turbo freetype libzip icu-libs oniguruma
+
+# Build-time headers (removed after extension compilation below)
+RUN apk add --no-cache \
     postgresql-dev libpng-dev libjpeg-turbo-dev \
     freetype-dev libzip-dev icu-dev oniguruma-dev
 
