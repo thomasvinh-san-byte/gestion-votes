@@ -70,15 +70,15 @@
             <div class="card-body">
               <div class="inline-form" id="createUserForm">
                 <div class="form-group">
-                  <label class="form-label">Nom *</label>
+                  <label class="form-label" for="newName">Nom *</label>
                   <input class="form-input" type="text" id="newName" placeholder="Jean Dupont" required maxlength="255">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Email *</label>
+                  <label class="form-label" for="newEmail">Email *</label>
                   <input class="form-input" type="email" id="newEmail" placeholder="jean@example.com" required maxlength="320">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Mot de passe *</label>
+                  <label class="form-label" for="newPassword">Mot de passe *</label>
                   <input class="form-input" type="password" id="newPassword" placeholder="Min. 8 caractères" autocomplete="new-password" required minlength="8">
                   <div class="password-strength" id="passwordStrength" hidden>
                     <div class="password-strength-bar"><div class="password-strength-fill" id="passwordStrengthFill"></div></div>
@@ -104,7 +104,7 @@
             <div class="card-body">
               <div class="flex items-center gap-4 flex-wrap">
                 <div class="form-group form-group-search">
-                  <label class="form-label">Rechercher</label>
+                  <label class="form-label" for="searchUser">Rechercher</label>
                   <input class="form-input" type="text" id="searchUser" placeholder="Nom ou email...">
                 </div>
                 <div class="form-group form-group-filter">
