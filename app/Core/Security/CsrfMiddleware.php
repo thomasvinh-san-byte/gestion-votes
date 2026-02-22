@@ -59,7 +59,10 @@ final class CsrfMiddleware {
 
     public static function getToken(): string {
         self::init();
-        return $_SESSION[self::TOKEN_NAME] ?? self::regenerateToken();
+        if (!isset($_SESSION[self::TOKEN_NAME]) || !self::hasValidToken()) {
+            return self::regenerateToken();
+        }
+        return $_SESSION[self::TOKEN_NAME];
     }
 
     /**
@@ -110,6 +113,9 @@ final class CsrfMiddleware {
             }
             return false;
         }
+
+        // Extend token lifetime on successful validation (sliding window)
+        $_SESSION[self::TOKEN_NAME . '_time'] = time();
 
         return true;
     }

@@ -381,6 +381,26 @@
   }
 
   // =========================================================================
+  // CSRF TOKEN REFRESH
+  // =========================================================================
+
+  /**
+   * Fetch a fresh CSRF token from the server and update the cached meta tag
+   * and window.CSRF. Prevents stale-token 403 errors after session extension.
+   */
+  function refreshCsrfToken() {
+    api('/api/v1/auth_csrf.php')
+      .then(function (res) {
+        if (res.body && res.body.ok && res.body.data && res.body.data.csrf_token) {
+          var token = res.body.data.csrf_token;
+          var meta = document.querySelector('meta[name="csrf-token"]');
+          if (meta) meta.setAttribute('content', token);
+          if (window.CSRF) window.CSRF.token = token;
+        }
+      });
+  }
+
+  // =========================================================================
   // SESSION EXPIRY WARNING
   // =========================================================================
 
@@ -423,6 +443,8 @@
           if (res.status > 0) {
             warn.remove();
             scheduleSessionWarning();
+            // Also refresh CSRF token to prevent stale-token 403 errors
+            refreshCsrfToken();
           } else {
             warn.textContent = 'Session expir\u00e9e. Veuillez vous reconnecter.';
           }
