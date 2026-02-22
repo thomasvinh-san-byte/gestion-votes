@@ -253,7 +253,7 @@ final class MeetingsController extends AbstractController {
         $totalMembers = $statsRepo->countActiveMembers($tenantId);
         $presentCount = $statsRepo->countPresent($meetingId, $tenantId);
         $proxyCount = $statsRepo->countProxy($meetingId, $tenantId);
-        $absentCount = $totalMembers - $presentCount - $proxyCount;
+        $absentCount = max(0, $totalMembers - $presentCount - $proxyCount);
 
         $motionsCount = $statsRepo->countMotions($meetingId, $tenantId);
         $closedMotionsCount = $statsRepo->countClosedMotions($meetingId, $tenantId);

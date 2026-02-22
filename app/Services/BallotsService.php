@@ -108,8 +108,8 @@ final class BallotsService {
         $meetingId = (string) $context['meeting_id'];
 
         $weight = (float) ($member['voting_power'] ?? 1.0);
-        if ($weight < 0.0 || !is_finite($weight)) {
-            $weight = 0.0;
+        if (!is_finite($weight) || $weight < 0.0) {
+            throw new InvalidArgumentException('Poids de vote invalide (doit être un nombre fini >= 0)');
         }
         if ($weight > 1e6) {
             throw new InvalidArgumentException('Poids de vote excessif');

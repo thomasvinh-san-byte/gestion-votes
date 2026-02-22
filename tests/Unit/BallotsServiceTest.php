@@ -422,7 +422,7 @@ class BallotsServiceTest extends TestCase {
         $this->service->castBallot($this->validData());
     }
 
-    public function testCastBallotClampsNegativeWeightToZero(): void {
+    public function testCastBallotRejectsNegativeWeight(): void {
         $this->motionRepo->method('findWithBallotContext')
             ->willReturn($this->validBallotContext());
 
@@ -435,31 +435,10 @@ class BallotsServiceTest extends TestCase {
         $this->attendanceRepo->method('isPresentDirect')
             ->willReturn(true);
 
-        $this->meetingRepo->method('lockForUpdate')
-            ->willReturn(['id' => self::MEETING, 'status' => 'live']);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Poids de vote invalide');
 
-        $this->ballotRepo->expects($this->once())
-            ->method('castBallot')
-            ->with(
-                self::TENANT,
-                self::MOTION,
-                self::MEMBER,
-                'for',
-                0.0,     // negative weight clamped to 0
-                false,
-                null,
-            );
-
-        $this->ballotRepo->method('findByMotionAndMember')
-            ->willReturn([
-                'motion_id' => self::MOTION,
-                'member_id' => self::MEMBER,
-                'value' => 'for',
-                'weight' => 0.0,
-            ]);
-
-        $result = $this->service->castBallot($this->validData());
-        $this->assertSame(0.0, $result['weight']);
+        $this->service->castBallot($this->validData());
     }
 
     public function testCastBallotDefaultsWeightToOneWhenMissing(): void {
