@@ -267,13 +267,13 @@ final class OfficialResultsService {
     /**
      * @return array{source:string,for:float,against:float,abstain:float,total:float,decision:string,reason:string}
      */
-    public function computeOfficialTallies(string $motionId): array {
+    public function computeOfficialTallies(string $motionId, string $tenantId = ''): array {
         $motionId = trim($motionId);
         if ($motionId === '') {
             throw new InvalidArgumentException('motion_id obligatoire');
         }
 
-        $motion = $this->motionRepo->findWithOfficialContext($motionId);
+        $motion = $this->motionRepo->findWithOfficialContext($motionId, $tenantId);
         if (!$motion) {
             throw new RuntimeException('motion_not_found');
         }
@@ -315,7 +315,7 @@ final class OfficialResultsService {
         $abW = (float) $t['weight_abstain'];
         $totW = (float) $t['weight_total'];
 
-        $r = (new VoteEngine())->computeMotionResult($motionId);
+        $r = (new VoteEngine())->computeMotionResult($motionId, (string) $motion['tenant_id']);
         $status = (string) ($r['decision']['status'] ?? (($forW > $agW) ? 'adopted' : 'rejected'));
 
         // Build explicit reason from VoteEngine data
@@ -341,7 +341,7 @@ final class OfficialResultsService {
      */
     public function computeAndPersistMotion(string $motionId, string $tenantId): array {
         $this->guardWriteAccess();
-        $o = $this->computeOfficialTallies($motionId);
+        $o = $this->computeOfficialTallies($motionId, $tenantId);
 
         $this->motionRepo->updateOfficialResults(
             $motionId,
@@ -373,7 +373,7 @@ final class OfficialResultsService {
         api_transaction(function () use ($motions, $tenantId, &$updated) {
             foreach ($motions as $m) {
                 $mid = (string) $m['id'];
-                $o = $this->computeOfficialTallies($mid);
+                $o = $this->computeOfficialTallies($mid, $tenantId);
 
                 $this->motionRepo->updateOfficialResults(
                     $mid,

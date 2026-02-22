@@ -194,7 +194,7 @@ final class BallotsController extends AbstractController {
             api_fail('missing_motion_id', 422, ['detail' => 'Paramètre motion_id obligatoire']);
         }
 
-        $result = (new VoteEngine())->computeMotionResult($motionId);
+        $result = (new VoteEngine())->computeMotionResult($motionId, api_current_tenant_id());
         api_ok($result);
     }
 

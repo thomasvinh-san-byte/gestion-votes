@@ -144,7 +144,7 @@ final class MeetingReportService {
             $hasOfficial = ($src !== '') && ($m['official_total'] !== null);
 
             if (!$hasOfficial && $m['closed_at'] !== null) {
-                $o = (new OfficialResultsService())->computeOfficialTallies($mid);
+                $o = (new OfficialResultsService())->computeOfficialTallies($mid, $tenant);
                 $src = $o['source'];
                 $of = (float) $o['for'];
                 $og = (float) $o['against'];
@@ -178,7 +178,7 @@ final class MeetingReportService {
 
             $quorumJust = null;
             try {
-                $qr = (new QuorumEngine())->computeForMotion($mid);
+                $qr = (new QuorumEngine())->computeForMotion($mid, $tenant);
                 $quorumJust = (string) ($qr['justification'] ?? null);
             } catch (Throwable $e) {
                 $quorumJust = null;
@@ -186,7 +186,7 @@ final class MeetingReportService {
 
             $majorityJust = null;
             try {
-                $vr = (new VoteEngine())->computeMotionResult($mid);
+                $vr = (new VoteEngine())->computeMotionResult($mid, $tenant);
                 $maj = $vr['majority'] ?? null;
                 if (is_array($maj)) {
                     $majorityJust = self::majorityLine($maj);

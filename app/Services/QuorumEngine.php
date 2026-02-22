@@ -65,13 +65,13 @@ final class QuorumEngine {
      *
      * @return array{applied: bool, met: ?bool, details: array, justification: string, meeting: array, policy?: array}
      */
-    public function computeForMotion(string $motionId): array {
+    public function computeForMotion(string $motionId, string $tenantId = ''): array {
         $motionId = trim($motionId);
         if ($motionId === '') {
             throw new InvalidArgumentException('motion_id obligatoire');
         }
 
-        $row = $this->motionRepo->findWithQuorumContext($motionId);
+        $row = $this->motionRepo->findWithQuorumContext($motionId, $tenantId);
         if (!$row) {
             throw new RuntimeException('Motion introuvable');
         }

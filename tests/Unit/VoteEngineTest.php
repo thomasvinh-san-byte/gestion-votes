@@ -333,7 +333,8 @@ class VoteEngineTest extends TestCase {
         );
 
         $this->assertTrue($result['majority']['met']);
-        $this->assertEquals(0.6, $result['majority']['ratio']);
+        // 'expressed' base = for + against (excl. abstain): 60/90
+        $this->assertEqualsWithDelta(60.0 / 90.0, $result['majority']['ratio'], 0.0001);
         $this->assertEquals('expressed', $result['majority']['base']);
         $this->assertFalse($result['quorum']['applied']);
     }
@@ -352,16 +353,17 @@ class VoteEngineTest extends TestCase {
         );
 
         $this->assertFalse($result['majority']['met']);
-        $this->assertEquals(0.3, $result['majority']['ratio']);
+        // 30 / (30+60) = 30/90
+        $this->assertEqualsWithDelta(30.0 / 90.0, $result['majority']['ratio'], 0.0001);
     }
 
     public function testComputeDecisionTwoThirdsMajority(): void {
-        // 65% for with 2/3 threshold → rejected
+        // 59 for / (59+31) = 59/90 ≈ 0.6556 < 2/3 → rejected
         $result = VoteEngine::computeDecision(
             quorumPolicy: null,
             votePolicy: ['base' => 'expressed', 'threshold' => 2 / 3],
-            forWeight: 65.0,
-            againstWeight: 25.0,
+            forWeight: 59.0,
+            againstWeight: 31.0,
             abstainWeight: 10.0,
             expressedWeight: 100.0,
             expressedMembers: 10,
@@ -371,7 +373,7 @@ class VoteEngineTest extends TestCase {
 
         $this->assertFalse($result['majority']['met']);
 
-        // 70% for with 2/3 threshold → adopted
+        // 70 for / (70+20) = 70/90 ≈ 0.778 > 2/3 → adopted
         $result2 = VoteEngine::computeDecision(
             quorumPolicy: null,
             votePolicy: ['base' => 'expressed', 'threshold' => 2 / 3],
@@ -385,6 +387,62 @@ class VoteEngineTest extends TestCase {
         );
 
         $this->assertTrue($result2['majority']['met']);
+    }
+
+    public function testComputeDecisionAbstentionAsAgainst(): void {
+        // With abstention_as_against=true, base includes abstentions:
+        // 60 / (60+30+10) = 60/100 = 0.60 >= 0.5 → adopted
+        $result = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5, 'abstention_as_against' => true],
+            forWeight: 60.0,
+            againstWeight: 30.0,
+            abstainWeight: 10.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertTrue($result['majority']['met']);
+        $this->assertEqualsWithDelta(0.6, $result['majority']['ratio'], 0.0001);
+
+        // Without the flag, same values: 60/(60+30)=0.667 → also adopted
+        // but the ratio differs (0.6 vs 0.667), demonstrating the flag has effect.
+
+        // Edge case: abstentions tip the balance.
+        // for=45, against=35, abstain=20 → without flag: 45/80 = 0.5625 >= 0.5 → adopted
+        // with flag: 45/100 = 0.45 < 0.5 → REJECTED
+        $result2 = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5, 'abstention_as_against' => true],
+            forWeight: 45.0,
+            againstWeight: 35.0,
+            abstainWeight: 20.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertFalse($result2['majority']['met']);
+        $this->assertEqualsWithDelta(0.45, $result2['majority']['ratio'], 0.0001);
+
+        // Without flag: same data → 45/(45+35) = 45/80 = 0.5625 → adopted
+        $result3 = VoteEngine::computeDecision(
+            quorumPolicy: null,
+            votePolicy: ['base' => 'expressed', 'threshold' => 0.5, 'abstention_as_against' => false],
+            forWeight: 45.0,
+            againstWeight: 35.0,
+            abstainWeight: 20.0,
+            expressedWeight: 100.0,
+            expressedMembers: 10,
+            eligibleMembers: 20,
+            eligibleWeight: 200.0,
+        );
+
+        $this->assertTrue($result3['majority']['met']);
+        $this->assertEqualsWithDelta(45.0 / 80.0, $result3['majority']['ratio'], 0.0001);
     }
 
     public function testComputeDecisionEligibleBase(): void {
@@ -536,12 +594,12 @@ class VoteEngineTest extends TestCase {
     }
 
     public function testComputeDecisionExactThreshold(): void {
-        // Exactly at threshold: 50/100 = 0.5 >= 0.5
+        // Exactly at threshold: 45/(45+45) = 45/90 = 0.5 >= 0.5
         $result = VoteEngine::computeDecision(
             quorumPolicy: null,
             votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
-            forWeight: 50.0,
-            againstWeight: 40.0,
+            forWeight: 45.0,
+            againstWeight: 45.0,
             abstainWeight: 10.0,
             expressedWeight: 100.0,
             expressedMembers: 10,
@@ -554,12 +612,12 @@ class VoteEngineTest extends TestCase {
     }
 
     public function testComputeDecisionJustBelowThreshold(): void {
-        // 49.9/100 = 0.499 < 0.5
+        // 44.9/(44.9+45.1) = 44.9/90 ≈ 0.4989 < 0.5
         $result = VoteEngine::computeDecision(
             quorumPolicy: null,
             votePolicy: ['base' => 'expressed', 'threshold' => 0.5],
-            forWeight: 49.9,
-            againstWeight: 40.1,
+            forWeight: 44.9,
+            againstWeight: 45.1,
             abstainWeight: 10.0,
             expressedWeight: 100.0,
             expressedMembers: 10,

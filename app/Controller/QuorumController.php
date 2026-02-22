@@ -32,7 +32,7 @@ final class QuorumController extends AbstractController {
             $tenantId = api_current_tenant_id();
 
             if ($motionId !== '') {
-                $r = (new QuorumEngine())->computeForMotion($motionId);
+                $r = (new QuorumEngine())->computeForMotion($motionId, $tenantId);
                 $title = $r['applies_to']['motion_title'] ?? 'Motion';
                 $scope = 'Motion';
             } elseif ($meetingId !== '') {
@@ -107,7 +107,7 @@ final class QuorumController extends AbstractController {
         $tenantId = api_current_tenant_id();
 
         if ($motionId !== '') {
-            $res = (new QuorumEngine())->computeForMotion($motionId);
+            $res = (new QuorumEngine())->computeForMotion($motionId, $tenantId);
         } elseif ($meetingId !== '') {
             $res = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
         } else {

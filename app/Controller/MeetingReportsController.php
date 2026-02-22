@@ -106,7 +106,7 @@ final class MeetingReportsController extends AbstractController {
 
             if (!$hasOfficial && $m['closed_at'] !== null) {
                 try {
-                    $o = (new OfficialResultsService())->computeOfficialTallies($mid);
+                    $o = (new OfficialResultsService())->computeOfficialTallies($mid, api_current_tenant_id());
                     $src = $o['source'];
                     $of = $o['for'];
                     $og = $o['against'];
@@ -137,7 +137,7 @@ final class MeetingReportsController extends AbstractController {
 
             try {
                 if ($src === 'evote') {
-                    $r = (new VoteEngine())->computeMotionResult($mid);
+                    $r = (new VoteEngine())->computeMotionResult($mid, api_current_tenant_id());
                     $detail['quorum_met'] = $r['quorum']['met'] ?? null;
                     $detail['quorum_ratio'] = $r['quorum']['ratio'] ?? null;
                     $detail['majority_ratio'] = $r['decision']['ratio'] ?? ($r['majority']['ratio'] ?? null);

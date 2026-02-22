@@ -98,7 +98,12 @@ final class VoteEngine {
             $abstAsAgainst = (bool) ($votePolicy['abstention_as_against'] ?? false);
 
             if ($majorityBase === 'expressed') {
-                $baseTotal = $expressedWeight;
+                // "Suffrages exprimés" (French law): for + against only.
+                // When abstention_as_against is true, abstentions count as
+                // "against" so they re-enter the denominator.
+                $baseTotal = $abstAsAgainst
+                    ? ($forWeight + $againstWeight + $abstainWeight)
+                    : ($forWeight + $againstWeight);
             } elseif ($majorityBase === 'eligible') {
                 $baseTotal = $eligibleWeight;
             } elseif ($majorityBase === 'present') {
@@ -146,13 +151,13 @@ final class VoteEngine {
      *
      * @return array<string,mixed>
      */
-    public function computeMotionResult(string $motionId): array {
+    public function computeMotionResult(string $motionId, string $tenantId = ''): array {
         $motionId = trim($motionId);
         if ($motionId === '') {
             throw new InvalidArgumentException('motion_id obligatoire');
         }
 
-        $motion = $this->motionRepo->findWithVoteContext($motionId);
+        $motion = $this->motionRepo->findWithVoteContext($motionId, $tenantId);
 
         if (!$motion) {
             throw new RuntimeException('Motion introuvable');
@@ -183,10 +188,15 @@ final class VoteEngine {
         $eligibleMembers = $this->memberRepo->countActive($tenantId);
         $eligibleWeight = $this->memberRepo->sumActiveWeight($tenantId);
 
-        // Load policies if any
+        // Resolve quorum policy: motion-level > meeting-level
+        // (same fallback logic as OfficialResultsService)
+        $appliedQuorumPolicyId = !empty($motion['quorum_policy_id'])
+            ? (string) $motion['quorum_policy_id']
+            : (!empty($motion['meeting_quorum_policy_id']) ? (string) $motion['meeting_quorum_policy_id'] : '');
+
         $quorumPolicy = null;
-        if (!empty($motion['quorum_policy_id'])) {
-            $quorumPolicy = $this->policyRepo->findQuorumPolicy((string) $motion['quorum_policy_id']);
+        if ($appliedQuorumPolicyId !== '') {
+            $quorumPolicy = $this->policyRepo->findQuorumPolicy($appliedQuorumPolicyId);
         }
 
         // Resolve vote policy: motion-level > meeting-level

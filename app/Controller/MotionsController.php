@@ -397,7 +397,7 @@ final class MotionsController extends AbstractController {
 
         $ballotsCast = 0;
         if ($motion) {
-            $ballotsCast = (new BallotRepository())->countByMotionId((string) $motion['id']);
+            $ballotsCast = (new BallotRepository())->countByMotionId((string) $motion['id'], $tenantId);
         }
 
         api_ok([
@@ -533,7 +533,7 @@ final class MotionsController extends AbstractController {
 
             $repo->markClosed($motionId, api_current_tenant_id());
 
-            $o = (new OfficialResultsService())->computeOfficialTallies((string) $motionId);
+            $o = (new OfficialResultsService())->computeOfficialTallies((string) $motionId, api_current_tenant_id());
             $repo->updateOfficialResults(
                 (string) $motionId,
                 $o['source'],
@@ -627,13 +627,13 @@ final class MotionsController extends AbstractController {
             api_fail('missing_motion_id', 422);
         }
 
-        $row = (new MotionRepository())->findWithMeetingTenant($motionId);
+        $tenantId = api_current_tenant_id();
+        $row = (new MotionRepository())->findWithMeetingTenant($motionId, $tenantId);
         if (!$row) {
             api_fail('motion_not_found', 404);
         }
 
         $meetingId = (string) $row['meeting_id'];
-        $tenantId = (string) $row['tenant_id'];
 
         $total = isset($input['manual_total']) ? (int) $input['manual_total'] : 0;
         $for = isset($input['manual_for']) ? (int) $input['manual_for'] : 0;
