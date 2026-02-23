@@ -5,13 +5,14 @@ LABEL org.opencontainers.image.title="AG-VOTE" \
       org.opencontainers.image.source="https://github.com/thomasvinh-san-byte/gestion-votes" \
       org.opencontainers.image.licenses="MIT"
 
-# Runtime libs (explicit install so they survive apk del of -dev headers)
+# Runtime libs (permanent — explicitly installed so apk del won't touch them)
 RUN apk add --no-cache \
-    nginx supervisor curl postgresql-client \
-    libpng libjpeg-turbo freetype libzip icu-libs oniguruma
+    nginx supervisor curl postgresql-client libpq \
+    libpng libjpeg-turbo freetype libzip icu-libs oniguruma \
+    zlib zstd-libs brotli-libs lz4-libs
 
-# Build-time headers (removed after extension compilation below)
-RUN apk add --no-cache \
+# Build-time headers in a virtual group (cleanly removed after compile)
+RUN apk add --no-cache --virtual .php-build-deps \
     postgresql-dev libpng-dev libjpeg-turbo-dev \
     freetype-dev libzip-dev icu-dev oniguruma-dev
 
@@ -26,11 +27,9 @@ RUN apk add --no-cache --virtual .redis-deps $PHPIZE_DEPS \
     && docker-php-ext-enable redis \
     && apk del .redis-deps
 
-# Remove build-time headers — runtime libs (libpng, icu-libs, etc.) stay.
+# Remove build headers — only the .php-build-deps group; runtime libs stay.
 # Then verify every required extension still loads (fail-fast guard).
-RUN apk del --no-cache \
-    postgresql-dev libpng-dev libjpeg-turbo-dev \
-    freetype-dev libzip-dev icu-dev oniguruma-dev \
+RUN apk del .php-build-deps \
     && rm -rf /tmp/pear \
     && php -r 'foreach(["gd","intl","zip","pdo_pgsql","pgsql","mbstring","redis","opcache"] as $e){if(!extension_loaded($e)){fwrite(STDERR,"FATAL: ext-$e failed to load after cleanup\n");exit(1);}}'
 
