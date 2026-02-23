@@ -31,7 +31,7 @@ RUN apk add --no-cache --virtual .redis-deps $PHPIZE_DEPS \
 # Then verify every required extension still loads (fail-fast guard).
 RUN apk del .php-build-deps \
     && rm -rf /tmp/pear \
-    && php -r 'foreach(["gd","intl","zip","pdo_pgsql","pgsql","mbstring","redis","opcache"] as $e){if(!extension_loaded($e)){fwrite(STDERR,"FATAL: ext-$e failed to load after cleanup\n");exit(1);}}'
+    && php -r 'foreach(["gd","intl","zip","pdo_pgsql","pgsql","mbstring","redis","Zend OPcache"] as $e){if(!extension_loaded($e)){fwrite(STDERR,"FATAL: ext-$e failed to load after cleanup\n");exit(1);}}'
 
 # Composer (install deps then remove — not needed at runtime)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

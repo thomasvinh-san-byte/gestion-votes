@@ -120,7 +120,7 @@ jobs:
         run: |
           echo "Checking PHP extensions..."
           docker run --rm agvote:smoke-test php -r '
-            $required = ["gd","intl","zip","pdo_pgsql","pgsql","mbstring","redis","opcache"];
+            $required = ["gd","intl","zip","pdo_pgsql","pgsql","mbstring","redis","Zend OPcache"];
             $missing = array_filter($required, fn($e) => !extension_loaded($e));
             if ($missing) { fwrite(STDERR, "Missing extensions: ".implode(", ", $missing)."\n"); exit(1); }
             echo "All extensions OK\n";
