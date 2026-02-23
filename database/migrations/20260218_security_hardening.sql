@@ -66,16 +66,26 @@ CREATE INDEX IF NOT EXISTS idx_audit_tenant_chain
 -- ---------------------------------------------------------------------------
 BEGIN;
 
+-- Step 1: hash tokens that don't have a hash yet (atomic: hash+null in same row)
 UPDATE invitations
 SET token_hash = encode(digest(token, 'sha256'), 'hex'),
     token = NULL
 WHERE token IS NOT NULL
   AND token_hash IS NULL;
 
+-- Step 2: clear raw tokens where a hash already existed
 UPDATE invitations
 SET token = NULL
 WHERE token IS NOT NULL
   AND token_hash IS NOT NULL;
+
+-- Safety gate: abort if any row still has a raw token without a hash.
+-- This would mean digest() silently failed or pgcrypto is missing.
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM invitations WHERE token IS NOT NULL AND token_hash IS NULL) THEN
+    RAISE EXCEPTION 'Token migration failed: rows still have raw token without hash — pgcrypto may be missing';
+  END IF;
+END $$;
 
 COMMIT;
 

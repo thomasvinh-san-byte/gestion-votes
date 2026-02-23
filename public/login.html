@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Connexion à la plateforme de vote — AG-VOTE">
   <title>AG-VOTE — Connexion</title>
-  <script>!function(){var t=localStorage.getItem('ag-vote-theme');if(!t&&matchMedia('(prefers-color-scheme:dark)').matches)t='dark';if(t)document.documentElement.setAttribute('data-theme',t)}()</script>
+  <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
@@ -72,19 +72,7 @@
       </div>
     </div>
   </main>
-
-  <script>
-    // Theme toggle (initial detection handled by inline <head> script)
-    (function() {
-      var btn = document.getElementById('btnTheme');
-      if (btn) btn.addEventListener('click', function() {
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        var next = isDark ? 'light' : 'dark';
-        localStorage.setItem('ag-vote-theme', next);
-        document.documentElement.setAttribute('data-theme', next);
-      });
-    })();
-  </script>
-  <script src="/assets/js/pages/login.js"></script>
+  <script src="/assets/js/pages/login-theme-toggle.js"></script>
+<script src="/assets/js/pages/login.js"></script>
 </body>
 </html>

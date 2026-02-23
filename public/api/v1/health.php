@@ -32,7 +32,7 @@ try {
 
     $pdo = new PDO($dsn, $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_TIMEOUT => 3,
+        PDO::ATTR_TIMEOUT => 5,
     ]);
     $pdo->query('SELECT 1');
     $checks['database'] = true;

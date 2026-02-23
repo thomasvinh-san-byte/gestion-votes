@@ -52,11 +52,18 @@ COPY deploy/php-fpm.conf /usr/local/etc/php-fpm.d/zz-custom.conf
 COPY deploy/supervisord.conf /etc/supervisord.conf
 COPY deploy/php.ini /usr/local/etc/php/conf.d/99-custom.ini
 
-# Permissions & directories
+# Permissions & directories — everything writable by www-data so we can
+# run the whole container as non-root.
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/public \
     && mkdir -p /tmp/ag-vote /var/log/nginx /var/run/nginx \
-    && chown -R www-data:www-data /tmp/ag-vote \
+        /var/lib/nginx/tmp/client_body \
+        /var/lib/nginx/tmp/proxy \
+        /var/lib/nginx/tmp/fastcgi \
+    && chown -R www-data:www-data \
+        /tmp/ag-vote /var/log/nginx /var/run/nginx /var/lib/nginx \
+        /usr/local/etc/php/conf.d \
+        /etc/nginx/http.d \
     && chmod +x /var/www/deploy/entrypoint.sh
 
 # HTTP only (real-time updates via HTTP polling, not WebSocket)
@@ -64,6 +71,9 @@ EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD curl -sf http://127.0.0.1:${PORT:-8080}/api/v1/health.php || exit 1
+
+# Run as non-root
+USER www-data
 
 ENTRYPOINT ["/var/www/deploy/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

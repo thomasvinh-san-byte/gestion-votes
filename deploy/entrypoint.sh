@@ -145,10 +145,18 @@ unset PGPASSWORD
 # php.ini defaults to cookie_secure=0 so local HTTP dev works out of the box.
 _ENV="${APP_ENV:-development}"
 if [ "$_ENV" != "development" ] && [ "$_ENV" != "dev" ]; then
-  echo "session.cookie_secure = 1" > /usr/local/etc/php/conf.d/zz-runtime.ini
-  echo "Cookie secure: ON (APP_ENV=${_ENV})"
+  {
+    echo "session.cookie_secure = 1"
+    echo "opcache.validate_timestamps = 0"
+  } > /usr/local/etc/php/conf.d/zz-runtime.ini
+  echo "Cookie secure: ON, OPcache revalidation: OFF (APP_ENV=${_ENV})"
 else
-  echo "Cookie secure: OFF (local dev)"
+  {
+    echo "; dev mode: revalidate on every request so code changes are picked up"
+    echo "opcache.validate_timestamps = 1"
+    echo "opcache.revalidate_freq = 0"
+  } > /usr/local/etc/php/conf.d/zz-runtime.ini
+  echo "Cookie secure: OFF, OPcache revalidation: ON (local dev)"
 fi
 
 # ---------------------------------------------------------------------------
