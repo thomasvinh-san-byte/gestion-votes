@@ -50,7 +50,7 @@ GROUP BY m.id;
 -- 2. ballots.choice → value
 -- Backfill any rows where value was never set
 UPDATE ballots
-   SET value = choice
+   SET value = choice::motion_value
  WHERE value IS NULL AND choice IS NOT NULL;
 
 ALTER TABLE ballots DROP COLUMN IF EXISTS choice;

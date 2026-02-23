@@ -69,7 +69,7 @@ RUN chown -R www-data:www-data /var/www \
 # HTTP only (real-time updates via HTTP polling, not WebSocket)
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
     CMD curl -sf http://127.0.0.1:${PORT:-8080}/api/v1/health.php || exit 1
 
 # Run as non-root

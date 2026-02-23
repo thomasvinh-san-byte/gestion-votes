@@ -56,7 +56,11 @@ trait MotionListTrait {
 
     public function listForQuorumDisplay(string $meetingId, string $tenantId): array {
         return $this->selectAll(
-            'SELECT id, title, status, opened_at, closed_at, quorum_policy_id
+            'SELECT id, title,
+                    CASE WHEN closed_at IS NOT NULL THEN \'closed\'
+                         WHEN opened_at IS NOT NULL THEN \'open\'
+                         ELSE \'draft\' END AS status,
+                    opened_at, closed_at, quorum_policy_id
              FROM motions
              WHERE meeting_id = :m AND tenant_id = :tid
              ORDER BY position NULLS LAST, created_at ASC',
