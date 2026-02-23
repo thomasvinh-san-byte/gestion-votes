@@ -110,13 +110,22 @@ class MeetingRepository extends AbstractRepository {
      */
     public function listByTenantCompact(string $tenantId, int $limit = 50): array {
         return $this->selectAll(
-            'SELECT id AS meeting_id, id, title, status::text AS status,
-                    meeting_type, scheduled_at,
-                    created_at, started_at, ended_at, archived_at, validated_at
-             FROM meetings
-             WHERE tenant_id = :tenant_id
-             ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC
-             LIMIT ' . max(1, min($limit, 200)),
+            "SELECT m.id AS meeting_id, m.id, m.title, m.status::text AS status,
+                    m.meeting_type, m.scheduled_at,
+                    m.created_at, m.started_at, m.ended_at, m.archived_at, m.validated_at,
+                    COALESCE(mo_cnt.cnt, 0)  AS motions_count,
+                    COALESCE(att_cnt.cnt, 0) AS attendees_count
+             FROM meetings m
+             LEFT JOIN LATERAL (
+                 SELECT COUNT(*)::int AS cnt FROM motions WHERE meeting_id = m.id
+             ) mo_cnt ON true
+             LEFT JOIN LATERAL (
+                 SELECT COUNT(*)::int AS cnt FROM attendances
+                 WHERE meeting_id = m.id AND mode IN ('present','remote')
+             ) att_cnt ON true
+             WHERE m.tenant_id = :tenant_id
+             ORDER BY COALESCE(m.started_at, m.scheduled_at, m.created_at) DESC
+             LIMIT " . max(1, min($limit, 200)),
             [':tenant_id' => $tenantId],
         );
     }
@@ -126,13 +135,22 @@ class MeetingRepository extends AbstractRepository {
      */
     public function listActiveByTenantCompact(string $tenantId, int $limit = 50): array {
         return $this->selectAll(
-            "SELECT id AS meeting_id, id, title, status::text AS status,
-                    meeting_type, scheduled_at,
-                    created_at, started_at, ended_at, archived_at, validated_at
-             FROM meetings
-             WHERE tenant_id = :tenant_id
-               AND status NOT IN ('validated', 'archived')
-             ORDER BY COALESCE(started_at, scheduled_at, created_at) DESC
+            "SELECT m.id AS meeting_id, m.id, m.title, m.status::text AS status,
+                    m.meeting_type, m.scheduled_at,
+                    m.created_at, m.started_at, m.ended_at, m.archived_at, m.validated_at,
+                    COALESCE(mo_cnt.cnt, 0)  AS motions_count,
+                    COALESCE(att_cnt.cnt, 0) AS attendees_count
+             FROM meetings m
+             LEFT JOIN LATERAL (
+                 SELECT COUNT(*)::int AS cnt FROM motions WHERE meeting_id = m.id
+             ) mo_cnt ON true
+             LEFT JOIN LATERAL (
+                 SELECT COUNT(*)::int AS cnt FROM attendances
+                 WHERE meeting_id = m.id AND mode IN ('present','remote')
+             ) att_cnt ON true
+             WHERE m.tenant_id = :tenant_id
+               AND m.status NOT IN ('validated', 'archived')
+             ORDER BY COALESCE(m.started_at, m.scheduled_at, m.created_at) DESC
              LIMIT " . max(1, min($limit, 200)),
             [':tenant_id' => $tenantId],
         );
