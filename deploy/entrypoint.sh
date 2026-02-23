@@ -128,5 +128,16 @@ else
   echo "Cookie secure: OFF (local dev)"
 fi
 
+# ---------------------------------------------------------------------------
+# Dynamic port binding (Render injects PORT=10000 by default)
+# ---------------------------------------------------------------------------
+LISTEN_PORT="${PORT:-8080}"
+if [ "$LISTEN_PORT" != "8080" ]; then
+  sed -i "s/listen 8080/listen ${LISTEN_PORT}/" /etc/nginx/http.d/default.conf
+  echo "Nginx port: ${LISTEN_PORT} (from \$PORT)"
+else
+  echo "Nginx port: 8080 (default)"
+fi
+
 echo "=== Demarrage des services ==="
 exec "$@"

@@ -19,6 +19,9 @@ services:
     plan: free
     healthCheckPath: /api/v1/health.php
     envVars:
+      # Render routes traffic to this port (default is 10000, nginx listens on 8080)
+      - key: PORT
+        value: "8080"
       # --- Base de données (auto-injectée par Render) ---
       - key: DB_HOST
         fromDatabase:

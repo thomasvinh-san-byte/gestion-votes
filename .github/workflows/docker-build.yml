@@ -64,7 +64,11 @@ jobs:
           fi
 
   # ---------------------------------------------------------------------------
-  # Docker build (only runs if validate passes)
+  # Docker build, smoke test, then push
+  # ---------------------------------------------------------------------------
+  # Two-step pattern: build+load for local smoke test, then push from cache.
+  # This avoids the load+push conflict in Buildx < 0.13.0, and ensures we
+  # never push a broken image to the registry.
   # ---------------------------------------------------------------------------
   build:
     needs: validate
@@ -100,27 +104,38 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=
 
-      - name: Build and push
+      # Step 1: Build and load locally for smoke test (never push)
+      - name: Build image for testing
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          load: true
+          push: false
+          tags: agvote:smoke-test
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          load: true
 
-      - name: Smoke test — verify container starts and PHP extensions load
+      # Step 2: Verify the image actually works
+      - name: Smoke test — PHP extensions and autoload
         run: |
-          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -1)
-          echo "Running smoke test on $IMAGE_TAG"
-          # Verify PHP loads all required extensions inside the built image
-          docker run --rm "$IMAGE_TAG" php -r '
+          echo "Checking PHP extensions..."
+          docker run --rm agvote:smoke-test php -r '
             $required = ["gd","intl","zip","pdo_pgsql","pgsql","mbstring","redis","opcache"];
             $missing = array_filter($required, fn($e) => !extension_loaded($e));
             if ($missing) { fwrite(STDERR, "Missing extensions: ".implode(", ", $missing)."\n"); exit(1); }
             echo "All extensions OK\n";
           '
-          # Verify composer autoload works
-          docker run --rm "$IMAGE_TAG" php -r 'require "/var/www/vendor/autoload.php"; echo "Autoload OK\n";'
+          echo "Checking composer autoload..."
+          docker run --rm agvote:smoke-test php -r 'require "/var/www/vendor/autoload.php"; echo "Autoload OK\n";'
+
+      # Step 3: Push to registry (cache makes this near-instant, no rebuild)
+      - name: Push to registry
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          load: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha

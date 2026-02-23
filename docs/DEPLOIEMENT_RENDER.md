@@ -227,6 +227,20 @@ done
 
 ---
 
+## Limites du plan free Render
+
+| Limitation | Detail |
+|------------|--------|
+| **Base PostgreSQL** | Expire apres **30 jours**. Limite 1 Go. Recreer manuellement apres expiration. |
+| **Spin-down** | Le service s'arrete apres 15 min d'inactivite. Redemarrage ~30-60s au prochain appel. |
+| **Filesystem ephemere** | Les fichiers locaux (sessions, rate-limit fichier) sont perdus au spin-down. La base PostgreSQL persiste. |
+| **750h/mois** | Au-dela, tous les services free sont suspendus jusqu'au mois suivant. |
+| **Pas de Redis** | Le rate limiting utilise un fallback fichier (ephemere). Suffisant pour la demo. |
+
+> Pour un usage production durable, passer au plan **Starter** ($7/mois) qui supprime le spin-down et les limites de la base.
+
+---
+
 ## Troubleshooting
 
 ### Le service redemarre en boucle
