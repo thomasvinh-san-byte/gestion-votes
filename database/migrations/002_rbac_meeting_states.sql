@@ -21,16 +21,14 @@
 --   voter     = Électeur (vote uniquement)
 --   viewer    = Observateur (lecture seule)
 
--- 1a. Supprimer l'ancienne contrainte
+-- 1a-1c wrapped in transaction for atomicity
+BEGIN;
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
-
--- 1b. Migrer les anciens noms de rôles
 UPDATE users SET role = 'assessor' WHERE role = 'trust';
 UPDATE users SET role = 'viewer'   WHERE role = 'readonly';
-
--- 1c. Ajouter la nouvelle contrainte
 ALTER TABLE users ADD CONSTRAINT users_role_check
   CHECK (role IN ('admin','operator','president','assessor','auditor','voter','viewer'));
+COMMIT;
 
 -- ============================================================
 -- PHASE 3: Ajouter les valeurs ENUM pour meeting_status
