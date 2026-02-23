@@ -57,10 +57,10 @@ if [ -z "$DB_DSN" ]; then
   export DB_DSN="pgsql:host=${DB_HOST};port=${DB_PORT};dbname=${DB_DATABASE}"
 fi
 
-# Wait for PostgreSQL to be ready (timeout after 30 seconds)
+# Wait for PostgreSQL to be ready (timeout after 60 seconds)
 echo "Attente de PostgreSQL..."
 PG_WAIT=0
-PG_MAX=30
+PG_MAX=60
 until pg_isready -h "${DB_HOST:-db}" -p "${DB_PORT:-5432}" -U "${DB_USERNAME:-vote_app}" -q 2>/dev/null; do
   PG_WAIT=$((PG_WAIT + 1))
   if [ "$PG_WAIT" -ge "$PG_MAX" ]; then
@@ -97,21 +97,44 @@ if [ "$TABLE_COUNT" -lt 5 ]; then
     pg -f /var/www/database/seeds/03_demo.sql
   fi
 
+  # Mark all current migrations as already applied (schema-master includes them)
+  pg -tAc "CREATE TABLE IF NOT EXISTS applied_migrations (
+    name text PRIMARY KEY,
+    applied_at timestamptz NOT NULL DEFAULT now()
+  );" 2>/dev/null || true
+  for f in /var/www/database/migrations/*.sql; do
+    [ -f "$f" ] || continue
+    MNAME="$(basename "$f")"
+    pg -tAc "INSERT INTO applied_migrations (name) VALUES ('${MNAME}') ON CONFLICT DO NOTHING;" 2>/dev/null || true
+  done
+
   echo "Base de donnees initialisee."
 else
   echo "Base existante ($TABLE_COUNT tables)."
 fi
 
-# Always apply migrations (idempotent — IF NOT EXISTS, etc.)
-# Runs on every boot so new migrations are applied on redeployment.
+# ---------------------------------------------------------------------------
+# Migration tracking — only run NEW migrations, skip already-applied ones
+# ---------------------------------------------------------------------------
+pg -tAc "CREATE TABLE IF NOT EXISTS applied_migrations (
+  name text PRIMARY KEY,
+  applied_at timestamptz NOT NULL DEFAULT now()
+);" 2>/dev/null || true
+
 MIGRATION_COUNT=0
 for f in /var/www/database/migrations/*.sql; do
   [ -f "$f" ] || continue
-  echo "  migration: $(basename "$f")"
-  pg -f "$f" || { echo "[FATAL] Migration failed: $(basename "$f")"; exit 1; }
+  MNAME="$(basename "$f")"
+  ALREADY=$(pg -tAc "SELECT 1 FROM applied_migrations WHERE name = '${MNAME}';" 2>/dev/null || echo "")
+  if [ "$ALREADY" = "1" ]; then
+    continue
+  fi
+  echo "  migration: $MNAME"
+  pg -f "$f" || { echo "[FATAL] Migration failed: $MNAME"; exit 1; }
+  pg -tAc "INSERT INTO applied_migrations (name) VALUES ('${MNAME}') ON CONFLICT DO NOTHING;" 2>/dev/null || true
   MIGRATION_COUNT=$((MIGRATION_COUNT + 1))
 done
-[ "$MIGRATION_COUNT" -gt 0 ] && echo "Migrations appliquees: ${MIGRATION_COUNT}."
+[ "$MIGRATION_COUNT" -gt 0 ] && echo "Migrations appliquees: ${MIGRATION_COUNT}." || echo "Migrations: aucune nouvelle."
 
 unset PGPASSWORD
 
@@ -122,10 +145,18 @@ unset PGPASSWORD
 # php.ini defaults to cookie_secure=0 so local HTTP dev works out of the box.
 _ENV="${APP_ENV:-development}"
 if [ "$_ENV" != "development" ] && [ "$_ENV" != "dev" ]; then
-  echo "session.cookie_secure = 1" > /usr/local/etc/php/conf.d/zz-runtime.ini
-  echo "Cookie secure: ON (APP_ENV=${_ENV})"
+  {
+    echo "session.cookie_secure = 1"
+    echo "opcache.validate_timestamps = 0"
+  } > /usr/local/etc/php/conf.d/zz-runtime.ini
+  echo "Cookie secure: ON, OPcache revalidation: OFF (APP_ENV=${_ENV})"
 else
-  echo "Cookie secure: OFF (local dev)"
+  {
+    echo "; dev mode: revalidate on every request so code changes are picked up"
+    echo "opcache.validate_timestamps = 1"
+    echo "opcache.revalidate_freq = 0"
+  } > /usr/local/etc/php/conf.d/zz-runtime.ini
+  echo "Cookie secure: OFF, OPcache revalidation: ON (local dev)"
 fi
 
 # ---------------------------------------------------------------------------

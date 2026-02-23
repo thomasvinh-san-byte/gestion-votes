@@ -119,14 +119,14 @@ jobs:
       - name: Smoke test — PHP extensions and autoload
         run: |
           echo "Checking PHP extensions..."
-          docker run --rm agvote:smoke-test php -r '
+          docker run --rm --entrypoint "" agvote:smoke-test php -r '
             $required = ["gd","intl","zip","pdo_pgsql","pgsql","mbstring","redis","Zend OPcache"];
             $missing = array_filter($required, fn($e) => !extension_loaded($e));
             if ($missing) { fwrite(STDERR, "Missing extensions: ".implode(", ", $missing)."\n"); exit(1); }
             echo "All extensions OK\n";
           '
           echo "Checking composer autoload..."
-          docker run --rm agvote:smoke-test php -r 'require "/var/www/vendor/autoload.php"; echo "Autoload OK\n";'
+          docker run --rm --entrypoint "" agvote:smoke-test php -r 'require "/var/www/vendor/autoload.php"; echo "Autoload OK\n";'
 
       # Step 3: Push to registry (cache makes this near-instant, no rebuild)
       - name: Push to registry

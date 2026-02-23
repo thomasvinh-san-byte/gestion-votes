@@ -24,16 +24,7 @@
     "autoload": {
         "psr-4": {
             "AgVote\\": "app/",
-            "AgVote\\Command\\": "app/Command/",
-            "AgVote\\Controller\\": "app/Controller/",
-            "AgVote\\Core\\": "app/Core/",
-            "AgVote\\Core\\Security\\": "app/Core/Security/",
-            "AgVote\\Core\\Validation\\": "app/Core/Validation/",
-            "AgVote\\Event\\": "app/Event/",
-            "AgVote\\Repository\\": "app/Repository/",
-            "AgVote\\Service\\": "app/Services/",
-            "AgVote\\View\\": "app/View/",
-            "AgVote\\WebSocket\\": "app/WebSocket/"
+            "AgVote\\Service\\": "app/Services/"
         }
     },
     "autoload-dev": {

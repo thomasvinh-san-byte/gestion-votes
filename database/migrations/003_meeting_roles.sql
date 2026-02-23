@@ -35,17 +35,15 @@ CREATE INDEX IF NOT EXISTS idx_meeting_roles_user ON meeting_roles(tenant_id, us
 -- assessor  → viewer   (lecture seule au niveau système)
 -- voter     → viewer   (lecture seule au niveau système)
 
--- D'abord, retirer la contrainte existante
+-- Atomic role migration: drop constraint, update, re-add constraint
+BEGIN;
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
-
--- Migrer les rôles
 UPDATE users SET role = 'operator' WHERE role = 'president';
 UPDATE users SET role = 'viewer'   WHERE role = 'assessor';
 UPDATE users SET role = 'viewer'   WHERE role = 'voter';
-
--- Nouvelle contrainte : rôles SYSTÈME uniquement
 ALTER TABLE users ADD CONSTRAINT users_role_check
   CHECK (role IN ('admin','operator','auditor','viewer'));
+COMMIT;
 
 -- ============================================================
 -- PHASE 3: Mettre à jour role_permissions pour le nouveau modèle

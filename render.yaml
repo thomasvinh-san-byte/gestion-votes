@@ -8,6 +8,8 @@
 #
 # ⚠ Ce blueprint est pour la DÉMO PUBLIQUE (auth désactivée, données test).
 #    Pour un déploiement PRODUCTION, utilisez render-production.yaml.
+# ⚠ RATE_LIMIT_ENABLED reste 1 — même une démo ouverte ne doit pas servir
+#    de relai pour du brute-force ou du scraping.
 # =============================================================================
 
 services:
@@ -46,10 +48,14 @@ services:
         value: demo
       - key: APP_DEBUG
         value: "0"
+      # Auth and CSRF off for demo — anyone can explore without credentials.
       - key: APP_AUTH_ENABLED
         value: "0"
       - key: CSRF_ENABLED
         value: "0"
+      # Rate limiting stays ON even in demo mode to prevent abuse.
+      - key: RATE_LIMIT_ENABLED
+        value: "1"
 
 databases:
   - name: ag-vote-db

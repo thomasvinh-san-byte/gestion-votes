@@ -67,7 +67,7 @@ SELECT
     mg.created_at,
     mg.updated_at,
     COUNT(mga.member_id) FILTER (WHERE m.is_active = true AND m.deleted_at IS NULL) AS member_count,
-    COALESCE(SUM(m.vote_weight) FILTER (WHERE m.is_active = true AND m.deleted_at IS NULL), 0) AS total_weight
+    COALESCE(SUM(COALESCE(m.voting_power, 1.0)) FILTER (WHERE m.is_active = true AND m.deleted_at IS NULL), 0) AS total_weight
 FROM member_groups mg
 LEFT JOIN member_group_assignments mga ON mga.group_id = mg.id
 LEFT JOIN members m ON m.id = mga.member_id

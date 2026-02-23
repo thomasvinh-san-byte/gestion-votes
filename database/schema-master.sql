@@ -929,6 +929,41 @@ CREATE TABLE IF NOT EXISTS manual_actions (
 CREATE INDEX IF NOT EXISTS idx_manual_actions_meeting ON manual_actions(meeting_id, created_at DESC);
 
 -- ============================================================
+-- TABLE: speech_requests
+-- ============================================================
+CREATE TABLE IF NOT EXISTS speech_requests (
+    id uuid PRIMARY KEY,
+    tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+    member_id uuid NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    status text NOT NULL CHECK (status IN ('waiting','speaking','finished','cancelled')),
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_speech_requests_meeting_status ON speech_requests (meeting_id, status, created_at);
+CREATE INDEX IF NOT EXISTS idx_speech_requests_member ON speech_requests (meeting_id, member_id, updated_at DESC);
+
+-- ============================================================
+-- TABLE: meeting_validation_state
+-- ============================================================
+CREATE TABLE IF NOT EXISTS meeting_validation_state (
+    meeting_id uuid PRIMARY KEY REFERENCES meetings(id) ON DELETE CASCADE,
+    tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    ready boolean NOT NULL,
+    codes jsonb NOT NULL DEFAULT '[]'::jsonb,
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_meeting_validation_state_tenant ON meeting_validation_state(tenant_id);
+
+-- ============================================================
+-- TABLE: applied_migrations (tracking)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS applied_migrations (
+    name text PRIMARY KEY,
+    applied_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- ============================================================
 -- TABLES SYSTEME
 -- ============================================================
 CREATE TABLE IF NOT EXISTS system_alerts (
@@ -971,10 +1006,10 @@ CREATE INDEX IF NOT EXISTS idx_auth_failures_ip ON auth_failures(ip, created_at 
 
 CREATE TABLE IF NOT EXISTS vote_tokens (
   token_hash char(64) PRIMARY KEY,
-  tenant_id uuid REFERENCES tenants(id) ON DELETE CASCADE,
-  meeting_id uuid REFERENCES meetings(id) ON DELETE CASCADE,
-  member_id uuid REFERENCES members(id) ON DELETE CASCADE,
-  motion_id uuid REFERENCES motions(id) ON DELETE CASCADE,
+  tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  member_id uuid NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  motion_id uuid NOT NULL REFERENCES motions(id) ON DELETE CASCADE,
   expires_at timestamptz NOT NULL,
   used_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now()
