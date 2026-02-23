@@ -8,11 +8,13 @@ Bienvenue dans la documentation d'AG-Vote, votre application de gestion de séan
 
 | Document | Description |
 |----------|-------------|
+| [GUIDE_FONCTIONNEL.md](GUIDE_FONCTIONNEL.md) | Guide complet de toutes les pages et fonctionnalités |
 | [FAQ.md](FAQ.md) | Questions fréquentes (général, rôles, votes, sécurité) |
 | [UTILISATION_LIVE.md](UTILISATION_LIVE.md) | Guide complet pour conduire une séance en direct |
 | [RECETTE_DEMO.md](RECETTE_DEMO.md) | Scénario de démonstration guidée (~10 min) |
 | [DEPLOIEMENT_DOCKER.md](DEPLOIEMENT_DOCKER.md) | Deploiement Docker local (dev et production) |
 | [DEPLOIEMENT_RENDER.md](DEPLOIEMENT_RENDER.md) | Deployer sur Render (demo et production) |
+| [ANALYTICS_ETHICS.md](ANALYTICS_ETHICS.md) | Analytics et conformité RGPD |
 
 ---
 
@@ -27,8 +29,7 @@ Pour les développeurs et administrateurs système, consultez le dossier [dev/](
 | **Architecture** | [ARCHITECTURE](dev/ARCHITECTURE.md), [WEB_COMPONENTS](dev/WEB_COMPONENTS.md), [SECURITY](dev/SECURITY.md) |
 | **API** | [API](dev/API.md), [OpenAPI](api/openapi.yaml) |
 | **Installation** | [INSTALLATION](dev/INSTALLATION.md), [TESTS](dev/TESTS.md), [MIGRATION](dev/MIGRATION.md), [DOCKER](DEPLOIEMENT_DOCKER.md), [RENDER](DEPLOIEMENT_RENDER.md) |
-| **Conformité** | [CONFORMITE_CDC](dev/CONFORMITE_CDC.md), [AUDIT_RAPPORT](dev/AUDIT_RAPPORT.md), [ANALYTICS_ETHICS](dev/ANALYTICS_ETHICS.md) |
-| **Plans** | [PLAN_UNDERDEVELOPED](dev/PLAN_UNDERDEVELOPED.md), [PLAN_MVC](dev/PLAN_MVC.md), [PLAN_EXPORTS](dev/PLAN_EXPORTS.md) |
+| **Spécifications** | [Cahier des charges](dev/cahier_des_charges.md), [AUDIT_FRONTEND](dev/AUDIT_FRONTEND.md), [ANALYTICS_ETHICS](dev/ANALYTICS_ETHICS.md) |
 
 ---
 
@@ -51,4 +52,5 @@ Pour les développeurs et administrateurs système, consultez le dossier [dev/](
 ### Besoin d'aide ?
 
 - Consultez la [FAQ](FAQ.md) pour les questions courantes
+- Consultez le [guide fonctionnel](GUIDE_FONCTIONNEL.md) pour le détail de chaque page
 - Consultez la [documentation technique](dev/) pour les questions avancées
