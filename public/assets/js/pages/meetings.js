@@ -198,7 +198,7 @@
     }
 
     return `
-      <div class="meeting-card ${cardClass}" data-meeting-id="${m.id}" data-search-text="${escapeHtml((m.title || '') + ' ' + (m.status || ''))}">
+      <div class="meeting-card ${cardClass}" data-meeting-id="${m.id}">
         <div class="meeting-card-header">
           <div class="flex items-center gap-2" style="justify-content:space-between;">
             <h3 class="meeting-card-title">${title}</h3>
@@ -509,7 +509,7 @@
 
     fileList.innerHTML = pendingFiles.map(function(f, i) {
       return '<div class="file-item" data-idx="' + i + '">' +
-        '<svg class="icon icon-text" aria-hidden="true" style="color:var(--color-danger);flex-shrink:0;"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>' +
+        '<svg class="icon icon-text" aria-hidden="true" style="color:var(--color-danger);flex-shrink:0;"><use href="/assets/icons.svg#icon-file-text"></use></svg>' +
         '<span class="file-item-name">' + escapeHtml(f.name) + '</span>' +
         '<span class="file-item-size">' + formatFileSize(f.size) + '</span>' +
         '<button type="button" class="file-item-remove" data-remove="' + i + '" title="Retirer">&times;</button>' +

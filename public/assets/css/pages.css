@@ -1120,6 +1120,15 @@
     justify-content: center;
   }
 
+  .meetings-toolbar {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .meetings-toolbar .form-group-search {
+    width: 100%;
+  }
+
   .filter-tabs {
     gap: 0.375rem;
   }
