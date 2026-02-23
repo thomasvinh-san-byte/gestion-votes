@@ -103,7 +103,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- ============================================================================
 -- 10 Membres votants (poids varies : total = 1000 tantiemes)
 -- ============================================================================
-INSERT INTO members (id, tenant_id, external_ref, full_name, email, vote_weight, role, is_active, created_at, updated_at)
+INSERT INTO members (id, tenant_id, external_ref, full_name, email, voting_power, role, is_active, created_at, updated_at)
 VALUES
   ('aaa00001-4a00-4000-8000-000000000001','aaaaaaaa-1111-2222-3333-444444444444','AZ-001','Mme Dupont','dupont@demo.test',150.0000,'member',true,NOW(),NOW()),
   ('aaa00001-4a00-4000-8000-000000000002','aaaaaaaa-1111-2222-3333-444444444444','AZ-002','M. Martin','martin@demo.test',120.0000,'member',true,NOW(),NOW()),
@@ -118,7 +118,7 @@ VALUES
 ON CONFLICT (tenant_id, full_name) DO UPDATE
 SET external_ref = EXCLUDED.external_ref,
     email = EXCLUDED.email,
-    vote_weight = EXCLUDED.vote_weight,
+    voting_power = EXCLUDED.voting_power,
     role = EXCLUDED.role,
     is_active = EXCLUDED.is_active,
     updated_at = NOW();
@@ -129,24 +129,23 @@ SET external_ref = EXCLUDED.external_ref,
 
 -- Resolution 1 : Approbation des comptes (majorite simple)
 INSERT INTO motions (
-  id, tenant_id, meeting_id, title, description, secret, sort_order, position,
+  id, tenant_id, meeting_id, title, description, secret, position,
   vote_policy_id, quorum_policy_id,
-  status, created_at, updated_at
+  created_at, updated_at
 ) VALUES (
   'deadbeef-0001-4a01-8000-000000000001',
   'aaaaaaaa-1111-2222-3333-444444444444',
   'deadbeef-0001-4a00-8000-000000000001',
   'Resolution 1 — Approbation des comptes 2025',
   'Approbation des comptes annuels de l''exercice clos le 31 decembre 2025, tels que presentes par le conseil syndical.',
-  false, 1, 1,
+  false, 1,
   (SELECT id FROM vote_policies  WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple'         LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
-  'draft', NOW(), NOW()
+  NOW(), NOW()
 )
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
   description = EXCLUDED.description,
-  status = 'draft',
   vote_policy_id = EXCLUDED.vote_policy_id,
   quorum_policy_id = EXCLUDED.quorum_policy_id,
   opened_at = NULL,
@@ -156,24 +155,23 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- Resolution 2 : Affectation du resultat (majorite 2/3)
 INSERT INTO motions (
-  id, tenant_id, meeting_id, title, description, secret, sort_order, position,
+  id, tenant_id, meeting_id, title, description, secret, position,
   vote_policy_id, quorum_policy_id,
-  status, created_at, updated_at
+  created_at, updated_at
 ) VALUES (
   'deadbeef-0001-4a02-8000-000000000001',
   'aaaaaaaa-1111-2222-3333-444444444444',
   'deadbeef-0001-4a00-8000-000000000001',
   'Resolution 2 — Affectation du resultat de l''exercice',
   'Vote sur l''affectation du resultat de l''exercice 2025 : report a nouveau, distribution, reserves.',
-  false, 2, 2,
+  false, 2,
   (SELECT id FROM vote_policies  WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité 2/3'           LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
-  'draft', NOW(), NOW()
+  NOW(), NOW()
 )
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
   description = EXCLUDED.description,
-  status = 'draft',
   vote_policy_id = EXCLUDED.vote_policy_id,
   quorum_policy_id = EXCLUDED.quorum_policy_id,
   opened_at = NULL,

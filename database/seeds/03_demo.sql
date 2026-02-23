@@ -102,7 +102,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- ============================================================================
 -- Membres (12, ponderes)
 -- ============================================================================
-INSERT INTO members (id, tenant_id, external_ref, full_name, email, vote_weight, role, is_active, created_at, updated_at)
+INSERT INTO members (id, tenant_id, external_ref, full_name, email, voting_power, role, is_active, created_at, updated_at)
 VALUES
   ('55555555-5555-5555-5555-555555555001','aaaaaaaa-1111-2222-3333-444444444444','LOT-001','Mme Martin','martin@example.test',100.0000,'member',true,now(),now()),
   ('55555555-5555-5555-5555-555555555002','aaaaaaaa-1111-2222-3333-444444444444','LOT-002','M. Dubois','dubois@example.test',80.0000,'member',true,now(),now()),
@@ -119,7 +119,7 @@ VALUES
 ON CONFLICT (tenant_id, full_name) DO UPDATE
 SET external_ref = EXCLUDED.external_ref,
     email = EXCLUDED.email,
-    vote_weight = EXCLUDED.vote_weight,
+    voting_power = EXCLUDED.voting_power,
     role = EXCLUDED.role,
     is_active = EXCLUDED.is_active,
     updated_at = now();
@@ -165,9 +165,9 @@ SET receiver_member_id = EXCLUDED.receiver_member_id, scope = EXCLUDED.scope;
 
 -- Motion 1 : fermee avec resultats (ADOPTEE)
 INSERT INTO motions (
-  id, tenant_id, meeting_id, title, description, secret, sort_order,
+  id, tenant_id, meeting_id, title, description, secret, position,
   vote_policy_id, quorum_policy_id,
-  status, opened_at, closed_at, decision,
+  opened_at, closed_at, decision,
   created_at, updated_at
 ) VALUES (
   '66666666-6666-6666-6666-666666666001',
@@ -178,16 +178,16 @@ INSERT INTO motions (
   false, 1,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   NULL,
-  'closed', now() - interval '20 minutes', now() - interval '15 minutes', 'adopted',
+  now() - interval '20 minutes', now() - interval '15 minutes', 'adopted',
   now(), now()
 )
-ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, updated_at = now();
 
 -- Motion 2 : EN COURS DE VOTE (ouverte)
 INSERT INTO motions (
-  id, tenant_id, meeting_id, title, description, secret, sort_order,
+  id, tenant_id, meeting_id, title, description, secret, position,
   vote_policy_id, quorum_policy_id,
-  status, opened_at,
+  opened_at,
   created_at, updated_at
 ) VALUES (
   '66666666-6666-6666-6666-666666666002',
@@ -198,10 +198,10 @@ INSERT INTO motions (
   false, 2,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité 2/3' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
-  'open', now() - interval '5 minutes',
+  now() - interval '5 minutes',
   now(), now()
 )
-ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, updated_at = now();
 
 -- Mettre cette motion comme motion courante
 UPDATE meetings
@@ -210,9 +210,9 @@ WHERE id = '44444444-4444-4444-4444-444444444001';
 
 -- Motion 3 : a venir
 INSERT INTO motions (
-  id, tenant_id, meeting_id, title, description, secret, sort_order,
+  id, tenant_id, meeting_id, title, description, secret, position,
   vote_policy_id, quorum_policy_id,
-  status, created_at, updated_at
+  created_at, updated_at
 ) VALUES (
   '66666666-6666-6666-6666-666666666003',
   'aaaaaaaa-1111-2222-3333-444444444444',
@@ -222,14 +222,14 @@ INSERT INTO motions (
   true, 3,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 33% (personnes)' LIMIT 1),
-  'draft', now(), now()
+  now(), now()
 )
-ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, updated_at = now();
 
 -- Motion 4 : a venir
 INSERT INTO motions (
-  id, tenant_id, meeting_id, title, description, secret, sort_order,
-  vote_policy_id, status, created_at, updated_at
+  id, tenant_id, meeting_id, title, description, secret, position,
+  vote_policy_id, created_at, updated_at
 ) VALUES (
   '66666666-6666-6666-6666-666666666004',
   'aaaaaaaa-1111-2222-3333-444444444444',
@@ -238,14 +238,14 @@ INSERT INTO motions (
   'Vote sur la resolution de changement de syndic de copropriete.',
   false, 4,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité absolue' LIMIT 1),
-  'draft', now(), now()
+  now(), now()
 )
-ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, updated_at = now();
 
 -- Motion 5 : a venir
 INSERT INTO motions (
-  id, tenant_id, meeting_id, title, description, secret, sort_order,
-  vote_policy_id, status, created_at, updated_at
+  id, tenant_id, meeting_id, title, description, secret, position,
+  vote_policy_id, created_at, updated_at
 ) VALUES (
   '66666666-6666-6666-6666-666666666005',
   'aaaaaaaa-1111-2222-3333-444444444444',
@@ -254,9 +254,9 @@ INSERT INTO motions (
   'Discussion et vote sur les questions diverses soulevees par les coproprietaires.',
   false, 5,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
-  'draft', now(), now()
+  now(), now()
 )
-ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, status = EXCLUDED.status, updated_at = now();
+ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, updated_at = now();
 
 -- ============================================================================
 -- Bulletins pour la motion 1 (fermee, adoptee)

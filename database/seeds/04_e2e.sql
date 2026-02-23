@@ -147,7 +147,7 @@ ON CONFLICT (tenant_id, meeting_id, user_id, role) DO UPDATE SET
 -- ============================================================================
 -- MEMBRES (12 elus municipaux avec poids de vote egal)
 -- ============================================================================
-INSERT INTO members (id, tenant_id, external_ref, full_name, email, vote_weight, role, is_active, created_at, updated_at)
+INSERT INTO members (id, tenant_id, external_ref, full_name, email, voting_power, role, is_active, created_at, updated_at)
 VALUES
   ('eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00101','aaaaaaaa-1111-2222-3333-444444444444','CM-001','Mme Dupont (Maire)','dupont@mairie.test',1.0000,'member',true,now(),now()),
   ('eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00102','aaaaaaaa-1111-2222-3333-444444444444','CM-002','M. Lefebvre (1er Adjoint)','lefebvre@mairie.test',1.0000,'member',true,now(),now()),
@@ -164,7 +164,7 @@ VALUES
 ON CONFLICT (tenant_id, full_name) DO UPDATE
 SET external_ref = EXCLUDED.external_ref,
     email = EXCLUDED.email,
-    vote_weight = EXCLUDED.vote_weight,
+    voting_power = EXCLUDED.voting_power,
     is_active = EXCLUDED.is_active,
     updated_at = now();
 
@@ -205,9 +205,9 @@ ON CONFLICT (id) DO UPDATE SET
 -- Resolution 1 : Approbation PV (majorite simple)
 INSERT INTO motions (
   id, tenant_id, meeting_id, agenda_id,
-  title, description, secret, sort_order,
+  title, description, secret, position,
   vote_policy_id, quorum_policy_id,
-  status, created_at, updated_at
+  created_at, updated_at
 ) VALUES (
   'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00301',
   'aaaaaaaa-1111-2222-3333-444444444444',
@@ -219,20 +219,19 @@ INSERT INTO motions (
   false, 1,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
-  'draft', now(), now()
+  now(), now()
 )
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
   description = EXCLUDED.description,
-  status = EXCLUDED.status,
   updated_at = now();
 
 -- Resolution 2 : Budget (majorite absolue)
 INSERT INTO motions (
   id, tenant_id, meeting_id, agenda_id,
-  title, description, secret, sort_order,
+  title, description, secret, position,
   vote_policy_id, quorum_policy_id,
-  status, created_at, updated_at
+  created_at, updated_at
 ) VALUES (
   'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00302',
   'aaaaaaaa-1111-2222-3333-444444444444',
@@ -244,20 +243,19 @@ INSERT INTO motions (
   false, 2,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité absolue' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
-  'draft', now(), now()
+  now(), now()
 )
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
   description = EXCLUDED.description,
-  status = EXCLUDED.status,
   updated_at = now();
 
 -- Resolution 3 : Travaux (majorite 2/3)
 INSERT INTO motions (
   id, tenant_id, meeting_id, agenda_id,
-  title, description, secret, sort_order,
+  title, description, secret, position,
   vote_policy_id, quorum_policy_id,
-  status, created_at, updated_at
+  created_at, updated_at
 ) VALUES (
   'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00303',
   'aaaaaaaa-1111-2222-3333-444444444444',
@@ -270,20 +268,19 @@ INSERT INTO motions (
   false, 3,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité 2/3' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
-  'draft', now(), now()
+  now(), now()
 )
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
   description = EXCLUDED.description,
-  status = EXCLUDED.status,
   updated_at = now();
 
 -- Resolution 4 : Convention (majorite simple)
 INSERT INTO motions (
   id, tenant_id, meeting_id, agenda_id,
-  title, description, secret, sort_order,
+  title, description, secret, position,
   vote_policy_id, quorum_policy_id,
-  status, created_at, updated_at
+  created_at, updated_at
 ) VALUES (
   'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00304',
   'aaaaaaaa-1111-2222-3333-444444444444',
@@ -295,20 +292,19 @@ INSERT INTO motions (
   false, 4,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   NULL,
-  'draft', now(), now()
+  now(), now()
 )
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
   description = EXCLUDED.description,
-  status = EXCLUDED.status,
   updated_at = now();
 
 -- Resolution 5 : Election a bulletin secret
 INSERT INTO motions (
   id, tenant_id, meeting_id, agenda_id,
-  title, description, secret, sort_order,
+  title, description, secret, position,
   vote_policy_id, quorum_policy_id,
-  status, created_at, updated_at
+  created_at, updated_at
 ) VALUES (
   'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00305',
   'aaaaaaaa-1111-2222-3333-444444444444',
@@ -319,12 +315,11 @@ INSERT INTO motions (
   true, 5,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 33% (personnes)' LIMIT 1),
-  'draft', now(), now()
+  now(), now()
 )
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
   description = EXCLUDED.description,
-  status = EXCLUDED.status,
   updated_at = now();
 
 -- ============================================================================

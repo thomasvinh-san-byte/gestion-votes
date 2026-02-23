@@ -71,22 +71,24 @@ class AggregateReportRepository extends AbstractRepository {
                 mo.id AS motion_id,
                 mo.position,
                 mo.title AS motion_title,
-                mo.status AS motion_status,
+                CASE WHEN mo.closed_at IS NOT NULL THEN 'closed'
+                     WHEN mo.opened_at IS NOT NULL THEN 'open'
+                     ELSE 'draft' END AS motion_status,
                 mo.decision,
                 mo.opened_at,
                 mo.closed_at,
-                COALESCE((mo.results->>'for')::int, 0) AS for_count,
-                COALESCE((mo.results->>'against')::int, 0) AS against_count,
-                COALESCE((mo.results->>'abstain')::int, 0) AS abstain_count,
-                COALESCE((mo.results->>'total_voters')::int, 0) AS total_voters,
-                COALESCE((mo.results->>'for_weight')::numeric, 0) AS for_weight,
-                COALESCE((mo.results->>'against_weight')::numeric, 0) AS against_weight,
-                COALESCE((mo.results->>'abstain_weight')::numeric, 0) AS abstain_weight
+                COALESCE((mo.evote_results->>'for')::int, 0) AS for_count,
+                COALESCE((mo.evote_results->>'against')::int, 0) AS against_count,
+                COALESCE((mo.evote_results->>'abstain')::int, 0) AS abstain_count,
+                COALESCE((mo.evote_results->>'total_voters')::int, 0) AS total_voters,
+                COALESCE((mo.evote_results->>'for_weight')::numeric, 0) AS for_weight,
+                COALESCE((mo.evote_results->>'against_weight')::numeric, 0) AS against_weight,
+                COALESCE((mo.evote_results->>'abstain_weight')::numeric, 0) AS abstain_weight
             FROM meetings mt
             JOIN motions mo ON mo.meeting_id = mt.id
             WHERE mt.tenant_id = :tid
               AND mt.status IN ('live', 'closed', 'validated', 'archived')
-              AND mo.status IN ('closed', 'validated')
+              AND mo.closed_at IS NOT NULL
               {$meetingFilter}
             ORDER BY mt.scheduled_at DESC, mo.position ASC",
             $params,
@@ -253,7 +255,7 @@ class AggregateReportRepository extends AbstractRepository {
                 MIN(mt.scheduled_at) AS first_meeting,
                 MAX(mt.scheduled_at) AS last_meeting
             FROM meetings mt
-            LEFT JOIN motions mo ON mo.meeting_id = mt.id AND mo.status IN ('closed', 'validated')
+            LEFT JOIN motions mo ON mo.meeting_id = mt.id AND mo.closed_at IS NOT NULL
             WHERE mt.tenant_id = :tid
               AND mt.status IN ('live', 'closed', 'validated', 'archived')
               {$meetingFilter}",

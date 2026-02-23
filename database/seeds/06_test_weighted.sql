@@ -17,12 +17,12 @@ DELETE FROM meetings WHERE id = '22222222-2222-2222-2222-222222222222';
 INSERT INTO meetings (id, tenant_id, title, status, created_at, updated_at)
 VALUES ('22222222-2222-2222-2222-222222222222','aaaaaaaa-1111-2222-3333-444444444444','AG Pondérée Test','draft',now(),now());
 
-INSERT INTO members (tenant_id, full_name, email, vote_weight)
+INSERT INTO members (tenant_id, full_name, email, voting_power)
 SELECT 'aaaaaaaa-1111-2222-3333-444444444444', 'Copro '||g, 'c'||g||'@test.local', (random()*1000)::int+50
 FROM generate_series(1,100) g
 ON CONFLICT (tenant_id, full_name) DO UPDATE
 SET email = EXCLUDED.email,
-    vote_weight = EXCLUDED.vote_weight,
+    voting_power = EXCLUDED.voting_power,
     updated_at = now();
 
 COMMIT;
