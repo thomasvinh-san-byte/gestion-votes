@@ -99,6 +99,13 @@
   --shadow-lg:0 8px 24px rgba(0,0,0,.36),0 2px 6px rgba(0,0,0,.22);
   --shadow-focus:0 0 0 2px var(--surface), 0 0 0 4px rgba(61,126,248,.55);
 }
+/* ══ NOTE ══════════════════════════════════════════════════════════════ */
+/* Ce fichier HTML est le wireframe interactif de reference.             */
+/* Le CSS ci-dessus contient les design tokens "Acte Officiel" a         */
+/* extraire dans design-system.css du projet.                            */
+/* Le code React/Babel ci-dessous sert UNIQUEMENT de demo interactive    */
+/* — la production utilise PHP + HTMX + Web Components vanilla.          */
+/* ══════════════════════════════════════════════════════════════════════ */
 </style>
 </head>
 <body data-theme="light">
@@ -107,9 +114,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <script type="text/babel">
-/* AG-Vote v3.19.2 — Wireframe interactif complet */
-/* Voir le fichier source original pour le code complet */
-/* Ce fichier sert de reference visuelle — le code de production est dans src/ */
+/* AG-Vote v3.19.2 — Wireframe interactif complet                       */
+/* ═══════════════════════════════════════════════════════════════════════*/
+/* RÉFÉRENCE VISUELLE — contient 16 pages, 22 composants réutilisables, */
+/* 203 interactions.                                                     */
+/*                                                                       */
+/* Pour voir le wireframe en action :                                    */
+/*   1. Ouvrir ce fichier dans un navigateur                             */
+/*   2. Ou consulter la version deployee fournie par le client           */
+/*                                                                       */
+/* Le code React ci-dessous n'est PAS du code de production.             */
+/* C'est un prototype standalone pour valider l'UX.                      */
+/* Le code de production est en PHP + HTMX + Web Components dans :       */
+/*   - public/assets/css/  (design system)                               */
+/*   - public/assets/js/   (composants, pages, core)                     */
+/*   - public/*.htmx.html  (templates de page)                           */
+/* ═══════════════════════════════════════════════════════════════════════*/
 </script>
 </body>
 </html>
