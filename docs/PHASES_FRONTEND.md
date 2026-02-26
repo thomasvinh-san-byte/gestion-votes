@@ -66,6 +66,68 @@ Le backend PHP, l'API REST, les templates HTMX et la structure Web Components so
 
 ---
 
+## Référence wireframe
+
+Le wireframe interactif de référence est `docs/wireframe/ag_vote_v3_19_2.html`. Il contient :
+
+- **Design tokens complets** (`:root` + `[data-theme="dark"]`) — extraits dans ce fichier
+- **CSS composants** (~800 lignes) — classes `.btn-*`, `.card`, `.sidebar`, `.field-*`, `.tag-*`, `.modal-*`, `.tablet-frame`, responsive, print — **à extraire du wireframe déployé par le client**
+- **Code React/Babel** (~1900 lignes) — prototype UX standalone, 16 pages, 22 composants, 203 interactions — **référence visuelle uniquement**
+
+> **Important** : le fichier wireframe sauvegardé ne contient actuellement que les design tokens. Pour les styles de composants et le comportement UX, se référer à la **version déployée** du wireframe (URL fournie par le client) ou ouvrir le fichier HTML complet original dans un navigateur.
+
+### Stratégie de nommage des tokens
+
+Le wireframe utilise des noms **courts** (`--bg`, `--accent`, `--text-dark`). Le projet existant utilise des noms **longs** (`--color-bg`, `--color-primary`, `--color-text-secondary`).
+
+**Décision** : on conserve les noms longs existants pour ne pas casser le CSS en place. Table de correspondance :
+
+| Wireframe (court) | Production (long) | Notes |
+|-------------------|-------------------|-------|
+| `--bg` | `--color-bg` | |
+| `--surface` | `--color-surface` | |
+| `--surface-alt` | `--color-bg-subtle` | |
+| `--surface-raised` | `--color-surface-raised` | |
+| `--glass` | `--color-glass` | _(nouveau)_ |
+| `--border` | `--color-border` | |
+| `--border-soft` | `--color-border-subtle` | |
+| `--border-dash` | `--color-border-dash` | _(renommé, `--color-border-strong` gardé comme alias)_ |
+| `--accent` | `--color-primary` | ⚠ Le wireframe `--accent` = notre `--color-primary` |
+| `--accent-hover` | `--color-primary-hover` | |
+| `--accent-light` | `--color-primary-subtle` | |
+| `--accent-dark` | `--color-primary-active` | |
+| `--accent-glow` | `--color-primary-glow` | _(nouveau)_ |
+| `--sidebar-bg` | `--sidebar-bg` | _(nom identique, nouveau token)_ |
+| `--sidebar-hover` | `--sidebar-hover` | _(nouveau)_ |
+| `--sidebar-active` | `--sidebar-active` | _(nouveau)_ |
+| `--sidebar-border` | `--sidebar-border` | _(nouveau)_ |
+| `--sidebar-text` | `--sidebar-text` | _(nouveau)_ |
+| `--sidebar-text-hover` | `--sidebar-text-hover` | _(nouveau)_ |
+| `--text-dark` | `--color-text-dark` | _(nouveau — remplace le rôle de `--color-text-secondary`)_ |
+| `--text` | `--color-text` | ⚠ Inversion : `--color-text` était le + foncé, devient le courant |
+| `--text-muted` | `--color-text-muted` | |
+| `--text-light` | `--color-text-light` | _(nouveau)_ |
+| `--danger` | `--color-danger` | |
+| `--danger-bg` | `--color-danger-subtle` | |
+| `--danger-border` | `--color-danger-border` | _(nouveau)_ |
+| `--success` | `--color-success` | |
+| `--success-bg` | `--color-success-subtle` | |
+| `--success-border` | `--color-success-border` | _(nouveau)_ |
+| `--warn` | `--color-warning` | |
+| `--warn-bg` | `--color-warning-subtle` | |
+| `--warn-border` | `--color-warning-border` | _(nouveau)_ |
+| `--purple` | `--color-purple` | _(nouveau — remplace l'ancien `--color-accent` violet)_ |
+| `--purple-bg` | `--color-purple-subtle` | _(nouveau)_ |
+| `--purple-border` | `--color-purple-border` | _(nouveau)_ |
+| `--tag-bg` | `--tag-bg` | _(nouveau)_ |
+| `--tag-text` | `--tag-text` | _(nouveau)_ |
+| `--font` | `--font-sans` | |
+| `--font-display` | `--font-display` | _(nouveau)_ |
+| `--font-mono` | `--font-mono` | |
+| `--tr` | `--duration-normal` | _(réutilise le token existant, valeur .15s ease)_ |
+
+---
+
 ## Phase 1 — Design Tokens « Acte Officiel »
 
 **Objectif** : remplacer la palette Inter/Indigo/Slate par Bricolage Grotesque/Encre/Parchemin dans le fichier `design-system.css` existant.
@@ -82,7 +144,13 @@ Remplacer dans `:root` de `design-system.css` :
 | `--font-mono` | `'JetBrains Mono', …` | `'JetBrains Mono', ui-monospace, monospace` (inchangé) |
 | _(nouveau)_ `--font-display` | — | `'Fraunces', Georgia, serif` |
 
-- [ ] Remplacer le `<link>` Google Fonts dans chaque template HTMX pour charger Bricolage Grotesque + Fraunces + JetBrains Mono
+URL Google Fonts exacte (extraite du wireframe ligne 9) :
+
+```
+https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap
+```
+
+- [ ] Remplacer le `<link>` Google Fonts dans chaque template HTMX avec l'URL ci-dessus (+ `<link rel="preconnect">` pour `fonts.googleapis.com` et `fonts.gstatic.com`)
 - [ ] Mettre à jour `--font-sans` et ajouter `--font-display` dans `:root`
 - [ ] Appliquer `font-family: var(--font-display)` aux titres `h1`, `h2` dans les styles de base
 
@@ -110,25 +178,117 @@ Remplacer dans `:root` de `design-system.css` :
 | `--color-text-muted` | `#64748b` | `#857F72` | Texte atténué |
 | _(nouveau)_ `--color-text-light` | — | `#B5B0A0` | Texte très léger |
 | `--color-success` | `#16a34a` | `#0B7A40` | |
+| `--color-success-subtle` | `#f0fdf4` | `#EDFAF2` | (wireframe `--success-bg`) |
+| `--color-success-border` | — | `#A3E8C1` | _(nouveau)_ |
 | `--color-danger` | `#dc2626` | `#C42828` | |
+| `--color-danger-subtle` | `#fef2f2` | `#FEF1F0` | (wireframe `--danger-bg`) |
+| `--color-danger-border` | — | `#F4BFBF` | _(nouveau)_ |
 | `--color-warning` | `#d97706` | `#B56700` | |
-| _(nouveau)_ `--color-purple` | — | `#5038C0` | Violet sémantique |
+| `--color-warning-subtle` | `#fffbeb` | `#FFF7E8` | (wireframe `--warn-bg`) |
+| `--color-warning-border` | — | `#F5D490` | _(nouveau)_ |
+| `--color-purple` | — | `#5038C0` | _(nouveau, remplace l'ancien `--color-accent` violet)_ |
+| `--color-purple-subtle` | — | `#EEEAFF` | _(nouveau, wireframe `--purple-bg`)_ |
+| `--color-purple-border` | — | `#C4B8F8` | _(nouveau, wireframe `--purple-border`)_ |
 
 - [ ] Mettre à jour toutes les couleurs `:root` selon la table ci-dessus
-- [ ] Ajouter les tokens manquants (`--color-glass`, `--color-primary-glow`, `--color-text-light`, `--color-purple` avec déclinaisons `-bg`, `-border`)
-- [ ] Ajouter les tokens sidebar : `--sidebar-bg: #0C1018`, `--sidebar-hover`, `--sidebar-active`, `--sidebar-border`, `--sidebar-text`, `--sidebar-text-hover`
+- [ ] Ajouter les tokens neufs : `--color-glass`, `--color-primary-glow`, `--color-text-dark`, `--color-text-light`, `--color-border-dash`
+- [ ] Ajouter les triples sémantiques manquants : `--color-*-border` pour danger, success, warning, purple
+- [ ] Ajouter les tokens sidebar : `--sidebar-bg: #0C1018`, `--sidebar-hover: rgba(255,255,255,.1)`, `--sidebar-active: rgba(22,80,224,.3)`, `--sidebar-border: rgba(255,255,255,.08)`, `--sidebar-text: rgba(255,255,255,.85)`, `--sidebar-text-hover: #fff`
 - [ ] Ajouter les tokens tag : `--tag-bg: #E5E3D8`, `--tag-text: #6B6860`
+- [ ] Remapper `--color-accent` (actuellement violet `#9333ea`) → `--color-purple` ; l'ancien `--color-accent` n'est plus utilisé directement
+- [ ] Supprimer ou déprécier `--brand-slate-*` (palette Slate remplacée par Parchemin)
+- [ ] Conserver `--color-info` (bleu informatif) — distinct de `--color-primary` (bleu encre action). Mettre à jour sa valeur si nécessaire
+- [ ] Conserver `--color-neutral` — mettre à jour pour s'harmoniser avec la palette Parchemin
+- [ ] Remplacer `--ring-color: rgba(79, 70, 229, 0.35)` par `rgba(22, 80, 224, 0.35)` (bleu encre) et `--ring-width` / `--ring-offset` restent
+- [ ] Mettre à jour `--color-backdrop` si nécessaire
+- [ ] **Audit des couleurs codées en dur** : chercher dans tous les `.css` et `.htmx.html` les hex codés en dur (`#4f46e5`, `#f8fafc`, `#0f172a`, etc.) et les remplacer par les tokens correspondants
 
-### 1.3 Couleurs — Thème sombre
+### 1.3 Couleurs — Thème sombre (valeurs complètes du wireframe)
 
-Remplacer dans `[data-theme="dark"]` de `design-system.css` :
+Remplacer **intégralement** `[data-theme="dark"]` dans `design-system.css` :
 
-- [ ] `--color-bg: #0B0D10`, `--color-surface: #141820`, `--color-surface-raised: #1E2438`
-- [ ] `--color-primary: #3D7EF8`, `--color-primary-hover: #5C96FA`
-- [ ] `--color-text: #7A8499`, `--color-text-dark: #ECF0FA`
-- [ ] `--color-border: #252C3C`, `--color-border-subtle: #1E2434`
-- [ ] Ombres sombres adaptées (opacité accrue)
-- [ ] Tous les tokens sémantiques (danger, success, warn, purple) en version sombre
+**Surfaces et fonds :**
+
+| Token | Nouvelle valeur sombre |
+|-------|----------------------|
+| `--color-bg` | `#0B0D10` |
+| `--color-bg-subtle` | `#1B2030` |
+| `--color-surface` | `#141820` |
+| `--color-surface-raised` | `#1E2438` |
+| `--color-glass` | `rgba(20,24,32,.96)` |
+
+**Bordures :**
+
+| Token | Nouvelle valeur sombre |
+|-------|----------------------|
+| `--color-border` | `#252C3C` |
+| `--color-border-subtle` | `#1E2434` |
+| `--color-border-dash` | `#2E3850` |
+
+**Accent (bleu encre sombre) :**
+
+| Token | Nouvelle valeur sombre |
+|-------|----------------------|
+| `--color-primary` | `#3D7EF8` |
+| `--color-primary-hover` | `#5C96FA` |
+| `--color-primary-subtle` | `rgba(61,126,248,.12)` |
+| `--color-primary-active` | `#96BDFB` |
+| `--color-primary-glow` | `rgba(61,126,248,.16)` |
+
+**Sidebar sombre :**
+
+| Token | Nouvelle valeur sombre |
+|-------|----------------------|
+| `--sidebar-bg` | `#080B10` |
+| `--sidebar-hover` | `rgba(255,255,255,.1)` |
+| `--sidebar-active` | `rgba(61,126,248,.28)` |
+| `--sidebar-border` | `rgba(255,255,255,.07)` |
+| `--sidebar-text` | `rgba(255,255,255,.85)` |
+| `--sidebar-text-hover` | `#fff` |
+
+**Texte sombre :**
+
+| Token | Nouvelle valeur sombre |
+|-------|----------------------|
+| `--color-text-dark` | `#ECF0FA` |
+| `--color-text` | `#7A8499` |
+| `--color-text-muted` | `#50596C` |
+| `--color-text-light` | `#38404E` |
+
+**Sémantique sombre :**
+
+| Token | Nouvelle valeur sombre |
+|-------|----------------------|
+| `--color-danger` | `#E85454` |
+| `--color-danger-subtle` | `rgba(232,84,84,.09)` |
+| `--color-danger-border` | `rgba(232,84,84,.28)` |
+| `--color-success` | `#2DC87A` |
+| `--color-success-subtle` | `rgba(45,200,122,.08)` |
+| `--color-success-border` | `rgba(45,200,122,.28)` |
+| `--color-warning` | `#EDA030` |
+| `--color-warning-subtle` | `rgba(237,160,48,.08)` |
+| `--color-warning-border` | `rgba(237,160,48,.28)` |
+| `--color-purple` | `#8C72F8` |
+| `--color-purple-subtle` | `rgba(140,114,248,.1)` |
+| `--color-purple-border` | `rgba(140,114,248,.3)` |
+
+**Tags et ombres sombres :**
+
+| Token | Nouvelle valeur sombre |
+|-------|----------------------|
+| `--tag-bg` | `rgba(255,255,255,.07)` |
+| `--tag-text` | `rgba(255,255,255,.5)` |
+| `--shadow-xs` | `0 1px 1px rgba(0,0,0,.16)` |
+| `--shadow-sm` | `0 1px 3px rgba(0,0,0,.24), 0 1px 2px rgba(0,0,0,.16)` |
+| `--shadow-md` | `0 3px 10px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.2)` |
+| `--shadow-lg` | `0 8px 24px rgba(0,0,0,.36), 0 2px 6px rgba(0,0,0,.22)` |
+| `--shadow-focus` | `0 0 0 2px var(--color-surface), 0 0 0 4px rgba(61,126,248,.55)` |
+| `--ring-color` | `rgba(61,126,248,.4)` |
+
+- [ ] Remplacer intégralement le bloc `[data-theme="dark"]` avec toutes les valeurs ci-dessus
+- [ ] Supprimer les tokens dark obsolètes (`--color-success-hover`, `--color-danger-hover`, etc. — remplacés par le pattern `-border`)
+- [ ] Conserver `--color-info` dark, `--color-neutral` dark en les harmonisant
+- [ ] Vérifier que les tokens `-text` dark existants (`--color-success-text`, etc.) sont conservés si utilisés dans le CSS existant, sinon les supprimer
 
 ### 1.4 Ombres et géométrie
 
@@ -142,14 +302,14 @@ Remplacer dans `:root` :
 
 | Token | Ancien | Nouveau |
 |-------|--------|---------|
-| `--sidebar-width` | `210px` | _(supprimé, remplacé par 2 tokens)_ |
+| `--sidebar-width` | `210px` | `58px` _(valeur = rail, conservé pour compat grid)_ |
 | _(nouveau)_ `--sidebar-rail` | — | `58px` |
 | _(nouveau)_ `--sidebar-expanded` | — | `252px` |
 | `--header-height` | `64px` | `64px` (inchangé) |
 
-- [ ] Ajouter `--sidebar-rail` et `--sidebar-expanded`
-- [ ] Supprimer `--sidebar-width`
-- [ ] Remplacer `--tr` transition globale : `.15s ease`
+- [ ] Ajouter `--sidebar-rail: 58px` et `--sidebar-expanded: 252px`
+- [ ] Garder `--sidebar-width` comme alias de `--sidebar-rail` (utilisé 6 fois dans `design-system.css` : lignes 464, 2001, 2011, 2571, 2698 pour les CSS Grid `grid-template-columns`)
+- [ ] Remplacer `--duration-normal` par `.15s ease` (wireframe `--tr`)
 
 ### 1.6 Styles de base
 
@@ -188,21 +348,31 @@ L'ensemble du site change de palette en un instant. Toutes les pages existantes 
 
 ### 2.1 Sidebar rail/expanded
 
-Refactorer la sidebar fixe 210px en sidebar rail 58px → 252px.
+Refactorer la sidebar 210px en sidebar rail 58px → 252px.
 
-**CSS** (`app.css` — section `.app-sidebar`) :
+> **Architecture existante** : le shell utilise CSS Grid (`design-system.css:462`) :
+> ```css
+> .app-shell { grid-template-columns: var(--sidebar-width) 1fr; }
+> .app-sidebar { grid-area: sidebar; position: sticky; top: 0; height: 100vh; }
+> ```
+> La sidebar est dans le flux grid, pas en `position: fixed`. Pour le rail hover/expand, on passe à `position: fixed` pour permettre la sidebar de s'expandre sans repousser le contenu, et on ajuste `.app-main` avec `margin-left`.
 
-- [ ] Largeur par défaut `var(--sidebar-rail)` (58px), transition `width .15s ease`
-- [ ] Au hover (`.app-sidebar:hover`) ou pin (`.app-sidebar.pinned`) : largeur `var(--sidebar-expanded)` (252px)
-- [ ] Position : `position: fixed`, `top: 0`, `left: 0`, `height: 100vh`, `z-index: var(--z-fixed)`
-- [ ] Background : `var(--sidebar-bg)` (#0C1018, quasi-noir)
-- [ ] Texte : `var(--sidebar-text)` (blanc 85%)
-- [ ] Bordure droite : `var(--sidebar-border)` (blanc 8%)
-- [ ] Items nav : icône toujours visible, label en `opacity: 0` → `opacity: 1` au hover/pin
+**CSS** (`design-system.css` — section `.app-shell` + `.app-sidebar`) :
+
+- [ ] Modifier `.app-shell` : `grid-template-columns: 1fr` (retirer la colonne sidebar du grid)
+- [ ] `.app-sidebar` : passer de `grid-area: sidebar; position: sticky` à `position: fixed`, `top: 0`, `left: 0`, `height: 100vh`, `width: var(--sidebar-rail)`, `z-index: var(--z-fixed)`
+- [ ] Transition `width .15s ease` sur `.app-sidebar`
+- [ ] Au hover (`.app-sidebar:hover`) ou pin (`.app-sidebar.pinned`) : `width: var(--sidebar-expanded)` (252px)
+- [ ] Background : `var(--sidebar-bg)` (#0C1018, quasi-noir) — remplace `var(--color-surface)`
+- [ ] Texte : `var(--sidebar-text)` (blanc 85%) — remplace `color: inherit`
+- [ ] Bordure droite : `var(--sidebar-border)` (blanc 8%) — remplace `var(--color-border)`
+- [ ] `overflow: hidden` en rail, `overflow-y: auto` en expanded
+- [ ] Items nav : icône toujours visible (24×24 centrée), label en `opacity: 0; width: 0` → `opacity: 1; width: auto` au hover/pin
 - [ ] Item actif : barre accent gauche `::before` (3px, `var(--color-primary)`)
 - [ ] Badges nav (`.nav-badge`) : masqués en rail, visibles en expanded
 - [ ] Groupes collapsibles (`.nav-group`) avec chevron animé
 - [ ] Indicateurs de scroll (gradient fade haut/bas) quand le contenu dépasse
+- [ ] Mettre à jour les 6 références à `--sidebar-width` dans le grid (`design-system.css` lignes 464, 2001, 2011, 2571, 2698)
 
 **JS** (`shell.js`) :
 
@@ -220,15 +390,15 @@ Refactorer la sidebar fixe 210px en sidebar rail 58px → 252px.
 
 ### 2.2 Header glassmorphisme
 
-Refactorer le header 64px existant.
+Adapter le header 64px existant (déjà en `position: sticky` avec `backdrop-filter: blur(12px)` — `design-system.css:479-491`).
 
-**CSS** (`app.css` — section `.app-header`) :
+**CSS** (`design-system.css` — section `.app-header`) :
 
-- [ ] Background : `var(--color-glass)` avec `backdrop-filter: blur(12px) saturate(1.2)`
-- [ ] Border bottom : `1px solid var(--color-border-soft)`
-- [ ] Position : `sticky`, `top: 0`, `z-index: var(--z-sticky)`
-- [ ] Margin-left : `var(--sidebar-rail)` (décalé par la sidebar)
-- [ ] Layout flex : logo (masqué sur desktop, visible mobile) | contexte page | actions droite
+- [ ] Changer `background` de `var(--color-surface-overlay)` à `var(--color-glass)` (token Acte Officiel)
+- [ ] Ajouter `saturate(1.2)` au `backdrop-filter` existant
+- [ ] Changer `border-bottom` de `var(--color-border)` à `var(--color-border-subtle)`
+- [ ] Retirer du grid (`grid-area: header`) → Ajouter `margin-left: var(--sidebar-rail)` (décalé par la sidebar fixe)
+- [ ] Layout flex existant : ajouter contexte page | actions droite
 
 **Éléments header** :
 
@@ -241,12 +411,15 @@ Refactorer le header 64px existant.
 
 ### 2.3 Layout principal
 
+> **Migration grid → fixed** : l'existant utilise `.app-shell { display: grid; grid-template-areas: "sidebar header" / "sidebar main" }`. Après la migration sidebar fixed, le grid se simplifie à une seule colonne avec margin-left.
+
 **CSS** :
 
-- [ ] `.app-main` : `margin-left: var(--sidebar-rail)`, `padding: var(--space-6)`, transition fluide
-- [ ] Quand sidebar pinnée : `margin-left: var(--sidebar-expanded)`
+- [ ] `.app-shell` : simplifier en `display: block` ou `grid-template-columns: 1fr` (sidebar sortie du flux)
+- [ ] `.app-main` : `margin-left: var(--sidebar-rail)`, `padding: var(--space-6)`, `transition: margin-left .15s ease`
+- [ ] Quand sidebar pinnée (`.app-shell.sidebar-pinned .app-main`) : `margin-left: var(--sidebar-expanded)`
 - [ ] `max-width: var(--content-max)` pour le contenu
-- [ ] Skip link accessibilité (`.skip-link`) en haut de page
+- [ ] Skip link accessibilité (`.skip-link`) en haut de page — existant à conserver ou créer
 - [ ] Footer applicatif (`.app-footer`)
 
 ### 2.4 Mobile (< 768px)
@@ -400,28 +573,35 @@ Mettre à jour le CSS interne (Shadow DOM) de chaque composant pour correspondre
 
 ### 3.7 Styles CSS partagés (non-composants)
 
-Éléments stylés en CSS pur dans `design-system.css`, sans besoin de Web Component :
+Éléments stylés en CSS pur dans `design-system.css`. Le wireframe utilise des noms courts ; le projet a des noms existants à conserver.
 
-| Classe CSS | Wireframe | Description |
-|-----------|-----------|-------------|
-| `.btn`, `.btn-p`, `.btn-ghost`, `.btn-sm`, `.btn-lg` | Boutons | Styles bouton avec accent, danger, success, warn, ghost |
-| `.field`, `.field-label`, `.field-input`, `.field-hint` | Champs | Styles de formulaire uniformes |
-| `.tag`, `.tag-accent`, `.tag-danger`, `.tag-success` | Tags | Étiquettes colorées |
-| `.chip`, `.chip.active` | Chips | Filtres sélectionnables |
-| `.card`, `.card:hover` | Cartes | Conteneur élevé avec ombre |
-| `.alert`, `.alert-success`, `.alert-warn` | Alertes | Bannière d'information |
-| `.avatar`, `.avatar-sm`, `.avatar-lg` | Avatars | Cercle avec initiales et couleurs |
-| `.progress-bar`, `.progress-fill` | Barres | Barre de progression simple |
-| `.skeleton` | Squelettes | Placeholder animé (shimmer) |
-| `.live-dot` | Indicateur live | Point pulsant (animation) |
-| `.session-banner` | Bannière session | Timer inactivité fixe en bas |
+| Wireframe | Production (existant) | État | Action |
+|-----------|----------------------|------|--------|
+| `.btn-p` | `.btn-primary` (l.582) | **Existe** | Restyler couleurs Acte Officiel |
+| `.btn-danger`, `.btn-success`, `.btn-warn`, `.btn-ghost` | `.btn-danger` (l.614), `.btn-success` (l.604), `.btn-warning` (l.624), `.btn-ghost` (l.646) | **Existe** | Restyler |
+| `.btn-sm`, `.btn-lg` | `.btn-sm` (l.664), `.btn-lg` (l.670) | **Existe** | Ajuster padding/radius |
+| `.field`, `.field-label`, `.field-input` | `.form-group` (l.800), `.form-label` (l.806), `.form-input` (l.817) | **Existe** (noms différents) | Restyler `.form-*` existants selon wireframe |
+| `.tag`, `.tag-accent`, `.tag-danger` | `.badge`, `.badge-primary`, `.badge-danger` (l.748+) | **Existe** (noms différents) | Restyler `.badge-*` existants + ajouter `.tag-*` comme alias si nécessaire |
+| `.chip`, `.chip.active` | — | **N'existe pas** | Créer |
+| `.card`, `.card:hover` | `.card` (l.712), `.card-header/body/footer` | **Existe** | Restyler ombres/bordures Acte Officiel |
+| `.alert`, `.alert-success`, `.alert-warn` | `.alert` (l.1302), `.alert-success/warning/danger/info` | **Existe** | Restyler couleurs |
+| `.avatar`, `.avatar-sm`, `.avatar-lg` | — | **N'existe pas** | Créer avec 8 couleurs et initiales |
+| `.progress-bar` | `.progress-bar` (l.1350) | **Existe** | Restyler couleurs |
+| `.skeleton` | `.skeleton` (l.2406), `.skeleton-line`, `.skeleton-row` | **Existe** | Restyler animation shimmer |
+| `.live-dot` | — | **N'existe pas** | Créer avec animation pulse |
+| `.session-banner` | — | **N'existe pas** | Créer (timer inactivité fixe en bas) |
 
-- [ ] Ajouter/mettre à jour les styles `.btn-*` selon wireframe (couleurs, padding, border-radius Acte Officiel)
-- [ ] Ajouter/mettre à jour `.field-*`, `.tag-*`, `.chip-*`, `.card`, `.alert-*`
-- [ ] Ajouter `.avatar` avec 8 couleurs et initiales
-- [ ] Ajouter `.skeleton` avec animation shimmer
-- [ ] Ajouter `.live-dot` avec animation pulse
-- [ ] Ajouter `.session-banner` pour le timer d'inactivité
+- [ ] Restyler `.btn-*` existants (couleurs, border-radius Acte Officiel, `--color-primary` → bleu encre)
+- [ ] Restyler `.form-*` existants (bordures `--color-border`, focus `--shadow-focus`, fond `--color-surface`)
+- [ ] Restyler `.badge-*` existants + ajouter `.tag-*` comme classes supplémentaires (wireframe distingue tags de badges)
+- [ ] Créer `.chip` et `.chip.active` (filtres sélectionnables, bordure radius full, toggle accent)
+- [ ] Restyler `.card` existant (ombre `--shadow-sm`, fond `--color-surface`, bordure `--color-border`)
+- [ ] Restyler `.alert-*` existants avec couleurs sémantiques Acte Officiel
+- [ ] Créer `.avatar` avec 8 couleurs et initiales (cercle avec lettres)
+- [ ] Restyler `.progress-bar` existant avec couleurs Acte Officiel
+- [ ] Restyler `.skeleton` existant — vérifier que l'animation shimmer utilise les nouveaux tokens
+- [ ] Créer `.live-dot` avec animation pulse (keyframes)
+- [ ] Créer `.session-banner` pour le timer d'inactivité (position fixed bottom)
 
 ### 3.8 Recherche globale
 
@@ -464,11 +644,11 @@ Tous les composants fonctionnels. Les 8 existants restylés, 10+ nouveaux créé
 
 **Objectif** : les 3 pages les plus simples, sans interaction CRUD complexe. Mise à jour du HTML HTMX et des scripts de page.
 
-**Fichiers modifiés** : `public/login.htmx.html`, `public/admin.htmx.html` (dashboard), `public/help.htmx.html`, CSS page associés, scripts `public/assets/js/pages/`.
+**Fichiers modifiés** : `public/login.html` (⚠ pas `.htmx.html`), `public/admin.htmx.html` (dashboard), `public/help.htmx.html`, `public/assets/css/login.css`, `public/assets/css/admin.css`, `public/assets/css/help.css`, scripts `public/assets/js/pages/login.js`, `landing.js`, `help-faq.js`.
 
 ### 4.1 Landing / Login (`/login`)
 
-- [ ] Refondre `login.htmx.html` : header landing (logo + liens Doc/Support)
+- [ ] Refondre `login.html` (fichier statique, pas HTMX) : header landing (logo + liens Doc/Support)
 - [ ] Section hero : titre en `var(--font-display)`, description, 3 fonctionnalités
 - [ ] Carte connexion : champs email/mot de passe (vrais formulaires, pas la démo wireframe)
 - [ ] Footer landing
@@ -611,7 +791,10 @@ Wizard 5 étapes et Hub 6 étapes, navigation interne fluide, formulaires valid�
 
 **Objectif** : les 3 écrans temps réel — le cœur métier de l'application. Le backend envoie les mises à jour via polling HTMX (`hx-trigger="every 2s"`) ou WebSocket si déjà en place.
 
-**Fichiers modifiés** : `public/operator.htmx.html`, `public/vote.htmx.html`, `public/assets/js/pages/operator.js`, `public/assets/js/pages/vote.js`, CSS associés.
+**Fichiers modifiés** :
+- Opérateur : `public/operator.htmx.html`, `public/assets/css/operator.css` (2 400+ l.), `public/assets/js/pages/operator-motions.js`, `operator-tabs.js`, `operator-attendance.js`, `operator-speech.js`
+- Votant : `public/vote.htmx.html`, `public/assets/css/vote.css`, `public/assets/js/pages/vote.js`, `vote-ui.js`
+- Écran : `public/public.htmx.html`, `public/assets/css/public.css`, `public/assets/js/pages/public.js`
 
 ### 7.1 Opérateur (`/seances/:id/live`)
 
@@ -634,11 +817,17 @@ Wizard 5 étapes et Hub 6 étapes, navigation interne fluide, formulaires valid�
 - [ ] `<ag-modal>` unanimité : confirmation spéciale
 - [ ] Auto-avancement après proclamation : transition CSS animée vers résolution suivante
 
-**JS** (`pages/operator.js`) :
+**JS** (4 scripts existants, architecture modulaire) :
 
-- [ ] Raccourcis clavier : `P` = Proclamer, `F` = Fermer le vote
+- `operator-motions.js` : gestion des résolutions (ouvrir/fermer vote, proclamer, auto-avancement)
+- `operator-tabs.js` : sous-onglets Résultat / Avancé / Présences
+- `operator-attendance.js` : gestion des présences
+- `operator-speech.js` : demandes de parole
+
+- [ ] Raccourcis clavier : `P` = Proclamer, `F` = Fermer le vote (ajouter dans un des scripts existants)
 - [ ] Chronomètre : `setInterval` avec formatage MM:SS
 - [ ] Polling HTMX pour mise à jour KPI et compteurs votes
+- [ ] Restyler tous les scripts existants pour utiliser les tokens Acte Officiel
 
 ### 7.2 Votant (`/vote/:token`)
 
@@ -651,7 +840,10 @@ Wizard 5 étapes et Hub 6 étapes, navigation interne fluide, formulaires valid�
 - [ ] Poids votant + lot + procurations (affiché en bas)
 - [ ] Demande de parole : 3 états (idle, waiting, speaking) via bouton toggle
 
-**JS** (`pages/vote.js`) :
+**JS** (2 scripts existants) :
+
+- `vote.js` : logique de vote (sélection, confirmation, soumission)
+- `vote-ui.js` : UI du votant (timer, affichage)
 
 - [ ] Timer dégressif (`setInterval`, affichage MM:SS, alerte rouge < 30s)
 - [ ] Polling pour savoir quand le vote est ouvert/fermé
@@ -730,7 +922,7 @@ Wizard 5 étapes et Hub 6 étapes, navigation interne fluide, formulaires valid�
 
 **Objectif** : les pages de contrôle et configuration système.
 
-**Fichiers modifiés** : `public/trust.htmx.html` (audit), `public/admin.htmx.html` (paramètres), CSS et JS de page associés.
+**Fichiers modifiés** : `public/trust.htmx.html` (audit), `public/admin.htmx.html` (paramètres), `public/email-templates.htmx.html`, `public/docs.htmx.html`, `public/validate.htmx.html`, `public/report.htmx.html`, CSS et JS de page associés.
 
 ### 9.1 Audit (`/audit`)
 
@@ -753,9 +945,18 @@ Navigation verticale 6 onglets (CSS `.tab` vertical + HTMX `hx-get` par section)
 - [ ] **Général** : `<ag-tz-picker>`, email support (input), SMTP (inputs), logo (upload), RGPD (toggle)
 - [ ] **Accessibilité** : déclaration RGAA complète (texte), corrections, mesures, non-conformités, contact
 
+### 9.3 Pages outils existantes (restyling)
+
+Pages existantes non couvertes dans les phases précédentes, à restyler Acte Officiel :
+
+- [ ] **Templates courriel** (`email-templates.htmx.html`) : restyler l'éditeur de templates (`email-templates-editor.js`), modales d'édition, aperçu
+- [ ] **Documentation** (`docs.htmx.html`) : restyler le viewer de documents (`docs-viewer.js`), mise en page
+- [ ] **Validation votes** (`validate.htmx.html`) : restyler la page de validation (`validate.js`), tableaux, badges
+- [ ] **Rapports** (`report.htmx.html`) : restyler la page de rapports (`report.js`), export, impression (`pv-print.js`)
+
 ### Livrable
 
-2 pages complexes avec toutes les interactions de configuration, données persistées via HTMX POST.
+6 pages (audit, paramètres, courriel, docs, validation, rapports) avec toutes les interactions, données persistées via HTMX POST.
 
 ### Validation
 
@@ -858,7 +1059,7 @@ Phase 1 (Design Tokens)
               ├── Phase 6 (Wizard, Hub)
               ├── Phase 7 (Opérateur, Votant, Écran)    ← le plus complexe
               ├── Phase 8 (PostSession, Stats)
-              └── Phase 9 (Audit, Paramètres)
+              └── Phase 9 (Audit, Paramètres, Courriel, Docs, Validation, Rapports)
         └── Phase 10 (Visite guidée, intégration, a11y)
 ```
 
@@ -873,14 +1074,14 @@ Les phases 4 à 9 sont **parallélisables** après la phase 3. L'ordre proposé 
 | Phase | Pages | Composants modifiés/créés | Complexité | Fichiers principaux |
 |-------|-------|--------------------------|------------|-------------------|
 | 1 | 0 | 0 | Moyenne | `design-system.css`, `<link>` fonts |
-| 2 | 0 | 0 | Haute | `shell.js`, `app.css`, tous les `*.htmx.html` |
-| 3 | 0 | 8 restylés + 10 créés | Haute | `components/*.js`, `design-system.css` |
-| 4 | 3 | 0 | Faible | `login.htmx.html`, `admin.htmx.html`, `help.htmx.html` |
+| 2 | 0 | 0 | Haute | `design-system.css` (shell), `shell.js`, tous les `*.htmx.html` |
+| 3 | 0 | 8 restylés + 10 créés | Haute | `components/*.js`, `design-system.css` (CSS partagé) |
+| 4 | 3 | 0 | Faible | `login.html`, `admin.htmx.html`, `help.htmx.html` |
 | 5 | 4 | 0 | Moyenne | `meetings.htmx.html`, `members.htmx.html`, `archives.htmx.html` |
 | 6 | 2 | 0 | Haute | Wizard + Hub templates et JS |
-| 7 | 3 | 0 | Très haute | `operator.htmx.html`, `vote.htmx.html`, écran |
+| 7 | 3 | 0 | Très haute | `operator.htmx.html` (4 scripts JS), `vote.htmx.html` (2 scripts), `public.htmx.html` |
 | 8 | 2 | 0 | Moyenne | `postsession.htmx.html`, `analytics.htmx.html` |
-| 9 | 2 | 0 | Haute | `trust.htmx.html`, paramètres |
+| 9 | 6 | 0 | Haute | `trust.htmx.html`, `admin.htmx.html`, `email-templates.htmx.html`, `docs.htmx.html`, `validate.htmx.html`, `report.htmx.html` |
 | 10 | 0 | 1 (`ag-guided-tour`) | Haute | `ag-guided-tour.js`, `tours.js` |
 
 ---
