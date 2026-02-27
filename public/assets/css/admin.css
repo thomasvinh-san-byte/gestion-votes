@@ -589,11 +589,31 @@
   font-size: 0.9rem;
 }
 
+/* ─── Roles Explainer Panel ─── */
+.roles-explainer .card-body {
+  padding: 0.75rem 1rem;
+}
+
+.roles-explainer-grid {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.role-explain {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 @media (max-width: 768px) {
   .dash-kpis {
     grid-template-columns: repeat(2, 1fr);
   }
   .dash-shortcuts {
     grid-template-columns: 1fr;
+  }
+  .roles-explainer-grid {
+    gap: 0.75rem;
   }
 }
