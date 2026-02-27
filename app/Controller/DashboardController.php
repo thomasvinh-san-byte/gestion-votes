@@ -95,9 +95,9 @@ final class DashboardController extends AbstractController {
                 $t = $ballotRepo->tally($currentMotionId, $tenantId);
                 $data['current_motion_votes'] = [
                     'ballots_count' => (int) $t['total_ballots'],
-                    'weight_for' => (int) $t['weight_for'],
-                    'weight_against' => (int) $t['weight_against'],
-                    'weight_abstain' => (int) $t['weight_abstain'],
+                    'weight_for' => (float) $t['weight_for'],
+                    'weight_against' => (float) $t['weight_against'],
+                    'weight_abstain' => (float) $t['weight_abstain'],
                 ];
             }
 
