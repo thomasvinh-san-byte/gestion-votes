@@ -4,14 +4,14 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Interface de contrôle et audit - AG-VOTE">
   <title>Contrôle (Trust) — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/trust.css">
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
@@ -85,29 +85,21 @@
           </div>
           <div class="card-body">
             <div class="integrity-summary">
-              <div class="integrity-stat" id="integrityStatus" role="status" aria-label="Statut global d'intégrité">
-                <div class="integrity-stat-value">—</div>
-                <div class="integrity-stat-label">Statut global</div>
+              <div class="integrity-stat success" id="integrityStatus" role="status" aria-label="Taux d'int&eacute;grit&eacute;">
+                <div class="integrity-stat-value" id="kpiIntegrity">100%</div>
+                <div class="integrity-stat-label">Int&eacute;grit&eacute;</div>
               </div>
-              <div class="integrity-stat success" id="integrityChecks" role="status" aria-label="Contrôles réussis">
-                <div class="integrity-stat-value" id="kpiChecks">—</div>
-                <div class="integrity-stat-label">Contrôles OK</div>
+              <div class="integrity-stat primary" id="integrityEvents" role="status" aria-label="Nombre d'&eacute;v&eacute;nements">
+                <div class="integrity-stat-value" id="kpiEvents">&mdash;</div>
+                <div class="integrity-stat-label">&Eacute;v&eacute;nements</div>
               </div>
-              <div class="integrity-stat danger" id="integrityAnomalies" role="status" aria-label="Nombre d'anomalies détectées">
+              <div class="integrity-stat danger" id="integrityAnomalies" role="status" aria-label="Nombre d'anomalies d&eacute;tect&eacute;es">
                 <div class="integrity-stat-value" id="kpiAnomalies">0</div>
                 <div class="integrity-stat-label">Anomalies</div>
               </div>
-              <div class="integrity-stat primary">
-                <div class="integrity-stat-value" id="kpiMotions">—</div>
-                <div class="integrity-stat-label">Résolutions</div>
-              </div>
               <div class="integrity-stat">
-                <div class="integrity-stat-value" id="kpiBallots">—</div>
-                <div class="integrity-stat-label">Bulletins</div>
-              </div>
-              <div class="integrity-stat">
-                <div class="integrity-stat-value" id="kpiPresent">—</div>
-                <div class="integrity-stat-label">Présents</div>
+                <div class="integrity-stat-value" id="kpiLastSession">&mdash;</div>
+                <div class="integrity-stat-label">Derni&egrave;re s&eacute;ance</div>
               </div>
             </div>
             <div class="integrity-hash" id="integrityHash" hidden>
@@ -209,23 +201,111 @@
           <div class="card-header">
             <div class="flex items-center justify-between">
               <h3 class="card-title"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-scroll"></use></svg> Journal d'audit</h3>
-              <div class="flex gap-2">
-                <button class="btn btn-sm btn-secondary" id="btnExportAudit">
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> CSV
+              <div class="flex items-center gap-2">
+                <div class="audit-view-toggle" id="auditViewToggle">
+                  <button class="audit-view-btn active" data-view="table" type="button">Tableau</button>
+                  <button class="audit-view-btn" data-view="timeline" type="button">Timeline</button>
+                </div>
+                <button class="btn btn-sm btn-secondary" id="btnExportSelection" disabled title="Exporter la s&eacute;lection">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> S&eacute;lection
                 </button>
-                <button class="btn btn-sm btn-secondary" id="btnExportAuditJson">
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> JSON
+                <button class="btn btn-sm btn-secondary" id="btnExportAudit">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Export complet
                 </button>
               </div>
             </div>
           </div>
-          <div class="card-body p-0">
-            <div class="audit-log-filter">
-              <input class="form-input" type="search" id="auditLogFilter" placeholder="Filtrer par action, acteur ou détail..." aria-label="Filtrer le journal d'audit">
+          <div class="card-body">
+            <!-- Category chips filter -->
+            <div class="audit-category-chips" id="auditCategoryChips">
+              <button class="audit-chip active" data-category="all" type="button">Tous</button>
+              <button class="audit-chip" data-category="votes" type="button">Votes</button>
+              <button class="audit-chip" data-category="presences" type="button">Pr&eacute;sences</button>
+              <button class="audit-chip" data-category="security" type="button">S&eacute;curit&eacute;</button>
+              <button class="audit-chip" data-category="system" type="button">Syst&egrave;me</button>
             </div>
-            <div id="auditLog" class="audit-log-scroll">
+
+            <div class="audit-log-filter">
+              <input class="form-input" type="search" id="auditLogFilter" placeholder="Filtrer par action, acteur ou d&eacute;tail..." aria-label="Filtrer le journal d'audit">
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <!-- Table view -->
+            <div id="auditTableView">
+              <div class="table-wrapper">
+                <table class="audit-table" id="auditTable">
+                  <thead>
+                    <tr>
+                      <th class="audit-checkbox"><input type="checkbox" id="auditSelectAll" aria-label="S&eacute;lectionner tout"></th>
+                      <th class="audit-num">#</th>
+                      <th>Horodatage</th>
+                      <th>&Eacute;v&eacute;nement</th>
+                      <th>Utilisateur</th>
+                      <th class="audit-hash-col">SHA-256</th>
+                    </tr>
+                  </thead>
+                  <tbody id="auditTableBody">
+                    <tr><td colspan="6" class="text-center text-muted p-6">S&eacute;lectionnez une s&eacute;ance pour voir le journal d'audit</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Timeline view (hidden by default) -->
+            <div id="auditTimelineView" class="audit-timeline" hidden>
               <div class="text-center p-6 text-muted">
-                Sélectionnez une séance pour voir le journal d'audit
+                S&eacute;lectionnez une s&eacute;ance pour voir la timeline
+              </div>
+            </div>
+          </div>
+
+          <!-- Export bar (shown when items selected) -->
+          <div class="audit-export-bar" id="auditExportBar" hidden>
+            <span class="selected-count" id="auditSelectedCount">0 s&eacute;lectionn&eacute;(s)</span>
+            <button class="btn btn-sm btn-secondary" id="btnExportSelectedCsv">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> CSV
+            </button>
+            <button class="btn btn-sm btn-secondary" id="btnExportSelectedJson">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> JSON
+            </button>
+          </div>
+        </div>
+
+        <!-- Event detail modal (hidden) -->
+        <div class="audit-modal-overlay" id="auditEventModal" hidden>
+          <div class="audit-modal" role="dialog" aria-modal="true" aria-labelledby="auditModalTitle">
+            <div class="audit-modal-header">
+              <h3 class="audit-modal-title" id="auditModalTitle">D&eacute;tail de l'&eacute;v&eacute;nement</h3>
+              <button class="btn btn-ghost btn-icon btn-sm" id="auditModalClose" aria-label="Fermer">&times;</button>
+            </div>
+            <div class="audit-modal-body" id="auditModalBody">
+              <div class="audit-modal-row">
+                <span class="audit-modal-label">#</span>
+                <span class="audit-modal-value" id="modalEventId">&mdash;</span>
+              </div>
+              <div class="audit-modal-row">
+                <span class="audit-modal-label">Horodatage</span>
+                <span class="audit-modal-value" id="modalEventTime">&mdash;</span>
+              </div>
+              <div class="audit-modal-row">
+                <span class="audit-modal-label">&Eacute;v&eacute;nement</span>
+                <span class="audit-modal-value" id="modalEventAction">&mdash;</span>
+              </div>
+              <div class="audit-modal-row">
+                <span class="audit-modal-label">Cat&eacute;gorie</span>
+                <span class="audit-modal-value" id="modalEventCategory">&mdash;</span>
+              </div>
+              <div class="audit-modal-row">
+                <span class="audit-modal-label">Utilisateur</span>
+                <span class="audit-modal-value" id="modalEventUser">&mdash;</span>
+              </div>
+              <div class="audit-modal-row">
+                <span class="audit-modal-label">D&eacute;tail</span>
+                <span class="audit-modal-value" id="modalEventDetail">&mdash;</span>
+              </div>
+              <div class="audit-modal-row">
+                <span class="audit-modal-label">SHA-256</span>
+                <div class="audit-modal-hash" id="modalEventHash">&mdash;</div>
               </div>
             </div>
           </div>
@@ -236,7 +316,7 @@
 
   <!-- Drawer -->
   <div class="drawer-backdrop" data-drawer-close></div>
-  <aside class="drawer" id="drawer">
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Menu contextuel">
     <div class="drawer-header">
       <div id="drawerTitle" class="font-semibold">Menu</div>
       <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close aria-label="Fermer le panneau">✕</button>

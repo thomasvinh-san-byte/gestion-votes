@@ -4,15 +4,16 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Gestion des séances - AG-VOTE">
   <title>Séances — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/meetings.css">
 </head>
 <body>
   <!-- Skip links for accessibility -->
@@ -33,6 +34,10 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
+          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+          Tour
+        </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
@@ -40,10 +45,26 @@
     </header>
 
     <main class="app-main meetings-main" id="main-content" role="main">
+      <!-- Onboarding banner (dismissible, persisted via localStorage) -->
+      <div class="onboarding-banner" id="onboardingBanner" role="region" aria-label="Guide de d&eacute;marrage" style="position: relative;" data-tour="hub-action">
+        <div class="onboarding-banner-icon" aria-hidden="true">
+          <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-book-open"></use></svg>
+        </div>
+        <div class="onboarding-banner-content">
+          <div class="onboarding-banner-title">Bienvenue sur AG-VOTE</div>
+          <div class="onboarding-banner-text">Cr&eacute;ez votre premi&egrave;re s&eacute;ance en quelques clics. Le tour guid&eacute; vous accompagne &agrave; chaque &eacute;tape.</div>
+        </div>
+        <div class="onboarding-banner-actions">
+          <button class="btn btn-sm btn-primary" id="btnStartTour">Lancer le tour</button>
+          <button class="btn btn-sm btn-ghost" id="btnDismissOnboarding">Masquer</button>
+        </div>
+        <button class="onboarding-banner-dismiss" id="btnCloseOnboarding" aria-label="Fermer">&times;</button>
+      </div>
+
       <!-- Stats bar -->
-      <div class="stats-bar">
+      <div class="stats-bar" data-tour="hub-kpis">
         <div class="stat-item live">
-          <div class="stat-value" id="statLive">0</div>
+          <div class="stat-value" id="statLive" aria-live="polite">0</div>
           <div class="stat-label">En cours</div>
         </div>
         <div class="stat-item">
@@ -70,62 +91,263 @@
       <div class="page-content">
         <div id="notif_box" class="alert hidden mb-4"></div>
 
-        <!-- Create card -->
-        <div class="create-card">
+        <!-- Wizard — Création de séance (5 étapes) -->
+        <div class="create-card" id="wizardCard" data-tour="hub-preparation">
           <h3>
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
-            Préparer une nouvelle séance
+            Pr&eacute;parer une nouvelle s&eacute;ance
           </h3>
-          <div class="create-form">
-            <div class="form-group form-group-title">
-              <label class="form-label" for="meeting_title">Titre de la séance <span class="text-danger">*</span></label>
-              <input class="form-input" type="text" id="meeting_title" placeholder="Ex : Assemblée Générale 2024" required autocomplete="off" maxlength="255">
+
+          <!-- Wizard stepper -->
+          <div class="wiz-progress-wrap" id="wizStepper" role="list" aria-label="&Eacute;tapes de cr&eacute;ation" data-tour="hub-stepper">
+            <div class="wiz-step-item active" data-step="1" role="listitem" aria-current="step">
+              <span class="wiz-step-dot">1</span>
+              <span class="wiz-step-label">Infos</span>
             </div>
-            <div class="form-group form-group-date">
-              <label class="form-label" for="meeting_date">Date <span class="text-danger">*</span></label>
-              <input class="form-input date-picker-input" type="date" id="meeting_date" required>
+            <div class="wiz-step-item" data-step="2" role="listitem">
+              <span class="wiz-step-dot">2</span>
+              <span class="wiz-step-label">Participants</span>
             </div>
-            <div class="form-group">
-              <label class="form-label">Type</label>
-              <div class="meeting-type-chips">
-                <label class="type-chip">
-                  <input type="radio" name="meetingTypeCreate" value="ag_ordinaire" checked>
-                  <span class="type-chip-label">AG ordinaire</span>
-                </label>
-                <label class="type-chip">
-                  <input type="radio" name="meetingTypeCreate" value="ag_extraordinaire">
-                  <span class="type-chip-label">AG extra.</span>
-                </label>
-                <label class="type-chip">
-                  <input type="radio" name="meetingTypeCreate" value="conseil">
-                  <span class="type-chip-label">Conseil</span>
-                </label>
-                <label class="type-chip">
-                  <input type="radio" name="meetingTypeCreate" value="bureau">
-                  <span class="type-chip-label">Bureau</span>
-                </label>
-                <label class="type-chip">
-                  <input type="radio" name="meetingTypeCreate" value="autre">
-                  <span class="type-chip-label">Autre</span>
-                </label>
+            <div class="wiz-step-item" data-step="3" role="listitem">
+              <span class="wiz-step-dot">3</span>
+              <span class="wiz-step-label">R&eacute;solutions</span>
+            </div>
+            <div class="wiz-step-item" data-step="4" role="listitem">
+              <span class="wiz-step-dot">4</span>
+              <span class="wiz-step-label">R&eacute;cap</span>
+            </div>
+          </div>
+
+          <!-- Step 1: Infos générales -->
+          <div class="wiz-step-panel active" id="wizStep1" data-wiz-step="1" data-tour="wizard-form">
+            <div class="wiz-form-grid">
+              <div class="form-group">
+                <label class="form-label" for="meeting_title">Titre de la s&eacute;ance <span class="text-danger">*</span></label>
+                <input class="form-input" type="text" id="meeting_title" placeholder="Ex : Assembl&eacute;e G&eacute;n&eacute;rale 2024" required autocomplete="off" maxlength="255">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="meeting_date">Date <span class="text-danger">*</span></label>
+                <input class="form-input date-picker-input" type="date" id="meeting_date" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="wizTime">Heure <span class="text-danger">*</span></label>
+                <input class="form-input" type="time" id="wizTime" value="14:00">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="wizLieu">Lieu</label>
+                <input class="form-input" type="text" id="wizLieu" placeholder="Salle du conseil, Mairie...">
+              </div>
+              <div class="form-group wiz-form-full">
+                <label class="form-label">Type</label>
+                <div class="meeting-type-chips">
+                  <label class="type-chip"><input type="radio" name="meetingTypeCreate" value="ag_ordinaire" checked><span class="type-chip-label">AG ordinaire</span></label>
+                  <label class="type-chip"><input type="radio" name="meetingTypeCreate" value="ag_extraordinaire"><span class="type-chip-label">AG extra.</span></label>
+                  <label class="type-chip"><input type="radio" name="meetingTypeCreate" value="conseil"><span class="type-chip-label">Conseil</span></label>
+                  <label class="type-chip"><input type="radio" name="meetingTypeCreate" value="bureau"><span class="type-chip-label">Bureau</span></label>
+                  <label class="type-chip"><input type="radio" name="meetingTypeCreate" value="autre"><span class="type-chip-label">Autre</span></label>
+                </div>
+              </div>
+              <div class="form-group wiz-form-full">
+                <label class="form-label" for="wizQuorum">R&egrave;gle de quorum</label>
+                <select class="form-input" id="wizQuorum">
+                  <option value="majority">Majorit&eacute; simple (50%+1)</option>
+                  <option value="two_thirds">Majorit&eacute; qualifi&eacute;e (2/3)</option>
+                  <option value="unanimity">Unanimit&eacute;</option>
+                </select>
+              </div>
+              <!-- 21-day deadline alert (shown dynamically) -->
+              <div class="wiz-deadline-alert wiz-form-full" id="wizDeadlineAlert" hidden>
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+                <span>La date choisie est dans moins de 21 jours &mdash; les d&eacute;lais l&eacute;gaux de convocation pourraient ne pas &ecirc;tre respect&eacute;s.</span>
               </div>
             </div>
-            <div class="form-group form-group-full">
-              <label class="form-label">Pièces jointes PDF (optionnel)</label>
+            <div class="wiz-nav">
+              <span class="wiz-nav-hint">&Eacute;tape 1 sur 4</span>
+              <button class="btn btn-primary" id="wizNext1" type="button">
+                Suivant : Participants
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Participants -->
+          <div class="wiz-step-panel" id="wizStep2" data-wiz-step="2">
+            <div class="wiz-form-grid">
+              <div class="form-group wiz-form-full">
+                <label class="form-label">Importer des participants</label>
+                <div class="file-drop-zone" id="wizParticipantsDrop">
+                  <input type="file" id="wizParticipantsFile" accept=".csv,.xlsx" hidden>
+                  <div class="file-drop-content">
+                    <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                    <span>Glisser-d&eacute;poser un fichier CSV/XLSX ou <button type="button" class="btn-link" id="wizParticipantsBrowse">parcourir</button></span>
+                    <span class="text-xs text-muted">Format : Nom, Pr&eacute;nom, Email, Poids (optionnel)</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group wiz-form-full">
+                <label class="form-label">ou ajouter manuellement</label>
+                <div class="flex gap-2">
+                  <input class="form-input" type="text" id="wizParticipantName" placeholder="Nom complet">
+                  <input class="form-input" type="email" id="wizParticipantEmail" placeholder="Email">
+                  <button class="btn btn-secondary btn-sm" id="wizAddParticipant" type="button">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Ajouter
+                  </button>
+                </div>
+              </div>
+              <div class="wiz-form-full">
+                <table class="wiz-participants-table" id="wizParticipantsTable">
+                  <thead>
+                    <tr>
+                      <th>Nom</th>
+                      <th>Email</th>
+                      <th>Poids</th>
+                      <th>Cl&eacute;</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="wizParticipantsBody">
+                    <tr><td colspan="5" class="text-center text-muted p-4">Aucun participant ajout&eacute;</td></tr>
+                  </tbody>
+                </table>
+                <div class="flex items-center gap-4 mt-3">
+                  <span class="tag tag-success" id="wizParticipantsCount">0 participants</span>
+                  <span class="text-xs text-muted" id="wizVoixSummary">0 voix &bull; quorum : —</span>
+                </div>
+              </div>
+            </div>
+            <div class="wiz-nav">
+              <button class="btn btn-ghost" id="wizPrev2" type="button">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg> Retour
+              </button>
+              <span class="wiz-nav-hint">&Eacute;tape 2 sur 4</span>
+              <button class="btn btn-primary" id="wizNext2" type="button">
+                Suivant : R&eacute;solutions
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Résolutions -->
+          <div class="wiz-step-panel" id="wizStep3" data-wiz-step="3">
+            <div class="wiz-form-grid">
+              <div class="form-group wiz-form-full">
+                <label class="form-label" for="wizResTitle">Ajouter une r&eacute;solution</label>
+                <div class="flex gap-2">
+                  <input class="form-input" type="text" id="wizResTitle" placeholder="Titre de la r&eacute;solution *" style="flex:2">
+                  <select class="form-input" id="wizResMajority" style="flex:1">
+                    <option value="simple">Majorit&eacute; simple</option>
+                    <option value="qualified">2/3</option>
+                    <option value="unanimity">Unanimit&eacute;</option>
+                  </select>
+                  <button class="btn btn-secondary btn-sm" id="wizAddResolution" type="button">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Ajouter
+                  </button>
+                </div>
+              </div>
+              <div class="form-group wiz-form-full">
+                <label class="form-label" for="wizResDesc">Description (optionnel)</label>
+                <textarea class="form-input" id="wizResDesc" rows="2" placeholder="D&eacute;tails de la r&eacute;solution..."></textarea>
+              </div>
+              <div class="form-group wiz-form-full">
+                <div class="flex items-center gap-3">
+                  <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" id="wizResSecret"> Vote secret
+                  </label>
+                </div>
+              </div>
+              <div class="wiz-form-full" id="wizResolutionsList">
+                <!-- Dynamically populated resolution items -->
+                <p class="text-center text-muted p-4">Aucune r&eacute;solution ajout&eacute;e</p>
+              </div>
+            </div>
+            <div class="wiz-nav">
+              <button class="btn btn-ghost" id="wizPrev3" type="button">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg> Retour
+              </button>
+              <span class="wiz-nav-hint">&Eacute;tape 3 sur 4</span>
+              <button class="btn btn-primary" id="wizNext3" type="button">
+                Suivant : R&eacute;capitulatif
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 4: Récapitulatif -->
+          <div class="wiz-step-panel" id="wizStep4" data-wiz-step="4">
+            <div class="wiz-recap-grid" id="wizRecapGrid">
+              <div class="wiz-recap-card">
+                <h4>S&eacute;ance</h4>
+                <div class="wiz-recap-value" id="wizRecapTitle">—</div>
+              </div>
+              <div class="wiz-recap-card">
+                <h4>Date &amp; heure</h4>
+                <div class="wiz-recap-value" id="wizRecapDate">—</div>
+              </div>
+              <div class="wiz-recap-card">
+                <h4>Type</h4>
+                <div class="wiz-recap-value" id="wizRecapType">—</div>
+              </div>
+              <div class="wiz-recap-card">
+                <h4>Participants</h4>
+                <div class="wiz-recap-value" id="wizRecapParticipants">0</div>
+              </div>
+              <div class="wiz-recap-card">
+                <h4>R&eacute;solutions</h4>
+                <div class="wiz-recap-value" id="wizRecapResolutions">0</div>
+              </div>
+              <div class="wiz-recap-card">
+                <h4>Quorum</h4>
+                <div class="wiz-recap-value" id="wizRecapQuorum">—</div>
+              </div>
+            </div>
+
+            <!-- Validation alerts -->
+            <div id="wizRecapAlerts" class="mt-4"></div>
+
+            <div class="form-group wiz-form-full mt-4">
+              <label class="form-label">Pi&egrave;ces jointes PDF (optionnel)</label>
               <div class="file-drop-zone" id="fileDropZone">
                 <input type="file" id="meeting_files" accept=".pdf,application/pdf" multiple hidden>
                 <div class="file-drop-content">
                   <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
-                  <span>Glisser-déposer vos PDF ici ou <button type="button" class="btn-link" id="fileBrowseBtn">parcourir</button></span>
+                  <span>Glisser-d&eacute;poser vos PDF ici ou <button type="button" class="btn-link" id="fileBrowseBtn">parcourir</button></span>
                   <span class="text-xs text-muted">PDF uniquement, 10 Mo max par fichier</span>
                 </div>
                 <div class="file-list" id="fileList"></div>
               </div>
             </div>
-            <button class="btn btn-primary btn-lg form-group-full" id="create_meeting_btn">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
-              Préparer la séance
-            </button>
+
+            <div class="wiz-nav">
+              <button class="btn btn-ghost" id="wizPrev4" type="button">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg> Retour
+              </button>
+              <span class="wiz-nav-hint">&Eacute;tape 4 sur 4</span>
+              <button class="btn btn-primary btn-lg" id="create_meeting_btn">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
+                Cr&eacute;er la s&eacute;ance
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 5: Confirmation (shown after creation) -->
+          <div class="wiz-step-panel" id="wizStep5" data-wiz-step="5">
+            <div class="wiz-success">
+              <div class="wiz-success-icon">
+                <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
+              </div>
+              <h3>S&eacute;ance cr&eacute;&eacute;e avec succ&egrave;s !</h3>
+              <p>Votre s&eacute;ance a &eacute;t&eacute; enregistr&eacute;e en brouillon. Vous pouvez maintenant envoyer les convocations ou continuer la configuration.</p>
+              <div class="wiz-success-links">
+                <a class="btn btn-primary" id="wizGoToOperator" href="/operator.htmx.html">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+                  Configurer la s&eacute;ance
+                </a>
+                <button class="btn btn-secondary" id="wizNewMeeting" type="button">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
+                  Nouvelle s&eacute;ance
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -175,6 +397,9 @@
           <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
           <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
         </div>
+
+        <!-- Pagination -->
+        <div class="meetings-pagination" id="meetingsPagination"></div>
 
         <!-- Calendar view -->
         <div class="calendar-container" id="calendarContainer">
@@ -268,6 +493,51 @@
     </header>
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
+
+  <!-- Session timeout banner -->
+  <div class="session-timeout-banner" id="sessionTimeoutBanner" role="alert" aria-live="assertive" hidden>
+    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+    <span>Votre session expire dans <strong class="session-timeout-timer" id="sessionTimeoutTimer">2:00</strong></span>
+    <div class="session-timeout-actions">
+      <button class="btn btn-sm btn-primary" id="btnExtendSession">Prolonger</button>
+      <button class="btn btn-sm btn-ghost" id="btnLogoutSession">D&eacute;connexion</button>
+    </div>
+  </div>
+
+  <!-- Command palette (Ctrl+K) -->
+  <div class="cmd-palette-overlay" id="cmdPalette" role="dialog" aria-modal="true" aria-label="Recherche rapide" hidden>
+    <div class="cmd-palette">
+      <div class="cmd-palette-input-wrap">
+        <svg class="cmd-palette-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-search"></use></svg>
+        <input class="cmd-palette-input" id="cmdPaletteInput" type="text" placeholder="Rechercher une page, action ou membre&hellip;" autocomplete="off" aria-label="Recherche rapide">
+        <span class="cmd-palette-shortcut">Esc</span>
+      </div>
+      <div class="cmd-palette-results" id="cmdPaletteResults" role="listbox">
+        <div class="cmd-palette-group-label">Pages</div>
+        <div class="cmd-palette-item" role="option" data-href="/meetings.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+          <span class="cmd-palette-item-label">S&eacute;ances</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/operator.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg>
+          <span class="cmd-palette-item-label">Console op&eacute;rateur</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/members.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+          <span class="cmd-palette-item-label">Membres</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/analytics.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
+          <span class="cmd-palette-item-label">Statistiques</span>
+        </div>
+      </div>
+      <div class="cmd-palette-footer">
+        <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> naviguer</span>
+        <span><kbd>Entr&eacute;e</kbd> ouvrir</span>
+        <span><kbd>Esc</kbd> fermer</span>
+      </div>
+    </div>
+  </div>
 
   <script src="/assets/js/core/utils.js"></script>
   <script type="module" src="/assets/js/components/index.js"></script>

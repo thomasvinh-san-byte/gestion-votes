@@ -54,57 +54,67 @@ class AgKpi extends HTMLElement {
           background: var(--color-surface, #ffffff);
           border: 1px solid var(--color-border, #d5dbd2);
           border-radius: var(--radius-lg, 16px);
-          padding: var(--space-5, 1.25rem);
+          padding: 12px 8px;
           text-align: center;
-          transition: transform 0.1s ease, box-shadow 0.1s ease;
+          cursor: default;
+          transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
         }
         .kpi:hover {
           transform: translateY(-2px);
-          box-shadow: var(--shadow-md, 0 10px 15px -3px rgba(0,0,0,0.08));
+          box-shadow: var(--shadow-sm, 0 2px 8px rgba(0,0,0,.06));
+          border-color: color-mix(in srgb, var(--color-primary, #1650E0) 18%, var(--color-border, #d5dbd2));
         }
         .kpi-icon {
-          width: 1.5rem;
-          height: 1.5rem;
-          margin: 0 auto 0.5rem;
+          width: 1.25rem;
+          height: 1.25rem;
+          margin: 0 auto 0.375rem;
           stroke: currentColor;
           stroke-width: 2;
           fill: none;
           opacity: 0.7;
         }
         .kpi-value {
-          font-size: 2.25rem;
+          font-family: var(--font-mono, 'JetBrains Mono', monospace);
+          font-size: 2rem;
           font-weight: 800;
           line-height: 1;
           letter-spacing: -0.02em;
+          color: var(--color-text-dark, #1a1a1a);
         }
         .kpi-label {
-          font-size: 0.875rem;
-          color: var(--color-text-secondary, #697268);
-          margin-top: 0.5rem;
-          font-weight: 500;
+          font-size: 13px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: .7px;
+          color: var(--color-text-muted, #95a3a4);
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
         }
 
         /* Size variants */
-        :host([size="sm"]) .kpi { padding: var(--space-3, 0.75rem); }
+        :host([size="sm"]) .kpi { padding: 8px 6px; }
         :host([size="sm"]) .kpi-value { font-size: 1.5rem; }
-        :host([size="sm"]) .kpi-label { font-size: 0.75rem; }
+        :host([size="sm"]) .kpi-label { font-size: 11px; }
 
-        :host([size="lg"]) .kpi { padding: var(--space-6, 1.5rem); }
-        :host([size="lg"]) .kpi-value { font-size: 3rem; }
-        :host([size="lg"]) .kpi-label { font-size: 1rem; }
+        :host([size="lg"]) .kpi { padding: 16px 12px; }
+        :host([size="lg"]) .kpi-value { font-size: 2.5rem; }
+        :host([size="lg"]) .kpi-label { font-size: 14px; }
 
         /* Color variants */
-        :host([variant="primary"]) .kpi-value { color: var(--color-primary, #4e5340); }
-        :host([variant="success"]) .kpi-value { color: var(--color-success, #16a34a); }
-        :host([variant="warning"]) .kpi-value { color: var(--color-warning, #b8915a); }
-        :host([variant="danger"]) .kpi-value { color: var(--color-danger, #a05252); }
-        :host([variant="info"]) .kpi-value { color: var(--color-info, #5a8a9a); }
+        :host([variant="primary"]) .kpi-value { color: var(--color-primary, #1650E0); }
+        :host([variant="success"]) .kpi-value { color: var(--color-success, #0b7a40); }
+        :host([variant="warning"]) .kpi-value { color: var(--color-warning, #b8860b); }
+        :host([variant="danger"]) .kpi-value { color: var(--color-danger, #c42828); }
+        :host([variant="info"]) .kpi-value { color: var(--color-info, #2563eb); }
 
-        :host([variant="primary"]) .kpi-icon { color: var(--color-primary, #4e5340); }
-        :host([variant="success"]) .kpi-icon { color: var(--color-success, #16a34a); }
-        :host([variant="warning"]) .kpi-icon { color: var(--color-warning, #b8915a); }
-        :host([variant="danger"]) .kpi-icon { color: var(--color-danger, #a05252); }
-        :host([variant="info"]) .kpi-icon { color: var(--color-info, #5a8a9a); }
+        :host([variant="primary"]) .kpi-icon { color: var(--color-primary, #1650E0); }
+        :host([variant="success"]) .kpi-icon { color: var(--color-success, #0b7a40); }
+        :host([variant="warning"]) .kpi-icon { color: var(--color-warning, #b8860b); }
+        :host([variant="danger"]) .kpi-icon { color: var(--color-danger, #c42828); }
+        :host([variant="info"]) .kpi-icon { color: var(--color-info, #2563eb); }
       </style>
       <div class="kpi">
         ${iconHtml}

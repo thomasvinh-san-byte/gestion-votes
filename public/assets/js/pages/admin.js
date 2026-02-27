@@ -13,6 +13,84 @@
   const roleLabelsSeance = Shared.ROLE_LABELS_MEETING;
   const allRoleLabels = Shared.ROLE_LABELS_ALL;
 
+  // --- Onboarding Banner (localStorage dismiss) ---
+  (function initOnboarding() {
+    var banner = document.getElementById('obBanner');
+    var closeBtn = document.getElementById('obClose');
+    if (!banner) return;
+    if (localStorage.getItem('ag_ob_dismissed') === '1') {
+      banner.style.display = 'none';
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() {
+        banner.style.display = 'none';
+        localStorage.setItem('ag_ob_dismissed', '1');
+      });
+    }
+  })();
+
+  // --- Dashboard KPIs & Upcoming Sessions ---
+  (function initDashboard() {
+    async function loadDashboardData() {
+      try {
+        var r = await api('/api/v1/meetings.php');
+        if (r.body && r.body.ok && r.body.data) {
+          var meetings = r.body.data.items || [];
+          var now = new Date();
+          var upcoming = meetings.filter(function(m) { return m.status === 'scheduled' || m.status === 'frozen'; });
+          var live = meetings.filter(function(m) { return m.status === 'live'; });
+          var closed = meetings.filter(function(m) { return m.status === 'closed'; });
+          var validated = meetings.filter(function(m) { return m.status === 'validated'; });
+
+          var kpiUp = document.getElementById('kpiUpcomingVal');
+          var kpiLi = document.getElementById('kpiLiveVal');
+          var kpiCo = document.getElementById('kpiConvocationsVal');
+          var kpiPv = document.getElementById('kpiPVVal');
+          if (kpiUp) kpiUp.textContent = upcoming.length;
+          if (kpiLi) kpiLi.textContent = live.length;
+          if (kpiCo) kpiCo.textContent = upcoming.length;
+          if (kpiPv) kpiPv.textContent = closed.length;
+
+          // Urgent action card
+          var urgentCard = document.getElementById('urgentCard');
+          if (urgentCard && closed.length > 0) {
+            urgentCard.style.display = '';
+          }
+
+          // Upcoming sessions list
+          var sessionsEl = document.getElementById('dashUpcomingSessions');
+          if (sessionsEl) {
+            if (upcoming.length === 0) {
+              sessionsEl.innerHTML = '<div class="p-4 text-center text-muted text-sm">Aucune s\u00e9ance \u00e0 venir</div>';
+            } else {
+              sessionsEl.innerHTML = upcoming.slice(0, 5).map(function(m) {
+                var d = m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString('fr-FR') : '';
+                return '<a href="/meetings.htmx.html?id=' + m.id + '" class="irow"><div class="irow-body"><div class="irow-title">' + escapeHtml(m.title || 'S\u00e9ance #' + m.id) + '</div><div class="text-xs text-muted">' + d + '</div></div><span class="irow-arrow">\u203A</span></a>';
+              }).join('');
+            }
+          }
+
+          // Pending tasks list
+          var tasksEl = document.getElementById('dashPendingTasks');
+          if (tasksEl) {
+            var tasks = [];
+            if (closed.length > 0) tasks.push({ label: closed.length + ' s\u00e9ance(s) \u00e0 valider', href: '/postsession.htmx.html', icon: 'danger' });
+            if (live.length > 0) tasks.push({ label: live.length + ' s\u00e9ance(s) en cours', href: '/operator.htmx.html', icon: 'success' });
+            if (upcoming.length > 0) tasks.push({ label: upcoming.length + ' s\u00e9ance(s) \u00e0 pr\u00e9parer', href: '/meetings.htmx.html', icon: 'primary' });
+            if (tasks.length === 0) {
+              tasksEl.innerHTML = '<div class="p-4 text-center text-muted text-sm">Aucune t\u00e2che en attente</div>';
+            } else {
+              tasksEl.innerHTML = tasks.map(function(t) {
+                return '<a href="' + t.href + '" class="irow"><div class="irow-body"><div class="irow-title">' + t.label + '</div></div><span class="irow-arrow">\u203A</span></a>';
+              }).join('');
+            }
+          }
+        }
+      } catch(e) { /* dashboard section is optional, fail silently */ }
+    }
+    loadDashboardData();
+  })();
+
   // --- Tabs (with ARIA support) ---
   document.querySelectorAll('.admin-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {

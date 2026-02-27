@@ -4,14 +4,14 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Console opérateur - AG-VOTE">
   <title>Fiche séance — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/operator.css">
 </head>
@@ -31,7 +31,7 @@
     <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
 
     <!-- Meeting bar (replaces session-selector) -->
-    <section class="meeting-bar" aria-label="Barre de séance">
+    <section class="meeting-bar" aria-label="Barre de séance" data-tour="operator-header">
       <div class="meeting-bar-top">
         <div class="meeting-bar-left">
           <svg class="icon" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
@@ -49,15 +49,19 @@
         </div>
         <div class="meeting-bar-right">
           <span class="meeting-bar-chip"><strong id="barClock">--:--</strong></span>
-          <button class="btn btn-sm btn-secondary" id="btnBarRefresh" title="Actualiser les données">
+          <button class="btn btn-sm btn-secondary" id="btnBarRefresh" title="Actualiser les données" aria-label="Actualiser les donn&eacute;es">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
+          </button>
+          <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+            Tour
           </button>
         </div>
       </div>
-      <div class="meeting-bar-actions" id="meetingBarActions" hidden>
+      <div class="meeting-bar-actions" id="meetingBarActions" hidden data-tour="operator-actions">
         <div class="meeting-bar-left">
           <span class="context-hint" id="contextHint">Préparez la séance avant de la lancer.</span>
-          <div class="mode-switch" id="modeSwitch" role="group" aria-label="Mode de la console">
+          <div class="mode-switch" id="modeSwitch" role="group" aria-label="Mode de la console" data-tour="operator-resolution">
             <button class="mode-switch-btn active" id="btnModeSetup" aria-pressed="true">Préparation</button>
             <button class="mode-switch-btn" id="btnModeExec" aria-pressed="false">Exécution</button>
           </div>
@@ -79,7 +83,7 @@
     </div>
 
     <!-- Meeting lifecycle visual indicator -->
-    <div class="lifecycle-bar" id="lifecycleBar" hidden aria-label="&Eacute;tat de la s&eacute;ance">
+    <div class="lifecycle-bar" id="lifecycleBar" hidden aria-label="&Eacute;tat de la s&eacute;ance" data-tour="operator-track">
       <span class="lifecycle-step" data-state="draft">Brouillon</span>
       <span class="lifecycle-arrow" aria-hidden="true">&rsaquo;</span>
       <span class="lifecycle-step" data-state="scheduled">Programm&eacute;e</span>
@@ -96,7 +100,7 @@
     </div>
 
     <!-- Tabs navigation (shown in setup mode when meeting selected) -->
-    <nav class="tabs-nav" id="tabsNav" style="display: none;" role="tablist" aria-label="Sections de la séance">
+    <nav class="tabs-nav" id="tabsNav" style="display: none;" role="tablist" aria-label="Sections de la séance" data-tour="operator-tabs">
       <!-- 4 preparation tabs — always visible -->
       <button class="tab-btn active" data-tab="seance" role="tab" aria-selected="true" aria-controls="tab-seance" id="tab-btn-seance">
         <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
@@ -107,7 +111,7 @@
         <span class="tab-label">Participants</span>
         <span class="tab-count" id="tabCountPresences" aria-label="présences">0</span>
       </button>
-      <button class="tab-btn" data-tab="ordre-du-jour" role="tab" aria-selected="false" aria-controls="tab-ordre-du-jour" id="tab-btn-ordre-du-jour">
+      <button class="tab-btn" data-tab="ordre-du-jour" role="tab" aria-selected="false" aria-controls="tab-ordre-du-jour" id="tab-btn-ordre-du-jour" data-tour="operator-odj">
         <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
         <span class="tab-label">Ordre du jour</span>
         <span class="tab-count" id="tabCountResolutions" aria-label="résolutions">0</span>
@@ -165,7 +169,196 @@
           <button class="btn btn-sm btn-ghost" id="onboardingDismiss" aria-label="Fermer">&times;</button>
         </div>
 
-        <!-- Setup content -->
+        <!-- Hub — Fiche séance (identity + stepper + action + checklist) -->
+        <div class="hub-layout" id="hubLayout" hidden>
+          <div class="hub-sidebar">
+            <!-- Vertical lifecycle stepper -->
+            <div class="hub-stepper" id="hubStepper" aria-label="&Eacute;tapes du cycle de vie" data-tour="operator-guidance">
+              <div class="hub-step active" data-hub-step="prepare">
+                <span class="hub-step-dot">1</span>
+                <div class="hub-step-content">
+                  <div class="hub-step-title">Pr&eacute;parer</div>
+                  <div class="hub-step-desc">Configurer la s&eacute;ance</div>
+                </div>
+              </div>
+              <div class="hub-step" data-hub-step="convoke">
+                <span class="hub-step-dot">2</span>
+                <div class="hub-step-content">
+                  <div class="hub-step-title">Convoquer</div>
+                  <div class="hub-step-desc">Envoyer les invitations</div>
+                </div>
+              </div>
+              <div class="hub-step" data-hub-step="attend">
+                <span class="hub-step-dot">3</span>
+                <div class="hub-step-content">
+                  <div class="hub-step-title">Pointer</div>
+                  <div class="hub-step-desc">G&eacute;rer les pr&eacute;sences</div>
+                </div>
+              </div>
+              <div class="hub-step" data-hub-step="pilot">
+                <span class="hub-step-dot">4</span>
+                <div class="hub-step-content">
+                  <div class="hub-step-title">Piloter</div>
+                  <div class="hub-step-desc">Lancer les votes</div>
+                </div>
+              </div>
+              <div class="hub-step" data-hub-step="close">
+                <span class="hub-step-dot">5</span>
+                <div class="hub-step-content">
+                  <div class="hub-step-title">Cl&ocirc;turer</div>
+                  <div class="hub-step-desc">Fermer la s&eacute;ance</div>
+                </div>
+              </div>
+              <div class="hub-step" data-hub-step="archive">
+                <span class="hub-step-dot">6</span>
+                <div class="hub-step-content">
+                  <div class="hub-step-title">Archiver</div>
+                  <div class="hub-step-desc">Valider et archiver</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hub-main">
+            <!-- Identity banner -->
+            <div class="hub-identity" id="hubIdentity">
+              <div class="hub-identity-icon">
+                <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+              </div>
+              <div class="hub-identity-info">
+                <div class="hub-identity-title" id="hubTitle">—</div>
+                <div class="hub-identity-meta">
+                  <span class="hub-identity-meta-item">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
+                    <span id="hubDate">—</span>
+                  </span>
+                  <span class="hub-identity-meta-item">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-map-pin"></use></svg>
+                    <span id="hubLieu">—</span>
+                  </span>
+                  <span class="hub-identity-meta-item">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+                    <span id="hubParticipants">0 participants</span>
+                  </span>
+                </div>
+              </div>
+              <div class="hub-identity-actions">
+                <button class="btn btn-sm btn-ghost btn-icon" id="hubEditBtn" title="Modifier" aria-label="Modifier la s&eacute;ance">
+                  <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Action card (CTA contextuel) -->
+            <div class="hub-action" id="hubAction">
+              <div class="hub-action-icon">
+                <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+              </div>
+              <div class="hub-action-body">
+                <div class="hub-action-title" id="hubActionTitle">Compl&eacute;ter la configuration</div>
+                <div class="hub-action-desc" id="hubActionDesc">Ajoutez les participants et les r&eacute;solutions pour pouvoir lancer la s&eacute;ance.</div>
+              </div>
+              <button class="btn btn-primary" id="hubActionBtn">Configurer</button>
+            </div>
+
+            <!-- Checklist with progress -->
+            <div class="hub-checklist" id="hubChecklist">
+              <div class="hub-checklist-header">
+                <span class="hub-checklist-title">Pr&eacute;paration</span>
+                <span class="hub-checklist-progress-text" id="hubCheckProgress">0 / 4</span>
+              </div>
+              <div class="hub-checklist-bar">
+                <div class="hub-checklist-bar-fill" id="hubCheckBar" style="width: 0%"></div>
+              </div>
+              <div class="hub-check-item" data-check="info">
+                <span class="hub-check-icon">&check;</span>
+                <span class="hub-check-label">Informations g&eacute;n&eacute;rales renseign&eacute;es</span>
+              </div>
+              <div class="hub-check-item" data-check="members">
+                <span class="hub-check-icon">&check;</span>
+                <span class="hub-check-label">Membres inscrits</span>
+              </div>
+              <div class="hub-check-item" data-check="rules">
+                <span class="hub-check-icon">&check;</span>
+                <span class="hub-check-label">R&egrave;gles de vote configur&eacute;es</span>
+              </div>
+              <div class="hub-check-item" data-check="resolutions">
+                <span class="hub-check-icon">&check;</span>
+                <span class="hub-check-label">Au moins une r&eacute;solution</span>
+              </div>
+            </div>
+
+            <!-- Accordion details -->
+            <div class="hub-accordion" id="hubAccordion">
+              <div class="hub-accordion-item">
+                <button class="hub-accordion-trigger" type="button" aria-expanded="false">
+                  <span>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
+                    Indicateurs cl&eacute;s
+                  </span>
+                  <svg class="hub-accordion-chevron" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+                </button>
+                <div class="hub-accordion-body">
+                  <div class="hub-kpis" id="hubKpis" data-tour="operator-kpis" aria-live="polite">
+                    <div class="hub-kpi">
+                      <div class="hub-kpi-value" id="hubKpiMembers">0</div>
+                      <div class="hub-kpi-label">Membres</div>
+                    </div>
+                    <div class="hub-kpi">
+                      <div class="hub-kpi-value" id="hubKpiPresent">0</div>
+                      <div class="hub-kpi-label">Pr&eacute;sents</div>
+                    </div>
+                    <div class="hub-kpi">
+                      <div class="hub-kpi-value" id="hubKpiResolutions">0</div>
+                      <div class="hub-kpi-label">R&eacute;solutions</div>
+                    </div>
+                    <div class="hub-kpi">
+                      <div class="hub-kpi-value" id="hubKpiQuorum">—</div>
+                      <div class="hub-kpi-label">Quorum</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="hub-accordion-item">
+                <button class="hub-accordion-trigger" type="button" aria-expanded="false">
+                  <span>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
+                    Documents
+                  </span>
+                  <svg class="hub-accordion-chevron" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+                </button>
+                <div class="hub-accordion-body">
+                  <div id="hubDocuments">
+                    <p class="text-sm text-muted">Aucun document attach&eacute;.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="hub-accordion-item">
+                <button class="hub-accordion-trigger" type="button" aria-expanded="false">
+                  <span>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
+                    Convocations
+                  </span>
+                  <svg class="hub-accordion-chevron" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+                </button>
+                <div class="hub-accordion-body">
+                  <p class="text-sm text-muted mb-3">G&eacute;rez l'envoi des convocations et la 2<sup>e</sup> convocation si n&eacute;cessaire.</p>
+                  <div class="flex gap-2">
+                    <button class="btn btn-sm btn-secondary" id="hubSendConvocation" disabled>
+                      <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
+                      Envoyer 1<sup>&egrave;re</sup> convocation
+                    </button>
+                    <button class="btn btn-sm btn-ghost" id="hubSend2ndConvocation" disabled>
+                      2<sup>e</sup> convocation
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Setup content (advanced/tab mode) -->
         <div id="advancedMode" class="advanced-mode">
 
         <!-- ============================================================
@@ -935,6 +1128,35 @@
           </div>
         </div>
 
+        <!-- Contextual tags (quorum, correspondance, procurations) -->
+        <div class="op-tags" id="opTags" hidden>
+          <span class="op-tag op-tag-quorum" id="opTagQuorum" hidden>
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Quorum atteint
+          </span>
+          <span class="op-tag op-tag-no-quorum" id="opTagNoQuorum" hidden>
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Quorum non atteint
+          </span>
+          <span class="op-tag op-tag-correspondance" id="opTagCorrespondance" hidden>
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Correspondance
+          </span>
+          <span class="op-tag op-tag-procurations" id="opTagProcurations" hidden>
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> <span id="opProcCount">0</span> procurations
+          </span>
+        </div>
+
+        <!-- Resolution progress bar (segmented) -->
+        <div class="op-resolution-progress" id="opResolutionProgress" hidden aria-label="Progression des r&eacute;solutions">
+          <!-- Segments filled dynamically by JS -->
+        </div>
+
+        <!-- Guidance bar contextuelle -->
+        <div class="op-guidance" id="opGuidance" hidden>
+          <div class="op-guidance-icon">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+          </div>
+          <span class="op-guidance-text" id="opGuidanceText">Ouvrez un vote pour commencer.</span>
+        </div>
+
         <!-- Close session banner (visible when ready to close the session) -->
         <div id="execCloseBanner" class="exec-close-banner" style="display:none;">
           <div class="exec-close-banner-info">
@@ -955,46 +1177,136 @@
         </div>
 
         <div class="exec-grid">
-          <!-- Col 1: Vote en cours -->
+          <!-- Col 1: Vote en cours (with sub-tabs) -->
           <div class="exec-card" id="execVoteCard">
             <div class="exec-card-header">
               <h2>Vote en cours</h2>
               <span class="live-badge" id="execLiveBadge" hidden aria-label="Vote en direct"><span class="pulse"></span> LIVE</span>
             </div>
             <div class="exec-card-body">
-              <div id="execNoVote" class="text-center p-4 text-muted">
-                <p>Aucun vote ouvert.</p>
-                <div id="execQuickOpenList" class="quick-motion-list mt-4">
-                  <!-- Filled by JS -->
+              <!-- Resolution sub-tabs -->
+              <div class="op-tabs" id="opSubTabs">
+                <button class="op-tab active" data-op-tab="resultat" type="button">R&eacute;sultat</button>
+                <button class="op-tab" data-op-tab="avance" type="button">Avanc&eacute;</button>
+                <button class="op-tab" data-op-tab="presences" type="button">Pr&eacute;sences</button>
+              </div>
+
+              <!-- Sub-tab 1: Résultat -->
+              <div class="op-tab-panel active" id="opPanelResultat">
+                <div id="execNoVote" class="text-center p-4 text-muted">
+                  <p>Aucun vote ouvert.</p>
+                  <div id="execQuickOpenList" class="quick-motion-list mt-4">
+                    <!-- Filled by JS -->
+                  </div>
+                </div>
+                <div id="execActiveVote" hidden>
+                  <div class="exec-vote-title" id="execVoteTitle">&mdash;</div>
+                  <!-- Animated vote bars -->
+                  <div class="op-vote-bars" id="opVoteBars">
+                    <div class="op-bar-row">
+                      <span class="op-bar-label" style="color:var(--color-success)">Pour</span>
+                      <div class="op-bar-track"><div class="op-bar-fill for" id="opBarFor" style="width:0%"></div></div>
+                      <span class="op-bar-pct" id="opPctFor">0%</span>
+                    </div>
+                    <div class="op-bar-row">
+                      <span class="op-bar-label" style="color:var(--color-danger)">Contre</span>
+                      <div class="op-bar-track"><div class="op-bar-fill against" id="opBarAgainst" style="width:0%"></div></div>
+                      <span class="op-bar-pct" id="opPctAgainst">0%</span>
+                    </div>
+                    <div class="op-bar-row">
+                      <span class="op-bar-label">Abst.</span>
+                      <div class="op-bar-track"><div class="op-bar-fill abstain" id="opBarAbstain" style="width:0%"></div></div>
+                      <span class="op-bar-pct" id="opPctAbstain">0%</span>
+                    </div>
+                  </div>
+                  <div class="exec-vote-kpis" aria-live="polite" aria-atomic="true">
+                    <div class="exec-kpi for">
+                      <span class="exec-kpi-value" id="execVoteFor">0</span>
+                      <span class="exec-kpi-label">Pour</span>
+                    </div>
+                    <div class="exec-kpi against">
+                      <span class="exec-kpi-value" id="execVoteAgainst">0</span>
+                      <span class="exec-kpi-label">Contre</span>
+                    </div>
+                    <div class="exec-kpi abstain">
+                      <span class="exec-kpi-value" id="execVoteAbstain">0</span>
+                      <span class="exec-kpi-label">Abstention</span>
+                    </div>
+                  </div>
+                  <div class="exec-participation-row">
+                    <span class="exec-participation-label">Participation</span>
+                    <div class="progress">
+                      <div class="progress-bar success" id="execVoteParticipationBar" style="width: 0%"></div>
+                    </div>
+                    <span class="exec-participation-pct" id="execVoteParticipationPct">0%</span>
+                  </div>
+                  <div class="exec-vote-actions">
+                    <button class="btn btn-warning" id="execBtnCloseVote">
+                      <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Terminer le scrutin
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div id="execActiveVote" hidden>
-                <div class="exec-vote-title" id="execVoteTitle">—</div>
-                <div class="exec-vote-kpis" aria-live="polite" aria-atomic="true">
-                  <div class="exec-kpi for">
-                    <span class="exec-kpi-value" id="execVoteFor">0</span>
-                    <span class="exec-kpi-label">Pour</span>
-                  </div>
-                  <div class="exec-kpi against">
-                    <span class="exec-kpi-value" id="execVoteAgainst">0</span>
-                    <span class="exec-kpi-label">Contre</span>
-                  </div>
-                  <div class="exec-kpi abstain">
-                    <span class="exec-kpi-value" id="execVoteAbstain">0</span>
-                    <span class="exec-kpi-label">Abstention</span>
+
+              <!-- Sub-tab 2: Avancé (paper counts, missing voters, unanimity, proxy, secretary notes) -->
+              <div class="op-tab-panel" id="opPanelAvance">
+                <div class="form-group mb-3">
+                  <label class="form-label">Comptage papier</label>
+                  <div class="flex gap-2">
+                    <div class="form-group" style="flex:1;margin:0">
+                      <label class="form-label text-xs">Pour</label>
+                      <input type="number" class="form-input form-input-sm" id="opPaperFor" min="0" value="0">
+                    </div>
+                    <div class="form-group" style="flex:1;margin:0">
+                      <label class="form-label text-xs">Contre</label>
+                      <input type="number" class="form-input form-input-sm" id="opPaperAgainst" min="0" value="0">
+                    </div>
+                    <div class="form-group" style="flex:1;margin:0">
+                      <label class="form-label text-xs">Abst.</label>
+                      <input type="number" class="form-input form-input-sm" id="opPaperAbstain" min="0" value="0">
+                    </div>
                   </div>
                 </div>
-                <div class="exec-participation-row">
-                  <span class="exec-participation-label">Participation</span>
-                  <div class="progress">
-                    <div class="progress-bar success" id="execVoteParticipationBar" style="width: 0%"></div>
-                  </div>
-                  <span class="exec-participation-pct" id="execVoteParticipationPct">0%</span>
+                <div class="form-group mb-3">
+                  <label class="form-label">Votants manquants</label>
+                  <div id="opMissingVoters" class="text-sm text-muted">Aucun vote ouvert</div>
                 </div>
-                <div class="exec-vote-actions">
-                  <button class="btn btn-warning" id="execBtnCloseVote">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Terminer le scrutin
+                <div class="flex gap-2 mb-3">
+                  <button class="btn btn-sm btn-secondary" id="opBtnUnanimity" type="button" disabled>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Unanimit&eacute;
                   </button>
+                  <button class="btn btn-sm btn-secondary" id="opBtnPasserelle" type="button" disabled title="Passerelle art. 25-1">
+                    Passerelle 25-1
+                  </button>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Notes secr&eacute;taire</label>
+                  <textarea class="form-input" id="opSecretaryNotes" rows="3" placeholder="Notes internes..."></textarea>
+                </div>
+              </div>
+
+              <!-- Sub-tab 3: Présences (KPIs + participant toggle) -->
+              <div class="op-tab-panel" id="opPanelPresences">
+                <div class="quick-counts mb-3" id="opPresenceKpis">
+                  <div class="quick-count">
+                    <span class="quick-count-value success" id="opPresent">0</span>
+                    <span class="quick-count-label">Pr&eacute;sents</span>
+                  </div>
+                  <div class="quick-count">
+                    <span class="quick-count-value info" id="opRemote">0</span>
+                    <span class="quick-count-label">&Agrave; distance</span>
+                  </div>
+                  <div class="quick-count">
+                    <span class="quick-count-value muted" id="opAbsent">0</span>
+                    <span class="quick-count-label">Absents</span>
+                  </div>
+                  <div class="quick-count">
+                    <span class="quick-count-value warning" id="opProxies">0</span>
+                    <span class="quick-count-label">Procurations</span>
+                  </div>
+                </div>
+                <div id="opPresenceList" class="text-sm text-muted">
+                  Chargement des pr&eacute;sences...
                 </div>
               </div>
             </div>
@@ -1071,6 +1383,19 @@
             </div>
           </div>
         </div>
+        <!-- Sticky action bar -->
+        <div class="op-action-bar" id="opActionBar" hidden>
+          <button class="btn btn-primary btn-lg" id="opBtnProclaim" disabled>
+            <span class="op-kbd-hint">P</span>
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+            Proclamer
+          </button>
+          <button class="btn btn-warning btn-lg" id="opBtnToggleVote" disabled>
+            <span class="op-kbd-hint">F</span>
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg>
+            Fermer le vote
+          </button>
+        </div>
       </section><!-- /viewExec -->
 
     </main>
@@ -1116,6 +1441,108 @@
           Confirmer le lancement
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Session timeout banner (hidden, shown by JS 2 min before expiry) -->
+  <div class="session-timeout-banner" id="sessionTimeoutBanner" role="alert" aria-live="assertive" hidden>
+    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+    <span>Votre session expire dans <strong class="session-timeout-timer" id="sessionTimeoutTimer">2:00</strong></span>
+    <div class="session-timeout-actions">
+      <button class="btn btn-sm btn-primary" id="btnExtendSession">Prolonger</button>
+      <button class="btn btn-sm btn-ghost" id="btnLogoutSession">D&eacute;connexion</button>
+    </div>
+  </div>
+
+  <!-- Command palette (Ctrl+K) — hidden by default -->
+  <div class="cmd-palette-overlay" id="cmdPalette" role="dialog" aria-modal="true" aria-label="Recherche rapide" hidden>
+    <div class="cmd-palette">
+      <div class="cmd-palette-input-wrap">
+        <svg class="cmd-palette-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-search"></use></svg>
+        <input class="cmd-palette-input" id="cmdPaletteInput" type="text" placeholder="Rechercher une page, action ou membre&hellip;" autocomplete="off" aria-label="Recherche rapide">
+        <span class="cmd-palette-shortcut">Esc</span>
+      </div>
+      <div class="cmd-palette-results" id="cmdPaletteResults" role="listbox">
+        <div class="cmd-palette-group-label">Pages</div>
+        <div class="cmd-palette-item active" role="option" data-href="/operator.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg>
+          <span class="cmd-palette-item-label">Console op&eacute;rateur</span>
+          <span class="cmd-palette-item-hint">Fiche s&eacute;ance</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/meetings.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+          <span class="cmd-palette-item-label">S&eacute;ances</span>
+          <span class="cmd-palette-item-hint">Gestion des s&eacute;ances</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/members.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+          <span class="cmd-palette-item-label">Membres</span>
+          <span class="cmd-palette-item-hint">Participants</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/vote.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
+          <span class="cmd-palette-item-label">Vote</span>
+          <span class="cmd-palette-item-hint">Interface de vote</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/analytics.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
+          <span class="cmd-palette-item-label">Statistiques</span>
+          <span class="cmd-palette-item-hint">Tableaux de bord</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/postsession.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg>
+          <span class="cmd-palette-item-label">Cl&ocirc;ture</span>
+          <span class="cmd-palette-item-hint">Post-session</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/trust.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg>
+          <span class="cmd-palette-item-label">Contr&ocirc;le &amp; Audit</span>
+          <span class="cmd-palette-item-hint">Confiance</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/admin.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
+          <span class="cmd-palette-item-label">Administration</span>
+          <span class="cmd-palette-item-hint">Param&egrave;tres</span>
+        </div>
+        <div class="cmd-palette-group-label">Actions</div>
+        <div class="cmd-palette-item" role="option" data-action="new-meeting">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
+          <span class="cmd-palette-item-label">Nouvelle s&eacute;ance</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-action="export-pv">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
+          <span class="cmd-palette-item-label">Exporter PV</span>
+        </div>
+      </div>
+      <div class="cmd-palette-footer">
+        <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> naviguer</span>
+        <span><kbd>Entr&eacute;e</kbd> ouvrir</span>
+        <span><kbd>Esc</kbd> fermer</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tour overlay (hidden, activated by tour trigger) -->
+  <div class="tour-overlay" id="tourOverlay" aria-hidden="true"></div>
+  <div class="tour-spotlight-ring" id="tourSpotlight" hidden></div>
+  <div class="tour-bubble" id="tourBubble" role="dialog" aria-modal="false" aria-label="Tour guid&eacute;" hidden data-position="bottom">
+    <div class="tour-bubble-header">
+      <span class="tour-bubble-step" id="tourStep">1/8</span>
+      <button class="tour-bubble-close" id="tourClose" aria-label="Fermer le tour">&times;</button>
+    </div>
+    <div class="tour-bubble-body">
+      <div class="tour-bubble-title" id="tourTitle">Bienvenue</div>
+      <div class="tour-bubble-text" id="tourText">D&eacute;couvrez les fonctionnalit&eacute;s de la console op&eacute;rateur.</div>
+    </div>
+    <div class="tour-bubble-footer">
+      <button class="btn btn-sm btn-ghost" id="tourPrev" aria-label="&Eacute;tape pr&eacute;c&eacute;dente">&larr; Pr&eacute;c.</button>
+      <div class="tour-progress">
+        <div class="tour-progress-bar" id="tourProgressBar" style="width: 12.5%"></div>
+      </div>
+      <button class="btn btn-sm btn-primary" id="tourNext" aria-label="&Eacute;tape suivante">Suiv. &rarr;</button>
+    </div>
+    <div class="tour-keyboard-hint">
+      <kbd>&larr;</kbd> <kbd>&rarr;</kbd> naviguer &middot; <kbd>Esc</kbd> fermer
     </div>
   </div>
 

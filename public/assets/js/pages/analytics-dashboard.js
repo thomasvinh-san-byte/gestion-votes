@@ -203,6 +203,32 @@
           });
         }
 
+        // Sessions by month (bar chart)
+        if (charts.sessionsByMonth) charts.sessionsByMonth.destroy();
+        const ctxMonth = document.getElementById('sessionsByMonthChart')?.getContext('2d');
+        if (ctxMonth) {
+          const monthCounts = {};
+          meetings.forEach(m => {
+            const d = m.date ? new Date(m.date) : null;
+            if (d) {
+              const key = d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+              monthCounts[key] = (monthCounts[key] || 0) + 1;
+            }
+          });
+          charts.sessionsByMonth = new Chart(ctxMonth, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(monthCounts),
+              datasets: [{
+                label: 'S\u00e9ances',
+                data: Object.values(monthCounts),
+                backgroundColor: COLORS.primary,
+              }]
+            },
+            options: { ...chartDefaults, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+          });
+        }
+
         // Table
         const tableContainer = document.getElementById('participationTable');
         if (meetings.length === 0) {
@@ -277,6 +303,27 @@
           });
         }
 
+        // Majority breakdown chart
+        if (charts.majority) charts.majority.destroy();
+        const ctxMaj = document.getElementById('majorityChart')?.getContext('2d');
+        if (ctxMaj) {
+          const majLabels = Object.keys(summary.by_majority || {});
+          const majValues = Object.values(summary.by_majority || {});
+          if (majLabels.length > 0) {
+            charts.majority = new Chart(ctxMaj, {
+              type: 'doughnut',
+              data: {
+                labels: majLabels,
+                datasets: [{
+                  data: majValues,
+                  backgroundColor: [COLORS.primary, COLORS.success, COLORS.warning, COLORS.info, COLORS.danger].slice(0, majLabels.length),
+                }]
+              },
+              options: chartDefaults
+            });
+          }
+        }
+
         // Trend chart
         if (charts.motionsTrend) charts.motionsTrend.destroy();
         const ctx2 = document.getElementById('motionsTrendChart')?.getContext('2d');
@@ -346,6 +393,24 @@
                 }
               }
             }
+          });
+        }
+        // Average duration by type
+        const byType = data.by_type || {};
+        if (charts.avgDuration) charts.avgDuration.destroy();
+        const ctxAvg = document.getElementById('avgDurationChart')?.getContext('2d');
+        if (ctxAvg && Object.keys(byType).length > 0) {
+          charts.avgDuration = new Chart(ctxAvg, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(byType),
+              datasets: [{
+                label: 'Dur\u00e9e moyenne (s)',
+                data: Object.values(byType).map(v => parseFloat(v) || 0),
+                backgroundColor: COLORS.warning,
+              }]
+            },
+            options: { ...chartDefaults, indexAxis: 'y', scales: { x: { beginAtZero: true } } }
           });
         }
       } catch (err) {

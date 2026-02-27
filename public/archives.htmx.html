@@ -4,14 +4,14 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Archives des séances - AG-VOTE">
   <title>Archives — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/archives.css">
 </head>
@@ -78,17 +78,25 @@
           </div>
         </div>
 
+        <!-- Type filter chips -->
+        <div class="filter-tabs mb-4" id="archiveTypeFilter">
+          <button class="filter-tab active" data-type="">Toutes</button>
+          <button class="filter-tab" data-type="ag_ordinaire">AG Ord.</button>
+          <button class="filter-tab" data-type="ag_extraordinaire">AG Extra.</button>
+          <button class="filter-tab" data-type="conseil">Conseil</button>
+        </div>
+
         <!-- Archives List -->
         <div class="card">
           <div class="card-header">
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="card-title">Séances archivées</h3>
-                <p class="card-description">Procès-verbaux figés et exports d'audit</p>
+                <h3 class="card-title">S&eacute;ances archiv&eacute;es</h3>
+                <p class="card-description">Proc&egrave;s-verbaux fig&eacute;s et exports d'audit</p>
               </div>
               <div class="flex gap-2 items-center">
-                <select class="form-input year-select" id="yearFilter">
-                  <option value="">Toutes années</option>
+                <select class="form-input year-select" id="yearFilter" aria-label="Filtrer par ann&eacute;e">
+                  <option value="">Toutes ann&eacute;es</option>
                 </select>
                 <input type="text" class="form-input archive-search-input" id="searchInput"
                        placeholder="Rechercher...">
@@ -124,6 +132,8 @@
                 <div class="spinner"></div>
               </div>
             </div>
+            <!-- Pagination -->
+            <div class="archives-pagination" id="archivesPagination"></div>
           </div>
         </div>
       </div>
@@ -132,7 +142,7 @@
 
   <!-- Drawer -->
   <div class="drawer-backdrop" data-drawer-close></div>
-  <aside class="drawer" id="drawer">
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Menu contextuel">
     <div class="drawer-header">
       <div id="drawerTitle" class="font-semibold">Menu</div>
       <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close aria-label="Fermer le panneau">✕</button>
@@ -178,6 +188,9 @@
         </button>
         <button class="btn btn-secondary" id="btnExportAudit">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-scroll"></use></svg> Audit (CSV)
+        </button>
+        <button class="btn btn-primary" id="btnExportZip" title="T&eacute;l&eacute;charger l'archive compl&egrave;te (ZIP)">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Archive ZIP
         </button>
       </div>
     </div>

@@ -219,7 +219,7 @@ class AgPopover extends HTMLElement {
           background: var(--color-surface, #fff);
           border: 1px solid var(--color-border, #d1d5db);
           border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,.1));
           font-size: 0.875rem;
           line-height: 1.5;
           color: var(--color-text, #1f2937);
@@ -375,9 +375,9 @@ class AgPopover extends HTMLElement {
 
         .default-trigger:hover,
         .default-trigger:focus {
-          background: var(--color-primary-subtle, #e0e7ff);
-          border-color: var(--color-primary, #4f46e5);
-          color: var(--color-primary, #4f46e5);
+          background: var(--color-primary-subtle, #e8edfa);
+          border-color: var(--color-primary, #1650E0);
+          color: var(--color-primary, #1650E0);
           outline: none;
         }
       </style>

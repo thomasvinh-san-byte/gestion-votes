@@ -272,12 +272,12 @@ class AgSearchableSelect extends HTMLElement {
         }
         .select-trigger:focus-within {
           outline: none;
-          border-color: var(--color-primary, #4f46e5);
+          border-color: var(--color-primary, #1650E0);
           background-color: var(--color-surface, #ffffff);
           /* No box-shadow - border change is the focus indicator */
         }
         .select-trigger.open {
-          border-color: var(--color-primary, #4f46e5);
+          border-color: var(--color-primary, #1650E0);
           border-bottom-left-radius: 0;
           border-bottom-right-radius: 0;
         }
@@ -313,7 +313,7 @@ class AgSearchableSelect extends HTMLElement {
           left: 0;
           right: 0;
           background: var(--color-surface, #ffffff);
-          border: 1px solid var(--color-primary, #4f46e5);
+          border: 1px solid var(--color-primary, #1650E0);
           border-top: none;
           border-radius: 0 0 var(--radius-md, 8px) var(--radius-md, 8px);
           box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.1));
@@ -347,7 +347,7 @@ class AgSearchableSelect extends HTMLElement {
         }
         .search-input:focus {
           outline: none;
-          border-color: var(--color-primary, #4f46e5);
+          border-color: var(--color-primary, #1650E0);
           background: var(--color-surface, #ffffff);
           box-shadow: none; /* No additional ring to prevent overflow */
         }

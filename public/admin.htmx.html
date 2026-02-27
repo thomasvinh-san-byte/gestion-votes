@@ -4,14 +4,14 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Administration — AG-VOTE">
   <title>Administration — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/admin.css">
 </head>
@@ -44,20 +44,190 @@
       <div class="container">
         <div id="notif_box" class="hidden mb-4"></div>
 
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- DASHBOARD OVERVIEW                         -->
+        <!-- ═══════════════════════════════════════════ -->
+
+        <!-- Onboarding Banner (dismissible) -->
+        <div class="ob-banner page-anim" id="obBanner" role="status">
+          <div class="ob-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <div class="ob-body">
+            <div class="ob-title">Bienvenue sur AG-VOTE</div>
+            <p class="text-sm text-secondary">Configurez votre premi&egrave;re s&eacute;ance en quelques &eacute;tapes : cr&eacute;ez les membres, d&eacute;finissez les politiques de quorum, puis lancez votre assembl&eacute;e.</p>
+          </div>
+          <div class="ob-actions">
+            <a href="/meetings.htmx.html" class="ob-btn-primary">Cr&eacute;er une s&eacute;ance</a>
+            <a href="/help.htmx.html" class="ob-btn-ghost">Guide rapide</a>
+          </div>
+          <button class="ob-close" id="obClose" aria-label="Fermer la banni&egrave;re" title="Fermer">&times;</button>
+        </div>
+
+        <!-- Urgent Action Card -->
+        <div class="card card-urgent mb-4 page-anim" id="urgentCard" style="display:none;">
+          <div class="card-body">
+            <div class="flex items-center gap-4">
+              <span class="urgent-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              </span>
+              <div class="flex-1">
+                <div class="font-semibold" id="urgentTitle">S&eacute;ance en attente de validation</div>
+                <div class="text-sm text-muted" id="urgentDesc">Une s&eacute;ance cl&ocirc;tur&eacute;e attend la validation du pr&eacute;sident.</div>
+              </div>
+              <a href="/postsession.htmx.html" class="btn btn-danger btn-sm" id="urgentAction">Valider maintenant</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 KPIs -->
+        <div class="dash-kpis mb-4">
+          <a href="/meetings.htmx.html" class="dash-kpi" id="kpiUpcoming">
+            <div class="dash-kpi-icon" style="background: var(--color-primary-subtle); color: var(--color-primary);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <div class="dash-kpi-value" id="kpiUpcomingVal">&mdash;</div>
+            <div class="dash-kpi-label">AG &agrave; venir</div>
+          </a>
+          <a href="/operator.htmx.html" class="dash-kpi" id="kpiLive">
+            <div class="dash-kpi-icon" style="background: var(--color-danger-subtle); color: var(--color-danger);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </div>
+            <div class="dash-kpi-value" id="kpiLiveVal">&mdash;</div>
+            <div class="dash-kpi-label">En cours</div>
+          </a>
+          <a href="/meetings.htmx.html" class="dash-kpi" id="kpiConvocations">
+            <div class="dash-kpi-icon" style="background: var(--color-warning-subtle); color: var(--color-warning);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            </div>
+            <div class="dash-kpi-value" id="kpiConvocationsVal">&mdash;</div>
+            <div class="dash-kpi-label">Convocations</div>
+          </a>
+          <a href="/postsession.htmx.html" class="dash-kpi" id="kpiPV">
+            <div class="dash-kpi-icon" style="background: var(--color-success-subtle); color: var(--color-success);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            </div>
+            <div class="dash-kpi-value" id="kpiPVVal">&mdash;</div>
+            <div class="dash-kpi-label">PV en attente</div>
+          </a>
+        </div>
+
+        <!-- 2-column grid: Sessions + Tasks -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <!-- Prochaines séances -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Prochaines s&eacute;ances</h3>
+            </div>
+            <div class="card-body p-0" id="dashUpcomingSessions">
+              <div class="irow">
+                <div class="irow-body">
+                  <div class="skeleton skeleton-line" style="width:60%"></div>
+                  <div class="skeleton skeleton-line" style="width:40%;margin-top:4px"></div>
+                </div>
+              </div>
+              <div class="irow">
+                <div class="irow-body">
+                  <div class="skeleton skeleton-line" style="width:50%"></div>
+                  <div class="skeleton skeleton-line" style="width:35%;margin-top:4px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Tâches en attente -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">T&acirc;ches en attente</h3>
+            </div>
+            <div class="card-body p-0" id="dashPendingTasks">
+              <div class="irow">
+                <div class="irow-body">
+                  <div class="skeleton skeleton-line" style="width:55%"></div>
+                  <div class="skeleton skeleton-line" style="width:30%;margin-top:4px"></div>
+                </div>
+              </div>
+              <div class="irow">
+                <div class="irow-body">
+                  <div class="skeleton skeleton-line" style="width:65%"></div>
+                  <div class="skeleton skeleton-line" style="width:45%;margin-top:4px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Shortcuts -->
+        <div class="dash-shortcuts mb-6">
+          <a href="/meetings.htmx.html" class="dash-shortcut">
+            <div class="dash-shortcut-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </div>
+            <div>
+              <div class="dash-shortcut-title">Cr&eacute;er une s&eacute;ance</div>
+              <div class="text-xs text-muted">Nouvelle assembl&eacute;e</div>
+            </div>
+          </a>
+          <a href="/operator.htmx.html" class="dash-shortcut">
+            <div class="dash-shortcut-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </div>
+            <div>
+              <div class="dash-shortcut-title">Piloter un vote</div>
+              <div class="text-xs text-muted">S&eacute;ance en direct</div>
+            </div>
+          </a>
+          <a href="/trust.htmx.html" class="dash-shortcut">
+            <div class="dash-shortcut-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <div>
+              <div class="dash-shortcut-title">Consulter l'audit</div>
+              <div class="text-xs text-muted">Journal et v&eacute;rifications</div>
+            </div>
+          </a>
+        </div>
+
+        <hr class="mb-6" style="border-color: var(--color-border);">
+
         <!-- Tabs -->
         <div class="admin-tabs" role="tablist" aria-label="Sections d'administration">
           <button class="admin-tab active" data-tab="users" role="tab" aria-selected="true" aria-controls="panel-users" id="tab-users">Utilisateurs</button>
           <button class="admin-tab" data-tab="meeting-roles" role="tab" aria-selected="false" aria-controls="panel-meeting-roles" id="tab-meeting-roles">Rôles de séance</button>
           <button class="admin-tab" data-tab="policies" role="tab" aria-selected="false" aria-controls="panel-policies" id="tab-policies">Politiques</button>
           <button class="admin-tab" data-tab="roles" role="tab" aria-selected="false" aria-controls="panel-roles" id="tab-roles">Permissions</button>
-          <button class="admin-tab" data-tab="states" role="tab" aria-selected="false" aria-controls="panel-states" id="tab-states">Machine à états</button>
-          <button class="admin-tab" data-tab="system" role="tab" aria-selected="false" aria-controls="panel-system" id="tab-system">Système</button>
+          <button class="admin-tab" data-tab="states" role="tab" aria-selected="false" aria-controls="panel-states" id="tab-states">Machine &agrave; &eacute;tats</button>
+          <button class="admin-tab" data-tab="settings" role="tab" aria-selected="false" aria-controls="panel-settings" id="tab-settings">Param&egrave;tres</button>
+          <button class="admin-tab" data-tab="system" role="tab" aria-selected="false" aria-controls="panel-system" id="tab-system">Syst&egrave;me</button>
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
         <!-- TAB 1 : UTILISATEURS                      -->
         <!-- ═══════════════════════════════════════════ -->
         <div class="admin-panel active" id="panel-users" role="tabpanel" aria-labelledby="tab-users">
+          <!-- Roles explanation panel -->
+          <div class="card mb-4 roles-explainer">
+            <div class="card-body">
+              <div class="roles-explainer-grid">
+                <div class="role-explain">
+                  <span class="tag tag-accent">Admin</span>
+                  <span class="text-xs text-muted">Acc&egrave;s complet au syst&egrave;me</span>
+                </div>
+                <div class="role-explain">
+                  <span class="tag tag-success">Op&eacute;rateur</span>
+                  <span class="text-xs text-muted">Gestion des s&eacute;ances et votes</span>
+                </div>
+                <div class="role-explain">
+                  <span class="tag tag-purple">Auditeur</span>
+                  <span class="text-xs text-muted">Consultation audit et contr&ocirc;le</span>
+                </div>
+                <div class="role-explain">
+                  <span class="tag">Observateur</span>
+                  <span class="text-xs text-muted">Acc&egrave;s en lecture seule</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Create user form -->
           <div class="card mb-4">
             <div class="card-header">
@@ -109,7 +279,7 @@
                   <input class="form-input" type="text" id="searchUser" placeholder="Nom ou email...">
                 </div>
                 <div class="form-group form-group-filter">
-                  <label class="form-label">Filtrer par rôle</label>
+                  <label class="form-label" for="filterRole">Filtrer par r&ocirc;le</label>
                   <select class="form-input" id="filterRole">
                     <option value="">Tous les rôles</option>
                     <option value="admin">Administrateur</option>
@@ -161,7 +331,7 @@
                   ></ag-searchable-select>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Rôle</label>
+                  <label class="form-label" for="mrRole">R&ocirc;le</label>
                   <select class="form-input" id="mrRole">
                     <option value="voter">Électeur</option>
                     <option value="assessor">Assesseur</option>
@@ -323,7 +493,454 @@
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 6 : SYSTÈME                           -->
+        <!-- TAB 6 : PARAMÈTRES                        -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="admin-panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings">
+          <!-- Settings sub-tabs -->
+          <div class="settings-tabs" role="tablist" aria-label="Onglets param&egrave;tres">
+            <button class="settings-tab active" data-stab="vote-rules" role="tab" aria-selected="true">R&egrave;gles de vote</button>
+            <button class="settings-tab" data-stab="distribution-keys" role="tab">Cl&eacute;s de r&eacute;partition</button>
+            <button class="settings-tab" data-stab="security" role="tab">S&eacute;curit&eacute;</button>
+            <button class="settings-tab" data-stab="mail" role="tab">Courrier</button>
+            <button class="settings-tab" data-stab="general" role="tab">G&eacute;n&eacute;ral</button>
+            <button class="settings-tab" data-stab="accessibility" role="tab">Accessibilit&eacute;</button>
+          </div>
+
+          <!-- ─── Règles de vote ─── -->
+          <div class="settings-panel active" id="stab-vote-rules">
+            <div class="card mb-4">
+              <div class="card-header">
+                <h3 class="card-title">Types de majorit&eacute;</h3>
+                <p class="card-description">Art. 24, 25, 26, 26-1 et passerelle 25-1</p>
+              </div>
+              <div class="card-body">
+                <div class="settings-majority-grid" id="majorityTypes">
+                  <div class="settings-majority-card">
+                    <div class="settings-majority-article">Art. 24</div>
+                    <div class="settings-majority-title">Majorit&eacute; simple</div>
+                    <div class="settings-majority-desc">Majorit&eacute; des voix exprim&eacute;es des pr&eacute;sents et repr&eacute;sent&eacute;s</div>
+                  </div>
+                  <div class="settings-majority-card">
+                    <div class="settings-majority-article">Art. 25</div>
+                    <div class="settings-majority-title">Majorit&eacute; absolue</div>
+                    <div class="settings-majority-desc">Majorit&eacute; des voix de tous les copropri&eacute;taires</div>
+                  </div>
+                  <div class="settings-majority-card">
+                    <div class="settings-majority-article">Art. 25-1</div>
+                    <div class="settings-majority-title">Passerelle</div>
+                    <div class="settings-majority-desc">Si 1/3 atteint &agrave; l'art. 25, revote &agrave; l'art. 24</div>
+                  </div>
+                  <div class="settings-majority-card">
+                    <div class="settings-majority-article">Art. 26</div>
+                    <div class="settings-majority-title">Double majorit&eacute;</div>
+                    <div class="settings-majority-desc">2/3 des voix de tous les copropri&eacute;taires</div>
+                  </div>
+                  <div class="settings-majority-card">
+                    <div class="settings-majority-article">Art. 26-1</div>
+                    <div class="settings-majority-title">Unanimit&eacute;</div>
+                    <div class="settings-majority-desc">Tous les copropri&eacute;taires doivent voter pour</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="flex items-center justify-between">
+                  <div><h3 class="card-title">Politiques de quorum</h3><p class="card-description">Seuils de pr&eacute;sence requis pour la validit&eacute; des votes</p></div>
+                  <button class="btn btn-primary btn-sm" id="btnAddQuorumPolicy">Cr&eacute;er une politique</button>
+                </div>
+              </div>
+              <div class="card-body" id="settingsQuorumList">
+                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─── Clés de répartition ─── -->
+          <div class="settings-panel" id="stab-distribution-keys" hidden>
+            <div class="card">
+              <div class="card-header">
+                <div class="flex items-center justify-between">
+                  <div><h3 class="card-title">Cl&eacute;s de r&eacute;partition</h3><p class="card-description">D&eacute;finit la pond&eacute;ration des voix par lot</p></div>
+                  <button class="btn btn-primary btn-sm" id="btnAddKey">Ajouter une cl&eacute;</button>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <table class="users-table" id="distributionKeysTable">
+                  <thead>
+                    <tr>
+                      <th>Cl&eacute;</th>
+                      <th>Lots</th>
+                      <th>Base</th>
+                      <th>Total tanti&egrave;mes</th>
+                      <th>D&eacute;faut</th>
+                      <th class="table-col-actions-sm">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="distributionKeysBody">
+                    <tr>
+                      <td>G&eacute;n&eacute;ral</td>
+                      <td>120</td>
+                      <td>Tanti&egrave;mes</td>
+                      <td>10 000</td>
+                      <td><span class="badge badge-success">Oui</span></td>
+                      <td><button class="btn btn-ghost btn-xs">Modifier</button></td>
+                    </tr>
+                    <tr>
+                      <td>Ascenseur</td>
+                      <td>85</td>
+                      <td>Tanti&egrave;mes</td>
+                      <td>7 200</td>
+                      <td><span class="badge">Non</span></td>
+                      <td><button class="btn btn-ghost btn-xs">Modifier</button></td>
+                    </tr>
+                    <tr>
+                      <td>Chauffage</td>
+                      <td>120</td>
+                      <td>Tanti&egrave;mes</td>
+                      <td>10 000</td>
+                      <td><span class="badge">Non</span></td>
+                      <td><button class="btn btn-ghost btn-xs">Modifier</button></td>
+                    </tr>
+                    <tr>
+                      <td>Parking</td>
+                      <td>32</td>
+                      <td>Tanti&egrave;mes</td>
+                      <td>3 200</td>
+                      <td><span class="badge">Non</span></td>
+                      <td><button class="btn btn-ghost btn-xs">Modifier</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─── Sécurité ─── -->
+          <div class="settings-panel" id="stab-security" hidden>
+            <div class="card mb-4">
+              <div class="card-header"><h3 class="card-title">Niveau de protection CNIL</h3></div>
+              <div class="card-body">
+                <div class="settings-cnil-levels">
+                  <label class="settings-level-card selected">
+                    <input type="radio" name="cnilLevel" value="1" checked>
+                    <span class="settings-level-num">1</span>
+                    <span class="settings-level-title">Standard</span>
+                    <span class="settings-level-desc">S&eacute;paration identit&eacute;/bulletin, chiffrement AES-256</span>
+                  </label>
+                  <label class="settings-level-card">
+                    <input type="radio" name="cnilLevel" value="2">
+                    <span class="settings-level-num">2</span>
+                    <span class="settings-level-title">Renforc&eacute;</span>
+                    <span class="settings-level-desc">Niveau 1 + double authentification + horodatage certifi&eacute;</span>
+                  </label>
+                  <label class="settings-level-card">
+                    <input type="radio" name="cnilLevel" value="3">
+                    <span class="settings-level-num">3</span>
+                    <span class="settings-level-title">Maximum</span>
+                    <span class="settings-level-desc">Niveau 2 + urne scell&eacute;e + preuve &agrave; divulgation nulle</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Param&egrave;tres de s&eacute;curit&eacute;</h3></div>
+              <div class="card-body">
+                <div class="settings-form-grid">
+                  <div class="form-group">
+                    <label class="form-label">Plafond procurations</label>
+                    <input class="form-input" type="number" id="settMaxProxies" value="3" min="1" max="10">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">D&eacute;lai contestation (jours)</label>
+                    <input class="form-input" type="number" id="settContestDelay" value="60" min="1">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">2e convocation (jours apr&egrave;s 1re)</label>
+                    <input class="form-input" type="number" id="settSecondConv" value="7" min="1">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Dur&eacute;e lien de vote (heures)</label>
+                    <input class="form-input" type="number" id="settVoteLinkDuration" value="48" min="1">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label form-label-toggle">
+                      <input type="checkbox" id="settSeparation" checked>
+                      S&eacute;paration identit&eacute;/bulletin
+                    </label>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label form-label-toggle">
+                      <input type="checkbox" id="settDoubleVote">
+                      Bloquer double vote
+                    </label>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label form-label-toggle">
+                      <input type="checkbox" id="settDoubleAuth">
+                      Double authentification obligatoire
+                    </label>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <button class="btn btn-primary" id="btnSaveSecuritySettings">Enregistrer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─── Courrier ─── -->
+          <div class="settings-panel" id="stab-mail" hidden>
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Templates email</h3>
+                <p class="card-description">5 mod&egrave;les personnalisables avec variables dynamiques</p>
+              </div>
+              <div class="card-body p-0">
+                <div class="settings-template-list" id="emailTemplateList">
+                  <div class="settings-template-item active">
+                    <div class="settings-template-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    </div>
+                    <div class="settings-template-info">
+                      <div class="settings-template-name">Convocation</div>
+                      <div class="settings-template-desc">Envoi initial de la convocation &agrave; l'assembl&eacute;e</div>
+                    </div>
+                    <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
+                  </div>
+                  <div class="settings-template-item">
+                    <div class="settings-template-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="settings-template-info">
+                      <div class="settings-template-name">Rappel</div>
+                      <div class="settings-template-desc">Rappel avant la date de l'assembl&eacute;e</div>
+                    </div>
+                    <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
+                  </div>
+                  <div class="settings-template-item">
+                    <div class="settings-template-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    </div>
+                    <div class="settings-template-info">
+                      <div class="settings-template-name">R&eacute;sultats</div>
+                      <div class="settings-template-desc">Communication des r&eacute;sultats de vote</div>
+                    </div>
+                    <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
+                  </div>
+                  <div class="settings-template-item">
+                    <div class="settings-template-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
+                    <div class="settings-template-info">
+                      <div class="settings-template-name">Proc&egrave;s-verbal</div>
+                      <div class="settings-template-desc">Envoi du PV apr&egrave;s validation</div>
+                    </div>
+                    <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
+                  </div>
+                  <div class="settings-template-item">
+                    <div class="settings-template-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <div class="settings-template-info">
+                      <div class="settings-template-name">Mise en demeure</div>
+                      <div class="settings-template-desc">Relance pour copropri&eacute;taires en retard de paiement</div>
+                    </div>
+                    <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Template editor (shown when editing) -->
+            <div class="card mt-4" id="templateEditor" hidden>
+              <div class="card-header">
+                <h3 class="card-title" id="templateEditorTitle">&Eacute;diter le template</h3>
+              </div>
+              <div class="card-body">
+                <div class="form-group mb-3">
+                  <label class="form-label">Objet</label>
+                  <input class="form-input" type="text" id="templateSubject" placeholder="Objet de l'email...">
+                </div>
+                <div class="form-group mb-3">
+                  <label class="form-label">Corps</label>
+                  <textarea class="form-input" id="templateBody" rows="10" placeholder="Contenu HTML du template..."></textarea>
+                </div>
+                <div class="form-group mb-3">
+                  <label class="form-label">Variables disponibles</label>
+                  <div class="flex flex-wrap gap-1">
+                    <code class="text-xs">{{nom}}</code>
+                    <code class="text-xs">{{date}}</code>
+                    <code class="text-xs">{{heure}}</code>
+                    <code class="text-xs">{{lieu}}</code>
+                    <code class="text-xs">{{syndic}}</code>
+                    <code class="text-xs">{{lien_vote}}</code>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button class="btn btn-primary" id="btnSaveTemplate">Enregistrer</button>
+                  <button class="btn btn-secondary" id="btnCancelTemplate">Annuler</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─── Général ─── -->
+          <div class="settings-panel" id="stab-general" hidden>
+            <div class="card mb-4">
+              <div class="card-header"><h3 class="card-title">Param&egrave;tres g&eacute;n&eacute;raux</h3></div>
+              <div class="card-body">
+                <div class="settings-form-grid">
+                  <div class="form-group">
+                    <label class="form-label" for="settTimezone">Fuseau horaire</label>
+                    <select class="form-input" id="settTimezone">
+                      <option value="Europe/Paris" selected>Europe/Paris (UTC+1)</option>
+                      <option value="Europe/Brussels">Europe/Brussels (UTC+1)</option>
+                      <option value="Europe/Zurich">Europe/Zurich (UTC+1)</option>
+                      <option value="America/Guadeloupe">Am&eacute;rique/Guadeloupe (UTC-4)</option>
+                      <option value="Indian/Reunion">Oc&eacute;an Indien/R&eacute;union (UTC+4)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="settSupportEmail">Email support</label>
+                    <input class="form-input" type="email" id="settSupportEmail" placeholder="support@syndic.fr">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card mb-4">
+              <div class="card-header"><h3 class="card-title">SMTP</h3></div>
+              <div class="card-body">
+                <div class="settings-form-grid">
+                  <div class="form-group">
+                    <label class="form-label">Serveur SMTP</label>
+                    <input class="form-input" type="text" id="settSmtpHost" placeholder="smtp.exemple.fr">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Port</label>
+                    <input class="form-input" type="number" id="settSmtpPort" value="587">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Utilisateur</label>
+                    <input class="form-input" type="text" id="settSmtpUser" placeholder="noreply@syndic.fr">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Mot de passe</label>
+                    <input class="form-input" type="password" id="settSmtpPass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <button class="btn btn-secondary btn-sm" id="btnTestSmtp">Tester la connexion</button>
+                </div>
+              </div>
+            </div>
+            <div class="card mb-4">
+              <div class="card-header"><h3 class="card-title">Logo &amp; Identit&eacute;</h3></div>
+              <div class="card-body">
+                <div class="flex items-center gap-4">
+                  <div class="settings-logo-preview" id="logoPreview">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </div>
+                  <div>
+                    <input class="form-input" type="file" id="settLogo" accept="image/*">
+                    <p class="text-xs text-muted mt-1">PNG ou SVG, max 500 Ko</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card card-danger">
+              <div class="card-header"><h3 class="card-title">RGPD</h3></div>
+              <div class="card-body">
+                <div class="flex items-center justify-between gap-4 mb-3">
+                  <div>
+                    <div class="font-semibold">Exporter toutes les donn&eacute;es</div>
+                    <div class="text-sm text-muted">T&eacute;l&eacute;charger un export complet au format JSON</div>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" id="btnExportData">Exporter</button>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <div>
+                    <div class="font-semibold text-danger">Supprimer mon compte</div>
+                    <div class="text-sm text-muted">Action irr&eacute;versible. Toutes les donn&eacute;es seront supprim&eacute;es.</div>
+                  </div>
+                  <button class="btn btn-danger btn-sm" id="btnDeleteAccount">Supprimer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ─── Accessibilité ─── -->
+          <div class="settings-panel" id="stab-accessibility" hidden>
+            <div class="card mb-4">
+              <div class="card-header">
+                <h3 class="card-title">D&eacute;claration d'accessibilit&eacute;</h3>
+                <p class="card-description">Conformit&eacute; RGAA 4.1 / WCAG 2.2 niveau AA</p>
+              </div>
+              <div class="card-body">
+                <div class="settings-a11y-score">
+                  <div class="settings-a11y-ring">
+                    <svg viewBox="0 0 120 120" width="120" height="120">
+                      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-border)" stroke-width="10"/>
+                      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-success)" stroke-width="10"
+                        stroke-dasharray="305 314" stroke-dashoffset="-78.5"
+                        transform="rotate(-90 60 60)"/>
+                    </svg>
+                    <span class="settings-a11y-pct">97%</span>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-success">Partiellement conforme</div>
+                    <div class="text-sm text-muted mt-1">97 crit&egrave;res sur 100 valid&eacute;s</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card mb-4">
+              <div class="card-header"><h3 class="card-title">Audits r&eacute;alis&eacute;s</h3></div>
+              <div class="card-body p-0">
+                <table class="users-table">
+                  <thead>
+                    <tr><th>Date</th><th>R&eacute;f&eacute;rentiel</th><th>Score</th><th>Auditeur</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>15/01/2026</td>
+                      <td>RGAA 4.1</td>
+                      <td><span class="badge badge-success">97%</span></td>
+                      <td>Audit interne</td>
+                    </tr>
+                    <tr>
+                      <td>10/06/2025</td>
+                      <td>WCAG 2.2 AA</td>
+                      <td><span class="badge badge-success">95%</span></td>
+                      <td>Prestataire externe</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Non-conformit&eacute;s r&eacute;siduelles</h3></div>
+              <div class="card-body">
+                <div class="settings-nc-list">
+                  <div class="settings-nc-item">
+                    <span class="badge badge-warning">Mineure</span>
+                    <span class="text-sm">Contraste insuffisant sur les placeholders des champs de saisie (ratio 3.8:1 au lieu de 4.5:1)</span>
+                  </div>
+                  <div class="settings-nc-item">
+                    <span class="badge badge-warning">Mineure</span>
+                    <span class="text-sm">Graphiques Chart.js : alternatives textuelles manquantes (donn&eacute;es accessibles via tableau masqu&eacute;)</span>
+                  </div>
+                  <div class="settings-nc-item">
+                    <span class="badge badge-warning">Mineure</span>
+                    <span class="text-sm">Focus visible insuffisant sur certains boutons d'ic&ocirc;ne dans le header en th&egrave;me sombre</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- TAB 7 : SYSTÈME                           -->
         <!-- ═══════════════════════════════════════════ -->
         <div class="admin-panel" id="panel-system" role="tabpanel" aria-labelledby="tab-system">
           <div class="admin-health-strip">

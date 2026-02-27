@@ -4,14 +4,14 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Aide et FAQ - AG-VOTE">
   <title>Aide &amp; FAQ — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/help.css">
 </head>
@@ -26,41 +26,76 @@
 
     <main class="app-main help-main">
       <div class="help-content">
-        <!-- Quick links (role-based visibility) -->
-        <div class="quick-links">
-          <a href="/meetings.htmx.html" class="quick-link" data-required-role="admin,operator">
-            <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></div>
-            <div>
-              <div class="quick-link-text">Gérer les séances</div>
-              <div class="quick-link-desc">Créer et gérer vos réunions</div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- GUIDED TOUR CARDS (7 pages)                -->
+        <!-- ═══════════════════════════════════════════ -->
+        <h2 class="help-section-heading">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
+          Tour guid&eacute;
+        </h2>
+        <div class="tour-grid">
+          <a href="/meetings.htmx.html?tour=1" class="tour-card" data-required-role="admin,operator">
+            <div class="tour-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <div class="tour-body">
+              <div class="tour-name">S&eacute;ances</div>
+              <div class="tour-meta">5 &eacute;tapes &middot; 3 min</div>
             </div>
           </a>
-          <a href="/members.htmx.html" class="quick-link" data-required-role="admin,operator">
-            <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-users"></use></svg></div>
-            <div>
-              <div class="quick-link-text">Gérer les membres</div>
-              <div class="quick-link-desc">Membres et groupes</div>
+          <a href="/members.htmx.html?tour=1" class="tour-card" data-required-role="admin,operator">
+            <div class="tour-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <div class="tour-body">
+              <div class="tour-name">Membres</div>
+              <div class="tour-meta">4 &eacute;tapes &middot; 2 min</div>
             </div>
           </a>
-          <a href="/operator.htmx.html" class="quick-link" data-required-role="admin,operator">
-            <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-file-text"></use></svg></div>
-            <div>
-              <div class="quick-link-text">Conduire une séance</div>
-              <div class="quick-link-desc">Présences, votes, résultats</div>
+          <a href="/operator.htmx.html?tour=1" class="tour-card" data-required-role="admin,operator">
+            <div class="tour-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </div>
+            <div class="tour-body">
+              <div class="tour-name">Op&eacute;rateur</div>
+              <div class="tour-meta">6 &eacute;tapes &middot; 4 min</div>
             </div>
           </a>
-          <a href="/trust.htmx.html" class="quick-link" data-required-role="admin,auditor,assessor">
-            <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-shield-check"></use></svg></div>
-            <div>
-              <div class="quick-link-text">Audit et contrôle</div>
-              <div class="quick-link-desc">Journal et vérifications</div>
+          <a href="/vote.htmx.html?tour=1" class="tour-card">
+            <div class="tour-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path><path d="m9 13 2 2 4-4"></path></svg>
+            </div>
+            <div class="tour-body">
+              <div class="tour-name">Vote</div>
+              <div class="tour-meta">3 &eacute;tapes &middot; 2 min</div>
             </div>
           </a>
-          <a href="/vote.htmx.html" class="quick-link" data-required-role="voter,president,admin,operator">
-            <div class="quick-link-icon"><svg class="icon"><use href="/assets/icons.svg#icon-vote"></use></svg></div>
-            <div>
-              <div class="quick-link-text">Voter</div>
-              <div class="quick-link-desc">Accéder à l'interface de vote</div>
+          <a href="/postsession.htmx.html?tour=1" class="tour-card" data-required-role="admin,operator">
+            <div class="tour-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            </div>
+            <div class="tour-body">
+              <div class="tour-name">Post-s&eacute;ance</div>
+              <div class="tour-meta">4 &eacute;tapes &middot; 3 min</div>
+            </div>
+          </a>
+          <a href="/trust.htmx.html?tour=1" class="tour-card" data-required-role="admin,auditor">
+            <div class="tour-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+            </div>
+            <div class="tour-body">
+              <div class="tour-name">Audit</div>
+              <div class="tour-meta">3 &eacute;tapes &middot; 2 min</div>
+            </div>
+          </a>
+          <a href="/admin.htmx.html?tour=1" class="tour-card" data-required-role="admin">
+            <div class="tour-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <div class="tour-body">
+              <div class="tour-name">Administration</div>
+              <div class="tour-meta">5 &eacute;tapes &middot; 3 min</div>
             </div>
           </a>
         </div>
@@ -194,21 +229,21 @@
           <div class="faq-section" data-category="vote">
             <div class="faq-section-title">
               <svg class="icon"><use href="/assets/icons.svg#icon-vote"></use></svg>
-              Vote électronique
+              Vote &eacute;lectronique
             </div>
 
             <div class="faq-item" data-search="vote electronique token">
               <div class="faq-question">
-                <span>Comment fonctionne le vote électronique ?</span>
+                <span>Comment fonctionne le vote &eacute;lectronique ?</span>
                 <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
               </div>
               <div class="faq-answer">
                 <ol>
-                  <li>L'opérateur génère des tokens de vote (un par votant)</li>
-                  <li>Chaque votant reçoit un lien unique (QR code ou URL)</li>
-                  <li>Le votant accède à la page de vote, choisit son vote et confirme</li>
-                  <li>Le token est consommé (anti-rejeu) - impossible de voter deux fois</li>
-                  <li>Le bulletin est enregistré avec le poids du votant</li>
+                  <li>L'op&eacute;rateur g&eacute;n&egrave;re des tokens de vote (un par votant)</li>
+                  <li>Chaque votant re&ccedil;oit un lien unique (QR code ou URL)</li>
+                  <li>Le votant acc&egrave;de &agrave; la page de vote, choisit son vote et confirme</li>
+                  <li>Le token est consomm&eacute; (anti-rejeu) &mdash; impossible de voter deux fois</li>
+                  <li>Le bulletin est enregistr&eacute; avec le poids du votant</li>
                 </ol>
               </div>
             </div>
@@ -219,13 +254,49 @@
                 <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
               </div>
               <div class="faq-answer">
-                Un membre (mandant) peut donner sa procuration à un autre membre (mandataire). Règles :
+                Un membre (mandant) peut donner sa procuration &agrave; un autre membre (mandataire). R&egrave;gles :
                 <ul>
-                  <li>Un membre ne peut pas se donner procuration à lui-même</li>
-                  <li>Pas de chaînes : si B a déjà délégué à C, A ne peut pas déléguer à B</li>
+                  <li>Un membre ne peut pas se donner procuration &agrave; lui-m&ecirc;me</li>
+                  <li>Pas de cha&icirc;nes : si B a d&eacute;j&agrave; d&eacute;l&eacute;gu&eacute; &agrave; C, A ne peut pas d&eacute;l&eacute;guer &agrave; B</li>
                   <li>Plafond configurable de procurations par mandataire</li>
                 </ul>
-                Le mandataire vote pour lui-même et pour ses mandants.
+                Le mandataire vote pour lui-m&ecirc;me et pour ses mandants.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="majorite simple absolue deux tiers">
+              <div class="faq-question">
+                <span>Quels types de majorit&eacute; sont support&eacute;s ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                <ul>
+                  <li><strong>Majorit&eacute; simple</strong> : plus de voix Pour que Contre (abstentions ignor&eacute;es)</li>
+                  <li><strong>Majorit&eacute; absolue</strong> : plus de 50% des voix exprim&eacute;es</li>
+                  <li><strong>Majorit&eacute; des 2/3</strong> : au moins 66,67% des voix exprim&eacute;es</li>
+                  <li><strong>Unanimit&eacute;</strong> : 100% des voix Pour</li>
+                </ul>
+                Chaque r&eacute;solution peut avoir sa propre politique de majorit&eacute;.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="vote secret bulletin anonyme">
+              <div class="faq-question">
+                <span>Le vote est-il secret ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Le vote &eacute;lectronique est enregistr&eacute; de mani&egrave;re tra&ccedil;able (qui a vot&eacute; quoi) pour garantir l'int&eacute;grit&eacute;. Si un vote &agrave; bulletin secret est requis, utilisez le mode &laquo; saisie manuelle &raquo; o&ugrave; l'op&eacute;rateur saisit uniquement les totaux, sans relier chaque bulletin &agrave; un votant.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="modifier changer vote correction">
+              <div class="faq-question">
+                <span>Un votant peut-il modifier son vote ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Non. Une fois le vote confirm&eacute;, le token est consomm&eacute; et le bulletin est d&eacute;finitif. Cela garantit l'anti-rejeu et l'int&eacute;grit&eacute;. En cas d'erreur, l'op&eacute;rateur peut enregistrer une correction manuelle avec justification.
               </div>
             </div>
           </div>
@@ -276,7 +347,27 @@
                 <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
               </div>
               <div class="faq-answer">
-                Le poids de vote (ou tantièmes) détermine l'importance du vote d'un membre. Par défaut, chaque membre a un poids de 1. Utile pour les copropriétés où le vote est pondéré par les tantièmes.
+                Le poids de vote (ou tanti&egrave;mes) d&eacute;termine l'importance du vote d'un membre. Par d&eacute;faut, chaque membre a un poids de 1. Utile pour les copropri&eacute;t&eacute;s o&ugrave; le vote est pond&eacute;r&eacute; par les tanti&egrave;mes.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="supprimer desactiver membre">
+              <div class="faq-question">
+                <span>Peut-on supprimer un membre ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Un membre ne peut pas &ecirc;tre supprim&eacute; s'il a particip&eacute; &agrave; au moins une s&eacute;ance (pour conserver l'historique). Vous pouvez le <strong>d&eacute;sactiver</strong>, ce qui l'exclut des futures s&eacute;ances sans perdre les donn&eacute;es pass&eacute;es.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="email notification convocation invitation">
+              <div class="faq-question">
+                <span>Comment envoyer les convocations par email ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Dans la page S&eacute;ances, ouvrez la s&eacute;ance concern&eacute;e et cliquez sur <strong>Envoyer les convocations</strong>. L'application utilise le serveur SMTP configur&eacute; pour envoyer un email personnalis&eacute; &agrave; chaque membre actif avec l'ordre du jour et les informations de connexion.
               </div>
             </div>
           </div>
@@ -314,16 +405,60 @@
                 <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
               </div>
               <div class="faq-answer">
-                <ul>
-                  <li><strong>PV</strong> : Procès-Verbal HTML/PDF (après validation)</li>
-                  <li><strong>Présences CSV</strong> : Liste des pointages</li>
-                  <li><strong>Votes CSV</strong> : Détail des votes par résolution</li>
-                  <li><strong>Résultats CSV</strong> : Synthèse des résultats</li>
-                  <li><strong>Membres CSV</strong> : Registre des membres</li>
-                  <li><strong>Audit CSV</strong> : Journal d'audit complet</li>
-                </ul>
+                Consultez le <a href="#exports-table">tableau des exports</a> ci-dessous pour la liste compl&egrave;te des formats et disponibilit&eacute;s.
               </div>
             </div>
+
+            <div class="faq-item" data-search="csrf token securite requete">
+              <div class="faq-question">
+                <span>Comment les requ&ecirc;tes sont-elles prot&eacute;g&eacute;es ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Chaque requ&ecirc;te de modification inclut un token CSRF g&eacute;n&eacute;r&eacute; par session. Ce token est v&eacute;rifi&eacute; c&ocirc;t&eacute; serveur avant toute &eacute;criture. Les en-t&ecirc;tes de s&eacute;curit&eacute; (CSP, X-Frame-Options, HSTS) sont &eacute;galement activ&eacute;s.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="sauvegarde backup restauration">
+              <div class="faq-question">
+                <span>Existe-t-il un syst&egrave;me de sauvegarde ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                La sauvegarde de la base PostgreSQL est &agrave; la charge de l'administrateur syst&egrave;me. Nous recommandons <code>pg_dump</code> quotidien avec rotation. Les exports CSV et PV fournissent une copie de secours des donn&eacute;es m&eacute;tier.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- EXPORTS REFERENCE TABLE                    -->
+        <!-- ═══════════════════════════════════════════ -->
+        <h2 class="help-section-heading" id="exports-table">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+          Exports de r&eacute;f&eacute;rence
+        </h2>
+        <div class="card mb-4">
+          <div class="card-body p-0">
+            <table class="exports-table">
+              <thead>
+                <tr>
+                  <th scope="col">Type</th>
+                  <th scope="col">Format</th>
+                  <th scope="col">Disponibilit&eacute;</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Proc&egrave;s-verbal</td><td><span class="tag tag-accent">HTML / PDF</span></td><td>Apr&egrave;s validation</td></tr>
+                <tr><td>Feuille de pr&eacute;sence</td><td><span class="tag">CSV</span></td><td>S&eacute;ance live ou cl&ocirc;tur&eacute;e</td></tr>
+                <tr><td>D&eacute;tail des votes</td><td><span class="tag">CSV</span></td><td>S&eacute;ance cl&ocirc;tur&eacute;e</td></tr>
+                <tr><td>R&eacute;sultats synth&egrave;se</td><td><span class="tag">CSV</span></td><td>S&eacute;ance cl&ocirc;tur&eacute;e</td></tr>
+                <tr><td>Registre des membres</td><td><span class="tag">CSV</span></td><td>Toujours</td></tr>
+                <tr><td>Journal d'audit</td><td><span class="tag">CSV</span></td><td>Toujours</td></tr>
+                <tr><td>Rapport d'int&eacute;grit&eacute;</td><td><span class="tag tag-success">JSON</span></td><td>S&eacute;ance valid&eacute;e</td></tr>
+                <tr><td>Archive compl&egrave;te</td><td><span class="tag tag-purple">ZIP</span></td><td>S&eacute;ance archiv&eacute;e</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -336,29 +471,41 @@
           <div class="doc-links-grid">
             <a href="/docs.htmx.html?file=docs/FAQ.md" class="doc-link">
               <svg class="icon"><use href="/assets/icons.svg#icon-info"></use></svg>
-              FAQ complète
+              FAQ compl&egrave;te
             </a>
             <a href="/docs.htmx.html?file=docs/UTILISATION_LIVE.md" class="doc-link">
               <svg class="icon"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
-              Guide opérateur
+              Guide op&eacute;rateur
             </a>
             <a href="/docs.htmx.html?file=docs/RECETTE_DEMO.md" class="doc-link">
               <svg class="icon"><use href="/assets/icons.svg#icon-play"></use></svg>
-              Démo guidée
+              D&eacute;mo guid&eacute;e
             </a>
             <a href="/docs.htmx.html?file=docs/dev/API.md" class="doc-link">
               <svg class="icon"><use href="/assets/icons.svg#icon-link"></use></svg>
-              Référence API
+              R&eacute;f&eacute;rence API
             </a>
             <a href="/docs.htmx.html?file=docs/dev/SECURITY.md" class="doc-link">
               <svg class="icon"><use href="/assets/icons.svg#icon-shield"></use></svg>
-              Sécurité
+              S&eacute;curit&eacute;
             </a>
             <a href="/docs.htmx.html?file=docs/dev/INSTALLATION.md" class="doc-link">
               <svg class="icon"><use href="/assets/icons.svg#icon-download"></use></svg>
               Installation
             </a>
           </div>
+        </div>
+
+        <!-- Support Button -->
+        <div class="help-support">
+          <div class="help-support-text">
+            <strong>Besoin d'aide suppl&eacute;mentaire ?</strong>
+            <p class="text-sm text-muted">Contactez l'administrateur syst&egrave;me ou consultez la documentation compl&egrave;te.</p>
+          </div>
+          <a href="mailto:support@ag-vote.local" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            Contacter le support
+          </a>
         </div>
       </div>
     </main>
