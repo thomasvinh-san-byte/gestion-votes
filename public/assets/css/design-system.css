@@ -138,6 +138,9 @@ table {
 
   /* ─── Z-Index ─── */
   --z-base: 1;
+  --z-sidebar-pin: 10;
+  --z-sidebar: 55;
+  --z-header: 90;
   --z-dropdown: 100;
   --z-sticky: 200;
   --z-fixed: 300;
@@ -147,6 +150,12 @@ table {
   --z-tooltip: 700;
   --z-toast: 800;
   --z-overlay: 900;
+  --z-search: 9500;
+  --z-session-timeout: 9970;
+  --z-cmd-palette: 9980;
+  --z-tour-overlay: 9990;
+  --z-tour-spotlight: 9991;
+  --z-tour-bubble: 9992;
   --z-skip: 10000;
 
   /* ─── Transitions ─── */
@@ -528,7 +537,7 @@ h4, .h4 {
   padding: 0 20px;
   justify-content: space-between;
   flex-shrink: 0;
-  z-index: 90;
+  z-index: var(--z-header);
 }
 
 .logo {
@@ -598,7 +607,7 @@ h4, .h4 {
   flex-direction: column;
   overflow: hidden;
   transition: width .25s cubic-bezier(.4, 0, .2, 1);
-  z-index: 55;
+  z-index: var(--z-sidebar);
   border-right: 1px solid var(--sidebar-border);
 }
 
@@ -654,7 +663,7 @@ h4, .h4 {
   right: 0;
   height: 20px;
   pointer-events: none;
-  z-index: 2;
+  z-index: var(--z-base);
   opacity: 0;
   transition: opacity .2s;
 }
@@ -815,7 +824,7 @@ h4, .h4 {
   opacity: 0;
   transition: opacity .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
   cursor: pointer;
-  z-index: 10;
+  z-index: var(--z-sidebar-pin);
   background: none;
 }
 .sidebar-pin:hover {
@@ -3216,7 +3225,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: 0 24px 60px rgba(0,0,0,.18);
-  z-index: 200; overflow: hidden;
+  z-index: var(--z-sticky); overflow: hidden;
   animation: popIn .18s ease;
 }
 @keyframes popIn {
@@ -3248,7 +3257,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 .search-trigger:hover { border-color: var(--color-primary); background: var(--color-surface-raised, var(--color-surface)); }
 .search-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,.5); z-index: 9500;
+  background: rgba(0,0,0,.5); z-index: var(--z-search);
   display: flex; align-items: flex-start; justify-content: center;
   padding-top: 80px;
   animation: fadeIn .15s ease;
@@ -3397,7 +3406,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 
 /* ── Accessibility ── */
 .skip-link {
-  position: fixed; top: -100px; left: 16px; z-index: 10000;
+  position: fixed; top: -100px; left: 16px; z-index: var(--z-skip);
   padding: 8px 16px; border-radius: var(--radius-sm);
   background: var(--color-primary); color: #fff;
   font-weight: 600; font-size: 13px; text-decoration: none;
@@ -3448,7 +3457,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 .tour-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9990;
+  z-index: var(--z-tour-overlay);
   background: rgba(0, 0, 0, 0.55);
   /* clip-path set dynamically via JS to cut a rectangle around target */
   clip-path: polygon(
@@ -3467,7 +3476,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 /* Spotlight ring accent around the hole */
 .tour-spotlight-ring {
   position: fixed;
-  z-index: 9991;
+  z-index: var(--z-tour-spotlight);
   border: 3px solid var(--color-primary);
   border-radius: var(--radius-lg);
   box-shadow: 0 0 0 4px var(--color-primary-subtle),
@@ -3482,7 +3491,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 /* Tour bubble (tooltip) */
 .tour-bubble {
   position: fixed;
-  z-index: 9992;
+  z-index: var(--z-tour-bubble);
   width: 340px;
   max-width: calc(100vw - 2rem);
   background: var(--color-surface);
@@ -3691,7 +3700,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 .cmd-palette-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9980;
+  z-index: var(--z-cmd-palette);
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: flex-start;
@@ -3834,7 +3843,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   top: 0;
   left: 0;
   right: 0;
-  z-index: 9970;
+  z-index: var(--z-session-timeout);
   display: flex;
   align-items: center;
   justify-content: center;
