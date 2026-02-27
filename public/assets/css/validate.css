@@ -26,17 +26,6 @@
   background: var(--color-danger-subtle);
 }
 
-.check-icon {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: var(--text-sm);
-  flex-shrink: 0;
-}
-
 .check-item.pass .check-icon {
   background: var(--color-success);
   color: var(--color-text-inverse);
@@ -269,6 +258,20 @@
   /* Check items full width */
   .check-item {
     padding: var(--space-3);
+  }
+
+  /* Form elements full-width on mobile */
+  .validation-zone .form-input,
+  .validation-zone .form-select,
+  .validate-modal .form-input,
+  .validate-modal .form-select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Validation button full-width on mobile */
+  .validation-zone .btn {
+    width: 100%;
   }
 }
 
