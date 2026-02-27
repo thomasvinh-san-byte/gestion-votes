@@ -26,17 +26,6 @@
   background: var(--color-danger-subtle);
 }
 
-.check-icon {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: var(--text-sm);
-  flex-shrink: 0;
-}
-
 .check-item.pass .check-icon {
   background: var(--color-success);
   color: var(--color-text-inverse);
@@ -201,4 +190,111 @@
 .summary-label {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+/* =============================================================================
+   RESPONSIVE — Tablet (max-width: 1024px)
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — Mobile (max-width: 768px)
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  /* Summary grid stacks vertically */
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  /* Validation zone: reduce padding on mobile */
+  .validation-zone {
+    padding: var(--space-4);
+  }
+
+  /* Modal adapts to full width */
+  .validate-modal {
+    max-width: 100%;
+    border-radius: var(--radius-lg);
+  }
+
+  .validate-modal-backdrop {
+    padding: var(--space-2);
+    align-items: flex-end;
+  }
+
+  .validate-modal-header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .validate-modal-body {
+    padding: var(--space-4);
+  }
+
+  .validate-modal-actions {
+    flex-direction: column;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .validate-modal-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Check items full width */
+  .check-item {
+    padding: var(--space-3);
+  }
+
+  /* Form elements full-width on mobile */
+  .validation-zone .form-input,
+  .validation-zone .form-select,
+  .validate-modal .form-input,
+  .validate-modal .form-select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Validation button full-width on mobile */
+  .validation-zone .btn {
+    width: 100%;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — Small phones (max-width: 480px)
+   ============================================================================= */
+
+@media (max-width: 480px) {
+  .validation-zone {
+    padding: var(--space-3);
+    border-radius: var(--radius-lg);
+  }
+
+  .validate-modal-checkbox {
+    font-size: var(--text-xs);
+    padding: var(--space-2);
+  }
+
+  .validate-modal-header h3 {
+    font-size: var(--text-base);
+  }
+
+  .summary-value {
+    font-size: var(--text-lg);
+  }
 }

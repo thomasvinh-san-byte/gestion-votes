@@ -178,7 +178,12 @@ final class RateLimiter {
         $windowStart = $now - $windowSeconds;
 
         $lockFile = $file . '.lock';
-        $lock = fopen($lockFile, 'c');
+        $lock = @fopen($lockFile, 'c');
+
+        if ($lock === false) {
+            error_log("RateLimiter: cannot open lock file {$lockFile}");
+            return ['allowed' => true, 'remaining' => $maxAttempts];
+        }
 
         if (!flock($lock, LOCK_EX)) {
             fclose($lock);

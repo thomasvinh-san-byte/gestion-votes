@@ -266,6 +266,30 @@ class AuditEventRepository extends AbstractRepository {
     }
 
     /**
+     * Recent events filtered by action list (for notifications).
+     */
+    public function listRecentByActions(string $tenantId, array $actions, int $limit = 20): array {
+        $placeholders = [];
+        $params = [':tid' => $tenantId, ':lim' => max(1, $limit)];
+        foreach ($actions as $i => $action) {
+            $key = ':a' . $i;
+            $placeholders[] = $key;
+            $params[$key] = $action;
+        }
+        $in = implode(', ', $placeholders);
+
+        return $this->selectAll(
+            "SELECT id, action AS type, payload, created_at AS timestamp,
+                    actor_user_id AS actor_id, actor_role
+             FROM audit_events
+             WHERE tenant_id = :tid AND action IN ({$in})
+             ORDER BY created_at DESC
+             LIMIT :lim",
+            $params,
+        );
+    }
+
+    /**
      * Delete audit events for a meeting (reset demo, best-effort).
      */
     public function deleteByMeeting(string $meetingId, string $tenantId): void {

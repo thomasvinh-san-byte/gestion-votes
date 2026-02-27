@@ -742,30 +742,6 @@ function getParam(name) {
 }
 
 /**
- * Global loading state toggle
- */
-function setLoading(on) {
-  const el = document.getElementById('loading') || document.getElementById('spinner');
-  if (el) el.style.display = on ? 'block' : 'none';
-  document.body.classList.toggle('loading', !!on);
-}
-
-/**
- * Global log helper (debug console)
- */
-function log(...args) {
-  const box = document.getElementById('log_box');
-  if (box) {
-    const line = document.createElement('div');
-    line.className = 'log-line';
-    line.textContent = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    box.prepend(line);
-    while (box.children.length > 50) box.removeChild(box.lastElementChild);
-  }
-  console.log('[AG-VOTE]', ...args);
-}
-
-/**
  * Extract error message from API response body — delegates to Utils.getApiError
  */
 function getApiError(body, fallback = 'Une erreur est survenue') {

@@ -134,22 +134,6 @@
   gap: var(--space-3);
 }
 
-/* ─── PV Preview ─── */
-.pv-preview {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  min-height: 300px;
-  max-height: 500px;
-  overflow-y: auto;
-  background: var(--color-surface);
-}
-
-.pv-preview iframe {
-  width: 100%;
-  min-height: 400px;
-  border: none;
-}
-
 /* ─── Completion banner ─── */
 .ps-complete-banner {
   display: flex;

@@ -6,33 +6,8 @@
  */
 
 /* =============================================================================
-   PV PREVIEW
+   EXPORT BUTTONS
    ============================================================================= */
-
-.pv-preview {
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-}
-
-.pv-preview iframe {
-  width: 100%;
-  height: 70vh;
-  border: none;
-  display: block;
-}
-
-/* =============================================================================
-   EXPORT BUTTONS GRID
-   ============================================================================= */
-
-.export-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--space-3);
-}
 
 .export-btn {
   display: flex;

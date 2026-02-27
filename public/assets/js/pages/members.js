@@ -879,11 +879,15 @@
     });
   });
 
-  // Search
+  // Search (debounced to avoid re-render on every keystroke)
+  let _searchTimeout = null;
   searchInput.addEventListener('input', () => {
-    currentPage = 1;
-    renderMembers(allMembers);
-    updateFiltersHint();
+    clearTimeout(_searchTimeout);
+    _searchTimeout = setTimeout(() => {
+      currentPage = 1;
+      renderMembers(allMembers);
+      updateFiltersHint();
+    }, 250);
   });
 
   // Sort

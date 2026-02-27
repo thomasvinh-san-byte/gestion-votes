@@ -24,11 +24,7 @@
 
   function esc(s) { return Utils.escapeHtml(s); }
 
-  function setNotif(type, msg) {
-    if (typeof Utils !== 'undefined' && Utils.toast) {
-      Utils.toast(type, msg);
-    }
-  }
+  // Use global setNotif() from utils.js (delegates to AgToast.show)
 
   // =========================================================================
   // STEPPER NAVIGATION
@@ -208,11 +204,7 @@
     Shared.btnLoading(btn, true);
 
     try {
-      var res = await window.api('/api/v1/meeting_transition.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ meeting_id: meetingId, transition: 'validate' })
-      });
+      var res = await window.api('/api/v1/meeting_transition.php', { meeting_id: meetingId, transition: 'validate' });
       var d = res.body;
       if (d && d.ok) {
         setNotif('success', 'S\u00e9ance valid\u00e9e avec succ\u00e8s');
@@ -283,11 +275,7 @@
       var btn = document.getElementById('btnGenerateReport');
       Shared.btnLoading(btn, true);
       try {
-        var res = await window.api('/api/v1/meeting_generate_report.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ meeting_id: meetingId })
-        });
+        var res = await window.api('/api/v1/meeting_generate_report.php', { meeting_id: meetingId });
         var d = res.body;
         if (d && d.ok) {
           var preview = document.getElementById('pvPreview');
@@ -328,11 +316,7 @@
 
       Shared.btnLoading(btn, true);
       try {
-        var res = await window.api('/api/v1/meeting_report_send.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+        var res = await window.api('/api/v1/meeting_report_send.php', payload);
         var d = res.body;
         if (d && d.ok) {
           setNotif('success', 'PV envoy\u00e9 avec succ\u00e8s');
@@ -358,11 +342,7 @@
           var btn = document.getElementById('btnArchive');
           Shared.btnLoading(btn, true);
           try {
-            var res = await window.api('/api/v1/meetings_archive.php', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ meeting_id: meetingId })
-            });
+            var res = await window.api('/api/v1/meetings_archive.php', { meeting_id: meetingId });
             var d = res.body;
             if (d && d.ok) {
               setNotif('success', 'S\u00e9ance archiv\u00e9e');

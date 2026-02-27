@@ -889,31 +889,6 @@ dialog.member-detail-dialog::backdrop {
 }
 
 /* =============================================================================
-   EMPTY STATE
-   ============================================================================= */
-
-.empty-state {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: var(--color-bg-subtle);
-  border: 2px dashed var(--color-border);
-  border-radius: 12px;
-  grid-column: 1 / -1;
-}
-
-.empty-state h3 {
-  margin: 0.75rem 0 0.375rem;
-  font-size: 1.1rem;
-}
-
-.empty-state p {
-  color: var(--color-text-muted);
-  margin: 0;
-  max-width: 320px;
-  margin-inline: auto;
-}
-
-/* =============================================================================
    LOADING STATE
    ============================================================================= */
 

@@ -2929,20 +2929,20 @@
   font-weight: 700;
   color: var(--color-text-muted);
   flex-shrink: 0;
-  z-index: 1;
+  z-index: var(--z-base);
   transition: all .2s ease;
 }
 
 .hub-step.done .hub-step-dot {
   background: var(--color-success);
   border-color: var(--color-success);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 .hub-step.active .hub-step-dot {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
   box-shadow: 0 0 0 4px var(--color-primary-glow, rgba(22,80,224,.18));
 }
 
@@ -2988,7 +2988,7 @@
   height: 48px;
   border-radius: var(--radius-md, 8px);
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3084,7 +3084,7 @@
 .hub-check-item.done .hub-check-icon {
   background: var(--color-success);
   border-color: var(--color-success);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 .hub-check-label {

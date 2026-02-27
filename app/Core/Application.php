@@ -155,6 +155,14 @@ final class Application {
             );
         }
 
+        // Block APP_AUTH_ENABLED=0 in production — authentication cannot be disabled
+        if ($isProduction && !$authEnabled) {
+            throw new RuntimeException(
+                '[SECURITY] APP_AUTH_ENABLED cannot be disabled in production. '
+                . 'Set APP_AUTH_ENABLED=1 or remove it (auth is enabled by default).',
+            );
+        }
+
         // DEFAULT_TENANT_ID
         if (!defined('DEFAULT_TENANT_ID')) {
             $tid = getenv('DEFAULT_TENANT_ID')

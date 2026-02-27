@@ -122,7 +122,8 @@ final class AnalyticsController extends AbstractController {
         $exportService = new ExportService();
         $headers = self::getReportHeaders($reportType);
         $rows = self::formatReportRows($reportType, $data, $exportService);
-        $filename = "rapport_{$reportType}_" . date('Y-m-d');
+        $safeType = preg_replace('/[^a-zA-Z0-9_-]/', '', $reportType);
+        $filename = "rapport_{$safeType}_" . date('Y-m-d');
 
         if ($format === 'csv') {
             header('Content-Type: text/csv; charset=utf-8');

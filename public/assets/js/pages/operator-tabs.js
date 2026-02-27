@@ -124,7 +124,9 @@ window.OpS = { fn: {} };
     function destroyModal(isDismiss) {
       document.removeEventListener('keydown', handleEscape);
       if (document.body.contains(modal)) modal.remove();
-      if (isDismiss && onDismiss) onDismiss();
+      if (isDismiss && onDismiss) {
+        try { onDismiss(); } catch (e) { console.error('onDismiss error:', e); }
+      }
     }
     modal._destroy = () => destroyModal(false);
 

@@ -48,14 +48,9 @@
   background: var(--color-danger-subtle);
 }
 
-.check-icon {
+.check-row .check-icon {
   width: 24px;
   height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: var(--text-sm);
 }
 
 .check-row.pass .check-icon {
@@ -323,7 +318,7 @@
 .audit-chip.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 /* =============================================================================
@@ -355,7 +350,7 @@
 
 .audit-view-btn.active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 /* =============================================================================
@@ -452,7 +447,7 @@
   justify-content: center;
   border: 2px solid var(--color-border);
   background: var(--color-surface);
-  z-index: 1;
+  z-index: var(--z-base);
 }
 
 .audit-timeline-dot.info {
@@ -508,7 +503,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-overlay);
   animation: fadeIn var(--duration-fast) ease-out;
 }
 

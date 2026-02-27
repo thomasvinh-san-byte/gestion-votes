@@ -510,9 +510,10 @@
       if (notifPanel) notifPanel.style.display = 'none';
     });
 
-    // Initial fetch
+    // Initial fetch + periodic poll (store ref for cleanup)
     fetchNotifications();
-    setInterval(fetchNotifications, NOTIF_POLL_INTERVAL);
+    if (window._notifPollTimer) clearInterval(window._notifPollTimer);
+    window._notifPollTimer = setInterval(fetchNotifications, NOTIF_POLL_INTERVAL);
   }
 
   async function fetchNotifications() {
@@ -650,8 +651,8 @@
     }
 
     container.innerHTML = searchFiltered.map(function(item, i) {
-      return '<div class="search-result-item' + (i === searchSelectedIdx ? ' sel' : '') + '" data-href="' + item.href + '">' +
-        '<div class="sr-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/assets/icons.svg#icon-' + item.icon + '"></use></svg></div>' +
+      return '<div class="search-result-item' + (i === searchSelectedIdx ? ' sel' : '') + '" data-href="' + esc(item.href) + '">' +
+        '<div class="sr-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/assets/icons.svg#icon-' + esc(item.icon) + '"></use></svg></div>' +
         '<div><div class="sr-name">' + esc(item.name) + '</div>' +
         (item.sub ? '<div class="sr-sub">' + esc(item.sub) + '</div>' : '') +
         '</div></div>';
