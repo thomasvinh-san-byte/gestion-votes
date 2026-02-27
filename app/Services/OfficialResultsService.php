@@ -316,7 +316,9 @@ final class OfficialResultsService {
         $totW = (float) $t['weight_total'];
 
         $r = (new VoteEngine())->computeMotionResult($motionId, (string) $motion['tenant_id']);
-        $status = (string) ($r['decision']['status'] ?? (($forW > $agW) ? 'adopted' : 'rejected'));
+        $rawStatus = (string) ($r['decision']['status'] ?? '');
+        // Normalize to adopted/rejected — VoteEngine may return no_votes, no_quorum, no_policy
+        $status = ($rawStatus === 'adopted') ? 'adopted' : (($rawStatus === 'rejected') ? 'rejected' : (($forW > $agW) ? 'adopted' : 'rejected'));
 
         // Build explicit reason from VoteEngine data
         $reason = self::buildExplicitReasonFromVoteEngine($r, $forW, $agW, $status);

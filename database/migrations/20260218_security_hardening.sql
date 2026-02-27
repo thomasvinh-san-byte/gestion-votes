@@ -92,6 +92,17 @@ COMMIT;
 -- ---------------------------------------------------------------------------
 -- 3. Missing CHECK constraints
 -- ---------------------------------------------------------------------------
+
+-- Normalize existing data before adding constraints
+-- VoteEngine could have written no_votes, no_quorum, no_policy into decision
+UPDATE motions SET decision = NULL
+WHERE decision IS NOT NULL
+  AND decision NOT IN ('adopted', 'rejected');
+
+UPDATE motions SET status = NULL
+WHERE status IS NOT NULL
+  AND status NOT IN ('draft', 'open', 'closed');
+
 DO $$ BEGIN
   ALTER TABLE motions ADD CONSTRAINT motions_status_check
     CHECK (status IS NULL OR status IN ('draft','open','closed'));
