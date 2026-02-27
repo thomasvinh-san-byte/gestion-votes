@@ -523,7 +523,8 @@ final class MeetingReportsController extends AbstractController {
         }
 
         $prefix = $isPreview ? 'BROUILLON_PV_' : 'PV_';
-        $filename = $prefix . preg_replace('/[^a-zA-Z0-9]/', '_', $meeting['title'] ?? 'seance') . '_' . date('Ymd') . '.pdf';
+        $safeTitle = preg_replace('/[^a-zA-Z0-9_-]/', '_', $meeting['title'] ?? 'seance');
+        $filename = $prefix . $safeTitle . '_' . date('Ymd') . '.pdf';
 
         audit_log('report.generate_pdf', 'meeting', $meetingId, [
             'preview' => $isPreview,

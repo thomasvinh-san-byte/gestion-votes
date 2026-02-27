@@ -256,3 +256,83 @@
   color: var(--color-primary);
   border-color: var(--color-primary);
 }
+
+/* =============================================================================
+   RESPONSIVE — Mobile (max-width: 768px)
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .login-page {
+    padding: var(--space-3);
+  }
+
+  /* Login card goes full-width minus padding */
+  .login-card {
+    max-width: none;
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+  }
+
+  .login-brand {
+    margin-bottom: var(--space-6);
+  }
+
+  .login-brand h1 {
+    font-size: var(--text-xl);
+  }
+
+  .login-form input[type="password"],
+  .login-form input[type="text"],
+  .login-form input[type="email"] {
+    font-size: 1rem;   /* Prevent iOS zoom on focus */
+  }
+
+  .login-btn {
+    min-height: 44px;  /* WCAG 2.5.8 touch target */
+    font-size: var(--text-base);
+  }
+
+  .login-footer {
+    margin-top: var(--space-4);
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — Small phones (max-width: 480px)
+   ============================================================================= */
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: var(--space-2);
+  }
+
+  .login-card {
+    padding: var(--space-4) var(--space-3);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .login-brand h1 {
+    font-size: var(--text-lg);
+  }
+
+  .login-brand p {
+    font-size: var(--text-xs);
+  }
+
+  .login-brand {
+    margin-bottom: var(--space-4);
+  }
+
+  .login-form {
+    gap: var(--space-3);
+  }
+
+  .login-form label {
+    font-size: var(--text-xs);
+  }
+
+  .login-footer {
+    font-size: 0.625rem;
+  }
+}

@@ -325,3 +325,161 @@
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 0.5rem;
 }
+
+/* =============================================================================
+   RESPONSIVE — Tablet (max-width: 1024px)
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .kpi-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .archive-info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — Mobile (max-width: 768px)
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  /* KPI cards stack vertically on mobile */
+  .kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .kpi-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    padding: 0.75rem 1rem;
+  }
+
+  .kpi-label {
+    margin-top: 0;
+  }
+
+  /* Archive info grid stacks on mobile */
+  .archive-info-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Archive stats stack vertically */
+  .archive-stats {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .archive-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+  }
+
+  /* Archive card header stacks */
+  .archive-header {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .archive-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .archive-card-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .archive-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  /* Filters wrap nicely */
+  .archive-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .archive-search-input {
+    width: 100%;
+  }
+
+  .year-select {
+    width: 100%;
+  }
+
+  /* Export grid stacks */
+  .export-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Pagination adapts */
+  .archives-pagination {
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0.75rem;
+  }
+
+  /* Filter tabs scroll horizontally */
+  .filter-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: var(--space-1);
+  }
+
+  .filter-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — Small phones (max-width: 480px)
+   ============================================================================= */
+
+@media (max-width: 480px) {
+  .archive-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .archive-card-enhanced {
+    border-radius: var(--radius-md);
+  }
+
+  .archive-card-header,
+  .archive-card-body,
+  .archive-card-footer {
+    padding: 0.75rem;
+  }
+
+  .archive-title {
+    font-size: var(--text-base);
+  }
+
+  .kpi-value {
+    font-size: 1.25rem;
+  }
+
+  .view-toggle-btn {
+    width: 40px;
+    height: 40px;
+  }
+}

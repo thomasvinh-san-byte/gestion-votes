@@ -3192,8 +3192,6 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--color-danger); animation: pulse 2s ease-in-out infinite;
 }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
-
 /* ── Live Timer ── */
 .live-timer {
   display: flex; align-items: center; gap: 6px;
@@ -3262,7 +3260,6 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   padding-top: 80px;
   animation: fadeIn .15s ease;
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .search-box {
   width: min(560px, calc(100vw - 32px));
   background: var(--color-surface-raised, var(--color-surface));
@@ -3417,15 +3414,6 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 2px;
-}
-
-/* ── Reduced Motion ── */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }
 
 /* Responsive utility classes */

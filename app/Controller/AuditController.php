@@ -111,7 +111,7 @@ final class AuditController extends AbstractController {
             api_fail('meeting_not_found', 404);
         }
 
-        $slug = $meeting['slug'] ?? $meetingId;
+        $slug = str_replace(['"', "\r", "\n", "\0", '\\'], '', (string) ($meeting['slug'] ?? $meetingId));
         $auditRepo = new AuditEventRepository();
         $events = $auditRepo->listForMeetingExport($tenantId, $meetingId);
 
