@@ -34,13 +34,27 @@ docker compose version    # Docker Compose version v2.x.x
 ```bash
 git clone https://github.com/thomasvinh-san-byte/gestion-votes.git
 cd gestion-votes
-cp .env.example .env
-docker compose up -d
+./bin/dev.sh
 ```
+
+Le script crée `.env`, lance Docker, attend le healthcheck et affiche l'URL + les identifiants de test.
 
 Premier lancement : 3–5 min (téléchargement des images). Les suivants : ~5 secondes.
 
 Ouvrir **http://localhost:8080** — compte test : `admin@ag-vote.local` / `Admin2026!`
+
+### Commandes du quotidien
+
+| Commande | Description |
+|----------|-------------|
+| `make dev` | Démarrer l'environnement Docker dev |
+| `make test` | Lancer les tests PHPUnit |
+| `make logs` | Suivre les logs (Ctrl+C pour quitter) |
+| `make status` | État complet du stack |
+| `make rebuild` | Rebuild + restart |
+| `make` | Afficher toutes les commandes disponibles |
+
+> Les scripts `bin/*.sh` sont aussi utilisables directement : `./bin/dev.sh`, `./bin/test.sh`, etc.
 
 ## Fonctionnalités
 
