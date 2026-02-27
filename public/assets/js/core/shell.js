@@ -466,6 +466,239 @@
     });
   }
 
+  // ==========================================================================
+  // Notifications Dropdown
+  // ==========================================================================
+
+  const NOTIF_POLL_INTERVAL = 60000; // 60s
+  let notifPanel = null;
+  let notifCount = 0;
+
+  function createNotifBell() {
+    const header = document.querySelector('.app-header');
+    if (!header || header.querySelector('.notif-bell')) return;
+
+    const bell = document.createElement('button');
+    bell.className = 'notif-bell';
+    bell.setAttribute('aria-label', 'Notifications');
+    bell.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-count" style="display:none">0</span>';
+
+    // Insert before last child or at end
+    const ctx = header.querySelector('.header-ctx');
+    if (ctx) {
+      header.insertBefore(bell, ctx);
+    } else {
+      header.appendChild(bell);
+    }
+
+    // Create panel
+    notifPanel = document.createElement('div');
+    notifPanel.className = 'notif-panel';
+    notifPanel.style.display = 'none';
+    notifPanel.innerHTML = '<div style="padding:12px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--color-border-subtle,#e8e7e2);">Notifications</div><div class="notif-list"></div>';
+    bell.style.position = 'relative';
+    bell.appendChild(notifPanel);
+
+    bell.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const isOpen = notifPanel.style.display !== 'none';
+      notifPanel.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) markNotificationsRead();
+    });
+
+    document.addEventListener('click', function() {
+      if (notifPanel) notifPanel.style.display = 'none';
+    });
+
+    // Initial fetch
+    fetchNotifications();
+    setInterval(fetchNotifications, NOTIF_POLL_INTERVAL);
+  }
+
+  async function fetchNotifications() {
+    try {
+      if (!window.api) return;
+      const res = await window.api('/api/v1/notifications.php');
+      const b = res.body;
+      if (b && b.ok && b.data) {
+        renderNotifications(b.data);
+      }
+    } catch(e) { /* silent */ }
+  }
+
+  function renderNotifications(data) {
+    const items = Array.isArray(data) ? data : (data.items || []);
+    const unread = items.filter(function(n) { return !n.read; }).length;
+    notifCount = unread;
+
+    const countEl = document.querySelector('.notif-count');
+    if (countEl) {
+      countEl.textContent = String(unread);
+      countEl.style.display = unread > 0 ? 'flex' : 'none';
+    }
+
+    const list = notifPanel && notifPanel.querySelector('.notif-list');
+    if (!list) return;
+
+    if (items.length === 0) {
+      list.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--color-text-muted,#95a3a4);">Aucune notification</div>';
+      return;
+    }
+
+    list.innerHTML = items.slice(0, 10).map(function(n) {
+      const dotColor = n.read ? 'var(--color-border,#d5dbd2)' : 'var(--color-primary,#1650E0)';
+      return '<div class="notif-item">' +
+        '<span class="notif-dot" style="background:' + dotColor + '"></span>' +
+        '<div class="notif-body">' +
+          '<div class="notif-msg">' + esc(n.message || n.title || '') + '</div>' +
+          '<div class="notif-time">' + esc(n.time || n.created_at || '') + '</div>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  async function markNotificationsRead() {
+    try {
+      if (!window.api || notifCount === 0) return;
+      await window.api('/api/v1/notifications_read.php', { method: 'PUT' });
+    } catch(e) { /* silent */ }
+  }
+
+  createNotifBell();
+
+  window.Notifications = { fetch: fetchNotifications };
+
+  // ==========================================================================
+  // Global Search — Ctrl+K / Cmd+K
+  // ==========================================================================
+
+  const SEARCH_IDX = [
+    { name: 'Séances', sub: 'Gestion des assemblées', href: '/meetings.htmx.html', icon: 'clipboard-list' },
+    { name: 'Membres', sub: 'Annuaire des copropriétaires', href: '/members.htmx.html', icon: 'users' },
+    { name: 'Fiche séance', sub: 'Préparer et piloter', href: '/operator.htmx.html', icon: 'file-text' },
+    { name: 'Voter', sub: 'Participer au vote', href: '/vote.htmx.html', icon: 'vote' },
+    { name: 'Projection', sub: 'Écran salle', href: '/public.htmx.html', icon: 'monitor' },
+    { name: 'Clôture & PV', sub: 'Valider et archiver', href: '/postsession.htmx.html', icon: 'check-square' },
+    { name: 'Exports', sub: 'Rapports et documents', href: '/report.htmx.html', icon: 'printer' },
+    { name: 'Archives', sub: 'Historique des séances', href: '/archives.htmx.html', icon: 'archive' },
+    { name: 'Audit', sub: 'Intégrité et traçabilité', href: '/trust.htmx.html', icon: 'shield-check' },
+    { name: 'Statistiques', sub: 'Tableaux de bord', href: '/analytics.htmx.html', icon: 'bar-chart' },
+    { name: 'Configuration', sub: 'Paramètres système', href: '/admin.htmx.html', icon: 'settings' },
+    { name: 'Guide & FAQ', sub: 'Aide et documentation', href: '/help.htmx.html', icon: 'info' },
+  ];
+
+  let searchOverlay = null;
+  let searchSelectedIdx = 0;
+  let searchFiltered = [];
+
+  function openSearch() {
+    if (searchOverlay) return; // already open
+
+    searchOverlay = document.createElement('div');
+    searchOverlay.className = 'search-overlay';
+    searchOverlay.innerHTML =
+      '<div class="search-box">' +
+        '<div class="search-input-row">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+          '<input type="text" placeholder="Rechercher une page…" autofocus />' +
+          '<kbd style="font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid var(--color-border,#d5dbd2);color:var(--color-text-muted,#95a3a4);">Esc</kbd>' +
+        '</div>' +
+        '<div class="search-results"></div>' +
+      '</div>';
+    document.body.appendChild(searchOverlay);
+
+    searchFiltered = [...SEARCH_IDX];
+    searchSelectedIdx = 0;
+    renderSearchResults();
+
+    const input = searchOverlay.querySelector('input');
+    input.focus();
+
+    input.addEventListener('input', function() {
+      const q = input.value.trim().toLowerCase();
+      if (!q) {
+        searchFiltered = [...SEARCH_IDX];
+      } else {
+        searchFiltered = SEARCH_IDX.filter(function(item) {
+          return item.name.toLowerCase().includes(q) || (item.sub && item.sub.toLowerCase().includes(q));
+        });
+      }
+      searchSelectedIdx = 0;
+      renderSearchResults();
+    });
+
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); searchSelectedIdx = Math.min(searchSelectedIdx + 1, searchFiltered.length - 1); renderSearchResults(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); searchSelectedIdx = Math.max(searchSelectedIdx - 1, 0); renderSearchResults(); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (searchFiltered[searchSelectedIdx]) { window.location.href = searchFiltered[searchSelectedIdx].href; closeSearch(); } }
+    });
+
+    searchOverlay.addEventListener('click', function(e) {
+      if (e.target === searchOverlay) closeSearch();
+      const item = e.target.closest('.search-result-item');
+      if (item && item.dataset.href) { window.location.href = item.dataset.href; closeSearch(); }
+    });
+  }
+
+  function renderSearchResults() {
+    if (!searchOverlay) return;
+    const container = searchOverlay.querySelector('.search-results');
+    if (!container) return;
+
+    if (searchFiltered.length === 0) {
+      container.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--color-text-muted,#95a3a4);">Aucun résultat</div>';
+      return;
+    }
+
+    container.innerHTML = searchFiltered.map(function(item, i) {
+      return '<div class="search-result-item' + (i === searchSelectedIdx ? ' sel' : '') + '" data-href="' + item.href + '">' +
+        '<div class="sr-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="/assets/icons.svg#icon-' + item.icon + '"></use></svg></div>' +
+        '<div><div class="sr-name">' + esc(item.name) + '</div>' +
+        (item.sub ? '<div class="sr-sub">' + esc(item.sub) + '</div>' : '') +
+        '</div></div>';
+    }).join('');
+
+    const sel = container.querySelector('.sel');
+    if (sel) sel.scrollIntoView({ block: 'nearest' });
+  }
+
+  function closeSearch() {
+    if (searchOverlay) {
+      searchOverlay.remove();
+      searchOverlay = null;
+    }
+  }
+
+  // Ctrl+K / Cmd+K shortcut
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      if (searchOverlay) closeSearch();
+      else openSearch();
+    }
+    if (e.key === 'Escape' && searchOverlay) {
+      closeSearch();
+    }
+  });
+
+  // Inject search trigger button in header
+  (function() {
+    var h = document.querySelector('.app-header');
+    if (!h || h.querySelector('.search-trigger')) return;
+    var trigger = document.createElement('button');
+    trigger.className = 'search-trigger';
+    trigger.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Rechercher… <kbd style="font-size:10px;padding:1px 5px;border-radius:3px;border:1px solid var(--color-border,#d5dbd2);margin-left:8px;color:var(--color-text-muted,#95a3a4);">⌘K</kbd>';
+    trigger.addEventListener('click', openSearch);
+    // Insert after logo
+    var logo = h.querySelector('.logo');
+    if (logo && logo.nextSibling) {
+      h.insertBefore(trigger, logo.nextSibling);
+    } else {
+      h.appendChild(trigger);
+    }
+  })();
+
+  window.GlobalSearch = { open: openSearch, close: closeSearch };
+
   // Auto-load auth UI banner
   const authScript = document.createElement('script');
   authScript.src = '/assets/js/pages/auth-ui.js';

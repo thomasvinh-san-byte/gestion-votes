@@ -55,14 +55,14 @@ class AgBadge extends HTMLElement {
           display: inline-flex;
           align-items: center;
           gap: 0.375rem;
-          padding: 0.25rem 0.625rem;
-          font-size: 0.75rem;
-          font-weight: 600;
+          padding: 3px 10px;
+          font-size: 12px;
+          font-weight: 700;
           line-height: 1;
-          border-radius: 9999px;
+          border-radius: var(--radius-full, 9999px);
           white-space: nowrap;
-          background: var(--color-bg-subtle, #e2e8dd);
-          color: var(--color-text-secondary, #697268);
+          background: var(--tag-bg, #e8e7e2);
+          color: var(--tag-text, #6b6b6b);
         }
         .badge-icon {
           width: 0.875rem;
@@ -81,54 +81,59 @@ class AgBadge extends HTMLElement {
 
         /* Size variants */
         :host([size="sm"]) .badge {
-          padding: 0.125rem 0.5rem;
-          font-size: 0.625rem;
+          padding: 2px 7px;
+          font-size: 10px;
         }
         :host([size="sm"]) .badge-icon {
           width: 0.75rem;
           height: 0.75rem;
         }
 
-        /* Color variants */
-        :host([variant="primary"]) .badge {
-          background: var(--color-primary-subtle, #eef1eb);
-          color: var(--color-primary, #4e5340);
+        /* Color variants — Acte Officiel tags */
+        :host([variant="primary"]) .badge,
+        :host([variant="accent"]) .badge {
+          background: var(--color-primary-subtle, #e8edfa);
+          color: var(--color-primary, #1650E0);
         }
         :host([variant="success"]) .badge {
           background: var(--color-success-subtle, #e4ede4);
-          color: var(--color-success-text, #2d4a2e);
+          color: var(--color-success, #0b7a40);
         }
         :host([variant="warning"]) .badge {
           background: var(--color-warning-subtle, #f5eddf);
-          color: var(--color-warning-text, #6b4f28);
+          color: var(--color-warning, #b8860b);
         }
         :host([variant="danger"]) .badge {
           background: var(--color-danger-subtle, #f2e4e4);
-          color: var(--color-danger-text, #6b2828);
+          color: var(--color-danger, #c42828);
         }
         :host([variant="info"]) .badge {
           background: var(--color-info-subtle, #e0eef3);
-          color: var(--color-info-text, #2a5565);
+          color: var(--color-info, #2563eb);
+        }
+        :host([variant="purple"]) .badge {
+          background: var(--color-purple-subtle, #f0e8f8);
+          color: var(--color-purple, #7c3aed);
         }
         :host([variant="live"]) .badge {
           background: var(--color-danger-subtle, #f2e4e4);
-          color: var(--color-danger, #a05252);
+          color: var(--color-danger, #c42828);
         }
         :host([variant="draft"]) .badge {
-          background: var(--color-bg-subtle, #e2e8dd);
-          color: var(--color-text-muted, #95a3a4);
+          background: var(--tag-bg, #e8e7e2);
+          color: var(--tag-text, #6b6b6b);
         }
         :host([variant="scheduled"]) .badge {
-          background: var(--color-info-subtle, #e0eef3);
-          color: var(--color-info-text, #2a5565);
+          background: var(--color-primary-subtle, #e8edfa);
+          color: var(--color-primary, #1650E0);
         }
         :host([variant="closed"]) .badge {
           background: var(--color-success-subtle, #e4ede4);
-          color: var(--color-success-text, #2d4a2e);
+          color: var(--color-success, #0b7a40);
         }
         :host([variant="validated"]) .badge {
-          background: var(--color-primary-subtle, #eef1eb);
-          color: var(--color-primary, #4e5340);
+          background: var(--color-primary-subtle, #e8edfa);
+          color: var(--color-primary, #1650E0);
         }
 
         @keyframes pulse {
