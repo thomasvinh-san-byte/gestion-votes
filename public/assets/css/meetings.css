@@ -506,6 +506,257 @@
 }
 
 /* =============================================================================
+   WIZARD — CREATION DE SÉANCE (5 étapes)
+   ============================================================================= */
+
+/* ─── Wrapper ─── */
+.wiz-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+}
+
+/* ─── Individual step indicator ─── */
+.wiz-step-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  padding: 0 0.25rem;
+}
+
+.wiz-step-item::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: var(--color-border);
+  margin-left: 0.5rem;
+}
+
+.wiz-step-item:last-child::after { display: none; }
+
+.wiz-step-item.done::after { background: var(--color-success); }
+.wiz-step-item.active::after { background: var(--color-primary); }
+
+.wiz-step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: background .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+.wiz-step-item.done .wiz-step-dot {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #fff;
+}
+
+.wiz-step-item.active .wiz-step-dot {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--color-primary-glow, rgba(22,80,224,.18));
+}
+
+.wiz-step-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.wiz-step-item.done .wiz-step-label { color: var(--color-success); }
+.wiz-step-item.active .wiz-step-label { color: var(--color-primary); font-weight: 700; }
+
+/* ─── Step content panels ─── */
+.wiz-step-panel {
+  display: none;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  animation: wizFadeIn var(--duration-normal, 200ms) ease-out;
+}
+
+.wiz-step-panel.active { display: block; }
+
+@keyframes wizFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Wizard form grid ─── */
+.wiz-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+.wiz-form-full { grid-column: 1 / -1; }
+
+/* ─── Wizard navigation (bottom bar) ─── */
+.wiz-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.wiz-nav-hint {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-text-muted);
+}
+
+/* ─── Deadline alert ─── */
+.wiz-deadline-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-warning-subtle);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-warning-text);
+}
+
+/* ─── Participants table (step 2) ─── */
+.wiz-participants-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wiz-participants-table th {
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.wiz-participants-table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--text-sm, 0.875rem);
+}
+
+/* ─── Résolutions list (step 3) ─── */
+.wiz-resolution-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 0.5rem;
+  transition: border-color .15s ease;
+}
+
+.wiz-resolution-item:hover { border-color: var(--color-primary); }
+
+.wiz-resolution-num {
+  font-weight: 700;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-primary);
+  min-width: 28px;
+  text-align: center;
+}
+
+.wiz-resolution-title { flex: 1; font-weight: 500; }
+
+.wiz-resolution-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* ─── Recap summary (step 4) ─── */
+.wiz-recap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.wiz-recap-card {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  padding: 1rem;
+}
+
+.wiz-recap-card h4 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.wiz-recap-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ─── Confirmation (step 5) ─── */
+.wiz-success {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.wiz-success-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.25rem;
+  background: var(--color-success-subtle);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-success);
+}
+
+.wiz-success h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.wiz-success p {
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.wiz-success-links {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+/* =============================================================================
    RESPONSIVE
    ============================================================================= */
 
@@ -528,5 +779,18 @@
   }
   .meetings-main .stats-bar {
     margin: 0 1rem 1rem;
+  }
+  .wiz-progress-wrap {
+    overflow-x: auto;
+    padding: 0.75rem;
+  }
+  .wiz-step-label {
+    display: none;
+  }
+  .wiz-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .wiz-recap-grid {
+    grid-template-columns: 1fr;
   }
 }

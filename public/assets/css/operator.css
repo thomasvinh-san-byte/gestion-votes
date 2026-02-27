@@ -2820,3 +2820,433 @@
 .h3-compact {
   margin: 0;
 }
+
+/* =============================================================================
+   HUB — FICHE SÉANCE (Phase 6.2)
+   Identity banner, vertical stepper, action card, checklist + progress
+   ============================================================================= */
+
+/* ─── Hub identity banner ─── */
+.hub-identity {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-bg-subtle) 0%, var(--color-surface) 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  margin-bottom: 1.25rem;
+}
+
+.hub-identity-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hub-identity-info { flex: 1; min-width: 0; }
+
+.hub-identity-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hub-identity-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.hub-identity-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.hub-identity-actions {
+  display: flex;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+/* ─── Hub vertical stepper (6 lifecycle steps) ─── */
+.hub-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 1rem 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  margin-bottom: 1.25rem;
+}
+
+.hub-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  position: relative;
+  padding: 0.75rem 0;
+}
+
+/* Vertical connector line between steps */
+.hub-step::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 42px;
+  bottom: -6px;
+  width: 2px;
+  background: var(--color-border);
+}
+
+.hub-step:last-child::before { display: none; }
+.hub-step.done::before { background: var(--color-success); }
+.hub-step.active::before { background: var(--color-primary); }
+
+.hub-step-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  z-index: 1;
+  transition: all .2s ease;
+}
+
+.hub-step.done .hub-step-dot {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #fff;
+}
+
+.hub-step.active .hub-step-dot {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--color-primary-glow, rgba(22,80,224,.18));
+}
+
+.hub-step-content {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0.25rem;
+}
+
+.hub-step-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.hub-step.done .hub-step-title { color: var(--color-success); }
+.hub-step.active .hub-step-title { color: var(--color-primary); }
+
+.hub-step:not(.done):not(.active) .hub-step-title {
+  color: var(--color-text-muted);
+}
+
+.hub-step-desc {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-text-muted);
+  margin-top: 0.125rem;
+}
+
+/* ─── Hub action card (CTA encadré accent) ─── */
+.hub-action {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-primary-subtle) 0%, var(--color-surface) 100%);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg, 12px);
+  margin-bottom: 1.25rem;
+}
+
+.hub-action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hub-action-body { flex: 1; min-width: 0; }
+
+.hub-action-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.hub-action-desc {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-secondary);
+  margin-top: 0.125rem;
+}
+
+.hub-action .btn {
+  flex-shrink: 0;
+}
+
+/* ─── Hub checklist with progress bar ─── */
+.hub-checklist {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.hub-checklist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.hub-checklist-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.hub-checklist-progress-text {
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.hub-checklist-bar {
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.hub-checklist-bar-fill {
+  height: 100%;
+  background: var(--color-success);
+  border-radius: 3px;
+  transition: width .4s ease;
+}
+
+.hub-check-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--radius-sm, 4px);
+  font-size: var(--text-sm, 0.875rem);
+  transition: background .15s ease;
+}
+
+.hub-check-item:hover {
+  background: var(--color-bg-subtle);
+}
+
+.hub-check-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  color: transparent;
+}
+
+.hub-check-item.done .hub-check-icon {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #fff;
+}
+
+.hub-check-label {
+  flex: 1;
+  font-weight: 500;
+}
+
+.hub-check-item.done .hub-check-label {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+/* ─── Hub accordion (details/summary) ─── */
+.hub-accordion {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+
+.hub-accordion-item {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.hub-accordion-item:last-child { border-bottom: none; }
+
+.hub-accordion-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  transition: background .15s ease;
+}
+
+.hub-accordion-trigger:hover {
+  background: var(--color-bg-subtle);
+}
+
+.hub-accordion-chevron {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-muted);
+  transition: transform .2s ease;
+  flex-shrink: 0;
+}
+
+.hub-accordion-item.open .hub-accordion-chevron {
+  transform: rotate(90deg);
+}
+
+.hub-accordion-body {
+  display: none;
+  padding: 0 1.25rem 1rem;
+}
+
+.hub-accordion-item.open .hub-accordion-body {
+  display: block;
+  animation: hubAccordionIn .2s ease-out;
+}
+
+@keyframes hubAccordionIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Hub KPIs row (inside accordion) ─── */
+.hub-kpis {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hub-kpi {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+  padding: 0.75rem;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md, 8px);
+}
+
+.hub-kpi-value {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hub-kpi-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+/* ─── Hub layout (sidebar stepper + main content) ─── */
+.hub-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.25rem;
+  padding: 1.25rem;
+}
+
+.hub-sidebar {
+  position: sticky;
+  top: 1.25rem;
+  align-self: start;
+}
+
+.hub-main {
+  min-width: 0;
+}
+
+/* ─── Hub responsive ─── */
+@media (max-width: 1024px) {
+  .hub-layout {
+    grid-template-columns: 1fr;
+  }
+  .hub-stepper {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0;
+    padding: 0.75rem 1rem;
+  }
+  .hub-step { padding: 0.5rem; }
+  .hub-step::before {
+    display: none;
+  }
+  .hub-step-desc { display: none; }
+  .hub-step-dot { width: 28px; height: 28px; font-size: 0.7rem; }
+}
+
+@media (max-width: 768px) {
+  .hub-identity {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  .hub-identity-meta {
+    justify-content: center;
+  }
+  .hub-identity-actions {
+    justify-content: center;
+  }
+  .hub-action {
+    flex-direction: column;
+    text-align: center;
+  }
+  .hub-kpis {
+    gap: 0.5rem;
+  }
+  .hub-kpi {
+    min-width: 80px;
+  }
+}
