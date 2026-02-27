@@ -4,8 +4,8 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Administration — AG-VOTE">
   <title>Administration — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
@@ -43,6 +43,151 @@
     <main class="app-main">
       <div class="container">
         <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- DASHBOARD OVERVIEW                         -->
+        <!-- ═══════════════════════════════════════════ -->
+
+        <!-- Onboarding Banner (dismissible) -->
+        <div class="ob-banner page-anim" id="obBanner" role="status">
+          <div class="ob-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <div class="ob-body">
+            <div class="ob-title">Bienvenue sur AG-VOTE</div>
+            <p class="text-sm text-secondary">Configurez votre premi&egrave;re s&eacute;ance en quelques &eacute;tapes : cr&eacute;ez les membres, d&eacute;finissez les politiques de quorum, puis lancez votre assembl&eacute;e.</p>
+          </div>
+          <div class="ob-actions">
+            <a href="/meetings.htmx.html" class="ob-btn-primary">Cr&eacute;er une s&eacute;ance</a>
+            <a href="/help.htmx.html" class="ob-btn-ghost">Guide rapide</a>
+          </div>
+          <button class="ob-close" id="obClose" aria-label="Fermer la banni&egrave;re" title="Fermer">&times;</button>
+        </div>
+
+        <!-- Urgent Action Card -->
+        <div class="card card-urgent mb-4 page-anim" id="urgentCard" style="display:none;">
+          <div class="card-body">
+            <div class="flex items-center gap-4">
+              <span class="urgent-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              </span>
+              <div class="flex-1">
+                <div class="font-semibold" id="urgentTitle">S&eacute;ance en attente de validation</div>
+                <div class="text-sm text-muted" id="urgentDesc">Une s&eacute;ance cl&ocirc;tur&eacute;e attend la validation du pr&eacute;sident.</div>
+              </div>
+              <a href="/postsession.htmx.html" class="btn btn-danger btn-sm" id="urgentAction">Valider maintenant</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 KPIs -->
+        <div class="dash-kpis mb-4">
+          <a href="/meetings.htmx.html" class="dash-kpi" id="kpiUpcoming">
+            <div class="dash-kpi-icon" style="background: var(--color-primary-subtle); color: var(--color-primary);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <div class="dash-kpi-value" id="kpiUpcomingVal">&mdash;</div>
+            <div class="dash-kpi-label">AG &agrave; venir</div>
+          </a>
+          <a href="/operator.htmx.html" class="dash-kpi" id="kpiLive">
+            <div class="dash-kpi-icon" style="background: var(--color-danger-subtle); color: var(--color-danger);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </div>
+            <div class="dash-kpi-value" id="kpiLiveVal">&mdash;</div>
+            <div class="dash-kpi-label">En cours</div>
+          </a>
+          <a href="/meetings.htmx.html" class="dash-kpi" id="kpiConvocations">
+            <div class="dash-kpi-icon" style="background: var(--color-warning-subtle); color: var(--color-warning);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            </div>
+            <div class="dash-kpi-value" id="kpiConvocationsVal">&mdash;</div>
+            <div class="dash-kpi-label">Convocations</div>
+          </a>
+          <a href="/postsession.htmx.html" class="dash-kpi" id="kpiPV">
+            <div class="dash-kpi-icon" style="background: var(--color-success-subtle); color: var(--color-success);">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            </div>
+            <div class="dash-kpi-value" id="kpiPVVal">&mdash;</div>
+            <div class="dash-kpi-label">PV en attente</div>
+          </a>
+        </div>
+
+        <!-- 2-column grid: Sessions + Tasks -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <!-- Prochaines séances -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Prochaines s&eacute;ances</h3>
+            </div>
+            <div class="card-body p-0" id="dashUpcomingSessions">
+              <div class="irow">
+                <div class="irow-body">
+                  <div class="skeleton skeleton-line" style="width:60%"></div>
+                  <div class="skeleton skeleton-line" style="width:40%;margin-top:4px"></div>
+                </div>
+              </div>
+              <div class="irow">
+                <div class="irow-body">
+                  <div class="skeleton skeleton-line" style="width:50%"></div>
+                  <div class="skeleton skeleton-line" style="width:35%;margin-top:4px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Tâches en attente -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">T&acirc;ches en attente</h3>
+            </div>
+            <div class="card-body p-0" id="dashPendingTasks">
+              <div class="irow">
+                <div class="irow-body">
+                  <div class="skeleton skeleton-line" style="width:55%"></div>
+                  <div class="skeleton skeleton-line" style="width:30%;margin-top:4px"></div>
+                </div>
+              </div>
+              <div class="irow">
+                <div class="irow-body">
+                  <div class="skeleton skeleton-line" style="width:65%"></div>
+                  <div class="skeleton skeleton-line" style="width:45%;margin-top:4px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Shortcuts -->
+        <div class="dash-shortcuts mb-6">
+          <a href="/meetings.htmx.html" class="dash-shortcut">
+            <div class="dash-shortcut-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </div>
+            <div>
+              <div class="dash-shortcut-title">Cr&eacute;er une s&eacute;ance</div>
+              <div class="text-xs text-muted">Nouvelle assembl&eacute;e</div>
+            </div>
+          </a>
+          <a href="/operator.htmx.html" class="dash-shortcut">
+            <div class="dash-shortcut-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </div>
+            <div>
+              <div class="dash-shortcut-title">Piloter un vote</div>
+              <div class="text-xs text-muted">S&eacute;ance en direct</div>
+            </div>
+          </a>
+          <a href="/trust.htmx.html" class="dash-shortcut">
+            <div class="dash-shortcut-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <div>
+              <div class="dash-shortcut-title">Consulter l'audit</div>
+              <div class="text-xs text-muted">Journal et v&eacute;rifications</div>
+            </div>
+          </a>
+        </div>
+
+        <hr class="mb-6" style="border-color: var(--color-border);">
 
         <!-- Tabs -->
         <div class="admin-tabs" role="tablist" aria-label="Sections d'administration">
