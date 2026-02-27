@@ -77,6 +77,12 @@ table {
    ============================================================================= */
 
 :root {
+  /* ─── Breakpoints (documentation — CSS vars cannot be used in @media) ─── */
+  /* sm:   480px   — mobile               */
+  /* md:   768px   — tablet               */
+  /* lg:  1024px   — desktop              */
+  /* Content-specific exceptions allowed: 600, 640, 900, 981px */
+
   /* ─── Fonts ─── */
   --font-sans: 'Bricolage Grotesque', system-ui, sans-serif;
   --font-display: 'Fraunces', Georgia, serif;
