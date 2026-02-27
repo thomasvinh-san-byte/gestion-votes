@@ -108,32 +108,27 @@ cd ~/Downloads/gestion-votes-main
 
 ## 4. Configurer et lancer
 
-### 4.1 Créer le fichier de configuration
+### 4.1 Démarrage rapide (recommandé)
 
 ```bash
-cp .env.example .env
+./bin/dev.sh
 ```
 
-C'est tout. Le fichier `.env.example` est pré-configuré en **mode test** (sans authentification) — parfait pour un premier lancement.
-
-### 4.2 Lancer l'application
-
-```bash
-docker compose up -d
-```
-
-Ce que fait cette commande :
-1. Télécharge l'image PostgreSQL 16
-2. Construit l'image AG-VOTE (Nginx + PHP + WebSocket)
+Ce script fait tout automatiquement :
+1. Crée `.env` à partir de `.env.example` (si absent)
+2. Télécharge les images Docker et construit l'image AG-VOTE
 3. Crée la base de données et charge les données de démo
-4. Démarre le tout en arrière-plan
+4. Attend que le healthcheck passe
+5. Affiche l'URL et les identifiants de test
 
 > **Premier lancement : 3–5 minutes** (téléchargement des images + compilation).
 > Les lancements suivants sont quasi-instantanés (~5 secondes).
 
-### 4.3 Suivre la progression
+### 4.2 Démarrage manuel (alternatif)
 
 ```bash
+cp .env.example .env
+docker compose up -d
 docker compose logs -f app
 ```
 
@@ -184,27 +179,29 @@ Les données de démo sont chargées automatiquement. Voici les comptes disponib
 
 Toutes les commandes sont à exécuter dans le Terminal, depuis le dossier du projet.
 
+### Via Make (recommandé)
+
 ```bash
-# Démarrer l'application
-docker compose up -d
+make dev             # Démarrage complet
+make test            # Lancer les tests
+make logs            # Suivre les logs (Ctrl+C pour quitter)
+make logs-err        # Afficher uniquement les erreurs
+make status          # État complet du stack
+make rebuild         # Rebuild + restart
+make shell           # Shell dans le conteneur app
+make db              # Console PostgreSQL
+make clean           # Arrêter les services
+make                 # Afficher toutes les commandes
+```
 
-# Arrêter l'application (données conservées)
-docker compose down
+### Commandes Docker directes
 
-# Redémarrer
-docker compose restart app
-
-# Voir les logs en direct
-docker compose logs -f app
-
-# État des conteneurs
-docker compose ps
-
-# Accéder au shell du conteneur
-docker compose exec app sh
-
-# Accéder à PostgreSQL
-docker compose exec db psql -U vote_app -d vote_app
+```bash
+docker compose up -d           # Démarrer
+docker compose down            # Arrêter (données conservées)
+docker compose restart app     # Redémarrer l'app seule
+docker compose logs -f app     # Logs en direct
+docker compose ps              # État des conteneurs
 ```
 
 ---
@@ -262,7 +259,8 @@ cd ~/Desktop/gestion-votes   # ou votre dossier
 git pull origin main
 
 # Reconstruire et relancer
-docker compose up -d --build
+make rebuild
+# ou : docker compose up -d --build
 ```
 
 Les migrations SQL sont appliquées automatiquement au redémarrage.
@@ -329,6 +327,9 @@ C'est normal au premier build (émulation x86 pour certaines dépendances). Les 
 ### Tout reconstruire de zéro
 
 ```bash
+make reset
+./bin/rebuild.sh --no-cache
+# ou manuellement :
 docker compose down -v
 docker compose build --no-cache
 docker compose up -d
@@ -345,11 +346,10 @@ docker compose logs app 2>&1 | grep -i error
 ## Résumé express
 
 ```bash
-# Installation complète en 4 commandes :
+# Installation complète en 3 commandes :
 git clone https://github.com/thomasvinh-san-byte/gestion-votes.git
 cd gestion-votes
-cp .env.example .env
-docker compose up -d
+./bin/dev.sh
 
 # Puis ouvrir : http://localhost:8080
 ```

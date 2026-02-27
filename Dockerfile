@@ -1,3 +1,18 @@
+# =============================================================================
+# Stage 1: Minify CSS/JS assets (node:alpine, discarded after build)
+# =============================================================================
+FROM node:20-alpine AS assets
+WORKDIR /assets
+COPY public/assets/ ./
+RUN npm install -g terser clean-css-cli \
+    && find . -name '*.js' -not -name '*.min.js' -type f \
+         -exec sh -c 'terser "$1" --compress --mangle -o "$1" 2>/dev/null || true' _ {} \; \
+    && find . -name '*.css' -not -name '*.min.css' -type f \
+         -exec sh -c 'cleancss --level 1 -o "$1" "$1" 2>/dev/null || true' _ {} \;
+
+# =============================================================================
+# Stage 2: Runtime
+# =============================================================================
 FROM php:8.4-fpm-alpine3.21
 
 LABEL org.opencontainers.image.title="AG-VOTE" \
@@ -45,6 +60,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progre
 
 # Application
 COPY . .
+
+# Overwrite with minified assets from stage 1
+COPY --from=assets /assets/ public/assets/
 
 # Config files
 COPY deploy/nginx.conf /etc/nginx/http.d/default.conf

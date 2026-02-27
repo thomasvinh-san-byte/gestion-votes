@@ -82,6 +82,14 @@ Docker Compose orchestre **3 services** :
 ```bash
 git clone https://github.com/thomasvinh-san-byte/gestion-votes.git
 cd gestion-votes
+./bin/dev.sh
+```
+
+Le script cree `.env`, lance Docker, attend le healthcheck et affiche l'URL + les identifiants de test.
+
+Equivalent sans script :
+
+```bash
 cp .env.example .env
 docker compose up -d
 ```
@@ -458,7 +466,16 @@ sudo iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
 
 ## Monitoring et logs
 
-### Health check
+### Etat du stack (recommande)
+
+```bash
+# Dashboard complet : conteneurs, healthchecks, API, DB stats, Redis, volumes
+./bin/status.sh
+# ou
+make status
+```
+
+### Health check (manuel)
 
 ```bash
 # Depuis le host
@@ -480,19 +497,22 @@ agvote-redis   Up (healthy)            127.0.0.1:6380->6379/tcp
 ### Logs
 
 ```bash
-# Logs de tous les services
+# Avec les scripts (recommande) :
+./bin/logs.sh            # Tous les services (follow)
+./bin/logs.sh app        # App uniquement
+./bin/logs.sh db         # PostgreSQL
+./bin/logs.sh redis      # Redis
+./bin/logs.sh err        # Filtrer erreurs/warnings
+./bin/logs.sh last       # 30 dernieres lignes (pas de follow)
+
+# ou via Make :
+make logs                # Tous les services
+make logs-app            # App uniquement
+make logs-err            # Erreurs/warnings
+
+# Commandes Docker directes :
 docker compose logs -f
-
-# Logs de l'application uniquement
 docker compose logs -f app
-
-# Logs de PostgreSQL
-docker compose logs -f db
-
-# Logs de Redis
-docker compose logs -f redis
-
-# Dernières 100 lignes
 docker compose logs --tail=100 app
 ```
 
@@ -555,7 +575,30 @@ crontab -e
 
 ## Commandes utiles
 
-### Cycle de vie
+### Scripts et Makefile (recommande)
+
+Le projet fournit des scripts `bin/` et un `Makefile` pour les operations courantes :
+
+| Commande | Equivalent script | Description |
+|----------|-------------------|-------------|
+| `make dev` | `./bin/dev.sh` | Demarrage complet (cree .env, Docker up, healthcheck, identifiants) |
+| `make rebuild` | `./bin/rebuild.sh` | Rebuild complet (down + build + up + healthcheck) |
+| `make rebuild-clean` | `./bin/rebuild.sh --no-cache` | Rebuild sans cache Docker |
+| `make test` | `./bin/test.sh` | Tests PHPUnit (rapide, sans coverage) |
+| `make test-ci` | `./bin/test.sh ci` | Tests CI (coverage + strict) |
+| `make logs` | `./bin/logs.sh` | Suivre les logs (tous les services) |
+| `make logs-app` | `./bin/logs.sh app` | Logs app uniquement |
+| `make logs-err` | `./bin/logs.sh err` | Filtrer erreurs/warnings |
+| `make status` | `./bin/status.sh` | Etat complet du stack |
+| `make check-prod` | `./bin/check-prod-readiness.sh` | Verifier la conformite production |
+| `make shell` | — | Shell dans le conteneur app |
+| `make db` | — | Console PostgreSQL |
+| `make redis` | — | Console Redis |
+| `make clean` | — | Arreter les services (conserve les donnees) |
+| `make reset` | — | Tout supprimer (conteneurs + volumes + donnees) |
+| `make` | — | Afficher toutes les commandes |
+
+### Cycle de vie (Docker direct)
 
 ```bash
 # Demarrer tous les services
@@ -578,13 +621,16 @@ docker compose build --no-cache && docker compose up -d
 
 ```bash
 # Shell dans le conteneur app
-docker compose exec app sh
+make shell
+# ou : docker compose exec app sh
 
 # Console PostgreSQL
-docker compose exec db psql -U vote_app -d vote_app
+make db
+# ou : docker compose exec db psql -U vote_app -d vote_app
 
 # Console Redis
-docker compose exec redis redis-cli
+make redis
+# ou : docker compose exec redis redis-cli
 
 # Verifier les extensions PHP
 docker compose exec app php -m
@@ -600,7 +646,8 @@ docker compose exec app php -i | grep -i "session\|opcache\|memory"
 git pull origin main
 
 # Reconstruire et relancer
-docker compose up -d --build
+make rebuild
+# ou : docker compose up -d --build
 ```
 
 Les migrations SQL sont appliquees automatiquement au redemarrage.
@@ -687,8 +734,15 @@ docker compose up -d --build
 | `docker-compose.yml` | Orchestration des 3 services |
 | `Dockerfile` | Image Docker (PHP 8.4 Alpine + Nginx + supervisord) |
 | `.env.example` | Template des variables d'environnement |
+| `Makefile` | Raccourcis Make pour les operations courantes |
 | `deploy/entrypoint.sh` | Script d'initialisation (verifications, DB, migrations) |
 | `deploy/nginx.conf` | Configuration Nginx (rate limiting, headers securite, routing) |
 | `deploy/supervisord.conf` | Gestionnaire de processus (Nginx + PHP-FPM) |
 | `deploy/php.ini` | Configuration PHP (OPcache, sessions, limites) |
 | `deploy/php-fpm.conf` | Configuration PHP-FPM (workers, timeouts) |
+| `bin/dev.sh` | Demarrage rapide Docker dev |
+| `bin/rebuild.sh` | Rebuild complet (down + build + up + healthcheck) |
+| `bin/test.sh` | Wrapper PHPUnit (filtres, dossiers, mode CI) |
+| `bin/logs.sh` | Suivi logs avec filtres (app, db, redis, err) |
+| `bin/status.sh` | Etat complet du stack |
+| `bin/check-prod-readiness.sh` | Validation conformite production |

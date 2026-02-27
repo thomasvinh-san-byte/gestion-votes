@@ -159,10 +159,20 @@ sed -i "s/DB_PASS=.*/DB_PASS=$(openssl rand -base64 24)/" .env
 ## 4. Lancer l'application
 
 ```bash
-# Construire et démarrer (première fois)
-docker compose up -d
+# Démarrage rapide (crée .env, Docker up, healthcheck, identifiants)
+./bin/dev.sh
 
-# Suivre les logs de démarrage
+# ou via Make :
+make dev
+```
+
+Le script crée `.env`, lance Docker Compose, attend que le healthcheck passe et affiche l'URL + les identifiants de test.
+
+Équivalent sans script :
+
+```bash
+cp .env.example .env
+docker compose up -d
 docker compose logs -f app
 ```
 
@@ -180,12 +190,21 @@ Au premier lancement, l'entrypoint :
 ## 5. Vérification
 
 ```bash
-# État des conteneurs
-docker compose ps
+# Dashboard complet (conteneurs, healthchecks, API, DB stats, Redis)
+./bin/status.sh
+# ou : make status
 
-# Résultat attendu :
-# agvote-app   running (healthy)   0.0.0.0:8080->8080, 0.0.0.0:8081->8081
-# agvote-db    running (healthy)   0.0.0.0:5433->5432
+# Vérification rapide
+docker compose ps
+```
+
+Résultat attendu :
+
+```
+NAME           STATUS                  PORTS
+agvote-app     Up (healthy)            0.0.0.0:8080->8080
+agvote-db      Up (healthy)            127.0.0.1:5433->5432
+agvote-redis   Up (healthy)            127.0.0.1:6380->6379
 ```
 
 Tester dans le navigateur :
@@ -194,12 +213,6 @@ Tester dans le navigateur :
 |-----|-------------|
 | `http://localhost:8080` | Page d'accueil |
 | `http://localhost:8080/login.html` | Connexion |
-
-Tester en ligne de commande :
-
-```bash
-curl -s http://localhost:8080/ | head -5
-```
 
 ---
 
@@ -282,6 +295,36 @@ Il n'est **pas** accessible depuis le réseau. C'est voulu pour la sécurité.
 
 ## 8. Commandes utiles
 
+### Via Make / scripts (recommandé)
+
+```bash
+make dev             # Démarrage complet (crée .env, Docker up, healthcheck)
+make test            # Lancer les tests PHPUnit
+make logs            # Suivre les logs (tous les services)
+make logs-app        # Logs app uniquement
+make logs-err        # Filtrer erreurs/warnings
+make status          # État complet du stack
+make rebuild         # Rebuild + restart
+make shell           # Shell dans le conteneur app
+make db              # Console PostgreSQL
+make clean           # Arrêter les services
+make                 # Afficher toutes les commandes
+```
+
+Les scripts `bin/` sont aussi utilisables directement :
+
+```bash
+./bin/dev.sh             # Démarrage rapide
+./bin/logs.sh app        # Logs app
+./bin/logs.sh err        # Erreurs uniquement
+./bin/test.sh            # Tests
+./bin/test.sh ci         # Tests CI (coverage)
+./bin/status.sh          # Dashboard du stack
+./bin/rebuild.sh         # Rebuild complet
+```
+
+### Commandes Docker directes
+
 ```bash
 # Démarrer
 docker compose up -d
@@ -291,16 +334,6 @@ docker compose down
 
 # Redémarrer l'application seule
 docker compose restart app
-
-# Logs en temps réel
-docker compose logs -f app
-docker compose logs -f db
-
-# Shell dans le conteneur app
-docker compose exec app sh
-
-# Console PostgreSQL
-docker compose exec db psql -U vote_app -d vote_app
 
 # Reconstruire après une mise à jour
 docker compose up -d --build
@@ -352,7 +385,8 @@ echo "0 2 * * * cd /chemin/vers/gestion-votes && docker compose exec -T db pg_du
 ```bash
 cd gestion-votes
 git pull origin main
-docker compose up -d --build
+make rebuild
+# ou : docker compose up -d --build
 ```
 
 ### Depuis l'image ghcr.io
@@ -386,11 +420,12 @@ docker rmi agvote-app
 ### Le conteneur `app` ne démarre pas
 
 ```bash
-docker compose logs app
+./bin/logs.sh err
+# ou : docker compose logs app
 ```
 
 Causes fréquentes :
-- `.env` manquant → `cp .env.example .env`
+- `.env` manquant → `./bin/dev.sh` le crée automatiquement
 - Port 8080 déjà utilisé → changer `APP_PORT` dans `.env`
 
 ### "Connection refused" sur PostgreSQL
@@ -413,6 +448,10 @@ newgrp docker
 ### Reconstruire de zéro (tout supprimer)
 
 ```bash
+make reset
+# puis :
+make dev
+# ou manuellement :
 docker compose down -v
 docker compose up -d --build
 ```

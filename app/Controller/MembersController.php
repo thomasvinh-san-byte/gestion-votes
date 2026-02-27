@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
 use AgVote\Repository\MemberGroupRepository;
 use AgVote\Repository\MemberRepository;
@@ -31,6 +32,11 @@ final class MembersController extends AbstractController {
     }
 
     public function create(): void {
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) {
+            api_ok($cached, 201);
+        }
+
         $input = api_request('POST');
 
         // Normalize legacy field name
@@ -54,7 +60,9 @@ final class MembersController extends AbstractController {
 
         audit_log('member_created', 'member', $id, ['full_name' => $full_name]);
 
-        api_ok(['member_id' => $id, 'full_name' => $full_name], 201);
+        $result = ['member_id' => $id, 'full_name' => $full_name];
+        IdempotencyGuard::store($result);
+        api_ok($result, 201);
     }
 
     public function updateMember(): void {

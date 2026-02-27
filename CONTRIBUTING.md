@@ -18,13 +18,34 @@ Thank you for your interest in contributing to AG-VOTE. This document outlines t
 
 ## Getting Started
 
-1. Clone the repository
-2. Copy `.env.example` to `.env` and configure
-3. Run `composer install`
-4. Initialize the database with `database/schema-master.sql`
-5. Start local server: `php -S localhost:8000 -t public`
+### With Docker (recommended)
 
-See [SETUP.md](SETUP.md) for detailed instructions.
+```bash
+git clone https://github.com/thomasvinh-san-byte/gestion-votes.git
+cd gestion-votes
+./bin/dev.sh
+```
+
+The script creates `.env`, starts Docker, waits for the healthcheck, and displays the URL + test credentials.
+
+Everyday commands:
+
+```bash
+make test          # Run PHPUnit tests
+make logs          # Follow logs (Ctrl+C to quit)
+make status        # Full stack status
+make rebuild       # Rebuild + restart
+make               # Show all available commands
+```
+
+> Scripts in `bin/` can also be called directly: `./bin/dev.sh`, `./bin/test.sh`, `./bin/logs.sh err`, etc.
+
+### Without Docker (local PHP)
+
+1. Copy `.env.example` to `.env` and configure
+2. Run `composer install`
+3. Initialize the database with `database/schema-master.sql`
+4. Start local server: `php -S localhost:8000 -t public`
 
 ---
 
@@ -356,14 +377,22 @@ api_fail('The item was not found', 404);
 ### Running Tests
 
 ```bash
-# All tests
-vendor/bin/phpunit
+# All tests (fast, no coverage)
+make test
+# or: ./bin/test.sh
 
-# Specific test file
+# Specific test directory
+./bin/test.sh Unit
+
+# Filter by name
+./bin/test.sh --filter=Ballot
+
+# CI mode (coverage + strict)
+make test-ci
+# or: ./bin/test.sh ci
+
+# Specific test file (direct PHPUnit)
 vendor/bin/phpunit tests/Unit/VoteEngineTest.php
-
-# With coverage
-vendor/bin/phpunit --coverage-html coverage/
 ```
 
 ### Test Structure
