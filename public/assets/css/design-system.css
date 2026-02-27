@@ -710,7 +710,7 @@ h4, .h4 {
 }
 .nav-item.active {
   background: var(--sidebar-active);
-  color: #fff;
+  color: var(--color-text-inverse);
   font-weight: 600;
 }
 /* Left accent bar on active */
@@ -800,7 +800,7 @@ h4, .h4 {
   height: 16px;
   border-radius: var(--radius-full);
   background: var(--color-danger);
-  color: #fff;
+  color: var(--color-text-inverse);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
@@ -3154,14 +3154,14 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 }
 .chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
 .chip.active {
-  background: var(--color-primary); border-color: var(--color-primary); color: #fff;
+  background: var(--color-primary); border-color: var(--color-primary); color: var(--color-text-inverse);
 }
 
 /* ── Avatars ── */
 .avatar {
   width: 32px; height: 32px; border-radius: var(--radius-full);
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; color: #fff;
+  font-size: 13px; font-weight: 700; color: var(--color-text-inverse);
   flex-shrink: 0; text-transform: uppercase; letter-spacing: .3px;
 }
 .avatar-sm { width: 24px; height: 24px; font-size: 10px; }
@@ -3185,7 +3185,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 .op-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: 700; }
 .op-tab .notif {
   min-width: 16px; height: 16px; border-radius: var(--radius-full);
-  background: var(--color-danger); color: #fff;
+  background: var(--color-danger); color: var(--color-text-inverse);
   font-family: var(--font-mono); font-size: 10px; font-weight: 700;
   display: flex; align-items: center; justify-content: center; padding: 0 3px;
 }
@@ -3215,7 +3215,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 .notif-count {
   position: absolute; top: 4px; right: 4px;
   min-width: 16px; height: 16px; border-radius: 8px;
-  background: var(--color-danger); color: #fff;
+  background: var(--color-danger); color: var(--color-text-inverse);
   font-family: var(--font-mono); font-size: 10px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   padding: 0 3px; pointer-events: none;
@@ -3315,13 +3315,13 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 }
 .ob-icon {
   width: 42px; height: 42px; border-radius: 50%;
-  background: var(--color-primary); color: #fff;
+  background: var(--color-primary); color: var(--color-text-inverse);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .ob-title { font-weight: 700; font-size: 14px; color: var(--color-text-dark); margin-bottom: 2px; }
 .ob-btn-primary {
   padding: 6px 14px; border-radius: var(--radius-sm);
-  background: var(--color-primary); color: #fff;
+  background: var(--color-primary); color: var(--color-text-inverse);
   font-size: 12px; font-weight: 600; border: none; cursor: pointer;
   transition: background .15s ease;
 }
@@ -3384,8 +3384,8 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   font-family: var(--font-mono); font-size: 11px; font-weight: 700;
   flex-shrink: 0; background: var(--color-bg-subtle); color: var(--color-text-muted);
 }
-.wiz-step.done .wiz-num { background: var(--color-success); color: #fff; }
-.wiz-step.active .wiz-num { background: var(--color-primary); color: #fff; }
+.wiz-step.done .wiz-num { background: var(--color-success); color: var(--color-text-inverse); }
+.wiz-step.active .wiz-num { background: var(--color-primary); color: var(--color-text-inverse); }
 
 /* ── Skeleton Loading ── */
 .skeleton { animation: shimmer 1.5s infinite linear; background: linear-gradient(90deg, var(--color-bg-subtle) 25%, var(--color-border-subtle, var(--color-border)) 50%, var(--color-bg-subtle) 75%); background-size: 200% 100%; border-radius: var(--radius-sm); }
@@ -3405,7 +3405,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 .skip-link {
   position: fixed; top: -100px; left: 16px; z-index: var(--z-skip);
   padding: 8px 16px; border-radius: var(--radius-sm);
-  background: var(--color-primary); color: #fff;
+  background: var(--color-primary); color: var(--color-text-inverse);
   font-weight: 600; font-size: 13px; text-decoration: none;
   transition: top .2s ease;
 }
@@ -3838,7 +3838,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   gap: 1rem;
   padding: 0.75rem 1.5rem;
   background: var(--color-warning);
-  color: #000;
+  color: var(--color-text-dark);
   font-size: var(--text-sm);
   font-weight: 600;
   animation: slideDown var(--duration-normal) var(--ease-out);
@@ -3955,7 +3955,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   font-size: 0.6rem;
   font-weight: 700;
   background: var(--color-danger);
-  color: #fff;
+  color: var(--color-text-inverse);
   margin-left: auto;
 }
 
