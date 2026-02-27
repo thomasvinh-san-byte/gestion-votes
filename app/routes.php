@@ -41,6 +41,7 @@ use AgVote\Controller\MeetingWorkflowController;
 use AgVote\Controller\MemberGroupsController;
 use AgVote\Controller\MembersController;
 use AgVote\Controller\MotionsController;
+use AgVote\Controller\NotificationsController;
 use AgVote\Controller\OperatorController;
 use AgVote\Controller\PoliciesController;
 use AgVote\Controller\ProjectorController;
@@ -272,6 +273,10 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/motions_open", MotionsController::class, 'open', $op);
     $router->mapAny("{$prefix}/motions_close", MotionsController::class, 'close', ['role' => ['operator', 'president', 'admin']]);
     $router->mapAny("{$prefix}/degraded_tally", MotionsController::class, 'degradedTally', $op);
+
+    // ── Notifications ──
+    $router->map('GET', "{$prefix}/notifications", NotificationsController::class, 'list', $view);
+    $router->map('PUT', "{$prefix}/notifications_read", NotificationsController::class, 'markRead', $view);
 
     // ── Operator ──
     $router->mapAny("{$prefix}/operator_anomalies", OperatorController::class, 'anomalies', $op);

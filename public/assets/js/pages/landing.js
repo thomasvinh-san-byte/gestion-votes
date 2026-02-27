@@ -20,7 +20,7 @@
       var submitBtn = form.querySelector('button[type="submit"]');
       if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Connexion...'; }
 
-      fetch('/api/v1/auth/login.php', {
+      fetch('/api/v1/auth_login.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, password: password })
