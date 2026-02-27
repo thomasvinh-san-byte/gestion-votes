@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
 use AgVote\Repository\MeetingReportRepository;
 use AgVote\Repository\MeetingRepository;
@@ -369,6 +370,11 @@ final class MeetingsController extends AbstractController {
     }
 
     public function createMeeting(): void {
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) {
+            api_ok($cached, 201);
+        }
+
         $data = api_request('POST');
 
         $v = ValidationSchemas::meeting()->validate($data);
@@ -412,10 +418,9 @@ final class MeetingsController extends AbstractController {
             'location' => $location,
         ]);
 
-        api_ok([
-            'meeting_id' => $id,
-            'title' => $title,
-        ], 201);
+        $result = ['meeting_id' => $id, 'title' => $title];
+        IdempotencyGuard::store($result);
+        api_ok($result, 201);
     }
 
     public function deleteMeeting(): void {

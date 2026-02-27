@@ -617,6 +617,11 @@ async function api(url, data = null, method = null, timeoutMs = API_TIMEOUT_MS) 
     if (token) headers['X-CSRF-Token'] = token;
   }
 
+  // Auto idempotency key for mutating requests
+  if ((httpMethod === 'POST' || httpMethod === 'PUT') && !headers['X-Idempotency-Key']) {
+    headers['X-Idempotency-Key'] = crypto.randomUUID();
+  }
+
   // AbortController for timeout
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);

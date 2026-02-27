@@ -26,10 +26,11 @@ final class SecurityProvider {
         header('X-XSS-Protection: 1; mode=block');
         header('Referrer-Policy: strict-origin-when-cross-origin');
 
-        // CSP (permissive for HTMX/CDN, allows WebSocket via ws:/wss:)
+        // CSP — no unsafe-inline for scripts (no inline <script> in templates).
+        // style-src keeps unsafe-inline: 50+ dynamic inline styles in JS innerHTML.
         header("Content-Security-Policy: default-src 'self'; "
-            . "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; "
-            . "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; "
+            . "script-src 'self' https://unpkg.com https://cdn.jsdelivr.net; "
+            . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             . "img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; "
             . "connect-src 'self' ws: wss:; frame-ancestors 'self'; form-action 'self'");
 
@@ -49,7 +50,7 @@ final class SecurityProvider {
         if ($origin && in_array($origin, $allowed, true)) {
             header('Access-Control-Allow-Origin: ' . $origin);
             header('Vary: Origin');
-            header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Api-Key, X-CSRF-Token');
+            header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Api-Key, X-CSRF-Token, X-Idempotency-Key');
             header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
             if (!empty($corsConfig['allow_credentials'])) {
                 header('Access-Control-Allow-Credentials: true');

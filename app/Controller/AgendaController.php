@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
 use AgVote\Repository\AgendaRepository;
 use AgVote\Repository\MeetingRepository;
@@ -28,6 +29,11 @@ final class AgendaController extends AbstractController {
     }
 
     public function create(): void {
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) {
+            api_ok($cached, 201);
+        }
+
         $data = api_request('POST');
 
         $v = ValidationSchemas::agenda()->validate($data);
@@ -53,7 +59,9 @@ final class AgendaController extends AbstractController {
             'title' => $title,
         ]);
 
-        api_ok(['agenda_id' => $id, 'idx' => $idx, 'title' => $title], 201);
+        $result = ['agenda_id' => $id, 'idx' => $idx, 'title' => $title];
+        IdempotencyGuard::store($result);
+        api_ok($result, 201);
     }
 
     public function lateRules(): void {

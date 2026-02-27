@@ -29,6 +29,7 @@ services:
       DB_PASSWORD: "${DB_PASS:?DB_PASS requis — definir dans .env}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-agvote-redis-dev}"
       LOAD_DEMO_DATA: "${LOAD_DEMO_DATA:-1}"
     volumes:
       - app-storage:/tmp/ag-vote    # logs, cache PDF, fonts
@@ -91,7 +92,7 @@ services:
     image: redis:7-alpine
     container_name: agvote-redis
     restart: unless-stopped
-    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru", "--save", ""]
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--requirepass", "${REDIS_PASSWORD:-agvote-redis-dev}"]
     ports:
       - "127.0.0.1:${REDIS_EXTERNAL_PORT:-6380}:6379"
     healthcheck:
