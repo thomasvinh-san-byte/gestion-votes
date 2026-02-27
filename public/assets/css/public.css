@@ -786,4 +786,203 @@ body.projection-body {
   .projection-footer {
     padding: var(--space-2) var(--space-3);
   }
+
+  .quorum-visual-bar {
+    height: 18px;
+  }
+
+  .resolution-tracker {
+    gap: 4px;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .tracker-pill {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.6rem;
+  }
+}
+
+/* =============================================================================
+   PHASE 7.3 — ENHANCED PROJECTOR
+   Quorum bar with seuil, resolution tracker pills, clamp scaling
+   ============================================================================= */
+
+/* ─── Quorum visual bar (with threshold marker) ─── */
+.quorum-visual {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.quorum-visual-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.quorum-visual-label {
+  font-size: clamp(0.75rem, 1.5vw, 0.9rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.quorum-visual-value {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 700;
+}
+
+.quorum-visual-bar {
+  position: relative;
+  height: 24px;
+  background: var(--color-bg-subtle);
+  border-radius: 12px;
+  overflow: visible;
+  border: 1px solid var(--color-border);
+}
+
+.quorum-visual-fill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width .8s cubic-bezier(.23, 1, .32, 1);
+  min-width: 2px;
+}
+
+.quorum-visual-fill.met {
+  background: linear-gradient(90deg, var(--color-success) 0%, color-mix(in srgb, var(--color-success) 80%, #fff) 100%);
+}
+
+.quorum-visual-fill.unmet {
+  background: linear-gradient(90deg, var(--color-danger) 0%, color-mix(in srgb, var(--color-danger) 80%, #fff) 100%);
+}
+
+/* Threshold marker (seuil line) */
+.quorum-seuil {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  width: 3px;
+  background: var(--color-text);
+  border-radius: 2px;
+  z-index: 1;
+  transition: left .8s cubic-bezier(.23, 1, .32, 1);
+}
+
+.quorum-seuil::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+}
+
+/* ─── Resolution tracker pills (bottom strip) ─── */
+.resolution-tracker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: var(--space-2) var(--space-4);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.tracker-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all .2s ease;
+}
+
+.tracker-pill.pending {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.tracker-pill.active {
+  background: var(--color-primary);
+  color: #fff;
+  border: 1px solid var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow, rgba(22,80,224,.18));
+}
+
+.tracker-pill.adopted {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.tracker-pill.rejected {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+/* ─── Projector clamp scaling ─── */
+.motion-title {
+  font-size: clamp(1.5rem, 4vw, 3rem);
+}
+
+.motion-subtitle {
+  font-size: clamp(0.875rem, 2vw, 1.25rem);
+}
+
+.bar-percentage {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+}
+
+.bar-count {
+  font-size: clamp(0.7rem, 1.5vw, 1rem);
+}
+
+.bar-label {
+  font-size: clamp(0.875rem, 2vw, 1.25rem);
+}
+
+.decision-value {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+}
+
+/* ─── Mode toggle (vote/result) ─── */
+.projection-mode-toggle {
+  display: flex;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  padding: 2px;
+  gap: 2px;
+}
+
+.projection-mode-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.projection-mode-btn:hover {
+  color: var(--color-text);
+}
+
+.projection-mode-btn.active {
+  background: var(--color-primary);
+  color: #fff;
 }

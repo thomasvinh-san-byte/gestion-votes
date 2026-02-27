@@ -3250,3 +3250,345 @@
     min-width: 80px;
   }
 }
+
+/* =============================================================================
+   OPERATOR LIVE — Phase 7.1
+   Resolution sub-tabs, progress bar, split panel, action bar, guidance bar
+   ============================================================================= */
+
+/* ─── Resolution sub-tabs (.op-tabs) ─── */
+.op-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--color-border-subtle);
+  margin-bottom: 1.25rem;
+}
+
+.op-tab {
+  padding: 0.625rem 1rem;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.op-tab:hover {
+  color: var(--color-text);
+}
+
+.op-tab.active {
+  color: var(--color-primary);
+  font-weight: 600;
+  border-bottom-color: var(--color-primary);
+}
+
+.op-tab-panel {
+  display: none;
+}
+
+.op-tab-panel.active {
+  display: block;
+  animation: tabFadeIn var(--duration-normal) var(--ease-out);
+}
+
+/* ─── Resolution progress bar (segmented) ─── */
+.op-resolution-progress {
+  display: flex;
+  gap: 3px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.op-progress-segment {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-border);
+  cursor: pointer;
+  transition: background .2s ease, transform .1s ease;
+  position: relative;
+}
+
+.op-progress-segment:hover {
+  transform: scaleY(1.5);
+}
+
+.op-progress-segment.voted {
+  background: var(--color-success);
+}
+
+.op-progress-segment.active {
+  background: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-glow, rgba(22,80,224,.2));
+}
+
+.op-progress-segment.skipped {
+  background: var(--color-text-muted);
+  opacity: 0.4;
+}
+
+/* Tooltip on hover */
+.op-progress-segment::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.25rem 0.5rem;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: 0.65rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease;
+}
+
+.op-progress-segment:hover::after {
+  opacity: 1;
+}
+
+/* ─── Split panel (resolution left + OdJ right) ─── */
+.op-split {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.op-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+}
+
+.op-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.op-panel-body {
+  padding: 1.25rem;
+}
+
+/* ─── Vote result bars (animated) ─── */
+.op-vote-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.op-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.op-bar-label {
+  width: 70px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.op-bar-track {
+  flex: 1;
+  height: 24px;
+  background: var(--color-bg-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.op-bar-fill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width .6s cubic-bezier(.23, 1, .32, 1);
+  min-width: 2px;
+}
+
+.op-bar-fill.for { background: var(--color-success); }
+.op-bar-fill.against { background: var(--color-danger); }
+.op-bar-fill.abstain { background: var(--color-text-muted); }
+
+.op-bar-pct {
+  width: 52px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+/* ─── Contextual tags ─── */
+.op-tags {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.op-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.op-tag-quorum {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.op-tag-no-quorum {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+
+.op-tag-correspondance {
+  background: var(--color-info-subtle);
+  color: var(--color-info);
+}
+
+.op-tag-procurations {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+}
+
+/* ─── Action bar sticky ─── */
+.op-action-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.875rem 1.5rem;
+  background: var(--color-surface);
+  border-top: 2px solid var(--color-border);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+  z-index: var(--z-sticky, 10);
+}
+
+.op-action-bar .btn {
+  min-width: 160px;
+  position: relative;
+}
+
+.op-kbd-hint {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+/* ─── Guidance bar contextuelle ─── */
+.op-guidance {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--text-sm);
+  margin-bottom: 1rem;
+  animation: guidancePulse 3s ease-in-out infinite;
+}
+
+.op-guidance-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.op-guidance-text {
+  flex: 1;
+  font-weight: 500;
+}
+
+@keyframes guidancePulse {
+  0%, 100% { border-color: color-mix(in srgb, var(--color-primary) 20%, transparent); }
+  50% { border-color: color-mix(in srgb, var(--color-primary) 40%, transparent); }
+}
+
+/* ─── Live compact header (override meeting-bar for live state) ─── */
+.meeting-bar.live-mode {
+  border-top-color: var(--color-danger);
+}
+
+.meeting-bar.live-mode .meeting-bar-top {
+  padding: 0.5rem 1.25rem;
+}
+
+.op-live-chrono {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-danger);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.op-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ─── Operator live responsive ─── */
+@media (max-width: 1024px) {
+  .op-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .op-action-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .op-action-bar .btn {
+    width: 100%;
+  }
+  .op-bar-label {
+    width: 50px;
+    font-size: 0.75rem;
+  }
+}

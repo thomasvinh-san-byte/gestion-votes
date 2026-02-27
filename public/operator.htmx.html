@@ -1124,6 +1124,35 @@
           </div>
         </div>
 
+        <!-- Contextual tags (quorum, correspondance, procurations) -->
+        <div class="op-tags" id="opTags" hidden>
+          <span class="op-tag op-tag-quorum" id="opTagQuorum" hidden>
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Quorum atteint
+          </span>
+          <span class="op-tag op-tag-no-quorum" id="opTagNoQuorum" hidden>
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Quorum non atteint
+          </span>
+          <span class="op-tag op-tag-correspondance" id="opTagCorrespondance" hidden>
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg> Correspondance
+          </span>
+          <span class="op-tag op-tag-procurations" id="opTagProcurations" hidden>
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> <span id="opProcCount">0</span> procurations
+          </span>
+        </div>
+
+        <!-- Resolution progress bar (segmented) -->
+        <div class="op-resolution-progress" id="opResolutionProgress" hidden aria-label="Progression des r&eacute;solutions">
+          <!-- Segments filled dynamically by JS -->
+        </div>
+
+        <!-- Guidance bar contextuelle -->
+        <div class="op-guidance" id="opGuidance" hidden>
+          <div class="op-guidance-icon">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+          </div>
+          <span class="op-guidance-text" id="opGuidanceText">Ouvrez un vote pour commencer.</span>
+        </div>
+
         <!-- Close session banner (visible when ready to close the session) -->
         <div id="execCloseBanner" class="exec-close-banner" style="display:none;">
           <div class="exec-close-banner-info">
@@ -1144,46 +1173,136 @@
         </div>
 
         <div class="exec-grid">
-          <!-- Col 1: Vote en cours -->
+          <!-- Col 1: Vote en cours (with sub-tabs) -->
           <div class="exec-card" id="execVoteCard">
             <div class="exec-card-header">
               <h2>Vote en cours</h2>
               <span class="live-badge" id="execLiveBadge" hidden aria-label="Vote en direct"><span class="pulse"></span> LIVE</span>
             </div>
             <div class="exec-card-body">
-              <div id="execNoVote" class="text-center p-4 text-muted">
-                <p>Aucun vote ouvert.</p>
-                <div id="execQuickOpenList" class="quick-motion-list mt-4">
-                  <!-- Filled by JS -->
+              <!-- Resolution sub-tabs -->
+              <div class="op-tabs" id="opSubTabs">
+                <button class="op-tab active" data-op-tab="resultat" type="button">R&eacute;sultat</button>
+                <button class="op-tab" data-op-tab="avance" type="button">Avanc&eacute;</button>
+                <button class="op-tab" data-op-tab="presences" type="button">Pr&eacute;sences</button>
+              </div>
+
+              <!-- Sub-tab 1: Résultat -->
+              <div class="op-tab-panel active" id="opPanelResultat">
+                <div id="execNoVote" class="text-center p-4 text-muted">
+                  <p>Aucun vote ouvert.</p>
+                  <div id="execQuickOpenList" class="quick-motion-list mt-4">
+                    <!-- Filled by JS -->
+                  </div>
+                </div>
+                <div id="execActiveVote" hidden>
+                  <div class="exec-vote-title" id="execVoteTitle">&mdash;</div>
+                  <!-- Animated vote bars -->
+                  <div class="op-vote-bars" id="opVoteBars">
+                    <div class="op-bar-row">
+                      <span class="op-bar-label" style="color:var(--color-success)">Pour</span>
+                      <div class="op-bar-track"><div class="op-bar-fill for" id="opBarFor" style="width:0%"></div></div>
+                      <span class="op-bar-pct" id="opPctFor">0%</span>
+                    </div>
+                    <div class="op-bar-row">
+                      <span class="op-bar-label" style="color:var(--color-danger)">Contre</span>
+                      <div class="op-bar-track"><div class="op-bar-fill against" id="opBarAgainst" style="width:0%"></div></div>
+                      <span class="op-bar-pct" id="opPctAgainst">0%</span>
+                    </div>
+                    <div class="op-bar-row">
+                      <span class="op-bar-label">Abst.</span>
+                      <div class="op-bar-track"><div class="op-bar-fill abstain" id="opBarAbstain" style="width:0%"></div></div>
+                      <span class="op-bar-pct" id="opPctAbstain">0%</span>
+                    </div>
+                  </div>
+                  <div class="exec-vote-kpis" aria-live="polite" aria-atomic="true">
+                    <div class="exec-kpi for">
+                      <span class="exec-kpi-value" id="execVoteFor">0</span>
+                      <span class="exec-kpi-label">Pour</span>
+                    </div>
+                    <div class="exec-kpi against">
+                      <span class="exec-kpi-value" id="execVoteAgainst">0</span>
+                      <span class="exec-kpi-label">Contre</span>
+                    </div>
+                    <div class="exec-kpi abstain">
+                      <span class="exec-kpi-value" id="execVoteAbstain">0</span>
+                      <span class="exec-kpi-label">Abstention</span>
+                    </div>
+                  </div>
+                  <div class="exec-participation-row">
+                    <span class="exec-participation-label">Participation</span>
+                    <div class="progress">
+                      <div class="progress-bar success" id="execVoteParticipationBar" style="width: 0%"></div>
+                    </div>
+                    <span class="exec-participation-pct" id="execVoteParticipationPct">0%</span>
+                  </div>
+                  <div class="exec-vote-actions">
+                    <button class="btn btn-warning" id="execBtnCloseVote">
+                      <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Terminer le scrutin
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div id="execActiveVote" hidden>
-                <div class="exec-vote-title" id="execVoteTitle">—</div>
-                <div class="exec-vote-kpis" aria-live="polite" aria-atomic="true">
-                  <div class="exec-kpi for">
-                    <span class="exec-kpi-value" id="execVoteFor">0</span>
-                    <span class="exec-kpi-label">Pour</span>
-                  </div>
-                  <div class="exec-kpi against">
-                    <span class="exec-kpi-value" id="execVoteAgainst">0</span>
-                    <span class="exec-kpi-label">Contre</span>
-                  </div>
-                  <div class="exec-kpi abstain">
-                    <span class="exec-kpi-value" id="execVoteAbstain">0</span>
-                    <span class="exec-kpi-label">Abstention</span>
+
+              <!-- Sub-tab 2: Avancé (paper counts, missing voters, unanimity, proxy, secretary notes) -->
+              <div class="op-tab-panel" id="opPanelAvance">
+                <div class="form-group mb-3">
+                  <label class="form-label">Comptage papier</label>
+                  <div class="flex gap-2">
+                    <div class="form-group" style="flex:1;margin:0">
+                      <label class="form-label text-xs">Pour</label>
+                      <input type="number" class="form-input form-input-sm" id="opPaperFor" min="0" value="0">
+                    </div>
+                    <div class="form-group" style="flex:1;margin:0">
+                      <label class="form-label text-xs">Contre</label>
+                      <input type="number" class="form-input form-input-sm" id="opPaperAgainst" min="0" value="0">
+                    </div>
+                    <div class="form-group" style="flex:1;margin:0">
+                      <label class="form-label text-xs">Abst.</label>
+                      <input type="number" class="form-input form-input-sm" id="opPaperAbstain" min="0" value="0">
+                    </div>
                   </div>
                 </div>
-                <div class="exec-participation-row">
-                  <span class="exec-participation-label">Participation</span>
-                  <div class="progress">
-                    <div class="progress-bar success" id="execVoteParticipationBar" style="width: 0%"></div>
-                  </div>
-                  <span class="exec-participation-pct" id="execVoteParticipationPct">0%</span>
+                <div class="form-group mb-3">
+                  <label class="form-label">Votants manquants</label>
+                  <div id="opMissingVoters" class="text-sm text-muted">Aucun vote ouvert</div>
                 </div>
-                <div class="exec-vote-actions">
-                  <button class="btn btn-warning" id="execBtnCloseVote">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Terminer le scrutin
+                <div class="flex gap-2 mb-3">
+                  <button class="btn btn-sm btn-secondary" id="opBtnUnanimity" type="button" disabled>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Unanimit&eacute;
                   </button>
+                  <button class="btn btn-sm btn-secondary" id="opBtnPasserelle" type="button" disabled title="Passerelle art. 25-1">
+                    Passerelle 25-1
+                  </button>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Notes secr&eacute;taire</label>
+                  <textarea class="form-input" id="opSecretaryNotes" rows="3" placeholder="Notes internes..."></textarea>
+                </div>
+              </div>
+
+              <!-- Sub-tab 3: Présences (KPIs + participant toggle) -->
+              <div class="op-tab-panel" id="opPanelPresences">
+                <div class="quick-counts mb-3" id="opPresenceKpis">
+                  <div class="quick-count">
+                    <span class="quick-count-value success" id="opPresent">0</span>
+                    <span class="quick-count-label">Pr&eacute;sents</span>
+                  </div>
+                  <div class="quick-count">
+                    <span class="quick-count-value info" id="opRemote">0</span>
+                    <span class="quick-count-label">&Agrave; distance</span>
+                  </div>
+                  <div class="quick-count">
+                    <span class="quick-count-value muted" id="opAbsent">0</span>
+                    <span class="quick-count-label">Absents</span>
+                  </div>
+                  <div class="quick-count">
+                    <span class="quick-count-value warning" id="opProxies">0</span>
+                    <span class="quick-count-label">Procurations</span>
+                  </div>
+                </div>
+                <div id="opPresenceList" class="text-sm text-muted">
+                  Chargement des pr&eacute;sences...
                 </div>
               </div>
             </div>
@@ -1259,6 +1378,19 @@
               </div>
             </div>
           </div>
+        </div>
+        <!-- Sticky action bar -->
+        <div class="op-action-bar" id="opActionBar" hidden>
+          <button class="btn btn-primary btn-lg" id="opBtnProclaim" disabled>
+            <span class="op-kbd-hint">P</span>
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+            Proclamer
+          </button>
+          <button class="btn btn-warning btn-lg" id="opBtnToggleVote" disabled>
+            <span class="op-kbd-hint">F</span>
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg>
+            Fermer le vote
+          </button>
         </div>
       </section><!-- /viewExec -->
 
