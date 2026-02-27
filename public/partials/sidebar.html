@@ -1,110 +1,120 @@
-<div class="p-4 border-b">
-  <a href="/" class="brand" aria-label="AG-VOTE - Retour à l'accueil">
-    <span class="brand-logo">AG-VOTE</span>
-  </a>
+<!-- Pin button (visible on hover/pin) -->
+<button class="sidebar-pin" id="sidebarPin" type="button" aria-label="&Eacute;pingler la sidebar" title="&Eacute;pingler">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 2h6l-1.5 6.5L18 12v2H6v-2l4.5-3.5L9 2z"/></svg>
+</button>
+
+<!-- Brand logo -->
+<a href="/" class="nav-item" style="height:48px;padding:0 8px 0 14px;margin-bottom:4px;" aria-label="AG-VOTE &mdash; Accueil">
+  <span class="nav-item-icon" aria-hidden="true">
+    <span class="logo-mark" style="width:22px;height:22px;border-radius:4px;font-size:10px;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+    </span>
+  </span>
+  <span class="nav-label" style="font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:-.2px;color:#fff;">AG-VOTE</span>
+</a>
+
+<!-- Scrollable nav area with fade indicators -->
+<div class="sidebar-fade" id="sidebarFade">
+  <div class="sidebar-scroll" id="sidebarScroll">
+    <nav aria-label="Navigation principale">
+
+      <!-- Group: Pr&eacute;paration -->
+      <div class="nav-group" role="group" aria-label="Pr&eacute;paration" data-group="prep">
+        <span class="nav-group-label">Pr&eacute;paration</span>
+        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <a class="nav-item" href="/meetings.htmx.html" data-page="meetings" data-requires-role="admin,operator,auditor,viewer">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></span>
+        <span class="nav-label">S&eacute;ances</span>
+      </a>
+      <a class="nav-item" href="/members.htmx.html" data-page="members" data-requires-role="admin,operator">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-users"></use></svg></span>
+        <span class="nav-label">Membres</span>
+      </a>
+      <a class="nav-item" href="/operator.htmx.html" data-page="operator" data-requires-role="admin,operator">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-file-text"></use></svg></span>
+        <span class="nav-label">Fiche s&eacute;ance</span>
+      </a>
+
+      <!-- Group: S&eacute;ance en direct -->
+      <div class="nav-group" role="group" aria-label="S&eacute;ance en direct" data-group="live">
+        <span class="nav-group-label">En direct</span>
+        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <a class="nav-item" href="/vote.htmx.html" data-page="vote" data-requires-role="admin,operator,president,voter">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-vote"></use></svg></span>
+        <span class="nav-label">Voter</span>
+      </a>
+      <a class="nav-item" href="/public.htmx.html" data-page="public" data-requires-role="admin,operator,president">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-monitor"></use></svg></span>
+        <span class="nav-label">Projection</span>
+      </a>
+
+      <!-- Group: Apr&egrave;s la s&eacute;ance -->
+      <div class="nav-group" role="group" aria-label="Apr&egrave;s la s&eacute;ance" data-group="post">
+        <span class="nav-group-label">Apr&egrave;s</span>
+        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <a class="nav-item" href="/postsession.htmx.html" data-page="postsession" data-requires-role="admin,operator,president">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-check-square"></use></svg></span>
+        <span class="nav-label">Cl&ocirc;ture &amp; PV</span>
+      </a>
+      <a class="nav-item" href="/report.htmx.html" data-page="report" data-requires-role="admin,operator,president,auditor">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-printer"></use></svg></span>
+        <span class="nav-label">Exports</span>
+      </a>
+      <a class="nav-item" href="/archives.htmx.html" data-page="archives" data-requires-role="admin,operator,auditor,viewer">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-archive"></use></svg></span>
+        <span class="nav-label">Archives</span>
+      </a>
+
+      <!-- Group: Contr&ocirc;le -->
+      <div class="nav-group" role="group" aria-label="Contr&ocirc;le" data-group="audit">
+        <span class="nav-group-label">Contr&ocirc;le</span>
+        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <a class="nav-item" href="/trust.htmx.html" data-page="trust" data-requires-role="admin,auditor,assessor">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-shield-check"></use></svg></span>
+        <span class="nav-label">Audit</span>
+      </a>
+      <a class="nav-item" href="/analytics.htmx.html" data-page="analytics" data-requires-role="admin,operator,auditor">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-bar-chart"></use></svg></span>
+        <span class="nav-label">Statistiques</span>
+      </a>
+
+      <!-- Group: Syst&egrave;me -->
+      <div class="nav-group" role="group" aria-label="Syst&egrave;me" data-group="admin">
+        <span class="nav-group-label">Syst&egrave;me</span>
+        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <a class="nav-item" href="/admin.htmx.html" data-page="admin" data-requires-role="admin">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-settings"></use></svg></span>
+        <span class="nav-label">Configuration</span>
+      </a>
+
+      <!-- Group: Aide -->
+      <div class="nav-group" role="group" aria-label="Aide" data-group="help">
+        <span class="nav-group-label">Aide</span>
+        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <a class="nav-item" href="/help.htmx.html" data-page="help">
+        <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-info"></use></svg></span>
+        <span class="nav-label">Guide &amp; FAQ</span>
+      </a>
+
+    </nav>
+  </div>
 </div>
-<nav class="nav" id="main-nav" aria-label="Navigation principale">
 
-  <!-- Section : Avant la séance (Préparateur) -->
-  <div class="nav-section" role="group" aria-labelledby="nav-section-prep">
-    <span class="nav-section-title" id="nav-section-prep">
-      <span class="nav-section-dot dot-prep" aria-hidden="true"></span>
-      Pr&eacute;paration
-    </span>
-    <a class="nav-item" href="/meetings.htmx.html" data-page="meetings" data-requires-role="admin,operator,auditor,viewer">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></span>
-      <span>S&eacute;ances</span>
-    </a>
-    <a class="nav-item" href="/members.htmx.html" data-page="members" data-requires-role="admin,operator">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-users"></use></svg></span>
-      <span>Membres</span>
-    </a>
-    <a class="nav-item" href="/operator.htmx.html" data-page="operator" data-requires-role="admin,operator">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-file-text"></use></svg></span>
-      <span>Fiche s&eacute;ance</span>
-    </a>
-  </div>
-
-  <!-- Section : Pendant la séance (Opérateur + Président + Votant) -->
-  <div class="nav-section" role="group" aria-labelledby="nav-section-live">
-    <span class="nav-section-title" id="nav-section-live">
-      <span class="nav-section-dot dot-ops" aria-hidden="true"></span>
-      S&eacute;ance en direct
-    </span>
-    <a class="nav-item" href="/vote.htmx.html" data-page="vote" data-requires-role="admin,operator,president,voter">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-vote"></use></svg></span>
-      <span>Voter</span>
-    </a>
-    <a class="nav-item" href="/public.htmx.html" data-page="public" data-requires-role="admin,operator,president">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-monitor"></use></svg></span>
-      <span>Projection</span>
-    </a>
-  </div>
-
-  <!-- Section : Après la séance (Responsable post-séance) -->
-  <div class="nav-section" role="group" aria-labelledby="nav-section-post">
-    <span class="nav-section-title" id="nav-section-post">
-      <span class="nav-section-dot dot-post" aria-hidden="true"></span>
-      Apr&egrave;s la s&eacute;ance
-    </span>
-    <a class="nav-item" href="/postsession.htmx.html" data-page="postsession" data-requires-role="admin,operator,president">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-check-square"></use></svg></span>
-      <span>Cl&ocirc;ture &amp; PV</span>
-    </a>
-    <a class="nav-item" href="/report.htmx.html" data-page="report" data-requires-role="admin,operator,president,auditor">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-printer"></use></svg></span>
-      <span>Exports</span>
-    </a>
-    <a class="nav-item" href="/archives.htmx.html" data-page="archives" data-requires-role="admin,operator,auditor,viewer">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-archive"></use></svg></span>
-      <span>Archives</span>
-    </a>
-  </div>
-
-  <!-- Section : Contrôle (Auditeur) -->
-  <div class="nav-section" role="group" aria-labelledby="nav-section-audit">
-    <span class="nav-section-title" id="nav-section-audit">
-      <span class="nav-section-dot dot-audit" aria-hidden="true"></span>
-      Contr&ocirc;le
-    </span>
-    <a class="nav-item" href="/trust.htmx.html" data-page="trust" data-requires-role="admin,auditor,assessor">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-shield-check"></use></svg></span>
-      <span>Audit &amp; Conformit&eacute;</span>
-    </a>
-    <a class="nav-item" href="/analytics.htmx.html" data-page="analytics" data-requires-role="admin,operator,auditor">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-bar-chart"></use></svg></span>
-      <span>Statistiques</span>
-    </a>
-  </div>
-
-  <!-- Section : Système (Administrateur) -->
-  <div class="nav-section" role="group" aria-labelledby="nav-section-admin">
-    <span class="nav-section-title" id="nav-section-admin">
-      <span class="nav-section-dot dot-admin" aria-hidden="true"></span>
-      Syst&egrave;me
-    </span>
-    <a class="nav-item" href="/admin.htmx.html" data-page="admin" data-requires-role="admin">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-settings"></use></svg></span>
-      <span>Configuration</span>
-    </a>
-  </div>
-
-  <!-- Section : Aide -->
-  <div class="nav-section" role="group" aria-labelledby="nav-section-help">
-    <span class="nav-section-title" id="nav-section-help">Aide</span>
-    <a class="nav-item" href="/help.htmx.html" data-page="help">
-      <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-info"></use></svg></span>
-      <span>Guide &amp; FAQ</span>
-    </a>
-  </div>
-</nav>
+<!-- Footer: theme toggle + version -->
 <div class="sidebar-footer">
   <button class="nav-item" id="btnToggleTheme" type="button" aria-label="Basculer le th&egrave;me clair/sombre">
     <span class="nav-item-icon" aria-hidden="true">
       <svg class="icon theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="icon theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </span>
-    <span class="theme-label-light">Mode sombre</span>
-    <span class="theme-label-dark">Mode clair</span>
+    <span class="nav-label theme-label-light">Mode sombre</span>
+    <span class="nav-label theme-label-dark">Mode clair</span>
   </button>
+  <div class="sidebar-version">v3.19</div>
 </div>

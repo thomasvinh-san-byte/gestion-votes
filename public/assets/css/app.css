@@ -40,42 +40,8 @@
   border-radius: var(--radius-full);
 }
 
-/* ─── Navigation Sidebar Sections ─── */
-.nav-section {
-  margin-top: var(--space-4);
-}
-
-.nav-section:first-child {
-  margin-top: 0;
-}
-
-.nav-section-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.65rem;
-  font-weight: var(--font-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-  padding: var(--space-1) var(--space-3);
-  margin-bottom: var(--space-1);
-}
-
-/* Colored dot per persona section in the sidebar */
-.nav-section-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.nav-section-dot.dot-prep { background: var(--persona-preparateur); }
-.nav-section-dot.dot-ops { background: var(--persona-operateur); }
-.nav-section-dot.dot-post { background: var(--persona-postsession); }
-.nav-section-dot.dot-audit { background: var(--persona-auditeur); }
-.nav-section-dot.dot-admin { background: var(--persona-admin); }
+/* ─── Navigation Sidebar Sections (legacy compat) ─── */
+/* Sidebar now uses .nav-group / .nav-group-label (see design-system.css) */
 
 /* Noscript fallback warning */
 .noscript-warning {
@@ -104,17 +70,7 @@
   margin-bottom: var(--space-6);
 }
 
-.page-title {
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  color: var(--color-text);
-}
-
-.page-subtitle {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin-top: var(--space-1);
-}
+/* page-title & page-sub are now in design-system.css (wireframe shell) */
 
 /* ─── Meeting Status Badge ─── */
 .meeting-status {
