@@ -4,8 +4,8 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Tableaux de bord et analytics - AG-VOTE">
   <title>Analytics — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
@@ -36,7 +36,17 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
+        <select class="form-input form-input-sm analytics-year-filter" id="yearFilter" aria-label="Filtrer par ann&eacute;e">
+          <option value="2026" selected>2026</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+          <option value="all">Toutes</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" id="btnExportPdf" title="Exporter en PDF" aria-label="Exporter en PDF">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
+          PDF
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="S&eacute;ance en cours" aria-label="S&eacute;ance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
@@ -55,9 +65,40 @@
           </span>
         </div>
 
-        <!-- Overview cards -->
+        <!-- Overview KPI cards -->
         <div class="overview-grid" id="overviewCards">
-          <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+          <div class="overview-card">
+            <div class="overview-card-label">S&eacute;ances</div>
+            <div class="overview-card-value primary" id="kpiMeetings">&mdash;</div>
+            <div class="overview-card-trend" id="kpiMeetingsTrend">
+              <span class="trend-arrow">&mdash;</span>
+              <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-card-label">Participation moy.</div>
+            <div class="overview-card-value success" id="kpiParticipation">&mdash;</div>
+            <div class="overview-card-trend" id="kpiParticipationTrend">
+              <span class="trend-arrow">&mdash;</span>
+              <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-card-label">R&eacute;solutions vot&eacute;es</div>
+            <div class="overview-card-value" id="kpiResolutions">&mdash;</div>
+            <div class="overview-card-trend" id="kpiResolutionsTrend">
+              <span class="trend-arrow">&mdash;</span>
+              <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-card-label">Taux d'adoption</div>
+            <div class="overview-card-value success" id="kpiAdoptionRate">&mdash;</div>
+            <div class="overview-card-trend" id="kpiAdoptionTrend">
+              <span class="trend-arrow">&mdash;</span>
+              <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+            </div>
+          </div>
         </div>
 
         <!-- Charts controls -->
@@ -86,7 +127,7 @@
           <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Taux de participation par séance</h3>
+                <h3 class="chart-card-title">Taux de participation par s&eacute;ance</h3>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="participationChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -99,7 +140,20 @@
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Détail des présences</h3>
+                <h3 class="chart-card-title">S&eacute;ances par mois</h3>
+              </div>
+              <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="sessionsByMonthChart">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+              </button>
+              <div class="chart-card-body">
+                <div class="chart-container">
+                  <canvas id="sessionsByMonthChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">D&eacute;tail des pr&eacute;sences</h3>
               </div>
               <div class="chart-card-body">
                 <div id="participationTable"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
@@ -110,10 +164,47 @@
 
         <!-- Tab: Motions -->
         <div class="tab-content" id="tab-motions">
+          <!-- Donut SVG: répartition Pour/Contre/Abstention -->
+          <div class="donut-section" id="donutSection">
+            <div class="donut-card">
+              <h3 class="donut-card-title">R&eacute;partition des votes</h3>
+              <div class="donut-wrapper">
+                <svg class="donut-svg" viewBox="0 0 120 120" aria-label="Graphique donut des votes">
+                  <!-- Background circle -->
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-border)" stroke-width="16"/>
+                  <!-- Pour segment (placeholder — animated by JS) -->
+                  <circle class="donut-segment donut-for" cx="60" cy="60" r="50" fill="none"
+                    stroke="var(--color-success)" stroke-width="16"
+                    stroke-dasharray="0 314" stroke-dashoffset="78.5"
+                    id="donutFor"/>
+                  <!-- Contre segment -->
+                  <circle class="donut-segment donut-against" cx="60" cy="60" r="50" fill="none"
+                    stroke="var(--color-danger)" stroke-width="16"
+                    stroke-dasharray="0 314" stroke-dashoffset="78.5"
+                    id="donutAgainst"/>
+                  <!-- Abstention segment -->
+                  <circle class="donut-segment donut-abstain" cx="60" cy="60" r="50" fill="none"
+                    stroke="var(--color-warning)" stroke-width="16"
+                    stroke-dasharray="0 314" stroke-dashoffset="78.5"
+                    id="donutAbstain"/>
+                </svg>
+                <div class="donut-center">
+                  <span class="donut-center-value" id="donutTotal">&mdash;</span>
+                  <span class="donut-center-label">votes</span>
+                </div>
+              </div>
+              <div class="donut-legend">
+                <div class="donut-legend-item"><span class="donut-legend-dot" style="background:var(--color-success)"></span> Pour <strong id="donutForPct">&mdash;</strong></div>
+                <div class="donut-legend-item"><span class="donut-legend-dot" style="background:var(--color-danger)"></span> Contre <strong id="donutAgainstPct">&mdash;</strong></div>
+                <div class="donut-legend-item"><span class="donut-legend-dot" style="background:var(--color-warning)"></span> Abstention <strong id="donutAbstainPct">&mdash;</strong></div>
+              </div>
+            </div>
+          </div>
+
           <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Résolutions adoptées vs rejetées</h3>
+                <h3 class="chart-card-title">R&eacute;solutions adopt&eacute;es vs rejet&eacute;es</h3>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="motionsChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -126,7 +217,20 @@
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Évolution par séance</h3>
+                <h3 class="chart-card-title">R&eacute;solutions par majorit&eacute;</h3>
+              </div>
+              <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="majorityChart">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+              </button>
+              <div class="chart-card-body">
+                <div class="chart-container">
+                  <canvas id="majorityChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">&Eacute;volution par s&eacute;ance</h3>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="motionsTrendChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -145,7 +249,7 @@
           <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Durée des votes</h3>
+                <h3 class="chart-card-title">Dur&eacute;e des votes</h3>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="durationChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -158,7 +262,20 @@
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Temps de réponse des votants</h3>
+                <h3 class="chart-card-title">Dur&eacute;e moyenne par type</h3>
+              </div>
+              <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="avgDurationChart">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+              </button>
+              <div class="chart-card-body">
+                <div class="chart-container">
+                  <canvas id="avgDurationChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3 class="chart-card-title">Temps de r&eacute;ponse des votants</h3>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="responseTimeChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>

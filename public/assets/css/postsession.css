@@ -168,6 +168,230 @@
   color: var(--color-success-text);
 }
 
+/* ─── Results table ─── */
+.ps-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-4);
+}
+
+.ps-results-table th,
+.ps-results-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ps-results-table th {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  position: sticky;
+  top: 0;
+}
+
+.ps-results-table tbody tr:hover td {
+  background: var(--color-bg-subtle);
+}
+
+.ps-results-table .result-adopted {
+  color: var(--color-success);
+  font-weight: var(--font-semibold);
+}
+
+.ps-results-table .result-rejected {
+  color: var(--color-danger);
+  font-weight: var(--font-semibold);
+}
+
+.ps-results-table .result-num {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.ps-results-scroll {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+/* ─── Irreversibility warning ─── */
+.ps-irreversible-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-warning-subtle);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-6);
+}
+
+.ps-irreversible-warning svg {
+  flex-shrink: 0;
+  color: var(--color-warning);
+}
+
+.ps-irreversible-warning strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-warning-text, var(--color-text));
+}
+
+.ps-irreversible-warning p {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Validation KPIs summary */
+.ps-validation-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.ps-validation-kpi {
+  text-align: center;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.ps-validation-kpi-value {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.ps-validation-kpi-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* Validation confirm actions */
+.ps-validation-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  padding: var(--space-4) 0;
+}
+
+/* ─── Signataires section ─── */
+.ps-signataires {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.ps-signataire-card {
+  padding: var(--space-3);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.ps-signataire-role {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.ps-signataire-name {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+}
+
+.ps-signataire-status {
+  font-size: var(--text-xs);
+  margin-top: var(--space-1);
+}
+
+.ps-signataire-status.signed {
+  color: var(--color-success);
+}
+
+.ps-signataire-status.pending {
+  color: var(--color-warning);
+}
+
+/* Observations textarea */
+.ps-observations {
+  margin-bottom: var(--space-4);
+}
+
+.ps-observations textarea {
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* ─── eIDAS signature modes ─── */
+.ps-eidas {
+  margin-bottom: var(--space-4);
+}
+
+.ps-eidas-modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.ps-eidas-mode {
+  padding: var(--space-4);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--duration-normal), background var(--duration-normal);
+  background: var(--color-surface);
+}
+
+.ps-eidas-mode:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.ps-eidas-mode.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.ps-eidas-mode input[type="radio"] {
+  display: none;
+}
+
+.ps-eidas-mode-icon {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-2);
+}
+
+.ps-eidas-mode-label {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  display: block;
+  margin-bottom: var(--space-1);
+}
+
+.ps-eidas-mode-desc {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
 /* ─── Fade animation ─── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -202,5 +426,22 @@
   .ps-complete-banner {
     flex-direction: column;
     text-align: center;
+  }
+
+  .ps-validation-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ps-eidas-modes {
+    grid-template-columns: 1fr;
+  }
+
+  .ps-signataires {
+    grid-template-columns: 1fr;
+  }
+
+  .ps-results-table th:nth-child(n+4),
+  .ps-results-table td:nth-child(n+4) {
+    display: none;
   }
 }

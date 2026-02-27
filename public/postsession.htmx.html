@@ -4,8 +4,8 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Parcours post-séance : validation, PV, envoi, archivage — AG-VOTE">
   <title>Cl&ocirc;ture &amp; PV — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
@@ -112,6 +112,33 @@
             <div class="stat-item"><div class="stat-value" id="statBallots">—</div><div class="stat-label">Bulletins</div></div>
           </div>
 
+          <!-- Results table -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">R&eacute;sultats par r&eacute;solution</h3>
+            </div>
+            <div class="card-body">
+              <div class="ps-results-scroll">
+                <table class="ps-results-table" id="resultsTable">
+                  <thead>
+                    <tr>
+                      <th>N&deg;</th>
+                      <th>R&eacute;solution</th>
+                      <th>D&eacute;cision</th>
+                      <th>Pour</th>
+                      <th>Contre</th>
+                      <th>Abst.</th>
+                      <th>Majorit&eacute;</th>
+                    </tr>
+                  </thead>
+                  <tbody id="resultsTableBody">
+                    <tr><td colspan="7" class="text-center text-muted p-4">Chargement&hellip;</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <!-- Checklist -->
           <div class="card mb-4">
             <div class="card-header"><h3 class="card-title">Check-list de coh&eacute;rence</h3></div>
@@ -149,6 +176,38 @@
           </h2>
           <p class="text-sm text-secondary mb-4">Le pr&eacute;sident ou un administrateur valide officiellement les r&eacute;sultats. Cette action verrouille les donn&eacute;es.</p>
 
+          <!-- Irreversibility warning -->
+          <div class="ps-irreversible-warning">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+              <strong>Action irr&eacute;versible</strong>
+              <p>La validation verrouille d&eacute;finitivement les r&eacute;sultats de cette s&eacute;ance. Les votes ne pourront plus &ecirc;tre modifi&eacute;s. Assurez-vous que toutes les v&eacute;rifications ont &eacute;t&eacute; effectu&eacute;es avant de proc&eacute;der.</p>
+            </div>
+          </div>
+
+          <!-- Validation KPIs -->
+          <div class="ps-validation-kpis" id="validationKpis">
+            <div class="ps-validation-kpi">
+              <div class="ps-validation-kpi-value" id="vkpiResolutions">—</div>
+              <div class="ps-validation-kpi-label">R&eacute;solutions</div>
+            </div>
+            <div class="ps-validation-kpi">
+              <div class="ps-validation-kpi-value text-success" id="vkpiAdopted">—</div>
+              <div class="ps-validation-kpi-label">Adopt&eacute;es</div>
+            </div>
+            <div class="ps-validation-kpi">
+              <div class="ps-validation-kpi-value text-danger" id="vkpiRejected">—</div>
+              <div class="ps-validation-kpi-label">Rejet&eacute;es</div>
+            </div>
+            <div class="ps-validation-kpi">
+              <div class="ps-validation-kpi-value" id="vkpiParticipation">—</div>
+              <div class="ps-validation-kpi-label">Participation</div>
+            </div>
+          </div>
+
           <!-- Meeting status transition -->
           <div class="card mb-4">
             <div class="card-header"><h3 class="card-title">&Eacute;tat de la s&eacute;ance</h3></div>
@@ -159,6 +218,16 @@
                 <div class="workflow-state-step" id="wsStep-archived"><span class="workflow-state-dot"></span><span class="workflow-state-label">Archiv&eacute;e</span></div>
               </div>
               <div id="transitionActions" class="mt-4"></div>
+              <div class="ps-validation-actions">
+                <button class="btn btn-success" id="btnValidate" disabled>
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+                  Valider les r&eacute;sultats
+                </button>
+                <button class="btn btn-danger" id="btnReject" disabled>
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x-circle"></use></svg>
+                  Rejeter (renvoyer)
+                </button>
+              </div>
             </div>
           </div>
 
@@ -183,6 +252,80 @@
             Proc&egrave;s-verbal
           </h2>
           <p class="text-sm text-secondary mb-4">G&eacute;n&eacute;rez et v&eacute;rifiez le PV avant envoi. Le hash d'int&eacute;grit&eacute; garantit que le document n'a pas &eacute;t&eacute; alt&eacute;r&eacute;.</p>
+
+          <!-- Signataires -->
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">Signataires</h3></div>
+            <div class="card-body">
+              <div class="ps-signataires" id="signataires">
+                <div class="ps-signataire-card">
+                  <div class="ps-signataire-role">Pr&eacute;sident(e)</div>
+                  <div class="ps-signataire-name" id="sigPresident">&mdash;</div>
+                  <div class="ps-signataire-status pending" id="sigPresidentStatus">En attente</div>
+                </div>
+                <div class="ps-signataire-card">
+                  <div class="ps-signataire-role">Secr&eacute;taire</div>
+                  <div class="ps-signataire-name" id="sigSecretary">&mdash;</div>
+                  <div class="ps-signataire-status pending" id="sigSecretaryStatus">En attente</div>
+                </div>
+                <div class="ps-signataire-card">
+                  <div class="ps-signataire-role">Scrutateur 1</div>
+                  <div class="ps-signataire-name" id="sigScrutateur1">&mdash;</div>
+                  <div class="ps-signataire-status pending" id="sigScrutateur1Status">En attente</div>
+                </div>
+                <div class="ps-signataire-card">
+                  <div class="ps-signataire-role">Scrutateur 2</div>
+                  <div class="ps-signataire-name" id="sigScrutateur2">&mdash;</div>
+                  <div class="ps-signataire-status pending" id="sigScrutateur2Status">En attente</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Observations / Réserves -->
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">Observations &amp; R&eacute;serves</h3></div>
+            <div class="card-body">
+              <div class="ps-observations">
+                <label class="form-label" for="pvObservations">Observations, r&eacute;serves ou amendements &agrave; inscrire au PV :</label>
+                <textarea class="form-input" id="pvObservations" rows="4" placeholder="Saisir les observations ou r&eacute;serves des copropri&eacute;taires&hellip;"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Signature eIDAS -->
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">Signature &eacute;lectronique (eIDAS)</h3></div>
+            <div class="card-body">
+              <p class="text-sm text-secondary mb-4">Choisissez le mode de signature pour le proc&egrave;s-verbal :</p>
+              <div class="ps-eidas ps-eidas-modes" id="eidasModes">
+                <label class="ps-eidas-mode selected">
+                  <input type="radio" name="eidasMode" value="simple" checked>
+                  <div class="ps-eidas-mode-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </div>
+                  <span class="ps-eidas-mode-label">Simple</span>
+                  <span class="ps-eidas-mode-desc">Validation par clic, horodatage serveur</span>
+                </label>
+                <label class="ps-eidas-mode">
+                  <input type="radio" name="eidasMode" value="advanced">
+                  <div class="ps-eidas-mode-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  </div>
+                  <span class="ps-eidas-mode-label">Avanc&eacute;e</span>
+                  <span class="ps-eidas-mode-desc">Code OTP par email + horodatage certifi&eacute;</span>
+                </label>
+                <label class="ps-eidas-mode">
+                  <input type="radio" name="eidasMode" value="qualified">
+                  <div class="ps-eidas-mode-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </div>
+                  <span class="ps-eidas-mode-label">Qualifi&eacute;e</span>
+                  <span class="ps-eidas-mode-desc">Prestataire certifi&eacute; (Yousign, DocuSign)</span>
+                </label>
+              </div>
+            </div>
+          </div>
 
           <div class="card mb-4">
             <div class="card-header">
@@ -247,10 +390,13 @@
                 <label class="form-label" for="customEmail">Adresse email</label>
                 <input class="form-input" type="email" id="customEmail" placeholder="destinataire@exemple.fr">
               </div>
-              <button class="btn btn-primary" id="btnSendReport">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
-                Envoyer le PV
-              </button>
+              <div class="flex items-center gap-3">
+                <button class="btn btn-primary" id="btnSendReport">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
+                  Envoyer le PV
+                </button>
+                <span class="text-sm text-muted" id="recipientCount"></span>
+              </div>
             </div>
           </div>
 
@@ -259,6 +405,18 @@
             <div class="card-header"><h3 class="card-title">Exports compl&eacute;mentaires</h3></div>
             <div class="card-body">
               <div class="ps-exports-grid">
+                <a class="btn btn-secondary btn-sm" id="exportPvPdf" href="#" target="_blank">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
+                  PV PDF
+                </a>
+                <a class="btn btn-secondary btn-sm" id="exportEmargement" href="#" target="_blank">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard"></use></svg>
+                  &Eacute;margement
+                </a>
+                <a class="btn btn-secondary btn-sm" id="exportCorrespondance" href="#">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
+                  Correspondance
+                </a>
                 <a class="btn btn-secondary btn-sm" id="exportAttendanceCsv" href="#">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
                   Pr&eacute;sences CSV
@@ -267,13 +425,13 @@
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
                   Votes CSV
                 </a>
-                <a class="btn btn-secondary btn-sm" id="exportResultsXlsx" href="#">
+                <a class="btn btn-secondary btn-sm" id="exportResultsCsv" href="#">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
-                  R&eacute;sultats XLSX
+                  R&eacute;sultats CSV
                 </a>
-                <a class="btn btn-secondary btn-sm" id="exportFullXlsx" href="#">
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg>
-                  Export complet XLSX
+                <a class="btn btn-secondary btn-sm" id="exportAuditCsv" href="#">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg>
+                  Audit CSV
                 </a>
               </div>
             </div>
