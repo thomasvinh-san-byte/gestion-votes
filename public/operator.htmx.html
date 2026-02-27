@@ -31,7 +31,7 @@
     <aside class="app-sidebar" data-include-sidebar data-page="operator"></aside>
 
     <!-- Meeting bar (replaces session-selector) -->
-    <section class="meeting-bar" aria-label="Barre de séance">
+    <section class="meeting-bar" aria-label="Barre de séance" data-tour="operator-header">
       <div class="meeting-bar-top">
         <div class="meeting-bar-left">
           <svg class="icon" aria-hidden="true" focusable="false"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
@@ -49,15 +49,19 @@
         </div>
         <div class="meeting-bar-right">
           <span class="meeting-bar-chip"><strong id="barClock">--:--</strong></span>
-          <button class="btn btn-sm btn-secondary" id="btnBarRefresh" title="Actualiser les données">
+          <button class="btn btn-sm btn-secondary" id="btnBarRefresh" title="Actualiser les données" aria-label="Actualiser les donn&eacute;es">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
+          </button>
+          <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+            Tour
           </button>
         </div>
       </div>
-      <div class="meeting-bar-actions" id="meetingBarActions" hidden>
+      <div class="meeting-bar-actions" id="meetingBarActions" hidden data-tour="operator-actions">
         <div class="meeting-bar-left">
           <span class="context-hint" id="contextHint">Préparez la séance avant de la lancer.</span>
-          <div class="mode-switch" id="modeSwitch" role="group" aria-label="Mode de la console">
+          <div class="mode-switch" id="modeSwitch" role="group" aria-label="Mode de la console" data-tour="operator-resolution">
             <button class="mode-switch-btn active" id="btnModeSetup" aria-pressed="true">Préparation</button>
             <button class="mode-switch-btn" id="btnModeExec" aria-pressed="false">Exécution</button>
           </div>
@@ -79,7 +83,7 @@
     </div>
 
     <!-- Meeting lifecycle visual indicator -->
-    <div class="lifecycle-bar" id="lifecycleBar" hidden aria-label="&Eacute;tat de la s&eacute;ance">
+    <div class="lifecycle-bar" id="lifecycleBar" hidden aria-label="&Eacute;tat de la s&eacute;ance" data-tour="operator-track">
       <span class="lifecycle-step" data-state="draft">Brouillon</span>
       <span class="lifecycle-arrow" aria-hidden="true">&rsaquo;</span>
       <span class="lifecycle-step" data-state="scheduled">Programm&eacute;e</span>
@@ -96,7 +100,7 @@
     </div>
 
     <!-- Tabs navigation (shown in setup mode when meeting selected) -->
-    <nav class="tabs-nav" id="tabsNav" style="display: none;" role="tablist" aria-label="Sections de la séance">
+    <nav class="tabs-nav" id="tabsNav" style="display: none;" role="tablist" aria-label="Sections de la séance" data-tour="operator-tabs">
       <!-- 4 preparation tabs — always visible -->
       <button class="tab-btn active" data-tab="seance" role="tab" aria-selected="true" aria-controls="tab-seance" id="tab-btn-seance">
         <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
@@ -107,7 +111,7 @@
         <span class="tab-label">Participants</span>
         <span class="tab-count" id="tabCountPresences" aria-label="présences">0</span>
       </button>
-      <button class="tab-btn" data-tab="ordre-du-jour" role="tab" aria-selected="false" aria-controls="tab-ordre-du-jour" id="tab-btn-ordre-du-jour">
+      <button class="tab-btn" data-tab="ordre-du-jour" role="tab" aria-selected="false" aria-controls="tab-ordre-du-jour" id="tab-btn-ordre-du-jour" data-tour="operator-odj">
         <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
         <span class="tab-label">Ordre du jour</span>
         <span class="tab-count" id="tabCountResolutions" aria-label="résolutions">0</span>
@@ -169,7 +173,7 @@
         <div class="hub-layout" id="hubLayout" hidden>
           <div class="hub-sidebar">
             <!-- Vertical lifecycle stepper -->
-            <div class="hub-stepper" id="hubStepper" aria-label="&Eacute;tapes du cycle de vie">
+            <div class="hub-stepper" id="hubStepper" aria-label="&Eacute;tapes du cycle de vie" data-tour="operator-guidance">
               <div class="hub-step active" data-hub-step="prepare">
                 <span class="hub-step-dot">1</span>
                 <div class="hub-step-content">
@@ -295,7 +299,7 @@
                   <svg class="hub-accordion-chevron" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
                 </button>
                 <div class="hub-accordion-body">
-                  <div class="hub-kpis" id="hubKpis">
+                  <div class="hub-kpis" id="hubKpis" data-tour="operator-kpis" aria-live="polite">
                     <div class="hub-kpi">
                       <div class="hub-kpi-value" id="hubKpiMembers">0</div>
                       <div class="hub-kpi-label">Membres</div>
@@ -1437,6 +1441,108 @@
           Confirmer le lancement
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Session timeout banner (hidden, shown by JS 2 min before expiry) -->
+  <div class="session-timeout-banner" id="sessionTimeoutBanner" role="alert" aria-live="assertive" hidden>
+    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+    <span>Votre session expire dans <strong class="session-timeout-timer" id="sessionTimeoutTimer">2:00</strong></span>
+    <div class="session-timeout-actions">
+      <button class="btn btn-sm btn-primary" id="btnExtendSession">Prolonger</button>
+      <button class="btn btn-sm btn-ghost" id="btnLogoutSession">D&eacute;connexion</button>
+    </div>
+  </div>
+
+  <!-- Command palette (Ctrl+K) — hidden by default -->
+  <div class="cmd-palette-overlay" id="cmdPalette" role="dialog" aria-modal="true" aria-label="Recherche rapide" hidden>
+    <div class="cmd-palette">
+      <div class="cmd-palette-input-wrap">
+        <svg class="cmd-palette-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-search"></use></svg>
+        <input class="cmd-palette-input" id="cmdPaletteInput" type="text" placeholder="Rechercher une page, action ou membre&hellip;" autocomplete="off" aria-label="Recherche rapide">
+        <span class="cmd-palette-shortcut">Esc</span>
+      </div>
+      <div class="cmd-palette-results" id="cmdPaletteResults" role="listbox">
+        <div class="cmd-palette-group-label">Pages</div>
+        <div class="cmd-palette-item active" role="option" data-href="/operator.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg>
+          <span class="cmd-palette-item-label">Console op&eacute;rateur</span>
+          <span class="cmd-palette-item-hint">Fiche s&eacute;ance</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/meetings.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+          <span class="cmd-palette-item-label">S&eacute;ances</span>
+          <span class="cmd-palette-item-hint">Gestion des s&eacute;ances</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/members.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+          <span class="cmd-palette-item-label">Membres</span>
+          <span class="cmd-palette-item-hint">Participants</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/vote.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
+          <span class="cmd-palette-item-label">Vote</span>
+          <span class="cmd-palette-item-hint">Interface de vote</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/analytics.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
+          <span class="cmd-palette-item-label">Statistiques</span>
+          <span class="cmd-palette-item-hint">Tableaux de bord</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/postsession.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg>
+          <span class="cmd-palette-item-label">Cl&ocirc;ture</span>
+          <span class="cmd-palette-item-hint">Post-session</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/trust.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg>
+          <span class="cmd-palette-item-label">Contr&ocirc;le &amp; Audit</span>
+          <span class="cmd-palette-item-hint">Confiance</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/admin.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
+          <span class="cmd-palette-item-label">Administration</span>
+          <span class="cmd-palette-item-hint">Param&egrave;tres</span>
+        </div>
+        <div class="cmd-palette-group-label">Actions</div>
+        <div class="cmd-palette-item" role="option" data-action="new-meeting">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
+          <span class="cmd-palette-item-label">Nouvelle s&eacute;ance</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-action="export-pv">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
+          <span class="cmd-palette-item-label">Exporter PV</span>
+        </div>
+      </div>
+      <div class="cmd-palette-footer">
+        <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> naviguer</span>
+        <span><kbd>Entr&eacute;e</kbd> ouvrir</span>
+        <span><kbd>Esc</kbd> fermer</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tour overlay (hidden, activated by tour trigger) -->
+  <div class="tour-overlay" id="tourOverlay" aria-hidden="true"></div>
+  <div class="tour-spotlight-ring" id="tourSpotlight" hidden></div>
+  <div class="tour-bubble" id="tourBubble" role="dialog" aria-modal="false" aria-label="Tour guid&eacute;" hidden data-position="bottom">
+    <div class="tour-bubble-header">
+      <span class="tour-bubble-step" id="tourStep">1/8</span>
+      <button class="tour-bubble-close" id="tourClose" aria-label="Fermer le tour">&times;</button>
+    </div>
+    <div class="tour-bubble-body">
+      <div class="tour-bubble-title" id="tourTitle">Bienvenue</div>
+      <div class="tour-bubble-text" id="tourText">D&eacute;couvrez les fonctionnalit&eacute;s de la console op&eacute;rateur.</div>
+    </div>
+    <div class="tour-bubble-footer">
+      <button class="btn btn-sm btn-ghost" id="tourPrev" aria-label="&Eacute;tape pr&eacute;c&eacute;dente">&larr; Pr&eacute;c.</button>
+      <div class="tour-progress">
+        <div class="tour-progress-bar" id="tourProgressBar" style="width: 12.5%"></div>
+      </div>
+      <button class="btn btn-sm btn-primary" id="tourNext" aria-label="&Eacute;tape suivante">Suiv. &rarr;</button>
+    </div>
+    <div class="tour-keyboard-hint">
+      <kbd>&larr;</kbd> <kbd>&rarr;</kbd> naviguer &middot; <kbd>Esc</kbd> fermer
     </div>
   </div>
 

@@ -36,6 +36,10 @@
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
           Exporter CSV
         </a>
+        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
+          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+          Tour
+        </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
@@ -44,7 +48,7 @@
 
     <main class="app-main members-main">
       <!-- Stats bar -->
-      <div class="stats-bar">
+      <div class="stats-bar" aria-live="polite">
         <div class="stat-item total">
           <div class="stat-value" id="kpiTotal">0</div>
           <div class="stat-label">Total</div>
@@ -264,7 +268,7 @@
               <span class="results-subtitle" id="resultsSubtitle">Affichage de l'ensemble des membres</span>
             </div>
           </div>
-          <div class="members-grid" id="membersList">
+          <div class="members-grid" id="membersList" data-tour="members-table">
             <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
             <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
             <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>

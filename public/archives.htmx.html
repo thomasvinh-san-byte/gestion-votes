@@ -95,7 +95,7 @@
                 <p class="card-description">Proc&egrave;s-verbaux fig&eacute;s et exports d'audit</p>
               </div>
               <div class="flex gap-2 items-center">
-                <select class="form-input year-select" id="yearFilter">
+                <select class="form-input year-select" id="yearFilter" aria-label="Filtrer par ann&eacute;e">
                   <option value="">Toutes ann&eacute;es</option>
                 </select>
                 <input type="text" class="form-input archive-search-input" id="searchInput"
@@ -142,7 +142,7 @@
 
   <!-- Drawer -->
   <div class="drawer-backdrop" data-drawer-close></div>
-  <aside class="drawer" id="drawer">
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Menu contextuel">
     <div class="drawer-header">
       <div id="drawerTitle" class="font-semibold">Menu</div>
       <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close aria-label="Fermer le panneau">✕</button>

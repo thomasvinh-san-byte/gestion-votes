@@ -46,6 +46,10 @@
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
           PDF
         </button>
+        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
+          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+          Tour
+        </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="S&eacute;ance en cours" aria-label="S&eacute;ance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
@@ -66,7 +70,7 @@
         </div>
 
         <!-- Overview KPI cards -->
-        <div class="overview-grid" id="overviewCards">
+        <div class="overview-grid" id="overviewCards" data-tour="stats-kpis" aria-live="polite">
           <div class="overview-card">
             <div class="overview-card-label">S&eacute;ances</div>
             <div class="overview-card-value primary" id="kpiMeetings">&mdash;</div>
@@ -102,7 +106,7 @@
         </div>
 
         <!-- Charts controls -->
-        <div class="charts-controls">
+        <div class="charts-controls" data-tour="stats-charts">
           <div class="period-selector">
             <button class="period-btn" data-period="month">Mois</button>
             <button class="period-btn" data-period="quarter">Trimestre</button>
@@ -316,7 +320,7 @@
 
   <!-- Drawer -->
   <div id="drawerOverlay" class="drawer-backdrop" data-drawer-close></div>
-  <aside id="drawer" class="drawer" aria-hidden="true">
+  <aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Menu contextuel">
     <div class="drawer-header">
       <div id="drawerTitle" class="font-semibold">Menu</div>
       <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close title="Fermer" aria-label="Fermer">✕</button>

@@ -34,6 +34,10 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
+          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+          Tour
+        </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
@@ -41,10 +45,26 @@
     </header>
 
     <main class="app-main meetings-main" id="main-content" role="main">
+      <!-- Onboarding banner (dismissible, persisted via localStorage) -->
+      <div class="onboarding-banner" id="onboardingBanner" role="region" aria-label="Guide de d&eacute;marrage" style="position: relative;" data-tour="hub-action">
+        <div class="onboarding-banner-icon" aria-hidden="true">
+          <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-book-open"></use></svg>
+        </div>
+        <div class="onboarding-banner-content">
+          <div class="onboarding-banner-title">Bienvenue sur AG-VOTE</div>
+          <div class="onboarding-banner-text">Cr&eacute;ez votre premi&egrave;re s&eacute;ance en quelques clics. Le tour guid&eacute; vous accompagne &agrave; chaque &eacute;tape.</div>
+        </div>
+        <div class="onboarding-banner-actions">
+          <button class="btn btn-sm btn-primary" id="btnStartTour">Lancer le tour</button>
+          <button class="btn btn-sm btn-ghost" id="btnDismissOnboarding">Masquer</button>
+        </div>
+        <button class="onboarding-banner-dismiss" id="btnCloseOnboarding" aria-label="Fermer">&times;</button>
+      </div>
+
       <!-- Stats bar -->
-      <div class="stats-bar">
+      <div class="stats-bar" data-tour="hub-kpis">
         <div class="stat-item live">
-          <div class="stat-value" id="statLive">0</div>
+          <div class="stat-value" id="statLive" aria-live="polite">0</div>
           <div class="stat-label">En cours</div>
         </div>
         <div class="stat-item">
@@ -72,14 +92,14 @@
         <div id="notif_box" class="alert hidden mb-4"></div>
 
         <!-- Wizard — Création de séance (5 étapes) -->
-        <div class="create-card" id="wizardCard">
+        <div class="create-card" id="wizardCard" data-tour="hub-preparation">
           <h3>
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
             Pr&eacute;parer une nouvelle s&eacute;ance
           </h3>
 
           <!-- Wizard stepper -->
-          <div class="wiz-progress-wrap" id="wizStepper" role="list" aria-label="&Eacute;tapes de cr&eacute;ation">
+          <div class="wiz-progress-wrap" id="wizStepper" role="list" aria-label="&Eacute;tapes de cr&eacute;ation" data-tour="hub-stepper">
             <div class="wiz-step-item active" data-step="1" role="listitem" aria-current="step">
               <span class="wiz-step-dot">1</span>
               <span class="wiz-step-label">Infos</span>
@@ -99,7 +119,7 @@
           </div>
 
           <!-- Step 1: Infos générales -->
-          <div class="wiz-step-panel active" id="wizStep1" data-wiz-step="1">
+          <div class="wiz-step-panel active" id="wizStep1" data-wiz-step="1" data-tour="wizard-form">
             <div class="wiz-form-grid">
               <div class="form-group">
                 <label class="form-label" for="meeting_title">Titre de la s&eacute;ance <span class="text-danger">*</span></label>
@@ -473,6 +493,51 @@
     </header>
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
+
+  <!-- Session timeout banner -->
+  <div class="session-timeout-banner" id="sessionTimeoutBanner" role="alert" aria-live="assertive" hidden>
+    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+    <span>Votre session expire dans <strong class="session-timeout-timer" id="sessionTimeoutTimer">2:00</strong></span>
+    <div class="session-timeout-actions">
+      <button class="btn btn-sm btn-primary" id="btnExtendSession">Prolonger</button>
+      <button class="btn btn-sm btn-ghost" id="btnLogoutSession">D&eacute;connexion</button>
+    </div>
+  </div>
+
+  <!-- Command palette (Ctrl+K) -->
+  <div class="cmd-palette-overlay" id="cmdPalette" role="dialog" aria-modal="true" aria-label="Recherche rapide" hidden>
+    <div class="cmd-palette">
+      <div class="cmd-palette-input-wrap">
+        <svg class="cmd-palette-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-search"></use></svg>
+        <input class="cmd-palette-input" id="cmdPaletteInput" type="text" placeholder="Rechercher une page, action ou membre&hellip;" autocomplete="off" aria-label="Recherche rapide">
+        <span class="cmd-palette-shortcut">Esc</span>
+      </div>
+      <div class="cmd-palette-results" id="cmdPaletteResults" role="listbox">
+        <div class="cmd-palette-group-label">Pages</div>
+        <div class="cmd-palette-item" role="option" data-href="/meetings.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+          <span class="cmd-palette-item-label">S&eacute;ances</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/operator.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg>
+          <span class="cmd-palette-item-label">Console op&eacute;rateur</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/members.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+          <span class="cmd-palette-item-label">Membres</span>
+        </div>
+        <div class="cmd-palette-item" role="option" data-href="/analytics.htmx.html">
+          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
+          <span class="cmd-palette-item-label">Statistiques</span>
+        </div>
+      </div>
+      <div class="cmd-palette-footer">
+        <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> naviguer</span>
+        <span><kbd>Entr&eacute;e</kbd> ouvrir</span>
+        <span><kbd>Esc</kbd> fermer</span>
+      </div>
+    </div>
+  </div>
 
   <script src="/assets/js/core/utils.js"></script>
   <script type="module" src="/assets/js/components/index.js"></script>

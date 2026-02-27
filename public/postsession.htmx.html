@@ -27,7 +27,7 @@
 
     <!-- Drawer -->
     <div class="drawer-backdrop" data-drawer-close hidden></div>
-    <aside class="drawer" id="drawer" aria-hidden="true">
+    <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Informations contextuelles">
       <div class="drawer-header">
         <h3 class="drawer-title" id="drawerTitle">Informations</h3>
         <button class="btn btn-ghost btn-icon btn-sm" data-drawer-close aria-label="Fermer">&times;</button>
@@ -47,6 +47,10 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
+          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+          Tour
+        </button>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="S&eacute;ance en cours" aria-label="S&eacute;ance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
@@ -63,14 +67,15 @@
             <svg class="icon ps-picker-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg>
             <h2 class="text-lg font-semibold mb-2">Parcours post-s&eacute;ance</h2>
             <p class="text-muted text-sm mb-4">S&eacute;lectionnez la s&eacute;ance termin&eacute;e &agrave; traiter :</p>
-            <select class="form-input ps-picker-select" id="meetingPickerSelect">
+            <label class="sr-only" for="meetingPickerSelect">S&eacute;lectionner une s&eacute;ance</label>
+            <select class="form-input ps-picker-select" id="meetingPickerSelect" aria-label="S&eacute;lectionner la s&eacute;ance &agrave; traiter">
               <option value="">Chargement des s&eacute;ances&hellip;</option>
             </select>
           </div>
         </div>
 
         <!-- Stepper progress bar -->
-        <div class="ps-stepper" id="stepper" role="navigation" aria-label="&Eacute;tapes de cl&ocirc;ture">
+        <div class="ps-stepper" id="stepper" role="navigation" aria-label="&Eacute;tapes de cl&ocirc;ture" data-tour="postsession-stepper">
           <div class="ps-step active" data-step="1" aria-current="step">
             <span class="ps-step-number">1</span>
             <span class="ps-step-label">V&eacute;rification</span>
