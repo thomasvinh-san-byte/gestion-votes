@@ -213,33 +213,6 @@
 .archive-search-input { width: 180px; }
 
 /* =============================================================================
-   FILTER TABS (shared with meetings page)
-   ============================================================================= */
-
-.filter-tabs {
-  display: flex;
-  gap: 0.375rem;
-  flex-wrap: wrap;
-}
-
-.filter-tab {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.375rem 0.875rem;
-  border: 1px solid var(--color-border);
-  border-radius: 9999px;
-  background: var(--color-surface);
-  font-size: var(--text-xs, 0.75rem);
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: border-color .15s ease, background .15s ease, color .15s ease;
-}
-
-.filter-tab:hover { border-color: var(--color-primary); }
-.filter-tab.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
-
-/* =============================================================================
    PAGINATION
    ============================================================================= */
 
@@ -287,43 +260,6 @@
   font-weight: 600;
   color: var(--color-text-muted);
   margin-top: 0.375rem;
-}
-
-/* =============================================================================
-   VIEW TOGGLE (shared)
-   ============================================================================= */
-
-.view-toggle {
-  display: flex;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
-  overflow: hidden;
-}
-
-.view-toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  background: var(--color-surface);
-  border: none;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  transition: background .15s ease, color .15s ease;
-}
-
-.view-toggle-btn:hover { background: var(--color-bg-subtle); }
-.view-toggle-btn.active { background: var(--color-primary); color: #fff; }
-
-/* =============================================================================
-   EXPORT GRID
-   ============================================================================= */
-
-.export-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 0.5rem;
 }
 
 /* =============================================================================
