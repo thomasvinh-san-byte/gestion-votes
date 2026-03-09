@@ -10,7 +10,6 @@ use AgVote\Core\Validation\Schemas\ValidationSchemas;
 use AgVote\Service\MeetingReportService;
 use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
-use Throwable;
 
 /**
  * Consolidates 8 meeting CRUD + status endpoints.
@@ -466,9 +465,7 @@ final class MeetingsController extends AbstractController {
                 'title' => $row['title'],
                 'vote_policy_id' => $row['vote_policy_id'],
             ]);
-        }
-
-        if ($method === 'POST') {
+        } elseif ($method === 'POST') {
             $in = api_request('POST');
             $meetingId = api_require_uuid($in, 'meeting_id');
 
@@ -496,9 +493,9 @@ final class MeetingsController extends AbstractController {
             ]);
 
             api_ok(['saved' => true]);
+        } else {
+            api_fail('method_not_allowed', 405);
         }
-
-        api_fail('method_not_allowed', 405);
     }
 
     public function validate(): void {
@@ -524,23 +521,16 @@ final class MeetingsController extends AbstractController {
             api_fail('meeting_not_found', 404);
         }
 
-        try {
-            api_transaction(function () use ($repo, $meetingId, $tenant) {
-                $pvHtml = (new MeetingReportService())->renderHtml($meetingId, true);
-                $repo->markValidated($meetingId, $tenant);
-                $this->repo()->meetingReport()->storeHtml($meetingId, $pvHtml, $tenant);
-            });
+        api_transaction(function () use ($repo, $meetingId, $tenant) {
+            $pvHtml = (new MeetingReportService())->renderHtml($meetingId, true);
+            $repo->markValidated($meetingId, $tenant);
+            $this->repo()->meetingReport()->storeHtml($meetingId, $pvHtml, $tenant);
+        });
 
-            audit_log('meeting.validated', 'meeting', $meetingId, [
-                'president_name' => $presidentName,
-            ], $meetingId);
+        audit_log('meeting.validated', 'meeting', $meetingId, [
+            'president_name' => $presidentName,
+        ], $meetingId);
 
-            api_ok(['meeting_id' => $meetingId, 'status' => 'validated']);
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
-            api_fail('validation_failed', 500, ['detail' => $e->getMessage()]);
-        }
+        api_ok(['meeting_id' => $meetingId, 'status' => 'validated']);
     }
 }

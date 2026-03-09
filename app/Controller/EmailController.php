@@ -8,7 +8,6 @@ use AgVote\Service\EmailQueueService;
 use AgVote\Service\EmailTemplateService;
 use AgVote\Service\MailerService;
 use DateTime;
-use Throwable;
 
 final class EmailController extends AbstractController {
     public function preview(): void {
@@ -40,63 +39,55 @@ final class EmailController extends AbstractController {
     }
 
     public function schedule(): void {
-        try {
-            $input = api_request('POST');
+        $input = api_request('POST');
 
-            $meetingId = trim((string) ($input['meeting_id'] ?? ''));
-            $templateId = isset($input['template_id']) ? trim((string) $input['template_id']) : null;
-            $scheduledAt = isset($input['scheduled_at']) ? trim((string) $input['scheduled_at']) : null;
-            $onlyUnsent = !isset($input['only_unsent']) || (bool) $input['only_unsent'];
+        $meetingId = trim((string) ($input['meeting_id'] ?? ''));
+        $templateId = isset($input['template_id']) ? trim((string) $input['template_id']) : null;
+        $scheduledAt = isset($input['scheduled_at']) ? trim((string) $input['scheduled_at']) : null;
+        $onlyUnsent = !isset($input['only_unsent']) || (bool) $input['only_unsent'];
 
-            if ($meetingId === '' || !api_is_uuid($meetingId)) {
-                api_fail('missing_meeting_id', 400);
-            }
-
-            api_guard_meeting_not_validated($meetingId);
-
-            if ($templateId !== null && $templateId !== '' && !api_is_uuid($templateId)) {
-                api_fail('invalid_template_id', 400);
-            }
-
-            if ($scheduledAt !== null && $scheduledAt !== '') {
-                $dt = DateTime::createFromFormat(DateTime::ATOM, $scheduledAt);
-                if (!$dt) {
-                    $dt = DateTime::createFromFormat('Y-m-d H:i:s', $scheduledAt);
-                }
-                if (!$dt) {
-                    $dt = DateTime::createFromFormat('Y-m-d H:i', $scheduledAt);
-                }
-                if (!$dt) {
-                    api_fail('invalid_scheduled_at', 400, ['detail' => 'Format attendu: ISO 8601 ou Y-m-d H:i:s']);
-                }
-                $scheduledAt = $dt->format('c');
-            }
-
-            global $config;
-            $service = new EmailQueueService($config ?? []);
-            $tenantId = api_current_tenant_id();
-
-            $result = $service->scheduleInvitations($tenantId, $meetingId, $templateId, $scheduledAt, $onlyUnsent);
-
-            audit_log('email.schedule', 'meeting', $meetingId, [
-                'scheduled' => $result['scheduled'],
-                'skipped' => $result['skipped'],
-            ], $meetingId);
-
-            api_ok([
-                'meeting_id' => $meetingId,
-                'scheduled' => $result['scheduled'],
-                'skipped' => $result['skipped'],
-                'scheduled_at' => $scheduledAt ?? 'immediate',
-                'errors' => $result['errors'],
-            ]);
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
-            error_log('Error in EmailController::schedule: ' . $e->getMessage());
-            api_fail('server_error', 500, ['detail' => $e->getMessage()]);
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
+            api_fail('missing_meeting_id', 400);
         }
+
+        api_guard_meeting_not_validated($meetingId);
+
+        if ($templateId !== null && $templateId !== '' && !api_is_uuid($templateId)) {
+            api_fail('invalid_template_id', 400);
+        }
+
+        if ($scheduledAt !== null && $scheduledAt !== '') {
+            $dt = DateTime::createFromFormat(DateTime::ATOM, $scheduledAt);
+            if (!$dt) {
+                $dt = DateTime::createFromFormat('Y-m-d H:i:s', $scheduledAt);
+            }
+            if (!$dt) {
+                $dt = DateTime::createFromFormat('Y-m-d H:i', $scheduledAt);
+            }
+            if (!$dt) {
+                api_fail('invalid_scheduled_at', 400, ['detail' => 'Format attendu: ISO 8601 ou Y-m-d H:i:s']);
+            }
+            $scheduledAt = $dt->format('c');
+        }
+
+        global $config;
+        $service = new EmailQueueService($config ?? []);
+        $tenantId = api_current_tenant_id();
+
+        $result = $service->scheduleInvitations($tenantId, $meetingId, $templateId, $scheduledAt, $onlyUnsent);
+
+        audit_log('email.schedule', 'meeting', $meetingId, [
+            'scheduled' => $result['scheduled'],
+            'skipped' => $result['skipped'],
+        ], $meetingId);
+
+        api_ok([
+            'meeting_id' => $meetingId,
+            'scheduled' => $result['scheduled'],
+            'skipped' => $result['skipped'],
+            'scheduled_at' => $scheduledAt ?? 'immediate',
+            'errors' => $result['errors'],
+        ]);
     }
 
     public function sendBulk(): void {

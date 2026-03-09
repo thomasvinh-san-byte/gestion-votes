@@ -387,10 +387,12 @@ class EmailTrackingControllerTest extends TestCase
         $this->assertStringContainsString('Email redirect tracking error:', $source);
     }
 
-    public function testPixelRethrowsApiResponseException(): void
+    public function testPixelLogsTrackingErrors(): void
     {
+        // ApiResponseException rethrow removed — handled by global exception handler.
+        // Verify tracking errors are still logged.
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTrackingController.php');
 
-        $this->assertStringContainsString('ApiResponseException', $source);
+        $this->assertStringContainsString('Email pixel tracking error:', $source);
     }
 }

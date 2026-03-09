@@ -400,10 +400,7 @@ final class OperatorController extends AbstractController {
                     'max' => $proxyMax,
                 ];
             }
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
+        } catch (Throwable) {
             $proxyCeilings = [];
         }
 

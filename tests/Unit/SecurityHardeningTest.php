@@ -10,8 +10,7 @@ use PHPUnit\Framework\TestCase;
  */
 class SecurityHardeningTest extends TestCase {
     public function testApiKeyNotAcceptedInQueryString(): void {
-        // The get_api_key() function must NOT read from $_GET['api_key']
-        // This test verifies the source code directly (static analysis).
+        // auth.php must NEVER read from $_GET['api_key'] (leaks in logs/Referer).
         $authFile = PROJECT_ROOT . '/app/auth.php';
         $this->assertFileExists($authFile);
 

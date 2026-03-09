@@ -177,9 +177,6 @@ final class MeetingWorkflowController extends AbstractController {
         try {
             EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), $toStatus, $fromStatus);
         } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
             error_log('[WebSocket] Broadcast failed after meeting transition: ' . $e->getMessage());
         }
 
@@ -292,9 +289,6 @@ final class MeetingWorkflowController extends AbstractController {
         try {
             EventBroadcaster::meetingStatusChanged($meetingId, $tenant, 'live', $txResult['fromStatus']);
         } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
             error_log('[WebSocket] Broadcast failed after meeting launch: ' . $e->getMessage());
         }
 

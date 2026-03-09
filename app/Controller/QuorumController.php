@@ -82,9 +82,6 @@ final class QuorumController extends AbstractController {
             echo '</section>';
 
         } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
             error_log('quorum_card error: ' . $e->getMessage());
             $safe = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
             echo '<section class="card"><div class="row between"><div><div class="k">Quorum</div><div class="muted tiny">' . $safe . '</div></div><span class="badge danger">erreur</span></div></section>';
@@ -144,9 +141,7 @@ final class QuorumController extends AbstractController {
                 'quorum_policy_id' => $row['quorum_policy_id'],
                 'convocation_no' => (int) $row['convocation_no'],
             ]);
-        }
-
-        if ($method === 'POST') {
+        } elseif ($method === 'POST') {
             $in = api_request('POST');
             $meetingId = api_require_uuid($in, 'meeting_id');
 
@@ -180,8 +175,8 @@ final class QuorumController extends AbstractController {
             ]);
 
             api_ok(['saved' => true]);
+        } else {
+            api_fail('method_not_allowed', 405);
         }
-
-        api_fail('method_not_allowed', 405);
     }
 }

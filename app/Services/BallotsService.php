@@ -38,13 +38,6 @@ final class BallotsService {
         $this->proxiesService = $proxiesService ?? new ProxiesService();
     }
 
-    private function isUuid(string $s): bool {
-        return (bool) preg_match(
-            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
-            $s,
-        );
-    }
-
     /**
      * Records or updates a ballot for a given motion.
      *
@@ -119,7 +112,7 @@ final class BallotsService {
         // Proxy vote (MVP)
         // Convention: member_id = giver (vote counted), proxy_source_member_id = proxy holder (the one voting)
         if ($isProxyVote) {
-            if ($proxyVoterId === '' || !$this->isUuid($proxyVoterId)) {
+            if ($proxyVoterId === '' || !api_is_uuid($proxyVoterId)) {
                 throw new InvalidArgumentException('proxy_source_member_id est obligatoire (UUID) pour un vote par procuration');
             }
 

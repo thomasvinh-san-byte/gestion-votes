@@ -58,10 +58,7 @@ final class AuthController extends AbstractController {
                         $email,
                         'invalid_credentials',
                     );
-                } catch (Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                        throw $e;
-                    }
+                } catch (Throwable) {
                     /* best effort */
                 }
                 api_fail('invalid_credentials', 401, ['detail' => 'Email ou mot de passe incorrect.']);
@@ -72,10 +69,7 @@ final class AuthController extends AbstractController {
                 try {
                     $newHash = password_hash($password, PASSWORD_DEFAULT);
                     $userRepo->setPasswordHash($user['tenant_id'], $user['id'], $newHash);
-                } catch (Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                        throw $e;
-                    }
+                } catch (Throwable) {
                     /* best effort */
                 }
             }
@@ -100,10 +94,7 @@ final class AuthController extends AbstractController {
                         substr($apiKey, 0, 8) . '...',
                         'invalid_key',
                     );
-                } catch (Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                        throw $e;
-                    }
+                } catch (Throwable) {
                     /* best effort */
                 }
                 api_fail('invalid_credentials', 401, ['detail' => 'Identifiants invalides.']);
@@ -226,10 +217,7 @@ final class AuthController extends AbstractController {
         try {
             $userRepo = $this->repo()->user();
             $meetingRoles = $userRepo->listActiveMeetingRolesForUser($user['id'], $user['tenant_id']);
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
+        } catch (Throwable) {
             // best effort
         }
 
@@ -244,10 +232,7 @@ final class AuthController extends AbstractController {
                     'voting_power' => (float) ($found['voting_power'] ?? 1),
                 ];
             }
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
+        } catch (Throwable) {
             // best effort
         }
 

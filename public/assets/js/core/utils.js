@@ -752,29 +752,3 @@ function getParam(name) {
 function getApiError(body, fallback = 'Une erreur est survenue') {
   return Utils.getApiError(body, fallback);
 }
-
-// Add slide-out animation
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideOutRight {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-  }
-  .toast {
-    pointer-events: auto;
-  }
-  .toast-icon {
-    flex-shrink: 0;
-  }
-  .toast-message {
-    flex: 1;
-  }
-  .toast-close {
-    flex-shrink: 0;
-    opacity: 0.7;
-  }
-  .toast-close:hover {
-    opacity: 1;
-  }
-`;
-document.head.appendChild(style);

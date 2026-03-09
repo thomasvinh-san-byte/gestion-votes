@@ -44,9 +44,6 @@ final class EmailTrackingController {
                 );
             }
         } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
             error_log('Email pixel tracking error: ' . $e->getMessage());
         }
 
@@ -101,9 +98,6 @@ final class EmailTrackingController {
                         );
                     }
                 } catch (Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                        throw $e;
-                    }
                     error_log('Email redirect tracking error: ' . $e->getMessage());
                 }
             }

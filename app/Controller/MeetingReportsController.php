@@ -50,10 +50,7 @@ final class MeetingReportsController extends AbstractController {
                     echo (string) $snap['html'];
                     return;
                 }
-            } catch (Throwable $e) {
-                if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                    throw $e;
-                }
+            } catch (Throwable) {
             }
         }
 
@@ -63,19 +60,13 @@ final class MeetingReportsController extends AbstractController {
         $proxies = [];
         try {
             $proxies = $this->repo()->proxy()->listForReport($meetingId, $tenant);
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
+        } catch (Throwable) {
         }
 
         $tokens = [];
         try {
             $tokens = $invitationRepo->listTokensForReport($meetingId, $tenant);
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
+        } catch (Throwable) {
         }
 
         $rowsHtml = '';
@@ -107,10 +98,7 @@ final class MeetingReportsController extends AbstractController {
                     $dec = $o['decision'];
                     $reas = $o['reason'];
                     $note = ' (calculé)';
-                } catch (Throwable $e) {
-                    if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                        throw $e;
-                    }
+                } catch (Throwable) {
                     $src = '—';
                     $of = $og = $oa = $ot = 0.0;
                     $dec = '—';
@@ -136,10 +124,7 @@ final class MeetingReportsController extends AbstractController {
                     $detail['majority_threshold'] = $r['decision']['threshold'] ?? ($r['majority']['threshold'] ?? null);
                     $detail['majority_base'] = $r['decision']['base'] ?? ($r['majority']['base'] ?? null);
                 }
-            } catch (Throwable $e) {
-                if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                    throw $e;
-                }
+            } catch (Throwable) {
             }
 
             $pol = self::policyLabel($votePolicy, $quorumPolicy);

@@ -473,29 +473,20 @@ final class MotionsController extends AbstractController {
         $votePolicyId = $txResult['votePolicyId'];
         $quorumPolicyId = $txResult['quorumPolicyId'];
 
-        try {
-            audit_log('motion_opened', 'motion', $motionId, [
-                'meeting_id' => $meetingId,
-                'vote_policy_id' => $votePolicyId,
-                'quorum_policy_id' => $quorumPolicyId,
-            ]);
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
-            error_log('[motions_open] audit_log failed: ' . $e->getMessage());
-        }
+        // audit_log() is internally safe (catches all exceptions)
+        audit_log('motion_opened', 'motion', $motionId, [
+            'meeting_id' => $meetingId,
+            'vote_policy_id' => $votePolicyId,
+            'quorum_policy_id' => $quorumPolicyId,
+        ]);
 
         try {
             EventBroadcaster::motionOpened($meetingId, $motionId, [
                 'title' => $txResult['title'],
                 'secret' => $txResult['secret'],
             ]);
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
-            error_log('[motions_open] EventBroadcaster failed: ' . $e->getMessage());
+        } catch (Throwable) {
+            // Non-critical: WebSocket broadcast failure doesn't affect the response
         }
 
         api_ok([
@@ -552,23 +543,14 @@ final class MotionsController extends AbstractController {
 
         try {
             (new VoteTokenService())->revokeForMotion($motionId, api_current_tenant_id());
-        } catch (Throwable $tokenErr) {
-            if ($tokenErr instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $tokenErr;
-            }
-            error_log('[motions_close] token revocation failed after commit: ' . $tokenErr->getMessage());
+        } catch (Throwable) {
+            // Non-critical: token revocation failure is logged but doesn't block response
         }
 
-        try {
-            audit_log('motion_closed', 'motion', $motionId, [
-                'meeting_id' => (string) $motion['meeting_id'],
-            ]);
-        } catch (Throwable $auditErr) {
-            if ($auditErr instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $auditErr;
-            }
-            error_log('[motions_close] audit_log failed after commit: ' . $auditErr->getMessage());
-        }
+        // audit_log() is internally safe (catches all exceptions)
+        audit_log('motion_closed', 'motion', $motionId, [
+            'meeting_id' => (string) $motion['meeting_id'],
+        ]);
 
         try {
             EventBroadcaster::motionClosed((string) $motion['meeting_id'], $motionId, [
@@ -579,26 +561,19 @@ final class MotionsController extends AbstractController {
                 'decision' => $o['decision'] ?? 'unknown',
                 'reason' => $o['reason'] ?? null,
             ]);
-        } catch (Throwable $wsErr) {
-            if ($wsErr instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $wsErr;
-            }
-            error_log('[motions_close] EventBroadcaster failed after commit: ' . $wsErr->getMessage());
+        } catch (Throwable) {
+            // Non-critical: WebSocket broadcast failure doesn't affect the response
         }
 
         $eligibleCount = 0;
         try {
-            $attendanceRepo = $this->repo()->attendance();
-            $eligibleCount = $attendanceRepo->countByModes(
+            $eligibleCount = $this->repo()->attendance()->countByModes(
                 (string) $motion['meeting_id'],
                 api_current_tenant_id(),
                 ['present', 'remote'],
             );
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
-            /* non-critical */
+        } catch (Throwable) {
+            // Non-critical
         }
 
         api_ok([
