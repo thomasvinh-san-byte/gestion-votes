@@ -68,7 +68,7 @@
     // Load meeting info
     async function loadMeetingInfo() {
       try {
-        const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
+        const { body } = await api(`/api/v1/meetings.php?id=${encodeURIComponent(currentMeetingId)}`);
         if (body && body.ok && body.data) {
           document.getElementById('meetingTitle').textContent = body.data.title;
           document.getElementById('meetingName').textContent = body.data.title;

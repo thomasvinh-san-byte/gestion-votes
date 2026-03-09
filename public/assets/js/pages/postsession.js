@@ -72,7 +72,7 @@
     if (!meetingId) return;
 
     try {
-      var res = await window.api('/api/v1/meeting_summary.php?meeting_id=' + meetingId);
+      var res = await window.api('/api/v1/meeting_summary.php?meeting_id=' + encodeURIComponent(meetingId));
       var d = res.body;
       if (d && d.ok && d.data) {
         var s = d.data;
@@ -94,7 +94,7 @@
         container: checklistEl,
         errorMsg: 'Impossible de charger les v\u00e9rifications',
         action: async function () {
-          var res2 = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + meetingId);
+          var res2 = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + encodeURIComponent(meetingId));
           var d2 = res2.body;
           if (!d2 || !d2.ok) throw new Error(d2 && d2.error || 'Erreur');
           var checks = d2.data.checks || [];
@@ -120,7 +120,7 @@
 
     // Load anomalies
     try {
-      var res3 = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + meetingId);
+      var res3 = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + encodeURIComponent(meetingId));
       var d3 = res3.body;
       if (d3 && d3.ok && d3.data) {
         var items = d3.data.anomalies || d3.data.items || [];
@@ -154,7 +154,7 @@
 
     // Populate step 2 KPIs from summary
     try {
-      var summaryRes = await window.api('/api/v1/meeting_summary.php?meeting_id=' + meetingId);
+      var summaryRes = await window.api('/api/v1/meeting_summary.php?meeting_id=' + encodeURIComponent(meetingId));
       if (summaryRes.body && summaryRes.body.ok && summaryRes.body.data) {
         var s = summaryRes.body.data;
         setStatValue('vkpiResolutions', s.total_motions || s.motions_count || 0);
@@ -166,7 +166,7 @@
     } catch (e) { /* KPI load failure is non-blocking */ }
 
     try {
-      var res = await window.api('/api/v1/meeting_workflow_check.php?meeting_id=' + meetingId);
+      var res = await window.api('/api/v1/meeting_workflow_check.php?meeting_id=' + encodeURIComponent(meetingId));
       var d = res.body;
       if (d && d.ok && d.data) {
         var state = d.data.current_state || '';

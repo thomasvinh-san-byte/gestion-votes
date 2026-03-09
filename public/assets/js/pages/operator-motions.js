@@ -416,7 +416,7 @@
 
   async function loadBallots(motionId) {
     try {
-      const { body } = await api(`/api/v1/ballots.php?motion_id=${motionId}`);
+      const { body } = await api(`/api/v1/ballots.php?motion_id=${encodeURIComponent(motionId)}`);
       const ballots = body?.data?.items || [];
       O.ballotsCache = {};
       O.ballotSourceCache = {};

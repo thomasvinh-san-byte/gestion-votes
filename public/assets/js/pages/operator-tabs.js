@@ -317,7 +317,7 @@ window.OpS = { fn: {} };
     updateURLParam('meeting_id', meetingId);
 
     try {
-      const { body } = await api(`/api/v1/meetings.php?id=${meetingId}`);
+      const { body } = await api(`/api/v1/meetings.php?id=${encodeURIComponent(meetingId)}`);
       if (body?.ok && body?.data) {
         currentMeeting = body.data;
         currentMeetingStatus = body.data.status;

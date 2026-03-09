@@ -69,7 +69,7 @@
   // Load meeting status
   async function loadMeetingStatus(meetingId) {
     try {
-      const { body } = await api(`/api/v1/meetings.php?id=${meetingId}`);
+      const { body } = await api(`/api/v1/meetings.php?id=${encodeURIComponent(meetingId)}`);
 
       if (body && body.ok && body.data) {
         const m = body.data;

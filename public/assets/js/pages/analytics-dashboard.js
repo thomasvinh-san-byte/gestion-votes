@@ -113,7 +113,7 @@
     async function loadOverview() {
       const container = document.getElementById('overviewCards');
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=overview&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
+        const { body } = await api(`/api/v1/analytics.php?type=overview&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -178,7 +178,7 @@
 
     async function loadParticipation() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=participation&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
+        const { body } = await api(`/api/v1/analytics.php?type=participation&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -291,7 +291,7 @@
 
     async function loadMotions() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=motions&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
+        const { body } = await api(`/api/v1/analytics.php?type=motions&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -380,7 +380,7 @@
 
     async function loadVoteDuration() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=vote_duration&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
+        const { body } = await api(`/api/v1/analytics.php?type=vote_duration&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -437,7 +437,7 @@
 
     async function loadVoteTiming() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=vote_timing&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
+        const { body } = await api(`/api/v1/analytics.php?type=vote_timing&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -479,7 +479,7 @@
       const meetingsContainer = document.getElementById('anomaliesMeetings');
 
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=anomalies&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
+        const { body } = await api(`/api/v1/analytics.php?type=anomalies&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
