@@ -312,7 +312,7 @@ final class AdminController extends AbstractController {
     public function systemStatus(): void {
         api_request('GET');
 
-        $userRepo = $this->repo()->user();
+        $sysRepo = $this->repo()->system();
         $meetingRepo = $this->repo()->meeting();
         $motionRepo = $this->repo()->motion();
         $memberRepo = $this->repo()->member();
@@ -321,8 +321,8 @@ final class AdminController extends AbstractController {
         $tenantId = api_current_tenant_id();
         $serverTime = date('c');
 
-        $dbLat = $userRepo->dbPing();
-        $active = $userRepo->dbActiveConnections();
+        $dbLat = $sysRepo->dbPing();
+        $active = $sysRepo->dbActiveConnections();
 
         $path = __DIR__;
         try {
@@ -341,11 +341,11 @@ final class AdminController extends AbstractController {
         $cntMembers = $memberRepo->countActive($tenantId);
         $cntLive = $meetingRepo->countLive($tenantId);
         $cntTok = $voteTokenRepo->countAll();
-        $cntAud = $userRepo->countAuditEvents($tenantId);
-        $fail15 = $userRepo->countAuthFailures15m();
+        $cntAud = $sysRepo->countAuditEvents($tenantId);
+        $fail15 = $sysRepo->countAuthFailures15m();
 
         try {
-            $userRepo->insertSystemMetric([
+            $sysRepo->insertSystemMetric([
                 'server_time' => $serverTime,
                 'db_latency_ms' => $dbLat,
                 'db_active_connections' => $active === null ? null : (int) $active,
@@ -380,8 +380,8 @@ final class AdminController extends AbstractController {
 
         foreach ($alertsToCreate as $a) {
             try {
-                if (!$userRepo->findRecentAlert($a['code'])) {
-                    $userRepo->insertSystemAlert($a['code'], $a['severity'], $a['message'], json_encode($a['details']));
+                if (!$sysRepo->findRecentAlert($a['code'])) {
+                    $sysRepo->insertSystemAlert($a['code'], $a['severity'], $a['message'], json_encode($a['details']));
                 }
             } catch (Throwable $e) {
                 if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
@@ -390,7 +390,7 @@ final class AdminController extends AbstractController {
             }
         }
 
-        $recentAlerts = $userRepo->listRecentAlerts(20);
+        $recentAlerts = $sysRepo->listRecentAlerts(20);
 
         api_ok([
             'system' => [

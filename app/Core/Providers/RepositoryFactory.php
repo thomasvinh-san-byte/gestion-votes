@@ -30,6 +30,7 @@ use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\ProxyRepository;
 use AgVote\Repository\ReminderScheduleRepository;
 use AgVote\Repository\SpeechRepository;
+use AgVote\Repository\SystemRepository;
 use AgVote\Repository\UserRepository;
 use AgVote\Repository\VoteTokenRepository;
 use AgVote\Repository\WizardRepository;
@@ -97,6 +98,7 @@ final class RepositoryFactory {
     public function proxy(): ProxyRepository { return $this->get(ProxyRepository::class); }
     public function reminderSchedule(): ReminderScheduleRepository { return $this->get(ReminderScheduleRepository::class); }
     public function speech(): SpeechRepository { return $this->get(SpeechRepository::class); }
+    public function system(): SystemRepository { return $this->get(SystemRepository::class); }
     public function user(): UserRepository { return $this->get(UserRepository::class); }
     public function voteToken(): VoteTokenRepository { return $this->get(VoteTokenRepository::class); }
     public function wizard(): WizardRepository { return $this->get(WizardRepository::class); }
