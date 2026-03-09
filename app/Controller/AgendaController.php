@@ -6,8 +6,6 @@ namespace AgVote\Controller;
 
 use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
-use AgVote\Repository\AgendaRepository;
-use AgVote\Repository\MeetingRepository;
 
 /**
  * Consolidates agendas.php and meeting_late_rules.php.
@@ -18,12 +16,12 @@ final class AgendaController extends AbstractController {
 
         $meetingId = api_require_uuid($data, 'meeting_id');
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
         if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
         }
 
-        $agendaRepo = new AgendaRepository();
+        $agendaRepo = $this->repo()->agenda();
         $rows = $agendaRepo->listForMeeting($meetingId, api_current_tenant_id());
         api_ok(['items' => $rows]);
     }
@@ -42,7 +40,7 @@ final class AgendaController extends AbstractController {
         $meetingId = $v->get('meeting_id');
         $title = $v->get('title');
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
         $meeting = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
@@ -54,7 +52,7 @@ final class AgendaController extends AbstractController {
             api_fail('archived_immutable', 409);
         }
 
-        $agendaRepo = new AgendaRepository();
+        $agendaRepo = $this->repo()->agenda();
         $id = $agendaRepo->generateUuid();
         $idx = $agendaRepo->nextIdx($meetingId);
 
@@ -73,7 +71,7 @@ final class AgendaController extends AbstractController {
 
     public function lateRules(): void {
         $method = api_method();
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
 
         if ($method === 'GET') {
             $q = api_request('GET');
@@ -117,12 +115,12 @@ final class AgendaController extends AbstractController {
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
         if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
         }
 
-        $agendaRepo = new AgendaRepository();
+        $agendaRepo = $this->repo()->agenda();
         $rows = $agendaRepo->listForMeetingCompact($meetingId, api_current_tenant_id());
 
         api_ok([

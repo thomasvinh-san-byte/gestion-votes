@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
@@ -29,10 +30,10 @@ final class BallotsService {
         ?AttendancesService $attendancesService = null,
         ?ProxiesService $proxiesService = null,
     ) {
-        $this->ballotRepo = $ballotRepo ?? new BallotRepository();
-        $this->motionRepo = $motionRepo ?? new MotionRepository();
-        $this->memberRepo = $memberRepo ?? new MemberRepository();
-        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+        $this->ballotRepo = $ballotRepo ?? RepositoryFactory::getInstance()->ballot();
+        $this->motionRepo = $motionRepo ?? RepositoryFactory::getInstance()->motion();
+        $this->memberRepo = $memberRepo ?? RepositoryFactory::getInstance()->member();
+        $this->meetingRepo = $meetingRepo ?? RepositoryFactory::getInstance()->meeting();
         $this->attendancesService = $attendancesService ?? new AttendancesService();
         $this->proxiesService = $proxiesService ?? new ProxiesService();
     }

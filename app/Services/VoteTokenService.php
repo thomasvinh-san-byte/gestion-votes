@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\VoteTokenRepository;
 use InvalidArgumentException;
@@ -32,8 +33,8 @@ final class VoteTokenService {
         ?MeetingRepository $meetingRepo = null,
         ?VoteTokenRepository $tokenRepo = null,
     ) {
-        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
-        $this->tokenRepo = $tokenRepo ?? new VoteTokenRepository();
+        $this->meetingRepo = $meetingRepo ?? RepositoryFactory::getInstance()->meeting();
+        $this->tokenRepo = $tokenRepo ?? RepositoryFactory::getInstance()->voteToken();
     }
 
     /**

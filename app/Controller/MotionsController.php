@@ -5,14 +5,6 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\Validation\InputValidator;
-use AgVote\Repository\AgendaRepository;
-use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\BallotRepository;
-use AgVote\Repository\ManualActionRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MeetingStatsRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\PolicyRepository;
 use AgVote\Service\NotificationsService;
 use AgVote\Service\OfficialResultsService;
 use AgVote\Service\VoteTokenService;
@@ -48,8 +40,7 @@ final class MotionsController extends AbstractController {
         $quorumPolicyId = $v->get('quorum_policy_id', '');
 
         $tenantId = api_current_tenant_id();
-        $motionRepo = new MotionRepository();
-        $meetingRepo = new MeetingRepository();
+        $motionRepo = $this->repo()->motion();
 
         $agenda = $motionRepo->findAgendaWithMeeting($agendaId, $tenantId);
         if (!$agenda) {
@@ -58,7 +49,7 @@ final class MotionsController extends AbstractController {
 
         api_guard_meeting_not_validated((string) $agenda['meeting_id']);
 
-        $policyRepo = new PolicyRepository();
+        $policyRepo = $this->repo()->policy();
         if ($votePolicyId !== '' && !$policyRepo->votePolicyExists($votePolicyId, $tenantId)) {
             api_fail('vote_policy_not_found', 404);
         }
@@ -134,8 +125,8 @@ final class MotionsController extends AbstractController {
         $meetingId = api_require_uuid($q, 'meeting_id');
 
         $tenantId = api_current_tenant_id();
-        $meetingRepo = new MeetingRepository();
-        $motionRepo = new MotionRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $motionRepo = $this->repo()->motion();
 
         if (!$meetingRepo->existsForTenant($meetingId, $tenantId)) {
             api_fail('meeting_not_found', 404);
@@ -160,7 +151,7 @@ final class MotionsController extends AbstractController {
             $statsMap[(string) $s['motion_id']] = $s;
         }
 
-        $policyRepo = new PolicyRepository();
+        $policyRepo = $this->repo()->policy();
         $policyNameCache = [];
 
         foreach ($motions as &$m) {
@@ -232,15 +223,16 @@ final class MotionsController extends AbstractController {
         $secret = (bool) ($in['secret'] ?? false);
         $tenantId = api_current_tenant_id();
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
         if (!$meetingRepo->existsForTenant($meetingId, $tenantId)) {
             api_fail('meeting_not_found', 404, ['detail' => 'Séance non trouvée.']);
         }
 
         api_guard_meeting_not_validated($meetingId);
 
-        $result = api_transaction(function () use ($meetingId, $tenantId, $title, $description, $secret) {
-            $agendaRepo = new AgendaRepository();
+        $agendaRepo = $this->repo()->agenda();
+        $motionRepo = $this->repo()->motion();
+        $result = api_transaction(function () use ($agendaRepo, $motionRepo, $meetingId, $tenantId, $title, $description, $secret) {
             $agendas = $agendaRepo->listForMeetingCompact($meetingId, $tenantId);
 
             $agendaId = null;
@@ -256,7 +248,6 @@ final class MotionsController extends AbstractController {
                 $agendaId = $agendas[0]['agenda_id'];
             }
 
-            $motionRepo = new MotionRepository();
             $motionId = $motionRepo->generateUuid();
             $motionRepo->create($motionId, $tenantId, $meetingId, $agendaId, $title, $description, $secret, null, null);
 
@@ -279,7 +270,7 @@ final class MotionsController extends AbstractController {
         $motionId = api_require_uuid($in, 'motion_id');
 
         $tenantId = api_current_tenant_id();
-        $repo = new MotionRepository();
+        $repo = $this->repo()->motion();
         $motion = $repo->findByIdForTenant($motionId, $tenantId);
         if (!$motion) {
             api_fail('motion_not_found', 404);
@@ -324,7 +315,7 @@ final class MotionsController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
@@ -337,7 +328,7 @@ final class MotionsController extends AbstractController {
             ]);
         }
 
-        (new MotionRepository())->reorderAll($meetingId, $tenantId, $motionIds);
+        $this->repo()->motion()->reorderAll($meetingId, $tenantId, $motionIds);
 
         audit_log('motions_reordered', 'meeting', $meetingId, ['motion_ids' => $motionIds]);
         api_ok(['reordered' => true, 'count' => count($motionIds)]);
@@ -351,7 +342,7 @@ final class MotionsController extends AbstractController {
             api_fail('invalid_motion_id', 400);
         }
 
-        $repo = new MotionRepository();
+        $repo = $this->repo()->motion();
         $motion = $repo->findByIdForTenant($motionId, api_current_tenant_id());
         if (!$motion) {
             api_fail('motion_not_found', 404);
@@ -389,19 +380,19 @@ final class MotionsController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $motionRepo = new MotionRepository();
+        $motionRepo = $this->repo()->motion();
         $motion = $motionRepo->findCurrentOpen($meetingId, $tenantId);
 
         $totalMotions = $motionRepo->countForMeeting($meetingId, $tenantId);
-        $eligibleCount = (new MeetingStatsRepository())->countActiveMembers($tenantId);
+        $eligibleCount = $this->repo()->meetingStats()->countActiveMembers($tenantId);
 
         $ballotsCast = 0;
         if ($motion) {
-            $ballotsCast = (new BallotRepository())->countByMotionId((string) $motion['id'], $tenantId);
+            $ballotsCast = $this->repo()->ballot()->countByMotionId((string) $motion['id'], $tenantId);
         }
 
         $meetingStatus = null;
-        $meeting = (new MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
+        $meeting = $this->repo()->meeting()->findByIdForTenant($meetingId, $tenantId);
         if ($meeting) {
             $meetingStatus = $meeting['status'] ?? null;
         }
@@ -424,9 +415,9 @@ final class MotionsController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $repo = new MotionRepository();
-        $meetingRepo = new MeetingRepository();
-        $policyRepo = new PolicyRepository();
+        $repo = $this->repo()->motion();
+        $meetingRepo = $this->repo()->meeting();
+        $policyRepo = $this->repo()->policy();
 
         $txResult = api_transaction(function () use ($repo, $meetingRepo, $policyRepo, $motionId, $tenantId) {
             $motion = $repo->findByIdForTenantForUpdate($motionId, $tenantId);
@@ -523,7 +514,7 @@ final class MotionsController extends AbstractController {
             api_fail('invalid_motion_id', 422);
         }
 
-        $repo = new MotionRepository();
+        $repo = $this->repo()->motion();
 
         $txResult = api_transaction(function () use ($repo, $motionId) {
             $motion = $repo->findByIdForTenantForUpdate($motionId, api_current_tenant_id());
@@ -597,7 +588,7 @@ final class MotionsController extends AbstractController {
 
         $eligibleCount = 0;
         try {
-            $attendanceRepo = new AttendanceRepository();
+            $attendanceRepo = $this->repo()->attendance();
             $eligibleCount = $attendanceRepo->countByModes(
                 (string) $motion['meeting_id'],
                 api_current_tenant_id(),
@@ -635,7 +626,7 @@ final class MotionsController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $row = (new MotionRepository())->findWithMeetingTenant($motionId, $tenantId);
+        $row = $this->repo()->motion()->findWithMeetingTenant($motionId, $tenantId);
         if (!$row) {
             api_fail('motion_not_found', 404);
         }
@@ -667,9 +658,9 @@ final class MotionsController extends AbstractController {
         }
 
         api_transaction(function () use ($motionId, $total, $for, $against, $abstain, $tenantId, $meetingId, $justification) {
-            (new MotionRepository())->updateManualTally($motionId, $total, $for, $against, $abstain, $tenantId);
+            $this->repo()->motion()->updateManualTally($motionId, $total, $for, $against, $abstain, $tenantId);
 
-            (new ManualActionRepository())->createManualTally(
+            $this->repo()->manualAction()->createManualTally(
                 $tenantId,
                 $meetingId,
                 $motionId,

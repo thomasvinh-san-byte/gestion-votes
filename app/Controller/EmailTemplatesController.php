@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\EmailTemplateRepository;
 use AgVote\Service\EmailTemplateService;
 
 /**
@@ -12,7 +11,7 @@ use AgVote\Service\EmailTemplateService;
  */
 final class EmailTemplatesController extends AbstractController {
     public function list(): void {
-        $repo = new EmailTemplateRepository();
+        $repo = $this->repo()->emailTemplate();
         global $config;
         $service = new EmailTemplateService($config ?? []);
         $tenantId = api_current_tenant_id();
@@ -46,7 +45,7 @@ final class EmailTemplatesController extends AbstractController {
 
     public function create(): void {
         $input = api_request('POST');
-        $repo = new EmailTemplateRepository();
+        $repo = $this->repo()->emailTemplate();
         global $config;
         $service = new EmailTemplateService($config ?? []);
         $tenantId = api_current_tenant_id();
@@ -121,7 +120,7 @@ final class EmailTemplatesController extends AbstractController {
     }
 
     public function update(): void {
-        $repo = new EmailTemplateRepository();
+        $repo = $this->repo()->emailTemplate();
         $tenantId = api_current_tenant_id();
         $id = api_query('id');
         if (!api_is_uuid($id)) {
@@ -161,7 +160,7 @@ final class EmailTemplatesController extends AbstractController {
     }
 
     public function delete(): void {
-        $repo = new EmailTemplateRepository();
+        $repo = $this->repo()->emailTemplate();
         $tenantId = api_current_tenant_id();
         $id = api_query('id');
         if (!api_is_uuid($id)) {

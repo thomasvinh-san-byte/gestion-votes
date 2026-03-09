@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\MemberRepository;
 use InvalidArgumentException;
 use Throwable;
 
@@ -35,7 +33,7 @@ final class DevSeedController extends AbstractController {
             'Simon', 'Michel', 'Lefebvre', 'Leroy', 'Roux', 'David', 'Bertrand', 'Morel', 'Fournier', 'Girard',
             'Bonnet', 'Dupont', 'Lambert', 'Fontaine', 'Rousseau', 'Vincent', 'Muller', 'Lefevre', 'Faure', 'Andre'];
 
-        $repo = new MemberRepository();
+        $repo = $this->repo()->member();
         $created = 0;
         for ($i = 0; $i < $count; $i++) {
             $first = $firstNames[array_rand($firstNames)];
@@ -69,8 +67,8 @@ final class DevSeedController extends AbstractController {
 
         $presentRatio = (float) ($in['present_ratio'] ?? 0.7);
 
-        $memberRepo = new MemberRepository();
-        $attendanceRepo = new AttendanceRepository();
+        $memberRepo = $this->repo()->member();
+        $attendanceRepo = $this->repo()->attendance();
 
         $members = $memberRepo->listActiveIds(api_current_tenant_id());
 

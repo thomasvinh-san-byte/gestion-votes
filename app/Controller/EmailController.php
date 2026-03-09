@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\InvitationRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MemberRepository;
 use AgVote\Service\EmailQueueService;
 use AgVote\Service\EmailTemplateService;
 use AgVote\Service\MailerService;
@@ -118,9 +115,9 @@ final class EmailController extends AbstractController {
 
         global $config;
 
-        $meetingRepo = new MeetingRepository();
-        $memberRepo = new MemberRepository();
-        $invitationRepo = new InvitationRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $memberRepo = $this->repo()->member();
+        $invitationRepo = $this->repo()->invitation();
 
         $tenantId = api_current_tenant_id();
         $meetingTitle = $meetingRepo->findTitle($meetingId, $tenantId) ?? $meetingId;

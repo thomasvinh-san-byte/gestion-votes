@@ -1017,14 +1017,14 @@ class AgendaControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AgendaController.php');
 
-        $this->assertStringContainsString('MeetingRepository', $source);
+        $this->assertStringContainsString('repo()->meeting()', $source);
     }
 
     public function testControllerUsesAgendaRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AgendaController.php');
 
-        $this->assertStringContainsString('AgendaRepository', $source);
+        $this->assertStringContainsString('repo()->agenda()', $source);
     }
 
     public function testControllerUsesValidationSchemas(): void

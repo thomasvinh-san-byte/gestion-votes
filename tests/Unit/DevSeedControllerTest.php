@@ -477,14 +477,14 @@ class DevSeedControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevSeedController.php');
 
-        $this->assertStringContainsString('MemberRepository', $source);
+        $this->assertStringContainsString('repo()->member()', $source);
     }
 
     public function testControllerUsesAttendanceRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevSeedController.php');
 
-        $this->assertStringContainsString('AttendanceRepository', $source);
+        $this->assertStringContainsString('repo()->attendance()', $source);
     }
 
     public function testSeedMembersUsesInsertSeedMember(): void

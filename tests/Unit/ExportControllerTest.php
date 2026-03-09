@@ -890,9 +890,9 @@ class ExportControllerTest extends TestCase
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportController.php');
 
         $this->assertStringContainsString(
-            'AttendanceRepository',
+            'repo()->attendance()',
             $source,
-            'Attendance exports should use AttendanceRepository',
+            'Attendance exports should use attendance repository via factory',
         );
     }
 
@@ -901,9 +901,9 @@ class ExportControllerTest extends TestCase
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportController.php');
 
         $this->assertStringContainsString(
-            'BallotRepository',
+            'repo()->ballot()',
             $source,
-            'Votes exports should use BallotRepository',
+            'Votes exports should use ballot repository via factory',
         );
     }
 
@@ -912,9 +912,9 @@ class ExportControllerTest extends TestCase
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportController.php');
 
         $this->assertStringContainsString(
-            'MemberRepository',
+            'repo()->member()',
             $source,
-            'Members export should use MemberRepository',
+            'Members export should use member repository via factory',
         );
     }
 
@@ -923,9 +923,9 @@ class ExportControllerTest extends TestCase
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportController.php');
 
         $this->assertStringContainsString(
-            'MotionRepository',
+            'repo()->motion()',
             $source,
-            'Motion results exports should use MotionRepository',
+            'Motion results exports should use motion repository via factory',
         );
     }
 

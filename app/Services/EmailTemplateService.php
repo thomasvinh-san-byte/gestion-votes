@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\EmailTemplateRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MeetingStatsRepository;
@@ -165,10 +166,10 @@ final class EmailTemplateService {
         ?MemberRepository $memberRepo = null,
         ?MeetingStatsRepository $statsRepo = null,
     ) {
-        $this->templateRepo = $templateRepo ?? new EmailTemplateRepository();
-        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
-        $this->memberRepo = $memberRepo ?? new MemberRepository();
-        $this->statsRepo = $statsRepo ?? new MeetingStatsRepository();
+        $this->templateRepo = $templateRepo ?? RepositoryFactory::getInstance()->emailTemplate();
+        $this->meetingRepo = $meetingRepo ?? RepositoryFactory::getInstance()->meeting();
+        $this->memberRepo = $memberRepo ?? RepositoryFactory::getInstance()->member();
+        $this->statsRepo = $statsRepo ?? RepositoryFactory::getInstance()->meetingStats();
         $this->appUrl = (string) (($config['app']['url'] ?? '') ?: 'http://localhost:8080');
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\SpeechRepository;
@@ -27,9 +28,9 @@ final class SpeechService {
         ?MeetingRepository $meetingRepo = null,
         ?MemberRepository $memberRepo = null,
     ) {
-        $this->speechRepo = $speechRepo ?? new SpeechRepository();
-        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
-        $this->memberRepo = $memberRepo ?? new MemberRepository();
+        $this->speechRepo = $speechRepo ?? RepositoryFactory::getInstance()->speech();
+        $this->meetingRepo = $meetingRepo ?? RepositoryFactory::getInstance()->meeting();
+        $this->memberRepo = $memberRepo ?? RepositoryFactory::getInstance()->member();
     }
 
     private function memberLabel(string $memberId, string $tenantId): ?string {

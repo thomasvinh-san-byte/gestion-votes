@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Core\Security;
 
-use AgVote\Repository\UserRepository;
+use AgVote\Core\Providers\RepositoryFactory;
 use Throwable;
 
 /**
@@ -196,7 +196,7 @@ class PermissionChecker {
         }
 
         try {
-            $repo = new UserRepository();
+            $repo = RepositoryFactory::getInstance()->user();
             $tenantId = $user['tenant_id'] ?? $this->getDefaultTenantId();
             return $repo->listUserRolesForMeeting($tenantId, $meetingId, $user['id']);
         } catch (Throwable $e) {

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\MemberGroupRepository;
-use AgVote\Repository\MemberRepository;
 use InvalidArgumentException;
 
 /**
@@ -16,7 +14,7 @@ final class MemberGroupsController extends AbstractController {
 
     public function list(): void {
         $tenantId = api_current_tenant_id();
-        $repo = new MemberGroupRepository();
+        $repo = $this->repo()->memberGroup();
         $groupId = api_query('id');
         $includeInactive = api_query('include_inactive') === '1';
 
@@ -43,7 +41,7 @@ final class MemberGroupsController extends AbstractController {
     public function create(): void {
         $input = api_request('POST');
         $tenantId = api_current_tenant_id();
-        $repo = new MemberGroupRepository();
+        $repo = $this->repo()->memberGroup();
 
         $name = trim((string) ($input['name'] ?? ''));
         $description = trim((string) ($input['description'] ?? '')) ?: null;
@@ -73,7 +71,7 @@ final class MemberGroupsController extends AbstractController {
     public function update(): void {
         $input = api_request('PATCH');
         $tenantId = api_current_tenant_id();
-        $repo = new MemberGroupRepository();
+        $repo = $this->repo()->memberGroup();
 
         $groupId = trim((string) ($input['id'] ?? ''));
         $name = trim((string) ($input['name'] ?? ''));
@@ -112,7 +110,7 @@ final class MemberGroupsController extends AbstractController {
 
     public function delete(): void {
         $tenantId = api_current_tenant_id();
-        $repo = new MemberGroupRepository();
+        $repo = $this->repo()->memberGroup();
         $groupId = api_query('id');
 
         if (!api_is_uuid($groupId)) {
@@ -143,8 +141,8 @@ final class MemberGroupsController extends AbstractController {
         $tenantId = api_current_tenant_id();
         $userId = api_current_user_id();
 
-        $groupRepo = new MemberGroupRepository();
-        $memberRepo = new MemberRepository();
+        $groupRepo = $this->repo()->memberGroup();
+        $memberRepo = $this->repo()->member();
 
         $memberId = trim((string) ($input['member_id'] ?? ''));
         $groupId = trim((string) ($input['group_id'] ?? ''));
@@ -179,8 +177,8 @@ final class MemberGroupsController extends AbstractController {
 
     public function unassign(): void {
         $tenantId = api_current_tenant_id();
-        $groupRepo = new MemberGroupRepository();
-        $memberRepo = new MemberRepository();
+        $groupRepo = $this->repo()->memberGroup();
+        $memberRepo = $this->repo()->member();
 
         $memberId = api_query('member_id');
         $groupId = api_query('group_id');
@@ -219,8 +217,8 @@ final class MemberGroupsController extends AbstractController {
         $input = api_request('PUT');
         $tenantId = api_current_tenant_id();
         $userId = api_current_user_id();
-        $groupRepo = new MemberGroupRepository();
-        $memberRepo = new MemberRepository();
+        $groupRepo = $this->repo()->memberGroup();
+        $memberRepo = $this->repo()->member();
 
         $memberId = trim((string) ($input['member_id'] ?? ''));
         $groupIds = $input['group_ids'] ?? [];

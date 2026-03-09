@@ -6,8 +6,6 @@ namespace AgVote\Controller;
 
 use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Core\Security\CsrfMiddleware;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\UserRepository;
 use Throwable;
 
 /**
@@ -28,7 +26,7 @@ final class AuthController extends AbstractController {
             $input = api_request('POST');
         }
 
-        $userRepo = new UserRepository();
+        $userRepo = $this->repo()->user();
         $user = null;
         $authMethod = 'unknown';
 
@@ -226,7 +224,7 @@ final class AuthController extends AbstractController {
 
         $meetingRoles = [];
         try {
-            $userRepo = new UserRepository();
+            $userRepo = $this->repo()->user();
             $meetingRoles = $userRepo->listActiveMeetingRolesForUser($user['id'], $user['tenant_id']);
         } catch (Throwable $e) {
             if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
@@ -237,7 +235,7 @@ final class AuthController extends AbstractController {
 
         $linkedMember = null;
         try {
-            $memberRepo = new MemberRepository();
+            $memberRepo = $this->repo()->member();
             $found = $memberRepo->findByUserId($user['id'], $user['tenant_id']);
             if ($found) {
                 $linkedMember = [

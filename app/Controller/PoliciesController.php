@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
-use AgVote\Repository\PolicyRepository;
 
 /**
  * Consolidates 4 policy endpoints (quorum + vote, public list + admin CRUD).
@@ -15,19 +14,19 @@ use AgVote\Repository\PolicyRepository;
 final class PoliciesController extends AbstractController {
     public function listQuorum(): void {
         api_request('GET');
-        $rows = (new PolicyRepository())->listQuorumPolicies(api_current_tenant_id());
+        $rows = $this->repo()->policy()->listQuorumPolicies(api_current_tenant_id());
         api_ok(['items' => $rows]);
     }
 
     public function listVote(): void {
         api_request('GET');
-        $rows = (new PolicyRepository())->listVotePolicies(api_current_tenant_id());
+        $rows = $this->repo()->policy()->listVotePolicies(api_current_tenant_id());
         api_ok(['items' => $rows]);
     }
 
     public function adminQuorum(): void {
         $method = api_method();
-        $repo = new PolicyRepository();
+        $repo = $this->repo()->policy();
         $tenantId = api_current_tenant_id();
 
         if ($method === 'GET') {
@@ -109,7 +108,7 @@ final class PoliciesController extends AbstractController {
 
     public function adminVote(): void {
         $method = api_method();
-        $repo = new PolicyRepository();
+        $repo = $this->repo()->policy();
         $tenantId = api_current_tenant_id();
 
         if ($method === 'GET') {

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AggregateReportRepository;
 use AgVote\Repository\AnalyticsRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Service\ExportService;
@@ -19,8 +18,8 @@ final class AnalyticsController extends AbstractController {
         $period = api_query('period', 'year');
         $limit = min(100, max(1, api_query_int('limit', 20)));
 
-        $memberRepo = new MemberRepository();
-        $analyticsRepo = new AnalyticsRepository();
+        $memberRepo = $this->repo()->member();
+        $analyticsRepo = $this->repo()->analytics();
 
         $dateFrom = match($period) {
             'month' => date('Y-m-d', strtotime('-1 month')),
@@ -54,7 +53,7 @@ final class AnalyticsController extends AbstractController {
 
     public function reportsAggregate(): void {
         $q = api_request('GET');
-        $repo = new AggregateReportRepository();
+        $repo = $this->repo()->aggregateReport();
         $tenantId = api_current_tenant_id();
 
         // Liste des séances disponibles

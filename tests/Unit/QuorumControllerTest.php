@@ -413,14 +413,14 @@ class QuorumControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/QuorumController.php');
 
-        $this->assertStringContainsString('MeetingRepository', $source);
+        $this->assertStringContainsString('repo()->meeting()', $source);
     }
 
     public function testControllerUsesPolicyRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/QuorumController.php');
 
-        $this->assertStringContainsString('PolicyRepository', $source);
+        $this->assertStringContainsString('repo()->policy()', $source);
     }
 
     public function testControllerUsesApiCurrentTenantId(): void

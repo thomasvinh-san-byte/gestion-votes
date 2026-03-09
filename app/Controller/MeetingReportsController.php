@@ -4,14 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\BallotRepository;
-use AgVote\Repository\InvitationRepository;
-use AgVote\Repository\MeetingReportRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\PolicyRepository;
-use AgVote\Repository\ProxyRepository;
 use AgVote\Service\MailerService;
 use AgVote\Service\MeetingReportService;
 use AgVote\Service\OfficialResultsService;
@@ -35,12 +27,12 @@ final class MeetingReportsController extends AbstractController {
         $showVoters = (api_query('show_voters') === '1');
         $tenant = api_current_tenant_id();
 
-        $meetingRepo = new MeetingRepository();
-        $motionRepo = new MotionRepository();
-        $attendanceRepo = new AttendanceRepository();
-        $ballotRepo = new BallotRepository();
-        $policyRepo = new PolicyRepository();
-        $invitationRepo = new InvitationRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $motionRepo = $this->repo()->motion();
+        $attendanceRepo = $this->repo()->attendance();
+        $ballotRepo = $this->repo()->ballot();
+        $policyRepo = $this->repo()->policy();
+        $invitationRepo = $this->repo()->invitation();
 
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
         if (!$meeting) {
@@ -52,7 +44,7 @@ final class MeetingReportsController extends AbstractController {
         // Serve cached snapshot if available (audit-defensible)
         if (!$regen) {
             try {
-                $snap = (new MeetingReportRepository())->findSnapshot($meetingId, $tenant);
+                $snap = $this->repo()->meetingReport()->findSnapshot($meetingId, $tenant);
                 if ($snap && !empty($snap['html'])) {
                     header('Content-Type: text/html; charset=utf-8');
                     echo (string) $snap['html'];
@@ -70,7 +62,7 @@ final class MeetingReportsController extends AbstractController {
 
         $proxies = [];
         try {
-            $proxies = (new ProxyRepository())->listForReport($meetingId, $tenant);
+            $proxies = $this->repo()->proxy()->listForReport($meetingId, $tenant);
         } catch (Throwable $e) {
             if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
                 throw $e;
@@ -361,7 +353,7 @@ final class MeetingReportsController extends AbstractController {
         $isPreview = api_query('preview') !== '' || api_query('draft') !== '';
         $tenantId = api_current_tenant_id();
 
-        $meeting = (new MeetingRepository())->findWithValidator($meetingId);
+        $meeting = $this->repo()->meeting()->findWithValidator($meetingId);
         if (!$meeting || (string) ($meeting['tenant_id'] ?? '') !== $tenantId) {
             api_fail('meeting_not_found', 404);
         }
@@ -372,9 +364,9 @@ final class MeetingReportsController extends AbstractController {
             ]);
         }
 
-        $attendances = (new AttendanceRepository())->listForReport($meetingId, $tenantId);
-        $motions = (new MotionRepository())->listForReport($meetingId, $tenantId);
-        $proxies = (new ProxyRepository())->listForReport($meetingId, $tenantId);
+        $attendances = $this->repo()->attendance()->listForReport($meetingId, $tenantId);
+        $motions = $this->repo()->motion()->listForReport($meetingId, $tenantId);
+        $proxies = $this->repo()->proxy()->listForReport($meetingId, $tenantId);
 
         // Build the full HTML for PDF
         $html = '<!DOCTYPE html>
@@ -519,7 +511,7 @@ final class MeetingReportsController extends AbstractController {
         $hash = hash('sha256', $pdfContent);
 
         if (!$isPreview) {
-            (new MeetingReportRepository())->upsertFull($meetingId, $html, $hash, $tenantId);
+            $this->repo()->meetingReport()->upsertFull($meetingId, $html, $hash, $tenantId);
         }
 
         $prefix = $isPreview ? 'BROUILLON_PV_' : 'PV_';
@@ -547,8 +539,8 @@ final class MeetingReportsController extends AbstractController {
             api_fail('invalid_meeting_id', 400);
         }
 
-        $meetingRepo = new MeetingRepository();
-        $motionRepo = new MotionRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $motionRepo = $this->repo()->motion();
 
         $meeting = $meetingRepo->findWithValidator($meetingId);
         if (!$meeting) {
@@ -599,7 +591,7 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         $hash = hash('sha256', $html);
 
         $tenantId = api_current_tenant_id();
-        (new MeetingReportRepository())->upsertHash($meetingId, $hash, $tenantId);
+        $this->repo()->meetingReport()->upsertHash($meetingId, $hash, $tenantId);
 
         audit_log('report.generate_html', 'meeting', $meetingId, [
             'sha256' => $hash,
@@ -627,7 +619,7 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
         global $config;
 
         $tenantId = api_current_tenant_id();
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $meeting = $repo->findByIdForTenant($meetingId, $tenantId);
         $meetingTitle = (string) (($meeting['title'] ?? '') ?: $meetingId);
 

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MemberRepository;
 use AgVote\Service\AttendancesService;
 use AgVote\Service\QuorumEngine;
 use AgVote\WebSocket\EventBroadcaster;
@@ -27,7 +24,7 @@ final class AttendancesController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $meeting = (new MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
+        $meeting = $this->repo()->meeting()->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404, ['detail' => 'Séance introuvable']);
         }
@@ -90,7 +87,7 @@ final class AttendancesController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
@@ -104,7 +101,7 @@ final class AttendancesController extends AbstractController {
             api_fail('invalid_member_ids', 400, ['detail' => 'member_ids doit être un tableau']);
         }
 
-        $memberRepo = new MemberRepository();
+        $memberRepo = $this->repo()->member();
         if ($memberIds === null || count($memberIds) === 0) {
             $members = $memberRepo->listActiveIds($tenantId);
             $memberIds = array_column($members, 'id');
@@ -115,7 +112,7 @@ final class AttendancesController extends AbstractController {
 
         $updated = 0;
         $created = 0;
-        $attendanceRepo = new AttendanceRepository();
+        $attendanceRepo = $this->repo()->attendance();
 
         // Filter valid UUIDs first, then batch-validate membership (avoids N+1)
         $validUuids = array_filter($memberIds, fn($id) => api_is_uuid($id));
@@ -168,7 +165,7 @@ final class AttendancesController extends AbstractController {
 
         $presentFrom = trim((string) ($in['present_from_at'] ?? ''));
 
-        (new AttendanceRepository())->updatePresentFrom($meetingId, $memberId, $presentFrom === '' ? null : $presentFrom, api_current_tenant_id());
+        $this->repo()->attendance()->updatePresentFrom($meetingId, $memberId, $presentFrom === '' ? null : $presentFrom, api_current_tenant_id());
 
         audit_log($presentFrom !== '' ? 'attendance_present_from_set' : 'attendance_present_from_cleared', 'meeting', $meetingId, [
             'member_id' => $memberId,

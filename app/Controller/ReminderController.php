@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\EmailTemplateRepository;
-use AgVote\Repository\ReminderScheduleRepository;
-
 /**
  * Consolidates reminders.php.
  */
@@ -20,10 +17,10 @@ final class ReminderController extends AbstractController {
         api_guard_meeting_exists($meetingId);
 
         $tenantId = api_current_tenant_id();
-        $repo = new ReminderScheduleRepository();
+        $repo = $this->repo()->reminderSchedule();
         $reminders = $repo->listForMeeting($meetingId, $tenantId);
 
-        $templateRepo = new EmailTemplateRepository();
+        $templateRepo = $this->repo()->emailTemplate();
         $templates = $templateRepo->listForTenant($tenantId, 'reminder');
 
         api_ok([
@@ -36,7 +33,7 @@ final class ReminderController extends AbstractController {
     public function upsert(): void {
         $input = api_request('POST');
         $tenantId = api_current_tenant_id();
-        $repo = new ReminderScheduleRepository();
+        $repo = $this->repo()->reminderSchedule();
 
         $meetingId = trim((string) ($input['meeting_id'] ?? ''));
         $daysBefore = isset($input['days_before']) ? (int) $input['days_before'] : null;
@@ -79,7 +76,7 @@ final class ReminderController extends AbstractController {
             if (!api_is_uuid($templateId)) {
                 api_fail('invalid_template_id', 400);
             }
-            $templateRepo = new EmailTemplateRepository();
+            $templateRepo = $this->repo()->emailTemplate();
             $template = $templateRepo->findById($templateId, $tenantId);
             if (!$template) {
                 api_fail('template_not_found', 404);
@@ -107,7 +104,7 @@ final class ReminderController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $repo = new ReminderScheduleRepository();
+        $repo = $this->repo()->reminderSchedule();
         $deleted = $repo->delete($id, $tenantId);
         if (!$deleted) {
             api_fail('reminder_not_found', 404);

@@ -46,9 +46,9 @@ class SecurityHardeningTest extends TestCase {
 
         // Extract the audit_log function body
         $this->assertStringContainsString(
-            'AuditEventRepository',
+            'RepositoryFactory::getInstance()->auditEvent()',
             $content,
-            'audit_log() must delegate to AuditEventRepository',
+            'audit_log() must delegate to AuditEventRepository via RepositoryFactory',
         );
         $this->assertStringNotContainsString(
             'INSERT INTO audit_events',

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\PolicyRepository;
 use AgVote\Service\QuorumEngine;
 use Throwable;
 
@@ -129,7 +127,7 @@ final class QuorumController extends AbstractController {
 
     public function meetingSettings(): void {
         $method = api_method();
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
 
         if ($method === 'GET') {
             $q = api_request('GET');
@@ -169,7 +167,7 @@ final class QuorumController extends AbstractController {
             }
 
             if ($policyId !== '') {
-                if (!(new PolicyRepository())->quorumPolicyExists($policyId, api_current_tenant_id())) {
+                if (!$this->repo()->policy()->quorumPolicyExists($policyId, api_current_tenant_id())) {
                     api_fail('quorum_policy_not_found', 404);
                 }
             }

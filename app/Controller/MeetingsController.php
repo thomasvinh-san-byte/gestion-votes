@@ -7,11 +7,6 @@ namespace AgVote\Controller;
 use AgVote\Core\BallotSource;
 use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
-use AgVote\Repository\MeetingReportRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MeetingStatsRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\PolicyRepository;
 use AgVote\Service\MeetingReportService;
 use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
@@ -33,7 +28,7 @@ final class MeetingsController extends AbstractController {
 
         $activeOnly = filter_var(api_query('active_only', '0'), FILTER_VALIDATE_BOOLEAN);
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         if ($activeOnly) {
             $rows = $repo->listActiveByTenantCompact(api_current_tenant_id(), $limit);
         } else {
@@ -83,7 +78,7 @@ final class MeetingsController extends AbstractController {
             api_fail('invalid_meeting_type', 400, ['detail' => 'Type de séance invalide.', 'valid_types' => $validMeetingTypes]);
         }
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $current = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
         if (!$current) {
             api_fail('meeting_not_found', 404);
@@ -126,7 +121,7 @@ final class MeetingsController extends AbstractController {
         $from = api_query('from');
         $to = api_query('to');
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $rows = $repo->listArchived(api_current_tenant_id(), $from, $to);
         api_ok(['items' => $rows]);
     }
@@ -134,7 +129,7 @@ final class MeetingsController extends AbstractController {
     public function archivesList(): void {
         api_request('GET');
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $rows = $repo->listArchivedWithReports(api_current_tenant_id());
         api_ok(['items' => $rows]);
     }
@@ -142,14 +137,14 @@ final class MeetingsController extends AbstractController {
     public function status(): void {
         api_request('GET');
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $meeting = $repo->findCurrentForTenant(api_current_tenant_id());
 
         if (!$meeting) {
             api_fail('no_live_meeting', 404);
         }
 
-        $statsRepo = new MeetingStatsRepository();
+        $statsRepo = $this->repo()->meetingStats();
         $counts = $statsRepo->countMotionStats((string) $meeting['meeting_id'], api_current_tenant_id());
 
         $totalMotions = (int) ($counts['total_motions'] ?? 0);
@@ -199,7 +194,7 @@ final class MeetingsController extends AbstractController {
             api_fail('missing_meeting_id', 422);
         }
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $meeting = $repo->findStatusFields($meetingId, api_current_tenant_id());
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
@@ -244,8 +239,8 @@ final class MeetingsController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $repo = new MeetingRepository();
-        $statsRepo = new MeetingStatsRepository();
+        $repo = $this->repo()->meeting();
+        $statsRepo = $this->repo()->meetingStats();
 
         $meeting = $repo->findSummaryFields($meetingId, $tenantId);
         if (!$meeting) {
@@ -303,9 +298,9 @@ final class MeetingsController extends AbstractController {
             api_fail('missing_meeting_id', 422);
         }
 
-        $meetingRepo = new MeetingRepository();
-        $statsRepo = new MeetingStatsRepository();
-        $motionRepo = new MotionRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $statsRepo = $this->repo()->meetingStats();
+        $motionRepo = $this->repo()->motion();
 
         $tenantId = api_current_tenant_id();
         if (!$meetingRepo->existsForTenant($meetingId, $tenantId)) {
@@ -387,7 +382,7 @@ final class MeetingsController extends AbstractController {
         $location = $v->get('location');
         $meetingType = $v->get('meeting_type', 'ag_ordinaire');
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $id = $repo->generateUuid();
         $repo->create(
             $id,
@@ -399,7 +394,7 @@ final class MeetingsController extends AbstractController {
             $meetingType,
         );
 
-        $policyRepo = new PolicyRepository();
+        $policyRepo = $this->repo()->policy();
         $votePolicies = $policyRepo->listVotePolicies(api_current_tenant_id());
         $quorumPolicies = $policyRepo->listQuorumPolicies(api_current_tenant_id());
         $defaults = [];
@@ -432,7 +427,7 @@ final class MeetingsController extends AbstractController {
             api_fail('missing_meeting_id', 400, ['detail' => 'meeting_id est obligatoire (uuid).']);
         }
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $current = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
         if (!$current) {
             api_fail('meeting_not_found', 404);
@@ -455,7 +450,7 @@ final class MeetingsController extends AbstractController {
 
     public function voteSettings(): void {
         $method = api_method();
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
 
         if ($method === 'GET') {
             $q = api_request('GET');
@@ -489,7 +484,7 @@ final class MeetingsController extends AbstractController {
             }
 
             if ($policyId !== '') {
-                if (!(new PolicyRepository())->votePolicyExists($policyId, api_current_tenant_id())) {
+                if (!$this->repo()->policy()->votePolicyExists($policyId, api_current_tenant_id())) {
                     api_fail('vote_policy_not_found', 404);
                 }
             }
@@ -522,7 +517,7 @@ final class MeetingsController extends AbstractController {
         }
 
         $tenant = api_current_tenant_id();
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
 
         $meeting = $repo->findByIdForTenant($meetingId, $tenant);
         if (!$meeting) {
@@ -533,7 +528,7 @@ final class MeetingsController extends AbstractController {
             api_transaction(function () use ($repo, $meetingId, $tenant) {
                 $pvHtml = (new MeetingReportService())->renderHtml($meetingId, true);
                 $repo->markValidated($meetingId, $tenant);
-                (new MeetingReportRepository())->storeHtml($meetingId, $pvHtml, $tenant);
+                $this->repo()->meetingReport()->storeHtml($meetingId, $pvHtml, $tenant);
             });
 
             audit_log('meeting.validated', 'meeting', $meetingId, [

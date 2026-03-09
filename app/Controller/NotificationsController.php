@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AuditEventRepository;
-
 /**
  * Notifications controller.
  *
@@ -30,7 +28,7 @@ final class NotificationsController extends AbstractController {
         $tenantId = api_current_tenant_id();
         $limit    = min(max((int) (api_query('limit') ?: 20), 1), 50);
 
-        $auditRepo = new AuditEventRepository();
+        $auditRepo = $this->repo()->auditEvent();
         $rows = $auditRepo->listRecentByActions($tenantId, self::NOTIF_ACTIONS, $limit);
 
         api_ok([

@@ -6,8 +6,6 @@ namespace AgVote\Controller;
 
 use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
-use AgVote\Repository\MemberGroupRepository;
-use AgVote\Repository\MemberRepository;
 
 /**
  * Consolidates members CRUD endpoint.
@@ -16,13 +14,13 @@ final class MembersController extends AbstractController {
     public function index(): void {
         $data = api_request('GET');
 
-        $repo = new MemberRepository();
+        $repo = $this->repo()->member();
         $tenantId = api_current_tenant_id();
         $members = $repo->listAll($tenantId);
 
         $includeGroups = isset($data['include_groups']) && $data['include_groups'];
         if ($includeGroups) {
-            $groupRepo = new MemberGroupRepository();
+            $groupRepo = $this->repo()->memberGroup();
             foreach ($members as &$member) {
                 $member['groups'] = $groupRepo->listGroupsForMember($member['id'], $tenantId);
             }
@@ -53,7 +51,7 @@ final class MembersController extends AbstractController {
         $is_active = $v->get('is_active', true);
         $id = api_uuid4();
 
-        $repo = new MemberRepository();
+        $repo = $this->repo()->member();
         $tenantId = api_current_tenant_id();
 
         $repo->create($id, $tenantId, $full_name, $email, $voting_power, $is_active);
@@ -73,7 +71,7 @@ final class MembersController extends AbstractController {
             api_fail('missing_member_id', 422, ['detail' => 'ID membre requis.']);
         }
 
-        $repo = new MemberRepository();
+        $repo = $this->repo()->member();
         $tenantId = api_current_tenant_id();
 
         if (!$repo->existsForTenant($id, $tenantId)) {
@@ -108,7 +106,7 @@ final class MembersController extends AbstractController {
             api_fail('missing_member_id', 422, ['detail' => 'ID membre requis.']);
         }
 
-        $repo = new MemberRepository();
+        $repo = $this->repo()->member();
         $tenantId = api_current_tenant_id();
 
         if (!$repo->existsForTenant($id, $tenantId)) {
@@ -125,7 +123,7 @@ final class MembersController extends AbstractController {
     public function presidents(): void {
         api_request('GET');
 
-        $repo = new MemberRepository();
+        $repo = $this->repo()->member();
         $rows = $repo->listActiveForPresident(api_current_tenant_id());
 
         api_ok(['items' => $rows]);

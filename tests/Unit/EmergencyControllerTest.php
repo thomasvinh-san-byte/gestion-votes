@@ -437,7 +437,7 @@ class EmergencyControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmergencyController.php');
 
-        $this->assertStringContainsString('MeetingRepository', $source);
+        $this->assertStringContainsString('repo()->meeting()', $source);
         $this->assertStringContainsString('upsertEmergencyCheck', $source);
     }
 
@@ -445,7 +445,7 @@ class EmergencyControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmergencyController.php');
 
-        $this->assertStringContainsString('EmergencyProcedureRepository', $source);
+        $this->assertStringContainsString('repo()->emergencyProcedure()', $source);
         $this->assertStringContainsString('listByAudienceWithField', $source);
     }
 

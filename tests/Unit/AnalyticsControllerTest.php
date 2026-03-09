@@ -625,21 +625,21 @@ class AnalyticsControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AnalyticsController.php');
 
-        $this->assertStringContainsString('AnalyticsRepository', $source);
+        $this->assertStringContainsString('repo()->analytics()', $source);
     }
 
     public function testControllerUsesAggregateReportRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AnalyticsController.php');
 
-        $this->assertStringContainsString('AggregateReportRepository', $source);
+        $this->assertStringContainsString('repo()->aggregateReport()', $source);
     }
 
     public function testControllerUsesMemberRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AnalyticsController.php');
 
-        $this->assertStringContainsString('MemberRepository', $source);
+        $this->assertStringContainsString('repo()->member()', $source);
     }
 
     public function testControllerUsesExportService(): void

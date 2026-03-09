@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\EmailEventRepository;
-use AgVote\Repository\EmailQueueRepository;
-use AgVote\Repository\InvitationRepository;
-
 /**
  * Consolidates 4 invitation endpoints.
  */
@@ -39,7 +35,7 @@ final class InvitationsController extends AbstractController {
         $token = bin2hex(random_bytes(32));
         $tenantId = api_current_tenant_id();
 
-        (new InvitationRepository())->upsertSent($tenantId, $meetingId, $memberId, $email, $token);
+        $this->repo()->invitation()->upsertSent($tenantId, $meetingId, $memberId, $email, $token);
 
         audit_log('invitation.create', 'invitation', $memberId, [
             'meeting_id' => $meetingId,
@@ -62,7 +58,7 @@ final class InvitationsController extends AbstractController {
             api_fail('missing_meeting_id', 400);
         }
 
-        $rows = (new InvitationRepository())->listForMeeting($meetingId, api_current_tenant_id());
+        $rows = $this->repo()->invitation()->listForMeeting($meetingId, api_current_tenant_id());
         api_ok(['items' => $rows]);
     }
 
@@ -72,7 +68,7 @@ final class InvitationsController extends AbstractController {
             api_fail('missing_token', 400);
         }
 
-        $repo = new InvitationRepository();
+        $repo = $this->repo()->invitation();
         $inv = $repo->findByToken($token);
         if (!$inv) {
             api_fail('invalid_token', 404);
@@ -118,9 +114,9 @@ final class InvitationsController extends AbstractController {
         $tenantId = api_current_tenant_id();
         api_guard_meeting_exists($meetingId);
 
-        $invitationRepo = new InvitationRepository();
-        $queueRepo = new EmailQueueRepository();
-        $eventRepo = new EmailEventRepository();
+        $invitationRepo = $this->repo()->invitation();
+        $queueRepo = $this->repo()->emailQueue();
+        $eventRepo = $this->repo()->emailEvent();
 
         $invitationStats = $invitationRepo->getStatsForMeeting($meetingId, $tenantId);
 

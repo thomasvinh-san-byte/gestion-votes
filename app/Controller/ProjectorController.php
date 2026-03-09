@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MeetingStatsRepository;
-use AgVote\Repository\MotionRepository;
 
 /**
  * Consolidates projector_state.php.
@@ -15,8 +12,8 @@ final class ProjectorController extends AbstractController {
     public function state(): void {
         api_request('GET');
 
-        $meetingRepo = new MeetingRepository();
-        $motionRepo = new MotionRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $motionRepo = $this->repo()->motion();
         $tenantId = api_current_tenant_id();
 
         $requestedId = api_query('meeting_id');
@@ -84,7 +81,7 @@ final class ProjectorController extends AbstractController {
         }
 
         $totalMotions = $motionRepo->countForMeeting($meetingId, $tenantId);
-        $statsRepo = new MeetingStatsRepository();
+        $statsRepo = $this->repo()->meetingStats();
         $eligibleCount = $statsRepo->countActiveMembers($tenantId);
 
         api_ok([

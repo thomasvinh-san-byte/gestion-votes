@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\MeetingAttachmentRepository;
-use AgVote\Repository\MeetingRepository;
 use finfo;
 
 /**
@@ -19,7 +17,7 @@ final class MeetingAttachmentController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $repo = new MeetingAttachmentRepository();
+        $repo = $this->repo()->meetingAttachment();
         $items = $repo->listForMeeting($meetingId, $tenantId);
         api_ok(['attachments' => $items]);
     }
@@ -33,7 +31,7 @@ final class MeetingAttachmentController extends AbstractController {
 
         $tenantId = api_current_tenant_id();
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
         if (!$meetingRepo->existsForTenant($meetingId, $tenantId)) {
             api_fail('meeting_not_found', 404);
         }
@@ -67,7 +65,7 @@ final class MeetingAttachmentController extends AbstractController {
             mkdir($uploadDir, 0o750, true);
         }
 
-        $repo = new MeetingAttachmentRepository();
+        $repo = $this->repo()->meetingAttachment();
         $id = $repo->generateUuid();
         $storedName = $id . '.pdf';
         $destPath = $uploadDir . '/' . $storedName;
@@ -111,7 +109,7 @@ final class MeetingAttachmentController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $repo = new MeetingAttachmentRepository();
+        $repo = $this->repo()->meetingAttachment();
         $att = $repo->findById($id, $tenantId);
         if (!$att) {
             api_fail('not_found', 404);

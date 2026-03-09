@@ -615,13 +615,13 @@ class DevicesControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevicesController.php');
 
-        $this->assertStringContainsString('DeviceRepository', $source);
+        $this->assertStringContainsString('repo()->device()', $source);
     }
 
     public function testControllerUsesMeetingRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevicesController.php');
 
-        $this->assertStringContainsString('MeetingRepository', $source);
+        $this->assertStringContainsString('repo()->meeting()', $source);
     }
 }

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\EmailEventRepository;
-use AgVote\Repository\InvitationRepository;
+use AgVote\Core\Providers\RepositoryFactory;
 use Throwable;
 
 /**
@@ -26,8 +25,8 @@ final class EmailTrackingController {
         }
 
         try {
-            $invitationRepo = new InvitationRepository();
-            $eventRepo = new EmailEventRepository();
+            $invitationRepo = RepositoryFactory::getInstance()->invitation();
+            $eventRepo = RepositoryFactory::getInstance()->emailEvent();
 
             $tenantId = $invitationRepo->findTenantById($invitationId);
 
@@ -83,8 +82,8 @@ final class EmailTrackingController {
         if ($invitationId !== '' && $trackingEnabled) {
             if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $invitationId)) {
                 try {
-                    $invitationRepo = new InvitationRepository();
-                    $eventRepo = new EmailEventRepository();
+                    $invitationRepo = RepositoryFactory::getInstance()->invitation();
+                    $eventRepo = RepositoryFactory::getInstance()->emailEvent();
 
                     $tenantId = $invitationRepo->findTenantById($invitationId);
 

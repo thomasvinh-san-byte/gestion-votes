@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\ProxyRepository;
 use InvalidArgumentException;
 
@@ -42,7 +43,7 @@ final class ProxiesService {
     private ProxyRepository $repo;
 
     public function __construct(?ProxyRepository $repo = null) {
-        $this->repo = $repo ?? new ProxyRepository();
+        $this->repo = $repo ?? RepositoryFactory::getInstance()->proxy();
     }
 
     public function listForMeeting(string $meetingId, string $tenantId): array {

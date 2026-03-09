@@ -283,7 +283,7 @@ class EmailTrackingControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTrackingController.php');
 
-        $this->assertStringContainsString('InvitationRepository', $source);
+        $this->assertStringContainsString('RepositoryFactory::getInstance()->invitation()', $source);
         $this->assertStringContainsString('incrementOpenCount', $source);
     }
 
@@ -291,7 +291,7 @@ class EmailTrackingControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTrackingController.php');
 
-        $this->assertStringContainsString('EmailEventRepository', $source);
+        $this->assertStringContainsString('RepositoryFactory::getInstance()->emailEvent()', $source);
         $this->assertStringContainsString('logEvent', $source);
     }
 

@@ -5,13 +5,6 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\Security\AuthMiddleware;
-use AgVote\Repository\AuditEventRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MeetingStatsRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\UserRepository;
-use AgVote\Repository\VoteTokenRepository;
 use Throwable;
 
 /**
@@ -29,7 +22,7 @@ final class AdminController extends AbstractController {
         }
 
         $validSystemRoles = ['admin', 'operator', 'auditor', 'viewer'];
-        $userRepo = new UserRepository();
+        $userRepo = $this->repo()->user();
 
         if ($method === 'GET') {
             api_request('GET');
@@ -179,9 +172,9 @@ final class AdminController extends AbstractController {
     public function roles(): void {
         api_request('GET');
 
-        $userRepo = new UserRepository();
-        $meetingRepo = new MeetingRepository();
-        $statsRepo = new MeetingStatsRepository();
+        $userRepo = $this->repo()->user();
+        $meetingRepo = $this->repo()->meeting();
+        $statsRepo = $this->repo()->meetingStats();
 
         $permissions = $userRepo->listRolePermissions();
         $transitions = $statsRepo->listStateTransitions();
@@ -210,8 +203,8 @@ final class AdminController extends AbstractController {
     public function meetingRoles(): void {
         $method = api_method();
         $validMeetingRoles = ['president', 'assessor', 'voter'];
-        $userRepo = new UserRepository();
-        $meetingRepo = new MeetingRepository();
+        $userRepo = $this->repo()->user();
+        $meetingRepo = $this->repo()->meeting();
 
         if ($method === 'GET') {
             api_request('GET');
@@ -319,11 +312,11 @@ final class AdminController extends AbstractController {
     public function systemStatus(): void {
         api_request('GET');
 
-        $userRepo = new UserRepository();
-        $meetingRepo = new MeetingRepository();
-        $motionRepo = new MotionRepository();
-        $memberRepo = new MemberRepository();
-        $voteTokenRepo = new VoteTokenRepository();
+        $userRepo = $this->repo()->user();
+        $meetingRepo = $this->repo()->meeting();
+        $motionRepo = $this->repo()->motion();
+        $memberRepo = $this->repo()->member();
+        $voteTokenRepo = $this->repo()->voteToken();
 
         $tenantId = api_current_tenant_id();
         $serverTime = date('c');
@@ -430,7 +423,7 @@ final class AdminController extends AbstractController {
         $action = api_query('action');
         $q = api_query('q');
 
-        $repo = new AuditEventRepository();
+        $repo = $this->repo()->auditEvent();
 
         $total = $repo->countAdminEvents($tenantId, $action ?: null, $q ?: null);
         $events = $repo->searchAdminEvents($tenantId, $action ?: null, $q ?: null, $limit, $offset);

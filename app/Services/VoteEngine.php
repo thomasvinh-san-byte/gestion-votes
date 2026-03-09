@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MemberRepository;
@@ -31,11 +32,11 @@ final class VoteEngine {
         ?PolicyRepository $policyRepo = null,
         ?AttendanceRepository $attendanceRepo = null,
     ) {
-        $this->motionRepo = $motionRepo ?? new MotionRepository();
-        $this->ballotRepo = $ballotRepo ?? new BallotRepository();
-        $this->memberRepo = $memberRepo ?? new MemberRepository();
-        $this->policyRepo = $policyRepo ?? new PolicyRepository();
-        $this->attendanceRepo = $attendanceRepo ?? new AttendanceRepository();
+        $this->motionRepo = $motionRepo ?? RepositoryFactory::getInstance()->motion();
+        $this->ballotRepo = $ballotRepo ?? RepositoryFactory::getInstance()->ballot();
+        $this->memberRepo = $memberRepo ?? RepositoryFactory::getInstance()->member();
+        $this->policyRepo = $policyRepo ?? RepositoryFactory::getInstance()->policy();
+        $this->attendanceRepo = $attendanceRepo ?? RepositoryFactory::getInstance()->attendance();
     }
 
     /**

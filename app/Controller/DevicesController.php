@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\DeviceRepository;
-use AgVote\Repository\MeetingRepository;
 use DateInterval;
 use DateTimeImmutable;
 
@@ -42,7 +40,7 @@ final class DevicesController extends AbstractController {
         $tenantId = api_current_tenant_id();
         $meetingId = (string) ($q['meeting_id'] ?? '');
 
-        $repo = new DeviceRepository();
+        $repo = $this->repo()->device();
         $rows = $repo->listHeartbeats($tenantId, $meetingId);
 
         $now = new DateTimeImmutable('now');
@@ -99,7 +97,7 @@ final class DevicesController extends AbstractController {
             $reason = 'blocked_by_operator';
         }
 
-        $repo = new DeviceRepository();
+        $repo = $this->repo()->device();
         $hb = $repo->findHeartbeat($tenantId, $deviceId);
         $repo->blockDevice($tenantId, $meetingId, $deviceId, $reason);
 
@@ -116,7 +114,7 @@ final class DevicesController extends AbstractController {
         $meetingId = (string) ($in['meeting_id'] ?? '');
         $deviceId = $this->requireDeviceId($in);
 
-        $repo = new DeviceRepository();
+        $repo = $this->repo()->device();
         $hb = $repo->findHeartbeat($tenantId, $deviceId);
         $repo->unblockDevice($tenantId, $meetingId, $deviceId);
 
@@ -140,7 +138,7 @@ final class DevicesController extends AbstractController {
             $message = 'Veuillez recharger la page.';
         }
 
-        $repo = new DeviceRepository();
+        $repo = $this->repo()->device();
         $hb = $repo->findHeartbeat($tenantId, $deviceId);
         $repo->insertKickCommand($tenantId, $meetingId, $deviceId, $message);
 
@@ -164,13 +162,13 @@ final class DevicesController extends AbstractController {
 
         // Tenant isolation: verify meeting belongs to current tenant
         if ($meetingId !== '' && api_is_uuid($meetingId)) {
-            $meeting = (new MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
+            $meeting = $this->repo()->meeting()->findByIdForTenant($meetingId, $tenantId);
             if (!$meeting) {
                 $meetingId = ''; // silently ignore cross-tenant meeting_id
             }
         }
 
-        $repo = new DeviceRepository();
+        $repo = $this->repo()->device();
         $repo->upsertHeartbeat($deviceId, $tenantId, $meetingId, $role, $ip, $userAgent, $battery, $charging);
 
         $b = $repo->findBlockStatus($tenantId, $deviceId, $meetingId);

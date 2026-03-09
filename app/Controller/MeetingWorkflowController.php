@@ -5,14 +5,6 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\Security\AuthMiddleware;
-use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\BallotRepository;
-use AgVote\Repository\ManualActionRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MeetingStatsRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\VoteTokenRepository;
 use AgVote\Service\MeetingWorkflowService;
 use AgVote\Service\OfficialResultsService;
 use AgVote\WebSocket\EventBroadcaster;
@@ -42,7 +34,7 @@ final class MeetingWorkflowController extends AbstractController {
             ]);
         }
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $tenantId = api_current_tenant_id();
 
         // Pre-flight: read without lock for fast-fail on obviously bad requests
@@ -205,7 +197,7 @@ final class MeetingWorkflowController extends AbstractController {
 
         $meetingId = api_require_uuid($input, 'meeting_id');
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $tenant = api_current_tenant_id();
         $userId = api_current_user_id();
 
@@ -345,12 +337,12 @@ final class MeetingWorkflowController extends AbstractController {
 
         $tenant = api_current_tenant_id();
 
-        $meetingRepo = new MeetingRepository();
-        $statsRepo = new MeetingStatsRepository();
-        $motionRepo = new MotionRepository();
-        $attendanceRepo = new AttendanceRepository();
-        $memberRepo = new MemberRepository();
-        $ballotRepo = new BallotRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $statsRepo = $this->repo()->meetingStats();
+        $motionRepo = $this->repo()->motion();
+        $attendanceRepo = $this->repo()->attendance();
+        $memberRepo = $this->repo()->member();
+        $ballotRepo = $this->repo()->ballot();
 
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
         if (!$meeting) {
@@ -482,7 +474,7 @@ final class MeetingWorkflowController extends AbstractController {
         $meetingId = api_require_uuid($body, 'meeting_id');
         $tenantId = api_current_tenant_id();
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $meeting = $repo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
@@ -516,7 +508,7 @@ final class MeetingWorkflowController extends AbstractController {
             api_fail('missing_confirm', 400, ['detail' => 'Envoyez {confirm:"RESET"} pour éviter les resets accidentels.']);
         }
 
-        $mt = (new MeetingRepository())->findByIdForTenant($meetingId, api_current_tenant_id());
+        $mt = $this->repo()->meeting()->findByIdForTenant($meetingId, api_current_tenant_id());
         if (!$mt) {
             api_fail('meeting_not_found', 404);
         }
@@ -527,12 +519,12 @@ final class MeetingWorkflowController extends AbstractController {
         $tenantId = api_current_tenant_id();
 
         api_transaction(function () use ($meetingId, $tenantId, $mt) {
-            (new BallotRepository())->deleteByMeeting($meetingId, $tenantId);
-            (new VoteTokenRepository())->deleteByMeetingMotions($meetingId, $tenantId);
-            (new ManualActionRepository())->deleteByMeeting($meetingId, $tenantId);
+            $this->repo()->ballot()->deleteByMeeting($meetingId, $tenantId);
+            $this->repo()->voteToken()->deleteByMeetingMotions($meetingId, $tenantId);
+            $this->repo()->manualAction()->deleteByMeeting($meetingId, $tenantId);
 
-            (new MotionRepository())->resetStatesForMeeting($meetingId, $tenantId);
-            (new MeetingRepository())->resetForDemo($meetingId, $tenantId);
+            $this->repo()->motion()->resetStatesForMeeting($meetingId, $tenantId);
+            $this->repo()->meeting()->resetForDemo($meetingId, $tenantId);
 
             // Audit log inside the transaction so it can't be lost
             audit_log('meeting.reset_demo', 'meeting', $meetingId, [

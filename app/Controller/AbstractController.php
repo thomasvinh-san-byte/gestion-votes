@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\Http\Request;
+use AgVote\Core\Providers\RepositoryFactory;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
@@ -18,12 +19,21 @@ use Throwable;
  * The controller method contains pure business logic — no try/catch needed.
  * The $request property is available for controllers that adopt the new
  * Request object pattern (opt-in, not mandatory).
+ *
+ * Repository access: use $this->repo() to get the shared RepositoryFactory.
  */
 abstract class AbstractController {
     protected Request $request;
 
     public function __construct() {
         $this->request = new Request();
+    }
+
+    /**
+     * Shared repository factory — lazy-cached instances, one per request.
+     */
+    protected function repo(): RepositoryFactory {
+        return RepositoryFactory::getInstance();
     }
 
     public function handle(string $method): void {

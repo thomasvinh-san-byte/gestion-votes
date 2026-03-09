@@ -2063,14 +2063,14 @@ class MeetingWorkflowControllerTest extends TestCase
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
 
         $repos = [
-            'MeetingRepository',
-            'MeetingStatsRepository',
-            'MotionRepository',
-            'AttendanceRepository',
-            'MemberRepository',
-            'BallotRepository',
-            'VoteTokenRepository',
-            'ManualActionRepository',
+            'repo()->meeting()',
+            'repo()->meetingStats()',
+            'repo()->motion()',
+            'repo()->attendance()',
+            'repo()->member()',
+            'repo()->ballot()',
+            'repo()->voteToken()',
+            'repo()->manualAction()',
         ];
 
         foreach ($repos as $repo) {
