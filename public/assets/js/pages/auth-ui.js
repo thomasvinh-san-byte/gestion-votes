@@ -100,8 +100,9 @@
   };
 
   // Defensive: if Shared is not loaded, provide minimal show/hide fallbacks
-  var _show = (typeof Shared !== 'undefined' && _show) ? _show : function(el, d) { if (el) { el.classList.remove('hidden'); el.style.display = d || ''; } };
-  var _hide = (typeof Shared !== 'undefined' && _hide) ? _hide : function(el) { if (el) el.style.display = 'none'; };
+  var _sharedAvailable = typeof Shared !== 'undefined';
+  var _show = _sharedAvailable && Shared.show ? Shared.show : function(el, d) { if (el) { el.classList.remove('hidden'); el.style.display = d || ''; } };
+  var _hide = _sharedAvailable && Shared.hide ? Shared.hide : function(el) { if (el) el.style.display = 'none'; };
 
   function esc(s) {
     if (s == null) return '';
