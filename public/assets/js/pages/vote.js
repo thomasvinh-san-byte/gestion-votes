@@ -764,6 +764,9 @@
   };
 
   async function cast(choice){
+    // Map UI value to API value
+    if (choice === 'blanc') choice = 'nsp';
+
     const memberId = selectedMemberId();
     if (!_currentMotionId) {
       throw new Error('Aucune résolution en cours. Patientez l\'ouverture du vote.');

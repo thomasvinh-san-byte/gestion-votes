@@ -1390,7 +1390,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: var(--z-overlay, 200);
+  z-index: var(--z-overlay, 900);
   pointer-events: none;
   animation: postVoteFade 2s ease-out forwards;
 }

@@ -818,7 +818,7 @@
 
         const newName = editNameEl.value.trim();
         const newEmail = editEmailEl.value.trim();
-        const newPower = parseInt(editPowerEl.value) || 1;
+        const newPower = parseFloat(editPowerEl.value) || 1;
         const newActive = modal.querySelector('#editMemberActive').checked;
 
         const selectedGroups = Array.from(modal.querySelectorAll('input[name="memberGroup"]:checked')).map(cb => cb.value);
@@ -901,7 +901,7 @@
     if (currentPage > 1) { currentPage--; renderMembers(allMembers); }
   });
   paginNext.addEventListener('click', () => {
-    currentPage++; renderMembers(allMembers);
+    if (!paginNext.disabled) { currentPage++; renderMembers(allMembers); }
   });
   paginSizeSelect.addEventListener('change', () => {
     pageSize = parseInt(paginSizeSelect.value) || 20;

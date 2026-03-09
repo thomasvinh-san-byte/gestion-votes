@@ -138,7 +138,7 @@ table {
   --radius-full: 9999px;
 
   /* ─── Layout ─── */
-  --header-height: 64px;
+  --header-height: 56px;
   --sidebar-width: 58px;
   --sidebar-rail: 58px;
   --sidebar-expanded: 252px;
@@ -2786,7 +2786,7 @@ textarea:focus-visible,
 .auth-banner {
   position: sticky;
   top: 0;
-  z-index: var(--z-sticky, 20);
+  z-index: var(--z-sticky, 200);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-2) var(--space-4);

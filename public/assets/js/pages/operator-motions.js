@@ -207,7 +207,7 @@
 
   // Edit resolution modal
   function showEditResolutionModal(motionId) {
-    const motion = O.motionsCache.find(m => m.id === motionId);
+    const motion = O.motionsCache.find(m => String(m.id) === String(motionId));
     if (!motion) return;
 
     const modal = document.createElement('div');
@@ -285,7 +285,7 @@
   var _movePending = false;
   async function moveResolution(motionId, direction) {
     if (_movePending) return; // Prevent race conditions from rapid clicks
-    const idx = O.motionsCache.findIndex(m => m.id === motionId);
+    const idx = O.motionsCache.findIndex(m => String(m.id) === String(motionId));
     if (idx < 0) return;
 
     const newIdx = idx + direction;
@@ -324,7 +324,9 @@
     }
   }
 
+  var _createPending = false;
   async function createResolution() {
+    if (_createPending) return;
     const title = document.getElementById('newResolutionTitle').value.trim();
     const desc = document.getElementById('newResolutionDesc').value.trim();
     if (!title) {
@@ -332,6 +334,9 @@
       return;
     }
 
+    _createPending = true;
+    var btn = document.getElementById('btnConfirmResolution');
+    if (btn) Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/motion_create_simple.php', {
         meeting_id: O.currentMeetingId,
@@ -352,6 +357,9 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      _createPending = false;
+      if (btn) Shared.btnLoading(btn, false);
     }
   }
 

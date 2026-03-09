@@ -224,9 +224,13 @@ window.OpS = { fn: {} };
     // Warn if leaving Séance tab with unsaved changes
     var currentTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
     if (currentTab === 'seance' && tabId !== 'seance' && _isSettingsDirty()) {
-      if (!confirm('Vous avez des modifications non enregistrées dans l\'onglet Séance. Quitter sans sauvegarder ?')) {
-        return;
-      }
+      var confirmed = await confirmModal({
+        title: 'Modifications non enregistrées',
+        body: '<p>Vous avez des modifications non enregistrées dans l\'onglet Séance. Quitter sans sauvegarder ?</p>',
+        confirmText: 'Quitter sans sauvegarder',
+        confirmClass: 'btn-danger'
+      });
+      if (!confirmed) return;
     }
 
     tabButtons.forEach(btn => {
@@ -2557,6 +2561,26 @@ window.OpS = { fn: {} };
       if (forEl) forEl.textContent = fc;
       if (againstEl) againstEl.textContent = ac;
       if (abstainEl) abstainEl.textContent = ab;
+
+      // Update animated vote bars
+      var total = fc + ac + ab;
+      var pctFor = total > 0 ? Math.round((fc / total) * 100) : 0;
+      var pctAgainst = total > 0 ? Math.round((ac / total) * 100) : 0;
+      var pctAbstain = total > 0 ? Math.round((ab / total) * 100) : 0;
+
+      var barFor = document.getElementById('opBarFor');
+      var barAgainst = document.getElementById('opBarAgainst');
+      var barAbstain = document.getElementById('opBarAbstain');
+      if (barFor) barFor.style.width = pctFor + '%';
+      if (barAgainst) barAgainst.style.width = pctAgainst + '%';
+      if (barAbstain) barAbstain.style.width = pctAbstain + '%';
+
+      var pFor = document.getElementById('opPctFor');
+      var pAgainst = document.getElementById('opPctAgainst');
+      var pAbstain = document.getElementById('opPctAbstain');
+      if (pFor) pFor.textContent = pctFor + '%';
+      if (pAgainst) pAgainst.textContent = pctAgainst + '%';
+      if (pAbstain) pAbstain.textContent = pctAbstain + '%';
     } else {
       // Show no-vote placeholder with quick-open buttons, hide active vote
       if (noVotePanel) Shared.show(noVotePanel, 'block');
@@ -2811,7 +2835,7 @@ window.OpS = { fn: {} };
   document.getElementById('btnGuideAddResolution')?.addEventListener('click', () => {
     Shared.show(document.getElementById('addResolutionForm'), 'block');
     document.getElementById('noResolutionsGuide')?.setAttribute('hidden', '');
-    var titleInput = document.getElementById('resolutionTitle');
+    var titleInput = document.getElementById('newResolutionTitle');
     if (titleInput) titleInput.focus();
   });
   document.getElementById('btnCancelResolution')?.addEventListener('click', () => {
@@ -2983,11 +3007,15 @@ window.OpS = { fn: {} };
         `
       });
       modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
-      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
+        var checked = document.getElementById('invResendAll')?.checked || false;
+        closeModal(modal);
+        resolve(checked);
+      });
     });
-    if (!confirmed) return;
+    if (confirmed === false) return;
 
-    const resendAll = document.getElementById('invResendAll')?.checked || false;
+    const resendAll = confirmed;
     const btn = document.getElementById('btnSendInvitations');
     Shared.btnLoading(btn, true);
 
@@ -3104,6 +3132,19 @@ window.OpS = { fn: {} };
   document.getElementById('onboardingDismiss')?.addEventListener('click', function() {
     var banner = document.getElementById('onboardingBanner');
     if (banner) banner.hidden = true;
+  });
+
+  // Exec sub-tab switching (Résultat / Avancé / Présences)
+  document.querySelectorAll('#opSubTabs .op-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('#opSubTabs .op-tab').forEach(function(t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      var target = tab.dataset.opTab;
+      ['opPanelResultat', 'opPanelAvance', 'opPanelPresences'].forEach(function(id) {
+        var panel = document.getElementById(id);
+        if (panel) panel.classList.toggle('active', id === 'opPanel' + target.charAt(0).toUpperCase() + target.slice(1));
+      });
+    });
   });
 
   // Close session buttons (Résultats tab + Exec view)
