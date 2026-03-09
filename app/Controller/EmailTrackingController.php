@@ -74,7 +74,8 @@ final class EmailTrackingController {
 
         $allowedHost = parse_url($fallbackUrl, PHP_URL_HOST) ?: 'localhost';
         $targetHost = $parsedUrl['host'] ?? '';
-        if ($targetHost !== '' && $targetHost !== $allowedHost) {
+        // Block empty host (protocol-relative URLs like //attacker.com) and mismatched hosts
+        if ($targetHost === '' || $targetHost !== $allowedHost) {
             header('Location: ' . $fallbackUrl, true, 302);
             return;
         }

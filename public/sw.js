@@ -208,7 +208,7 @@ async function staleWhileRevalidate(request, cacheName) {
     .catch(() => null);
 
   if (cached) {
-    fetchPromise.catch(() => {}); // Revalidate in background
+    fetchPromise.catch((e) => console.warn('SW revalidate failed:', e.message)); // Revalidate in background
     return cached;
   }
 

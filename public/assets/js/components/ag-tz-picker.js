@@ -36,6 +36,10 @@ class AgTzPicker extends HTMLElement {
     this.render();
   }
 
+  disconnectedCallback() {
+    this._abortCtrl?.abort();
+  }
+
   attributeChangedCallback(n, o, v) {
     if (n === 'value' && o !== v) { this._value = v || 'Europe/Paris'; this._updateDisplay(); }
   }
@@ -81,11 +85,13 @@ class AgTzPicker extends HTMLElement {
       </select>
     `;
 
+    this._abortCtrl?.abort();
+    this._abortCtrl = new AbortController();
     this.shadowRoot.querySelector('select').addEventListener('change', (e) => {
       this._value = e.target.value;
       this.setAttribute('value', this._value);
       this.dispatchEvent(new CustomEvent('change', { bubbles: true, detail: { value: this._value } }));
-    });
+    }, { signal: this._abortCtrl.signal });
   }
 }
 

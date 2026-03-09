@@ -30,6 +30,10 @@ class AgVoteButton extends HTMLElement {
     this.render();
   }
 
+  disconnectedCallback() {
+    this._abortCtrl?.abort();
+  }
+
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       this.render();
@@ -192,7 +196,9 @@ class AgVoteButton extends HTMLElement {
         <span class="vb-label"><slot>${labelMap[value] || value}</slot></span>
       </button>
     `;
-    this.shadowRoot.querySelector('button').addEventListener('click', () => this.handleClick());
+    this._abortCtrl?.abort();
+    this._abortCtrl = new AbortController();
+    this.shadowRoot.querySelector('button').addEventListener('click', () => this.handleClick(), { signal: this._abortCtrl.signal });
   }
 }
 

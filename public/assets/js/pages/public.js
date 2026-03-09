@@ -15,7 +15,7 @@ window.APP_API_KEY = window.APP_API_KEY
   || (function(){ try { return sessionStorage.getItem("api_key"); } catch(e){ return null; } })()
   || "";
 // Persist to sessionStorage (not localStorage) so it survives page reloads but not new sessions
-if (window.APP_API_KEY) { try { sessionStorage.setItem("api_key", window.APP_API_KEY); } catch(e){} }
+if (window.APP_API_KEY) { try { sessionStorage.setItem("api_key", window.APP_API_KEY); } catch(e){ console.warn('sessionStorage unavailable:', e.message); } }
 
 var MEETING_ID = new URLSearchParams(location.search).get('meeting_id') || null;
 var currentMotionId = null;
