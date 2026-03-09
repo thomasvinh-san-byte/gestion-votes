@@ -145,12 +145,6 @@ final class MailerService {
         return trim($s);
     }
 
-    private static function encodeHeader(string $s): string {
-        if (preg_match('/[^\x20-\x7E]/', $s)) {
-            return '=?UTF-8?B?' . base64_encode($s) . '?=';
-        }
-        return $s;
-    }
 
     private static function htmlToText(string $html): string {
         $t = strip_tags(preg_replace('/<br\s*\/?>/i', "\n", $html));

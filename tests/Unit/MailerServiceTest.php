@@ -82,19 +82,6 @@ class MailerServiceTest extends TestCase {
         $this->assertSame('user@example.com', $ref->invoke(null, ' user@example.com '));
     }
 
-    public function testEncodeHeaderHandlesUnicode(): void {
-        $ref = new \ReflectionMethod(MailerService::class, 'encodeHeader');
-        $ref->setAccessible(true);
-
-        // ASCII stays unchanged
-        $this->assertSame('Hello World', $ref->invoke(null, 'Hello World'));
-
-        // Unicode gets RFC2047 encoded
-        $encoded = $ref->invoke(null, 'Séance AG');
-        $this->assertStringStartsWith('=?UTF-8?B?', $encoded);
-        $this->assertStringEndsWith('?=', $encoded);
-    }
-
     public function testHtmlToTextStripsTagsPreservesNewlines(): void {
         $ref = new \ReflectionMethod(MailerService::class, 'htmlToText');
         $ref->setAccessible(true);

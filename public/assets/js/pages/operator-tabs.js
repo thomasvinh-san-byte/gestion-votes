@@ -2741,14 +2741,8 @@ window.OpS = { fn: {} };
 
   meetingSelect.addEventListener('change', () => loadMeetingContext(meetingSelect.value));
 
-  // Debounce helper for search inputs (avoid re-render on every keystroke)
-  function debounce(fn, ms = 250) {
-    let t;
-    return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
-  }
-
   // Presence search
-  document.getElementById('presenceSearch')?.addEventListener('input', debounce(renderAttendance));
+  document.getElementById('presenceSearch')?.addEventListener('input', Utils.debounce(renderAttendance, 250));
   document.getElementById('btnMarkAllPresent')?.addEventListener('click', markAllPresent);
 
   // Import CSV button (members)
@@ -2821,13 +2815,13 @@ window.OpS = { fn: {} };
   document.getElementById('btnAddProxy')?.addEventListener('click', showAddProxyModal);
 
   // Proxy search
-  document.getElementById('proxySearch')?.addEventListener('input', debounce(renderProxies));
+  document.getElementById('proxySearch')?.addEventListener('input', Utils.debounce(renderProxies, 250));
 
   // Import proxies CSV button
   document.getElementById('btnImportProxiesCSV')?.addEventListener('click', showImportProxiesCSVModal);
 
   // Resolution search
-  document.getElementById('resolutionSearch')?.addEventListener('input', debounce(renderResolutions));
+  document.getElementById('resolutionSearch')?.addEventListener('input', Utils.debounce(renderResolutions, 250));
   document.getElementById('btnAddResolution')?.addEventListener('click', () => {
     Shared.show(document.getElementById('addResolutionForm'), 'block');
   });
