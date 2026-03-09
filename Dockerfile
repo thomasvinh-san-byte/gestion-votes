@@ -1,10 +1,10 @@
 # =============================================================================
 # Stage 1: Minify CSS/JS assets (node:alpine, discarded after build)
 # =============================================================================
-FROM node:20-alpine AS assets
+FROM node:20.19-alpine3.21 AS assets
 WORKDIR /assets
 COPY public/assets/ ./
-RUN npm install -g terser clean-css-cli \
+RUN npm install -g terser@5 clean-css-cli@5 \
     && find . -name '*.js' -not -name '*.min.js' -type f \
          -exec sh -c 'terser "$1" --compress --mangle -o "$1" 2>/dev/null || true' _ {} \; \
     && find . -name '*.css' -not -name '*.min.css' -type f \
