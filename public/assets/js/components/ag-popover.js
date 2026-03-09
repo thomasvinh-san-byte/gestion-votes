@@ -189,13 +189,15 @@ class AgPopover extends HTMLElement {
     popover.classList.add(`pos-${pos}`);
   }
 
+  _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
   render() {
     const title = this.getAttribute('title') || '';
     const content = this.getAttribute('content') || '';
     const width = this.getAttribute('width') || '280';
 
-    const titleHtml = title ? `<div class="popover-title">${title}</div>` : '';
-    const contentHtml = content ? `<div class="popover-text">${content}</div>` : '';
+    const titleHtml = title ? `<div class="popover-title">${this._esc(title)}</div>` : '';
+    const contentHtml = content ? `<div class="popover-text">${this._esc(content)}</div>` : '';
     const hasInlineContent = title || content;
 
     this.shadowRoot.innerHTML = `

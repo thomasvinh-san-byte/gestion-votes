@@ -673,7 +673,7 @@
           <div class="empty-state" style="grid-column: 1 / -1;">
             <div class="empty-state-icon">
               <svg class="icon" style="width:3rem;height:3rem;" aria-hidden="true">
-                <use href="/assets/icons.svg#icon-${this.emptyState.icon}"></use>
+                <use href="/assets/icons.svg#icon-${esc(this.emptyState.icon)}"></use>
               </svg>
             </div>
             <h3>${esc(this.emptyState.title)}</h3>

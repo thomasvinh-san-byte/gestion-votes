@@ -1104,7 +1104,7 @@ window.OpS = { fn: {} };
           const statusIcon = dev.status === 'online' ? icon('circle', 'icon-xs icon-success') : dev.status === 'stale' ? icon('circle', 'icon-xs icon-warning') : icon('circle', 'icon-xs icon-muted');
           const blocked = dev.is_blocked ? ' ' + icon('ban', 'icon-xs icon-danger') : '';
           const battery = dev.battery_pct !== null ? ` ${dev.battery_pct}%` : '';
-          const role = dev.role ? ` (${dev.role})` : '';
+          const role = dev.role ? ` (${escapeHtml(dev.role)})` : '';
           return `<div class="text-sm">${statusIcon}${blocked} ${escapeHtml(dev.device_id.slice(0, 8))}...${role}${battery}</div>`;
         }).join('');
 
@@ -1383,10 +1383,10 @@ window.OpS = { fn: {} };
             </div>
             <div class="flex gap-1">
               ${blocked
-                ? `<button class="btn btn-xs btn-success btn-unblock" data-device="${dev.device_id}">Débloquer</button>`
-                : `<button class="btn btn-xs btn-warning btn-block" data-device="${dev.device_id}">Bloquer</button>`
+                ? `<button class="btn btn-xs btn-success btn-unblock" data-device="${escapeHtml(dev.device_id)}">Débloquer</button>`
+                : `<button class="btn btn-xs btn-warning btn-block" data-device="${escapeHtml(dev.device_id)}">Bloquer</button>`
               }
-              <button class="btn btn-xs btn-secondary btn-kick" data-device="${dev.device_id}">Reconnecter</button>
+              <button class="btn btn-xs btn-secondary btn-kick" data-device="${escapeHtml(dev.device_id)}">Reconnecter</button>
             </div>
           </div>
         `;

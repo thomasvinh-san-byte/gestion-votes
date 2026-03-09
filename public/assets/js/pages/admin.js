@@ -182,7 +182,7 @@
         : '<span class="user-pw-badge">Sans MdP</span>';
 
       return '<div class="user-row ' + activeClass + '" data-user-id="' + u.id + '">' +
-        '<div class="user-avatar">' + initials + '</div>' +
+        '<div class="user-avatar">' + escapeHtml(initials) + '</div>' +
         '<div class="user-row-body">' +
           '<div class="user-row-main">' +
             '<span class="user-row-name">' + escapeHtml(u.name || '') + '</span>' +

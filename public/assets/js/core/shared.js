@@ -116,7 +116,7 @@
       btn.setAttribute('aria-busy', 'true');
       btn._prevHtml = btn.innerHTML;
       const label = btn.textContent.trim();
-      btn.innerHTML = '<span class="spinner spinner-sm"></span> <span>' + label + '</span>';
+      btn.innerHTML = '<span class="spinner spinner-sm"></span> <span>' + Utils.escapeHtml(label) + '</span>';
     } else {
       btn.disabled = false;
       btn.classList.remove('loading');

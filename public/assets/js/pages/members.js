@@ -361,7 +361,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Couleur</label>
-          <input type="color" id="editGroupColor" value="${group.color || '#6366f1'}">
+          <input type="color" id="editGroupColor" value="${escapeHtml(group.color || '#6366f1')}">
         </div>
       `,
       confirmText: 'Enregistrer',

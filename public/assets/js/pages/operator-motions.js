@@ -878,7 +878,7 @@
         const decision = closeData.results?.decision || closedMotion.decision || closedMotion.result || '';
         const reason = closeData.results?.reason || closedMotion.decision_reason || '';
         const decisionLabels = { adopted: 'ADOPTÉE', rejected: 'REJETÉE', no_quorum: 'QUORUM NON ATTEINT', no_votes: 'AUCUN VOTE', no_policy: 'SANS POLITIQUE' };
-        const resultText = decisionLabels[decision] || decision.toUpperCase() || '—';
+        const resultText = decisionLabels[decision] || escapeHtml(decision.toUpperCase()) || '—';
         const isAdopted = decision === 'adopted';
         const resultColor = isAdopted ? 'var(--color-success)' : 'var(--color-danger)';
         const resultIcon = isAdopted ? 'check-circle' : 'x-circle';
@@ -950,7 +950,7 @@
       const total = vFor + vAgainst + vAbstain;
       const pct = total > 0 ? Math.round((vFor / total) * 100) : 0;
       const dec = m.decision || m.result || '';
-      const status = !isClosed ? 'En attente' : (decisionLabels[dec] || dec || 'Rejetée');
+      const status = !isClosed ? 'En attente' : (decisionLabels[dec] || escapeHtml(dec) || 'Rejetée');
       const statusColor = !isClosed ? 'var(--color-text-muted)' : (decisionColors[dec] || 'var(--color-danger)');
 
       return `
@@ -1232,7 +1232,7 @@
     }
 
     const statusLabels = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', paused: 'en pause', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
-    const statusLabel = statusLabels[toStatus] || toStatus;
+    const statusLabel = statusLabels[toStatus] || escapeHtml(toStatus);
     const confirmed = await O.confirmModal({
       title: 'Confirmer le changement d\'état',
       body: `<p>La séance passera en statut <strong>« ${statusLabel} »</strong>.</p>`
