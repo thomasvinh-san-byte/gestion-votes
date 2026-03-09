@@ -842,7 +842,7 @@
     var fileInput = document.getElementById('wizParticipantsFile');
     var browseBtn = document.getElementById('wizParticipantsBrowse');
     if (browseBtn && fileInput) browseBtn.addEventListener('click', function() { fileInput.click(); });
-    if (fileInput) fileInput.addEventListener('change', function() { wizHandleParticipantFile(fileInput.files[0]); });
+    if (fileInput) fileInput.addEventListener('change', function() { if (fileInput.files.length) wizHandleParticipantFile(fileInput.files[0]); });
     if (dropZone) {
       dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
       dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });

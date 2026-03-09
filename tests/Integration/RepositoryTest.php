@@ -67,16 +67,16 @@ class RepositoryTest extends TestCase
         }
 
         // Clean up test data before each test
-        self::$pdo->exec("DELETE FROM ballots WHERE tenant_id = '" . self::TENANT_ID . "'");
-        self::$pdo->exec("DELETE FROM motions WHERE tenant_id = '" . self::TENANT_ID . "'");
-        self::$pdo->exec("DELETE FROM meetings WHERE tenant_id = '" . self::TENANT_ID . "'");
-        self::$pdo->exec("DELETE FROM tenants WHERE id = '" . self::TENANT_ID . "'");
+        self::$pdo->prepare("DELETE FROM ballots WHERE tenant_id = ?")->execute([self::TENANT_ID]);
+        self::$pdo->prepare("DELETE FROM motions WHERE tenant_id = ?")->execute([self::TENANT_ID]);
+        self::$pdo->prepare("DELETE FROM meetings WHERE tenant_id = ?")->execute([self::TENANT_ID]);
+        self::$pdo->prepare("DELETE FROM tenants WHERE id = ?")->execute([self::TENANT_ID]);
 
         // Insert test tenant
-        self::$pdo->exec(
-            "INSERT INTO tenants (id, name, slug) VALUES ('" . self::TENANT_ID . "', 'Test Tenant', 'test-tenant')
+        self::$pdo->prepare(
+            "INSERT INTO tenants (id, name, slug) VALUES (?, 'Test Tenant', 'test-tenant')
              ON CONFLICT (id) DO NOTHING"
-        );
+        )->execute([self::TENANT_ID]);
     }
 
     private static function loadSchema(): void
