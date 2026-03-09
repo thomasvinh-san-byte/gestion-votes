@@ -808,7 +808,7 @@
     if (wizPrev2) wizPrev2.addEventListener('click', function() { wizGoToStep(1); });
     if (wizNext2) wizNext2.addEventListener('click', function() { wizGoToStep(3); });
     if (wizPrev3) wizPrev3.addEventListener('click', function() { wizGoToStep(2); });
-    if (wizNext3) wizNext3.addEventListener('click', function() { wizGoToStep(3 + 1); });
+    if (wizNext3) wizNext3.addEventListener('click', function() { wizGoToStep(4); });
     if (wizPrev4) wizPrev4.addEventListener('click', function() { wizGoToStep(3); });
 
     // Add participant
@@ -894,7 +894,9 @@
   // MEETING CREATION
   // ==========================================================================
 
+  var _createPending = false;
   async function createMeeting() {
+    if (_createPending) return;
     // Inline validation
     var valid = true;
     if (!Shared.validateField(titleInput, [
@@ -918,6 +920,7 @@
     if (lieuEl && lieuEl.value.trim()) payload.location = lieuEl.value.trim();
     if (timeEl && timeEl.value) payload.time = timeEl.value;
 
+    _createPending = true;
     Shared.btnLoading(createBtn, true);
     try {
       const { body } = await api('/api/v1/meetings.php', payload);
@@ -977,6 +980,7 @@
     } catch (err) {
       setNotif('error', err.message);
     } finally {
+      _createPending = false;
       Shared.btnLoading(createBtn, false);
     }
   }

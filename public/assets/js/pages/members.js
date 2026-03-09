@@ -311,7 +311,9 @@
     updateFiltersHint();
   };
 
+  var _createGroupPending = false;
   document.getElementById('btnCreateGroup').addEventListener('click', async () => {
+    if (_createGroupPending) return;
     const name = document.getElementById('groupName').value.trim();
     const color = document.getElementById('groupColor').value || '#6366f1';
 
@@ -320,6 +322,7 @@
       return;
     }
 
+    _createGroupPending = true;
     const btn = document.getElementById('btnCreateGroup');
     Shared.btnLoading(btn, true);
 
@@ -336,6 +339,7 @@
     } catch (err) {
       setNotif('error', err.message);
     } finally {
+      _createGroupPending = false;
       Shared.btnLoading(btn, false);
     }
   });
