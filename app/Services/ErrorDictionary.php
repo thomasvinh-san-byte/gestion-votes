@@ -110,7 +110,6 @@ final class ErrorDictionary {
         'conflict' => 'Conflit avec l\'état actuel de la ressource.',
         'precondition_failed' => 'Une condition préalable n\'est pas remplie.',
         'invalid_state' => 'L\'opération n\'est pas possible dans l\'état actuel.',
-        'not_implemented' => 'Cette fonctionnalité n\'est pas encore disponible.',
 
         // Authentication (suppléments)
         'invalid_credentials' => 'Identifiants invalides.',

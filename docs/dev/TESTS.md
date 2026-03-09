@@ -39,7 +39,7 @@ tests/
 │   ├── RateLimiterTest.php     # 12 tests Rate Limiting
 │   └── InputValidatorTest.php  # 35 tests Validation
 └── Integration/
-    └── (à venir)
+    └── (vide — tests d'intégration à ajouter)
 ```
 
 ### API Keys de test

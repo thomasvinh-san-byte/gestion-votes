@@ -91,7 +91,6 @@ Le script `deploy/entrypoint.sh` effectue des verifications strictes au demarrag
 
 Le entrypoint rejette explicitement ces valeurs :
 - Chaine vide
-- `change-me-in-prod` (defaut de `app/config.php`)
 - `dev-secret-do-not-use-in-production-change-me-now-please-64chr` (defaut de `.env.example`)
 
 ---

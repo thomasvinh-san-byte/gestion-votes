@@ -272,7 +272,7 @@ Si `APP_ENV=production` ou `APP_ENV=prod`, le entrypoint verifie :
 | Authentification | `APP_AUTH_ENABLED` doit etre `1` | `APP_AUTH_ENABLED doit etre 1 en production.` |
 | CSRF | `CSRF_ENABLED` doit etre `1` | `CSRF_ENABLED doit etre 1 en production.` |
 | Rate limiting | `RATE_LIMIT_ENABLED` doit etre `1` | `RATE_LIMIT_ENABLED doit etre 1 en production.` |
-| Secret | `APP_SECRET` ne doit etre ni vide, ni `change-me-in-prod`, ni la valeur par defaut de `.env.example` | `APP_SECRET non configure pour la production.` |
+| Secret | `APP_SECRET` ne doit etre ni vide ni la valeur par defaut de `.env.example` | `APP_SECRET non configure pour la production.` |
 | Donnees de demo | `LOAD_DEMO_DATA` ne doit pas etre `1` | `LOAD_DEMO_DATA=1 interdit en production.` |
 
 **Si une verification echoue, le conteneur refuse de demarrer** (`exit 1`).

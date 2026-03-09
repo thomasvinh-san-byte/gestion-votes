@@ -133,7 +133,7 @@ final class Application {
 
         // APP_SECRET
         if (!defined('APP_SECRET')) {
-            $secret = getenv('APP_SECRET') ?: (self::$config['app_secret'] ?? 'change-me-in-prod');
+            $secret = getenv('APP_SECRET') ?: (self::$config['app_secret'] ?? '');
             define('APP_SECRET', $secret);
         }
 
@@ -144,6 +144,7 @@ final class Application {
             || strtolower((string) getenv('APP_AUTH_ENABLED')) === 'true';
 
         $insecureSecrets = [
+            '',
             'change-me-in-prod',
             'dev-secret-do-not-use-in-production-change-me-now-please-64chr',
         ];
