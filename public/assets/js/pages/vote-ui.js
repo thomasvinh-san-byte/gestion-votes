@@ -94,18 +94,39 @@
       });
     });
 
-    // Watch for motion changes while confirmation overlay is open
+    // Watch for motion changes: reset vote state + close overlay if open
+    let _lastKnownMotionId = null;
     const motionTitleEl = document.getElementById('motionTitle');
     const motionTitleObserver = new MutationObserver(() => {
-      if (!confirmOverlay.classList.contains('show') || !_overlayMotionId) return;
       const currentId = motionTitleEl?.dataset?.motionId || null;
-      if (currentId !== _overlayMotionId) {
+
+      // Close confirmation overlay if motion changed while voting
+      if (confirmOverlay.classList.contains('show') && _overlayMotionId && currentId !== _overlayMotionId) {
         closeConfirm();
         setNotif('error', 'La r\u00e9solution a chang\u00e9 pendant votre vote. Veuillez revoter.');
         _overlayMotionId = null;
       }
+
+      // C2 fix: Reset hasVoted when motion changes so voters can vote on new motions
+      if (_lastKnownMotionId && currentId && currentId !== _lastKnownMotionId) {
+        hasVoted = false;
+        voteButtons.forEach(b => {
+          b.disabled = false;
+          b.classList.remove('selected');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        const statusEl = document.getElementById('voteStatus');
+        if (statusEl) {
+          statusEl.textContent = '';
+          statusEl.classList.remove('voted');
+        }
+        const receipt = document.getElementById('voteReceipt');
+        if (receipt) { receipt.textContent = ''; receipt.hidden = true; }
+      }
+      _lastKnownMotionId = currentId;
     });
     if (motionTitleEl) {
+      _lastKnownMotionId = motionTitleEl.dataset?.motionId || null;
       motionTitleObserver.observe(motionTitleEl, { attributes: true, attributeFilter: ['data-motion-id'] });
     }
 
@@ -304,13 +325,7 @@
 
       btnHand.disabled = true;
       try {
-        const resp = await fetch('/api/v1/speech_request.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'same-origin',
-          body: JSON.stringify({ meeting_id: meetingId, member_id: memberId })
-        });
-        const data = await resp.json();
+        const { body: data } = await api('/api/v1/speech_request.php', { meeting_id: meetingId, member_id: memberId });
 
         if (data.ok) {
           const status = data.data?.status || 'none';
@@ -383,10 +398,7 @@
       if (!meetingId || !memberId) return;
 
       try {
-        const resp = await fetch(`/api/v1/speech_my_status.php?meeting_id=${encodeURIComponent(meetingId)}&member_id=${encodeURIComponent(memberId)}`, {
-          credentials: 'same-origin'
-        });
-        const data = await resp.json();
+        const { body: data } = await api(`/api/v1/speech_my_status.php?meeting_id=${encodeURIComponent(meetingId)}&member_id=${encodeURIComponent(memberId)}`);
 
         if (data.ok && data.data) {
           const wasRaised = handRaised;
@@ -445,10 +457,7 @@
       if (!meetingId || !speakerBanner) return;
 
       try {
-        const resp = await fetch('/api/v1/speech_current.php?meeting_id=' + encodeURIComponent(meetingId), {
-          credentials: 'same-origin'
-        });
-        const data = await resp.json();
+        const { body: data } = await api('/api/v1/speech_current.php?meeting_id=' + encodeURIComponent(meetingId));
 
         if (data.ok && data.data && data.data.member_name) {
           const d = data.data;
