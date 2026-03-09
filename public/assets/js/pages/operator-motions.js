@@ -432,6 +432,8 @@
       O.setText('liveVoteAgainst', againstCount);
       O.setText('liveVoteAbstain', abstainCount);
     } catch (err) {
+      O.ballotsCache = {};
+      O.ballotSourceCache = {};
       setNotif('error', 'Erreur chargement bulletins');
     }
   }

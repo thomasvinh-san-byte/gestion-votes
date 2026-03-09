@@ -572,7 +572,7 @@ window.OpS = { fn: {} };
       }
 
       // Allow the Actualiser and Projection buttons (read-only actions)
-      const allowedBtns = ['btnBarRefresh', 'btnProjector', 'btnRecheck'];
+      const allowedBtns = ['btnBarRefresh', 'btnProjector'];
       allowedBtns.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) { btn.disabled = false; btn.title = ''; }
@@ -1132,7 +1132,7 @@ window.OpS = { fn: {} };
       container: container,
       errorMsg: 'Impossible de charger l\u2019ordre du jour',
       action: async function () {
-        var res = await api('/api/v1/agendas.php?meeting_id=' + currentMeetingId);
+        var res = await api('/api/v1/agendas.php?meeting_id=' + encodeURIComponent(currentMeetingId));
         var d = res.body;
         if (!d || !d.ok) throw new Error((d && d.error) || 'Erreur');
         agendaCache = (d.data && d.data.items) || [];
@@ -1284,7 +1284,7 @@ window.OpS = { fn: {} };
     }
 
     try {
-      var res = await api('/api/v1/quorum_status.php?meeting_id=' + currentMeetingId);
+      var res = await api('/api/v1/quorum_status.php?meeting_id=' + encodeURIComponent(currentMeetingId));
       var d = res.body;
       if (!d || !d.ok) { card.hidden = true; return; }
 
@@ -2608,7 +2608,7 @@ window.OpS = { fn: {} };
     }
 
     list.innerHTML = openableMotions.slice(0, 5).map((m, i) => `
-      <button class="btn btn-primary btn-quick-open" data-motion-id="${m.id}">
+      <button class="btn btn-primary btn-quick-open" data-motion-id="${escapeHtml(m.id)}">
         ${icon('play', 'icon-sm icon-text')}${i + 1}. ${escapeHtml(m.title.length > 30 ? m.title.substring(0, 30) + '...' : m.title)}
       </button>
     `).join('');

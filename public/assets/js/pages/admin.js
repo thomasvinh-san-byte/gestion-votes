@@ -65,7 +65,7 @@
             } else {
               sessionsEl.innerHTML = upcoming.slice(0, 5).map(function(m) {
                 var d = m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString('fr-FR') : '';
-                return '<a href="/meetings.htmx.html?id=' + m.id + '" class="irow"><div class="irow-body"><div class="irow-title">' + escapeHtml(m.title || 'S\u00e9ance #' + m.id) + '</div><div class="text-xs text-muted">' + d + '</div></div><span class="irow-arrow">\u203A</span></a>';
+                return '<a href="/meetings.htmx.html?id=' + encodeURIComponent(m.id) + '" class="irow"><div class="irow-body"><div class="irow-title">' + escapeHtml(m.title || 'S\u00e9ance #' + m.id) + '</div><div class="text-xs text-muted">' + d + '</div></div><span class="irow-arrow">\u203A</span></a>';
               }).join('');
             }
           }

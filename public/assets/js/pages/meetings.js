@@ -1049,7 +1049,7 @@
       titleElement: '#calendarTitle',
       events: [],
       onEventClick: function(event) {
-        window.location.href = '/operator.htmx.html?meeting_id=' + event.id;
+        window.location.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(event.id);
       }
     });
 
