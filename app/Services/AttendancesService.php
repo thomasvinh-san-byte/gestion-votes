@@ -154,7 +154,7 @@ final class AttendancesService {
             $stats = $this->attendanceRepo->getStatsByMode($meetingId, $tenantId);
             EventBroadcaster::attendanceUpdated($meetingId, $stats);
         } catch (Throwable $e) {
-            // Don't fail if broadcast fails
+            error_log('[WebSocket] Broadcast failed after bulk attendance update: ' . $e->getMessage());
         }
     }
 }

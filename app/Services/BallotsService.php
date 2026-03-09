@@ -206,7 +206,7 @@ final class BallotsService {
             $tally = $this->ballotRepo->tally($motionId, $tenantId);
             EventBroadcaster::voteCast($meetingId, $motionId, $tally);
         } catch (Throwable $e) {
-            // Silently fail - don't break the vote if broadcast fails
+            error_log('[WebSocket] Broadcast failed after vote cast: ' . $e->getMessage());
         }
 
         $row = $this->ballotRepo->findByMotionAndMember($motionId, $memberId, $tenantId);

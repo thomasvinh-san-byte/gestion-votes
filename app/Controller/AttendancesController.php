@@ -136,7 +136,7 @@ final class AttendancesController extends AbstractController {
             $stats = $attendanceRepo->getStatsByMode($meetingId, $tenantId);
             EventBroadcaster::attendanceUpdated($meetingId, $stats);
         } catch (Throwable $e) {
-            // Don't fail if broadcast fails
+            error_log('[WebSocket] Broadcast failed after attendance update: ' . $e->getMessage());
         }
 
         api_ok([

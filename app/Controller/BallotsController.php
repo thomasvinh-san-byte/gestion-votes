@@ -176,7 +176,7 @@ final class BallotsController extends AbstractController {
                 'member_id' => $memberId,
             ]);
         } catch (Throwable $e) {
-            // Don't fail if broadcast fails
+            error_log('[WebSocket] Broadcast failed after ballot cancel: ' . $e->getMessage());
         }
 
         api_ok([
@@ -233,6 +233,9 @@ final class BallotsController extends AbstractController {
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
+        }
+        if (($meeting['status'] ?? '') !== 'live') {
+            api_fail('meeting_not_live', 409, ['detail' => 'La séance doit être en cours pour voter.']);
         }
         if (!empty($meeting['validated_at'])) {
             api_fail('meeting_validated', 409);
@@ -318,13 +321,29 @@ final class BallotsController extends AbstractController {
         }
 
         $hash = hash_hmac('sha256', $code, APP_SECRET);
+        $tenantId = api_current_tenant_id();
 
         $ballotRepo = new BallotRepository();
         $manualRepo = new ManualActionRepository();
 
-        $pb = $ballotRepo->findUnusedPaperBallotByHash($hash, api_current_tenant_id());
+        $pb = $ballotRepo->findUnusedPaperBallotByHash($hash, $tenantId);
         if (!$pb) {
             api_fail('paper_ballot_not_found_or_used', 404);
+        }
+
+        $meetingRepo = new MeetingRepository();
+        $meeting = $meetingRepo->findByIdForTenant((string) $pb['meeting_id'], $tenantId);
+        if (!$meeting || ($meeting['status'] ?? '') !== 'live') {
+            api_fail('meeting_not_live', 409, ['detail' => 'La séance doit être en cours pour utiliser un bulletin papier.']);
+        }
+        if (!empty($meeting['validated_at'])) {
+            api_fail('meeting_validated', 409);
+        }
+
+        $motionRepo = new MotionRepository();
+        $motion = $motionRepo->findForMeetingWithState($tenantId, (string) $pb['motion_id'], (string) $pb['meeting_id']);
+        if (!$motion || empty($motion['opened_at']) || !empty($motion['closed_at'])) {
+            api_fail('motion_not_open', 409, ['detail' => 'La résolution n\'est pas ouverte au vote.']);
         }
 
         api_transaction(function () use ($ballotRepo, $manualRepo, $pb, $vote, $just) {

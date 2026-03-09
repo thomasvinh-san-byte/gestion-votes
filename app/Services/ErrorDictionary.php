@@ -217,6 +217,91 @@ final class ErrorDictionary {
         'invalid_item_index' => 'Index d\'élément invalide.',
         'missing_meeting_id_or_motion' => 'Séance ou résolution manquante.',
         'invalid_source_id' => 'Identifiant source invalide.',
+
+        // Ballots (suppléments)
+        'invalid_code' => 'Code invalide.',
+        'invalid_vote_token' => 'Token de vote invalide ou expiré.',
+        'invalid_vote_value' => 'Valeur de vote invalide.',
+        'invalid_weight' => 'Poids de vote invalide.',
+        'missing_kind' => 'Type d\'incident requis.',
+        'paper_ballot_not_found_or_used' => 'Bulletin papier introuvable ou déjà utilisé.',
+        'token_member_mismatch' => 'Le token ne correspond pas à ce membre.',
+        'token_motion_mismatch' => 'Le token ne correspond pas à cette résolution.',
+
+        // Motions (suppléments)
+        'agenda_mismatch' => 'L\'ordre du jour ne correspond pas.',
+        'agenda_not_found' => 'Ordre du jour introuvable.',
+        'another_motion_active' => 'Une autre résolution est déjà en cours de vote.',
+        'description_too_long' => 'Description trop longue.',
+        'inconsistent_tally' => 'Le décompte des voix est incohérent.',
+        'invalid_numbers' => 'Les valeurs numériques sont invalides.',
+        'invalid_total' => 'Le total est invalide.',
+        'motion_active_locked' => 'Résolution en cours de vote : modification interdite.',
+        'motion_closed_locked' => 'Résolution clôturée : modification interdite.',
+        'motion_open_locked' => 'Résolution ouverte : modification interdite.',
+        'vote_exceeds_total' => 'Le nombre de votes dépasse le total.',
+        'vote_policy_not_found' => 'Politique de vote introuvable.',
+
+        // Admin (suppléments)
+        'cannot_delete_self' => 'Vous ne pouvez pas supprimer votre propre compte.',
+        'cannot_demote_self' => 'Vous ne pouvez pas retirer vos propres droits.',
+        'cannot_toggle_self' => 'Vous ne pouvez pas modifier votre propre statut.',
+        'email_exists' => 'Un utilisateur avec cette adresse email existe déjà.',
+        'invalid_role' => 'Rôle invalide.',
+        'weak_password' => 'Mot de passe trop faible.',
+
+        // Meetings (suppléments)
+        'archived_immutable' => 'Séance archivée : aucune modification possible.',
+        'force_requires_admin' => 'Le forçage de transition nécessite les droits administrateur.',
+        'invalid_status' => 'Statut invalide.',
+        'invalid_status_for_consolidation' => 'Statut invalide pour la consolidation.',
+        'invalid_vote_policy_id' => 'Identifiant de politique de vote invalide.',
+        'meeting_not_draft' => 'La séance doit être en brouillon pour cette opération.',
+        'meeting_validated_locked' => 'Séance validée : modification interdite.',
+        'missing_confirm' => 'Confirmation requise.',
+        'missing_president_name' => 'Le nom du président est obligatoire.',
+        'missing_to_status' => 'Le statut cible est obligatoire.',
+        'no_live_meeting' => 'Aucune séance en cours.',
+        'no_motion_to_open' => 'Aucune résolution à ouvrir.',
+
+        // Import
+        'invalid_file' => 'Fichier invalide.',
+        'missing_columns' => 'Colonnes requises manquantes.',
+        'missing_name_column' => 'La colonne nom est obligatoire.',
+        'missing_title_column' => 'La colonne titre est obligatoire.',
+
+        // Analytics
+        'invalid_format' => 'Format invalide.',
+        'invalid_report_type' => 'Type de rapport invalide.',
+        'invalid_type' => 'Type invalide.',
+
+        // Proxies (suppléments)
+        'invalid_receiver_member_id' => 'Identifiant du mandataire invalide.',
+        'missing_proxy_id' => 'Identifiant de procuration requis.',
+
+        // Reminders
+        'invalid_days_before' => 'Nombre de jours invalide.',
+        'invalid_reminder_id' => 'Identifiant de rappel invalide.',
+        'invalid_send_time' => 'Heure d\'envoi invalide.',
+        'reminder_not_found' => 'Rappel introuvable.',
+
+        // Email (suppléments)
+        'invalid_scheduled_at' => 'Date de programmation invalide.',
+
+        // Member groups
+        'invalid_group_id' => 'Identifiant de groupe invalide.',
+
+        // Speech
+        'invalid_uuid' => 'UUID invalide.',
+
+        // Invitations (suppléments)
+        'missing_token' => 'Token requis.',
+
+        // Auth (suppléments)
+        'rate_limit_exceeded' => 'Trop de requêtes. Veuillez réessayer dans quelques instants.',
+
+        // Generic
+        'not_found' => 'Ressource introuvable.',
     ];
 
     /**

@@ -1867,7 +1867,7 @@ class BallotsControllerTest extends TestCase
 
         // The broadcast is wrapped in try-catch so failure does not break the endpoint
         $this->assertStringContainsString("} catch (Throwable \$e) {", $source);
-        $this->assertStringContainsString("// Don't fail if broadcast fails", $source);
+        $this->assertStringContainsString("error_log('[WebSocket]", $source);
     }
 
     // =========================================================================
