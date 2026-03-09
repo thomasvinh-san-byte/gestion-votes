@@ -299,6 +299,13 @@
       const query = searchInput.value.toLowerCase().trim();
       let filtered = allArchives;
 
+      // Type filter
+      if (currentType) {
+        filtered = filtered.filter(a =>
+          (a.meeting_type || '').toLowerCase() === currentType.toLowerCase()
+        );
+      }
+
       // Year filter
       if (currentYear) {
         filtered = filtered.filter(a => {
@@ -317,6 +324,17 @@
 
       render(filtered);
     }
+
+    // Type filter tabs
+    let currentType = '';
+    document.querySelectorAll('.filter-tab[data-type]').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab[data-type]').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentType = tab.dataset.type || '';
+        applyFilters();
+      });
+    });
 
     // Search filter
     searchInput.addEventListener('input', applyFilters);
@@ -436,7 +454,7 @@
         return;
       }
       Shared.fieldClear(document.getElementById('exportMeetingSelect'));
-      window.open(`/api/v1/${endpoint}?meeting_id=${meetingId}`, '_blank');
+      window.open(`/api/v1/${endpoint}?meeting_id=${encodeURIComponent(meetingId)}`, '_blank');
     }
 
     document.getElementById('btnExportPV').addEventListener('click', () => doExport('meeting_report.php'));
@@ -445,6 +463,7 @@
     document.getElementById('btnExportMotions').addEventListener('click', () => doExport('export_motions_results_csv.php'));
     document.getElementById('btnExportMembers').addEventListener('click', () => doExport('export_members_csv.php'));
     document.getElementById('btnExportAudit').addEventListener('click', () => doExport('audit_export.php'));
+    document.getElementById('btnExportZip')?.addEventListener('click', () => doExport('export_full_xlsx.php'));
 
     // Initial load
     loadArchives();

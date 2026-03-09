@@ -23,7 +23,7 @@
 
         if (!data.ok) throw new Error(data.error || 'Erreur chargement');
 
-        templates = data.data.templates || [];
+        templates = data.data.items || data.data.templates || [];
         availableVariables = data.data.available_variables || {};
 
         renderTemplates();

@@ -62,6 +62,22 @@
       });
     });
 
+    // Year filter
+    let currentYear = '';
+    const yearFilterEl = document.getElementById('yearFilter');
+    if (yearFilterEl) {
+      currentYear = yearFilterEl.value || '';
+      yearFilterEl.addEventListener('change', () => {
+        currentYear = yearFilterEl.value;
+        loadAllData();
+      });
+    }
+
+    // PDF export
+    document.getElementById('btnExportPdf')?.addEventListener('click', () => {
+      window.print();
+    });
+
     // Refresh button
     document.getElementById('refreshBtn')?.addEventListener('click', loadAllData);
 
@@ -97,7 +113,7 @@
     async function loadOverview() {
       const container = document.getElementById('overviewCards');
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=overview&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=overview&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -162,7 +178,7 @@
 
     async function loadParticipation() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=participation&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=participation&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -275,7 +291,7 @@
 
     async function loadMotions() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=motions&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=motions&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -364,7 +380,7 @@
 
     async function loadVoteDuration() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=vote_duration&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=vote_duration&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -421,7 +437,7 @@
 
     async function loadVoteTiming() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=vote_timing&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=vote_timing&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -463,7 +479,7 @@
       const meetingsContainer = document.getElementById('anomaliesMeetings');
 
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=anomalies&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=anomalies&period=${currentPeriod}${currentYear ? '&year=' + currentYear : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 

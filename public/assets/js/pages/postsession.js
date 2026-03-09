@@ -152,6 +152,19 @@
   async function loadValidation() {
     if (!meetingId) return;
 
+    // Populate step 2 KPIs from summary
+    try {
+      var summaryRes = await window.api('/api/v1/meeting_summary.php?meeting_id=' + meetingId);
+      if (summaryRes.body && summaryRes.body.ok && summaryRes.body.data) {
+        var s = summaryRes.body.data;
+        setStatValue('vkpiResolutions', s.total_motions || s.motions_count || 0);
+        setStatValue('vkpiAdopted', s.adopted || 0);
+        setStatValue('vkpiRejected', s.rejected || 0);
+        var rate = s.participation_rate || s.present_count;
+        setStatValue('vkpiParticipation', rate != null ? rate + (s.participation_rate ? '%' : '') : 0);
+      }
+    } catch (e) { /* KPI load failure is non-blocking */ }
+
     try {
       var res = await window.api('/api/v1/meeting_workflow_check.php?meeting_id=' + meetingId);
       var d = res.body;
@@ -250,7 +263,11 @@
       exportAttendanceCsv: '/api/v1/export_attendance_csv.php?meeting_id=',
       exportVotesCsv: '/api/v1/export_votes_csv.php?meeting_id=',
       exportResultsXlsx: '/api/v1/export_results_xlsx.php?meeting_id=',
-      exportFullXlsx: '/api/v1/export_full_xlsx.php?meeting_id='
+      exportFullXlsx: '/api/v1/export_full_xlsx.php?meeting_id=',
+      exportPvPdf: '/api/v1/meeting_generate_report_pdf.php?meeting_id=',
+      exportEmargement: '/api/v1/export_attendance_csv.php?meeting_id=',
+      exportResultsCsv: '/api/v1/export_motions_results_csv.php?meeting_id=',
+      exportAuditCsv: '/api/v1/audit_export.php?meeting_id='
     };
     Object.keys(links).forEach(function (id) {
       var el = document.getElementById(id);
