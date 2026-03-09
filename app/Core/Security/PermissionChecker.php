@@ -12,6 +12,10 @@ use Throwable;
  *
  * Encapsulates permission logic in a testable service.
  * Delegates to AuthMiddleware but provides a cleaner API.
+ *
+ * @deprecated This class is not used in production code. All permission checks
+ *             are handled by AuthMiddleware (static). Kept temporarily for test
+ *             coverage of permission logic. Consider removing in a future release.
  */
 class PermissionChecker {
     private array $permissions;

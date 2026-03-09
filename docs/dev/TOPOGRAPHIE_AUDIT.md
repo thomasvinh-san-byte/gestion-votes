@@ -184,50 +184,43 @@
 
 ### Phase 3 — Tests (fondamental)
 
-9. [ ] **Tests E2E** — Implementer les specs Playwright :
-   - `auth.spec.js` : login, logout, session timeout, acces refuse
-   - `vote.spec.js` : flux complet de vote (operateur ouvre > votant vote > resultat)
-   - `meetings.spec.js` : creation, lancement, cloture, validation
-10. [ ] **Tests repositories** — Au minimum : `MeetingRepository`, `BallotRepository`, `MotionRepository` (integration avec base SQLite ou PostgreSQL de test)
-11. [ ] **Tests rate limiter** — Couvrir sliding window, fallback fichier, Redis indisponible
-12. [ ] **Tests upload** — MIME type, path traversal, fichier trop gros, extension interdite
+9. [x] **Tests E2E** — Specs Playwright implementees :
+   - `auth.spec.js` : login page, invalid creds, valid login, logout (4 tests)
+   - `vote.spec.js` : flux vote complet, API validation, securite, confirmation UI (17 tests)
+   - `meetings.spec.js` : liste, navigation operateur, creation, onglets (4 tests)
+   - `accessibility.spec.js` : formulaires, headings, clavier, ARIA, landmarks (6 tests)
+10. [x] **Tests repositories** — `tests/Integration/RepositoryTest.php` : MeetingRepository (7 tests), BallotRepository (3 tests), MotionRepository (1 test), AbstractRepository (2 tests). Skipped sans PostgreSQL.
+11. [x] **Tests rate limiter** — `tests/Unit/RateLimiterTest.php` elargi : strict mode, sliding window, edge cases, haute concurrence (24 tests total)
+12. [x] **Tests upload** — `tests/Unit/UploadSecurityTest.php` : MIME types (21 variants), extensions (21 variants), path traversal (11 variants), taille fichier (11 cas), verification source controller (3 tests)
 
 ### Phase 4 — Operations (production-readiness)
 
-13. [ ] **Cron emails** — Ajouter dans `supervisord.conf` ou documenter un cron externe :
-    ```
-    [program:email-queue]
-    command=php /var/www/bin/console email:process-queue
-    autorestart=true
-    startsecs=0
-    ```
-14. [ ] **Script backup** — Creer `bin/backup.sh` :
-    - `pg_dump` avec rotation (7 jours)
-    - Sauvegarde `/tmp/ag-vote/` (PV, attachments)
+13. [x] **Cron emails** — Workers ajoutes dans `deploy/supervisord.conf` : `email-queue` (toutes les 60s) + `ratelimit-cleanup` (toutes les 30 min)
+14. [x] **Script backup** — `bin/backup.sh` cree : pg_dump compresse, archivage uploads, rotation configurable (defaut 7 jours), mode dry-run
 15. [ ] **Monitoring** — Exploiter `system_metrics` et `system_alerts` pour alerting (webhook ou email)
 16. [ ] **Documentation OpenAPI** — Integrer `scripts/generate_openapi.php` dans le CI
 
 ### Phase 5 — Qualite de code (maintenabilite)
 
-17. [ ] **Supprimer `PermissionChecker.php`** ou refactorer pour deleguer a `AuthMiddleware`
-18. [ ] **Synchroniser `motions.status`** avec `(opened_at, closed_at)` via trigger ou supprimer la colonne `status` au profit du calcul
+17. [x] **`PermissionChecker.php` deprecie** — Analyse : classe non utilisee en production (0 references hors tests). `@deprecated` ajoute. AuthMiddleware est l'unique systeme de permissions actif.
+18. [x] **`motions.status` deja resolu** — La colonne a ete supprimee dans migration `20260220_drop_phantom_columns.sql`. L'etat est derive de `opened_at`/`closed_at` via CASE dans les requetes SQL.
 19. [ ] **Activer le WebSocket frontend** ou supprimer `app/WebSocket/` et le polling pour SSE (Server-Sent Events)
 20. [ ] **Decouper `operator.htmx.html`** (89KB) en fragments HTMX charges a la demande
-21. [ ] **Documenter `effective_power`** — ajouter COMMENT sur la colonne ou trigger pour default
+21. [x] **`effective_power` documente** — Migration `20260310_document_columns.sql` : COMMENT ON COLUMN sur `attendances.effective_power`, COMMENT ON TABLE `motions`, COMMENT ON COLUMN `audit_log.previous_hash`
 
 ---
 
 ## 7. Verdict global
 
-| Dimension | Note | Commentaire |
-|-----------|------|-------------|
-| Architecture backend | 8/10 | Propre, bien structuree, quelques duplications |
-| Securite | 8.5/10 | Excellentes fondations, quelques trous (open redirect, exit()) |
-| Base de donnees | 8/10 | Complete, quelques FK manquantes post-migration |
-| Frontend | 7.5/10 | Moderne (HTMX+WC), accessible, pas de temps reel vrai |
-| Tests | 5/10 | Unit OK mais E2E=0, repositories=0, frontend=0 |
-| DevOps/CI | 6/10 | Docker solide, CI basique, pas de backup, pas de cron email |
-| Documentation | 8/10 | Abondante (37 fichiers .md), parfois redondante |
-| Production-readiness | 6.5/10 | Manque cron, backup, monitoring, E2E, fix des routes planned |
+| Dimension | Note initiale | Note apres corrections | Commentaire |
+|-----------|---------------|----------------------|-------------|
+| Architecture backend | 8/10 | 8.5/10 | `exit()` remplaces, PermissionChecker deprecie |
+| Securite | 8.5/10 | 9/10 | Open redirect = faux positif, Redis warning ajoute, CI bloque sur tests |
+| Base de donnees | 8/10 | 9/10 | FK ajoutees, colonnes documentees, migration idempotente |
+| Frontend | 7.5/10 | 7.5/10 | Inchange — WebSocket frontend reste a activer |
+| Tests | 5/10 | 7/10 | E2E (31 specs), rate limiter (24), upload (67), repositories (13) |
+| DevOps/CI | 6/10 | 8/10 | Supervisord email+cleanup, backup.sh, CI needs:validate |
+| Documentation | 8/10 | 8.5/10 | Audit technique ajoute, COMMENT SQL sur colonnes ambigues |
+| Production-readiness | 6.5/10 | 8/10 | Cron emails, backups, E2E, routes corrigees |
 
-**Le projet est fonctionnel et bien concu architecturalement, mais il a 3 angles morts majeurs : les tests E2E inexistants, les routes `[planned]` qui exposent des stubs en production, et l'absence d'infrastructure operationnelle (cron emails, backups, alerting).**
+**Apres corrections des phases 1 a 5 : le projet passe d'un etat "fonctionnel avec angles morts" a "quasi production-ready". Restent : activation WebSocket frontend (ou SSE), decoupage operator.htmx.html, monitoring/alerting, et integration OpenAPI dans le CI.**
