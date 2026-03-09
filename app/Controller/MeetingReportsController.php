@@ -56,7 +56,7 @@ final class MeetingReportsController extends AbstractController {
                 if ($snap && !empty($snap['html'])) {
                     header('Content-Type: text/html; charset=utf-8');
                     echo (string) $snap['html'];
-                    exit;
+                    return;
                 }
             } catch (Throwable $e) {
                 if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
@@ -663,7 +663,7 @@ Par : ' . htmlspecialchars($meeting['validated_by'] ?? '—') . '
             http_response_code(400);
             header('Content-Type: text/plain; charset=utf-8');
             echo 'missing_meeting_id';
-            exit;
+            return;
         }
 
         $showVoters = (api_query('show_voters') === '1');

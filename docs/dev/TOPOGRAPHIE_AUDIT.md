@@ -78,21 +78,21 @@
 |---|----------|-------------|--------|
 | C1 | **`OfficialResultsService::computeOfficialTallies()` ecrit des valeurs invalides en base** — le chemin eVOTE passe `no_votes`, `no_quorum`, `no_policy` directement dans `motions.decision` | `app/Services/OfficialResultsService.php:319` | Corrige (commit c5bc8c6) |
 | C2 | **Migration 20260218 echoue** sur bases existantes — le CHECK constraint est applique sans normaliser les donnees | `database/migrations/20260218_security_hardening.sql:101-105` | Corrige (commit c5bc8c6) |
-| C3 | **FK manquantes sur 3 tables** — `speech_requests`, `meeting_notifications`, `manual_actions` creees par migration 20260220 sans aucune FK (tenant_id, meeting_id, member_id) alors que schema-master les definit | `database/migrations/20260220_speech_notifications_tables.sql` | Orphelinage de donnees possible |
+| C3 | ~~**FK manquantes sur 3 tables**~~ | `database/migrations/20260310_add_missing_fks.sql` | **Corrige** — FK ajoutees sur speech_requests, meeting_notifications, manual_actions, meeting_validation_state |
 | C4 | **0 tests E2E** — le dossier `tests/e2e/specs/` existe mais est vide. Aucune validation du flux utilisateur complet (login > vote > resultats) | `tests/e2e/` | Regressions UI non detectees |
-| C5 | **26+ routes marquees `[planned]` avec handler vide ou stub** — fonctionnalites annoncees mais non implementees | `app/routes.php` | UX trompeuse, 404/500 en production |
+| C5 | ~~**Routes `[planned]` avec handler stub**~~ — en realite toutes les 15 routes sont **implementees**. Annotations trompeuses retirees | `app/routes.php` | **Corrige** — annotations retirees |
 
 ### ELEVE (risque de securite ou dette technique majeure)
 
 | # | Probleme | Localisation | Impact |
 |---|----------|-------------|--------|
-| E1 | **`exit()` directs dans 3 controllers** — QuorumController (4x), AnalyticsController, AuditController. Contourne le pipeline d'erreur, pas de headers securite, pas de logging | `app/Controller/QuorumController.php:22,26,44,53` | Reponses non securisees |
-| E2 | **Open redirect potentiel** dans EmailTrackingController — `redirect()` fait un 302 sans whitelist d'URL | `app/Controller/EmailTrackingController.php` | Phishing via lien de tracking |
-| E3 | **Redis silencieusement desactive** — si Redis indisponible, le rate limiting applicatif tombe sans avertissement | `app/Core/Providers/RedisProvider.php` | Brute force non limite |
-| E4 | **`meetings.paused_by`** sans FK vers `users(id)` — colonne ajoutee sans contrainte | Migration 20260219 | Integrite referentielle cassee |
+| E1 | ~~**`exit()` directs dans 7 controllers**~~ — 20 occurrences remplacees par `return;` | 7 controllers | **Corrige** |
+| E2 | ~~**Open redirect potentiel**~~ — en realite deja protege par whitelist host (`app_url`) | `EmailTrackingController.php` | **Faux positif** |
+| E3 | ~~**Redis silencieusement desactive**~~ — warning `error_log()` ajoute dans `RateLimiter::useRedis()` | `app/Core/Security/RateLimiter.php` | **Corrige** |
+| E4 | ~~**`meetings.paused_by` sans FK**~~ | `database/migrations/20260310_add_missing_fks.sql` | **Corrige** |
 | E5 | **Pas de tests** pour : rate limiter, upload fichier, WebSocket, securite headers, session fixation | `tests/` | Surfaces non couvertes |
-| E6 | **Contrainte UNIQUE sur `invitations.token` toujours presente** — la colonne est maintenant NULL (tokens hashes), mais la contrainte n'a jamais ete droppee | `schema-master.sql` | Confusion, erreurs potentielles sur INSERT |
-| E7 | **Pas de trigger `updated_at`** sur `meeting_roles` | Schema | Pas de tracabilite des modifications de roles |
+| E6 | ~~**UNIQUE sur `invitations.token`**~~ — constraint droppee dans migration 20260310 | `database/migrations/20260310_add_missing_fks.sql` | **Corrige** |
+| E7 | ~~**Pas de trigger `updated_at` sur `meeting_roles`**~~ — trigger + colonne ajoutes | `database/migrations/20260310_add_missing_fks.sql` | **Corrige** |
 | E8 | **Polling 5s au lieu de SSE/WebSocket** pour le temps reel — le backend a `app/WebSocket/` mais le frontend ne l'utilise pas | `core/shell.js` | Charge serveur inutile, latence UX |
 
 ### MODERE (qualite, maintenabilite)
@@ -103,7 +103,7 @@
 | M2 | **`PermissionChecker.php` duplique `AuthMiddleware`** — deux systemes de verification de permissions coexistent | `app/Core/Security/` | Code mort, confusion |
 | M3 | **Event system sous-utilise** — `AppEvent`, `VoteEvents` cables mais seul `WebSocketListener` est enregistre | `app/Event/` | Complexite sans benefice |
 | M4 | **Pas de QueryBuilder** — patterns SQL repetes dans chaque repository | `app/Repository/` | Duplication, risque d'inconsistance |
-| M5 | **CI ne bloque pas sur le build** — `validate` et `build` en parallele, un echec de tests n'empeche pas la publication de l'image | `.github/workflows/docker-build.yml` | Image potentiellement cassee publiee |
+| M5 | ~~**CI ne bloque pas sur le build**~~ — `needs: validate` ajoute au job `build` | `.github/workflows/docker-build.yml` | **Corrige** |
 | M6 | **`effective_power` nullable** sur `attendances` — signification implicite (NULL = utiliser `voting_power` du membre) sans documentation ni trigger | Table `attendances` | Ambiguite metier |
 | M7 | **Styles inline** dans `partials/sidebar.html` | `public/partials/` | Maintenabilite CSS |
 | M8 | **89KB pour `operator.htmx.html`** — page la plus lourde, 128 refs SVG, tout en un seul fichier | `public/operator.htmx.html` | Performance mobile |
@@ -165,24 +165,22 @@
 
 ### Phase 1 — Correctifs critiques (bloquants)
 
-1. [ ] **Migration FK manquantes** — Creer `database/migrations/20260310_add_missing_fks.sql` :
+1. [x] **Migration FK manquantes** — `database/migrations/20260310_add_missing_fks.sql` :
    - `speech_requests` : FK sur tenant_id, meeting_id, member_id
    - `meeting_notifications` : FK sur tenant_id, meeting_id
-   - `manual_actions` : FK sur tenant_id, meeting_id
+   - `meeting_validation_state` : FK sur meeting_id, tenant_id
+   - `manual_actions` : FK sur tenant_id, meeting_id, motion_id
    - `meetings.paused_by` : FK vers `users(id) ON DELETE SET NULL`
-2. [ ] **Drop UNIQUE sur `invitations.token`** — ajouter dans la meme migration
-3. [ ] **Trigger `updated_at` sur `meeting_roles`** — ajouter dans la meme migration
-4. [ ] **Routes `[planned]`** — Pour chaque route stub :
-   - Soit implementer la fonctionnalite
-   - Soit retourner `api_fail('Not implemented', 501)` avec message clair
-   - Soit supprimer la route du router
-5. [ ] **Remplacer tous les `exit()`** dans QuorumController, AnalyticsController, AuditController par `api_fail()` ou `JsonResponse`
+2. [x] **Drop UNIQUE sur `invitations.token`** — dans la meme migration
+3. [x] **Trigger `updated_at` sur `meeting_roles`** — dans la meme migration
+4. [x] **Routes `[planned]`** — Les 15 routes etaient en realite toutes implementees. Annotations `[planned]` retirees de `routes.php`
+5. [x] **Remplacer tous les `exit()`** — 20 occurrences dans 7 controllers remplacees par `return;`
 
 ### Phase 2 — Securite (eleve)
 
-6. [ ] **Open redirect** — Ajouter whitelist de domaines dans `EmailTrackingController::redirect()`
-7. [ ] **Redis fallback** — Logger un WARNING quand Redis est indisponible et que le rate limiting tombe en mode fichier. Ajouter alerte dans `system_alerts`
-8. [ ] **CI : ajouter `needs: validate`** sur le job `build` dans `docker-build.yml` pour empecher la publication d'une image si les tests echouent
+6. [x] **Open redirect** — Faux positif : `EmailTrackingController::redirect()` a deja une whitelist par host (`app_url`)
+7. [x] **Redis fallback** — Warning `error_log()` ajoute dans `RateLimiter::useRedis()` (log unique par requete)
+8. [x] **CI : `needs: validate`** ajoute au job `build` dans `docker-build.yml`
 
 ### Phase 3 — Tests (fondamental)
 

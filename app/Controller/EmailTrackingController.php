@@ -63,20 +63,20 @@ final class EmailTrackingController {
 
         if ($targetUrl === '') {
             header('Location: ' . $fallbackUrl, true, 302);
-            exit;
+            return;
         }
 
         $parsedUrl = parse_url($targetUrl);
         if (!$parsedUrl || !isset($parsedUrl['scheme']) || !in_array($parsedUrl['scheme'], ['http', 'https'], true)) {
             header('Location: ' . $fallbackUrl, true, 302);
-            exit;
+            return;
         }
 
         $allowedHost = parse_url($fallbackUrl, PHP_URL_HOST) ?: 'localhost';
         $targetHost = $parsedUrl['host'] ?? '';
         if ($targetHost !== '' && $targetHost !== $allowedHost) {
             header('Location: ' . $fallbackUrl, true, 302);
-            exit;
+            return;
         }
 
         if ($invitationId !== '' && $trackingEnabled) {
@@ -110,7 +110,7 @@ final class EmailTrackingController {
         }
 
         header('Location: ' . $targetUrl, true, 302);
-        exit;
+        return;
     }
 
     private function outputPixel(): never {

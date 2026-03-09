@@ -100,14 +100,24 @@ final class RateLimiter {
 
     // ── Redis backend ───────────────────────────────────────────────────
 
+    private static bool $redisWarningLogged = false;
+
     private static function useRedis(): bool {
         if (!RedisProvider::isAvailable()) {
+            if (!self::$redisWarningLogged) {
+                self::$redisWarningLogged = true;
+                error_log('[RateLimiter] Redis unavailable — falling back to file-based rate limiting');
+            }
             return false;
         }
         try {
             RedisProvider::connection();
             return true;
         } catch (Throwable) {
+            if (!self::$redisWarningLogged) {
+                self::$redisWarningLogged = true;
+                error_log('[RateLimiter] Redis connection failed — falling back to file-based rate limiting');
+            }
             return false;
         }
     }

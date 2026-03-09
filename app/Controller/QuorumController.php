@@ -19,11 +19,13 @@ final class QuorumController extends AbstractController {
 
         if ($meetingId !== '' && !api_is_uuid($meetingId)) {
             http_response_code(422);
-            exit('Invalid meeting_id');
+            echo 'Invalid meeting_id';
+            return;
         }
         if ($motionId !== '' && !api_is_uuid($motionId)) {
             http_response_code(422);
-            exit('Invalid motion_id');
+            echo 'Invalid motion_id';
+            return;
         }
 
         header('Content-Type: text/html; charset=utf-8');
@@ -41,7 +43,7 @@ final class QuorumController extends AbstractController {
                 $scope = 'Séance';
             } else {
                 echo '<section class="card"><div class="muted">Quorum: meeting_id ou motion_id requis.</div></section>';
-                exit;
+                return;
             }
 
             $applied = $r['applied'] ?? false;
@@ -50,7 +52,7 @@ final class QuorumController extends AbstractController {
 
             if (!$applied) {
                 echo '<section class="card"><div class="row between"><div><div class="k">Quorum</div><div class="muted tiny">Aucune politique appliquée.</div></div><span class="badge muted">—</span></div></section>';
-                exit;
+                return;
             }
 
             $badgeClass = 'muted';

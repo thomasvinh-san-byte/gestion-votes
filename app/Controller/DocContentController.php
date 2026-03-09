@@ -18,7 +18,7 @@ final class DocContentController {
         if ($page === '') {
             http_response_code(400);
             echo 'Missing page parameter.';
-            exit;
+            return;
         }
 
         // Security: sanitize path — prevent directory traversal
@@ -26,7 +26,7 @@ final class DocContentController {
         if (preg_match('/\.\./', $page) || preg_match('#[^a-zA-Z0-9_/\-.]#', $page)) {
             http_response_code(400);
             echo 'Invalid page parameter.';
-            exit;
+            return;
         }
 
         // Strip .md if provided
@@ -37,7 +37,7 @@ final class DocContentController {
         if ($docsRoot === false) {
             http_response_code(500);
             echo 'Documentation directory not found.';
-            exit;
+            return;
         }
 
         $filePath = $docsRoot . '/' . $page . '.md';
@@ -47,7 +47,7 @@ final class DocContentController {
         if ($realPath === false || !str_starts_with($realPath, $docsRoot . '/')) {
             http_response_code(404);
             echo 'Document not found.';
-            exit;
+            return;
         }
 
         echo file_get_contents($realPath);

@@ -167,7 +167,7 @@ final class AuditController extends AbstractController {
                 ],
                 'events' => $jsonEvents,
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            exit;
+            return;
         }
 
         // CSV format (default)
@@ -191,7 +191,7 @@ final class AuditController extends AbstractController {
             ]);
         }
         fclose($out);
-        exit;
+        return;
     }
 
     public function meetingAudit(): void {

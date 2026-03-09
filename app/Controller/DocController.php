@@ -71,7 +71,7 @@ final class DocController extends AbstractController {
         $page = api_query('page');
         if ($page === '') {
             header('Location: /help.htmx.html');
-            exit;
+            return;
         }
 
         // Security: sanitize path
