@@ -202,7 +202,14 @@ final class AuthController extends AbstractController {
         if (!$enabled) {
             api_ok([
                 'auth_enabled' => false,
-                'user' => null,
+                'user' => [
+                    'id' => 'demo-user',
+                    'email' => 'demo@ag-vote.local',
+                    'name' => 'Mode Démonstration',
+                    'role' => 'admin',
+                ],
+                'member' => null,
+                'meeting_roles' => [],
             ]);
         }
 

@@ -303,7 +303,10 @@ class AuthControllerTest extends TestCase
         $this->assertEquals(200, $result['status']);
         $this->assertTrue($result['body']['ok']);
         $this->assertFalse($result['body']['data']['auth_enabled']);
-        $this->assertNull($result['body']['data']['user']);
+        // Demo mode: whoami returns a demo user identity for seamless navigation
+        $this->assertNotNull($result['body']['data']['user']);
+        $this->assertEquals('demo-user', $result['body']['data']['user']['id']);
+        $this->assertEquals('admin', $result['body']['data']['user']['role']);
     }
 
     // =========================================================================

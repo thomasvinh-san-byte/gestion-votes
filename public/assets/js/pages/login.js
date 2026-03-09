@@ -151,11 +151,23 @@
     msg.classList.add('visible');
   });
 
-  // Auto-check : si deja connecte, rediriger selon le role
+  // Auto-check : si deja connecte ou mode demo, rediriger selon le role
   api('/api/v1/whoami.php')
     .then(function(res) {
       var data = res.body;
+      var authEnabled = data.data ? data.data.auth_enabled : data.auth_enabled;
       var user = (data.data && data.data.user) ? data.data.user : null;
+
+      // Mode demo (auth desactivee) : rediriger directement sans login
+      if (data.ok && authEnabled === false && user) {
+        showSuccess('Mode démonstration — ' + (user.name || 'Demo') + '. Redirection...');
+        setTimeout(function() {
+          var mr = (data.data && data.data.meeting_roles) || [];
+          redirectByRole(user, mr);
+        }, 600);
+        return;
+      }
+
       if (data.ok && user) {
         showSuccess('Déjà connecté : ' + (user.name || user.email) + ' (' + (roleLabel[user.role] || user.role) + '). Redirection...');
         setTimeout(function() {

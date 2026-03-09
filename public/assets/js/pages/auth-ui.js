@@ -485,7 +485,14 @@
     window.Auth.member = linkedMember;
     window.Auth.meetingRoles = meetingRoles;
 
-    if (!authEnabled) {
+    if (!authEnabled && user) {
+      // Demo mode: auth disabled but whoami returns demo user identity
+      setStatus('', 'ok', true);
+      setUserIdentity(user, user.role, meetingRoles);
+      // Hide logout in demo mode (no session to destroy)
+      var logoutBtn = document.getElementById('auth-logout-btn');
+      if (logoutBtn) Shared.hide(logoutBtn);
+    } else if (!authEnabled) {
       setStatus('auth d\u00e9sactiv\u00e9e (dev)', 'ok', false);
       setUserIdentity(null, null, []);
     } else if (!user) {

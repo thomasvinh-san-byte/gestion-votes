@@ -9,6 +9,28 @@
     });
   }
 
+  // Demo mode detection: if auth disabled, hide login form and show banner
+  fetch('/api/v1/whoami.php')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var d = data.data || data;
+      if (d.auth_enabled === false && d.user) {
+        var card = document.getElementById('login-card');
+        if (card) {
+          card.innerHTML =
+            '<div style="text-align:center;padding:var(--space-6);">' +
+            '  <div style="font-size:2rem;margin-bottom:0.5rem;">&#9889;</div>' +
+            '  <h2 class="login-title">Mode D\u00e9monstration</h2>' +
+            '  <p style="color:var(--color-text-secondary);margin-bottom:1rem;">' +
+            '    Authentification d\u00e9sactiv\u00e9e. Cliquez sur une interface ci-dessous pour explorer librement.' +
+            '  </p>' +
+            '  <a href="/meetings.htmx.html" class="btn btn-primary btn-lg" style="width:100%;">Explorer l\'application</a>' +
+            '</div>';
+        }
+      }
+    })
+    .catch(function() { /* ignore — login form stays visible */ });
+
   // Login form
   var form = document.getElementById('loginForm');
   if (form) {
