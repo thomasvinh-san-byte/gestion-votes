@@ -152,6 +152,12 @@ final class EmailQueueService {
             $memberId = (string) $member['id'];
             $email = trim((string) ($member['email'] ?? ''));
 
+            // Defense-in-depth: skip members from other tenants
+            if (isset($member['tenant_id']) && (string) $member['tenant_id'] !== $tenantId) {
+                $result['skipped']++;
+                continue;
+            }
+
             if ($email === '') {
                 $result['skipped']++;
                 continue;
@@ -302,6 +308,12 @@ final class EmailQueueService {
         foreach ($members as $member) {
             $memberId = (string) $member['id'];
             $email = trim((string) ($member['email'] ?? ''));
+
+            // Defense-in-depth: skip members from other tenants
+            if (isset($member['tenant_id']) && (string) $member['tenant_id'] !== $tenantId) {
+                $result['skipped']++;
+                continue;
+            }
 
             if ($email === '') {
                 $result['skipped']++;

@@ -400,6 +400,13 @@ BEGIN
     ALTER TABLE meetings ADD CONSTRAINT meetings_closed_by_fkey
       FOREIGN KEY (closed_by) REFERENCES users(id) ON DELETE SET NULL;
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name='meetings' AND constraint_name='meetings_paused_by_fkey'
+  ) THEN
+    ALTER TABLE meetings ADD CONSTRAINT meetings_paused_by_fkey
+      FOREIGN KEY (paused_by) REFERENCES users(id) ON DELETE SET NULL;
+  END IF;
 END $$;
 
 COMMENT ON COLUMN meetings.slug IS 'Identifiant URL court et opaque pour cette seance';
