@@ -515,12 +515,31 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btnChangeMeeting')?.addEventListener('click', changeMeeting);
   startClock();
   refresh();
+
+  // SSE: connect for real-time updates, with polling as fallback
+  var _sseActive = false;
+  if (window.EventStream && MEETING_ID) {
+    EventStream.connect(MEETING_ID, {
+      onConnect: function() { _sseActive = true; },
+      onDisconnect: function() { _sseActive = false; },
+      onEvent: function(type) {
+        if (type === 'vote.cast' || type === 'vote.updated' ||
+            type === 'motion.opened' || type === 'motion.closed' ||
+            type === 'motion.updated' || type === 'quorum.updated' ||
+            type === 'attendance.updated' || type === 'meeting.status_changed') {
+          refresh();
+        }
+      },
+    });
+  }
+
+  // Polling fallback — slower when SSE is active
   var _refreshInFlight = false;
   setInterval(function() {
     if (document.hidden || _refreshInFlight) return;
     _refreshInFlight = true;
     refresh().finally(function() { _refreshInFlight = false; });
-  }, 3000);
+  }, _sseActive ? 10000 : 3000);
   heartbeat();
   setInterval(function() { if (!document.hidden) heartbeat(); }, 15000);
 });

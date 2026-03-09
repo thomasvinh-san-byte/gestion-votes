@@ -28,7 +28,76 @@ window.OpS = { fn: {} };
   const btnPrimary = document.getElementById('btnPrimary');
   const meetingBarActions = document.getElementById('meetingBarActions');
   const viewSetup = document.getElementById('viewSetup');
-  const viewExec = document.getElementById('viewExec');
+  let viewExec = document.getElementById('viewExec');
+
+  // ── Lazy-loading for partials ─────────────────────────────────────────
+  // Large sections (exec view, live tabs) are loaded on demand to reduce
+  // initial page weight from 90KB to ~60KB.
+
+  const _partialCache = {};
+
+  /**
+   * Load a partial HTML file into a container element.
+   * Returns a promise that resolves when the content is injected.
+   */
+  async function loadPartial(container) {
+    if (!container) return;
+    const url = container.dataset.partial;
+    if (!url || container.dataset.loaded === 'true') return;
+
+    if (!_partialCache[url]) {
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.warn('[operator] Failed to load partial:', url, res.status);
+        return;
+      }
+      _partialCache[url] = await res.text();
+    }
+
+    container.innerHTML = _partialCache[url];
+    container.dataset.loaded = 'true';
+  }
+
+  /**
+   * Ensure live tabs partial (parole, vote, resultats) is loaded.
+   */
+  async function ensureLiveTabsLoaded() {
+    const el = document.getElementById('liveTabs');
+    if (el && el.dataset.loaded !== 'true') {
+      await loadPartial(el);
+    }
+  }
+
+  /**
+   * Ensure exec view partial is loaded.
+   */
+  async function ensureExecViewLoaded() {
+    if (viewExec && viewExec.dataset.loaded !== 'true') {
+      await loadPartial(viewExec);
+      // Re-bind sub-tab clicks and other exec-view event listeners
+      bindExecSubTabs();
+    }
+  }
+
+  /**
+   * Bind event listeners for dynamically loaded exec view sub-tabs.
+   */
+  function bindExecSubTabs() {
+    var subTabs = document.getElementById('opSubTabs');
+    if (subTabs && !subTabs.dataset.bound) {
+      subTabs.dataset.bound = 'true';
+      subTabs.addEventListener('click', function(e) {
+        var tab = e.target.closest('.op-tab');
+        if (!tab) return;
+        var target = tab.dataset.opTab;
+        subTabs.querySelectorAll('.op-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        document.querySelectorAll('.op-tab-panel').forEach(function(p) { p.classList.remove('active'); });
+        var panel = document.getElementById('opPanel' + target.charAt(0).toUpperCase() + target.slice(1));
+        if (panel) panel.classList.add('active');
+      });
+    }
+  }
   const srAnnounce = document.getElementById('srAnnounce');
 
   // Tab elements
@@ -269,6 +338,8 @@ window.OpS = { fn: {} };
     document.querySelectorAll('.tab-btn-live').forEach(btn => {
       btn.hidden = !isLive;
     });
+    // Lazy-load live tabs partial when meeting becomes live
+    if (isLive) ensureLiveTabsLoaded();
     // Update alert count badge
     const alertCountEl = document.getElementById('tabCountAlerts');
     if (alertCountEl) {
@@ -1948,7 +2019,7 @@ window.OpS = { fn: {} };
    * @param {string} [opts.tab] - Force a specific tab when entering setup mode
    * @param {boolean} [opts.restoreTab] - Restore last active prep tab (default true for manual switches)
    */
-  function setMode(mode, opts = {}) {
+  async function setMode(mode, opts = {}) {
     // Prevent entering exec mode if meeting is not live
     if (mode === 'exec' && currentMeetingStatus !== 'live') {
       mode = 'setup';
@@ -1957,6 +2028,12 @@ window.OpS = { fn: {} };
     // No-op if already in the requested mode and view is visible (unless forcing a tab)
     const alreadyVisible = mode === 'setup' ? (viewSetup && !viewSetup.hidden) : (viewExec && !viewExec.hidden);
     if (mode === currentMode && !opts.tab && alreadyVisible) return;
+
+    // Lazy-load partials before switching
+    if (mode === 'exec') {
+      await ensureExecViewLoaded();
+      viewExec = document.getElementById('viewExec');
+    }
 
     // Save last active prep tab when leaving setup
     if (currentMode === 'setup' && mode === 'exec') {
@@ -3310,12 +3387,108 @@ window.OpS = { fn: {} };
   startClock();
   loadMeetings();
 
-  // Auto-refresh - adaptive polling with cancellable timer
+  // ==========================================================================
+  // Real-time updates: SSE (primary) with polling fallback
+  // ==========================================================================
+
   const POLL_FAST = 5000;  // 5s when vote is active
   const POLL_SLOW = 15000; // 15s otherwise
   let pollTimer = null;
   let pollRunning = false;
   let newVoteDebounceTimer = null;
+  let sseStream = null;
+  let sseConnected = false;
+
+  /**
+   * Try to connect SSE for the current meeting. If SSE is available
+   * (EventStream loaded + Redis + meeting selected), events trigger
+   * immediate data refresh instead of waiting for the next poll cycle.
+   * Polling continues at a slower rate as a safety net.
+   */
+  function connectSSE() {
+    if (!window.EventStream || !currentMeetingId) return;
+
+    // Close previous connection
+    if (sseStream) sseStream.close();
+
+    sseStream = EventStream.connect(currentMeetingId, {
+      onConnect: function() {
+        sseConnected = true;
+        console.info('[operator] SSE connected for meeting', currentMeetingId);
+      },
+      onDisconnect: function() {
+        sseConnected = false;
+      },
+      onEvent: function(type, data) {
+        // On any real-time event, trigger an immediate refresh
+        handleSSEEvent(type, data);
+      },
+    });
+  }
+
+  /**
+   * Handle a single SSE event by refreshing the relevant data.
+   */
+  function handleSSEEvent(type, data) {
+    if (!currentMeetingId) return;
+
+    switch (type) {
+      case 'vote.cast':
+      case 'vote.updated':
+        // Refresh ballot counts immediately
+        if (data.motion_id || (data.data && data.data.motion_id)) {
+          var motionId = data.motion_id || data.data.motion_id;
+          loadBallots(motionId).then(function() {
+            if (currentMode === 'exec') refreshExecView();
+          });
+        }
+        break;
+
+      case 'motion.opened':
+        // A vote was opened — reload resolutions and switch to live view
+        loadResolutions().then(function() {
+          if (currentOpenMotion) {
+            var title = currentOpenMotion.title;
+            setNotif('info', 'Vote ouvert: ' + title);
+            announce('Vote ouvert : ' + title);
+            if (currentMeetingStatus === 'live' && currentMode !== 'exec') {
+              loadBallots(currentOpenMotion.id).then(function() { setMode('exec'); });
+            } else if (currentMode === 'exec') {
+              loadBallots(currentOpenMotion.id).then(function() { refreshExecView(); });
+            }
+          }
+        });
+        break;
+
+      case 'motion.closed':
+      case 'motion.updated':
+        loadResolutions().then(function() {
+          if (currentMode === 'exec') refreshExecView();
+        });
+        break;
+
+      case 'attendance.updated':
+      case 'quorum.updated':
+        loadQuorumStatus();
+        if (currentMode === 'setup') loadDashboard();
+        break;
+
+      case 'speech.queue_updated':
+        loadSpeechQueue();
+        break;
+
+      case 'meeting.status_changed':
+        loadResolutions();
+        loadStatusChecklist();
+        loadDashboard();
+        break;
+
+      default:
+        // Unknown event type — do a general refresh
+        schedulePoll(200);
+        break;
+    }
+  }
 
   function schedulePoll(ms) {
     if (pollTimer) clearTimeout(pollTimer);
@@ -3355,7 +3528,8 @@ window.OpS = { fn: {} };
       const currentMotionId = currentOpenMotion?.id || null;
 
       // Detect if a new vote was opened (not by us) — debounced
-      if (isVoteActive && currentMotionId !== previousOpenMotionId) {
+      // (Only needed if SSE missed the event)
+      if (!sseConnected && isVoteActive && currentMotionId !== previousOpenMotionId) {
         if (newVoteDebounceTimer) clearTimeout(newVoteDebounceTimer);
         const motionTitle = currentOpenMotion.title;
         newVoteDebounceTimer = setTimeout(() => {
@@ -3364,7 +3538,6 @@ window.OpS = { fn: {} };
           if (currentMode === 'exec') {
             loadBallots(currentOpenMotion.id).then(() => refreshExecView());
           } else if (currentMeetingStatus === 'live') {
-            // Auto-switch to exec for real-time vote monitoring
             loadBallots(currentOpenMotion.id).then(() => setMode('exec'));
           } else {
             switchTab('vote');
@@ -3398,8 +3571,9 @@ window.OpS = { fn: {} };
       refreshAlerts();
       if (currentMode === 'exec') refreshExecView();
 
-      // Schedule next poll
-      const interval = isVoteActive ? POLL_FAST : POLL_SLOW;
+      // Schedule next poll — slower if SSE is active (safety net only)
+      const baseInterval = isVoteActive ? POLL_FAST : POLL_SLOW;
+      const interval = sseConnected ? baseInterval * 3 : baseInterval;
       schedulePoll(interval);
     } catch (err) {
       console.warn('autoPoll error:', err);
@@ -3424,9 +3598,11 @@ window.OpS = { fn: {} };
     if (execSpeechTimerInterval) clearInterval(execSpeechTimerInterval);
     if (sessionTimerInterval) clearInterval(sessionTimerInterval);
     if (_clockInterval) clearInterval(_clockInterval);
+    if (sseStream) sseStream.close();
   });
 
-  // Start polling after initial load
+  // Start SSE + polling after initial load
+  connectSSE();
   schedulePoll(POLL_SLOW);
 
 })();

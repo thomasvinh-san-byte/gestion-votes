@@ -947,16 +947,37 @@
       })
       .catch((e) => notify("error", e?.message || String(e)));
 
-    // Poll current motion every 3s — guard against concurrent refreshes
-    // (if a slow response arrives after a newer one, it must not overwrite)
+    // ── Real-time: SSE (primary) + polling (fallback) ──────────────────
     if (window._voteMotionPollTimer) clearInterval(window._voteMotionPollTimer);
     if (window._voteHeartbeatTimer) clearInterval(window._voteHeartbeatTimer);
+    if (window._voteSseStream) window._voteSseStream.close();
+
+    var _sseActive = false;
+
+    // Connect SSE if available
+    var _sseTargetMeeting = selectedMeetingId();
+    if (window.EventStream && _sseTargetMeeting) {
+      window._voteSseStream = EventStream.connect(_sseTargetMeeting, {
+        onConnect: function() { _sseActive = true; },
+        onDisconnect: function() { _sseActive = false; },
+        onEvent: function(type) {
+          // On any vote/motion event, trigger immediate refresh
+          if (type === 'vote.cast' || type === 'vote.updated' ||
+              type === 'motion.opened' || type === 'motion.closed' || type === 'motion.updated') {
+            refresh().catch(function(e) { console.error('SSE refresh error:', e); });
+          }
+        },
+      });
+    }
+
+    // Poll — slower when SSE is active (safety net), faster otherwise
     var _refreshInFlight = false;
     window._voteMotionPollTimer = setInterval(()=>{
       if (document.hidden || _refreshInFlight) return;
       _refreshInFlight = true;
       refresh().catch(e => console.error('vote refresh error:', e)).finally(() => { _refreshInFlight = false; });
-    }, 3000);
+    }, _sseActive ? 10000 : 3000);
+
     // Heartbeat every 15s
     var _heartbeatInFlight = false;
     window._voteHeartbeatTimer = setInterval(()=>{
@@ -965,12 +986,13 @@
       sendHeartbeat().catch(e => console.error('heartbeat error:', e)).finally(() => { _heartbeatInFlight = false; });
     }, 15000);
 
-    // Cleanup on page unload — guard to prevent stacking listeners on re-init
+    // Cleanup on page unload
     if (!window._votePagehideRegistered) {
       window._votePagehideRegistered = true;
       window.addEventListener('pagehide', ()=>{
         clearInterval(window._voteMotionPollTimer);
         clearInterval(window._voteHeartbeatTimer);
+        if (window._voteSseStream) window._voteSseStream.close();
       });
     }
   }

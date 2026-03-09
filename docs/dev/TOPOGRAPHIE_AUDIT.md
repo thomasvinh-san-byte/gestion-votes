@@ -8,6 +8,6 @@
 
 | # | Sujet | Etat | Detail |
 |---|-------|------|--------|
-| 1 | **WebSocket frontend ou SSE** | A faire | Le backend a `app/WebSocket/` mais le frontend utilise du polling 5s (`core/shell.js`). Activer le WebSocket existant ou migrer vers SSE pour reduire la charge serveur et la latence UX. |
-| 2 | **Decouper `operator.htmx.html`** (89 KB) | A faire | Page la plus lourde, 128 refs SVG, tout en un seul fichier. La decouper en fragments HTMX charges a la demande (`hx-get`) pour ameliorer le temps de chargement mobile. |
-| 3 | **Monitoring / alerting** | A faire | Les tables `system_metrics` et `system_alerts` existent mais ne sont pas exploitees. Ajouter un webhook ou un email d'alerte sur les seuils critiques (espace disque, echecs email, erreurs DB). |
+| 1 | **SSE (Server-Sent Events)** | Fait | Endpoint SSE `/api/v1/events.php` + client `event-stream.js`. Le polling reste en fallback (cadence reduite x3 quand SSE actif). Pages operator, vote, projector connectees. EventBroadcaster publie sur Redis `sse:events:{meetingId}`. |
+| 2 | **Decouper `operator.htmx.html`** | Fait | Page reduite de 90 KB a 61 KB. Sections exec view (293 lignes) et live tabs (221 lignes) extraites en `/partials/operator-exec.html` et `/partials/operator-live-tabs.html`, chargees a la demande via `fetch()` au premier usage. |
+| 3 | **Monitoring / alerting** | Fait | `MonitoringService` + commande CLI `monitor:check`. Collecte metrics, evalue seuils (DB latence, disque, auth failures, email backlog), envoie alertes par email aux admins et/ou webhook (Slack, PagerDuty...). Cron toutes les 5 min via supervisord. Cleanup automatique des anciennes metriques/alertes. Config via env: `MONITOR_ALERT_EMAILS`, `MONITOR_WEBHOOK_URL`, seuils personnalisables. |

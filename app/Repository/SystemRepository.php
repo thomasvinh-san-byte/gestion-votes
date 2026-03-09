@@ -120,4 +120,45 @@ class SystemRepository extends AbstractRepository {
             return [];
         }
     }
+
+    /**
+     * Count pending emails in the queue.
+     */
+    public function countPendingEmails(): int {
+        try {
+            return (int) ($this->scalar(
+                "SELECT COUNT(*) FROM email_queue WHERE status IN ('pending', 'processing')",
+            ) ?? 0);
+        } catch (Throwable) {
+            return 0;
+        }
+    }
+
+    /**
+     * Delete old system metrics older than $days days. Returns rows deleted.
+     */
+    public function cleanupMetrics(int $days = 30): int {
+        try {
+            return $this->execute(
+                'DELETE FROM system_metrics WHERE created_at < NOW() - make_interval(days => :d)',
+                [':d' => max(1, $days)],
+            );
+        } catch (Throwable) {
+            return 0;
+        }
+    }
+
+    /**
+     * Delete old system alerts older than $days days. Returns rows deleted.
+     */
+    public function cleanupAlerts(int $days = 90): int {
+        try {
+            return $this->execute(
+                'DELETE FROM system_alerts WHERE created_at < NOW() - make_interval(days => :d)',
+                [':d' => max(1, $days)],
+            );
+        } catch (Throwable) {
+            return 0;
+        }
+    }
 }

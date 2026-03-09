@@ -122,8 +122,34 @@ class EventBroadcaster {
 
         if (self::useRedis()) {
             self::queueRedis($event);
+            self::publishToSse($event);
         } else {
             self::queueFile($event);
+        }
+    }
+
+    /**
+     * Publish event to per-meeting SSE list for real-time streaming.
+     * SSE clients poll these lists via /api/v1/events.php.
+     */
+    private static function publishToSse(array $event): void {
+        $meetingId = $event['meeting_id'] ?? null;
+        if ($meetingId === null) {
+            return;
+        }
+
+        try {
+            $redis = RedisProvider::connection();
+            $sseKey = 'sse:events:' . $meetingId;
+            $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+            $redis->rPush($sseKey, json_encode($event));
+            // Auto-expire after 60s to prevent memory leaks for inactive meetings
+            $redis->expire($sseKey, 60);
+            // Trim to keep max 100 events per meeting
+            $redis->lTrim($sseKey, -100, -1);
+            $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_JSON);
+        } catch (Throwable $e) {
+            // Non-critical: SSE clients will miss this event but polling still works
         }
     }
 
