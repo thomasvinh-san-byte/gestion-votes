@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\BallotSource;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\ManualActionRepository;
 use AgVote\Repository\MeetingRepository;
@@ -144,8 +145,8 @@ final class BallotsController extends AbstractController {
                 ]);
             }
 
-            $source = $ballot['source'] ?? 'tablet';
-            if ($source !== 'manual') {
+            $source = $ballot['source'] ?? BallotSource::TABLET;
+            if ($source !== BallotSource::MANUAL) {
                 api_fail('not_manual_vote', 422, [
                     'detail' => 'Seuls les votes manuels (source=manual) peuvent être annulés par l\'opérateur.',
                 ]);
@@ -299,7 +300,7 @@ final class BallotsController extends AbstractController {
             'value' => $value,
         ], $meetingId);
 
-        api_ok(['ballot_id' => $ballotId, 'value' => $value, 'source' => 'manual']);
+        api_ok(['ballot_id' => $ballotId, 'value' => $value, 'source' => BallotSource::MANUAL]);
     }
 
     public function redeemPaperBallot(): void {

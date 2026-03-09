@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AgVote\Repository;
 
+use AgVote\Core\BallotSource;
+
 /**
  * Data access for ballots.
  */
@@ -67,7 +69,7 @@ class BallotRepository extends AbstractRepository {
         string $memberId,
         string $value,
         float $weight = 1.0,
-        string $source = 'tablet',
+        string $source = BallotSource::TABLET,
     ): void {
         $this->execute(
             'INSERT INTO ballots (tenant_id, meeting_id, motion_id, member_id, value, weight, cast_at, source)
@@ -97,12 +99,13 @@ class BallotRepository extends AbstractRepository {
     ): string {
         $row = $this->insertReturning(
             "INSERT INTO ballots (tenant_id, meeting_id, motion_id, member_id, value, weight, cast_at, is_proxy_vote, source)
-             VALUES (:tid, :mid, :moid, :uid, :value, :weight, NOW(), false, 'manual')
+             VALUES (:tid, :mid, :moid, :uid, :value, :weight, NOW(), false, :src)
              RETURNING id",
             [
                 ':tid' => $tenantId, ':mid' => $meetingId,
                 ':moid' => $motionId, ':uid' => $memberId,
                 ':value' => $value, ':weight' => $weight,
+                ':src' => BallotSource::MANUAL,
             ],
         );
         return (string) ($row['id'] ?? '');
@@ -497,9 +500,9 @@ class BallotRepository extends AbstractRepository {
              LEFT JOIN manual_actions ma ON ma.motion_id = b.motion_id
                AND ma.member_id = b.member_id AND ma.action_type = 'manual_vote'
              WHERE mo.meeting_id = :mid AND b.tenant_id = :tid
-               AND b.source = 'manual'
+               AND b.source = :src
                AND (ma.notes IS NULL OR ma.notes = '')",
-            [':mid' => $meetingId, ':tid' => $tenantId],
+            [':mid' => $meetingId, ':tid' => $tenantId, ':src' => BallotSource::MANUAL],
         );
     }
 }

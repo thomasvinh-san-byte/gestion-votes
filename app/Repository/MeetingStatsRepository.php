@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AgVote\Repository;
 
+use AgVote\Core\BallotSource;
+
 /**
  * Aggregation queries for meeting dashboards.
  *
@@ -132,8 +134,8 @@ class MeetingStatsRepository extends AbstractRepository {
         return (int) ($this->scalar(
             "SELECT COUNT(*) FROM ballots b
              JOIN motions m ON m.id = b.motion_id
-             WHERE m.meeting_id = :mid AND b.tenant_id = :tid AND b.source = 'manual'",
-            [':mid' => $meetingId, ':tid' => $tenantId],
+             WHERE m.meeting_id = :mid AND b.tenant_id = :tid AND b.source = :src",
+            [':mid' => $meetingId, ':tid' => $tenantId, ':src' => BallotSource::MANUAL],
         ) ?? 0);
     }
 

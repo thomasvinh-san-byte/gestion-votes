@@ -8,6 +8,7 @@ use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Service\AttendancesService;
+use AgVote\Service\QuorumEngine;
 use AgVote\WebSocket\EventBroadcaster;
 use Throwable;
 
@@ -62,6 +63,14 @@ final class AttendancesController extends AbstractController {
             'meeting_id' => $meetingId,
             'mode' => $mode,
         ], $meetingId);
+
+        // Broadcast quorum update after attendance change
+        try {
+            $quorumResult = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
+            EventBroadcaster::quorumUpdated($meetingId, $quorumResult);
+        } catch (Throwable) {
+            // Non-blocking — quorum broadcast failure doesn't affect the response
+        }
 
         api_ok(['attendance' => $row]);
     }
@@ -134,6 +143,10 @@ final class AttendancesController extends AbstractController {
         try {
             $stats = $attendanceRepo->getStatsByMode($meetingId, $tenantId);
             EventBroadcaster::attendanceUpdated($meetingId, $stats);
+
+            // Recalculate quorum after bulk attendance change
+            $quorumResult = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
+            EventBroadcaster::quorumUpdated($meetingId, $quorumResult);
         } catch (Throwable $e) {
             error_log('[WebSocket] Broadcast failed after attendance update: ' . $e->getMessage());
         }

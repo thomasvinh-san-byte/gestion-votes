@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\BallotSource;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MemberRepository;
@@ -297,7 +298,7 @@ final class OfficialResultsService {
             );
 
             return [
-                'source' => 'manual',
+                'source' => BallotSource::MANUAL,
                 'for' => $manualFor,
                 'against' => $manualAg,
                 'abstain' => $manualAb,

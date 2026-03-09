@@ -52,8 +52,9 @@ final class Application {
         // 5. Error handling
         self::configureErrors();
 
-        // 6. Security headers
+        // 6. Security headers + request correlation
         SecurityProvider::headers();
+        header('X-Request-ID: ' . Logger::getRequestId());
 
         // 7. CORS
         SecurityProvider::cors(self::$config['cors'] ?? []);
