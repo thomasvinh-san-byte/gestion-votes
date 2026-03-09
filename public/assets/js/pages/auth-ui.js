@@ -99,6 +99,10 @@
     voter: 'Vote'
   };
 
+  // Defensive: if Shared is not loaded, provide minimal show/hide fallbacks
+  var _show = (typeof Shared !== 'undefined' && _show) ? _show : function(el, d) { if (el) { el.classList.remove('hidden'); el.style.display = d || ''; } };
+  var _hide = (typeof Shared !== 'undefined' && _hide) ? _hide : function(el) { if (el) el.style.display = 'none'; };
+
   function esc(s) {
     if (s == null) return '';
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
@@ -164,9 +168,9 @@
 
   function setStatus(text, type, isLoggedIn) {
     var b = ensureBanner();
-    isLoggedIn ? Shared.hide(b.querySelector('#auth-login-btn')) : Shared.show(b.querySelector('#auth-login-btn'));
-    isLoggedIn ? Shared.show(b.querySelector('#auth-logout-btn')) : Shared.hide(b.querySelector('#auth-logout-btn'));
-    isLoggedIn ? Shared.show(b.querySelector('#auth-home-btn')) : Shared.hide(b.querySelector('#auth-home-btn'));
+    isLoggedIn ? _hide(b.querySelector('#auth-login-btn')) : _show(b.querySelector('#auth-login-btn'));
+    isLoggedIn ? _show(b.querySelector('#auth-logout-btn')) : _hide(b.querySelector('#auth-logout-btn'));
+    isLoggedIn ? _show(b.querySelector('#auth-home-btn')) : _hide(b.querySelector('#auth-home-btn'));
 
     if (type === 'danger') {
       b.classList.add('auth-banner--disconnected');
@@ -221,7 +225,7 @@
     }
     if (unique.length) {
       badge.textContent = unique.join(', ');
-      Shared.show(badge);
+      _show(badge);
     }
   }
 
@@ -235,7 +239,7 @@
 
     document.querySelectorAll('[data-requires-role]').forEach(function (el) {
       var req = el.getAttribute('data-requires-role');
-      hasAccess(req, role, meetingRoles) ? Shared.show(el) : Shared.hide(el);
+      hasAccess(req, role, meetingRoles) ? _show(el) : _hide(el);
     });
   }
 
@@ -352,7 +356,7 @@
     var meetingRoles = window.Auth.meetingRoles || [];
 
     sidebar.querySelectorAll('[data-requires-role]').forEach(function (el) {
-      hasAccess(el.getAttribute('data-requires-role'), role, meetingRoles) ? Shared.show(el) : Shared.hide(el);
+      hasAccess(el.getAttribute('data-requires-role'), role, meetingRoles) ? _show(el) : _hide(el);
     });
     return true;
   }
@@ -491,7 +495,7 @@
       setUserIdentity(user, user.role, meetingRoles);
       // Hide logout in demo mode (no session to destroy)
       var logoutBtn = document.getElementById('auth-logout-btn');
-      if (logoutBtn) Shared.hide(logoutBtn);
+      if (logoutBtn) _hide(logoutBtn);
     } else if (!authEnabled) {
       setStatus('auth d\u00e9sactiv\u00e9e (dev)', 'ok', false);
       setUserIdentity(null, null, []);

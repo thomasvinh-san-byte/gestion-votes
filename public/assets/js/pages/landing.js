@@ -50,7 +50,17 @@
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.ok) {
-          window.location.href = '/meetings.htmx.html';
+          // Role-aware redirect after login
+          var user = data.user || (data.data && data.data.user) || {};
+          var role = user.role || 'viewer';
+          var dest = { admin: '/admin.htmx.html', operator: '/meetings.htmx.html', auditor: '/trust.htmx.html', viewer: '/meetings.htmx.html' };
+          // Fetch meeting roles to detect voter/president
+          fetch('/api/v1/whoami.php').then(function(r) { return r.json(); }).then(function(who) {
+            var mr = (who.data && who.data.meeting_roles) || [];
+            if (mr.some(function(r) { return r.role === 'president'; })) { window.location.href = '/operator.htmx.html?mode=president'; }
+            else if (mr.some(function(r) { return r.role === 'voter'; })) { window.location.href = '/vote.htmx.html'; }
+            else { window.location.href = dest[role] || '/meetings.htmx.html'; }
+          }).catch(function() { window.location.href = dest[role] || '/meetings.htmx.html'; });
         } else {
           if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg><span>Se connecter</span>'; }
           var msg = data.error || 'Identifiants incorrects';
