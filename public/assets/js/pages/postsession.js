@@ -174,19 +174,22 @@
         var actions = document.getElementById('transitionActions');
         var transitions = d.data.available_transitions || [];
         if (actions) {
+          // Enable/disable static validation buttons based on state
+          var staticBtnValidate = document.getElementById('btnValidate');
+          var staticBtnReject = document.getElementById('btnReject');
+
           if (transitions.length === 0 && state === 'validated') {
             actions.innerHTML = '<p class="text-sm text-success">S\u00e9ance valid\u00e9e. Vous pouvez g\u00e9n\u00e9rer le PV.</p>';
+            if (staticBtnValidate) staticBtnValidate.disabled = true;
+            if (staticBtnReject) staticBtnReject.disabled = true;
             var btn3 = document.getElementById('btnToStep3');
             if (btn3) btn3.disabled = false;
           } else if (state === 'closed') {
-            actions.innerHTML =
-              '<button class="btn btn-primary" id="btnValidate">' +
-              '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>' +
-              ' Valider les r\u00e9sultats</button>' +
-              '<p class="text-sm text-muted mt-2">Cette action verrouille d\u00e9finitivement les r\u00e9sultats de vote.</p>';
-            document.getElementById('btnValidate').addEventListener('click', doValidate);
+            actions.innerHTML = '<p class="text-sm text-muted">Cette action verrouille d\u00e9finitivement les r\u00e9sultats de vote.</p>';
+            if (staticBtnValidate) { staticBtnValidate.disabled = false; staticBtnValidate.onclick = doValidate; }
           } else {
             actions.innerHTML = '<p class="text-sm text-muted">\u00c9tat actuel : <strong>' + esc(state) + '</strong></p>';
+            if (staticBtnValidate) staticBtnValidate.disabled = true;
             var btn3b = document.getElementById('btnToStep3');
             if (btn3b) btn3b.disabled = false;
           }
