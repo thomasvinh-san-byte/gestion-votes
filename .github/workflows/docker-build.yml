@@ -71,6 +71,7 @@ jobs:
   # never push a broken image to the registry.
   # ---------------------------------------------------------------------------
   build:
+    needs: validate
     runs-on: ubuntu-latest
 
     permissions:

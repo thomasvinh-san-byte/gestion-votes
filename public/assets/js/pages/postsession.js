@@ -72,7 +72,7 @@
     if (!meetingId) return;
 
     try {
-      var res = await window.api('/api/v1/meeting_summary.php?meeting_id=' + meetingId);
+      var res = await window.api('/api/v1/meeting_summary.php?meeting_id=' + encodeURIComponent(meetingId));
       var d = res.body;
       if (d && d.ok && d.data) {
         var s = d.data;
@@ -94,7 +94,7 @@
         container: checklistEl,
         errorMsg: 'Impossible de charger les v\u00e9rifications',
         action: async function () {
-          var res2 = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + meetingId);
+          var res2 = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + encodeURIComponent(meetingId));
           var d2 = res2.body;
           if (!d2 || !d2.ok) throw new Error(d2 && d2.error || 'Erreur');
           var checks = d2.data.checks || [];
@@ -120,7 +120,7 @@
 
     // Load anomalies
     try {
-      var res3 = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + meetingId);
+      var res3 = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + encodeURIComponent(meetingId));
       var d3 = res3.body;
       if (d3 && d3.ok && d3.data) {
         var items = d3.data.anomalies || d3.data.items || [];
@@ -152,8 +152,21 @@
   async function loadValidation() {
     if (!meetingId) return;
 
+    // Populate step 2 KPIs from summary
     try {
-      var res = await window.api('/api/v1/meeting_workflow_check.php?meeting_id=' + meetingId);
+      var summaryRes = await window.api('/api/v1/meeting_summary.php?meeting_id=' + encodeURIComponent(meetingId));
+      if (summaryRes.body && summaryRes.body.ok && summaryRes.body.data) {
+        var s = summaryRes.body.data;
+        setStatValue('vkpiResolutions', s.total_motions || s.motions_count || 0);
+        setStatValue('vkpiAdopted', s.adopted || 0);
+        setStatValue('vkpiRejected', s.rejected || 0);
+        var rate = s.participation_rate || s.present_count;
+        setStatValue('vkpiParticipation', rate != null ? rate + (s.participation_rate ? '%' : '') : 0);
+      }
+    } catch (e) { /* KPI load failure is non-blocking */ }
+
+    try {
+      var res = await window.api('/api/v1/meeting_workflow_check.php?meeting_id=' + encodeURIComponent(meetingId));
       var d = res.body;
       if (d && d.ok && d.data) {
         var state = d.data.current_state || '';
@@ -174,19 +187,22 @@
         var actions = document.getElementById('transitionActions');
         var transitions = d.data.available_transitions || [];
         if (actions) {
+          // Enable/disable static validation buttons based on state
+          var staticBtnValidate = document.getElementById('btnValidate');
+          var staticBtnReject = document.getElementById('btnReject');
+
           if (transitions.length === 0 && state === 'validated') {
             actions.innerHTML = '<p class="text-sm text-success">S\u00e9ance valid\u00e9e. Vous pouvez g\u00e9n\u00e9rer le PV.</p>';
+            if (staticBtnValidate) staticBtnValidate.disabled = true;
+            if (staticBtnReject) staticBtnReject.disabled = true;
             var btn3 = document.getElementById('btnToStep3');
             if (btn3) btn3.disabled = false;
           } else if (state === 'closed') {
-            actions.innerHTML =
-              '<button class="btn btn-primary" id="btnValidate">' +
-              '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>' +
-              ' Valider les r\u00e9sultats</button>' +
-              '<p class="text-sm text-muted mt-2">Cette action verrouille d\u00e9finitivement les r\u00e9sultats de vote.</p>';
-            document.getElementById('btnValidate').addEventListener('click', doValidate);
+            actions.innerHTML = '<p class="text-sm text-muted">Cette action verrouille d\u00e9finitivement les r\u00e9sultats de vote.</p>';
+            if (staticBtnValidate) { staticBtnValidate.disabled = false; staticBtnValidate.onclick = doValidate; }
           } else {
             actions.innerHTML = '<p class="text-sm text-muted">\u00c9tat actuel : <strong>' + esc(state) + '</strong></p>';
+            if (staticBtnValidate) staticBtnValidate.disabled = true;
             var btn3b = document.getElementById('btnToStep3');
             if (btn3b) btn3b.disabled = false;
           }
@@ -247,7 +263,11 @@
       exportAttendanceCsv: '/api/v1/export_attendance_csv.php?meeting_id=',
       exportVotesCsv: '/api/v1/export_votes_csv.php?meeting_id=',
       exportResultsXlsx: '/api/v1/export_results_xlsx.php?meeting_id=',
-      exportFullXlsx: '/api/v1/export_full_xlsx.php?meeting_id='
+      exportFullXlsx: '/api/v1/export_full_xlsx.php?meeting_id=',
+      exportPvPdf: '/api/v1/meeting_generate_report_pdf.php?meeting_id=',
+      exportEmargement: '/api/v1/export_attendance_csv.php?meeting_id=',
+      exportResultsCsv: '/api/v1/export_motions_results_csv.php?meeting_id=',
+      exportAuditCsv: '/api/v1/audit_export.php?meeting_id='
     };
     Object.keys(links).forEach(function (id) {
       var el = document.getElementById(id);

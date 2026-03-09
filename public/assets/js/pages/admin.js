@@ -65,7 +65,7 @@
             } else {
               sessionsEl.innerHTML = upcoming.slice(0, 5).map(function(m) {
                 var d = m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString('fr-FR') : '';
-                return '<a href="/meetings.htmx.html?id=' + m.id + '" class="irow"><div class="irow-body"><div class="irow-title">' + escapeHtml(m.title || 'S\u00e9ance #' + m.id) + '</div><div class="text-xs text-muted">' + d + '</div></div><span class="irow-arrow">\u203A</span></a>';
+                return '<a href="/meetings.htmx.html?id=' + encodeURIComponent(m.id) + '" class="irow"><div class="irow-body"><div class="irow-title">' + escapeHtml(m.title || 'S\u00e9ance #' + m.id) + '</div><div class="text-xs text-muted">' + d + '</div></div><span class="irow-arrow">\u203A</span></a>';
               }).join('');
             }
           }
@@ -182,7 +182,7 @@
         : '<span class="user-pw-badge">Sans MdP</span>';
 
       return '<div class="user-row ' + activeClass + '" data-user-id="' + u.id + '">' +
-        '<div class="user-avatar">' + initials + '</div>' +
+        '<div class="user-avatar">' + escapeHtml(initials) + '</div>' +
         '<div class="user-row-body">' +
           '<div class="user-row-main">' +
             '<span class="user-row-name">' + escapeHtml(u.name || '') + '</span>' +
@@ -504,7 +504,7 @@
     tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr>';
 
     try {
-      const url = '/api/v1/admin_meeting_roles.php' + (meetingId ? '?meeting_id=' + meetingId : '');
+      const url = '/api/v1/admin_meeting_roles.php' + (meetingId ? '?meeting_id=' + encodeURIComponent(meetingId) : '');
       const r = await api(url);
       if (r.body && r.body.ok && r.body.data) {
         const items = r.body.data.items || [];

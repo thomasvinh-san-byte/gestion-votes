@@ -8,6 +8,7 @@ use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Service\AttendancesService;
+use AgVote\Service\QuorumEngine;
 use AgVote\WebSocket\EventBroadcaster;
 use Throwable;
 
@@ -63,6 +64,14 @@ final class AttendancesController extends AbstractController {
             'mode' => $mode,
         ], $meetingId);
 
+        // Broadcast quorum update after attendance change
+        try {
+            $quorumResult = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
+            EventBroadcaster::quorumUpdated($meetingId, $quorumResult);
+        } catch (Throwable) {
+            // Non-blocking — quorum broadcast failure doesn't affect the response
+        }
+
         api_ok(['attendance' => $row]);
     }
 
@@ -108,14 +117,13 @@ final class AttendancesController extends AbstractController {
         $created = 0;
         $attendanceRepo = new AttendanceRepository();
 
-        api_transaction(function () use ($memberIds, $memberRepo, $attendanceRepo, $meetingId, $mode, $tenantId, &$created, &$updated) {
-            foreach ($memberIds as $memberId) {
-                if (!api_is_uuid($memberId)) {
-                    continue;
-                }
-                if (!$memberRepo->existsForTenant($memberId, $tenantId)) {
-                    continue;
-                }
+        // Filter valid UUIDs first, then batch-validate membership (avoids N+1)
+        $validUuids = array_filter($memberIds, fn($id) => api_is_uuid($id));
+        $existingIds = $memberRepo->filterExistingIds($validUuids, $tenantId);
+        $existingSet = array_flip($existingIds);
+
+        api_transaction(function () use ($existingIds, $attendanceRepo, $meetingId, $mode, $tenantId, &$created, &$updated) {
+            foreach ($existingIds as $memberId) {
                 $wasCreated = $attendanceRepo->upsertMode($meetingId, $memberId, $mode, $tenantId);
                 if ($wasCreated) {
                     $created++;
@@ -135,8 +143,12 @@ final class AttendancesController extends AbstractController {
         try {
             $stats = $attendanceRepo->getStatsByMode($meetingId, $tenantId);
             EventBroadcaster::attendanceUpdated($meetingId, $stats);
+
+            // Recalculate quorum after bulk attendance change
+            $quorumResult = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
+            EventBroadcaster::quorumUpdated($meetingId, $quorumResult);
         } catch (Throwable $e) {
-            // Don't fail if broadcast fails
+            error_log('[WebSocket] Broadcast failed after attendance update: ' . $e->getMessage());
         }
 
         api_ok([

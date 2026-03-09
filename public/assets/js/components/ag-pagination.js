@@ -19,6 +19,10 @@ class AgPagination extends HTMLElement {
 
   connectedCallback() { this.render(); }
 
+  disconnectedCallback() {
+    this._abortCtrl?.abort();
+  }
+
   attributeChangedCallback(n, o, v) {
     if (o !== v) this.render();
   }
@@ -99,12 +103,15 @@ class AgPagination extends HTMLElement {
       </div>
     `;
 
+    this._abortCtrl?.abort();
+    this._abortCtrl = new AbortController();
+    const sig = { signal: this._abortCtrl.signal };
     this.shadowRoot.querySelectorAll('.pg-btn[data-page]').forEach(btn => {
       btn.addEventListener('click', () => {
         if (!btn.disabled && !btn.classList.contains('pg-active')) {
           this._goTo(parseInt(btn.dataset.page, 10));
         }
-      });
+      }, sig);
     });
   }
 }

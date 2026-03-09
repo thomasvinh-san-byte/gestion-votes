@@ -60,8 +60,6 @@ if [ -z "$APP_SECRET" ]; then
     fail "APP_SECRET non défini"
 elif [ "$APP_SECRET" = "dev-secret-do-not-use-in-production-change-me-now-please-64chr" ]; then
     fail "APP_SECRET est la valeur par défaut (générez avec: php -r \"echo bin2hex(random_bytes(32));\")"
-elif [ "$APP_SECRET" = "change-me-in-prod" ]; then
-    fail "APP_SECRET est le placeholder"
 elif [ ${#APP_SECRET} -lt 32 ]; then
     fail "APP_SECRET trop court (${#APP_SECRET} chars, min 32)"
 else

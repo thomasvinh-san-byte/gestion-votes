@@ -69,7 +69,7 @@
   // Load meeting status
   async function loadMeetingStatus(meetingId) {
     try {
-      const { body } = await api(`/api/v1/meetings.php?id=${meetingId}`);
+      const { body } = await api(`/api/v1/meetings.php?id=${encodeURIComponent(meetingId)}`);
 
       if (body && body.ok && body.data) {
         const m = body.data;
@@ -96,7 +96,7 @@
   // Load anomalies
   async function loadAnomalies(meetingId) {
     try {
-      const { body } = await api(`/api/v1/trust_anomalies.php?meeting_id=${meetingId}`);
+      const { body } = await api(`/api/v1/trust_anomalies.php?meeting_id=${encodeURIComponent(meetingId)}`);
 
       const badge = document.getElementById('badgeAnomalies');
       const kpi = document.getElementById('kpiAnomalies');
@@ -241,10 +241,10 @@
   // Load coherence checks
   async function loadChecks(meetingId) {
     try {
-      const { body } = await api(`/api/v1/trust_checks.php?meeting_id=${meetingId}`);
+      const { body } = await api(`/api/v1/trust_checks.php?meeting_id=${encodeURIComponent(meetingId)}`);
 
       const container = document.getElementById('checksList');
-      const kpi = document.getElementById('kpiChecks');
+      const kpi = document.getElementById('kpiChecks') || document.getElementById('kpiEvents');
 
       if (body && body.ok && body.data && Array.isArray(body.data.checks)) {
         const checks = body.data.checks;
@@ -252,7 +252,7 @@
         const total = checks.length;
         const percentage = total > 0 ? Math.round((passed / total) * 100) : 0;
 
-        kpi.textContent = `${passed}/${total}`;
+        if (kpi) kpi.textContent = `${passed}/${total}`;
 
         // Display integrity hash if available
         const hash = body.data.hash || body.data.checksum || null;
@@ -276,7 +276,7 @@
         if (presentCheck && presentCheck.detail) {
           const match = presentCheck.detail.match(/(\d+)/);
           if (match) {
-            document.getElementById('kpiPresent').textContent = match[1];
+            var kpiPresent = document.getElementById('kpiPresent'); if (kpiPresent) kpiPresent.textContent = match[1];
           }
         }
 
@@ -305,10 +305,10 @@
   // Load motions
   async function loadMotions(meetingId) {
     try {
-      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${meetingId}`);
+      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${encodeURIComponent(meetingId)}`);
 
       const tbody = document.getElementById('motionsTbody');
-      const kpi = document.getElementById('kpiMotions');
+      const kpi = document.getElementById('kpiMotions') || null;
 
       if (body && body.ok && body.data && Array.isArray(body.data.items)) {
         const motions = body.data.items;
@@ -380,7 +380,7 @@
         // Update ballots KPI
         const totalBallots = motions.reduce((sum, m) =>
           sum + (m.votes_for || 0) + (m.votes_against || 0) + (m.votes_abstain || 0), 0);
-        document.getElementById('kpiBallots').textContent = totalBallots;
+        var kpiBallots = document.getElementById('kpiBallots'); if (kpiBallots) kpiBallots.textContent = totalBallots;
       }
     } catch (err) {
       setNotif('error', 'Erreur chargement résolutions');
@@ -389,7 +389,7 @@
 
   // Load audit log
   async function loadAuditLog(meetingId) {
-    var container = document.getElementById('auditLog');
+    var container = document.getElementById('auditTableBody');
     await Shared.withRetry({
       container: container,
       errorMsg: 'Impossible de charger le journal d\u2019audit',
@@ -408,7 +408,7 @@
 
   // P6-2: Render audit log with filter support
   function renderAuditLog() {
-    const container = document.getElementById('auditLog');
+    const container = document.getElementById('auditTableBody');
     const filterInput = document.getElementById('auditLogFilter');
     const query = (filterInput ? filterInput.value : '').toLowerCase().trim();
 
@@ -426,30 +426,29 @@
 
     if (entries.length === 0) {
       container.innerHTML = `
-        <div class="text-center p-6 text-muted">
+        <tr><td colspan="6" class="text-center text-muted p-6">
           ${currentAuditEntries.length === 0
             ? 'Aucune entrée d\'audit pour cette séance'
             : 'Aucun résultat pour « ' + escapeHtml(query) + ' »'}
-        </div>
+        </td></tr>
       `;
       return;
     }
 
-    container.innerHTML = entries.map(entry => {
+    container.innerHTML = entries.map((entry, idx) => {
       const time = entry.timestamp || entry.created_at;
       const detail = entry.message || entry.detail || '';
       const actionLabel = entry.action_label || entry.action;
+      const sha = entry.sha256 || entry.hash || '';
       return `
-        <div class="audit-entry">
-          <div class="audit-time">${Utils.formatDate(time)}</div>
-          <div class="audit-content">
-            <div class="audit-action">${escapeHtml(actionLabel)}</div>
-            ${detail ? `<div class="audit-detail">${escapeHtml(detail)}</div>` : ''}
-          </div>
-          <div>
-            <span class="badge badge-neutral">${escapeHtml(entry.actor || 'système')}</span>
-          </div>
-        </div>
+        <tr>
+          <td class="audit-checkbox"><input type="checkbox" aria-label="Sélectionner"></td>
+          <td class="audit-num">${idx + 1}</td>
+          <td>${Utils.formatDate(time)}</td>
+          <td>${escapeHtml(actionLabel)}${detail ? '<div class="text-xs text-muted">' + escapeHtml(detail) + '</div>' : ''}</td>
+          <td><span class="badge badge-neutral">${escapeHtml(entry.actor || 'système')}</span></td>
+          <td class="audit-hash-col"><code class="text-xs">${sha ? escapeHtml(sha.substring(0, 12)) + '...' : '—'}</code></td>
+        </tr>
       `;
     }).join('');
   }
@@ -464,7 +463,7 @@
       return;
     }
 
-    const url = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}&format=csv`;
+    const url = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(currentMeetingId)}&format=csv`;
     window.open(url, '_blank');
     setNotif('success', 'Export CSV du journal d\'audit lancé');
   });
@@ -476,7 +475,7 @@
       return;
     }
 
-    const url = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}&format=json`;
+    const url = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(currentMeetingId)}&format=json`;
     window.open(url, '_blank');
     setNotif('success', 'Export JSON structuré lancé (avec chaîne d\'intégrité)');
   });

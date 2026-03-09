@@ -20,7 +20,7 @@ if [ "$APP_ENV" = "production" ] || [ "$APP_ENV" = "prod" ]; then
     echo "[FATAL] RATE_LIMIT_ENABLED doit être 1 en production."
     FAIL=1
   fi
-  if [ -z "$APP_SECRET" ] || [ "$APP_SECRET" = "change-me-in-prod" ] || [ "$APP_SECRET" = "dev-secret-do-not-use-in-production-change-me-now-please-64chr" ]; then
+  if [ -z "$APP_SECRET" ] || [ "$APP_SECRET" = "dev-secret-do-not-use-in-production-change-me-now-please-64chr" ]; then
     echo "[FATAL] APP_SECRET non configuré pour la production."
     echo "        Générer avec: php -r \"echo bin2hex(random_bytes(32));\""
     FAIL=1

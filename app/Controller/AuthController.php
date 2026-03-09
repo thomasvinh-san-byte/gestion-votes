@@ -39,6 +39,9 @@ final class AuthController extends AbstractController {
         // Dummy hash prevents timing-based user enumeration: password_verify() always runs.
 
         if ($email !== '' && $password !== '') {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                api_fail('invalid_email', 400, ['detail' => 'Format d\'adresse email invalide.']);
+            }
             $authMethod = 'password';
 
             $user = $userRepo->findByEmailGlobal($email);
@@ -202,7 +205,14 @@ final class AuthController extends AbstractController {
         if (!$enabled) {
             api_ok([
                 'auth_enabled' => false,
-                'user' => null,
+                'user' => [
+                    'id' => 'demo-user',
+                    'email' => 'demo@ag-vote.local',
+                    'name' => 'Mode Démonstration',
+                    'role' => 'admin',
+                ],
+                'member' => null,
+                'meeting_roles' => [],
             ]);
         }
 

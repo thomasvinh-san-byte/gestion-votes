@@ -37,7 +37,7 @@ return [
     'tls' => getenv('MAIL_TLS') ?: 'starttls',
     'user' => getenv('MAIL_USER') ?: '',
     'pass' => getenv('MAIL_PASS') ?: '',
-    'from_email' => getenv('MAIL_FROM') ?: 'noreply@example.com',
+    'from_email' => getenv('MAIL_FROM') ?: '',
     'from_name' => getenv('MAIL_FROM_NAME') ?: 'AG-VOTE',
     'timeout' => (int) (getenv('MAIL_TIMEOUT') ?: 10),
   ],
@@ -53,7 +53,7 @@ return [
 
   // Application
   'app_url' => getenv('APP_URL') ?: 'http://localhost:8080',
-  'app_secret' => getenv('APP_SECRET') ?: 'change-me-in-prod',
+  'app_secret' => getenv('APP_SECRET') ?: '',
 
   // Email tracking
   'email_tracking_enabled' => getenv('EMAIL_TRACKING_ENABLED') !== '0',

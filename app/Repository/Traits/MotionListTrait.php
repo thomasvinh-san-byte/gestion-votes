@@ -75,8 +75,8 @@ trait MotionListTrait {
              WHERE tenant_id = :tid AND meeting_id = :mid
                AND opened_at IS NULL AND closed_at IS NULL
              ORDER BY position NULLS LAST, created_at ASC
-             LIMIT ' . max(1, $limit),
-            [':tid' => $tenantId, ':mid' => $meetingId],
+             LIMIT :lim',
+            [':tid' => $tenantId, ':mid' => $meetingId, ':lim' => max(1, min($limit, 500))],
         );
     }
 

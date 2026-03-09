@@ -15,7 +15,7 @@
     if (!O.currentMeetingId) return;
 
     try {
-      const { body } = await api(`/api/v1/speech_queue.php?meeting_id=${O.currentMeetingId}`);
+      const { body } = await api(`/api/v1/speech_queue.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`);
       const data = body?.data || {};
       O.currentSpeakerCache = data.speaker || null;
       const newQueue = data.queue || [];
@@ -76,7 +76,7 @@
   }
 
   function updateSpeechTimer(startTime) {
-    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const elapsed = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
     const minutes = Math.floor(elapsed / 60);
     const seconds = elapsed % 60;
     const formatted = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');

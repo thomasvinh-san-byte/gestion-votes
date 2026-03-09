@@ -51,8 +51,8 @@
     function loadDocIndex(currentPage) {
       var container = document.getElementById('docIndex');
 
-      fetch('/api/v1/doc_index.php')
-        .then(function(r) { return r.json(); })
+      api('/api/v1/doc_index.php')
+        .then(function(r) { return r.body; })
         .then(function(data) {
           if (!data.ok || !data.data) throw new Error('Index unavailable');
 
@@ -225,7 +225,7 @@
 
       loadDocIndex(page);
 
-      fetch('/api/v1/doc_content.php?page=' + encodeURIComponent(page))
+      fetch('/api/v1/doc_content.php?page=' + encodeURIComponent(page), { credentials: 'same-origin' })
         .then(function(resp) {
           if (!resp.ok) {
             throw new Error(resp.status === 404

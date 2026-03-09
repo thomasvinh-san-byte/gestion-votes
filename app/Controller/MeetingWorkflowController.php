@@ -188,6 +188,7 @@ final class MeetingWorkflowController extends AbstractController {
             if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
                 throw $e;
             }
+            error_log('[WebSocket] Broadcast failed after meeting transition: ' . $e->getMessage());
         }
 
         api_ok([
@@ -302,6 +303,7 @@ final class MeetingWorkflowController extends AbstractController {
             if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
                 throw $e;
             }
+            error_log('[WebSocket] Broadcast failed after meeting launch: ' . $e->getMessage());
         }
 
         api_ok([

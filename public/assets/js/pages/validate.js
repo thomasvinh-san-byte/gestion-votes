@@ -12,7 +12,7 @@
     // Charger les informations de la séance
     async function loadMeetingInfo() {
       try {
-        const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
+        const { body } = await api(`/api/v1/meetings.php?id=${encodeURIComponent(currentMeetingId)}`);
         if (body && body.ok && body.data) {
           document.getElementById('meetingTitle').textContent = body.data.title;
           document.getElementById('meetingName').textContent = body.data.title;
@@ -55,7 +55,7 @@
     // Charger le résumé
     async function loadSummary() {
       try {
-        const { body } = await api(`/api/v1/meeting_summary.php?meeting_id=${currentMeetingId}`);
+        const { body } = await api(`/api/v1/meeting_summary.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
 
         if (body && body.ok && body.data) {
           const s = body.data;
@@ -105,7 +105,7 @@
       `;
 
       try {
-        const { body } = await api(`/api/v1/meeting_ready_check.php?meeting_id=${currentMeetingId}`);
+        const { body } = await api(`/api/v1/meeting_ready_check.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
 
         if (body && body.ok && body.data) {
           const checks = body.data.checks || [];

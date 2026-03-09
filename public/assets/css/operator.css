@@ -3489,7 +3489,7 @@
   background: var(--color-surface);
   border-top: 2px solid var(--color-border);
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
-  z-index: var(--z-sticky, 10);
+  z-index: var(--z-sticky, 200);
 }
 
 .op-action-bar .btn {

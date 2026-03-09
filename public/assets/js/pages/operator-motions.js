@@ -16,7 +16,7 @@
 
   async function loadResolutions() {
     try {
-      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${O.currentMeetingId}`);
+      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`);
       O.motionsCache = body?.data?.items || [];
       O.currentOpenMotion = O.motionsCache.find(m => m.opened_at && !m.closed_at) || null;
       renderResolutions();
@@ -207,7 +207,7 @@
 
   // Edit resolution modal
   function showEditResolutionModal(motionId) {
-    const motion = O.motionsCache.find(m => m.id === motionId);
+    const motion = O.motionsCache.find(m => String(m.id) === String(motionId));
     if (!motion) return;
 
     const modal = document.createElement('div');
@@ -285,7 +285,7 @@
   var _movePending = false;
   async function moveResolution(motionId, direction) {
     if (_movePending) return; // Prevent race conditions from rapid clicks
-    const idx = O.motionsCache.findIndex(m => m.id === motionId);
+    const idx = O.motionsCache.findIndex(m => String(m.id) === String(motionId));
     if (idx < 0) return;
 
     const newIdx = idx + direction;
@@ -324,7 +324,9 @@
     }
   }
 
+  var _createPending = false;
   async function createResolution() {
+    if (_createPending) return;
     const title = document.getElementById('newResolutionTitle').value.trim();
     const desc = document.getElementById('newResolutionDesc').value.trim();
     if (!title) {
@@ -332,6 +334,9 @@
       return;
     }
 
+    _createPending = true;
+    var btn = document.getElementById('btnConfirmResolution');
+    if (btn) Shared.btnLoading(btn, true);
     try {
       const { body } = await api('/api/v1/motion_create_simple.php', {
         meeting_id: O.currentMeetingId,
@@ -352,6 +357,9 @@
       }
     } catch (err) {
       setNotif('error', err.message);
+    } finally {
+      _createPending = false;
+      if (btn) Shared.btnLoading(btn, false);
     }
   }
 
@@ -408,7 +416,7 @@
 
   async function loadBallots(motionId) {
     try {
-      const { body } = await api(`/api/v1/ballots.php?motion_id=${motionId}`);
+      const { body } = await api(`/api/v1/ballots.php?motion_id=${encodeURIComponent(motionId)}`);
       const ballots = body?.data?.items || [];
       O.ballotsCache = {};
       O.ballotSourceCache = {};
@@ -424,6 +432,8 @@
       O.setText('liveVoteAgainst', againstCount);
       O.setText('liveVoteAbstain', abstainCount);
     } catch (err) {
+      O.ballotsCache = {};
+      O.ballotSourceCache = {};
       setNotif('error', 'Erreur chargement bulletins');
     }
   }
@@ -868,7 +878,7 @@
         const decision = closeData.results?.decision || closedMotion.decision || closedMotion.result || '';
         const reason = closeData.results?.reason || closedMotion.decision_reason || '';
         const decisionLabels = { adopted: 'ADOPTÉE', rejected: 'REJETÉE', no_quorum: 'QUORUM NON ATTEINT', no_votes: 'AUCUN VOTE', no_policy: 'SANS POLITIQUE' };
-        const resultText = decisionLabels[decision] || decision.toUpperCase() || '—';
+        const resultText = decisionLabels[decision] || escapeHtml(decision.toUpperCase()) || '—';
         const isAdopted = decision === 'adopted';
         const resultColor = isAdopted ? 'var(--color-success)' : 'var(--color-danger)';
         const resultIcon = isAdopted ? 'check-circle' : 'x-circle';
@@ -940,7 +950,7 @@
       const total = vFor + vAgainst + vAbstain;
       const pct = total > 0 ? Math.round((vFor / total) * 100) : 0;
       const dec = m.decision || m.result || '';
-      const status = !isClosed ? 'En attente' : (decisionLabels[dec] || dec || 'Rejetée');
+      const status = !isClosed ? 'En attente' : (decisionLabels[dec] || escapeHtml(dec) || 'Rejetée');
       const statusColor = !isClosed ? 'var(--color-text-muted)' : (decisionColors[dec] || 'var(--color-danger)');
 
       return `
@@ -962,9 +972,9 @@
     }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>';
 
     // Export links (preview=1 generates a draft if meeting not validated)
-    document.getElementById('exportPV').href = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${O.currentMeetingId}&preview=1`;
-    document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${O.currentMeetingId}`;
-    document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${O.currentMeetingId}`;
+    document.getElementById('exportPV').href = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}&preview=1`;
+    document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`;
+    document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`;
 
     // Update close session section
     updateCloseSessionStatus();
@@ -1222,7 +1232,7 @@
     }
 
     const statusLabels = { draft: 'brouillon', scheduled: 'planifiée', frozen: 'gelée', live: 'en cours', paused: 'en pause', closed: 'clôturée', validated: 'validée', archived: 'archivée' };
-    const statusLabel = statusLabels[toStatus] || toStatus;
+    const statusLabel = statusLabels[toStatus] || escapeHtml(toStatus);
     const confirmed = await O.confirmModal({
       title: 'Confirmer le changement d\'état',
       body: `<p>La séance passera en statut <strong>« ${statusLabel} »</strong>.</p>`

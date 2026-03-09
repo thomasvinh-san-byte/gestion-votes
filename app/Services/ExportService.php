@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\BallotSource;
 use DateTime;
 use Throwable;
 
@@ -61,14 +62,8 @@ final class ExportService {
         'archived' => 'Archivée',
     ];
 
-    /** Vote sources */
-    public const VOTE_SOURCES = [
-        'electronic' => 'Électronique',
-        'manual' => 'Manuel',
-        'paper' => 'Papier',
-        'degraded' => 'Mode dégradé',
-        '' => 'Non spécifié',
-    ];
+    /** Vote sources — delegates to BallotSource::LABELS for consistency. */
+    public const VOTE_SOURCES = BallotSource::LABELS;
 
     /** Booleans */
     public const BOOLEANS = [

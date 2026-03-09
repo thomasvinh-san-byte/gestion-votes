@@ -25,6 +25,10 @@ class AgTimeInput extends HTMLElement {
     this._setupEvents();
   }
 
+  disconnectedCallback() {
+    this._abortCtrl?.abort();
+  }
+
   attributeChangedCallback(name, old, val) {
     if (name === 'value' && old !== val) {
       this._parseValue(val || '');
@@ -71,6 +75,9 @@ class AgTimeInput extends HTMLElement {
   }
 
   _setupEvents() {
+    this._abortCtrl?.abort();
+    this._abortCtrl = new AbortController();
+    const sig = { signal: this._abortCtrl.signal };
     const hEl = this.shadowRoot.querySelector('.ti-h');
     const mEl = this.shadowRoot.querySelector('.ti-m');
 
@@ -80,7 +87,7 @@ class AgTimeInput extends HTMLElement {
       hEl.value = v;
       this._hours = v.padStart(2, '0');
       if (v.length === 2) mEl.focus();
-    });
+    }, sig);
 
     mEl.addEventListener('input', () => {
       let v = mEl.value.replace(/\D/g, '').slice(0, 2);
@@ -88,10 +95,10 @@ class AgTimeInput extends HTMLElement {
       mEl.value = v;
       this._minutes = v.padStart(2, '0');
       if (v.length === 2) this._emit();
-    });
+    }, sig);
 
-    mEl.addEventListener('blur', () => this._emit());
-    hEl.addEventListener('blur', () => { this._hours = (hEl.value || '').padStart(2, '0'); });
+    mEl.addEventListener('blur', () => this._emit(), sig);
+    hEl.addEventListener('blur', () => { this._hours = (hEl.value || '').padStart(2, '0'); }, sig);
 
     // Paste support
     hEl.addEventListener('paste', (e) => {
@@ -100,7 +107,7 @@ class AgTimeInput extends HTMLElement {
       this._parseValue(text);
       this._updateDisplay();
       this._emit();
-    });
+    }, sig);
   }
 
   render() {

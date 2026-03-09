@@ -111,7 +111,7 @@ final class AuditController extends AbstractController {
             api_fail('meeting_not_found', 404);
         }
 
-        $slug = str_replace(['"', "\r", "\n", "\0", '\\'], '', (string) ($meeting['slug'] ?? $meetingId));
+        $slug = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string) ($meeting['slug'] ?? $meetingId));
         $auditRepo = new AuditEventRepository();
         $events = $auditRepo->listForMeetingExport($tenantId, $meetingId);
 
@@ -167,7 +167,7 @@ final class AuditController extends AbstractController {
                 ],
                 'events' => $jsonEvents,
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            exit;
+            return;
         }
 
         // CSV format (default)
@@ -191,7 +191,7 @@ final class AuditController extends AbstractController {
             ]);
         }
         fclose($out);
-        exit;
+        return;
     }
 
     public function meetingAudit(): void {

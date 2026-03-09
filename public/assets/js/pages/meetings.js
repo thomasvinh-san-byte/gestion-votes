@@ -225,7 +225,7 @@
             </span>
           </div>
           <div class="meeting-card-actions">
-            <a class="${btnClass}" href="/operator.htmx.html?meeting_id=${m.id}">
+            <a class="${btnClass}" href="/operator.htmx.html?meeting_id=${encodeURIComponent(m.id)}">
               ${isLive ? '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>' : ''}
               ${btnText}
             </a>
@@ -613,10 +613,290 @@
   }
 
   // ==========================================================================
+  // WIZARD NAVIGATION
+  // ==========================================================================
+
+  var wizCurrentStep = 1;
+  var wizParticipants = [];
+  var wizResolutions = [];
+
+  function wizGoToStep(step) {
+    if (step < 1 || step > 5) return;
+    wizCurrentStep = step;
+
+    // Update stepper dots
+    document.querySelectorAll('#wizStepper .wiz-step-item').forEach(function(el) {
+      var s = parseInt(el.getAttribute('data-step'), 10);
+      el.classList.remove('active', 'done');
+      el.removeAttribute('aria-current');
+      if (s < step && step <= 4) el.classList.add('done');
+      else if (s === step) {
+        el.classList.add('active');
+        el.setAttribute('aria-current', 'step');
+      }
+    });
+
+    // Show/hide panels
+    for (var i = 1; i <= 5; i++) {
+      var panel = document.getElementById('wizStep' + i);
+      if (panel) {
+        if (i === step) panel.classList.add('active');
+        else panel.classList.remove('active');
+      }
+    }
+
+    // Populate recap on step 4
+    if (step === 4) wizPopulateRecap();
+  }
+
+  function wizValidateStep1() {
+    var t = (titleInput ? titleInput.value.trim() : '');
+    var d = (dateInput ? dateInput.value : '');
+    if (!t) { setNotif('error', 'Le titre est requis'); return false; }
+    if (!d) { setNotif('error', 'La date est requise'); return false; }
+
+    // 21-day deadline check
+    var alert21 = document.getElementById('wizDeadlineAlert');
+    if (alert21) {
+      var diff = (new Date(d).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+      alert21.hidden = diff >= 21 || diff < 0;
+    }
+    return true;
+  }
+
+  function wizAddParticipant() {
+    var nameEl = document.getElementById('wizParticipantName');
+    var emailEl = document.getElementById('wizParticipantEmail');
+    var name = (nameEl ? nameEl.value.trim() : '');
+    var email = (emailEl ? emailEl.value.trim() : '');
+    if (!name) { setNotif('error', 'Le nom est requis'); return; }
+    wizParticipants.push({ name: name, email: email, voting_power: 1 });
+    if (nameEl) nameEl.value = '';
+    if (emailEl) emailEl.value = '';
+    wizRenderParticipants();
+  }
+
+  function wizRenderParticipants() {
+    var tbody = document.getElementById('wizParticipantsBody');
+    var countEl = document.getElementById('wizParticipantsCount');
+    var voixEl = document.getElementById('wizVoixSummary');
+    if (!tbody) return;
+
+    if (wizParticipants.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-4">Aucun participant ajouté</td></tr>';
+    } else {
+      tbody.innerHTML = wizParticipants.map(function(p, i) {
+        return '<tr>' +
+          '<td>' + escapeHtml(p.name) + '</td>' +
+          '<td>' + escapeHtml(p.email || '—') + '</td>' +
+          '<td>' + p.voting_power + '</td>' +
+          '<td>—</td>' +
+          '<td><button type="button" class="btn btn-ghost btn-xs" data-wiz-remove-participant="' + i + '">&times;</button></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    if (countEl) countEl.textContent = wizParticipants.length + ' participant' + (wizParticipants.length > 1 ? 's' : '');
+    var totalVoix = wizParticipants.reduce(function(s, p) { return s + (p.voting_power || 1); }, 0);
+    if (voixEl) voixEl.textContent = totalVoix + ' voix';
+
+    // Bind remove buttons
+    tbody.querySelectorAll('[data-wiz-remove-participant]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        wizParticipants.splice(parseInt(btn.dataset.wizRemoveParticipant), 1);
+        wizRenderParticipants();
+      });
+    });
+  }
+
+  function wizAddResolution() {
+    var titleEl = document.getElementById('wizResTitle');
+    var descEl = document.getElementById('wizResDesc');
+    var majEl = document.getElementById('wizResMajority');
+    var secretEl = document.getElementById('wizResSecret');
+    var title = (titleEl ? titleEl.value.trim() : '');
+    if (!title) { setNotif('error', 'Le titre de la résolution est requis'); return; }
+
+    wizResolutions.push({
+      title: title,
+      description: (descEl ? descEl.value.trim() : ''),
+      majority: (majEl ? majEl.value : 'simple'),
+      secret: (secretEl ? secretEl.checked : false)
+    });
+    if (titleEl) titleEl.value = '';
+    if (descEl) descEl.value = '';
+    if (secretEl) secretEl.checked = false;
+    wizRenderResolutions();
+  }
+
+  function wizRenderResolutions() {
+    var listEl = document.getElementById('wizResolutionsList');
+    if (!listEl) return;
+
+    if (wizResolutions.length === 0) {
+      listEl.innerHTML = '<p class="text-center text-muted p-4">Aucune résolution ajoutée</p>';
+    } else {
+      listEl.innerHTML = wizResolutions.map(function(r, i) {
+        return '<div class="flex items-center gap-3 p-3" style="border:1px solid var(--color-border);border-radius:var(--radius-md);margin-bottom:0.5rem;">' +
+          '<span class="font-semibold flex-1">' + escapeHtml(r.title) + '</span>' +
+          '<span class="tag tag-sm">' + escapeHtml(r.majority) + '</span>' +
+          (r.secret ? '<span class="tag tag-sm tag-warning">Secret</span>' : '') +
+          '<button type="button" class="btn btn-ghost btn-xs" data-wiz-remove-res="' + i + '">&times;</button>' +
+          '</div>';
+      }).join('');
+    }
+
+    listEl.querySelectorAll('[data-wiz-remove-res]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        wizResolutions.splice(parseInt(btn.dataset.wizRemoveRes), 1);
+        wizRenderResolutions();
+      });
+    });
+  }
+
+  function wizPopulateRecap() {
+    var t = document.getElementById('wizRecapTitle');
+    var d = document.getElementById('wizRecapDate');
+    var tp = document.getElementById('wizRecapType');
+    var p = document.getElementById('wizRecapParticipants');
+    var r = document.getElementById('wizRecapResolutions');
+    var q = document.getElementById('wizRecapQuorum');
+
+    if (t) t.textContent = (titleInput ? titleInput.value.trim() : '—') || '—';
+    if (d) {
+      var dateVal = dateInput ? dateInput.value : '';
+      var timeEl = document.getElementById('wizTime');
+      var timeVal = timeEl ? timeEl.value : '';
+      d.textContent = dateVal ? (new Date(dateVal + 'T' + (timeVal || '00:00')).toLocaleString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })) : '—';
+    }
+    if (tp) {
+      var radio = document.querySelector('input[name="meetingTypeCreate"]:checked');
+      var typeMap = { ag_ordinaire: 'AG ordinaire', ag_extraordinaire: 'AG extra.', conseil: 'Conseil', bureau: 'Bureau', autre: 'Autre' };
+      tp.textContent = radio ? (typeMap[radio.value] || radio.value) : '—';
+    }
+    if (p) p.textContent = wizParticipants.length;
+    if (r) r.textContent = wizResolutions.length;
+    if (q) {
+      var qEl = document.getElementById('wizQuorum');
+      var qMap = { majority: 'Majorité simple', two_thirds: '2/3', unanimity: 'Unanimité' };
+      q.textContent = qEl ? (qMap[qEl.value] || qEl.value) : '—';
+    }
+
+    // Alerts
+    var alertsEl = document.getElementById('wizRecapAlerts');
+    if (alertsEl) {
+      var alerts = [];
+      if (wizParticipants.length === 0) alerts.push('Aucun participant ajouté — vous pourrez les ajouter depuis l\'opérateur.');
+      if (wizResolutions.length === 0) alerts.push('Aucune résolution ajoutée — vous pourrez les ajouter depuis l\'opérateur.');
+      alertsEl.innerHTML = alerts.map(function(a) {
+        return '<div class="alert alert-warning mb-2"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> ' + escapeHtml(a) + '</div>';
+      }).join('');
+    }
+  }
+
+  function initWizard() {
+    // Navigation buttons
+    var wizNext1 = document.getElementById('wizNext1');
+    var wizPrev2 = document.getElementById('wizPrev2');
+    var wizNext2 = document.getElementById('wizNext2');
+    var wizPrev3 = document.getElementById('wizPrev3');
+    var wizNext3 = document.getElementById('wizNext3');
+    var wizPrev4 = document.getElementById('wizPrev4');
+    var wizNewMeeting = document.getElementById('wizNewMeeting');
+
+    if (wizNext1) wizNext1.addEventListener('click', function() { if (wizValidateStep1()) wizGoToStep(2); });
+    if (wizPrev2) wizPrev2.addEventListener('click', function() { wizGoToStep(1); });
+    if (wizNext2) wizNext2.addEventListener('click', function() { wizGoToStep(3); });
+    if (wizPrev3) wizPrev3.addEventListener('click', function() { wizGoToStep(2); });
+    if (wizNext3) wizNext3.addEventListener('click', function() { wizGoToStep(4); });
+    if (wizPrev4) wizPrev4.addEventListener('click', function() { wizGoToStep(3); });
+
+    // Add participant
+    var addPartBtn = document.getElementById('wizAddParticipant');
+    if (addPartBtn) addPartBtn.addEventListener('click', wizAddParticipant);
+
+    // Add resolution
+    var addResBtn = document.getElementById('wizAddResolution');
+    if (addResBtn) addResBtn.addEventListener('click', wizAddResolution);
+
+    // New meeting (reset wizard)
+    if (wizNewMeeting) wizNewMeeting.addEventListener('click', function() {
+      wizParticipants = [];
+      wizResolutions = [];
+      if (titleInput) titleInput.value = '';
+      if (dateInput) dateInput.value = '';
+      var timeEl = document.getElementById('wizTime');
+      if (timeEl) timeEl.value = '14:00';
+      var lieuEl = document.getElementById('wizLieu');
+      if (lieuEl) lieuEl.value = '';
+      wizRenderParticipants();
+      wizRenderResolutions();
+      pendingFiles = [];
+      renderFileList();
+      wizGoToStep(1);
+      initDatePicker();
+    });
+
+    // File drop zone for participants
+    var dropZone = document.getElementById('wizParticipantsDrop');
+    var fileInput = document.getElementById('wizParticipantsFile');
+    var browseBtn = document.getElementById('wizParticipantsBrowse');
+    if (browseBtn && fileInput) browseBtn.addEventListener('click', function() { fileInput.click(); });
+    if (fileInput) fileInput.addEventListener('change', function() { if (fileInput.files.length) wizHandleParticipantFile(fileInput.files[0]); });
+    if (dropZone) {
+      dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+      dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
+      dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) wizHandleParticipantFile(e.dataTransfer.files[0]);
+      });
+    }
+
+    // 21-day deadline check on date change
+    if (dateInput) {
+      dateInput.addEventListener('change', function() {
+        var alert21 = document.getElementById('wizDeadlineAlert');
+        if (alert21) {
+          var diff = (new Date(dateInput.value).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+          alert21.hidden = diff >= 21 || diff < 0;
+        }
+      });
+    }
+  }
+
+  function wizHandleParticipantFile(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var text = e.target.result;
+      var lines = text.split(/\r?\n/).filter(function(l) { return l.trim(); });
+      // Skip header row if it looks like a header
+      var start = 0;
+      if (lines.length > 0 && /^(name|nom|full_name)/i.test(lines[0])) start = 1;
+      for (var i = start; i < lines.length; i++) {
+        var cols = lines[i].split(/[,;\t]/);
+        var name = (cols[0] || '').trim();
+        if (!name) continue;
+        wizParticipants.push({
+          name: name,
+          email: (cols[1] || '').trim(),
+          voting_power: parseFloat(cols[2]) || 1
+        });
+      }
+      wizRenderParticipants();
+      setNotif('success', (lines.length - start) + ' participants importés');
+    };
+    reader.readAsText(file);
+  }
+
+  // ==========================================================================
   // MEETING CREATION
   // ==========================================================================
 
+  var _createPending = false;
   async function createMeeting() {
+    if (_createPending) return;
     // Inline validation
     var valid = true;
     if (!Shared.validateField(titleInput, [
@@ -633,9 +913,17 @@
     const meetingTypeRadio = document.querySelector('input[name="meetingTypeCreate"]:checked');
     const meeting_type = meetingTypeRadio ? meetingTypeRadio.value : 'ag_ordinaire';
 
+    // Collect additional wizard fields
+    var timeEl = document.getElementById('wizTime');
+    var lieuEl = document.getElementById('wizLieu');
+    var payload = { title: title, scheduled_at: scheduled_at, meeting_type: meeting_type };
+    if (lieuEl && lieuEl.value.trim()) payload.location = lieuEl.value.trim();
+    if (timeEl && timeEl.value) payload.time = timeEl.value;
+
+    _createPending = true;
     Shared.btnLoading(createBtn, true);
     try {
-      const { body } = await api('/api/v1/meetings.php', { title, scheduled_at, meeting_type });
+      const { body } = await api('/api/v1/meetings.php', payload);
 
       if (body && body.ok) {
         const mid = body.data?.meeting_id;
@@ -645,17 +933,45 @@
           await uploadAttachments(mid);
         }
 
-        setNotif('success', 'Séance créée — passons à la préparation');
+        // Create wizard resolutions if any
+        if (mid && wizResolutions.length > 0) {
+          for (var ri = 0; ri < wizResolutions.length; ri++) {
+            try {
+              await api('/api/v1/motion_create_simple.php', {
+                meeting_id: mid,
+                title: wizResolutions[ri].title,
+                description: wizResolutions[ri].description || ''
+              });
+            } catch (e) { /* continue */ }
+          }
+        }
+
+        // Import wizard participants via members API if any
+        if (mid && wizParticipants.length > 0) {
+          for (var pi = 0; pi < wizParticipants.length; pi++) {
+            try {
+              await api('/api/v1/members.php', {
+                full_name: wizParticipants[pi].name,
+                email: wizParticipants[pi].email || null,
+                voting_power: wizParticipants[pi].voting_power || 1
+              });
+            } catch (e) { /* continue */ }
+          }
+        }
+
+        setNotif('success', 'Séance créée avec succès');
         if (titleInput) { titleInput.value = ''; Shared.fieldClear(titleInput); }
         if (dateInput) { dateInput.value = ''; Shared.fieldClear(dateInput); }
         pendingFiles = [];
         renderFileList();
 
-        if (mid) {
-          window.location.href = `/operator.htmx.html?meeting_id=${mid}`;
-        } else {
-          fetchMeetings();
+        // Show wizard step 5 with link to operator
+        var goToOp = document.getElementById('wizGoToOperator');
+        if (goToOp && mid) {
+          goToOp.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(mid);
         }
+        wizGoToStep(5);
+        fetchMeetings();
       } else {
         var errMsg = body?.message || body?.error || 'Erreur lors de la création';
         if (body?.detail) errMsg += ' — ' + body.detail;
@@ -664,6 +980,7 @@
     } catch (err) {
       setNotif('error', err.message);
     } finally {
+      _createPending = false;
       Shared.btnLoading(createBtn, false);
     }
   }
@@ -736,7 +1053,7 @@
       titleElement: '#calendarTitle',
       events: [],
       onEventClick: function(event) {
-        window.location.href = '/operator.htmx.html?meeting_id=' + event.id;
+        window.location.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(event.id);
       }
     });
 
@@ -807,6 +1124,9 @@
 
     // Initialize date picker enhancements
     initDatePicker();
+
+    // Initialize wizard navigation
+    initWizard();
 
     // Initialize file upload zone
     initFileUpload();

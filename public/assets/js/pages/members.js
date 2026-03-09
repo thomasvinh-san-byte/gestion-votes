@@ -311,7 +311,9 @@
     updateFiltersHint();
   };
 
+  var _createGroupPending = false;
   document.getElementById('btnCreateGroup').addEventListener('click', async () => {
+    if (_createGroupPending) return;
     const name = document.getElementById('groupName').value.trim();
     const color = document.getElementById('groupColor').value || '#6366f1';
 
@@ -320,6 +322,7 @@
       return;
     }
 
+    _createGroupPending = true;
     const btn = document.getElementById('btnCreateGroup');
     Shared.btnLoading(btn, true);
 
@@ -336,6 +339,7 @@
     } catch (err) {
       setNotif('error', err.message);
     } finally {
+      _createGroupPending = false;
       Shared.btnLoading(btn, false);
     }
   });
@@ -357,7 +361,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Couleur</label>
-          <input type="color" id="editGroupColor" value="${group.color || '#6366f1'}">
+          <input type="color" id="editGroupColor" value="${escapeHtml(group.color || '#6366f1')}">
         </div>
       `,
       confirmText: 'Enregistrer',
@@ -818,7 +822,7 @@
 
         const newName = editNameEl.value.trim();
         const newEmail = editEmailEl.value.trim();
-        const newPower = parseInt(editPowerEl.value) || 1;
+        const newPower = parseFloat(editPowerEl.value) || 1;
         const newActive = modal.querySelector('#editMemberActive').checked;
 
         const selectedGroups = Array.from(modal.querySelectorAll('input[name="memberGroup"]:checked')).map(cb => cb.value);
@@ -901,7 +905,7 @@
     if (currentPage > 1) { currentPage--; renderMembers(allMembers); }
   });
   paginNext.addEventListener('click', () => {
-    currentPage++; renderMembers(allMembers);
+    if (!paginNext.disabled) { currentPage++; renderMembers(allMembers); }
   });
   paginSizeSelect.addEventListener('change', () => {
     pageSize = parseInt(paginSizeSelect.value) || 20;

@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#0B0D10" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Administration — AG-VOTE">
   <title>Administration — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
@@ -496,6 +496,13 @@
         <!-- TAB 6 : PARAMÈTRES                        -->
         <!-- ═══════════════════════════════════════════ -->
         <div class="admin-panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings">
+          <div class="alert alert-warning mb-4" style="display:flex;align-items:center;gap:0.5rem">
+            <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+            <div>
+              <strong>Module en cours de d&eacute;veloppement</strong>
+              <div class="text-sm">Les param&egrave;tres ci-dessous sont en lecture seule. La sauvegarde sera disponible dans une prochaine version.</div>
+            </div>
+          </div>
           <!-- Settings sub-tabs -->
           <div class="settings-tabs" role="tablist" aria-label="Onglets param&egrave;tres">
             <button class="settings-tab active" data-stab="vote-rules" role="tab" aria-selected="true">R&egrave;gles de vote</button>

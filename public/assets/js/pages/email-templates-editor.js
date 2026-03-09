@@ -18,12 +18,11 @@
           ? `${API_BASE}/email_templates.php?type=${type}&include_variables=1`
           : `${API_BASE}/email_templates.php?include_variables=1`;
 
-        const resp = await fetch(url, { credentials: 'include' });
-        const data = await resp.json();
+        const { body: data } = await api(url);
 
         if (!data.ok) throw new Error(data.error || 'Erreur chargement');
 
-        templates = data.data.templates || [];
+        templates = data.data.items || data.data.templates || [];
         availableVariables = data.data.available_variables || {};
 
         renderTemplates();
@@ -114,8 +113,7 @@
     // Edit existing template
     async function editTemplate(id) {
       try {
-        const resp = await fetch(`${API_BASE}/email_templates.php?id=${id}`, { credentials: 'include' });
-        const data = await resp.json();
+        const { body: data } = await api(`${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}`);
 
         if (!data.ok) throw new Error(data.error || 'Template non trouve');
 
@@ -155,22 +153,16 @@
 
       try {
         const method = id ? 'PUT' : 'POST';
-        const url = id ? `${API_BASE}/email_templates.php?id=${id}` : `${API_BASE}/email_templates.php`;
+        const url = id ? `${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}` : `${API_BASE}/email_templates.php`;
 
-        const resp = await fetch(url, {
-          method,
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const { body: data } = await api(url, {
             name,
             template_type: type,
             subject,
             body_html: bodyHtml,
             is_default: isDefault
-          })
-        });
+          }, method);
 
-        const data = await resp.json();
         if (!data.ok) throw new Error(data.message || data.error || 'Erreur sauvegarde');
 
         window.showToast?.('Template enregistr\u00e9', 'success');
@@ -194,11 +186,7 @@
         confirmClass: 'btn btn-danger',
         onConfirm: async function() {
           try {
-            const resp = await fetch(`${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}`, {
-              method: 'DELETE',
-              credentials: 'include'
-            });
-            const data = await resp.json();
+            const { body: data } = await api(`${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}`, null, 'DELETE');
             if (!data.ok) throw new Error(data.message || data.error || 'Erreur suppression');
             window.showToast?.('Template supprim\u00e9', 'success');
             loadTemplates();
@@ -223,13 +211,7 @@
           var newName = modal.querySelector('#dupTemplateName').value.trim();
           if (!newName) { window.showToast?.('Nom requis', 'error'); return false; }
           try {
-            const resp = await fetch(`${API_BASE}/email_templates.php`, {
-              method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'duplicate', source_id: id, new_name: newName })
-            });
-            const data = await resp.json();
+            const { body: data } = await api(`${API_BASE}/email_templates.php`, { action: 'duplicate', source_id: id, new_name: newName });
             if (!data.ok) throw new Error(data.message || data.error || 'Erreur duplication');
             window.showToast?.('Template dupliqu\u00e9', 'success');
             loadTemplates();
@@ -248,13 +230,7 @@
         confirmText: 'Cr\u00e9er',
         onConfirm: async function() {
           try {
-            const resp = await fetch(`${API_BASE}/email_templates.php`, {
-              method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'create_defaults' })
-            });
-            const data = await resp.json();
+            const { body: data } = await api(`${API_BASE}/email_templates.php`, { action: 'create_defaults' });
             if (!data.ok) throw new Error(data.message || data.error || 'Erreur creation');
             window.showToast?.((data.data.count || 0) + ' templates cr\u00e9\u00e9s', 'success');
             loadTemplates();
@@ -269,19 +245,12 @@
     async function updatePreview() {
       const bodyHtml = document.getElementById('templateBody').value;
       if (!bodyHtml) {
-        previewFrame.srcdoc = '<p style="padding:20px;color:#666;">Entrez du contenu HTML pour voir la pr\u00e9visualisation</p>';
+        previewFrame.srcdoc = '<p style="padding:20px;color:var(--color-text-muted,#666);font-family:system-ui,sans-serif;">Entrez du contenu HTML pour voir la pr\u00e9visualisation</p>';
         return;
       }
 
       try {
-        const resp = await fetch(`${API_BASE}/email_templates_preview.php`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ body_html: bodyHtml })
-        });
-
-        const data = await resp.json();
+        const { body: data } = await api(`${API_BASE}/email_templates_preview.php`, { body_html: bodyHtml });
         if (data.ok) {
           previewFrame.srcdoc = data.data.preview_html;
         }

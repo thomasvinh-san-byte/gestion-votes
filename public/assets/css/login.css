@@ -140,13 +140,13 @@
   margin-top: var(--space-1);
 }
 
-.login-forgot a {
+.login-forgot .btn-link {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   text-decoration: none;
 }
 
-.login-forgot a:hover {
+.login-forgot .btn-link:hover {
   color: var(--color-primary);
   text-decoration: underline;
 }
@@ -349,6 +349,6 @@
   }
 
   .login-footer {
-    font-size: 0.625rem;
+    font-size: var(--text-xs);
   }
 }

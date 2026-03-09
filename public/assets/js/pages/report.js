@@ -10,8 +10,9 @@
 
     // Setup URLs
     function setupUrls() {
-      const reportUrl = `/api/v1/meeting_report.php?meeting_id=${currentMeetingId}`;
-      const pdfUrl = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${currentMeetingId}`;
+      const mid = encodeURIComponent(currentMeetingId);
+      const reportUrl = `/api/v1/meeting_report.php?meeting_id=${mid}`;
+      const pdfUrl = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${mid}`;
 
       // Set iframe src
       document.getElementById('pvFrame').src = reportUrl;
@@ -22,18 +23,18 @@
       document.getElementById('exportPV').href = reportUrl;
 
       // CSV exports
-      document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${currentMeetingId}`;
-      document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${currentMeetingId}`;
-      document.getElementById('exportMotions').href = `/api/v1/export_motions_results_csv.php?meeting_id=${currentMeetingId}`;
-      document.getElementById('exportMembers').href = `/api/v1/export_members_csv.php?meeting_id=${currentMeetingId}`;
-      document.getElementById('exportAudit').href = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${mid}`;
+      document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${mid}`;
+      document.getElementById('exportMotions').href = `/api/v1/export_motions_results_csv.php?meeting_id=${mid}`;
+      document.getElementById('exportMembers').href = `/api/v1/export_members_csv.php?meeting_id=${mid}`;
+      document.getElementById('exportAudit').href = `/api/v1/audit_export.php?meeting_id=${mid}`;
 
       // XLSX exports
-      document.getElementById('exportFullXlsx').href = `/api/v1/export_full_xlsx.php?meeting_id=${currentMeetingId}&include_votes=0`;
-      document.getElementById('exportFullXlsxWithVotes').href = `/api/v1/export_full_xlsx.php?meeting_id=${currentMeetingId}&include_votes=1`;
-      document.getElementById('exportAttendanceXlsx').href = `/api/v1/export_attendance_xlsx.php?meeting_id=${currentMeetingId}`;
-      document.getElementById('exportVotesXlsx').href = `/api/v1/export_votes_xlsx.php?meeting_id=${currentMeetingId}`;
-      document.getElementById('exportResultsXlsx').href = `/api/v1/export_results_xlsx.php?meeting_id=${currentMeetingId}`;
+      document.getElementById('exportFullXlsx').href = `/api/v1/export_full_xlsx.php?meeting_id=${mid}&include_votes=0`;
+      document.getElementById('exportFullXlsxWithVotes').href = `/api/v1/export_full_xlsx.php?meeting_id=${mid}&include_votes=1`;
+      document.getElementById('exportAttendanceXlsx').href = `/api/v1/export_attendance_xlsx.php?meeting_id=${mid}`;
+      document.getElementById('exportVotesXlsx').href = `/api/v1/export_votes_xlsx.php?meeting_id=${mid}`;
+      document.getElementById('exportResultsXlsx').href = `/api/v1/export_results_xlsx.php?meeting_id=${mid}`;
 
       // Navigation link
       var archiveLink = document.getElementById('reportToArchives');
@@ -67,7 +68,7 @@
     // Load meeting info
     async function loadMeetingInfo() {
       try {
-        const { body } = await api(`/api/v1/meetings.php?id=${currentMeetingId}`);
+        const { body } = await api(`/api/v1/meetings.php?id=${encodeURIComponent(currentMeetingId)}`);
         if (body && body.ok && body.data) {
           document.getElementById('meetingTitle').textContent = body.data.title;
           document.getElementById('meetingName').textContent = body.data.title;

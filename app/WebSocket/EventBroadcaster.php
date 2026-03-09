@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\WebSocket;
 
+use AgVote\Core\Logger;
 use AgVote\Core\Providers\RedisProvider;
 use Redis;
 use Throwable;
@@ -156,16 +157,35 @@ class EventBroadcaster {
 
     // ── Redis backend ───────────────────────────────────────────────────
 
+    /** Tracks whether we have already logged a Redis fallback warning this request. */
+    private static bool $redisFallbackLogged = false;
+
     private static function useRedis(): bool {
         if (!RedisProvider::isAvailable()) {
+            self::logRedisFallback('phpredis extension not loaded');
             return false;
         }
         try {
             RedisProvider::connection();
             return true;
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            self::logRedisFallback($e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Log a warning once per request when falling back to file-based queue.
+     */
+    private static function logRedisFallback(string $reason): void {
+        if (self::$redisFallbackLogged) {
+            return;
+        }
+        self::$redisFallbackLogged = true;
+        Logger::warning('EventBroadcaster falling back to file queue', [
+            'reason' => $reason,
+            'queue_file' => self::QUEUE_FILE,
+        ]);
     }
 
     private static function queueRedis(array $event): void {
@@ -179,8 +199,9 @@ class EventBroadcaster {
             $redis->lTrim(self::QUEUE_KEY, -self::MAX_QUEUE_SIZE, -1);
             $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
         } catch (Throwable $e) {
-            error_log('EventBroadcaster Redis push failed: ' . $e->getMessage());
-            // Fallback to file
+            Logger::warning('EventBroadcaster Redis push failed, falling back to file', [
+                'error' => $e->getMessage(),
+            ]);
             self::queueFile($event);
         }
     }
@@ -208,7 +229,7 @@ class EventBroadcaster {
                 $raw,
             );
         } catch (Throwable $e) {
-            error_log('EventBroadcaster Redis dequeue failed: ' . $e->getMessage());
+            Logger::warning('EventBroadcaster Redis dequeue failed', ['error' => $e->getMessage()]);
             return self::dequeueFile();
         }
     }

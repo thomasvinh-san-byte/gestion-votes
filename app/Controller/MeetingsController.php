@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\BallotSource;
 use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Core\Validation\Schemas\ValidationSchemas;
 use AgVote\Repository\MeetingReportRepository;
@@ -329,7 +330,7 @@ final class MeetingsController extends AbstractController {
                 $votes_nsp = (int) ($r['ballots_nsp'] ?? 0);
                 $totalBallotsAllMotions += $ballotsTotal;
             } else {
-                $source = 'manual';
+                $source = BallotSource::MANUAL;
                 $total = (int) ($r['manual_total'] ?? 0);
                 $votes_for = (int) ($r['manual_for'] ?? 0);
                 $votes_against = (int) ($r['manual_against'] ?? 0);

@@ -733,7 +733,7 @@ final class AuthMiddleware {
     private static function getAppSecret(): string {
         $secret = defined('APP_SECRET') ? APP_SECRET : getenv('APP_SECRET');
 
-        if (!$secret || $secret === 'change-me-in-prod' || strlen($secret) < 32) {
+        if (!$secret || strlen($secret) < 32) {
             throw new RuntimeException(
                 '[SECURITY] APP_SECRET must be set to a secure value (min 32 characters). ' .
                 'Generate one with: php -r "echo bin2hex(random_bytes(32));"',

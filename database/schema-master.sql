@@ -400,6 +400,13 @@ BEGIN
     ALTER TABLE meetings ADD CONSTRAINT meetings_closed_by_fkey
       FOREIGN KEY (closed_by) REFERENCES users(id) ON DELETE SET NULL;
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name='meetings' AND constraint_name='meetings_paused_by_fkey'
+  ) THEN
+    ALTER TABLE meetings ADD CONSTRAINT meetings_paused_by_fkey
+      FOREIGN KEY (paused_by) REFERENCES users(id) ON DELETE SET NULL;
+  END IF;
 END $$;
 
 COMMENT ON COLUMN meetings.slug IS 'Identifiant URL court et opaque pour cette seance';
@@ -699,6 +706,7 @@ CREATE TABLE IF NOT EXISTS audit_events (
 CREATE INDEX IF NOT EXISTS idx_audit_tenant_time ON audit_events(tenant_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_resource ON audit_events(resource_type, resource_id) WHERE resource_type IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_audit_events_action ON audit_events(action, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_tenant_action_time ON audit_events(tenant_id, action, created_at DESC);
 
 CREATE OR REPLACE FUNCTION audit_events_compute_hash() RETURNS trigger AS $$
 DECLARE

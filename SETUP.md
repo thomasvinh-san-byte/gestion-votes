@@ -153,9 +153,9 @@ Après le setup, la base contient :
 - **5 motions** :
   - Approbation des comptes 2024 — **fermée, adoptée** (avec 10 bulletins)
   - Budget travaux toiture — **ouverte** (vote en cours)
-  - Élection du président — à venir (secret)
-  - Changement de syndic — à venir
-  - Questions diverses — à venir
+  - Élection du président — **en attente** (scrutin secret)
+  - Changement de syndic — **en attente**
+  - Questions diverses — **en attente**
 - **5 politiques de quorum** + **4 politiques de vote**
 
 ### Seed E2E (`seeds/04_e2e.sql`)

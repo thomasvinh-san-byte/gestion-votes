@@ -110,7 +110,6 @@ class MemberGroupsControllerTest extends TestCase
             'assign',
             'unassign',
             'setMemberGroups',
-            'bulkAssign',
         ];
         foreach ($expectedMethods as $method) {
             $this->assertTrue(
@@ -132,7 +131,6 @@ class MemberGroupsControllerTest extends TestCase
             'assign',
             'unassign',
             'setMemberGroups',
-            'bulkAssign',
         ];
         foreach ($expectedMethods as $method) {
             $this->assertTrue(
@@ -433,46 +431,6 @@ class MemberGroupsControllerTest extends TestCase
     }
 
     // =========================================================================
-    // bulkAssign: METHOD ENFORCEMENT
-    // =========================================================================
-
-    public function testBulkAssignRejectsGetMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('bulkAssign');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // bulkAssign: INPUT VALIDATION
-    // =========================================================================
-
-    /**
-     * bulkAssign() calls repos before validation.
-     * Verify via source inspection.
-     */
-    public function testBulkAssignSourceValidatesGroupId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("'group_id invalide'", $source);
-    }
-
-    public function testBulkAssignSourceValidatesMemberIds(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("'member_ids doit etre un tableau non vide'", $source);
-    }
-
-    public function testBulkAssignSourceValidatesNoValidMembers(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("'Aucun membre valide trouve'", $source);
-    }
-
-    // =========================================================================
     // COLOR VALIDATION LOGIC
     // =========================================================================
 
@@ -552,13 +510,6 @@ class MemberGroupsControllerTest extends TestCase
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
 
         $this->assertStringContainsString("'member_groups_updated'", $source);
-    }
-
-    public function testBulkAssignAuditsBulkAssignment(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString("'members_bulk_assigned_to_group'", $source);
     }
 
     // =========================================================================

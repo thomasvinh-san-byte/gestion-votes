@@ -135,7 +135,7 @@ final class AnalyticsController extends AbstractController {
                 $exportService->writeCsvRow($output, $row);
             }
             fclose($output);
-            exit;
+            return;
         }
 
         if ($format === 'xlsx') {
@@ -156,7 +156,7 @@ final class AnalyticsController extends AbstractController {
             header('Content-Disposition: attachment; filename="' . $filename . '.xlsx"');
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
             $writer->save('php://output');
-            exit;
+            return;
         }
     }
 

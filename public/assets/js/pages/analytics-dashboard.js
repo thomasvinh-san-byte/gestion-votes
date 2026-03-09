@@ -62,6 +62,22 @@
       });
     });
 
+    // Year filter
+    let currentYear = '';
+    const yearFilterEl = document.getElementById('yearFilter');
+    if (yearFilterEl) {
+      currentYear = yearFilterEl.value || '';
+      yearFilterEl.addEventListener('change', () => {
+        currentYear = yearFilterEl.value;
+        loadAllData();
+      });
+    }
+
+    // PDF export
+    document.getElementById('btnExportPdf')?.addEventListener('click', () => {
+      window.print();
+    });
+
     // Refresh button
     document.getElementById('refreshBtn')?.addEventListener('click', loadAllData);
 
@@ -97,7 +113,7 @@
     async function loadOverview() {
       const container = document.getElementById('overviewCards');
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=overview&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=overview&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -162,7 +178,7 @@
 
     async function loadParticipation() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=participation&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=participation&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -269,13 +285,13 @@
       } catch (err) {
         var pChart = document.getElementById('participationChart');
         if (pChart) pChart.parentElement.innerHTML = chartErrorHtml('Erreur de chargement des participations');
-        document.getElementById('participationTable').innerHTML = '';
+        document.getElementById('participationTable').innerHTML = '<div class="text-center text-muted text-sm" style="padding:1.5rem;">Aucune donn\u00e9e de participation disponible.</div>';
       }
     }
 
     async function loadMotions() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=motions&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=motions&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -358,13 +374,13 @@
         var mChart = document.getElementById('motionsChart');
         if (mChart) mChart.parentElement.innerHTML = chartErrorHtml('Erreur de chargement des r\u00e9solutions');
         var mtChart = document.getElementById('motionsTrendChart');
-        if (mtChart) mtChart.parentElement.innerHTML = '';
+        if (mtChart) mtChart.parentElement.innerHTML = '<div class="text-center text-muted text-sm" style="padding:1.5rem;">Aucune tendance disponible.</div>';
       }
     }
 
     async function loadVoteDuration() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=vote_duration&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=vote_duration&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -421,7 +437,7 @@
 
     async function loadVoteTiming() {
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=vote_timing&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=vote_timing&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 
@@ -463,7 +479,7 @@
       const meetingsContainer = document.getElementById('anomaliesMeetings');
 
       try {
-        const { body } = await api(`/api/v1/analytics.php?type=anomalies&period=${currentPeriod}`);
+        const { body } = await api(`/api/v1/analytics.php?type=anomalies&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
         const data = body?.data;
         if (!data) throw new Error('Donn\u00e9es non disponibles');
 

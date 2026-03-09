@@ -192,10 +192,16 @@ final class BallotsService {
                     $isProxyVote ? $proxyVoterId : null,
                 );
             });
+        } catch (\PDOException $e) {
+            // SQLSTATE 23505 = unique_violation (PostgreSQL)
+            if ($e->getCode() === '23505') {
+                throw new RuntimeException('Ce membre a déjà voté sur cette résolution. Un re-vote nécessite une annulation préalable par l\'opérateur.');
+            }
+            throw $e;
         } catch (Throwable $e) {
-            // Unique constraint violation = member already voted on this motion
+            // Fallback: check message patterns for wrapped exceptions
             $msg = $e->getMessage();
-            if (stripos($msg, 'unique') !== false || stripos($msg, 'ballots_motion_id_member_id') !== false || stripos($msg, 'duplicate key') !== false) {
+            if (stripos($msg, 'unique') !== false || stripos($msg, 'duplicate key') !== false) {
                 throw new RuntimeException('Ce membre a déjà voté sur cette résolution. Un re-vote nécessite une annulation préalable par l\'opérateur.');
             }
             throw $e;
@@ -206,7 +212,7 @@ final class BallotsService {
             $tally = $this->ballotRepo->tally($motionId, $tenantId);
             EventBroadcaster::voteCast($meetingId, $motionId, $tally);
         } catch (Throwable $e) {
-            // Silently fail - don't break the vote if broadcast fails
+            error_log('[WebSocket] Broadcast failed after vote cast: ' . $e->getMessage());
         }
 
         $row = $this->ballotRepo->findByMotionAndMember($motionId, $memberId, $tenantId);

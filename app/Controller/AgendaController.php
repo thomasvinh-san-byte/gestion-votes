@@ -43,8 +43,15 @@ final class AgendaController extends AbstractController {
         $title = $v->get('title');
 
         $meetingRepo = new MeetingRepository();
-        if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
+        $meeting = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
+        if (!$meeting) {
             api_fail('meeting_not_found', 404);
+        }
+        if (!empty($meeting['validated_at'])) {
+            api_fail('meeting_validated', 409, ['detail' => 'Séance validée : modification de l\'ordre du jour interdite.']);
+        }
+        if (($meeting['status'] ?? '') === 'archived') {
+            api_fail('archived_immutable', 409);
         }
 
         $agendaRepo = new AgendaRepository();

@@ -234,9 +234,9 @@ class Logger {
     }
 
     /**
-     * Retourne un ID de requete unique.
+     * Retourne un ID de requete unique (accepts incoming X-Request-ID / X-Correlation-ID).
      */
-    private static function getRequestId(): string {
+    public static function getRequestId(): string {
         static $requestId = null;
 
         if ($requestId === null) {

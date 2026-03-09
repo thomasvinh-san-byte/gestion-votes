@@ -231,7 +231,7 @@ final class OperatorController extends AbstractController {
             $expiresMinutes = 24 * 60;
         }
 
-        $secret = (string) (defined('APP_SECRET') ? APP_SECRET : config('app_secret', 'change-me-in-prod'));
+        $secret = (string) (defined('APP_SECRET') ? APP_SECRET : config('app_secret', ''));
 
         $meetingRepo = new MeetingRepository();
         $motionRepo = new MotionRepository();

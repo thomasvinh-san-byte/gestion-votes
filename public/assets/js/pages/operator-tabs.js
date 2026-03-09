@@ -224,9 +224,13 @@ window.OpS = { fn: {} };
     // Warn if leaving Séance tab with unsaved changes
     var currentTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
     if (currentTab === 'seance' && tabId !== 'seance' && _isSettingsDirty()) {
-      if (!confirm('Vous avez des modifications non enregistrées dans l\'onglet Séance. Quitter sans sauvegarder ?')) {
-        return;
-      }
+      var confirmed = await confirmModal({
+        title: 'Modifications non enregistrées',
+        body: '<p>Vous avez des modifications non enregistrées dans l\'onglet Séance. Quitter sans sauvegarder ?</p>',
+        confirmText: 'Quitter sans sauvegarder',
+        confirmClass: 'btn-danger'
+      });
+      if (!confirmed) return;
     }
 
     tabButtons.forEach(btn => {
@@ -313,7 +317,7 @@ window.OpS = { fn: {} };
     updateURLParam('meeting_id', meetingId);
 
     try {
-      const { body } = await api(`/api/v1/meetings.php?id=${meetingId}`);
+      const { body } = await api(`/api/v1/meetings.php?id=${encodeURIComponent(meetingId)}`);
       if (body?.ok && body?.data) {
         currentMeeting = body.data;
         currentMeetingStatus = body.data.status;
@@ -374,7 +378,7 @@ window.OpS = { fn: {} };
     // Update meeting links
     document.querySelectorAll('[data-meeting-link]').forEach(link => {
       const base = link.getAttribute('href').split('?')[0];
-      link.href = `${base}?meeting_id=${currentMeetingId}`;
+      link.href = `${base}?meeting_id=${encodeURIComponent(currentMeetingId)}`;
     });
 
     // Update lifecycle bar visual indicator
@@ -568,7 +572,7 @@ window.OpS = { fn: {} };
       }
 
       // Allow the Actualiser and Projection buttons (read-only actions)
-      const allowedBtns = ['btnBarRefresh', 'btnProjector', 'btnRecheck'];
+      const allowedBtns = ['btnBarRefresh', 'btnProjector'];
       allowedBtns.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) { btn.disabled = false; btn.title = ''; }
@@ -936,7 +940,7 @@ window.OpS = { fn: {} };
     try {
       const [usersRes, rolesRes] = await Promise.all([
         api('/api/v1/admin_users.php'),
-        api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`)
+        api(`/api/v1/admin_meeting_roles.php?meeting_id=${encodeURIComponent(currentMeetingId)}`)
       ]);
 
       usersCache = usersRes.body?.data?.items || [];
@@ -1032,7 +1036,7 @@ window.OpS = { fn: {} };
     if (!currentMeetingId) return;
 
     try {
-      const { body } = await api(`/api/v1/dashboard.php?meeting_id=${currentMeetingId}`);
+      const { body } = await api(`/api/v1/dashboard.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
       const d = body?.data || body || {};
 
       // Show card
@@ -1074,7 +1078,7 @@ window.OpS = { fn: {} };
     if (!currentMeetingId) return;
 
     try {
-      const { body } = await api(`/api/v1/devices_list.php?meeting_id=${currentMeetingId}`);
+      const { body } = await api(`/api/v1/devices_list.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
 
       if (!body?.ok) return;
 
@@ -1100,7 +1104,7 @@ window.OpS = { fn: {} };
           const statusIcon = dev.status === 'online' ? icon('circle', 'icon-xs icon-success') : dev.status === 'stale' ? icon('circle', 'icon-xs icon-warning') : icon('circle', 'icon-xs icon-muted');
           const blocked = dev.is_blocked ? ' ' + icon('ban', 'icon-xs icon-danger') : '';
           const battery = dev.battery_pct !== null ? ` ${dev.battery_pct}%` : '';
-          const role = dev.role ? ` (${dev.role})` : '';
+          const role = dev.role ? ` (${escapeHtml(dev.role)})` : '';
           return `<div class="text-sm">${statusIcon}${blocked} ${escapeHtml(dev.device_id.slice(0, 8))}...${role}${battery}</div>`;
         }).join('');
 
@@ -1128,7 +1132,7 @@ window.OpS = { fn: {} };
       container: container,
       errorMsg: 'Impossible de charger l\u2019ordre du jour',
       action: async function () {
-        var res = await api('/api/v1/agendas.php?meeting_id=' + currentMeetingId);
+        var res = await api('/api/v1/agendas.php?meeting_id=' + encodeURIComponent(currentMeetingId));
         var d = res.body;
         if (!d || !d.ok) throw new Error((d && d.error) || 'Erreur');
         agendaCache = (d.data && d.data.items) || [];
@@ -1280,7 +1284,7 @@ window.OpS = { fn: {} };
     }
 
     try {
-      var res = await api('/api/v1/quorum_status.php?meeting_id=' + currentMeetingId);
+      var res = await api('/api/v1/quorum_status.php?meeting_id=' + encodeURIComponent(currentMeetingId));
       var d = res.body;
       if (!d || !d.ok) { card.hidden = true; return; }
 
@@ -1358,7 +1362,7 @@ window.OpS = { fn: {} };
     const list = modal.querySelector('#devicesModalList');
 
     try {
-      const { body } = await api(`/api/v1/devices_list.php?meeting_id=${currentMeetingId}`);
+      const { body } = await api(`/api/v1/devices_list.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
 
       if (!body?.ok || !body.data?.items?.length) {
         list.innerHTML = '<div class="text-center p-4 text-muted">Aucun appareil connecté</div>';
@@ -1379,10 +1383,10 @@ window.OpS = { fn: {} };
             </div>
             <div class="flex gap-1">
               ${blocked
-                ? `<button class="btn btn-xs btn-success btn-unblock" data-device="${dev.device_id}">Débloquer</button>`
-                : `<button class="btn btn-xs btn-warning btn-block" data-device="${dev.device_id}">Bloquer</button>`
+                ? `<button class="btn btn-xs btn-success btn-unblock" data-device="${escapeHtml(dev.device_id)}">Débloquer</button>`
+                : `<button class="btn btn-xs btn-warning btn-block" data-device="${escapeHtml(dev.device_id)}">Bloquer</button>`
               }
-              <button class="btn btn-xs btn-secondary btn-kick" data-device="${dev.device_id}">Reconnecter</button>
+              <button class="btn btn-xs btn-secondary btn-kick" data-device="${escapeHtml(dev.device_id)}">Reconnecter</button>
             </div>
           </div>
         `;
@@ -1469,7 +1473,7 @@ window.OpS = { fn: {} };
 
   async function loadStatusChecklist() {
     try {
-      const { body } = await api(`/api/v1/wizard_status.php?meeting_id=${currentMeetingId}`);
+      const { body } = await api(`/api/v1/wizard_status.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
       const d = body?.data || {};
 
       const checks = [
@@ -1782,7 +1786,7 @@ window.OpS = { fn: {} };
         setNotif('success', 'Président assigné');
       } else {
         // Remove current president
-        const { body } = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`);
+        const { body } = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
         const roles = body?.data?.items || [];
         const president = roles.find(r => r.role === 'president');
         if (president) {
@@ -2557,6 +2561,26 @@ window.OpS = { fn: {} };
       if (forEl) forEl.textContent = fc;
       if (againstEl) againstEl.textContent = ac;
       if (abstainEl) abstainEl.textContent = ab;
+
+      // Update animated vote bars
+      var total = fc + ac + ab;
+      var pctFor = total > 0 ? Math.round((fc / total) * 100) : 0;
+      var pctAgainst = total > 0 ? Math.round((ac / total) * 100) : 0;
+      var pctAbstain = total > 0 ? Math.round((ab / total) * 100) : 0;
+
+      var barFor = document.getElementById('opBarFor');
+      var barAgainst = document.getElementById('opBarAgainst');
+      var barAbstain = document.getElementById('opBarAbstain');
+      if (barFor) barFor.style.width = pctFor + '%';
+      if (barAgainst) barAgainst.style.width = pctAgainst + '%';
+      if (barAbstain) barAbstain.style.width = pctAbstain + '%';
+
+      var pFor = document.getElementById('opPctFor');
+      var pAgainst = document.getElementById('opPctAgainst');
+      var pAbstain = document.getElementById('opPctAbstain');
+      if (pFor) pFor.textContent = pctFor + '%';
+      if (pAgainst) pAgainst.textContent = pctAgainst + '%';
+      if (pAbstain) pAbstain.textContent = pctAbstain + '%';
     } else {
       // Show no-vote placeholder with quick-open buttons, hide active vote
       if (noVotePanel) Shared.show(noVotePanel, 'block');
@@ -2584,7 +2608,7 @@ window.OpS = { fn: {} };
     }
 
     list.innerHTML = openableMotions.slice(0, 5).map((m, i) => `
-      <button class="btn btn-primary btn-quick-open" data-motion-id="${m.id}">
+      <button class="btn btn-primary btn-quick-open" data-motion-id="${escapeHtml(m.id)}">
         ${icon('play', 'icon-sm icon-text')}${i + 1}. ${escapeHtml(m.title.length > 30 ? m.title.substring(0, 30) + '...' : m.title)}
       </button>
     `).join('');
@@ -2811,7 +2835,7 @@ window.OpS = { fn: {} };
   document.getElementById('btnGuideAddResolution')?.addEventListener('click', () => {
     Shared.show(document.getElementById('addResolutionForm'), 'block');
     document.getElementById('noResolutionsGuide')?.setAttribute('hidden', '');
-    var titleInput = document.getElementById('resolutionTitle');
+    var titleInput = document.getElementById('newResolutionTitle');
     if (titleInput) titleInput.focus();
   });
   document.getElementById('btnCancelResolution')?.addEventListener('click', () => {
@@ -2925,7 +2949,7 @@ window.OpS = { fn: {} };
   async function loadInvitationStats() {
     if (!currentMeetingId) return;
     try {
-      const { body } = await api(`/api/v1/invitations_stats.php?meeting_id=${currentMeetingId}`);
+      const { body } = await api(`/api/v1/invitations_stats.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
       if (body?.ok && body?.data) {
         const inv = body.data.items || {};
         const eng = body.data.engagement || {};
@@ -2983,11 +3007,15 @@ window.OpS = { fn: {} };
         `
       });
       modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
-      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
+        var checked = document.getElementById('invResendAll')?.checked || false;
+        closeModal(modal);
+        resolve(checked);
+      });
     });
-    if (!confirmed) return;
+    if (confirmed === false) return;
 
-    const resendAll = document.getElementById('invResendAll')?.checked || false;
+    const resendAll = confirmed;
     const btn = document.getElementById('btnSendInvitations');
     Shared.btnLoading(btn, true);
 
@@ -3104,6 +3132,19 @@ window.OpS = { fn: {} };
   document.getElementById('onboardingDismiss')?.addEventListener('click', function() {
     var banner = document.getElementById('onboardingBanner');
     if (banner) banner.hidden = true;
+  });
+
+  // Exec sub-tab switching (Résultat / Avancé / Présences)
+  document.querySelectorAll('#opSubTabs .op-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('#opSubTabs .op-tab').forEach(function(t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      var target = tab.dataset.opTab;
+      ['opPanelResultat', 'opPanelAvance', 'opPanelPresences'].forEach(function(id) {
+        var panel = document.getElementById(id);
+        if (panel) panel.classList.toggle('active', id === 'opPanel' + target.charAt(0).toUpperCase() + target.slice(1));
+      });
+    });
   });
 
   // Close session buttons (Résultats tab + Exec view)

@@ -73,7 +73,7 @@
     el.id = 'blockedOverlay';
     el.style.position = 'fixed';
     el.style.inset = '0';
-    el.style.zIndex = '800'; // matches --z-toast from design system
+    el.style.zIndex = '900'; // --z-overlay: above toasts (800) so block screen is never hidden
     Shared.hide(el);
     el.style.background = 'rgba(15, 23, 42, 0.94)';
     el.style.color = '#fff';
@@ -131,7 +131,7 @@
 
     if (status === 0) {
       _heartbeatFailCount++;
-      if (_heartbeatFailCount === 3) {
+      if (_heartbeatFailCount >= 3) {
         notify('error', 'Connexion instable — vérifiez votre réseau.');
       }
       return;
@@ -764,6 +764,9 @@
   };
 
   async function cast(choice){
+    // Map UI value to API value
+    if (choice === 'blanc') choice = 'nsp';
+
     const memberId = selectedMemberId();
     if (!_currentMotionId) {
       throw new Error('Aucune résolution en cours. Patientez l\'ouverture du vote.');
@@ -783,7 +786,7 @@
 
     // Idempotency key — one attempt, no silent retry.
     // If the vote fails the user sees the error and consciously retries.
-    const idempotencyKey = `${_currentMotionId}:${memberId}:${Date.now()}`;
+    const idempotencyKey = `${_currentMotionId}:${memberId}`;
 
     try {
       await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice }, { 'X-Idempotency-Key': idempotencyKey });
@@ -872,11 +875,22 @@
       updateMemberFromSelect(memberSel);
     }
 
-    // Show welcome banner
+    // M3 fix: Populate identity banner for invitation mode
     const memberName = memberSel?.selectedOption?.label
       || memberSel?.options?.[memberSel.selectedIndex]?.textContent?.split('(')[0]?.trim()
       || '';
     if (memberName) {
+      const identityName = document.getElementById('identityName');
+      const identityAvatar = document.getElementById('identityAvatar');
+      const identityMeeting = document.getElementById('identityMeeting');
+      if (identityName) identityName.textContent = memberName;
+      if (identityAvatar) identityAvatar.textContent = memberName.charAt(0).toUpperCase();
+
+      const meetingName = meetingSel?.selectedOption?.label
+        || meetingSel?.options?.[meetingSel.selectedIndex]?.textContent
+        || '';
+      if (identityMeeting && meetingName) identityMeeting.textContent = meetingName;
+
       notify('success', 'Bienvenue ' + memberName + ' — votre identité est confirmée.');
     }
   }
