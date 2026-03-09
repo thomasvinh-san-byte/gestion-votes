@@ -319,13 +319,8 @@ class AggregateReportRepository extends AbstractRepository {
         $filter = '';
 
         if (!empty($meetingIds)) {
-            $placeholders = [];
-            foreach ($meetingIds as $i => $id) {
-                $key = ":mid{$i}";
-                $placeholders[] = $key;
-                $params[$key] = $id;
-            }
-            $filter .= ' AND mt.id IN (' . implode(',', $placeholders) . ')';
+            $in = $this->buildInClause('mid', $meetingIds, $params);
+            $filter .= " AND mt.id IN ({$in})";
         }
 
         if ($fromDate !== null) {

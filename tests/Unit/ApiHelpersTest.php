@@ -56,8 +56,8 @@ class ApiHelpersTest extends TestCase {
         $apiFile = PROJECT_ROOT . '/app/api.php';
         $content = file_get_contents($apiFile);
 
-        // Check that guard functions delegate to repositories
-        $this->assertStringContainsString('MeetingRepository', $content);
+        // Check that guard functions delegate to repositories via factory
+        $this->assertStringContainsString('RepositoryFactory::getInstance()->meeting()', $content);
         $this->assertStringNotContainsString(
             'db()->prepare("SELECT',
             $content,

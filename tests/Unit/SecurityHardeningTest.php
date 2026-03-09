@@ -63,9 +63,9 @@ class SecurityHardeningTest extends TestCase {
         $content = file_get_contents($apiFile);
 
         $this->assertStringContainsString(
-            'MeetingRepository',
+            'RepositoryFactory::getInstance()->meeting()',
             $content,
-            'api_guard functions must use MeetingRepository',
+            'api_guard functions must use RepositoryFactory for meeting repository',
         );
 
         // Count raw SQL statements — only api_request() merger is acceptable (no SELECT/INSERT)
