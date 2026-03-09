@@ -245,7 +245,7 @@
     async function updatePreview() {
       const bodyHtml = document.getElementById('templateBody').value;
       if (!bodyHtml) {
-        previewFrame.srcdoc = '<p style="padding:20px;color:#666;">Entrez du contenu HTML pour voir la pr\u00e9visualisation</p>';
+        previewFrame.srcdoc = '<p style="padding:20px;color:var(--color-text-muted,#666);font-family:system-ui,sans-serif;">Entrez du contenu HTML pour voir la pr\u00e9visualisation</p>';
         return;
       }
 

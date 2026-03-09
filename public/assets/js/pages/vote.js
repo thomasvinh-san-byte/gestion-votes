@@ -73,7 +73,7 @@
     el.id = 'blockedOverlay';
     el.style.position = 'fixed';
     el.style.inset = '0';
-    el.style.zIndex = '800'; // matches --z-toast from design system
+    el.style.zIndex = '900'; // --z-overlay: above toasts (800) so block screen is never hidden
     Shared.hide(el);
     el.style.background = 'rgba(15, 23, 42, 0.94)';
     el.style.color = '#fff';
