@@ -60,6 +60,30 @@ class MemberRepository extends AbstractRepository {
     }
 
     /**
+     * Returns the subset of $ids that exist (non-deleted) for this tenant.
+     *
+     * @param string[] $ids
+     * @return string[] existing IDs
+     */
+    public function filterExistingIds(array $ids, string $tenantId): array {
+        if (count($ids) === 0) {
+            return [];
+        }
+        $placeholders = [];
+        $params = [':tid' => $tenantId];
+        foreach (array_values($ids) as $i => $id) {
+            $placeholders[] = ":id{$i}";
+            $params[":id{$i}"] = $id;
+        }
+        $in = implode(',', $placeholders);
+        $rows = $this->selectAll(
+            "SELECT id FROM members WHERE tenant_id = :tid AND id IN ({$in}) AND deleted_at IS NULL",
+            $params,
+        );
+        return array_column($rows, 'id');
+    }
+
+    /**
      * Count of active members for a tenant (excludes soft-deleted).
      */
     public function countActive(string $tenantId): int {

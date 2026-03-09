@@ -108,14 +108,13 @@ final class AttendancesController extends AbstractController {
         $created = 0;
         $attendanceRepo = new AttendanceRepository();
 
-        api_transaction(function () use ($memberIds, $memberRepo, $attendanceRepo, $meetingId, $mode, $tenantId, &$created, &$updated) {
-            foreach ($memberIds as $memberId) {
-                if (!api_is_uuid($memberId)) {
-                    continue;
-                }
-                if (!$memberRepo->existsForTenant($memberId, $tenantId)) {
-                    continue;
-                }
+        // Filter valid UUIDs first, then batch-validate membership (avoids N+1)
+        $validUuids = array_filter($memberIds, fn($id) => api_is_uuid($id));
+        $existingIds = $memberRepo->filterExistingIds($validUuids, $tenantId);
+        $existingSet = array_flip($existingIds);
+
+        api_transaction(function () use ($existingIds, $attendanceRepo, $meetingId, $mode, $tenantId, &$created, &$updated) {
+            foreach ($existingIds as $memberId) {
                 $wasCreated = $attendanceRepo->upsertMode($meetingId, $memberId, $mode, $tenantId);
                 if ($wasCreated) {
                     $created++;

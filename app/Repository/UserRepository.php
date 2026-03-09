@@ -497,7 +497,8 @@ class UserRepository extends AbstractRepository {
     public function listRecentAlerts(int $limit = 20): array {
         try {
             return $this->selectAll(
-                'SELECT id, created_at, code, severity, message, details_json FROM system_alerts ORDER BY created_at DESC LIMIT ' . max(1, $limit),
+                'SELECT id, created_at, code, severity, message, details_json FROM system_alerts ORDER BY created_at DESC LIMIT :lim',
+                [':lim' => max(1, $limit)],
             );
         } catch (Throwable $e) {
             return [];
