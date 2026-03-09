@@ -504,7 +504,7 @@
     tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr>';
 
     try {
-      const url = '/api/v1/admin_meeting_roles.php' + (meetingId ? '?meeting_id=' + meetingId : '');
+      const url = '/api/v1/admin_meeting_roles.php' + (meetingId ? '?meeting_id=' + encodeURIComponent(meetingId) : '');
       const r = await api(url);
       if (r.body && r.body.ok && r.body.data) {
         const items = r.body.data.items || [];
