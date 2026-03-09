@@ -1409,7 +1409,7 @@ h4, .h4 {
   background: var(--color-bg-subtle);
 }
 
-/* ─── Navigation ─── */
+/* ─── Navigation (generic .nav container) ─── */
 .nav {
   display: flex;
   flex-direction: column;
@@ -1417,33 +1417,9 @@ h4, .h4 {
   padding: var(--space-4);
 }
 
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-md);
-  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
-}
-
-.nav-item:hover {
-  background: var(--color-bg-subtle);
-  color: var(--color-text);
-}
-
-.nav-item.active {
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
-}
-
-.nav-item-icon {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
+/* NOTE: .nav-item base styles are defined in the Sidebar section (~line 696).
+   .nav-item:hover and .nav-item.active for sidebar are also defined there.
+   Do NOT redefine .nav-item here to avoid conflicting with sidebar variables. */
 
 .app-sidebar > .nav,
 .app-sidebar nav {
@@ -1452,12 +1428,8 @@ h4, .h4 {
   overflow-y: auto;
 }
 
-/* ─── Sidebar Footer (theme toggle) ─── */
-.sidebar-footer {
-  margin-top: auto;
-  padding: var(--space-2) var(--space-3);
-  border-top: 1px solid var(--color-border);
-}
+/* NOTE: .sidebar-footer base styles are defined in the Sidebar section (~line 857).
+   Do NOT redefine here to avoid conflicting with sidebar-specific variables. */
 
 .sidebar-footer .nav-item {
   width: 100%;
@@ -2430,15 +2402,7 @@ textarea:focus-visible,
   animation: badgePop 0.3s var(--ease-bounce);
 }
 
-/* Respect reduced-motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  .animate-stagger > *,
-  .app-main,
-  .badge-animate,
-  .animate-fade-in {
-    animation: none !important;
-  }
-}
+/* NOTE: prefers-reduced-motion is handled globally in the Accessibility section (~line 2253). */
 
 /* HTMX Loading States */
 .htmx-indicator {
@@ -3411,20 +3375,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
-/* ── Accessibility ── */
-.skip-link {
-  position: fixed; top: -100px; left: 16px; z-index: var(--z-skip);
-  padding: 8px 16px; border-radius: var(--radius-sm);
-  background: var(--color-primary); color: var(--color-text-inverse);
-  font-weight: 600; font-size: 13px; text-decoration: none;
-  transition: top .2s ease;
-}
-.skip-link:focus { top: 16px; }
-:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
+/* NOTE: .skip-link and :focus-visible are defined in the Accessibility section (~line 2201/2229). */
 
 /* Responsive utility classes */
 @media (min-width: 640px) {

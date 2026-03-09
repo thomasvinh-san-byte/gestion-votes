@@ -125,8 +125,8 @@ class MeetingRepository extends AbstractRepository {
              ) att_cnt ON true
              WHERE m.tenant_id = :tenant_id
              ORDER BY COALESCE(m.started_at, m.scheduled_at, m.created_at) DESC
-             LIMIT " . max(1, min($limit, 200)),
-            [':tenant_id' => $tenantId],
+             LIMIT :lim",
+            [':tenant_id' => $tenantId, ':lim' => max(1, min($limit, 200))],
         );
     }
 
@@ -151,8 +151,8 @@ class MeetingRepository extends AbstractRepository {
              WHERE m.tenant_id = :tenant_id
                AND m.status NOT IN ('validated', 'archived')
              ORDER BY COALESCE(m.started_at, m.scheduled_at, m.created_at) DESC
-             LIMIT " . max(1, min($limit, 200)),
-            [':tenant_id' => $tenantId],
+             LIMIT :lim",
+            [':tenant_id' => $tenantId, ':lim' => max(1, min($limit, 200))],
         );
     }
 
@@ -194,8 +194,8 @@ class MeetingRepository extends AbstractRepository {
              ORDER BY
                CASE status WHEN 'live' THEN 0 WHEN 'draft' THEN 1 WHEN 'archived' THEN 3 ELSE 2 END,
                COALESCE(started_at, scheduled_at, created_at) DESC
-             LIMIT " . max(1, min($limit, 500)),
-            [':tid' => $tenantId],
+             LIMIT :lim",
+            [':tid' => $tenantId, ':lim' => max(1, min($limit, 500))],
         );
     }
 
