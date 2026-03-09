@@ -55,7 +55,7 @@
     // Charger le résumé
     async function loadSummary() {
       try {
-        const { body } = await api(`/api/v1/meeting_summary.php?meeting_id=${currentMeetingId}`);
+        const { body } = await api(`/api/v1/meeting_summary.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
 
         if (body && body.ok && body.data) {
           const s = body.data;
@@ -105,7 +105,7 @@
       `;
 
       try {
-        const { body } = await api(`/api/v1/meeting_ready_check.php?meeting_id=${currentMeetingId}`);
+        const { body } = await api(`/api/v1/meeting_ready_check.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
 
         if (body && body.ok && body.data) {
           const checks = body.data.checks || [];

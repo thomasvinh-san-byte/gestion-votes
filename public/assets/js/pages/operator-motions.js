@@ -16,7 +16,7 @@
 
   async function loadResolutions() {
     try {
-      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${O.currentMeetingId}`);
+      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`);
       O.motionsCache = body?.data?.items || [];
       O.currentOpenMotion = O.motionsCache.find(m => m.opened_at && !m.closed_at) || null;
       renderResolutions();
@@ -970,9 +970,9 @@
     }).join('') || '<div class="text-center p-4 text-muted">Aucune résolution</div>';
 
     // Export links (preview=1 generates a draft if meeting not validated)
-    document.getElementById('exportPV').href = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${O.currentMeetingId}&preview=1`;
-    document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${O.currentMeetingId}`;
-    document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${O.currentMeetingId}`;
+    document.getElementById('exportPV').href = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}&preview=1`;
+    document.getElementById('exportAttendance').href = `/api/v1/export_attendance_csv.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`;
+    document.getElementById('exportVotes').href = `/api/v1/export_votes_csv.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`;
 
     // Update close session section
     updateCloseSessionStatus();

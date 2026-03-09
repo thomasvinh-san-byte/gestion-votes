@@ -13,7 +13,7 @@
 
   async function loadAttendance() {
     try {
-      const { body } = await api(`/api/v1/attendances.php?meeting_id=${O.currentMeetingId}`);
+      const { body } = await api(`/api/v1/attendances.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`);
       O.attendanceCache = body?.data?.items || [];
       renderAttendance();
     } catch (err) {
@@ -266,7 +266,7 @@
     if (!O.currentMeetingId) return;
 
     try {
-      const { body } = await api(`/api/v1/proxies.php?meeting_id=${O.currentMeetingId}`);
+      const { body } = await api(`/api/v1/proxies.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`);
       O.proxiesCache = body?.data?.items || [];
       renderProxies();
     } catch (err) {

@@ -15,7 +15,7 @@
     if (!O.currentMeetingId) return;
 
     try {
-      const { body } = await api(`/api/v1/speech_queue.php?meeting_id=${O.currentMeetingId}`);
+      const { body } = await api(`/api/v1/speech_queue.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`);
       const data = body?.data || {};
       O.currentSpeakerCache = data.speaker || null;
       const newQueue = data.queue || [];

@@ -378,7 +378,7 @@ window.OpS = { fn: {} };
     // Update meeting links
     document.querySelectorAll('[data-meeting-link]').forEach(link => {
       const base = link.getAttribute('href').split('?')[0];
-      link.href = `${base}?meeting_id=${currentMeetingId}`;
+      link.href = `${base}?meeting_id=${encodeURIComponent(currentMeetingId)}`;
     });
 
     // Update lifecycle bar visual indicator
@@ -940,7 +940,7 @@ window.OpS = { fn: {} };
     try {
       const [usersRes, rolesRes] = await Promise.all([
         api('/api/v1/admin_users.php'),
-        api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`)
+        api(`/api/v1/admin_meeting_roles.php?meeting_id=${encodeURIComponent(currentMeetingId)}`)
       ]);
 
       usersCache = usersRes.body?.data?.items || [];
@@ -1036,7 +1036,7 @@ window.OpS = { fn: {} };
     if (!currentMeetingId) return;
 
     try {
-      const { body } = await api(`/api/v1/dashboard.php?meeting_id=${currentMeetingId}`);
+      const { body } = await api(`/api/v1/dashboard.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
       const d = body?.data || body || {};
 
       // Show card
@@ -1078,7 +1078,7 @@ window.OpS = { fn: {} };
     if (!currentMeetingId) return;
 
     try {
-      const { body } = await api(`/api/v1/devices_list.php?meeting_id=${currentMeetingId}`);
+      const { body } = await api(`/api/v1/devices_list.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
 
       if (!body?.ok) return;
 
@@ -1362,7 +1362,7 @@ window.OpS = { fn: {} };
     const list = modal.querySelector('#devicesModalList');
 
     try {
-      const { body } = await api(`/api/v1/devices_list.php?meeting_id=${currentMeetingId}`);
+      const { body } = await api(`/api/v1/devices_list.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
 
       if (!body?.ok || !body.data?.items?.length) {
         list.innerHTML = '<div class="text-center p-4 text-muted">Aucun appareil connecté</div>';
@@ -1473,7 +1473,7 @@ window.OpS = { fn: {} };
 
   async function loadStatusChecklist() {
     try {
-      const { body } = await api(`/api/v1/wizard_status.php?meeting_id=${currentMeetingId}`);
+      const { body } = await api(`/api/v1/wizard_status.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
       const d = body?.data || {};
 
       const checks = [
@@ -1786,7 +1786,7 @@ window.OpS = { fn: {} };
         setNotif('success', 'Président assigné');
       } else {
         // Remove current president
-        const { body } = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${currentMeetingId}`);
+        const { body } = await api(`/api/v1/admin_meeting_roles.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
         const roles = body?.data?.items || [];
         const president = roles.find(r => r.role === 'president');
         if (president) {
@@ -2949,7 +2949,7 @@ window.OpS = { fn: {} };
   async function loadInvitationStats() {
     if (!currentMeetingId) return;
     try {
-      const { body } = await api(`/api/v1/invitations_stats.php?meeting_id=${currentMeetingId}`);
+      const { body } = await api(`/api/v1/invitations_stats.php?meeting_id=${encodeURIComponent(currentMeetingId)}`);
       if (body?.ok && body?.data) {
         const inv = body.data.items || {};
         const eng = body.data.engagement || {};

@@ -225,7 +225,7 @@
             </span>
           </div>
           <div class="meeting-card-actions">
-            <a class="${btnClass}" href="/operator.htmx.html?meeting_id=${m.id}">
+            <a class="${btnClass}" href="/operator.htmx.html?meeting_id=${encodeURIComponent(m.id)}">
               ${isLive ? '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>' : ''}
               ${btnText}
             </a>

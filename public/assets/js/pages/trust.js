@@ -96,7 +96,7 @@
   // Load anomalies
   async function loadAnomalies(meetingId) {
     try {
-      const { body } = await api(`/api/v1/trust_anomalies.php?meeting_id=${meetingId}`);
+      const { body } = await api(`/api/v1/trust_anomalies.php?meeting_id=${encodeURIComponent(meetingId)}`);
 
       const badge = document.getElementById('badgeAnomalies');
       const kpi = document.getElementById('kpiAnomalies');
@@ -241,7 +241,7 @@
   // Load coherence checks
   async function loadChecks(meetingId) {
     try {
-      const { body } = await api(`/api/v1/trust_checks.php?meeting_id=${meetingId}`);
+      const { body } = await api(`/api/v1/trust_checks.php?meeting_id=${encodeURIComponent(meetingId)}`);
 
       const container = document.getElementById('checksList');
       const kpi = document.getElementById('kpiChecks') || document.getElementById('kpiEvents');
@@ -305,7 +305,7 @@
   // Load motions
   async function loadMotions(meetingId) {
     try {
-      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${meetingId}`);
+      const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${encodeURIComponent(meetingId)}`);
 
       const tbody = document.getElementById('motionsTbody');
       const kpi = document.getElementById('kpiMotions') || null;
@@ -463,7 +463,7 @@
       return;
     }
 
-    const url = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}&format=csv`;
+    const url = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(currentMeetingId)}&format=csv`;
     window.open(url, '_blank');
     setNotif('success', 'Export CSV du journal d\'audit lancé');
   });
@@ -475,7 +475,7 @@
       return;
     }
 
-    const url = `/api/v1/audit_export.php?meeting_id=${currentMeetingId}&format=json`;
+    const url = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(currentMeetingId)}&format=json`;
     window.open(url, '_blank');
     setNotif('success', 'Export JSON structuré lancé (avec chaîne d\'intégrité)');
   });
