@@ -758,6 +758,13 @@ h4, .h4 {
   user-select: none;
   white-space: nowrap;
   position: relative;
+  /* Button reset (nav-group is a <button>) */
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  width: 100%;
 }
 /* Thin divider line in rail mode */
 .nav-group::after {
@@ -2455,11 +2462,39 @@ textarea:focus-visible,
   }
 
   .app-sidebar {
-    display: none;
+    position: fixed;
+    top: 0;
+    left: -260px;
+    bottom: 0;
+    width: 260px;
+    z-index: var(--z-modal);
+    transition: left .22s ease;
+    box-shadow: none;
   }
+  .app-sidebar:hover { width: 260px; box-shadow: none; }
+  .app-sidebar.open {
+    left: 0;
+    box-shadow: 12px 0 40px rgba(0, 0, 0, .4);
+  }
+  .app-sidebar.open .nav-label,
+  .app-sidebar.open .nav-group-label,
+  .app-sidebar.open .nav-group-chevron,
+  .app-sidebar.open .sidebar-version,
+  .app-sidebar.open .sidebar-pin,
+  .app-sidebar.open .device-tag { opacity: 1; max-width: 200px; }
+  .app-sidebar.open .nav-group::after { opacity: 0; }
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .4);
+    z-index: calc(var(--z-modal) - 1);
+  }
+
+  .hamburger { display: flex; }
 
   .app-main {
     padding: var(--space-4);
+    padding-left: var(--space-4);
   }
 
   .kpi-grid {
@@ -2597,52 +2632,7 @@ textarea:focus-visible,
   height: 24px;
 }
 
-@media (max-width: 768px) {
-  .mobile-nav-toggle {
-    display: flex;
-  }
-
-  /* Mobile sidebar overlay */
-  .app-sidebar.mobile-open {
-    display: flex;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: var(--z-modal);
-    background: var(--color-surface);
-    flex-direction: column;
-    overflow-y: auto;
-    animation: slideInLeft var(--duration-normal) var(--ease-out);
-  }
-
-  @keyframes slideInLeft {
-    from {
-      transform: translateX(-100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-
-  .app-sidebar.mobile-open .mobile-close {
-    display: flex;
-    position: absolute;
-    top: var(--space-4);
-    right: var(--space-4);
-    width: 44px;
-    height: 44px;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-bg-subtle);
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-}
+/* mobile-open block removed — shell.js uses .open class, handled above */
 
 /* ─── Touch-friendly improvements ─── */
 @media (pointer: coarse) {
@@ -2670,7 +2660,7 @@ textarea:focus-visible,
 
   /* Disable hover effects on touch devices (they can cause sticky states) */
   .btn:hover,
-  .nav-item:hover,
+  .app-main .nav-item:hover,
   .card:hover {
     /* Rely on active/focus states instead */
   }

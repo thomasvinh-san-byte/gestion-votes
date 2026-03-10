@@ -112,6 +112,7 @@
 
       group.classList.toggle('collapsed');
       var collapsed = group.classList.contains('collapsed');
+      group.setAttribute('aria-expanded', String(!collapsed));
       getGroupItems(group).forEach(function(item) {
         item.style.display = collapsed ? 'none' : '';
       });
@@ -135,12 +136,14 @@
       var state = JSON.parse(localStorage.getItem('ag-vote-sidebar-groups') || '{}');
       container.querySelectorAll('.nav-group[data-group]').forEach(function(group) {
         var name = group.getAttribute('data-group');
-        if (state[name]) {
+        var collapsed = !!state[name];
+        if (collapsed) {
           group.classList.add('collapsed');
           getGroupItems(group).forEach(function(item) {
             item.style.display = 'none';
           });
         }
+        group.setAttribute('aria-expanded', String(!collapsed));
       });
     } catch(ex) {}
   }
@@ -168,7 +171,13 @@
     const container = sidebarEl || sidebar;
     if (!container) return;
     container.querySelectorAll('.nav-item[data-page]').forEach(function(item) {
-      item.classList.toggle('active', item.getAttribute('data-page') === page);
+      var isActive = item.getAttribute('data-page') === page;
+      item.classList.toggle('active', isActive);
+      if (isActive) {
+        item.setAttribute('aria-current', 'page');
+      } else {
+        item.removeAttribute('aria-current');
+      }
     });
   }
 

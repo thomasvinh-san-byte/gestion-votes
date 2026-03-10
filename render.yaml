@@ -48,6 +48,9 @@ services:
         value: demo
       - key: APP_DEBUG
         value: "0"
+      # Secret for HMAC operations (API keys, tokens). Safe demo value — not a real secret.
+      - key: APP_SECRET
+        value: "demo-render-secret-not-for-production-use-only-for-public-demo-64c"
       # Auth and CSRF off for demo — anyone can explore without credentials.
       - key: APP_AUTH_ENABLED
         value: "0"

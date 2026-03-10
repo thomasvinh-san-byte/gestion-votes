@@ -28,7 +28,10 @@
         sidebar.innerHTML = html;
         if (page) {
           const link = sidebar.querySelector('[data-page="' + page + '"]');
-          if (link) link.classList.add('active');
+          if (link) {
+            link.classList.add('active');
+            link.setAttribute('aria-current', 'page');
+          }
         }
         // Propagate meeting_id to sidebar nav links using MeetingContext
         const mid = (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
