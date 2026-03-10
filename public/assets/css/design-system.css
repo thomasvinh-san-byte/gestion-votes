@@ -611,7 +611,7 @@ h4, .h4 {
 /* ── Sidebar — ALWAYS absolute, never in document flow, never causes layout shift ── */
 .app-sidebar {
   position: fixed;
-  top: 56px;
+  top: var(--sidebar-top, 56px);
   left: 0;
   bottom: 0;
   width: var(--sidebar-rail);
@@ -2651,7 +2651,7 @@ textarea:focus-visible,
     padding: var(--space-3) var(--space-4);
   }
 
-  .nav-item {
+  .app-main .nav-item {
     padding: var(--space-3) var(--space-4);
   }
 
@@ -2748,8 +2748,6 @@ textarea:focus-visible,
    ============================================================================= */
 
 .auth-banner {
-  position: sticky;
-  top: 0;
   z-index: var(--z-sticky, 200);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
@@ -2759,6 +2757,7 @@ textarea:focus-visible,
   justify-content: space-between;
   gap: var(--space-3);
   flex-wrap: wrap;
+  flex-shrink: 0;
   font-size: var(--text-sm);
 }
 

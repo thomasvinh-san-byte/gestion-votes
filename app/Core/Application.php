@@ -151,7 +151,7 @@ final class Application {
             'dev-secret-do-not-use-in-production-change-me-now-please-64chr',
         ];
 
-        if (($isProduction || $authEnabled) && (in_array(APP_SECRET, $insecureSecrets, true) || strlen(APP_SECRET) < 32)) {
+        if (($isProduction || ($authEnabled && !$isDemo)) && (in_array(APP_SECRET, $insecureSecrets, true) || strlen(APP_SECRET) < 32)) {
             throw new RuntimeException(
                 '[SECURITY] APP_SECRET must be set to a secure value (min 32 characters) in production. '
                 . 'Generate one with: php -r "echo bin2hex(random_bytes(32));"',
