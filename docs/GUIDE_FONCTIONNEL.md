@@ -521,7 +521,7 @@ Aperçu votant (tablette)
 - Container non-root (www-data)
 
 ### API
-- 120+ endpoints REST en PHP
+- 142 endpoints REST en PHP
 - Format uniforme : `{ ok: true, data: {...} }` ou `{ ok: false, error: "code", message: "..." }`
 - Timeout configurable, retry automatique côté client
 - Upload de fichiers avec validation MIME + taille
