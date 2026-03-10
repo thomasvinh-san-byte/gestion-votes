@@ -23,7 +23,7 @@ Non. AG-Vote fonctionne en réseau local fermé. L'application est auto-héberg�
 ### Comment installer AG-Vote ?
 Voir le guide complet dans [dev/INSTALLATION.md](dev/INSTALLATION.md). En résumé :
 1. Installer PHP 8.4+ et PostgreSQL 16+
-2. Créer la base de données et exécuter `database/schema.sql`
+2. Créer la base de données et exécuter `database/schema-master.sql`
 3. Configurer le fichier `.env` (copier depuis `.env.example`)
 4. Lancer le serveur PHP ou configurer Apache
 

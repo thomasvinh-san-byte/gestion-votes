@@ -124,7 +124,7 @@ sudo -u postgres psql -c "CREATE ROLE vote_app LOGIN PASSWORD 'vote_app_dev_2026
 sudo -u postgres createdb vote_app -O vote_app
 
 # Appliquer le schéma
-sudo -u postgres psql -d vote_app -f database/schema.sql
+sudo -u postgres psql -d vote_app -f database/schema-master.sql
 
 # Appliquer les migrations
 sudo -u postgres psql -d vote_app -f database/migrations/001_admin_enhancements.sql

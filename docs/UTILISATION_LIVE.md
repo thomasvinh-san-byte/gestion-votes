@@ -57,9 +57,9 @@ La démonstration guidée est décrite dans `RECETTE_DEMO.md`.
 | Rôle        | Interface              |
 | ----------- | ---------------------- |
 | Operator    | `/operator.htmx.html`  |
-| Président   | `/hub.htmx.html      ` |
+| Président   | `/hub.htmx.html`       |
 | Auditor     | `/trust.htmx.html`     |
-| Vote        | `/vote.htmx.html     `    |
+| Vote        | `/vote.htmx.html`      |
 | Validation  | `/validate.htmx.html`  |
 | PV / Export | `/report.htmx.html`    |
 
@@ -130,7 +130,7 @@ Si une résolution est déjà ouverte, l’action est refusée.
 Les votants accèdent à l’interface via :
 
 ```
-/vote.htmx.html     
+/vote.htmx.html
 ```
 
 Garanties :

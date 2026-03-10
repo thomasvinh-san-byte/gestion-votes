@@ -43,7 +43,7 @@ sudo -u postgres createuser vote_app --pwprompt
 sudo -u postgres createdb vote_app -O vote_app
 
 # Schéma
-sudo -u postgres psql -d vote_app -f database/schema.sql
+sudo -u postgres psql -d vote_app -f database/schema-master.sql
 
 # Seeds (dans l'ordre)
 PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
