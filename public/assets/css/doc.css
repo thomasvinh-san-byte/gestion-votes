@@ -45,6 +45,7 @@
 
 .app-main.doc-main {
   padding: 0;
+  padding-left: calc(var(--sidebar-rail) + 22px);
 }
 
 .doc-layout {
@@ -456,6 +457,10 @@
 }
 
 @media (max-width: 768px) {
+  .app-main.doc-main {
+    padding-left: 0;
+  }
+
   .doc-layout {
     grid-template-columns: 1fr;
   }
