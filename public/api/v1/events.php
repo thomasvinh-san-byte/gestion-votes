@@ -23,6 +23,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../app/bootstrap.php';
 
 use AgVote\Core\Providers\RedisProvider;
+use AgVote\WebSocket\EventBroadcaster;
 
 // ── Auth check (reuse session middleware logic) ──────────────────────────
 $authEnabled = getenv('APP_AUTH_ENABLED');
@@ -34,6 +35,12 @@ if ($authEnabled !== '0' && strtolower((string) $authEnabled) !== 'false') {
         echo json_encode(['ok' => false, 'error' => 'unauthorized']);
         exit;
     }
+}
+
+// Check if push/SSE is enabled
+if (!EventBroadcaster::isPushEnabled()) {
+    http_response_code(204);
+    exit;
 }
 
 $meetingId = $_GET['meeting_id'] ?? '';
@@ -125,47 +132,45 @@ function sendEvent(string $type, array $data, string $id = ''): void {
 }
 
 /**
- * Poll Redis for events targeting this meeting.
+ * Poll for events targeting this meeting.
  *
- * Uses a per-meeting SSE list that EventBroadcaster populates.
- * Falls back to scanning the main queue if the SSE list is empty.
+ * Uses Redis per-meeting SSE list when available,
+ * falls back to file-based queue (EventBroadcaster) otherwise.
  */
 function pollEvents(string $meetingId): array {
-    $events = [];
+    // Try Redis first
+    if (RedisProvider::isAvailable()) {
+        try {
+            $redis = RedisProvider::connection();
+            $sseKey = "sse:events:{$meetingId}";
 
-    if (!RedisProvider::isAvailable()) {
-        return $events;
-    }
+            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
 
-    try {
-        $redis = RedisProvider::connection();
-        $sseKey = "sse:events:{$meetingId}";
+            $pipe = $redis->multi(Redis::PIPELINE);
+            $pipe->lRange($sseKey, 0, -1);
+            $pipe->del($sseKey);
+            $results = $pipe->exec();
 
-        // Atomic: get all + delete from the per-meeting SSE list
-        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
 
-        $pipe = $redis->multi(Redis::PIPELINE);
-        $pipe->lRange($sseKey, 0, -1);
-        $pipe->del($sseKey);
-        $results = $pipe->exec();
-
-        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
-
-        $raw = $results[0] ?? [];
-        if (!is_array($raw)) {
-            return $events;
-        }
-
-        foreach ($raw as $item) {
-            $decoded = is_string($item) ? json_decode($item, true) : $item;
-            if (is_array($decoded)) {
-                $events[] = $decoded;
+            $raw = $results[0] ?? [];
+            if (is_array($raw) && count($raw) > 0) {
+                $events = [];
+                foreach ($raw as $item) {
+                    $decoded = is_string($item) ? json_decode($item, true) : $item;
+                    if (is_array($decoded)) {
+                        $events[] = $decoded;
+                    }
+                }
+                return $events;
             }
+
+            return [];
+        } catch (Throwable $e) {
+            // Fall through to file-based polling
         }
-    } catch (Throwable $e) {
-        // Silent — Redis may be unavailable
-        error_log('SSE pollEvents error: ' . $e->getMessage());
     }
 
-    return $events;
+    // File-based fallback (works without Redis — ideal for demo / Render)
+    return EventBroadcaster::dequeueSseFile($meetingId);
 }
