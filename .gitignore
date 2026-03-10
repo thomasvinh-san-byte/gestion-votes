@@ -25,4 +25,5 @@ node_modules/
 .DS_Store
 Thumbs.db
 .phpunit.result.cache
+.phpunit.cache/
 .php-cs-fixer.cache
