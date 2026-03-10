@@ -1,3 +1,4 @@
+/* GO-LIVE-STATUS: ready — Operator attendance module. */
 /**
  * operator-attendance.js — Attendance & proxy sub-module for the operator console.
  * Requires: utils.js, shared.js, operator-tabs.js (OpS bridge)

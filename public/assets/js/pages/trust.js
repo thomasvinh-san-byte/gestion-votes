@@ -1,3 +1,4 @@
+/* GO-LIVE-STATUS: ready — Trust/Audit JS. */
 /** trust.js — Trust control and audit page for AG-VOTE. Must be loaded AFTER utils.js, shared.js and shell.js. */
 (function() {
   'use strict';

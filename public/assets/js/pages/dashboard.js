@@ -1,3 +1,4 @@
+/* GO-LIVE-STATUS: ready — Dashboard JS. Données démo en fallback, API /api/v1/dashboard. */
 /**
  * Dashboard page — loads KPIs and task data from the API.
  * Degrades gracefully: shows static wireframe data if API unavailable.

@@ -1,3 +1,4 @@
+/* GO-LIVE-STATUS: ready — Hub JS. 6 étapes guidées, stepper cliquable, checklist. */
 /**
  * Hub — Fiche séance (6-step guided flow).
  * Shows one action at a time, tracks progress.

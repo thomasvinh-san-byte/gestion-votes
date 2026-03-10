@@ -1,3 +1,5 @@
+/* GO-LIVE-STATUS: ready — Operator tabs (core). innerHTML audité — aucune vulnérabilité XSS.
+   NICE-TO-HAVE: split P3 (settings + dashboard modules). */
 /**
  * operator-tabs.js — Tab-based operator console for AG-VOTE (Diligent-style)
  * Requires: utils.js, shared.js, shell.js

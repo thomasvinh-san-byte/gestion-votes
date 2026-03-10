@@ -1,3 +1,5 @@
+/* GO-LIVE-STATUS: ready — Wizard JS. Navigation 4 étapes, validation formulaire.
+   NICE-TO-HAVE: drag & drop résolutions. */
 /**
  * Wizard — 4-step meeting creation.
  * Manages step navigation, form state, and API submission.

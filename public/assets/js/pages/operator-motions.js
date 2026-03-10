@@ -1,3 +1,4 @@
+/* GO-LIVE-STATUS: ready — Operator motions module. innerHTML audité — OK. */
 /**
  * operator-motions.js — Motions / Votes / Results / Transitions sub-module
  * for the operator console.

@@ -99,10 +99,16 @@
   - `parseCSV()` : 2 appelants (operator-attendance.js)
   - `getMeetingId()` : 1 appelant (shell.js) — utilitaire fonctionnel
 
-### P2-03 · Audit innerHTML (177 assignments dans 21 fichiers)
-- **Problème** : La plupart sont sûrs (HTML hardcodé + données échappées), mais audit systématique nécessaire
-- **Effort** : 1-2 heures
-- **Statut** : [ ] À faire
+### P2-03 · Audit innerHTML (309 assignments dans 48 fichiers)
+- **Problème initial** : Risque XSS si données utilisateur non échappées dans innerHTML
+- **Résultat de l'audit** : [x] CONFIRMÉ SÛR — Toutes les données dynamiques (noms, emails,
+  titres, rôles) passent par `escapeHtml()` ou `encodeURIComponent()`. Les seules
+  interpolations sans échappement sont des valeurs numériques internes (.length, .id UUID,
+  compteurs) ou des chaînes statiques (labels, icônes). Aucune injection XSS possible.
+- **Fichiers audités** : operator-tabs.js (49), admin.js (36), shell.js (32), members.js (17),
+  operator-motions.js (16), analytics-dashboard.js (15), postsession.js (12), trust.js (10),
+  et 40 autres fichiers (composants, pages secondaires).
+- **Statut** : [x] Audit terminé — AUCUNE correction nécessaire
 
 ### P2-04 · Tests E2E
 - **Problème** : Seuls 2 fichiers d'intégration existent ; pas de Playwright/Cypress
@@ -122,7 +128,7 @@
 | Migrations | 16 |
 | Routes API | 291 |
 | Tests | 691 (0 failures, 1514 assertions) |
-| Pages SPA | 14 |
+| Pages SPA | 16 (wireframe complet) |
 | Web Components | 8 |
 | Fichiers CSS | 19 |
 

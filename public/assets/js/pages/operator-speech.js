@@ -1,3 +1,4 @@
+/* GO-LIVE-STATUS: ready — Operator speech module. */
 /**
  * operator-speech.js — Speech queue sub-module for the operator console.
  * Requires: utils.js, shared.js, operator-tabs.js (OpS bridge)

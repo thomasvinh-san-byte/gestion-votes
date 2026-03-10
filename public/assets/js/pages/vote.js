@@ -1,3 +1,4 @@
+/* GO-LIVE-STATUS: ready — Vote JS (tablette votant). */
 /**
  * vote.js - Public voting interface for AG-VOTE.
  *
