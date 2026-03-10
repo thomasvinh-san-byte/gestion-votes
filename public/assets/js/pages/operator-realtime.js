@@ -199,12 +199,11 @@
     }
   });
 
-  // Cleanup on page unload
+  // Cleanup on page unload (timers owned by this module only;
+  // speechTimerInterval/execSpeechTimerInterval are cleaned by operator-tabs.js)
   window.addEventListener('beforeunload', function() {
     if (pollTimer) clearTimeout(pollTimer);
     if (newVoteDebounceTimer) clearTimeout(newVoteDebounceTimer);
-    if (O.speechTimerInterval) clearInterval(O.speechTimerInterval);
-    if (O.execSpeechTimerInterval) clearInterval(O.execSpeechTimerInterval);
     if (sseStream) sseStream.close();
   });
 

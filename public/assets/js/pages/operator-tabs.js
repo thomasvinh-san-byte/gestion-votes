@@ -2546,12 +2546,7 @@ window.OpS = { fn: {} };
 
   let execSpeechTimerInterval = null;
 
-  function refreshExecKPIs()       { return OpS.fn.refreshExecKPIs(); }
   function refreshExecView()       { return OpS.fn.refreshExecView(); }
-  function refreshExecVote()       { return OpS.fn.refreshExecVote(); }
-  function renderExecQuickOpenList(){ return OpS.fn.renderExecQuickOpenList(); }
-  function refreshExecSpeech()     { return OpS.fn.refreshExecSpeech(); }
-  function refreshExecDevices()    { return OpS.fn.refreshExecDevices(); }
   function refreshExecManualVotes(){ return OpS.fn.refreshExecManualVotes(); }
 
   // =========================================================================
