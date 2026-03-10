@@ -172,7 +172,11 @@ if ! echo "$LISTEN_PORT" | grep -qE '^[0-9]+$'; then
   exit 1
 fi
 if [ "$LISTEN_PORT" != "8080" ]; then
-  sed -i "s/listen 8080/listen ${LISTEN_PORT}/" /etc/nginx/http.d/default.conf
+  if ! sed -i "s/listen 8080/listen ${LISTEN_PORT}/" /etc/nginx/http.d/default.conf 2>/dev/null; then
+    echo "[FATAL] Impossible de modifier le port Nginx (filesystem read-only)."
+    echo "        Utilisez PORT=8080 ou désactivez read_only dans docker-compose.yml."
+    exit 1
+  fi
   echo "Nginx port: ${LISTEN_PORT} (from \$PORT)"
 else
   echo "Nginx port: 8080 (default)"
