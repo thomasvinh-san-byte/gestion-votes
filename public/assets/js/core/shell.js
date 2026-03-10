@@ -87,6 +87,64 @@
   }
   bindScrollFade();
 
+  // ==========================================================================
+  // Nav-group collapse toggle
+  // ==========================================================================
+
+  function getGroupItems(group) {
+    var items = [];
+    var el = group.nextElementSibling;
+    while (el && !el.classList.contains('nav-group')) {
+      if (el.classList.contains('nav-item')) items.push(el);
+      el = el.nextElementSibling;
+    }
+    return items;
+  }
+
+  function bindNavGroupToggle() {
+    var container = sidebarEl || sidebar;
+    if (!container || container.dataset.groupBound) return;
+    container.dataset.groupBound = 'true';
+
+    container.addEventListener('click', function(e) {
+      var group = e.target.closest('.nav-group');
+      if (!group) return;
+
+      group.classList.toggle('collapsed');
+      var collapsed = group.classList.contains('collapsed');
+      getGroupItems(group).forEach(function(item) {
+        item.style.display = collapsed ? 'none' : '';
+      });
+
+      // Persist collapsed state
+      var groupName = group.getAttribute('data-group');
+      if (groupName) {
+        try {
+          var state = JSON.parse(localStorage.getItem('ag-vote-sidebar-groups') || '{}');
+          state[groupName] = collapsed;
+          localStorage.setItem('ag-vote-sidebar-groups', JSON.stringify(state));
+        } catch(ex) {}
+      }
+    });
+  }
+
+  function restoreNavGroupState() {
+    var container = sidebarEl || sidebar;
+    if (!container) return;
+    try {
+      var state = JSON.parse(localStorage.getItem('ag-vote-sidebar-groups') || '{}');
+      container.querySelectorAll('.nav-group[data-group]').forEach(function(group) {
+        var name = group.getAttribute('data-group');
+        if (state[name]) {
+          group.classList.add('collapsed');
+          getGroupItems(group).forEach(function(item) {
+            item.style.display = 'none';
+          });
+        }
+      });
+    } catch(ex) {}
+  }
+
   // Observe sidebar for dynamic partial load
   const sidebarEl = document.querySelector('[data-include-sidebar]') || sidebar;
   if (sidebarEl) {
@@ -94,8 +152,10 @@
       bindPinButton();
       bindScrollFade();
       bindThemeToggle();
-      // Mark active page
+      bindNavGroupToggle();
+      restoreNavGroupState();
       markActivePage();
+      updateSidebarTop();
     }).observe(sidebarEl, { childList: true, subtree: true });
   }
 
@@ -111,6 +171,23 @@
       item.classList.toggle('active', item.getAttribute('data-page') === page);
     });
   }
+
+  /**
+   * Update sidebar top offset to account for auth banner.
+   */
+  function updateSidebarTop() {
+    var header = document.querySelector('.app-header');
+    if (header && sidebar) {
+      var top = header.getBoundingClientRect().bottom;
+      if (top > 0) {
+        document.documentElement.style.setProperty('--sidebar-top', top + 'px');
+      }
+    }
+  }
+  // Run on load in case auth banner was already rendered
+  updateSidebarTop();
+  bindNavGroupToggle();
+  restoreNavGroupState();
 
   window.SidebarPin = { toggle: togglePin };
 

@@ -144,7 +144,17 @@
       '  </button>' +
       '</div>';
 
-    document.body.prepend(b);
+    var shell = document.querySelector('.app-shell') || document.body;
+    shell.prepend(b);
+
+    // Update sidebar top offset to account for auth banner height
+    requestAnimationFrame(function () {
+      var header = document.querySelector('.app-header');
+      if (header) {
+        var top = header.getBoundingClientRect().bottom;
+        document.documentElement.style.setProperty('--sidebar-top', top + 'px');
+      }
+    });
 
     b.querySelector('#auth-login-btn').addEventListener('click', function () {
       window.location.href = '/login.html?redirect=' +
