@@ -151,7 +151,7 @@
   // Observe sidebar for dynamic partial load
   const sidebarEl = document.querySelector('[data-include-sidebar]') || sidebar;
   if (sidebarEl) {
-    new MutationObserver(function() {
+    var _sidebarMO = new MutationObserver(function() {
       bindPinButton();
       bindScrollFade();
       bindThemeToggle();
@@ -159,7 +159,9 @@
       restoreNavGroupState();
       markActivePage();
       updateSidebarTop();
-    }).observe(sidebarEl, { childList: true, subtree: true });
+    });
+    _sidebarMO.observe(sidebarEl, { childList: true, subtree: true });
+    window.addEventListener('pagehide', function() { _sidebarMO.disconnect(); }, { once: true });
   }
 
   /**

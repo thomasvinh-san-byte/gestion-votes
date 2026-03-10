@@ -18,33 +18,26 @@
   flex-wrap: wrap;
 }
 
-.stat-item {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+/* Stat overrides for members (base in design-system.css) */
+.members-main .stat-item {
   border-radius: 10px;
   padding: 0.75rem 1.25rem;
-  text-align: center;
   min-width: 90px;
   transition: box-shadow var(--duration-fast);
 }
 
-.stat-value {
-  font-size: var(--text-2xl);
-  font-weight: 700;
+.members-main .stat-value {
   line-height: 1.2;
 }
 
-.stat-label {
+.members-main .stat-label {
   font-size: 0.75rem;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
   margin-top: 0.125rem;
 }
 
-.stat-item.total .stat-value { color: var(--color-primary); }
-.stat-item.active .stat-value { color: var(--color-success); }
-.stat-item.inactive .stat-value { color: var(--color-text-muted); }
+.members-main .stat-item.total .stat-value { color: var(--color-primary); }
+.members-main .stat-item.active .stat-value { color: var(--color-success); }
+.members-main .stat-item.inactive .stat-value { color: var(--color-text-muted); }
 
 /* =============================================================================
    MEMBERS MAIN — NO PADDING
@@ -1116,12 +1109,12 @@ dialog.member-detail-dialog::backdrop {
     gap: 0.5rem;
   }
 
-  .stat-item {
+  .members-main .stat-item {
     min-width: 70px;
     padding: 0.5rem 0.75rem;
   }
 
-  .stat-value {
+  .members-main .stat-value {
     font-size: var(--text-xl);
   }
 

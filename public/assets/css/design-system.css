@@ -2870,7 +2870,40 @@ textarea:focus-visible,
 }
 
 /* =============================================================================
-   13. PRINT
+   13. STAT COMPONENTS (base)
+   ============================================================================= */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-4);
+}
+
+.stat-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.stat-value {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: var(--space-1);
+}
+
+/* =============================================================================
+   14. PRINT
    ============================================================================= */
 
 @media print {

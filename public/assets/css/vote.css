@@ -13,6 +13,20 @@
   --shadow-danger-glow: 0 2px 6px rgba(220, 38, 38, 0.35);
   --color-warning-bg-8: rgba(234, 179, 8, 0.08);
   --color-warning-border-25: rgba(234, 179, 8, 0.25);
+  --vote-shadow-hover: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --vote-btn-for-shadow: 0 10px 40px rgba(22, 163, 74, 0.3);
+  --vote-btn-for-shadow-hover: 0 15px 50px rgba(22, 163, 74, 0.4);
+  --vote-btn-against-shadow: 0 10px 40px rgba(220, 38, 38, 0.3);
+  --vote-btn-against-shadow-hover: 0 15px 50px rgba(220, 38, 38, 0.4);
+  --vote-btn-abstain-shadow: 0 10px 40px rgba(100, 116, 139, 0.3);
+  --vote-btn-abstain-shadow-hover: 0 15px 50px rgba(100, 116, 139, 0.4);
+  --vote-btn-blanc-start: #94a3b8;
+  --vote-btn-blanc-end: #64748b;
+  --vote-btn-blanc-shadow: 0 10px 40px rgba(148, 163, 184, 0.3);
+  --vote-btn-blanc-shadow-hover: 0 15px 50px rgba(148, 163, 184, 0.4);
+  --vote-post-success-bg: rgba(22, 163, 74, 0.12);
+  --vote-post-against-bg: rgba(220, 38, 38, 0.12);
+  --vote-post-abstain-bg: rgba(100, 116, 139, 0.12);
 }
 
 [data-theme="dark"] {
@@ -24,6 +38,20 @@
   --shadow-danger-glow: 0 2px 6px rgba(248, 113, 113, 0.30);
   --color-warning-bg-8: rgba(251, 191, 36, 0.10);
   --color-warning-border-25: rgba(251, 191, 36, 0.20);
+  --vote-shadow-hover: 0 2px 12px rgba(255, 255, 255, 0.06);
+  --vote-btn-for-shadow: 0 10px 40px rgba(74, 222, 128, 0.25);
+  --vote-btn-for-shadow-hover: 0 15px 50px rgba(74, 222, 128, 0.35);
+  --vote-btn-against-shadow: 0 10px 40px rgba(248, 113, 113, 0.25);
+  --vote-btn-against-shadow-hover: 0 15px 50px rgba(248, 113, 113, 0.35);
+  --vote-btn-abstain-shadow: 0 10px 40px rgba(148, 163, 184, 0.2);
+  --vote-btn-abstain-shadow-hover: 0 15px 50px rgba(148, 163, 184, 0.3);
+  --vote-btn-blanc-start: #64748b;
+  --vote-btn-blanc-end: #475569;
+  --vote-btn-blanc-shadow: 0 10px 40px rgba(100, 116, 139, 0.25);
+  --vote-btn-blanc-shadow-hover: 0 15px 50px rgba(100, 116, 139, 0.35);
+  --vote-post-success-bg: rgba(74, 222, 128, 0.15);
+  --vote-post-against-bg: rgba(248, 113, 113, 0.15);
+  --vote-post-abstain-bg: rgba(148, 163, 184, 0.12);
 }
 
 /* =============================================================================
@@ -287,7 +315,7 @@
 
 .speech-hand-btn:hover:not(:disabled) {
   border-color: var(--color-text-muted);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--vote-shadow-hover);
 }
 
 .speech-hand-btn:active:not(:disabled) {
@@ -713,41 +741,41 @@
 .vote-btn-for {
   background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-hover) 100%);
   color: var(--color-text-inverse);
-  box-shadow: 0 10px 40px rgb(22 163 74 / 0.3);
+  box-shadow: var(--vote-btn-for-shadow);
 }
 
 .vote-btn-for:hover:not(:disabled) {
-  box-shadow: 0 15px 50px rgb(22 163 74 / 0.4);
+  box-shadow: var(--vote-btn-for-shadow-hover);
 }
 
 .vote-btn-against {
   background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-hover) 100%);
   color: var(--color-text-inverse);
-  box-shadow: 0 10px 40px rgb(220 38 38 / 0.3);
+  box-shadow: var(--vote-btn-against-shadow);
 }
 
 .vote-btn-against:hover:not(:disabled) {
-  box-shadow: 0 15px 50px rgb(220 38 38 / 0.4);
+  box-shadow: var(--vote-btn-against-shadow-hover);
 }
 
 .vote-btn-abstain {
   background: linear-gradient(135deg, var(--color-neutral) 0%, var(--color-neutral-hover) 100%);
   color: var(--color-text-inverse);
-  box-shadow: 0 10px 40px rgb(100 116 139 / 0.3);
+  box-shadow: var(--vote-btn-abstain-shadow);
 }
 
 .vote-btn-abstain:hover:not(:disabled) {
-  box-shadow: 0 15px 50px rgb(100 116 139 / 0.4);
+  box-shadow: var(--vote-btn-abstain-shadow-hover);
 }
 
 .vote-btn-blanc {
-  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+  background: linear-gradient(135deg, var(--vote-btn-blanc-start) 0%, var(--vote-btn-blanc-end) 100%);
   color: var(--color-text-inverse);
-  box-shadow: 0 10px 40px rgb(148 163 184 / 0.3);
+  box-shadow: var(--vote-btn-blanc-shadow);
 }
 
 .vote-btn-blanc:hover:not(:disabled) {
-  box-shadow: 0 15px 50px rgb(148 163 184 / 0.4);
+  box-shadow: var(--vote-btn-blanc-shadow-hover);
 }
 
 .vote-btn-kbd {
@@ -1400,9 +1428,9 @@
   animation: postVoteFade 2s ease-out forwards;
 }
 
-.vote-post-success.for { background: rgba(22, 163, 74, 0.12); }
-.vote-post-success.against { background: rgba(220, 38, 38, 0.12); }
-.vote-post-success.abstain { background: rgba(100, 116, 139, 0.12); }
+.vote-post-success.for { background: var(--vote-post-success-bg); }
+.vote-post-success.against { background: var(--vote-post-against-bg); }
+.vote-post-success.abstain { background: var(--vote-post-abstain-bg); }
 
 .vote-post-success-icon {
   width: 120px;

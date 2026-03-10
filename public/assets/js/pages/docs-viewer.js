@@ -1,5 +1,6 @@
 (function() {
     'use strict';
+    var _scrollSpyHandler = null;
 
     // =========================================================================
     // CONFIGURATION
@@ -121,6 +122,9 @@
         if (current) current.link.classList.add('active');
       }
 
+      // Remove previous scroll spy before adding a new one (prevents accumulation)
+      if (_scrollSpyHandler) window.removeEventListener('scroll', _scrollSpyHandler);
+      _scrollSpyHandler = updateActive;
       window.addEventListener('scroll', updateActive, { passive: true });
       updateActive();
 
