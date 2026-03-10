@@ -17,13 +17,13 @@
 <!-- Scrollable nav area with fade indicators -->
 <div class="sidebar-fade" id="sidebarFade">
   <div class="sidebar-scroll" id="sidebarScroll">
-    <nav aria-label="Navigation principale">
+    <nav id="main-nav" aria-label="Navigation principale">
 
       <!-- Group: Pr&eacute;paration -->
-      <div class="nav-group" role="group" aria-label="Pr&eacute;paration" data-group="prep">
+      <button class="nav-group" type="button" aria-expanded="true" data-group="prep">
         <span class="nav-group-label">Pr&eacute;paration</span>
-        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-      </div>
+        <svg class="nav-group-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
       <a class="nav-item" href="/dashboard.htmx.html" data-page="dashboard">
         <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-home"></use></svg></span>
         <span class="nav-label">Tableau de bord</span>
@@ -42,10 +42,10 @@
       </a>
 
       <!-- Group: S&eacute;ance en direct -->
-      <div class="nav-group" role="group" aria-label="S&eacute;ance en direct" data-group="live">
+      <button class="nav-group" type="button" aria-expanded="true" data-group="live">
         <span class="nav-group-label">En direct</span>
-        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-      </div>
+        <svg class="nav-group-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
       <a class="nav-item" href="/hub.htmx.html" data-page="hub" data-requires-role="admin,operator">
         <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-file-text"></use></svg></span>
         <span class="nav-label">Fiche s&eacute;ance</span>
@@ -60,10 +60,10 @@
       </a>
 
       <!-- Group: Apr&egrave;s la s&eacute;ance -->
-      <div class="nav-group" role="group" aria-label="Apr&egrave;s la s&eacute;ance" data-group="post">
+      <button class="nav-group" type="button" aria-expanded="true" data-group="post">
         <span class="nav-group-label">Apr&egrave;s</span>
-        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-      </div>
+        <svg class="nav-group-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
       <a class="nav-item" href="/postsession.htmx.html" data-page="postsession" data-requires-role="admin,operator,president">
         <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-check-square"></use></svg></span>
         <span class="nav-label">Cl&ocirc;ture &amp; PV</span>
@@ -74,10 +74,10 @@
       </a>
 
       <!-- Group: Contr&ocirc;le -->
-      <div class="nav-group" role="group" aria-label="Contr&ocirc;le" data-group="audit">
+      <button class="nav-group" type="button" aria-expanded="true" data-group="audit">
         <span class="nav-group-label">Contr&ocirc;le</span>
-        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-      </div>
+        <svg class="nav-group-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
       <a class="nav-item" href="/trust.htmx.html" data-page="trust" data-requires-role="admin,auditor,assessor">
         <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-shield-check"></use></svg></span>
         <span class="nav-label">Audit</span>
@@ -88,10 +88,10 @@
       </a>
 
       <!-- Group: Syst&egrave;me -->
-      <div class="nav-group" role="group" aria-label="Syst&egrave;me" data-group="admin">
+      <button class="nav-group" type="button" aria-expanded="true" data-group="admin">
         <span class="nav-group-label">Syst&egrave;me</span>
-        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-      </div>
+        <svg class="nav-group-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
       <a class="nav-item" href="/admin.htmx.html" data-page="admin" data-requires-role="admin">
         <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-key"></use></svg></span>
         <span class="nav-label">Utilisateurs</span>
@@ -102,10 +102,10 @@
       </a>
 
       <!-- Group: Aide -->
-      <div class="nav-group" role="group" aria-label="Aide" data-group="help">
+      <button class="nav-group" type="button" aria-expanded="true" data-group="help">
         <span class="nav-group-label">Aide</span>
-        <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-      </div>
+        <svg class="nav-group-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
       <a class="nav-item" href="/help.htmx.html" data-page="help">
         <span class="nav-item-icon" aria-hidden="true"><svg class="icon"><use href="/assets/icons.svg#icon-info"></use></svg></span>
         <span class="nav-label">Guide &amp; FAQ</span>

@@ -758,6 +758,13 @@ h4, .h4 {
   user-select: none;
   white-space: nowrap;
   position: relative;
+  /* Button reset (nav-group is a <button>) */
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  width: 100%;
 }
 /* Thin divider line in rail mode */
 .nav-group::after {
