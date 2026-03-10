@@ -32,7 +32,7 @@ Avant de commencer :
 
 Pages ouvertes dans le navigateur :
 * `/operator.htmx.html`
-* `/president.htmx.html`
+* `/hub.htmx.html`
 * `/trust.htmx.html`
 
 ---
@@ -239,5 +239,5 @@ En moins de 10 minutes, ce scénario démontre :
 * la traçabilité complète,
 * la conformité CDC sur le périmètre annoncé.
 
-Pour le cadre juridique détaillé, voir **CONFORMITE_CDC.md**.
+Pour le cadre juridique détaillé, voir **[directive-projet.md](directive-projet.md)**.
 

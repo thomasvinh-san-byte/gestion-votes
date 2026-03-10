@@ -25,7 +25,7 @@ L'utilisation en séance, la démonstration et la conformité CDC sont décrites
 
 * [../UTILISATION_LIVE.md](../UTILISATION_LIVE.md)
 * [../RECETTE_DEMO.md](../RECETTE_DEMO.md)
-* [CONFORMITE_CDC.md](CONFORMITE_CDC.md)
+* [cahier_des_charges.md](cahier_des_charges.md)
 
 ---
 
@@ -33,7 +33,7 @@ L'utilisation en séance, la démonstration et la conformité CDC sont décrites
 
 ### Logiciels requis
 
-* **PHP >= 8.3** avec extensions : `pdo_pgsql`, `mbstring`, `json`, `session`
+* **PHP >= 8.4** avec extensions : `pdo_pgsql`, `mbstring`, `json`, `session`
 * **PostgreSQL >= 16**
 * (optionnel) **Git** pour cloner le dépôt
 
@@ -56,7 +56,7 @@ sudo apt install -y php php-cli php-pgsql php-mbstring php-xml php-zip \
 Vérification :
 
 ```bash
-php -v          # PHP 8.3+
+php -v          # PHP 8.4+
 psql --version  # psql 16+
 ```
 
@@ -150,7 +150,7 @@ PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
 PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost -c "\dt"
 ```
 
-Vous devez voir 35+ tables.
+Vous devez voir 40+ tables.
 
 ---
 
@@ -234,14 +234,20 @@ CORS_ALLOWED_ORIGINS=http://localhost:8080,http://192.168.1.50:8080
 | Interface | URL | Rôle cible |
 |-----------|-----|------------|
 | Connexion | `/login.html` | Tous |
-| Tableau de bord | `/meetings.htmx.html` | operator |
+| Tableau de bord | `/dashboard.htmx.html` | operator |
+| Séances | `/meetings.htmx.html` | operator |
+| Création de séance | `/wizard.htmx.html` | operator |
+| Hub de séance | `/hub.htmx.html` | operator, president |
 | Console opérateur | `/operator.htmx.html` | operator |
-| Flux opérateur | `/operator_flow.htmx.html` | operator |
-| Cockpit président | `/president.htmx.html` | president (rôle de séance) |
+| Vote (tablette) | `/vote.htmx.html` | voter (rôle de séance) |
+| Post-séance | `/postsession.htmx.html` | operator |
 | Contrôle et audit | `/trust.htmx.html` | auditor |
 | Administration | `/admin.htmx.html` | admin |
-| Vote (tablette) | `/vote.htmx.html` | voter (rôle de séance) |
+| Membres | `/members.htmx.html` | operator |
+| Archives | `/archives.htmx.html` | operator, auditor |
+| Statistiques | `/analytics.htmx.html` | operator |
 | Écran public | `/public.htmx.html` | public |
+| Aide | `/help.htmx.html` | Tous |
 
 ---
 

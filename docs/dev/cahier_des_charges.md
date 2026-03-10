@@ -129,7 +129,7 @@ Exigences :
 | Rôle                   | Périmètre     | Responsabilités clés                             | Interface                 |
 | ---------------------- | ------------- | ------------------------------------------------ | ------------------------- |
 | **ADMIN**              | Global        | paramétrage (policies), monitoring, utilisateurs | `admin.htmx.html`         |
-| **OPÉRATEUR**          | Séance        | préparation, conduite, incidents, consolidation  | `operator_flow.htmx.html` |
+| **OPÉRATEUR**          | Séance        | préparation, conduite, incidents, consolidation  | `operator.htmx.html` |
 | **PRÉSIDENT (TRUST)**  | Séance        | pilotage, validation, archivage                  | `trust.htmx.html`         |
 | **LECTURE / CONTRÔLE** | Lecture seule | archives, PV, export audit                       | `archives.htmx.html`      |
 

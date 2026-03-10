@@ -33,14 +33,18 @@ composer require --dev phpunit/phpunit ^10.0
 ```
 tests/
 ├── bootstrap.php               # Configuration des tests
-├── Unit/
-│   ├── CsrfMiddlewareTest.php  # 15 tests CSRF
-│   ├── AuthMiddlewareTest.php  # 18 tests Auth/RBAC
-│   ├── RateLimiterTest.php     # 12 tests Rate Limiting
-│   └── InputValidatorTest.php  # 35 tests Validation
-└── Integration/
-    └── (vide — tests d'intégration à ajouter)
+├── Unit/                       # 63 fichiers de tests unitaires
+│   ├── *ControllerTest.php     # Tests des 39 contrôleurs
+│   ├── *ServiceTest.php        # Tests des services métier
+│   ├── *MiddlewareTest.php     # Tests sécurité (Auth, CSRF, Rate Limiting)
+│   └── *RepositoryTest.php     # Tests d'accès données
+└── Integration/                # 3 tests d'intégration
+    ├── AdminCriticalPathTest.php
+    ├── RepositoryTest.php
+    └── WorkflowValidationTest.php
 ```
+
+**Résultat actuel** : 2 831 tests, 5 943 assertions, 0 failures.
 
 ### API Keys de test
 

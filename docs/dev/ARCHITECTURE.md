@@ -16,7 +16,7 @@
 
 ## Vue d'ensemble
 
-AG-Vote est une application PHP 8.3+ / PostgreSQL 16+ / HTMX pour la gestion de séances de vote formelles. Architecture sans framework, API-first, avec PostgreSQL comme source de vérité.
+AG-Vote est une application PHP 8.4+ / PostgreSQL 16+ / HTMX pour la gestion de séances de vote formelles. Architecture sans framework, API-first, avec PostgreSQL comme source de vérité.
 
 ---
 
@@ -39,7 +39,7 @@ gestion-votes/
 │   ├── fragments/              7 fragments PHP (drawers, OOB)
 │   ├── exports/                Templates d'export (PV)
 │   ├── errors/                 Pages 403, 404, 500
-│   ├── *.htmx.html             14 pages applicatives
+│   ├── *.htmx.html             18 pages applicatives
 │   ├── index.html              Page d'accueil
 │   └── login.html              Page de connexion
 ├── app/                        Code backend (hors webroot)
@@ -65,7 +65,7 @@ gestion-votes/
 ├── config/                     Configuration avancée
 ├── docs/                       Documentation
 ├── tests/                      Tests (Unit/, Integration/, e2e/)
-├── Dockerfile                  Image Docker (PHP 8.3 + Nginx + supervisord)
+├── Dockerfile                  Image Docker (PHP 8.4 + Nginx + supervisord)
 ├── docker-compose.yml          Orchestration (app + PostgreSQL)
 ├── .env.example                Template variables d'environnement
 └── composer.json               Dépendances PHP

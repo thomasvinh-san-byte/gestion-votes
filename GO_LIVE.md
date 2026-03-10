@@ -8,7 +8,7 @@
 ## 1. Résumé
 
 Le code AG-VOTE est **100% prêt pour la production**. Les 16 pages du wireframe
-sont implémentées, la sécurité est auditée et validée, 693 tests passent sans échec.
+sont implémentées, la sécurité est auditée et validée, 2 831 tests passent sans échec.
 
 Le seul prérequis restant est le **provisionnement de l'infrastructure** (serveur,
 base de données, HTTPS, variables d'environnement).
@@ -61,13 +61,13 @@ Audit complet : voir `SECURITY_AUDIT.md` (25 constatations, toutes CRITIQUE/ÉLE
 
 | Métrique | Valeur |
 |----------|--------|
-| Contrôleurs | 38 |
-| Services | 19 |
-| Repositories | 30 + 4 traits |
-| Routes API | 291 |
-| Tables DB | 37 |
+| Contrôleurs | 39 |
+| Services | 15 |
+| Repositories | 31 + 4 traits |
+| Endpoints API | 142 |
+| Tables DB | 40 |
 | Migrations | 21 |
-| Tests | 693 (0 failures, 1514 assertions) |
+| Tests | 2 831 (0 failures, 5 943 assertions) |
 
 ---
 
