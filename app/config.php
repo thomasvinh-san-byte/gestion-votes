@@ -61,6 +61,6 @@ return [
   // Proxies
   'proxy_max_per_receiver' => (int) (getenv('PROXY_MAX_PER_RECEIVER') ?: 3),
 
-  // Tenant (mono-tenant MVP). Override via TENANT_ID if needed.
-  'default_tenant_id' => getenv('TENANT_ID') ?: 'aaaaaaaa-1111-2222-3333-444444444444',
+  // Tenant (mono-tenant MVP). Reads DEFAULT_TENANT_ID first, then TENANT_ID for backward compat.
+  'default_tenant_id' => getenv('DEFAULT_TENANT_ID') ?: (getenv('TENANT_ID') ?: 'aaaaaaaa-1111-2222-3333-444444444444'),
 ];
