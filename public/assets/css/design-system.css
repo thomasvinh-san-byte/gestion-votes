@@ -2891,14 +2891,11 @@ textarea:focus-visible,
   font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   color: var(--color-text);
-  line-height: 1;
 }
 
 .stat-label {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
   margin-top: var(--space-1);
 }
 

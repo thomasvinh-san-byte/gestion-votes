@@ -34,10 +34,12 @@
 .meetings-main .stat-value {
   font-family: var(--font-mono);
   font-size: 1.5rem;
+  line-height: 1;
 }
 
 .meetings-main .stat-label {
   font-size: 0.65rem;
+  text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: var(--font-semibold);
   white-space: nowrap;
