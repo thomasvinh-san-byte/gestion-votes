@@ -140,7 +140,8 @@ final class Application {
 
         // Validate secret in production / demo / when auth is enabled
         $env = getenv('APP_ENV') ?: (self::$config['env'] ?? 'dev');
-        $isProduction = in_array($env, ['production', 'prod', 'demo'], true);
+        $isProduction = in_array($env, ['production', 'prod'], true);
+        $isDemo = $env === 'demo';
         $authEnabled = getenv('APP_AUTH_ENABLED') === '1'
             || strtolower((string) getenv('APP_AUTH_ENABLED')) === 'true';
 
@@ -158,7 +159,8 @@ final class Application {
         }
 
         // Block APP_AUTH_ENABLED=0 in production — authentication cannot be disabled
-        if ($isProduction && !$authEnabled) {
+        // Demo mode is allowed to disable auth for easy navigation
+        if ($isProduction && !$isDemo && !$authEnabled) {
             throw new RuntimeException(
                 '[SECURITY] APP_AUTH_ENABLED cannot be disabled in production. '
                 . 'Set APP_AUTH_ENABLED=1 or remove it (auth is enabled by default).',
