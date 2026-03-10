@@ -432,7 +432,7 @@ class VoteTokenControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
 
-        $this->assertStringContainsString('MeetingRepository', $source);
+        $this->assertStringContainsString('repo()->meeting()', $source);
         $this->assertStringContainsString('findByIdForTenant', $source);
     }
 
@@ -440,7 +440,7 @@ class VoteTokenControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
 
-        $this->assertStringContainsString('MotionRepository', $source);
+        $this->assertStringContainsString('repo()->motion()', $source);
         $this->assertStringContainsString('findByIdAndMeetingWithDates', $source);
     }
 
@@ -448,7 +448,7 @@ class VoteTokenControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
 
-        $this->assertStringContainsString('AttendanceRepository', $source);
+        $this->assertStringContainsString('repo()->attendance()', $source);
         $this->assertStringContainsString('listEligibleVotersWithName', $source);
     }
 
@@ -456,7 +456,7 @@ class VoteTokenControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
 
-        $this->assertStringContainsString('VoteTokenRepository', $source);
+        $this->assertStringContainsString('repo()->voteToken()', $source);
         $this->assertStringContainsString('deleteUnusedByMotionAndMember', $source);
         $this->assertStringContainsString('insert', $source);
     }

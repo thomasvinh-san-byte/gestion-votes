@@ -5,13 +5,6 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\Security\AuthMiddleware;
-use AgVote\Repository\AuditEventRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MeetingStatsRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\UserRepository;
-use AgVote\Repository\VoteTokenRepository;
 use Throwable;
 
 /**
@@ -22,14 +15,8 @@ use Throwable;
 final class AdminController extends AbstractController {
     public function users(): void {
         $method = api_method();
-
-        // GET: operators can list users (needed for meeting role assignment)
-        // POST: admin only
-        if ($method === 'GET') {
-        }
-
         $validSystemRoles = ['admin', 'operator', 'auditor', 'viewer'];
-        $userRepo = new UserRepository();
+        $userRepo = $this->repo()->user();
 
         if ($method === 'GET') {
             api_request('GET');
@@ -49,9 +36,7 @@ final class AdminController extends AbstractController {
                 'system_roles' => AuthMiddleware::getSystemRoleLabels(),
                 'meeting_roles' => AuthMiddleware::getMeetingRoleLabels(),
             ]);
-        }
-
-        if ($method === 'POST') {
+        } elseif ($method === 'POST') {
             $in = api_request('POST');
             $action = trim((string) ($in['action'] ?? 'create'));
 
@@ -67,25 +52,19 @@ final class AdminController extends AbstractController {
                 $userRepo->setPasswordHash(api_current_tenant_id(), $userId, $hash);
                 audit_log('admin.user.password_set', 'user', $userId, []);
                 api_ok(['saved' => true, 'user_id' => $userId]);
-            }
-
-            if ($action === 'rotate_key') {
+            } elseif ($action === 'rotate_key') {
                 $userId = api_require_uuid($in, 'user_id');
                 $apiKey = bin2hex(random_bytes(16));
                 $hash = AuthMiddleware::hashApiKey($apiKey);
                 $userRepo->rotateApiKey(api_current_tenant_id(), $userId, $hash);
                 audit_log('admin.user.key_rotated', 'user', $userId, []);
                 api_ok(['rotated' => true, 'api_key' => $apiKey, 'user_id' => $userId]);
-            }
-
-            if ($action === 'revoke_key') {
+            } elseif ($action === 'revoke_key') {
                 $userId = api_require_uuid($in, 'user_id');
                 $userRepo->revokeApiKey(api_current_tenant_id(), $userId);
                 audit_log('admin.user.key_revoked', 'user', $userId, []);
                 api_ok(['revoked' => true, 'user_id' => $userId]);
-            }
-
-            if ($action === 'toggle') {
+            } elseif ($action === 'toggle') {
                 $userId = api_require_uuid($in, 'user_id');
 
                 $currentUserId = api_current_user_id();
@@ -97,9 +76,7 @@ final class AdminController extends AbstractController {
                 $userRepo->toggleActive(api_current_tenant_id(), $userId, $active);
                 audit_log('admin.user.toggled', 'user', $userId, ['is_active' => $active]);
                 api_ok(['saved' => true, 'user_id' => $userId, 'is_active' => $active]);
-            }
-
-            if ($action === 'delete') {
+            } elseif ($action === 'delete') {
                 $userId = api_require_uuid($in, 'user_id');
 
                 $currentUserId = api_current_user_id();
@@ -110,9 +87,7 @@ final class AdminController extends AbstractController {
                 $userRepo->deleteUser(api_current_tenant_id(), $userId);
                 audit_log('admin.user.deleted', 'user', $userId, []);
                 api_ok(['deleted' => true, 'user_id' => $userId]);
-            }
-
-            if ($action === 'update') {
+            } elseif ($action === 'update') {
                 $userId = api_require_uuid($in, 'user_id');
                 $email = strtolower(trim((string) ($in['email'] ?? '')));
                 $name = trim((string) ($in['name'] ?? ''));
@@ -136,9 +111,7 @@ final class AdminController extends AbstractController {
                 $userRepo->updateUser(api_current_tenant_id(), $userId, $email, $name, $role !== '' ? $role : null);
                 audit_log('admin.user.updated', 'user', $userId, ['email' => $email, 'role' => $role]);
                 api_ok(['saved' => true, 'user_id' => $userId]);
-            }
-
-            if ($action === 'create') {
+            } elseif ($action === 'create') {
                 $email = strtolower(trim((string) ($in['email'] ?? '')));
                 $name = trim((string) ($in['name'] ?? ''));
                 $role = trim((string) ($in['role'] ?? 'viewer'));
@@ -168,20 +141,20 @@ final class AdminController extends AbstractController {
                 $userRepo->createUser($id, api_current_tenant_id(), $email, $name, $role, $passwordHash);
                 audit_log('admin.user.created', 'user', $id, ['email' => $email, 'role' => $role]);
                 api_ok(['saved' => true, 'user_id' => $id]);
+            } else {
+                api_fail('unknown_action', 400, ['detail' => "Action '{$action}' inconnue."]);
             }
-
-            api_fail('unknown_action', 400, ['detail' => "Action '{$action}' inconnue."]);
+        } else {
+            api_fail('method_not_allowed', 405);
         }
-
-        api_fail('method_not_allowed', 405);
     }
 
     public function roles(): void {
         api_request('GET');
 
-        $userRepo = new UserRepository();
-        $meetingRepo = new MeetingRepository();
-        $statsRepo = new MeetingStatsRepository();
+        $userRepo = $this->repo()->user();
+        $meetingRepo = $this->repo()->meeting();
+        $statsRepo = $this->repo()->meetingStats();
 
         $permissions = $userRepo->listRolePermissions();
         $transitions = $statsRepo->listStateTransitions();
@@ -210,8 +183,8 @@ final class AdminController extends AbstractController {
     public function meetingRoles(): void {
         $method = api_method();
         $validMeetingRoles = ['president', 'assessor', 'voter'];
-        $userRepo = new UserRepository();
-        $meetingRepo = new MeetingRepository();
+        $userRepo = $this->repo()->user();
+        $meetingRepo = $this->repo()->meeting();
 
         if ($method === 'GET') {
             api_request('GET');
@@ -229,9 +202,7 @@ final class AdminController extends AbstractController {
 
             $rows = $userRepo->listMeetingRolesSummary(api_current_tenant_id());
             api_ok(['items' => $rows]);
-        }
-
-        if ($method === 'POST') {
+        } elseif ($method === 'POST') {
             $in = api_request('POST');
             $action = trim((string) ($in['action'] ?? 'assign'));
 
@@ -284,9 +255,7 @@ final class AdminController extends AbstractController {
                 ], $meetingId);
 
                 api_ok(['assigned' => true, 'meeting_id' => $meetingId, 'user_id' => $userId, 'role' => $role]);
-            }
-
-            if ($action === 'revoke') {
+            } elseif ($action === 'revoke') {
                 $meetingId = api_require_uuid($in, 'meeting_id');
                 $userId = api_require_uuid($in, 'user_id');
                 $role = trim((string) ($in['role'] ?? ''));
@@ -308,51 +277,42 @@ final class AdminController extends AbstractController {
                 ], $meetingId);
 
                 api_ok(['revoked' => true, 'meeting_id' => $meetingId, 'user_id' => $userId]);
+            } else {
+                api_fail('unknown_action', 400);
             }
-
-            api_fail('unknown_action', 400);
+        } else {
+            api_fail('method_not_allowed', 405);
         }
-
-        api_fail('method_not_allowed', 405);
     }
 
     public function systemStatus(): void {
         api_request('GET');
 
-        $userRepo = new UserRepository();
-        $meetingRepo = new MeetingRepository();
-        $motionRepo = new MotionRepository();
-        $memberRepo = new MemberRepository();
-        $voteTokenRepo = new VoteTokenRepository();
+        $sysRepo = $this->repo()->system();
+        $meetingRepo = $this->repo()->meeting();
+        $motionRepo = $this->repo()->motion();
+        $memberRepo = $this->repo()->member();
+        $voteTokenRepo = $this->repo()->voteToken();
 
         $tenantId = api_current_tenant_id();
         $serverTime = date('c');
 
-        $dbLat = $userRepo->dbPing();
-        $active = $userRepo->dbActiveConnections();
+        $dbLat = $sysRepo->dbPing();
+        $active = $sysRepo->dbActiveConnections();
 
-        $path = __DIR__;
-        try {
-            $free = @disk_free_space($path);
-            $total = @disk_total_space($path);
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
-            $free = null;
-            $total = null;
-        }
+        $free = @disk_free_space(__DIR__) ?: null;
+        $total = @disk_total_space(__DIR__) ?: null;
 
         $cntMeet = $meetingRepo->countForTenant($tenantId);
         $cntMot = $motionRepo->countAll($tenantId);
         $cntMembers = $memberRepo->countActive($tenantId);
         $cntLive = $meetingRepo->countLive($tenantId);
         $cntTok = $voteTokenRepo->countAll();
-        $cntAud = $userRepo->countAuditEvents($tenantId);
-        $fail15 = $userRepo->countAuthFailures15m();
+        $cntAud = $sysRepo->countAuditEvents($tenantId);
+        $fail15 = $sysRepo->countAuthFailures15m();
 
         try {
-            $userRepo->insertSystemMetric([
+            $sysRepo->insertSystemMetric([
                 'server_time' => $serverTime,
                 'db_latency_ms' => $dbLat,
                 'db_active_connections' => $active === null ? null : (int) $active,
@@ -364,10 +324,8 @@ final class AdminController extends AbstractController {
                 'count_audit_events' => $cntAud,
                 'auth_failures_15m' => $fail15,
             ]);
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
+        } catch (Throwable) {
+            // Non-critical: metric insertion failure doesn't affect the response
         }
 
         $alertsToCreate = [];
@@ -387,17 +345,15 @@ final class AdminController extends AbstractController {
 
         foreach ($alertsToCreate as $a) {
             try {
-                if (!$userRepo->findRecentAlert($a['code'])) {
-                    $userRepo->insertSystemAlert($a['code'], $a['severity'], $a['message'], json_encode($a['details']));
+                if (!$sysRepo->findRecentAlert($a['code'])) {
+                    $sysRepo->insertSystemAlert($a['code'], $a['severity'], $a['message'], json_encode($a['details']));
                 }
-            } catch (Throwable $e) {
-                if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                    throw $e;
-                }
+            } catch (Throwable) {
+                // Non-critical: alert insertion failure doesn't affect the response
             }
         }
 
-        $recentAlerts = $userRepo->listRecentAlerts(20);
+        $recentAlerts = $sysRepo->listRecentAlerts(20);
 
         api_ok([
             'system' => [
@@ -430,7 +386,7 @@ final class AdminController extends AbstractController {
         $action = api_query('action');
         $q = api_query('q');
 
-        $repo = new AuditEventRepository();
+        $repo = $this->repo()->auditEvent();
 
         $total = $repo->countAdminEvents($tenantId, $action ?: null, $q ?: null);
         $events = $repo->searchAdminEvents($tenantId, $action ?: null, $q ?: null, $limit, $offset);

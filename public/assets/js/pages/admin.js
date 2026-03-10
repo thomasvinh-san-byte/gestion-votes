@@ -1,3 +1,4 @@
+/* GO-LIVE-STATUS: ready — Admin JS. innerHTML audité — OK. */
 /**
  * admin.js — Administration page logic for AG-VOTE.
  *

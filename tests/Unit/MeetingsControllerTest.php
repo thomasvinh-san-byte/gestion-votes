@@ -1431,8 +1431,9 @@ class MeetingsControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
 
-        $this->assertStringContainsString('validation_failed', $source);
-        $this->assertStringContainsString('Throwable', $source);
+        // Exception handling is delegated to api_transaction() and AbstractController::handle()
+        $this->assertStringContainsString('api_transaction', $source);
+        $this->assertStringContainsString('markValidated', $source);
     }
 
     // =========================================================================

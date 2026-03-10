@@ -384,8 +384,3 @@ Les Web Components d'AG-VOTE apportent :
 | `<ag-quorum-bar>` | ag-quorum-bar.js | ✅ Implémenté |
 | `<ag-vote-button>` | ag-vote-button.js | ✅ Implémenté |
 
-### Prochaines étapes
-
-- Migration progressive des pages existantes pour utiliser les composants
-- Création de `<ag-modal>` et `<ag-drawer>` si nécessaire
-- Documentation des patterns d'événements

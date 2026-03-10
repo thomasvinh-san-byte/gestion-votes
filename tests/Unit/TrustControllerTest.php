@@ -505,13 +505,13 @@ class TrustControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/TrustController.php');
 
-        $this->assertStringContainsString('BallotRepository', $source);
-        $this->assertStringContainsString('MeetingRepository', $source);
-        $this->assertStringContainsString('MeetingStatsRepository', $source);
-        $this->assertStringContainsString('MemberRepository', $source);
-        $this->assertStringContainsString('MotionRepository', $source);
-        $this->assertStringContainsString('PolicyRepository', $source);
-        $this->assertStringContainsString('ProxyRepository', $source);
+        $this->assertStringContainsString('repo()->ballot()', $source);
+        $this->assertStringContainsString('repo()->meeting()', $source);
+        $this->assertStringContainsString('repo()->meetingStats()', $source);
+        $this->assertStringContainsString('repo()->member()', $source);
+        $this->assertStringContainsString('repo()->motion()', $source);
+        $this->assertStringContainsString('repo()->policy()', $source);
+        $this->assertStringContainsString('repo()->proxy()', $source);
     }
 
     public function testControllerUsesApiCurrentTenantId(): void

@@ -398,9 +398,9 @@ class ProjectorControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProjectorController.php');
 
-        $this->assertStringContainsString('MeetingRepository', $source);
-        $this->assertStringContainsString('MotionRepository', $source);
-        $this->assertStringContainsString('MeetingStatsRepository', $source);
+        $this->assertStringContainsString('repo()->meeting()', $source);
+        $this->assertStringContainsString('repo()->motion()', $source);
+        $this->assertStringContainsString('repo()->meetingStats()', $source);
     }
 
     public function testStateQueriesOpenMotion(): void

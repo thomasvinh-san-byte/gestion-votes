@@ -259,12 +259,7 @@
       }
     }
 
-    // Helpers
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
+    // Helpers — escapeHtml delegated to global Utils.escapeHtml
 
     function stripHtml(html) {
       if (!html) return '';

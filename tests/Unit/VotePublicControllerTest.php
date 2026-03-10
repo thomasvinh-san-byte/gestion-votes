@@ -275,7 +275,7 @@ class VotePublicControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VotePublicController.php');
 
-        $this->assertStringContainsString('VoteTokenRepository', $source);
+        $this->assertStringContainsString('RepositoryFactory::getInstance()->voteToken()', $source);
         $this->assertStringContainsString('findValidByHash', $source);
         $this->assertStringContainsString('consume', $source);
     }
@@ -284,7 +284,7 @@ class VotePublicControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VotePublicController.php');
 
-        $this->assertStringContainsString('MotionRepository', $source);
+        $this->assertStringContainsString('RepositoryFactory::getInstance()->motion()', $source);
         $this->assertStringContainsString('findWithBallotContext', $source);
     }
 
@@ -292,7 +292,7 @@ class VotePublicControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VotePublicController.php');
 
-        $this->assertStringContainsString('BallotRepository', $source);
+        $this->assertStringContainsString('RepositoryFactory::getInstance()->ballot()', $source);
         $this->assertStringContainsString('insertFromToken', $source);
     }
 
@@ -300,7 +300,7 @@ class VotePublicControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VotePublicController.php');
 
-        $this->assertStringContainsString('MemberRepository', $source);
+        $this->assertStringContainsString('RepositoryFactory::getInstance()->member()', $source);
         $this->assertStringContainsString('findByIdForTenant', $source);
     }
 

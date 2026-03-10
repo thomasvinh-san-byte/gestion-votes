@@ -10,8 +10,7 @@ use PHPUnit\Framework\TestCase;
  */
 class SecurityHardeningTest extends TestCase {
     public function testApiKeyNotAcceptedInQueryString(): void {
-        // The get_api_key() function must NOT read from $_GET['api_key']
-        // This test verifies the source code directly (static analysis).
+        // auth.php must NEVER read from $_GET['api_key'] (leaks in logs/Referer).
         $authFile = PROJECT_ROOT . '/app/auth.php';
         $this->assertFileExists($authFile);
 
@@ -46,9 +45,9 @@ class SecurityHardeningTest extends TestCase {
 
         // Extract the audit_log function body
         $this->assertStringContainsString(
-            'AuditEventRepository',
+            'RepositoryFactory::getInstance()->auditEvent()',
             $content,
-            'audit_log() must delegate to AuditEventRepository',
+            'audit_log() must delegate to AuditEventRepository via RepositoryFactory',
         );
         $this->assertStringNotContainsString(
             'INSERT INTO audit_events',
@@ -63,9 +62,9 @@ class SecurityHardeningTest extends TestCase {
         $content = file_get_contents($apiFile);
 
         $this->assertStringContainsString(
-            'MeetingRepository',
+            'RepositoryFactory::getInstance()->meeting()',
             $content,
-            'api_guard functions must use MeetingRepository',
+            'api_guard functions must use RepositoryFactory for meeting repository',
         );
 
         // Count raw SQL statements — only api_request() merger is acceptable (no SELECT/INSERT)

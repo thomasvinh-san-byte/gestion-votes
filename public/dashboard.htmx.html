@@ -1,0 +1,175 @@
+<!doctype html>
+<!-- GO-LIVE-STATUS: ready — Page Dashboard complète (wireframe PageDashboard).
+     KPIs, séances à venir, tâches, accès rapides. Données démo en fallback.
+     NICE-TO-HAVE: guided tour dashboard, onboarding banner. -->
+<html lang="fr" data-page-role="viewer">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B0D10" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Tableau de bord - AG-VOTE">
+  <title>Tableau de bord &mdash; AG-VOTE</title>
+  <script src="/assets/js/theme-init.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/pages.css">
+</head>
+<body>
+  <!-- Skip links -->
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
+
+  <div class="app-shell">
+    <aside class="app-sidebar" data-include-sidebar data-page="dashboard"></aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <span class="bc-item bc-current" aria-current="page">Tableau de bord</span>
+          </nav>
+          <h1 class="page-title">
+            <span class="bar"></span>
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Tableau de bord
+          </h1>
+          <p class="page-sub">Vue d'ensemble</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer la visite guid&eacute;e">
+          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+          Visite guid&eacute;e
+        </button>
+        <a class="btn btn-primary btn-sm" href="/wizard.htmx.html">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+          Nouvelle s&eacute;ance
+        </a>
+      </div>
+    </header>
+
+    <main class="app-main" id="main-content" role="main">
+
+      <!-- Action urgente -->
+      <a href="/hub.htmx.html" class="card" id="actionUrgente" data-tour="action-urgente" style="margin-bottom:14px;border-color:var(--danger);border-width:2px;padding:14px;cursor:pointer;display:block;text-decoration:none;">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:nowrap;">
+          <div style="width:48px;height:48px;border-radius:12px;background:var(--danger);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:1px;">Action urgente</div>
+            <div style="font-size:16px;font-weight:800;color:var(--text-dark);margin:2px 0;" id="urgentTitle">Envoyer les convocations</div>
+            <div style="font-size:13px;color:var(--text-muted);" id="urgentSub">Chargement&hellip;</div>
+          </div>
+          <div style="flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- KPI Row -->
+      <div class="grid-4" id="kpiRow" data-tour="kpi-row" style="margin-bottom:14px;">
+        <a href="/meetings.htmx.html" class="card kpi" style="cursor:pointer;text-decoration:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+          <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--accent);margin:3px 0;letter-spacing:-0.5px;line-height:1;" id="kpiSeances">-</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">AG &agrave; venir</div>
+        </a>
+        <a href="/operator.htmx.html" class="card kpi" style="cursor:pointer;text-decoration:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--danger);margin:3px 0;letter-spacing:-0.5px;line-height:1;" id="kpiEnCours">-</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">En cours</div>
+        </a>
+        <a href="/hub.htmx.html" class="card kpi" style="cursor:pointer;text-decoration:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+          <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--warn);margin:3px 0;letter-spacing:-0.5px;line-height:1;" id="kpiConvoc">-</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">Convoc. en attente</div>
+        </a>
+        <a href="/postsession.htmx.html" class="card kpi" style="cursor:pointer;text-decoration:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+          <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--accent);margin:3px 0;letter-spacing:-0.5px;line-height:1;" id="kpiPV">-</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">PV &agrave; envoyer</div>
+        </a>
+      </div>
+
+      <!-- Prochaines s&eacute;ances + T&acirc;ches -->
+      <div class="grid-2" style="margin-bottom:14px;">
+
+        <!-- Prochaines s&eacute;ances -->
+        <div class="card" style="padding:16px;">
+          <div class="flex-between" style="margin-bottom:8px;">
+            <div class="card-title" style="margin:0;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+              Prochaines s&eacute;ances
+            </div>
+            <a class="btn btn-sm btn-ghost" href="/meetings.htmx.html">Tout voir
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+          <div id="prochaines" aria-live="polite">
+            <!-- Populated by JS -->
+            <div class="skeleton" style="height:60px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:60px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:60px;"></div>
+          </div>
+        </div>
+
+        <!-- T&acirc;ches en attente -->
+        <div class="card" style="padding:16px;" data-tour="card-taches">
+          <div class="card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+            T&acirc;ches en attente
+          </div>
+          <div id="taches" aria-live="polite">
+            <!-- Populated by JS -->
+            <div class="skeleton" style="height:48px;margin-bottom:6px;"></div>
+            <div class="skeleton" style="height:48px;margin-bottom:6px;"></div>
+            <div class="skeleton" style="height:48px;margin-bottom:6px;"></div>
+            <div class="skeleton" style="height:48px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acc&egrave;s rapides -->
+      <div class="grid-3" data-tour="card-raccourcis">
+        <a href="/wizard.htmx.html" class="card" style="padding:14px;cursor:pointer;display:flex;align-items:center;gap:12px;text-decoration:none;flex-wrap:nowrap;">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+          </div>
+          <div style="min-width:0;">
+            <div style="font-weight:700;color:var(--text-dark);font-size:14px;">Cr&eacute;er une s&eacute;ance</div>
+            <div class="muted" style="font-size:13px;">Assistant en 4 &eacute;tapes</div>
+          </div>
+        </a>
+        <a href="/operator.htmx.html" class="card" style="padding:14px;cursor:pointer;display:flex;align-items:center;gap:12px;text-decoration:none;flex-wrap:nowrap;">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--danger);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          </div>
+          <div style="min-width:0;">
+            <div style="font-weight:700;color:var(--text-dark);font-size:14px;">Piloter un vote</div>
+            <div class="muted" style="font-size:13px;">S&eacute;ance en direct</div>
+          </div>
+        </a>
+        <a href="/trust.htmx.html" class="card" style="padding:14px;cursor:pointer;display:flex;align-items:center;gap:12px;text-decoration:none;flex-wrap:nowrap;">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--text-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+          </div>
+          <div style="min-width:0;">
+            <div style="font-weight:700;color:var(--text-dark);font-size:14px;">Consulter le suivi</div>
+            <div class="muted" style="font-size:13px;">Journal de tra&ccedil;abilit&eacute;</div>
+          </div>
+        </a>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/assets/js/core/utils.js"></script>
+  <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/pages/dashboard.js"></script>
+</body>
+</html>

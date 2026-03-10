@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AuditEventRepository;
-use AgVote\Repository\MeetingRepository;
-
 /**
  * Consolidates 5 audit/timeline endpoints.
  *
@@ -23,14 +20,14 @@ final class AuditController extends AbstractController {
         $offset = max(0, api_query_int('offset', 0));
 
         $tenantId = api_current_tenant_id();
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
 
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
         }
 
-        $auditRepo = new AuditEventRepository();
+        $auditRepo = $this->repo()->auditEvent();
         $events = $auditRepo->listForMeetingLog($tenantId, $meetingId, $limit, $offset);
         $total = $auditRepo->countForMeetingLog($tenantId, $meetingId);
 
@@ -103,7 +100,7 @@ final class AuditController extends AbstractController {
         $meetingId = api_require_uuid($q, 'meeting_id');
         $format = strtolower(api_query('format', 'csv'));
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
         $tenantId = api_current_tenant_id();
 
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
@@ -112,7 +109,7 @@ final class AuditController extends AbstractController {
         }
 
         $slug = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string) ($meeting['slug'] ?? $meetingId));
-        $auditRepo = new AuditEventRepository();
+        $auditRepo = $this->repo()->auditEvent();
         $events = $auditRepo->listForMeetingExport($tenantId, $meetingId);
 
         if ($format === 'json') {
@@ -202,13 +199,13 @@ final class AuditController extends AbstractController {
             api_fail('missing_meeting_id', 422);
         }
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
 
         if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
         }
 
-        $auditRepo = new AuditEventRepository();
+        $auditRepo = $this->repo()->auditEvent();
         $rows = $auditRepo->listForMeeting($meetingId, api_current_tenant_id(), 200, 'ASC');
 
         api_ok([
@@ -225,13 +222,13 @@ final class AuditController extends AbstractController {
             api_fail('missing_meeting_id', 422);
         }
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
 
         if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
         }
 
-        $auditRepo = new AuditEventRepository();
+        $auditRepo = $this->repo()->auditEvent();
         $rows = $auditRepo->listForMeeting($meetingId, api_current_tenant_id());
         api_ok(['items' => self::formatEvents($rows)]);
     }
@@ -256,13 +253,13 @@ final class AuditController extends AbstractController {
         $action = api_query('action');
         $q = api_query('q');
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
 
         if (!$meetingRepo->existsForTenant($meetingId, api_current_tenant_id())) {
             api_fail('meeting_not_found', 404);
         }
 
-        $auditRepo = new AuditEventRepository();
+        $auditRepo = $this->repo()->auditEvent();
         $rows = $auditRepo->listForMeetingFiltered(
             api_current_tenant_id(),
             $meetingId,

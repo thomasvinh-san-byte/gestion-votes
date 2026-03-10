@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\ProxyRepository;
 use AgVote\Service\ProxiesService;
 
 /**
@@ -90,7 +88,7 @@ final class ProxiesController extends AbstractController {
         $tenantId = api_current_tenant_id();
         api_guard_meeting_not_validated($meetingId);
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
@@ -99,7 +97,7 @@ final class ProxiesController extends AbstractController {
             api_fail('meeting_archived', 409, ['detail' => 'Séance archivée, modification impossible']);
         }
 
-        $proxyRepo = new ProxyRepository();
+        $proxyRepo = $this->repo()->proxy();
         $proxy = $proxyRepo->findWithNames($proxyId, $meetingId, $tenantId);
         if (!$proxy) {
             api_fail('proxy_not_found', 404);

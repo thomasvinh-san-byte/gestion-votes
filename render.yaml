@@ -56,6 +56,9 @@ services:
       # Rate limiting stays ON even in demo mode to prevent abuse.
       - key: RATE_LIMIT_ENABLED
         value: "1"
+      # Push SSE enabled — uses file-based fallback (no Redis on free plan).
+      - key: PUSH_ENABLED
+        value: "1"
 
 databases:
   - name: ag-vote-db

@@ -16,7 +16,7 @@
 
 ## Vue d'ensemble
 
-AG-Vote est une application PHP 8.3+ / PostgreSQL 16+ / HTMX pour la gestion de séances de vote formelles. Architecture sans framework, API-first, avec PostgreSQL comme source de vérité.
+AG-Vote est une application PHP 8.4+ / PostgreSQL 16+ / HTMX pour la gestion de séances de vote formelles. Architecture sans framework, API-first, avec PostgreSQL comme source de vérité.
 
 ---
 
@@ -26,20 +26,19 @@ AG-Vote est une application PHP 8.3+ / PostgreSQL 16+ / HTMX pour la gestion de 
 gestion-votes/
 ├── public/                     Racine web (Nginx DocumentRoot)
 │   ├── api/
-│   │   ├── v1/                 148 endpoints REST PHP
+│   │   ├── v1/                 142 endpoints REST PHP
 │   │   └── bus/                Event bus (publish, stream)
 │   ├── assets/
-│   │   ├── css/                19 fichiers CSS (design-system, app, pages)
-│   │   └── js/                 32 fichiers JS total
-│   │       ├── components/     9 fichiers (8 Web Components + index.js)
-│   │       ├── core/           4 fichiers (utils, shared, shell, page-components)
-│   │       ├── pages/          11 fichiers (admin, vote, operator-tabs, login, etc.)
+│   │   ├── css/                20 fichiers CSS (design-system, app, pages)
+│   │   └── js/                 57 fichiers JS total
+│   │       ├── components/     21 fichiers (20 Web Components + index.js)
+│   │       ├── core/           5 fichiers (utils, shared, shell, page-components, event-stream)
+│   │       ├── pages/          29 fichiers (admin, vote, operator-*, dashboard, wizard, hub, etc.)
 │   │       └── services/       1 fichier (meeting-context)
 │   ├── partials/               Composants HTML partagés (sidebar, topbar)
-│   ├── fragments/              7 fragments PHP (drawers, OOB)
 │   ├── exports/                Templates d'export (PV)
 │   ├── errors/                 Pages 403, 404, 500
-│   ├── *.htmx.html             14 pages applicatives
+│   ├── *.htmx.html             18 pages applicatives
 │   ├── index.html              Page d'accueil
 │   └── login.html              Page de connexion
 ├── app/                        Code backend (hors webroot)
@@ -47,25 +46,25 @@ gestion-votes/
 │   ├── bootstrap.php           Initialisation (DB, .env, constantes)
 │   ├── config.php              Configuration applicative
 │   ├── auth.php                Auth utilities (aliases rétrocompatibilité)
-│   ├── Repository/             27 repositories (AbstractRepository + 26 métier)
-│   ├── Services/               22 services métier (namespace AgVote\Service)
+│   ├── Repository/             31 repositories (AbstractRepository + 30 métier) + 4 traits
+│   ├── Services/               19 services métier (namespace AgVote\Service)
 │   ├── Core/
 │   │   ├── Security/           AuthMiddleware, CsrfMiddleware, RateLimiter, Permissions
 │   │   └── Validation/         InputValidator, ValidationSchemas
 │   ├── WebSocket/              EventBroadcaster, Server
 │   └── Templates/              Layout.php + templates email
 ├── database/
-│   ├── schema-master.sql       Schéma DDL unifié (36 tables, triggers, index)
+│   ├── schema-master.sql       Schéma DDL unifié (40 tables, triggers, index)
 │   ├── setup.sh                Script d'initialisation automatique
 │   ├── seeds/                  Seeds numérotés (01-08, idempotent)
-│   ├── migrations/             10 migrations (001-008 + datées)
+│   ├── migrations/             21 migrations (001-008 + datées)
 │   └── setup_demo_az.sh        Script démo A-Z
 ├── deploy/                     Configuration Docker (entrypoint, nginx, php-fpm, supervisord)
 ├── bin/                        Scripts exécutables (websocket-server.php)
 ├── config/                     Configuration avancée
 ├── docs/                       Documentation
 ├── tests/                      Tests (Unit/, Integration/, e2e/)
-├── Dockerfile                  Image Docker (PHP 8.3 + Nginx + supervisord)
+├── Dockerfile                  Image Docker (PHP 8.4 + Nginx + supervisord)
 ├── docker-compose.yml          Orchestration (app + PostgreSQL)
 ├── .env.example                Template variables d'environnement
 └── composer.json               Dépendances PHP
@@ -195,13 +194,13 @@ Un utilisateur peut avoir un rôle système (operator) ET un rôle de séance (p
 ## Couche frontend
 
 ### Design system CSS
-19 fichiers CSS, organisés par page/domaine :
+20 fichiers CSS, organisés par page/domaine :
 - `design-system.css` — Tokens (couleurs, tailles, espacements) + composants de base
 - `app.css` — Layout applicatif global, importe design-system.css via `@import`
 - `admin.css`, `operator.css`, `vote.css`, `login.css`, etc. — Styles spécifiques par page
 
 ### Web Components
-8 composants réutilisables dans `public/assets/js/components/` :
+20 composants réutilisables dans `public/assets/js/components/` :
 
 | Composant | Fichier | Usage |
 |-----------|---------|-------|
@@ -213,23 +212,38 @@ Un utilisateur peut avoir un rôle système (operator) ET un rôle de séance (p
 | `<ag-vote-button>` | ag-vote-button.js | Boutons de vote (pour/contre/abstention) |
 | `<ag-popover>` | ag-popover.js | Popovers contextuels |
 | `<ag-searchable-select>` | ag-searchable-select.js | Select avec recherche |
+| `<ag-modal>` | ag-modal.js | Modales (confirmation, formulaires) |
+| `<ag-confirm>` | ag-confirm.js | Dialogues de confirmation |
+| `<ag-breadcrumb>` | ag-breadcrumb.js | Fil d'Ariane |
+| `<ag-page-header>` | ag-page-header.js | En-tête de page standardisé |
+| `<ag-stepper>` | ag-stepper.js | Indicateur d'étapes (wizard) |
+| `<ag-pagination>` | ag-pagination.js | Pagination de listes |
+| `<ag-donut>` | ag-donut.js | Graphiques en anneau |
+| `<ag-mini-bar>` | ag-mini-bar.js | Mini barres de données |
+| `<ag-tooltip>` | ag-tooltip.js | Infobulles |
+| `<ag-scroll-top>` | ag-scroll-top.js | Bouton retour en haut |
+| `<ag-time-input>` | ag-time-input.js | Champ de saisie horaire |
+| `<ag-tz-picker>` | ag-tz-picker.js | Sélecteur de fuseau horaire |
 
 Les composants utilisent le Shadow DOM et émettent des événements personnalisés.
 
 ### JavaScript
-16 fichiers organisés en 3 dossiers :
+57 fichiers organisés en 4 dossiers :
 
-**core/** — Utilitaires partagés :
+**core/** (5 fichiers) — Utilitaires partagés :
 - `utils.js` — Fonctions utilitaires (apiGet, apiPost, formatDate, getMeetingId, setNotif)
 - `shell.js` — Framework drawer (navigation, readiness, infos, anomalies)
 - `shared.js` — Fonctions partagées entre pages
 - `page-components.js` — Composants de page réutilisables
+- `event-stream.js` — Client SSE pour les mises à jour temps réel
 
-**pages/** — Logique spécifique par page :
-- `login.js`, `admin.js`, `vote.js`, `operator-tabs.js`, `meetings.js`, `archives.js`, `report.js`, `trust.js`, `validate.js`, `auth-ui.js`, `pv-print.js`
+**pages/** (29 fichiers) — Logique spécifique par page :
+- `login.js`, `admin.js`, `vote.js`, `operator-tabs.js`, `meetings.js`, `archives.js`, `report.js`, `trust.js`, `validate.js`, `auth-ui.js`, `pv-print.js`, `dashboard.js`, `wizard.js`, `hub.js`, `postsession.js`, `members.js`, `analytics-dashboard.js`, `help-faq.js`, `docs-viewer.js`, `landing.js`, `public.js`, etc.
 
-**services/** — Services JS métier :
+**services/** (1 fichier) — Services JS métier :
 - `meeting-context.js` — Contexte de séance réactif
+
+**components/** (21 fichiers) — Voir section Web Components ci-dessus.
 
 ### Pattern SPA léger
 Les pages `.htmx.html` sont des single-page applications légères utilisant du vanilla JS :
@@ -242,7 +256,7 @@ Les pages `.htmx.html` sont des single-page applications légères utilisant du 
 
 ## Base de données
 
-### Tables principales (36)
+### Tables principales (40)
 
 **Domaine métier :**
 - `meetings` — Séances avec machine à états (draft > scheduled > frozen > live > closed > validated > archived)
@@ -279,7 +293,7 @@ Chaque transition est contrôlée par rôle et enregistrée dans `meeting_state_
 
 ---
 
-## Services métier (app/Services/ — namespace AgVote\Service)
+## Services métier (app/Services/ — 19 fichiers)
 
 | Service | Responsabilité |
 |---------|---------------|
@@ -295,8 +309,7 @@ Chaque transition est contrôlée par rôle et enregistrée dans `meeting_state_
 | MeetingValidator | Vérification pré-validation (tous votes clos, pas d'anomalies) |
 | MeetingWorkflowService | Machine à états des séances |
 | SpeechService | File d'attente des intervenants |
-| InvitationsService | Tokens d'invitation (email, QR) |
-| MembersService | Gestion du registre des membres |
+| MonitoringService | Surveillance système et health checks |
 | MailerService | Envoi d'emails |
 | EmailQueueService | File d'attente d'emails |
 | EmailTemplateService | Templates d'email personnalisables |

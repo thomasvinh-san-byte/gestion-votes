@@ -283,7 +283,7 @@ class EmailTrackingControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTrackingController.php');
 
-        $this->assertStringContainsString('InvitationRepository', $source);
+        $this->assertStringContainsString('RepositoryFactory::getInstance()->invitation()', $source);
         $this->assertStringContainsString('incrementOpenCount', $source);
     }
 
@@ -291,7 +291,7 @@ class EmailTrackingControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTrackingController.php');
 
-        $this->assertStringContainsString('EmailEventRepository', $source);
+        $this->assertStringContainsString('RepositoryFactory::getInstance()->emailEvent()', $source);
         $this->assertStringContainsString('logEvent', $source);
     }
 
@@ -387,10 +387,12 @@ class EmailTrackingControllerTest extends TestCase
         $this->assertStringContainsString('Email redirect tracking error:', $source);
     }
 
-    public function testPixelRethrowsApiResponseException(): void
+    public function testPixelLogsTrackingErrors(): void
     {
+        // ApiResponseException rethrow removed — handled by global exception handler.
+        // Verify tracking errors are still logged.
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTrackingController.php');
 
-        $this->assertStringContainsString('ApiResponseException', $source);
+        $this->assertStringContainsString('Email pixel tracking error:', $source);
     }
 }

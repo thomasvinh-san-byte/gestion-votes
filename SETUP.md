@@ -2,8 +2,8 @@
 
 ## Prérequis
 
-- PHP 8.1+ avec extensions : `pdo_pgsql`, `mbstring`, `json`, `session`
-- PostgreSQL 14+ (extensions `pgcrypto`, `citext`)
+- PHP 8.4+ avec extensions : `pdo_pgsql`, `mbstring`, `json`, `session`
+- PostgreSQL 16+ (extensions `pgcrypto`, `citext`)
 - Navigateur moderne
 
 ### Installation des dépendances sur Ubuntu/Debian
@@ -43,7 +43,7 @@ sudo -u postgres createuser vote_app --pwprompt
 sudo -u postgres createdb vote_app -O vote_app
 
 # Schéma
-sudo -u postgres psql -d vote_app -f database/schema.sql
+sudo -u postgres psql -d vote_app -f database/schema-master.sql
 
 # Seeds (dans l'ordre)
 PGPASSWORD=vote_app_dev_2026 psql -U vote_app -d vote_app -h localhost \
@@ -105,19 +105,20 @@ php -S 0.0.0.0:8080 -t public
 | Page | URL | Rôle |
 |---|---|---|
 | Accueil | http://localhost:8080/ | — |
+| Dashboard | http://localhost:8080/dashboard.htmx.html | viewer |
+| Séances | http://localhost:8080/meetings.htmx.html | viewer |
+| Créer une séance | http://localhost:8080/wizard.htmx.html | operator |
+| Fiche séance | http://localhost:8080/hub.htmx.html | operator |
 | Opérateur | http://localhost:8080/operator.htmx.html | operator |
-| Président | http://localhost:8080/president.htmx.html | president |
-| Résolutions | http://localhost:8080/motions.htmx.html | operator |
-| Présences | http://localhost:8080/attendance.htmx.html | operator |
+| Votant (tablette) | http://localhost:8080/vote.htmx.html | voter |
+| Écran salle | http://localhost:8080/public.htmx.html | public |
+| Post-session (PV) | http://localhost:8080/postsession.htmx.html | operator |
 | Membres | http://localhost:8080/members.htmx.html | operator |
-| Procurations | http://localhost:8080/proxies.htmx.html | operator |
-| Invitations | http://localhost:8080/invitations.htmx.html | operator |
-| Contrôle (audit) | http://localhost:8080/trust.htmx.html | auditor |
-| Vote public | http://localhost:8080/public.htmx.html | public |
+| Audit | http://localhost:8080/trust.htmx.html | auditor |
+| Archives | http://localhost:8080/archives.htmx.html | viewer |
+| Statistiques | http://localhost:8080/analytics.htmx.html | operator |
 | Admin | http://localhost:8080/admin.htmx.html | admin |
-| PV / Export | http://localhost:8080/report.htmx.html | operator |
-| Archives | http://localhost:8080/archives.htmx.html | operator |
-| Validation | http://localhost:8080/validate.htmx.html | president |
+| Aide | http://localhost:8080/help.htmx.html | — |
 
 ## 5. Comptes de test
 
@@ -166,7 +167,7 @@ Après le setup, la base contient :
 - **1 procuration** : Fontaine → Dupont
 - **Rôles de séance** : président, assesseur, électeur
 
-> Pour le parcours de test complet de cette séance, voir **[docs/TEST_E2E.md](docs/TEST_E2E.md)**.
+> Pour le parcours de test complet, voir la démo guidée : **[docs/RECETTE_DEMO.md](docs/RECETTE_DEMO.md)**.
 
 ## 7. Réinitialiser
 

@@ -559,7 +559,7 @@ class MembersControllerTest extends TestCase
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
 
         $this->assertStringContainsString('include_groups', $source);
-        $this->assertStringContainsString('MemberGroupRepository', $source);
+        $this->assertStringContainsString('repo()->memberGroup()', $source);
     }
 
     // =========================================================================

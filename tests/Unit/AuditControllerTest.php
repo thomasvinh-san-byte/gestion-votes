@@ -624,13 +624,13 @@ class AuditControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuditController.php');
 
-        $this->assertStringContainsString('AuditEventRepository', $source);
+        $this->assertStringContainsString('repo()->auditEvent()', $source);
     }
 
     public function testControllerUsesMeetingRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuditController.php');
 
-        $this->assertStringContainsString('MeetingRepository', $source);
+        $this->assertStringContainsString('repo()->meeting()', $source);
     }
 }

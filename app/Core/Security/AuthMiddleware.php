@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Core\Security;
 
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\UserRepository;
+use AgVote\Core\Providers\RepositoryFactory;
 use RuntimeException;
 use Throwable;
 
@@ -121,7 +118,7 @@ final class AuthMiddleware {
         }
 
         try {
-            $repo = new UserRepository();
+            $repo = RepositoryFactory::getInstance()->user();
             $roles = $repo->listUserRolesForMeeting(
                 $user['tenant_id'] ?? self::getDefaultTenantId(),
                 $mid,
@@ -316,7 +313,7 @@ final class AuthMiddleware {
                 $lastDbCheck = $_SESSION['auth_last_db_check'] ?? 0;
                 if (($now - $lastDbCheck) >= self::SESSION_REVALIDATE_INTERVAL) {
                     try {
-                        $repo = new UserRepository();
+                        $repo = RepositoryFactory::getInstance()->user();
                         $fresh = $repo->findForSessionRevalidation(
                             (string) ($_SESSION['auth_user']['id'] ?? ''),
                         );
@@ -466,7 +463,7 @@ final class AuthMiddleware {
         $tenantId = $user['tenant_id'] ?? self::getDefaultTenantId();
 
         try {
-            $repo = new MeetingRepository();
+            $repo = RepositoryFactory::getInstance()->meeting();
             return $repo->findByIdForTenant($meetingId, $tenantId) !== null;
         } catch (Throwable $e) {
             error_log('Meeting access check error: ' . $e->getMessage());
@@ -632,7 +629,7 @@ final class AuthMiddleware {
         $hash = hash_hmac('sha256', $apiKey, $secret);
 
         try {
-            $repo = new UserRepository();
+            $repo = RepositoryFactory::getInstance()->user();
             $row = $repo->findByApiKeyHashGlobal($hash);
 
             if (!$row) {
@@ -719,10 +716,11 @@ final class AuthMiddleware {
         }
 
         try {
+            $rf = RepositoryFactory::getInstance();
             return match($resourceType) {
-                'meeting' => (new MeetingRepository())->isOwnedByUser($resourceId, $userId),
-                'motion' => (new MotionRepository())->isOwnedByUser($resourceId, $userId),
-                'member' => (new MemberRepository())->isOwnedByUser($resourceId, $userId),
+                'meeting' => $rf->meeting()->isOwnedByUser($resourceId, $userId),
+                'motion' => $rf->motion()->isOwnedByUser($resourceId, $userId),
+                'member' => $rf->member()->isOwnedByUser($resourceId, $userId),
                 default => false,
             };
         } catch (Throwable $e) {

@@ -4,15 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\BallotRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MeetingStatsRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\ProxyRepository;
-use AgVote\Repository\WizardRepository;
-
 /**
  * Consolidates dashboard.php and wizard_status.php.
  */
@@ -21,12 +12,12 @@ final class DashboardController extends AbstractController {
         $meetingId = api_query('meeting_id');
         $tenantId = api_current_tenant_id();
 
-        $meetingRepo = new MeetingRepository();
-        $statsRepo = new MeetingStatsRepository();
-        $memberRepo = new MemberRepository();
-        $attRepo = new AttendanceRepository();
-        $motionRepo = new MotionRepository();
-        $ballotRepo = new BallotRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $statsRepo = $this->repo()->meetingStats();
+        $memberRepo = $this->repo()->member();
+        $attRepo = $this->repo()->attendance();
+        $motionRepo = $this->repo()->motion();
+        $ballotRepo = $this->repo()->ballot();
 
         $meetings = $meetingRepo->listForDashboard($tenantId);
 
@@ -78,7 +69,7 @@ final class DashboardController extends AbstractController {
                 'present_weight' => (float) $att['present_weight'],
             ];
 
-            $data['proxies'] = ['count' => (new ProxyRepository())->countActive($meetingId, $tenantId)];
+            $data['proxies'] = ['count' => $this->repo()->proxy()->countActive($meetingId, $tenantId)];
 
             $currentMotionId = (string) ($meeting['current_motion_id'] ?? '');
             if ($currentMotionId === '') {
@@ -147,7 +138,7 @@ final class DashboardController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $wizardRepo = new WizardRepository();
+        $wizardRepo = $this->repo()->wizard();
 
         $m = $wizardRepo->getMeetingBasics($meetingId, $tenantId);
         if (!$m) {

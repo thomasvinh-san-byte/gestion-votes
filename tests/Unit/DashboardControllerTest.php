@@ -509,48 +509,48 @@ class DashboardControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
 
-        $this->assertStringContainsString('MeetingRepository', $source);
+        $this->assertStringContainsString('repo()->meeting()', $source);
     }
 
     public function testControllerUsesWizardRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
 
-        $this->assertStringContainsString('WizardRepository', $source);
+        $this->assertStringContainsString('repo()->wizard()', $source);
     }
 
     public function testControllerUsesAttendanceRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
 
-        $this->assertStringContainsString('AttendanceRepository', $source);
+        $this->assertStringContainsString('repo()->attendance()', $source);
     }
 
     public function testControllerUsesMotionRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
 
-        $this->assertStringContainsString('MotionRepository', $source);
+        $this->assertStringContainsString('repo()->motion()', $source);
     }
 
     public function testControllerUsesBallotRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
 
-        $this->assertStringContainsString('BallotRepository', $source);
+        $this->assertStringContainsString('repo()->ballot()', $source);
     }
 
     public function testControllerUsesProxyRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
 
-        $this->assertStringContainsString('ProxyRepository', $source);
+        $this->assertStringContainsString('repo()->proxy()', $source);
     }
 
     public function testControllerUsesMemberRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
 
-        $this->assertStringContainsString('MemberRepository', $source);
+        $this->assertStringContainsString('repo()->member()', $source);
     }
 }

@@ -69,13 +69,8 @@ class MemberRepository extends AbstractRepository {
         if (count($ids) === 0) {
             return [];
         }
-        $placeholders = [];
         $params = [':tid' => $tenantId];
-        foreach (array_values($ids) as $i => $id) {
-            $placeholders[] = ":id{$i}";
-            $params[":id{$i}"] = $id;
-        }
-        $in = implode(',', $placeholders);
+        $in = $this->buildInClause('id', $ids, $params);
         $rows = $this->selectAll(
             "SELECT id FROM members WHERE tenant_id = :tid AND id IN ({$in}) AND deleted_at IS NULL",
             $params,

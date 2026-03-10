@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\VoteTokenRepository;
 use DateTimeImmutable;
 
 /**
@@ -31,12 +27,12 @@ final class VoteTokenController extends AbstractController {
 
         $tenant = api_current_tenant_id();
 
-        $meeting = (new MeetingRepository())->findByIdForTenant($meetingId, $tenant);
+        $meeting = $this->repo()->meeting()->findByIdForTenant($meetingId, $tenant);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
         }
 
-        $motion = (new MotionRepository())->findByIdAndMeetingWithDates($motionId, $meetingId);
+        $motion = $this->repo()->motion()->findByIdAndMeetingWithDates($motionId, $meetingId);
         if (!$motion) {
             api_fail('motion_not_found', 404);
         }
@@ -45,7 +41,7 @@ final class VoteTokenController extends AbstractController {
             api_fail('motion_closed', 409);
         }
 
-        $voters = (new AttendanceRepository())->listEligibleVotersWithName($tenant, $meetingId);
+        $voters = $this->repo()->attendance()->listEligibleVotersWithName($tenant, $meetingId);
 
         $ttlMinutes = (int) ($in['ttl_minutes'] ?? 0);
         if ($ttlMinutes <= 0) {
@@ -55,7 +51,7 @@ final class VoteTokenController extends AbstractController {
 
         $generated = [];
         $createdCount = 0;
-        $voteTokenRepo = new VoteTokenRepository();
+        $voteTokenRepo = $this->repo()->voteToken();
 
         api_transaction(function () use ($voters, $voteTokenRepo, $meetingId, $motionId, $tenant, $expiresAt, &$generated, &$createdCount) {
             foreach ($voters as $v) {

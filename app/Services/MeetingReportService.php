@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\ManualActionRepository;
 use AgVote\Repository\MeetingRepository;
@@ -27,11 +28,11 @@ final class MeetingReportService {
         ?ManualActionRepository $manualActionRepo = null,
         ?PolicyRepository $policyRepo = null,
     ) {
-        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
-        $this->motionRepo = $motionRepo ?? new MotionRepository();
-        $this->attendanceRepo = $attendanceRepo ?? new AttendanceRepository();
-        $this->manualActionRepo = $manualActionRepo ?? new ManualActionRepository();
-        $this->policyRepo = $policyRepo ?? new PolicyRepository();
+        $this->meetingRepo = $meetingRepo ?? RepositoryFactory::getInstance()->meeting();
+        $this->motionRepo = $motionRepo ?? RepositoryFactory::getInstance()->motion();
+        $this->attendanceRepo = $attendanceRepo ?? RepositoryFactory::getInstance()->attendance();
+        $this->manualActionRepo = $manualActionRepo ?? RepositoryFactory::getInstance()->manualAction();
+        $this->policyRepo = $policyRepo ?? RepositoryFactory::getInstance()->policy();
     }
 
     public function renderHtml(string $meetingId, bool $showVoters = false, ?string $tenantId = null): string {

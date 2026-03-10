@@ -192,13 +192,13 @@
         '</button>';
     }
     if (canDelete) {
-      secondaryActions += '<button class="btn btn-xs btn-ghost text-danger meeting-action-delete" data-delete-id="' + m.id + '" title="Supprimer">' +
+      secondaryActions += '<button class="btn btn-xs btn-ghost text-danger meeting-action-delete" data-delete-id="' + escapeHtml(m.id) + '" title="Supprimer">' +
         '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>' +
         '</button>';
     }
 
     return `
-      <div class="meeting-card ${cardClass}" data-meeting-id="${m.id}">
+      <div class="meeting-card ${cardClass}" data-meeting-id="${escapeHtml(m.id)}">
         <div class="meeting-card-header">
           <div class="flex items-center gap-2" style="justify-content:space-between;">
             <h3 class="meeting-card-title">${title}</h3>

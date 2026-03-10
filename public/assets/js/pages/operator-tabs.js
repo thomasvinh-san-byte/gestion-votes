@@ -1,3 +1,5 @@
+/* GO-LIVE-STATUS: ready — Operator tabs (core). innerHTML audité — aucune vulnérabilité XSS.
+   NICE-TO-HAVE: split P3 (settings + dashboard modules). */
 /**
  * operator-tabs.js — Tab-based operator console for AG-VOTE (Diligent-style)
  * Requires: utils.js, shared.js, shell.js
@@ -28,7 +30,76 @@ window.OpS = { fn: {} };
   const btnPrimary = document.getElementById('btnPrimary');
   const meetingBarActions = document.getElementById('meetingBarActions');
   const viewSetup = document.getElementById('viewSetup');
-  const viewExec = document.getElementById('viewExec');
+  let viewExec = document.getElementById('viewExec');
+
+  // ── Lazy-loading for partials ─────────────────────────────────────────
+  // Large sections (exec view, live tabs) are loaded on demand to reduce
+  // initial page weight from 90KB to ~60KB.
+
+  const _partialCache = {};
+
+  /**
+   * Load a partial HTML file into a container element.
+   * Returns a promise that resolves when the content is injected.
+   */
+  async function loadPartial(container) {
+    if (!container) return;
+    const url = container.dataset.partial;
+    if (!url || container.dataset.loaded === 'true') return;
+
+    if (!_partialCache[url]) {
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.warn('[operator] Failed to load partial:', url, res.status);
+        return;
+      }
+      _partialCache[url] = await res.text();
+    }
+
+    container.innerHTML = _partialCache[url];
+    container.dataset.loaded = 'true';
+  }
+
+  /**
+   * Ensure live tabs partial (parole, vote, resultats) is loaded.
+   */
+  async function ensureLiveTabsLoaded() {
+    const el = document.getElementById('liveTabs');
+    if (el && el.dataset.loaded !== 'true') {
+      await loadPartial(el);
+    }
+  }
+
+  /**
+   * Ensure exec view partial is loaded.
+   */
+  async function ensureExecViewLoaded() {
+    if (viewExec && viewExec.dataset.loaded !== 'true') {
+      await loadPartial(viewExec);
+      // Re-bind sub-tab clicks and other exec-view event listeners
+      bindExecSubTabs();
+    }
+  }
+
+  /**
+   * Bind event listeners for dynamically loaded exec view sub-tabs.
+   */
+  function bindExecSubTabs() {
+    var subTabs = document.getElementById('opSubTabs');
+    if (subTabs && !subTabs.dataset.bound) {
+      subTabs.dataset.bound = 'true';
+      subTabs.addEventListener('click', function(e) {
+        var tab = e.target.closest('.op-tab');
+        if (!tab) return;
+        var target = tab.dataset.opTab;
+        subTabs.querySelectorAll('.op-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        document.querySelectorAll('.op-tab-panel').forEach(function(p) { p.classList.remove('active'); });
+        var panel = document.getElementById('opPanel' + target.charAt(0).toUpperCase() + target.slice(1));
+        if (panel) panel.classList.add('active');
+      });
+    }
+  }
   const srAnnounce = document.getElementById('srAnnounce');
 
   // Tab elements
@@ -269,6 +340,8 @@ window.OpS = { fn: {} };
     document.querySelectorAll('.tab-btn-live').forEach(btn => {
       btn.hidden = !isLive;
     });
+    // Lazy-load live tabs partial when meeting becomes live
+    if (isLive) ensureLiveTabsLoaded();
     // Update alert count badge
     const alertCountEl = document.getElementById('tabCountAlerts');
     if (alertCountEl) {
@@ -325,6 +398,8 @@ window.OpS = { fn: {} };
         updateHeader(body.data);
         updateLiveTabs();
         await loadAllData();
+        // Reconnect SSE for the new meeting (handled by operator-realtime.js)
+        if (OpS.fn.connectSSE) OpS.fn.connectSSE();
       }
     } catch (err) {
       setNotif('error', 'Impossible de charger la séance. Vérifiez votre connexion et réessayez.');
@@ -1948,7 +2023,7 @@ window.OpS = { fn: {} };
    * @param {string} [opts.tab] - Force a specific tab when entering setup mode
    * @param {boolean} [opts.restoreTab] - Restore last active prep tab (default true for manual switches)
    */
-  function setMode(mode, opts = {}) {
+  async function setMode(mode, opts = {}) {
     // Prevent entering exec mode if meeting is not live
     if (mode === 'exec' && currentMeetingStatus !== 'live') {
       mode = 'setup';
@@ -1957,6 +2032,12 @@ window.OpS = { fn: {} };
     // No-op if already in the requested mode and view is visible (unless forcing a tab)
     const alreadyVisible = mode === 'setup' ? (viewSetup && !viewSetup.hidden) : (viewExec && !viewExec.hidden);
     if (mode === currentMode && !opts.tab && alreadyVisible) return;
+
+    // Lazy-load partials before switching
+    if (mode === 'exec') {
+      await ensureExecViewLoaded();
+      viewExec = document.getElementById('viewExec');
+    }
 
     // Save last active prep tab when leaving setup
     if (currentMode === 'setup' && mode === 'exec') {
@@ -2462,278 +2543,13 @@ window.OpS = { fn: {} };
   }
 
   // =========================================================================
-  // EXECUTION VIEW
+  // EXECUTION VIEW — delegated to operator-exec.js
   // =========================================================================
-
-  function refreshExecKPIs() {
-    // Quorum bar
-    const qBar = document.getElementById('execQuorumBar');
-    if (qBar) {
-      const present = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length;
-      const proxyActive = proxiesCache.filter(p => !p.revoked_at).length;
-      const currentVoters = present + proxyActive;
-      const totalMembers = membersCache.length;
-      const policy = policiesCache.quorum.find(p => p.id === (currentMeeting?.quorum_policy_id));
-      const threshold = policy?.threshold ? parseFloat(policy.threshold) : 0.5;
-      const required = Math.ceil(totalMembers * threshold);
-      qBar.setAttribute('current', currentVoters);
-      qBar.setAttribute('required', required);
-      qBar.setAttribute('total', totalMembers);
-    }
-
-    // Participation %
-    const partEl = document.getElementById('execParticipation');
-    if (partEl && currentOpenMotion) {
-      const totalBallots = Object.keys(ballotsCache).length;
-      const eligible = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length +
-                       proxiesCache.filter(p => !p.revoked_at).length;
-      const pct = eligible > 0 ? Math.round((totalBallots / eligible) * 100) : 0;
-      partEl.textContent = pct + '%';
-      partEl.style.color = pct >= 75 ? 'var(--color-success)' : pct >= 50 ? 'var(--color-warning)' : 'var(--color-text-muted)';
-    } else if (partEl) {
-      partEl.textContent = '—';
-      partEl.style.color = '';
-    }
-
-    // Motions progress
-    const doneEl = document.getElementById('execMotionsDone');
-    const totalEl = document.getElementById('execMotionsTotal');
-    if (doneEl && totalEl) {
-      const closed = motionsCache.filter(m => m.closed_at).length;
-      doneEl.textContent = closed;
-      totalEl.textContent = motionsCache.length;
-    }
-
-    // Vote participation bar in exec
-    const barFill = document.getElementById('execVoteParticipationBar');
-    const barPct = document.getElementById('execVoteParticipationPct');
-    if (barFill && barPct) {
-      if (currentOpenMotion) {
-        const totalBallots = Object.keys(ballotsCache).length;
-        const eligible = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote').length +
-                         proxiesCache.filter(p => !p.revoked_at).length;
-        const pct = eligible > 0 ? Math.round((totalBallots / eligible) * 100) : 0;
-        barFill.style.width = pct + '%';
-        barPct.textContent = pct + '%';
-      } else {
-        barFill.style.width = '0%';
-        barPct.textContent = '—';
-      }
-    }
-  }
-
-  function refreshExecView() {
-    refreshExecKPIs();
-    refreshExecVote();
-    refreshExecSpeech();
-    refreshExecDevices();
-    refreshExecManualVotes();
-    refreshAlerts();
-    updateExecCloseSession();
-  }
-
-  function refreshExecVote() {
-    const titleEl = document.getElementById('execVoteTitle');
-    const forEl = document.getElementById('execVoteFor');
-    const againstEl = document.getElementById('execVoteAgainst');
-    const abstainEl = document.getElementById('execVoteAbstain');
-    const liveBadge = document.getElementById('execLiveBadge');
-    const btnClose = document.getElementById('execBtnCloseVote');
-    const noVotePanel = document.getElementById('execNoVote');
-    const activeVotePanel = document.getElementById('execActiveVote');
-
-    if (currentOpenMotion) {
-      // Show active vote, hide no-vote placeholder
-      if (noVotePanel) Shared.hide(noVotePanel);
-      if (activeVotePanel) activeVotePanel.hidden = false;
-
-      if (titleEl) titleEl.textContent = currentOpenMotion.title;
-      if (liveBadge) Shared.show(liveBadge);
-      if (btnClose) { btnClose.disabled = false; Shared.show(btnClose); }
-
-      let fc = 0, ac = 0, ab = 0;
-      Object.values(ballotsCache).forEach(v => {
-        if (v === 'for') fc++;
-        else if (v === 'against') ac++;
-        else if (v === 'abstain') ab++;
-      });
-
-      if (forEl) forEl.textContent = fc;
-      if (againstEl) againstEl.textContent = ac;
-      if (abstainEl) abstainEl.textContent = ab;
-
-      // Update animated vote bars
-      var total = fc + ac + ab;
-      var pctFor = total > 0 ? Math.round((fc / total) * 100) : 0;
-      var pctAgainst = total > 0 ? Math.round((ac / total) * 100) : 0;
-      var pctAbstain = total > 0 ? Math.round((ab / total) * 100) : 0;
-
-      var barFor = document.getElementById('opBarFor');
-      var barAgainst = document.getElementById('opBarAgainst');
-      var barAbstain = document.getElementById('opBarAbstain');
-      if (barFor) barFor.style.width = pctFor + '%';
-      if (barAgainst) barAgainst.style.width = pctAgainst + '%';
-      if (barAbstain) barAbstain.style.width = pctAbstain + '%';
-
-      var pFor = document.getElementById('opPctFor');
-      var pAgainst = document.getElementById('opPctAgainst');
-      var pAbstain = document.getElementById('opPctAbstain');
-      if (pFor) pFor.textContent = pctFor + '%';
-      if (pAgainst) pAgainst.textContent = pctAgainst + '%';
-      if (pAbstain) pAbstain.textContent = pctAbstain + '%';
-    } else {
-      // Show no-vote placeholder with quick-open buttons, hide active vote
-      if (noVotePanel) Shared.show(noVotePanel, 'block');
-      if (activeVotePanel) activeVotePanel.hidden = true;
-
-      if (liveBadge) Shared.hide(liveBadge);
-      if (btnClose) { btnClose.disabled = true; Shared.hide(btnClose); }
-
-      renderExecQuickOpenList();
-    }
-  }
-
-  function renderExecQuickOpenList() {
-    const list = document.getElementById('execQuickOpenList');
-    if (!list) return;
-
-    const isLive = currentMeetingStatus === 'live';
-    const openableMotions = motionsCache.filter(m => !m.opened_at && !m.closed_at);
-
-    if (!isLive || openableMotions.length === 0) {
-      list.innerHTML = isLive
-        ? '<p class="text-muted text-sm">Aucune résolution en attente</p>'
-        : '<p class="text-muted text-sm">La séance doit être en cours pour ouvrir un vote</p>';
-      return;
-    }
-
-    list.innerHTML = openableMotions.slice(0, 5).map((m, i) => `
-      <button class="btn btn-primary btn-quick-open" data-motion-id="${escapeHtml(m.id)}">
-        ${icon('play', 'icon-sm icon-text')}${i + 1}. ${escapeHtml(m.title.length > 30 ? m.title.substring(0, 30) + '...' : m.title)}
-      </button>
-    `).join('');
-
-    if (openableMotions.length > 5) {
-      list.innerHTML += `<span class="text-muted text-sm">+ ${openableMotions.length - 5} autres</span>`;
-    }
-
-    list.querySelectorAll('.btn-quick-open').forEach(btn => {
-      btn.addEventListener('click', () => openVote(btn.dataset.motionId));
-    });
-  }
 
   let execSpeechTimerInterval = null;
 
-  function refreshExecSpeech() {
-    const speakerInfo = document.getElementById('execSpeakerInfo');
-    const actionsEl = document.getElementById('execSpeechActions');
-    const queueList = document.getElementById('execSpeechQueue');
-
-    // Clear exec timer
-    if (execSpeechTimerInterval) {
-      clearInterval(execSpeechTimerInterval);
-      execSpeechTimerInterval = null;
-    }
-
-    if (speakerInfo) {
-      if (currentSpeakerCache) {
-        const name = escapeHtml(currentSpeakerCache.full_name || '—');
-        const startTime = currentSpeakerCache.updated_at ? new Date(currentSpeakerCache.updated_at).getTime() : Date.now();
-        speakerInfo.innerHTML =
-          '<div class="exec-speaker-active">' +
-            '<svg class="icon icon-text exec-speaker-mic" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg>' +
-            '<strong>' + name + '</strong>' +
-            '<span class="exec-speaker-timer" id="execSpeakerTimer">00:00</span>' +
-          '</div>';
-        // Start live timer
-        function updateExecTimer() {
-          const el = document.getElementById('execSpeakerTimer');
-          if (!el) return;
-          const elapsed = Math.floor((Date.now() - startTime) / 1000);
-          const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
-          const ss = String(elapsed % 60).padStart(2, '0');
-          el.textContent = mm + ':' + ss;
-        }
-        updateExecTimer();
-        execSpeechTimerInterval = setInterval(updateExecTimer, 1000);
-      } else {
-        speakerInfo.innerHTML = '<span class="text-sm text-muted">Aucun orateur</span>';
-      }
-    }
-
-    // Show/hide action buttons
-    if (actionsEl) {
-      actionsEl.style.display = currentSpeakerCache ? '' : 'none';
-    }
-
-    if (queueList) {
-      if (speechQueueCache.length === 0) {
-        queueList.innerHTML = '<span class="text-muted text-sm">File vide</span>';
-      } else {
-        queueList.innerHTML = '<div class="text-sm text-muted mb-1">File (' + speechQueueCache.length + ') :</div>' +
-          speechQueueCache.slice(0, 5).map(function(s, i) {
-            return '<div class="text-sm">' + (i + 1) + '. ' + escapeHtml(s.full_name || '—') + '</div>';
-          }).join('');
-        if (speechQueueCache.length > 5) {
-          queueList.innerHTML += '<div class="text-sm text-muted">+ ' + (speechQueueCache.length - 5) + ' autres</div>';
-        }
-      }
-    }
-  }
-
-  function refreshExecDevices() {
-    const devOnlineEl = document.getElementById('devOnline');
-    const devStaleEl = document.getElementById('devStale');
-    const execOnline = document.getElementById('execDevOnline');
-    const execStale = document.getElementById('execDevStale');
-
-    if (execOnline && devOnlineEl) execOnline.textContent = devOnlineEl.textContent;
-    if (execStale && devStaleEl) execStale.textContent = devStaleEl.textContent;
-  }
-
-  function refreshExecManualVotes() {
-    const list = document.getElementById('execManualVoteList');
-    if (!list) return;
-
-    if (!currentOpenMotion) {
-      list.innerHTML = '<span class="text-muted text-sm">Aucun vote actif</span>';
-      return;
-    }
-
-    const searchInput = document.getElementById('execManualSearch');
-    const searchTerm = (searchInput ? searchInput.value : '').toLowerCase();
-    let voters = attendanceCache.filter(a => a.mode === 'present' || a.mode === 'remote');
-
-    if (searchTerm) {
-      voters = voters.filter(v => (v.full_name || '').toLowerCase().includes(searchTerm));
-    }
-
-    var shown = voters.slice(0, 20);
-    var remaining = voters.length - shown.length;
-    list.innerHTML = shown.map(function(v) {
-      var vote = ballotsCache[v.member_id];
-      return '<div class="exec-manual-vote-row" data-member-id="' + v.member_id + '">'
-        + '<span class="text-sm">' + escapeHtml(v.full_name || '\u2014') + '</span>'
-        + '<div class="flex gap-1">'
-        + '<button class="btn btn-xs ' + (vote === 'for' ? 'btn-success' : 'btn-ghost') + '" data-vote="for" aria-label="Pour \u2014 ' + escapeHtml(v.full_name || '') + '">Pour</button>'
-        + '<button class="btn btn-xs ' + (vote === 'against' ? 'btn-danger' : 'btn-ghost') + '" data-vote="against" aria-label="Contre \u2014 ' + escapeHtml(v.full_name || '') + '">Contre</button>'
-        + '<button class="btn btn-xs ' + (vote === 'abstain' ? 'btn-warning' : 'btn-ghost') + '" data-vote="abstain" aria-label="Abstention \u2014 ' + escapeHtml(v.full_name || '') + '">Abst.</button>'
-        + '</div></div>';
-    }).join('') + (remaining > 0 ? '<div class="text-xs text-muted text-center mt-2">+ ' + remaining + ' votants non affichés</div>' : '')
-    || '<span class="text-muted text-sm">Aucun votant</span>';
-
-    // Bind vote buttons
-    list.querySelectorAll('[data-vote]').forEach(function(btn) {
-      btn.addEventListener('click', async function() {
-        const row = btn.closest('[data-member-id]');
-        const memberId = row.dataset.memberId;
-        const voteType = btn.dataset.vote;
-        if (ballotsCache[memberId] === voteType) return;
-        await castManualVote(memberId, voteType);
-        refreshExecManualVotes();
-      });
-    });
-  }
+  function refreshExecView()       { return OpS.fn.refreshExecView(); }
+  function refreshExecManualVotes(){ return OpS.fn.refreshExecManualVotes(); }
 
   // =========================================================================
   // INIT
@@ -2741,14 +2557,8 @@ window.OpS = { fn: {} };
 
   meetingSelect.addEventListener('change', () => loadMeetingContext(meetingSelect.value));
 
-  // Debounce helper for search inputs (avoid re-render on every keystroke)
-  function debounce(fn, ms = 250) {
-    let t;
-    return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
-  }
-
   // Presence search
-  document.getElementById('presenceSearch')?.addEventListener('input', debounce(renderAttendance));
+  document.getElementById('presenceSearch')?.addEventListener('input', Utils.debounce(renderAttendance, 250));
   document.getElementById('btnMarkAllPresent')?.addEventListener('click', markAllPresent);
 
   // Import CSV button (members)
@@ -2821,13 +2631,13 @@ window.OpS = { fn: {} };
   document.getElementById('btnAddProxy')?.addEventListener('click', showAddProxyModal);
 
   // Proxy search
-  document.getElementById('proxySearch')?.addEventListener('input', debounce(renderProxies));
+  document.getElementById('proxySearch')?.addEventListener('input', Utils.debounce(renderProxies, 250));
 
   // Import proxies CSV button
   document.getElementById('btnImportProxiesCSV')?.addEventListener('click', showImportProxiesCSVModal);
 
   // Resolution search
-  document.getElementById('resolutionSearch')?.addEventListener('input', debounce(renderResolutions));
+  document.getElementById('resolutionSearch')?.addEventListener('input', Utils.debounce(renderResolutions, 250));
   document.getElementById('btnAddResolution')?.addEventListener('click', () => {
     Shared.show(document.getElementById('addResolutionForm'), 'block');
   });
@@ -3311,128 +3121,24 @@ window.OpS = { fn: {} };
   _ops.fn.closeSession             = closeSession;
   _ops.fn.doTransition             = doTransition;
   _ops.fn.initializePreviousMotionState = initializePreviousMotionState;
+  _ops.fn.loadQuorumStatus         = loadQuorumStatus;
+  _ops.fn.loadDashboard            = loadDashboard;
+  _ops.fn.loadDevices              = loadDevices;
 
   initTabs();
   startClock();
   loadMeetings();
 
-  // Auto-refresh - adaptive polling with cancellable timer
-  const POLL_FAST = 5000;  // 5s when vote is active
-  const POLL_SLOW = 15000; // 15s otherwise
-  let pollTimer = null;
-  let pollRunning = false;
-  let newVoteDebounceTimer = null;
+  // ==========================================================================
+  // Real-time updates — delegated to operator-realtime.js
+  // ==========================================================================
 
-  function schedulePoll(ms) {
-    if (pollTimer) clearTimeout(pollTimer);
-    pollTimer = setTimeout(autoPoll, ms);
-  }
-
-  async function autoPoll() {
-    pollTimer = null;
-
-    if (!currentMeetingId || document.hidden) {
-      schedulePoll(POLL_SLOW);
-      return;
-    }
-
-    // Prevent overlapping poll cycles
-    if (pollRunning) return;
-    pollRunning = true;
-
-    try {
-      const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
-      const onVoteTab = activeTab === 'vote';
-
-      // Always refresh resolutions to detect motion state changes
-      loadSpeechQueue();
-      await loadResolutions();
-
-      // In setup mode, also refresh dashboard/checklist/devices (not needed in exec)
-      if (currentMode === 'setup') {
-        loadStatusChecklist();
-        loadDashboard();
-        loadDevices();
-      } else {
-        loadDevices();
-      }
-
-      const isVoteActive = !!currentOpenMotion;
-      const currentMotionId = currentOpenMotion?.id || null;
-
-      // Detect if a new vote was opened (not by us) — debounced
-      if (isVoteActive && currentMotionId !== previousOpenMotionId) {
-        if (newVoteDebounceTimer) clearTimeout(newVoteDebounceTimer);
-        const motionTitle = currentOpenMotion.title;
-        newVoteDebounceTimer = setTimeout(() => {
-          setNotif('info', `Vote ouvert: ${motionTitle}`);
-          announce(`Vote ouvert : ${motionTitle}`);
-          if (currentMode === 'exec') {
-            loadBallots(currentOpenMotion.id).then(() => refreshExecView());
-          } else if (currentMeetingStatus === 'live') {
-            // Auto-switch to exec for real-time vote monitoring
-            loadBallots(currentOpenMotion.id).then(() => setMode('exec'));
-          } else {
-            switchTab('vote');
-          }
-        }, 500);
-      }
-
-      previousOpenMotionId = currentMotionId;
-
-      // If vote is active, refresh ballot counts
-      if (isVoteActive && currentOpenMotion) {
-        await loadBallots(currentOpenMotion.id);
-        if (currentMode === 'setup' && onVoteTab) {
-          const noVote = document.getElementById('noActiveVote');
-          const panel = document.getElementById('activeVotePanel');
-          const title = document.getElementById('activeVoteTitle');
-          if (noVote) Shared.hide(noVote);
-          if (panel) Shared.show(panel, 'block');
-          if (title) title.textContent = currentOpenMotion.title;
-          renderManualVoteList();
-        }
-      } else if (onVoteTab) {
-        loadVoteTab();
-      }
-
-      // Refresh quorum when on vote tab
-      if (onVoteTab) loadQuorumStatus();
-
-      // Refresh bimodal UI
-      renderConformityChecklist();
-      refreshAlerts();
-      if (currentMode === 'exec') refreshExecView();
-
-      // Schedule next poll
-      const interval = isVoteActive ? POLL_FAST : POLL_SLOW;
-      schedulePoll(interval);
-    } catch (err) {
-      console.warn('autoPoll error:', err);
-      schedulePoll(POLL_SLOW);
-    } finally {
-      pollRunning = false;
-    }
-  }
-
-  // Refresh immediately when tab becomes visible — using schedulePoll to avoid stacking
-  document.addEventListener('visibilitychange', function() {
-    if (!document.hidden && currentMeetingId) {
-      schedulePoll(100); // near-immediate but cancels any existing timer
-    }
-  });
-
-  // Cleanup on page unload
+  // Cleanup timers owned by main file on page unload
   window.addEventListener('beforeunload', function() {
-    if (pollTimer) clearTimeout(pollTimer);
-    if (newVoteDebounceTimer) clearTimeout(newVoteDebounceTimer);
     if (speechTimerInterval) clearInterval(speechTimerInterval);
     if (execSpeechTimerInterval) clearInterval(execSpeechTimerInterval);
     if (sessionTimerInterval) clearInterval(sessionTimerInterval);
     if (_clockInterval) clearInterval(_clockInterval);
   });
-
-  // Start polling after initial load
-  schedulePoll(POLL_SLOW);
 
 })();

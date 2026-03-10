@@ -76,7 +76,7 @@ function audit_log(
     ?string $meetingId = null,
 ): void {
     try {
-        $repo = new \AgVote\Repository\AuditEventRepository();
+        $repo = \AgVote\Core\Providers\RepositoryFactory::getInstance()->auditEvent();
         $repo->insert(
             \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId(),
             $meetingId,

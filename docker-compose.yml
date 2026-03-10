@@ -44,8 +44,16 @@ services:
       timeout: 5s
       start_period: 20s
       retries: 3
+    read_only: true
+    tmpfs:
+      - /tmp:size=128M
+      - /var/run:size=1M
+      - /var/log/nginx:size=10M
+      - /var/lib/nginx/tmp:size=64M
     security_opt:
       - no-new-privileges:true
+    networks:
+      - backend
     deploy:
       resources:
         limits:
@@ -58,7 +66,7 @@ services:
   # Base de données PostgreSQL
   # ---------------------------------------------------------------------------
   db:
-    image: postgres:16-alpine
+    image: postgres:16.8-alpine3.21
     container_name: agvote-db
     restart: unless-stopped
     environment:
@@ -77,6 +85,8 @@ services:
       retries: 5
     security_opt:
       - no-new-privileges:true
+    networks:
+      - backend
     deploy:
       resources:
         limits:
@@ -89,20 +99,22 @@ services:
   # Redis — Queue, rate limiter, cache
   # ---------------------------------------------------------------------------
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine3.21
     container_name: agvote-redis
     restart: unless-stopped
     command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--requirepass", "${REDIS_PASSWORD:-agvote-redis-dev}"]
     ports:
       - "127.0.0.1:${REDIS_EXTERNAL_PORT:-6380}:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a \"${REDIS_PASSWORD:-agvote-redis-dev}\" ping | grep -q PONG"]
       interval: 10s
       timeout: 3s
       start_period: 5s
       retries: 3
     security_opt:
       - no-new-privileges:true
+    networks:
+      - backend
     deploy:
       resources:
         limits:
@@ -110,6 +122,10 @@ services:
           cpus: "0.25"
         reservations:
           memory: 32M
+
+networks:
+  backend:
+    driver: bridge
 
 volumes:
   pgdata:

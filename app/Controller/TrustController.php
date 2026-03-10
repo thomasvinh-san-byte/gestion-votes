@@ -4,14 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\BallotRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MeetingStatsRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\PolicyRepository;
-use AgVote\Repository\ProxyRepository;
-
 final class TrustController extends AbstractController {
     public function anomalies(): void {
         $meetingId = api_query('meeting_id');
@@ -21,7 +13,7 @@ final class TrustController extends AbstractController {
 
         $tenantId = api_current_tenant_id();
 
-        $meeting = (new MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
+        $meeting = $this->repo()->meeting()->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
         }
@@ -29,7 +21,8 @@ final class TrustController extends AbstractController {
         $anomalies = [];
 
         // 1. Votes sans présence enregistrée
-        $votesWithoutAttendance = (new BallotRepository())->listVotesWithoutAttendance($meetingId, $tenantId);
+        $ballotRepo = $this->repo()->ballot();
+        $votesWithoutAttendance = $ballotRepo->listVotesWithoutAttendance($meetingId, $tenantId);
         foreach ($votesWithoutAttendance as $row) {
             $anomalies[] = [
                 'id' => 'vote_no_attendance_' . $row['member_id'],
@@ -43,7 +36,7 @@ final class TrustController extends AbstractController {
         }
 
         // 2. Doubles votes potentiels
-        $duplicateVotes = (new BallotRepository())->listDuplicateVotes($meetingId, $tenantId);
+        $duplicateVotes = $ballotRepo->listDuplicateVotes($meetingId, $tenantId);
         foreach ($duplicateVotes as $row) {
             $anomalies[] = [
                 'id' => 'duplicate_vote_' . $row['member_id'],
@@ -58,7 +51,7 @@ final class TrustController extends AbstractController {
         }
 
         // 3. Incohérences de pondération
-        $weightMismatches = (new BallotRepository())->listWeightMismatches($meetingId, $tenantId);
+        $weightMismatches = $ballotRepo->listWeightMismatches($meetingId, $tenantId);
         foreach ($weightMismatches as $row) {
             $anomalies[] = [
                 'id' => 'weight_mismatch_' . $row['member_id'],
@@ -74,7 +67,7 @@ final class TrustController extends AbstractController {
         }
 
         // 4. Procurations orphelines
-        $orphanProxies = (new ProxyRepository())->listOrphans($meetingId, $tenantId);
+        $orphanProxies = $this->repo()->proxy()->listOrphans($meetingId, $tenantId);
         foreach ($orphanProxies as $row) {
             $anomalies[] = [
                 'id' => 'orphan_proxy_' . $row['id'],
@@ -88,7 +81,7 @@ final class TrustController extends AbstractController {
         }
 
         // 5. Résolutions non closes
-        $unclosedMotions = (new MotionRepository())->listUnclosed($meetingId, $tenantId);
+        $unclosedMotions = $this->repo()->motion()->listUnclosed($meetingId, $tenantId);
         foreach ($unclosedMotions as $row) {
             $anomalies[] = [
                 'id' => 'unclosed_motion_' . $row['id'],
@@ -102,7 +95,7 @@ final class TrustController extends AbstractController {
         }
 
         // 6. Votes manuels non justifiés
-        $unjustifiedManualVotes = (new BallotRepository())->listUnjustifiedManualVotes($meetingId, $tenantId);
+        $unjustifiedManualVotes = $ballotRepo->listUnjustifiedManualVotes($meetingId, $tenantId);
         foreach ($unjustifiedManualVotes as $row) {
             $anomalies[] = [
                 'id' => 'unjustified_manual_' . $row['id'],
@@ -153,12 +146,12 @@ final class TrustController extends AbstractController {
 
         $tenantId = api_current_tenant_id();
 
-        $meetingRepo = new MeetingRepository();
-        $statsRepo = new MeetingStatsRepository();
-        $memberRepo = new MemberRepository();
-        $motionRepo = new MotionRepository();
-        $ballotRepo = new BallotRepository();
-        $policyRepo = new PolicyRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $statsRepo = $this->repo()->meetingStats();
+        $memberRepo = $this->repo()->member();
+        $motionRepo = $this->repo()->motion();
+        $ballotRepo = $this->repo()->ballot();
+        $policyRepo = $this->repo()->policy();
 
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
@@ -225,7 +218,7 @@ final class TrustController extends AbstractController {
         ];
 
         // 6. Procurations valides (pas de cycle)
-        $proxyCycles = (new ProxyRepository())->findCycles($meetingId, $tenantId);
+        $proxyCycles = $this->repo()->proxy()->findCycles($meetingId, $tenantId);
         $proxyOk = count($proxyCycles) === 0;
         $checks[] = [
             'id' => 'proxies_valid',

@@ -1048,8 +1048,8 @@ class AttendancesControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AttendancesController.php');
 
-        $this->assertStringContainsString('new AttendanceRepository()', $source,
-            'Controller should instantiate AttendanceRepository');
+        $this->assertStringContainsString('repo()->attendance()', $source,
+            'Controller should use repo()->attendance() factory method');
     }
 
     // =========================================================================

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\EmailEventRepository;
 use AgVote\Repository\EmailQueueRepository;
 use AgVote\Repository\EmailTemplateRepository;
@@ -38,14 +39,14 @@ final class EmailQueueService {
         ?EmailTemplateRepository $emailTemplateRepo = null,
     ) {
         $this->config = $config;
-        $this->queueRepo = $queueRepo ?? new EmailQueueRepository();
-        $this->eventRepo = $eventRepo ?? new EmailEventRepository();
-        $this->invitationRepo = $invitationRepo ?? new InvitationRepository();
-        $this->reminderRepo = $reminderRepo ?? new ReminderScheduleRepository();
-        $this->memberRepo = $memberRepo ?? new MemberRepository();
+        $this->queueRepo = $queueRepo ?? RepositoryFactory::getInstance()->emailQueue();
+        $this->eventRepo = $eventRepo ?? RepositoryFactory::getInstance()->emailEvent();
+        $this->invitationRepo = $invitationRepo ?? RepositoryFactory::getInstance()->invitation();
+        $this->reminderRepo = $reminderRepo ?? RepositoryFactory::getInstance()->reminderSchedule();
+        $this->memberRepo = $memberRepo ?? RepositoryFactory::getInstance()->member();
         $this->mailer = $mailer ?? new MailerService($config);
         $this->templateService = $templateService ?? new EmailTemplateService($config);
-        $this->emailTemplateRepo = $emailTemplateRepo ?? new EmailTemplateRepository();
+        $this->emailTemplateRepo = $emailTemplateRepo ?? RepositoryFactory::getInstance()->emailTemplate();
     }
 
     /**

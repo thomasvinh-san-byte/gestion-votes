@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\BallotRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\VoteTokenRepository;
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\View\HtmlView;
 use RuntimeException;
 
@@ -43,7 +40,7 @@ final class VotePublicController {
 
         $hash = hash_hmac('sha256', (string) $token, APP_SECRET);
 
-        $tokenRepo = new VoteTokenRepository();
+        $tokenRepo = RepositoryFactory::getInstance()->voteToken();
         $row = $tokenRepo->findValidByHash($hash);
 
         if (!$row) {
@@ -51,7 +48,7 @@ final class VotePublicController {
         }
 
         // ── Verify motion/meeting state ─────────────────────────────────
-        $motionRepo = new MotionRepository();
+        $motionRepo = RepositoryFactory::getInstance()->motion();
         $ctx = $motionRepo->findWithBallotContext($row['motion_id'], (string) $row['tenant_id']);
 
         if (!$ctx) {
@@ -93,7 +90,7 @@ final class VotePublicController {
         // ── Confirmed: atomic vote ──────────────────────────────────────
         $dbVote = self::VOTE_MAP[$vote];
 
-        $memberRepo = new MemberRepository();
+        $memberRepo = RepositoryFactory::getInstance()->member();
         $member = $memberRepo->findByIdForTenant($row['member_id'], $ctx['tenant_id']);
         $weight = (float) ($member['voting_power'] ?? 1.0);
         if (!is_finite($weight) || $weight < 0.0) {
@@ -113,7 +110,7 @@ final class VotePublicController {
                     throw new RuntimeException('token_already_used');
                 }
 
-                $ballotRepo = new BallotRepository();
+                $ballotRepo = RepositoryFactory::getInstance()->ballot();
                 $ballotRepo->insertFromToken(
                     $ctx['tenant_id'],
                     $row['meeting_id'],

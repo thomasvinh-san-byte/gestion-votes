@@ -70,6 +70,24 @@ abstract class AbstractRepository {
     }
 
     /**
+     * Builds a safe IN clause with named placeholders.
+     *
+     * @param string $prefix  Placeholder prefix (e.g. 'id')
+     * @param array  $values  Values to bind
+     * @param array  &$params Reference to params array — placeholders are merged in
+     * @return string SQL fragment like ":id0, :id1, :id2"
+     */
+    protected function buildInClause(string $prefix, array $values, array &$params): string {
+        $placeholders = [];
+        foreach (array_values($values) as $i => $val) {
+            $key = ":{$prefix}{$i}";
+            $placeholders[] = $key;
+            $params[$key] = $val;
+        }
+        return implode(', ', $placeholders);
+    }
+
+    /**
      * Generates a UUID v4 via PostgreSQL.
      */
     public function generateUuid(): string {

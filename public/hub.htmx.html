@@ -1,0 +1,214 @@
+<!doctype html>
+<!-- GO-LIVE-STATUS: ready — Hub fiche séance (wireframe PageHub).
+     6 étapes guidées : préparation → convocations → présences → vote → clôture → archive.
+     NICE-TO-HAVE: guided tour hub. -->
+<html lang="fr" data-page-role="operator,admin">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B0D10" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Fiche s&eacute;ance - AG-VOTE">
+  <title>Fiche s&eacute;ance &mdash; AG-VOTE</title>
+  <script src="/assets/js/theme-init.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/pages.css">
+</head>
+<body>
+  <!-- Skip links -->
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
+
+  <div class="app-shell">
+    <aside class="app-sidebar" data-include-sidebar data-page="hub"></aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <span class="bc-item">S&eacute;ance en direct</span>
+            <span class="bc-sep">/</span>
+            <span class="bc-item bc-current" aria-current="page">Fiche s&eacute;ance</span>
+          </nav>
+          <h1 class="page-title">
+            <span class="bar"></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+            Fiche s&eacute;ance
+          </h1>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer la visite guid&eacute;e">
+          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+          Guide
+        </button>
+        <a class="btn btn-sm btn-ghost" href="/wizard.htmx.html">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+          Modifier
+        </a>
+        <a class="btn btn-sm btn-ghost" href="/meetings.htmx.html">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          S&eacute;ances
+        </a>
+      </div>
+    </header>
+
+    <main class="app-main" id="main-content" role="main">
+
+      <!-- Identity banner -->
+      <div class="hub-identity" role="banner" id="hubIdentity">
+        <div style="width:52px;height:52px;border-radius:14px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div class="hub-identity-date" id="hubTitle">Chargement&hellip;</div>
+          <div class="hub-identity-meta" id="hubMeta">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+            <span id="hubDate">&hellip;</span>
+            &nbsp;&middot;&nbsp;
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+            <span id="hubPlace">&hellip;</span>
+            &nbsp;&middot;&nbsp;
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span id="hubParticipants">&hellip;</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout: stepper left + action right -->
+      <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
+
+        <!-- Left column: stepper -->
+        <div style="width:220px;flex-shrink:0;" data-tour="hub-etat" role="navigation" aria-label="&Eacute;tapes de la s&eacute;ance">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-left:8px;">
+            <div style="font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);">Progression</div>
+          </div>
+          <div class="hub-stepper" id="hubStepper">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Right column: action card + details -->
+        <div style="flex:1;min-width:0;">
+
+          <!-- Action card -->
+          <div class="hub-action" id="hubAction" data-tour="hub-action" role="main">
+            <div style="display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap;">
+              <div class="hub-action-icon" id="hubActionIcon" style="background:var(--accent);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="hubActionSvg"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+              </div>
+              <div style="flex:1;min-width:200px;">
+                <div class="hub-action-title" id="hubActionTitle">Chargement&hellip;</div>
+                <div class="hub-action-desc" id="hubActionDesc"></div>
+              </div>
+            </div>
+
+            <!-- Checklist -->
+            <div id="hubChecklist" data-tour="hub-prepa" style="background:var(--bg);border-radius:10px;padding:12px 16px;display:none;">
+              <div style="font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:8px;" id="hubCheckTitle">Avancement</div>
+              <div class="progress-bar" style="margin-bottom:10px;height:8px;">
+                <div class="progress-fill" id="hubCheckProgress" style="width:0%;background:var(--accent);"></div>
+              </div>
+              <div id="hubCheckItems"></div>
+            </div>
+
+            <!-- Main action button -->
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <a class="btn btn-primary hub-action-btn" id="hubMainBtn" href="#">
+                Charger&hellip;
+              </a>
+              <button class="btn hub-action-btn" id="hubPreviewBtn" style="display:none;font-size:13px;min-height:44px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                Aper&ccedil;u courriel
+              </button>
+            </div>
+          </div>
+
+          <!-- Details toggle -->
+          <button class="hub-details-toggle" id="hubDetailsToggle" aria-expanded="false" aria-controls="hub-details-body">
+            <span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              Voir les informations d&eacute;taill&eacute;es de la s&eacute;ance
+            </span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="hubDetailsChevron"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+
+          <div id="hub-details-body" class="hub-details-body" style="display:none;" data-tour="hub-kpi">
+
+            <!-- KPIs -->
+            <div class="grid-4" style="margin-bottom:14px;">
+              <div class="card" style="padding:14px;text-align:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--accent);margin:2px 0;letter-spacing:-0.5px;line-height:1;" id="hubKpiParticipants">-</div>
+                <div style="font-size:12px;font-weight:700;color:var(--text-dark);">Participants</div>
+                <div style="font-size:11px;color:var(--text-muted);" id="hubKpiVoix">- voix</div>
+              </div>
+              <div class="card" style="padding:14px;text-align:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7Z"/><path d="M22 19H2"/></svg>
+                <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--accent);margin:2px 0;letter-spacing:-0.5px;line-height:1;" id="hubKpiResolutions">-</div>
+                <div style="font-size:12px;font-weight:700;color:var(--text-dark);">R&eacute;solutions</div>
+                <div style="font-size:11px;color:var(--text-muted);" id="hubKpiResoDetail"></div>
+              </div>
+              <div class="card" style="padding:14px;text-align:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+                <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--success);margin:2px 0;letter-spacing:-0.5px;line-height:1;" id="hubKpiQuorum">-</div>
+                <div style="font-size:12px;font-weight:700;color:var(--text-dark);">Quorum requis</div>
+                <div style="font-size:11px;color:var(--text-muted);" id="hubKpiQuorumDetail"></div>
+              </div>
+              <div class="card" style="padding:14px;text-align:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+                <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--warn);margin:2px 0;letter-spacing:-0.5px;line-height:1;" id="hubKpiConvoc">-</div>
+                <div style="font-size:12px;font-weight:700;color:var(--text-dark);">Convocations</div>
+                <div style="font-size:11px;color:var(--text-muted);" id="hubKpiConvocDetail"></div>
+              </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="card" style="padding:14px;margin-bottom:10px;">
+              <div class="flex-between" style="margin-bottom:8px;">
+                <span style="font-size:13px;font-weight:700;color:var(--text-dark);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                  Documents
+                </span>
+                <button class="btn btn-sm btn-ghost" id="btnAddDoc">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                  Ajouter
+                </button>
+              </div>
+              <div id="hubDocsList">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- 2e convocation -->
+            <div class="card" style="border:2px dashed var(--warn);background:var(--warn-bg);padding:14px;">
+              <div class="flex-between" style="margin-bottom:6px;">
+                <span style="font-size:13px;font-weight:800;color:var(--warn);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                  2e convocation (si quorum non atteint)
+                </span>
+              </div>
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">Si le quorum n'est pas atteint, une 2e convocation avec quorum r&eacute;duit (33%) peut &ecirc;tre g&eacute;n&eacute;r&eacute;e automatiquement.</div>
+              <button class="btn btn-warn btn-sm" id="btn2eConvoc">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                Programmer la 2e convocation
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/assets/js/core/utils.js"></script>
+  <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/pages/hub.js"></script>
+</body>
+</html>

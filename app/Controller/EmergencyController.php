@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\EmergencyProcedureRepository;
-use AgVote\Repository\MeetingRepository;
-
 /**
  * Consolidates emergency_check_toggle.php and emergency_procedures.php.
  */
@@ -29,7 +26,7 @@ final class EmergencyController extends AbstractController {
 
         $checked = (int) ($in['checked'] ?? 0) ? true : false;
 
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
         $repo->upsertEmergencyCheck(
             $meetingId,
             $procedure,
@@ -53,7 +50,7 @@ final class EmergencyController extends AbstractController {
         $aud = trim((string) ($q['audience'] ?? 'operator'));
         $meetingId = trim((string) ($q['meeting_id'] ?? ''));
 
-        $repo = new EmergencyProcedureRepository();
+        $repo = $this->repo()->emergencyProcedure();
         $rows = $repo->listByAudienceWithField($aud);
 
         $checks = [];

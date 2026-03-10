@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MotionRepository;
@@ -32,9 +33,9 @@ final class MeetingValidator {
         ?MotionRepository $motionRepo = null,
         ?MeetingStatsRepository $statsRepo = null,
     ) {
-        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
-        $this->motionRepo = $motionRepo ?? new MotionRepository();
-        $this->statsRepo = $statsRepo ?? new MeetingStatsRepository();
+        $this->meetingRepo = $meetingRepo ?? RepositoryFactory::getInstance()->meeting();
+        $this->motionRepo = $motionRepo ?? RepositoryFactory::getInstance()->motion();
+        $this->statsRepo = $statsRepo ?? RepositoryFactory::getInstance()->meetingStats();
     }
 
     public function canBeValidated(string $meetingId, string $tenantId): array {

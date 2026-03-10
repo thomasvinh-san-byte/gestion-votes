@@ -101,11 +101,11 @@ if [ "$TABLE_COUNT" -lt 5 ]; then
   pg -tAc "CREATE TABLE IF NOT EXISTS applied_migrations (
     name text PRIMARY KEY,
     applied_at timestamptz NOT NULL DEFAULT now()
-  );" 2>/dev/null || true
+  );"
   for f in /var/www/database/migrations/*.sql; do
     [ -f "$f" ] || continue
     MNAME="$(basename "$f")"
-    pg -tAc "INSERT INTO applied_migrations (name) VALUES ('${MNAME}') ON CONFLICT DO NOTHING;" 2>/dev/null || true
+    pg -tAc "INSERT INTO applied_migrations (name) VALUES (\$\$${MNAME}\$\$) ON CONFLICT DO NOTHING;"
   done
 
   echo "Base de donnees initialisee."
@@ -119,19 +119,19 @@ fi
 pg -tAc "CREATE TABLE IF NOT EXISTS applied_migrations (
   name text PRIMARY KEY,
   applied_at timestamptz NOT NULL DEFAULT now()
-);" 2>/dev/null || true
+);"
 
 MIGRATION_COUNT=0
 for f in /var/www/database/migrations/*.sql; do
   [ -f "$f" ] || continue
   MNAME="$(basename "$f")"
-  ALREADY=$(pg -tAc "SELECT 1 FROM applied_migrations WHERE name = '${MNAME}';" 2>/dev/null || echo "")
+  ALREADY=$(pg -tAc "SELECT 1 FROM applied_migrations WHERE name = \$\$${MNAME}\$\$;" 2>/dev/null || echo "")
   if [ "$ALREADY" = "1" ]; then
     continue
   fi
   echo "  migration: $MNAME"
   pg -f "$f" || { echo "[FATAL] Migration failed: $MNAME"; exit 1; }
-  pg -tAc "INSERT INTO applied_migrations (name) VALUES ('${MNAME}') ON CONFLICT DO NOTHING;" 2>/dev/null || true
+  pg -tAc "INSERT INTO applied_migrations (name) VALUES (\$\$${MNAME}\$\$) ON CONFLICT DO NOTHING;"
   MIGRATION_COUNT=$((MIGRATION_COUNT + 1))
 done
 [ "$MIGRATION_COUNT" -gt 0 ] && echo "Migrations appliquees: ${MIGRATION_COUNT}." || echo "Migrations: aucune nouvelle."
@@ -163,6 +163,10 @@ fi
 # Dynamic port binding (Render injects PORT=10000 by default)
 # ---------------------------------------------------------------------------
 LISTEN_PORT="${PORT:-8080}"
+if ! echo "$LISTEN_PORT" | grep -qE '^[0-9]+$'; then
+  echo "[FATAL] PORT invalide: '${LISTEN_PORT}' — doit être un nombre."
+  exit 1
+fi
 if [ "$LISTEN_PORT" != "8080" ]; then
   sed -i "s/listen 8080/listen ${LISTEN_PORT}/" /etc/nginx/http.d/default.conf
   echo "Nginx port: ${LISTEN_PORT} (from \$PORT)"

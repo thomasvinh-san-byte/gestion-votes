@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
@@ -29,19 +30,12 @@ final class BallotsService {
         ?AttendancesService $attendancesService = null,
         ?ProxiesService $proxiesService = null,
     ) {
-        $this->ballotRepo = $ballotRepo ?? new BallotRepository();
-        $this->motionRepo = $motionRepo ?? new MotionRepository();
-        $this->memberRepo = $memberRepo ?? new MemberRepository();
-        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+        $this->ballotRepo = $ballotRepo ?? RepositoryFactory::getInstance()->ballot();
+        $this->motionRepo = $motionRepo ?? RepositoryFactory::getInstance()->motion();
+        $this->memberRepo = $memberRepo ?? RepositoryFactory::getInstance()->member();
+        $this->meetingRepo = $meetingRepo ?? RepositoryFactory::getInstance()->meeting();
         $this->attendancesService = $attendancesService ?? new AttendancesService();
         $this->proxiesService = $proxiesService ?? new ProxiesService();
-    }
-
-    private function isUuid(string $s): bool {
-        return (bool) preg_match(
-            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
-            $s,
-        );
     }
 
     /**
@@ -118,7 +112,7 @@ final class BallotsService {
         // Proxy vote (MVP)
         // Convention: member_id = giver (vote counted), proxy_source_member_id = proxy holder (the one voting)
         if ($isProxyVote) {
-            if ($proxyVoterId === '' || !$this->isUuid($proxyVoterId)) {
+            if ($proxyVoterId === '' || !api_is_uuid($proxyVoterId)) {
                 throw new InvalidArgumentException('proxy_source_member_id est obligatoire (UUID) pour un vote par procuration');
             }
 

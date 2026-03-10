@@ -156,11 +156,12 @@ class AttendanceRepository extends AbstractRepository {
         if (count($modes) === 0) {
             return 0;
         }
-        $ph = implode(',', array_fill(0, count($modes), '?'));
+        $params = [':mid' => $meetingId, ':tid' => $tenantId];
+        $in = $this->buildInClause('mode', $modes, $params);
         return (int) ($this->scalar(
             "SELECT COUNT(*) FROM attendances
-             WHERE meeting_id = ? AND tenant_id = ? AND mode IN ({$ph})",
-            array_merge([$meetingId, $tenantId], $modes),
+             WHERE meeting_id = :mid AND tenant_id = :tid AND mode IN ({$in})",
+            $params,
         ) ?? 0);
     }
 
@@ -182,16 +183,16 @@ class AttendanceRepository extends AbstractRepository {
      * Utilise par QuorumEngine.
      */
     public function countPresentMembers(string $meetingId, string $tenantId, array $modes, ?string $lateCutoff = null): int {
-        $ph = implode(',', array_fill(0, count($modes), '?'));
+        $params = [':mid' => $meetingId, ':tid' => $tenantId];
+        $in = $this->buildInClause('mode', $modes, $params);
         $sql = "SELECT COUNT(*) FROM attendances a
                 JOIN meetings mt ON mt.id = a.meeting_id
-                WHERE a.meeting_id = ? AND mt.tenant_id = ?
-                  AND a.checked_out_at IS NULL AND a.mode IN ({$ph})";
-        $params = array_merge([$meetingId, $tenantId], $modes);
+                WHERE a.meeting_id = :mid AND mt.tenant_id = :tid
+                  AND a.checked_out_at IS NULL AND a.mode IN ({$in})";
 
         if ($lateCutoff !== null) {
-            $sql .= ' AND (a.present_from_at IS NULL OR a.present_from_at <= ?)';
-            $params[] = $lateCutoff;
+            $sql .= ' AND (a.present_from_at IS NULL OR a.present_from_at <= :cutoff)';
+            $params[':cutoff'] = $lateCutoff;
         }
 
         return (int) ($this->scalar($sql, $params) ?? 0);
@@ -205,16 +206,16 @@ class AttendanceRepository extends AbstractRepository {
         if (count($modes) === 0) {
             return 0.0;
         }
-        $ph = implode(',', array_fill(0, count($modes), '?'));
+        $params = [':mid' => $meetingId, ':tid' => $tenantId];
+        $in = $this->buildInClause('mode', $modes, $params);
         $sql = "SELECT COALESCE(SUM(a.effective_power), 0) FROM attendances a
                 JOIN meetings mt ON mt.id = a.meeting_id
-                WHERE a.meeting_id = ? AND mt.tenant_id = ?
-                  AND a.checked_out_at IS NULL AND a.mode IN ({$ph})";
-        $params = array_merge([$meetingId, $tenantId], $modes);
+                WHERE a.meeting_id = :mid AND mt.tenant_id = :tid
+                  AND a.checked_out_at IS NULL AND a.mode IN ({$in})";
 
         if ($lateCutoff !== null) {
-            $sql .= ' AND (a.present_from_at IS NULL OR a.present_from_at <= ?)';
-            $params[] = $lateCutoff;
+            $sql .= ' AND (a.present_from_at IS NULL OR a.present_from_at <= :cutoff)';
+            $params[':cutoff'] = $lateCutoff;
         }
 
         return (float) ($this->scalar($sql, $params) ?? 0.0);

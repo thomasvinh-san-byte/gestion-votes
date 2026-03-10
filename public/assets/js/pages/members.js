@@ -268,7 +268,7 @@
     }
 
     groupsList.innerHTML = allGroups.map(g => `
-      <div class="group-card" data-group-id="${g.id}">
+      <div class="group-card" data-group-id="${escapeHtml(g.id)}">
         <div class="group-info">
           <div class="group-color-dot" style="background-color: ${escapeHtml(g.color || '#6366f1')}"></div>
           <div class="group-details">
@@ -277,8 +277,8 @@
           </div>
         </div>
         <div class="group-actions">
-          <button class="member-action-btn" data-action="edit-group" data-id="${g.id}" title="Modifier" aria-label="Modifier"><svg class="icon"><use href="/assets/icons.svg#icon-edit"></use></svg></button>
-          <button class="member-action-btn danger" data-action="delete-group" data-id="${g.id}" title="Supprimer" aria-label="Supprimer"><svg class="icon"><use href="/assets/icons.svg#icon-trash"></use></svg></button>
+          <button class="member-action-btn" data-action="edit-group" data-id="${escapeHtml(g.id)}" title="Modifier" aria-label="Modifier"><svg class="icon"><use href="/assets/icons.svg#icon-edit"></use></svg></button>
+          <button class="member-action-btn danger" data-action="delete-group" data-id="${escapeHtml(g.id)}" title="Supprimer" aria-label="Supprimer"><svg class="icon"><use href="/assets/icons.svg#icon-trash"></use></svg></button>
         </div>
       </div>
     `).join('');
@@ -294,7 +294,7 @@
     groupFiltersField.style.display = '';
     const allBtn = `<button class="filter-chip ${!currentGroupFilter ? 'active' : ''}" data-action="filter-group" data-group-id="">Tous les groupes</button>`;
     const groupBtns = allGroups.map(g => `
-      <button class="filter-chip ${currentGroupFilter === g.id ? 'active' : ''}" data-action="filter-group" data-group-id="${g.id}">
+      <button class="filter-chip ${currentGroupFilter === g.id ? 'active' : ''}" data-action="filter-group" data-group-id="${escapeHtml(g.id)}">
         <span class="group-color-dot-sm" style="background-color: ${escapeHtml(g.color || '#6366f1')}"></span>
         ${escapeHtml(g.name)}
       </button>
@@ -496,11 +496,11 @@
         </div>` : ''}
       </div>
       <div class="detail-actions">
-        <button class="btn btn-primary btn-sm" data-action="edit-member" data-id="${m.id}">
+        <button class="btn btn-primary btn-sm" data-action="edit-member" data-id="${escapeHtml(m.id)}">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
           Modifier
         </button>
-        <button class="btn btn-secondary btn-sm" data-action="toggle-active" data-id="${m.id}" data-active="${!m.is_active}">
+        <button class="btn btn-secondary btn-sm" data-action="toggle-active" data-id="${escapeHtml(m.id)}" data-active="${!m.is_active}">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-${m.is_active ? 'pause' : 'play'}"></use></svg>
           ${m.is_active ? 'Désactiver' : 'Activer'}
         </button>
@@ -589,7 +589,7 @@
       const vp = formatVotingPower(m.voting_power);
 
       return `
-        <article class="member-card ${cardClass}" data-member-id="${m.id}" data-action="open-detail" data-id="${m.id}" aria-label="${escapeHtml(name)}">
+        <article class="member-card ${cardClass}" data-member-id="${escapeHtml(m.id)}" data-action="open-detail" data-id="${escapeHtml(m.id)}" aria-label="${escapeHtml(name)}">
           <div class="member-avatar">${escapeHtml(initials)}</div>
           <div class="member-card-body">
             <div class="member-card-main">
@@ -603,10 +603,10 @@
             </div>
           </div>
           <div class="member-card-actions">
-            <button class="member-action-icon" data-action="edit-member" data-id="${m.id}" title="Modifier" aria-label="Modifier ${escapeHtml(name)}">
+            <button class="member-action-icon" data-action="edit-member" data-id="${escapeHtml(m.id)}" title="Modifier" aria-label="Modifier ${escapeHtml(name)}">
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
             </button>
-            <button class="member-action-icon danger" data-action="delete-member" data-id="${m.id}" title="Supprimer" aria-label="Supprimer ${escapeHtml(name)}">
+            <button class="member-action-icon danger" data-action="delete-member" data-id="${escapeHtml(m.id)}" title="Supprimer" aria-label="Supprimer ${escapeHtml(name)}">
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
             </button>
           </div>

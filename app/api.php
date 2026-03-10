@@ -192,7 +192,7 @@ function api_guard_meeting_not_validated(string $meetingId): void {
     if ($meetingId === '') {
         return;
     }
-    $repo = new \AgVote\Repository\MeetingRepository();
+    $repo = \AgVote\Core\Providers\RepositoryFactory::getInstance()->meeting();
     if ($repo->isValidated($meetingId, api_current_tenant_id())) {
         api_fail('meeting_validated', 409, [
             'detail' => 'Séance validée : modification interdite (séance figée).',
@@ -205,7 +205,7 @@ function api_guard_meeting_not_validated(string $meetingId): void {
  * Fatal 404 if not found.
  */
 function api_guard_meeting_exists(string $meetingId): array {
-    $repo = new \AgVote\Repository\MeetingRepository();
+    $repo = \AgVote\Core\Providers\RepositoryFactory::getInstance()->meeting();
     $mt = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
     if (!$mt) {
         api_fail('meeting_not_found', 404);

@@ -8,7 +8,7 @@ Guide exhaustif de toutes les pages, fonctionnalités et pistes d'amélioration.
 
 AG-VOTE est une application web de gestion de séances de vote formelles (assemblées générales, conseils, bureaux). Elle couvre le cycle complet : préparation, vote en direct, dépouillement, validation, archivage.
 
-**Stack** : PHP 8.3 / PostgreSQL / Vanilla JS / CSS custom design system / Docker
+**Stack** : PHP 8.4 / PostgreSQL 16 / HTMX / Vanilla JS / CSS design system « Acte Officiel » / Docker
 **Auth** : RBAC à deux niveaux (rôles système + rôles par séance)
 **Multi-tenant** : isolation complète par `tenant_id` sur chaque table
 
@@ -28,14 +28,17 @@ AG-VOTE est une application web de gestion de séances de vote formelles (assemb
 ### Navigation (sidebar)
 
 ```
-Préparation          Séance en direct       Après la séance
-├── Séances          ├── Voter              ├── Clôture & PV
-├── Membres          └── Projection         ├── Exports
-└── Fiche séance                            └── Archives
+Préparation           En direct              Après
+├── Dashboard         ├── Fiche séance       ├── Clôture & PV
+├── Séances           ├── Opérateur          └── Archives
+├── Membres           └── Affichage salle
+└── Créer une séance
 
-Contrôle             Système                Aide
-├── Audit            └── Configuration      └── Guide & FAQ
-└── Statistiques
+Contrôle              Système                Aide
+├── Audit             ├── Utilisateurs       └── Guide & FAQ
+└── Statistiques      └── Paramètres
+
+Aperçu votant (tablette)
 ```
 
 ---
@@ -79,7 +82,23 @@ Contrôle             Système                Aide
 
 ---
 
-## 3. Séances (`meetings.htmx.html`)
+## 3. Tableau de bord (`dashboard.htmx.html`)
+
+**Accès** : tous les rôles (`viewer` minimum)
+**Rôle** : vue d'ensemble, actions urgentes, accès rapides
+
+### Fonctionnalités actuelles
+- **Carte action urgente** : bordure rouge, lien direct vers la fiche séance en cours
+- **4 KPIs** : AG à venir, en cours, convocations en attente, PV à envoyer
+- **Prochaines séances** : liste avec date, statut, lien direct
+- **Tâches en attente** : validations, envois, préparations à traiter
+- **Accès rapides** : 3 cards (Créer une séance, Piloter, Audit)
+- **Skeleton loading** : placeholders animés pendant le chargement
+- **Données démo** : fallback wireframe si l'API n'est pas disponible
+
+---
+
+## 4. Séances (`meetings.htmx.html`)
 
 **Accès** : `admin`, `operator`, `auditor`, `viewer`
 **Rôle** : CRUD des séances, vue d'ensemble
@@ -116,7 +135,38 @@ Contrôle             Système                Aide
 
 ---
 
-## 4. Fiche séance / Console opérateur (`operator.htmx.html`)
+## 5. Créer une séance (`wizard.htmx.html`)
+
+**Accès** : `admin`, `operator`
+**Rôle** : assistant guidé de création de séance en 4 étapes
+
+### Fonctionnalités actuelles
+- **Étape 1 — Informations** : titre, type (AG ordinaire/extraordinaire/conseil/bureau), date, heure (HH:MM split input avec auto-advance), lieu, politique de quorum
+- **Étape 2 — Participants** : import CSV/XLSX, zone de drag & drop, ajout manuel
+- **Étape 3 — Résolutions** : ajout avec titre, description, majorité (art. 24/25/26/26-1), clé de répartition, toggle vote secret
+- **Étape 4 — Récapitulatif** : résumé de tous les champs, bouton de création
+- **Confirmation** : page de succès avec liens vers la fiche séance
+- **Stepper** : barre de progression cliquable (retour aux étapes précédentes)
+
+---
+
+## 6. Fiche séance — Hub (`hub.htmx.html`)
+
+**Accès** : `admin`, `operator`
+**Rôle** : vue guidée du cycle de vie d'une séance (6 étapes)
+
+### Fonctionnalités actuelles
+- **Bandeau d'identité** : titre, date, lieu, nombre de participants
+- **Stepper 6 étapes** : Préparer → Convoquer → Pointer → Voter → Clôturer → Archiver
+- **Carte d'action** : icône, titre, description, bouton principal pour chaque étape
+- **Checklist de progression** : barre de progression + items à cocher par étape
+- **Section détails** : collapsible avec 4 KPIs, liste de documents, panneau 2e convocation
+- **Navigation** : clic sur une étape du stepper pour y accéder directement
+- **Données démo** : AG Ordinaire avec 67 participants, 8 résolutions
+
+---
+
+## 7. Console opérateur (`operator.htmx.html`)
 
 **Accès** : `admin`, `operator`
 **Rôle** : page principale pendant une séance — pilotage complet
@@ -162,7 +212,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 5. Vote (`vote.htmx.html`)
+## 8. Vote (`vote.htmx.html`)
 
 **Accès** : `voter`, `operator` (ou via token d'invitation)
 **Rôle** : interface de vote pour les électeurs
@@ -191,7 +241,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 6. Membres (`members.htmx.html`)
+## 9. Membres (`members.htmx.html`)
 
 **Accès** : `admin`, `operator`
 **Rôle** : gestion du registre des membres votants
@@ -219,7 +269,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 7. Projection (`public.htmx.html`)
+## 10. Projection (`public.htmx.html`)
 
 **Accès** : `admin`, `operator`, `president` (ou sans auth selon config)
 **Rôle** : écran projeté en salle, visible par tous les participants
@@ -245,7 +295,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 8. Administration (`admin.htmx.html`)
+## 11. Administration (`admin.htmx.html`)
 
 **Accès** : `admin` uniquement
 **Rôle** : configuration système
@@ -272,7 +322,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 9. Audit & Conformité (`trust.htmx.html`)
+## 12. Audit & Conformité (`trust.htmx.html`)
 
 **Accès** : `admin`, `auditor`, `assessor`
 **Rôle** : contrôle d'intégrité et vérification de conformité
@@ -295,7 +345,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 10. Clôture & PV (`postsession.htmx.html`)
+## 13. Clôture & PV (`postsession.htmx.html`)
 
 **Accès** : `admin`, `operator`, `president`
 **Rôle** : workflow guidé post-séance en 4 étapes
@@ -316,7 +366,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 11. Exports / Procès-verbal (`report.htmx.html`)
+## 14. Exports / Procès-verbal (`report.htmx.html`)
 
 **Accès** : `admin`, `operator`, `president`, `auditor`
 **Rôle** : génération et consultation du procès-verbal
@@ -336,7 +386,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 12. Validation (`validate.htmx.html`)
+## 15. Validation (`validate.htmx.html`)
 
 **Accès** : `operator`
 **Rôle** : page dédiée à la validation officielle d'une séance
@@ -354,7 +404,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 13. Archives (`archives.htmx.html`)
+## 16. Archives (`archives.htmx.html`)
 
 **Accès** : `admin`, `operator`, `auditor`, `viewer`
 **Rôle** : consultation des séances passées
@@ -374,7 +424,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 14. Statistiques (`analytics.htmx.html`)
+## 17. Statistiques (`analytics.htmx.html`)
 
 **Accès** : `admin`, `operator`, `auditor`
 **Rôle** : tableaux de bord et visualisations
@@ -395,7 +445,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 15. Templates Email (`email-templates.htmx.html`)
+## 18. Templates Email (`email-templates.htmx.html`)
 
 **Accès** : `admin`
 **Rôle** : personnalisation des emails envoyés par l'application
@@ -415,7 +465,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 16. Documentation (`docs.htmx.html`)
+## 19. Documentation (`docs.htmx.html`)
 
 **Accès** : tous les rôles
 **Rôle** : documentation in-app
@@ -433,7 +483,7 @@ Contrôle             Système                Aide
 
 ---
 
-## 17. Aide & FAQ (`help.htmx.html`)
+## 20. Aide & FAQ (`help.htmx.html`)
 
 **Accès** : tous les rôles
 **Rôle** : questions fréquentes et aide contextuelle
@@ -471,7 +521,7 @@ Contrôle             Système                Aide
 - Container non-root (www-data)
 
 ### API
-- 120+ endpoints REST en PHP
+- 142 endpoints REST en PHP
 - Format uniforme : `{ ok: true, data: {...} }` ou `{ ok: false, error: "code", message: "..." }`
 - Timeout configurable, retry automatique côté client
 - Upload de fichiers avec validation MIME + taille

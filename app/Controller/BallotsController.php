@@ -5,11 +5,6 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\BallotSource;
-use AgVote\Repository\BallotRepository;
-use AgVote\Repository\ManualActionRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MotionRepository;
 use AgVote\Service\BallotsService;
 use AgVote\Service\VoteEngine;
 use AgVote\Service\VoteTokenService;
@@ -31,13 +26,13 @@ final class BallotsController extends AbstractController {
             api_fail('missing_motion_id', 422, ['detail' => 'motion_id requis']);
         }
 
-        $motionRepo = new MotionRepository();
+        $motionRepo = $this->repo()->motion();
         $motion = $motionRepo->findByIdForTenant($motionId, api_current_tenant_id());
         if (!$motion) {
             api_fail('motion_not_found', 404, ['detail' => 'Motion introuvable']);
         }
 
-        $ballots = (new BallotRepository())->listForMotion($motionId, api_current_tenant_id());
+        $ballots = $this->repo()->ballot()->listForMotion($motionId, api_current_tenant_id());
         api_ok(['items' => $ballots]);
     }
 
@@ -116,8 +111,8 @@ final class BallotsController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $motionRepo = new MotionRepository();
-        $ballotRepo = new BallotRepository();
+        $motionRepo = $this->repo()->motion();
+        $ballotRepo = $this->repo()->ballot();
 
         $result = api_transaction(function () use ($motionRepo, $ballotRepo, $motionId, $memberId, $tenantId, $reason) {
             $motion = $motionRepo->findByIdForTenantForUpdate($motionId, $tenantId);
@@ -126,7 +121,7 @@ final class BallotsController extends AbstractController {
             }
 
             $meetingId = $motion['meeting_id'];
-            if ((new MeetingRepository())->isValidated($meetingId, $tenantId)) {
+            if ($this->repo()->meeting()->isValidated($meetingId, $tenantId)) {
                 api_fail('meeting_validated', 409, [
                     'detail' => 'Séance validée : modification interdite (séance figée).',
                 ]);
@@ -225,11 +220,11 @@ final class BallotsController extends AbstractController {
         }
         $value = $map[$voteUi];
 
-        $meetingRepo = new MeetingRepository();
-        $motionRepo = new MotionRepository();
-        $memberRepo = new MemberRepository();
-        $ballotRepo = new BallotRepository();
-        $manualRepo = new ManualActionRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $motionRepo = $this->repo()->motion();
+        $memberRepo = $this->repo()->member();
+        $ballotRepo = $this->repo()->ballot();
+        $manualRepo = $this->repo()->manualAction();
 
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
@@ -324,15 +319,15 @@ final class BallotsController extends AbstractController {
         $hash = hash_hmac('sha256', $code, APP_SECRET);
         $tenantId = api_current_tenant_id();
 
-        $ballotRepo = new BallotRepository();
-        $manualRepo = new ManualActionRepository();
+        $ballotRepo = $this->repo()->ballot();
+        $manualRepo = $this->repo()->manualAction();
 
         $pb = $ballotRepo->findUnusedPaperBallotByHash($hash, $tenantId);
         if (!$pb) {
             api_fail('paper_ballot_not_found_or_used', 404);
         }
 
-        $meetingRepo = new MeetingRepository();
+        $meetingRepo = $this->repo()->meeting();
         $meeting = $meetingRepo->findByIdForTenant((string) $pb['meeting_id'], $tenantId);
         if (!$meeting || ($meeting['status'] ?? '') !== 'live') {
             api_fail('meeting_not_live', 409, ['detail' => 'La séance doit être en cours pour utiliser un bulletin papier.']);
@@ -341,7 +336,7 @@ final class BallotsController extends AbstractController {
             api_fail('meeting_validated', 409);
         }
 
-        $motionRepo = new MotionRepository();
+        $motionRepo = $this->repo()->motion();
         $motion = $motionRepo->findForMeetingWithState($tenantId, (string) $pb['motion_id'], (string) $pb['meeting_id']);
         if (!$motion || empty($motion['opened_at']) || !empty($motion['closed_at'])) {
             api_fail('motion_not_open', 409, ['detail' => 'La résolution n\'est pas ouverte au vote.']);

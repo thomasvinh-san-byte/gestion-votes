@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AggregateReportRepository;
 use AgVote\Repository\AnalyticsRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Service\ExportService;
-use Throwable;
 
 final class AnalyticsController extends AbstractController {
     public function analytics(): void {
@@ -19,8 +17,8 @@ final class AnalyticsController extends AbstractController {
         $period = api_query('period', 'year');
         $limit = min(100, max(1, api_query_int('limit', 20)));
 
-        $memberRepo = new MemberRepository();
-        $analyticsRepo = new AnalyticsRepository();
+        $memberRepo = $this->repo()->member();
+        $analyticsRepo = $this->repo()->analytics();
 
         $dateFrom = match($period) {
             'month' => date('Y-m-d', strtotime('-1 month')),
@@ -30,31 +28,23 @@ final class AnalyticsController extends AbstractController {
             default => date('Y-m-d', strtotime('-1 year')),
         };
 
-        try {
-            $data = match($type) {
-                'overview' => self::getOverview($tenantId, $memberRepo, $analyticsRepo),
-                'participation' => self::getParticipation($tenantId, $dateFrom, $memberRepo, $analyticsRepo, $limit),
-                'motions' => self::getMotionsStats($tenantId, $dateFrom, $analyticsRepo, $limit),
-                'vote_duration' => self::getVoteDuration($tenantId, $dateFrom, $analyticsRepo, $limit),
-                'proxies' => self::getProxiesStats($tenantId, $dateFrom, $analyticsRepo, $limit),
-                'anomalies' => self::getAnomalies($tenantId, $dateFrom, $analyticsRepo, $limit),
-                'vote_timing' => self::getVoteTimingDistribution($tenantId, $dateFrom, $analyticsRepo),
-                default => api_fail('invalid_type', 400),
-            };
+        $data = match($type) {
+            'overview' => self::getOverview($tenantId, $memberRepo, $analyticsRepo),
+            'participation' => self::getParticipation($tenantId, $dateFrom, $memberRepo, $analyticsRepo, $limit),
+            'motions' => self::getMotionsStats($tenantId, $dateFrom, $analyticsRepo, $limit),
+            'vote_duration' => self::getVoteDuration($tenantId, $dateFrom, $analyticsRepo, $limit),
+            'proxies' => self::getProxiesStats($tenantId, $dateFrom, $analyticsRepo, $limit),
+            'anomalies' => self::getAnomalies($tenantId, $dateFrom, $analyticsRepo, $limit),
+            'vote_timing' => self::getVoteTimingDistribution($tenantId, $dateFrom, $analyticsRepo),
+            default => api_fail('invalid_type', 400),
+        };
 
-            api_ok($data);
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
-            error_log('Error in AnalyticsController::analytics: ' . $e->getMessage());
-            api_fail('server_error', 500, ['detail' => $e->getMessage()]);
-        }
+        api_ok($data);
     }
 
     public function reportsAggregate(): void {
         $q = api_request('GET');
-        $repo = new AggregateReportRepository();
+        $repo = $this->repo()->aggregateReport();
         $tenantId = api_current_tenant_id();
 
         // Liste des séances disponibles

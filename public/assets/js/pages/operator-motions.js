@@ -1,3 +1,4 @@
+/* GO-LIVE-STATUS: ready — Operator motions module. innerHTML audité — OK. */
 /**
  * operator-motions.js — Motions / Votes / Results / Transitions sub-module
  * for the operator console.
@@ -65,17 +66,17 @@
       // Vote actions
       let voteActions = '';
       if (isLive && !isOpen && !isClosed) {
-        voteActions = `<button class="btn btn-sm btn-primary btn-open-vote" data-motion-id="${m.id}">${icon('play', 'icon-sm icon-text')}Ouvrir</button>`;
+        voteActions = `<button class="btn btn-sm btn-primary btn-open-vote" data-motion-id="${escapeHtml(m.id)}">${icon('play', 'icon-sm icon-text')}Ouvrir</button>`;
       } else if (isLive && isOpen) {
-        voteActions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${m.id}">${icon('square', 'icon-sm icon-text')}Terminer</button>`;
+        voteActions = `<button class="btn btn-sm btn-warning btn-close-vote" data-motion-id="${escapeHtml(m.id)}">${icon('square', 'icon-sm icon-text')}Terminer</button>`;
       }
 
       // Edit actions (only for pending resolutions)
       let editActions = '';
       if (canEdit && !isOpen && !isClosed) {
         editActions = `
-          <button class="btn btn-sm btn-ghost btn-edit-motion" data-motion-id="${m.id}" title="Modifier">${icon('edit', 'icon-sm')}</button>
-          <button class="btn btn-sm btn-ghost btn-delete-motion" data-motion-id="${m.id}" title="Supprimer">${icon('trash', 'icon-sm')}</button>
+          <button class="btn btn-sm btn-ghost btn-edit-motion" data-motion-id="${escapeHtml(m.id)}" title="Modifier">${icon('edit', 'icon-sm')}</button>
+          <button class="btn btn-sm btn-ghost btn-delete-motion" data-motion-id="${escapeHtml(m.id)}" title="Supprimer">${icon('trash', 'icon-sm')}</button>
         `;
       }
 
@@ -86,8 +87,8 @@
         const canMoveUp = globalIdx > 0;
         const canMoveDown = globalIdx < totalCount - 1;
         reorderBtns = `
-          <button class="btn btn-xs btn-ghost btn-move-up" data-motion-id="${m.id}" ${canMoveUp ? '' : 'disabled'} title="Monter">▲</button>
-          <button class="btn btn-xs btn-ghost btn-move-down" data-motion-id="${m.id}" ${canMoveDown ? '' : 'disabled'} title="Descendre">▼</button>
+          <button class="btn btn-xs btn-ghost btn-move-up" data-motion-id="${escapeHtml(m.id)}" ${canMoveUp ? '' : 'disabled'} title="Monter">▲</button>
+          <button class="btn btn-xs btn-ghost btn-move-down" data-motion-id="${escapeHtml(m.id)}" ${canMoveDown ? '' : 'disabled'} title="Descendre">▼</button>
         `;
       }
 
@@ -100,7 +101,7 @@
       ` : '';
 
       return `
-        <div class="resolution-section" data-motion-id="${m.id}">
+        <div class="resolution-section" data-motion-id="${escapeHtml(m.id)}">
           <div class="resolution-header">
             <div class="resolution-reorder">${reorderBtns}</div>
             <span class="resolution-chevron"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg></span>
@@ -399,7 +400,7 @@
     }
 
     list.innerHTML = openableMotions.slice(0, 5).map((m, i) => `
-      <button class="btn btn-primary btn-quick-open" data-motion-id="${m.id}">
+      <button class="btn btn-primary btn-quick-open" data-motion-id="${escapeHtml(m.id)}">
         ${icon('play', 'icon-sm icon-text')}${i + 1}. ${escapeHtml(m.title.length > 30 ? m.title.substring(0, 30) + '...' : m.title)}
       </button>
     `).join('');
@@ -454,10 +455,10 @@
       const hasVoted = !!vote;
       const isManual = O.ballotSourceCache[v.member_id] === 'manual';
       const cancelBtn = (hasVoted && isManual)
-        ? `<button class="mode-btn btn-cancel-ballot" data-member-id="${v.member_id}" title="Annuler ce vote manuel" style="color:var(--color-danger);margin-left:0.25rem;">${icon('trash-2', 'icon-sm')}</button>`
+        ? `<button class="mode-btn btn-cancel-ballot" data-member-id="${escapeHtml(v.member_id)}" title="Annuler ce vote manuel" style="color:var(--color-danger);margin-left:0.25rem;">${icon('trash-2', 'icon-sm')}</button>`
         : '';
       return `
-        <div class="attendance-card ${hasVoted ? 'present' : ''}" data-member-id="${v.member_id}">
+        <div class="attendance-card ${hasVoted ? 'present' : ''}" data-member-id="${escapeHtml(v.member_id)}">
           <span class="attendance-name">${escapeHtml(v.full_name || '—')}</span>
           <div class="attendance-mode-btns">
             <button class="mode-btn for ${vote === 'for' ? 'active' : ''}" data-vote="for" title="Pour">${icon('check', 'icon-sm')}</button>

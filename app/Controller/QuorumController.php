@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\PolicyRepository;
 use AgVote\Service\QuorumEngine;
 use Throwable;
 
@@ -84,9 +82,6 @@ final class QuorumController extends AbstractController {
             echo '</section>';
 
         } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
             error_log('quorum_card error: ' . $e->getMessage());
             $safe = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
             echo '<section class="card"><div class="row between"><div><div class="k">Quorum</div><div class="muted tiny">' . $safe . '</div></div><span class="badge danger">erreur</span></div></section>';
@@ -129,7 +124,7 @@ final class QuorumController extends AbstractController {
 
     public function meetingSettings(): void {
         $method = api_method();
-        $repo = new MeetingRepository();
+        $repo = $this->repo()->meeting();
 
         if ($method === 'GET') {
             $q = api_request('GET');
@@ -146,9 +141,7 @@ final class QuorumController extends AbstractController {
                 'quorum_policy_id' => $row['quorum_policy_id'],
                 'convocation_no' => (int) $row['convocation_no'],
             ]);
-        }
-
-        if ($method === 'POST') {
+        } elseif ($method === 'POST') {
             $in = api_request('POST');
             $meetingId = api_require_uuid($in, 'meeting_id');
 
@@ -169,7 +162,7 @@ final class QuorumController extends AbstractController {
             }
 
             if ($policyId !== '') {
-                if (!(new PolicyRepository())->quorumPolicyExists($policyId, api_current_tenant_id())) {
+                if (!$this->repo()->policy()->quorumPolicyExists($policyId, api_current_tenant_id())) {
                     api_fail('quorum_policy_not_found', 404);
                 }
             }
@@ -182,8 +175,8 @@ final class QuorumController extends AbstractController {
             ]);
 
             api_ok(['saved' => true]);
+        } else {
+            api_fail('method_not_allowed', 405);
         }
-
-        api_fail('method_not_allowed', 405);
     }
 }

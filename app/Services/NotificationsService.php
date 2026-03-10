@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\NotificationRepository;
 
@@ -21,8 +22,8 @@ final class NotificationsService {
         ?MeetingRepository $meetingRepo = null,
         ?NotificationRepository $notifRepo = null,
     ) {
-        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
-        $this->notifRepo = $notifRepo ?? new NotificationRepository();
+        $this->meetingRepo = $meetingRepo ?? RepositoryFactory::getInstance()->meeting();
+        $this->notifRepo = $notifRepo ?? RepositoryFactory::getInstance()->notification();
     }
 
     /**

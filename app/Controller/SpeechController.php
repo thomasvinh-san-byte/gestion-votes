@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\SpeechRepository;
 use AgVote\Service\SpeechService;
 
 final class SpeechController extends AbstractController {
@@ -15,7 +14,7 @@ final class SpeechController extends AbstractController {
         $tenantId = api_current_tenant_id();
 
         // Tenant isolation: verify meeting belongs to current tenant
-        $meeting = (new \AgVote\Repository\MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
+        $meeting = $this->repo()->meeting()->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
         }
@@ -47,7 +46,7 @@ final class SpeechController extends AbstractController {
         $tenantId = api_current_tenant_id();
 
         if ($memberId === '' && $requestId !== '') {
-            $req = (new SpeechRepository())->findById($requestId, $tenantId);
+            $req = $this->repo()->speech()->findById($requestId, $tenantId);
             if ($req) {
                 $memberId = (string) $req['member_id'];
             }

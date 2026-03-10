@@ -447,14 +447,14 @@ class ReminderControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ReminderController.php');
 
-        $this->assertStringContainsString('ReminderScheduleRepository', $source);
+        $this->assertStringContainsString('repo()->reminderSchedule()', $source);
     }
 
     public function testControllerUsesEmailTemplateRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ReminderController.php');
 
-        $this->assertStringContainsString('EmailTemplateRepository', $source);
+        $this->assertStringContainsString('repo()->emailTemplate()', $source);
     }
 
     public function testControllerAuditsOperations(): void

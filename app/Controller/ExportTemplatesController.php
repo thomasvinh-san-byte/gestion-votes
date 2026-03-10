@@ -11,7 +11,7 @@ use AgVote\Repository\ExportTemplateRepository;
  */
 final class ExportTemplatesController extends AbstractController {
     public function list(): void {
-        $repo = new ExportTemplateRepository();
+        $repo = $this->repo()->exportTemplate();
         $tenantId = api_current_tenant_id();
 
         $id = api_query('id');
@@ -56,7 +56,7 @@ final class ExportTemplatesController extends AbstractController {
 
     public function create(): void {
         $input = api_request('POST');
-        $repo = new ExportTemplateRepository();
+        $repo = $this->repo()->exportTemplate();
         $tenantId = api_current_tenant_id();
 
         // Special action: duplicate
@@ -112,7 +112,7 @@ final class ExportTemplatesController extends AbstractController {
     }
 
     public function update(): void {
-        $repo = new ExportTemplateRepository();
+        $repo = $this->repo()->exportTemplate();
         $tenantId = api_current_tenant_id();
         $id = api_query('id');
         if (!api_is_uuid($id)) {
@@ -147,7 +147,7 @@ final class ExportTemplatesController extends AbstractController {
     }
 
     public function delete(): void {
-        $repo = new ExportTemplateRepository();
+        $repo = $this->repo()->exportTemplate();
         $tenantId = api_current_tenant_id();
         $id = api_query('id');
         if (!api_is_uuid($id)) {

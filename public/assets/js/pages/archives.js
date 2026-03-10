@@ -109,12 +109,12 @@
             </div>
             <div class="archive-card-footer">
               <div class="text-xs text-muted">
-                ${hasReport ? `SHA: <code>${sha}</code>` : 'Intégrité non vérifiée'}
+                ${hasReport ? `SHA: <code>${escapeHtml(sha)}</code>` : 'Intégrité non vérifiée'}
               </div>
               <div class="flex gap-2">
                 ${hasReport ? `<a class="btn btn-primary btn-sm" href="${pvUrl}" target="_blank">${icon('file-text', 'icon-sm icon-text')}PV</a>` : ''}
                 <a class="btn btn-secondary btn-sm" href="${auditUrl}" target="_blank">${icon('shield-check', 'icon-sm icon-text')}Audit</a>
-                <button class="btn btn-ghost btn-sm btn-view-details" data-id="${id}">Détails</button>
+                <button class="btn btn-ghost btn-sm btn-view-details" data-id="${escapeHtml(id)}">Détails</button>
               </div>
             </div>
           </div>

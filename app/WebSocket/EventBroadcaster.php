@@ -115,6 +115,17 @@ class EventBroadcaster {
     // ── Queue operations ────────────────────────────────────────────────
 
     /**
+     * Check if push/SSE is enabled via PUSH_ENABLED env var.
+     */
+    public static function isPushEnabled(): bool {
+        $val = getenv('PUSH_ENABLED');
+        if ($val === false || $val === '') {
+            return true; // enabled by default
+        }
+        return $val !== '0' && strtolower($val) !== 'false';
+    }
+
+    /**
      * Ajoute un evenement a la queue.
      */
     private static function queue(array $event): void {
@@ -125,6 +136,114 @@ class EventBroadcaster {
         } else {
             self::queueFile($event);
         }
+
+        // Publish to SSE channel (Redis or file fallback)
+        if (self::isPushEnabled()) {
+            self::publishToSse($event);
+        }
+    }
+
+    /**
+     * Publish event to per-meeting SSE list for real-time streaming.
+     * SSE clients poll these lists via /api/v1/events.php.
+     * Falls back to file-based queue when Redis is unavailable.
+     */
+    private static function publishToSse(array $event): void {
+        $meetingId = $event['meeting_id'] ?? null;
+        if ($meetingId === null) {
+            return;
+        }
+
+        if (self::useRedis()) {
+            try {
+                $redis = RedisProvider::connection();
+                $sseKey = 'sse:events:' . $meetingId;
+                $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+                $redis->rPush($sseKey, json_encode($event));
+                // Auto-expire after 60s to prevent memory leaks for inactive meetings
+                $redis->expire($sseKey, 60);
+                // Trim to keep max 100 events per meeting
+                $redis->lTrim($sseKey, -100, -1);
+                $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_JSON);
+                return;
+            } catch (Throwable $e) {
+                // Fall through to file-based SSE queue
+            }
+        }
+
+        self::publishToSseFile($meetingId, $event);
+    }
+
+    /**
+     * File-based SSE queue (per-meeting) for environments without Redis.
+     */
+    private static function publishToSseFile(string $meetingId, array $event): void {
+        $file = self::sseFilePath($meetingId);
+        $lockFile = fopen($file . '.lock', 'c');
+        if (!$lockFile || !flock($lockFile, LOCK_EX)) {
+            return;
+        }
+
+        try {
+            $queue = [];
+            if (file_exists($file)) {
+                $content = file_get_contents($file);
+                $queue = json_decode($content, true) ?? [];
+            }
+
+            $queue[] = $event;
+
+            // Keep max 100 events per meeting
+            if (count($queue) > 100) {
+                $queue = array_slice($queue, -100);
+            }
+
+            file_put_contents($file, json_encode($queue));
+            chmod($file, 0600);
+        } finally {
+            flock($lockFile, LOCK_UN);
+            fclose($lockFile);
+        }
+    }
+
+    /**
+     * Dequeue SSE events for a meeting from file-based queue.
+     * Used by events.php as fallback when Redis is unavailable.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public static function dequeueSseFile(string $meetingId): array {
+        $file = self::sseFilePath($meetingId);
+        if (!file_exists($file)) {
+            return [];
+        }
+
+        $lockFile = fopen($file . '.lock', 'c');
+        if (!$lockFile || !flock($lockFile, LOCK_EX)) {
+            return [];
+        }
+
+        try {
+            $content = file_get_contents($file);
+            $queue = json_decode($content, true) ?? [];
+
+            // Clear after reading
+            file_put_contents($file, '[]');
+            chmod($file, 0600);
+
+            return $queue;
+        } finally {
+            flock($lockFile, LOCK_UN);
+            fclose($lockFile);
+        }
+    }
+
+    /**
+     * Path to SSE file queue for a given meeting.
+     */
+    private static function sseFilePath(string $meetingId): string {
+        $safe = preg_replace('/[^a-zA-Z0-9\-]/', '', $meetingId);
+        return '/tmp/agvote-sse-' . $safe . '.json';
     }
 
     /**

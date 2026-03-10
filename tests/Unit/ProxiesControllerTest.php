@@ -898,14 +898,14 @@ class ProxiesControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProxiesController.php');
 
-        $this->assertStringContainsString('MeetingRepository', $source);
+        $this->assertStringContainsString('repo()->meeting()', $source);
     }
 
     public function testControllerUsesProxyRepository(): void
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProxiesController.php');
 
-        $this->assertStringContainsString('ProxyRepository', $source);
+        $this->assertStringContainsString('repo()->proxy()', $source);
     }
 
     public function testDeleteChecksArchivedMeeting(): void

@@ -19,12 +19,14 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
 use AgVote\Command\EmailProcessQueueCommand;
+use AgVote\Command\MonitoringCheckCommand;
 use AgVote\Command\RateLimitCleanupCommand;
 use AgVote\Command\RedisHealthCommand;
 
 $app = new Application('AG-VOTE', '1.0.0');
 
 $app->add(new EmailProcessQueueCommand());
+$app->add(new MonitoringCheckCommand());
 $app->add(new RateLimitCleanupCommand());
 $app->add(new RedisHealthCommand());
 

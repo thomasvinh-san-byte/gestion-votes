@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MemberGroupRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\ProxyRepository;
 use AgVote\Service\ImportService;
 
 final class ImportController extends AbstractController {
@@ -229,7 +223,7 @@ final class ImportController extends AbstractController {
 
         $findMember = $this->buildProxyMemberFinder($colIndex, $membersByEmail, $membersByName);
 
-        $proxyRepo = new ProxyRepository();
+        $proxyRepo = $this->repo()->proxy();
         $existingProxies = $proxyRepo->listForMeeting($meetingId, $tenantId);
         $proxiesPerReceiver = [];
         $existingGivers = [];
@@ -284,7 +278,7 @@ final class ImportController extends AbstractController {
 
         $findMember = $this->buildProxyMemberFinder($colIndex, $membersByEmail, $membersByName);
 
-        $proxyRepo = new ProxyRepository();
+        $proxyRepo = $this->repo()->proxy();
         $existingProxies = $proxyRepo->listForMeeting($meetingId, $tenantId);
         $proxiesPerReceiver = [];
         $existingGivers = [];
@@ -336,7 +330,7 @@ final class ImportController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $motionRepo = new MotionRepository();
+        $motionRepo = $this->repo()->motion();
         $nextPosition = $motionRepo->countForMeeting($meetingId, $tenantId) + 1;
 
         $imported = 0;
@@ -378,7 +372,7 @@ final class ImportController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $motionRepo = new MotionRepository();
+        $motionRepo = $this->repo()->motion();
         $nextPosition = $motionRepo->countForMeeting($meetingId, $tenantId) + 1;
 
         $imported = 0;
@@ -455,7 +449,7 @@ final class ImportController extends AbstractController {
         }
 
         $tenantId = api_current_tenant_id();
-        $meeting = (new MeetingRepository())->findByIdForTenant($meetingId, $tenantId);
+        $meeting = $this->repo()->meeting()->findByIdForTenant($meetingId, $tenantId);
         if (!$meeting) {
             api_fail('meeting_not_found', 404);
         }
@@ -472,7 +466,7 @@ final class ImportController extends AbstractController {
      * @return array{0: array, 1: array} [$membersByEmail, $membersByName]
      */
     private function buildMemberLookups(string $tenantId): array {
-        $allMembers = (new MemberRepository())->listByTenant($tenantId);
+        $allMembers = $this->repo()->member()->listByTenant($tenantId);
         $membersByEmail = [];
         $membersByName = [];
         foreach ($allMembers as $m) {
@@ -522,8 +516,8 @@ final class ImportController extends AbstractController {
         int &$skipped,
         array &$errors,
     ): void {
-        $memberRepo = new MemberRepository();
-        $groupRepo = new MemberGroupRepository();
+        $memberRepo = $this->repo()->member();
+        $groupRepo = $this->repo()->memberGroup();
 
         $existingGroups = [];
         foreach ($groupRepo->listForTenant($tenantId, false) as $g) {
@@ -631,7 +625,7 @@ final class ImportController extends AbstractController {
         array &$errors,
         array &$preview,
     ): void {
-        $attendanceRepo = new AttendanceRepository();
+        $attendanceRepo = $this->repo()->attendance();
 
         foreach ($rows as $lineIndex => $row) {
             $lineNumber = $lineIndex + 2;
@@ -700,7 +694,7 @@ final class ImportController extends AbstractController {
         array &$errors,
         array &$preview,
     ): void {
-        $proxyRepo = new ProxyRepository();
+        $proxyRepo = $this->repo()->proxy();
 
         foreach ($rows as $lineIndex => $row) {
             $lineNumber = $lineIndex + 2;
@@ -770,7 +764,7 @@ final class ImportController extends AbstractController {
         array &$errors,
         array &$preview,
     ): void {
-        $motionRepo = new MotionRepository();
+        $motionRepo = $this->repo()->motion();
 
         foreach ($rows as $lineIndex => $row) {
             $lineNumber = $lineIndex + 2;

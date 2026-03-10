@@ -68,7 +68,7 @@ Ouvrir **http://localhost:8080** — compte test : `admin@ag-vote.local` / `Admi
 
 ## Stack
 
-PHP 8.3 · PostgreSQL 16 · JavaScript vanilla · Docker · Nginx · WebSocket
+PHP 8.4 · PostgreSQL 16 · JavaScript vanilla · HTMX · Docker · Nginx · WebSocket
 
 ## Documentation
 
@@ -82,7 +82,7 @@ PHP 8.3 · PostgreSQL 16 · JavaScript vanilla · Docker · Nginx · WebSocket
 | [Deploiement Docker](docs/DEPLOIEMENT_DOCKER.md) | Docker local (dev et production) |
 | [Deploiement Render](docs/DEPLOIEMENT_RENDER.md) | Deployer sur Render (demo et production) |
 
-Documentation technique : [Architecture](docs/dev/ARCHITECTURE.md) · [API](docs/dev/API.md) · [Sécurité](docs/dev/SECURITY.md) · [Tests](docs/dev/TESTS.md) · [Conformité](docs/dev/CONFORMITE_CDC.md)
+Documentation technique : [Architecture](docs/dev/ARCHITECTURE.md) · [API](docs/dev/API.md) · [Sécurité](docs/dev/SECURITY.md) · [Tests](docs/dev/TESTS.md)
 
 ## Licence
 

@@ -6,7 +6,7 @@
 AG-Vote est une application web de gestion de séances de vote formelles (assemblées générales, conseils syndicaux, réunions de copropriété). Elle couvre le cycle complet : préparation, conduite en direct, vote électronique, calcul des résultats, validation et génération des livrables (PV, exports CSV).
 
 ### Quelles sont les technologies utilisées ?
-- **Backend** : PHP 8.3+, sans framework
+- **Backend** : PHP 8.4+, sans framework
 - **Base de données** : PostgreSQL 16+
 - **Frontend** : HTML statique + HTMX pour les interactions dynamiques, JavaScript vanilla
 - **Serveur** : Apache 2.4+ avec mod_rewrite (ou serveur PHP intégré pour le dev)
@@ -22,8 +22,8 @@ Non. AG-Vote fonctionne en réseau local fermé. L'application est auto-héberg�
 
 ### Comment installer AG-Vote ?
 Voir le guide complet dans [dev/INSTALLATION.md](dev/INSTALLATION.md). En résumé :
-1. Installer PHP 8.3+ et PostgreSQL 16+
-2. Créer la base de données et exécuter `database/schema.sql`
+1. Installer PHP 8.4+ et PostgreSQL 16+
+2. Créer la base de données et exécuter `database/schema-master.sql`
 3. Configurer le fichier `.env` (copier depuis `.env.example`)
 4. Lancer le serveur PHP ou configurer Apache
 

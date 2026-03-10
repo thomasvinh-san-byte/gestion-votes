@@ -4,15 +4,6 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Repository\AttendanceRepository;
-use AgVote\Repository\BallotRepository;
-use AgVote\Repository\MeetingRepository;
-use AgVote\Repository\MeetingStatsRepository;
-use AgVote\Repository\MemberRepository;
-use AgVote\Repository\MotionRepository;
-use AgVote\Repository\PolicyRepository;
-use AgVote\Repository\ProxyRepository;
-use AgVote\Repository\VoteTokenRepository;
 use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
 use Throwable;
@@ -34,11 +25,11 @@ final class OperatorController extends AbstractController {
 
         $tenant = api_current_tenant_id();
 
-        $meetingRepo = new MeetingRepository();
-        $statsRepo = new MeetingStatsRepository();
-        $memberRepo = new MemberRepository();
-        $motionRepo = new MotionRepository();
-        $ballotRepo = new BallotRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $statsRepo = $this->repo()->meetingStats();
+        $memberRepo = $this->repo()->member();
+        $motionRepo = $this->repo()->motion();
+        $ballotRepo = $this->repo()->ballot();
 
         $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
         if (!$meeting) {
@@ -74,7 +65,7 @@ final class OperatorController extends AbstractController {
         $quorumThreshold = 0.5;
         $quorumPolicyId = $meeting['quorum_policy_id'] ?? null;
         if ($quorumPolicyId) {
-            $policyRepo = new PolicyRepository();
+            $policyRepo = $this->repo()->policy();
             $quorumPolicy = $policyRepo->findQuorumPolicyForTenant($quorumPolicyId, $tenant);
             if ($quorumPolicy && isset($quorumPolicy['threshold'])) {
                 $quorumThreshold = (float) $quorumPolicy['threshold'];
@@ -83,7 +74,7 @@ final class OperatorController extends AbstractController {
         $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
         $quorumOk = $presentCount > 0 && $quorumRatio >= $quorumThreshold;
 
-        $coveredRows = (new ProxyRepository())->listDistinctGivers($meetingId, $tenant);
+        $coveredRows = $this->repo()->proxy()->listDistinctGivers($meetingId, $tenant);
         $coveredSet = [];
         foreach ($coveredRows as $x) {
             $coveredSet[(string) $x['giver_member_id']] = true;
@@ -97,7 +88,7 @@ final class OperatorController extends AbstractController {
         }
         $missingNames = array_values(array_filter(array_map(fn ($id) => $absentNames[$id] ?? '', $missing)));
 
-        $proxyActive = (new ProxyRepository())->countActive($meetingId, $tenant);
+        $proxyActive = $this->repo()->proxy()->countActive($meetingId, $tenant);
 
         $motions = $motionRepo->countWorkflowSummary($meetingId, $tenant);
 
@@ -233,11 +224,11 @@ final class OperatorController extends AbstractController {
 
         $secret = (string) (defined('APP_SECRET') ? APP_SECRET : config('app_secret', ''));
 
-        $meetingRepo = new MeetingRepository();
-        $motionRepo = new MotionRepository();
-        $memberRepo = new MemberRepository();
-        $attendanceRepo = new AttendanceRepository();
-        $tokenRepo = new VoteTokenRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $motionRepo = $this->repo()->motion();
+        $memberRepo = $this->repo()->member();
+        $attendanceRepo = $this->repo()->attendance();
+        $tokenRepo = $this->repo()->voteToken();
 
         $txResult = api_transaction(function () use ($meetingRepo, $motionRepo, $memberRepo, $attendanceRepo, $tokenRepo, $meetingId, &$motionId, $secret, $listTokens, $expiresMinutes) {
             $meeting = $meetingRepo->lockForUpdate($meetingId, api_current_tenant_id());
@@ -354,11 +345,11 @@ final class OperatorController extends AbstractController {
             api_fail('invalid_motion_id', 422);
         }
 
-        $meetingRepo = new MeetingRepository();
-        $motionRepo = new MotionRepository();
-        $memberRepo = new MemberRepository();
-        $ballotRepo = new BallotRepository();
-        $tokenRepo = new VoteTokenRepository();
+        $meetingRepo = $this->repo()->meeting();
+        $motionRepo = $this->repo()->motion();
+        $memberRepo = $this->repo()->member();
+        $ballotRepo = $this->repo()->ballot();
+        $tokenRepo = $this->repo()->voteToken();
 
         $meeting = $meetingRepo->findByIdForTenant($meetingId, api_current_tenant_id());
         if (!$meeting) {
@@ -399,7 +390,7 @@ final class OperatorController extends AbstractController {
         $proxyMax = (int) config('proxy_max_per_receiver', 99);
         $proxyCeilings = [];
         try {
-            $rows = (new ProxyRepository())->listCeilingViolations(api_current_tenant_id(), $meetingId, $proxyMax);
+            $rows = $this->repo()->proxy()->listCeilingViolations(api_current_tenant_id(), $meetingId, $proxyMax);
             foreach ($rows as $r) {
                 $pid = (string) $r['proxy_id'];
                 $proxyCeilings[] = [
@@ -409,10 +400,7 @@ final class OperatorController extends AbstractController {
                     'max' => $proxyMax,
                 ];
             }
-        } catch (Throwable $e) {
-            if ($e instanceof \AgVote\Core\Http\ApiResponseException) {
-                throw $e;
-            }
+        } catch (Throwable) {
             $proxyCeilings = [];
         }
 

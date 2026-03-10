@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
@@ -46,11 +47,11 @@ final class QuorumEngine {
         ?MemberRepository $memberRepo = null,
         ?MeetingRepository $meetingRepo = null,
     ) {
-        $this->motionRepo = $motionRepo ?? new MotionRepository();
-        $this->policyRepo = $policyRepo ?? new PolicyRepository();
-        $this->attendanceRepo = $attendanceRepo ?? new AttendanceRepository();
-        $this->memberRepo = $memberRepo ?? new MemberRepository();
-        $this->meetingRepo = $meetingRepo ?? new MeetingRepository();
+        $this->motionRepo = $motionRepo ?? RepositoryFactory::getInstance()->motion();
+        $this->policyRepo = $policyRepo ?? RepositoryFactory::getInstance()->policy();
+        $this->attendanceRepo = $attendanceRepo ?? RepositoryFactory::getInstance()->attendance();
+        $this->memberRepo = $memberRepo ?? RepositoryFactory::getInstance()->member();
+        $this->meetingRepo = $meetingRepo ?? RepositoryFactory::getInstance()->meeting();
     }
 
     /**
