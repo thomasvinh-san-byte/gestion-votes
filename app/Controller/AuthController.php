@@ -243,7 +243,6 @@ final class AuthController extends AbstractController {
 
         api_ok([
             'auth_enabled' => true,
-            'app_env' => $appEnv,
             'user' => [
                 'id' => $user['id'],
                 'email' => $user['email'],
