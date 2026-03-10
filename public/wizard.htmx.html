@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="fr" data-page-role="operator,admin">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B0D10" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Cr&eacute;er une s&eacute;ance - AG-VOTE">
+  <title>Cr&eacute;er une s&eacute;ance &mdash; AG-VOTE</title>
+  <script src="/assets/js/theme-init.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/meetings.css">
+</head>
+<body>
+  <!-- Skip links -->
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
+
+  <div class="app-shell">
+    <aside class="app-sidebar" data-include-sidebar data-page="wizard"></aside>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="flex items-center gap-4">
+        <div>
+          <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <span class="bc-item">Pr&eacute;paration</span>
+            <span class="bc-sep">/</span>
+            <span class="bc-item bc-current" aria-current="page">Cr&eacute;er une s&eacute;ance</span>
+          </nav>
+          <h1 class="page-title">
+            <span class="bar"></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+            Cr&eacute;er une s&eacute;ance
+          </h1>
+          <p class="page-sub">Assistant en 4 &eacute;tapes</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer la visite guid&eacute;e">
+          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+          Visite
+        </button>
+        <a class="btn btn-sm" href="/dashboard.htmx.html">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          Retour
+        </a>
+      </div>
+    </header>
+
+    <main class="app-main" id="main-content" role="main">
+
+      <!-- Stepper progress -->
+      <div class="wiz-progress-wrap" id="wizStepper" aria-label="Progression" role="navigation">
+        <div class="wiz-step-item active" data-step="0">
+          <div class="wiz-snum">1</div><span>Infos g&eacute;n&eacute;rales</span>
+        </div>
+        <div class="wiz-step-item" data-step="1">
+          <div class="wiz-snum">2</div><span>Membres</span>
+        </div>
+        <div class="wiz-step-item" data-step="2">
+          <div class="wiz-snum">3</div><span>Ordre du jour</span>
+        </div>
+        <div class="wiz-step-item" data-step="3">
+          <div class="wiz-snum">4</div><span>R&eacute;capitulatif</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Infos g&eacute;n&eacute;rales -->
+      <div class="card wiz-step" id="step0" data-tour="wizard-step1" style="margin-bottom:14px;">
+        <div class="wf-step">
+          <div style="width:24px;height:24px;border-radius:50%;background:#fff;color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">1</div>
+          Informations g&eacute;n&eacute;rales
+        </div>
+        <div class="muted" style="margin-bottom:12px;font-size:13px;"><span class="req">*</span> Champ obligatoire</div>
+
+        <!-- Identit&eacute; -->
+        <div style="margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:800;color:var(--text-dark);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+            Identit&eacute; de la s&eacute;ance
+          </div>
+          <div class="field">
+            <label class="field-label" for="wizTitle">Titre de la s&eacute;ance <span class="req">*</span></label>
+            <input class="field-input" id="wizTitle" aria-required="true" placeholder="Ex : AG Ordinaire du 15 mars 2026" maxlength="200" autocomplete="off">
+          </div>
+          <div class="row">
+            <div class="field">
+              <label class="field-label" for="wizType">Type de s&eacute;ance <span class="req">*</span></label>
+              <select class="field-input" id="wizType" aria-required="true">
+                <option>AG Ordinaire</option>
+                <option>AG Extraordinaire</option>
+                <option>Conseil syndical</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="wizDate">Date <span class="req">*</span></label>
+              <input class="field-input" id="wizDate" aria-required="true" type="date">
+            </div>
+            <div class="field">
+              <label class="field-label" for="wizTimeHH">Heure <span class="req">*</span></label>
+              <div style="display:flex;align-items:center;gap:0;max-width:120px;">
+                <input class="field-input" id="wizTimeHH" placeholder="HH" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Heures" style="width:44px;text-align:center;border-radius:var(--radius-sm) 0 0 var(--radius-sm);border-right:none;min-height:42px;font-size:15px;font-family:var(--font-mono);font-weight:700;letter-spacing:1px;">
+                <span style="background:var(--surface-alt);border:1px solid var(--border);border-left:none;border-right:none;padding:0 3px;font-size:18px;font-weight:800;color:var(--text-muted);line-height:40px;height:42px;display:flex;align-items:center;user-select:none;">:</span>
+                <input class="field-input" id="wizTimeMM" placeholder="MM" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Minutes" style="width:44px;text-align:center;border-radius:0 var(--radius-sm) var(--radius-sm) 0;border-left:none;min-height:42px;font-size:15px;font-family:var(--font-mono);font-weight:700;letter-spacing:1px;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lieu -->
+        <div style="margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:800;color:var(--text-dark);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+            Lieu
+          </div>
+          <div class="row">
+            <div class="field">
+              <label class="field-label" for="wizPlace">Nom du lieu</label>
+              <input class="field-input" id="wizPlace" placeholder="Ex : Salle polyvalente" maxlength="100" autocomplete="off">
+            </div>
+            <div class="field">
+              <label class="field-label" for="wizAddr">Adresse</label>
+              <input class="field-input" id="wizAddr" placeholder="Ex : 10 avenue de la R&eacute;publique" maxlength="200" autocomplete="off">
+            </div>
+          </div>
+        </div>
+
+        <!-- R&egrave;gles de vote -->
+        <div style="margin-bottom:8px;">
+          <div style="font-size:12px;font-weight:800;color:var(--text-dark);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+            R&egrave;gles de vote
+          </div>
+          <div class="field">
+            <label class="field-label" for="wizQuorum">Politique de quorum</label>
+            <select class="field-input" id="wizQuorum">
+              <option>50% des pr&eacute;sents + 1 (d&eacute;faut copropri&eacute;t&eacute;)</option>
+              <option>50% des voix</option>
+              <option>33% des pr&eacute;sents (2e convocation)</option>
+              <option>Aucun quorum (conseil/bureau)</option>
+              <option>Personnalis&eacute; (configurable dans Param&egrave;tres)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="alert alert-warn" style="margin-top:4px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          <strong>Date limite d'envoi des convocations</strong> &mdash; calcul&eacute;e automatiquement (21 jours avant &mdash; art. 9 d&eacute;cret du 17 mars 1967)
+        </div>
+
+        <div class="step-nav">
+          <a class="btn" href="/dashboard.htmx.html">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            Retour
+          </a>
+          <button class="btn btn-primary" type="button" id="btnNext0">Suivant
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Participants -->
+      <div class="card wiz-step" id="step1" style="margin-bottom:14px;display:none;">
+        <div class="wf-step">
+          <div style="width:24px;height:24px;border-radius:50%;background:#fff;color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">2</div>
+          Participants
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button class="btn btn-primary btn-sm" type="button" id="btnImportCSV" style="flex:1;justify-content:center;max-width:200px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            Importer (.csv, .xlsx)
+          </button>
+          <button class="btn btn-sm" type="button" id="btnAddManual" style="flex:1;justify-content:center;max-width:200px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Ajout manuel
+          </button>
+        </div>
+
+        <!-- Drop zone -->
+        <div style="background:var(--surface-alt);border-radius:var(--radius-sm);padding:16px;text-align:center;border:1.5px dashed var(--border-dash);margin-bottom:12px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+          <div style="font-weight:700;color:var(--text-dark);font-size:14px;margin-top:4px;">Glissez votre fichier</div>
+          <div class="muted">Colonnes attendues : Nom, Lot, Courriel, Cl&eacute; G&eacute;n&eacute;rale, Cl&eacute; Ascenseur, Cl&eacute; Chauffage&hellip;</div>
+        </div>
+
+        <!-- Sample members list -->
+        <div id="wizMembersList">
+          <!-- Populated by JS or shows demo data -->
+        </div>
+
+        <div style="padding:10px 0;border-top:1px solid var(--border-soft);margin-top:8px;">
+          <div class="flex-between">
+            <span style="font-weight:700;color:var(--text-dark);">Total : <span id="wizMemberCount">0</span> participants</span>
+            <span style="font-weight:800;color:var(--accent);"><span id="wizVoixTotal">0</span> voix</span>
+          </div>
+        </div>
+
+        <div class="ctx-panel" style="margin-top:10px;">
+          <h4>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            Guide
+          </h4>
+          <p>Chaque participant doit figurer avec son poids de vote. Le quorum est calcul&eacute; automatiquement.</p>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn" type="button" id="btnPrev1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            Pr&eacute;c&eacute;dent
+          </button>
+          <button class="btn btn-primary" type="button" id="btnNext1">Suivant
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: R&eacute;solutions (ordre du jour) -->
+      <div class="card wiz-step" id="step2" style="margin-bottom:14px;display:none;">
+        <div class="wf-step">
+          <div style="width:24px;height:24px;border-radius:50%;background:#fff;color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">3</div>
+          R&eacute;solutions (ordre du jour)
+        </div>
+
+        <!-- Add resolution form -->
+        <div style="padding:14px;border:1.5px dashed var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);margin-bottom:14px;">
+          <div style="font-weight:700;color:var(--accent);font-size:14px;margin-bottom:10px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+            Ajouter une r&eacute;solution
+          </div>
+          <div class="field">
+            <label class="field-label" for="resoTitle">Titre <span class="req">*</span></label>
+            <input class="field-input" id="resoTitle" aria-required="true" placeholder="Ex : Approbation des comptes 2025" maxlength="200" autocomplete="off" style="background:var(--surface);">
+          </div>
+          <div class="field">
+            <label class="field-label" for="resoDesc">Description</label>
+            <textarea class="field-input" id="resoDesc" placeholder="Texte de la r&eacute;solution soumise au vote" maxlength="2000" rows="2" style="background:var(--surface);"></textarea>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label class="field-label" for="resoMaj">Majorit&eacute; <span class="req">*</span></label>
+              <select class="field-input" id="resoMaj" aria-required="true" style="background:var(--surface);">
+                <option>Majorit&eacute; simple (art. 24) &mdash; D&Eacute;FAUT</option>
+                <option>Majorit&eacute; absolue (art. 25)</option>
+                <option>Double majorit&eacute; (art. 26)</option>
+                <option>Unanimit&eacute; (art. 26-1)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="resoKey">Cl&eacute; de r&eacute;partition <span class="req">*</span></label>
+              <select class="field-input" id="resoKey" aria-required="true" style="background:var(--surface);">
+                <option>Charges g&eacute;n&eacute;rales (d&eacute;faut)</option>
+                <option>Ascenseur B&acirc;timent A</option>
+                <option>Chauffage collectif</option>
+                <option>Parking souterrain</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label">Vote secret</label>
+              <div style="display:flex;gap:4px;">
+                <span class="chip active" id="chipNonSecret">Non (d&eacute;faut)</span>
+                <span class="chip" id="chipSecret">Oui</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn btn-primary btn-sm" type="button" id="btnAddReso">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+              Ajouter
+            </button>
+          </div>
+        </div>
+
+        <!-- Resolutions list -->
+        <div id="wizResoList">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="ctx-panel" style="margin-top:10px;">
+          <h4>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            Guide
+          </h4>
+          <p>Art. 24 : majorit&eacute; des pr&eacute;sents. Art. 25 : majorit&eacute; de tous les copropri&eacute;taires. Art. 26 : double majorit&eacute; (2/3 des voix de tous). R&eacute;ordonnez par glisser-d&eacute;poser.</p>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn" type="button" id="btnPrev2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            Pr&eacute;c&eacute;dent
+          </button>
+          <button class="btn btn-primary" type="button" id="btnNext2">Suivant
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 4: R&eacute;capitulatif -->
+      <div class="card wiz-step" id="step3" style="margin-bottom:14px;display:none;">
+        <div class="wf-step">
+          <div style="width:24px;height:24px;border-radius:50%;background:#fff;color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">4</div>
+          V&eacute;rification et cr&eacute;ation
+        </div>
+
+        <div class="alert alert-success">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+          <strong>Pr&ecirc;t &agrave; cr&eacute;er.</strong> V&eacute;rifiez les informations ci-dessous.
+        </div>
+
+        <div id="wizRecap">
+          <!-- Summary rows populated by JS -->
+        </div>
+
+        <div class="ctx-panel" style="margin-top:10px;">
+          <h4>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+            Guide
+          </h4>
+          <p>Cliquez sur une &eacute;tape pr&eacute;c&eacute;dente pour corriger. La s&eacute;ance sera cr&eacute;&eacute;e en brouillon, modifiable jusqu'au lancement.</p>
+        </div>
+
+        <div class="alert alert-warn" style="margin-top:8px;margin-bottom:0;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          La cr&eacute;ation ne lance pas le vote. Vous pourrez lancer la s&eacute;ance depuis l'espace op&eacute;rateur.
+        </div>
+
+        <div class="step-nav">
+          <button class="btn" type="button" id="btnPrev3">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            Pr&eacute;c&eacute;dent
+          </button>
+          <button class="btn btn-success" type="button" id="btnCreate">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+            Cr&eacute;er la s&eacute;ance
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 5: Confirmation -->
+      <div class="card wiz-step" id="step4" style="margin-bottom:14px;display:none;">
+        <div class="wf-step" style="background:var(--success);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+          S&eacute;ance cr&eacute;&eacute;e
+        </div>
+        <div style="text-align:center;padding:16px 0;">
+          <div style="width:48px;height:48px;border-radius:50%;background:var(--success-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;border:2px solid var(--success);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <div style="font-size:18px;font-weight:800;color:var(--text-dark);margin-bottom:4px;" id="wizSuccessTitle">S&eacute;ance cr&eacute;&eacute;e</div>
+          <div class="muted" style="margin-bottom:6px;">Brouillon enregistr&eacute;. Modifiable &agrave; tout moment.</div>
+          <div class="alert alert-warn" style="text-align:left;margin-bottom:14px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+            <strong>Prochaine &eacute;tape :</strong> envoyer les convocations.
+          </div>
+          <div style="display:flex;gap:8px;justify-content:center;">
+            <a class="btn btn-primary btn-sm" href="/hub.htmx.html">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+              Envoyer les convocations
+            </a>
+            <a class="btn btn-sm" href="/meetings.htmx.html">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+              Mes s&eacute;ances
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/assets/js/core/utils.js"></script>
+  <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/pages/wizard.js"></script>
+</body>
+</html>
