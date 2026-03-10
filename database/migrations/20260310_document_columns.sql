@@ -22,6 +22,6 @@ COMMENT ON TABLE motions IS
     'No separate status column — single source of truth via timestamps.';
 
 -- audit_events hash chain
-COMMENT ON COLUMN audit_events.previous_hash IS
+COMMENT ON COLUMN audit_events.prev_hash IS
     'SHA-256 hash of the previous audit entry, forming an immutable chain. '
     'Protected by PostgreSQL trigger preventing UPDATE/DELETE.';
