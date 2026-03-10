@@ -143,21 +143,25 @@ unset PGPASSWORD
 # ---------------------------------------------------------------------------
 # Force secure cookies when not in plain local dev (demo, staging, prod…).
 # php.ini defaults to cookie_secure=0 so local HTTP dev works out of the box.
+mkdir -p /tmp/php-runtime
 _ENV="${APP_ENV:-development}"
 if [ "$_ENV" != "development" ] && [ "$_ENV" != "dev" ]; then
   {
     echo "session.cookie_secure = 1"
     echo "opcache.validate_timestamps = 0"
-  } > /usr/local/etc/php/conf.d/zz-runtime.ini
+  } > /tmp/php-runtime/zz-runtime.ini
   echo "Cookie secure: ON, OPcache revalidation: OFF (APP_ENV=${_ENV})"
 else
   {
     echo "; dev mode: revalidate on every request so code changes are picked up"
     echo "opcache.validate_timestamps = 1"
     echo "opcache.revalidate_freq = 0"
-  } > /usr/local/etc/php/conf.d/zz-runtime.ini
+  } > /tmp/php-runtime/zz-runtime.ini
   echo "Cookie secure: OFF, OPcache revalidation: ON (local dev)"
 fi
+
+# Make PHP scan the runtime directory for additional ini files
+export PHP_INI_SCAN_DIR="/usr/local/etc/php/conf.d:/tmp/php-runtime"
 
 # ---------------------------------------------------------------------------
 # Dynamic port binding (Render injects PORT=10000 by default)
