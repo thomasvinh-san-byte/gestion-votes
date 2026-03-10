@@ -94,14 +94,14 @@
     }
 
     list.innerHTML = O.speechQueueCache.map((s, i) => `
-      <div class="speech-queue-item" data-request-id="${s.id}" data-member-id="${s.member_id}">
+      <div class="speech-queue-item" data-request-id="${escapeHtml(s.id)}" data-member-id="${escapeHtml(s.member_id)}">
         <span class="speech-queue-position">${i + 1}</span>
         <span class="speech-queue-name">${escapeHtml(s.full_name || '—')}</span>
         <div class="speech-queue-actions">
-          <button class="btn btn-xs btn-primary btn-grant-speech" data-member-id="${s.member_id}" title="Donner la parole">
+          <button class="btn btn-xs btn-primary btn-grant-speech" data-member-id="${escapeHtml(s.member_id)}" title="Donner la parole">
             ${icon('mic', 'icon-xs')}
           </button>
-          <button class="btn btn-xs btn-ghost btn-remove-speech" data-request-id="${s.id}" title="Retirer">
+          <button class="btn btn-xs btn-ghost btn-remove-speech" data-request-id="${escapeHtml(s.id)}" title="Retirer">
             ${icon('x', 'icon-xs')}
           </button>
         </div>

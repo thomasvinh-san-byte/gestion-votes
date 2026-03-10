@@ -67,7 +67,7 @@
       const proxyTitle = hasProxy ? `Procuration: ${proxy.receiver_name || 'mandataire'}` : 'Ajouter procuration';
 
       return `
-        <div class="attendance-card ${cardClass}" data-member-id="${m.member_id}">
+        <div class="attendance-card ${cardClass}" data-member-id="${escapeHtml(m.member_id)}">
           <span class="attendance-name">${escapeHtml(m.full_name || '—')}</span>
           ${hasProxy ? `<span class="proxy-indicator" title="${escapeHtml(proxyTitle)}">${icon('user-check', 'icon-xs')}</span>` : ''}
           <div class="attendance-mode-btns">
@@ -310,14 +310,14 @@
     const isLocked = ['validated', 'archived'].includes(O.currentMeetingStatus);
 
     list.innerHTML = filtered.map(p => `
-      <div class="proxy-item" data-proxy-id="${p.id}" data-giver-id="${p.giver_member_id}">
+      <div class="proxy-item" data-proxy-id="${escapeHtml(p.id)}" data-giver-id="${escapeHtml(p.giver_member_id)}">
         <div class="proxy-item-info">
           <span class="proxy-giver">${escapeHtml(p.giver_name || '—')}</span>
           <span class="proxy-arrow">${icon('arrow-right', 'icon-sm')}</span>
           <span class="proxy-receiver">${escapeHtml(p.receiver_name || '—')}</span>
         </div>
         ${!isLocked ? `
-          <button class="btn btn-sm btn-ghost text-danger btn-revoke-proxy" data-giver-id="${p.giver_member_id}" title="Révoquer">
+          <button class="btn btn-sm btn-ghost text-danger btn-revoke-proxy" data-giver-id="${escapeHtml(p.giver_member_id)}" title="Révoquer">
             ${icon('x', 'icon-sm')}
           </button>
         ` : ''}

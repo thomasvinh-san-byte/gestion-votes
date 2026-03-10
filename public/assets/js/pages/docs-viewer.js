@@ -236,8 +236,13 @@
         })
         .then(function(markdown) {
           var html = marked.parse(markdown);
-          html = html.replace(/<(script|iframe|object|embed)[^>]*>[\s\S]*?<\/\1>/gi, '')
-                     .replace(/<(script|iframe|object|embed)[^>]*\/?>/gi, '');
+          // Sanitize: strip dangerous tags and event handlers
+          html = html.replace(/<(script|iframe|object|embed|form|base|meta|link|style)[^>]*>[\s\S]*?<\/\1>/gi, '')
+                     .replace(/<(script|iframe|object|embed|form|base|meta|link|style)[^>]*\/?>/gi, '')
+                     .replace(/\s+on\w+\s*=\s*(['"])[^'"]*\1/gi, '')
+                     .replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '')
+                     .replace(/href\s*=\s*(['"])javascript:[^'"]*\1/gi, 'href=$1#$1')
+                     .replace(/src\s*=\s*(['"])javascript:[^'"]*\1/gi, 'src=$1#$1');
           container.innerHTML = '<div class="prose">' + html + '</div>';
 
           generateTOC(container);
