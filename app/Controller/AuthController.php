@@ -205,9 +205,14 @@ final class AuthController extends AbstractController {
             ]);
         }
 
+        $appEnv = getenv('APP_ENV') ?: 'production';
+
         $user = AuthMiddleware::authenticate();
         if ($user === null) {
-            api_fail('missing_or_invalid_api_key', 401, ['auth_enabled' => true]);
+            api_fail('missing_or_invalid_api_key', 401, [
+                'auth_enabled' => true,
+                'app_env' => $appEnv,
+            ]);
         }
         if (!$user['is_active']) {
             api_fail('user_inactive', 401, ['auth_enabled' => true]);
@@ -238,6 +243,7 @@ final class AuthController extends AbstractController {
 
         api_ok([
             'auth_enabled' => true,
+            'app_env' => $appEnv,
             'user' => [
                 'id' => $user['id'],
                 'email' => $user['email'],

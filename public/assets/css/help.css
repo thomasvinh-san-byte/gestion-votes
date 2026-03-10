@@ -36,9 +36,16 @@
   padding: 1.5rem;
 }
 
-/* Help page main content no padding */
+/* Help page main content — keep sidebar offset */
 .app-main.help-main {
   padding: 0;
+  padding-left: calc(var(--sidebar-rail) + 22px);
+}
+
+@media (max-width: 768px) {
+  .app-main.help-main {
+    padding-left: 0;
+  }
 }
 
 /* =============================================================================

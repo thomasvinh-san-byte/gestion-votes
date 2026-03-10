@@ -25,9 +25,9 @@ services:
       APP_ENV: "${APP_ENV:-demo}"
       APP_DEBUG: "${APP_DEBUG:-1}"
       APP_SECRET: "${APP_SECRET:-dev-secret-do-not-use-in-production-change-me-now-please-64chr}"
-      # --- Security (defaults = demo mode, override in .env for production) ---
-      APP_AUTH_ENABLED: "${APP_AUTH_ENABLED:-0}"
-      CSRF_ENABLED: "${CSRF_ENABLED:-0}"
+      # --- Security (auth+CSRF on by default, even in demo) ---
+      APP_AUTH_ENABLED: "${APP_AUTH_ENABLED:-1}"
+      CSRF_ENABLED: "${CSRF_ENABLED:-1}"
       RATE_LIMIT_ENABLED: "${RATE_LIMIT_ENABLED:-0}"
       # --- Database ---
       DB_DSN: "pgsql:host=db;port=5432;dbname=${DB_DATABASE:-vote_app}"
