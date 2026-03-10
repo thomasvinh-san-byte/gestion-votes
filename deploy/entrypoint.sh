@@ -143,21 +143,25 @@ unset PGPASSWORD
 # ---------------------------------------------------------------------------
 # Force secure cookies when not in plain local dev (demo, staging, prod…).
 # php.ini defaults to cookie_secure=0 so local HTTP dev works out of the box.
+mkdir -p /tmp/php-runtime
 _ENV="${APP_ENV:-development}"
 if [ "$_ENV" != "development" ] && [ "$_ENV" != "dev" ]; then
   {
     echo "session.cookie_secure = 1"
     echo "opcache.validate_timestamps = 0"
-  } > /usr/local/etc/php/conf.d/zz-runtime.ini
+  } > /tmp/php-runtime/zz-runtime.ini
   echo "Cookie secure: ON, OPcache revalidation: OFF (APP_ENV=${_ENV})"
 else
   {
     echo "; dev mode: revalidate on every request so code changes are picked up"
     echo "opcache.validate_timestamps = 1"
     echo "opcache.revalidate_freq = 0"
-  } > /usr/local/etc/php/conf.d/zz-runtime.ini
+  } > /tmp/php-runtime/zz-runtime.ini
   echo "Cookie secure: OFF, OPcache revalidation: ON (local dev)"
 fi
+
+# Make PHP scan the runtime directory for additional ini files
+export PHP_INI_SCAN_DIR="/usr/local/etc/php/conf.d:/tmp/php-runtime"
 
 # ---------------------------------------------------------------------------
 # Dynamic port binding (Render injects PORT=10000 by default)
@@ -168,7 +172,11 @@ if ! echo "$LISTEN_PORT" | grep -qE '^[0-9]+$'; then
   exit 1
 fi
 if [ "$LISTEN_PORT" != "8080" ]; then
-  sed -i "s/listen 8080/listen ${LISTEN_PORT}/" /etc/nginx/http.d/default.conf
+  if ! sed -i "s/listen 8080/listen ${LISTEN_PORT}/" /etc/nginx/http.d/default.conf 2>/dev/null; then
+    echo "[FATAL] Impossible de modifier le port Nginx (filesystem read-only)."
+    echo "        Utilisez PORT=8080 ou désactivez read_only dans docker-compose.yml."
+    exit 1
+  fi
   echo "Nginx port: ${LISTEN_PORT} (from \$PORT)"
 else
   echo "Nginx port: 8080 (default)"

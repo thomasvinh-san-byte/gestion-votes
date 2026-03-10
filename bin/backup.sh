@@ -48,7 +48,7 @@ DB_USER="${DB_USER:-agvote}"
 # Backup settings
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/ag-vote}"
 RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-7}"
-UPLOAD_DIR="${PROJECT_ROOT}/storage/uploads"
+UPLOAD_DIR="/tmp/ag-vote/uploads"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 DRY_RUN=false
 
