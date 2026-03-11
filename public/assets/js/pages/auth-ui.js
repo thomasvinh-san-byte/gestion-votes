@@ -420,7 +420,8 @@
           if (!window.CSRF) window.CSRF = {};
           window.CSRF.token = token;
         }
-      });
+      })
+      .catch(function () { /* CSRF refresh is best-effort */ });
   }
 
   // =========================================================================
@@ -471,6 +472,9 @@
           } else {
             warn.textContent = 'Session expir\u00e9e. Veuillez vous reconnecter.';
           }
+        })
+        .catch(function () {
+          warn.textContent = 'Impossible de prolonger la session.';
         });
     });
   }
