@@ -6,23 +6,28 @@
     // CONFIGURATION
     // =========================================================================
 
+    // Fallback titles used before the API responds. Kept in sync with
+    // DocController::DOC_NAMES — but the sidebar always uses the API label,
+    // so missing entries here just produce a raw filename, never a crash.
     var DOC_TITLES = {
-      'ANALYTICS_ETHICS': '\u00c9thique des Analytics',
-      'FAQ': 'Foire aux questions',
-      'README': 'Documentation',
-      'INSTALLATION': 'Guide d\'installation',
-      'ARCHITECTURE': 'Architecture',
-      'API': 'Documentation API',
-      'SECURITY': 'S\u00e9curit\u00e9',
-      'MIGRATION': 'Migration',
-      'TESTS': 'Tests',
-      'UTILISATION_LIVE': 'Utilisation en direct',
-      'RECETTE_DEMO': 'Recette de d\u00e9monstration',
-      'AUDIT_RAPPORT': 'Rapport d\'audit',
-      'CONFORMITE_CDC': 'Conformit\u00e9 au cahier des charges',
-      'WEB_COMPONENTS': 'Composants Web',
-      'DOCKER_INSTALL': 'Installation Docker (Linux)',
+      'README': 'Introduction',
+      'FAQ': 'FAQ',
+      'GUIDE_FONCTIONNEL': 'Guide fonctionnel',
+      'UTILISATION_LIVE': 'Guide op\u00e9rateur',
+      'RECETTE_DEMO': 'D\u00e9mo guid\u00e9e',
       'INSTALL_MAC': 'Installation macOS',
+      'DOCKER_INSTALL': 'Installation Docker (Linux)',
+      'DEPLOIEMENT_DOCKER': 'D\u00e9ploiement Docker',
+      'DEPLOIEMENT_RENDER': 'D\u00e9ploiement Render',
+      'GUIDE_TEST_LOCAL': 'Tests en local',
+      'INSTALLATION': 'Installation (d\u00e9veloppeur)',
+      'ARCHITECTURE': 'Architecture',
+      'API': 'R\u00e9f\u00e9rence API',
+      'SECURITY': 'S\u00e9curit\u00e9',
+      'TESTS': 'Tests',
+      'WEB_COMPONENTS': 'Web Components',
+      'ANALYTICS_ETHICS': '\u00c9thique & RGPD',
+      'cahier_des_charges': 'Cahier des charges',
     };
 
     // =========================================================================
@@ -57,6 +62,17 @@
         .then(function(data) {
           if (!data.ok || !data.data) throw new Error('Index unavailable');
 
+          // Update page title from API label (single source of truth)
+          data.data.forEach(function(cat) {
+            cat.items.forEach(function(item) {
+              if (item.page === currentPage && item.label) {
+                document.getElementById('docTitle').textContent = item.label;
+                document.getElementById('breadcrumbCurrent').textContent = item.label;
+                document.title = item.label + ' \u2014 Documentation AG-VOTE';
+              }
+            });
+          });
+
           var html = '<h4>Documentation</h4>';
           data.data.forEach(function(cat) {
             html += '<div class="doc-index-section">';
@@ -64,8 +80,10 @@
             html += '<ul>';
             cat.items.forEach(function(item) {
               var isActive = (item.page === currentPage) ? ' class="active"' : '';
+              // Encode each path segment but keep slashes readable
+              var encodedPage = item.page.split('/').map(encodeURIComponent).join('/');
               html += '<li' + isActive + '><a href="/docs.htmx.html?file=docs/'
-                + encodeURIComponent(item.page) + '.md">'
+                + encodedPage + '.md">'
                 + esc(item.label) + '</a></li>';
             });
             html += '</ul></div>';
