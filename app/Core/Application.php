@@ -138,33 +138,33 @@ final class Application {
             define('APP_SECRET', $secret);
         }
 
-        // Validate secret in production / demo / when auth is enabled
+        // Validate secret and auth settings in production only
         $env = getenv('APP_ENV') ?: (self::$config['env'] ?? 'dev');
         $isProduction = in_array($env, ['production', 'prod'], true);
-        $isDemo = $env === 'demo';
-        $authEnabled = getenv('APP_AUTH_ENABLED') === '1'
-            || strtolower((string) getenv('APP_AUTH_ENABLED')) === 'true';
 
-        $insecureSecrets = [
-            '',
-            'change-me-in-prod',
-            'dev-secret-do-not-use-in-production-change-me-now-please-64chr',
-        ];
+        if ($isProduction) {
+            $insecureSecrets = [
+                '',
+                'change-me-in-prod',
+                'dev-secret-do-not-use-in-production-change-me-now-please-64chr',
+            ];
 
-        if (($isProduction || ($authEnabled && !$isDemo)) && (in_array(APP_SECRET, $insecureSecrets, true) || strlen(APP_SECRET) < 32)) {
-            throw new RuntimeException(
-                '[SECURITY] APP_SECRET must be set to a secure value (min 32 characters) in production. '
-                . 'Generate one with: php -r "echo bin2hex(random_bytes(32));"',
-            );
-        }
+            if (in_array(APP_SECRET, $insecureSecrets, true) || strlen(APP_SECRET) < 32) {
+                throw new RuntimeException(
+                    '[SECURITY] APP_SECRET must be set to a secure value (min 32 characters) in production. '
+                    . 'Generate one with: php -r "echo bin2hex(random_bytes(32));"',
+                );
+            }
 
-        // Block APP_AUTH_ENABLED=0 in production — authentication cannot be disabled
-        // Demo mode is allowed to disable auth for easy navigation
-        if ($isProduction && !$isDemo && !$authEnabled) {
-            throw new RuntimeException(
-                '[SECURITY] APP_AUTH_ENABLED cannot be disabled in production. '
-                . 'Set APP_AUTH_ENABLED=1 or remove it (auth is enabled by default).',
-            );
+            $authEnabled = getenv('APP_AUTH_ENABLED') === '1'
+                || strtolower((string) getenv('APP_AUTH_ENABLED')) === 'true';
+
+            if (!$authEnabled) {
+                throw new RuntimeException(
+                    '[SECURITY] APP_AUTH_ENABLED cannot be disabled in production. '
+                    . 'Set APP_AUTH_ENABLED=1 or remove it (auth is enabled by default).',
+                );
+            }
         }
 
         // DEFAULT_TENANT_ID
