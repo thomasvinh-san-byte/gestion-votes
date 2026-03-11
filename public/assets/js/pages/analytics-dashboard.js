@@ -100,6 +100,8 @@
         loadVoteTiming(),
         loadAnomalies(),
       ]);
+      // Mark all chart containers as loaded (hides CSS spinner)
+      document.querySelectorAll('.chart-container').forEach(function(c) { c.classList.add('loaded'); });
     }
 
     // Helper: build trend indicator HTML

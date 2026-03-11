@@ -66,23 +66,23 @@
       <!-- Stats bar -->
       <div class="stats-bar" data-tour="hub-kpis">
         <div class="stat-item live">
-          <div class="stat-value" id="statLive" aria-live="polite">0</div>
+          <div class="stat-value" id="statLive" aria-live="polite">&mdash;</div>
           <div class="stat-label">En cours</div>
         </div>
         <div class="stat-item">
-          <div class="stat-value" id="statScheduled">0</div>
+          <div class="stat-value" id="statScheduled">&mdash;</div>
           <div class="stat-label">Planifiées</div>
         </div>
         <div class="stat-item draft">
-          <div class="stat-value" id="statDraft">0</div>
+          <div class="stat-value" id="statDraft">&mdash;</div>
           <div class="stat-label">Brouillons</div>
         </div>
         <div class="stat-item">
-          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-value" id="statTotal">&mdash;</div>
           <div class="stat-label">Total</div>
         </div>
         <div class="stat-item">
-          <span class="stat-value" id="statResolutions">0</span>
+          <span class="stat-value" id="statResolutions">&mdash;</span>
           <span class="stat-label">Résolutions</span>
         </div>
         <div class="stat-item">
@@ -496,50 +496,6 @@
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
 
-  <!-- Session timeout banner -->
-  <div class="session-timeout-banner" id="sessionTimeoutBanner" role="alert" aria-live="assertive" hidden>
-    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
-    <span>Votre session expire dans <strong class="session-timeout-timer" id="sessionTimeoutTimer">2:00</strong></span>
-    <div class="session-timeout-actions">
-      <button class="btn btn-sm btn-primary" id="btnExtendSession">Prolonger</button>
-      <button class="btn btn-sm btn-ghost" id="btnLogoutSession">D&eacute;connexion</button>
-    </div>
-  </div>
-
-  <!-- Command palette (Ctrl+K) -->
-  <div class="cmd-palette-overlay" id="cmdPalette" role="dialog" aria-modal="true" aria-label="Recherche rapide" hidden>
-    <div class="cmd-palette">
-      <div class="cmd-palette-input-wrap">
-        <svg class="cmd-palette-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-search"></use></svg>
-        <input class="cmd-palette-input" id="cmdPaletteInput" type="text" placeholder="Rechercher une page, action ou membre&hellip;" autocomplete="off" aria-label="Recherche rapide">
-        <span class="cmd-palette-shortcut">Esc</span>
-      </div>
-      <div class="cmd-palette-results" id="cmdPaletteResults" role="listbox">
-        <div class="cmd-palette-group-label">Pages</div>
-        <div class="cmd-palette-item" role="option" data-href="/meetings.htmx.html">
-          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
-          <span class="cmd-palette-item-label">S&eacute;ances</span>
-        </div>
-        <div class="cmd-palette-item" role="option" data-href="/operator.htmx.html">
-          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg>
-          <span class="cmd-palette-item-label">Console op&eacute;rateur</span>
-        </div>
-        <div class="cmd-palette-item" role="option" data-href="/members.htmx.html">
-          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-          <span class="cmd-palette-item-label">Membres</span>
-        </div>
-        <div class="cmd-palette-item" role="option" data-href="/analytics.htmx.html">
-          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
-          <span class="cmd-palette-item-label">Statistiques</span>
-        </div>
-      </div>
-      <div class="cmd-palette-footer">
-        <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> naviguer</span>
-        <span><kbd>Entr&eacute;e</kbd> ouvrir</span>
-        <span><kbd>Esc</kbd> fermer</span>
-      </div>
-    </div>
-  </div>
 
   <script src="/assets/js/core/utils.js"></script>
   <script type="module" src="/assets/js/components/index.js"></script>

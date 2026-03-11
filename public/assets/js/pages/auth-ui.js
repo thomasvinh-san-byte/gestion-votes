@@ -429,7 +429,7 @@
   // =========================================================================
 
   var SESSION_TIMEOUT_MS = 30 * 60 * 1000;  // 30 minutes (matches server)
-  var WARNING_BEFORE_MS = 5 * 60 * 1000;    // warn 5 minutes before expiry
+  var WARNING_BEFORE_MS = 1 * 60 * 1000;    // warn 1 minute before expiry
   var _sessionTimer = null;
   var _sessionWarningShown = false;
 

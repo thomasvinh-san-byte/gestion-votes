@@ -41,6 +41,28 @@
   const meetingsCount = document.getElementById('meetingsCount');
 
   // ==========================================================================
+  // ONBOARDING BANNER — persistent dismiss via localStorage
+  // ==========================================================================
+
+  (function initOnboardingBanner() {
+    var banner = document.getElementById('onboardingBanner');
+    if (!banner) return;
+    var KEY = 'ag_meetings_ob_dismissed';
+    if (localStorage.getItem(KEY) === '1') {
+      banner.hidden = true;
+      return;
+    }
+    var dismiss = function() {
+      banner.hidden = true;
+      localStorage.setItem(KEY, '1');
+    };
+    var btnClose = document.getElementById('btnCloseOnboarding');
+    var btnDismiss = document.getElementById('btnDismissOnboarding');
+    if (btnClose) btnClose.addEventListener('click', dismiss);
+    if (btnDismiss) btnDismiss.addEventListener('click', dismiss);
+  })();
+
+  // ==========================================================================
   // STATS
   // ==========================================================================
 
@@ -473,7 +495,8 @@
       errorMsg: 'Impossible de charger les séances',
       action: async function () {
         const { body } = await api('/api/v1/meetings_index.php');
-        allMeetings = body?.data?.items || [];
+        if (!body || !body.ok) throw new Error(body?.error || 'Erreur serveur');
+        allMeetings = body.data?.items || [];
         updateStats(allMeetings);
         renderMeetings(allMeetings);
 

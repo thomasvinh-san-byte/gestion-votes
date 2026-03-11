@@ -9,16 +9,20 @@
   const spinner = document.getElementById('loginSpinner');
   const btnText = submitBtn.querySelector('.login-btn-text');
 
-  // Toggle password visibility
+  // Toggle password visibility (eye icon)
   toggleBtn.addEventListener('click', function() {
+    var eyeOpen = toggleBtn.querySelector('.eye-open');
+    var eyeClosed = toggleBtn.querySelector('.eye-closed');
     if (passwordInput.type === 'password') {
       passwordInput.type = 'text';
-      toggleBtn.textContent = 'Masquer';
+      if (eyeOpen) eyeOpen.style.display = 'none';
+      if (eyeClosed) eyeClosed.style.display = '';
       toggleBtn.setAttribute('aria-label', 'Masquer le mot de passe');
       toggleBtn.setAttribute('aria-pressed', 'true');
     } else {
       passwordInput.type = 'password';
-      toggleBtn.textContent = 'Voir';
+      if (eyeOpen) eyeOpen.style.display = '';
+      if (eyeClosed) eyeClosed.style.display = 'none';
       toggleBtn.setAttribute('aria-label', 'Afficher le mot de passe');
       toggleBtn.setAttribute('aria-pressed', 'false');
     }
