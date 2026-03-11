@@ -22,12 +22,10 @@ use Throwable;
  */
 final class MailerService {
     private array $smtp;
-    private string $appUrl;
     private ?Mailer $mailer = null;
 
     public function __construct(array $config) {
         $this->smtp = $config['smtp'] ?? [];
-        $this->appUrl = (string) (($config['app']['url'] ?? '') ?: 'http://localhost:8080');
     }
 
     public function isConfigured(): bool {

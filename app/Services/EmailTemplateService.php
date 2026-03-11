@@ -207,7 +207,7 @@ final class EmailTemplateService {
         $firstName = $nameParts[0] ?? '';
 
         // Motion count
-        $motionsCount = (int) ($this->statsRepo->countMotions($meetingId, $tenantId) ?? 0);
+        $motionsCount = (int) $this->statsRepo->countMotions($meetingId, $tenantId);
 
         return [
             '{{member_name}}' => $fullName,
@@ -298,7 +298,7 @@ final class EmailTemplateService {
      */
     public function validate(string $templateBody): array {
         preg_match_all('/\{\{([a-z_]+)\}\}/', $templateBody, $matches);
-        $usedVars = array_unique($matches[0] ?? []);
+        $usedVars = array_unique($matches[0]);
         $knownVars = array_keys(self::AVAILABLE_VARIABLES);
 
         $unknown = array_diff($usedVars, $knownVars);

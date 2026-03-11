@@ -134,7 +134,7 @@ final class MotionsController extends AbstractController {
 
         $row = $motionRepo->listForMeetingJson($meetingId, $tenantId);
         $motions = [];
-        if ($row && isset($row['motions']) && $row['motions'] !== null) {
+        if ($row && isset($row['motions'])) {
             if (is_string($row['motions'])) {
                 $decoded = json_decode($row['motions'], true);
                 if (is_array($decoded)) {
@@ -457,8 +457,8 @@ final class MotionsController extends AbstractController {
                 }
             }
 
-            $repo->markOpened($motionId, $tenantId, $votePolicyId, $quorumPolicyId);
-            $meetingRepo->setCurrentMotion($meetingId, $tenantId, $motionId);
+            $repo->markOpened($motionId, $tenantId);
+            $meetingRepo->updateCurrentMotion($meetingId, $tenantId, $motionId);
 
             return [
                 'meetingId' => $meetingId,
@@ -657,6 +657,7 @@ final class MotionsController extends AbstractController {
             'Mode dégradé: comptage manuel saisi pour "' . ((string) $row['motion_title']) . '".',
             ['operator', 'trust'],
             ['motion_id' => $motionId],
+            $tenantId,
         );
 
         api_ok([

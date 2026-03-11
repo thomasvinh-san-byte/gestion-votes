@@ -65,7 +65,7 @@ final class ProxiesService {
      * @param string $meetingId Meeting ID
      * @param string $giverMemberId Giver ID (the one giving their proxy)
      * @param string $receiverMemberId Receiver ID (the one receiving), or empty to revoke
-     * @param string|null $tenantId Tenant ID (auto-detected if null)
+     * @param string $tenantId Tenant ID
      *
      * @throws InvalidArgumentException If validation fails
      */
@@ -76,7 +76,7 @@ final class ProxiesService {
         if ($giverMemberId === '') {
             throw new InvalidArgumentException('giver_member_id manquant');
         }
-        if ($giverMemberId === $receiverMemberId && $receiverMemberId !== '') {
+        if ($giverMemberId === $receiverMemberId) {
             throw new InvalidArgumentException('giver != receiver');
         }
 

@@ -28,6 +28,7 @@ parameters:
         - '#Function api_guard_\w+ not found\.#'
         - '#Function api_is_uuid not found\.#'
         - '#Function api_require_uuid not found\.#'
+        - '#Function db not found\.#'
         # Constants defined at runtime
         - '#Constant APP_SECRET not found\.#'
         - '#Constant DEFAULT_TENANT_ID not found\.#'

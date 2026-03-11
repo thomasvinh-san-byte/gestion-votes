@@ -54,7 +54,7 @@ final class DocController extends AbstractController {
                 if (file_exists($docsRoot . '/' . $doc . '.md')) {
                     $items[] = [
                         'page' => $doc,
-                        'label' => self::DOC_NAMES[$doc] ?? self::humanize($doc),
+                        'label' => self::DOC_NAMES[$doc],
                     ];
                 }
                 $listed[$doc] = true;

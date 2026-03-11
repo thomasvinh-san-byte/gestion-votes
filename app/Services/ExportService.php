@@ -67,8 +67,6 @@ final class ExportService {
 
     /** Booleans */
     public const BOOLEANS = [
-        true => 'Oui',
-        false => 'Non',
         '1' => 'Oui',
         '0' => 'Non',
         't' => 'Oui',
@@ -124,7 +122,7 @@ final class ExportService {
      */
     public function translateBoolean($value): string {
         if (is_bool($value)) {
-            return self::BOOLEANS[$value];
+            return $value ? 'Oui' : 'Non';
         }
         $strVal = strtolower(trim((string) $value));
         return self::BOOLEANS[$strVal] ?? $strVal;

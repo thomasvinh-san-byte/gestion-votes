@@ -119,7 +119,7 @@ final class AnalyticsController extends AbstractController {
             header('Content-Type: text/csv; charset=utf-8');
             header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
             $output = fopen('php://output', 'w');
-            $exportService->writeCsvBom($output);
+            fputs($output, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
             $exportService->writeCsvRow($output, $headers);
             foreach ($rows as $row) {
                 $exportService->writeCsvRow($output, $row);
@@ -129,19 +129,7 @@ final class AnalyticsController extends AbstractController {
         }
 
         if ($format === 'xlsx') {
-            $spreadsheet = $exportService->createSpreadsheet("Rapport {$reportType}");
-            $sheet = $spreadsheet->getActiveSheet();
-            foreach ($headers as $col => $header) {
-                $sheet->setCellValueByColumnAndRow($col + 1, 1, $header);
-            }
-            $rowNum = 2;
-            foreach ($rows as $row) {
-                foreach ($row as $col => $value) {
-                    $sheet->setCellValueByColumnAndRow($col + 1, $rowNum, $value);
-                }
-                $rowNum++;
-            }
-            $exportService->autoSizeColumns($sheet);
+            $spreadsheet = $exportService->createSpreadsheet($headers, $rows, "Rapport {$reportType}");
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             header('Content-Disposition: attachment; filename="' . $filename . '.xlsx"');
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
@@ -424,7 +412,7 @@ final class AnalyticsController extends AbstractController {
                     $svc->translateMeetingStatus($row['meeting_status'] ?? ''), $row['total_members'] ?? 0,
                     $row['present_count'] ?? 0, $svc->formatNumber($row['present_power'] ?? 0),
                     $row['quorum_threshold'] ?? '-', $row['quorum_unit'] ?? '-',
-                    $svc->formatBoolean($row['quorum_reached'] ?? true),
+                    $svc->translateBoolean($row['quorum_reached'] ?? true),
                 ],
                 default => [],
             };

@@ -149,7 +149,6 @@ final class ErrorDictionary {
 
         // Vote (suppléments)
         'invalid_vote' => 'Vote invalide.',
-        'missing_motion_ids' => 'Liste des résolutions requise.',
         'cancel_failed' => 'Échec de l\'annulation.',
         'not_manual_vote' => 'Ce vote n\'est pas un vote manuel.',
         'ballot_not_found' => 'Bulletin introuvable.',

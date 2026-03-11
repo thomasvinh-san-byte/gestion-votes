@@ -109,7 +109,7 @@ final class TrustController extends AbstractController {
 
         // Frontend-expected aliases
         foreach ($anomalies as &$a) {
-            $a['message'] = $a['description'] ?? '';
+            $a['message'] = $a['description'];
             $parts = [];
             if (!empty($a['member_name'])) {
                 $parts[] = $a['member_name'];

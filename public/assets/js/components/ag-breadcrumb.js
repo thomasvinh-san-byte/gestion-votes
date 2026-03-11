@@ -19,7 +19,6 @@ class AgBreadcrumb extends HTMLElement {
     let items = [];
     try { items = JSON.parse(this.getAttribute('items') || '[]'); } catch(e) { /* noop */ }
 
-    // eslint-disable-next-line agvote/no-inner-html -- safe: shadow DOM template
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: block; }

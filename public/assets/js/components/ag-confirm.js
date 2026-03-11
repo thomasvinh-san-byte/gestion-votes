@@ -29,7 +29,6 @@ class AgConfirm extends HTMLElement {
     };
     const v = variantColors[variant] || variantColors.info;
 
-    // eslint-disable-next-line agvote/no-inner-html -- safe: shadow DOM template
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: contents; }

@@ -82,7 +82,7 @@ final class VotePublicController {
         if (!$confirm) {
             HtmlView::render('vote_confirm', [
                 'vote' => $vote,
-                'chosen' => self::VOTE_LABELS[$vote] ?? $vote,
+                'chosen' => self::VOTE_LABELS[$vote],
             ]);
             return;
         }

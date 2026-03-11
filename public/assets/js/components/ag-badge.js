@@ -44,7 +44,6 @@ class AgBadge extends HTMLElement {
 
     const pulseHtml = pulse ? '<span class="pulse-dot"></span>' : '';
 
-    // eslint-disable-next-line agvote/no-inner-html -- safe: shadow DOM template
     this.shadowRoot.innerHTML = `
       <style>
         :host {
