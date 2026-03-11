@@ -106,7 +106,7 @@ final class OperatorController extends AbstractController {
         $canCloseOpen = false;
 
         if ($openMotion) {
-            $openBallots = $ballotRepo->countByMotionId($openMotion['id']);
+            $openBallots = $ballotRepo->countByMotionId($openMotion['id'], $tenant);
             if (!empty($openMotion['opened_at'])) {
                 $openAgeSeconds = max(0, time() - strtotime($openMotion['opened_at']));
             }

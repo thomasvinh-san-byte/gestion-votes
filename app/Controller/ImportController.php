@@ -23,6 +23,9 @@ final class ImportController extends AbstractController {
             $csvContent = $jsonBody['csv_content'] ?? null;
         }
 
+        $headers = [];
+        $rows = [];
+
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $validation = ImportService::validateUploadedFile($file, 'csv');
             if (!$validation['ok']) {
@@ -212,6 +215,9 @@ final class ImportController extends AbstractController {
         // Support file upload OR csv_content (FormData text field)
         $file = api_file('file', 'csv_file');
         $csvContent = $in['csv_content'] ?? null;
+
+        $headers = [];
+        $rows = [];
 
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
             $validation = ImportService::validateUploadedFile($file, 'csv');

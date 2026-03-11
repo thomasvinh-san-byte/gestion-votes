@@ -253,7 +253,7 @@ class Logger {
      */
     private static function getCurrentUser(): ?array {
         // Utiliser AuthMiddleware si disponible
-        if (class_exists(AuthMiddleware::class) && method_exists(AuthMiddleware::class, 'getCurrentUser')) {
+        if (class_exists(AuthMiddleware::class)) {
             return AuthMiddleware::getCurrentUser();
         }
 

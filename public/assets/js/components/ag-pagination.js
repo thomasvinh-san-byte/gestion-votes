@@ -46,6 +46,7 @@ class AgPagination extends HTMLElement {
   render() {
     const total = this.totalPages;
     const current = this.currentPage;
+    // eslint-disable-next-line agvote/no-inner-html -- safe: shadow DOM template
     if (total <= 1) { this.shadowRoot.innerHTML = ''; return; }
 
     const pages = [];
@@ -57,6 +58,7 @@ class AgPagination extends HTMLElement {
       }
     }
 
+    // eslint-disable-next-line agvote/no-inner-html -- safe: shadow DOM template
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: block; }

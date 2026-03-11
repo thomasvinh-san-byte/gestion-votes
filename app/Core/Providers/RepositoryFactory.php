@@ -108,7 +108,7 @@ final class RepositoryFactory {
     // =========================================================================
 
     /**
-     * @template T
+     * @template T of object
      * @param class-string<T> $class
      * @return T
      */
