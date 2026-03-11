@@ -41,6 +41,7 @@ test.describe('Auth Required — GET Endpoints', () => {
     `/api/v1/meeting_summary.php?meeting_id=${E2E_MEETING_ID}`,
     `/api/v1/agendas.php?meeting_id=${E2E_MEETING_ID}`,
     `/api/v1/trust_checks.php?meeting_id=${E2E_MEETING_ID}`,
+    `/api/v1/audit_verify.php?meeting_id=${E2E_MEETING_ID}`,
   ];
 
   for (const endpoint of getEndpoints) {

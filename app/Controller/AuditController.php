@@ -233,6 +233,52 @@ final class AuditController extends AbstractController {
         api_ok(['items' => self::formatEvents($rows)]);
     }
 
+    /**
+     * Lightweight chain integrity check (no full export).
+     * Returns valid/invalid + error count without downloading events.
+     */
+    public function verifyChain(): void {
+        $q = api_request('GET');
+        $meetingId = api_require_uuid($q, 'meeting_id');
+
+        $tenantId = api_current_tenant_id();
+        $meetingRepo = $this->repo()->meeting();
+
+        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
+        if (!$meeting) {
+            api_fail('meeting_not_found', 404);
+        }
+
+        $auditRepo = $this->repo()->auditEvent();
+        $events = $auditRepo->listForMeetingExport($tenantId, $meetingId);
+
+        $chainValid = true;
+        $chainErrors = [];
+        $total = count($events);
+
+        for ($i = 1; $i < $total; $i++) {
+            $prev = $events[$i - 1]['this_hash'] ?? null;
+            $curr = $events[$i]['prev_hash'] ?? null;
+            if ($prev !== null && $curr !== null && $prev !== $curr) {
+                $chainValid = false;
+                $chainErrors[] = [
+                    'index' => $i,
+                    'event_id' => $events[$i]['resource_id'] ?? null,
+                    'timestamp' => $events[$i]['created_at'] ?? null,
+                ];
+            }
+        }
+
+        api_ok([
+            'meeting_id' => $meetingId,
+            'total_events' => $total,
+            'chain_valid' => $chainValid,
+            'error_count' => count($chainErrors),
+            'errors' => $chainErrors,
+            'verified_at' => date('c'),
+        ]);
+    }
+
     public function operatorEvents(): void {
         api_request('GET');
 

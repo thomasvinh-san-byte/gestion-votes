@@ -119,6 +119,7 @@ return function (Router $router): void {
     // ── Audit ──
     $router->mapAny("{$prefix}/audit_log", AuditController::class, 'timeline', ['role' => ['auditor', 'admin', 'operator', 'president']]);
     $router->mapAny("{$prefix}/audit_export", AuditController::class, 'export', ['role' => ['auditor', 'operator', 'admin']]);
+    $router->map('GET', "{$prefix}/audit_verify", AuditController::class, 'verifyChain', ['role' => ['auditor', 'admin']]); /* [audit] chain integrity check */
     $router->mapAny("{$prefix}/meeting_audit", AuditController::class, 'meetingAudit', ['role' => ['auditor', 'admin']]); /* [audit] */
     $router->mapAny("{$prefix}/meeting_audit_events", AuditController::class, 'meetingEvents', $audit); /* [audit] */
     $router->mapAny("{$prefix}/operator_audit_events", AuditController::class, 'operatorEvents', ['role' => ['operator', 'admin', 'trust']]); /* [audit] */

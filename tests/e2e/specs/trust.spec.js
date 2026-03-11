@@ -77,6 +77,11 @@ test.describe('Trust APIs', () => {
     expect(response.status()).toBeGreaterThanOrEqual(400);
   });
 
+  test('audit_verify should reject unauthenticated', async ({ request }) => {
+    const response = await request.get(`/api/v1/audit_verify.php?meeting_id=${E2E_MEETING_ID}`);
+    expect(response.status()).toBeGreaterThanOrEqual(400);
+  });
+
   test('device block should reject unauthenticated', async ({ request }) => {
     const response = await request.post('/api/v1/device_block.php', {
       data: { device_id: 'test-device' },
