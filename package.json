@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "ag-vote",
-  "version": "1.1.0",
+  "version": "1.5.0",
   "scripts": {
     "vendor:copy": "cp node_modules/htmx.org/dist/htmx.min.js public/assets/vendor/htmx.min.js && cp node_modules/chart.js/dist/chart.umd.js public/assets/vendor/chart.umd.js",
     "lint": "eslint public/assets/js/ --ignore-pattern 'vendor/'",

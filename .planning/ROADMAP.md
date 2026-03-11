@@ -1,32 +1,36 @@
-# AG-VOTE Roadmap — v1.4
+# AG-VOTE Roadmap — v1.5
 
-## Milestone: Test Coverage & Final Polish
+## Milestone: E2E Coverage Expansion & Release
 
-**Goal**: Achieve 100% controller test coverage, add missing security header, and clean up remaining dead code/TODOs.
+**Goal**: Close E2E gaps for core user-facing pages. Bump version to 1.5.0.
+
+---
+
+### Phase 1 — Operator & Dashboard E2E Specs
+**Status**: done
+**Goal**: Add E2E tests for the two most critical operator pages.
+- operator.spec.js: 8 tests (page load, tabs, meeting context, a11y, API auth)
+- dashboard.spec.js: 7 tests (page load, KPIs, quick actions, sidebar, API auth)
+
+### Phase 2 — Report, Validate & Archives E2E Specs
+**Status**: done
+**Goal**: Cover remaining user-facing pages.
+- report.spec.js: 5 tests (page load, PV content, export, overflow, API auth)
+- validate.spec.js: 4 tests (page load, checklist, action buttons, overflow)
+- archives.spec.js: 5 tests (page load, list, search, sidebar, overflow)
+
+### Phase 3 — Version Bump & Release
+**Status**: done
+**Goal**: Update version to 1.5.0.
+- package.json: 1.1.0 → 1.5.0
+- SW cache version: agvote-v1 → agvote-v1.5
+- 21 E2E spec files (was 16), ~230+ E2E tests total
 
 ---
 
-### Phase 1 — NotificationsController Unit Test
-**Status**: done
-**Goal**: Close the last controller test gap (37/38 tested → 38/38).
-- Created NotificationsControllerTest.php: 9 tests, 28 assertions
-- Tests: structure, methods, NOTIF_ACTIONS constant, limit clamping, markRead response, auth requirement
+## Previous: v1.4 (Test Coverage & Final Polish) — COMPLETE
 
-### Phase 2 — Permissions-Policy Header + E2E
-**Status**: done
-**Goal**: Add Permissions-Policy header for browser feature restriction.
-- Added `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()` to SecurityProvider
-- Added E2E tests for all security headers (X-Content-Type-Options, X-Frame-Options, CSP, Permissions-Policy)
-
-### Phase 3 — Dead Code & TODO Audit
-**Status**: done
-**Goal**: Audit remaining TODOs and dead code.
-- wizard.js TODO (line 159): intentional — wizard UI exists but API call not wired yet
-- operator-tabs.js forwarding wrappers: intentional — called from HTML onclick handlers
-- No PHP TODOs found across entire app/ directory
-- No dead code to remove
-
----
+3 phases: 100% controller tests, Permissions-Policy header, dead code audit.
 
 ## Previous: v1.3 (Code Quality & Frontend Cleanup) — COMPLETE
 

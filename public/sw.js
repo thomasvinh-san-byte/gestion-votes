@@ -7,7 +7,7 @@
  * - Stale-while-revalidate for HTML pages
  */
 
-const CACHE_VERSION = 'agvote-v1';
+const CACHE_VERSION = 'agvote-v1.5';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const API_CACHE = `${CACHE_VERSION}-api`;
