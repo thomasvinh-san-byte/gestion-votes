@@ -151,7 +151,7 @@ final class BallotsService {
 
         // Wrap ballot insert + audit log in a transaction for atomicity
         try {
-            api_transaction(function () use ($meetingId, $tenantId, $motionId, $memberId, $value, $weight, $isProxyVote, $proxyVoterId, $data) {
+            api_transaction(function () use ($meetingId, $tenantId, $motionId, $memberId, $value, $weight, $isProxyVote, $proxyVoterId) {
                 // Lock the meeting row to prevent TOCTOU race: meeting could
                 // transition from 'live' to 'closed' between the initial check
                 // and the ballot INSERT.

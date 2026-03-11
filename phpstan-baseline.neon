@@ -206,12 +206,6 @@ parameters:
 			path: app/Services/ProxiesService.php
 
 		-
-			message: '#^Method AgVote\\Service\\VoteEngine\:\:computeDecision\(\) should return array\{quorum\: array, majority\: array, decision\: array\} but returns array\{quorum\: array\{applied\: bool, met\: bool\|null, basis\: string\|null, ratio\: float\|int\|null, threshold\: float\|null, denominator\: float\|int\<1, max\>\|null\}, majority\: array\{applied\: bool, met\: bool\|null, base\: string\|null, ratio\: float\|null, threshold\: float\|null, abstention_as_against\: bool\|null\}\}\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/VoteEngine.php
-
-		-
 			message: '#^Deprecated in PHP 8\.0\: Required parameter \$tenantId follows optional parameter \$ttlSeconds\.$#'
 			identifier: parameter.requiredAfterOptional
 			count: 1

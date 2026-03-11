@@ -144,7 +144,7 @@ final class MeetingWorkflowService {
      */
     public function hasMotions(string $meetingId, string $tenantId = ''): bool {
         if ($tenantId === '') {
-            $tenantId = \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId() ?? DEFAULT_TENANT_ID;
+            $tenantId = \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId();
         }
         return $this->motionRepo->countForMeeting($meetingId, $tenantId) > 0;
     }

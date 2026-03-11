@@ -125,7 +125,7 @@ final class ProxiesService {
      */
     public function hasActiveProxy(string $meetingId, string $giverMemberId, string $receiverMemberId, string $tenantId = ''): bool {
         if ($tenantId === '') {
-            $tenantId = \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId() ?? DEFAULT_TENANT_ID;
+            $tenantId = \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId();
         }
         return $this->repo->hasActiveProxy($meetingId, $giverMemberId, $receiverMemberId, $tenantId);
     }
