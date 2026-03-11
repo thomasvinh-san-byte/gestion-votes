@@ -11,11 +11,11 @@ function escapeHtml(s) {
 }
 
 window.APP_API_KEY = window.APP_API_KEY
-  || new URLSearchParams(location.search).get("api_key")
-  || (function(){ try { return sessionStorage.getItem("api_key"); } catch(e){ return null; } })()
-  || "";
+  || new URLSearchParams(location.search).get('api_key')
+  || (function(){ try { return sessionStorage.getItem('api_key'); } catch(e){ return null; } })()
+  || '';
 // Persist to sessionStorage (not localStorage) so it survives page reloads but not new sessions
-if (window.APP_API_KEY) { try { sessionStorage.setItem("api_key", window.APP_API_KEY); } catch(e){ console.warn('sessionStorage unavailable:', e.message); } }
+if (window.APP_API_KEY) { try { sessionStorage.setItem('api_key', window.APP_API_KEY); } catch(e){ console.warn('sessionStorage unavailable:', e.message); } }
 
 var MEETING_ID = new URLSearchParams(location.search).get('meeting_id') || null;
 var currentMotionId = null;
@@ -73,15 +73,15 @@ function changeMeeting() {
 (function() {
   var originalFetch = window.fetch.bind(window);
   window.fetch = function(input, init) {
-    var url = (typeof input === "string") ? input : (input?.url || "");
-    if (!url.includes("/api/")) return originalFetch(input, init);
+    var url = (typeof input === 'string') ? input : (input?.url || '');
+    if (!url.includes('/api/')) return originalFetch(input, init);
     // Only inject API key for relative URLs or same-origin absolute URLs
     try {
       var parsed = new URL(url, window.location.origin);
       if (parsed.origin !== window.location.origin) return originalFetch(input, init);
     } catch (e) { /* relative URL — safe */ }
     var headers = new Headers(init?.headers || {});
-    if (!headers.has("X-Api-Key")) headers.set("X-Api-Key", window.APP_API_KEY);
+    if (!headers.has('X-Api-Key')) headers.set('X-Api-Key', window.APP_API_KEY);
     return originalFetch(input, { ...init, headers: headers });
   };
 })();

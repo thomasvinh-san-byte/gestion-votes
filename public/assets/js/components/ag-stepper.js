@@ -74,13 +74,13 @@ class AgStepper extends HTMLElement {
       </style>
       <div class="stepper" role="list" aria-label="Étapes">
         ${steps.map((label, i) => {
-          const cls = i < current ? 'done' : i === current ? 'active' : '';
-          const icon = i < current ? '✓' : String(i + 1);
-          return `<div class="step ${cls}" role="listitem" aria-current="${i === current ? 'step' : 'false'}">
+    const cls = i < current ? 'done' : i === current ? 'active' : '';
+    const icon = i < current ? '✓' : String(i + 1);
+    return `<div class="step ${cls}" role="listitem" aria-current="${i === current ? 'step' : 'false'}">
             <span class="dot">${icon}</span>
             <span class="step-label">${this._esc(label)}</span>
           </div>`;
-        }).join('')}
+  }).join('')}
       </div>
     `;
   }

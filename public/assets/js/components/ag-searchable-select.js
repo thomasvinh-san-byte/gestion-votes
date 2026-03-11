@@ -663,24 +663,24 @@ class AgSearchableSelect extends HTMLElement {
 
   handleKeydown(e) {
     switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        this.highlightNext();
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        this.highlightPrev();
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (this._highlightedIndex >= 0 && this._filteredOptions[this._highlightedIndex]) {
-          this.selectOption(this._filteredOptions[this._highlightedIndex].value);
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        this.closeDropdown();
-        break;
+    case 'ArrowDown':
+      e.preventDefault();
+      this.highlightNext();
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      this.highlightPrev();
+      break;
+    case 'Enter':
+      e.preventDefault();
+      if (this._highlightedIndex >= 0 && this._filteredOptions[this._highlightedIndex]) {
+        this.selectOption(this._filteredOptions[this._highlightedIndex].value);
+      }
+      break;
+    case 'Escape':
+      e.preventDefault();
+      this.closeDropdown();
+      break;
     }
   }
 

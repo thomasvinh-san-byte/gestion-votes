@@ -185,11 +185,11 @@
 
     const date = m.scheduled_at
       ? new Date(m.scheduled_at).toLocaleDateString('fr-FR', {
-          weekday: 'short',
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric'
-        })
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      })
       : '\u2014';
 
     const badgeClass = isLive

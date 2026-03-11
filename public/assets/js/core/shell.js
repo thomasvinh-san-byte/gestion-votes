@@ -206,10 +206,10 @@
   // Drawer System
   // ==========================================================================
 
-  const overlay = document.querySelector(".drawer-backdrop, [data-drawer-close]");
-  const drawer = document.getElementById("drawer") || document.querySelector(".drawer");
-  const dbody = document.getElementById("drawerBody");
-  const titleEl = document.getElementById("drawerTitle");
+  const overlay = document.querySelector('.drawer-backdrop, [data-drawer-close]');
+  const drawer = document.getElementById('drawer') || document.querySelector('.drawer');
+  const dbody = document.getElementById('drawerBody');
+  const titleEl = document.getElementById('drawerTitle');
 
   /** @type {Object.<string, {title: string, render: Function}>} */
   const customKinds = {};
@@ -218,13 +218,13 @@
     if (typeof MeetingContext !== 'undefined' && MeetingContext.get()) {
       return MeetingContext.get();
     }
-    const el = document.querySelector("[data-meeting-id]");
-    if (el && el.getAttribute("data-meeting-id")) return el.getAttribute("data-meeting-id");
+    const el = document.querySelector('[data-meeting-id]');
+    if (el && el.getAttribute('data-meeting-id')) return el.getAttribute('data-meeting-id');
     const input = document.querySelector('input[name="meeting_id"]');
     if (input && input.value) return input.value;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("meeting_id")) return params.get("meeting_id");
-    return "";
+    if (params.get('meeting_id')) return params.get('meeting_id');
+    return '';
   }
 
   function setTitle(t){ if (titleEl) titleEl.textContent = t; }
@@ -232,23 +232,23 @@
 
   function openDrawer(kind){
     if (!drawer || !dbody) return;
-    drawer.classList.add("open");
-    drawer.setAttribute("aria-hidden", "false");
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
     if (overlay) {
-      overlay.classList.add("open");
+      overlay.classList.add('open');
       overlay.hidden = false;
     }
     const meetingId = getMeetingId();
-    if (kind === "context") { setTitle("Séance en cours"); renderContext(meetingId); }
-    else if (kind === "readiness") { setTitle("Préparation"); renderReadiness(meetingId); }
-    else if (kind === "infos" || kind === "info") { setTitle("Informations séance"); renderInfos(meetingId); }
-    else if (kind === "anomalies") { setTitle("Anomalies"); renderAnomalies(meetingId); }
+    if (kind === 'context') { setTitle('Séance en cours'); renderContext(meetingId); }
+    else if (kind === 'readiness') { setTitle('Préparation'); renderReadiness(meetingId); }
+    else if (kind === 'infos' || kind === 'info') { setTitle('Informations séance'); renderInfos(meetingId); }
+    else if (kind === 'anomalies') { setTitle('Anomalies'); renderAnomalies(meetingId); }
     else if (customKinds[kind]) {
       const custom = customKinds[kind];
       setTitle(custom.title || kind);
       custom.render(meetingId, dbody, esc);
     }
-    else { dbody.innerHTML = ""; }
+    else { dbody.innerHTML = ''; }
   }
 
   async function renderContext(meetingId) {
@@ -368,25 +368,25 @@
 
   function closeDrawer(){
     if (!drawer) return;
-    drawer.classList.remove("open");
-    drawer.setAttribute("aria-hidden", "true");
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
     if (overlay) {
-      overlay.classList.remove("open");
+      overlay.classList.remove('open');
       overlay.hidden = true;
     }
   }
 
-  document.addEventListener("click", function(e) {
+  document.addEventListener('click', function(e) {
     const t = e.target;
     if (!t) return;
-    const btn = t.closest && t.closest("[data-drawer]");
-    if (btn){ openDrawer(btn.getAttribute("data-drawer")); return; }
-    if (t.matches && t.matches("[data-drawer-close]")){ closeDrawer(); return; }
+    const btn = t.closest && t.closest('[data-drawer]');
+    if (btn){ openDrawer(btn.getAttribute('data-drawer')); return; }
+    if (t.matches && t.matches('[data-drawer-close]')){ closeDrawer(); return; }
     if (overlay && t === overlay){ closeDrawer(); return; }
   });
 
-  document.addEventListener("keydown", function(e) {
-    if (e.key === "Escape") closeDrawer();
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDrawer();
   });
 
   function registerKind(kind, title, renderFn) {

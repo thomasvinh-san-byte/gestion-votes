@@ -1,76 +1,76 @@
 /** archives.js — Archives listing page for AG-VOTE. Must be loaded AFTER utils.js, shared.js and shell.js. */
 (function() {
-    'use strict';
+  'use strict';
 
-    const archivesList = document.getElementById('archivesList');
-    const searchInput = document.getElementById('searchInput');
-    const yearFilter = document.getElementById('yearFilter');
-    let allArchives = [];
-    let currentView = 'cards';
-    let currentYear = '';
+  const archivesList = document.getElementById('archivesList');
+  const searchInput = document.getElementById('searchInput');
+  const yearFilter = document.getElementById('yearFilter');
+  let allArchives = [];
+  let currentView = 'cards';
+  let currentYear = '';
 
-    // Format date
-    function fmtDate(s) {
-      if (!s) return '—';
-      try {
-        return new Date(s).toLocaleString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
+  // Format date
+  function fmtDate(s) {
+    if (!s) return '—';
+    try {
+      return new Date(s).toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return s;
+    }
+  }
+
+  // Render archives
+  function render(items) {
+    if (!items || items.length === 0) {
+      var query = searchInput.value.trim();
+      if (query) {
+        archivesList.innerHTML = Shared.emptyState({
+          icon: 'search',
+          title: 'Aucun résultat',
+          description: 'Aucune archive ne correspond à « ' + escapeHtml(query) + ' »'
         });
-      } catch (e) {
-        return s;
-      }
-    }
-
-    // Render archives
-    function render(items) {
-      if (!items || items.length === 0) {
-        var query = searchInput.value.trim();
-        if (query) {
-          archivesList.innerHTML = Shared.emptyState({
-            icon: 'search',
-            title: 'Aucun résultat',
-            description: 'Aucune archive ne correspond à « ' + escapeHtml(query) + ' »'
-          });
-        } else {
-          archivesList.innerHTML = Shared.emptyState({
-            icon: 'archive',
-            title: 'Aucune séance archivée',
-            description: currentYear
-              ? 'Aucune archive pour ' + currentYear
-              : 'Les séances validées par le président apparaîtront ici',
-            actionHtml: '<a href="/meetings.htmx.html" class="btn btn-primary btn-sm" style="margin-top:12px;">Voir les séances</a>'
-          });
-        }
-        return;
-      }
-
-      if (currentView === 'list') {
-        renderListView(items);
       } else {
-        renderCardView(items);
+        archivesList.innerHTML = Shared.emptyState({
+          icon: 'archive',
+          title: 'Aucune séance archivée',
+          description: currentYear
+            ? 'Aucune archive pour ' + currentYear
+            : 'Les séances validées par le président apparaîtront ici',
+          actionHtml: '<a href="/meetings.htmx.html" class="btn btn-primary btn-sm" style="margin-top:12px;">Voir les séances</a>'
+        });
       }
+      return;
     }
 
-    // Card view rendering
-    function renderCardView(items) {
-      archivesList.innerHTML = items.map(m => {
-        const id = m.id;
-        const title = escapeHtml(m.title || id);
-        const president = escapeHtml(m.president_name || '—');
-        const archived = fmtDate(m.archived_at || m.validated_at);
-        const hasReport = !!m.has_report;
-        const sha = m.report_sha256 ? m.report_sha256.substring(0, 12) + '...' : '—';
-        const motionsCount = m.motions_count || m.total_motions || '—';
-        const ballotsCount = m.ballots_count || m.total_ballots || '—';
+    if (currentView === 'list') {
+      renderListView(items);
+    } else {
+      renderCardView(items);
+    }
+  }
 
-        const pvUrl = `/api/v1/meeting_report.php?meeting_id=${encodeURIComponent(id)}`;
-        const auditUrl = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(id)}`;
+  // Card view rendering
+  function renderCardView(items) {
+    archivesList.innerHTML = items.map(m => {
+      const id = m.id;
+      const title = escapeHtml(m.title || id);
+      const president = escapeHtml(m.president_name || '—');
+      const archived = fmtDate(m.archived_at || m.validated_at);
+      const hasReport = !!m.has_report;
+      const sha = m.report_sha256 ? m.report_sha256.substring(0, 12) + '...' : '—';
+      const motionsCount = m.motions_count || m.total_motions || '—';
+      const ballotsCount = m.ballots_count || m.total_ballots || '—';
 
-        return `
+      const pvUrl = `/api/v1/meeting_report.php?meeting_id=${encodeURIComponent(id)}`;
+      const auditUrl = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(id)}`;
+
+      return `
           <div class="archive-card-enhanced">
             <div class="archive-card-header">
               <div>
@@ -83,8 +83,8 @@
               </div>
               <div class="flex items-center gap-2">
                 ${hasReport
-                  ? `<span class="archive-badge has-pv">${icon('check-circle', 'icon-sm icon-success')} PV</span>`
-                  : `<span class="archive-badge no-pv">${icon('clock', 'icon-sm')} PV en attente</span>`}
+    ? `<span class="archive-badge has-pv">${icon('check-circle', 'icon-sm icon-success')} PV</span>`
+    : `<span class="archive-badge no-pv">${icon('clock', 'icon-sm')} PV en attente</span>`}
                 <span class="badge badge-success">Archivée</span>
               </div>
             </div>
@@ -120,12 +120,12 @@
             </div>
           </div>
         `;
-      }).join('');
-    }
+    }).join('');
+  }
 
-    // List view rendering
-    function renderListView(items) {
-      archivesList.innerHTML = `
+  // List view rendering
+  function renderListView(items) {
+    archivesList.innerHTML = `
         <table class="table" style="width:100%">
           <thead>
             <tr>
@@ -140,18 +140,18 @@
           </thead>
           <tbody>
             ${items.map(m => {
-              const id = m.id;
-              const title = escapeHtml(m.title || id);
-              const president = escapeHtml(m.president_name || '—');
-              const archived = fmtDate(m.archived_at || m.validated_at);
-              const hasReport = !!m.has_report;
-              const motionsCount = m.motions_count || m.total_motions || '—';
-              const ballotsCount = m.ballots_count || m.total_ballots || '—';
+    const id = m.id;
+    const title = escapeHtml(m.title || id);
+    const president = escapeHtml(m.president_name || '—');
+    const archived = fmtDate(m.archived_at || m.validated_at);
+    const hasReport = !!m.has_report;
+    const motionsCount = m.motions_count || m.total_motions || '—';
+    const ballotsCount = m.ballots_count || m.total_ballots || '—';
 
-              const pvUrl = `/api/v1/meeting_report.php?meeting_id=${encodeURIComponent(id)}`;
-              const auditUrl = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(id)}`;
+    const pvUrl = `/api/v1/meeting_report.php?meeting_id=${encodeURIComponent(id)}`;
+    const auditUrl = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(id)}`;
 
-              return `
+    return `
                 <tr>
                   <td class="font-medium">${title}</td>
                   <td>${president}</td>
@@ -160,8 +160,8 @@
                   <td class="text-center">${ballotsCount}</td>
                   <td class="text-center">
                     ${hasReport
-                      ? `<span class="text-success">${icon('check-circle', 'icon-sm icon-success')}</span>`
-                      : '<span class="text-muted">—</span>'}
+    ? `<span class="text-success">${icon('check-circle', 'icon-sm icon-success')}</span>`
+    : '<span class="text-muted">—</span>'}
                   </td>
                   <td>
                     <div class="flex gap-1">
@@ -171,204 +171,204 @@
                   </td>
                 </tr>
               `;
-            }).join('')}
+  }).join('')}
           </tbody>
         </table>
       `;
-    }
+  }
 
-    // Reset KPIs to placeholder
-    function resetKPIs() {
-      ['kpiTotal', 'kpiWithPV', 'kpiThisYear', 'kpiAvgParticipation', 'kpiDateRange',
-       'statTotal', 'statWithPV', 'statMotions', 'statBallots'].forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) el.textContent = '—';
-      });
-    }
+  // Reset KPIs to placeholder
+  function resetKPIs() {
+    ['kpiTotal', 'kpiWithPV', 'kpiThisYear', 'kpiAvgParticipation', 'kpiDateRange',
+      'statTotal', 'statWithPV', 'statMotions', 'statBallots'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = '—';
+    });
+  }
 
-    // Load archives with retry
-    async function loadArchives() {
-      archivesList.innerHTML = `
+  // Load archives with retry
+  async function loadArchives() {
+    archivesList.innerHTML = `
         <div class="text-center p-6">
           <div class="spinner"></div>
           <div class="mt-4 text-muted">Chargement des archives...</div>
         </div>
       `;
 
-      await Shared.withRetry({
-        container: archivesList,
-        maxRetries: 1,
-        errorMsg: 'Impossible de charger les archives',
-        action: async function () {
-          const { body } = await api('/api/v1/archives_list.php');
+    await Shared.withRetry({
+      container: archivesList,
+      maxRetries: 1,
+      errorMsg: 'Impossible de charger les archives',
+      action: async function () {
+        const { body } = await api('/api/v1/archives_list.php');
 
-          if (body && (body.data || body.items)) {
-            allArchives = body.data?.items || body.items || body.data || [];
+        if (body && (body.data || body.items)) {
+          allArchives = body.data?.items || body.items || body.data || [];
 
-            // Update KPIs
-            const total = allArchives.length;
-            const withPV = allArchives.filter(a => a.has_report).length;
-            const thisYear = allArchives.filter(a => {
-              const date = new Date(a.archived_at || a.validated_at);
-              return date.getFullYear() === new Date().getFullYear();
-            }).length;
+          // Update KPIs
+          const total = allArchives.length;
+          const withPV = allArchives.filter(a => a.has_report).length;
+          const thisYear = allArchives.filter(a => {
+            const date = new Date(a.archived_at || a.validated_at);
+            return date.getFullYear() === new Date().getFullYear();
+          }).length;
 
-            document.getElementById('kpiTotal').textContent = total;
-            document.getElementById('kpiWithPV').textContent = withPV;
-            document.getElementById('kpiThisYear').textContent = thisYear;
+          document.getElementById('kpiTotal').textContent = total;
+          document.getElementById('kpiWithPV').textContent = withPV;
+          document.getElementById('kpiThisYear').textContent = thisYear;
 
-            // Average participation rate
-            const participationRates = allArchives
-              .map(a => parseFloat(a.participation_rate))
-              .filter(v => !isNaN(v));
-            const avgParticipation = participationRates.length > 0
-              ? Math.round(participationRates.reduce((sum, v) => sum + v, 0) / participationRates.length)
-              : null;
-            document.getElementById('kpiAvgParticipation').textContent =
+          // Average participation rate
+          const participationRates = allArchives
+            .map(a => parseFloat(a.participation_rate))
+            .filter(v => !isNaN(v));
+          const avgParticipation = participationRates.length > 0
+            ? Math.round(participationRates.reduce((sum, v) => sum + v, 0) / participationRates.length)
+            : null;
+          document.getElementById('kpiAvgParticipation').textContent =
               avgParticipation != null ? avgParticipation + ' %' : '—';
 
-            // Date range (period)
-            const dates = allArchives
-              .map(a => new Date(a.archived_at || a.validated_at))
-              .filter(d => !isNaN(d.getTime()))
-              .sort((a, b) => a - b);
-            if (dates.length > 0) {
-              const fmt = d => d.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
-              const minDate = fmt(dates[0]);
-              const maxDate = fmt(dates[dates.length - 1]);
-              document.getElementById('kpiDateRange').textContent =
+          // Date range (period)
+          const dates = allArchives
+            .map(a => new Date(a.archived_at || a.validated_at))
+            .filter(d => !isNaN(d.getTime()))
+            .sort((a, b) => a - b);
+          if (dates.length > 0) {
+            const fmt = d => d.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+            const minDate = fmt(dates[0]);
+            const maxDate = fmt(dates[dates.length - 1]);
+            document.getElementById('kpiDateRange').textContent =
                 minDate === maxDate ? minDate : minDate + ' — ' + maxDate;
-            } else {
-              document.getElementById('kpiDateRange').textContent = '—';
-            }
-
-            // Calculate aggregate stats
-            const totalMotions = allArchives.reduce((sum, a) => sum + (parseInt(a.motions_count) || parseInt(a.total_motions) || 0), 0);
-            const totalBallots = allArchives.reduce((sum, a) => sum + (parseInt(a.ballots_count) || parseInt(a.total_ballots) || 0), 0);
-
-            document.getElementById('statTotal').textContent = total;
-            document.getElementById('statWithPV').textContent = withPV;
-            document.getElementById('statMotions').textContent = totalMotions || '—';
-            document.getElementById('statBallots').textContent = totalBallots || '—';
-
-            // Populate year filter
-            populateYearFilter();
-
-            // Populate export select
-            const exportSelect = document.getElementById('exportMeetingSelect');
-            exportSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
-            allArchives.forEach(a => {
-              const opt = document.createElement('option');
-              opt.value = a.id;
-              opt.textContent = a.title || a.id;
-              exportSelect.appendChild(opt);
-            });
-
-            // Apply filters and render
-            applyFilters();
           } else {
-            allArchives = [];
-            resetKPIs();
-            render([]);
+            document.getElementById('kpiDateRange').textContent = '—';
           }
+
+          // Calculate aggregate stats
+          const totalMotions = allArchives.reduce((sum, a) => sum + (parseInt(a.motions_count) || parseInt(a.total_motions) || 0), 0);
+          const totalBallots = allArchives.reduce((sum, a) => sum + (parseInt(a.ballots_count) || parseInt(a.total_ballots) || 0), 0);
+
+          document.getElementById('statTotal').textContent = total;
+          document.getElementById('statWithPV').textContent = withPV;
+          document.getElementById('statMotions').textContent = totalMotions || '—';
+          document.getElementById('statBallots').textContent = totalBallots || '—';
+
+          // Populate year filter
+          populateYearFilter();
+
+          // Populate export select
+          const exportSelect = document.getElementById('exportMeetingSelect');
+          exportSelect.innerHTML = '<option value="">— Sélectionner une séance —</option>';
+          allArchives.forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = a.id;
+            opt.textContent = a.title || a.id;
+            exportSelect.appendChild(opt);
+          });
+
+          // Apply filters and render
+          applyFilters();
+        } else {
+          allArchives = [];
+          resetKPIs();
+          render([]);
         }
-      });
-    }
-
-    // Populate year filter dropdown
-    function populateYearFilter() {
-      const years = new Set();
-      allArchives.forEach(a => {
-        const date = new Date(a.archived_at || a.validated_at);
-        if (!isNaN(date.getTime())) {
-          years.add(date.getFullYear());
-        }
-      });
-
-      const sortedYears = Array.from(years).sort((a, b) => b - a);
-      yearFilter.innerHTML = '<option value="">Toutes années</option>';
-      sortedYears.forEach(year => {
-        const opt = document.createElement('option');
-        opt.value = year;
-        opt.textContent = year;
-        yearFilter.appendChild(opt);
-      });
-    }
-
-    // Apply all filters
-    function applyFilters() {
-      const query = searchInput.value.toLowerCase().trim();
-      let filtered = allArchives;
-
-      // Type filter
-      if (currentType) {
-        filtered = filtered.filter(a =>
-          (a.meeting_type || '').toLowerCase() === currentType.toLowerCase()
-        );
       }
+    });
+  }
 
-      // Year filter
-      if (currentYear) {
-        filtered = filtered.filter(a => {
-          const date = new Date(a.archived_at || a.validated_at);
-          return date.getFullYear() === parseInt(currentYear);
-        });
+  // Populate year filter dropdown
+  function populateYearFilter() {
+    const years = new Set();
+    allArchives.forEach(a => {
+      const date = new Date(a.archived_at || a.validated_at);
+      if (!isNaN(date.getTime())) {
+        years.add(date.getFullYear());
       }
-
-      // Search filter
-      if (query) {
-        filtered = filtered.filter(a =>
-          (a.title || '').toLowerCase().includes(query) ||
-          (a.president_name || '').toLowerCase().includes(query)
-        );
-      }
-
-      render(filtered);
-    }
-
-    // Type filter tabs
-    let currentType = '';
-    document.querySelectorAll('.filter-tab[data-type]').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.filter-tab[data-type]').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentType = tab.dataset.type || '';
-        applyFilters();
-      });
     });
 
-    // Search filter
-    searchInput.addEventListener('input', applyFilters);
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+    yearFilter.innerHTML = '<option value="">Toutes années</option>';
+    sortedYears.forEach(year => {
+      const opt = document.createElement('option');
+      opt.value = year;
+      opt.textContent = year;
+      yearFilter.appendChild(opt);
+    });
+  }
+
+  // Apply all filters
+  function applyFilters() {
+    const query = searchInput.value.toLowerCase().trim();
+    let filtered = allArchives;
+
+    // Type filter
+    if (currentType) {
+      filtered = filtered.filter(a =>
+        (a.meeting_type || '').toLowerCase() === currentType.toLowerCase()
+      );
+    }
 
     // Year filter
-    yearFilter.addEventListener('change', () => {
-      currentYear = yearFilter.value;
+    if (currentYear) {
+      filtered = filtered.filter(a => {
+        const date = new Date(a.archived_at || a.validated_at);
+        return date.getFullYear() === parseInt(currentYear);
+      });
+    }
+
+    // Search filter
+    if (query) {
+      filtered = filtered.filter(a =>
+        (a.title || '').toLowerCase().includes(query) ||
+          (a.president_name || '').toLowerCase().includes(query)
+      );
+    }
+
+    render(filtered);
+  }
+
+  // Type filter tabs
+  let currentType = '';
+  document.querySelectorAll('.filter-tab[data-type]').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab[data-type]').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentType = tab.dataset.type || '';
       applyFilters();
     });
+  });
 
-    // View toggle
-    document.querySelectorAll('.view-toggle-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentView = btn.dataset.view;
-        applyFilters();
-      });
+  // Search filter
+  searchInput.addEventListener('input', applyFilters);
+
+  // Year filter
+  yearFilter.addEventListener('change', () => {
+    currentYear = yearFilter.value;
+    applyFilters();
+  });
+
+  // View toggle
+  document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentView = btn.dataset.view;
+      applyFilters();
     });
+  });
 
-    // Details button click (delegated)
-    archivesList.addEventListener('click', async (e) => {
-      const btn = e.target.closest('.btn-view-details');
-      if (!btn) return;
+  // Details button click (delegated)
+  archivesList.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.btn-view-details');
+    if (!btn) return;
 
-      const meetingId = btn.dataset.id;
-      const archive = allArchives.find(a => a.id === meetingId);
-      if (!archive) return;
+    const meetingId = btn.dataset.id;
+    const archive = allArchives.find(a => a.id === meetingId);
+    if (!archive) return;
 
-      // Show details modal
-      Shared.openModal({
-        title: archive.title || 'Détails de la séance',
-        body: `
+    // Show details modal
+    Shared.openModal({
+      title: archive.title || 'Détails de la séance',
+      body: `
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div><strong>Président:</strong> ${escapeHtml(archive.president_name || '—')}</div>
             <div><strong>Date d'archivage:</strong> ${fmtDate(archive.archived_at || archive.validated_at)}</div>
@@ -393,79 +393,79 @@
             </div>
           `}
         `,
-        confirmText: 'Fermer',
-        hideCancel: true
-      });
+      confirmText: 'Fermer',
+      hideCancel: true
     });
+  });
 
-    // Refresh
-    document.getElementById('btnRefresh').addEventListener('click', loadArchives);
+  // Refresh
+  document.getElementById('btnRefresh').addEventListener('click', loadArchives);
 
-    // Exports modal
-    const modal = document.getElementById('exportsModal');
-    const backdrop = document.getElementById('exportsBackdrop');
+  // Exports modal
+  const modal = document.getElementById('exportsModal');
+  const backdrop = document.getElementById('exportsBackdrop');
 
-    var previousFocusExport = null;
+  var previousFocusExport = null;
 
-    function openExportsModal() {
-      previousFocusExport = document.activeElement;
-      Shared.show(modal, 'block');
-      Shared.show(backdrop, 'block');
-      modal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-      // Focus first interactive element
-      var firstFocusable = modal.querySelector('select, button, input');
-      if (firstFocusable) setTimeout(function () { firstFocusable.focus(); }, 50);
+  function openExportsModal() {
+    previousFocusExport = document.activeElement;
+    Shared.show(modal, 'block');
+    Shared.show(backdrop, 'block');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    // Focus first interactive element
+    var firstFocusable = modal.querySelector('select, button, input');
+    if (firstFocusable) setTimeout(function () { firstFocusable.focus(); }, 50);
+  }
+
+  function closeExportsModal() {
+    Shared.hide(modal);
+    Shared.hide(backdrop);
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    // Restore focus
+    if (previousFocusExport && previousFocusExport.focus) {
+      try { previousFocusExport.focus(); } catch (e) {}
     }
+  }
 
-    function closeExportsModal() {
-      Shared.hide(modal);
-      Shared.hide(backdrop);
-      modal.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
-      // Restore focus
-      if (previousFocusExport && previousFocusExport.focus) {
-        try { previousFocusExport.focus(); } catch (e) {}
-      }
+  document.getElementById('btnExportsModal').addEventListener('click', openExportsModal);
+  document.getElementById('btnCloseExports').addEventListener('click', closeExportsModal);
+  document.getElementById('btnCloseExports2').addEventListener('click', closeExportsModal);
+  backdrop.addEventListener('click', closeExportsModal);
+
+  // Close exports modal with Escape key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.style.display !== 'none') {
+      closeExportsModal();
     }
+  });
 
-    document.getElementById('btnExportsModal').addEventListener('click', openExportsModal);
-    document.getElementById('btnCloseExports').addEventListener('click', closeExportsModal);
-    document.getElementById('btnCloseExports2').addEventListener('click', closeExportsModal);
-    backdrop.addEventListener('click', closeExportsModal);
+  // Export functions
+  function getSelectedMeetingId() {
+    const select = document.getElementById('exportMeetingSelect');
+    return select.value;
+  }
 
-    // Close exports modal with Escape key
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modal.style.display !== 'none') {
-        closeExportsModal();
-      }
-    });
-
-    // Export functions
-    function getSelectedMeetingId() {
-      const select = document.getElementById('exportMeetingSelect');
-      return select.value;
+  function doExport(endpoint) {
+    const meetingId = getSelectedMeetingId();
+    if (!meetingId) {
+      var select = document.getElementById('exportMeetingSelect');
+      Shared.fieldError(select, 'Sélectionnez une séance avant d\u2019exporter');
+      return;
     }
+    Shared.fieldClear(document.getElementById('exportMeetingSelect'));
+    window.open(`/api/v1/${endpoint}?meeting_id=${encodeURIComponent(meetingId)}`, '_blank');
+  }
 
-    function doExport(endpoint) {
-      const meetingId = getSelectedMeetingId();
-      if (!meetingId) {
-        var select = document.getElementById('exportMeetingSelect');
-        Shared.fieldError(select, 'Sélectionnez une séance avant d\u2019exporter');
-        return;
-      }
-      Shared.fieldClear(document.getElementById('exportMeetingSelect'));
-      window.open(`/api/v1/${endpoint}?meeting_id=${encodeURIComponent(meetingId)}`, '_blank');
-    }
+  document.getElementById('btnExportPV').addEventListener('click', () => doExport('meeting_report.php'));
+  document.getElementById('btnExportAttendance').addEventListener('click', () => doExport('export_attendance_csv.php'));
+  document.getElementById('btnExportVotes').addEventListener('click', () => doExport('export_votes_csv.php'));
+  document.getElementById('btnExportMotions').addEventListener('click', () => doExport('export_motions_results_csv.php'));
+  document.getElementById('btnExportMembers').addEventListener('click', () => doExport('export_members_csv.php'));
+  document.getElementById('btnExportAudit').addEventListener('click', () => doExport('audit_export.php'));
+  document.getElementById('btnExportZip')?.addEventListener('click', () => doExport('export_full_xlsx.php'));
 
-    document.getElementById('btnExportPV').addEventListener('click', () => doExport('meeting_report.php'));
-    document.getElementById('btnExportAttendance').addEventListener('click', () => doExport('export_attendance_csv.php'));
-    document.getElementById('btnExportVotes').addEventListener('click', () => doExport('export_votes_csv.php'));
-    document.getElementById('btnExportMotions').addEventListener('click', () => doExport('export_motions_results_csv.php'));
-    document.getElementById('btnExportMembers').addEventListener('click', () => doExport('export_members_csv.php'));
-    document.getElementById('btnExportAudit').addEventListener('click', () => doExport('audit_export.php'));
-    document.getElementById('btnExportZip')?.addEventListener('click', () => doExport('export_full_xlsx.php'));
-
-    // Initial load
-    loadArchives();
-  })();
+  // Initial load
+  loadArchives();
+})();

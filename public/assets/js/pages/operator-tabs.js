@@ -1468,9 +1468,9 @@ window.OpS = { fn: {} };
             </div>
             <div class="flex gap-1">
               ${blocked
-                ? `<button class="btn btn-xs btn-success btn-unblock" data-device="${escapeHtml(dev.device_id)}">Débloquer</button>`
-                : `<button class="btn btn-xs btn-warning btn-block" data-device="${escapeHtml(dev.device_id)}">Bloquer</button>`
-              }
+    ? `<button class="btn btn-xs btn-success btn-unblock" data-device="${escapeHtml(dev.device_id)}">Débloquer</button>`
+    : `<button class="btn btn-xs btn-warning btn-block" data-device="${escapeHtml(dev.device_id)}">Bloquer</button>`
+  }
               <button class="btn btn-xs btn-secondary btn-kick" data-device="${escapeHtml(dev.device_id)}">Reconnecter</button>
             </div>
           </div>
@@ -1566,8 +1566,8 @@ window.OpS = { fn: {} };
 
       const checks = [
         { done: d.members_count > 0, text: 'Membres ajoutés', link: '/members.htmx.html' },
-        { done: d.present_count > 0, text: 'Présences pointées', link: `#tab-presences` },
-        { done: d.motions_total > 0, text: 'Résolutions créées', link: `#tab-resolutions` },
+        { done: d.present_count > 0, text: 'Présences pointées', link: '#tab-presences' },
+        { done: d.motions_total > 0, text: 'Résolutions créées', link: '#tab-resolutions' },
         { done: d.has_president, text: 'Président assigné', optional: true },
         { done: d.policies_assigned, text: 'Politiques configurées', optional: true }
       ];

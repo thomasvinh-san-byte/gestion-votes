@@ -371,8 +371,8 @@
               <td>${decisionBadge}</td>
               <td>
                 ${isCoherent
-                  ? '<span class="text-success">' + icon('check', 'icon-sm icon-text') + 'OK</span>'
-                  : '<span class="text-danger">' + icon('x', 'icon-sm icon-text') + 'Incohérent</span>'}
+    ? '<span class="text-success">' + icon('check', 'icon-sm icon-text') + 'OK</span>'
+    : '<span class="text-danger">' + icon('x', 'icon-sm icon-text') + 'Incohérent</span>'}
               </td>
             </tr>
           `;
@@ -429,8 +429,8 @@
       container.innerHTML = `
         <tr><td colspan="6" class="text-center text-muted p-6">
           ${currentAuditEntries.length === 0
-            ? 'Aucune entrée d\'audit pour cette séance'
-            : 'Aucun résultat pour « ' + escapeHtml(query) + ' »'}
+    ? 'Aucune entrée d\'audit pour cette séance'
+    : 'Aucun résultat pour « ' + escapeHtml(query) + ' »'}
         </td></tr>
       `;
       return;

@@ -1,49 +1,49 @@
-    const API_BASE = '/api/v1';
-    let templates = [];
-    let availableVariables = {};
+const API_BASE = '/api/v1';
+let templates = [];
+let availableVariables = {};
 
-    // DOM elements
-    const templatesGrid = document.getElementById('templatesGrid');
-    const emptyState = document.getElementById('emptyState');
-    const filterType = document.getElementById('filterType');
-    const templateEditor = document.getElementById('templateEditor');
-    const previewFrame = document.getElementById('previewFrame');
-    const variablesList = document.getElementById('variablesList');
+// DOM elements
+const templatesGrid = document.getElementById('templatesGrid');
+const emptyState = document.getElementById('emptyState');
+const filterType = document.getElementById('filterType');
+const templateEditor = document.getElementById('templateEditor');
+const previewFrame = document.getElementById('previewFrame');
+const variablesList = document.getElementById('variablesList');
 
-    // Load templates
-    async function loadTemplates() {
-      try {
-        const type = filterType.value;
-        const url = type
-          ? `${API_BASE}/email_templates.php?type=${type}&include_variables=1`
-          : `${API_BASE}/email_templates.php?include_variables=1`;
+// Load templates
+async function loadTemplates() {
+  try {
+    const type = filterType.value;
+    const url = type
+      ? `${API_BASE}/email_templates.php?type=${type}&include_variables=1`
+      : `${API_BASE}/email_templates.php?include_variables=1`;
 
-        const { body: data } = await api(url);
+    const { body: data } = await api(url);
 
-        if (!data.ok) throw new Error(data.error || 'Erreur chargement');
+    if (!data.ok) throw new Error(data.error || 'Erreur chargement');
 
-        templates = data.data.items || data.data.templates || [];
-        availableVariables = data.data.available_variables || {};
+    templates = data.data.items || data.data.templates || [];
+    availableVariables = data.data.available_variables || {};
 
-        renderTemplates();
-        renderVariables();
-      } catch (err) {
-        console.error('Load templates error:', err);
-        window.showToast?.('Erreur chargement templates', 'error');
-      }
-    }
+    renderTemplates();
+    renderVariables();
+  } catch (err) {
+    console.error('Load templates error:', err);
+    window.showToast?.('Erreur chargement templates', 'error');
+  }
+}
 
-    // Render templates grid
-    function renderTemplates() {
-      if (templates.length === 0) {
-        templatesGrid.innerHTML = '';
-        emptyState.style.display = 'block';
-        return;
-      }
+// Render templates grid
+function renderTemplates() {
+  if (templates.length === 0) {
+    templatesGrid.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
 
-      emptyState.style.display = 'none';
+  emptyState.style.display = 'none';
 
-      templatesGrid.innerHTML = templates.map(t => `
+  templatesGrid.innerHTML = templates.map(t => `
         <div class="template-card ${t.is_default ? 'is-default' : ''}" data-id="${escapeHtml(t.id)}">
           <div class="template-card-header">
             <div class="template-card-title">
@@ -74,243 +74,243 @@
           </div>
         </div>
       `).join('');
-    }
+}
 
-    // Render variables helper
-    function renderVariables() {
-      variablesList.innerHTML = Object.entries(availableVariables).map(([v, desc]) => `
+// Render variables helper
+function renderVariables() {
+  variablesList.innerHTML = Object.entries(availableVariables).map(([v, desc]) => `
         <span class="variable-tag" data-action="insert-var" data-var="${escapeHtml(v)}" title="${escapeHtml(desc)}">${escapeHtml(v)}</span>
       `).join('');
-    }
+}
 
-    // Insert variable at cursor
-    function insertVariable(variable) {
-      const textarea = document.getElementById('templateBody');
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const text = textarea.value;
+// Insert variable at cursor
+function insertVariable(variable) {
+  const textarea = document.getElementById('templateBody');
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
 
-      textarea.value = text.substring(0, start) + variable + text.substring(end);
-      textarea.focus();
-      textarea.selectionStart = textarea.selectionEnd = start + variable.length;
-    }
+  textarea.value = text.substring(0, start) + variable + text.substring(end);
+  textarea.focus();
+  textarea.selectionStart = textarea.selectionEnd = start + variable.length;
+}
 
-    // Open editor for new template
-    function openNewEditor() {
-      document.getElementById('templateId').value = '';
-      document.getElementById('templateName').value = '';
-      document.getElementById('templateType').value = 'invitation';
-      document.getElementById('templateSubject').value = 'Invitation de vote - {{meeting_title}}';
-      document.getElementById('templateBody').value = '';
-      document.getElementById('templateIsDefault').checked = false;
-      document.getElementById('editorTitle').textContent = 'Nouveau template';
-      document.getElementById('editorStatus').textContent = '';
+// Open editor for new template
+function openNewEditor() {
+  document.getElementById('templateId').value = '';
+  document.getElementById('templateName').value = '';
+  document.getElementById('templateType').value = 'invitation';
+  document.getElementById('templateSubject').value = 'Invitation de vote - {{meeting_title}}';
+  document.getElementById('templateBody').value = '';
+  document.getElementById('templateIsDefault').checked = false;
+  document.getElementById('editorTitle').textContent = 'Nouveau template';
+  document.getElementById('editorStatus').textContent = '';
 
-      templateEditor.classList.add('active');
-      updatePreview();
-    }
+  templateEditor.classList.add('active');
+  updatePreview();
+}
 
-    // Edit existing template
-    async function editTemplate(id) {
+// Edit existing template
+async function editTemplate(id) {
+  try {
+    const { body: data } = await api(`${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}`);
+
+    if (!data.ok) throw new Error(data.error || 'Template non trouve');
+
+    const t = data.data.template;
+
+    document.getElementById('templateId').value = t.id;
+    document.getElementById('templateName').value = t.name;
+    document.getElementById('templateType').value = t.template_type;
+    document.getElementById('templateSubject').value = t.subject;
+    document.getElementById('templateBody').value = t.body_html;
+    document.getElementById('templateIsDefault').checked = t.is_default;
+    document.getElementById('editorTitle').textContent = 'Modifier: ' + t.name;
+    document.getElementById('editorStatus').textContent = '';
+
+    templateEditor.classList.add('active');
+    updatePreview();
+  } catch (err) {
+    window.showToast?.('Erreur: ' + err.message, 'error');
+  }
+}
+
+// Save template
+async function saveTemplate() {
+  const id = document.getElementById('templateId').value;
+  const name = document.getElementById('templateName').value.trim();
+  const type = document.getElementById('templateType').value;
+  const subject = document.getElementById('templateSubject').value.trim();
+  const bodyHtml = document.getElementById('templateBody').value.trim();
+  const isDefault = document.getElementById('templateIsDefault').checked;
+
+  if (!name || !subject || !bodyHtml) {
+    window.showToast?.('Veuillez remplir tous les champs obligatoires', 'error');
+    return;
+  }
+
+  document.getElementById('editorStatus').textContent = 'Enregistrement...';
+
+  try {
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}` : `${API_BASE}/email_templates.php`;
+
+    const { body: data } = await api(url, {
+      name,
+      template_type: type,
+      subject,
+      body_html: bodyHtml,
+      is_default: isDefault
+    }, method);
+
+    if (!data.ok) throw new Error(data.message || data.error || 'Erreur sauvegarde');
+
+    window.showToast?.('Template enregistr\u00e9', 'success');
+    templateEditor.classList.remove('active');
+    loadTemplates();
+  } catch (err) {
+    document.getElementById('editorStatus').textContent = 'Erreur: ' + err.message;
+    window.showToast?.('Erreur: ' + err.message, 'error');
+  }
+}
+
+// Delete template
+function deleteTemplate(id) {
+  const tpl = templates.find(t => t.id === id);
+  const tplName = tpl ? tpl.name : 'ce template';
+
+  Shared.openModal({
+    title: 'Supprimer le template',
+    body: '<p>Supprimer le template \u00ab <strong>' + escapeHtml(tplName) + '</strong> \u00bb ?</p>',
+    confirmText: 'Supprimer',
+    confirmClass: 'btn btn-danger',
+    onConfirm: async function() {
       try {
-        const { body: data } = await api(`${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}`);
-
-        if (!data.ok) throw new Error(data.error || 'Template non trouve');
-
-        const t = data.data.template;
-
-        document.getElementById('templateId').value = t.id;
-        document.getElementById('templateName').value = t.name;
-        document.getElementById('templateType').value = t.template_type;
-        document.getElementById('templateSubject').value = t.subject;
-        document.getElementById('templateBody').value = t.body_html;
-        document.getElementById('templateIsDefault').checked = t.is_default;
-        document.getElementById('editorTitle').textContent = 'Modifier: ' + t.name;
-        document.getElementById('editorStatus').textContent = '';
-
-        templateEditor.classList.add('active');
-        updatePreview();
-      } catch (err) {
-        window.showToast?.('Erreur: ' + err.message, 'error');
-      }
-    }
-
-    // Save template
-    async function saveTemplate() {
-      const id = document.getElementById('templateId').value;
-      const name = document.getElementById('templateName').value.trim();
-      const type = document.getElementById('templateType').value;
-      const subject = document.getElementById('templateSubject').value.trim();
-      const bodyHtml = document.getElementById('templateBody').value.trim();
-      const isDefault = document.getElementById('templateIsDefault').checked;
-
-      if (!name || !subject || !bodyHtml) {
-        window.showToast?.('Veuillez remplir tous les champs obligatoires', 'error');
-        return;
-      }
-
-      document.getElementById('editorStatus').textContent = 'Enregistrement...';
-
-      try {
-        const method = id ? 'PUT' : 'POST';
-        const url = id ? `${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}` : `${API_BASE}/email_templates.php`;
-
-        const { body: data } = await api(url, {
-            name,
-            template_type: type,
-            subject,
-            body_html: bodyHtml,
-            is_default: isDefault
-          }, method);
-
-        if (!data.ok) throw new Error(data.message || data.error || 'Erreur sauvegarde');
-
-        window.showToast?.('Template enregistr\u00e9', 'success');
-        templateEditor.classList.remove('active');
+        const { body: data } = await api(`${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}`, null, 'DELETE');
+        if (!data.ok) throw new Error(data.message || data.error || 'Erreur suppression');
+        window.showToast?.('Template supprim\u00e9', 'success');
         loadTemplates();
       } catch (err) {
-        document.getElementById('editorStatus').textContent = 'Erreur: ' + err.message;
         window.showToast?.('Erreur: ' + err.message, 'error');
       }
     }
+  });
+}
 
-    // Delete template
-    function deleteTemplate(id) {
-      const tpl = templates.find(t => t.id === id);
-      const tplName = tpl ? tpl.name : 'ce template';
+// Duplicate template
+function duplicateTemplate(id) {
+  const tpl = templates.find(t => t.id === id);
+  const defaultName = tpl ? tpl.name + ' (copie)' : '';
 
-      Shared.openModal({
-        title: 'Supprimer le template',
-        body: '<p>Supprimer le template \u00ab <strong>' + escapeHtml(tplName) + '</strong> \u00bb ?</p>',
-        confirmText: 'Supprimer',
-        confirmClass: 'btn btn-danger',
-        onConfirm: async function() {
-          try {
-            const { body: data } = await api(`${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}`, null, 'DELETE');
-            if (!data.ok) throw new Error(data.message || data.error || 'Erreur suppression');
-            window.showToast?.('Template supprim\u00e9', 'success');
-            loadTemplates();
-          } catch (err) {
-            window.showToast?.('Erreur: ' + err.message, 'error');
-          }
-        }
-      });
-    }
-
-    // Duplicate template
-    function duplicateTemplate(id) {
-      const tpl = templates.find(t => t.id === id);
-      const defaultName = tpl ? tpl.name + ' (copie)' : '';
-
-      Shared.openModal({
-        title: 'Dupliquer le template',
-        body: '<div class="form-group"><label class="form-label">Nom du nouveau template</label>' +
+  Shared.openModal({
+    title: 'Dupliquer le template',
+    body: '<div class="form-group"><label class="form-label">Nom du nouveau template</label>' +
           '<input class="form-input" type="text" id="dupTemplateName" value="' + escapeHtml(defaultName) + '"></div>',
-        confirmText: 'Dupliquer',
-        onConfirm: async function(modal) {
-          var newName = modal.querySelector('#dupTemplateName').value.trim();
-          if (!newName) { window.showToast?.('Nom requis', 'error'); return false; }
-          try {
-            const { body: data } = await api(`${API_BASE}/email_templates.php`, { action: 'duplicate', source_id: id, new_name: newName });
-            if (!data.ok) throw new Error(data.message || data.error || 'Erreur duplication');
-            window.showToast?.('Template dupliqu\u00e9', 'success');
-            loadTemplates();
-          } catch (err) {
-            window.showToast?.('Erreur: ' + err.message, 'error');
-          }
-        }
-      });
-    }
-
-    // Create default templates
-    function createDefaults() {
-      Shared.openModal({
-        title: 'Cr\u00e9er les templates par d\u00e9faut',
-        body: '<p>Cr\u00e9er les templates par d\u00e9faut (invitation et rappel) ?</p>',
-        confirmText: 'Cr\u00e9er',
-        onConfirm: async function() {
-          try {
-            const { body: data } = await api(`${API_BASE}/email_templates.php`, { action: 'create_defaults' });
-            if (!data.ok) throw new Error(data.message || data.error || 'Erreur creation');
-            window.showToast?.((data.data.count || 0) + ' templates cr\u00e9\u00e9s', 'success');
-            loadTemplates();
-          } catch (err) {
-            window.showToast?.('Erreur: ' + err.message, 'error');
-          }
-        }
-      });
-    }
-
-    // Update preview
-    async function updatePreview() {
-      const bodyHtml = document.getElementById('templateBody').value;
-      if (!bodyHtml) {
-        previewFrame.srcdoc = '<p style="padding:20px;color:var(--color-text-muted,#666);font-family:system-ui,sans-serif;">Entrez du contenu HTML pour voir la pr\u00e9visualisation</p>';
-        return;
-      }
-
+    confirmText: 'Dupliquer',
+    onConfirm: async function(modal) {
+      var newName = modal.querySelector('#dupTemplateName').value.trim();
+      if (!newName) { window.showToast?.('Nom requis', 'error'); return false; }
       try {
-        const { body: data } = await api(`${API_BASE}/email_templates_preview.php`, { body_html: bodyHtml });
-        if (data.ok) {
-          previewFrame.srcdoc = data.data.preview_html;
-        }
+        const { body: data } = await api(`${API_BASE}/email_templates.php`, { action: 'duplicate', source_id: id, new_name: newName });
+        if (!data.ok) throw new Error(data.message || data.error || 'Erreur duplication');
+        window.showToast?.('Template dupliqu\u00e9', 'success');
+        loadTemplates();
       } catch (err) {
-        console.error('Preview error:', err);
+        window.showToast?.('Erreur: ' + err.message, 'error');
       }
     }
+  });
+}
 
-    // Helpers — escapeHtml delegated to global Utils.escapeHtml
-
-    function stripHtml(html) {
-      if (!html) return '';
-      return html.replace(/<[^>]*>/g, '');
+// Create default templates
+function createDefaults() {
+  Shared.openModal({
+    title: 'Cr\u00e9er les templates par d\u00e9faut',
+    body: '<p>Cr\u00e9er les templates par d\u00e9faut (invitation et rappel) ?</p>',
+    confirmText: 'Cr\u00e9er',
+    onConfirm: async function() {
+      try {
+        const { body: data } = await api(`${API_BASE}/email_templates.php`, { action: 'create_defaults' });
+        if (!data.ok) throw new Error(data.message || data.error || 'Erreur creation');
+        window.showToast?.((data.data.count || 0) + ' templates cr\u00e9\u00e9s', 'success');
+        loadTemplates();
+      } catch (err) {
+        window.showToast?.('Erreur: ' + err.message, 'error');
+      }
     }
+  });
+}
 
-    // Event delegation for template cards and variable tags
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('[data-action]');
-      if (!btn) return;
-      var action = btn.dataset.action;
-      var id = btn.dataset.id;
+// Update preview
+async function updatePreview() {
+  const bodyHtml = document.getElementById('templateBody').value;
+  if (!bodyHtml) {
+    previewFrame.srcdoc = '<p style="padding:20px;color:var(--color-text-muted,#666);font-family:system-ui,sans-serif;">Entrez du contenu HTML pour voir la pr\u00e9visualisation</p>';
+    return;
+  }
 
-      switch (action) {
-        case 'edit': editTemplate(id); break;
-        case 'duplicate': duplicateTemplate(id); break;
-        case 'delete': deleteTemplate(id); break;
-        case 'insert-var': insertVariable(btn.dataset.var); break;
-      }
-    });
+  try {
+    const { body: data } = await api(`${API_BASE}/email_templates_preview.php`, { body_html: bodyHtml });
+    if (data.ok) {
+      previewFrame.srcdoc = data.data.preview_html;
+    }
+  } catch (err) {
+    console.error('Preview error:', err);
+  }
+}
 
-    // Event listeners
-    document.getElementById('btnNewTemplate').addEventListener('click', openNewEditor);
-    document.getElementById('btnEmptyCreate').addEventListener('click', openNewEditor);
-    document.getElementById('btnCloseEditor').addEventListener('click', () => templateEditor.classList.remove('active'));
-    document.getElementById('btnCancelEdit').addEventListener('click', () => templateEditor.classList.remove('active'));
-    document.getElementById('btnSaveTemplate').addEventListener('click', saveTemplate);
-    document.getElementById('btnCreateDefaults').addEventListener('click', createDefaults);
-    document.getElementById('btnRefreshPreview').addEventListener('click', updatePreview);
-    filterType.addEventListener('change', loadTemplates);
+// Helpers — escapeHtml delegated to global Utils.escapeHtml
 
-    // Debounced preview update
-    let previewTimeout;
-    document.getElementById('templateBody').addEventListener('input', () => {
-      clearTimeout(previewTimeout);
-      previewTimeout = setTimeout(updatePreview, 500);
-    });
+function stripHtml(html) {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, '');
+}
 
-    // Close modal on escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && templateEditor.classList.contains('active')) {
-        templateEditor.classList.remove('active');
-      }
-    });
+// Event delegation for template cards and variable tags
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  var action = btn.dataset.action;
+  var id = btn.dataset.id;
 
-    // Close modal on backdrop click
-    templateEditor.addEventListener('click', (e) => {
-      if (e.target === templateEditor) {
-        templateEditor.classList.remove('active');
-      }
-    });
+  switch (action) {
+  case 'edit': editTemplate(id); break;
+  case 'duplicate': duplicateTemplate(id); break;
+  case 'delete': deleteTemplate(id); break;
+  case 'insert-var': insertVariable(btn.dataset.var); break;
+  }
+});
 
-    // Init
-    loadTemplates();
+// Event listeners
+document.getElementById('btnNewTemplate').addEventListener('click', openNewEditor);
+document.getElementById('btnEmptyCreate').addEventListener('click', openNewEditor);
+document.getElementById('btnCloseEditor').addEventListener('click', () => templateEditor.classList.remove('active'));
+document.getElementById('btnCancelEdit').addEventListener('click', () => templateEditor.classList.remove('active'));
+document.getElementById('btnSaveTemplate').addEventListener('click', saveTemplate);
+document.getElementById('btnCreateDefaults').addEventListener('click', createDefaults);
+document.getElementById('btnRefreshPreview').addEventListener('click', updatePreview);
+filterType.addEventListener('change', loadTemplates);
+
+// Debounced preview update
+let previewTimeout;
+document.getElementById('templateBody').addEventListener('input', () => {
+  clearTimeout(previewTimeout);
+  previewTimeout = setTimeout(updatePreview, 500);
+});
+
+// Close modal on escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && templateEditor.classList.contains('active')) {
+    templateEditor.classList.remove('active');
+  }
+});
+
+// Close modal on backdrop click
+templateEditor.addEventListener('click', (e) => {
+  if (e.target === templateEditor) {
+    templateEditor.classList.remove('active');
+  }
+});
+
+// Init
+loadTemplates();

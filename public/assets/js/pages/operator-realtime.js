@@ -52,57 +52,57 @@
     if (!O.currentMeetingId) return;
 
     switch (type) {
-      case 'vote.cast':
-      case 'vote.updated':
-        if (data.motion_id || (data.data && data.data.motion_id)) {
-          var motionId = data.motion_id || data.data.motion_id;
-          O.fn.loadBallots(motionId).then(function() {
-            if (O.currentMode === 'exec') O.fn.refreshExecView();
-          });
-        }
-        break;
-
-      case 'motion.opened':
-        O.fn.loadResolutions().then(function() {
-          if (O.currentOpenMotion) {
-            var title = O.currentOpenMotion.title;
-            setNotif('info', 'Vote ouvert: ' + title);
-            O.announce('Vote ouvert : ' + title);
-            if (O.currentMeetingStatus === 'live' && O.currentMode !== 'exec') {
-              O.fn.loadBallots(O.currentOpenMotion.id).then(function() { O.fn.setMode('exec'); });
-            } else if (O.currentMode === 'exec') {
-              O.fn.loadBallots(O.currentOpenMotion.id).then(function() { O.fn.refreshExecView(); });
-            }
-          }
-        });
-        break;
-
-      case 'motion.closed':
-      case 'motion.updated':
-        O.fn.loadResolutions().then(function() {
+    case 'vote.cast':
+    case 'vote.updated':
+      if (data.motion_id || (data.data && data.data.motion_id)) {
+        var motionId = data.motion_id || data.data.motion_id;
+        O.fn.loadBallots(motionId).then(function() {
           if (O.currentMode === 'exec') O.fn.refreshExecView();
         });
-        break;
+      }
+      break;
 
-      case 'attendance.updated':
-      case 'quorum.updated':
-        O.fn.loadQuorumStatus();
-        if (O.currentMode === 'setup') O.fn.loadDashboard();
-        break;
+    case 'motion.opened':
+      O.fn.loadResolutions().then(function() {
+        if (O.currentOpenMotion) {
+          var title = O.currentOpenMotion.title;
+          setNotif('info', 'Vote ouvert: ' + title);
+          O.announce('Vote ouvert : ' + title);
+          if (O.currentMeetingStatus === 'live' && O.currentMode !== 'exec') {
+            O.fn.loadBallots(O.currentOpenMotion.id).then(function() { O.fn.setMode('exec'); });
+          } else if (O.currentMode === 'exec') {
+            O.fn.loadBallots(O.currentOpenMotion.id).then(function() { O.fn.refreshExecView(); });
+          }
+        }
+      });
+      break;
 
-      case 'speech.queue_updated':
-        O.fn.loadSpeechQueue();
-        break;
+    case 'motion.closed':
+    case 'motion.updated':
+      O.fn.loadResolutions().then(function() {
+        if (O.currentMode === 'exec') O.fn.refreshExecView();
+      });
+      break;
 
-      case 'meeting.status_changed':
-        O.fn.loadResolutions();
-        O.fn.loadStatusChecklist();
-        O.fn.loadDashboard();
-        break;
+    case 'attendance.updated':
+    case 'quorum.updated':
+      O.fn.loadQuorumStatus();
+      if (O.currentMode === 'setup') O.fn.loadDashboard();
+      break;
 
-      default:
-        schedulePoll(200);
-        break;
+    case 'speech.queue_updated':
+      O.fn.loadSpeechQueue();
+      break;
+
+    case 'meeting.status_changed':
+      O.fn.loadResolutions();
+      O.fn.loadStatusChecklist();
+      O.fn.loadDashboard();
+      break;
+
+    default:
+      schedulePoll(200);
+      break;
     }
   }
 
