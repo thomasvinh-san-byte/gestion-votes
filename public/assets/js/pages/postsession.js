@@ -220,7 +220,7 @@
     Shared.btnLoading(btn, true);
 
     try {
-      var res = await window.api('/api/v1/meeting_transition.php', { meeting_id: meetingId, transition: 'validate' });
+      var res = await window.api('/api/v1/meeting_transition.php', { meeting_id: meetingId, to_status: 'validated' });
       var d = res.body;
       if (d && d.ok) {
         setNotif('success', 'S\u00e9ance valid\u00e9e avec succ\u00e8s');

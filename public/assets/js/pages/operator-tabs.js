@@ -1293,7 +1293,7 @@ window.OpS = { fn: {} };
       container: container,
       errorMsg: 'Impossible de charger les proc\u00e9dures d\u2019urgence',
       action: async function () {
-        var url = '/api/v1/emergency_procedures.php?audience=operator&meeting_id=' + currentMeetingId;
+        var url = '/api/v1/emergency_procedures.php?audience=operator&meeting_id=' + encodeURIComponent(currentMeetingId);
         var res = await api(url);
         var d = res.body;
         if (!d || !d.ok) throw new Error(d && d.error || 'Erreur');

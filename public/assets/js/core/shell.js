@@ -257,7 +257,7 @@
     var sections = [];
     var failedSections = [];
     try {
-      var res = await window.api('/api/v1/meetings.php?id=' + meetingId);
+      var res = await window.api('/api/v1/meetings.php?id=' + encodeURIComponent(meetingId));
       var b = res.body;
       if (b && b.ok && b.data) {
         var m = b.data;
@@ -276,7 +276,7 @@
       }
     } catch(e) { failedSections.push('infos séance'); }
     try {
-      var res2 = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + meetingId);
+      var res2 = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + encodeURIComponent(meetingId));
       var b2 = res2.body;
       if (b2 && b2.ok && b2.data) {
         var d = b2.data;
@@ -295,7 +295,7 @@
       }
     } catch(e) { failedSections.push('check-list'); }
     try {
-      var res3 = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + meetingId);
+      var res3 = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + encodeURIComponent(meetingId));
       var b3 = res3.body;
       if (b3 && b3.ok && b3.data) {
         var items = b3.data.anomalies || b3.data.items || [];
@@ -325,7 +325,7 @@
     if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
     dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
     try {
-      const res = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + meetingId);
+      const res = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + encodeURIComponent(meetingId));
       const b = res.body;
       if (b && b.ok && b.data) {
         const d = b.data;
@@ -339,7 +339,7 @@
     if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
     dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
     try {
-      const res = await window.api('/api/v1/meetings.php?id=' + meetingId);
+      const res = await window.api('/api/v1/meetings.php?id=' + encodeURIComponent(meetingId));
       const b = res.body;
       if (b && b.ok && b.data) {
         const m = b.data;
@@ -353,7 +353,7 @@
     if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
     dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
     try {
-      const res = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + meetingId);
+      const res = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + encodeURIComponent(meetingId));
       const b = res.body;
       if (b && b.ok && b.data) {
         const items = b.data.anomalies || b.data.items || [];
@@ -648,7 +648,7 @@
   async function markNotificationsRead() {
     try {
       if (!window.api || notifCount === 0) return;
-      await window.api('/api/v1/notifications_read.php', { method: 'PUT' });
+      await window.api('/api/v1/notifications_read.php', {}, 'PUT');
     } catch(e) { /* silent */ }
   }
 
