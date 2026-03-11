@@ -6,22 +6,22 @@
 
 ---
 
-### Phase 1 — E2E Test Suite [REQ-001]
+### Phase 1 — E2E Test Suite Hardening [REQ-001]
 **Status**: pending
-**Goal**: Committed Playwright test suite covering all pages and critical flows.
-- Set up Playwright as dev dependency
-- Create test fixtures and helpers
-- Write tests for all 17+ pages (load, screenshot, DOM assertions)
-- Add operator session flow tests
-- Add mobile viewport tests
+**Goal**: Harden existing Playwright suite (14 specs) and add audit regression coverage.
+- Review and fix any flaky specs
+- Add mobile viewport regression tests
+- Add UX audit assertions (P1/P2/P3 fix coverage)
+- Add operator live session flow tests if missing
+- Ensure all 14 specs pass reliably in headless mode
 
-### Phase 2 — CI Pipeline [REQ-002]
+### Phase 2 — CI Pipeline Expansion [REQ-002]
 **Status**: pending
-**Goal**: Automated checks on every push.
-- GitHub Actions workflow for PHPUnit
-- ESLint + PHPStan in CI
-- Playwright tests in CI (headless)
-- Dependency caching
+**Goal**: Expand existing CI workflow with linting and E2E.
+- Add ESLint + PHPStan jobs to `docker-build.yml`
+- Add Playwright E2E execution in CI (headless)
+- Cache Composer and npm dependencies
+- Ensure PR checks include all quality gates
 
 ### Phase 3 — CDN Hardening [REQ-003, REQ-004]
 **Status**: pending

@@ -8,17 +8,18 @@ Following the UX/UI audit (P1/P2/P3 fixes applied), this milestone focuses on **
 
 ## v1 — Must Have
 
-### REQ-001: Automated E2E Test Suite
-Establish a committed Playwright test suite covering all pages and critical user flows.
-- Login flow, page navigation, meeting CRUD
-- Operator live session (votes, attendance, quorum)
-- Mobile viewport regressions
-- Replaces ad-hoc `/tmp` test scripts
+### REQ-001: E2E Test Suite Hardening
+Existing Playwright suite (14 specs in `tests/e2e/`) needs hardening:
+- Add mobile viewport regression tests
+- Add UX audit assertion coverage (P1/P2/P3 fixes)
+- Ensure all specs pass reliably in headless mode
+- Add operator live session flow tests if missing
 
-### REQ-002: CI Pipeline
-Set up GitHub Actions (or equivalent) to run PHPUnit + ESLint + PHPStan on every push.
-- Fail on test failures, lint errors, static analysis issues
-- Cache Composer and npm dependencies
+### REQ-002: CI Pipeline Expansion
+Existing CI (`.github/workflows/docker-build.yml`) runs PHPUnit + syntax check + Docker build. Expand:
+- Add ESLint + PHPStan to CI pipeline
+- Add Playwright E2E tests to CI (headless)
+- Cache Composer and npm dependencies for speed
 
 ### REQ-003: CDN Fallback / SRI Hashes
 Add Subresource Integrity (SRI) hashes for CDN-loaded Chart.js and HTMX.
@@ -54,8 +55,8 @@ Verify color contrast, ARIA attributes, keyboard navigation across all component
 ### REQ-009: i18n Infrastructure
 Prepare for multi-language support (currently French-only).
 
-### REQ-010: Database Integration Tests
-Add tests that run against a real PostgreSQL instance.
+### REQ-010: Database Integration Test Expansion
+Expand existing integration tests (3 files in `tests/Integration/`) with more coverage.
 
 ---
 

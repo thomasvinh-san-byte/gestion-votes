@@ -5,11 +5,11 @@
 ### PHPUnit (Backend)
 
 - **Framework**: PHPUnit 10.5
-- **Location**: `tests/Unit/`
+- **Location**: `tests/Unit/` (63 files), `tests/Integration/` (3 files)
 - **Run**: `make test` or `vendor/bin/phpunit`
-- **Coverage**: ~20 test files covering controllers and services
+- **Config**: `phpunit.xml` with Unit + Integration suites, HTML coverage reports
 
-#### Test Files
+#### Key Unit Tests
 
 | Test | Target |
 |------|--------|
@@ -24,33 +24,62 @@
 | `PermissionCheckerTest.php` | RBAC permissions |
 | `RateLimiterTest.php` | Rate limiting logic |
 | `StateTransitionCoherenceTest.php` | Meeting state machine |
-| `LoggerTest.php` | Logging |
+
+#### Integration Tests
+
+| Test | Target |
+|------|--------|
+| `AdminCriticalPathTest.php` | Admin critical path |
+| `RepositoryTest.php` | Repository layer |
+| `WorkflowValidationTest.php` | Workflow validation |
+
+### Playwright (E2E)
+
+- **Location**: `tests/e2e/`
+- **Config**: `tests/e2e/playwright.config.js`
+- **14 spec files** covering all major pages:
+
+| Spec | Scope |
+|------|-------|
+| `auth.spec.js` | Login/logout flows |
+| `navigation.spec.js` | Page navigation, sidebar |
+| `admin.spec.js` | Admin settings |
+| `meetings.spec.js` | Meeting CRUD |
+| `members.spec.js` | Member management |
+| `analytics.spec.js` | Dashboard charts |
+| `vote.spec.js` | Voting flows |
+| `trust.spec.js` | Audit trail |
+| `docs.spec.js` | Documentation viewer |
+| `email-templates.spec.js` | Email template editor |
+| `postsession.spec.js` | Post-session review |
+| `public-display.spec.js` | Public projector display |
+| `accessibility.spec.js` | ARIA, keyboard nav |
+| `api-security.spec.js` | API security checks |
 
 ### Static Analysis
 
-- **PHPStan** level 2.1 for PHP type checking
+- **PHPStan** for PHP type checking
 - **ESLint 9** with custom `agvote/no-inner-html` rule for XSS prevention
 - **php-cs-fixer** for PHP code formatting
 
-### Playwright (Frontend — ad-hoc)
+### CI Pipeline
 
-- No permanent Playwright test suite in the repo
-- Ad-hoc test scripts created for UX audit verification
-- Screenshots + DOM assertions for visual regression
+- **GitHub Actions**: `.github/workflows/docker-build.yml`
+- Triggered on: push to main, tags `v*.*.*`, PRs to main
+- Steps: Composer validate → PHPUnit → PHP syntax check → Docker build → smoke test → push to GHCR
+- Playwright tests **not** currently in CI
 
 ## Testing Patterns
 
 - Unit tests mock repositories and services
 - Controllers tested through simulated HTTP requests
-- No integration tests with real database
-- No end-to-end test suite committed to repo
-- Manual testing via `make dev` + browser
+- Integration tests validate critical paths
+- E2E specs test full user flows in browser
 
 ## Coverage Gaps
 
-- **No frontend unit tests**: No Jest, Vitest, or similar JS test framework
-- **No E2E test suite**: Playwright scripts are ad-hoc, not committed
-- **No API integration tests**: Tests mock the DB layer
-- **Web Components untested**: No component-level tests
+- **No frontend unit tests**: No Jest/Vitest for JS logic
+- **Playwright not in CI**: E2E specs exist but don't run automatically
+- **Web Components untested**: No component-level unit tests
 - **SSE/real-time untested**: No automated tests for event streams
-- **No CI pipeline**: Makefile targets only, no GitHub Actions
+- **No ESLint/PHPStan in CI**: Only PHPUnit runs in the pipeline
