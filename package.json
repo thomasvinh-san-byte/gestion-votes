@@ -3,6 +3,7 @@
   "name": "ag-vote",
   "version": "1.1.0",
   "scripts": {
+    "vendor:copy": "cp node_modules/htmx.org/dist/htmx.min.js public/assets/vendor/htmx.min.js && cp node_modules/chart.js/dist/chart.umd.js public/assets/vendor/chart.umd.js",
     "lint": "eslint public/assets/js/ --ignore-pattern 'vendor/'",
     "lint:fix": "eslint public/assets/js/ --ignore-pattern 'vendor/' --fix",
     "test:e2e": "npx playwright test --config=tests/e2e/playwright.config.js",
@@ -11,5 +12,9 @@
   "devDependencies": {
     "@playwright/test": "^1.50.0",
     "eslint": "^9.0.0"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.1",
+    "htmx.org": "^1.9.12"
   }
 }

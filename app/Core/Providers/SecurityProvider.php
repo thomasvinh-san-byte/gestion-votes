@@ -29,7 +29,7 @@ final class SecurityProvider {
         // CSP — no unsafe-inline for scripts (no inline <script> in templates).
         // style-src keeps unsafe-inline: 50+ dynamic inline styles in JS innerHTML.
         header("Content-Security-Policy: default-src 'self'; "
-            . "script-src 'self' https://unpkg.com https://cdn.jsdelivr.net; "
+            . "script-src 'self'; "
             . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             . "img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; "
             . "connect-src 'self' ws: wss:; frame-ancestors 'self'; form-action 'self'");
