@@ -765,9 +765,13 @@
       else openSearch();
     }
     if (e.key === 'Escape' && searchOverlay) {
+      e.preventDefault();
       closeSearch();
     }
   });
+
+  // Close search when clicking the header search-trigger while open
+  // (handled via openSearch toggle above)
 
   // Inject search trigger button in header
   (function() {

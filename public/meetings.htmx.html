@@ -506,41 +506,6 @@
     </div>
   </div>
 
-  <!-- Command palette (Ctrl+K) -->
-  <div class="cmd-palette-overlay" id="cmdPalette" role="dialog" aria-modal="true" aria-label="Recherche rapide" hidden>
-    <div class="cmd-palette">
-      <div class="cmd-palette-input-wrap">
-        <svg class="cmd-palette-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-search"></use></svg>
-        <input class="cmd-palette-input" id="cmdPaletteInput" type="text" placeholder="Rechercher une page, action ou membre&hellip;" autocomplete="off" aria-label="Recherche rapide">
-        <span class="cmd-palette-shortcut">Esc</span>
-      </div>
-      <div class="cmd-palette-results" id="cmdPaletteResults" role="listbox">
-        <div class="cmd-palette-group-label">Pages</div>
-        <div class="cmd-palette-item" role="option" data-href="/meetings.htmx.html">
-          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
-          <span class="cmd-palette-item-label">S&eacute;ances</span>
-        </div>
-        <div class="cmd-palette-item" role="option" data-href="/operator.htmx.html">
-          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg>
-          <span class="cmd-palette-item-label">Console op&eacute;rateur</span>
-        </div>
-        <div class="cmd-palette-item" role="option" data-href="/members.htmx.html">
-          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-          <span class="cmd-palette-item-label">Membres</span>
-        </div>
-        <div class="cmd-palette-item" role="option" data-href="/analytics.htmx.html">
-          <svg class="cmd-palette-item-icon icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
-          <span class="cmd-palette-item-label">Statistiques</span>
-        </div>
-      </div>
-      <div class="cmd-palette-footer">
-        <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> naviguer</span>
-        <span><kbd>Entr&eacute;e</kbd> ouvrir</span>
-        <span><kbd>Esc</kbd> fermer</span>
-      </div>
-    </div>
-  </div>
-
   <script src="/assets/js/core/utils.js"></script>
   <script type="module" src="/assets/js/components/index.js"></script>
   <script src="/assets/js/core/shared.js"></script>

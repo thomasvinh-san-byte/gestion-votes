@@ -34,15 +34,18 @@ La sidebar collapsed fait 58px, donc le contenu commence a 80px.
 
 ---
 
-### 1.2 Search modal (Cmd+K) s'ouvre inopinement
+### 1.2 ~~Search modal (Cmd+K) s'ouvre inopinement~~ CORRIGE
 
 | Severite | Impact |
 |----------|--------|
-| **Moyenne** | Meetings, Operator, Validate |
+| ~~**Moyenne**~~ | ~~Meetings, Operator, Validate~~ |
 
-La recherche globale (command palette) apparait sur certaines pages sans action utilisateur. Possiblement declenche par un raccourci clavier conflit ou un autofocus JavaScript.
+**Cause racine** : Deux systemes de search coexistaient — un template HTML statique `.cmd-palette-overlay` (dans operator.htmx.html et meetings.htmx.html) ET le systeme dynamique `.search-overlay` de shell.js. Les deux se superposaient.
 
-**Fix suggere** : Verifier que le listener `keydown` pour Cmd+K ne capture pas les frappes dans des champs de formulaire.
+**Corrections appliquees** :
+- Suppression du template `#cmdPalette` de `operator.htmx.html` et `meetings.htmx.html`
+- Suppression du CSS orphelin `.cmd-palette-*` de `design-system.css`
+- Le systeme unique shell.js (Ctrl+K) est conserve avec Escape pour fermer
 
 ---
 
@@ -388,7 +391,7 @@ La banniere orange "Votre session expire dans 2:00" avec boutons "Prolonger / De
 | # | Page | Action |
 |---|------|--------|
 | 4 | Admin/Meetings | Rendre la banniere "Bienvenue sur AG-VOTE" dismissable de facon permanente (localStorage) |
-| 5 | Operator/Meetings | Empecher l'ouverture automatique de la search modal |
+| ~~5~~ | ~~Operator/Meetings~~ | ~~Empecher l'ouverture automatique de la search modal~~ CORRIGE |
 | 6 | Trust | Fermer le modal "Detail de l'evenement" si tous les champs sont vides |
 | 7 | Toutes | Distinguer visuellement "—" (pas de donnees) vs "0" (zero reel) dans les stat-cards |
 | 8 | Report | Ajouter un empty state dans la zone de preview PV |
