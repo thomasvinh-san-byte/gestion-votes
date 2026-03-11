@@ -306,7 +306,8 @@
         onConfirm: async function() {
           Shared.btnLoading(toggleBtn, true);
           try {
-            await api('/api/v1/admin_users.php', {action:'toggle', user_id:toggleBtn.dataset.id, is_active:active});
+            var { body } = await api('/api/v1/admin_users.php', {action:'toggle', user_id:toggleBtn.dataset.id, is_active:active});
+            if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
             loadUsers();
           } catch(err) { setNotif('error', err.message); }
           finally { Shared.btnLoading(toggleBtn, false); }
