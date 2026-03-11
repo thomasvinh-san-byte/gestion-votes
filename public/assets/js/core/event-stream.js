@@ -66,7 +66,7 @@
     var url = '/api/v1/events.php?meeting_id=' + encodeURIComponent(currentMeetingId);
     source = new EventSource(url);
 
-    source.addEventListener('connected', function (e) {
+    source.addEventListener('connected', function (_e) {
       reconnectAttempts = 0;
       if (handlers.onConnect) handlers.onConnect();
     });

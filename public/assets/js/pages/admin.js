@@ -37,11 +37,11 @@
         var r = await api('/api/v1/meetings.php');
         if (r.body && r.body.ok && r.body.data) {
           var meetings = r.body.data.items || [];
-          var now = new Date();
+          var _now = new Date();
           var upcoming = meetings.filter(function(m) { return m.status === 'scheduled' || m.status === 'frozen'; });
           var live = meetings.filter(function(m) { return m.status === 'live'; });
           var closed = meetings.filter(function(m) { return m.status === 'closed'; });
-          var validated = meetings.filter(function(m) { return m.status === 'validated'; });
+          var _validated = meetings.filter(function(m) { return m.status === 'validated'; });
 
           var kpiUp = document.getElementById('kpiUpcomingVal');
           var kpiLi = document.getElementById('kpiLiveVal');

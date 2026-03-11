@@ -22,10 +22,10 @@
   let currentSortMode = 'status';
   let currentPage = 1;
   var MEETINGS_PER_PAGE = 12;
-  let filterManager = null;
-  let viewToggle = null;
+  let _filterManager = null;
+  let _viewToggle = null;
   let calendarView = null;
-  let dataGrid = null;
+  let _dataGrid = null;
 
   // File attachment state
   let pendingFiles = [];
@@ -639,13 +639,13 @@
   // WIZARD NAVIGATION
   // ==========================================================================
 
-  var wizCurrentStep = 1;
+  var _wizCurrentStep = 1;
   var wizParticipants = [];
   var wizResolutions = [];
 
   function wizGoToStep(step) {
     if (step < 1 || step > 5) return;
-    wizCurrentStep = step;
+    _wizCurrentStep = step;
 
     // Update stepper dots
     document.querySelectorAll('#wizStepper .wiz-step-item').forEach(function(el) {
@@ -1038,7 +1038,7 @@
 
   function init() {
     // Initialize filter manager
-    filterManager = new PageComponents.FilterManager({
+    _filterManager = new PageComponents.FilterManager({
       containerSelector: '.filter-tabs',
       defaultFilter: 'all',
       onChange: function(filter) {
@@ -1051,7 +1051,7 @@
     });
 
     // Initialize view toggle
-    viewToggle = new PageComponents.ViewToggle({
+    _viewToggle = new PageComponents.ViewToggle({
       containerSelector: '.view-toggle',
       defaultView: 'grid',
       views: {

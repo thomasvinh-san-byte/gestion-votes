@@ -189,8 +189,8 @@
       const meetings = data.meetings || [];
       const labels = meetings.map(m => m.title?.substring(0, 15) || 'S\u00e9ance');
       const rates = meetings.map(m => parseFloat(m.rate) || 0);
-      const presents = meetings.map(m => parseInt(m.present) || 0);
-      const proxies = meetings.map(m => parseInt(m.proxy) || 0);
+      const _presents = meetings.map(m => parseInt(m.present) || 0);
+      const _proxies = meetings.map(m => parseInt(m.proxy) || 0);
 
       // Destroy existing chart
       if (charts.participation) charts.participation.destroy();

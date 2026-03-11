@@ -55,7 +55,6 @@ class AgVoteButton extends HTMLElement {
     const value = this.getAttribute('value') || 'for';
     const selected = this.hasAttribute('selected');
     const disabled = this.hasAttribute('disabled');
-    const size = this.getAttribute('size') || 'lg';
 
     const iconMap = {
       for: 'check',

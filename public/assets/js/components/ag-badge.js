@@ -33,10 +33,8 @@ class AgBadge extends HTMLElement {
   }
 
   render() {
-    const variant = this.getAttribute('variant') || 'default';
     const icon = this.getAttribute('icon');
     const pulse = this.hasAttribute('pulse');
-    const size = this.getAttribute('size') || 'md';
 
     const iconHtml = icon ? `
       <svg class="badge-icon" aria-hidden="true">

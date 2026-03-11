@@ -166,7 +166,7 @@ window.OpS = { fn: {} };
    * @param {boolean} [options.closeOnBackdrop=true] - Close when clicking backdrop
    * @returns {HTMLElement} The modal element
    */
-  function createModal({ id, title, content, maxWidth = '500px', closeOnBackdrop = true, onDismiss = null }) {
+  function createModal({ id, title: _title, content, maxWidth = '500px', closeOnBackdrop = true, onDismiss = null }) {
     const modalId = id || 'modal-' + Date.now();
     const titleId = modalId + '-title';
 
@@ -1544,7 +1544,7 @@ window.OpS = { fn: {} };
     }
   }
 
-  async function kickDevice(deviceId, modal) {
+  async function kickDevice(deviceId, _modal) {
     var ok = await confirmModal({
       title: 'Forcer la reconnexion',
       body: '<p>L\u2019appareil sera déconnecté et devra se reconnecter. Confirmer ?</p>'
@@ -2007,10 +2007,13 @@ window.OpS = { fn: {} };
   function loadResolutions()                   { return OpS.fn.loadResolutions(); }
   function initializePreviousMotionState()     { return OpS.fn.initializePreviousMotionState(); }
   function renderResolutions()                 { return OpS.fn.renderResolutions(); }
+  // eslint-disable-next-line no-unused-vars
   function showEditResolutionModal(motionId)   { return OpS.fn.showEditResolutionModal(motionId); }
+  // eslint-disable-next-line no-unused-vars
   function moveResolution(motionId, direction) { return OpS.fn.moveResolution(motionId, direction); }
   function createResolution()                  { return OpS.fn.createResolution(); }
   function loadVoteTab()                       { return OpS.fn.loadVoteTab(); }
+  // eslint-disable-next-line no-unused-vars
   function renderQuickOpenList()               { return OpS.fn.renderQuickOpenList(); }
   function loadBallots(motionId)               { return OpS.fn.loadBallots(motionId); }
   function renderManualVoteList()              { return OpS.fn.renderManualVoteList(); }
@@ -2019,8 +2022,11 @@ window.OpS = { fn: {} };
   function openVote(motionId)                  { return OpS.fn.openVote(motionId); }
   function closeVote(motionId)                 { return OpS.fn.closeVote(motionId); }
   function loadResults()                       { return OpS.fn.loadResults(); }
+  // eslint-disable-next-line no-unused-vars
   function getCloseSessionState()              { return OpS.fn.getCloseSessionState(); }
+  // eslint-disable-next-line no-unused-vars
   function updateCloseSessionStatus()          { return OpS.fn.updateCloseSessionStatus(); }
+  // eslint-disable-next-line no-unused-vars
   function updateExecCloseSession()            { return OpS.fn.updateExecCloseSession(); }
   function closeSession()                      { return OpS.fn.closeSession(); }
   function doTransition(toStatus)              { return OpS.fn.doTransition(toStatus); }

@@ -232,7 +232,6 @@ class AgSearchableSelect extends HTMLElement {
 
   render() {
     const placeholder = this.getAttribute('placeholder') || 'Rechercher...';
-    const emptyText = this.getAttribute('empty-text') || 'Aucun résultat';
     const isDisabled = this.hasAttribute('disabled');
 
     this.shadowRoot.innerHTML = `
@@ -593,7 +592,6 @@ class AgSearchableSelect extends HTMLElement {
     this.removeEventListeners();
 
     const trigger = this.shadowRoot.querySelector('.select-trigger');
-    const dropdown = this.shadowRoot.querySelector('.dropdown');
     const searchInput = this.shadowRoot.querySelector('.search-input');
     const clearBtn = this.shadowRoot.querySelector('.clear-btn');
     const optionsList = this.shadowRoot.querySelector('.options-list');

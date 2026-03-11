@@ -97,6 +97,7 @@ function startClock() {
 }
 
 // Announce to screen reader
+// eslint-disable-next-line no-unused-vars
 function announce(msg) {
   var el = document.getElementById('sr_alert');
   if (el) { el.textContent = msg; setTimeout(function() { el.textContent = ''; }, 1000); }
@@ -247,7 +248,7 @@ async function loadResults(motionId, reveal) {
 
 // Update resolution text box
 function updateResolution(motionData) {
-  var box = document.getElementById('resolution_box');
+  var _box = document.getElementById('resolution_box');
   var text = document.getElementById('resolution_text');
   var num = document.getElementById('motion_number');
 

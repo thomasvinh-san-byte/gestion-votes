@@ -129,7 +129,7 @@
     var hasGroups = allGroups.length > 0;
 
     // Show onboarding strip when setup is incomplete
-    var allDone = hasMembers && hasGroups;
+    var _allDone = hasMembers && hasGroups;
     onboardingEl.hidden = false; // Always show — it provides navigation context
 
     // Step 1: Members

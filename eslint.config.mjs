@@ -35,6 +35,7 @@ export default [
   {
     ignores: [
       'vendor/**',
+      '**/vendor/**',
       'node_modules/**',
       'coverage-report/**',
       'storage/**'
@@ -114,7 +115,7 @@ export default [
       }
     },
     rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' }],
       'semi': ['error', 'always'],
       'quotes': ['warn', 'single', { avoidEscape: true }],
       'indent': ['warn', 2],
