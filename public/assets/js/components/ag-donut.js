@@ -51,6 +51,7 @@ class AgDonut extends HTMLElement {
 
     const centerLabel = total > 0 ? Math.round((segments[0]?.value || 0) / total * 100) + '%' : '–';
 
+    // eslint-disable-next-line agvote/no-inner-html -- safe: shadow DOM template
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: inline-block; }

@@ -61,22 +61,10 @@ parameters:
 			path: app/Controller/BallotsController.php
 
 		-
-			message: '#^Offset ''ANALYTICS_ETHICS''\|''dev/API''\|''dev/ARCHITECTURE''\|''dev/INSTALLATION''\|''dev/MIGRATION''\|''dev/SECURITY''\|''dev/TESTS''\|''dev/WEB_COMPONENTS''\|''DOCKER_INSTALL''\|''FAQ''\|''INSTALL_MAC''\|''RECETTE_DEMO''\|''UTILISATION_LIVE'' on array\{FAQ\: ''FAQ'', UTILISATION_LIVE\: ''Guide opérateur'', RECETTE_DEMO\: ''Démo guidée'', ANALYTICS_ETHICS\: ''Éthique & RGPD'', README\: ''Introduction'', INSTALL_MAC\: ''Installation macOS'', DOCKER_INSTALL\: ''Installation Docker…'', ''dev/INSTALLATION''\: ''Installation …'', \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			message: '#^Offset .+ on array\{.+\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
 			path: app/Controller/DocController.php
-
-		-
-			message: '#^Variable \$headers might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: app/Controller/ImportController.php
-
-		-
-			message: '#^Variable \$rows might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: app/Controller/ImportController.php
 
 		-
 			message: '#^Call to an undefined method AgVote\\Repository\\MeetingRepository\:\:setCurrentMotion\(\)\.$#'
@@ -114,11 +102,6 @@ parameters:
 			count: 1
 			path: app/Controller/VotePublicController.php
 
-		-
-			message: '#^Call to function method_exists\(\) with ''AuthMiddleware'' and ''getCurrentUser'' will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: app/Core/Logger.php
 
 		-
 			message: '#^Offset ''admin''\|''assessor''\|''auditor''\|''operator''\|''president''\|''viewer''\|''voter'' on array\{admin\: 100, operator\: 80, president\: 70, assessor\: 60, auditor\: 50, voter\: 10, viewer\: 5, public\: 3, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
