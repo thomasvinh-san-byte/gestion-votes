@@ -19,7 +19,6 @@ class AgPageHeader extends HTMLElement {
     const title = this.getAttribute('title') || '';
     const subtitle = this.getAttribute('subtitle') || '';
 
-    // eslint-disable-next-line agvote/no-inner-html -- safe: shadow DOM template
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: block; margin-bottom: 16px; }

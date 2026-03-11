@@ -296,7 +296,7 @@ class ExportTemplateRepository extends AbstractRepository {
         $order = 1;
 
         foreach ($available as $col) {
-            if ($col['default'] ?? false) {
+            if ($col['default']) {
                 $defaults[] = [
                     'field' => $col['field'],
                     'label' => $col['label'],
@@ -328,13 +328,13 @@ class ExportTemplateRepository extends AbstractRepository {
             $validated[] = [
                 'field' => $field,
                 'label' => $col['label'] ?? $fieldLabels[$field] ?? $field,
-                'order' => $col['order'] ?? $order,
+                'order' => $col['order'],
             ];
             $order++;
         }
 
         // Trier par ordre
-        usort($validated, fn ($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+        usort($validated, fn ($a, $b) => $a['order'] <=> $b['order']);
 
         // Renumeroter
         foreach ($validated as $i => &$col) {

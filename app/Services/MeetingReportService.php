@@ -41,7 +41,7 @@ final class MeetingReportService {
             throw new InvalidArgumentException('meeting_id obligatoire');
         }
 
-        $tenant = $tenantId ?? \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId() ?? DEFAULT_TENANT_ID;
+        $tenant = $tenantId ?? \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId();
 
         $meeting = $this->meetingRepo->findByIdForTenant($meetingId, $tenant);
         if (!$meeting) {

@@ -43,7 +43,7 @@ final class VoteEngine {
      * Pure quorum/majority calculation. No I/O — takes all inputs as parameters.
      * Used by both computeMotionResult() and OfficialResultsService::decideWithPolicies().
      *
-     * @return array{quorum: array, majority: array, decision: array}
+     * @return array{quorum: array, majority: array}
      */
     public static function computeDecision(
         ?array $quorumPolicy,

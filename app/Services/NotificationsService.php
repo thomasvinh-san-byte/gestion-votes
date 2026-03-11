@@ -167,8 +167,8 @@ final class NotificationsService {
         string $severity,
         string $code,
         string $message,
-        array $audience = ['operator', 'trust'],
-        array $data = [],
+        array $audience,
+        array $data,
         string $tenantId,
     ): void {
         $row = $this->meetingRepo->findByIdForTenant($meetingId, $tenantId);

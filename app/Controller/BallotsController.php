@@ -114,7 +114,7 @@ final class BallotsController extends AbstractController {
         $motionRepo = $this->repo()->motion();
         $ballotRepo = $this->repo()->ballot();
 
-        $result = api_transaction(function () use ($motionRepo, $ballotRepo, $motionId, $memberId, $tenantId, $reason) {
+        $result = api_transaction(function () use ($motionRepo, $ballotRepo, $motionId, $memberId, $tenantId) {
             $motion = $motionRepo->findByIdForTenantForUpdate($motionId, $tenantId);
             if (!$motion) {
                 api_fail('motion_not_found', 404);

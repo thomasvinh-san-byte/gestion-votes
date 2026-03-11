@@ -28,7 +28,6 @@ class AgMiniBar extends HTMLElement {
       return `<div class="seg" style="width:${pct}%;background:${color}" title="${v} (${Math.round(pct)}%)"></div>`;
     }).join('');
 
-    // eslint-disable-next-line agvote/no-inner-html -- safe: shadow DOM template
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: block; }

@@ -43,7 +43,6 @@ class AgKpi extends HTMLElement {
       </svg>
     ` : '';
 
-    // eslint-disable-next-line agvote/no-inner-html -- safe: shadow DOM template
     this.shadowRoot.innerHTML = `
       <style>
         :host {

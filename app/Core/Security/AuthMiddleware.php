@@ -384,7 +384,7 @@ final class AuthMiddleware {
             if (self::isMeetingRole($allowedRole)) {
                 continue; // Don't hierarchy-compare meeting roles
             }
-            if ($userLevel >= (Permissions::HIERARCHY[$allowedRole] ?? 0)) {
+            if ($userLevel >= Permissions::HIERARCHY[$allowedRole]) {
                 return true;
             }
         }

@@ -162,7 +162,7 @@ class NotificationRepository extends AbstractRepository {
     /**
      * Marque toutes les notifications comme lues (par audience).
      */
-    public function markAllRead(string $meetingId, string $audience = '', string $tenantId): void {
+    public function markAllRead(string $meetingId, string $audience, string $tenantId): void {
         if ($audience === '' || $audience === 'all') {
             $this->execute(
                 'UPDATE meeting_notifications SET read_at = now()
@@ -181,7 +181,7 @@ class NotificationRepository extends AbstractRepository {
     /**
      * Supprime les notifications (par audience).
      */
-    public function clear(string $meetingId, string $audience = '', string $tenantId): void {
+    public function clear(string $meetingId, string $audience, string $tenantId): void {
         if ($audience === '' || $audience === 'all') {
             $this->execute('DELETE FROM meeting_notifications WHERE meeting_id = :mid AND tenant_id = :tid',
                 [':mid' => $meetingId, ':tid' => $tenantId]);

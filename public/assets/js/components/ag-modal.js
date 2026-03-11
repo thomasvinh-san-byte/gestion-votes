@@ -92,7 +92,6 @@ class AgModal extends HTMLElement {
     const sizeMap = { sm: '420px', md: '520px', lg: '720px' };
     const maxW = sizeMap[size] || sizeMap.md;
 
-    // eslint-disable-next-line agvote/no-inner-html -- safe: shadow DOM template
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: contents; }

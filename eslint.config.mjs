@@ -20,6 +20,15 @@ const noInnerHtmlRule = {
           node.left.property.type === 'Identifier' &&
           node.left.property.name === 'innerHTML'
         ) {
+          // Skip safe shadow DOM template assignments: this.shadowRoot.innerHTML = ...
+          const obj = node.left.object;
+          if (
+            obj.type === 'MemberExpression' &&
+            obj.property.name === 'shadowRoot' &&
+            obj.object.type === 'ThisExpression'
+          ) {
+            return;
+          }
           context.report({ node, messageId: 'noInnerHtml' });
         }
       },

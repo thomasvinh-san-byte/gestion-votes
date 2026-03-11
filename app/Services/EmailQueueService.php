@@ -25,7 +25,6 @@ final class EmailQueueService {
     private MailerService $mailer;
     private EmailTemplateService $templateService;
     private EmailTemplateRepository $emailTemplateRepo;
-    private array $config;
 
     public function __construct(
         array $config,
@@ -38,7 +37,6 @@ final class EmailQueueService {
         ?EmailTemplateService $templateService = null,
         ?EmailTemplateRepository $emailTemplateRepo = null,
     ) {
-        $this->config = $config;
         $this->queueRepo = $queueRepo ?? RepositoryFactory::getInstance()->emailQueue();
         $this->eventRepo = $eventRepo ?? RepositoryFactory::getInstance()->emailEvent();
         $this->invitationRepo = $invitationRepo ?? RepositoryFactory::getInstance()->invitation();
