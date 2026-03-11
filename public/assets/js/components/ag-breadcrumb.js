@@ -44,13 +44,13 @@ class AgBreadcrumb extends HTMLElement {
       </style>
       <nav class="breadcrumb" aria-label="Fil d'Ariane">
         ${items.map((item, i) => {
-          const isLast = i === items.length - 1;
-          const sep = i > 0 ? '<span class="bc-sep" aria-hidden="true">/</span>' : '';
-          if (isLast) {
-            return `${sep}<span class="bc-item bc-current" aria-current="page">${this._esc(item.label)}</span>`;
-          }
-          return `${sep}<a class="bc-item" href="${this._esc(item.href || '#')}">${this._esc(item.label)}</a>`;
-        }).join('')}
+    const isLast = i === items.length - 1;
+    const sep = i > 0 ? '<span class="bc-sep" aria-hidden="true">/</span>' : '';
+    if (isLast) {
+      return `${sep}<span class="bc-item bc-current" aria-current="page">${this._esc(item.label)}</span>`;
+    }
+    return `${sep}<a class="bc-item" href="${this._esc(item.href || '#')}">${this._esc(item.label)}</a>`;
+  }).join('')}
       </nav>
     `;
   }

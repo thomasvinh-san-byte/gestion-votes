@@ -141,7 +141,7 @@
     _heartbeatFailCount = 0;
     const data = out?.data || {};
     if (data.blocked) {
-      setBlocked(true, data.block_reason || "Cet appareil a été bloqué.");
+      setBlocked(true, data.block_reason || 'Cet appareil a été bloqué.');
     } else {
       setBlocked(false);
     }
@@ -159,9 +159,9 @@
    * @param {string} msg - Message to display
    */
   function notify(type, msg){
-    const box = $("#notif_box");
-    if (!box) return console[type==="error"?"error":"log"](msg);
-    box.className = "notif " + (type === "error" ? "error" : "success");
+    const box = $('#notif_box');
+    if (!box) return console[type==='error'?'error':'log'](msg);
+    box.className = 'notif ' + (type === 'error' ? 'error' : 'success');
     Shared.show(box, 'block');
     box.textContent = msg;
     setTimeout(()=>{ Shared.hide(box); }, type === 'error' ? 6000 : 3000);
@@ -272,14 +272,14 @@
       return MeetingContext.get();
     }
     // Fallback to select element for vote.php standalone mode
-    return ($("#meetingSelect")?.value || "").trim();
+    return ($('#meetingSelect')?.value || '').trim();
   }
 
   /**
    * Get the currently selected member ID from the select element.
    * @returns {string} Member ID or empty string
    */
-  function selectedMemberId(){ return ($("#memberSelect")?.value || "").trim(); }
+  function selectedMemberId(){ return ($('#memberSelect')?.value || '').trim(); }
 
   /**
    * Check if element is an ag-searchable-select component.
@@ -296,35 +296,35 @@
    * @returns {Promise<void>}
    */
   async function loadMeetings(){
-    const sel = $("#meetingSelect");
+    const sel = $('#meetingSelect');
     if (!sel) return;
-    const r = await apiGet("/api/v1/meetings_index.php?active_only=1");
+    const r = await apiGet('/api/v1/meetings_index.php?active_only=1');
     const meetings = r?.data?.items || [];
 
     if (isSearchableSelect(sel)) {
       // Use ag-searchable-select API
       const options = meetings.map(m => {
-        const when = (m.created_at || "").toString().slice(0,10);
+        const when = (m.created_at || '').toString().slice(0,10);
         const statusLabel = m.status ? ` [${m.status}]` : '';
         return {
           value: m.meeting_id,
-          label: m.title || "Séance",
+          label: m.title || 'Séance',
           sublabel: `${when}${statusLabel}`
         };
       });
       sel.setOptions(options);
     } else {
       // Fallback to native select
-      sel.innerHTML = "";
-      const opt0 = document.createElement("option");
-      opt0.value = "";
-      opt0.textContent = "— Sélectionner une séance —";
+      sel.innerHTML = '';
+      const opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = '— Sélectionner une séance —';
       sel.appendChild(opt0);
       for (const m of meetings){
-        const opt = document.createElement("option");
+        const opt = document.createElement('option');
         opt.value = m.meeting_id;
-        const when = (m.created_at || "").toString().slice(0,10);
-        opt.textContent = `${when} — ${m.title || "Séance"} [${m.status || "—"}]`;
+        const when = (m.created_at || '').toString().slice(0,10);
+        opt.textContent = `${when} — ${m.title || 'Séance'} [${m.status || '—'}]`;
         sel.appendChild(opt);
       }
     }
@@ -332,7 +332,7 @@
     // Priority: invitation token > MeetingContext > saved sessionStorage > first meeting in list
     const invitationId = window._invitationMeetingId || null;
     const contextId = (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
-    const saved = (sessionStorage.getItem("public.meeting_id") || "").trim();
+    const saved = (sessionStorage.getItem('public.meeting_id') || '').trim();
     const initialId = invitationId || contextId || saved;
     if (initialId && meetings.some(x=>x.meeting_id===initialId)) {
       sel.value = initialId;
@@ -343,7 +343,7 @@
     if (typeof MeetingContext !== 'undefined' && sel.value) {
       MeetingContext.set(sel.value, { updateUrl: false });
     }
-    sessionStorage.setItem("public.meeting_id", sel.value || "");
+    sessionStorage.setItem('public.meeting_id', sel.value || '');
     await loadMembers();
     await refresh();
   }
@@ -356,17 +356,17 @@
    */
   async function loadMembers(){
     const meetingId = selectedMeetingId();
-    const sel = $("#memberSelect");
+    const sel = $('#memberSelect');
     if (!sel) return;
 
     const useSearchable = isSearchableSelect(sel);
     const memberOptions = [];
 
     if (!useSearchable) {
-      sel.innerHTML = "";
-      const opt0 = document.createElement("option");
-      opt0.value = "";
-      opt0.textContent = "— Sélectionner un votant —";
+      sel.innerHTML = '';
+      const opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = '— Sélectionner un votant —';
       sel.appendChild(opt0);
     }
 
@@ -383,8 +383,8 @@
       const modeLabels = { present: 'Présent', remote: 'À distance', proxy: 'Procuration' };
 
       for (const x of rows){
-        const mode = (x.mode || "");
-        if (!["present","remote","proxy"].includes(mode)) continue;
+        const mode = (x.mode || '');
+        if (!['present','remote','proxy'].includes(mode)) continue;
 
         // Store attendance info for proxy display
         _memberAttendance[x.member_id] = {
@@ -396,14 +396,14 @@
         if (useSearchable) {
           memberOptions.push({
             value: x.member_id,
-            label: x.full_name || x.name || "Membre",
+            label: x.full_name || x.name || 'Membre',
             sublabel: modeLabels[mode] || mode,
             group: x.group_name || null
           });
         } else {
-          const opt = document.createElement("option");
+          const opt = document.createElement('option');
           opt.value = x.member_id;
-          opt.textContent = `${x.full_name || x.name || "Membre"} (${mode})`;
+          opt.textContent = `${x.full_name || x.name || 'Membre'} (${mode})`;
           sel.appendChild(opt);
         }
         filled++;
@@ -414,20 +414,20 @@
 
     // Fallback: if no attendance recorded, still display all members
     if (filled === 0) {
-      const r = await apiGet("/api/v1/members.php");
+      const r = await apiGet('/api/v1/members.php');
       const rows = r?.data?.items || [];
       for (const x of rows){
         if (useSearchable) {
           memberOptions.push({
             value: x.id || x.member_id,
-            label: x.full_name || x.name || "Membre",
+            label: x.full_name || x.name || 'Membre',
             sublabel: x.email || null,
             group: x.group_name || null
           });
         } else {
-          const opt = document.createElement("option");
+          const opt = document.createElement('option');
           opt.value = x.id || x.member_id;
-          opt.textContent = x.full_name || x.name || "Membre";
+          opt.textContent = x.full_name || x.name || 'Membre';
           sel.appendChild(opt);
         }
       }
@@ -444,16 +444,16 @@
 
     const invitationMemberId = window._invitationMemberId || null;
     const linkedId = window.Auth?.member?.id;
-    const saved = (sessionStorage.getItem("public.member_id") || "").trim();
+    const saved = (sessionStorage.getItem('public.member_id') || '').trim();
 
     if (invitationMemberId && allValues.includes(invitationMemberId)) {
       // Invitation token resolved this member — highest priority
       sel.value = invitationMemberId;
-      sessionStorage.setItem("public.member_id", invitationMemberId);
+      sessionStorage.setItem('public.member_id', invitationMemberId);
     } else if (linkedId && allValues.includes(linkedId)) {
       // Deterministic: user account is linked to a member record
       sel.value = linkedId;
-      sessionStorage.setItem("public.member_id", linkedId);
+      sessionStorage.setItem('public.member_id', linkedId);
     } else if (saved && allValues.includes(saved)) {
       sel.value = saved;
     } else if (window.Auth && window.Auth.user) {
@@ -492,7 +492,7 @@
         if ((userName && label.includes(userName)) ||
             (userEmail && (label.includes(userEmail) || sublabel.includes(userEmail)))) {
           sel.value = opt.value;
-          sessionStorage.setItem("public.member_id", opt.value);
+          sessionStorage.setItem('public.member_id', opt.value);
           updateMemberFromSelect(sel);
           break;
         }
@@ -503,7 +503,7 @@
         const text = opt.textContent.toLowerCase();
         if ((userName && text.includes(userName)) || (userEmail && text.includes(userEmail))) {
           sel.value = opt.value;
-          sessionStorage.setItem("public.member_id", opt.value);
+          sessionStorage.setItem('public.member_id', opt.value);
           updateMemberFromSelect(sel);
           break;
         }
@@ -555,15 +555,15 @@
    * @param {Object|null} m - Motion data object or null
    */
   function updateMotionCard(m, state) {
-    const title = $("#motionTitle");
-    const sub = $("#motionSub");
-    const badges = $("#motionBadges");
-    const noEl = $("#motionNo");
-    const phaseEl = $("#motionPhase");
-    const resoDetails = $("#resoDetails");
-    const resoText = $("#resoText");
-    const resoNote = $("#resoNote");
-    const card = $("#motionBox");
+    const title = $('#motionTitle');
+    const sub = $('#motionSub');
+    const badges = $('#motionBadges');
+    const noEl = $('#motionNo');
+    const phaseEl = $('#motionPhase');
+    const resoDetails = $('#resoDetails');
+    const resoText = $('#resoText');
+    const resoNote = $('#resoNote');
+    const card = $('#motionBox');
 
     if (!m) {
       if (state === 'ended') {
@@ -630,8 +630,8 @@
    * @param {Object|null} motion - Current motion object (may contain position info)
    */
   function updateMotionProgress(data, motion) {
-    const progressEl = $("#motionProgress");
-    const progressText = $("#motionProgressText");
+    const progressEl = $('#motionProgress');
+    const progressText = $('#motionProgressText');
     if (!progressEl || !progressText) return;
 
     const index = data?.motion_index ?? motion?.position ?? null;
@@ -655,9 +655,9 @@
    * @param {Object|null} data - API response data with participation info
    */
   function updateVoteParticipation(data) {
-    const container = $("#voteParticipation");
-    const fill = $("#voteParticipationFill");
-    const text = $("#voteParticipationText");
+    const container = $('#voteParticipation');
+    const fill = $('#voteParticipationFill');
+    const text = $('#voteParticipationText');
     if (!container || !fill || !text) return;
 
     // Try to extract participation percentage from various possible API fields
@@ -690,8 +690,8 @@
   async function refresh(){
     const meetingId = selectedMeetingId();
     const memberId = selectedMemberId();
-    if (meetingId) sessionStorage.setItem("public.meeting_id", meetingId);
-    if (memberId) sessionStorage.setItem("public.member_id", memberId);
+    if (meetingId) sessionStorage.setItem('public.meeting_id', meetingId);
+    if (memberId) sessionStorage.setItem('public.member_id', memberId);
 
     if (!meetingId){
       updateMotionCard(null);
@@ -728,7 +728,7 @@
       updateMotionCard(null);
       updateMotionProgress(null, null);
       updateVoteParticipation(null);
-      const title = $("#motionTitle");
+      const title = $('#motionTitle');
       if (title) title.textContent = 'Erreur: ' + (e?.message || String(e));
       setVoteButtonsEnabled(false);
     }
@@ -739,7 +739,7 @@
    * @param {boolean} on - Whether to enable buttons
    */
   function setVoteButtonsEnabled(on){
-    ["#btnFor","#btnAgainst","#btnAbstain","#btnBlanc","#btnNone"].forEach(id=>{
+    ['#btnFor','#btnAgainst','#btnAbstain','#btnBlanc','#btnNone'].forEach(id=>{
       const el=$(id);
       if (el) el.disabled = !on;
     });
@@ -790,8 +790,8 @@
     const idempotencyKey = `${_currentMotionId}:${memberId}`;
 
     try {
-      await apiPost("/api/v1/ballots_cast.php", { motion_id: _currentMotionId, member_id: memberId, value: choice }, { 'X-Idempotency-Key': idempotencyKey });
-      notify("success", "Vote enregistré.");
+      await apiPost('/api/v1/ballots_cast.php', { motion_id: _currentMotionId, member_id: memberId, value: choice }, { 'X-Idempotency-Key': idempotencyKey });
+      notify('success', 'Vote enregistré.');
     } catch(e) {
       const errCode = e?.message || '';
       if (ERROR_MESSAGES[errCode]) {
@@ -902,33 +902,33 @@
       MeetingContext.init();
     }
     if (Utils.bindApiKeyInput) {
-      Utils.bindApiKeyInput("public", $("#publicApiKey"), () => loadMeetings().catch(console.error));
+      Utils.bindApiKeyInput('public', $('#publicApiKey'), () => loadMeetings().catch(console.error));
     }
-    $("#meetingSelect")?.addEventListener("change", async ()=>{
-      const newId = ($("#meetingSelect")?.value || "").trim();
+    $('#meetingSelect')?.addEventListener('change', async ()=>{
+      const newId = ($('#meetingSelect')?.value || '').trim();
       // Sync selection to MeetingContext
       if (typeof MeetingContext !== 'undefined' && newId) {
         MeetingContext.set(newId, { updateUrl: false });
       }
-      sessionStorage.setItem("public.meeting_id", newId);
+      sessionStorage.setItem('public.meeting_id', newId);
       // Notify inline scripts (speech, confirmation overlay) to reset state
       document.dispatchEvent(new CustomEvent('vote:meeting-changed'));
       await loadMembers();
       await refresh();
     });
-    $("#memberSelect")?.addEventListener("change", refresh);
-    $("#btnRefresh")?.addEventListener("click", refresh);
+    $('#memberSelect')?.addEventListener('change', refresh);
+    $('#btnRefresh')?.addEventListener('click', refresh);
 
     // Only bind direct cast if no confirmation overlay (vote.htmx.html has its own overlay calling submitVote)
     if (!document.getElementById('confirmationOverlay')) {
-      document.querySelectorAll("[data-choice]").forEach(btn=>{
-        btn.addEventListener("click", async ()=>{
-          const allBtns = document.querySelectorAll("[data-choice]");
+      document.querySelectorAll('[data-choice]').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          const allBtns = document.querySelectorAll('[data-choice]');
           allBtns.forEach(b => b.disabled = true);
           try {
             await cast(btn.dataset.choice);
           } catch(e) {
-            notify("error", e?.message || String(e));
+            notify('error', e?.message || String(e));
           } finally {
             allBtns.forEach(b => b.disabled = false);
           }
@@ -946,7 +946,7 @@
           applyInvitationLock();
         }
       })
-      .catch((e) => notify("error", e?.message || String(e)));
+      .catch((e) => notify('error', e?.message || String(e)));
 
     // ── Real-time: SSE (primary) + polling (fallback) ──────────────────
     if (window._voteMotionPollTimer) clearInterval(window._voteMotionPollTimer);
@@ -1001,5 +1001,5 @@
   // Expose cast as global submitVote for vote.htmx.html confirmation overlay
   window.submitVote = cast;
 
-  document.addEventListener("DOMContentLoaded", wire);
+  document.addEventListener('DOMContentLoaded', wire);
 })();

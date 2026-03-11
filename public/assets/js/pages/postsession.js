@@ -14,9 +14,9 @@
   // STATE
   // =========================================================================
 
-  var currentStep = 1;
+  var _currentStep = 1;
   var meetingId = null;
-  var meetingData = null;
+  var _meetingData = null;
 
   // =========================================================================
   // HELPERS
@@ -32,7 +32,7 @@
 
   function goToStep(step) {
     if (step < 1 || step > 4) return;
-    currentStep = step;
+    _currentStep = step;
 
     // Update stepper UI
     document.querySelectorAll('.ps-step').forEach(function (el) {
@@ -170,7 +170,7 @@
       var d = res.body;
       if (d && d.ok && d.data) {
         var state = d.data.current_state || '';
-        meetingData = d.data;
+        _meetingData = d.data;
 
         // Update workflow state visual
         var states = ['closed', 'validated', 'archived'];

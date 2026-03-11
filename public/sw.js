@@ -7,7 +7,7 @@
  * - Stale-while-revalidate for HTML pages
  */
 
-const CACHE_VERSION = 'agvote-v1';
+const CACHE_VERSION = 'agvote-v1.5';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -25,6 +25,9 @@ const PRECACHE_ASSETS = [
   '/assets/js/components/ag-spinner.js',
   '/assets/js/components/ag-toast.js',
   '/assets/js/components/ag-vote-button.js',
+  '/assets/vendor/htmx.min.js',
+  '/assets/vendor/chart.umd.js',
+  '/assets/js/vendor/marked.min.js',
 ];
 
 // API endpoints that can work offline (read-only)
@@ -147,11 +150,14 @@ async function cacheFirst(request, cacheName) {
 }
 
 /**
- * Network-first strategy: Try network, fallback to cache
+ * Network-first strategy: Try network with 5s timeout, fallback to cache
  */
 async function networkFirst(request) {
   try {
-    const response = await fetch(request);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(request, { signal: controller.signal });
+    clearTimeout(timeoutId);
     return response;
   } catch (error) {
     const cached = await caches.match(request);
@@ -169,7 +175,10 @@ async function networkFirstWithCache(request, cacheName) {
   const cache = await caches.open(cacheName);
 
   try {
-    const response = await fetch(request);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(request, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (response.ok) {
       cache.put(request, response.clone());
     }

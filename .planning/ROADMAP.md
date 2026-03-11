@@ -1,57 +1,45 @@
-# AG-VOTE Roadmap — v1.1
+# AG-VOTE Roadmap — v1.5
 
-## Milestone: Post-Audit Hardening
+## Milestone: E2E Coverage Expansion & Release
 
-**Goal**: Harden the application after UX/UI audit fixes, establish automated testing, and address technical concerns identified in the codebase mapping.
+**Goal**: Close E2E gaps for core user-facing pages. Bump version to 1.5.0.
 
 ---
 
-### Phase 1 — E2E Test Suite Hardening [REQ-001]
-**Status**: pending
-**Goal**: Harden existing Playwright suite (14 specs) and add audit regression coverage.
-- Review and fix any flaky specs
-- Add mobile viewport regression tests
-- Add UX audit assertions (P1/P2/P3 fix coverage)
-- Add operator live session flow tests if missing
-- Ensure all 14 specs pass reliably in headless mode
+### Phase 1 — Operator & Dashboard E2E Specs
+**Status**: done
+**Goal**: Add E2E tests for the two most critical operator pages.
+- operator.spec.js: 8 tests (page load, tabs, meeting context, a11y, API auth)
+- dashboard.spec.js: 7 tests (page load, KPIs, quick actions, sidebar, API auth)
 
-### Phase 2 — CI Pipeline Expansion [REQ-002]
-**Status**: pending
-**Goal**: Expand existing CI workflow with linting and E2E.
-- Add ESLint + PHPStan jobs to `docker-build.yml`
-- Add Playwright E2E execution in CI (headless)
-- Cache Composer and npm dependencies
-- Ensure PR checks include all quality gates
+### Phase 2 — Report, Validate & Archives E2E Specs
+**Status**: done
+**Goal**: Cover remaining user-facing pages.
+- report.spec.js: 5 tests (page load, PV content, export, overflow, API auth)
+- validate.spec.js: 4 tests (page load, checklist, action buttons, overflow)
+- archives.spec.js: 5 tests (page load, list, search, sidebar, overflow)
 
-### Phase 3 — CDN Hardening [REQ-003, REQ-004]
-**Status**: pending
-**Goal**: Eliminate CDN single points of failure.
-- Vendor Chart.js and HTMX locally
-- Add SRI hashes if keeping CDN
-- Self-host Google Fonts
-- Verify offline PWA still works
+### Phase 3 — Version Bump & Release
+**Status**: done
+**Goal**: Update version to 1.5.0.
+- package.json: 1.1.0 → 1.5.0
+- SW cache version: agvote-v1 → agvote-v1.5
+- 21 E2E spec files (was 16), ~230+ E2E tests total
 
-### Phase 4 — App Shell Deduplication [REQ-005]
-**Status**: pending
-**Goal**: Single source of truth for shared layout.
-- Analyze sidebar/header duplication across pages
-- Design template mechanism (PHP include vs JS injection)
-- Implement and migrate all pages
-- Verify no visual regressions
+---
 
-### Phase 5 — Frontend Error Handling [REQ-006]
-**Status**: pending
-**Goal**: No silent fetch failures anywhere.
-- Audit all fetch() calls across 29 page modules
-- Add consistent error handling pattern
-- Ensure toast notifications on failures
-- Add network error recovery where appropriate
+## Previous: v1.4 (Test Coverage & Final Polish) — COMPLETE
 
-### Phase 6 — Accessibility & Performance [REQ-007, REQ-008]
-**Status**: pending
-**Goal**: WCAG AA compliance and improved load times.
-- ARIA audit on Web Components
-- Color contrast verification
-- Keyboard navigation testing
-- Asset concatenation for production
-- Lazy loading non-critical JS
+3 phases: 100% controller tests, Permissions-Policy header, dead code audit.
+
+## Previous: v1.3 (Code Quality & Frontend Cleanup) — COMPLETE
+
+3 phases: unused vars fixed (142→0), innerHTML triaged safe, CI lint ratchet.
+
+## Previous: v1.2 (Security & Resilience Hardening) — COMPLETE
+
+4 phases: tenant isolation, rate limiting, PWA hardening, audit verification.
+
+## Previous: v1.1 (Post-Audit Hardening) — COMPLETE
+
+6 phases: E2E suite, CI pipeline, CDN hardening, app shell audit, error handling, accessibility.

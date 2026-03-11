@@ -32,8 +32,6 @@ class AgSpinner extends HTMLElement {
   }
 
   render() {
-    const size = this.getAttribute('size') || 'md';
-    const variant = this.getAttribute('variant') || 'default';
     const label = this.getAttribute('label') || 'Chargement';
 
     this.shadowRoot.innerHTML = `

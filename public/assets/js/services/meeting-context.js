@@ -11,6 +11,7 @@
  *   MeetingContext.onChange(callback);        // Listen to changes
  *   MeetingContext.clear();                   // Clear selection
  */
+// eslint-disable-next-line no-unused-vars
 const MeetingContext = (function() {
   'use strict';
 

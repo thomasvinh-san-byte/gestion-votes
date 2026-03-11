@@ -94,9 +94,9 @@ class AgPagination extends HTMLElement {
           <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
         </button>
         ${pages.map(p => p === '...'
-          ? '<span class="pg-btn pg-dots">…</span>'
-          : `<button class="pg-btn ${p === current ? 'pg-active' : ''}" data-page="${p}" aria-label="Page ${p}" ${p === current ? 'aria-current="page"' : ''}>${p}</button>`
-        ).join('')}
+    ? '<span class="pg-btn pg-dots">…</span>'
+    : `<button class="pg-btn ${p === current ? 'pg-active' : ''}" data-page="${p}" aria-label="Page ${p}" ${p === current ? 'aria-current="page"' : ''}>${p}</button>`
+  ).join('')}
         <button class="pg-btn" ${current >= total ? 'disabled' : ''} data-page="${current + 1}" aria-label="Page suivante">
           <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
         </button>

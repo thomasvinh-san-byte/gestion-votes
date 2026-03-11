@@ -110,7 +110,7 @@ class AgToast extends HTMLElement {
         }
         .toast-message {
           flex: 1;
-          color: var(--color-text-muted, #95a3a4);
+          color: var(--color-text, #1a1a1a);
           font-size: 12px;
         }
         .toast-close {
@@ -131,6 +131,10 @@ class AgToast extends HTMLElement {
         .toast-close:hover {
           background: var(--color-bg-subtle, #e8e7e2);
           color: var(--color-text-dark, #1a1a1a);
+        }
+        .toast-close:focus-visible {
+          outline: 2px solid var(--color-primary, #1650E0);
+          outline-offset: 2px;
         }
         .toast-close svg {
           width: 14px;

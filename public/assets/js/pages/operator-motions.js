@@ -1011,7 +1011,7 @@
     }
 
     return { total, closedCount, openCount, pendingCount, allDone, hasOpenVote,
-             adopted, rejected, presentCount, totalMembers, durationStr };
+      adopted, rejected, presentCount, totalMembers, durationStr };
   }
 
   function updateCloseSessionStatus() {

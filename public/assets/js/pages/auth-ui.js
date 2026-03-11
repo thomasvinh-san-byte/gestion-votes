@@ -193,7 +193,7 @@
   /**
    * Populate the banner with user identity (avatar, name, role).
    */
-  function setUserIdentity(user, systemRole, meetingRoles) {
+  function setUserIdentity(user, systemRole, _meetingRoles) {
     var nameEl = document.getElementById('auth-user-name');
     var roleEl = document.getElementById('auth-user-role');
     var avatarEl = document.getElementById('auth-avatar');

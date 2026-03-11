@@ -232,7 +232,6 @@ class AgSearchableSelect extends HTMLElement {
 
   render() {
     const placeholder = this.getAttribute('placeholder') || 'Rechercher...';
-    const emptyText = this.getAttribute('empty-text') || 'Aucun résultat';
     const isDisabled = this.hasAttribute('disabled');
 
     this.shadowRoot.innerHTML = `
@@ -475,7 +474,7 @@ class AgSearchableSelect extends HTMLElement {
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="text" class="search-input" placeholder="${this.escapeHtml(placeholder)}" autocomplete="off" />
+            <input type="text" class="search-input" placeholder="${this.escapeHtml(placeholder)}" autocomplete="off" aria-label="Rechercher" />
           </div>
           <div class="options-list"></div>
         </div>
@@ -593,7 +592,6 @@ class AgSearchableSelect extends HTMLElement {
     this.removeEventListeners();
 
     const trigger = this.shadowRoot.querySelector('.select-trigger');
-    const dropdown = this.shadowRoot.querySelector('.dropdown');
     const searchInput = this.shadowRoot.querySelector('.search-input');
     const clearBtn = this.shadowRoot.querySelector('.clear-btn');
     const optionsList = this.shadowRoot.querySelector('.options-list');
@@ -663,24 +661,24 @@ class AgSearchableSelect extends HTMLElement {
 
   handleKeydown(e) {
     switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        this.highlightNext();
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        this.highlightPrev();
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (this._highlightedIndex >= 0 && this._filteredOptions[this._highlightedIndex]) {
-          this.selectOption(this._filteredOptions[this._highlightedIndex].value);
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        this.closeDropdown();
-        break;
+    case 'ArrowDown':
+      e.preventDefault();
+      this.highlightNext();
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      this.highlightPrev();
+      break;
+    case 'Enter':
+      e.preventDefault();
+      if (this._highlightedIndex >= 0 && this._filteredOptions[this._highlightedIndex]) {
+        this.selectOption(this._filteredOptions[this._highlightedIndex].value);
+      }
+      break;
+    case 'Escape':
+      e.preventDefault();
+      this.closeDropdown();
+      break;
     }
   }
 

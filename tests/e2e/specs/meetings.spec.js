@@ -1,17 +1,14 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { loginAsOperator } = require('../helpers');
 
 /**
  * Meetings Management E2E Tests
  */
 test.describe('Meetings', () => {
 
-  // Login before each test
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login.html');
-    await page.fill('input[type="password"], input[name="api_key"]', 'operator-key-2026-secret');
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/meetings|operator/);
+    await loginAsOperator(page);
   });
 
   test('should display meetings list', async ({ page }) => {
@@ -54,10 +51,7 @@ test.describe('Meetings', () => {
 test.describe('Operator Console', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login.html');
-    await page.fill('input[type="password"], input[name="api_key"]', 'operator-key-2026-secret');
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/meetings|operator/);
+    await loginAsOperator(page);
   });
 
   test('should display operator tabs', async ({ page }) => {

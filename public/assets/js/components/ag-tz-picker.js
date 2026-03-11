@@ -80,8 +80,8 @@ class AgTzPicker extends HTMLElement {
       </style>
       <select name="${name}" ${disabled ? 'disabled' : ''} aria-label="Fuseau horaire">
         ${TZ_LIST.map(tz =>
-          `<option value="${tz}" ${tz === this._value ? 'selected' : ''}>${tz.replace(/_/g, ' ')}</option>`
-        ).join('')}
+    `<option value="${tz}" ${tz === this._value ? 'selected' : ''}>${tz.replace(/_/g, ' ')}</option>`
+  ).join('')}
       </select>
     `;
 

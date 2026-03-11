@@ -333,8 +333,8 @@ window.Utils = window.Utils || {};
   document.body.addEventListener('htmx:responseError', function(e) {
     const status = e.detail.xhr?.status || 0;
     const msg = status === 403 ? 'Session expir\u00e9e — veuillez vous reconnecter.'
-              : status >= 500 ? 'Erreur serveur. R\u00e9essayez.'
-              : 'Erreur de chargement (HTTP ' + status + ')';
+      : status >= 500 ? 'Erreur serveur. R\u00e9essayez.'
+        : 'Erreur de chargement (HTTP ' + status + ')';
     if (typeof setNotif === 'function') setNotif('error', msg);
   });
 
@@ -603,6 +603,7 @@ window.Utils = window.Utils || {};
  */
 const API_TIMEOUT_MS = 15000;
 
+// eslint-disable-next-line no-unused-vars
 async function api(url, data = null, method = null, timeoutMs = API_TIMEOUT_MS) {
   const hasBody = data !== null;
   const httpMethod = method || (hasBody ? 'POST' : 'GET');
@@ -660,6 +661,7 @@ async function api(url, data = null, method = null, timeoutMs = API_TIMEOUT_MS) 
  */
 const UPLOAD_TIMEOUT_MS = 30000;
 
+// eslint-disable-next-line no-unused-vars
 async function apiUpload(url, formData, timeoutMs = UPLOAD_TIMEOUT_MS) {
   const headers = {};
 
@@ -734,6 +736,7 @@ function setNotif(type, message, duration = 5000) {
 /**
  * Escape HTML entities — delegates to Utils.escapeHtml
  */
+// eslint-disable-next-line no-unused-vars
 function escapeHtml(str) {
   return Utils.escapeHtml(str);
 }
@@ -741,6 +744,7 @@ function escapeHtml(str) {
 /**
  * Get URL parameter
  */
+// eslint-disable-next-line no-unused-vars
 function getParam(name) {
   const params = new URLSearchParams(window.location.search);
   return params.get(name);
@@ -749,6 +753,7 @@ function getParam(name) {
 /**
  * Extract error message from API response body — delegates to Utils.getApiError
  */
+// eslint-disable-next-line no-unused-vars
 function getApiError(body, fallback = 'Une erreur est survenue') {
   return Utils.getApiError(body, fallback);
 }

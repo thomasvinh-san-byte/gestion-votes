@@ -35,6 +35,7 @@ export default [
   {
     ignores: [
       'vendor/**',
+      '**/vendor/**',
       'node_modules/**',
       'coverage-report/**',
       'storage/**'
@@ -77,10 +78,21 @@ export default [
         history: 'readonly',
         customElements: 'readonly',
         HTMLElement: 'readonly',
+        AbortController: 'readonly',
+        Blob: 'readonly',
+        FileReader: 'readonly',
+        crypto: 'readonly',
+        self: 'readonly',
+        requestAnimationFrame: 'readonly',
+        matchMedia: 'readonly',
+        getComputedStyle: 'readonly',
+        define: 'readonly',
+        exports: 'writable',
         // AG-VOTE globals
         htmx: 'readonly',
         MeetingContext: 'readonly',
         api: 'readonly',
+        apiUpload: 'readonly',
         escapeHtml: 'readonly',
         setNotif: 'readonly',
         log: 'readonly',
@@ -90,11 +102,20 @@ export default [
         Utils: 'readonly',
         Auth: 'readonly',
         ShellDrawer: 'readonly',
-        MobileNav: 'readonly'
+        MobileNav: 'readonly',
+        icon: 'readonly',
+        OpS: 'readonly',
+        getApiError: 'readonly',
+        Chart: 'readonly',
+        EventStream: 'readonly',
+        AgToast: 'readonly',
+        submitVote: 'readonly',
+        marked: 'readonly',
+        lucide: 'readonly'
       }
     },
     rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' }],
       'semi': ['error', 'always'],
       'quotes': ['warn', 'single', { avoidEscape: true }],
       'indent': ['warn', 2],

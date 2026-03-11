@@ -210,8 +210,8 @@
       content: `
         <h3 id="addToQueueModal-title" style="margin:0 0 1rem;">${icon('mic', 'icon-sm icon-text')} Ajouter à la file</h3>
         ${available.length === 0
-          ? '<p class="text-muted">Tous les membres présents sont déjà dans la file.</p>'
-          : `
+    ? '<p class="text-muted">Tous les membres présents sont déjà dans la file.</p>'
+    : `
             <div class="form-group mb-3">
               <label class="form-label">Membre</label>
               <select class="form-input" id="addSpeechSelect">
@@ -220,7 +220,7 @@
               </select>
             </div>
           `
-        }
+  }
         <div class="flex gap-2 justify-end">
           <button class="btn btn-secondary" id="btnCancelAddSpeech">Annuler</button>
           ${available.length > 0 ? '<button class="btn btn-primary" id="btnConfirmAddSpeech">Ajouter</button>' : ''}

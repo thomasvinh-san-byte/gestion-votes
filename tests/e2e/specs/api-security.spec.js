@@ -12,9 +12,7 @@ const { test, expect } = require('@playwright/test');
  *   - Rate limiting headers
  */
 
-const E2E_MEETING_ID = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
-const E2E_MOTION_1 = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00301';
-const E2E_MEMBER_1 = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00101';
+const { E2E_MEETING_ID, E2E_MOTION_1, E2E_MEMBER_1 } = require('../helpers');
 
 // ---------------------------------------------------------------------------
 // Authentication Required — GET Endpoints
@@ -43,6 +41,7 @@ test.describe('Auth Required — GET Endpoints', () => {
     `/api/v1/meeting_summary.php?meeting_id=${E2E_MEETING_ID}`,
     `/api/v1/agendas.php?meeting_id=${E2E_MEETING_ID}`,
     `/api/v1/trust_checks.php?meeting_id=${E2E_MEETING_ID}`,
+    `/api/v1/audit_verify.php?meeting_id=${E2E_MEETING_ID}`,
   ];
 
   for (const endpoint of getEndpoints) {
@@ -286,6 +285,35 @@ test.describe('Public Endpoints', () => {
 
     // CSRF endpoint is typically public
     expect(response.status()).toBeLessThan(500);
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// Security Headers
+// ---------------------------------------------------------------------------
+
+test.describe('Security Headers', () => {
+
+  test('API responses include security headers', async ({ request }) => {
+    const response = await request.get('/api/v1/ping.php');
+    const headers = response.headers();
+
+    expect(headers['x-content-type-options']).toBe('nosniff');
+    expect(headers['x-frame-options']).toBe('SAMEORIGIN');
+    expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+    expect(headers['permissions-policy']).toContain('camera=()');
+    expect(headers['permissions-policy']).toContain('microphone=()');
+  });
+
+  test('CSP header is present and restrictive', async ({ request }) => {
+    const response = await request.get('/api/v1/ping.php');
+    const csp = response.headers()['content-security-policy'];
+
+    expect(csp).toBeDefined();
+    expect(csp).toContain("default-src 'self'");
+    expect(csp).toContain("script-src 'self'");
+    expect(csp).toContain("frame-ancestors 'self'");
   });
 
 });

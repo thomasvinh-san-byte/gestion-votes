@@ -129,7 +129,7 @@
     var hasGroups = allGroups.length > 0;
 
     // Show onboarding strip when setup is incomplete
-    var allDone = hasMembers && hasGroups;
+    var _allDone = hasMembers && hasGroups;
     onboardingEl.hidden = false; // Always show — it provides navigation context
 
     // Step 1: Members
@@ -470,16 +470,16 @@
         <div>
           <div class="detail-name">${escapeHtml(name)}</div>
           <div class="detail-status">${m.is_active
-            ? '<span class="badge badge-success badge-sm">Actif</span>'
-            : '<span class="badge badge-neutral badge-sm">Inactif</span>'}</div>
+    ? '<span class="badge badge-success badge-sm">Actif</span>'
+    : '<span class="badge badge-neutral badge-sm">Inactif</span>'}</div>
         </div>
       </div>
       <div class="detail-grid">
         <div class="detail-field">
           <div class="detail-label">Email</div>
           <div class="detail-value">${m.email
-            ? '<a href="mailto:' + encodeURIComponent(m.email) + '">' + escapeHtml(m.email) + '</a>'
-            : '<span class="text-muted">Non renseigné</span>'}</div>
+    ? '<a href="mailto:' + encodeURIComponent(m.email) + '">' + escapeHtml(m.email) + '</a>'
+    : '<span class="text-muted">Non renseigné</span>'}</div>
         </div>
         <div class="detail-field">
           <div class="detail-label">Nombre de voix</div>
@@ -1042,33 +1042,33 @@
     var id = btn.dataset.id;
 
     switch (action) {
-      case 'edit-group':
-        window.editGroup(id);
-        break;
-      case 'delete-group':
-        window.deleteGroup(id);
-        break;
-      case 'filter-group':
-        window.filterByGroup(btn.dataset.groupId || null);
-        break;
-      case 'open-detail':
-        // Ignore if the click was on an action button inside the card
-        if (e.target.closest('[data-action="edit-member"]') || e.target.closest('[data-action="delete-member"]')) return;
-        window.openMemberDetail(id);
-        break;
-      case 'edit-member':
-        e.stopPropagation();
-        window.editMember(id);
-        if (memberDetailDialog.open) memberDetailDialog.close();
-        break;
-      case 'delete-member':
-        e.stopPropagation();
-        window.deleteMember(id);
-        break;
-      case 'toggle-active':
-        window.toggleActive(id, btn.dataset.active === 'true');
-        if (memberDetailDialog.open) memberDetailDialog.close();
-        break;
+    case 'edit-group':
+      window.editGroup(id);
+      break;
+    case 'delete-group':
+      window.deleteGroup(id);
+      break;
+    case 'filter-group':
+      window.filterByGroup(btn.dataset.groupId || null);
+      break;
+    case 'open-detail':
+      // Ignore if the click was on an action button inside the card
+      if (e.target.closest('[data-action="edit-member"]') || e.target.closest('[data-action="delete-member"]')) return;
+      window.openMemberDetail(id);
+      break;
+    case 'edit-member':
+      e.stopPropagation();
+      window.editMember(id);
+      if (memberDetailDialog.open) memberDetailDialog.close();
+      break;
+    case 'delete-member':
+      e.stopPropagation();
+      window.deleteMember(id);
+      break;
+    case 'toggle-active':
+      window.toggleActive(id, btn.dataset.active === 'true');
+      if (memberDetailDialog.open) memberDetailDialog.close();
+      break;
     }
   });
 

@@ -35,9 +35,7 @@ class AgKpi extends HTMLElement {
   render() {
     const value = this.getAttribute('value') || '0';
     const label = this.getAttribute('label') || '';
-    const variant = this.getAttribute('variant') || 'default';
     const icon = this.getAttribute('icon');
-    const size = this.getAttribute('size') || 'md';
 
     const iconHtml = icon ? `
       <svg class="kpi-icon" aria-hidden="true">
