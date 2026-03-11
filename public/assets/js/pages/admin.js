@@ -1388,9 +1388,12 @@
         }
         Shared.btnLoading(btn, true);
         try {
-          var r = await api('/api/v1/admin_reset_demo.php', {});
-          if (r.body && r.body.ok) { setNotif('success', 'Données de démo réinitialisées'); refreshAll(); }
-          else { setNotif('error', getApiError(r.body)); }
+          var r = await api('/api/v1/admin_reset_demo.php', { confirm: 'RESET' });
+          if (r.body && r.body.ok) {
+            var n = r.body.data?.reset_count || r.body.reset_count || 0;
+            setNotif('success', n + ' séance(s) réinitialisée(s)');
+            refreshAll();
+          } else { setNotif('error', getApiError(r.body)); }
         } catch(e) { setNotif('error', e.message); }
         finally { Shared.btnLoading(btn, false); }
       }
