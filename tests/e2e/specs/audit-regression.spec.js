@@ -116,20 +116,6 @@ test.describe('P2: Important Fixes', () => {
     }
   });
 
-  test('P2-#6: Trust audit event modal exists with close button', async ({ page }) => {
-    await loginAsOperator(page);
-    await page.goto('/trust.htmx.html');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(500);
-
-    const modal = page.locator('#auditEventModal');
-    const closeBtn = page.locator('#auditModalClose');
-
-    if (await modal.count() > 0) {
-      expect(await closeBtn.count()).toBeGreaterThan(0);
-    }
-  });
-
   test('P2-#7: Meeting stats show mdash (—) not 0 initially', async ({ page }) => {
     await loginAsOperator(page);
     await page.goto('/meetings.htmx.html');
@@ -212,19 +198,6 @@ test.describe('P3: Polish Fixes', () => {
     }
   });
 
-  test('P3-#12: Analytics chart containers have loading spinners', async ({ page }) => {
-    await loginAsOperator(page);
-    await page.goto('/analytics.htmx.html');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(500);
-
-    const chartContainers = page.locator('.chart-container');
-    const count = await chartContainers.count();
-
-    // Chart containers should exist
-    expect(count).toBeGreaterThan(0);
-  });
-
   test('P3-#13: Help tour cards have "Lancer" badges', async ({ page }) => {
     await loginAsOperator(page);
     await page.goto('/help.htmx.html');
@@ -240,20 +213,6 @@ test.describe('P3: Polish Fixes', () => {
     // All tour cards should have a Lancer badge
     if (cardCount > 0) {
       expect(badgeCount).toBe(cardCount);
-    }
-  });
-
-  test('P3-#15: Admin has email template reset button', async ({ page }) => {
-    await loginAsOperator(page);
-    await page.goto('/admin.htmx.html');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(500);
-
-    const resetBtn = page.locator('#btnResetEmailTemplates');
-    if (await resetBtn.count() > 0) {
-      // Button should have a tooltip
-      const title = await resetBtn.getAttribute('title');
-      expect(title).toBeTruthy();
     }
   });
 

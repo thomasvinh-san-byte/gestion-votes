@@ -22,39 +22,6 @@ require_once __DIR__ . '/../../app/Services/MailerService.php';
  */
 class EmailQueueServiceTest extends TestCase {
     /**
-     * Verify that processQueue returns early when SMTP is not configured.
-     * This is the guard clause at line 53 of EmailQueueService.
-     */
-    public function testMailerIsNotConfiguredPreventsProcessing(): void {
-        $mailer = new MailerService([]);
-        $this->assertFalse($mailer->isConfigured());
-
-        // EmailQueueService::processQueue() checks $this->mailer->isConfigured()
-        // and returns immediately if false, yielding:
-        $expected = ['processed' => 0, 'sent' => 0, 'failed' => 0, 'errors' => []];
-
-        // We verify the guard condition works via MailerService
-        $this->assertSame(0, $expected['processed']);
-        $this->assertSame(0, $expected['sent']);
-    }
-
-    /**
-     * Verify that sendInvitationsNow returns error when SMTP is not configured.
-     * This is the guard clause at line 283 of EmailQueueService.
-     */
-    public function testSendInvitationsNowReturnsSmtpError(): void {
-        $mailer = new MailerService([]);
-        $this->assertFalse($mailer->isConfigured());
-
-        // EmailQueueService::sendInvitationsNow() returns this when not configured:
-        $expected = ['sent' => 0, 'skipped' => 0, 'errors' => [['error' => 'smtp_not_configured']]];
-
-        $this->assertSame(0, $expected['sent']);
-        $this->assertCount(1, $expected['errors']);
-        $this->assertSame('smtp_not_configured', $expected['errors'][0]['error']);
-    }
-
-    /**
      * Verify MailerService send() returns error when not configured,
      * which is what EmailQueueService relies on in processQueue.
      */

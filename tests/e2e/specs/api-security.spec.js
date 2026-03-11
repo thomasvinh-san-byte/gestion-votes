@@ -42,6 +42,8 @@ test.describe('Auth Required — GET Endpoints', () => {
     `/api/v1/agendas.php?meeting_id=${E2E_MEETING_ID}`,
     `/api/v1/trust_checks.php?meeting_id=${E2E_MEETING_ID}`,
     `/api/v1/audit_verify.php?meeting_id=${E2E_MEETING_ID}`,
+    '/api/v1/reports_aggregate.php',
+    '/api/v1/email_templates.php',
   ];
 
   for (const endpoint of getEndpoints) {
@@ -74,6 +76,7 @@ test.describe('Auth Required — POST Endpoints', () => {
     { url: '/api/v1/admin_reset_demo.php', data: {} },
     { url: '/api/v1/device_block.php', data: { device_id: 'test' } },
     { url: '/api/v1/device_kick.php', data: { device_id: 'test' } },
+    { url: '/api/v1/email_templates_preview.php', data: { template_id: 'test' } },
   ];
 
   for (const { url, data } of postEndpoints) {
