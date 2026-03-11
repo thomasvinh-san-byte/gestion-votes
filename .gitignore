@@ -27,3 +27,6 @@ Thumbs.db
 .phpunit.result.cache
 .phpunit.cache/
 .php-cs-fixer.cache
+node_modules/
+playwright-report/
+test-results/

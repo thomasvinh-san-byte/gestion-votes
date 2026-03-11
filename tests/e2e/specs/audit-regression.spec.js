@@ -8,14 +8,7 @@ const { test, expect } = require('@playwright/test');
  * Each test maps to a specific audit finding.
  */
 
-const OPERATOR_KEY = 'operator-key-2026-secret';
-
-async function loginAsOperator(page) {
-  await page.goto('/login.html');
-  await page.fill('input[type="password"], input[name="api_key"]', OPERATOR_KEY);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/meetings|operator/, { timeout: 10000 });
-}
+const { loginAsOperator } = require('../helpers');
 
 // ---------------------------------------------------------------------------
 // P1 — Critical Fixes

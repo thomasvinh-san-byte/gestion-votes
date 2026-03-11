@@ -7,14 +7,7 @@ const { test, expect } = require('@playwright/test');
  * Tests the documentation viewer, help/FAQ page, and related content pages.
  */
 
-const OPERATOR_KEY = 'operator-key-2026-secret';
-
-async function login(page) {
-  await page.goto('/login.html');
-  await page.fill('input[type="password"], input[name="api_key"]', OPERATOR_KEY);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/meetings|operator/, { timeout: 10000 });
-}
+const { loginAsOperator: login } = require('../helpers');
 
 // ---------------------------------------------------------------------------
 // Help / FAQ

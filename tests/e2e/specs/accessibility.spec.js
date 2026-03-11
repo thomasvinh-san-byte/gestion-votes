@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { loginAsOperator, OPERATOR_KEY } = require('../helpers');
 
 /**
  * Accessibility E2E Tests
@@ -35,10 +36,7 @@ test.describe('Accessibility', () => {
   });
 
   test('navigation should be keyboard accessible', async ({ page }) => {
-    await page.goto('/login.html');
-    await page.fill('input[type="password"], input[name="api_key"]', 'operator-key-2026-secret');
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/meetings|operator/);
+    await loginAsOperator(page);
 
     // Navigate using keyboard
     await page.keyboard.press('Tab');

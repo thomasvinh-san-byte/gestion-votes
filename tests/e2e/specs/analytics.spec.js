@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { loginAsOperator } = require('../helpers');
 
 /**
  * Analytics Dashboard E2E Tests
@@ -7,15 +8,6 @@ const { test, expect } = require('@playwright/test');
  * Tests the analytics page: overview stats, participation charts,
  * meeting comparison, resolution breakdown, export functionality.
  */
-
-const OPERATOR_KEY = 'operator-key-2026-secret';
-
-async function loginAsOperator(page) {
-  await page.goto('/login.html');
-  await page.fill('input[type="password"], input[name="api_key"]', OPERATOR_KEY);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/meetings|operator/, { timeout: 10000 });
-}
 
 // ---------------------------------------------------------------------------
 // Analytics Dashboard

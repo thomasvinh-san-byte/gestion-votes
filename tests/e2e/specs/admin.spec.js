@@ -8,26 +8,7 @@ const { test, expect } = require('@playwright/test');
  * system status, meeting archive management.
  */
 
-const ADMIN_KEY = 'admin-key-2026-secret';
-const OPERATOR_KEY = 'operator-key-2026-secret';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-async function loginAsAdmin(page) {
-  await page.goto('/login.html');
-  await page.fill('input[type="password"], input[name="api_key"]', ADMIN_KEY);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/admin|meetings|operator/, { timeout: 10000 });
-}
-
-async function loginAsOperator(page) {
-  await page.goto('/login.html');
-  await page.fill('input[type="password"], input[name="api_key"]', OPERATOR_KEY);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/meetings|operator/, { timeout: 10000 });
-}
+const { loginAsAdmin, loginAsOperator } = require('../helpers');
 
 // ---------------------------------------------------------------------------
 // Admin Dashboard

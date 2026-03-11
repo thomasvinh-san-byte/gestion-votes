@@ -14,33 +14,7 @@ const { test, expect } = require('@playwright/test');
  *   - Voter: votant@ag-vote.local / Votant2026!
  */
 
-const E2E_MEETING_ID = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
-const E2E_MOTION_1 = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00301'; // PV Approval
-const E2E_MOTION_2 = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00302'; // Budget 150k
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Login as operator and navigate to operator console.
- */
-async function loginAsOperator(page) {
-  await page.goto('/login.html');
-  await page.fill('input[type="password"], input[name="api_key"]', 'operator-key-2026-secret');
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/meetings|operator/, { timeout: 10000 });
-}
-
-/**
- * Login as voter and navigate to vote page.
- */
-async function loginAsVoter(page) {
-  await page.goto('/login.html');
-  await page.fill('input[type="password"], input[name="api_key"]', 'votant-key-2026-secret');
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/vote|meetings/, { timeout: 10000 });
-}
+const { loginAsOperator, loginAsVoter, E2E_MEETING_ID, E2E_MOTION_1, E2E_MOTION_2 } = require('../helpers');
 
 // ---------------------------------------------------------------------------
 // Voter Interface Tests

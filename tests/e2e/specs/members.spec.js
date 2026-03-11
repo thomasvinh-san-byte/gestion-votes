@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { loginAsOperator } = require('../helpers');
 
 /**
  * Members Management E2E Tests
@@ -7,15 +8,6 @@ const { test, expect } = require('@playwright/test');
  * Tests member listing, search, creation, editing, import (CSV/XLSX),
  * group management, and member details.
  */
-
-const OPERATOR_KEY = 'operator-key-2026-secret';
-
-async function loginAsOperator(page) {
-  await page.goto('/login.html');
-  await page.fill('input[type="password"], input[name="api_key"]', OPERATOR_KEY);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/meetings|operator/, { timeout: 10000 });
-}
 
 // ---------------------------------------------------------------------------
 // Members List

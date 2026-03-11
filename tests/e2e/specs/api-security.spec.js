@@ -12,9 +12,7 @@ const { test, expect } = require('@playwright/test');
  *   - Rate limiting headers
  */
 
-const E2E_MEETING_ID = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
-const E2E_MOTION_1 = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00301';
-const E2E_MEMBER_1 = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00101';
+const { E2E_MEETING_ID, E2E_MOTION_1, E2E_MEMBER_1 } = require('../helpers');
 
 // ---------------------------------------------------------------------------
 // Authentication Required — GET Endpoints

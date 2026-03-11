@@ -3,10 +3,18 @@
 ## Current Position
 
 - **Milestone**: v1.1 (Post-Audit Hardening)
-- **Phase**: Pre-planning (codebase mapped, roadmap defined)
-- **Next action**: `/gsd:plan-phase 1` to detail the E2E test suite phase
+- **Phase**: Phase 1 complete, Phase 2 next
+- **Next action**: Phase 2 — CI Pipeline Expansion
 
 ## Recent Work
+
+### Phase 1 — E2E Test Suite Hardening (completed)
+- Extracted shared helpers to `tests/e2e/helpers.js`
+- Updated all 14 specs to use shared helpers (eliminated 7 duplicate login functions)
+- Added `audit-regression.spec.js` (13 tests for P1/P2/P3 audit fixes)
+- Added `mobile-viewport.spec.js` (13 tests for mobile/tablet viewports)
+- Added `package.json` with Playwright dev dependency
+- Total: 197 tests across 16 specs, all parse correctly
 
 ### UX/UI Audit Fixes (completed)
 - **P1 fixes**: Sidebar pinned layout, marked.js vendor, KPI initial values

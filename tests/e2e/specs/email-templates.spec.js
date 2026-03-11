@@ -8,14 +8,7 @@ const { test, expect } = require('@playwright/test');
  * variable insertion, and save functionality.
  */
 
-const ADMIN_KEY = 'admin-key-2026-secret';
-
-async function loginAsAdmin(page) {
-  await page.goto('/login.html');
-  await page.fill('input[type="password"], input[name="api_key"]', ADMIN_KEY);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/admin|meetings|operator/, { timeout: 10000 });
-}
+const { loginAsAdmin } = require('../helpers');
 
 // ---------------------------------------------------------------------------
 // Email Templates Page

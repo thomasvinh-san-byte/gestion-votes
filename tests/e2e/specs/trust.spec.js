@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { loginAsOperator, E2E_MEETING_ID } = require('../helpers');
 
 /**
  * Trust & Anomaly Detection E2E Tests
@@ -7,16 +8,6 @@ const { test, expect } = require('@playwright/test');
  * Tests the trust dashboard: anomaly detection, integrity checks,
  * device management, and security monitoring.
  */
-
-const OPERATOR_KEY = 'operator-key-2026-secret';
-const E2E_MEETING_ID = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
-
-async function loginAsOperator(page) {
-  await page.goto('/login.html');
-  await page.fill('input[type="password"], input[name="api_key"]', OPERATOR_KEY);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/meetings|operator/, { timeout: 10000 });
-}
 
 // ---------------------------------------------------------------------------
 // Trust Dashboard
