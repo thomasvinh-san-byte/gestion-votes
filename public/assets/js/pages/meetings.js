@@ -495,7 +495,8 @@
       errorMsg: 'Impossible de charger les séances',
       action: async function () {
         const { body } = await api('/api/v1/meetings_index.php');
-        allMeetings = body?.data?.items || [];
+        if (!body || !body.ok) throw new Error(body?.error || 'Erreur serveur');
+        allMeetings = body.data?.items || [];
         updateStats(allMeetings);
         renderMeetings(allMeetings);
 
