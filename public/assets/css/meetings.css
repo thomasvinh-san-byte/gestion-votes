@@ -18,41 +18,38 @@
   margin-bottom: 1.5rem;
 }
 
-.stat-item {
+/* Stat overrides: horizontal bar layout (base in design-system.css) */
+.meetings-main .stat-item {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 0.875rem 0.5rem;
-  background: var(--color-surface);
-  text-align: center;
+  border: none;
+  border-radius: 0;
   min-width: 0;
 }
 
-.stat-value {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+.meetings-main .stat-value {
+  font-family: var(--font-mono);
   font-size: 1.5rem;
-  font-weight: 700;
   line-height: 1;
-  color: var(--color-text);
 }
 
-.stat-label {
+.meetings-main .stat-label {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  margin-top: 0.25rem;
+  font-weight: var(--font-semibold);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
 }
 
-.stat-item.live .stat-value { color: var(--color-danger); }
-.stat-item.draft .stat-value { color: var(--color-text-muted); }
+.meetings-main .stat-item.live .stat-value { color: var(--color-danger); }
+.meetings-main .stat-item.draft .stat-value { color: var(--color-text-muted); }
 
 /* =============================================================================
    PAGE CONTENT
@@ -705,7 +702,7 @@
   .stats-bar {
     flex-wrap: wrap;
   }
-  .stat-item {
+  .meetings-main .stat-item {
     flex: 1 1 30%;
   }
   .create-form {

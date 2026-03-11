@@ -151,27 +151,65 @@
     msg.classList.add('visible');
   });
 
-  // Auto-check : si deja connecte ou mode demo, rediriger selon le role
+  // Show demo credentials hint
+  function showDemoHint() {
+    var card = document.querySelector('.login-card');
+    if (!card || document.getElementById('demoHint')) return;
+    var hint = document.createElement('div');
+    hint.id = 'demoHint';
+    hint.style.cssText = 'margin-top:16px;padding:12px 16px;background:var(--color-bg-subtle,#f5f3ee);border:1px solid var(--color-border,#d5dbd2);border-radius:8px;font-size:13px;line-height:1.5;';
+    var accounts = [
+      { role: 'Admin', email: 'admin@ag-vote.local', pass: 'Admin2026!' },
+      { role: 'Opérateur', email: 'operator@ag-vote.local', pass: 'Operator2026!' },
+      { role: 'Auditeur', email: 'auditor@ag-vote.local', pass: 'Auditor2026!' },
+      { role: 'Votant', email: 'votant@ag-vote.local', pass: 'Votant2026!' }
+    ];
+    hint.innerHTML = '<div style="font-weight:600;margin-bottom:8px;">Comptes de démonstration</div>' +
+      accounts.map(function(a) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;">' +
+          '<span><strong>' + a.role + '</strong> — <code style="font-size:12px;">' + a.email + '</code></span>' +
+          '<button type="button" class="demo-fill-btn" data-email="' + a.email + '" data-pass="' + a.pass + '" ' +
+          'style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid var(--color-border,#d5dbd2);background:var(--color-surface,#fff);cursor:pointer;">Utiliser</button>' +
+          '</div>';
+      }).join('');
+    card.appendChild(hint);
+    hint.addEventListener('click', function(e) {
+      var btn = e.target.closest('.demo-fill-btn');
+      if (!btn) return;
+      emailInput.value = btn.getAttribute('data-email');
+      passwordInput.value = btn.getAttribute('data-pass');
+      emailInput.focus();
+    });
+  }
+
+  // Auto-check : si deja connecte, rediriger selon le role
   api('/api/v1/whoami.php')
     .then(function(res) {
       var data = res.body;
-      var authEnabled = data.data ? data.data.auth_enabled : data.auth_enabled;
-      var user = (data.data && data.data.user) ? data.data.user : null;
+      var d = data.data || data;
+      var authEnabled = d.auth_enabled;
+      var appEnv = d.app_env;
+      var user = d.user || null;
 
       // Mode demo (auth desactivee) : rediriger directement sans login
       if (data.ok && authEnabled === false && user) {
         showSuccess('Mode démonstration — ' + (user.name || 'Demo') + '. Redirection...');
         setTimeout(function() {
-          var mr = (data.data && data.data.meeting_roles) || [];
+          var mr = d.meeting_roles || [];
           redirectByRole(user, mr);
         }, 600);
         return;
       }
 
+      // Show demo accounts hint when in demo env
+      if (appEnv === 'demo' || appEnv === 'development') {
+        showDemoHint();
+      }
+
       if (data.ok && user) {
         showSuccess('Déjà connecté : ' + (user.name || user.email) + ' (' + (roleLabel[user.role] || user.role) + '). Redirection...');
         setTimeout(function() {
-          var mr = (data.data && data.data.meeting_roles) || [];
+          var mr = d.meeting_roles || [];
           redirectByRole(user, mr);
         }, 800);
       }

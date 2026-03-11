@@ -134,7 +134,8 @@
     });
     if (!confirmed) return;
     try {
-      await api('/api/v1/attendances_bulk.php', { meeting_id: O.currentMeetingId, mode: 'present' });
+      var { body } = await api('/api/v1/attendances_bulk.php', { meeting_id: O.currentMeetingId, mode: 'present' });
+      if (!body?.ok) { setNotif('error', body?.error || 'Erreur lors du marquage'); return; }
       O.attendanceCache.forEach(m => m.mode = 'present');
       renderAttendance();
       if (O.fn.updateQuickStats) O.fn.updateQuickStats();

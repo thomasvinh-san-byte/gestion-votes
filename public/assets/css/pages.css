@@ -15,6 +15,7 @@
 
 .app-main.meetings-main {
   padding: 0;
+  padding-left: calc(var(--sidebar-rail) + 22px);
 }
 
 /* =============================================================================
@@ -935,6 +936,10 @@
    ============================================================================= */
 
 @media (max-width: 768px) {
+  .app-main.meetings-main {
+    padding-left: 0;
+  }
+
   .settings-grid {
     grid-template-columns: 1fr;
   }

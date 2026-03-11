@@ -209,7 +209,41 @@ final class ImportController extends AbstractController {
         $dryRun = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $maxProxiesPerReceiver = (int) config('proxy_max_per_receiver', 3);
 
-        [$headers, $rows] = $this->readImportFile('csv');
+        // Support file upload OR csv_content (FormData text field)
+        $file = api_file('file', 'csv_file');
+        $csvContent = $in['csv_content'] ?? null;
+
+        if ($file && $file['error'] === UPLOAD_ERR_OK) {
+            $validation = ImportService::validateUploadedFile($file, 'csv');
+            if (!$validation['ok']) {
+                api_fail('invalid_file', 400, ['detail' => $validation['error']]);
+            }
+            $result = ImportService::readCsvFile($file['tmp_name']);
+            if ($result['error']) {
+                api_fail('file_read_error', 400, ['detail' => $result['error']]);
+            }
+            $headers = $result['headers'];
+            $rows = $result['rows'];
+        } elseif ($csvContent && is_string($csvContent) && strlen($csvContent) > 0) {
+            if (strlen($csvContent) > 5 * 1024 * 1024) {
+                api_fail('file_too_large', 400, ['detail' => 'Max 5 MB.']);
+            }
+            $tmpPath = tempnam(sys_get_temp_dir(), 'csv_');
+            chmod($tmpPath, 0600);
+            file_put_contents($tmpPath, $csvContent);
+            try {
+                $result = ImportService::readCsvFile($tmpPath);
+            } finally {
+                unlink($tmpPath);
+            }
+            if ($result['error']) {
+                api_fail('file_read_error', 400, ['detail' => $result['error']]);
+            }
+            $headers = $result['headers'];
+            $rows = $result['rows'];
+        } else {
+            api_fail('upload_error', 400, ['detail' => 'Fichier CSV manquant. Envoyez un fichier (file/csv_file) ou le contenu texte (csv_content).']);
+        }
 
         $colIndex = ImportService::mapColumns($headers, ImportService::getProxiesColumnMap());
         $hasGiver = isset($colIndex['giver_name']) || isset($colIndex['giver_email']);
@@ -245,9 +279,9 @@ final class ImportController extends AbstractController {
         }, 'import_failed');
 
         if (!$dryRun && $imported > 0) {
-            $file = api_file('file', 'csv_file');
+            $filename = $file ? ($file['name'] ?? 'upload.csv') : 'csv_content';
             audit_log('proxies_import', 'proxy', $meetingId, [
-                'imported' => $imported, 'skipped' => $skipped, 'filename' => $file['name'],
+                'imported' => $imported, 'skipped' => $skipped, 'filename' => $filename,
             ], $meetingId);
         }
 

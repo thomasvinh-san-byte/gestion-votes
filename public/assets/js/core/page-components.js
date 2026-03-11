@@ -396,7 +396,7 @@
       // Build HTML
       const today = new Date();
       const todayKey = today.toISOString().slice(0, 10);
-      const esc = window.escapeHtml || (s => s);
+      const esc = window.escapeHtml || (s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
 
       let html = CalendarView.DAYS_FR.map(d =>
         `<div class="calendar-day-header">${d}</div>`
@@ -668,7 +668,7 @@
 
       // Render
       if (items.length === 0 && this.emptyState) {
-        const esc = window.escapeHtml || (s => s);
+        const esc = window.escapeHtml || (s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
         this.container.innerHTML = `
           <div class="empty-state" style="grid-column: 1 / -1;">
             <div class="empty-state-icon">

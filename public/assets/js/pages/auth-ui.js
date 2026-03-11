@@ -408,11 +408,20 @@
       .then(function (res) {
         if (res.body && res.body.ok && res.body.data && res.body.data.csrf_token) {
           var token = res.body.data.csrf_token;
+          // Create or update meta tag
           var meta = document.querySelector('meta[name="csrf-token"]');
-          if (meta) meta.setAttribute('content', token);
-          if (window.CSRF) window.CSRF.token = token;
+          if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'csrf-token';
+            document.head.appendChild(meta);
+          }
+          meta.setAttribute('content', token);
+          // Create or update window.CSRF
+          if (!window.CSRF) window.CSRF = {};
+          window.CSRF.token = token;
         }
-      });
+      })
+      .catch(function () { /* CSRF refresh is best-effort */ });
   }
 
   // =========================================================================
@@ -463,6 +472,9 @@
           } else {
             warn.textContent = 'Session expir\u00e9e. Veuillez vous reconnecter.';
           }
+        })
+        .catch(function () {
+          warn.textContent = 'Impossible de prolonger la session.';
         });
     });
   }
@@ -526,9 +538,10 @@
     filterSidebar();
     observeSidebarInclusion();
 
-    // Session expiry warning
+    // Session expiry warning + CSRF bootstrap
     if (window.Auth.user) {
       scheduleSessionWarning();
+      refreshCsrfToken();
     }
 
     _resolveReady();

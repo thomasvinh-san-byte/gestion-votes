@@ -2271,6 +2271,7 @@
 
 [data-page-role="operator"] .app-main {
   padding: 0;
+  padding-left: calc(var(--sidebar-rail) + 22px);
   background: var(--color-bg);
 }
 

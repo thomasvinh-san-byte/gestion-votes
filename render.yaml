@@ -51,11 +51,11 @@ services:
       # Secret for HMAC operations (API keys, tokens). Safe demo value — not a real secret.
       - key: APP_SECRET
         value: "demo-render-secret-not-for-production-use-only-for-public-demo-64c"
-      # Auth and CSRF off for demo — anyone can explore without credentials.
+      # Auth and CSRF on — demo uses same auth as production (login: admin@ag-vote.local / Admin2026!)
       - key: APP_AUTH_ENABLED
-        value: "0"
+        value: "1"
       - key: CSRF_ENABLED
-        value: "0"
+        value: "1"
       # Rate limiting stays ON even in demo mode to prevent abuse.
       - key: RATE_LIMIT_ENABLED
         value: "1"

@@ -35,12 +35,14 @@
     }
     let COLORS = getCOLORS();
     // Refresh colors and rebuild charts when theme changes
-    new MutationObserver(() => {
+    var _themeMO = new MutationObserver(() => {
       COLORS = getCOLORS();
       loadAllData();
-    }).observe(
+    });
+    _themeMO.observe(
       document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }
     );
+    window.addEventListener('pagehide', () => _themeMO.disconnect(), { once: true });
 
     // Period buttons
     document.querySelectorAll('.period-btn').forEach(btn => {

@@ -45,6 +45,7 @@
 
 .app-main.doc-main {
   padding: 0;
+  padding-left: calc(var(--sidebar-rail) + 22px);
 }
 
 .doc-layout {
@@ -429,6 +430,39 @@
 }
 
 /* =============================================================================
+   CODE BLOCK COPY BUTTON
+   ============================================================================= */
+
+.code-block-wrapper {
+  position: relative;
+}
+
+.code-copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.7rem;
+  font-family: inherit;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duration-fast);
+}
+
+.code-block-wrapper:hover .code-copy-btn {
+  opacity: 1;
+}
+
+.code-copy-btn:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* =============================================================================
    DARK MODE ADJUSTMENTS
    ============================================================================= */
 
@@ -456,6 +490,10 @@
 }
 
 @media (max-width: 768px) {
+  .app-main.doc-main {
+    padding-left: 0;
+  }
+
   .doc-layout {
     grid-template-columns: 1fr;
   }

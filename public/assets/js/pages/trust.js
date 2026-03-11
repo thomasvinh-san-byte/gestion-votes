@@ -395,7 +395,7 @@
       container: container,
       errorMsg: 'Impossible de charger le journal d\u2019audit',
       action: async function () {
-        var res = await api('/api/v1/audit_log.php?meeting_id=' + meetingId + '&limit=50');
+        var res = await api('/api/v1/audit_log.php?meeting_id=' + encodeURIComponent(meetingId) + '&limit=50');
         var body = res.body;
         if (body && body.ok && body.data && Array.isArray(body.data.items)) {
           currentAuditEntries = body.data.items;

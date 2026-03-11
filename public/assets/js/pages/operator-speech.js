@@ -123,10 +123,11 @@
   async function grantSpeech(memberId) {
     if (!Utils.isValidUUID(memberId)) { setNotif('error', 'ID membre invalide'); return; }
     try {
-      await api('/api/v1/speech_grant.php', {
+      var { body } = await api('/api/v1/speech_grant.php', {
         meeting_id: O.currentMeetingId,
         member_id: memberId
       });
+      if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
       setNotif('success', 'Parole accordée');
       loadSpeechQueue();
     } catch (err) {
@@ -136,7 +137,8 @@
 
   async function nextSpeaker() {
     try {
-      await api('/api/v1/speech_next.php', { meeting_id: O.currentMeetingId });
+      var { body } = await api('/api/v1/speech_next.php', { meeting_id: O.currentMeetingId });
+      if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
       setNotif('success', 'Orateur suivant');
       loadSpeechQueue();
     } catch (err) {
@@ -154,7 +156,8 @@
     });
     if (!ok) return;
     try {
-      await api('/api/v1/speech_end.php', { meeting_id: O.currentMeetingId });
+      var { body } = await api('/api/v1/speech_end.php', { meeting_id: O.currentMeetingId });
+      if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
       setNotif('success', 'Parole terminée');
       loadSpeechQueue();
     } catch (err) {
@@ -165,10 +168,11 @@
   async function cancelSpeechRequest(requestId) {
     if (!Utils.isValidUUID(requestId)) { setNotif('error', 'ID demande invalide'); return; }
     try {
-      await api('/api/v1/speech_cancel.php', {
+      var { body } = await api('/api/v1/speech_cancel.php', {
         meeting_id: O.currentMeetingId,
         request_id: requestId
       });
+      if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
       setNotif('success', 'Demande retirée');
       loadSpeechQueue();
     } catch (err) {
@@ -185,7 +189,8 @@
     });
     if (!confirmed) return;
     try {
-      await api('/api/v1/speech_clear.php', { meeting_id: O.currentMeetingId });
+      var { body } = await api('/api/v1/speech_clear.php', { meeting_id: O.currentMeetingId });
+      if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
       setNotif('success', 'Historique vidé');
       loadSpeechQueue();
     } catch (err) {
@@ -236,10 +241,11 @@
         if (!Utils.isValidUUID(memberId)) { setNotif('error', 'ID membre invalide'); return; }
         Shared.btnLoading(btnConfirm, true);
         try {
-          await api('/api/v1/speech_request.php', {
+          var { body } = await api('/api/v1/speech_request.php', {
             meeting_id: O.currentMeetingId,
             member_id: memberId
           });
+          if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
           setNotif('success', 'Membre ajouté à la file');
           O.closeModal(modal);
           loadSpeechQueue();

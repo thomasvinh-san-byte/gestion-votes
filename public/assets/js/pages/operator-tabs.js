@@ -737,11 +737,18 @@ window.OpS = { fn: {} };
       btnConfirm.textContent = 'Ajout...';
 
       try {
-        await api('/api/v1/members.php', {
+        var { body } = await api('/api/v1/members.php', {
           action: 'create',
           full_name: name,
           email: email || null
         });
+        if (!body?.ok) {
+          setNotif('error', body?.error || 'Erreur lors de l\'ajout');
+          btnConfirm.disabled = false;
+          btnCancel.disabled = false;
+          btnConfirm.textContent = originalText;
+          return;
+        }
         setNotif('success', 'Membre ajouté');
         closeModal(modal);
         loadMembers();
@@ -1088,12 +1095,13 @@ window.OpS = { fn: {} };
     if (!confirmed) return;
     btn.disabled = true;
     try {
-      await api('/api/v1/admin_meeting_roles.php', {
+      var { body } = await api('/api/v1/admin_meeting_roles.php', {
         action: 'revoke',
         meeting_id: currentMeetingId,
         user_id: userId,
         role: 'assessor'
       });
+      if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
       setNotif('success', 'Assesseur retiré');
       loadRoles();
     } catch (err) {
@@ -1293,7 +1301,7 @@ window.OpS = { fn: {} };
       container: container,
       errorMsg: 'Impossible de charger les proc\u00e9dures d\u2019urgence',
       action: async function () {
-        var url = '/api/v1/emergency_procedures.php?audience=operator&meeting_id=' + currentMeetingId;
+        var url = '/api/v1/emergency_procedures.php?audience=operator&meeting_id=' + encodeURIComponent(currentMeetingId);
         var res = await api(url);
         var d = res.body;
         if (!d || !d.ok) throw new Error(d && d.error || 'Erreur');
@@ -1333,9 +1341,11 @@ window.OpS = { fn: {} };
               procedure_code: code,
               item_index: index,
               checked: cb.checked ? 1 : 0
-            }).catch(function () {
-              setNotif('error', 'Erreur de mise \u00e0 jour');
-              cb.checked = !cb.checked;
+            }).then(function (res) {
+              if (!res.body?.ok) {
+                setNotif('error', res.body?.error || 'Erreur de mise à jour');
+                cb.checked = !cb.checked;
+              }
             });
           });
         });
@@ -1507,7 +1517,8 @@ window.OpS = { fn: {} };
     });
     if (reason === null) return;
     try {
-      await api('/api/v1/device_block.php', { device_id: deviceId, reason });
+      var { body } = await api('/api/v1/device_block.php', { device_id: deviceId, reason });
+      if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
       setNotif('success', 'Appareil bloqué');
       loadDevicesModal(parentModal);
       loadDevices();
@@ -1523,7 +1534,8 @@ window.OpS = { fn: {} };
     });
     if (!ok) return;
     try {
-      await api('/api/v1/device_unblock.php', { device_id: deviceId });
+      var { body } = await api('/api/v1/device_unblock.php', { device_id: deviceId });
+      if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
       setNotif('success', 'Appareil débloqué');
       loadDevicesModal(modal);
       loadDevices();
@@ -1539,7 +1551,8 @@ window.OpS = { fn: {} };
     });
     if (!ok) return;
     try {
-      await api('/api/v1/device_kick.php', { device_id: deviceId, message: 'Reconnexion demandée par opérateur' });
+      var { body } = await api('/api/v1/device_kick.php', { device_id: deviceId, message: 'Reconnexion demandée par opérateur' });
+      if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
       setNotif('success', 'Demande de reconnexion envoyée');
     } catch (err) {
       setNotif('error', err.message);
@@ -1783,14 +1796,15 @@ window.OpS = { fn: {} };
         })
       ]);
 
-      // Check for partial failures
-      var failures = results.filter(function(r) { return r.status === 'rejected'; });
-      if (failures.length > 0) {
-        var errMsg = failures.map(function(r) { return r.reason?.message || 'Erreur inconnue'; }).join(', ');
-        if (failures.length === results.length) {
+      // Check for API-level failures (api() never rejects, check body.ok)
+      var apiFailures = results
+        .map(function(r) { return r.value; })
+        .filter(function(r) { return !r?.body?.ok; });
+      if (apiFailures.length > 0) {
+        var errMsg = apiFailures.map(function(r) { return r?.body?.error || 'Erreur inconnue'; }).join(', ');
+        if (apiFailures.length === results.length) {
           throw new Error(errMsg);
         }
-        // Partial success — warn but continue
         setNotif('warning', 'Sauvegarde partielle : ' + errMsg);
       }
 
@@ -1804,7 +1818,7 @@ window.OpS = { fn: {} };
       updateHeader(currentMeeting);
       loadStatusChecklist();
 
-      if (failures.length === 0) {
+      if (apiFailures.length === 0) {
         setNotif('success', 'Paramètres enregistrés');
       }
 

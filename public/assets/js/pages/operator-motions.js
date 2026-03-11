@@ -180,7 +180,8 @@
         });
         if (!ok) return;
         try {
-          await api('/api/v1/motion_delete.php', { motion_id: motionId, meeting_id: O.currentMeetingId });
+          var { body } = await api('/api/v1/motion_delete.php', { motion_id: motionId, meeting_id: O.currentMeetingId });
+          if (!body?.ok) { setNotif('error', body?.error || 'Erreur de suppression'); return; }
           setNotif('success', 'Résolution supprimée');
           await loadResolutions();
           await O.fn.loadStatusChecklist();

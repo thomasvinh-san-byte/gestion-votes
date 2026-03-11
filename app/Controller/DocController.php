@@ -12,27 +12,31 @@ use Parsedown;
  */
 final class DocController extends AbstractController {
     private const CATEGORIES = [
-        'Utilisateur' => ['FAQ', 'UTILISATION_LIVE', 'RECETTE_DEMO', 'ANALYTICS_ETHICS'],
-        'Installation' => ['INSTALL_MAC', 'DOCKER_INSTALL', 'dev/INSTALLATION'],
-        'Technique' => ['dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
-        'Conformité' => ['dev/MIGRATION', 'dev/WEB_COMPONENTS'],
+        'Utilisateur' => ['README', 'FAQ', 'GUIDE_FONCTIONNEL', 'UTILISATION_LIVE', 'RECETTE_DEMO'],
+        'Installation' => ['INSTALL_MAC', 'DOCKER_INSTALL', 'DEPLOIEMENT_DOCKER', 'DEPLOIEMENT_RENDER', 'GUIDE_TEST_LOCAL', 'dev/INSTALLATION'],
+        'Technique' => ['dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS', 'dev/WEB_COMPONENTS'],
+        'Conformité' => ['dev/ANALYTICS_ETHICS', 'dev/cahier_des_charges'],
     ];
 
     private const DOC_NAMES = [
+        'README' => 'Introduction',
         'FAQ' => 'FAQ',
+        'GUIDE_FONCTIONNEL' => 'Guide fonctionnel',
         'UTILISATION_LIVE' => 'Guide opérateur',
         'RECETTE_DEMO' => 'Démo guidée',
-        'ANALYTICS_ETHICS' => 'Éthique & RGPD',
-        'README' => 'Introduction',
         'INSTALL_MAC' => 'Installation macOS',
         'DOCKER_INSTALL' => 'Installation Docker (Linux)',
+        'DEPLOIEMENT_DOCKER' => 'Déploiement Docker',
+        'DEPLOIEMENT_RENDER' => 'Déploiement Render',
+        'GUIDE_TEST_LOCAL' => 'Tests en local',
         'dev/INSTALLATION' => 'Installation (développeur)',
         'dev/ARCHITECTURE' => 'Architecture',
         'dev/API' => 'Référence API',
         'dev/SECURITY' => 'Sécurité',
         'dev/TESTS' => 'Tests',
-        'dev/MIGRATION' => 'Migrations',
         'dev/WEB_COMPONENTS' => 'Web Components',
+        'dev/ANALYTICS_ETHICS' => 'Éthique & RGPD',
+        'dev/cahier_des_charges' => 'Cahier des charges',
     ];
 
     /**
@@ -41,20 +45,37 @@ final class DocController extends AbstractController {
     public function index(): void {
         $docsRoot = dirname(__DIR__, 2) . '/docs';
 
+        // Build index from CATEGORIES — only include docs that exist on disk
         $result = [];
+        $listed = [];
         foreach (self::CATEGORIES as $catName => $docs) {
             $items = [];
             foreach ($docs as $doc) {
                 if (file_exists($docsRoot . '/' . $doc . '.md')) {
                     $items[] = [
                         'page' => $doc,
-                        'label' => self::DOC_NAMES[$doc] ?? basename($doc),
+                        'label' => self::DOC_NAMES[$doc] ?? self::humanize($doc),
                     ];
                 }
+                $listed[$doc] = true;
             }
             if ($items) {
                 $result[] = ['category' => $catName, 'items' => $items];
             }
+        }
+
+        // Auto-discover docs not in CATEGORIES (prevent new .md files from being invisible)
+        $extras = [];
+        foreach (self::discoverDocs($docsRoot) as $doc) {
+            if (!isset($listed[$doc])) {
+                $extras[] = [
+                    'page' => $doc,
+                    'label' => self::DOC_NAMES[$doc] ?? self::humanize($doc),
+                ];
+            }
+        }
+        if ($extras) {
+            $result[] = ['category' => 'Autres', 'items' => $extras];
         }
 
         api_ok($result);
@@ -139,12 +160,7 @@ final class DocController extends AbstractController {
             }
         }
 
-        // View categories for sidebar (subset matching original doc.php)
-        $categories = [
-            'Utilisateur' => ['FAQ', 'UTILISATION_LIVE', 'RECETTE_DEMO', 'ANALYTICS_ETHICS'],
-            'Technique' => ['dev/INSTALLATION', 'dev/ARCHITECTURE', 'dev/API', 'dev/SECURITY', 'dev/TESTS'],
-            'Conformité' => ['dev/MIGRATION', 'dev/WEB_COMPONENTS'],
-        ];
+        $categories = self::CATEGORIES;
 
         $statusCode = ($title === 'Document introuvable') ? 404 : 200;
 
@@ -157,5 +173,33 @@ final class DocController extends AbstractController {
             'docNames' => self::DOC_NAMES,
             'docsRoot' => $docsRoot,
         ], $statusCode);
+    }
+
+    /**
+     * Scan /docs for .md files, return page keys like 'FAQ' or 'dev/API'.
+     * @return string[]
+     */
+    private static function discoverDocs(string $docsRoot): array {
+        $docs = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($docsRoot, \FilesystemIterator::SKIP_DOTS),
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile() && strtolower($file->getExtension()) === 'md') {
+                $rel = substr($file->getPathname(), strlen($docsRoot) + 1);
+                $rel = str_replace('\\', '/', $rel);
+                $docs[] = preg_replace('/\.md$/i', '', $rel);
+            }
+        }
+        sort($docs);
+        return $docs;
+    }
+
+    /**
+     * Derive a human-readable label from a doc page key.
+     */
+    private static function humanize(string $page): string {
+        $name = basename($page);
+        return ucfirst(str_replace('_', ' ', strtolower($name)));
     }
 }

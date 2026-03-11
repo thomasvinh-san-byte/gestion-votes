@@ -495,38 +495,49 @@ final class MeetingWorkflowController extends AbstractController {
     public function resetDemo(): void {
         $in = api_request('POST');
 
-        $meetingId = api_require_uuid($in, 'meeting_id');
-
         $confirm = (string) ($in['confirm'] ?? '');
         if ($confirm !== 'RESET') {
             api_fail('missing_confirm', 400, ['detail' => 'Envoyez {confirm:"RESET"} pour éviter les resets accidentels.']);
         }
 
-        $mt = $this->repo()->meeting()->findByIdForTenant($meetingId, api_current_tenant_id());
-        if (!$mt) {
-            api_fail('meeting_not_found', 404);
-        }
-        if (!empty($mt['validated_at'])) {
-            api_fail('meeting_validated', 409, ['detail' => 'Séance validée : reset interdit (séance figée).']);
-        }
-
         $tenantId = api_current_tenant_id();
+        $meetingId = trim((string) ($in['meeting_id'] ?? ''));
 
-        api_transaction(function () use ($meetingId, $tenantId, $mt) {
-            $this->repo()->ballot()->deleteByMeeting($meetingId, $tenantId);
-            $this->repo()->voteToken()->deleteByMeetingMotions($meetingId, $tenantId);
-            $this->repo()->manualAction()->deleteByMeeting($meetingId, $tenantId);
+        if ($meetingId !== '' && api_is_uuid($meetingId)) {
+            // Single-meeting reset
+            $meetings = [];
+            $mt = $this->repo()->meeting()->findByIdForTenant($meetingId, $tenantId);
+            if (!$mt) {
+                api_fail('meeting_not_found', 404);
+            }
+            if (!empty($mt['validated_at'])) {
+                api_fail('meeting_validated', 409, ['detail' => 'Séance validée : reset interdit (séance figée).']);
+            }
+            $meetings[] = $mt;
+        } else {
+            // Global reset — all non-validated meetings for this tenant
+            $all = $this->repo()->meeting()->listByTenant($tenantId);
+            $meetings = array_filter($all, fn($m) => empty($m['validated_at']));
+        }
 
-            $this->repo()->motion()->resetStatesForMeeting($meetingId, $tenantId);
-            $this->repo()->meeting()->resetForDemo($meetingId, $tenantId);
+        $resetCount = 0;
+        api_transaction(function () use ($meetings, $tenantId, &$resetCount) {
+            foreach ($meetings as $mt) {
+                $mid = $mt['id'];
+                $this->repo()->ballot()->deleteByMeeting($mid, $tenantId);
+                $this->repo()->voteToken()->deleteByMeetingMotions($mid, $tenantId);
+                $this->repo()->manualAction()->deleteByMeeting($mid, $tenantId);
+                $this->repo()->motion()->resetStatesForMeeting($mid, $tenantId);
+                $this->repo()->meeting()->resetForDemo($mid, $tenantId);
 
-            // Audit log inside the transaction so it can't be lost
-            audit_log('meeting.reset_demo', 'meeting', $meetingId, [
-                'title' => $mt['title'] ?? '',
-                'reset_by' => api_current_user_id(),
-            ], $meetingId);
+                audit_log('meeting.reset_demo', 'meeting', $mid, [
+                    'title' => $mt['title'] ?? '',
+                    'reset_by' => api_current_user_id(),
+                ], $mid);
+                $resetCount++;
+            }
         });
 
-        api_ok(['ok' => true, 'meeting_id' => $meetingId]);
+        api_ok(['ok' => true, 'reset_count' => $resetCount]);
     }
 }
