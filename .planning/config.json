@@ -1,0 +1,14 @@
+{
+  "workflow_mode": "interactive",
+  "gates": {
+    "researcher": true,
+    "plan_checker": true,
+    "verifier": true
+  },
+  "model_profile": "balanced",
+  "planning": {
+    "commit_docs": true,
+    "search_gitignored": false
+  },
+  "milestone": "v1.1"
+}
