@@ -28,7 +28,7 @@ services:
       # --- Security (auth+CSRF on by default, even in demo) ---
       APP_AUTH_ENABLED: "${APP_AUTH_ENABLED:-1}"
       CSRF_ENABLED: "${CSRF_ENABLED:-1}"
-      RATE_LIMIT_ENABLED: "${RATE_LIMIT_ENABLED:-0}"
+      RATE_LIMIT_ENABLED: "${RATE_LIMIT_ENABLED:-1}"
       # --- Database ---
       DB_DSN: "pgsql:host=db;port=5432;dbname=${DB_DATABASE:-vote_app}"
       DB_HOST: db
