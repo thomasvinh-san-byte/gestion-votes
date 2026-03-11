@@ -89,6 +89,7 @@ class AgConfirm extends HTMLElement {
           background: ${v.color}; border-color: ${v.color}; color: #fff;
         }
         .btn-confirm:hover { opacity: .9; background: ${v.color}; }
+        .btn:focus-visible { outline: 2px solid var(--color-primary, #1650E0); outline-offset: 2px; }
       </style>
       <div class="overlay-backdrop">
         <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="cd-title" aria-describedby="cd-msg">
@@ -113,7 +114,21 @@ class AgConfirm extends HTMLElement {
       if (e.target.classList.contains('overlay-backdrop')) this._finish(false);
     });
 
-    this._keyHandler = (e) => { if (e.key === 'Escape') this._finish(false); };
+    this._keyHandler = (e) => {
+      if (e.key === 'Escape') this._finish(false);
+      if (e.key === 'Tab') {
+        const focusable = [...this.shadowRoot.querySelectorAll('button')];
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === this && this.shadowRoot.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && this.shadowRoot.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
     document.addEventListener('keydown', this._keyHandler);
 
     this.shadowRoot.querySelector('.btn-confirm').focus();
