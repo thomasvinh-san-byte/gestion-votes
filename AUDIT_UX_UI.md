@@ -382,19 +382,19 @@ La banniere orange "Votre session expire dans 2:00" avec boutons "Prolonger / De
 
 | # | Page | Action |
 |---|------|--------|
-| 1 | Toutes | Corriger le `padding-left` de `.app-main` pour eviter la troncature systématique du contenu derriere la sidebar rail |
-| 2 | Docs | Vendoriser `marked.min.js` en local (fallback CDN) |
-| 3 | Members | Corriger l'affichage des stats (0 ACTIFS alors qu'il y a 12 membres) — bug de chargement async ou de scope |
+| ~~1~~ | ~~Toutes~~ | ~~Corriger le padding-left de .app-main pour eviter la troncature du contenu derriere la sidebar~~ CORRIGE (CSS `.app-sidebar.pinned ~ .app-main` rule) |
+| ~~2~~ | ~~Docs~~ | ~~Vendoriser marked.min.js en local~~ CORRIGE (vendor/marked.min.js) |
+| ~~3~~ | ~~Members~~ | ~~Corriger l'affichage des stats~~ CORRIGE (KPIs initiaux a mdash au lieu de 0) |
 
 ### Priorite 2 — UX importante
 
 | # | Page | Action |
 |---|------|--------|
-| 4 | Admin/Meetings | Rendre la banniere "Bienvenue sur AG-VOTE" dismissable de facon permanente (localStorage) |
+| ~~4~~ | ~~Admin/Meetings~~ | ~~Rendre la banniere Bienvenue dismissable de facon permanente~~ CORRIGE (localStorage meetings) |
 | ~~5~~ | ~~Operator/Meetings~~ | ~~Empecher l'ouverture automatique de la search modal~~ CORRIGE |
-| 6 | Trust | Fermer le modal "Detail de l'evenement" si tous les champs sont vides |
-| 7 | Toutes | Distinguer visuellement "—" (pas de donnees) vs "0" (zero reel) dans les stat-cards |
-| 8 | Report | Ajouter un empty state dans la zone de preview PV |
+| ~~6~~ | ~~Trust~~ | ~~Wiring du modal Detail de l'evenement~~ CORRIGE (click row + close + overlay dismiss) |
+| ~~7~~ | ~~Toutes~~ | ~~Distinguer — vs 0 dans les stat-cards~~ CORRIGE (meetings + members init a mdash) |
+| ~~8~~ | ~~Report~~ | ~~Ajouter un empty state dans la zone de preview PV~~ CORRIGE |
 
 ### Priorite 3 — Polish / Ameliorations
 

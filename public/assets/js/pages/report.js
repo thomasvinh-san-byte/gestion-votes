@@ -14,8 +14,12 @@
       const reportUrl = `/api/v1/meeting_report.php?meeting_id=${mid}`;
       const pdfUrl = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${mid}`;
 
-      // Set iframe src
-      document.getElementById('pvFrame').src = reportUrl;
+      // Set iframe src and show it (hide empty state)
+      var pvFrame = document.getElementById('pvFrame');
+      var pvEmpty = document.getElementById('pvEmptyState');
+      pvFrame.src = reportUrl;
+      pvFrame.style.display = '';
+      if (pvEmpty) pvEmpty.style.display = 'none';
 
       // Set links
       document.getElementById('btnExportPDF').href = pdfUrl;

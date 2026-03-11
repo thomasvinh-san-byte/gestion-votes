@@ -41,6 +41,28 @@
   const meetingsCount = document.getElementById('meetingsCount');
 
   // ==========================================================================
+  // ONBOARDING BANNER — persistent dismiss via localStorage
+  // ==========================================================================
+
+  (function initOnboardingBanner() {
+    var banner = document.getElementById('onboardingBanner');
+    if (!banner) return;
+    var KEY = 'ag_meetings_ob_dismissed';
+    if (localStorage.getItem(KEY) === '1') {
+      banner.hidden = true;
+      return;
+    }
+    var dismiss = function() {
+      banner.hidden = true;
+      localStorage.setItem(KEY, '1');
+    };
+    var btnClose = document.getElementById('btnCloseOnboarding');
+    var btnDismiss = document.getElementById('btnDismissOnboarding');
+    if (btnClose) btnClose.addEventListener('click', dismiss);
+    if (btnDismiss) btnDismiss.addEventListener('click', dismiss);
+  })();
+
+  // ==========================================================================
   // STATS
   // ==========================================================================
 

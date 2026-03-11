@@ -633,6 +633,10 @@ h4, .h4 {
 .app-sidebar.pinned {
   box-shadow: 4px 0 16px rgba(0, 0, 0, .12);
 }
+/* When sidebar is pinned, push main content to avoid overlap (CSS fallback for JS) */
+.app-sidebar.pinned ~ .app-main {
+  padding-left: calc(var(--sidebar-expanded) + 22px);
+}
 
 /* Labels appear on hover/pin — fade only, no width change */
 .app-sidebar:hover .nav-label,

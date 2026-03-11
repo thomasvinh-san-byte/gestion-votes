@@ -584,6 +584,49 @@
   }
   window.addEventListener('beforeunload', () => { if (pollingInterval) clearInterval(pollingInterval); });
 
+  // ==========================================================================
+  // AUDIT EVENT DETAIL MODAL
+  // ==========================================================================
+
+  var auditModal = document.getElementById('auditEventModal');
+  var auditModalClose = document.getElementById('auditModalClose');
+
+  function openAuditEventModal(entry) {
+    if (!auditModal) return;
+    // Populate fields
+    var setVal = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val || '—'; };
+    setVal('modalEventId', entry.id || entry.seq);
+    setVal('modalEventTime', entry.timestamp || entry.created_at ? Utils.formatDate(entry.timestamp || entry.created_at) : null);
+    setVal('modalEventAction', entry.action_label || entry.action);
+    setVal('modalEventCategory', entry.category);
+    setVal('modalEventUser', entry.actor);
+    setVal('modalEventDetail', entry.message || entry.detail);
+    var hashEl = document.getElementById('modalEventHash');
+    if (hashEl) hashEl.textContent = entry.sha256 || entry.hash || '—';
+    auditModal.hidden = false;
+  }
+
+  function closeAuditEventModal() {
+    if (auditModal) auditModal.hidden = true;
+  }
+
+  if (auditModalClose) auditModalClose.addEventListener('click', closeAuditEventModal);
+  if (auditModal) {
+    auditModal.addEventListener('click', function(e) {
+      if (e.target === auditModal) closeAuditEventModal();
+    });
+  }
+
+  // Click on audit table row to show detail
+  document.getElementById('auditTableBody')?.addEventListener('click', function(e) {
+    var row = e.target.closest('tr');
+    if (!row || e.target.closest('input[type="checkbox"]')) return;
+    var idx = row.rowIndex - 1; // subtract header row
+    if (idx >= 0 && idx < currentAuditEntries.length) {
+      openAuditEventModal(currentAuditEntries[idx]);
+    }
+  });
+
   // Initialize
   loadMeetings().then(() => startPolling());
 })();
