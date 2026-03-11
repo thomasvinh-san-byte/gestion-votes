@@ -41,7 +41,8 @@
             title: 'Aucune séance archivée',
             description: currentYear
               ? 'Aucune archive pour ' + currentYear
-              : 'Les séances validées par le président apparaîtront ici'
+              : 'Les séances validées par le président apparaîtront ici',
+            actionHtml: '<a href="/meetings.htmx.html" class="btn btn-primary btn-sm" style="margin-top:12px;">Voir les séances</a>'
           });
         }
         return;

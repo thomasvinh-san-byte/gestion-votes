@@ -3315,6 +3315,8 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   background: var(--color-primary); color: var(--color-text-inverse);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
+.ob-body { flex: 1; min-width: 0; }
+.ob-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 .ob-title { font-weight: 700; font-size: 14px; color: var(--color-text-dark); margin-bottom: 2px; }
 .ob-btn-primary {
   padding: 6px 14px; border-radius: var(--radius-sm);
@@ -3338,6 +3340,14 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   color: var(--color-text-muted); transition: background .15s ease;
 }
 .ob-close:hover { background: rgba(0,0,0,.06); }
+
+@media (max-width: 600px) {
+  .ob-banner { flex-wrap: wrap; gap: 10px; padding: 12px 14px; padding-right: 30px; }
+  .ob-icon { width: 32px; height: 32px; }
+  .ob-body { flex-basis: calc(100% - 52px); }
+  .ob-actions { flex-basis: 100%; }
+  .ob-btn-primary, .ob-btn-ghost { flex: 1; text-align: center; padding: 8px 12px; font-size: 13px; }
+}
 
 /* ── Session Banner ── */
 .session-banner {

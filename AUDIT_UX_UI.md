@@ -400,11 +400,11 @@ La banniere orange "Votre session expire dans 2:00" avec boutons "Prolonger / De
 
 | # | Page | Action |
 |---|------|--------|
-| 9 | Session timer | N'afficher que sous 1 minute, ou utiliser un toast au lieu d'une barre pleine |
-| 10 | Login | Remplacer "Voir" par une icone oeil pour le toggle mot de passe |
-| 11 | Public | Ajouter les labels POUR/CONTRE/ABSTENTION au-dessus des jauges de couleur |
-| 12 | Analytics | Ameliorer le loading state des graphiques (spinner + timeout message) |
-| 13 | Help | Ajouter un bouton "Lancer" visible sur les cards de tour guide |
-| 14 | Archives | Proposer un CTA dans l'empty state |
-| 15 | Email templates | Ajouter un tooltip sur "Creer templates par defaut" |
-| 16 | Mobile | Corriger le chevauchement des CTA sur admin mobile |
+| ~~9~~ | ~~Session timer~~ | ~~Warning reduit a 1 min avant expiration + templates HTML morts supprimes~~ CORRIGE |
+| ~~10~~ | ~~Login~~ | ~~Icone oeil SVG au lieu de "Voir" texte~~ CORRIGE |
+| ~~11~~ | ~~Public~~ | Labels POUR/CONTRE/ABSTENTION deja presents dans le bar-chart — N/A |
+| ~~12~~ | ~~Analytics~~ | ~~Spinner CSS sur les chart-containers pendant le chargement~~ CORRIGE |
+| ~~13~~ | ~~Help~~ | ~~Badge "Lancer" visible sur chaque tour-card~~ CORRIGE |
+| ~~14~~ | ~~Archives~~ | ~~CTA "Voir les seances" dans l'empty state~~ CORRIGE |
+| ~~15~~ | ~~Email templates~~ | ~~Bouton "Creer par defaut" avec tooltip dans le card-header~~ CORRIGE |
+| ~~16~~ | ~~Mobile~~ | ~~CSS .ob-body/.ob-actions + responsive wrap a 600px~~ CORRIGE |
