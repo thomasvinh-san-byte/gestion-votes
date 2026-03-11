@@ -2,11 +2,19 @@
 
 ## Current Position
 
-- **Milestone**: v1.2 (Security & Resilience Hardening) — COMPLETE
-- **All 4 phases**: done
-- **Next action**: v1.3 milestone planning or release
+- **Milestone**: v1.3 (Code Quality & Frontend Cleanup) — COMPLETE
+- **All 3 phases**: done
+- **Next action**: v1.4 milestone planning or release
 
 ## Recent Work
+
+### v1.3 Milestone — All Phases Complete
+
+| Phase | Status | Summary |
+|-------|--------|---------|
+| 1. Unused Variable Cleanup | done | 142 warnings → 0 (17 files fixed) |
+| 2. innerHTML Security Triage | done | 310 usages audited, all safe (escapeHtml) |
+| 3. CI Lint Gate | done | lint:ci with --max-warnings 310 ratchet |
 
 ### v1.2 Milestone — All Phases Complete
 
@@ -34,9 +42,9 @@
 2. Playwright for E2E testing (already used ad-hoc)
 3. Vendor CDN dependencies locally (security + reliability)
 4. Keep Google Fonts as CDN (CSS only, with display=swap)
-5. App shell and error handling already well-architected — no changes needed
-6. Multi-tenant isolation and rate limiting already production-ready
-7. Lightweight audit_verify endpoint for chain checks without full export
+5. Multi-tenant isolation and rate limiting already production-ready
+6. innerHTML rule kept as warn (advisory) — all 310 usages use escapeHtml
+7. CI lint gate uses ratchet pattern (--max-warnings cap, fail on new warnings)
 
 ## Session Continuity
 
