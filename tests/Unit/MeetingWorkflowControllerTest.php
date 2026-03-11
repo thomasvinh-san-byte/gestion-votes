@@ -1375,7 +1375,7 @@ class MeetingWorkflowControllerTest extends TestCase
     // RESET DEMO: MEETING ID VALIDATION
     // =========================================================================
 
-    public function testResetDemoRequiresMeetingId(): void
+    public function testResetDemoRejectsEmptyBodyNoConfirm(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $this->setJsonBody([]);
@@ -1383,22 +1383,10 @@ class MeetingWorkflowControllerTest extends TestCase
         $result = $this->callControllerMethod('resetDemo');
 
         $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_or_invalid_uuid', $result['body']['error']);
-        $this->assertEquals('meeting_id', $result['body']['field']);
+        $this->assertEquals('missing_confirm', $result['body']['error']);
     }
 
-    public function testResetDemoRejectsEmptyMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody(['meeting_id' => '']);
-
-        $result = $this->callControllerMethod('resetDemo');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_or_invalid_uuid', $result['body']['error']);
-    }
-
-    public function testResetDemoRejectsInvalidUuid(): void
+    public function testResetDemoRejectsNoConfirmWithInvalidMeetingId(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $this->setJsonBody(['meeting_id' => 'invalid']);
@@ -1406,7 +1394,18 @@ class MeetingWorkflowControllerTest extends TestCase
         $result = $this->callControllerMethod('resetDemo');
 
         $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_or_invalid_uuid', $result['body']['error']);
+        $this->assertEquals('missing_confirm', $result['body']['error']);
+    }
+
+    public function testResetDemoRejectsNoConfirmWithEmptyMeetingId(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setJsonBody(['meeting_id' => '']);
+
+        $result = $this->callControllerMethod('resetDemo');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_confirm', $result['body']['error']);
     }
 
     // =========================================================================

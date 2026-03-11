@@ -124,5 +124,19 @@ export default [
       'no-undef': 'error',
       'agvote/no-inner-html': 'warn'
     }
+  },
+  // Node.js globals for E2E tests and helpers (CommonJS)
+  {
+    files: ['tests/e2e/**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        require: 'readonly',
+        module: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        process: 'readonly',
+      }
+    }
   }
 ];

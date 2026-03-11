@@ -211,7 +211,7 @@ class DocControllerTest extends TestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocController.php');
 
-        $expectedDocs = ['FAQ', 'UTILISATION_LIVE', 'RECETTE_DEMO', 'ANALYTICS_ETHICS'];
+        $expectedDocs = ['FAQ', 'UTILISATION_LIVE', 'RECETTE_DEMO', 'dev/ANALYTICS_ETHICS'];
         foreach ($expectedDocs as $doc) {
             $this->assertStringContainsString(
                 "'{$doc}'",

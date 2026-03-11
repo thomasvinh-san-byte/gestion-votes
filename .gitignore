@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 !.env.demo
+!.env.production
 *.key
 *.pem
 config.local.php
