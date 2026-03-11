@@ -1,39 +1,41 @@
-# AG-VOTE Roadmap — v1.3
+# AG-VOTE Roadmap — v1.4
 
-## Milestone: Code Quality & Frontend Cleanup
+## Milestone: Test Coverage & Final Polish
 
-**Goal**: Eliminate ESLint errors and unused variable warnings. Triage innerHTML usage. Enforce lint gate in CI.
+**Goal**: Achieve 100% controller test coverage, add missing security header, and clean up remaining dead code/TODOs.
+
+---
+
+### Phase 1 — NotificationsController Unit Test
+**Status**: done
+**Goal**: Close the last controller test gap (37/38 tested → 38/38).
+- Created NotificationsControllerTest.php: 9 tests, 28 assertions
+- Tests: structure, methods, NOTIF_ACTIONS constant, limit clamping, markRead response, auth requirement
+
+### Phase 2 — Permissions-Policy Header + E2E
+**Status**: done
+**Goal**: Add Permissions-Policy header for browser feature restriction.
+- Added `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()` to SecurityProvider
+- Added E2E tests for all security headers (X-Content-Type-Options, X-Frame-Options, CSP, Permissions-Policy)
+
+### Phase 3 — Dead Code & TODO Audit
+**Status**: done
+**Goal**: Audit remaining TODOs and dead code.
+- wizard.js TODO (line 159): intentional — wizard UI exists but API call not wired yet
+- operator-tabs.js forwarding wrappers: intentional — called from HTML onclick handlers
+- No PHP TODOs found across entire app/ directory
+- No dead code to remove
 
 ---
 
-### Phase 1 — Unused Variable Cleanup
-**Status**: done
-**Goal**: Fix all 142 `no-unused-vars` warnings.
-- Updated eslint config: vendor exclusion, caughtErrors:none, varsIgnorePattern
-- Removed dead variables in 17 files (components, pages, core)
-- Prefixed intentional unused params with `_`
-- Result: 0 no-unused-vars, 0 eqeqeq warnings
+## Previous: v1.3 (Code Quality & Frontend Cleanup) — COMPLETE
 
-### Phase 2 — innerHTML Security Triage
-**Status**: done
-**Goal**: Audit all 310 `agvote/no-inner-html` warnings for XSS risk.
-- Triaged: all 310 are template assembly with escapeHtml() for user data
-- No unsafe innerHTML patterns found — all use escapeHtml() or static HTML
-- Rule kept as `warn` for ongoing visibility, not blocking CI
-
-### Phase 3 — CI Lint Gate
-**Status**: done
-**Goal**: Enforce zero new lint warnings in CI.
-- Added `lint:ci` script with `--max-warnings 310` cap
-- CI updated to use `lint:ci` — fails if ANY new warning introduced
-- 0 errors enforced; innerHTML warnings capped (ratchet pattern)
-
----
+3 phases: unused vars fixed (142→0), innerHTML triaged safe, CI lint ratchet.
 
 ## Previous: v1.2 (Security & Resilience Hardening) — COMPLETE
 
-All 4 phases done: multi-tenant isolation, rate limiting, PWA hardening, audit verification.
+4 phases: tenant isolation, rate limiting, PWA hardening, audit verification.
 
 ## Previous: v1.1 (Post-Audit Hardening) — COMPLETE
 
-All 6 phases done: E2E suite, CI pipeline, CDN hardening, app shell audit, error handling audit, accessibility fixes.
+6 phases: E2E suite, CI pipeline, CDN hardening, app shell audit, error handling, accessibility.

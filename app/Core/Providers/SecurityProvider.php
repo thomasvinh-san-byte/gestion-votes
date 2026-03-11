@@ -25,6 +25,7 @@ final class SecurityProvider {
         header('X-Frame-Options: SAMEORIGIN');
         header('X-XSS-Protection: 1; mode=block');
         header('Referrer-Policy: strict-origin-when-cross-origin');
+        header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()');
 
         // CSP — no unsafe-inline for scripts (no inline <script> in templates).
         // style-src keeps unsafe-inline: 50+ dynamic inline styles in JS innerHTML.

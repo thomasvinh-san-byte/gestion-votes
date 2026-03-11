@@ -288,3 +288,32 @@ test.describe('Public Endpoints', () => {
   });
 
 });
+
+// ---------------------------------------------------------------------------
+// Security Headers
+// ---------------------------------------------------------------------------
+
+test.describe('Security Headers', () => {
+
+  test('API responses include security headers', async ({ request }) => {
+    const response = await request.get('/api/v1/ping.php');
+    const headers = response.headers();
+
+    expect(headers['x-content-type-options']).toBe('nosniff');
+    expect(headers['x-frame-options']).toBe('SAMEORIGIN');
+    expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+    expect(headers['permissions-policy']).toContain('camera=()');
+    expect(headers['permissions-policy']).toContain('microphone=()');
+  });
+
+  test('CSP header is present and restrictive', async ({ request }) => {
+    const response = await request.get('/api/v1/ping.php');
+    const csp = response.headers()['content-security-policy'];
+
+    expect(csp).toBeDefined();
+    expect(csp).toContain("default-src 'self'");
+    expect(csp).toContain("script-src 'self'");
+    expect(csp).toContain("frame-ancestors 'self'");
+  });
+
+});

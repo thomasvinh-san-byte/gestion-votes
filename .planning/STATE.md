@@ -2,11 +2,19 @@
 
 ## Current Position
 
-- **Milestone**: v1.3 (Code Quality & Frontend Cleanup) — COMPLETE
+- **Milestone**: v1.4 (Test Coverage & Final Polish) — COMPLETE
 - **All 3 phases**: done
-- **Next action**: v1.4 milestone planning or release
+- **Next action**: v1.5 milestone planning or release
 
 ## Recent Work
+
+### v1.4 Milestone — All Phases Complete
+
+| Phase | Status | Summary |
+|-------|--------|---------|
+| 1. NotificationsController Test | done | 9 tests, 28 assertions (38/38 controllers tested) |
+| 2. Permissions-Policy Header | done | Header added + E2E security header tests |
+| 3. Dead Code & TODO Audit | done | No dead code found, wizard.js TODO intentional |
 
 ### v1.3 Milestone — All Phases Complete
 
@@ -38,13 +46,13 @@
 
 ## Key Decisions
 
-1. Focus v1.1 on hardening/quality rather than new features
-2. Playwright for E2E testing (already used ad-hoc)
-3. Vendor CDN dependencies locally (security + reliability)
-4. Keep Google Fonts as CDN (CSS only, with display=swap)
-5. Multi-tenant isolation and rate limiting already production-ready
-6. innerHTML rule kept as warn (advisory) — all 310 usages use escapeHtml
-7. CI lint gate uses ratchet pattern (--max-warnings cap, fail on new warnings)
+1. Playwright for E2E testing (already used ad-hoc)
+2. Vendor CDN dependencies locally (security + reliability)
+3. Multi-tenant isolation and rate limiting already production-ready
+4. innerHTML rule kept as warn (advisory) — all 310 usages use escapeHtml
+5. CI lint gate uses ratchet pattern (--max-warnings cap, fail on new warnings)
+6. 100% controller test coverage (38/38)
+7. Full security header suite: CSP, HSTS, X-Frame, Permissions-Policy
 
 ## Session Continuity
 
@@ -54,3 +62,4 @@
 ## Open Issues
 
 - None currently blocking
+- wizard.js TODO: meeting creation API not yet wired in wizard flow (intentional)
