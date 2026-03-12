@@ -108,7 +108,7 @@ class AgConfirm extends HTMLElement {
         }
         .btn:hover { background: var(--color-bg-subtle, #e8e7e2); }
         .btn-confirm {
-          background: ${v.color}; border-color: ${v.color}; color: #fff;
+          background: ${v.color}; border-color: ${v.color}; color: var(--color-text-inverse, #fff);
         }
         .btn-confirm:hover { opacity: .9; background: ${v.color}; }
         .btn:focus-visible { outline: 2px solid var(--color-primary, #1650E0); outline-offset: 2px; }
