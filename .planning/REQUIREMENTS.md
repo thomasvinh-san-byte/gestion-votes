@@ -17,8 +17,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Layout & Navigation
 
-- [ ] **NAV-01**: Sidebar with 58px rail (icons only), 252px expanded on hover (overlay, no layout shift), pinnable
-- [ ] **NAV-02**: Sidebar organized in 5 sections: Préparation, Séance en direct, Après la séance, Contrôle, Système
+- [x] **NAV-01**: Sidebar with 58px rail (icons only), 252px expanded on hover (overlay, no layout shift), pinnable
+- [x] **NAV-02**: Sidebar organized in 5 sections: Préparation, Séance en direct, Après la séance, Contrôle, Système
 - [ ] **NAV-03**: Header bar (56px) with logo, global search (Cmd+K overlay), notification panel, theme toggle
 - [ ] **NAV-04**: Mobile bottom navigation with 5 primary tabs (Dashboard, Sessions, Fiche, Opérateur, Paramètres)
 - [ ] **NAV-05**: Footer with logo, help link, accessibility link
@@ -168,8 +168,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | COMP-07 | Phase 5 | Complete |
 | COMP-08 | Phase 5 | Complete |
 | COMP-09 | Phase 5 | Complete |
-| NAV-01 | Phase 6 | Pending |
-| NAV-02 | Phase 6 | Pending |
+| NAV-01 | Phase 6 | Complete |
+| NAV-02 | Phase 6 | Complete |
 | NAV-03 | Phase 6 | Pending |
 | NAV-04 | Phase 6 | Pending |
 | NAV-05 | Phase 6 | Pending |
