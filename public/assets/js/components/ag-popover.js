@@ -218,13 +218,13 @@ class AgPopover extends HTMLElement {
           z-index: 1000;
           max-width: ${width}px;
           padding: 0.75rem 1rem;
-          background: var(--color-surface, #fff);
-          border: 1px solid var(--color-border, #d1d5db);
-          border-radius: 8px;
+          background: var(--color-surface-raised, #fff);
+          border: 1px solid var(--color-border, #d5dbd2);
+          border-radius: var(--radius-lg, 0.625rem);
           box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,.1));
           font-size: 0.875rem;
           line-height: 1.5;
-          color: var(--color-text, #1f2937);
+          color: var(--color-text, #1a1a1a);
           opacity: 0;
           visibility: hidden;
           transform: scale(0.95);
@@ -294,8 +294,8 @@ class AgPopover extends HTMLElement {
           position: absolute;
           width: 8px;
           height: 8px;
-          background: var(--color-surface, #fff);
-          border: 1px solid var(--color-border, #d1d5db);
+          background: var(--color-surface-raised, #fff);
+          border: 1px solid var(--color-border, #d5dbd2);
           transform: rotate(45deg);
         }
 
@@ -335,11 +335,11 @@ class AgPopover extends HTMLElement {
         .popover-title {
           font-weight: 600;
           margin-bottom: 0.375rem;
-          color: var(--color-text, #1f2937);
+          color: var(--color-text, #1a1a1a);
         }
 
         .popover-text {
-          color: var(--color-text-muted, #6b7280);
+          color: var(--color-text-muted, #95a3a4);
         }
 
         ::slotted([slot="content"]) {
@@ -355,7 +355,7 @@ class AgPopover extends HTMLElement {
 
         ::slotted([slot="content"] p) {
           margin: 0;
-          color: var(--color-text-muted, #6b7280);
+          color: var(--color-text-muted, #95a3a4);
         }
 
         /* Default trigger button style */
@@ -366,9 +366,9 @@ class AgPopover extends HTMLElement {
           width: 18px;
           height: 18px;
           border-radius: 50%;
-          border: 1px solid var(--color-border, #d1d5db);
-          background: var(--color-bg-subtle, #f3f4f6);
-          color: var(--color-text-muted, #6b7280);
+          border: 1px solid var(--color-border, #d5dbd2);
+          background: var(--color-bg-subtle, #e8e7e2);
+          color: var(--color-text-muted, #95a3a4);
           font-size: 0.75rem;
           font-weight: 600;
           cursor: help;

@@ -57,10 +57,10 @@ class AgBadge extends HTMLElement {
           font-size: 12px;
           font-weight: 700;
           line-height: 1;
-          border-radius: var(--radius-full, 9999px);
+          border-radius: var(--radius-full, 999px);
           white-space: nowrap;
-          background: var(--tag-bg, #e8e7e2);
-          color: var(--tag-text, #6b6b6b);
+          background: var(--color-bg-subtle, #e8e7e2);
+          color: var(--color-text-muted, #95a3a4);
         }
         .badge-icon {
           width: 0.875rem;
@@ -118,8 +118,12 @@ class AgBadge extends HTMLElement {
           color: var(--color-danger, #c42828);
         }
         :host([variant="draft"]) .badge {
-          background: var(--tag-bg, #e8e7e2);
-          color: var(--tag-text, #6b6b6b);
+          background: var(--color-bg-subtle, #e8e7e2);
+          color: var(--color-text-muted, #95a3a4);
+        }
+        :host([variant="warn"]) .badge {
+          background: var(--color-warning-subtle, #f5eddf);
+          color: var(--color-warning, #b8860b);
         }
         :host([variant="scheduled"]) .badge {
           background: var(--color-primary-subtle, #e8edfa);
