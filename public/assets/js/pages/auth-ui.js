@@ -451,13 +451,20 @@
 
     var warn = document.createElement('div');
     warn.id = 'session-expiry-warning';
+    warn.className = 'session-expiry-warning';
     warn.setAttribute('role', 'alert');
-    warn.style.cssText = 'background:var(--color-warning-bg,#fef3cd);color:var(--color-warning-text,#856404);' +
-      'padding:8px 16px;text-align:center;font-size:13px;border-bottom:1px solid var(--color-warning-border,#ffc107);';
     warn.innerHTML =
-      'Votre session expire bient\u00f4t. ' +
-      '<button class="btn btn-sm btn-ghost" id="session-extend-btn" style="margin-left:8px;text-decoration:underline;">' +
-      'Prolonger</button>';
+      '<span class="expiry-icon">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+          '<circle cx="12" cy="12" r="10"></circle>' +
+          '<polyline points="12 6 12 12 16 14"></polyline>' +
+        '</svg>' +
+      '</span>' +
+      '<span class="expiry-text">Votre session expire bient\u00f4t.</span>' +
+      '<div class="expiry-actions">' +
+        '<button class="btn-extend" id="session-extend-btn">Rester connect\u00e9</button>' +
+        '<button class="btn-logout" id="session-logout-btn">D\u00e9connexion</button>' +
+      '</div>';
     banner.parentNode.insertBefore(warn, banner.nextSibling);
 
     document.getElementById('session-extend-btn').addEventListener('click', function () {
@@ -470,12 +477,27 @@
             // Also refresh CSRF token to prevent stale-token 403 errors
             refreshCsrfToken();
           } else {
-            warn.textContent = 'Session expir\u00e9e. Veuillez vous reconnecter.';
+            warn.classList.add('expired');
+            warn.querySelector('.expiry-text').textContent = 'Session expir\u00e9e. Veuillez vous reconnecter.';
           }
         })
         .catch(function () {
-          warn.textContent = 'Impossible de prolonger la session.';
+          warn.classList.add('expired');
+          warn.querySelector('.expiry-text').textContent = 'Impossible de prolonger la session.';
         });
+    });
+
+    document.getElementById('session-logout-btn').addEventListener('click', async function () {
+      try {
+        await api('/api/v1/auth_logout.php', {});
+      } catch (e) { /* best effort */ }
+      window.Auth.user = null;
+      window.Auth.role = null;
+      window.Auth.meetingRoles = [];
+      if (typeof MeetingContext !== 'undefined') {
+        try { MeetingContext.clear(); } catch (e) {}
+      }
+      window.location.href = '/';
     });
   }
 

@@ -3363,6 +3363,53 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   font-size: 13px; font-weight: 600;
 }
 
+/* ── Session Expiry Warning ── */
+.session-expiry-warning {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: var(--color-warning-subtle);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, var(--color-border));
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  margin: 8px 16px;
+  animation: fadeIn var(--duration-fast, 150ms) ease;
+}
+.session-expiry-warning .expiry-icon {
+  width: 20px; height: 20px; flex-shrink: 0;
+  color: var(--color-warning);
+}
+.session-expiry-warning .expiry-icon svg {
+  width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none;
+}
+.session-expiry-warning .expiry-text {
+  flex: 1;
+}
+.session-expiry-warning .expiry-actions {
+  display: flex; gap: 8px; flex-shrink: 0;
+}
+.session-expiry-warning .btn-extend {
+  padding: 5px 12px; border-radius: var(--radius-sm);
+  background: var(--color-warning); color: #fff;
+  font-size: 12px; font-weight: 600; border: none; cursor: pointer;
+  transition: opacity var(--transition);
+}
+.session-expiry-warning .btn-extend:hover { opacity: 0.85; }
+.session-expiry-warning .btn-logout {
+  padding: 5px 12px; border-radius: var(--radius-sm);
+  background: none; color: var(--color-text-muted);
+  font-size: 12px; font-weight: 600; border: 1px solid var(--color-border);
+  cursor: pointer; transition: background var(--transition);
+}
+.session-expiry-warning .btn-logout:hover { background: var(--color-bg-subtle); }
+.session-expiry-warning.expired {
+  background: var(--color-danger-subtle);
+  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+}
+
 /* ── Landing Page ── */
 .landing { min-height: 100vh; display: flex; flex-direction: column; background: var(--color-bg); }
 .landing-header {
