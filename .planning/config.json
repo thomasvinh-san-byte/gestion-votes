@@ -12,6 +12,7 @@
   },
   "milestone": "v1.1",
   "workflow": {
-    "research": false
+    "research": false,
+    "_auto_chain_active": false
   }
 }
