@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-12T08:03:32.146Z"
+stopped_at: Completed 04-design-tokens-theme/04-01-PLAN.md
+last_updated: "2026-03-12T09:17:14.477Z"
 last_activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
 progress:
   total_phases: 10
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -48,6 +48,7 @@ Progress: [..........] 0%
 **Recent Trend:**
 - Last 5 plans: n/a
 - Trend: n/a
+| Phase 04-design-tokens-theme P01 | 6 | 2 tasks | 2 files |
 
 ## Milestone History
 
@@ -77,6 +78,9 @@ Recent decisions affecting current work:
 - v2.0: Wireframe v3.19.2 is the source of truth for all UI targets
 - v2.0: Align existing code, don't rewrite from scratch
 - v2.0: Phase numbering continues from v1.5 (start at 4)
+- [Phase 04-design-tokens-theme]: Keep --radius-md and --radius-xl usages in component styles: Phase 6 handles component CSS, not :root token removal
+- [Phase 04-design-tokens-theme]: Add --color-surface-alt as explicit token alongside --color-bg-subtle for semantic elevation clarity
+- [Phase 04-design-tokens-theme]: --transition: 150ms ease added as wireframe alias; granular duration/ease tokens retained for flexibility
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T08:03:32.144Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-design-tokens-theme/04-CONTEXT.md
+Last session: 2026-03-12T09:17:14.475Z
+Stopped at: Completed 04-design-tokens-theme/04-01-PLAN.md
+Resume file: None

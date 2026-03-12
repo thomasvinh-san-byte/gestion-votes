@@ -34,7 +34,7 @@
   3. Surface elevation hierarchy (bg, surface, surface-alt, surface-raised, glass) is visually distinguishable at each level
   4. Semantic color tokens (danger, success, warn, purple) render correctly in both themes with matching bg/border variants
   5. Body text renders in Bricolage Grotesque, display headings in Fraunces, and data/code in JetBrains Mono
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 04-01-PLAN.md — Validation script + light theme token alignment with wireframe
 - [ ] 04-02-PLAN.md — Dark theme token alignment + visual verification
@@ -147,7 +147,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 4. Design Tokens & Theme | 0/2 | Planned | - |
+| 4. Design Tokens & Theme | 1/2 | In Progress|  |
 | 5. Shared Components | 0/TBD | Not started | - |
 | 6. Layout & Navigation | 0/TBD | Not started | - |
 | 7. Dashboard & Sessions | 0/TBD | Not started | - |
