@@ -66,7 +66,11 @@ Plans:
   3. Header bar (56px) displays the logo, a global search triggered by Cmd+K, a notification panel, and a theme toggle
   4. On mobile viewports, a bottom navigation bar with 5 tabs (Dashboard, Sessions, Fiche, Operateur, Parametres) replaces the sidebar
   5. A skip-to-content link is present and ARIA landmark roles are applied to nav, main, header, and footer regions
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 06-01-PLAN.md — Sidebar structure alignment (5 sections, nav-badge CSS, mobile-bnav CSS)
+- [ ] 06-02-PLAN.md — Header logo, mobile 5-tab bottom nav, footer on all pages
+- [ ] 06-03-PLAN.md — ARIA landmark audit and visual verification checkpoint
 
 ### Phase 7: Dashboard & Sessions
 **Goal**: Users see an actionable dashboard with KPIs and shortcuts, and can browse/search/filter all sessions in list or calendar view
@@ -154,7 +158,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 |-------|----------------|--------|-----------|
 | 4. Design Tokens & Theme | 2/2 | Complete    | 2026-03-12 |
 | 5. Shared Components | 3/4 | In Progress|  |
-| 6. Layout & Navigation | 0/TBD | Not started | - |
+| 6. Layout & Navigation | 0/3 | Not started | - |
 | 7. Dashboard & Sessions | 0/TBD | Not started | - |
 | 8. Session Wizard & Hub | 0/TBD | Not started | - |
 | 9. Operator Console | 0/TBD | Not started | - |
