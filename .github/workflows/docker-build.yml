@@ -100,6 +100,22 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     needs: [validate, lint-js]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: vote_app
+          POSTGRES_PASSWORD: vote_app_ci
+          POSTGRES_DB: vote_app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U vote_app"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -121,6 +137,14 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --optimize-autoloader --no-interaction --no-progress --no-dev
 
+      - name: Initialize database (schema + test data)
+        run: |
+          PGPASSWORD=vote_app_ci psql -h localhost -U vote_app -d vote_app -f database/schema-master.sql
+          PGPASSWORD=vote_app_ci psql -h localhost -U vote_app -d vote_app -f database/seeds/01_minimal.sql
+          PGPASSWORD=vote_app_ci psql -h localhost -U vote_app -d vote_app -f database/seeds/02_test_users.sql
+          PGPASSWORD=vote_app_ci psql -h localhost -U vote_app -d vote_app -f database/seeds/03_demo.sql
+          PGPASSWORD=vote_app_ci psql -h localhost -U vote_app -d vote_app -f database/seeds/04_e2e.sql
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -137,6 +161,18 @@ jobs:
         run: npx playwright test --config=tests/e2e/playwright.config.js --project=chromium
         env:
           CI: true
+          APP_ENV: demo
+          APP_DEBUG: "1"
+          APP_SECRET: e2e-test-secret-not-for-production-use-64characters-long-ok!!
+          APP_AUTH_ENABLED: "1"
+          CSRF_ENABLED: "1"
+          RATE_LIMIT_ENABLED: "0"
+          DB_DSN: "pgsql:host=localhost;port=5432;dbname=vote_app"
+          DB_USER: vote_app
+          DB_PASS: vote_app_ci
+          DEFAULT_TENANT_ID: "aaaaaaaa-1111-2222-3333-444444444444"
+          CORS_ALLOWED_ORIGINS: "http://localhost:8000"
+          LOAD_DEMO_DATA: "1"
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v6
