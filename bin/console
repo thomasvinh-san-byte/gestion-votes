@@ -25,9 +25,9 @@ use AgVote\Command\RedisHealthCommand;
 
 $app = new Application('AG-VOTE', '1.0.0');
 
-$app->add(new EmailProcessQueueCommand());
-$app->add(new MonitoringCheckCommand());
-$app->add(new RateLimitCleanupCommand());
-$app->add(new RedisHealthCommand());
+$app->addCommand(new EmailProcessQueueCommand());
+$app->addCommand(new MonitoringCheckCommand());
+$app->addCommand(new RateLimitCleanupCommand());
+$app->addCommand(new RedisHealthCommand());
 
 $app->run();
