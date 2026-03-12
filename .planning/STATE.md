@@ -1,18 +1,37 @@
 # AG-VOTE — Project State
 
-## Current Position
-
-- **Version**: 2.0.0 (target)
-- **Milestone**: v2.0 (UI Redesign — Acte Officiel)
-- **Phase**: Not started (defining requirements)
-- **Last activity**: 2026-03-12 — Milestone v2.0 started
-
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-12)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** UI Redesign — align all pages with wireframe v3.19.2
+**Current focus:** v2.0 UI Redesign -- Phase 4 (Design Tokens & Theme)
+
+## Current Position
+
+Phase: 4 of 13 (Design Tokens & Theme)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
+
+Progress: [..........] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0 (v2.0 milestone)
+- Average duration: -
+- Total execution time: 0 hours
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
+
+**Recent Trend:**
+- Last 5 plans: n/a
+- Trend: n/a
 
 ## Milestone History
 
@@ -22,44 +41,41 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 |-------|--------|---------|
 | 1. Operator & Dashboard E2E | done | 15 tests across 2 new specs |
 | 2. Report, Validate & Archives E2E | done | 14 tests across 3 new specs |
-| 3. Version Bump | done | 1.1.0 → 1.5.0, SW cache v1.5 |
+| 3. Version Bump | done | 1.1.0 -> 1.5.0, SW cache v1.5 |
 
 ### v1.4 — Test Coverage & Final Polish (COMPLETE)
 
-| Phase | Status | Summary |
-|-------|--------|---------|
-| 1. NotificationsController Test | done | 38/38 controllers tested |
-| 2. Permissions-Policy Header | done | Header + E2E security tests |
-| 3. Dead Code & TODO Audit | done | No dead code found |
+3 phases: controller tests, Permissions-Policy, dead code audit.
 
-### v1.3 — Code Quality & Frontend Cleanup (COMPLETE)
+### v1.3, v1.2, v1.1 (COMPLETE)
 
-| Phase | Status | Summary |
-|-------|--------|---------|
-| 1. Unused Variable Cleanup | done | 142 warnings → 0 |
-| 2. innerHTML Security Triage | done | 310 usages audited safe |
-| 3. CI Lint Gate | done | Ratchet pattern (max 310) |
+Code quality, security hardening, post-audit hardening. All shipped.
 
-### v1.2 — Security & Resilience Hardening (COMPLETE)
+## Accumulated Context
 
-| Phase | Status | Summary |
-|-------|--------|---------|
-| 1. Multi-Tenant DB Isolation | done | Already implemented |
-| 2. Rate Limiting Activation | done | Already implemented |
-| 3. PWA & Service Worker Hardening | done | Precache + 5s timeout |
-| 4. Audit Log Verification | done | audit_verify endpoint |
+### Decisions
 
-### v1.1 — Post-Audit Hardening (COMPLETE)
+Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting current work:
 
-| Phase | Status | Summary |
-|-------|--------|---------|
-| 1. E2E Test Suite Hardening | done | 197 tests, shared helpers |
-| 2. CI Pipeline Expansion | done | ESLint + PHPStan + Playwright |
-| 3. CDN Hardening | done | Vendored HTMX + Chart.js |
-| 4. App Shell Deduplication | done | Already optimal |
-| 5. Frontend Error Handling | done | Already handled |
-| 6. Accessibility & Performance | done | Focus trap, contrast, ARIA |
+- v2.0: Wireframe v3.19.2 is the source of truth for all UI targets
+- v2.0: Align existing code, don't rewrite from scratch
+- v2.0: Phase numbering continues from v1.5 (start at 4)
+
+### Pending Todos
+
+None yet.
+
+### Blockers/Concerns
+
+None yet.
 
 ## Open Issues
 
 - wizard.js TODO: meeting creation API not yet wired (intentional)
+
+## Session Continuity
+
+Last session: 2026-03-12
+Stopped at: Roadmap created for v2.0 milestone
+Resume file: None

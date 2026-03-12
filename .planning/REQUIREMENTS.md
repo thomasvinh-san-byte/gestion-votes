@@ -152,17 +152,88 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ## Traceability
 
-*Populated during roadmap creation.*
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| — | — | — |
+| DS-01 | Phase 4 | Pending |
+| DS-02 | Phase 4 | Pending |
+| DS-03 | Phase 4 | Pending |
+| DS-04 | Phase 4 | Pending |
+| DS-05 | Phase 4 | Pending |
+| COMP-01 | Phase 5 | Pending |
+| COMP-02 | Phase 5 | Pending |
+| COMP-03 | Phase 5 | Pending |
+| COMP-04 | Phase 5 | Pending |
+| COMP-05 | Phase 5 | Pending |
+| COMP-06 | Phase 5 | Pending |
+| COMP-07 | Phase 5 | Pending |
+| COMP-08 | Phase 5 | Pending |
+| COMP-09 | Phase 5 | Pending |
+| NAV-01 | Phase 6 | Pending |
+| NAV-02 | Phase 6 | Pending |
+| NAV-03 | Phase 6 | Pending |
+| NAV-04 | Phase 6 | Pending |
+| NAV-05 | Phase 6 | Pending |
+| NAV-06 | Phase 6 | Pending |
+| DASH-01 | Phase 7 | Pending |
+| DASH-02 | Phase 7 | Pending |
+| DASH-03 | Phase 7 | Pending |
+| DASH-04 | Phase 7 | Pending |
+| SESS-01 | Phase 7 | Pending |
+| SESS-02 | Phase 7 | Pending |
+| SESS-03 | Phase 7 | Pending |
+| SESS-04 | Phase 7 | Pending |
+| SESS-05 | Phase 7 | Pending |
+| WIZ-01 | Phase 8 | Pending |
+| WIZ-02 | Phase 8 | Pending |
+| WIZ-03 | Phase 8 | Pending |
+| WIZ-04 | Phase 8 | Pending |
+| WIZ-05 | Phase 8 | Pending |
+| HUB-01 | Phase 8 | Pending |
+| HUB-02 | Phase 8 | Pending |
+| HUB-03 | Phase 8 | Pending |
+| HUB-04 | Phase 8 | Pending |
+| HUB-05 | Phase 8 | Pending |
+| OPR-01 | Phase 9 | Pending |
+| OPR-02 | Phase 9 | Pending |
+| OPR-03 | Phase 9 | Pending |
+| OPR-04 | Phase 9 | Pending |
+| OPR-05 | Phase 9 | Pending |
+| OPR-06 | Phase 9 | Pending |
+| OPR-07 | Phase 9 | Pending |
+| OPR-08 | Phase 9 | Pending |
+| OPR-09 | Phase 9 | Pending |
+| OPR-10 | Phase 9 | Pending |
+| DISP-01 | Phase 10 | Pending |
+| DISP-02 | Phase 10 | Pending |
+| VOTE-01 | Phase 10 | Pending |
+| VOTE-02 | Phase 10 | Pending |
+| VOTE-03 | Phase 10 | Pending |
+| POST-01 | Phase 11 | Pending |
+| POST-02 | Phase 11 | Pending |
+| POST-03 | Phase 11 | Pending |
+| ARCH-01 | Phase 11 | Pending |
+| ARCH-02 | Phase 11 | Pending |
+| AUD-01 | Phase 11 | Pending |
+| AUD-02 | Phase 11 | Pending |
+| AUD-03 | Phase 11 | Pending |
+| STAT-01 | Phase 12 | Pending |
+| STAT-02 | Phase 12 | Pending |
+| STAT-03 | Phase 12 | Pending |
+| USR-01 | Phase 12 | Pending |
+| USR-02 | Phase 12 | Pending |
+| USR-03 | Phase 12 | Pending |
+| SET-01 | Phase 13 | Pending |
+| SET-02 | Phase 13 | Pending |
+| SET-03 | Phase 13 | Pending |
+| SET-04 | Phase 13 | Pending |
+| FAQ-01 | Phase 13 | Pending |
+| FAQ-02 | Phase 13 | Pending |
 
 **Coverage:**
-- v1 requirements: 65 total
-- Mapped to phases: 0
-- Unmapped: 65 ⚠️
+- v1 requirements: 74 total
+- Mapped to phases: 74
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-12*
-*Last updated: 2026-03-12 after initial definition*
+*Last updated: 2026-03-12 after roadmap creation*
