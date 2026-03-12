@@ -709,6 +709,8 @@ h4, .h4 {
   height: 42px;
   cursor: pointer;
   color: var(--sidebar-text);
+  background: transparent;
+  border: none;
   border-radius: var(--radius-sm);
   margin: 1px 0;
   transition: background .15s ease, color .15s ease;
