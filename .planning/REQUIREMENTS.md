@@ -122,9 +122,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Shared Components
 
-- [ ] **COMP-01**: Modal system (center dialog with header/body/footer, overlay backdrop)
-- [ ] **COMP-02**: Confirmation dialogs (danger/warn/info variants with icon)
-- [ ] **COMP-03**: Toast notification system (success/warn/error/info, auto-dismiss)
+- [x] **COMP-01**: Modal system (center dialog with header/body/footer, overlay backdrop)
+- [x] **COMP-02**: Confirmation dialogs (danger/warn/info variants with icon)
+- [x] **COMP-03**: Toast notification system (success/warn/error/info, auto-dismiss)
 - [x] **COMP-04**: Empty state component (icon + title + subtitle + CTA)
 - [x] **COMP-05**: Tag/badge system (danger, success, warn, accent, purple variants)
 - [x] **COMP-06**: Progress bars and mini bar charts (vote distribution)
@@ -159,9 +159,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | DS-03 | Phase 4 | Complete |
 | DS-04 | Phase 4 | Complete |
 | DS-05 | Phase 4 | Complete |
-| COMP-01 | Phase 5 | Pending |
-| COMP-02 | Phase 5 | Pending |
-| COMP-03 | Phase 5 | Pending |
+| COMP-01 | Phase 5 | Complete |
+| COMP-02 | Phase 5 | Complete |
+| COMP-03 | Phase 5 | Complete |
 | COMP-04 | Phase 5 | Complete |
 | COMP-05 | Phase 5 | Complete |
 | COMP-06 | Phase 5 | Complete |
