@@ -129,8 +129,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 - [x] **COMP-05**: Tag/badge system (danger, success, warn, accent, purple variants)
 - [x] **COMP-06**: Progress bars and mini bar charts (vote distribution)
 - [x] **COMP-07**: Popover menus (action dropdowns)
-- [ ] **COMP-08**: Session expiry warning banner (stay logged in / logout)
-- [ ] **COMP-09**: Guided tour system (step-by-step walkthrough with data-tour targets)
+- [x] **COMP-08**: Session expiry warning banner (stay logged in / logout)
+- [x] **COMP-09**: Guided tour system (step-by-step walkthrough with data-tour targets)
 
 ## v2 Requirements (Deferred)
 
@@ -166,8 +166,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | COMP-05 | Phase 5 | Complete |
 | COMP-06 | Phase 5 | Complete |
 | COMP-07 | Phase 5 | Complete |
-| COMP-08 | Phase 5 | Pending |
-| COMP-09 | Phase 5 | Pending |
+| COMP-08 | Phase 5 | Complete |
+| COMP-09 | Phase 5 | Complete |
 | NAV-01 | Phase 6 | Pending |
 | NAV-02 | Phase 6 | Pending |
 | NAV-03 | Phase 6 | Pending |

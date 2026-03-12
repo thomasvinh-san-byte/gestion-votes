@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-stopped_at: Completed 05-shared-components-02-PLAN.md
-last_updated: "2026-03-12T10:44:42.843Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-03-12T10:46:51.034Z"
 last_activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [..........] 0%
 | Phase 04-design-tokens-theme P02 | 30 | 2 tasks | 1 files |
 | Phase 04-design-tokens-theme P02 | 30 | 2 tasks | 1 files |
 | Phase 05-shared-components P02 | 15 | 2 tasks | 4 files |
+| Phase 05-shared-components P03 | 12 | 2 tasks | 2 files |
 
 ## Milestone History
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase 05-shared-components]: ag-popover uses --color-surface-raised (not --color-surface) since popovers are elevated UI elements
 - [Phase 05-shared-components]: CSS-only .progress-bar pattern at design-system level; ag-mini-bar handles multi-segment charts
 - [Phase 05-shared-components]: .empty-state-description uses --color-text-muted not --color-text-secondary (secondary is near-black #151510)
+- [Phase 05-shared-components]: Session expiry warning uses CSS class (session-expiry-warning) with two-button UX (Rester connecte + Deconnexion) replacing single inline-styled Prolonger button
+- [Phase 05-shared-components]: Tour bubble uses --color-surface-raised and spotlight uses color-mix() for dark theme compatibility without explicit overrides
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T10:44:42.840Z
-Stopped at: Completed 05-shared-components-02-PLAN.md
+Last session: 2026-03-12T10:46:51.032Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
