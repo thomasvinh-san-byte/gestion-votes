@@ -967,6 +967,52 @@ h4, .h4 {
 /* ── Mobile bottom nav ── */
 .mobile-bnav { display: none; }
 
+@media (max-width: 767.98px) {
+  .mobile-bnav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    z-index: var(--z-sticky, 100);
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 4px;
+  }
+  .mobile-bnav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 8px;
+    border: none;
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: color 0.15s ease;
+    flex: 1;
+    min-width: 0;
+  }
+  .mobile-bnav-btn.active {
+    color: var(--color-primary);
+  }
+  .mobile-bnav-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  /* Hide footer on mobile — bottom nav takes over (CONTEXT.md locked decision) */
+  .app-footer {
+    display: none;
+  }
+}
+
 /* ── App footer ── */
 .app-footer {
   padding: 8px 18px;
@@ -3296,6 +3342,10 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 .notif-body { flex: 1; min-width: 0; }
 .notif-msg { font-size: 13px; font-weight: 600; color: var(--color-text-dark); line-height: 1.35; }
 .notif-time { font-size: 12px; color: var(--color-text-muted); margin-top: 1px; }
+.notif-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
 
 /* ── Search Overlay (Ctrl+K) ── */
 .search-trigger {
