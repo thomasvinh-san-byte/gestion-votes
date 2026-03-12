@@ -13,6 +13,10 @@ phpunit.xml.dist
 .php-cs-fixer.php
 .php-cs-fixer.cache
 
+# Dependencies (built inside Docker via composer install)
+vendor/
+node_modules/
+
 # Dev & IDE
 .vscode/
 .idea/
