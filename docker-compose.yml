@@ -34,8 +34,8 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_DATABASE: "${DB_DATABASE:-vote_app}"
-      DB_USERNAME: "${DB_USER:-vote_app}"
-      DB_PASSWORD: "${DB_PASS:?DB_PASS requis — definir dans .env}"
+      DB_USER: "${DB_USER:-vote_app}"
+      DB_PASS: "${DB_PASS:?DB_PASS requis — definir dans .env}"
       # --- Redis ---
       REDIS_HOST: redis
       REDIS_PORT: 6379
