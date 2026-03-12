@@ -363,10 +363,30 @@ window.Utils = window.Utils || {};
    * @param {string} fallback - Default message if no error found
    * @returns {string} Human-readable error message
    */
+  var ERROR_MESSAGES = {
+    'internal_error': 'Erreur interne du serveur. Veuillez réessayer.',
+    'database_error': 'Erreur de connexion à la base de données.',
+    'rate_limit_exceeded': 'Trop de tentatives. Veuillez patienter.',
+    'csrf_token_missing': 'Session expirée. Rechargez la page.',
+    'csrf_token_invalid': 'Session expirée. Rechargez la page.',
+    'csrf_token_expired': 'Session expirée. Rechargez la page.',
+    'authentication_required': 'Authentification requise.',
+    'forbidden': 'Accès refusé.',
+    'method_not_allowed': 'Méthode non autorisée.',
+    'missing_credentials': 'Email et mot de passe requis.',
+    'invalid_credentials': 'Email ou mot de passe incorrect.',
+    'invalid_email': 'Format d\u2019adresse email invalide.',
+    'account_disabled': 'Compte désactivé. Contactez un administrateur.',
+    'missing_or_invalid_api_key': 'Session expirée. Veuillez vous reconnecter.',
+  };
+
   Utils.getApiError = function(body, fallback = 'Une erreur est survenue') {
     if (!body) return fallback;
-    // Priority: message (translated) > detail > error (code)
-    return body.message || body.detail || body.error || fallback;
+    // Priority: message (translated) > detail > mapped error code > raw code > fallback
+    if (body.message) return body.message;
+    if (body.detail) return body.detail;
+    if (body.error && ERROR_MESSAGES[body.error]) return ERROR_MESSAGES[body.error];
+    return body.error || fallback;
   };
 
   // ==========================================================================

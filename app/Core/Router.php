@@ -292,8 +292,8 @@ final class Router {
      */
     public function resolveMiddlewareConfig(string $httpMethod, string $uri): ?array {
         $httpMethod = strtoupper($httpMethod);
-        $uri = strtok($uri, '?');
-        $uri = rtrim($uri, '/');
+        $uri = strtok($uri, '?') ?: '';
+        $uri = rtrim($uri, '/') ?: '/';
         $uriWithoutPhp = preg_replace('/\.php$/', '', $uri);
 
         $handler = $this->findHandler($httpMethod, $uri, $uriWithoutPhp);

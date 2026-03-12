@@ -191,13 +191,14 @@ final class RateLimiter {
         $lock = @fopen($lockFile, 'c');
 
         if ($lock === false) {
-            error_log("RateLimiter: cannot open lock file {$lockFile}");
-            return ['allowed' => true, 'remaining' => $maxAttempts];
+            error_log("RateLimiter: cannot open lock file {$lockFile} — denying request for safety");
+            return ['allowed' => false, 'remaining' => 0, 'retry_after' => $windowSeconds];
         }
 
         if (!flock($lock, LOCK_EX)) {
             fclose($lock);
-            return ['allowed' => true, 'remaining' => $maxAttempts];
+            error_log("RateLimiter: cannot acquire lock on {$lockFile} — denying request for safety");
+            return ['allowed' => false, 'remaining' => 0, 'retry_after' => $windowSeconds];
         }
 
         try {

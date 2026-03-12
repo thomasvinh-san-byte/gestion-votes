@@ -289,9 +289,7 @@ final class AuthMiddleware {
 
         // 2. Session PHP
         if (session_status() === PHP_SESSION_ACTIVE || session_status() === PHP_SESSION_NONE) {
-            if (session_status() === PHP_SESSION_NONE) {
-                @session_start();
-            }
+            SessionHelper::start();
             if (!empty($_SESSION['auth_user'])) {
                 // Check session timeout
                 $lastActivity = $_SESSION['auth_last_activity'] ?? 0;
@@ -328,10 +326,16 @@ final class AuthMiddleware {
                             return null;
                         }
                         // Refresh role and name from DB (admin may have changed them)
+                        $previousRole = $_SESSION['auth_user']['role'] ?? '';
                         $_SESSION['auth_user']['role'] = $fresh['role'];
                         $_SESSION['auth_user']['name'] = $fresh['name'];
                         $_SESSION['auth_user']['email'] = $fresh['email'];
                         $_SESSION['auth_user']['is_active'] = $fresh['is_active'];
+
+                        // Regenerate session ID on privilege escalation to prevent fixation
+                        if ($fresh['role'] !== $previousRole) {
+                            session_regenerate_id(true);
+                        }
                     } catch (Throwable $e) {
                         // DB failure: keep session alive, try again next interval
                         error_log('Session revalidation DB error: ' . $e->getMessage());
@@ -501,9 +505,7 @@ final class AuthMiddleware {
 
         // Meeting role match (president transitions)
         $meetingRoles = self::getMeetingRoles($meetingId);
-        return (bool) (in_array($requiredRole, $meetingRoles, true))
-
-        ;
+        return in_array($requiredRole, $meetingRoles, true);
     }
 
     public static function requireTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): void {
@@ -625,7 +627,12 @@ final class AuthMiddleware {
     }
 
     private static function findUserByApiKey(string $apiKey): ?array {
-        $secret = self::getAppSecret();
+        try {
+            $secret = self::getAppSecret();
+        } catch (Throwable $e) {
+            error_log('API key auth unavailable: ' . $e->getMessage());
+            return null;
+        }
         $hash = hash_hmac('sha256', $apiKey, $secret);
 
         try {

@@ -7,6 +7,7 @@ namespace AgVote\Controller;
 use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\View\HtmlView;
 use RuntimeException;
+use Throwable;
 
 /**
  * Token-authenticated public voting interface.
@@ -32,6 +33,18 @@ final class VotePublicController {
     ];
 
     public function vote(): void {
+        try {
+            $this->doVote();
+        } catch (\PDOException $e) {
+            error_log('VotePublicController::vote [DB]: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            HtmlView::text('Erreur interne du serveur. Veuillez réessayer.', 500);
+        } catch (Throwable $e) {
+            error_log('VotePublicController::vote: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            HtmlView::text('Erreur interne du serveur. Veuillez réessayer.', 500);
+        }
+    }
+
+    private function doVote(): void {
         // ── Validate token ──────────────────────────────────────────────
         $token = api_query('token');
         if ($token === '') {
@@ -102,9 +115,6 @@ final class VotePublicController {
 
         try {
             api_transaction(function () use ($tokenRepo, $hash, $row, $ctx, $dbVote, $weight) {
-                // Atomic validate+consume: re-checks used_at AND expires_at in a
-                // single UPDATE…RETURNING, eliminating the TOCTOU window between
-                // the initial findValidByHash() and consumption.
                 $consumed = $tokenRepo->consumeIfValid($hash, $ctx['tenant_id']);
                 if (!$consumed) {
                     throw new RuntimeException('token_already_used');

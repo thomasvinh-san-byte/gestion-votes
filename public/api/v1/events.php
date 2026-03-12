@@ -28,13 +28,23 @@ use AgVote\WebSocket\EventBroadcaster;
 // ── Auth check (reuse session middleware logic) ──────────────────────────
 $authEnabled = getenv('APP_AUTH_ENABLED');
 if ($authEnabled !== '0' && strtolower((string) $authEnabled) !== 'false') {
-    session_start();
-    if (empty($_SESSION['user_id'])) {
+    \AgVote\Core\Security\SessionHelper::start();
+    if (empty($_SESSION['auth_user'])) {
         http_response_code(401);
         header('Content-Type: application/json');
-        echo json_encode(['ok' => false, 'error' => 'unauthorized']);
+        echo json_encode(['ok' => false, 'error' => 'authentication_required']);
         exit;
     }
+    // Enforce session timeout (same as AuthMiddleware::SESSION_TIMEOUT)
+    $lastActivity = $_SESSION['auth_last_activity'] ?? 0;
+    if ($lastActivity > 0 && (time() - $lastActivity) > 1800) {
+        \AgVote\Core\Security\SessionHelper::destroy();
+        http_response_code(401);
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => false, 'error' => 'session_expired']);
+        exit;
+    }
+    $_SESSION['auth_last_activity'] = time();
 }
 
 // Check if push/SSE is enabled
@@ -44,10 +54,10 @@ if (!EventBroadcaster::isPushEnabled()) {
 }
 
 $meetingId = $_GET['meeting_id'] ?? '';
-if ($meetingId === '') {
+if ($meetingId === '' || !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $meetingId)) {
     http_response_code(400);
     header('Content-Type: application/json');
-    echo json_encode(['ok' => false, 'error' => 'meeting_id required']);
+    echo json_encode(['ok' => false, 'error' => 'invalid_meeting_id']);
     exit;
 }
 

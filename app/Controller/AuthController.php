@@ -6,6 +6,7 @@ namespace AgVote\Controller;
 
 use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Core\Security\CsrfMiddleware;
+use AgVote\Core\Security\SessionHelper;
 use Throwable;
 
 /**
@@ -107,20 +108,9 @@ final class AuthController extends AbstractController {
         }
 
         // ── Create session ──
-        if (session_status() === PHP_SESSION_NONE) {
-            $secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-            session_set_cookie_params([
-                'lifetime' => 0,
-                'path' => '/',
-                'domain' => '',
-                'secure' => $secure,
-                'httponly' => true,
-                'samesite' => 'Lax',
-            ]);
-            session_start();
-        }
-
+        // Restart to guarantee secure cookie params (AuthMiddleware may
+        // have started a session earlier during rate-limit enforcement).
+        SessionHelper::restart();
         session_regenerate_id(true);
 
         $_SESSION['auth_user'] = [
@@ -163,27 +153,7 @@ final class AuthController extends AbstractController {
             ]);
         }
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $_SESSION = [];
-
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-            setcookie(
-                session_name(),
-                '',
-                time() - 42000,
-                $params['path'],
-                $params['domain'],
-                $params['secure'],
-                $params['httponly'],
-            );
-        }
-
-        session_destroy();
-
+        SessionHelper::destroy();
         AuthMiddleware::reset();
 
         api_ok(['logged_out' => true]);
@@ -205,13 +175,10 @@ final class AuthController extends AbstractController {
             ]);
         }
 
-        $appEnv = getenv('APP_ENV') ?: 'production';
-
         $user = AuthMiddleware::authenticate();
         if ($user === null) {
             api_fail('missing_or_invalid_api_key', 401, [
                 'auth_enabled' => true,
-                'app_env' => $appEnv,
             ]);
         }
         if (!$user['is_active']) {

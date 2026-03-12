@@ -511,10 +511,13 @@ class AuthControllerTest extends TestCase
 
     public function testLogoutClearsSession(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuthController.php');
+        // Session clearing is delegated to SessionHelper::destroy()
+        $controller = file_get_contents(PROJECT_ROOT . '/app/Controller/AuthController.php');
+        $helper = file_get_contents(PROJECT_ROOT . '/app/Core/Security/SessionHelper.php');
 
-        $this->assertStringContainsString('$_SESSION = []', $source);
-        $this->assertStringContainsString('session_destroy()', $source);
+        $this->assertStringContainsString('SessionHelper::destroy()', $controller);
+        $this->assertStringContainsString('$_SESSION = []', $helper);
+        $this->assertStringContainsString('session_destroy()', $helper);
     }
 
     public function testLoginRegeneratesSessionId(): void
@@ -526,10 +529,13 @@ class AuthControllerTest extends TestCase
 
     public function testLoginSetsSecureCookieParams(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuthController.php');
+        // Secure cookie params are centralized in SessionHelper::cookieParams()
+        $controller = file_get_contents(PROJECT_ROOT . '/app/Controller/AuthController.php');
+        $helper = file_get_contents(PROJECT_ROOT . '/app/Core/Security/SessionHelper.php');
 
-        $this->assertStringContainsString("'httponly' => true", $source);
-        $this->assertStringContainsString("'samesite' => 'Lax'", $source);
+        $this->assertStringContainsString('SessionHelper::restart()', $controller);
+        $this->assertStringContainsString("'httponly' => true", $helper);
+        $this->assertStringContainsString("'samesite' => 'Lax'", $helper);
     }
 
     // =========================================================================

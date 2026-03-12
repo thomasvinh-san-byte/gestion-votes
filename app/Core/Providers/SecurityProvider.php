@@ -23,9 +23,11 @@ final class SecurityProvider {
 
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: SAMEORIGIN');
-        header('X-XSS-Protection: 1; mode=block');
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()');
+        header('Cache-Control: no-store');
+        header('Cross-Origin-Opener-Policy: same-origin');
+        header('Cross-Origin-Resource-Policy: same-origin');
 
         // CSP — no unsafe-inline for scripts (no inline <script> in templates).
         // style-src keeps unsafe-inline: 50+ dynamic inline styles in JS innerHTML.
@@ -35,8 +37,10 @@ final class SecurityProvider {
             . "img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; "
             . "connect-src 'self' ws: wss:; frame-ancestors 'self'; form-action 'self'");
 
-        // HSTS in HTTPS
-        if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        // HSTS in HTTPS (also detect TLS-terminating reverse proxy via X-Forwarded-Proto)
+        $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+        if ($isHttps) {
             header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
         }
     }

@@ -91,11 +91,11 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/vote_policies", PoliciesController::class, 'listVote', $op);
 
     // ── Auth (controller handles its own auth) ──
-    $router->mapAny("{$prefix}/auth_csrf", AuthController::class, 'csrf');
+    $router->mapAny("{$prefix}/auth_csrf", AuthController::class, 'csrf', ['rate_limit' => ['auth_csrf', 30, 60]]);
     $router->mapAny("{$prefix}/auth_login", AuthController::class, 'login', ['rate_limit' => ['auth_login', 10, 300]]);
-    $router->mapAny("{$prefix}/auth_logout", AuthController::class, 'logout');
+    $router->mapAny("{$prefix}/auth_logout", AuthController::class, 'logout', ['rate_limit' => ['auth_logout', 10, 60]]);
     $router->mapAny("{$prefix}/ping", AuthController::class, 'ping'); /* [backend] health check */
-    $router->mapAny("{$prefix}/whoami", AuthController::class, 'whoami');
+    $router->mapAny("{$prefix}/whoami", AuthController::class, 'whoami', ['rate_limit' => ['whoami', 30, 60]]);
 
     // ── Agendas ──
     $router->mapMulti("{$prefix}/agendas", [
@@ -149,7 +149,7 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/dev_seed_attendances", DevSeedController::class, 'seedAttendances', $op); /* [dev] */
 
     // ── Documentation ──
-    $router->mapAny("{$prefix}/doc_index", DocController::class, 'index');
+    $router->mapAny("{$prefix}/doc_index", DocController::class, 'index', ['rate_limit' => ['doc_index', 30, 60]]);
     // doc_content is a standalone file (no api.php, serves raw markdown)
 
     // ── Email ──

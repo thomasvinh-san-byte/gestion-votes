@@ -165,6 +165,13 @@ final class Application {
                     . 'Set APP_AUTH_ENABLED=1 or remove it (auth is enabled by default).',
                 );
             }
+
+            if (getenv('APP_DEBUG') === '1') {
+                throw new RuntimeException(
+                    '[SECURITY] APP_DEBUG must not be enabled in production. '
+                    . 'Set APP_DEBUG=0 or remove it.',
+                );
+            }
         }
 
         // DEFAULT_TENANT_ID
@@ -205,7 +212,7 @@ final class Application {
                 header('Content-Type: application/json; charset=utf-8');
             }
 
-            $response = ['ok' => false, 'error' => 'internal_error'];
+            $response = ['ok' => false, 'error' => 'internal_error', 'message' => 'Erreur interne du serveur. Veuillez réessayer.'];
             if ($debug) {
                 $response['debug'] = [
                     'message' => $e->getMessage(),

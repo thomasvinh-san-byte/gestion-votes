@@ -22,6 +22,13 @@ $uri = strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '';
 $uri = rtrim($uri, '/') ?: '/';
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
+// ─── Root URL: redirect to login page ────────────────────────────────────
+
+if ($uri === '/' && $method === 'GET') {
+    header('Location: /login.html', true, 302);
+    exit;
+}
+
 // ─── Determine bootstrap type ──────────────────────────────────────────────
 
 $appDir = dirname(__DIR__) . '/app';
