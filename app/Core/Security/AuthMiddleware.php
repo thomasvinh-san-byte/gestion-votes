@@ -326,10 +326,16 @@ final class AuthMiddleware {
                             return null;
                         }
                         // Refresh role and name from DB (admin may have changed them)
+                        $previousRole = $_SESSION['auth_user']['role'] ?? '';
                         $_SESSION['auth_user']['role'] = $fresh['role'];
                         $_SESSION['auth_user']['name'] = $fresh['name'];
                         $_SESSION['auth_user']['email'] = $fresh['email'];
                         $_SESSION['auth_user']['is_active'] = $fresh['is_active'];
+
+                        // Regenerate session ID on privilege escalation to prevent fixation
+                        if ($fresh['role'] !== $previousRole) {
+                            session_regenerate_id(true);
+                        }
                     } catch (Throwable $e) {
                         // DB failure: keep session alive, try again next interval
                         error_log('Session revalidation DB error: ' . $e->getMessage());

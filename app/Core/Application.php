@@ -165,6 +165,13 @@ final class Application {
                     . 'Set APP_AUTH_ENABLED=1 or remove it (auth is enabled by default).',
                 );
             }
+
+            if (getenv('APP_DEBUG') === '1') {
+                throw new RuntimeException(
+                    '[SECURITY] APP_DEBUG must not be enabled in production. '
+                    . 'Set APP_DEBUG=0 or remove it.',
+                );
+            }
         }
 
         // DEFAULT_TENANT_ID
