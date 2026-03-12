@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-design-tokens-theme/04-01-PLAN.md
-last_updated: "2026-03-12T09:17:14.477Z"
+stopped_at: Completed 04-design-tokens-theme/04-02-PLAN.md
+last_updated: "2026-03-12T09:41:42.893Z"
 last_activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
 progress:
   total_phases: 10
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -49,6 +49,8 @@ Progress: [..........] 0%
 - Last 5 plans: n/a
 - Trend: n/a
 | Phase 04-design-tokens-theme P01 | 6 | 2 tasks | 2 files |
+| Phase 04-design-tokens-theme P02 | 30 | 2 tasks | 1 files |
+| Phase 04-design-tokens-theme P02 | 30 | 2 tasks | 1 files |
 
 ## Milestone History
 
@@ -81,6 +83,10 @@ Recent decisions affecting current work:
 - [Phase 04-design-tokens-theme]: Keep --radius-md and --radius-xl usages in component styles: Phase 6 handles component CSS, not :root token removal
 - [Phase 04-design-tokens-theme]: Add --color-surface-alt as explicit token alongside --color-bg-subtle for semantic elevation clarity
 - [Phase 04-design-tokens-theme]: --transition: 150ms ease added as wireframe alias; granular duration/ease tokens retained for flexibility
+- [Phase 04-design-tokens-theme]: Dark theme --color-surface-alt: #1B2030 added for token API parity with light theme
+- [Phase 04-design-tokens-theme]: Sidebar button elements require explicit background:transparent in dark theme to prevent UA stylesheet bleed-through
+- [Phase 04-design-tokens-theme]: Dark theme --color-surface-alt: #1B2030 added for token API parity with light theme
+- [Phase 04-design-tokens-theme]: Sidebar button elements require explicit background:transparent to prevent UA stylesheet bleed-through in dark theme
 
 ### Pending Todos
 
@@ -96,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T09:17:14.475Z
-Stopped at: Completed 04-design-tokens-theme/04-01-PLAN.md
+Last session: 2026-03-12T09:41:42.891Z
+Stopped at: Completed 04-design-tokens-theme/04-02-PLAN.md
 Resume file: None
