@@ -3429,7 +3429,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 }
 .session-expiry-warning .btn-extend {
   padding: 5px 12px; border-radius: var(--radius-sm);
-  background: var(--color-warning); color: #fff;
+  background: var(--color-warning); color: var(--color-text-inverse, #fff);
   font-size: 12px; font-weight: 600; border: none; cursor: pointer;
   transition: opacity var(--transition);
 }

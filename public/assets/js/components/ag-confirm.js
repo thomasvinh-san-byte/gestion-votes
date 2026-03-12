@@ -67,7 +67,7 @@ class AgConfirm extends HTMLElement {
           width: min(420px, 100%);
           background: var(--color-surface-raised, #fff);
           border: 1px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-lg, 16px);
+          border-radius: var(--radius-lg, 0.625rem);
           box-shadow: var(--shadow-lg);
           overflow: hidden;
           animation: modalIn var(--duration-fast, 150ms) cubic-bezier(.34,1.2,.64,1);
