@@ -2,14 +2,21 @@
 
 ## Current Position
 
-- **Version**: 1.5.0
-- **Milestone**: v1.5 (E2E Coverage Expansion & Release) — COMPLETE
-- **All 3 phases**: done
-- **Next action**: v1.6 milestone planning or production release
+- **Version**: 2.0.0 (target)
+- **Milestone**: v2.0 (UI Redesign — Acte Officiel)
+- **Phase**: Not started (defining requirements)
+- **Last activity**: 2026-03-12 — Milestone v2.0 started
+
+## Project Reference
+
+See: .planning/PROJECT.md (updated 2026-03-12)
+
+**Core value:** Self-hosted voting platform with legal compliance for French general assemblies
+**Current focus:** UI Redesign — align all pages with wireframe v3.19.2
 
 ## Milestone History
 
-### v1.5 — E2E Coverage Expansion & Release
+### v1.5 — E2E Coverage Expansion & Release (COMPLETE)
 
 | Phase | Status | Summary |
 |-------|--------|---------|
@@ -17,7 +24,7 @@
 | 2. Report, Validate & Archives E2E | done | 14 tests across 3 new specs |
 | 3. Version Bump | done | 1.1.0 → 1.5.0, SW cache v1.5 |
 
-### v1.4 — Test Coverage & Final Polish
+### v1.4 — Test Coverage & Final Polish (COMPLETE)
 
 | Phase | Status | Summary |
 |-------|--------|---------|
@@ -25,7 +32,7 @@
 | 2. Permissions-Policy Header | done | Header + E2E security tests |
 | 3. Dead Code & TODO Audit | done | No dead code found |
 
-### v1.3 — Code Quality & Frontend Cleanup
+### v1.3 — Code Quality & Frontend Cleanup (COMPLETE)
 
 | Phase | Status | Summary |
 |-------|--------|---------|
@@ -33,7 +40,7 @@
 | 2. innerHTML Security Triage | done | 310 usages audited safe |
 | 3. CI Lint Gate | done | Ratchet pattern (max 310) |
 
-### v1.2 — Security & Resilience Hardening
+### v1.2 — Security & Resilience Hardening (COMPLETE)
 
 | Phase | Status | Summary |
 |-------|--------|---------|
@@ -42,7 +49,7 @@
 | 3. PWA & Service Worker Hardening | done | Precache + 5s timeout |
 | 4. Audit Log Verification | done | audit_verify endpoint |
 
-### v1.1 — Post-Audit Hardening
+### v1.1 — Post-Audit Hardening (COMPLETE)
 
 | Phase | Status | Summary |
 |-------|--------|---------|
@@ -52,11 +59,6 @@
 | 4. App Shell Deduplication | done | Already optimal |
 | 5. Frontend Error Handling | done | Already handled |
 | 6. Accessibility & Performance | done | Focus trap, contrast, ARIA |
-
-## Session Continuity
-
-- **Branch**: `claude/fix-auth-env-vars-7tH7Z`
-- **All phases**: committed and pushed
 
 ## Open Issues
 
