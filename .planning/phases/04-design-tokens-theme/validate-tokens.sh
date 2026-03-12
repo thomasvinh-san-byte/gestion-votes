@@ -244,10 +244,20 @@ run_full() {
   echo "── Dark theme ([data-theme=\"dark\"]) ─────────────────────────────────────"
   check_exact    "--color-bg"            "#0B0D10"            "dark"
   check_exact    "--color-surface"       "#141820"            "dark"
+  check_exact    "--color-surface-alt"   "#1B2030"            "dark"
+  check_exact    "--color-surface-raised" "#1E2438"           "dark"
   check_exact    "--color-primary"       "#3D7EF8"            "dark"
   check_exact    "--color-danger"        "#E85454"            "dark"
+  check_exact    "--color-success"       "#2DC87A"            "dark"
+  check_exact    "--color-warning"       "#EDA030"            "dark"
+  check_exact    "--color-purple"        "#8C72F8"            "dark"
   check_exact    "--color-text"          "#7A8499"            "dark"
+  check_exact    "--color-text-dark"     "#ECF0FA"            "dark"
+  check_exact    "--color-border"        "#252C3C"            "dark"
+  check_exact    "--sidebar-bg"          "#080B10"            "dark"
   check_contains "--shadow-xs"           "rgba(0,0,0,"        "dark"
+  check_contains "--shadow-md"           "rgba(0,0,0,"        "dark"
+  check_contains "--shadow-focus"        "var(--color-surface)" "dark"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

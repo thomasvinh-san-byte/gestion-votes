@@ -311,6 +311,7 @@ table {
   --color-bg: #0B0D10;
   --color-bg-subtle: #1B2030;
   --color-surface: #141820;
+  --color-surface-alt: #1B2030;            /* Wireframe --surface-alt: elevation step above bg */
   --color-surface-raised: #1E2438;
   --color-surface-overlay: rgba(20, 24, 32, 0.96);
   --color-glass: rgba(20, 24, 32, 0.96);
