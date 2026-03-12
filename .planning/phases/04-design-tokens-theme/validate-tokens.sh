@@ -46,7 +46,11 @@ get_token_value() {
         }
         print
       }
-    ' "$CSS_FILE" | grep -E "^\s*${token}\s*:" | head -1 | sed 's/.*:[[:space:]]*//' | sed 's/;.*//' | xargs)
+    ' "$CSS_FILE" | grep -E "^\s*${token}\s*:" | head -1 \
+      | sed 's|/\*.*\*/||g' \
+      | sed "s/.*${token}:[[:space:]]*//" \
+      | sed 's/[[:space:]]*;.*//' \
+      | xargs)
   else
     # Extract [data-theme="dark"] block and find the token value
     value=$(awk '
@@ -59,7 +63,11 @@ get_token_value() {
         }
         print
       }
-    ' "$CSS_FILE" | grep -E "^\s*${token}\s*:" | head -1 | sed 's/.*:[[:space:]]*//' | sed 's/;.*//' | xargs)
+    ' "$CSS_FILE" | grep -E "^\s*${token}\s*:" | head -1 \
+      | sed 's|/\*.*\*/||g' \
+      | sed "s/.*${token}:[[:space:]]*//" \
+      | sed 's/[[:space:]]*;.*//' \
+      | xargs)
   fi
 
   echo "$value"
