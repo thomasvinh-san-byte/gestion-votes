@@ -99,31 +99,31 @@ class AgModal extends HTMLElement {
           display: none;
           position: fixed;
           inset: 0;
-          background: rgba(0,0,0,.35);
+          background: rgba(0,0,0,.45);
           align-items: center;
           justify-content: center;
           z-index: 100;
           padding: 16px;
           backdrop-filter: blur(3px);
           opacity: 0;
-          transition: opacity .2s ease;
+          transition: opacity var(--duration-fast, 150ms) ease;
         }
         .overlay-backdrop.open { opacity: 1; }
         .modal {
           width: min(${maxW}, 100%);
-          background: var(--color-surface, #fff);
+          background: var(--color-surface-raised, #fff);
           border: 1px solid var(--color-border, #d5dbd2);
           border-radius: var(--radius-lg, 16px);
           box-shadow: var(--shadow-lg);
           overflow: hidden;
-          animation: modalIn .2s cubic-bezier(.34,1.2,.64,1);
+          animation: modalIn var(--duration-fast, 150ms) cubic-bezier(.34,1.2,.64,1);
         }
         @keyframes modalIn {
           from { opacity: 0; transform: scale(.96) translateY(6px); }
           to { opacity: 1; transform: none; }
         }
         .modal-h {
-          padding: 13px 18px;
+          padding: 14px 20px;
           border-bottom: 1px solid var(--color-border-subtle, #e8e7e2);
           display: flex;
           align-items: center;
@@ -137,15 +137,15 @@ class AgModal extends HTMLElement {
         .modal-close {
           width: 28px; height: 28px;
           display: flex; align-items: center; justify-content: center;
-          border: none; background: none; border-radius: 6px;
+          border: none; background: none; border-radius: var(--radius-sm, 0.375rem);
           cursor: pointer; color: var(--color-text-muted, #95a3a4);
-          transition: background .15s ease;
+          transition: background var(--duration-fast, 150ms) ease;
         }
         .modal-close:hover { background: var(--color-bg-subtle, #e8e7e2); }
         .modal-close svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
-        .modal-b { padding: 16px 18px; }
+        .modal-b { padding: 18px 20px; }
         .modal-f {
-          padding: 10px 18px;
+          padding: 14px 20px;
           border-top: 1px solid var(--color-border-subtle, #e8e7e2);
           display: flex;
           justify-content: flex-end;

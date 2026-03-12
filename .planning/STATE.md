@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-design-tokens-theme/04-01-PLAN.md
-last_updated: "2026-03-12T09:17:14.477Z"
+stopped_at: Completed 05-shared-components-01-PLAN.md
+last_updated: "2026-03-12T10:48:43.706Z"
 last_activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 2
-  completed_plans: 1
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 5
   percent: 0
 ---
 
@@ -49,6 +49,11 @@ Progress: [..........] 0%
 - Last 5 plans: n/a
 - Trend: n/a
 | Phase 04-design-tokens-theme P01 | 6 | 2 tasks | 2 files |
+| Phase 04-design-tokens-theme P02 | 30 | 2 tasks | 1 files |
+| Phase 04-design-tokens-theme P02 | 30 | 2 tasks | 1 files |
+| Phase 05-shared-components P02 | 15 | 2 tasks | 4 files |
+| Phase 05-shared-components P03 | 12 | 2 tasks | 2 files |
+| Phase 05-shared-components P01 | 15 | 2 tasks | 3 files |
 
 ## Milestone History
 
@@ -81,6 +86,18 @@ Recent decisions affecting current work:
 - [Phase 04-design-tokens-theme]: Keep --radius-md and --radius-xl usages in component styles: Phase 6 handles component CSS, not :root token removal
 - [Phase 04-design-tokens-theme]: Add --color-surface-alt as explicit token alongside --color-bg-subtle for semantic elevation clarity
 - [Phase 04-design-tokens-theme]: --transition: 150ms ease added as wireframe alias; granular duration/ease tokens retained for flexibility
+- [Phase 04-design-tokens-theme]: Dark theme --color-surface-alt: #1B2030 added for token API parity with light theme
+- [Phase 04-design-tokens-theme]: Sidebar button elements require explicit background:transparent in dark theme to prevent UA stylesheet bleed-through
+- [Phase 04-design-tokens-theme]: Dark theme --color-surface-alt: #1B2030 added for token API parity with light theme
+- [Phase 04-design-tokens-theme]: Sidebar button elements require explicit background:transparent to prevent UA stylesheet bleed-through in dark theme
+- [Phase 05-shared-components]: ag-popover uses --color-surface-raised (not --color-surface) since popovers are elevated UI elements
+- [Phase 05-shared-components]: CSS-only .progress-bar pattern at design-system level; ag-mini-bar handles multi-segment charts
+- [Phase 05-shared-components]: .empty-state-description uses --color-text-muted not --color-text-secondary (secondary is near-black #151510)
+- [Phase 05-shared-components]: Session expiry warning uses CSS class (session-expiry-warning) with two-button UX (Rester connecte + Deconnexion) replacing single inline-styled Prolonger button
+- [Phase 05-shared-components]: Tour bubble uses --color-surface-raised and spotlight uses color-mix() for dark theme compatibility without explicit overrides
+- [Phase 05-shared-components]: ag-confirm: inline SVG icons replace icon sprite pattern for critical overlay UI
+- [Phase 05-shared-components]: ag-toast: static show() only sets duration attribute when caller explicitly passes value, type-based defaults applied in connectedCallback
+- [Phase 05-shared-components]: warn variant alias added to ag-confirm for ergonomic API parity
 
 ### Pending Todos
 
@@ -96,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T09:17:14.475Z
-Stopped at: Completed 04-design-tokens-theme/04-01-PLAN.md
+Last session: 2026-03-12T10:48:43.703Z
+Stopped at: Completed 05-shared-components-01-PLAN.md
 Resume file: None

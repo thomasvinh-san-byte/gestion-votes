@@ -11,7 +11,8 @@
  * Attributes:
  *   - type: Toast type (success|error|warning|info)
  *   - message: Message to display
- *   - duration: Auto-dismiss duration in ms (default: 5000, 0 = no auto-dismiss)
+ *   - duration: Auto-dismiss duration in ms (0 = no auto-dismiss)
+ *              Defaults: success/info = 5000ms, warning/error = 8000ms
  */
 class AgToast extends HTMLElement {
   static get observedAttributes() {
@@ -44,7 +45,11 @@ class AgToast extends HTMLElement {
   }
 
   setupAutoDismiss() {
-    const duration = parseInt(this.getAttribute('duration') || '4200', 10);
+    const type = this.getAttribute('type') || 'info';
+    const defaultDurations = { success: 5000, info: 5000, warning: 8000, error: 8000 };
+    const duration = this.hasAttribute('duration')
+      ? parseInt(this.getAttribute('duration'), 10)
+      : (defaultDurations[type] || 5000);
     if (duration > 0) {
       this._dismissTimeout = setTimeout(() => this.dismiss(), duration);
     }
@@ -59,11 +64,12 @@ class AgToast extends HTMLElement {
     const type = this.getAttribute('type') || 'info';
     const message = this.getAttribute('message') || '';
 
+    // Inline SVG icons per type — no icon sprite dependency
     const iconMap = {
-      success: 'check-circle',
-      error: 'x-circle',
-      warning: 'alert-triangle',
-      info: 'info',
+      success: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>',
+      error: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+      warning: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+      info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
     };
 
     this.shadowRoot.innerHTML = `
@@ -71,7 +77,7 @@ class AgToast extends HTMLElement {
         :host {
           display: block;
           pointer-events: auto;
-          animation: toastIn .22s cubic-bezier(.34, 1.1, .64, 1);
+          animation: toastIn var(--duration-fast, 150ms) ease;
         }
         :host(.dismissing) {
           animation: toastOut .18s ease forwards;
@@ -83,7 +89,7 @@ class AgToast extends HTMLElement {
           padding: 12px 16px;
           background: var(--color-surface-raised, #ffffff);
           border: 1px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-md, 12px);
+          border-radius: var(--radius-lg, 0.625rem);
           box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1));
           max-width: 340px;
           min-width: 240px;
@@ -126,7 +132,7 @@ class AgToast extends HTMLElement {
           color: var(--color-text-muted, #95a3a4);
           background: none;
           border: none;
-          transition: background .15s ease;
+          transition: background var(--duration-fast, 150ms) ease;
         }
         .toast-close:hover {
           background: var(--color-bg-subtle, #e8e7e2);
@@ -165,13 +171,11 @@ class AgToast extends HTMLElement {
       </style>
       <div class="toast" role="alert" aria-live="polite">
         <span class="toast-icon">
-          <svg aria-hidden="true">
-            <use href="/assets/icons.svg#icon-${iconMap[type] || 'info'}"></use>
-          </svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true">${iconMap[type] || iconMap.info}</svg>
         </span>
         <span class="toast-message">${this.escapeHtml(message)}</span>
         <button class="toast-close" aria-label="Fermer">
-          <svg aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
       </div>
     `;
@@ -193,9 +197,9 @@ class AgToast extends HTMLElement {
    * Static method to show a toast programmatically
    * @param {string} type - 'success' | 'error' | 'warning' | 'info'
    * @param {string} message - Message to display
-   * @param {number} duration - Auto-dismiss duration (default 5000, 0 = no auto)
+   * @param {number} [duration] - Auto-dismiss duration in ms (0 = no auto). Defaults: success/info=5000, warning/error=8000
    */
-  static show(type, message, duration = 4200) {
+  static show(type, message, duration) {
     let container = document.getElementById('ag-toast-container');
     if (!container) {
       container = document.createElement('div');
@@ -204,7 +208,7 @@ class AgToast extends HTMLElement {
       container.setAttribute('aria-atomic', 'false');
       container.style.cssText = `
         position: fixed;
-        bottom: 20px;
+        top: 20px;
         right: 20px;
         z-index: 10100;
         display: flex;
@@ -215,7 +219,7 @@ class AgToast extends HTMLElement {
       document.body.appendChild(container);
     }
 
-    // Limit to 3 toasts
+    // Limit to 3 toasts — remove oldest when 4th arrives
     const existing = container.querySelectorAll('ag-toast');
     if (existing.length >= 3) {
       existing[0].remove();
@@ -224,7 +228,13 @@ class AgToast extends HTMLElement {
     const toast = document.createElement('ag-toast');
     toast.setAttribute('type', type);
     toast.setAttribute('message', message);
-    toast.setAttribute('duration', String(duration));
+
+    // Only set explicit duration attribute if caller passed a value.
+    // Otherwise connectedCallback will apply type-based defaults.
+    if (duration !== undefined) {
+      toast.setAttribute('duration', String(duration));
+    }
+
     container.appendChild(toast);
 
     return toast;

@@ -21,12 +21,34 @@ class AgConfirm extends HTMLElement {
 
   _render(opts) {
     const { title, message, confirmLabel, cancelLabel, variant } = opts;
+
+    // Inline SVG paths per variant — no icon sprite dependency for critical UI
     const variantColors = {
-      danger: { bg: 'var(--color-danger-subtle, #f2e4e4)', color: 'var(--color-danger, #c42828)', icon: 'alert-triangle' },
-      warning: { bg: 'var(--color-warning-subtle, #f5eddf)', color: 'var(--color-warning, #b8860b)', icon: 'alert-triangle' },
-      success: { bg: 'var(--color-success-subtle, #e4ede4)', color: 'var(--color-success, #0b7a40)', icon: 'check-circle' },
-      info: { bg: 'var(--color-primary-subtle, #e8edfa)', color: 'var(--color-primary, #1650E0)', icon: 'info' },
+      danger: {
+        bg: 'var(--color-danger-subtle, #f2e4e4)',
+        color: 'var(--color-danger, #c42828)',
+        svg: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+      },
+      warning: {
+        bg: 'var(--color-warning-subtle, #f5eddf)',
+        color: 'var(--color-warning, #b8860b)',
+        svg: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+      },
+      info: {
+        bg: 'var(--color-primary-subtle, #e8edfa)',
+        color: 'var(--color-primary, #1650E0)',
+        svg: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+      },
+      success: {
+        bg: 'var(--color-success-subtle, #e4ede4)',
+        color: 'var(--color-success, #0b7a40)',
+        svg: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+      },
     };
+
+    // "warn" is an alias for "warning"
+    variantColors.warn = variantColors.warning;
+
     const v = variantColors[variant] || variantColors.info;
 
     this.shadowRoot.innerHTML = `
@@ -34,21 +56,21 @@ class AgConfirm extends HTMLElement {
         :host { display: contents; }
         .overlay-backdrop {
           position: fixed; inset: 0;
-          background: rgba(0,0,0,.35);
+          background: rgba(0,0,0,.45);
           display: flex; align-items: center; justify-content: center;
           z-index: 10200; padding: 16px;
           backdrop-filter: blur(3px);
-          animation: fadeIn .15s ease;
+          animation: fadeIn var(--duration-fast, 150ms) ease;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .modal {
           width: min(420px, 100%);
-          background: var(--color-surface, #fff);
+          background: var(--color-surface-raised, #fff);
           border: 1px solid var(--color-border, #d5dbd2);
           border-radius: var(--radius-lg, 16px);
           box-shadow: var(--shadow-lg);
           overflow: hidden;
-          animation: modalIn .2s cubic-bezier(.34,1.2,.64,1);
+          animation: modalIn var(--duration-fast, 150ms) cubic-bezier(.34,1.2,.64,1);
         }
         @keyframes modalIn {
           from { opacity: 0; transform: scale(.96) translateY(6px); }
@@ -79,14 +101,14 @@ class AgConfirm extends HTMLElement {
           display: flex; justify-content: center; gap: 8px;
         }
         .btn {
-          padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+          padding: 8px 18px; border-radius: var(--radius, 0.5rem); font-size: 13px; font-weight: 600;
           cursor: pointer; border: 1.5px solid var(--color-border, #d5dbd2);
           background: var(--color-surface, #fff); color: var(--color-text-dark, #1a1a1a);
-          transition: background .15s ease, border-color .15s ease;
+          transition: background var(--duration-fast, 150ms) ease, border-color var(--duration-fast, 150ms) ease;
         }
         .btn:hover { background: var(--color-bg-subtle, #e8e7e2); }
         .btn-confirm {
-          background: ${v.color}; border-color: ${v.color}; color: #fff;
+          background: ${v.color}; border-color: ${v.color}; color: var(--color-text-inverse, #fff);
         }
         .btn-confirm:hover { opacity: .9; background: ${v.color}; }
         .btn:focus-visible { outline: 2px solid var(--color-primary, #1650E0); outline-offset: 2px; }
@@ -95,7 +117,7 @@ class AgConfirm extends HTMLElement {
         <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="cd-title" aria-describedby="cd-msg">
           <div class="confirm-dialog">
             <div class="confirm-icon-wrap">
-              <svg viewBox="0 0 24 24"><use href="/assets/icons.svg#icon-${v.icon}"></use></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true">${v.svg}</svg>
             </div>
             <div class="confirm-title" id="cd-title">${this._esc(title)}</div>
             <div class="confirm-msg" id="cd-msg">${this._esc(message)}</div>
