@@ -10,9 +10,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 ### Design System
 
 - [x] **DS-01**: Design tokens (colors, typography, shadows, borders, radius) match wireframe v3.19.2
-- [ ] **DS-02**: Dark/light theme tokens fully implemented with `[data-theme]` switching
+- [x] **DS-02**: Dark/light theme tokens fully implemented with `[data-theme]` switching
 - [x] **DS-03**: Surface elevation system (bg, surface, surface-alt, surface-raised, glass) applied consistently
-- [ ] **DS-04**: Semantic color tokens (danger, success, warn, purple) with bg/border variants
+- [x] **DS-04**: Semantic color tokens (danger, success, warn, purple) with bg/border variants
 - [x] **DS-05**: Typography system uses Bricolage Grotesque (body), Fraunces (display), JetBrains Mono (data)
 
 ### Layout & Navigation
@@ -155,9 +155,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DS-01 | Phase 4 | Complete |
-| DS-02 | Phase 4 | Pending |
+| DS-02 | Phase 4 | Complete |
 | DS-03 | Phase 4 | Complete |
-| DS-04 | Phase 4 | Pending |
+| DS-04 | Phase 4 | Complete |
 | DS-05 | Phase 4 | Complete |
 | COMP-01 | Phase 5 | Pending |
 | COMP-02 | Phase 5 | Pending |
