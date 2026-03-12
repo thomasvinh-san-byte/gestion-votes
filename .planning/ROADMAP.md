@@ -49,7 +49,7 @@ Plans:
   3. Toast notifications appear at a screen edge for success/warn/error/info events and auto-dismiss after a configurable delay
   4. Empty state, tag/badge, progress bar, and popover menu components render correctly and are usable by any page
   5. The guided tour system highlights elements step-by-step using data-tour targets, and the session expiry banner offers stay-logged-in / logout actions
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 Plans:
 - [ ] 05-01-PLAN.md — Modal, confirm dialog, and toast token alignment
 - [ ] 05-02-PLAN.md — Badge, empty state, progress bar, and popover token alignment
@@ -153,7 +153,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 4. Design Tokens & Theme | 2/2 | Complete    | 2026-03-12 |
-| 5. Shared Components | 0/4 | Not started | - |
+| 5. Shared Components | 1/4 | In Progress|  |
 | 6. Layout & Navigation | 0/TBD | Not started | - |
 | 7. Dashboard & Sessions | 0/TBD | Not started | - |
 | 8. Session Wizard & Hub | 0/TBD | Not started | - |

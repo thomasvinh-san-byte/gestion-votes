@@ -125,10 +125,10 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 - [ ] **COMP-01**: Modal system (center dialog with header/body/footer, overlay backdrop)
 - [ ] **COMP-02**: Confirmation dialogs (danger/warn/info variants with icon)
 - [ ] **COMP-03**: Toast notification system (success/warn/error/info, auto-dismiss)
-- [ ] **COMP-04**: Empty state component (icon + title + subtitle + CTA)
-- [ ] **COMP-05**: Tag/badge system (danger, success, warn, accent, purple variants)
-- [ ] **COMP-06**: Progress bars and mini bar charts (vote distribution)
-- [ ] **COMP-07**: Popover menus (action dropdowns)
+- [x] **COMP-04**: Empty state component (icon + title + subtitle + CTA)
+- [x] **COMP-05**: Tag/badge system (danger, success, warn, accent, purple variants)
+- [x] **COMP-06**: Progress bars and mini bar charts (vote distribution)
+- [x] **COMP-07**: Popover menus (action dropdowns)
 - [ ] **COMP-08**: Session expiry warning banner (stay logged in / logout)
 - [ ] **COMP-09**: Guided tour system (step-by-step walkthrough with data-tour targets)
 
@@ -162,10 +162,10 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | COMP-01 | Phase 5 | Pending |
 | COMP-02 | Phase 5 | Pending |
 | COMP-03 | Phase 5 | Pending |
-| COMP-04 | Phase 5 | Pending |
-| COMP-05 | Phase 5 | Pending |
-| COMP-06 | Phase 5 | Pending |
-| COMP-07 | Phase 5 | Pending |
+| COMP-04 | Phase 5 | Complete |
+| COMP-05 | Phase 5 | Complete |
+| COMP-06 | Phase 5 | Complete |
+| COMP-07 | Phase 5 | Complete |
 | COMP-08 | Phase 5 | Pending |
 | COMP-09 | Phase 5 | Pending |
 | NAV-01 | Phase 6 | Pending |
