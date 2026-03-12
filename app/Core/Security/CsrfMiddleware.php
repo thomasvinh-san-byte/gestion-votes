@@ -19,28 +19,11 @@ final class CsrfMiddleware {
      * Initializes CSRF protection
      */
     public static function init(): void {
-        if (session_status() === PHP_SESSION_NONE) {
-            self::startSecureSession();
-        }
+        SessionHelper::start();
 
         if (!self::hasValidToken()) {
             self::regenerateToken();
         }
-    }
-
-    private static function startSecureSession(): void {
-        $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
-
-        session_set_cookie_params([
-            'lifetime' => 0,
-            'path' => '/',
-            'domain' => '',
-            'secure' => $secure,
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
-
-        session_start();
     }
 
     private static function hasValidToken(): bool {

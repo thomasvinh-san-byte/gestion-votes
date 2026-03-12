@@ -289,9 +289,7 @@ final class AuthMiddleware {
 
         // 2. Session PHP
         if (session_status() === PHP_SESSION_ACTIVE || session_status() === PHP_SESSION_NONE) {
-            if (session_status() === PHP_SESSION_NONE) {
-                @session_start();
-            }
+            SessionHelper::start();
             if (!empty($_SESSION['auth_user'])) {
                 // Check session timeout
                 $lastActivity = $_SESSION['auth_last_activity'] ?? 0;
@@ -623,7 +621,12 @@ final class AuthMiddleware {
     }
 
     private static function findUserByApiKey(string $apiKey): ?array {
-        $secret = self::getAppSecret();
+        try {
+            $secret = self::getAppSecret();
+        } catch (Throwable $e) {
+            error_log('API key auth unavailable: ' . $e->getMessage());
+            return null;
+        }
         $hash = hash_hmac('sha256', $apiKey, $secret);
 
         try {
