@@ -18,8 +18,8 @@ declare(strict_types=1);
 
 // ─── Resolve the request URI ───────────────────────────────────────────────
 
-$uri = strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
-$uri = rtrim($uri, '/');
+$uri = strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '';
+$uri = rtrim($uri, '/') ?: '/';
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
 // ─── Determine bootstrap type ──────────────────────────────────────────────

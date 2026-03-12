@@ -110,8 +110,8 @@ final class Router {
         $httpMethod = strtoupper($httpMethod);
 
         // Normalize: strip query string, trailing slash
-        $uri = strtok($uri, '?');
-        $uri = rtrim($uri, '/');
+        $uri = strtok($uri, '?') ?: '';
+        $uri = rtrim($uri, '/') ?: '/';
 
         // Strip .php extension for matching
         $uriWithoutPhp = preg_replace('/\.php$/', '', $uri);
