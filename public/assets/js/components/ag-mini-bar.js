@@ -37,10 +37,11 @@ class AgMiniBar extends HTMLElement {
           border-radius: ${Math.ceil(height / 2)}px;
           overflow: hidden;
           background: var(--color-bg-subtle, #e8e7e2);
+          gap: 1px;
         }
         .seg {
           height: 100%;
-          transition: width .4s ease;
+          transition: width var(--duration-normal, 300ms) ease;
           min-width: 0;
         }
         .seg:first-child { border-radius: ${Math.ceil(height / 2)}px 0 0 ${Math.ceil(height / 2)}px; }
