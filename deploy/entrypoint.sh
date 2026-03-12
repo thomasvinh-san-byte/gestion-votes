@@ -145,7 +145,7 @@ unset PGPASSWORD
 # php.ini defaults to cookie_secure=0 so local HTTP dev works out of the box.
 mkdir -p /tmp/php-runtime
 _ENV="${APP_ENV:-development}"
-if [ "$_ENV" != "development" ] && [ "$_ENV" != "dev" ]; then
+if [ "$_ENV" != "development" ] && [ "$_ENV" != "dev" ] && [ "$_ENV" != "demo" ]; then
   {
     echo "session.cookie_secure = 1"
     echo "opcache.validate_timestamps = 0"

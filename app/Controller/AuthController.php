@@ -107,20 +107,24 @@ final class AuthController extends AbstractController {
         }
 
         // ── Create session ──
-        if (session_status() === PHP_SESSION_NONE) {
-            $secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-            session_set_cookie_params([
-                'lifetime' => 0,
-                'path' => '/',
-                'domain' => '',
-                'secure' => $secure,
-                'httponly' => true,
-                'samesite' => 'Lax',
-            ]);
-            session_start();
+        // Close any session started early by AuthMiddleware::authenticate()
+        // (called during auto-enforcement rate limiting) so we can set
+        // the correct cookie parameters before regenerating the ID.
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
         }
 
+        $secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path' => '/',
+            'domain' => '',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        session_start();
         session_regenerate_id(true);
 
         $_SESSION['auth_user'] = [

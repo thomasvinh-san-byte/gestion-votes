@@ -27,7 +27,7 @@ final class DatabaseProvider {
         if ($dsn === '') {
             http_response_code(500);
             header('Content-Type: application/json; charset=utf-8');
-            echo json_encode(['ok' => false, 'error' => 'db_dsn_missing']);
+            echo json_encode(['ok' => false, 'error' => 'db_dsn_missing', 'message' => 'Configuration base de données manquante.']);
             exit;
         }
 
@@ -42,7 +42,7 @@ final class DatabaseProvider {
             error_log('DB error: ' . $e->getMessage());
             http_response_code(500);
             header('Content-Type: application/json; charset=utf-8');
-            $payload = ['ok' => false, 'error' => 'database_error'];
+            $payload = ['ok' => false, 'error' => 'database_error', 'message' => 'Erreur de connexion à la base de données.'];
             if ($debug) {
                 $payload['detail'] = $e->getMessage();
             }

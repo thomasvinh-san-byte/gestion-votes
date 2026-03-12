@@ -205,7 +205,7 @@ final class Application {
                 header('Content-Type: application/json; charset=utf-8');
             }
 
-            $response = ['ok' => false, 'error' => 'internal_error'];
+            $response = ['ok' => false, 'error' => 'internal_error', 'message' => 'Erreur interne du serveur. Veuillez réessayer.'];
             if ($debug) {
                 $response['debug'] = [
                     'message' => $e->getMessage(),

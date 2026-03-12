@@ -25,7 +25,7 @@ set_exception_handler(function (\Throwable $e) {
     error_log('Uncaught exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
     http_response_code(500);
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['ok' => false, 'error' => 'internal_error'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['ok' => false, 'error' => 'internal_error', 'message' => 'Erreur interne du serveur. Veuillez réessayer.'], JSON_UNESCAPED_UNICODE);
 });
 
 // Eagerly cache php://input (can only be read once)

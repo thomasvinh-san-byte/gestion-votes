@@ -46,8 +46,8 @@ abstract class AbstractController {
         } catch (RuntimeException $e) {
             api_fail('business_error', 400, ['detail' => $e->getMessage()]);
         } catch (Throwable $e) {
-            error_log(static::class . '::' . $method . ': ' . $e->getMessage());
-            api_fail('internal_error', 500);
+            error_log(static::class . '::' . $method . ': ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            api_fail('internal_error', 500, ['message' => 'Erreur interne du serveur. Veuillez réessayer.']);
         }
     }
 
