@@ -501,9 +501,7 @@ final class AuthMiddleware {
 
         // Meeting role match (president transitions)
         $meetingRoles = self::getMeetingRoles($meetingId);
-        return (bool) (in_array($requiredRole, $meetingRoles, true))
-
-        ;
+        return in_array($requiredRole, $meetingRoles, true);
     }
 
     public static function requireTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): void {
