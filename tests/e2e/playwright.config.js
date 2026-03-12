@@ -46,7 +46,7 @@ module.exports = defineConfig({
   // Local dev server
   webServer: {
     command: 'php -S localhost:8000 -t public',
-    url: 'http://localhost:8000',
+    url: 'http://localhost:8000/login.html',
     reuseExistingServer: !process.env.CI,
     cwd: '../../',
   },
