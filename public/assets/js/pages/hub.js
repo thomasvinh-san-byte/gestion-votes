@@ -296,49 +296,130 @@
     });
   }
 
-  /* ── Load data (fallback to demo) ────────────────── */
+  /* ── Load data (API with demo fallback) ─────────── */
 
-  function loadData() {
-    // Identity fields
-    var title = document.getElementById('hubTitle');
-    var date = document.getElementById('hubDate');
-    var place = document.getElementById('hubPlace');
-    var participants = document.getElementById('hubParticipants');
+  var DEMO_SESSION = {
+    title: 'AG Ordinaire',
+    date: '2026-02-18',
+    memberCount: 67,
+    resolutionCount: 8,
+    convocationsSent: true,
+    documentCount: 3,
+    kpiParticipants: '67',
+    kpiVoix: '8\u202f500 voix',
+    kpiResolutions: '8',
+    kpiResoDetail: '3 art.24, 3 art.25, 2 art.26',
+    kpiQuorum: '34',
+    kpiQuorumDetail: '4\u202f251 voix min.',
+    kpiConvoc: '55/67',
+    kpiConvocDetail: '12 en attente'
+  };
 
-    if (title) title.textContent = 'AG Ordinaire';
-    if (date) date.textContent = 'Mercredi 18 f\u00e9vrier 2026 \u00e0 18 h 30';
-    if (place) place.textContent = 'Salle des f\u00eates, 12 rue des Mimosas';
-    if (participants) participants.textContent = '67 participants';
+  var DEMO_FILES = [
+    { name: 'Convocation_AG_2026.pdf', size: '245 Ko', url: '#' },
+    { name: 'Comptes_2025.pdf', size: '1.2 Mo', url: '#' },
+    { name: 'Devis_ravalement.pdf', size: '890 Ko', url: '#' }
+  ];
 
-    // Demo session data for KPIs and checklist auto-check
-    var sessionData = {
-      title: 'AG Ordinaire',
-      date: '2026-02-18',
-      memberCount: 67,
-      resolutionCount: 8,
-      convocationsSent: true,
-      documentCount: 3,
-      // KPI display values
-      kpiParticipants: '67',
-      kpiVoix: '8\u202f500 voix',
-      kpiResolutions: '8',
-      kpiResoDetail: '3 art.24, 3 art.25, 2 art.26',
-      kpiQuorum: '34',
-      kpiQuorumDetail: '4\u202f251 voix min.',
-      kpiConvoc: '55/67',
-      kpiConvocDetail: '12 en attente'
+  function applySessionToDOM(sessionData) {
+    var titleEl = document.getElementById('hubTitle');
+    var dateEl = document.getElementById('hubDate');
+    var placeEl = document.getElementById('hubPlace');
+    var participantsEl = document.getElementById('hubParticipants');
+
+    if (titleEl) titleEl.textContent = sessionData.title || 'AG Ordinaire';
+    if (dateEl) dateEl.textContent = sessionData.dateDisplay || 'Mercredi 18 f\u00e9vrier 2026 \u00e0 18 h 30';
+    if (placeEl) placeEl.textContent = sessionData.place || 'Salle des f\u00eates, 12 rue des Mimosas';
+    if (participantsEl) participantsEl.textContent = (sessionData.memberCount || 67) + ' participants';
+  }
+
+  function mapApiDataToSession(data) {
+    var memberCount = 0;
+    if (Array.isArray(data.members)) {
+      memberCount = data.members.length;
+    } else if (typeof data.participants === 'number') {
+      memberCount = data.participants;
+    } else if (typeof data.member_count === 'number') {
+      memberCount = data.member_count;
+    }
+
+    var resolutionCount = 0;
+    if (Array.isArray(data.resolutions)) {
+      resolutionCount = data.resolutions.length;
+    } else if (typeof data.resolution_count === 'number') {
+      resolutionCount = data.resolution_count;
+    }
+
+    var documentCount = 0;
+    if (Array.isArray(data.documents)) {
+      documentCount = data.documents.length;
+    } else if (typeof data.document_count === 'number') {
+      documentCount = data.document_count;
+    }
+
+    var convocationsSent = !!(data.convocation_status === 'sent' || data.convocations_sent);
+
+    var dateDisplay = data.date || '';
+    if (data.date && data.time) {
+      dateDisplay = data.date + ' \u00e0 ' + data.time;
+    }
+
+    return {
+      title: data.title || '',
+      date: data.date || '',
+      dateDisplay: dateDisplay,
+      place: [data.place, data.address].filter(Boolean).join(', ') || '',
+      memberCount: memberCount,
+      resolutionCount: resolutionCount,
+      convocationsSent: convocationsSent,
+      documentCount: documentCount,
+      kpiParticipants: String(memberCount || '-'),
+      kpiVoix: data.kpi_voix || (memberCount ? memberCount + ' voix' : '-'),
+      kpiResolutions: String(resolutionCount || '-'),
+      kpiResoDetail: data.kpi_reso_detail || '',
+      kpiQuorum: data.kpi_quorum || '-',
+      kpiQuorumDetail: data.kpi_quorum_detail || '',
+      kpiConvoc: data.kpi_convoc || (convocationsSent ? memberCount + '/' + memberCount : '-'),
+      kpiConvocDetail: data.kpi_convoc_detail || ''
     };
+  }
 
-    renderKpis(sessionData);
-    renderChecklist(sessionData);
+  async function loadData() {
+    var params = new URLSearchParams(window.location.search);
+    var sessionId = params.get('id');
 
-    // Documents
-    var files = [
-      { name: 'Convocation_AG_2026.pdf', size: '245 Ko', url: '#' },
-      { name: 'Comptes_2025.pdf', size: '1.2 Mo', url: '#' },
-      { name: 'Devis_ravalement.pdf', size: '890 Ko', url: '#' }
-    ];
-    renderDocuments(files);
+    if (sessionId) {
+      try {
+        var res = await window.api('/api/v1/meetings.php?id=' + encodeURIComponent(sessionId));
+        if (res && res.body && res.body.ok && res.body.data) {
+          var data = res.body.data;
+          var sessionData = mapApiDataToSession(data);
+          applySessionToDOM(sessionData);
+          renderKpis(sessionData);
+          renderChecklist(sessionData);
+
+          var files = Array.isArray(data.documents) ? data.documents : DEMO_FILES;
+          renderDocuments(files);
+          return;
+        }
+      } catch (e) {
+        console.warn('Hub loadData: API call failed, falling back to demo data.', e);
+      }
+      console.warn('Hub loadData: API response invalid or session not found, falling back to demo data.');
+    } else {
+      console.warn('Hub loadData: No session ID in URL, using demo data.');
+    }
+
+    // Fallback: demo data
+    applySessionToDOM({
+      title: DEMO_SESSION.title,
+      dateDisplay: 'Mercredi 18 f\u00e9vrier 2026 \u00e0 18 h 30',
+      place: 'Salle des f\u00eates, 12 rue des Mimosas',
+      memberCount: DEMO_SESSION.memberCount
+    });
+    renderKpis(DEMO_SESSION);
+    renderChecklist(DEMO_SESSION);
+    renderDocuments(DEMO_FILES);
   }
 
   /* ── Toast pickup from wizard redirect (WIZ-05 / HUB) ── */
@@ -361,7 +442,7 @@
 
   function init() {
     checkToast();
-    loadData();
+    loadData().catch(function(e) { console.warn('Hub loadData error:', e); });
     render();
     setupDetails();
   }
