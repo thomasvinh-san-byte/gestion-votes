@@ -684,6 +684,13 @@
     var btnP3 = document.getElementById('btnPrev3');
     if (btnP3) btnP3.addEventListener('click', function() { showStep(2); });
 
+    var btnPdf = document.getElementById('btnDownloadPdf');
+    if (btnPdf) {
+      btnPdf.addEventListener('click', function() {
+        window.print();
+      });
+    }
+
     var btnCreate = document.getElementById('btnCreate');
     if (btnCreate) {
       btnCreate.addEventListener('click', function() {
