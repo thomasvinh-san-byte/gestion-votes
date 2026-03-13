@@ -41,11 +41,11 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Create Session Wizard
 
-- [ ] **WIZ-01**: 4-step accordion with visual stepper (done/active/pending circles)
-- [ ] **WIZ-02**: Step 1 — Infos générales: title, type (select), date, time, location, address
-- [ ] **WIZ-03**: Step 2 — Membres: CSV import, manual entry table, lot assignment, vote weight
-- [ ] **WIZ-04**: Step 3 — Ordre du jour: resolution entries, voting rule per resolution, secret ballot toggle
-- [ ] **WIZ-05**: Step 4 — Récapitulatif: review all info, create button, download PDF option
+- [x] **WIZ-01**: 4-step accordion with visual stepper (done/active/pending circles)
+- [x] **WIZ-02**: Step 1 — Infos générales: title, type (select), date, time, location, address
+- [x] **WIZ-03**: Step 2 — Membres: CSV import, manual entry table, lot assignment, vote weight
+- [x] **WIZ-04**: Step 3 — Ordre du jour: resolution entries, voting rule per resolution, secret ballot toggle
+- [x] **WIZ-05**: Step 4 — Récapitulatif: review all info, create button, download PDF option
 
 ### Session Hub
 
@@ -183,11 +183,11 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | SESS-03 | Phase 7 | Complete |
 | SESS-04 | Phase 7 | Complete |
 | SESS-05 | Phase 7 | Complete |
-| WIZ-01 | Phase 8 | Pending |
-| WIZ-02 | Phase 8 | Pending |
-| WIZ-03 | Phase 8 | Pending |
-| WIZ-04 | Phase 8 | Pending |
-| WIZ-05 | Phase 8 | Pending |
+| WIZ-01 | Phase 8 | Complete |
+| WIZ-02 | Phase 8 | Complete |
+| WIZ-03 | Phase 8 | Complete |
+| WIZ-04 | Phase 8 | Complete |
+| WIZ-05 | Phase 8 | Complete |
 | HUB-01 | Phase 8 | Pending |
 | HUB-02 | Phase 8 | Pending |
 | HUB-03 | Phase 8 | Pending |

@@ -182,7 +182,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 5. Shared Components | 3/4 | In Progress|  |
 | 6. Layout & Navigation | 1/3 | In Progress|  |
 | 7. Dashboard & Sessions | 0/3 | Not started | - |
-| 8. Session Wizard & Hub | 0/TBD | Not started | - |
+| 8. Session Wizard & Hub | 1/2 | In Progress|  |
 | 9. Operator Console | 0/TBD | Not started | - |
 | 10. Live Session Views | 0/TBD | Not started | - |
 | 11. Post-Session & Records | 0/TBD | Not started | - |
