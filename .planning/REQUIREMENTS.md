@@ -22,22 +22,22 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 - [x] **NAV-03**: Header bar (56px) with logo, global search (Cmd+K overlay), notification panel, theme toggle
 - [x] **NAV-04**: Mobile bottom navigation with 5 primary tabs (Dashboard, Sessions, Fiche, Opérateur, Paramètres)
 - [x] **NAV-05**: Footer with logo, help link, accessibility link
-- [ ] **NAV-06**: Skip-to-content link and ARIA navigation landmarks
+- [x] **NAV-06**: Skip-to-content link and ARIA navigation landmarks
 
 ### Dashboard
 
-- [ ] **DASH-01**: 4 KPI cards (AG à venir, En cours, Convocations en attente, PV à envoyer)
-- [ ] **DASH-02**: Urgent action card (red, large, clickable) when action needed
-- [ ] **DASH-03**: 2-column grid: upcoming sessions list (left) + task list with priority colors (right)
-- [ ] **DASH-04**: 3-column shortcut cards (Créer séance, Piloter vote, Piste audit)
+- [x] **DASH-01**: 4 KPI cards (AG à venir, En cours, Convocations en attente, PV à envoyer)
+- [x] **DASH-02**: Urgent action card (red, large, clickable) when action needed
+- [x] **DASH-03**: 2-column grid: upcoming sessions list (left) + task list with priority colors (right)
+- [x] **DASH-04**: 3-column shortcut cards (Créer séance, Piloter vote, Piste audit)
 
 ### Sessions
 
-- [ ] **SESS-01**: List/calendar view toggle with search bar and sort dropdown
-- [ ] **SESS-02**: Filter pills (Toutes, À venir, En cours, Terminées) with counts
-- [ ] **SESS-03**: Session list items with status dot, title, date, participants, resolutions, quorum, status tag, popover menu
-- [ ] **SESS-04**: Calendar view with month display, color-coded event cells
-- [ ] **SESS-05**: Empty state with icon, title, subtitle, CTA button
+- [x] **SESS-01**: List/calendar view toggle with search bar and sort dropdown
+- [x] **SESS-02**: Filter pills (Toutes, À venir, En cours, Terminées) with counts
+- [x] **SESS-03**: Session list items with status dot, title, date, participants, resolutions, quorum, status tag, popover menu
+- [x] **SESS-04**: Calendar view with month display, color-coded event cells
+- [x] **SESS-05**: Empty state with icon, title, subtitle, CTA button
 
 ### Create Session Wizard
 
@@ -173,16 +173,16 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | NAV-03 | Phase 6 | Complete |
 | NAV-04 | Phase 6 | Complete |
 | NAV-05 | Phase 6 | Complete |
-| NAV-06 | Phase 6 | Pending |
-| DASH-01 | Phase 7 | Pending |
-| DASH-02 | Phase 7 | Pending |
-| DASH-03 | Phase 7 | Pending |
-| DASH-04 | Phase 7 | Pending |
-| SESS-01 | Phase 7 | Pending |
-| SESS-02 | Phase 7 | Pending |
-| SESS-03 | Phase 7 | Pending |
-| SESS-04 | Phase 7 | Pending |
-| SESS-05 | Phase 7 | Pending |
+| NAV-06 | Phase 6 | Complete |
+| DASH-01 | Phase 7 | Complete |
+| DASH-02 | Phase 7 | Complete |
+| DASH-03 | Phase 7 | Complete |
+| DASH-04 | Phase 7 | Complete |
+| SESS-01 | Phase 7 | Complete |
+| SESS-02 | Phase 7 | Complete |
+| SESS-03 | Phase 7 | Complete |
+| SESS-04 | Phase 7 | Complete |
+| SESS-05 | Phase 7 | Complete |
 | WIZ-01 | Phase 8 | Pending |
 | WIZ-02 | Phase 8 | Pending |
 | WIZ-03 | Phase 8 | Pending |

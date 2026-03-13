@@ -1,324 +1,428 @@
 /**
- * meetings.js - Meetings page logic for AG-VOTE.
+ * meetings.js — Sessions page logic for AG-VOTE.
  *
- * Handles meeting list display, creation, filtering, and calendar view.
- * Uses PageComponents for reusable UI functionality.
+ * Clean rewrite: filter pills, search/sort, session list rendering,
+ * calendar view, popover menus, empty states, onboarding banner.
  *
  * @module meetings
- * @requires utils.js (api, escapeHtml, setNotif)
- * @requires shared.js (Shared.MEETING_STATUS_MAP, Shared.btnLoading)
- * @requires page-components.js (PageComponents)
+ * @requires utils.js (api, escapeHtml, formatDate, debounce, setNotif)
+ * @requires shared.js (Shared.emptyState, Shared.btnLoading, Shared.validateField)
  */
 (function() {
   'use strict';
 
-  // ==========================================================================
-  // STATE
-  // ==========================================================================
+  // === STATE ===
+  var allMeetings = [];
+  var currentFilter = 'all';
+  var searchText = '';
+  var sortMode = 'date_desc';
+  var currentView = 'list';
+  var calendarDate = new Date();
+  var currentPage = 1;
+  var PER_PAGE = 12;
 
-  let allMeetings = [];
-  let currentFilter = 'all';
-  let currentSearchText = '';
-  let currentSortMode = 'status';
-  let currentPage = 1;
-  var MEETINGS_PER_PAGE = 12;
-  let _filterManager = null;
-  let _viewToggle = null;
-  let calendarView = null;
-  let _dataGrid = null;
-
-  // File attachment state
-  let pendingFiles = [];
-
-  // ==========================================================================
-  // DOM ELEMENTS
-  // ==========================================================================
-
-  const titleInput = document.getElementById('meeting_title');
-  const dateInput = document.getElementById('meeting_date');
-  const createBtn = document.getElementById('create_meeting_btn');
-  const meetingsList = document.getElementById('meetingsList');
-  const meetingsCount = document.getElementById('meetingsCount');
-
-  // ==========================================================================
-  // ONBOARDING BANNER — persistent dismiss via localStorage
-  // ==========================================================================
-
-  (function initOnboardingBanner() {
-    var banner = document.getElementById('onboardingBanner');
-    if (!banner) return;
-    var KEY = 'ag_meetings_ob_dismissed';
-    if (localStorage.getItem(KEY) === '1') {
-      banner.hidden = true;
-      return;
-    }
-    var dismiss = function() {
-      banner.hidden = true;
-      localStorage.setItem(KEY, '1');
-    };
-    var btnClose = document.getElementById('btnCloseOnboarding');
-    var btnDismiss = document.getElementById('btnDismissOnboarding');
-    if (btnClose) btnClose.addEventListener('click', dismiss);
-    if (btnDismiss) btnDismiss.addEventListener('click', dismiss);
-  })();
-
-  // ==========================================================================
-  // STATS
-  // ==========================================================================
-
-  /**
-   * Update stats bar with meeting counts.
-   * @param {Array} meetings - All meetings
-   */
-  function updateStats(meetings) {
-    const live = meetings.filter(m => m.status === 'live' || m.status === 'paused').length;
-    const scheduled = meetings.filter(m => ['scheduled', 'frozen'].includes(m.status)).length;
-    const draft = meetings.filter(m => m.status === 'draft').length;
-
-    const statLive = document.getElementById('statLive');
-    const statScheduled = document.getElementById('statScheduled');
-    const statDraft = document.getElementById('statDraft');
-    const statTotal = document.getElementById('statTotal');
-
-    if (statLive) statLive.textContent = live;
-    if (statScheduled) statScheduled.textContent = scheduled;
-    if (statDraft) statDraft.textContent = draft;
-    if (statTotal) statTotal.textContent = meetings.length;
-
-    // Total resolutions across all meetings
-    const totalResolutions = meetings.reduce(function(sum, m) {
-      return sum + (m.motions_count || m.resolution_count || 0);
-    }, 0);
-    const statResolutions = document.getElementById('statResolutions');
-    if (statResolutions) statResolutions.textContent = totalResolutions;
-
-    // Average participation rate
-    var participationValues = [];
-    meetings.forEach(function(m) {
-      if (m.participation_rate != null) {
-        participationValues.push(parseFloat(m.participation_rate));
-      } else if (m.attendees_count != null && m.total_members != null && m.total_members > 0) {
-        participationValues.push((m.attendees_count / m.total_members) * 100);
-      }
-    });
-    var statAvgParticipation = document.getElementById('statAvgParticipation');
-    if (statAvgParticipation) {
-      if (participationValues.length > 0) {
-        var avg = participationValues.reduce(function(s, v) { return s + v; }, 0) / participationValues.length;
-        statAvgParticipation.textContent = Math.round(avg) + '%';
-      } else {
-        statAvgParticipation.textContent = '\u2014';
-      }
-    }
-  }
-
-  // ==========================================================================
-  // FILTERING
-  // ==========================================================================
-
-  function filterMeetings(meetings, filter) {
-    if (filter === 'all') return meetings;
-    if (filter === 'live') return meetings.filter(m => m.status === 'live' || m.status === 'paused');
-    if (filter === 'scheduled') return meetings.filter(m => ['scheduled', 'frozen'].includes(m.status));
-    if (filter === 'draft') return meetings.filter(m => m.status === 'draft');
-    if (filter === 'archived') return meetings.filter(m => ['closed', 'validated', 'archived'].includes(m.status));
-    return meetings;
-  }
-
-  function sortMeetings(a, b) {
-    if (currentSortMode === 'date_desc') {
-      var dateA = a.scheduled_at || a.created_at || '';
-      var dateB = b.scheduled_at || b.created_at || '';
-      return new Date(dateB) - new Date(dateA);
-    }
-    if (currentSortMode === 'date_asc') {
-      var dateA = a.scheduled_at || a.created_at || '';
-      var dateB = b.scheduled_at || b.created_at || '';
-      return new Date(dateA) - new Date(dateB);
-    }
-    if (currentSortMode === 'title') {
-      return (a.title || '').localeCompare(b.title || '', 'fr');
-    }
-    // Default: sort by status then date
-    const statusOrder = { live: 0, paused: 1, frozen: 2, scheduled: 3, draft: 4, closed: 5, validated: 6, archived: 7 };
-    const orderA = statusOrder[a.status] ?? 99;
-    const orderB = statusOrder[b.status] ?? 99;
-    if (orderA !== orderB) return orderA - orderB;
-    return new Date(b.created_at) - new Date(a.created_at);
-  }
-
-  function searchMeetings(meetings, searchText) {
-    if (!searchText) return meetings;
-    var lower = searchText.toLowerCase();
-    return meetings.filter(function(m) {
-      return (m.title || '').toLowerCase().indexOf(lower) !== -1;
-    });
-  }
-
-  // ==========================================================================
-  // RENDERING
-  // ==========================================================================
-
-  const MEETING_TYPE_LABELS = {
-    ag_ordinaire: 'AG ordinaire',
-    ag_extraordinaire: 'AG extraordinaire',
-    conseil: 'Conseil',
-    bureau: 'Bureau',
-    autre: 'Autre'
+  // === CONSTANTS ===
+  var FILTER_MAP = {
+    all: null,
+    upcoming: ['scheduled', 'frozen', 'draft', 'convocations'],
+    live: ['live', 'paused'],
+    completed: ['closed', 'validated', 'archived', 'pv_sent']
   };
 
-  function renderMeetingCard(m) {
-    const title = escapeHtml(m.title || '(sans titre)');
-    const statusInfo = Shared.MEETING_STATUS_MAP[m.status] || Shared.MEETING_STATUS_MAP['draft'];
-    const typeLabel = MEETING_TYPE_LABELS[m.meeting_type] || '';
-    const isLive = m.status === 'live' || m.status === 'paused';
-    const isDraft = m.status === 'draft';
-    const isScheduled = m.status === 'scheduled' || m.status === 'frozen';
-    const isArchived = ['closed', 'validated', 'archived'].includes(m.status);
-    const canEdit = isDraft || isScheduled;
-    const canDelete = isDraft;
+  var DOT_CLASS_MAP = {
+    draft: 'draft',
+    scheduled: 'upcoming',
+    frozen: 'upcoming',
+    convocations: 'upcoming',
+    live: 'live',
+    paused: 'live',
+    closed: 'completed',
+    validated: 'completed',
+    archived: 'completed',
+    pv_sent: 'completed'
+  };
 
-    let cardClass = '';
-    if (isLive) cardClass = 'is-live';
-    else if (isDraft) cardClass = 'is-draft';
-    else if (isArchived) cardClass = 'is-archived';
+  var TAG_VARIANT_MAP = {
+    draft: 'muted',
+    scheduled: 'accent',
+    frozen: 'accent',
+    convocations: 'accent',
+    live: 'danger',
+    paused: 'danger',
+    closed: 'success',
+    validated: 'success',
+    archived: 'muted',
+    pv_sent: 'muted'
+  };
 
-    const date = m.scheduled_at
-      ? new Date(m.scheduled_at).toLocaleDateString('fr-FR', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      })
-      : '\u2014';
+  var STATUS_LABELS = {
+    draft: 'Brouillon',
+    scheduled: 'Planifi&eacute;e',
+    frozen: 'Verrouill&eacute;e',
+    convocations: 'Convocations',
+    live: 'En cours',
+    paused: 'En pause',
+    closed: 'Termin&eacute;e',
+    validated: 'Valid&eacute;e',
+    archived: 'Archiv&eacute;e',
+    pv_sent: 'PV envoy&eacute;'
+  };
 
-    const badgeClass = isLive
-      ? `${statusInfo.badge} badge-sm badge-dot`
-      : `${statusInfo.badge} badge-sm`;
+  var MONTH_NAMES = [
+    'Janvier', 'F\u00e9vrier', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Ao\u00fbt', 'Septembre', 'Octobre', 'Novembre', 'D\u00e9cembre'
+  ];
 
-    const btnClass = isLive
-      ? 'btn btn-sm btn-success'
-      : (isDraft ? 'btn btn-sm btn-secondary' : 'btn btn-sm btn-primary');
-    const btnText = isLive ? 'Rejoindre' : 'Ouvrir';
+  var DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
-    const motionsCount = m.motions_count || 0;
-    const attendeesCount = m.attendees_count || 0;
-    const motionsLabel = motionsCount === 1 ? 'résolution' : 'résolutions';
-    const attendeesLabel = attendeesCount === 1 ? 'présent' : 'présents';
+  // === DOM REFS ===
+  var meetingsList = document.getElementById('meetingsList');
+  var meetingsCount = document.getElementById('meetingsCount');
+  var meetingsPagination = document.getElementById('meetingsPagination');
+  var calendarContainer = document.getElementById('calendarContainer');
+  var calendarGrid = document.getElementById('calendarGrid');
+  var calendarTitle = document.getElementById('calendarTitle');
 
-    // Build contextual action buttons
-    var secondaryActions = '';
-    if (canEdit) {
-      secondaryActions += '<button class="btn btn-xs btn-ghost meeting-action-edit" data-edit-id="' + m.id + '" title="Modifier">' +
-        '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>' +
-        '</button>';
-    }
-    if (canDelete) {
-      secondaryActions += '<button class="btn btn-xs btn-ghost text-danger meeting-action-delete" data-delete-id="' + escapeHtml(m.id) + '" title="Supprimer">' +
-        '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>' +
-        '</button>';
-    }
+  // === DATA LOADING ===
 
-    return `
-      <div class="meeting-card ${cardClass}" data-meeting-id="${escapeHtml(m.id)}">
-        <div class="meeting-card-header">
-          <div class="flex items-center gap-2" style="justify-content:space-between;">
-            <h3 class="meeting-card-title">${title}</h3>
-            ${secondaryActions ? '<div class="flex items-center gap-1">' + secondaryActions + '</div>' : ''}
-          </div>
-          <div class="meeting-card-meta">
-            <span class="badge ${badgeClass}">${statusInfo.text}</span>
-            ${typeLabel ? `<span class="badge badge-muted badge-sm">${typeLabel}</span>` : ''}
-            <span class="meeting-date">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
-              ${date}
-            </span>
-          </div>
-        </div>
-        <div class="meeting-card-body">
-          <div class="meeting-stats">
-            <span title="${motionsCount} ${motionsLabel}">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
-              <strong>${motionsCount}</strong> ${motionsLabel}
-            </span>
-            <span title="${attendeesCount} ${attendeesLabel}">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-              <strong>${attendeesCount}</strong> ${attendeesLabel}
-            </span>
-          </div>
-          <div class="meeting-card-actions">
-            <a class="${btnClass}" href="/operator.htmx.html?meeting_id=${encodeURIComponent(m.id)}">
-              ${isLive ? '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>' : ''}
-              ${btnText}
-            </a>
-          </div>
-        </div>
-      </div>
-    `;
+  function loadMeetings() {
+    Shared.withRetry({
+      container: meetingsList,
+      maxRetries: 1,
+      errorMsg: 'Impossible de charger les s\u00e9ances',
+      action: async function() {
+        var result = await api('/api/v1/meetings_index.php');
+        if (!result.body || !result.body.ok) throw new Error(result.body?.error || 'Erreur serveur');
+        allMeetings = result.body.data?.items || [];
+        updateFilterCounts();
+        renderCurrentView();
+        updateOnboardingBanner();
+      }
+    });
   }
 
-  function renderMeetings(meetings) {
-    const filtered = filterMeetings(meetings, currentFilter);
-    const searched = searchMeetings(filtered, currentSearchText);
-    const sorted = [...searched].sort(sortMeetings);
+  // === FILTER PILLS ===
 
-    if (meetingsCount) {
-      meetingsCount.textContent = `${sorted.length} séance${sorted.length > 1 ? 's' : ''}`;
+  function initFilterPills() {
+    var pills = document.querySelectorAll('.filter-pill');
+    pills.forEach(function(pill) {
+      pill.addEventListener('click', function() {
+        currentFilter = pill.getAttribute('data-filter') || 'all';
+        pills.forEach(function(p) {
+          p.classList.remove('active');
+          p.setAttribute('aria-selected', 'false');
+        });
+        pill.classList.add('active');
+        pill.setAttribute('aria-selected', 'true');
+        currentPage = 1;
+        renderCurrentView();
+      });
+    });
+  }
+
+  function updateFilterCounts() {
+    var countAll = document.getElementById('countAll');
+    var countUpcoming = document.getElementById('countUpcoming');
+    var countLive = document.getElementById('countLive');
+    var countCompleted = document.getElementById('countCompleted');
+
+    if (countAll) countAll.textContent = allMeetings.length;
+    if (countUpcoming) countUpcoming.textContent = allMeetings.filter(function(m) {
+      return FILTER_MAP.upcoming.indexOf(m.status) !== -1;
+    }).length;
+    if (countLive) countLive.textContent = allMeetings.filter(function(m) {
+      return FILTER_MAP.live.indexOf(m.status) !== -1;
+    }).length;
+    if (countCompleted) countCompleted.textContent = allMeetings.filter(function(m) {
+      return FILTER_MAP.completed.indexOf(m.status) !== -1;
+    }).length;
+  }
+
+  // === SEARCH & SORT ===
+
+  function initSearch() {
+    var searchInput = document.getElementById('meetingsSearch');
+    if (!searchInput) return;
+    var handler = Utils.debounce(function() {
+      searchText = searchInput.value.trim();
+      currentPage = 1;
+      renderCurrentView();
+    }, 250);
+    searchInput.addEventListener('input', handler);
+  }
+
+  function initSort() {
+    var sortSelect = document.getElementById('meetingsSort');
+    if (!sortSelect) return;
+    sortSelect.addEventListener('change', function() {
+      sortMode = sortSelect.value;
+      renderCurrentView();
+    });
+  }
+
+  // === FILTERING PIPELINE ===
+
+  function getFilteredMeetings() {
+    var filtered = allMeetings;
+
+    // Apply filter pill
+    if (currentFilter !== 'all' && FILTER_MAP[currentFilter]) {
+      var statuses = FILTER_MAP[currentFilter];
+      filtered = filtered.filter(function(m) {
+        return statuses.indexOf(m.status) !== -1;
+      });
     }
 
+    // Apply search
+    if (searchText) {
+      var q = searchText.toLowerCase();
+      filtered = filtered.filter(function(m) {
+        return (m.title || '').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+
+    // Apply sort
+    filtered = filtered.slice().sort(function(a, b) {
+      switch (sortMode) {
+        case 'date_asc':
+          return new Date(a.scheduled_at || a.created_at || 0) - new Date(b.scheduled_at || b.created_at || 0);
+        case 'title_asc':
+          return (a.title || '').localeCompare(b.title || '', 'fr');
+        case 'title_desc':
+          return (b.title || '').localeCompare(a.title || '', 'fr');
+        case 'date_desc':
+        default:
+          return new Date(b.scheduled_at || b.created_at || 0) - new Date(a.scheduled_at || a.created_at || 0);
+      }
+    });
+
+    return filtered;
+  }
+
+  // === SESSION LIST RENDERING ===
+
+  function renderSessionList() {
     if (!meetingsList) return;
 
-    if (sorted.length === 0) {
-      meetingsList.innerHTML = Shared.emptyState({
-        icon: 'meetings',
-        title: 'Aucune séance',
-        description: currentSearchText
-          ? 'Aucune séance ne correspond à votre recherche.'
-          : 'Commencez par préparer une nouvelle séance avec le formulaire ci-dessus. Renseignez un titre, puis cliquez sur \u00ab Préparer la séance \u00bb.',
-        actionHtml: '<div style="grid-column:1/-1;"></div>'
-      });
+    var filtered = getFilteredMeetings();
+    var total = filtered.length;
+
+    // Paginate
+    var totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    var start = (currentPage - 1) * PER_PAGE;
+    var page = filtered.slice(start, start + PER_PAGE);
+
+    // Update count
+    if (meetingsCount) {
+      meetingsCount.textContent = total + ' s\u00e9ance' + (total !== 1 ? 's' : '');
+    }
+
+    // Empty state
+    if (total === 0) {
+      meetingsList.innerHTML = renderEmptyState(currentFilter);
+      if (meetingsPagination) meetingsPagination.innerHTML = '';
       return;
     }
 
-    var visibleCount = currentPage * MEETINGS_PER_PAGE;
-    var visible = sorted.slice(0, visibleCount);
-    var hasMore = sorted.length > visibleCount;
-
-    var html = visible.map(renderMeetingCard).join('');
-
-    if (hasMore) {
-      var remaining = sorted.length - visibleCount;
-      html += '<div style="grid-column:1/-1; text-align:center; padding:1rem 0;">' +
-        '<button class="btn btn-secondary" id="meetingsShowMore">' +
-        'Afficher plus (' + remaining + ' restante' + (remaining > 1 ? 's' : '') + ')' +
-        '</button></div>';
+    // Render items
+    var html = '';
+    for (var i = 0; i < page.length; i++) {
+      html += renderSessionItem(page[i]);
     }
-
     meetingsList.innerHTML = html;
 
-    if (hasMore) {
-      var showMoreBtn = document.getElementById('meetingsShowMore');
-      if (showMoreBtn) {
-        showMoreBtn.addEventListener('click', function() {
-          currentPage++;
-          renderMeetings(allMeetings);
-        });
-      }
+    // Render pagination
+    renderPagination(totalPages);
+  }
+
+  function renderSessionItem(m) {
+    var id = m.id || m.meeting_id;
+    var status = m.status || 'draft';
+    var dotClass = DOT_CLASS_MAP[status] || 'draft';
+    var tagVariant = TAG_VARIANT_MAP[status] || 'muted';
+    var statusLabel = STATUS_LABELS[status] || status;
+    var quorumText = formatQuorum(m);
+
+    return '<div class="session-item" data-id="' + id + '" onclick="location.href=\'/hub.htmx.html?meeting_id=' + id + '\'">' +
+      '<span class="session-dot ' + dotClass + '"></span>' +
+      '<div class="session-info">' +
+        '<div class="session-title">' + Utils.escapeHtml(m.title || '') + '</div>' +
+        '<div class="session-meta">' +
+          '<span class="session-meta-item date">' + Utils.formatDate(m.scheduled_at) + '</span>' +
+          '<span class="session-meta-item participants">' + (m.participant_count || 0) + ' participants</span>' +
+          '<span class="session-meta-item resolutions">' + (m.motions_count || 0) + ' r\u00e9solutions</span>' +
+          '<span class="session-meta-item quorum">' + Utils.escapeHtml(quorumText) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<span class="meeting-card-status ' + status + '">' +
+        '<span class="status-dot"></span>' +
+        statusLabel +
+      '</span>' +
+      '<div class="session-actions">' +
+        '<button class="btn btn-ghost btn-icon btn-sm session-menu-btn" data-meeting-id="' + id + '" aria-label="Actions" onclick="event.stopPropagation()">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function formatQuorum(m) {
+    if (!m.quorum_rule) return 'Standard';
+    var r = m.quorum_rule;
+    if (r === 'majority') return 'Majorit\u00e9';
+    if (r === 'two_thirds') return '2/3';
+    if (r === 'unanimity') return 'Unanimit\u00e9';
+    return r;
+  }
+
+  // === EMPTY STATES ===
+
+  function renderEmptyState(filter) {
+    if (filter === 'all' && allMeetings.length === 0) {
+      return Shared.emptyState({
+        icon: 'meetings',
+        title: 'Aucune s\u00e9ance',
+        description: 'Cr\u00e9ez votre premi\u00e8re s\u00e9ance pour commencer.',
+        actionHtml: '<a class="btn btn-primary btn-sm" href="/wizard.htmx.html" style="margin-top:12px;">Nouvelle s\u00e9ance</a>'
+      });
+    }
+    if (filter === 'upcoming') {
+      return Shared.emptyState({
+        icon: 'meetings',
+        title: 'Aucune s\u00e9ance \u00e0 venir',
+        description: 'Toutes vos s\u00e9ances sont termin\u00e9es ou en cours.'
+      });
+    }
+    if (filter === 'live') {
+      return Shared.emptyState({
+        icon: 'meetings',
+        title: 'Aucune s\u00e9ance en cours',
+        description: 'Lancez une s\u00e9ance depuis la page op\u00e9rateur.'
+      });
+    }
+    if (filter === 'completed') {
+      return Shared.emptyState({
+        icon: 'meetings',
+        title: 'Aucune s\u00e9ance termin\u00e9e',
+        description: 'Les s\u00e9ances termin\u00e9es appara\u00eetront ici.'
+      });
+    }
+    // Filtered 'all' with search but no results
+    return Shared.emptyState({
+      icon: 'meetings',
+      title: 'Aucun r\u00e9sultat',
+      description: 'Essayez un autre terme de recherche.'
+    });
+  }
+
+  // === POPOVER MENUS ===
+
+  function initPopoverMenus() {
+    if (!meetingsList) return;
+
+    meetingsList.addEventListener('click', function(e) {
+      var btn = e.target.closest('.session-menu-btn');
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      var meetingId = btn.getAttribute('data-meeting-id');
+      var m = findMeetingById(meetingId);
+      if (!m) return;
+
+      // Close any existing popover
+      var existing = document.querySelector('ag-popover.session-popover');
+      if (existing) existing.remove();
+
+      var items = buildPopoverItems(m);
+      var popover = document.createElement('ag-popover');
+      popover.className = 'session-popover';
+      popover.setAttribute('items', JSON.stringify(items));
+      popover.setAttribute('open', '');
+
+      // Position near the button
+      var rect = btn.getBoundingClientRect();
+      popover.style.position = 'fixed';
+      popover.style.top = (rect.bottom + 4) + 'px';
+      popover.style.left = (rect.left - 120) + 'px';
+      popover.style.zIndex = '100';
+
+      document.body.appendChild(popover);
+
+      // Handle item selection
+      popover.addEventListener('select', function(ev) {
+        var action = ev.detail?.value || ev.detail;
+        handlePopoverAction(action, m);
+        popover.remove();
+      });
+
+      // Close on click outside (next tick)
+      setTimeout(function() {
+        var closeHandler = function(ev) {
+          if (!popover.contains(ev.target) && ev.target !== btn) {
+            popover.remove();
+            document.removeEventListener('click', closeHandler);
+          }
+        };
+        document.addEventListener('click', closeHandler);
+      }, 0);
+    });
+  }
+
+  function buildPopoverItems(m) {
+    var status = m.status || 'draft';
+    var id = m.id || m.meeting_id;
+
+    if (status === 'draft') {
+      return [
+        { label: 'Modifier', value: 'edit', icon: 'edit' },
+        { label: 'Supprimer', value: 'delete', icon: 'trash', variant: 'danger' }
+      ];
+    }
+    if (status === 'scheduled' || status === 'frozen' || status === 'convocations') {
+      return [
+        { label: 'Voir', value: 'view', icon: 'eye' },
+        { label: 'Annuler', value: 'cancel', icon: 'x-circle' }
+      ];
+    }
+    // completed / archived / live / paused
+    return [
+      { label: 'Voir', value: 'view', icon: 'eye' },
+      { label: 'Archiver', value: 'archive', icon: 'archive' }
+    ];
+  }
+
+  function handlePopoverAction(action, m) {
+    var id = m.id || m.meeting_id;
+    switch (action) {
+      case 'view':
+        location.href = '/hub.htmx.html?meeting_id=' + id;
+        break;
+      case 'edit':
+        openEditModal(id);
+        break;
+      case 'delete':
+        openDeleteModal(id);
+        break;
+      case 'cancel':
+      case 'archive':
+        if (typeof setNotif === 'function') setNotif('info', 'Non impl\u00e9ment\u00e9');
+        break;
     }
   }
 
-  // ==========================================================================
-  // EDIT / DELETE MEETINGS
-  // ==========================================================================
+  // === EDIT/DELETE MODALS ===
 
   function findMeetingById(id) {
-    return allMeetings.find(function(m) { return m.id === id || m.meeting_id === id; });
+    return allMeetings.find(function(m) {
+      return String(m.id) === String(id) || String(m.meeting_id) === String(id);
+    });
   }
 
   function openEditModal(meetingId) {
     var m = findMeetingById(meetingId);
     if (!m) return;
-
     var modal = document.getElementById('editMeetingModal');
     if (!modal) return;
 
@@ -326,7 +430,6 @@
     document.getElementById('editMeetingTitle').value = m.title || '';
     document.getElementById('editMeetingDate').value = m.scheduled_at ? m.scheduled_at.slice(0, 10) : '';
 
-    // Set type radio
     var typeVal = m.meeting_type || 'ag_ordinaire';
     var typeRadio = modal.querySelector('input[name="editMeetingType"][value="' + typeVal + '"]');
     if (typeRadio) typeRadio.checked = true;
@@ -367,9 +470,9 @@
       });
 
       if (resp.body && resp.body.ok) {
-        setNotif('success', 'Séance modifiée');
+        setNotif('success', 'S\u00e9ance modifi\u00e9e');
         closeEditModal();
-        fetchMeetings();
+        loadMeetings();
       } else {
         setNotif('error', resp.body?.message || resp.body?.error || 'Erreur lors de la modification');
       }
@@ -383,13 +486,11 @@
   function openDeleteModal(meetingId) {
     var m = findMeetingById(meetingId);
     if (!m) return;
-
     var modal = document.getElementById('deleteMeetingModal');
     if (!modal) return;
 
     document.getElementById('deleteMeetingId').value = m.id || m.meeting_id;
     document.getElementById('deleteMeetingName').textContent = m.title || '(sans titre)';
-
     modal.hidden = false;
   }
 
@@ -407,9 +508,9 @@
       var resp = await api('/api/v1/meetings_delete.php', { meeting_id: meetingId });
 
       if (resp.body && resp.body.ok) {
-        setNotif('success', 'Séance supprimée');
+        setNotif('success', 'S\u00e9ance supprim\u00e9e');
         closeDeleteModal();
-        fetchMeetings();
+        loadMeetings();
       } else {
         setNotif('error', resp.body?.message || resp.body?.error || 'Erreur lors de la suppression');
       }
@@ -420,32 +521,7 @@
     }
   }
 
-  // Event delegation for edit/delete buttons on meeting cards
-  function initCardActions() {
-    if (!meetingsList) return;
-
-    meetingsList.addEventListener('click', function(e) {
-      var editBtn = e.target.closest('.meeting-action-edit');
-      if (editBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        openEditModal(editBtn.dataset.editId);
-        return;
-      }
-
-      var deleteBtn = e.target.closest('.meeting-action-delete');
-      if (deleteBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        openDeleteModal(deleteBtn.dataset.deleteId);
-        return;
-      }
-    });
-  }
-
-  // Modal close handlers
   function initModals() {
-    // Edit modal
     var editModal = document.getElementById('editMeetingModal');
     if (editModal) {
       editModal.querySelectorAll('[data-close-modal]').forEach(function(btn) {
@@ -458,7 +534,6 @@
       if (saveBtn) saveBtn.addEventListener('click', saveEditMeeting);
     }
 
-    // Delete modal
     var deleteModal = document.getElementById('deleteMeetingModal');
     if (deleteModal) {
       deleteModal.querySelectorAll('[data-close-modal]').forEach(function(btn) {
@@ -471,7 +546,6 @@
       if (confirmBtn) confirmBtn.addEventListener('click', confirmDeleteMeeting);
     }
 
-    // Escape key closes modals
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         if (editModal && !editModal.hidden) closeEditModal();
@@ -480,714 +554,306 @@
     });
   }
 
-  // ==========================================================================
-  // DATA LOADING
-  // ==========================================================================
+  // === CALENDAR VIEW ===
 
-  async function fetchMeetings() {
-    if (meetingsList) {
-      meetingsList.innerHTML = '<div class="text-center p-6 text-muted" style="grid-column: 1 / -1;">Chargement...</div>';
+  function renderCalendar() {
+    if (!calendarGrid || !calendarTitle) return;
+
+    var year = calendarDate.getFullYear();
+    var month = calendarDate.getMonth();
+
+    // Title
+    calendarTitle.textContent = MONTH_NAMES[month] + ' ' + year;
+
+    // Group filtered meetings by date
+    var filtered = getFilteredMeetings();
+    var meetingsByDate = {};
+    filtered.forEach(function(m) {
+      if (!m.scheduled_at) return;
+      var dateKey = m.scheduled_at.slice(0, 10);
+      if (!meetingsByDate[dateKey]) meetingsByDate[dateKey] = [];
+      meetingsByDate[dateKey].push(m);
+    });
+
+    // Build grid
+    var html = '';
+
+    // Day headers
+    for (var d = 0; d < DAY_NAMES.length; d++) {
+      html += '<div class="calendar-day-header">' + DAY_NAMES[d] + '</div>';
     }
 
-    await Shared.withRetry({
-      container: meetingsList,
-      maxRetries: 1,
-      errorMsg: 'Impossible de charger les séances',
-      action: async function () {
-        const { body } = await api('/api/v1/meetings_index.php');
-        if (!body || !body.ok) throw new Error(body?.error || 'Erreur serveur');
-        allMeetings = body.data?.items || [];
-        updateStats(allMeetings);
-        renderMeetings(allMeetings);
+    // Calculate first day offset (Monday = 0)
+    var firstDay = new Date(year, month, 1).getDay();
+    var offset = (firstDay === 0) ? 6 : firstDay - 1; // Convert Sunday=0 to Monday-first
 
-        if (calendarView) {
-          calendarView.setEvents(filterMeetings(allMeetings, currentFilter));
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var today = new Date();
+    var todayKey = today.getFullYear() + '-' +
+      String(today.getMonth() + 1).padStart(2, '0') + '-' +
+      String(today.getDate()).padStart(2, '0');
+
+    // Previous month padding
+    var prevMonthDays = new Date(year, month, 0).getDate();
+    for (var p = offset - 1; p >= 0; p--) {
+      var prevDay = prevMonthDays - p;
+      html += '<div class="calendar-day other-month"><div class="calendar-day-num">' + prevDay + '</div></div>';
+    }
+
+    // Current month days
+    for (var day = 1; day <= daysInMonth; day++) {
+      var dateKey = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+      var isToday = dateKey === todayKey;
+      var dayMeetings = meetingsByDate[dateKey] || [];
+
+      var classes = 'calendar-day';
+      if (isToday) classes += ' today';
+
+      html += '<div class="' + classes + '" data-date="' + dateKey + '">';
+      html += '<div class="calendar-day-num">' + day + '</div>';
+
+      // Render meeting events
+      if (dayMeetings.length > 0) {
+        var shown = Math.min(dayMeetings.length, 3);
+        for (var e = 0; e < shown; e++) {
+          var evtStatus = dayMeetings[e].status || 'draft';
+          var evtClass = DOT_CLASS_MAP[evtStatus] || 'draft';
+          // Map dot class to calendar-event class
+          var calClass = 'draft';
+          if (evtClass === 'upcoming') calClass = 'scheduled';
+          else if (evtClass === 'live') calClass = 'live';
+          else if (evtClass === 'completed') calClass = 'draft'; // re-use neutral for completed
+          html += '<a class="calendar-event ' + calClass + '" href="/hub.htmx.html?meeting_id=' + (dayMeetings[e].id || dayMeetings[e].meeting_id) + '">' +
+            Utils.escapeHtml(dayMeetings[e].title || '') + '</a>';
+        }
+        if (dayMeetings.length > 3) {
+          html += '<span class="calendar-day-count">+' + (dayMeetings.length - 3) + '</span>';
         }
       }
+
+      html += '</div>';
+    }
+
+    // Next month padding
+    var totalCells = offset + daysInMonth;
+    var remainder = totalCells % 7;
+    if (remainder > 0) {
+      for (var n = 1; n <= 7 - remainder; n++) {
+        html += '<div class="calendar-day other-month"><div class="calendar-day-num">' + n + '</div></div>';
+      }
+    }
+
+    calendarGrid.innerHTML = html;
+
+    // Day click popover
+    initCalendarDayPopovers(meetingsByDate);
+  }
+
+  function initCalendarDayPopovers(meetingsByDate) {
+    if (!calendarGrid) return;
+
+    calendarGrid.addEventListener('click', function(e) {
+      var dayCell = e.target.closest('.calendar-day:not(.other-month)');
+      if (!dayCell) return;
+      // Don't intercept clicks on event links
+      if (e.target.closest('.calendar-event')) return;
+
+      var dateKey = dayCell.getAttribute('data-date');
+      if (!dateKey || !meetingsByDate[dateKey] || meetingsByDate[dateKey].length === 0) return;
+
+      e.stopPropagation();
+
+      // Remove existing popover
+      var existing = document.querySelector('.calendar-day-popover');
+      if (existing) existing.remove();
+
+      var meetings = meetingsByDate[dateKey];
+      var popover = document.createElement('div');
+      popover.className = 'calendar-day-popover';
+
+      var popHtml = '';
+      meetings.forEach(function(m) {
+        var dotClass = DOT_CLASS_MAP[m.status || 'draft'] || 'draft';
+        var id = m.id || m.meeting_id;
+        var time = m.scheduled_at ? Utils.formatDate(m.scheduled_at) : '';
+        popHtml += '<a class="calendar-popover-item" href="/hub.htmx.html?meeting_id=' + id + '">' +
+          '<span class="session-dot ' + dotClass + '" style="width:8px;height:8px;"></span>' +
+          '<span>' + Utils.escapeHtml(m.title || '') + '</span>' +
+          '<span style="color:var(--color-text-muted);font-size:11px;margin-left:auto;">' + Utils.escapeHtml(time) + '</span>' +
+        '</a>';
+      });
+
+      popover.innerHTML = popHtml;
+
+      // Position relative to the day cell
+      dayCell.style.position = 'relative';
+      popover.style.position = 'absolute';
+      popover.style.top = '100%';
+      popover.style.left = '0';
+      dayCell.appendChild(popover);
+
+      // Close on click outside
+      setTimeout(function() {
+        var closeHandler = function(ev) {
+          if (!popover.contains(ev.target)) {
+            popover.remove();
+            document.removeEventListener('click', closeHandler);
+          }
+        };
+        document.addEventListener('click', closeHandler);
+      }, 0);
     });
   }
 
-  // ==========================================================================
-  // FILE ATTACHMENTS
-  // ==========================================================================
+  function initCalendarNav() {
+    var prevBtn = document.getElementById('calendarPrev');
+    var nextBtn = document.getElementById('calendarNext');
+    var todayBtn = document.getElementById('calendarToday');
 
-  function formatFileSize(bytes) {
-    if (bytes < 1024) return bytes + ' o';
-    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' Ko';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
+    if (prevBtn) {
+      prevBtn.addEventListener('click', function() {
+        calendarDate.setMonth(calendarDate.getMonth() - 1);
+        renderCalendar();
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function() {
+        calendarDate.setMonth(calendarDate.getMonth() + 1);
+        renderCalendar();
+      });
+    }
+    if (todayBtn) {
+      todayBtn.addEventListener('click', function() {
+        calendarDate = new Date();
+        renderCalendar();
+      });
+    }
   }
 
-  function renderFileList() {
-    const fileList = document.getElementById('fileList');
-    const dropContent = document.querySelector('.file-drop-content');
-    if (!fileList) return;
+  // === VIEW TOGGLE ===
 
-    if (pendingFiles.length === 0) {
-      fileList.innerHTML = '';
-      if (dropContent) dropContent.style.display = '';
+  function initViewToggle() {
+    var toggleBtns = document.querySelectorAll('.view-toggle-btn');
+    toggleBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        currentView = btn.getAttribute('data-view') || 'list';
+        toggleBtns.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+
+        if (meetingsList) meetingsList.style.display = (currentView === 'list') ? '' : 'none';
+        if (meetingsPagination) meetingsPagination.style.display = (currentView === 'list') ? '' : 'none';
+        if (calendarContainer) {
+          if (currentView === 'calendar') {
+            calendarContainer.classList.add('active');
+          } else {
+            calendarContainer.classList.remove('active');
+          }
+        }
+
+        renderCurrentView();
+      });
+    });
+  }
+
+  function renderCurrentView() {
+    if (currentView === 'list') {
+      renderSessionList();
+    } else {
+      renderCalendar();
+    }
+  }
+
+  // === PAGINATION ===
+
+  function renderPagination(totalPages) {
+    if (!meetingsPagination) return;
+    if (totalPages <= 1) {
+      meetingsPagination.innerHTML = '';
       return;
     }
 
-    if (dropContent) dropContent.style.display = 'none';
+    var html = '';
 
-    fileList.innerHTML = pendingFiles.map(function(f, i) {
-      return '<div class="file-item" data-idx="' + i + '">' +
-        '<svg class="icon icon-text" aria-hidden="true" style="color:var(--color-danger);flex-shrink:0;"><use href="/assets/icons.svg#icon-file-text"></use></svg>' +
-        '<span class="file-item-name">' + escapeHtml(f.name) + '</span>' +
-        '<span class="file-item-size">' + formatFileSize(f.size) + '</span>' +
-        '<button type="button" class="file-item-remove" data-remove="' + i + '" title="Retirer">&times;</button>' +
-        '</div>';
-    }).join('');
+    // Previous button
+    html += '<button class="btn btn-ghost btn-sm' + (currentPage <= 1 ? ' disabled' : '') + '" data-page="' + (currentPage - 1) + '"' + (currentPage <= 1 ? ' disabled' : '') + '>&laquo;</button>';
 
-    // Wire remove buttons
-    fileList.querySelectorAll('.file-item-remove').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var idx = parseInt(btn.dataset.remove, 10);
-        pendingFiles.splice(idx, 1);
-        renderFileList();
-      });
-    });
-  }
-
-  function addFiles(fileListInput) {
-    var maxSize = 10 * 1024 * 1024;
-    for (var i = 0; i < fileListInput.length; i++) {
-      var f = fileListInput[i];
-      if (f.type !== 'application/pdf') {
-        setNotif('error', 'Seuls les fichiers PDF sont acceptés : ' + f.name);
-        continue;
-      }
-      if (f.size > maxSize) {
-        setNotif('error', 'Fichier trop volumineux (max 10 Mo) : ' + f.name);
-        continue;
-      }
-      // Avoid duplicates
-      var exists = pendingFiles.some(function(p) { return p.name === f.name && p.size === f.size; });
-      if (!exists) {
-        pendingFiles.push(f);
-      }
-    }
-    renderFileList();
-  }
-
-  function initFileUpload() {
-    var dropZone = document.getElementById('fileDropZone');
-    var fileInput = document.getElementById('meeting_files');
-    var browseBtn = document.getElementById('fileBrowseBtn');
-
-    if (!dropZone || !fileInput) return;
-
-    // Browse button opens file picker
-    if (browseBtn) {
-      browseBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        fileInput.click();
-      });
+    for (var p = 1; p <= totalPages; p++) {
+      var active = (p === currentPage) ? ' btn-primary' : ' btn-ghost';
+      html += '<button class="btn btn-sm' + active + '" data-page="' + p + '">' + p + '</button>';
     }
 
-    // File input change
-    fileInput.addEventListener('change', function() {
-      addFiles(fileInput.files);
-      fileInput.value = '';
-    });
+    // Next button
+    html += '<button class="btn btn-ghost btn-sm' + (currentPage >= totalPages ? ' disabled' : '') + '" data-page="' + (currentPage + 1) + '"' + (currentPage >= totalPages ? ' disabled' : '') + '>&raquo;</button>';
 
-    // Click on drop zone opens file picker (if not clicking a button)
-    dropZone.addEventListener('click', function(e) {
-      if (e.target.closest('button') || e.target.closest('.file-item')) return;
-      fileInput.click();
-    });
+    meetingsPagination.innerHTML = html;
 
-    // Drag & drop
-    dropZone.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      dropZone.classList.add('drag-over');
-    });
-
-    dropZone.addEventListener('dragleave', function(e) {
-      e.preventDefault();
-      dropZone.classList.remove('drag-over');
-    });
-
-    dropZone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      dropZone.classList.remove('drag-over');
-      if (e.dataTransfer.files.length) {
-        addFiles(e.dataTransfer.files);
+    meetingsPagination.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-page]');
+      if (!btn || btn.disabled) return;
+      var page = parseInt(btn.getAttribute('data-page'), 10);
+      if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        renderSessionList();
+        // Scroll to top of list
+        if (meetingsList) meetingsList.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
   }
 
-  async function uploadAttachments(meetingId) {
-    // Snapshot the files array to avoid race condition if pendingFiles is
-    // cleared by the caller before all uploads complete.
-    var filesToUpload = pendingFiles.slice();
-    for (var i = 0; i < filesToUpload.length; i++) {
-      var formData = new FormData();
-      formData.append('meeting_id', meetingId);
-      formData.append('file', filesToUpload[i]);
+  // === ONBOARDING BANNER ===
 
-      try {
-        var { body: attResp } = await apiUpload('/api/v1/meeting_attachments.php', formData);
-        if (attResp && !attResp.ok && attResp.error) throw new Error(attResp.error);
-      } catch (err) {
-        setNotif('warning', 'Échec de l\'envoi du fichier : ' + (filesToUpload[i]?.name || 'inconnu'));
-      }
-    }
-  }
+  function updateOnboardingBanner() {
+    var banner = document.getElementById('onboardingBanner');
+    if (!banner) return;
+    if (!banner.hasAttribute('data-session-driven')) return;
 
-  // ==========================================================================
-  // WIZARD NAVIGATION
-  // ==========================================================================
-
-  var _wizCurrentStep = 1;
-  var wizParticipants = [];
-  var wizResolutions = [];
-
-  function wizGoToStep(step) {
-    if (step < 1 || step > 5) return;
-    _wizCurrentStep = step;
-
-    // Update stepper dots
-    document.querySelectorAll('#wizStepper .wiz-step-item').forEach(function(el) {
-      var s = parseInt(el.getAttribute('data-step'), 10);
-      el.classList.remove('active', 'done');
-      el.removeAttribute('aria-current');
-      if (s < step && step <= 4) el.classList.add('done');
-      else if (s === step) {
-        el.classList.add('active');
-        el.setAttribute('aria-current', 'step');
-      }
-    });
-
-    // Show/hide panels
-    for (var i = 1; i <= 5; i++) {
-      var panel = document.getElementById('wizStep' + i);
-      if (panel) {
-        if (i === step) panel.classList.add('active');
-        else panel.classList.remove('active');
-      }
+    var KEY = 'ag_meetings_ob_dismissed';
+    if (localStorage.getItem(KEY) === '1') {
+      banner.hidden = true;
+      return;
     }
 
-    // Populate recap on step 4
-    if (step === 4) wizPopulateRecap();
-  }
-
-  function wizValidateStep1() {
-    var t = (titleInput ? titleInput.value.trim() : '');
-    var d = (dateInput ? dateInput.value : '');
-    if (!t) { setNotif('error', 'Le titre est requis'); return false; }
-    if (!d) { setNotif('error', 'La date est requise'); return false; }
-
-    // 21-day deadline check
-    var alert21 = document.getElementById('wizDeadlineAlert');
-    if (alert21) {
-      var diff = (new Date(d).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
-      alert21.hidden = diff >= 21 || diff < 0;
-    }
-    return true;
-  }
-
-  function wizAddParticipant() {
-    var nameEl = document.getElementById('wizParticipantName');
-    var emailEl = document.getElementById('wizParticipantEmail');
-    var name = (nameEl ? nameEl.value.trim() : '');
-    var email = (emailEl ? emailEl.value.trim() : '');
-    if (!name) { setNotif('error', 'Le nom est requis'); return; }
-    wizParticipants.push({ name: name, email: email, voting_power: 1 });
-    if (nameEl) nameEl.value = '';
-    if (emailEl) emailEl.value = '';
-    wizRenderParticipants();
-  }
-
-  function wizRenderParticipants() {
-    var tbody = document.getElementById('wizParticipantsBody');
-    var countEl = document.getElementById('wizParticipantsCount');
-    var voixEl = document.getElementById('wizVoixSummary');
-    if (!tbody) return;
-
-    if (wizParticipants.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-4">Aucun participant ajouté</td></tr>';
+    if (allMeetings.length === 0) {
+      banner.hidden = false;
     } else {
-      tbody.innerHTML = wizParticipants.map(function(p, i) {
-        return '<tr>' +
-          '<td>' + escapeHtml(p.name) + '</td>' +
-          '<td>' + escapeHtml(p.email || '—') + '</td>' +
-          '<td>' + p.voting_power + '</td>' +
-          '<td>—</td>' +
-          '<td><button type="button" class="btn btn-ghost btn-xs" data-wiz-remove-participant="' + i + '">&times;</button></td>' +
-          '</tr>';
-      }).join('');
-    }
-
-    if (countEl) countEl.textContent = wizParticipants.length + ' participant' + (wizParticipants.length > 1 ? 's' : '');
-    var totalVoix = wizParticipants.reduce(function(s, p) { return s + (p.voting_power || 1); }, 0);
-    if (voixEl) voixEl.textContent = totalVoix + ' voix';
-
-    // Bind remove buttons
-    tbody.querySelectorAll('[data-wiz-remove-participant]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        wizParticipants.splice(parseInt(btn.dataset.wizRemoveParticipant), 1);
-        wizRenderParticipants();
-      });
-    });
-  }
-
-  function wizAddResolution() {
-    var titleEl = document.getElementById('wizResTitle');
-    var descEl = document.getElementById('wizResDesc');
-    var majEl = document.getElementById('wizResMajority');
-    var secretEl = document.getElementById('wizResSecret');
-    var title = (titleEl ? titleEl.value.trim() : '');
-    if (!title) { setNotif('error', 'Le titre de la résolution est requis'); return; }
-
-    wizResolutions.push({
-      title: title,
-      description: (descEl ? descEl.value.trim() : ''),
-      majority: (majEl ? majEl.value : 'simple'),
-      secret: (secretEl ? secretEl.checked : false)
-    });
-    if (titleEl) titleEl.value = '';
-    if (descEl) descEl.value = '';
-    if (secretEl) secretEl.checked = false;
-    wizRenderResolutions();
-  }
-
-  function wizRenderResolutions() {
-    var listEl = document.getElementById('wizResolutionsList');
-    if (!listEl) return;
-
-    if (wizResolutions.length === 0) {
-      listEl.innerHTML = '<p class="text-center text-muted p-4">Aucune résolution ajoutée</p>';
-    } else {
-      listEl.innerHTML = wizResolutions.map(function(r, i) {
-        return '<div class="flex items-center gap-3 p-3" style="border:1px solid var(--color-border);border-radius:var(--radius-md);margin-bottom:0.5rem;">' +
-          '<span class="font-semibold flex-1">' + escapeHtml(r.title) + '</span>' +
-          '<span class="tag tag-sm">' + escapeHtml(r.majority) + '</span>' +
-          (r.secret ? '<span class="tag tag-sm tag-warning">Secret</span>' : '') +
-          '<button type="button" class="btn btn-ghost btn-xs" data-wiz-remove-res="' + i + '">&times;</button>' +
-          '</div>';
-      }).join('');
-    }
-
-    listEl.querySelectorAll('[data-wiz-remove-res]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        wizResolutions.splice(parseInt(btn.dataset.wizRemoveRes), 1);
-        wizRenderResolutions();
-      });
-    });
-  }
-
-  function wizPopulateRecap() {
-    var t = document.getElementById('wizRecapTitle');
-    var d = document.getElementById('wizRecapDate');
-    var tp = document.getElementById('wizRecapType');
-    var p = document.getElementById('wizRecapParticipants');
-    var r = document.getElementById('wizRecapResolutions');
-    var q = document.getElementById('wizRecapQuorum');
-
-    if (t) t.textContent = (titleInput ? titleInput.value.trim() : '—') || '—';
-    if (d) {
-      var dateVal = dateInput ? dateInput.value : '';
-      var timeEl = document.getElementById('wizTime');
-      var timeVal = timeEl ? timeEl.value : '';
-      d.textContent = dateVal ? (new Date(dateVal + 'T' + (timeVal || '00:00')).toLocaleString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })) : '—';
-    }
-    if (tp) {
-      var radio = document.querySelector('input[name="meetingTypeCreate"]:checked');
-      var typeMap = { ag_ordinaire: 'AG ordinaire', ag_extraordinaire: 'AG extra.', conseil: 'Conseil', bureau: 'Bureau', autre: 'Autre' };
-      tp.textContent = radio ? (typeMap[radio.value] || radio.value) : '—';
-    }
-    if (p) p.textContent = wizParticipants.length;
-    if (r) r.textContent = wizResolutions.length;
-    if (q) {
-      var qEl = document.getElementById('wizQuorum');
-      var qMap = { majority: 'Majorité simple', two_thirds: '2/3', unanimity: 'Unanimité' };
-      q.textContent = qEl ? (qMap[qEl.value] || qEl.value) : '—';
-    }
-
-    // Alerts
-    var alertsEl = document.getElementById('wizRecapAlerts');
-    if (alertsEl) {
-      var alerts = [];
-      if (wizParticipants.length === 0) alerts.push('Aucun participant ajouté — vous pourrez les ajouter depuis l\'opérateur.');
-      if (wizResolutions.length === 0) alerts.push('Aucune résolution ajoutée — vous pourrez les ajouter depuis l\'opérateur.');
-      alertsEl.innerHTML = alerts.map(function(a) {
-        return '<div class="alert alert-warning mb-2"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> ' + escapeHtml(a) + '</div>';
-      }).join('');
+      banner.hidden = true;
+      localStorage.setItem(KEY, '1');
     }
   }
 
-  function initWizard() {
-    // Navigation buttons
-    var wizNext1 = document.getElementById('wizNext1');
-    var wizPrev2 = document.getElementById('wizPrev2');
-    var wizNext2 = document.getElementById('wizNext2');
-    var wizPrev3 = document.getElementById('wizPrev3');
-    var wizNext3 = document.getElementById('wizNext3');
-    var wizPrev4 = document.getElementById('wizPrev4');
-    var wizNewMeeting = document.getElementById('wizNewMeeting');
+  function initOnboardingBanner() {
+    var banner = document.getElementById('onboardingBanner');
+    if (!banner) return;
 
-    if (wizNext1) wizNext1.addEventListener('click', function() { if (wizValidateStep1()) wizGoToStep(2); });
-    if (wizPrev2) wizPrev2.addEventListener('click', function() { wizGoToStep(1); });
-    if (wizNext2) wizNext2.addEventListener('click', function() { wizGoToStep(3); });
-    if (wizPrev3) wizPrev3.addEventListener('click', function() { wizGoToStep(2); });
-    if (wizNext3) wizNext3.addEventListener('click', function() { wizGoToStep(4); });
-    if (wizPrev4) wizPrev4.addEventListener('click', function() { wizGoToStep(3); });
-
-    // Add participant
-    var addPartBtn = document.getElementById('wizAddParticipant');
-    if (addPartBtn) addPartBtn.addEventListener('click', wizAddParticipant);
-
-    // Add resolution
-    var addResBtn = document.getElementById('wizAddResolution');
-    if (addResBtn) addResBtn.addEventListener('click', wizAddResolution);
-
-    // New meeting (reset wizard)
-    if (wizNewMeeting) wizNewMeeting.addEventListener('click', function() {
-      wizParticipants = [];
-      wizResolutions = [];
-      if (titleInput) titleInput.value = '';
-      if (dateInput) dateInput.value = '';
-      var timeEl = document.getElementById('wizTime');
-      if (timeEl) timeEl.value = '14:00';
-      var lieuEl = document.getElementById('wizLieu');
-      if (lieuEl) lieuEl.value = '';
-      wizRenderParticipants();
-      wizRenderResolutions();
-      pendingFiles = [];
-      renderFileList();
-      wizGoToStep(1);
-      initDatePicker();
-    });
-
-    // File drop zone for participants
-    var dropZone = document.getElementById('wizParticipantsDrop');
-    var fileInput = document.getElementById('wizParticipantsFile');
-    var browseBtn = document.getElementById('wizParticipantsBrowse');
-    if (browseBtn && fileInput) browseBtn.addEventListener('click', function() { fileInput.click(); });
-    if (fileInput) fileInput.addEventListener('change', function() { if (fileInput.files.length) wizHandleParticipantFile(fileInput.files[0]); });
-    if (dropZone) {
-      dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
-      dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
-      dropZone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        if (e.dataTransfer.files.length) wizHandleParticipantFile(e.dataTransfer.files[0]);
-      });
+    var KEY = 'ag_meetings_ob_dismissed';
+    if (localStorage.getItem(KEY) === '1') {
+      banner.hidden = true;
+      return;
     }
 
-    // 21-day deadline check on date change
-    if (dateInput) {
-      dateInput.addEventListener('change', function() {
-        var alert21 = document.getElementById('wizDeadlineAlert');
-        if (alert21) {
-          var diff = (new Date(dateInput.value).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
-          alert21.hidden = diff >= 21 || diff < 0;
-        }
-      });
-    }
-  }
-
-  function wizHandleParticipantFile(file) {
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var text = e.target.result;
-      var lines = text.split(/\r?\n/).filter(function(l) { return l.trim(); });
-      // Skip header row if it looks like a header
-      var start = 0;
-      if (lines.length > 0 && /^(name|nom|full_name)/i.test(lines[0])) start = 1;
-      for (var i = start; i < lines.length; i++) {
-        var cols = lines[i].split(/[,;\t]/);
-        var name = (cols[0] || '').trim();
-        if (!name) continue;
-        wizParticipants.push({
-          name: name,
-          email: (cols[1] || '').trim(),
-          voting_power: parseFloat(cols[2]) || 1
-        });
-      }
-      wizRenderParticipants();
-      setNotif('success', (lines.length - start) + ' participants importés');
+    var dismiss = function() {
+      banner.hidden = true;
+      localStorage.setItem(KEY, '1');
     };
-    reader.readAsText(file);
+
+    var btnClose = document.getElementById('btnCloseOnboarding');
+    var btnDismiss = document.getElementById('btnDismissOnboarding');
+    if (btnClose) btnClose.addEventListener('click', dismiss);
+    if (btnDismiss) btnDismiss.addEventListener('click', dismiss);
   }
 
-  // ==========================================================================
-  // MEETING CREATION
-  // ==========================================================================
+  // === INIT ===
 
-  var _createPending = false;
-  async function createMeeting() {
-    if (_createPending) return;
-    // Inline validation
-    var valid = true;
-    if (!Shared.validateField(titleInput, [
-      { test: function (v) { return v.length > 0; }, msg: 'Le titre de la séance est requis' }
-    ])) valid = false;
-    if (!Shared.validateField(dateInput, [
-      { test: function (v) { return v.length > 0; }, msg: 'La date est requise' }
-    ])) valid = false;
-    if (!valid) return;
-
-    const title = titleInput.value.trim();
-    const scheduled_at = dateInput.value;
-
-    const meetingTypeRadio = document.querySelector('input[name="meetingTypeCreate"]:checked');
-    const meeting_type = meetingTypeRadio ? meetingTypeRadio.value : 'ag_ordinaire';
-
-    // Collect additional wizard fields
-    var timeEl = document.getElementById('wizTime');
-    var lieuEl = document.getElementById('wizLieu');
-    var payload = { title: title, scheduled_at: scheduled_at, meeting_type: meeting_type };
-    if (lieuEl && lieuEl.value.trim()) payload.location = lieuEl.value.trim();
-    if (timeEl && timeEl.value) payload.time = timeEl.value;
-
-    _createPending = true;
-    Shared.btnLoading(createBtn, true);
-    try {
-      const { body } = await api('/api/v1/meetings.php', payload);
-
-      if (body && body.ok) {
-        const mid = body.data?.meeting_id;
-
-        // Upload pending attachments if any
-        if (mid && pendingFiles.length > 0) {
-          await uploadAttachments(mid);
-        }
-
-        // Create wizard resolutions if any
-        if (mid && wizResolutions.length > 0) {
-          for (var ri = 0; ri < wizResolutions.length; ri++) {
-            try {
-              await api('/api/v1/motion_create_simple.php', {
-                meeting_id: mid,
-                title: wizResolutions[ri].title,
-                description: wizResolutions[ri].description || ''
-              });
-            } catch (e) { /* continue */ }
-          }
-        }
-
-        // Import wizard participants via members API if any
-        if (mid && wizParticipants.length > 0) {
-          for (var pi = 0; pi < wizParticipants.length; pi++) {
-            try {
-              await api('/api/v1/members.php', {
-                full_name: wizParticipants[pi].name,
-                email: wizParticipants[pi].email || null,
-                voting_power: wizParticipants[pi].voting_power || 1
-              });
-            } catch (e) { /* continue */ }
-          }
-        }
-
-        setNotif('success', 'Séance créée avec succès');
-        if (titleInput) { titleInput.value = ''; Shared.fieldClear(titleInput); }
-        if (dateInput) { dateInput.value = ''; Shared.fieldClear(dateInput); }
-        pendingFiles = [];
-        renderFileList();
-
-        // Show wizard step 5 with link to operator
-        var goToOp = document.getElementById('wizGoToOperator');
-        if (goToOp && mid) {
-          goToOp.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(mid);
-        }
-        wizGoToStep(5);
-        fetchMeetings();
-      } else {
-        var errMsg = body?.message || body?.error || 'Erreur lors de la création';
-        if (body?.detail) errMsg += ' — ' + body.detail;
-        setNotif('error', errMsg);
-      }
-    } catch (err) {
-      setNotif('error', err.message);
-    } finally {
-      _createPending = false;
-      Shared.btnLoading(createBtn, false);
-    }
-  }
-
-  // ==========================================================================
-  // DATE PICKER ENHANCEMENT
-  // ==========================================================================
-
-  function initDatePicker() {
-    if (!dateInput) return;
-
-    // Set default date to today if empty
-    if (!dateInput.value) {
-      var today = new Date();
-      var yyyy = today.getFullYear();
-      var mm = String(today.getMonth() + 1).padStart(2, '0');
-      var dd = String(today.getDate()).padStart(2, '0');
-      dateInput.value = yyyy + '-' + mm + '-' + dd;
-    }
-
-    // Open native date picker on click (for browsers that support showPicker)
-    dateInput.addEventListener('click', function() {
-      if (typeof dateInput.showPicker === 'function') {
-        try { dateInput.showPicker(); } catch (e) { /* ignore */ }
-      }
-    });
-  }
-
-  // ==========================================================================
-  // INITIALIZATION
-  // ==========================================================================
-
-  function init() {
-    // Initialize filter manager
-    _filterManager = new PageComponents.FilterManager({
-      containerSelector: '.filter-tabs',
-      defaultFilter: 'all',
-      onChange: function(filter) {
-        currentFilter = filter;
-        renderMeetings(allMeetings);
-        if (calendarView) {
-          calendarView.setEvents(filterMeetings(allMeetings, currentFilter));
-        }
-      }
-    });
-
-    // Initialize view toggle
-    _viewToggle = new PageComponents.ViewToggle({
-      containerSelector: '.view-toggle',
-      defaultView: 'grid',
-      views: {
-        grid: {
-          element: '#meetingsList',
-          onActivate: function() {}
-        },
-        calendar: {
-          element: '#calendarContainer',
-          onActivate: function() {
-            if (calendarView) {
-              calendarView.render();
-            }
-          }
-        }
-      }
-    });
-
-    // Initialize calendar view
-    calendarView = new PageComponents.CalendarView({
-      container: '#calendarGrid',
-      titleElement: '#calendarTitle',
-      events: [],
-      onEventClick: function(event) {
-        window.location.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(event.id);
-      }
-    });
-
-    // Calendar navigation buttons
-    const calendarPrev = document.getElementById('calendarPrev');
-    const calendarNext = document.getElementById('calendarNext');
-    const calendarToday = document.getElementById('calendarToday');
-
-    if (calendarPrev) {
-      calendarPrev.addEventListener('click', function() {
-        calendarView.prevMonth();
-      });
-    }
-    if (calendarNext) {
-      calendarNext.addEventListener('click', function() {
-        calendarView.nextMonth();
-      });
-    }
-    if (calendarToday) {
-      calendarToday.addEventListener('click', function() {
-        calendarView.today();
-      });
-    }
-
-    // Search input
-    var meetingsSearchInput = document.getElementById('meetingsSearch');
-    if (meetingsSearchInput) {
-      var searchTimeout = null;
-      meetingsSearchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(function() {
-          currentSearchText = meetingsSearchInput.value.trim();
-          currentPage = 1;
-          renderMeetings(allMeetings);
-        }, 250);
-      });
-    }
-
-    // Sort select
-    var meetingsSortSelect = document.getElementById('meetingsSort');
-    if (meetingsSortSelect) {
-      meetingsSortSelect.addEventListener('change', function() {
-        currentSortMode = meetingsSortSelect.value;
-        currentPage = 1;
-        renderMeetings(allMeetings);
-      });
-    }
-
-    // Create meeting button
-    if (createBtn) {
-      createBtn.addEventListener('click', createMeeting);
-    }
-
-    // Live validation on create form fields
-    if (titleInput) {
-      Shared.liveValidate(titleInput, [
-        { test: function (v) { return v.length > 0; }, msg: 'Le titre est requis' }
-      ]);
-      titleInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') createMeeting();
-      });
-    }
-    if (dateInput) {
-      Shared.liveValidate(dateInput, [
-        { test: function (v) { return v.length > 0; }, msg: 'La date est requise' }
-      ]);
-    }
-
-    // Initialize date picker enhancements
-    initDatePicker();
-
-    // Initialize wizard navigation
-    initWizard();
-
-    // Initialize file upload zone
-    initFileUpload();
-
-    // Initialize edit/delete card actions (event delegation)
-    initCardActions();
-
-    // Initialize edit/delete modals
+  document.addEventListener('DOMContentLoaded', function() {
+    initFilterPills();
+    initSearch();
+    initSort();
+    initViewToggle();
+    initCalendarNav();
+    initPopoverMenus();
     initModals();
-
-    // Initial data load
-    fetchMeetings();
-  }
-
-  // ==========================================================================
-  // LEGACY EXPORTS (for backward compatibility)
-  // ==========================================================================
-
-  function isActiveMeeting(m) {
-    return m.status !== 'archived';
-  }
-
-  function isHistoryMeeting(m) {
-    return m.status === 'closed' || m.status === 'archived';
-  }
-
-  window.MeetingsPage = {
-    fetchMeetings: fetchMeetings,
-    renderMeetings: renderMeetings,
-    isActiveMeeting: isActiveMeeting,
-    isHistoryMeeting: isHistoryMeeting
-  };
-
-  // Initialize on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+    initOnboardingBanner();
+    loadMeetings();
+  });
 
 })();

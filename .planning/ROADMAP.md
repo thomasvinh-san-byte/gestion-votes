@@ -82,7 +82,11 @@ Plans:
   3. Sessions page lets the user toggle between list and calendar views, search by text, sort, and filter by status pills (Toutes, A venir, En cours, Terminees) with counts
   4. Session list items display status dot, title, date, participants count, resolutions count, quorum, status tag, and a popover action menu
   5. When no sessions exist, an empty state with icon, title, subtitle, and CTA button is shown
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 07-01-PLAN.md — Dashboard HTML/CSS/JS refactor: KPI cards, urgent card, layout, shortcuts (inline styles to CSS classes)
+- [ ] 07-02-PLAN.md — Sessions page HTML/CSS restructure: remove wizard, replace stats bar with filter pills, session list item layout
+- [ ] 07-03-PLAN.md — Sessions JS rewrite: filter pills, search/sort, list rendering, calendar view, popover menus, empty states
 
 ### Phase 8: Session Wizard & Hub
 **Goal**: Users can create a session through a guided 4-step wizard and manage session preparation from a central hub with status tracking
@@ -159,7 +163,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 4. Design Tokens & Theme | 2/2 | Complete    | 2026-03-12 |
 | 5. Shared Components | 3/4 | In Progress|  |
 | 6. Layout & Navigation | 1/3 | In Progress|  |
-| 7. Dashboard & Sessions | 0/TBD | Not started | - |
+| 7. Dashboard & Sessions | 0/3 | Not started | - |
 | 8. Session Wizard & Hub | 0/TBD | Not started | - |
 | 9. Operator Console | 0/TBD | Not started | - |
 | 10. Live Session Views | 0/TBD | Not started | - |
