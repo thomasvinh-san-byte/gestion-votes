@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-03-12T12:36:09.157Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-03-13T04:34:25.614Z"
 last_activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
 progress:
   total_phases: 10
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -56,6 +56,7 @@ Progress: [..........] 0%
 | Phase 05-shared-components P01 | 15 | 2 tasks | 3 files |
 | Phase 06-layout-navigation P01 | 72 | 2 tasks | 2 files |
 | Phase 06-layout-navigation P02 | 15 | 3 tasks | 20 files |
+| Phase 06-layout-navigation P03 | 8 | 2 tasks | 5 files |
 
 ## Milestone History
 
@@ -104,6 +105,8 @@ Recent decisions affecting current work:
 - [Phase 06-layout-navigation]: nav-badge visibility driven by [data-count] attribute selector — no JS needed to show/hide
 - [Phase 06-layout-navigation]: public.htmx.html and vote.htmx.html get app-footer with display:none (full-screen/voter layouts)
 - [Phase 06-layout-navigation]: Footer pattern: placed inside .app-shell after </main> as static HTML (not JS injection)
+- [Phase 06-layout-navigation]: Removed duplicate role=banner from hub-identity div — only header should carry banner role
+- [Phase 06-layout-navigation]: Removed duplicate role=main from hub-action div — only main element should carry main role
 
 ### Pending Todos
 
@@ -119,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T12:36:09.154Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-03-13T04:34:25.610Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
