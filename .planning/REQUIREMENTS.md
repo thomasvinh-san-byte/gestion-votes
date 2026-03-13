@@ -70,8 +70,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Room Display
 
-- [ ] **DISP-01**: Full-screen layout (no header/sidebar), dark background (#0B0F1A)
-- [ ] **DISP-02**: Session title, current resolution, live result bars, participation %, timer, status
+- [x] **DISP-01**: Full-screen layout (no header/sidebar), dark background (#0B0F1A)
+- [x] **DISP-02**: Session title, current resolution, live result bars, participation %, timer, status
 
 ### Post-Session
 
@@ -203,8 +203,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | OPR-08 | Phase 9 | Complete |
 | OPR-09 | Phase 9 | Complete |
 | OPR-10 | Phase 9 | Complete |
-| DISP-01 | Phase 10 | Pending |
-| DISP-02 | Phase 10 | Pending |
+| DISP-01 | Phase 10 | Complete |
+| DISP-02 | Phase 10 | Complete |
 | VOTE-01 | Phase 10 | Pending |
 | VOTE-02 | Phase 10 | Pending |
 | VOTE-03 | Phase 10 | Pending |

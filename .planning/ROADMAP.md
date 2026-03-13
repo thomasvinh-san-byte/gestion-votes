@@ -127,7 +127,7 @@ Plans:
   1. Room display fills the entire screen with no header/sidebar, uses a dark background (#0B0F1A), and shows session title, current resolution, live result bars, participation %, timer, and status
   2. Voter view renders a touch-optimized layout with bottom navigation on tablet/mobile viewports
   3. Voters see a large resolution title with big vote buttons (Pour/Contre/Abstention), a hand raise button, a vote confirmation screen, countdown timer, and present/absent toggle
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 10-01-PLAN.md — Room display: inline styles cleanup, horizontal bar refactor, public.css tokenization, public.js bar direction fix
 - [ ] 10-02-PLAN.md — Voter view: inline styles cleanup, vote.css tokenization, present/absent toggle, ARIA audit on both pages
@@ -183,7 +183,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 7. Dashboard & Sessions | 0/3 | Not started | - |
 | 8. Session Wizard & Hub | 3/3 | Complete   | 2026-03-13 |
 | 9. Operator Console | 3/3 | Complete   | 2026-03-13 |
-| 10. Live Session Views | 0/2 | Not started | - |
+| 10. Live Session Views | 1/2 | In Progress|  |
 | 11. Post-Session & Records | 0/TBD | Not started | - |
 | 12. Analytics & User Management | 0/TBD | Not started | - |
 | 13. Settings & Help | 0/TBD | Not started | - |
