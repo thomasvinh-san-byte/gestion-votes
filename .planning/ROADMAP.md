@@ -21,7 +21,7 @@
 - [ ] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views
 - [ ] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination)
 - [ ] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers)
-- [ ] **Phase 14: Wire Wizard/Hub/Dashboard API Integration** - Fix broken E2E flows: api() argument order, response parsing, single-meeting endpoints, toast wiring, dashboard API shape (Gap Closure)
+- [x] **Phase 14: Wire Wizard/Hub/Dashboard API Integration** - Fix broken E2E flows: api() argument order, response parsing, single-meeting endpoints, toast wiring, dashboard API shape (Gap Closure) (completed 2026-03-13)
 - [ ] **Phase 15: Operator Console Wiring & Verification Gaps** - Fix operator API endpoint, timer element ID, quorum reset, Phase 6 verification, tech debt cleanup (Gap Closure)
 
 ## Phase Details
@@ -220,7 +220,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 11. Post-Session & Records | 0/TBD | Not started | - |
 | 12. Analytics & User Management | 0/TBD | Not started | - |
 | 13. Settings & Help | 0/TBD | Not started | - |
-| 14. Wire Wizard/Hub/Dashboard API | 0/2 | Planned | - |
+| 14. Wire Wizard/Hub/Dashboard API | 2/2 | Complete   | 2026-03-13 |
 | 15. Operator Wiring & Verification | 0/TBD | Not started | - |
 
 ---

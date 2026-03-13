@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: verified
-stopped_at: Phase 10 verified — 12/12 must-haves passed
-last_updated: "2026-03-13T14:00:00.000Z"
-last_activity: 2026-03-13 -- Phase 10 verified, all gaps closed (VOTE-03 timer, VOTE-01 bottom nav, DISP-01 dark bg)
+status: verifying
+stopped_at: Completed 14-wizard-hub-dashboard-api Plan 02
+last_updated: "2026-03-13T14:52:38.353Z"
+last_activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 20
-  completed_plans: 20
+  total_phases: 12
+  completed_phases: 8
+  total_plans: 22
+  completed_plans: 22
   percent: 100
 ---
 
@@ -68,6 +68,8 @@ Progress: [##########] 100%
 | Phase 09 P03 | 5min | 2 tasks | 3 files |
 | Phase 10-live-session-views P01 | 2min | 2 tasks | 3 files |
 | Phase 10-live-session-views P02 | 5min | 2 tasks | 4 files |
+| Phase 14-wizard-hub-dashboard-api P01 | 5 | 2 tasks | 4 files |
+| Phase 14-wizard-hub-dashboard-api P02 | 5 | 2 tasks | 2 files |
 
 ## Milestone History
 
@@ -142,6 +144,11 @@ Recent decisions affecting current work:
 - [Phase 10-live-session-views]: Footer utility classes added to public.css since public page only loads design-system.css + public.css (not operator.css)
 - [Phase Phase 10-live-session-views]: apiPost returns response.json() directly (not {body, status}), result.ok is the correct check for attendances_upsert response
 - [Phase Phase 10-live-session-views]: _isAbsent guard added to all setVoteButtonsEnabled enable-paths to enforce legal absent-voter restriction
+- [Phase 14-wizard-hub-dashboard-api P01]: api('/api/v1/meetings', payload) without explicit 'POST' arg — api() infers POST when data != null
+- [Phase 14-wizard-hub-dashboard-api P01]: Shared.showToast swaps argument order: caller passes (message, type), bridge forwards to AgToast.show(type, message)
+- [Phase 14-wizard-hub-dashboard-api P01]: ag-toast.js loaded with type='module' because it uses ES module export syntax
+- [Phase 14-wizard-hub-dashboard-api]: hub.js: Use /api/v1/wizard_status?meeting_id=X (not /api/v1/meetings.php?id=X) as single-meeting endpoint
+- [Phase 14-wizard-hub-dashboard-api]: dashboard.js: Compute KPI values from meetings array by filtering on status — avoids depending on non-existent upstream_count/live_count fields
 
 ### Pending Todos
 
@@ -153,10 +160,10 @@ None yet.
 
 ## Open Issues
 
-- wizard.js TODO: meeting creation API not yet wired (intentional)
+None — wizard.js meeting creation API wired in Phase 14 Plan 01.
 
 ## Session Continuity
 
-Last session: 2026-03-13T14:00:00.000Z
-Stopped at: Phase 10 verified — all v2.0 phases complete
+Last session: 2026-03-13T15:00:00.000Z
+Stopped at: Completed 14-wizard-hub-dashboard-api Plan 01 (SUMMARY created)
 Resume file: None

@@ -26,8 +26,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Dashboard
 
-- [ ] **DASH-01**: 4 KPI cards (AG à venir, En cours, Convocations en attente, PV à envoyer)
-- [ ] **DASH-02**: Urgent action card (red, large, clickable) when action needed
+- [x] **DASH-01**: 4 KPI cards (AG à venir, En cours, Convocations en attente, PV à envoyer)
+- [x] **DASH-02**: Urgent action card (red, large, clickable) when action needed
 - [x] **DASH-03**: 2-column grid: upcoming sessions list (left) + task list with priority colors (right)
 - [x] **DASH-04**: 3-column shortcut cards (Créer séance, Piloter vote, Piste audit)
 
@@ -49,11 +49,11 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Session Hub
 
-- [ ] **HUB-01**: Status bar with colorful segments representing session stages
-- [ ] **HUB-02**: Main action card (highlighted, large CTA) for next step
-- [ ] **HUB-03**: 4 KPI cards (participants, resolutions, quorum needed, convocations)
-- [ ] **HUB-04**: Preparation checklist with completion tracking
-- [ ] **HUB-05**: Associated documents panel with download links
+- [x] **HUB-01**: Status bar with colorful segments representing session stages
+- [x] **HUB-02**: Main action card (highlighted, large CTA) for next step
+- [x] **HUB-03**: 4 KPI cards (participants, resolutions, quorum needed, convocations)
+- [x] **HUB-04**: Preparation checklist with completion tracking
+- [x] **HUB-05**: Associated documents panel with download links
 
 ### Operator
 
@@ -174,8 +174,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | NAV-04 | Phase 15 | Pending |
 | NAV-05 | Phase 15 | Pending |
 | NAV-06 | Phase 15 | Pending |
-| DASH-01 | Phase 14 | Pending |
-| DASH-02 | Phase 14 | Pending |
+| DASH-01 | Phase 14 | Complete |
+| DASH-02 | Phase 14 | Complete |
 | DASH-03 | Phase 7 | Complete |
 | DASH-04 | Phase 7 | Complete |
 | SESS-01 | Phase 7 | Complete |
@@ -188,11 +188,11 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | WIZ-03 | Phase 8 | Complete |
 | WIZ-04 | Phase 8 | Complete |
 | WIZ-05 | Phase 14 | Pending |
-| HUB-01 | Phase 14 | Pending |
-| HUB-02 | Phase 14 | Pending |
-| HUB-03 | Phase 14 | Pending |
-| HUB-04 | Phase 14 | Pending |
-| HUB-05 | Phase 14 | Pending |
+| HUB-01 | Phase 14 | Complete |
+| HUB-02 | Phase 14 | Complete |
+| HUB-03 | Phase 14 | Complete |
+| HUB-04 | Phase 14 | Complete |
+| HUB-05 | Phase 14 | Complete |
 | OPR-01 | Phase 15 | Pending |
 | OPR-02 | Phase 9 | Complete |
 | OPR-03 | Phase 9 | Complete |
