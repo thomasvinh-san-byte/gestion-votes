@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-stopped_at: Completed 10-live-session-views-01-PLAN.md
-last_updated: "2026-03-13T11:30:34.085Z"
+stopped_at: Completed 10-live-session-views-02-PLAN.md
+last_updated: "2026-03-13T11:37:44.435Z"
 last_activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
 progress:
   total_phases: 10
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 20
-  completed_plans: 19
+  completed_plans: 20
   percent: 0
 ---
 
@@ -67,6 +67,7 @@ Progress: [..........] 0%
 | Phase 09-operator-console P02 | 8 | 2 tasks | 2 files |
 | Phase 09 P03 | 5min | 2 tasks | 3 files |
 | Phase 10-live-session-views P01 | 2min | 2 tasks | 3 files |
+| Phase 10-live-session-views P02 | 5min | 2 tasks | 4 files |
 
 ## Milestone History
 
@@ -139,6 +140,8 @@ Recent decisions affecting current work:
 - [Phase 09]: Quorum modal uses direct DOM overlay instead of ag-confirm for simpler 3-button layout
 - [Phase 10-live-session-views]: Bar fill uses style.width (%) not style.height (px) — percentage-based width works directly with CSS transition: width
 - [Phase 10-live-session-views]: Footer utility classes added to public.css since public page only loads design-system.css + public.css (not operator.css)
+- [Phase Phase 10-live-session-views]: apiPost returns response.json() directly (not {body, status}), result.ok is the correct check for attendances_upsert response
+- [Phase Phase 10-live-session-views]: _isAbsent guard added to all setVoteButtonsEnabled enable-paths to enforce legal absent-voter restriction
 
 ### Pending Todos
 
@@ -154,6 +157,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T11:30:34.081Z
-Stopped at: Completed 10-live-session-views-01-PLAN.md
+Last session: 2026-03-13T11:37:44.432Z
+Stopped at: Completed 10-live-session-views-02-PLAN.md
 Resume file: None

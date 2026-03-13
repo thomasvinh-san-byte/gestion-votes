@@ -116,9 +116,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Voter View
 
-- [ ] **VOTE-01**: Touch-optimized tablet/mobile layout with bottom navigation
-- [ ] **VOTE-02**: Large resolution title, big vote buttons (Pour/Contre/Abstention), hand raise button
-- [ ] **VOTE-03**: Vote confirmation screen, countdown timer, present/absent toggle
+- [x] **VOTE-01**: Touch-optimized tablet/mobile layout with bottom navigation
+- [x] **VOTE-02**: Large resolution title, big vote buttons (Pour/Contre/Abstention), hand raise button
+- [x] **VOTE-03**: Vote confirmation screen, countdown timer, present/absent toggle
 
 ### Shared Components
 
@@ -205,9 +205,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | OPR-10 | Phase 9 | Complete |
 | DISP-01 | Phase 10 | Complete |
 | DISP-02 | Phase 10 | Complete |
-| VOTE-01 | Phase 10 | Pending |
-| VOTE-02 | Phase 10 | Pending |
-| VOTE-03 | Phase 10 | Pending |
+| VOTE-01 | Phase 10 | Complete |
+| VOTE-02 | Phase 10 | Complete |
+| VOTE-03 | Phase 10 | Complete |
 | POST-01 | Phase 11 | Pending |
 | POST-02 | Phase 11 | Pending |
 | POST-03 | Phase 11 | Pending |
