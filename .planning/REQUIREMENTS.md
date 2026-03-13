@@ -26,10 +26,10 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Dashboard
 
-- [ ] **DASH-01**: 4 KPI cards (AG à venir, En cours, Convocations en attente, PV à envoyer)
-- [ ] **DASH-02**: Urgent action card (red, large, clickable) when action needed
-- [ ] **DASH-03**: 2-column grid: upcoming sessions list (left) + task list with priority colors (right)
-- [ ] **DASH-04**: 3-column shortcut cards (Créer séance, Piloter vote, Piste audit)
+- [x] **DASH-01**: 4 KPI cards (AG à venir, En cours, Convocations en attente, PV à envoyer)
+- [x] **DASH-02**: Urgent action card (red, large, clickable) when action needed
+- [x] **DASH-03**: 2-column grid: upcoming sessions list (left) + task list with priority colors (right)
+- [x] **DASH-04**: 3-column shortcut cards (Créer séance, Piloter vote, Piste audit)
 
 ### Sessions
 
@@ -174,10 +174,10 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | NAV-04 | Phase 6 | Complete |
 | NAV-05 | Phase 6 | Complete |
 | NAV-06 | Phase 6 | Complete |
-| DASH-01 | Phase 7 | Pending |
-| DASH-02 | Phase 7 | Pending |
-| DASH-03 | Phase 7 | Pending |
-| DASH-04 | Phase 7 | Pending |
+| DASH-01 | Phase 7 | Complete |
+| DASH-02 | Phase 7 | Complete |
+| DASH-03 | Phase 7 | Complete |
+| DASH-04 | Phase 7 | Complete |
 | SESS-01 | Phase 7 | Complete |
 | SESS-02 | Phase 7 | Complete |
 | SESS-03 | Phase 7 | Complete |
