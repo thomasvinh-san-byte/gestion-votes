@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
-  <link rel="stylesheet" href="/assets/css/pages.css">
+  <link rel="stylesheet" href="/assets/css/hub.css">
 </head>
 <body>
   <!-- Skip links -->
@@ -62,10 +62,10 @@
 
       <!-- Identity banner -->
       <div class="hub-identity" id="hubIdentity">
-        <div style="width:52px;height:52px;border-radius:14px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+        <div class="hub-identity-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
         </div>
-        <div style="flex:1;min-width:0;">
+        <div class="hub-identity-info">
           <div class="hub-identity-date" id="hubTitle">Chargement&hellip;</div>
           <div class="hub-identity-meta" id="hubMeta">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
@@ -80,53 +80,52 @@
         </div>
       </div>
 
+      <!-- Horizontal colorful status bar (HUB-01) -->
+      <div id="hubStatusBar" class="hub-status-bar" role="progressbar" aria-label="Progression de la s&eacute;ance">
+        <!-- Populated by hub.js renderStatusBar() -->
+      </div>
+
       <!-- Layout: stepper left + action right -->
-      <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
+      <div class="hub-layout-body">
 
         <!-- Left column: stepper -->
-        <div style="width:220px;flex-shrink:0;" data-tour="hub-etat" role="navigation" aria-label="&Eacute;tapes de la s&eacute;ance">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-left:8px;">
-            <div style="font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);">Progression</div>
-          </div>
+        <div class="hub-stepper-col" data-tour="hub-etat" role="navigation" aria-label="&Eacute;tapes de la s&eacute;ance">
+          <div class="hub-stepper-label">Progression</div>
           <div class="hub-stepper" id="hubStepper">
             <!-- Populated by JS -->
           </div>
         </div>
 
-        <!-- Right column: action card + details -->
-        <div style="flex:1;min-width:0;">
+        <!-- Right column: action card + checklist + details -->
+        <div class="hub-main-col">
 
-          <!-- Action card -->
+          <!-- Action card (HUB-02) -->
           <div class="hub-action" id="hubAction" data-tour="hub-action">
-            <div style="display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap;">
-              <div class="hub-action-icon" id="hubActionIcon" style="background:var(--accent);">
+            <div class="hub-action-header">
+              <div class="hub-action-icon" id="hubActionIcon">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="hubActionSvg"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
               </div>
-              <div style="flex:1;min-width:200px;">
+              <div class="hub-action-body">
                 <div class="hub-action-title" id="hubActionTitle">Chargement&hellip;</div>
                 <div class="hub-action-desc" id="hubActionDesc"></div>
               </div>
             </div>
 
-            <!-- Checklist -->
-            <div id="hubChecklist" data-tour="hub-prepa" style="background:var(--bg);border-radius:10px;padding:12px 16px;display:none;">
-              <div style="font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:8px;" id="hubCheckTitle">Avancement</div>
-              <div class="progress-bar" style="margin-bottom:10px;height:8px;">
-                <div class="progress-fill" id="hubCheckProgress" style="width:0%;background:var(--accent);"></div>
-              </div>
-              <div id="hubCheckItems"></div>
-            </div>
-
-            <!-- Main action button -->
-            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <!-- Main action buttons -->
+            <div class="hub-action-footer">
               <a class="btn btn-primary hub-action-btn" id="hubMainBtn" href="#">
                 Charger&hellip;
               </a>
-              <button class="btn hub-action-btn" id="hubPreviewBtn" style="display:none;font-size:13px;min-height:44px;">
+              <button class="btn hub-action-btn" id="hubPreviewBtn" hidden>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
                 Aper&ccedil;u courriel
               </button>
             </div>
+          </div>
+
+          <!-- Standalone preparation checklist (HUB-04) -->
+          <div id="hubChecklist" class="hub-checklist" data-tour="hub-prepa">
+            <!-- Populated by hub.js renderChecklist() -->
           </div>
 
           <!-- Details toggle -->
@@ -138,40 +137,40 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="hubDetailsChevron"><path d="m6 9 6 6 6-6"/></svg>
           </button>
 
-          <div id="hub-details-body" class="hub-details-body" style="display:none;" data-tour="hub-kpi">
+          <div id="hub-details-body" class="hub-details-body" hidden data-tour="hub-kpi">
 
-            <!-- KPIs -->
-            <div class="grid-4" style="margin-bottom:14px;">
-              <div class="card" style="padding:14px;text-align:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--accent);margin:2px 0;letter-spacing:-0.5px;line-height:1;" id="hubKpiParticipants">-</div>
-                <div style="font-size:12px;font-weight:700;color:var(--text-dark);">Participants</div>
-                <div style="font-size:11px;color:var(--text-muted);" id="hubKpiVoix">- voix</div>
+            <!-- KPIs (HUB-03) -->
+            <div class="grid-4 hub-kpi-grid">
+              <div class="card hub-kpi-card">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <div class="hub-kpi-value-num color-primary" id="hubKpiParticipants">-</div>
+                <div class="hub-kpi-card-label">Participants</div>
+                <div class="hub-kpi-card-detail" id="hubKpiVoix">- voix</div>
               </div>
-              <div class="card" style="padding:14px;text-align:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7Z"/><path d="M22 19H2"/></svg>
-                <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--accent);margin:2px 0;letter-spacing:-0.5px;line-height:1;" id="hubKpiResolutions">-</div>
-                <div style="font-size:12px;font-weight:700;color:var(--text-dark);">R&eacute;solutions</div>
-                <div style="font-size:11px;color:var(--text-muted);" id="hubKpiResoDetail"></div>
+              <div class="card hub-kpi-card">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7Z"/><path d="M22 19H2"/></svg>
+                <div class="hub-kpi-value-num color-primary" id="hubKpiResolutions">-</div>
+                <div class="hub-kpi-card-label">R&eacute;solutions</div>
+                <div class="hub-kpi-card-detail" id="hubKpiResoDetail"></div>
               </div>
-              <div class="card" style="padding:14px;text-align:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
-                <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--success);margin:2px 0;letter-spacing:-0.5px;line-height:1;" id="hubKpiQuorum">-</div>
-                <div style="font-size:12px;font-weight:700;color:var(--text-dark);">Quorum requis</div>
-                <div style="font-size:11px;color:var(--text-muted);" id="hubKpiQuorumDetail"></div>
+              <div class="card hub-kpi-card">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+                <div class="hub-kpi-value-num color-success" id="hubKpiQuorum">-</div>
+                <div class="hub-kpi-card-label">Quorum requis</div>
+                <div class="hub-kpi-card-detail" id="hubKpiQuorumDetail"></div>
               </div>
-              <div class="card" style="padding:14px;text-align:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
-                <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--warn);margin:2px 0;letter-spacing:-0.5px;line-height:1;" id="hubKpiConvoc">-</div>
-                <div style="font-size:12px;font-weight:700;color:var(--text-dark);">Convocations</div>
-                <div style="font-size:11px;color:var(--text-muted);" id="hubKpiConvocDetail"></div>
+              <div class="card hub-kpi-card">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+                <div class="hub-kpi-value-num color-warning" id="hubKpiConvoc">-</div>
+                <div class="hub-kpi-card-label">Convocations</div>
+                <div class="hub-kpi-card-detail" id="hubKpiConvocDetail"></div>
               </div>
             </div>
 
-            <!-- Documents -->
-            <div class="card" style="padding:14px;margin-bottom:10px;">
-              <div class="flex-between" style="margin-bottom:8px;">
-                <span style="font-size:13px;font-weight:700;color:var(--text-dark);">
+            <!-- Documents (HUB-05) -->
+            <div class="hub-documents">
+              <div class="hub-documents-header">
+                <span class="hub-documents-title">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
                   Documents
                 </span>
@@ -186,14 +185,14 @@
             </div>
 
             <!-- 2e convocation -->
-            <div class="card" style="border:2px dashed var(--warn);background:var(--warn-bg);padding:14px;">
-              <div class="flex-between" style="margin-bottom:6px;">
-                <span style="font-size:13px;font-weight:800;color:var(--warn);">
+            <div class="hub-warn-card">
+              <div class="flex-between">
+                <div class="hub-warn-title">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                   2e convocation (si quorum non atteint)
-                </span>
+                </div>
               </div>
-              <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">Si le quorum n'est pas atteint, une 2e convocation avec quorum r&eacute;duit (33%) peut &ecirc;tre g&eacute;n&eacute;r&eacute;e automatiquement.</div>
+              <div class="hub-warn-desc">Si le quorum n'est pas atteint, une 2e convocation avec quorum r&eacute;duit (33%) peut &ecirc;tre g&eacute;n&eacute;r&eacute;e automatiquement.</div>
               <button class="btn btn-warn btn-sm" id="btn2eConvoc">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
                 Programmer la 2e convocation
@@ -206,16 +205,16 @@
 
     </main>
     <footer class="app-footer" role="contentinfo">
-      <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
-        <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
+      <a href="/dashboard.htmx.html" class="logo hub-footer-logo" aria-label="AG-VOTE">
+        <span class="logo-mark hub-footer-logo-mark">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         </span>
         AG-VOTE
       </a>
       <span class="text-muted">v3.19</span>
-      <span style="flex:1"></span>
-      <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
-      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
+      <span class="hub-spacer"></span>
+      <a href="/help.htmx.html" class="hub-footer-link">Aide</a>
+      <a href="/admin.htmx.html?tab=settings#accessibilite" class="hub-footer-link">Accessibilite</a>
     </footer>
   </div>
 
