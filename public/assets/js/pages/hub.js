@@ -2,6 +2,9 @@
 /**
  * Hub — Fiche séance (6-step guided flow).
  * Shows one action at a time, tracks progress.
+ * Phase 8.2: horizontal status bar (HUB-01), standalone checklist (HUB-04),
+ *             dynamic action card (HUB-02), KPI CSS classes (HUB-03),
+ *             documents panel CSS classes (HUB-05), toast pickup from wizard.
  */
 (function () {
   'use strict';
@@ -24,47 +27,32 @@
       titre: 'Pr\u00e9parer la s\u00e9ance',
       titreAction: 'Compl\u00e9ter les informations',
       descAction: 'Ajoutez les derniers d\u00e9tails manquants : lieu, heure, r\u00e9solutions restantes.',
-      icon: 'edit', color: 'var(--accent)', dest: '/wizard.htmx.html',
-      btnLabel: 'Ouvrir la pr\u00e9paration',
-      checks: [
-        ['Titre et date d\u00e9finis', true],
-        ['67 participants import\u00e9s', true],
-        ['8 r\u00e9solutions pr\u00e9par\u00e9es', true],
-        ['Pi\u00e8ces jointes ajout\u00e9es', false]
-      ]
+      icon: 'edit', color: 'var(--color-primary)', dest: '/wizard.htmx.html',
+      btnLabel: 'Ouvrir la pr\u00e9paration'
     },
     {
       id: 'convocations', num: 2,
       titre: 'Envoyer les convocations',
       titreAction: 'Envoyer les 12 convocations restantes',
       descAction: '55 participants ont d\u00e9j\u00e0 re\u00e7u la convocation. Il reste 12 envois \u00e0 d\u00e9clencher avant le 22/02/2026.',
-      icon: 'send', color: 'var(--warn)', dest: null,
+      icon: 'send', color: 'var(--color-warning)', dest: null,
       btnLabel: 'Envoyer les convocations',
-      btnPreview: true,
-      checks: [
-        ['55 convocations envoy\u00e9es', true],
-        ['12 envois en attente', false],
-        ['Date limite : 22/02/2026', true]
-      ]
+      btnPreview: true
     },
     {
       id: 'presences', num: 3,
       titre: 'Pointer les pr\u00e9sences',
       titreAction: 'Accueillir les participants',
       descAction: 'La s\u00e9ance commence. Enregistrez les arriv\u00e9es et les procurations au fur et \u00e0 mesure.',
-      icon: 'users', color: 'var(--accent)', dest: '/operator.htmx.html',
-      btnLabel: 'Ouvrir le pointage',
-      checks: [
-        ['Feuille de pr\u00e9sence pr\u00eate', true],
-        ['Procurations v\u00e9rifi\u00e9es', true]
-      ]
+      icon: 'users', color: 'var(--color-primary)', dest: '/operator.htmx.html',
+      btnLabel: 'Ouvrir le pointage'
     },
     {
       id: 'vote', num: 4,
       titre: 'Piloter les votes',
       titreAction: 'La s\u00e9ance est en cours',
       descAction: 'Les votes sont ouverts. Pilotez chaque r\u00e9solution depuis l\u2019espace op\u00e9rateur en direct.',
-      icon: 'play', color: 'var(--danger)', dest: '/operator.htmx.html',
+      icon: 'play', color: 'var(--color-danger)', dest: '/operator.htmx.html',
       btnLabel: 'Rejoindre la s\u00e9ance en direct'
     },
     {
@@ -72,7 +60,7 @@
       titre: 'Cl\u00f4turer et envoyer le PV',
       titreAction: 'Finaliser et archiver',
       descAction: 'La s\u00e9ance est termin\u00e9e. Validez le PV, apposez la signature \u00e9lectronique et envoyez.',
-      icon: 'file-text', color: 'var(--purple)', dest: '/postsession.htmx.html',
+      icon: 'file-text', color: 'var(--color-purple)', dest: '/postsession.htmx.html',
       btnLabel: 'G\u00e9n\u00e9rer et envoyer le PV'
     },
     {
@@ -80,7 +68,7 @@
       titre: 'S\u00e9ance archiv\u00e9e',
       titreAction: 'S\u00e9ance archiv\u00e9e',
       descAction: 'Tout est termin\u00e9. Le PV est envoy\u00e9 et archiv\u00e9.',
-      icon: 'archive', color: 'var(--success)', dest: '/archives.htmx.html',
+      icon: 'archive', color: 'var(--color-success)', dest: '/archives.htmx.html',
       btnLabel: 'Consulter l\u2019archive'
     }
   ];
@@ -94,17 +82,78 @@
     'archive': '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
     'check': '<path d="M20 6 9 17l-5-5"/>',
     'checkCircle': '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>',
-    'circle': '<circle cx="12" cy="12" r="10"/>'
+    'circle': '<circle cx="12" cy="12" r="10"/>',
+    'file': '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>'
   };
 
   function svgIcon(name, size, color) {
     size = size || 18;
     color = color || 'currentColor';
     var paths = SVG_ICONS[name] || SVG_ICONS['circle'];
-    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + escapeHtml(color) + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + paths + '</svg>';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + escapeHtml(color) + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
   }
 
   var currentStep = 1; // Default to convocations step
+
+  /* ── Horizontal colorful status bar (HUB-01) ─── */
+
+  function renderStatusBar() {
+    var bar = document.getElementById('hubStatusBar');
+    if (!bar) return;
+    var html = '';
+    HUB_STEPS.forEach(function (s, i) {
+      var isDone = i < currentStep;
+      var isActive = i === currentStep;
+      // Dynamic color is the only acceptable inline style here (JS-driven)
+      var color = isDone ? 'var(--color-success)' : isActive ? s.color : 'var(--color-border)';
+      var cls = 'hub-bar-segment' + (isActive ? ' active' : isDone ? ' done' : '');
+      html += '<div class="' + cls + '" style="background:' + color + '" title="' + escapeHtml(s.titre) + '">' +
+        '<span class="hub-bar-label">' + escapeHtml(s.titre) + '</span>' +
+      '</div>';
+    });
+    bar.innerHTML = html;
+  }
+
+  /* ── Standalone preparation checklist (HUB-04) ─── */
+
+  var CHECKLIST_ITEMS = [
+    { key: 'title',        label: 'Titre d\u00e9fini',           autoCheck: function (d) { return !!d.title; } },
+    { key: 'date',         label: 'Date fix\u00e9e',              autoCheck: function (d) { return !!d.date; } },
+    { key: 'members',      label: 'Membres ajout\u00e9s',         autoCheck: function (d) { return d.memberCount > 0; } },
+    { key: 'resolutions',  label: 'R\u00e9solutions cr\u00e9\u00e9es',  autoCheck: function (d) { return d.resolutionCount > 0; } },
+    { key: 'convocations', label: 'Convocations envoy\u00e9es',   autoCheck: function (d) { return d.convocationsSent; } },
+    { key: 'documents',    label: 'Documents attach\u00e9s',      autoCheck: function (d) { return d.documentCount > 0; } }
+  ];
+
+  function renderChecklist(sessionData) {
+    var container = document.getElementById('hubChecklist');
+    if (!container) return;
+
+    var done = 0;
+    var itemsHtml = '';
+
+    CHECKLIST_ITEMS.forEach(function (item) {
+      var checked = item.autoCheck(sessionData);
+      if (checked) done++;
+      itemsHtml += '<div class="hub-check-item' + (checked ? ' done' : '') + '">' +
+        '<div class="hub-check-icon">' + (checked ? svgIcon('check', 12, '#fff') : '') + '</div>' +
+        '<span class="hub-check-label">' + escapeHtml(item.label) + '</span>' +
+        (!checked ? '<span class="hub-check-todo">\u00c0 faire</span>' : '') +
+      '</div>';
+    });
+
+    var pct = Math.round(done / CHECKLIST_ITEMS.length * 100);
+    // Dynamic width is the only acceptable inline style here (JS-driven progress)
+    container.innerHTML =
+      '<div class="hub-checklist-header">' +
+        '<span class="hub-checklist-title">Pr\u00e9paration</span>' +
+        '<span class="hub-checklist-progress-text">' + done + ' / ' + CHECKLIST_ITEMS.length + '</span>' +
+      '</div>' +
+      '<div class="hub-checklist-bar">' +
+        '<div class="hub-checklist-bar-fill" style="width:' + pct + '%"></div>' +
+      '</div>' +
+      itemsHtml;
+  }
 
   /* ── Render stepper ──────────────────────────────── */
 
@@ -117,18 +166,18 @@
       var isDone = i < currentStep;
       var isActive = i === currentStep;
       var numClass = isDone ? ' done' : isActive ? ' active' : '';
-      var titleClass = isDone ? ' done' : isActive ? ' active' : '';
       var numContent = isDone ? svgIcon('check', 16, '#fff') : String(s.num);
 
       html += '<button class="hub-step-row" data-step="' + i + '"' +
         (isActive ? ' aria-current="step"' : '') +
-        ' aria-label="' + (isDone ? '\u00c9tape termin\u00e9e : ' : 'Aller \u00e0 ') + escapeHtml(s.titre) + '">' +
+        ' aria-label="' + (isDone ? '\u00c9tape termin\u00e9e\u00a0: ' : 'Aller \u00e0 ') + escapeHtml(s.titre) + '">' +
         '<div class="hub-step-num' + numClass + '">' + numContent + '</div>' +
         '<div class="hub-step-text">' +
-          '<div class="hub-step-title' + titleClass + '">' + escapeHtml(s.titre) + '</div>' +
-          (isActive ? '<div style="font-size:11px;color:var(--accent);font-weight:600;margin-top:2px;">\u2190 Vous \u00eates ici</div>' : '') +
+          '<div class="hub-step-title' + (isDone ? ' done' : isActive ? ' active' : '') + '">' + escapeHtml(s.titre) + '</div>' +
+          (isActive ? '<div class="hub-step-here">\u2190 Vous \u00eates ici</div>' : '') +
         '</div>' +
       '</button>';
+
       if (i < HUB_STEPS.length - 1) {
         html += '<div class="hub-step-line' + (isDone ? ' done' : '') + '"></div>';
       }
@@ -147,7 +196,7 @@
     });
   }
 
-  /* ── Render action card ──────────────────────────── */
+  /* ── Render action card (HUB-02) ──────────────────── */
 
   function renderAction() {
     var step = HUB_STEPS[currentStep];
@@ -160,6 +209,7 @@
     var btn = document.getElementById('hubMainBtn');
     var preview = document.getElementById('hubPreviewBtn');
 
+    // Dynamic background color per stage — acceptable inline style from JS
     if (icon) icon.style.background = step.color;
     if (svg) svg.innerHTML = SVG_ICONS[step.icon] || SVG_ICONS['circle'];
     if (title) title.textContent = step.titreAction;
@@ -167,56 +217,63 @@
 
     if (btn) {
       btn.textContent = step.btnLabel;
-      btn.href = step.dest || '#';
-      if (!step.dest) {
+      if (step.dest) {
+        btn.href = step.dest;
+        btn.style.cursor = '';
+      } else {
         btn.removeAttribute('href');
         btn.style.cursor = 'pointer';
       }
     }
 
     if (preview) {
-      preview.style.display = step.btnPreview ? '' : 'none';
-    }
-
-    // Checklist
-    var checks = step.checks || [];
-    var checkContainer = document.getElementById('hubChecklist');
-    if (checkContainer) {
-      if (checks.length === 0) {
-        checkContainer.style.display = 'none';
-      } else {
-        checkContainer.style.display = '';
-        var done = checks.filter(function (c) { return c[1]; }).length;
-        var pct = Math.round(done / checks.length * 100);
-
-        var checkTitle = document.getElementById('hubCheckTitle');
-        if (checkTitle) checkTitle.textContent = 'Avancement : ' + done + ' / ' + checks.length + ' points compl\u00e9t\u00e9s';
-
-        var prog = document.getElementById('hubCheckProgress');
-        if (prog) {
-          prog.style.width = pct + '%';
-          prog.style.background = done === checks.length ? 'var(--success)' : 'var(--accent)';
-        }
-
-        var items = document.getElementById('hubCheckItems');
-        if (items) {
-          var html = '';
-          checks.forEach(function (c, i) {
-            var ok = c[1];
-            var border = i < checks.length - 1 ? '1px solid var(--border-soft)' : 'none';
-            html += '<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:' + border + ';flex-wrap:nowrap;">';
-            html += ok ? svgIcon('checkCircle', 18, 'var(--success)') : svgIcon('circle', 18, 'var(--border)');
-            html += '<span style="font-size:13px;font-weight:' + (ok ? '500' : '700') + ';color:' + (ok ? 'var(--text-muted)' : 'var(--text-dark)') + ';">' + escapeHtml(c[0]) + '</span>';
-            if (!ok) html += '<span style="margin-left:auto;font-size:12px;color:var(--danger);font-weight:700;">\u00c0 faire</span>';
-            html += '</div>';
-          });
-          items.innerHTML = html;
-        }
-      }
+      preview.hidden = !step.btnPreview;
     }
   }
 
+  /* ── Render KPI cards (HUB-03) ──────────────────── */
+
+  function renderKpis(data) {
+    var fields = {
+      hubKpiParticipants: data.kpiParticipants || '-',
+      hubKpiVoix:         data.kpiVoix || '- voix',
+      hubKpiResolutions:  data.kpiResolutions || '-',
+      hubKpiResoDetail:   data.kpiResoDetail || '',
+      hubKpiQuorum:       data.kpiQuorum || '-',
+      hubKpiQuorumDetail: data.kpiQuorumDetail || '',
+      hubKpiConvoc:       data.kpiConvoc || '-',
+      hubKpiConvocDetail: data.kpiConvocDetail || ''
+    };
+    Object.keys(fields).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = fields[id];
+    });
+  }
+
+  /* ── Render documents panel (HUB-05) ─────────────── */
+
+  function renderDocuments(files) {
+    var docs = document.getElementById('hubDocsList');
+    if (!docs) return;
+    if (!files || files.length === 0) {
+      docs.innerHTML = '<p class="text-muted" style="font-size:13px;margin:8px 0;">Aucun document attach\u00e9.</p>';
+      return;
+    }
+    var html = '';
+    files.forEach(function (f) {
+      html += '<div class="hub-doc-item">' +
+        svgIcon('file', 14, 'var(--color-primary)') +
+        (f.url
+          ? '<a class="hub-doc-link" href="' + escapeHtml(f.url) + '" download>' + escapeHtml(f.name) + '</a>'
+          : '<span class="hub-doc-link">' + escapeHtml(f.name) + '</span>') +
+        '<span class="hub-doc-size">' + escapeHtml(f.size) + '</span>' +
+      '</div>';
+    });
+    docs.innerHTML = html;
+  }
+
   function render() {
+    renderStatusBar();
     renderStepper();
     renderAction();
   }
@@ -230,8 +287,8 @@
     if (!toggle || !body) return;
 
     toggle.addEventListener('click', function () {
-      var open = body.style.display !== 'none';
-      body.style.display = open ? 'none' : '';
+      var open = !body.hidden;
+      body.hidden = open;
       toggle.setAttribute('aria-expanded', String(!open));
       if (chevron) {
         chevron.innerHTML = open ? '<path d="m6 9 6 6 6-6"/>' : '<path d="m18 15-6-6-6 6"/>';
@@ -242,7 +299,7 @@
   /* ── Load data (fallback to demo) ────────────────── */
 
   function loadData() {
-    // Set demo data
+    // Identity fields
     var title = document.getElementById('hubTitle');
     var date = document.getElementById('hubDate');
     var place = document.getElementById('hubPlace');
@@ -253,42 +310,57 @@
     if (place) place.textContent = 'Salle des f\u00eates, 12 rue des Mimosas';
     if (participants) participants.textContent = '67 participants';
 
-    // KPIs
-    var kpis = {
-      hubKpiParticipants: '67', hubKpiVoix: '8 500 voix',
-      hubKpiResolutions: '8', hubKpiResoDetail: '3 art.24, 3 art.25, 2 art.26',
-      hubKpiQuorum: '34', hubKpiQuorumDetail: '4 251 voix min.',
-      hubKpiConvoc: '55/67', hubKpiConvocDetail: '12 en attente'
+    // Demo session data for KPIs and checklist auto-check
+    var sessionData = {
+      title: 'AG Ordinaire',
+      date: '2026-02-18',
+      memberCount: 67,
+      resolutionCount: 8,
+      convocationsSent: true,
+      documentCount: 3,
+      // KPI display values
+      kpiParticipants: '67',
+      kpiVoix: '8\u202f500 voix',
+      kpiResolutions: '8',
+      kpiResoDetail: '3 art.24, 3 art.25, 2 art.26',
+      kpiQuorum: '34',
+      kpiQuorumDetail: '4\u202f251 voix min.',
+      kpiConvoc: '55/67',
+      kpiConvocDetail: '12 en attente'
     };
-    Object.keys(kpis).forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.textContent = kpis[id];
-    });
+
+    renderKpis(sessionData);
+    renderChecklist(sessionData);
 
     // Documents
-    var docs = document.getElementById('hubDocsList');
-    if (docs) {
-      var files = [
-        { name: 'Convocation_AG_2026.pdf', size: '245 Ko' },
-        { name: 'Comptes_2025.pdf', size: '1.2 Mo' },
-        { name: 'Devis_ravalement.pdf', size: '890 Ko' }
-      ];
-      var html = '';
-      files.forEach(function (f, i) {
-        var border = i < files.length - 1 ? '1px solid var(--border-soft)' : 'none';
-        html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:' + border + ';flex-wrap:nowrap;">' +
-          svgIcon('file-text', 14, 'var(--accent)') +
-          '<span style="flex:1;font-size:13px;font-weight:600;color:var(--text-dark);">' + escapeHtml(f.name) + '</span>' +
-          '<span class="muted" style="font-size:12px;">' + escapeHtml(f.size) + '</span>' +
-        '</div>';
-      });
-      docs.innerHTML = html;
+    var files = [
+      { name: 'Convocation_AG_2026.pdf', size: '245 Ko', url: '#' },
+      { name: 'Comptes_2025.pdf', size: '1.2 Mo', url: '#' },
+      { name: 'Devis_ravalement.pdf', size: '890 Ko', url: '#' }
+    ];
+    renderDocuments(files);
+  }
+
+  /* ── Toast pickup from wizard redirect (WIZ-05 / HUB) ── */
+
+  function checkToast() {
+    try {
+      var raw = sessionStorage.getItem('ag-vote-toast');
+      if (!raw) return;
+      sessionStorage.removeItem('ag-vote-toast');
+      var payload = JSON.parse(raw);
+      if (payload && payload.msg && typeof Shared !== 'undefined' && Shared.showToast) {
+        Shared.showToast(payload.msg, payload.type || 'success');
+      }
+    } catch (e) {
+      // Ignore parse errors
     }
   }
 
   /* ── Init ────────────────────────────────────────── */
 
   function init() {
+    checkToast();
     loadData();
     render();
     setupDetails();
