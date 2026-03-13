@@ -113,9 +113,11 @@ Plans:
   3. Active resolution card shows live dot, title, tags (majorite, cle, secret), and 3 sub-tabs: Resultat (vote toggle, proclamer, progress bar, Pour/Contre/Abstention bars), Avance (manual counts, didn't-vote list, unanimity/proxy/suspend, secretary notes), Presences (mini KPIs, attendance table with toggles)
   4. Right sidebar shows resolution agenda list with status circles and current resolution highlighted; bottom action bar has Proclamer (P shortcut) and Vote toggle (F shortcut)
   5. When quorum is lost, a blocking modal appears with 3 action buttons (reporter, suspendre, continuer)
-**Plans**: TBD
+**Plans**: 3 plans
 Plans:
-- (to be planned)
+- [ ] 09-01-PLAN.md — Inline styles cleanup, execution header with live indicators, KPI strip redesign, progress track
+- [ ] 09-02-PLAN.md — Resolution card with sub-tabs (Resultat/Avance/Presences), right sidebar agenda list
+- [ ] 09-03-PLAN.md — Quorum modal, action bar JS, keyboard shortcuts, agenda rendering, execution wiring
 
 ### Phase 10: Live Session Views
 **Goal**: The room display shows vote results on a large screen and voters can participate from tablets/phones with touch-optimized controls
@@ -179,7 +181,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 6. Layout & Navigation | 1/3 | In Progress|  |
 | 7. Dashboard & Sessions | 0/3 | Not started | - |
 | 8. Session Wizard & Hub | 3/3 | Complete   | 2026-03-13 |
-| 9. Operator Console | 0/TBD | Not started | - |
+| 9. Operator Console | 0/3 | Not started | - |
 | 10. Live Session Views | 0/TBD | Not started | - |
 | 11. Post-Session & Records | 0/TBD | Not started | - |
 | 12. Analytics & User Management | 0/TBD | Not started | - |
