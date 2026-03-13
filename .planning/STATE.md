@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-12T11:46:25.171Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-12T12:36:09.157Z"
 last_activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
 progress:
   total_phases: 10
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 8
   percent: 0
 ---
 
@@ -54,6 +54,8 @@ Progress: [..........] 0%
 | Phase 05-shared-components P02 | 15 | 2 tasks | 4 files |
 | Phase 05-shared-components P03 | 12 | 2 tasks | 2 files |
 | Phase 05-shared-components P01 | 15 | 2 tasks | 3 files |
+| Phase 06-layout-navigation P01 | 72 | 2 tasks | 2 files |
+| Phase 06-layout-navigation P02 | 15 | 3 tasks | 20 files |
 
 ## Milestone History
 
@@ -98,6 +100,10 @@ Recent decisions affecting current work:
 - [Phase 05-shared-components]: ag-confirm: inline SVG icons replace icon sprite pattern for critical overlay UI
 - [Phase 05-shared-components]: ag-toast: static show() only sets duration attribute when caller explicitly passes value, type-based defaults applied in connectedCallback
 - [Phase 05-shared-components]: warn variant alias added to ag-confirm for ergonomic API parity
+- [Phase 06-layout-navigation]: nav-badge uses margin-left:auto (flex flow) for visible state, not position:absolute, for correct layout in expanded sidebar
+- [Phase 06-layout-navigation]: nav-badge visibility driven by [data-count] attribute selector — no JS needed to show/hide
+- [Phase 06-layout-navigation]: public.htmx.html and vote.htmx.html get app-footer with display:none (full-screen/voter layouts)
+- [Phase 06-layout-navigation]: Footer pattern: placed inside .app-shell after </main> as static HTML (not JS injection)
 
 ### Pending Todos
 
@@ -113,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T11:46:25.168Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-layout-navigation/06-CONTEXT.md
+Last session: 2026-03-12T12:36:09.154Z
+Stopped at: Completed 06-02-PLAN.md
+Resume file: None

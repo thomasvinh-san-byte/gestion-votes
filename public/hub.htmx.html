@@ -27,7 +27,7 @@
     <aside class="app-sidebar" data-include-sidebar data-page="hub"></aside>
 
     <!-- Header -->
-    <header class="app-header">
+    <header class="app-header" role="banner">
       <div class="flex items-center gap-4">
         <div>
           <nav class="breadcrumb" aria-label="Fil d'Ariane">
@@ -61,7 +61,7 @@
     <main class="app-main" id="main-content" role="main">
 
       <!-- Identity banner -->
-      <div class="hub-identity" role="banner" id="hubIdentity">
+      <div class="hub-identity" id="hubIdentity">
         <div style="width:52px;height:52px;border-radius:14px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
         </div>
@@ -97,7 +97,7 @@
         <div style="flex:1;min-width:0;">
 
           <!-- Action card -->
-          <div class="hub-action" id="hubAction" data-tour="hub-action" role="main">
+          <div class="hub-action" id="hubAction" data-tour="hub-action">
             <div style="display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap;">
               <div class="hub-action-icon" id="hubActionIcon" style="background:var(--accent);">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="hubActionSvg"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
@@ -205,6 +205,18 @@
       </div>
 
     </main>
+    <footer class="app-footer" role="contentinfo">
+      <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
+        <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        </span>
+        AG-VOTE
+      </a>
+      <span class="text-muted">v3.19</span>
+      <span style="flex:1"></span>
+      <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
+      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
+    </footer>
   </div>
 
   <script src="/assets/js/core/utils.js"></script>

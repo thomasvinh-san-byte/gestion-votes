@@ -27,7 +27,7 @@
     <aside class="app-sidebar" data-include-sidebar data-page="trust"></aside>
 
     <!-- Header -->
-    <header class="app-header">
+    <header class="app-header" role="banner">
       <div class="flex items-center gap-4">
         <div>
           <h1 class="text-xl font-bold"><svg class="icon icon-md icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield-check"></use></svg> Contrôle & Audit</h1>
@@ -313,6 +313,18 @@
         </div>
       </div>
     </main>
+    <footer class="app-footer" role="contentinfo">
+      <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
+        <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        </span>
+        AG-VOTE
+      </a>
+      <span class="text-muted">v3.19</span>
+      <span style="flex:1"></span>
+      <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
+      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
+    </footer>
   </div>
 
   <!-- Drawer -->

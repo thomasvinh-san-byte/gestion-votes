@@ -410,6 +410,21 @@
     header.insertBefore(hb, header.firstChild);
   }
 
+  // Inject header logo if not already present
+  if (header && !header.querySelector('.logo')) {
+    const logoEl = document.createElement('a');
+    logoEl.className = 'logo';
+    logoEl.href = '/dashboard.htmx.html';
+    logoEl.setAttribute('aria-label', 'AG-VOTE — Accueil');
+    logoEl.innerHTML = '<span class="logo-mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg></span> AG-VOTE';
+    const hamburger = header.querySelector('.hamburger');
+    if (hamburger) {
+      hamburger.after(logoEl);
+    } else {
+      header.prepend(logoEl);
+    }
+  }
+
   // Inject mobile bottom nav if not already present
   const shell = document.querySelector('.app-shell');
   if (shell && !shell.querySelector('.mobile-bnav')) {
@@ -418,13 +433,14 @@
     bnav.setAttribute('aria-label', 'Navigation rapide');
     const currentPage = (sidebar && sidebar.getAttribute('data-page')) || '';
     const items = [
-      { href: '/meetings.htmx.html', page: 'meetings', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>', label: 'Accueil' },
-      { href: '/operator.htmx.html', page: 'operator', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>', label: 'Fiche' },
-      { href: '/vote.htmx.html', page: 'vote', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>', label: 'Voter' },
-      { href: '/admin.htmx.html', page: 'admin', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>', label: 'Config' }
+      { href: '/dashboard.htmx.html', page: 'dashboard', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>', label: 'Dashboard' },
+      { href: '/meetings.htmx.html', page: 'meetings', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>', label: 'Sessions' },
+      { href: '/hub.htmx.html', page: 'hub', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>', label: 'Fiche' },
+      { href: '/operator.htmx.html', page: 'operator', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>', label: 'Operateur' },
+      { href: '/admin.htmx.html?tab=settings', page: 'parametres', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>', label: 'Parametres' },
     ];
     bnav.innerHTML = items.map(function(it) {
-      return '<a class="mobile-bnav-btn' + (currentPage === it.page ? ' act' : '') + '" href="' + it.href + '">' + it.icon + '<span>' + it.label + '</span></a>';
+      return '<a class="mobile-bnav-btn' + (currentPage === it.page ? ' active' : '') + '" href="' + it.href + '">' + it.icon + '<span>' + it.label + '</span></a>';
     }).join('');
     shell.appendChild(bnav);
   }
@@ -583,7 +599,9 @@
     notifPanel = document.createElement('div');
     notifPanel.className = 'notif-panel';
     notifPanel.style.display = 'none';
-    notifPanel.innerHTML = '<div style="padding:12px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--color-border-subtle,#e8e7e2);">Notifications</div><div class="notif-list"></div>';
+    notifPanel.innerHTML = '<div style="padding:12px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--color-border-subtle,#e8e7e2);">Notifications</div>' +
+      '<div class="notif-list"></div>' +
+      '<a href="/admin.htmx.html?tab=notifications" class="notif-footer" style="display:block;padding:10px 16px;text-align:center;font-size:12px;font-weight:600;color:var(--color-primary);border-top:1px solid var(--color-border-subtle,#e8e7e2);text-decoration:none;">Voir tout</a>';
     bell.style.position = 'relative';
     bell.appendChild(notifPanel);
 
@@ -634,7 +652,7 @@
       return;
     }
 
-    list.innerHTML = items.slice(0, 10).map(function(n) {
+    list.innerHTML = items.slice(0, 6).map(function(n) {
       const dotColor = n.read ? 'var(--color-border,#d5dbd2)' : 'var(--color-primary,#1650E0)';
       return '<div class="notif-item">' +
         '<span class="notif-dot" style="background:' + dotColor + '"></span>' +
