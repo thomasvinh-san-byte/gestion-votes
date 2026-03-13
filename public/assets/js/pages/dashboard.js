@@ -18,15 +18,14 @@
 
   /* ── Helpers ──────────────────────────────────────────── */
 
-  function renderSeanceRow(s, isLast) {
-    var borderStyle = isLast ? 'none' : '1px solid var(--border-soft)';
+  function renderSeanceRow(s) {
     var statusColors = {
-      'draft': 'var(--text-muted)',
-      'convocations': 'var(--warn)',
-      'in_progress': 'var(--danger)',
-      'closed': 'var(--success)',
-      'pv_sent': 'var(--success)',
-      'archived': 'var(--text-muted)'
+      'draft': 'var(--color-text-muted)',
+      'convocations': 'var(--color-warning)',
+      'in_progress': 'var(--color-danger)',
+      'closed': 'var(--color-success)',
+      'pv_sent': 'var(--color-success)',
+      'archived': 'var(--color-text-muted)'
     };
     var statusLabels = {
       'draft': 'Brouillon',
@@ -36,31 +35,31 @@
       'pv_sent': 'PV envoy\u00e9',
       'archived': 'Archiv\u00e9e'
     };
-    var color = statusColors[s.status] || 'var(--text-muted)';
+    var color = statusColors[s.status] || 'var(--color-text-muted)';
     var label = statusLabels[s.status] || s.status;
     var title = escapeHtml(s.title || 'S\u00e9ance');
     var date = escapeHtml(s.date_time || '');
     var participants = s.participant_count || 0;
     var motions = s.motion_count || 0;
 
-    return '<div class="irow" style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:' + borderStyle + ';cursor:pointer;flex-wrap:nowrap;" onclick="location.href=\'/operator.htmx.html?meeting_id=' + encodeURIComponent(s.id) + '\'">' +
-      '<div style="width:10px;height:10px;border-radius:50%;background:' + color + ';flex-shrink:0;"></div>' +
-      '<div style="flex:1;min-width:0;">' +
-        '<div class="irow-title" style="font-weight:600;color:var(--text-dark);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + title + '</div>' +
-        '<div style="font-size:13px;color:var(--text-muted);">' + date + ' &mdash; ' + participants + ' participants &mdash; ' + motions + ' r\u00e9solutions</div>' +
+    return '<div class="session-row" onclick="location.href=\'/operator.htmx.html?meeting_id=' + encodeURIComponent(s.id) + '\'">' +
+      '<div class="session-dot" style="background:' + color + ';"></div>' +
+      '<div class="session-row-info">' +
+        '<div class="session-row-title">' + title + '</div>' +
+        '<div class="session-row-meta">' + date + ' &mdash; ' + participants + ' participants &mdash; ' + motions + ' r\u00e9solutions</div>' +
       '</div>' +
       '<span class="tag" style="color:' + color + ';">' + escapeHtml(label) + '</span>' +
     '</div>';
   }
 
-  function renderTaskRow(t, isLast) {
-    var borderStyle = isLast ? 'none' : '1px solid var(--border-soft)';
-    return '<div class="irow" style="display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:' + borderStyle + ';cursor:pointer;border-radius:6px;">' +
-      '<div style="flex:1;min-width:0;">' +
-        '<div class="irow-title" style="font-weight:600;color:var(--text-dark);font-size:13px;">' + escapeHtml(t.title) + '</div>' +
-        '<div style="font-size:12px;color:var(--text-muted);">' + escapeHtml(t.sub) + '</div>' +
+  function renderTaskRow(t) {
+    var priorityAttr = t.priority ? ' data-priority="' + escapeHtml(t.priority) + '"' : '';
+    return '<div class="task-row"' + priorityAttr + '>' +
+      '<div class="task-row-info">' +
+        '<div class="task-row-title">' + escapeHtml(t.title) + '</div>' +
+        '<div class="task-row-sub">' + escapeHtml(t.sub) + '</div>' +
       '</div>' +
-      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>' +
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-border)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>' +
     '</div>';
   }
 
@@ -95,7 +94,7 @@
           if (uSub) uSub.textContent = ua.subtitle || '';
         } else {
           var urgentCard = document.getElementById('actionUrgente');
-          if (urgentCard) urgentCard.style.display = 'none';
+          if (urgentCard) urgentCard.hidden = true;
         }
 
         // Prochaines s\u00e9ances
@@ -103,9 +102,9 @@
         if (prochaines && data.upcoming_meetings) {
           var html = '';
           data.upcoming_meetings.forEach(function (s, i) {
-            html += renderSeanceRow(s, i === data.upcoming_meetings.length - 1);
+            html += renderSeanceRow(s);
           });
-          prochaines.innerHTML = html || '<div style="padding:12px;text-align:center;color:var(--text-muted);">Aucune s\u00e9ance &agrave; venir</div>';
+          prochaines.innerHTML = html || '<div class="session-row empty-state"><span class="session-row-meta">Aucune s\u00e9ance \u00e0 venir</span></div>';
         }
 
         // T\u00e2ches
@@ -113,9 +112,9 @@
         if (taches && data.tasks) {
           var tHtml = '';
           data.tasks.forEach(function (t, i) {
-            tHtml += renderTaskRow(t, i === data.tasks.length - 1);
+            tHtml += renderTaskRow(t);
           });
-          taches.innerHTML = tHtml || '<div style="padding:12px;text-align:center;color:var(--text-muted);">Aucune t\u00e2che</div>';
+          taches.innerHTML = tHtml || '<div class="task-row empty-state"><span class="task-row-sub">Aucune t\u00e2che</span></div>';
         }
       })
       .catch(function () {
@@ -150,7 +149,7 @@
       ];
       var html = '';
       meetings.forEach(function (s, i) {
-        html += renderSeanceRow(s, i === meetings.length - 1);
+        html += renderSeanceRow(s);
       });
       prochaines.innerHTML = html;
     }
@@ -165,7 +164,7 @@
       ];
       var tHtml = '';
       tasks.forEach(function (t, i) {
-        tHtml += renderTaskRow(t, i === tasks.length - 1);
+        tHtml += renderTaskRow(t);
       });
       taches.innerHTML = tHtml;
     }

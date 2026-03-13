@@ -1159,6 +1159,11 @@
   border-left: 3px solid var(--color-primary);
 }
 
+.session-row.empty-state,
+.task-row.empty-state {
+  justify-content: center;
+}
+
 /* =============================================================================
    RESPONSIVE ADJUSTMENTS
    ============================================================================= */
