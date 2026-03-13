@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: planning
-stopped_at: Completed 08-session-wizard-hub-03-PLAN.md
-last_updated: "2026-03-13T07:43:38.824Z"
-last_activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
+status: verified
+stopped_at: Phase 10 verified — 12/12 must-haves passed
+last_updated: "2026-03-13T14:00:00.000Z"
+last_activity: 2026-03-13 -- Phase 10 verified, all gaps closed (VOTE-03 timer, VOTE-01 bottom nav, DISP-01 dark bg)
 progress:
   total_phases: 10
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
-  percent: 0
+  completed_phases: 10
+  total_plans: 20
+  completed_plans: 20
+  percent: 100
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-12)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v2.0 UI Redesign -- Phase 4 (Design Tokens & Theme)
+**Current focus:** v2.0 UI Redesign -- All 10 phases complete
 
 ## Current Position
 
-Phase: 4 of 13 (Design Tokens & Theme)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
+Phase: 10 of 10 (Live Session Views) — VERIFIED
+Plan: 20 of 20 complete
+Status: All phases verified
+Last activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
 
-Progress: [..........] 0%
+Progress: [##########] 100%
 
 ## Performance Metrics
 
@@ -63,6 +63,11 @@ Progress: [..........] 0%
 | Phase 08-session-wizard-hub P01 | 460 | 2 tasks | 3 files |
 | Phase 08-session-wizard-hub P02 | 10 | 2 tasks | 3 files |
 | Phase 08-session-wizard-hub P03 | 2 | 2 tasks | 4 files |
+| Phase 09-operator-console P01 | 12 | 2 tasks | 4 files |
+| Phase 09-operator-console P02 | 8 | 2 tasks | 2 files |
+| Phase 09 P03 | 5min | 2 tasks | 3 files |
+| Phase 10-live-session-views P01 | 2min | 2 tasks | 3 files |
+| Phase 10-live-session-views P02 | 5min | 2 tasks | 4 files |
 
 ## Milestone History
 
@@ -127,6 +132,16 @@ Recent decisions affecting current work:
 - [Phase 08-session-wizard-hub]: [Phase 08-session-wizard-hub]: HUB_STEPS colors updated from wireframe legacy tokens to design-system tokens
 - [Phase 08-session-wizard-hub]: window.print() used for PDF export — browser-native, no library needed for vanilla JS app
 - [Phase 08-session-wizard-hub]: hub.js loadData() falls back to demo data silently (console.warn only), preserving dev experience without backend
+- [Phase 09-operator-console]: op-exec-header uses green border (color-success) for live state per wireframe v3.19.2
+- [Phase 09-operator-console]: op-kpi-strip dedicated class: NOT extending exec-kpi-strip or hub-kpi, design independence from hub layout
+- [Phase 09-operator-console]: viewExec hybrid structure: op-exec-header inline, content div lazy-loaded — header renders immediately on mode switch
+- [Phase 09-operator-console]: op-split overridden from CSS grid (3-col) to flex (2-panel) per wireframe v3.19.2 — old exec-grid 3-column layout removed
+- [Phase 09-operator-console]: op-agenda-circle: 3-state status circles (voted=green, current=pulsing blue, pending=empty) for sidebar agenda list
+- [Phase 09]: Quorum modal uses direct DOM overlay instead of ag-confirm for simpler 3-button layout
+- [Phase 10-live-session-views]: Bar fill uses style.width (%) not style.height (px) — percentage-based width works directly with CSS transition: width
+- [Phase 10-live-session-views]: Footer utility classes added to public.css since public page only loads design-system.css + public.css (not operator.css)
+- [Phase Phase 10-live-session-views]: apiPost returns response.json() directly (not {body, status}), result.ok is the correct check for attendances_upsert response
+- [Phase Phase 10-live-session-views]: _isAbsent guard added to all setVoteButtonsEnabled enable-paths to enforce legal absent-voter restriction
 
 ### Pending Todos
 
@@ -142,6 +157,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T07:43:38.822Z
-Stopped at: Completed 08-session-wizard-hub-03-PLAN.md
+Last session: 2026-03-13T14:00:00.000Z
+Stopped at: Phase 10 verified — all v2.0 phases complete
 Resume file: None

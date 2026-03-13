@@ -8,7 +8,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0B0D10" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Console opérateur - AG-VOTE">
   <title>Fiche séance — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
@@ -103,7 +103,7 @@
     </div>
 
     <!-- Tabs navigation (shown in setup mode when meeting selected) -->
-    <nav class="tabs-nav" id="tabsNav" style="display: none;" role="tablist" aria-label="Sections de la séance" data-tour="operator-tabs">
+    <nav class="tabs-nav" id="tabsNav" hidden role="tablist" aria-label="Sections de la séance" data-tour="operator-tabs">
       <!-- 4 preparation tabs — always visible -->
       <button class="tab-btn active" data-tab="seance" role="tab" aria-selected="true" aria-controls="tab-seance" id="tab-btn-seance">
         <svg class="icon icon-text tab-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
@@ -614,7 +614,7 @@
           </div>
 
           <!-- Add resolution form (hidden by default) -->
-          <div id="addResolutionForm" class="settings-section add-resolution-form" style="display: none;">
+          <div id="addResolutionForm" class="settings-section add-resolution-form" hidden>
             <h3>Nouvelle résolution</h3>
             <div class="form-group mb-3">
               <label class="form-label" for="newResolutionTitle">Titre</label>
@@ -641,7 +641,7 @@
              ============================================================ -->
         <div class="tab-content" id="tab-controle" role="tabpanel" aria-labelledby="tab-btn-controle" tabindex="0">
           <!-- Launch banner (prominent at top) -->
-          <div id="launchBanner" class="launch-banner" style="display:none;">
+          <div id="launchBanner" class="launch-banner" hidden>
             <div class="launch-banner-content">
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
               <span>Tous les pré-requis sont remplis. Vous pouvez lancer la séance.</span>
@@ -728,7 +728,7 @@
                   <div class="quick-count-label">Échecs</div>
                 </div>
               </div>
-              <div id="invEngagement" class="text-sm text-muted mb-3" style="display:none;">
+              <div id="invEngagement" class="text-sm text-muted mb-3" hidden>
                 Taux ouverture: <strong id="invOpenRate">0%</strong>
               </div>
               <div class="flex gap-2 flex-wrap">
@@ -747,7 +747,7 @@
                   </a>
                 </ag-popover>
               </div>
-              <div id="invitationsOptions" class="invitations-options" style="display:none;">
+              <div id="invitationsOptions" class="invitations-options" hidden>
                 <div class="form-group mb-3">
                   <label class="form-label" for="invTemplateSelect">Template</label>
                   <select class="form-input" id="invTemplateSelect">
@@ -765,7 +765,7 @@
                     </label>
                   </div>
                 </div>
-                <div class="form-group mb-3" id="scheduleGroup" style="display:none;">
+                <div class="form-group mb-3" id="scheduleGroup" hidden>
                   <label class="form-label" for="invScheduleAt">Date/heure d'envoi</label>
                   <input type="datetime-local" class="form-input" id="invScheduleAt">
                 </div>
@@ -791,7 +791,7 @@
             </div>
 
             <!-- Dashboard en direct -->
-            <div class="settings-section" id="dashboardCard" style="display:none;">
+            <div class="settings-section" id="dashboardCard" hidden>
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg> Dashboard en direct</h3>
               <div class="quick-counts mb-3">
                 <div class="quick-count">
@@ -809,7 +809,7 @@
                   <div class="quick-count-label">Motions ouvertes</div>
                 </div>
               </div>
-              <div id="dashCurrentMotion" class="text-sm text-muted mb-2" style="display:none;">
+              <div id="dashCurrentMotion" class="text-sm text-muted mb-2" hidden>
                 Motion: <strong id="dashMotionTitle">—</strong>
                 <div class="flex gap-3 mt-1">
                   <span class="text-success"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> <span id="dashVoteFor">0</span></span>
@@ -817,10 +817,10 @@
                   <span>&#9675; <span id="dashVoteAbstain">0</span></span>
                 </div>
               </div>
-              <div id="dashReadySign" class="text-sm" style="display:none;">
+              <div id="dashReadySign" class="text-sm" hidden>
                 <span class="badge badge-success"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg> Prêt pour signature</span>
               </div>
-              <div id="dashNotReadySign" class="text-sm" style="display:none;">
+              <div id="dashNotReadySign" class="text-sm" hidden>
                 <span class="badge badge-warning"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg> Non prêt</span>
                 <ul id="dashReadyReasons" class="text-xs text-muted mt-1 ready-reasons-list"></ul>
               </div>
@@ -846,7 +846,7 @@
             </div>
 
             <!-- Appareils connectés -->
-            <div class="settings-section" id="devicesCard" style="display:none;">
+            <div class="settings-section" id="devicesCard" hidden>
               <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg> Appareils connectés</h3>
               <div class="quick-counts mb-3">
                 <div class="quick-count">
@@ -888,23 +888,64 @@
       <!-- ================================================================
            VIEW: EXECUTION — 3-column grid
            ================================================================ -->
-      <section id="viewExec" class="view-exec" hidden aria-label="Mode exécution"
-               data-partial="/partials/operator-exec.html" data-loaded="false">
+      <section id="viewExec" class="view-exec" hidden aria-label="Mode exécution">
+
+        <!-- Execution mode header (replaces meeting-bar during live session) -->
+        <div class="op-exec-header" id="opExecHeader">
+          <div class="op-exec-header-left">
+            <span class="op-live-dot" aria-label="Session en cours"></span>
+            <h1 class="op-exec-title" id="opExecTitle">--</h1>
+          </div>
+          <div class="op-exec-header-right">
+            <span class="op-live-chrono" id="opExecTimer">00:00:00</span>
+            <a class="btn btn-sm btn-secondary" id="opBtnRoomDisplay" href="/public.htmx.html" target="_blank" data-meeting-link>
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg> Projection
+            </a>
+            <button class="btn btn-sm btn-danger" id="opBtnCloseSession">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Cloturer
+            </button>
+          </div>
+        </div>
+
         <!-- Content lazy-loaded from partial on first exec mode switch -->
+        <div id="viewExecContent" data-partial="/partials/operator-exec.html" data-loaded="false"></div>
+
+        <!-- Transition card (brief centered message when advancing to next resolution) -->
+        <div class="op-transition-card" id="opTransitionCard" hidden>
+          <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+          <span class="op-transition-text" id="opTransitionText">Resolution proclamee</span>
+        </div>
       </section><!-- /viewExec -->
+
+      <!-- Quorum warning modal (blocking overlay — no backdrop click dismiss) -->
+      <div class="op-quorum-overlay" id="opQuorumOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="opQuorumTitle">
+        <div class="op-quorum-modal">
+          <h2 id="opQuorumTitle">Quorum non atteint</h2>
+          <div class="op-quorum-stats" id="opQuorumStats">
+            <!-- Filled by JS -->
+          </div>
+          <p>Le quorum n'est pas atteint. Choisissez une action :</p>
+          <div class="op-quorum-actions">
+            <button class="btn btn-warning" id="opQuorumReporter">Reporter (2e convocation)</button>
+            <button class="btn btn-secondary" id="opQuorumSuspendre">Suspendre 30 min</button>
+            <button class="btn btn-ghost" id="opQuorumContinuer">Continuer sous reserve</button>
+          </div>
+          <p class="op-quorum-risk-note text-xs text-muted" id="opQuorumRiskNote" hidden>Attention : continuer sans quorum expose les decisions a un risque de contestation.</p>
+        </div>
+      </div>
 
     </main>
     <footer class="app-footer" role="contentinfo">
-      <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
-        <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
+      <a href="/dashboard.htmx.html" class="logo footer-logo" aria-label="AG-VOTE">
+        <span class="logo-mark footer-logo-mark">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         </span>
         AG-VOTE
       </a>
       <span class="text-muted">v3.19</span>
-      <span style="flex:1"></span>
-      <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
-      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
+      <span class="flex-spacer"></span>
+      <a href="/help.htmx.html" class="text-muted footer-link">Aide</a>
+      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted footer-link">Accessibilite</a>
     </footer>
   </div>
 
@@ -918,7 +959,7 @@
   </aside>
 
   <!-- Launch confirmation modal -->
-  <div class="modal-backdrop launch-modal" id="launchModal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="launchModalTitle">
+  <div class="modal-backdrop launch-modal" id="launchModal" hidden role="dialog" aria-modal="true" aria-labelledby="launchModalTitle">
     <div class="modal-dialog">
       <div class="modal-header">
         <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>

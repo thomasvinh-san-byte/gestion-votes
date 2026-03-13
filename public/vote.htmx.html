@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0B0D10" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Interface de vote électronique — AG-VOTE">
   <title>Vote — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
@@ -202,6 +202,26 @@
       </div>
     </main>
 
+    <!-- Bottom navigation (mobile/tablet) -->
+    <nav class="vote-bottom-nav" id="voteBottomNav" role="navigation" aria-label="Navigation rapide">
+      <button class="bottom-nav-item active" data-nav="vote" type="button" aria-current="true">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-thumbs-up"></use></svg>
+        <span>Vote</span>
+      </button>
+      <button class="bottom-nav-item" data-nav="speech" type="button">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-hand"></use></svg>
+        <span>Parole</span>
+      </button>
+      <button class="bottom-nav-item" data-nav="motion" type="button">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-layers"></use></svg>
+        <span>R&eacute;solution</span>
+      </button>
+      <button class="bottom-nav-item" id="bottomNavStatus" data-nav="status" type="button">
+        <span class="bottom-nav-dot" id="bottomNavDot"></span>
+        <span id="bottomNavStatusLabel">Connect&eacute;</span>
+      </button>
+    </nav>
+
     <!-- Footer -->
     <footer class="vote-footer" role="contentinfo">
       <div class="member-info" id="memberInfo" aria-live="polite">
@@ -211,6 +231,15 @@
           <div class="member-weight" id="memberWeight">—</div>
         </div>
       </div>
+      <button class="presence-toggle" id="btnPresence" hidden
+        aria-pressed="true"
+        aria-label="Marquer comme absent"
+        type="button">
+        <span class="presence-toggle-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <span class="presence-toggle-label">Present</span>
+      </button>
       <div class="footer-status" role="status" aria-live="polite">
         <span class="footer-chip" id="voteReceipt" hidden>—</span>
         <span class="footer-chip">
@@ -219,17 +248,17 @@
         </span>
       </div>
     </footer>
-    <footer class="app-footer" role="contentinfo" style="display:none">
-      <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
-        <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
+    <footer class="app-footer" role="contentinfo" hidden>
+      <a href="/dashboard.htmx.html" class="logo footer-logo" aria-label="AG-VOTE">
+        <span class="logo-mark footer-logo-mark">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         </span>
         AG-VOTE
       </a>
       <span class="text-muted">v3.19</span>
-      <span style="flex:1"></span>
-      <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
-      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
+      <span class="flex-spacer"></span>
+      <a href="/help.htmx.html" class="text-muted footer-link">Aide</a>
+      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted footer-link">Accessibilite</a>
     </footer>
   </div>
 

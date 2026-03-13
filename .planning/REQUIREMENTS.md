@@ -57,21 +57,21 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Operator
 
-- [ ] **OPR-01**: Header bar with live dot, session title, timer (HH:MM:SS), room display button, close session button
-- [ ] **OPR-02**: KPI strip: Présents (x/y), Quorum (% + check), Ont voté (x/y), Résolution (x/y), tags
-- [ ] **OPR-03**: Progress track with 5 horizontal segments (voted/voting/pending color-coded)
-- [ ] **OPR-04**: Resolution card with live dot, title, tags (majorité, clé, secret), 3 sub-tabs
-- [ ] **OPR-05**: Tab Résultat: vote toggle, proclamer button, progress bar, 3 result bars (Pour/Contre/Abstention)
-- [ ] **OPR-06**: Tab Avancé: manual count inputs, didn't-vote list, unanimity/proxy/suspend actions, secretary notes
-- [ ] **OPR-07**: Tab Présences: 4 mini KPI cards, attendance table with status toggles
-- [ ] **OPR-08**: Right sidebar with resolution agenda list (status circles, current highlighted)
-- [ ] **OPR-09**: Quorum warning modal (blocking, 3 action buttons: reporter, suspendre, continuer)
-- [ ] **OPR-10**: Bottom action bar with Proclamer (P shortcut) and Vote toggle (F shortcut)
+- [x] **OPR-01**: Header bar with live dot, session title, timer (HH:MM:SS), room display button, close session button
+- [x] **OPR-02**: KPI strip: Présents (x/y), Quorum (% + check), Ont voté (x/y), Résolution (x/y), tags
+- [x] **OPR-03**: Progress track with 5 horizontal segments (voted/voting/pending color-coded)
+- [x] **OPR-04**: Resolution card with live dot, title, tags (majorité, clé, secret), 3 sub-tabs
+- [x] **OPR-05**: Tab Résultat: vote toggle, proclamer button, progress bar, 3 result bars (Pour/Contre/Abstention)
+- [x] **OPR-06**: Tab Avancé: manual count inputs, didn't-vote list, unanimity/proxy/suspend actions, secretary notes
+- [x] **OPR-07**: Tab Présences: 4 mini KPI cards, attendance table with status toggles
+- [x] **OPR-08**: Right sidebar with resolution agenda list (status circles, current highlighted)
+- [x] **OPR-09**: Quorum warning modal (blocking, 3 action buttons: reporter, suspendre, continuer)
+- [x] **OPR-10**: Bottom action bar with Proclamer (P shortcut) and Vote toggle (F shortcut)
 
 ### Room Display
 
-- [ ] **DISP-01**: Full-screen layout (no header/sidebar), dark background (#0B0F1A)
-- [ ] **DISP-02**: Session title, current resolution, live result bars, participation %, timer, status
+- [x] **DISP-01**: Full-screen layout (no header/sidebar), dark background (#0B0F1A)
+- [x] **DISP-02**: Session title, current resolution, live result bars, participation %, timer, status
 
 ### Post-Session
 
@@ -116,9 +116,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Voter View
 
-- [ ] **VOTE-01**: Touch-optimized tablet/mobile layout with bottom navigation
-- [ ] **VOTE-02**: Large resolution title, big vote buttons (Pour/Contre/Abstention), hand raise button
-- [ ] **VOTE-03**: Vote confirmation screen, countdown timer, present/absent toggle
+- [x] **VOTE-01**: Touch-optimized tablet/mobile layout with bottom navigation
+- [x] **VOTE-02**: Large resolution title, big vote buttons (Pour/Contre/Abstention), hand raise button
+- [x] **VOTE-03**: Vote confirmation screen, countdown timer, present/absent toggle
 
 ### Shared Components
 
@@ -193,21 +193,21 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | HUB-03 | Phase 8 | Complete |
 | HUB-04 | Phase 8 | Complete |
 | HUB-05 | Phase 8 | Complete |
-| OPR-01 | Phase 9 | Pending |
-| OPR-02 | Phase 9 | Pending |
-| OPR-03 | Phase 9 | Pending |
-| OPR-04 | Phase 9 | Pending |
-| OPR-05 | Phase 9 | Pending |
-| OPR-06 | Phase 9 | Pending |
-| OPR-07 | Phase 9 | Pending |
-| OPR-08 | Phase 9 | Pending |
-| OPR-09 | Phase 9 | Pending |
-| OPR-10 | Phase 9 | Pending |
-| DISP-01 | Phase 10 | Pending |
-| DISP-02 | Phase 10 | Pending |
-| VOTE-01 | Phase 10 | Pending |
-| VOTE-02 | Phase 10 | Pending |
-| VOTE-03 | Phase 10 | Pending |
+| OPR-01 | Phase 9 | Complete |
+| OPR-02 | Phase 9 | Complete |
+| OPR-03 | Phase 9 | Complete |
+| OPR-04 | Phase 9 | Complete |
+| OPR-05 | Phase 9 | Complete |
+| OPR-06 | Phase 9 | Complete |
+| OPR-07 | Phase 9 | Complete |
+| OPR-08 | Phase 9 | Complete |
+| OPR-09 | Phase 9 | Complete |
+| OPR-10 | Phase 9 | Complete |
+| DISP-01 | Phase 10 | Complete |
+| DISP-02 | Phase 10 | Complete |
+| VOTE-01 | Phase 10 | Complete |
+| VOTE-02 | Phase 10 | Complete |
+| VOTE-03 | Phase 10 | Complete |
 | POST-01 | Phase 11 | Pending |
 | POST-02 | Phase 11 | Pending |
 | POST-03 | Phase 11 | Pending |

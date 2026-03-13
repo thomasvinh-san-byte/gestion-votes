@@ -877,6 +877,57 @@
 }
 
 /* =============================================================================
+   PRESENCE TOGGLE
+   ============================================================================= */
+
+.presence-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-success);
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  cursor: pointer;
+  transition: background var(--duration-fast), border-color var(--duration-fast), color var(--duration-fast);
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.presence-toggle[aria-pressed="false"] {
+  border-color: var(--color-border);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+}
+
+.presence-toggle .presence-toggle-icon svg { vertical-align: middle; }
+
+/* =============================================================================
+   VOTE ABSENT HINT
+   ============================================================================= */
+
+.vote-absent-hint {
+  text-align: center;
+  padding: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+/* =============================================================================
+   APP FOOTER (hidden support) + FOOTER UTILITY CLASSES
+   ============================================================================= */
+
+.app-footer[hidden] { display: none; }
+.footer-logo { font-size: 12px; gap: 6px; }
+.footer-logo-mark { width: 18px; height: 18px; border-radius: 3px; font-size: 8px; }
+.flex-spacer { flex: 1; }
+.footer-link { text-decoration: none; }
+
+/* =============================================================================
    FOOTER
    ============================================================================= */
 
@@ -962,6 +1013,77 @@
   50% {
     opacity: 0.5;
   }
+}
+
+/* =============================================================================
+   BOTTOM NAVIGATION (mobile/tablet)
+   ============================================================================= */
+
+.vote-bottom-nav {
+  display: none;  /* hidden on desktop */
+  align-items: stretch;
+  justify-content: space-around;
+  background: var(--color-surface);
+  border-top: 2px solid var(--color-border);
+  flex-shrink: 0;
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@media (max-width: 768px) {
+  .vote-bottom-nav {
+    display: flex;
+  }
+
+  /* Hide old footer on mobile when bottom nav is shown */
+  .vote-footer {
+    display: none;
+  }
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.5rem 0.25rem;
+  min-height: 56px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+
+.bottom-nav-item:active {
+  background: var(--color-bg-subtle);
+}
+
+.bottom-nav-item.active {
+  color: var(--color-primary);
+}
+
+.bottom-nav-item .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.bottom-nav-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.bottom-nav-dot.offline {
+  background: var(--color-danger);
+  animation: none;
 }
 
 /* =============================================================================

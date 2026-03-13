@@ -16,8 +16,8 @@
 - [ ] **Phase 6: Layout & Navigation** - Implement sidebar rail/expand, header with search and notifications, mobile bottom nav, footer, ARIA landmarks
 - [ ] **Phase 7: Dashboard & Sessions** - Redesign dashboard (KPIs, urgent actions, shortcuts) and sessions page (list/calendar, filters, empty states)
 - [x] **Phase 8: Session Wizard & Hub** - Build 4-step create session wizard and session hub (status bar, checklist, KPIs, documents) (completed 2026-03-13)
-- [ ] **Phase 9: Operator Console** - Redesign operator page with live KPI strip, progress track, resolution tabs, attendance, agenda sidebar, quorum modal
-- [ ] **Phase 10: Live Session Views** - Room display (full-screen, dark) and voter tablet/mobile view (touch-optimized, large buttons)
+- [x] **Phase 9: Operator Console** - Redesign operator page with live KPI strip, progress track, resolution tabs, attendance, agenda sidebar, quorum modal (completed 2026-03-13)
+- [x] **Phase 10: Live Session Views** - Room display (full-screen, dark) and voter tablet/mobile view (touch-optimized, large buttons) (completed 2026-03-13)
 - [ ] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views
 - [ ] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination)
 - [ ] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers)
@@ -113,9 +113,11 @@ Plans:
   3. Active resolution card shows live dot, title, tags (majorite, cle, secret), and 3 sub-tabs: Resultat (vote toggle, proclamer, progress bar, Pour/Contre/Abstention bars), Avance (manual counts, didn't-vote list, unanimity/proxy/suspend, secretary notes), Presences (mini KPIs, attendance table with toggles)
   4. Right sidebar shows resolution agenda list with status circles and current resolution highlighted; bottom action bar has Proclamer (P shortcut) and Vote toggle (F shortcut)
   5. When quorum is lost, a blocking modal appears with 3 action buttons (reporter, suspendre, continuer)
-**Plans**: TBD
+**Plans**: 3 plans
 Plans:
-- (to be planned)
+- [ ] 09-01-PLAN.md — Inline styles cleanup, execution header with live indicators, KPI strip redesign, progress track
+- [ ] 09-02-PLAN.md — Resolution card with sub-tabs (Resultat/Avance/Presences), right sidebar agenda list
+- [ ] 09-03-PLAN.md — Quorum modal, action bar JS, keyboard shortcuts, agenda rendering, execution wiring
 
 ### Phase 10: Live Session Views
 **Goal**: The room display shows vote results on a large screen and voters can participate from tablets/phones with touch-optimized controls
@@ -125,9 +127,10 @@ Plans:
   1. Room display fills the entire screen with no header/sidebar, uses a dark background (#0B0F1A), and shows session title, current resolution, live result bars, participation %, timer, and status
   2. Voter view renders a touch-optimized layout with bottom navigation on tablet/mobile viewports
   3. Voters see a large resolution title with big vote buttons (Pour/Contre/Abstention), a hand raise button, a vote confirmation screen, countdown timer, and present/absent toggle
-**Plans**: TBD
+**Plans:** 2/2 plans complete
 Plans:
-- (to be planned)
+- [ ] 10-01-PLAN.md — Room display: inline styles cleanup, horizontal bar refactor, public.css tokenization, public.js bar direction fix
+- [ ] 10-02-PLAN.md — Voter view: inline styles cleanup, vote.css tokenization, present/absent toggle, ARIA audit on both pages
 
 ### Phase 11: Post-Session & Records
 **Goal**: Users complete post-session workflow (verify, validate, generate PV, send), browse archived sessions, and review audit logs
@@ -179,8 +182,8 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 6. Layout & Navigation | 1/3 | In Progress|  |
 | 7. Dashboard & Sessions | 0/3 | Not started | - |
 | 8. Session Wizard & Hub | 3/3 | Complete   | 2026-03-13 |
-| 9. Operator Console | 0/TBD | Not started | - |
-| 10. Live Session Views | 0/TBD | Not started | - |
+| 9. Operator Console | 3/3 | Complete   | 2026-03-13 |
+| 10. Live Session Views | 2/2 | Complete   | 2026-03-13 |
 | 11. Post-Session & Records | 0/TBD | Not started | - |
 | 12. Analytics & User Management | 0/TBD | Not started | - |
 | 13. Settings & Help | 0/TBD | Not started | - |

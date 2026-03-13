@@ -114,8 +114,6 @@ function fmtW(v) { var n = parseFloat(v); return isNaN(n) ? '0' : (Number.isInte
 
 // Animate bars
 function animateBars(forPct, againstPct, abstainPct, forCount, againstCount, abstainCount, forWeight, againstWeight, abstainWeight) {
-  var maxHeight = 140; // max bar height in px (matches CSS .bar-wrapper height - margin)
-
   // Update percentages and counts
   document.getElementById('pct_for').textContent = forPct.toFixed(0) + '%';
   document.getElementById('pct_against').textContent = againstPct.toFixed(0) + '%';
@@ -125,29 +123,19 @@ function animateBars(forPct, againstPct, abstainPct, forCount, againstCount, abs
   document.getElementById('count_against').textContent = fmtW(againstWeight);
   document.getElementById('count_abstain').textContent = fmtW(abstainWeight);
 
-  // Animate bar heights
+  // Animate bar widths (horizontal layout)
   requestAnimationFrame(function() {
-    document.getElementById('bar_for_fill').style.height = (forPct / 100 * maxHeight) + 'px';
-    document.getElementById('bar_against_fill').style.height = (againstPct / 100 * maxHeight) + 'px';
-    document.getElementById('bar_abstain_fill').style.height = (abstainPct / 100 * maxHeight) + 'px';
-
-    // Trigger label animation
-    setTimeout(function() {
-      document.getElementById('bar_for').classList.add('animate');
-      document.getElementById('bar_against').classList.add('animate');
-      document.getElementById('bar_abstain').classList.add('animate');
-    }, 100);
+    document.getElementById('bar_for_fill').style.width = forPct.toFixed(1) + '%';
+    document.getElementById('bar_against_fill').style.width = againstPct.toFixed(1) + '%';
+    document.getElementById('bar_abstain_fill').style.width = abstainPct.toFixed(1) + '%';
   });
 }
 
 // Reset bars
 function resetBars() {
-  document.getElementById('bar_for_fill').style.height = '0';
-  document.getElementById('bar_against_fill').style.height = '0';
-  document.getElementById('bar_abstain_fill').style.height = '0';
-  document.getElementById('bar_for').classList.remove('animate');
-  document.getElementById('bar_against').classList.remove('animate');
-  document.getElementById('bar_abstain').classList.remove('animate');
+  document.getElementById('bar_for_fill').style.width = '0';
+  document.getElementById('bar_against_fill').style.width = '0';
+  document.getElementById('bar_abstain_fill').style.width = '0';
 }
 
 // Load results
