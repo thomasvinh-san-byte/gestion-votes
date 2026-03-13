@@ -909,7 +909,30 @@
 
         <!-- Content lazy-loaded from partial on first exec mode switch -->
         <div id="viewExecContent" data-partial="/partials/operator-exec.html" data-loaded="false"></div>
+
+        <!-- Transition card (brief centered message when advancing to next resolution) -->
+        <div class="op-transition-card" id="opTransitionCard" hidden>
+          <svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+          <span class="op-transition-text" id="opTransitionText">Resolution proclamee</span>
+        </div>
       </section><!-- /viewExec -->
+
+      <!-- Quorum warning modal (blocking overlay — no backdrop click dismiss) -->
+      <div class="op-quorum-overlay" id="opQuorumOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="opQuorumTitle">
+        <div class="op-quorum-modal">
+          <h2 id="opQuorumTitle">Quorum non atteint</h2>
+          <div class="op-quorum-stats" id="opQuorumStats">
+            <!-- Filled by JS -->
+          </div>
+          <p>Le quorum n'est pas atteint. Choisissez une action :</p>
+          <div class="op-quorum-actions">
+            <button class="btn btn-warning" id="opQuorumReporter">Reporter (2e convocation)</button>
+            <button class="btn btn-secondary" id="opQuorumSuspendre">Suspendre 30 min</button>
+            <button class="btn btn-ghost" id="opQuorumContinuer">Continuer sous reserve</button>
+          </div>
+          <p class="op-quorum-risk-note text-xs text-muted" id="opQuorumRiskNote" hidden>Attention : continuer sans quorum expose les decisions a un risque de contestation.</p>
+        </div>
+      </div>
 
     </main>
     <footer class="app-footer" role="contentinfo">

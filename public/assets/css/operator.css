@@ -3974,3 +3974,119 @@
     order: -1;
   }
 }
+
+/* =============================================================================
+   QUORUM WARNING MODAL (blocking overlay) — OPR-09
+   ============================================================================= */
+
+.op-quorum-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.op-quorum-overlay[hidden] {
+  display: none;
+}
+
+.op-quorum-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: var(--shadow-xl);
+  text-align: center;
+}
+
+.op-quorum-modal h2 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  margin: 0 0 0.5rem;
+  color: var(--color-warning);
+}
+
+.op-quorum-stats {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.op-quorum-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.op-quorum-stat-value {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+}
+
+.op-quorum-stat-label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+}
+
+.op-quorum-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.op-quorum-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.op-quorum-risk-note {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: var(--color-danger-bg, color-mix(in srgb, var(--color-danger) 10%, var(--color-surface)));
+  border-radius: var(--radius-md);
+}
+
+/* =============================================================================
+   TRANSITION CARD (proclamation auto-advance) — OPR-10
+   ============================================================================= */
+
+.op-transition-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  z-index: 10;
+  gap: 0.75rem;
+  animation: opFadeIn 200ms ease;
+}
+
+.op-transition-card[hidden] {
+  display: none;
+}
+
+.op-transition-card .icon {
+  color: var(--color-success);
+}
+
+.op-transition-text {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+}
+
+@keyframes opFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
