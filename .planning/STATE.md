@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-03-13T09:46:37.319Z"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-03-13T09:53:01.688Z"
 last_activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 0
 ---
 
@@ -64,6 +64,7 @@ Progress: [..........] 0%
 | Phase 08-session-wizard-hub P02 | 10 | 2 tasks | 3 files |
 | Phase 08-session-wizard-hub P03 | 2 | 2 tasks | 4 files |
 | Phase 09-operator-console P01 | 12 | 2 tasks | 4 files |
+| Phase 09-operator-console P02 | 8 | 2 tasks | 2 files |
 
 ## Milestone History
 
@@ -131,6 +132,8 @@ Recent decisions affecting current work:
 - [Phase 09-operator-console]: op-exec-header uses green border (color-success) for live state per wireframe v3.19.2
 - [Phase 09-operator-console]: op-kpi-strip dedicated class: NOT extending exec-kpi-strip or hub-kpi, design independence from hub layout
 - [Phase 09-operator-console]: viewExec hybrid structure: op-exec-header inline, content div lazy-loaded — header renders immediately on mode switch
+- [Phase 09-operator-console]: op-split overridden from CSS grid (3-col) to flex (2-panel) per wireframe v3.19.2 — old exec-grid 3-column layout removed
+- [Phase 09-operator-console]: op-agenda-circle: 3-state status circles (voted=green, current=pulsing blue, pending=empty) for sidebar agenda list
 
 ### Pending Todos
 
@@ -146,6 +149,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T09:46:37.316Z
-Stopped at: Completed 09-01-PLAN.md
+Last session: 2026-03-13T09:53:01.685Z
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None
