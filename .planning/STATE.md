@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: planning
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-03-13T07:11:46.027Z"
+stopped_at: Completed 08-session-wizard-hub-02-PLAN.md
+last_updated: "2026-03-13T07:14:19.029Z"
 last_activity: 2026-03-12 -- Roadmap created for v2.0 milestone (10 phases, 74 requirements)
 progress:
   total_phases: 10
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
   percent: 0
 ---
 
@@ -61,6 +61,7 @@ Progress: [..........] 0%
 | Phase 07-dashboard-sessions P01 | 3 | 2 tasks | 3 files |
 | Phase 07 P03 | 7 | 2 tasks | 2 files |
 | Phase 08-session-wizard-hub P01 | 460 | 2 tasks | 3 files |
+| Phase 08-session-wizard-hub P02 | 10 | 2 tasks | 3 files |
 
 ## Milestone History
 
@@ -120,6 +121,9 @@ Recent decisions affecting current work:
 - [Phase 07-dashboard-sessions]: Popover menus use ag-popover web component with fixed positioning near button
 - [Phase 08-session-wizard-hub]: wizard.css created as dedicated CSS file for wizard page (not extending meetings.css) per one-CSS-per-page pattern
 - [Phase 08-session-wizard-hub]: Step 5 confirmation screen removed from wizard - redirect to hub.htmx.html is the confirmation per CONTEXT.md decision
+- [Phase 08-session-wizard-hub]: hub classes kept in BOTH operator.css and hub.css because operator.htmx.html uses 39+ hub- class names
+- [Phase 08-session-wizard-hub]: [Phase 08-session-wizard-hub]: hubPreviewBtn + hub-details-body use hidden attribute instead of style.display for semantic HTML
+- [Phase 08-session-wizard-hub]: [Phase 08-session-wizard-hub]: HUB_STEPS colors updated from wireframe legacy tokens to design-system tokens
 
 ### Pending Todos
 
@@ -135,6 +139,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T07:11:46.023Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-03-13T07:14:19.027Z
+Stopped at: Completed 08-session-wizard-hub-02-PLAN.md
 Resume file: None

@@ -49,11 +49,11 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Session Hub
 
-- [ ] **HUB-01**: Status bar with colorful segments representing session stages
-- [ ] **HUB-02**: Main action card (highlighted, large CTA) for next step
-- [ ] **HUB-03**: 4 KPI cards (participants, resolutions, quorum needed, convocations)
-- [ ] **HUB-04**: Preparation checklist with completion tracking
-- [ ] **HUB-05**: Associated documents panel with download links
+- [x] **HUB-01**: Status bar with colorful segments representing session stages
+- [x] **HUB-02**: Main action card (highlighted, large CTA) for next step
+- [x] **HUB-03**: 4 KPI cards (participants, resolutions, quorum needed, convocations)
+- [x] **HUB-04**: Preparation checklist with completion tracking
+- [x] **HUB-05**: Associated documents panel with download links
 
 ### Operator
 
@@ -188,11 +188,11 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | WIZ-03 | Phase 8 | Complete |
 | WIZ-04 | Phase 8 | Complete |
 | WIZ-05 | Phase 8 | Complete |
-| HUB-01 | Phase 8 | Pending |
-| HUB-02 | Phase 8 | Pending |
-| HUB-03 | Phase 8 | Pending |
-| HUB-04 | Phase 8 | Pending |
-| HUB-05 | Phase 8 | Pending |
+| HUB-01 | Phase 8 | Complete |
+| HUB-02 | Phase 8 | Complete |
+| HUB-03 | Phase 8 | Complete |
+| HUB-04 | Phase 8 | Complete |
+| HUB-05 | Phase 8 | Complete |
 | OPR-01 | Phase 9 | Pending |
 | OPR-02 | Phase 9 | Pending |
 | OPR-03 | Phase 9 | Pending |
