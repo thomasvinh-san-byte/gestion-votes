@@ -1016,6 +1016,77 @@
 }
 
 /* =============================================================================
+   BOTTOM NAVIGATION (mobile/tablet)
+   ============================================================================= */
+
+.vote-bottom-nav {
+  display: none;  /* hidden on desktop */
+  align-items: stretch;
+  justify-content: space-around;
+  background: var(--color-surface);
+  border-top: 2px solid var(--color-border);
+  flex-shrink: 0;
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@media (max-width: 768px) {
+  .vote-bottom-nav {
+    display: flex;
+  }
+
+  /* Hide old footer on mobile when bottom nav is shown */
+  .vote-footer {
+    display: none;
+  }
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.5rem 0.25rem;
+  min-height: 56px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+
+.bottom-nav-item:active {
+  background: var(--color-bg-subtle);
+}
+
+.bottom-nav-item.active {
+  color: var(--color-primary);
+}
+
+.bottom-nav-item .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.bottom-nav-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.bottom-nav-dot.offline {
+  background: var(--color-danger);
+  animation: none;
+}
+
+/* =============================================================================
    CONFIRMATION BOTTOM SHEET
    ============================================================================= */
 

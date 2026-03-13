@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0B0D10" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Interface de vote électronique — AG-VOTE">
   <title>Vote — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
@@ -201,6 +201,26 @@
         </div>
       </div>
     </main>
+
+    <!-- Bottom navigation (mobile/tablet) -->
+    <nav class="vote-bottom-nav" id="voteBottomNav" role="navigation" aria-label="Navigation rapide">
+      <button class="bottom-nav-item active" data-nav="vote" type="button" aria-current="true">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-thumbs-up"></use></svg>
+        <span>Vote</span>
+      </button>
+      <button class="bottom-nav-item" data-nav="speech" type="button">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-hand"></use></svg>
+        <span>Parole</span>
+      </button>
+      <button class="bottom-nav-item" data-nav="motion" type="button">
+        <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-layers"></use></svg>
+        <span>R&eacute;solution</span>
+      </button>
+      <button class="bottom-nav-item" id="bottomNavStatus" data-nav="status" type="button">
+        <span class="bottom-nav-dot" id="bottomNavDot"></span>
+        <span id="bottomNavStatusLabel">Connect&eacute;</span>
+      </button>
+    </nav>
 
     <!-- Footer -->
     <footer class="vote-footer" role="contentinfo">

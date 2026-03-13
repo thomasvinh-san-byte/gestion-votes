@@ -246,6 +246,85 @@
   // -----------------------------
   let _currentMotionId = null;
 
+  // -----------------------------
+  // Vote timer (elapsed time since motion opened)
+  // -----------------------------
+  let _voteTimerInterval = null;
+  let _voteOpenedAt = null;
+
+  /**
+   * Format seconds as MM:SS or HH:MM:SS.
+   * @param {number} totalSeconds
+   * @returns {string}
+   */
+  function formatTimerValue(totalSeconds) {
+    const s = Math.max(0, Math.floor(totalSeconds));
+    const hh = Math.floor(s / 3600);
+    const mm = Math.floor((s % 3600) / 60);
+    const ss = s % 60;
+    if (hh > 0) {
+      return String(hh) + ':' + String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+    }
+    return String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+  }
+
+  /**
+   * Tick the vote timer — updates display every second.
+   */
+  function tickVoteTimer() {
+    if (!_voteOpenedAt) return;
+    const timerEl = $('#voteTimer');
+    const textEl = $('#voteTimerText');
+    if (!timerEl || !textEl) return;
+
+    const elapsed = (Date.now() - _voteOpenedAt) / 1000;
+    textEl.textContent = formatTimerValue(elapsed);
+
+    // Mark urgent after 5 minutes
+    if (elapsed >= 300) {
+      timerEl.classList.add('urgent');
+    } else {
+      timerEl.classList.remove('urgent');
+    }
+  }
+
+  /**
+   * Start or update the vote timer from motion data.
+   * @param {Object|null} motion - Motion object with opened_at field
+   */
+  function updateVoteTimer(motion) {
+    const timerEl = $('#voteTimer');
+    if (!timerEl) return;
+
+    if (!motion || !motion.opened_at) {
+      // No active motion — hide timer
+      timerEl.hidden = true;
+      timerEl.classList.remove('urgent');
+      _voteOpenedAt = null;
+      if (_voteTimerInterval) {
+        clearInterval(_voteTimerInterval);
+        _voteTimerInterval = null;
+      }
+      return;
+    }
+
+    const openedAt = new Date(motion.opened_at).getTime();
+    if (isNaN(openedAt)) {
+      timerEl.hidden = true;
+      return;
+    }
+
+    // Only restart interval if opened_at changed
+    if (_voteOpenedAt !== openedAt) {
+      _voteOpenedAt = openedAt;
+      if (_voteTimerInterval) clearInterval(_voteTimerInterval);
+      _voteTimerInterval = setInterval(tickVoteTimer, 1000);
+    }
+
+    timerEl.hidden = false;
+    tickVoteTimer();
+  }
+
   let _policiesForMeeting = null;
   let _votePoliciesById = {};
   let _quorumPoliciesById = {};
@@ -764,6 +843,7 @@
       updateMotionCard(null);
       updateMotionProgress(null, null);
       updateVoteParticipation(null);
+      updateVoteTimer(null);
       setVoteButtonsEnabled(false);
       return;
     }
@@ -783,6 +863,7 @@
         }
         updateMotionProgress(null, null);
         updateVoteParticipation(null);
+        updateVoteTimer(null);
         setVoteButtonsEnabled(false);
         return;
       }
@@ -790,11 +871,13 @@
       updateMotionCard(m);
       updateMotionProgress(d, m);
       updateVoteParticipation(d);
+      updateVoteTimer(m);
       setVoteButtonsEnabled(!!memberId && !_isAbsent);
     } catch(e){
       updateMotionCard(null);
       updateMotionProgress(null, null);
       updateVoteParticipation(null);
+      updateVoteTimer(null);
       const title = $('#motionTitle');
       if (title) title.textContent = 'Erreur: ' + (e?.message || String(e));
       setVoteButtonsEnabled(false);
@@ -1070,6 +1153,7 @@
       window.addEventListener('pagehide', ()=>{
         clearInterval(window._voteMotionPollTimer);
         clearInterval(window._voteHeartbeatTimer);
+        if (_voteTimerInterval) clearInterval(_voteTimerInterval);
         if (window._voteSseStream) window._voteSseStream.close();
       });
     }

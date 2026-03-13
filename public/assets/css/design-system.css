@@ -308,7 +308,7 @@ table {
 
 /* ─── Dark Theme « Acte Officiel » ─── */
 [data-theme="dark"] {
-  --color-bg: #0B0D10;
+  --color-bg: #0B0F1A;
   --color-bg-subtle: #1B2030;
   --color-surface: #141820;
   --color-surface-alt: #1B2030;            /* Wireframe --surface-alt: elevation step above bg */
@@ -321,7 +321,7 @@ table {
   --color-text-secondary: #ECF0FA;
   --color-text-muted: #50596C;
   --color-text-light: #38404E;
-  --color-text-inverse: #0B0D10;
+  --color-text-inverse: #0B0F1A;
 
   --color-border: #252C3C;
   --color-border-subtle: #1E2434;
@@ -333,7 +333,7 @@ table {
   --color-primary-active: #96BDFB;
   --color-primary-subtle: rgba(61, 126, 248, 0.12);
   --color-primary-glow: rgba(61, 126, 248, 0.16);
-  --color-primary-text: #0B0D10;
+  --color-primary-text: #0B0F1A;
 
   --color-success: #2DC87A;
   --color-success-hover: #3DD88A;

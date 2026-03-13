@@ -242,7 +242,7 @@ run_full() {
 
   echo ""
   echo "── Dark theme ([data-theme=\"dark\"]) ─────────────────────────────────────"
-  check_exact    "--color-bg"            "#0B0D10"            "dark"
+  check_exact    "--color-bg"            "#0B0F1A"            "dark"
   check_exact    "--color-surface"       "#141820"            "dark"
   check_exact    "--color-surface-alt"   "#1B2030"            "dark"
   check_exact    "--color-surface-raised" "#1E2438"           "dark"

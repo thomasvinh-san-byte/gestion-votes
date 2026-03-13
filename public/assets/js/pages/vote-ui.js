@@ -525,6 +525,46 @@
     }
   });
 
+  // -----------------------------------------------------------------------
+  // BOTTOM NAVIGATION
+  // -----------------------------------------------------------------------
+  const bottomNavItems = document.querySelectorAll('.bottom-nav-item[data-nav]');
+  const navTargets = {
+    vote: 'vote-buttons',
+    speech: 'speechBox',
+    motion: 'motionBox',
+    status: 'memberInfo'
+  };
+
+  bottomNavItems.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = navTargets[btn.dataset.nav];
+      if (!target) return;
+      const el = document.getElementById(target);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Update active state
+        bottomNavItems.forEach(b => {
+          b.classList.remove('active');
+          b.removeAttribute('aria-current');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-current', 'true');
+      }
+    });
+  });
+
+  // Sync bottom nav connection dot with main connection dot
+  function syncBottomNavDot(online) {
+    const dot = document.getElementById('bottomNavDot');
+    const label = document.getElementById('bottomNavStatusLabel');
+    if (dot) dot.classList.toggle('offline', !online);
+    if (label) label.textContent = online ? 'Connecté' : 'Hors ligne';
+  }
+  window.addEventListener('online', () => syncBottomNavDot(true));
+  window.addEventListener('offline', () => syncBottomNavDot(false));
+  syncBottomNavDot(navigator.onLine);
+
   // Reset state when meeting changes
   document.addEventListener('vote:meeting-changed', () => {
     if (confirmOverlay.classList.contains('show')) closeConfirm();

@@ -6,10 +6,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0B0D10" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Écran de projection - Résultats en direct">
   <title>Écran public — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
+  <script>
+    // Force dark theme for projection/room display (DISP-01 requirement)
+    document.documentElement.setAttribute('data-theme', 'dark');
+    try { localStorage.setItem('ag-vote-theme', 'dark'); } catch(e) {}
+  </script>
   <link rel="stylesheet" href="/assets/css/design-system.css">
   <link rel="stylesheet" href="/assets/css/public.css">
 </head>
