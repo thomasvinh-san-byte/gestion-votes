@@ -36,7 +36,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 - [x] **SESS-01**: List/calendar view toggle with search bar and sort dropdown
 - [x] **SESS-02**: Filter pills (Toutes, À venir, En cours, Terminées) with counts
 - [x] **SESS-03**: Session list items with status dot, title, date, participants, resolutions, quorum, status tag, popover menu
-- [ ] **SESS-04**: Calendar view with month display, color-coded event cells
+- [x] **SESS-04**: Calendar view with month display, color-coded event cells
 - [x] **SESS-05**: Empty state with icon, title, subtitle, CTA button
 
 ### Create Session Wizard
@@ -181,7 +181,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | SESS-01 | Phase 7 | Complete |
 | SESS-02 | Phase 7 | Complete |
 | SESS-03 | Phase 7 | Complete |
-| SESS-04 | Phase 7 | Pending |
+| SESS-04 | Phase 7 | Complete |
 | SESS-05 | Phase 7 | Complete |
 | WIZ-01 | Phase 8 | Pending |
 | WIZ-02 | Phase 8 | Pending |
