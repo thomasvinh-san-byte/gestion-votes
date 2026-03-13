@@ -932,6 +932,234 @@
 
 
 /* =============================================================================
+   DASHBOARD — Urgent Action Card
+   ============================================================================= */
+
+.urgent-card {
+  margin-bottom: 14px;
+  border: 2px solid var(--color-danger);
+  padding: 14px;
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+}
+
+.urgent-card-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: nowrap;
+}
+
+.urgent-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--color-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.urgent-card-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-danger);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.urgent-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 2px 0;
+}
+
+.urgent-card-sub {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.urgent-card-chevron {
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   DASHBOARD — Grid & Panel Layout
+   ============================================================================= */
+
+.dashboard-grid {
+  margin-bottom: 14px;
+}
+
+.dashboard-panel {
+  padding: 16px;
+}
+
+.dashboard-panel .flex-between {
+  margin-bottom: 8px;
+}
+
+.dashboard-panel .card-title {
+  margin: 0;
+}
+
+.skeleton-session {
+  height: 60px;
+  margin-bottom: 8px;
+}
+
+.skeleton-session:last-child {
+  margin-bottom: 0;
+}
+
+.skeleton-task {
+  height: 48px;
+  margin-bottom: 6px;
+}
+
+.skeleton-task:last-child {
+  margin-bottom: 0;
+}
+
+/* =============================================================================
+   DASHBOARD — Shortcut Cards
+   ============================================================================= */
+
+.shortcut-card {
+  padding: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  flex-wrap: nowrap;
+}
+
+.shortcut-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.shortcut-card-icon.accent {
+  background: var(--color-primary);
+}
+
+.shortcut-card-icon.danger {
+  background: var(--color-danger);
+}
+
+.shortcut-card-icon.muted {
+  background: var(--color-text-muted);
+}
+
+.shortcut-card-text {
+  min-width: 0;
+}
+
+.shortcut-card-title {
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.shortcut-card-sub {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+/* =============================================================================
+   DASHBOARD — Session & Task Rows (JS-rendered)
+   ============================================================================= */
+
+.session-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  cursor: pointer;
+  flex-wrap: nowrap;
+}
+
+.session-row:not(:last-child) {
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.session-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.session-row-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.session-row-title {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-row-meta {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.task-row:not(:last-child) {
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.task-row-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-row-title {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.task-row-sub {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.task-row[data-priority="urgent"] {
+  border-left: 3px solid var(--color-danger);
+}
+
+.task-row[data-priority="high"] {
+  border-left: 3px solid var(--color-warning);
+}
+
+.task-row[data-priority="normal"] {
+  border-left: 3px solid var(--color-primary);
+}
+
+/* =============================================================================
    RESPONSIVE ADJUSTMENTS
    ============================================================================= */
 
