@@ -105,7 +105,7 @@
     if (m && msg) m.textContent = msg;
     on ? Shared.show(ov, 'block') : Shared.hide(ov);
     // Disable buttons when blocked
-    setVoteButtonsEnabled(!on && !!selectedMemberId());
+    setVoteButtonsEnabled(!on && !!selectedMemberId() && !_isAbsent);
   }
 
   /**
@@ -173,6 +173,73 @@
    * @returns {string} Escaped string
    */
   function escapeHtml(x){ return Utils.escapeHtml(x); }
+
+  // -----------------------------
+  // Presence toggle state
+  // -----------------------------
+  var _isAbsent = false;
+
+  /**
+   * Toggle voter presence (present ↔ absent) via attendances_upsert API.
+   * Disables vote buttons while absent (legal requirement).
+   * @returns {Promise<void>}
+   */
+  async function togglePresence() {
+    var meetingId = selectedMeetingId();
+    var memberId = selectedMemberId();
+    if (!meetingId || !memberId) return;
+
+    var newAbsent = !_isAbsent;
+    var mode = newAbsent ? 'absent' : 'present';
+
+    try {
+      var result = await apiPost('/api/v1/attendances_upsert.php', {
+        meeting_id: meetingId,
+        member_id: memberId,
+        mode: mode
+      });
+      if (result && result.ok) {
+        _isAbsent = newAbsent;
+        updatePresenceUI();
+      } else {
+        notify('error', 'Erreur de mise a jour de presence');
+      }
+    } catch(e) {
+      notify('error', 'Erreur de mise a jour de presence');
+    }
+  }
+
+  /**
+   * Update presence toggle button appearance and vote button state.
+   */
+  function updatePresenceUI() {
+    var btn = document.getElementById('btnPresence');
+    if (!btn) return;
+    btn.setAttribute('aria-pressed', _isAbsent ? 'false' : 'true');
+    btn.setAttribute('aria-label', _isAbsent ? 'Marquer comme present' : 'Marquer comme absent');
+    var label = btn.querySelector('.presence-toggle-label');
+    if (label) label.textContent = _isAbsent ? 'Absent' : 'Present';
+
+    // Swap icon: check for present, X for absent
+    var iconSpan = btn.querySelector('.presence-toggle-icon');
+    if (iconSpan) {
+      iconSpan.innerHTML = _isAbsent
+        ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+        : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+    }
+
+    // Disable vote buttons when absent
+    var motionOpen = !!_currentMotionId;
+    setVoteButtonsEnabled(!_isAbsent && motionOpen);
+
+    // Show/hide absent hint in vote hint area
+    var hintEl = document.getElementById('voteHint');
+    if (hintEl && _isAbsent) {
+      hintEl.innerHTML = '<div class="vote-absent-hint" role="status">Vous etes marque comme absent. Le vote est desactive.</div>';
+      hintEl.hidden = false;
+    }
+    // When present again, normal hint logic restores via next setVoteButtonsEnabled call
+  }
 
   // -----------------------------
   // Policy labels (visual indicator of overrides)
@@ -723,7 +790,7 @@
       updateMotionCard(m);
       updateMotionProgress(d, m);
       updateVoteParticipation(d);
-      setVoteButtonsEnabled(!!memberId);
+      setVoteButtonsEnabled(!!memberId && !_isAbsent);
     } catch(e){
       updateMotionCard(null);
       updateMotionProgress(null, null);
@@ -874,6 +941,8 @@
       memberSel.value = window._invitationMemberId;
       if (memberSel.setAttribute) memberSel.setAttribute('disabled', 'disabled');
       updateMemberFromSelect(memberSel);
+      var presenceToggleInvite = document.getElementById('btnPresence');
+      if (presenceToggleInvite) presenceToggleInvite.hidden = false;
     }
 
     // M3 fix: Populate identity banner for invitation mode
@@ -916,8 +985,16 @@
       await loadMembers();
       await refresh();
     });
-    $('#memberSelect')?.addEventListener('change', refresh);
+    $('#memberSelect')?.addEventListener('change', () => {
+      var presenceToggle = document.getElementById('btnPresence');
+      if (presenceToggle) presenceToggle.hidden = !selectedMemberId();
+      refresh();
+    });
     $('#btnRefresh')?.addEventListener('click', refresh);
+
+    // Wire presence toggle button
+    var presenceBtn = document.getElementById('btnPresence');
+    if (presenceBtn) presenceBtn.addEventListener('click', togglePresence);
 
     // Only bind direct cast if no confirmation overlay (vote.htmx.html has its own overlay calling submitVote)
     if (!document.getElementById('confirmationOverlay')) {
