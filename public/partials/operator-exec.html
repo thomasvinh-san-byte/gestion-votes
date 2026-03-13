@@ -69,15 +69,20 @@
           </div>
         </div>
 
-        <div class="exec-grid">
-          <!-- Col 1: Vote en cours (with sub-tabs) -->
-          <div class="exec-card" id="execVoteCard">
-            <div class="exec-card-header">
-              <h2>Vote en cours</h2>
-              <span class="live-badge" id="execLiveBadge" hidden aria-label="Vote en direct"><span class="pulse"></span> LIVE</span>
-            </div>
-            <div class="exec-card-body">
-              <!-- Resolution sub-tabs -->
+        <!-- 2-panel split: resolution card + agenda sidebar -->
+        <div class="op-split">
+          <div class="op-panel">
+            <!-- Resolution card with live dot, title, tags, sub-tabs -->
+            <div class="op-resolution-card" id="opResolutionCard">
+              <div class="op-resolution-header">
+                <span class="op-live-dot" id="opResLiveDot" hidden aria-label="Vote en cours"></span>
+                <h2 class="op-resolution-title" id="opResTitle">Aucune r&eacute;solution s&eacute;lectionn&eacute;e</h2>
+                <div class="op-resolution-tags" id="opResTags">
+                  <!-- Tags filled by JS: majorite, cle, secret -->
+                </div>
+              </div>
+
+              <!-- Sub-tabs navigation -->
               <div class="op-tabs" id="opSubTabs">
                 <button class="op-tab active" data-op-tab="resultat" type="button">R&eacute;sultat</button>
                 <button class="op-tab" data-op-tab="avance" type="button">Avanc&eacute;</button>
@@ -107,7 +112,7 @@
                       <span class="op-bar-pct" id="opPctAgainst">0%</span>
                     </div>
                     <div class="op-bar-row">
-                      <span class="op-bar-label">Abst.</span>
+                      <span class="op-bar-label abstain">Abst.</span>
                       <div class="op-bar-track"><div class="op-bar-fill abstain" id="opBarAbstain" style="width:0%"></div></div>
                       <span class="op-bar-pct" id="opPctAbstain">0%</span>
                     </div>
@@ -133,16 +138,21 @@
                     </div>
                     <span class="exec-participation-pct" id="execVoteParticipationPct">0%</span>
                   </div>
-                  <div class="exec-vote-actions">
-                    <button class="btn btn-warning" id="execBtnCloseVote">
-                      <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Terminer le scrutin
-                    </button>
+                  <!-- Equality warning (shown by JS when Pour == Contre) -->
+                  <div class="op-equality-warning" id="opEqualityWarning" hidden>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+                    <span>Egalite Pour/Contre &mdash; voix pr&eacute;pondante du pr&eacute;sident (art. 22)</span>
                   </div>
                 </div>
               </div>
 
               <!-- Sub-tab 2: Avancé (paper counts, missing voters, unanimity, proxy, secretary notes) -->
               <div class="op-tab-panel" id="opPanelAvance">
+                <!-- Passerelle art. 25-1 alert (shown by JS when applicable) -->
+                <div class="op-passerelle-alert" id="opPasserelleAlert" hidden>
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+                  <span>Passerelle art. 25-1 applicable &mdash; seuil sp&eacute;cial de vote</span>
+                </div>
                 <div class="form-group mb-3">
                   <label class="form-label">Comptage papier</label>
                   <div class="flex gap-2">
@@ -162,7 +172,9 @@
                 </div>
                 <div class="form-group mb-3">
                   <label class="form-label">Votants manquants</label>
-                  <div id="opMissingVoters" class="text-sm text-muted">Aucun vote ouvert</div>
+                  <div class="op-missing-voters" id="opMissingVoters">
+                    <span class="text-sm text-muted">Aucun vote ouvert</span>
+                  </div>
                 </div>
                 <div class="flex gap-2 mb-3">
                   <button class="btn btn-sm btn-secondary" id="opBtnUnanimity" type="button" disabled>
@@ -171,16 +183,22 @@
                   <button class="btn btn-sm btn-secondary" id="opBtnPasserelle" type="button" disabled title="Passerelle art. 25-1">
                     Passerelle 25-1
                   </button>
+                  <button class="btn btn-sm btn-secondary" id="opBtnProxy" type="button" disabled title="Vote par procuration">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Procuration
+                  </button>
+                  <button class="btn btn-sm btn-secondary" id="opBtnSuspend" type="button" disabled title="Suspendre le vote">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pause"></use></svg> Suspendre
+                  </button>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Notes secr&eacute;taire</label>
-                  <textarea class="form-input" id="opSecretaryNotes" rows="3" placeholder="Notes internes..."></textarea>
+                  <textarea class="form-input" id="opSecretaryNotes" rows="3" placeholder="Notes internes du secr&eacute;taire de s&eacute;ance..."></textarea>
                 </div>
               </div>
 
               <!-- Sub-tab 3: Présences (KPIs + participant toggle) -->
               <div class="op-tab-panel" id="opPanelPresences">
-                <div class="quick-counts mb-3" id="opPresenceKpis">
+                <div class="op-presence-kpis mb-3" id="opPresenceKpis">
                   <div class="quick-count">
                     <span class="quick-count-value success" id="opPresent">0</span>
                     <span class="quick-count-label">Pr&eacute;sents</span>
@@ -202,81 +220,21 @@
                   Chargement des pr&eacute;sences...
                 </div>
               </div>
-            </div>
-          </div>
+            </div><!-- /op-resolution-card -->
+          </div><!-- /op-panel -->
 
-          <!-- Col 2: Files & opérations -->
-          <div class="exec-card" id="execOpsCard">
-            <div class="exec-card-header">
-              <h2>Files &amp; opérations</h2>
+          <!-- Right sidebar: agenda list with status circles -->
+          <aside class="op-sidebar" id="opSidebar">
+            <div class="op-sidebar-header">
+              <h3>Ordre du jour</h3>
             </div>
-            <div class="exec-card-body">
-              <!-- Parole sub-card -->
-              <div class="exec-subcard">
-                <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mic"></use></svg> Parole</h3>
-                <div id="execSpeakerInfo" class="exec-speaker-block">
-                  <span class="text-sm text-muted">Aucun orateur</span>
-                </div>
-                <div id="execSpeechActions" class="exec-speech-actions" hidden>
-                  <button class="btn btn-xs btn-danger" id="execBtnEndSpeech" title="Fin de parole">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Fin
-                  </button>
-                  <button class="btn btn-xs btn-primary" id="execBtnNextSpeaker" title="Orateur suivant">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-skip-forward"></use></svg> Suivant
-                  </button>
-                </div>
-                <div id="execSpeechQueue" class="text-sm text-muted mt-2">File vide</div>
-              </div>
-              <!-- Appareils sub-card -->
-              <div class="exec-subcard">
-                <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg> Appareils</h3>
-                <div class="exec-device-counts">
-                  <span class="text-success"><strong id="execDevOnline">0</strong> en ligne</span>
-                  <span class="text-warning"><strong id="execDevStale">0</strong> inactifs</span>
-                </div>
-              </div>
-              <!-- Votes manuels sub-card -->
-              <div class="exec-subcard">
-                <h3>Vote manuel rapide</h3>
-                <div id="execManualVoteSearch" class="mb-2">
-                  <input type="text" class="form-input form-input-sm" id="execManualSearch" placeholder="Rechercher un votant..." aria-label="Rechercher un votant">
-                </div>
-                <div id="execManualVoteList" class="exec-manual-vote-list">
-                  <span class="text-muted text-sm">Sélectionnez un vote pour afficher les votants.</span>
-                </div>
-              </div>
-              <!-- Quick access to preparation tabs -->
-              <div class="exec-subcard exec-quick-nav">
-                <h3><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg> Accès rapide</h3>
-                <div class="exec-quick-nav-links">
-                  <button class="btn btn-xs btn-ghost" data-exec-goto="participants">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Participants
-                  </button>
-                  <button class="btn btn-xs btn-ghost" data-exec-goto="ordre-du-jour">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg> Résolutions
-                  </button>
-                  <button class="btn btn-xs btn-ghost" data-exec-goto="controle">
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Contrôle
-                  </button>
-                </div>
-              </div>
+            <div class="op-agenda-list" id="opAgendaList">
+              <!-- Rendered by JS: resolution agenda items with data-motion-id -->
             </div>
-          </div>
+          </aside>
+        </div><!-- /op-split -->
 
-          <!-- Col 3: Alertes -->
-          <div class="exec-card" id="execAlertsCard">
-            <div class="exec-card-header">
-              <h2>Alertes</h2>
-              <span class="meeting-bar-chip"><strong id="execAlertCount">0</strong> actives</span>
-            </div>
-            <div class="exec-card-body">
-              <div id="execAlertsList" class="alerts-list" aria-live="polite">
-                <div class="alert-empty">Aucune alerte.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Sticky action bar -->
+        <!-- Sticky action bar (pinned at bottom, visible on ALL sub-tabs) -->
         <div class="op-action-bar" id="opActionBar" hidden>
           <button class="btn btn-primary btn-lg" id="opBtnProclaim" disabled>
             <span class="op-kbd-hint">P</span>
