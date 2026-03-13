@@ -30,25 +30,29 @@
   // STEPPER NAVIGATION
   // =========================================================================
 
+  var CHECK_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+  var STEP_LABELS = { 1: 'V\u00e9rification', 2: 'Validation', 3: 'Proc\u00e8s-verbal', 4: 'Envoi & Archivage' };
+
   function goToStep(step) {
     if (step < 1 || step > 4) return;
     _currentStep = step;
 
-    // Update stepper UI
-    document.querySelectorAll('.ps-step').forEach(function (el) {
+    // Update segmented bar stepper UI
+    document.querySelectorAll('.ps-seg').forEach(function (el) {
       var s = parseInt(el.getAttribute('data-step'), 10);
       el.classList.remove('active', 'done');
       el.removeAttribute('aria-current');
-      if (s < step) el.classList.add('done');
-      else if (s === step) {
+      if (s < step) {
+        el.classList.add('done');
+        el.innerHTML = CHECK_SVG + ' ' + STEP_LABELS[s];
+      } else if (s === step) {
         el.classList.add('active');
         el.setAttribute('aria-current', 'step');
+        el.innerHTML = '<span class="ps-seg-num">' + s + '.</span> ' + STEP_LABELS[s];
+      } else {
+        el.innerHTML = '<span class="ps-seg-num">' + s + '.</span> ' + STEP_LABELS[s];
       }
-    });
-
-    // Update connectors
-    document.querySelectorAll('.ps-step-connector').forEach(function (el, i) {
-      el.classList.toggle('done', i < step - 1);
     });
 
     // Show/hide panels
@@ -378,6 +382,16 @@
           } finally {
             Shared.btnLoading(btn, false);
           }
+        }
+      });
+    });
+
+    // Stepper segments — back-only click navigation
+    document.querySelectorAll('.ps-seg').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var s = parseInt(el.getAttribute('data-step'), 10);
+        if (!isNaN(s) && s < _currentStep) {
+          goToStep(s);
         }
       });
     });

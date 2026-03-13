@@ -28,78 +28,47 @@
   margin: 0 auto;
 }
 
-/* ─── Stepper ─── */
+/* ─── Segmented bar stepper (wireframe pattern) ─── */
 .ps-stepper {
   display: flex;
-  align-items: center;
-  gap: 0;
+  gap: 4px;
   margin-bottom: var(--space-8);
-  padding: var(--space-4) 0;
 }
 
-.ps-step {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-
-.ps-step-number {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: var(--text-sm);
-  font-weight: var(--font-bold);
+.ps-seg {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm, 6px);
   background: var(--color-bg-subtle);
   color: var(--color-text-muted);
-  border: 2px solid var(--color-border);
-  transition: all var(--duration-normal);
+  font-weight: 600;
+  font-size: 15px;
+  text-align: center;
+  cursor: default;
+  transition: background 0.2s, color 0.2s;
+  user-select: none;
 }
 
-.ps-step-label {
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-muted);
-  transition: color var(--duration-normal);
-}
-
-.ps-step-connector {
-  flex: 1;
-  height: 2px;
-  background: var(--color-border);
-  margin: 0 var(--space-2);
-  min-width: 20px;
-  transition: background var(--duration-normal);
+.ps-seg-num {
+  font-weight: 800;
 }
 
 /* Active step */
-.ps-step.active .ps-step-number {
-  background: var(--persona-postsession);
-  color: var(--color-text-inverse);
-  border-color: var(--persona-postsession);
+.ps-seg.active {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 800;
 }
 
-.ps-step.active .ps-step-label {
-  color: var(--persona-postsession-text);
-  font-weight: var(--font-semibold);
-}
-
-/* Done step */
-.ps-step.done .ps-step-number {
+/* Done step — clickable */
+.ps-seg.done {
   background: var(--color-success);
-  color: var(--color-text-inverse);
-  border-color: var(--color-success);
+  color: #fff;
+  cursor: pointer;
 }
 
-.ps-step.done .ps-step-label {
-  color: var(--color-success-text);
-}
-
-.ps-step-connector.done {
-  background: var(--color-success);
+.ps-seg.done:hover {
+  filter: brightness(1.08);
 }
 
 /* ─── Panels ─── */
@@ -386,21 +355,12 @@
 @media (max-width: 768px) {
   .ps-stepper {
     flex-wrap: wrap;
-    gap: var(--space-2);
   }
 
-  .ps-step-connector {
-    display: none;
-  }
-
-  .ps-step {
-    flex: 1;
-    min-width: calc(50% - var(--space-2));
-    justify-content: center;
-  }
-
-  .ps-step-label {
-    font-size: var(--text-xs);
+  .ps-seg {
+    flex: 1 1 calc(50% - 2px);
+    font-size: 13px;
+    padding: 10px 8px;
   }
 
   .ps-exports-grid {
