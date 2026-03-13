@@ -184,8 +184,8 @@ Plans:
   5. Dashboard KPIs map correctly to the actual /api/v1/dashboard response shape
 **Plans**: 2 plans
 Plans:
-- [ ] 14-01-PLAN.md — Wizard api() fix, response parsing, toast wiring on wizard/hub pages
-- [ ] 14-02-PLAN.md — Hub wizard_status endpoint, dashboard KPI response mapping
+- [x] 14-01-PLAN.md — Wizard api() fix, response parsing, toast wiring on wizard/hub pages
+- [x] 14-02-PLAN.md — Hub wizard_status endpoint, dashboard KPI response mapping
 
 ### Phase 15: Operator Console Wiring & Verification Gaps
 **Goal**: The operator console loads correct meeting data, timer runs, quorum warning resets per meeting, and all administrative verification gaps are closed

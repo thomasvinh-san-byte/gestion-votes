@@ -45,7 +45,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 - [x] **WIZ-02**: Step 1 — Infos générales: title, type (select), date, time, location, address
 - [x] **WIZ-03**: Step 2 — Membres: CSV import, manual entry table, lot assignment, vote weight
 - [x] **WIZ-04**: Step 3 — Ordre du jour: resolution entries, voting rule per resolution, secret ballot toggle
-- [ ] **WIZ-05**: Step 4 — Récapitulatif: review all info, create button, download PDF option
+- [x] **WIZ-05**: Step 4 — Récapitulatif: review all info, create button, download PDF option
 
 ### Session Hub
 
@@ -124,7 +124,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 - [x] **COMP-01**: Modal system (center dialog with header/body/footer, overlay backdrop)
 - [x] **COMP-02**: Confirmation dialogs (danger/warn/info variants with icon)
-- [ ] **COMP-03**: Toast notification system (success/warn/error/info, auto-dismiss)
+- [x] **COMP-03**: Toast notification system (success/warn/error/info, auto-dismiss)
 - [x] **COMP-04**: Empty state component (icon + title + subtitle + CTA)
 - [x] **COMP-05**: Tag/badge system (danger, success, warn, accent, purple variants)
 - [x] **COMP-06**: Progress bars and mini bar charts (vote distribution)
@@ -161,7 +161,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | DS-05 | Phase 4 | Complete |
 | COMP-01 | Phase 5 | Complete |
 | COMP-02 | Phase 5 | Complete |
-| COMP-03 | Phase 14 | Pending |
+| COMP-03 | Phase 14 | Complete |
 | COMP-04 | Phase 5 | Complete |
 | COMP-05 | Phase 5 | Complete |
 | COMP-06 | Phase 5 | Complete |
@@ -187,7 +187,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | WIZ-02 | Phase 8 | Complete |
 | WIZ-03 | Phase 8 | Complete |
 | WIZ-04 | Phase 8 | Complete |
-| WIZ-05 | Phase 14 | Pending |
+| WIZ-05 | Phase 14 | Complete |
 | HUB-01 | Phase 14 | Complete |
 | HUB-02 | Phase 14 | Complete |
 | HUB-03 | Phase 14 | Complete |
