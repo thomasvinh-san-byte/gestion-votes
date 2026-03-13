@@ -220,7 +220,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 11. Post-Session & Records | 0/TBD | Not started | - |
 | 12. Analytics & User Management | 0/TBD | Not started | - |
 | 13. Settings & Help | 0/TBD | Not started | - |
-| 14. Wire Wizard/Hub/Dashboard API | 2/2 | Complete   | 2026-03-13 |
+| 14. Wire Wizard/Hub/Dashboard API | 2/2 | Complete    | 2026-03-13 |
 | 15. Operator Wiring & Verification | 0/TBD | Not started | - |
 
 ---
