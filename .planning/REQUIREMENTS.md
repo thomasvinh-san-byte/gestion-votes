@@ -65,8 +65,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 - [x] **OPR-06**: Tab Avancé: manual count inputs, didn't-vote list, unanimity/proxy/suspend actions, secretary notes
 - [x] **OPR-07**: Tab Présences: 4 mini KPI cards, attendance table with status toggles
 - [x] **OPR-08**: Right sidebar with resolution agenda list (status circles, current highlighted)
-- [ ] **OPR-09**: Quorum warning modal (blocking, 3 action buttons: reporter, suspendre, continuer)
-- [ ] **OPR-10**: Bottom action bar with Proclamer (P shortcut) and Vote toggle (F shortcut)
+- [x] **OPR-09**: Quorum warning modal (blocking, 3 action buttons: reporter, suspendre, continuer)
+- [x] **OPR-10**: Bottom action bar with Proclamer (P shortcut) and Vote toggle (F shortcut)
 
 ### Room Display
 
@@ -201,8 +201,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | OPR-06 | Phase 9 | Complete |
 | OPR-07 | Phase 9 | Complete |
 | OPR-08 | Phase 9 | Complete |
-| OPR-09 | Phase 9 | Pending |
-| OPR-10 | Phase 9 | Pending |
+| OPR-09 | Phase 9 | Complete |
+| OPR-10 | Phase 9 | Complete |
 | DISP-01 | Phase 10 | Pending |
 | DISP-02 | Phase 10 | Pending |
 | VOTE-01 | Phase 10 | Pending |
