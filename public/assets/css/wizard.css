@@ -1,0 +1,673 @@
+/**
+ * wizard.css — Session creation wizard styles for AG-VOTE.
+ *
+ * Styles for the 4-step session creation wizard including stepper progress bar,
+ * step panels, form layout, resolution list, member list, upload zone, and recap.
+ * All values use Phase 4 design-system tokens (never wireframe legacy tokens).
+ */
+
+/* =============================================================================
+   STEPPER PROGRESS BAR
+   ============================================================================= */
+
+.wiz-progress-wrap {
+  display: flex;
+  align-items: stretch;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+}
+
+.wiz-step-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-right: 1px solid var(--color-border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: background .2s;
+  position: relative;
+  cursor: pointer;
+}
+
+.wiz-step-item:last-child {
+  border-right: none;
+}
+
+.wiz-step-item.done {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 5%, transparent);
+}
+
+.wiz-step-item.active {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  font-weight: 700;
+}
+
+.wiz-step-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
+}
+
+/* Step number circle */
+.wiz-snum {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.wiz-step-item.done .wiz-snum {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.wiz-step-item.active .wiz-snum {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* =============================================================================
+   STEP PANEL HEADER
+   ============================================================================= */
+
+.wf-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-text);
+  padding: 0 0 14px 0;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.wf-step-success {
+  background: var(--color-success);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  margin: -1.5rem -1.5rem 1rem -1.5rem;
+}
+
+.wf-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-bg-subtle);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   STEP NAVIGATION BUTTONS
+   ============================================================================= */
+
+.step-nav {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.step-nav .btn-outline {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.step-nav .btn-outline:hover {
+  background: var(--color-bg-subtle);
+}
+
+/* =============================================================================
+   FORM LAYOUT
+   ============================================================================= */
+
+.wiz-section {
+  margin-bottom: 14px;
+}
+
+.wiz-section-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wiz-required-note {
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.field-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+  transition: border-color .15s ease;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+.field-input.field-error {
+  border-color: var(--color-danger);
+  background: var(--color-danger-subtle);
+}
+
+.field-error-msg {
+  font-size: 12px;
+  color: var(--color-danger);
+  margin-top: 4px;
+  display: none;
+}
+
+.field-error-msg.visible {
+  display: block;
+}
+
+/* Grid layouts */
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Time input row */
+.time-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  max-width: 120px;
+}
+
+.time-input-hh,
+.time-input-mm {
+  width: 44px;
+  text-align: center;
+  min-height: 42px;
+  font-size: 15px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 6px;
+}
+
+.time-input-hh {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  border-right: none;
+}
+
+.time-input-mm {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border-left: none;
+}
+
+.time-sep {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-left: none;
+  border-right: none;
+  padding: 0 3px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text-muted);
+  line-height: 40px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+/* =============================================================================
+   ADD RESOLUTION FORM PANEL
+   ============================================================================= */
+
+.reso-add-panel {
+  padding: 14px;
+  border: 1.5px dashed var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-subtle);
+  margin-bottom: 14px;
+}
+
+.reso-add-title {
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reso-add-footer {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* =============================================================================
+   RESOLUTION LIST (draggable)
+   ============================================================================= */
+
+.reso-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  cursor: grab;
+}
+
+.reso-row:last-child {
+  border-bottom: none;
+}
+
+.reso-row.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.reso-row.drag-over {
+  border-top: 2px solid var(--color-primary);
+  margin-top: -1px;
+}
+
+.reso-drag-handle {
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1.4;
+  flex-shrink: 0;
+  cursor: grab;
+  user-select: none;
+  padding-top: 2px;
+}
+
+.reso-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.reso-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.reso-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.reso-desc {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+
+.reso-meta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reso-actions {
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   MEMBER LIST
+   ============================================================================= */
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 13px;
+}
+
+.member-row:last-child {
+  border-bottom: none;
+}
+
+.member-name {
+  flex: 1;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.member-lot {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  min-width: 60px;
+}
+
+.member-votes {
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: 12px;
+  min-width: 50px;
+  text-align: right;
+}
+
+.member-actions {
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   UPLOAD ZONE (CSV drag-drop)
+   ============================================================================= */
+
+.upload-zone {
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+  border: 1.5px dashed var(--color-border);
+  margin-bottom: 12px;
+  transition: border-color .2s, background .2s;
+}
+
+.upload-zone.dragover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.upload-zone-title {
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* =============================================================================
+   MEMBERS ACTION ROW
+   ============================================================================= */
+
+.members-action-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.members-total-row {
+  padding: 10px 0;
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 8px;
+}
+
+.members-total-label {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.members-total-votes {
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+/* =============================================================================
+   CONTEXT PANEL (tip/guide)
+   ============================================================================= */
+
+.ctx-panel {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.ctx-panel h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ctx-panel p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.ctx-panel-spaced {
+  margin-top: 10px;
+}
+
+.alert-warn-recap {
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+/* =============================================================================
+   RECAP SECTION (Step 4)
+   ============================================================================= */
+
+.recap-section {
+  margin-bottom: 16px;
+}
+
+.recap-heading {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.recap-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.recap-row:last-child {
+  border-bottom: none;
+}
+
+.recap-label {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.recap-value {
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: 13px;
+  text-align: right;
+}
+
+/* =============================================================================
+   SUCCESS / CONFIRMATION STEP (Step 5)
+   ============================================================================= */
+
+.wiz-success-body {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.wiz-success-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-success-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  border: 2px solid var(--color-success);
+}
+
+.wiz-success-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.wiz-success-sub {
+  margin-bottom: 6px;
+}
+
+.wiz-success-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* =============================================================================
+   FOOTER SPACER
+   ============================================================================= */
+
+.footer-flex-spacer {
+  flex: 1;
+}
+
+/* =============================================================================
+   STEP MARGIN
+   ============================================================================= */
+
+.wiz-step {
+  margin-bottom: 14px;
+}
+
+/* =============================================================================
+   SECRET VOTE CHIPS ROW
+   ============================================================================= */
+
+.chips-row {
+  display: flex;
+  gap: 4px;
+}
+
+/* =============================================================================
+   RESPONSIVE
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .wiz-step-item span {
+    display: none;
+  }
+
+  .wiz-step-item {
+    justify-content: center;
+    padding: 10px;
+  }
+
+  .members-action-row {
+    flex-direction: column;
+  }
+
+  .step-nav {
+    flex-direction: column-reverse;
+  }
+
+  .step-nav .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .wf-step {
+    font-size: 13px;
+  }
+
+  .reso-add-panel {
+    padding: 10px;
+  }
+}

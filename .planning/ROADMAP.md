@@ -15,7 +15,7 @@
 - [ ] **Phase 5: Shared Components** - Build reusable component library (modals, toasts, dialogs, tags, popovers, progress bars, empty states, guided tours, session banner)
 - [ ] **Phase 6: Layout & Navigation** - Implement sidebar rail/expand, header with search and notifications, mobile bottom nav, footer, ARIA landmarks
 - [ ] **Phase 7: Dashboard & Sessions** - Redesign dashboard (KPIs, urgent actions, shortcuts) and sessions page (list/calendar, filters, empty states)
-- [ ] **Phase 8: Session Wizard & Hub** - Build 4-step create session wizard and session hub (status bar, checklist, KPIs, documents)
+- [x] **Phase 8: Session Wizard & Hub** - Build 4-step create session wizard and session hub (status bar, checklist, KPIs, documents) (completed 2026-03-13)
 - [ ] **Phase 9: Operator Console** - Redesign operator page with live KPI strip, progress track, resolution tabs, attendance, agenda sidebar, quorum modal
 - [ ] **Phase 10: Live Session Views** - Room display (full-screen, dark) and voter tablet/mobile view (touch-optimized, large buttons)
 - [ ] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views
@@ -97,7 +97,11 @@ Plans:
   2. Wizard steps cover general info (title, type, date, time, location), members (CSV import, manual entry, lot, vote weight), agenda (resolutions, voting rules, secret ballot), and recap (review, create, download PDF)
   3. Session Hub shows a colorful status bar representing session stages and a prominent main action card for the next step
   4. Hub displays 4 KPI cards (participants, resolutions, quorum needed, convocations), a preparation checklist with completion tracking, and a documents panel
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [x] 08-01-PLAN.md — Wizard HTML/CSS refactor (wizard.css) + JS features (localStorage draft, drag-drop, API wire, validation)
+- [x] 08-02-PLAN.md — Hub HTML/CSS refactor (hub.css from operator.css) + JS features (status bar, checklist, action card)
+- [ ] 08-03-PLAN.md — Gap closure: wizard PDF download + hub API wiring with demo fallback
 
 ### Phase 9: Operator Console
 **Goal**: Operators can run a live session from a single page with real-time KPIs, resolution management, attendance tracking, and agenda navigation
@@ -110,6 +114,8 @@ Plans:
   4. Right sidebar shows resolution agenda list with status circles and current resolution highlighted; bottom action bar has Proclamer (P shortcut) and Vote toggle (F shortcut)
   5. When quorum is lost, a blocking modal appears with 3 action buttons (reporter, suspendre, continuer)
 **Plans**: TBD
+Plans:
+- (to be planned)
 
 ### Phase 10: Live Session Views
 **Goal**: The room display shows vote results on a large screen and voters can participate from tablets/phones with touch-optimized controls
@@ -120,6 +126,8 @@ Plans:
   2. Voter view renders a touch-optimized layout with bottom navigation on tablet/mobile viewports
   3. Voters see a large resolution title with big vote buttons (Pour/Contre/Abstention), a hand raise button, a vote confirmation screen, countdown timer, and present/absent toggle
 **Plans**: TBD
+Plans:
+- (to be planned)
 
 ### Phase 11: Post-Session & Records
 **Goal**: Users complete post-session workflow (verify, validate, generate PV, send), browse archived sessions, and review audit logs
@@ -131,6 +139,8 @@ Plans:
   3. Archives page displays searchable archive cards (title, date, type, resolution summary, attendance) with pagination (5 per page) and detail view on click
   4. Audit page offers filter by event type, table/timeline view toggle, search/sort, table rows with date/time/user/action/resource/status/details, and an event detail modal
 **Plans**: TBD
+Plans:
+- (to be planned)
 
 ### Phase 12: Analytics & User Management
 **Goal**: Administrators can view voting statistics with charts and manage users with role assignments
@@ -141,6 +151,8 @@ Plans:
   2. Statistics page shows a donut chart for vote distribution (Pour/Contre/Abstention) and a line graph for participation trends, with an export button
   3. Users page shows a role info panel describing Admin/Gestionnaire/Operateur roles, a users table with avatar/name/email/role tag/status/last login/edit, and add user + pagination controls
 **Plans**: TBD
+Plans:
+- (to be planned)
 
 ### Phase 13: Settings & Help
 **Goal**: Administrators can configure application rules, communication, security, and accessibility settings, and users can access FAQ and guided tours
@@ -151,6 +163,8 @@ Plans:
   2. Help page shows an accordion FAQ with category filter and search
   3. Help page provides guided tour launcher buttons for Dashboard, Operator, Members, Hub, Stats, and Post-Session workflows
 **Plans**: TBD
+Plans:
+- (to be planned)
 
 ## Progress
 
@@ -164,7 +178,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 5. Shared Components | 3/4 | In Progress|  |
 | 6. Layout & Navigation | 1/3 | In Progress|  |
 | 7. Dashboard & Sessions | 0/3 | Not started | - |
-| 8. Session Wizard & Hub | 0/TBD | Not started | - |
+| 8. Session Wizard & Hub | 3/3 | Complete   | 2026-03-13 |
 | 9. Operator Console | 0/TBD | Not started | - |
 | 10. Live Session Views | 0/TBD | Not started | - |
 | 11. Post-Session & Records | 0/TBD | Not started | - |

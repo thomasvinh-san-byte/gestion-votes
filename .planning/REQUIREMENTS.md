@@ -41,19 +41,19 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Create Session Wizard
 
-- [ ] **WIZ-01**: 4-step accordion with visual stepper (done/active/pending circles)
-- [ ] **WIZ-02**: Step 1 — Infos générales: title, type (select), date, time, location, address
-- [ ] **WIZ-03**: Step 2 — Membres: CSV import, manual entry table, lot assignment, vote weight
-- [ ] **WIZ-04**: Step 3 — Ordre du jour: resolution entries, voting rule per resolution, secret ballot toggle
-- [ ] **WIZ-05**: Step 4 — Récapitulatif: review all info, create button, download PDF option
+- [x] **WIZ-01**: 4-step accordion with visual stepper (done/active/pending circles)
+- [x] **WIZ-02**: Step 1 — Infos générales: title, type (select), date, time, location, address
+- [x] **WIZ-03**: Step 2 — Membres: CSV import, manual entry table, lot assignment, vote weight
+- [x] **WIZ-04**: Step 3 — Ordre du jour: resolution entries, voting rule per resolution, secret ballot toggle
+- [x] **WIZ-05**: Step 4 — Récapitulatif: review all info, create button, download PDF option
 
 ### Session Hub
 
-- [ ] **HUB-01**: Status bar with colorful segments representing session stages
-- [ ] **HUB-02**: Main action card (highlighted, large CTA) for next step
-- [ ] **HUB-03**: 4 KPI cards (participants, resolutions, quorum needed, convocations)
-- [ ] **HUB-04**: Preparation checklist with completion tracking
-- [ ] **HUB-05**: Associated documents panel with download links
+- [x] **HUB-01**: Status bar with colorful segments representing session stages
+- [x] **HUB-02**: Main action card (highlighted, large CTA) for next step
+- [x] **HUB-03**: 4 KPI cards (participants, resolutions, quorum needed, convocations)
+- [x] **HUB-04**: Preparation checklist with completion tracking
+- [x] **HUB-05**: Associated documents panel with download links
 
 ### Operator
 
@@ -183,16 +183,16 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | SESS-03 | Phase 7 | Complete |
 | SESS-04 | Phase 7 | Complete |
 | SESS-05 | Phase 7 | Complete |
-| WIZ-01 | Phase 8 | Pending |
-| WIZ-02 | Phase 8 | Pending |
-| WIZ-03 | Phase 8 | Pending |
-| WIZ-04 | Phase 8 | Pending |
-| WIZ-05 | Phase 8 | Pending |
-| HUB-01 | Phase 8 | Pending |
-| HUB-02 | Phase 8 | Pending |
-| HUB-03 | Phase 8 | Pending |
-| HUB-04 | Phase 8 | Pending |
-| HUB-05 | Phase 8 | Pending |
+| WIZ-01 | Phase 8 | Complete |
+| WIZ-02 | Phase 8 | Complete |
+| WIZ-03 | Phase 8 | Complete |
+| WIZ-04 | Phase 8 | Complete |
+| WIZ-05 | Phase 8 | Complete |
+| HUB-01 | Phase 8 | Complete |
+| HUB-02 | Phase 8 | Complete |
+| HUB-03 | Phase 8 | Complete |
+| HUB-04 | Phase 8 | Complete |
+| HUB-05 | Phase 8 | Complete |
 | OPR-01 | Phase 9 | Pending |
 | OPR-02 | Phase 9 | Pending |
 | OPR-03 | Phase 9 | Pending |
