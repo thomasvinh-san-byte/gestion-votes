@@ -182,9 +182,10 @@ Plans:
   3. Hub loads single-meeting data from correct API endpoint (not the list endpoint) and renders real session title, KPIs, checklist
   4. Toast notifications work on wizard and hub pages (ag-toast loaded, Shared.showToast wired)
   5. Dashboard KPIs map correctly to the actual /api/v1/dashboard response shape
-**Plans**: TBD
+**Plans**: 2 plans
 Plans:
-- (to be planned)
+- [ ] 14-01-PLAN.md — Wizard api() fix, response parsing, toast wiring on wizard/hub pages
+- [ ] 14-02-PLAN.md — Hub wizard_status endpoint, dashboard KPI response mapping
 
 ### Phase 15: Operator Console Wiring & Verification Gaps
 **Goal**: The operator console loads correct meeting data, timer runs, quorum warning resets per meeting, and all administrative verification gaps are closed
@@ -219,7 +220,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 11. Post-Session & Records | 0/TBD | Not started | - |
 | 12. Analytics & User Management | 0/TBD | Not started | - |
 | 13. Settings & Help | 0/TBD | Not started | - |
-| 14. Wire Wizard/Hub/Dashboard API | 0/TBD | Not started | - |
+| 14. Wire Wizard/Hub/Dashboard API | 0/2 | Planned | - |
 | 15. Operator Wiring & Verification | 0/TBD | Not started | - |
 
 ---
