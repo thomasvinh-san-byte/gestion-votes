@@ -3593,3 +3593,147 @@
     font-size: 0.75rem;
   }
 }
+
+/* =============================================================================
+   INLINE STYLE REPLACEMENTS — Phase 09 cleanup
+   ============================================================================= */
+
+/* Footer */
+.footer-logo { font-size: 12px; gap: 6px; }
+.footer-logo-mark { width: 18px; height: 18px; border-radius: 3px; font-size: 8px; }
+.flex-spacer { flex: 1; }
+.footer-link { text-decoration: none; }
+
+/* Avancé paper fields */
+.op-paper-field { flex: 1; margin: 0; }
+
+/* Vote bar label color variants */
+.op-bar-label.for { color: var(--color-success); }
+.op-bar-label.against { color: var(--color-danger); }
+.op-bar-label.abstain { color: var(--color-text-muted); }
+
+/* =============================================================================
+   EXECUTION HEADER (op-exec-header) — OPR-01
+   ============================================================================= */
+
+.op-exec-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1.5rem;
+  background: var(--color-surface);
+  border-bottom: 2px solid var(--color-success);
+}
+
+.op-exec-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.op-exec-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.op-exec-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Override live dot color to green (success) for exec header */
+.op-exec-header .op-live-dot {
+  background: var(--color-success);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Override chrono color to green for exec header */
+.op-exec-header .op-live-chrono {
+  color: var(--color-success);
+}
+
+/* =============================================================================
+   KPI STRIP (op-kpi-strip) — OPR-02
+   ============================================================================= */
+
+.op-kpi-strip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.5rem 1.5rem;
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.op-kpi-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 1rem;
+  border-right: 1px solid var(--color-border);
+}
+
+.op-kpi-item:last-child { border-right: none; }
+
+.op-kpi-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.op-kpi-value {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.op-kpi-total {
+  font-weight: var(--font-normal);
+  color: var(--color-text-muted);
+}
+
+.op-kpi-check {
+  color: var(--color-success);
+}
+
+/* =============================================================================
+   PROGRESS TRACK clickable segments — OPR-03
+   ============================================================================= */
+
+.op-progress-segment.voted,
+.op-progress-segment.active {
+  cursor: pointer;
+}
+
+.op-progress-segment:not(.voted):not(.active) {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Mobile responsive for KPI strip */
+@media (max-width: 768px) {
+  .op-kpi-strip {
+    flex-wrap: wrap;
+  }
+  .op-kpi-item {
+    flex-basis: 50%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .op-kpi-item:nth-child(odd) {
+    border-right: 1px solid var(--color-border);
+  }
+  .op-kpi-item:nth-last-child(-n+2) {
+    border-bottom: none;
+  }
+}

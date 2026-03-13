@@ -53,7 +53,7 @@
         </div>
 
         <!-- Close session banner (visible when ready to close the session) -->
-        <div id="execCloseBanner" class="exec-close-banner" style="display:none;">
+        <div id="execCloseBanner" class="exec-close-banner" hidden>
           <div class="exec-close-banner-info">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-flag"></use></svg>
             <div>
@@ -99,12 +99,12 @@
                   <!-- Animated vote bars -->
                   <div class="op-vote-bars" id="opVoteBars">
                     <div class="op-bar-row">
-                      <span class="op-bar-label" style="color:var(--color-success)">Pour</span>
+                      <span class="op-bar-label for">Pour</span>
                       <div class="op-bar-track"><div class="op-bar-fill for" id="opBarFor" style="width:0%"></div></div>
                       <span class="op-bar-pct" id="opPctFor">0%</span>
                     </div>
                     <div class="op-bar-row">
-                      <span class="op-bar-label" style="color:var(--color-danger)">Contre</span>
+                      <span class="op-bar-label against">Contre</span>
                       <div class="op-bar-track"><div class="op-bar-fill against" id="opBarAgainst" style="width:0%"></div></div>
                       <span class="op-bar-pct" id="opPctAgainst">0%</span>
                     </div>
@@ -148,15 +148,15 @@
                 <div class="form-group mb-3">
                   <label class="form-label">Comptage papier</label>
                   <div class="flex gap-2">
-                    <div class="form-group" style="flex:1;margin:0">
+                    <div class="form-group op-paper-field">
                       <label class="form-label text-xs">Pour</label>
                       <input type="number" class="form-input form-input-sm" id="opPaperFor" min="0" value="0">
                     </div>
-                    <div class="form-group" style="flex:1;margin:0">
+                    <div class="form-group op-paper-field">
                       <label class="form-label text-xs">Contre</label>
                       <input type="number" class="form-input form-input-sm" id="opPaperAgainst" min="0" value="0">
                     </div>
-                    <div class="form-group" style="flex:1;margin:0">
+                    <div class="form-group op-paper-field">
                       <label class="form-label text-xs">Abst.</label>
                       <input type="number" class="form-input form-input-sm" id="opPaperAbstain" min="0" value="0">
                     </div>
@@ -219,7 +219,7 @@
                 <div id="execSpeakerInfo" class="exec-speaker-block">
                   <span class="text-sm text-muted">Aucun orateur</span>
                 </div>
-                <div id="execSpeechActions" class="exec-speech-actions" style="display:none;">
+                <div id="execSpeechActions" class="exec-speech-actions" hidden>
                   <button class="btn btn-xs btn-danger" id="execBtnEndSpeech" title="Fin de parole">
                     <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Fin
                   </button>
