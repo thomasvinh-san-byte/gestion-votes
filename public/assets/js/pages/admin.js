@@ -109,8 +109,34 @@
   // ═══════════════════════════════════════════════════════
   // USERS
   // ═══════════════════════════════════════════════════════
-  let _users = [];
-  let _allUsers = [];
+  var _users = [];
+  var _allUsers = [];
+
+  // --- Avatar helpers ---
+  function getInitials(name) {
+    var parts = (name || '').trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return (name || '?').substring(0, 2).toUpperCase();
+  }
+
+  function getAvatarColor(name) {
+    var colors = ['#1650E0','#059669','#D97706','#DC2626','#7C3AED','#0891B2','#BE185D','#4F46E5'];
+    var hash = 0;
+    var str = name || '';
+    for (var i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  }
+
+  // --- Date formatting ---
+  function formatLastLogin(dateStr) {
+    if (!dateStr) return '<span class="text-muted">Jamais</span>';
+    var d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  // --- Pagination state ---
+  var USERS_PER_PAGE = 10;
+  var _usersCurrentPage = 1;
 
   async function loadUsers() {
     try {
@@ -119,12 +145,13 @@
       const r = await api(url);
       if (r.body && r.body.ok && r.body.data) {
         _allUsers = r.body.data.items || [];
+        _usersCurrentPage = 1;
         filterAndRenderUsers();
       }
     } catch (e) {
       setNotif('error', 'Erreur chargement utilisateurs');
       var c = document.getElementById('usersTableBody');
-      if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
+      if (c) c.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-muted">Erreur de chargement</td></tr>';
     }
   }
 
@@ -151,7 +178,8 @@
       countEl.textContent = _users.length + ' utilisateur' + (_users.length !== 1 ? 's' : '');
     }
 
-    renderUsersTable(_users);
+    _usersCurrentPage = 1;
+    renderUsersTable(_users, _usersCurrentPage);
   }
 
   // Search input handler
@@ -160,49 +188,108 @@
     searchUserInput.addEventListener('input', filterAndRenderUsers);
   }
 
-  function renderUsersTable(users) {
+  function renderUsersTable(users, page) {
     var container = document.getElementById('usersTableBody');
+    if (!container) return;
     if (!users.length) {
-      container.innerHTML = Shared.emptyState({ icon: 'members', title: 'Aucun utilisateur trouvé', description: 'Créez un compte depuis le formulaire ci-dessus.' });
+      container.innerHTML = '<tr><td colspan="7">' + Shared.emptyState({ icon: 'members', title: 'Aucun utilisateur trouvé', description: 'Créez un compte depuis le formulaire ci-dessus.' }) + '</td></tr>';
+      updateUsersPagination(0, 0, 0);
       return;
     }
-    container.innerHTML = users.map(function(u) {
-      var meetingTags = (u.meeting_roles || []).map(function(mr) {
-        return '<span class="meeting-role-tag"><span class="role-badge ' + escapeHtml(mr.role) + '">' +
-          escapeHtml(allRoleLabels[mr.role] || mr.role) + '</span> ' +
-          escapeHtml(mr.meeting_title || '') + '</span>';
-      }).join(' ');
 
-      var initials = (u.name || '?').split(' ').map(function(w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
-      var activeClass = u.is_active ? 'is-active' : 'is-inactive';
-      var statusBadge = u.is_active
-        ? '<span class="user-status-badge active">Actif</span>'
-        : '<span class="user-status-badge">Inactif</span>';
-      var pwBadge = u.has_password
-        ? '<span class="user-pw-badge has-pw">MdP</span>'
-        : '<span class="user-pw-badge">Sans MdP</span>';
+    var currentPage = page || 1;
+    var totalPages = Math.ceil(users.length / USERS_PER_PAGE);
+    currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+    _usersCurrentPage = currentPage;
 
-      return '<div class="user-row ' + activeClass + '" data-user-id="' + u.id + '">' +
-        '<div class="user-avatar">' + escapeHtml(initials) + '</div>' +
-        '<div class="user-row-body">' +
-          '<div class="user-row-main">' +
-            '<span class="user-row-name">' + escapeHtml(u.name || '') + '</span>' +
-            '<span class="user-row-email">' + escapeHtml(u.email || '') + '</span>' +
-          '</div>' +
-          '<div class="user-row-meta">' +
-            '<span class="role-badge ' + escapeHtml(u.role) + '">' + escapeHtml(roleLabelsSystem[u.role] || u.role) + '</span>' +
-            (meetingTags ? ' ' + meetingTags : '') +
-            statusBadge + pwBadge +
-          '</div>' +
-        '</div>' +
-        '<div class="user-row-actions">' +
-          '<button class="btn btn-ghost btn-xs btn-edit-user" data-id="' + u.id + '">Modifier</button>' +
-          '<button class="btn btn-ghost btn-xs btn-toggle-user" data-id="' + u.id + '" data-active="' + (u.is_active ? '1' : '0') + '">' + (u.is_active ? 'Désactiver' : 'Activer') + '</button>' +
-          '<button class="btn btn-ghost btn-xs btn-password-user" data-id="' + u.id + '" data-name="' + escapeHtml(u.name || '') + '">Mot de passe</button>' +
-          '<button class="btn btn-ghost btn-xs btn-danger-text btn-delete-user" data-id="' + u.id + '" data-name="' + escapeHtml(u.name || '') + '">Supprimer</button>' +
-        '</div>' +
-      '</div>';
+    var start = (currentPage - 1) * USERS_PER_PAGE;
+    var end = Math.min(start + USERS_PER_PAGE, users.length);
+    var pageUsers = users.slice(start, end);
+
+    // Role tag variants: admin=accent, operator=success, auditor=purple, viewer=(default)
+    var roleTagVariant = { admin: 'accent', operator: 'success', auditor: 'purple', viewer: '' };
+
+    container.innerHTML = pageUsers.map(function(u) {
+      var initials = getInitials(u.name || '');
+      var avatarColor = getAvatarColor(u.name || '');
+      var roleLabel = escapeHtml(roleLabelsSystem[u.role] || u.role);
+      var variant = roleTagVariant[u.role] || '';
+      var roleTagClass = variant ? 'tag tag-' + variant : 'tag';
+      var statusClass = u.is_active ? 'user-status-active' : 'user-status-inactive';
+      var statusLabel = u.is_active ? 'Actif' : 'Inactif';
+      return '<tr data-user-id="' + escapeHtml(u.id) + '">' +
+        '<td><div class="user-avatar-initials" style="background:' + avatarColor + '">' + escapeHtml(initials) + '</div></td>' +
+        '<td class="font-semibold">' + escapeHtml(u.name || '') + '</td>' +
+        '<td class="text-sm text-muted">' + escapeHtml(u.email || '') + '</td>' +
+        '<td><span class="' + roleTagClass + '">' + roleLabel + '</span></td>' +
+        '<td><span class="' + statusClass + '">' + statusLabel + '</span></td>' +
+        '<td class="text-sm text-muted">' + formatLastLogin(u.last_login) + '</td>' +
+        '<td><button class="btn btn-ghost btn-xs btn-edit-user" data-id="' + escapeHtml(u.id) + '">Modifier</button></td>' +
+      '</tr>';
     }).join('');
+
+    updateUsersPagination(currentPage, totalPages, users.length, start, end);
+  }
+
+  function updateUsersPagination(currentPage, totalPages, total, start, end) {
+    var infoEl = document.getElementById('usersPaginationInfo');
+    var pagesEl = document.getElementById('usersPaginationPages');
+    var prevBtn = document.getElementById('usersPrevPage');
+    var nextBtn = document.getElementById('usersNextPage');
+
+    if (!infoEl || !pagesEl || !prevBtn || !nextBtn) return;
+
+    if (!total) {
+      infoEl.textContent = '— utilisateurs';
+      pagesEl.innerHTML = '';
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      return;
+    }
+
+    infoEl.textContent = (start + 1) + '\u2013' + end + ' sur ' + total + ' utilisateur' + (total !== 1 ? 's' : '');
+
+    // Generate page number buttons
+    var pages = '';
+    for (var i = 1; i <= totalPages; i++) {
+      var activeClass = i === currentPage ? ' active' : '';
+      pages += '<button class="pagination-page' + activeClass + '" data-page="' + i + '">' + i + '</button>';
+    }
+    pagesEl.innerHTML = pages;
+
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPages;
+  }
+
+  // Pagination button handlers
+  var usersPrevBtn = document.getElementById('usersPrevPage');
+  var usersNextBtn = document.getElementById('usersNextPage');
+  var usersPagesEl = document.getElementById('usersPaginationPages');
+
+  if (usersPrevBtn) {
+    usersPrevBtn.addEventListener('click', function() {
+      if (_usersCurrentPage > 1) {
+        renderUsersTable(_users, _usersCurrentPage - 1);
+      }
+    });
+  }
+
+  if (usersNextBtn) {
+    usersNextBtn.addEventListener('click', function() {
+      var totalPages = Math.ceil(_users.length / USERS_PER_PAGE);
+      if (_usersCurrentPage < totalPages) {
+        renderUsersTable(_users, _usersCurrentPage + 1);
+      }
+    });
+  }
+
+  if (usersPagesEl) {
+    usersPagesEl.addEventListener('click', function(e) {
+      var btn = e.target.closest('.pagination-page');
+      if (btn) {
+        renderUsersTable(_users, parseInt(btn.dataset.page, 10));
+      }
+    });
   }
 
   document.getElementById('filterRole').addEventListener('change', loadUsers);
