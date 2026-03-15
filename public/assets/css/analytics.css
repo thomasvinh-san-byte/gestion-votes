@@ -672,3 +672,22 @@ body:has(.analytics-main) .page-header .page-header-actions {
     gap: 0.5rem;
   }
 }
+
+/* =============================================================================
+   PRINT / PDF EXPORT
+   ============================================================================= */
+
+@media print {
+  .app-sidebar, .app-header, .app-footer,
+  .analytics-tabs, .charts-controls, .period-selector,
+  .privacy-notice, .chart-export-btn,
+  #btnExportPdf, #btnTour, [data-drawer], .drawer, .drawer-backdrop,
+  .mobile-bnav { display: none !important; }
+
+  .app-main { margin: 0; padding: 0; }
+  .tab-content { display: block !important; page-break-inside: avoid; margin-bottom: 2rem; }
+  .tab-content::before { content: attr(data-print-title); font-size: 1.25rem; font-weight: 700; display: block; margin-bottom: 1rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem; }
+  .chart-card { break-inside: avoid; margin-bottom: 1rem; }
+  .overview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  body { background: #fff; color: #000; }
+}
