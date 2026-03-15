@@ -1596,3 +1596,45 @@
   // Initial load
   refreshAll();
 })();
+
+// ═══════════════════════════════════════════════════════
+// ACCESSIBILITY: TEXT SIZE & HIGH CONTRAST (localStorage)
+// ═══════════════════════════════════════════════════════
+
+// Text size selector
+(function initTextSize() {
+  var saved = localStorage.getItem('ag-vote-text-size') || 'normal';
+  applyTextSize(saved);
+
+  var selector = document.getElementById('textSizeSelector');
+  if (!selector) return;
+  selector.querySelectorAll('.text-size-btn').forEach(function(btn) {
+    if (btn.dataset.size === saved) btn.classList.add('active');
+    else btn.classList.remove('active');
+    btn.addEventListener('click', function() {
+      selector.querySelectorAll('.text-size-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      applyTextSize(btn.dataset.size);
+      localStorage.setItem('ag-vote-text-size', btn.dataset.size);
+    });
+  });
+})();
+
+function applyTextSize(size) {
+  document.documentElement.classList.remove('text-size-large', 'text-size-xlarge');
+  if (size === 'large') document.documentElement.classList.add('text-size-large');
+  else if (size === 'xlarge') document.documentElement.classList.add('text-size-xlarge');
+}
+
+// High contrast toggle
+(function initHighContrast() {
+  var saved = localStorage.getItem('ag-vote-high-contrast') === 'true';
+  document.documentElement.setAttribute('data-high-contrast', saved);
+  var toggle = document.getElementById('settHighContrast');
+  if (!toggle) return;
+  toggle.checked = saved;
+  toggle.addEventListener('change', function() {
+    document.documentElement.setAttribute('data-high-contrast', toggle.checked);
+    localStorage.setItem('ag-vote-high-contrast', toggle.checked);
+  });
+})();
