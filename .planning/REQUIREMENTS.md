@@ -92,27 +92,27 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Statistics
 
-- [ ] **STAT-01**: 4 KPI cards (Sessions, Résolutions, Taux d'adoption, Participation) with trend arrows
-- [ ] **STAT-02**: Donut chart (Pour/Contre/Abstention distribution) + line graph (participation trends)
-- [ ] **STAT-03**: Export button
+- [x] **STAT-01**: 4 KPI cards (Sessions, Résolutions, Taux d'adoption, Participation) with trend arrows
+- [x] **STAT-02**: Donut chart (Pour/Contre/Abstention distribution) + line graph (participation trends)
+- [x] **STAT-03**: Export button
 
 ### Users
 
-- [ ] **USR-01**: Role info panel (Admin, Gestionnaire, Opérateur) with descriptions
-- [ ] **USR-02**: Users table with avatar, name, email, role tag (color-coded), status, last login, edit button
-- [ ] **USR-03**: Add user button + pagination
+- [x] **USR-01**: Role info panel (Admin, Gestionnaire, Opérateur) with descriptions
+- [x] **USR-02**: Users table with avatar, name, email, role tag (color-coded), status, last login, edit button
+- [x] **USR-03**: Add user button + pagination
 
 ### Settings
 
-- [ ] **SET-01**: Tab Règles: double auth toggle, double approval toggle, quorum base/percentage
-- [ ] **SET-02**: Tab Communication: support email, email templates preview, notification preferences
-- [ ] **SET-03**: Tab Sécurité: 2FA management, session timeout
-- [ ] **SET-04**: Tab Accessibilité: text size (A/A+/A++), high contrast toggle, focus indicators
+- [x] **SET-01**: Tab Règles: double auth toggle, double approval toggle, quorum base/percentage
+- [x] **SET-02**: Tab Communication: support email, email templates preview, notification preferences
+- [x] **SET-03**: Tab Sécurité: 2FA management, session timeout
+- [x] **SET-04**: Tab Accessibilité: text size (A/A+/A++), high contrast toggle, focus indicators
 
 ### Help & FAQ
 
-- [ ] **FAQ-01**: Accordion FAQ with category filter and search
-- [ ] **FAQ-02**: Guided tour launcher buttons (Dashboard, Operator, Members, Hub, Stats, Post-Session)
+- [x] **FAQ-01**: Accordion FAQ with category filter and search
+- [x] **FAQ-02**: Guided tour launcher buttons (Dashboard, Operator, Members, Hub, Stats, Post-Session)
 
 ### Voter View
 
@@ -216,18 +216,18 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | AUD-01 | Phase 11 | Complete |
 | AUD-02 | Phase 11 | Complete |
 | AUD-03 | Phase 11 | Complete |
-| STAT-01 | Phase 12 | Pending |
-| STAT-02 | Phase 12 | Pending |
-| STAT-03 | Phase 12 | Pending |
-| USR-01 | Phase 12 | Pending |
-| USR-02 | Phase 12 | Pending |
-| USR-03 | Phase 12 | Pending |
-| SET-01 | Phase 13 | Pending |
-| SET-02 | Phase 13 | Pending |
-| SET-03 | Phase 13 | Pending |
-| SET-04 | Phase 13 | Pending |
-| FAQ-01 | Phase 13 | Pending |
-| FAQ-02 | Phase 13 | Pending |
+| STAT-01 | Phase 15 | Complete |
+| STAT-02 | Phase 15 | Complete |
+| STAT-03 | Phase 15 | Complete |
+| USR-01 | Phase 15 | Complete |
+| USR-02 | Phase 15 | Complete |
+| USR-03 | Phase 15 | Complete |
+| SET-01 | Phase 15 | Complete |
+| SET-02 | Phase 15 | Complete |
+| SET-03 | Phase 15 | Complete |
+| SET-04 | Phase 15 | Complete |
+| FAQ-01 | Phase 15 | Complete |
+| FAQ-02 | Phase 15 | Complete |
 
 **Coverage:**
 - v1 requirements: 74 total
@@ -236,4 +236,4 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-03-12*
-*Last updated: 2026-03-12 after roadmap creation*
+*Last updated: 2026-03-15 after Phase 15 completion (all 74 requirements complete)*
