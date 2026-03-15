@@ -147,9 +147,10 @@ Plans:
   2. Toast notifications appear on wizard (error) and hub (success redirect) pages using ag-toast component
   3. Operator execution header timer ticks HH:MM:SS when entering exec mode and stops when leaving
   4. Tech debt items resolved: standalone #fff in .btn-extend, wrong --radius-lg fallback in ag-confirm.js, dead DOM ID references in operator-exec.js
-**Plans**: TBD
+**Plans**: 2 plans
 Plans:
-- (to be planned)
+- [ ] 10.1-01-PLAN.md — Fix wizard api() call + toast wiring on wizard and hub pages (WIZ-05, COMP-03)
+- [ ] 10.1-02-PLAN.md — Wire exec timer lifecycle + tech debt cleanup (OPR-01)
 
 ### Phase 10.2: Layout & Navigation Verification (INSERTED — Gap Closure)
 **Goal**: Verify Phase 6 implementation against all 6 NAV requirements, fix any actual code gaps for NAV-01/NAV-02 (orphaned), and produce the missing 06-VERIFICATION.md
@@ -253,7 +254,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 8. Session Wizard & Hub | 3/3 | Complete   | 2026-03-13 |
 | 9. Operator Console | 3/3 | Complete   | 2026-03-13 |
 | 10. Live Session Views | 2/2 | Complete   | 2026-03-13 |
-| 10.1. Integration Fixes | 0/TBD | Not started | - |
+| 10.1. Integration Fixes | 0/2 | Not started | - |
 | 10.2. Layout Verification | 0/TBD | Not started | - |
 | 11. Post-Session & Records | 3/3 | Complete    | 2026-03-15 |
 | 12. Analytics & User Management | 4/4 | Complete    | 2026-03-15 |
