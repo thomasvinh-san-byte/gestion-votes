@@ -364,6 +364,54 @@
 }
 
 /* =============================================================================
+   USERS TABLE — AVATAR INITIALS, STATUS, PAGINATION
+   ============================================================================= */
+
+/* Avatar initials circle */
+.user-avatar-initials {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.table-col-avatar { width: 52px; }
+
+/* Status badges */
+.user-status-active { color: var(--color-success); }
+.user-status-inactive { color: var(--color-text-muted); }
+
+/* Pagination */
+.users-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--color-border);
+}
+.pagination-controls { display: flex; align-items: center; gap: 0.5rem; }
+.pagination-pages { display: flex; gap: 0.25rem; }
+.pagination-page {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  border: none; background: none;
+  color: var(--color-text-dark);
+}
+.pagination-page.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* =============================================================================
    SCROLLABLE CARD BODY
    ============================================================================= */
 

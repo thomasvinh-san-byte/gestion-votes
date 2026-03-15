@@ -297,10 +297,30 @@
           <!-- Users list -->
           <div class="card">
             <div class="card-body p-0">
-              <div class="users-list" id="usersTableBody" aria-busy="true" aria-label="Liste des utilisateurs">
-                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+              <table class="users-table users-table-proper" id="usersTable">
+                <thead>
+                  <tr>
+                    <th scope="col" class="table-col-avatar"></th>
+                    <th scope="col">Nom</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Rôle</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Dernière connexion</th>
+                    <th scope="col" class="table-col-actions-sm">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody" aria-busy="true">
+                  <tr><td colspan="7"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Pagination -->
+            <div class="card-footer users-pagination" id="usersPagination">
+              <span class="text-sm text-muted" id="usersPaginationInfo">— utilisateurs</span>
+              <div class="pagination-controls">
+                <button class="btn btn-ghost btn-xs" id="usersPrevPage" disabled>Précédent</button>
+                <span class="pagination-pages" id="usersPaginationPages"></span>
+                <button class="btn btn-ghost btn-xs" id="usersNextPage">Suivant</button>
               </div>
             </div>
           </div>
