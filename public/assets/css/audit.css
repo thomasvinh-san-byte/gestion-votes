@@ -1,0 +1,367 @@
+/**
+ * audit.css - Audit page styles for AG-VOTE.
+ *
+ * Styles for the audit page including the event table, timeline,
+ * severity indicators, event detail modal, and pagination.
+ * All colors use design system tokens — no hardcoded hex values.
+ */
+
+/* =============================================================================
+   HEADER ACTIONS
+   ============================================================================= */
+
+.audit-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* =============================================================================
+   AUDIT TABLE
+   ============================================================================= */
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.audit-table th,
+.audit-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.audit-table th {
+  font-weight: var(--font-semibold, 600);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.audit-table tbody tr {
+  cursor: pointer;
+  transition: background var(--duration-fast, 100ms);
+}
+
+.audit-table tbody tr:hover td {
+  background: var(--color-bg-subtle);
+}
+
+/* Column widths */
+.audit-col-check {
+  width: 40px;
+  text-align: center !important;
+}
+
+.audit-col-num {
+  width: 48px;
+}
+
+.audit-col-timestamp {
+  white-space: nowrap;
+}
+
+.audit-col-hash {
+  max-width: 160px;
+}
+
+/* Timestamp cell */
+.audit-timestamp {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+/* Event cell with severity dot */
+.audit-event-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Severity dot */
+.audit-severity-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.audit-severity-dot.info {
+  background: var(--color-accent, var(--color-primary));
+}
+
+.audit-severity-dot.success {
+  background: var(--color-success);
+}
+
+.audit-severity-dot.danger {
+  background: var(--color-danger);
+}
+
+.audit-severity-dot.warning {
+  background: var(--color-warning);
+}
+
+/* Hash cell */
+.audit-hash-cell {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Search and sort inputs */
+.audit-search-input {
+  width: 200px;
+}
+
+.audit-sort-select {
+  width: 160px;
+}
+
+/* =============================================================================
+   AUDIT TIMELINE
+   ============================================================================= */
+
+.audit-timeline {
+  position: relative;
+  padding-left: 32px;
+}
+
+.audit-timeline::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border);
+}
+
+.audit-timeline-item {
+  position: relative;
+  padding: var(--space-4) 0;
+  padding-left: var(--space-4);
+}
+
+.audit-timeline-dot {
+  position: absolute;
+  left: -22px;
+  top: calc(var(--space-4) + 8px);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--color-surface);
+  z-index: 1;
+}
+
+.audit-timeline-dot.info {
+  background: var(--color-accent, var(--color-primary));
+}
+
+.audit-timeline-dot.success {
+  background: var(--color-success);
+}
+
+.audit-timeline-dot.danger {
+  background: var(--color-danger);
+}
+
+.audit-timeline-dot.warning {
+  background: var(--color-warning);
+}
+
+.audit-timeline-content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-3) var(--space-4);
+  position: relative;
+}
+
+.audit-timeline-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.audit-timeline-title {
+  font-weight: var(--font-semibold, 600);
+  font-size: var(--text-sm);
+}
+
+.audit-timeline-time {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.audit-timeline-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.audit-timeline-hash {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+  display: inline-block;
+}
+
+.audit-timeline-chevron {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+/* =============================================================================
+   EVENT DETAIL MODAL
+   ============================================================================= */
+
+.audit-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.audit-detail-item {
+  padding: var(--space-3);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius, 8px);
+}
+
+.audit-detail-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-1);
+}
+
+.audit-detail-value {
+  font-weight: var(--font-semibold, 600);
+}
+
+.audit-detail-description {
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius, 8px);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.audit-detail-hash {
+  padding: var(--space-3);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius, 8px);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-accent, var(--color-primary));
+  word-break: break-all;
+}
+
+/* =============================================================================
+   PAGINATION
+   ============================================================================= */
+
+.audit-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+}
+
+/* =============================================================================
+   RESPONSIVE — Mobile (max-width: 768px)
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  /* Hide Empreinte column on tablet/mobile */
+  .audit-table .audit-col-hash,
+  .audit-table td:nth-child(6) {
+    display: none;
+  }
+
+  /* Detail grid goes to 1 column */
+  .audit-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Reduce timeline indent */
+  .audit-timeline {
+    padding-left: 24px;
+  }
+
+  .audit-timeline::before {
+    left: 10px;
+  }
+
+  .audit-timeline-dot {
+    left: -18px;
+  }
+
+  /* Search input full width */
+  .audit-search-input {
+    width: 140px;
+  }
+
+  .audit-sort-select {
+    width: 130px;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE — Small phones (max-width: 640px)
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  /* Also hide Utilisateur column on small phones */
+  .audit-table .audit-col-user,
+  .audit-table td:nth-child(5) {
+    display: none;
+  }
+
+  /* Stack card header controls vertically */
+  .audit-search-input {
+    width: 100%;
+  }
+
+  .audit-sort-select {
+    width: 100%;
+  }
+
+  /* Pagination wraps on small screens */
+  .audit-pagination {
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    padding: var(--space-3) 0;
+  }
+}
