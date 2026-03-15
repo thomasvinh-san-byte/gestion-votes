@@ -101,17 +101,13 @@
           </h2>
           <p class="text-sm text-secondary mb-4">V&eacute;rifiez que tous les votes ont &eacute;t&eacute; correctement enregistr&eacute;s et que les r&eacute;sultats sont coh&eacute;rents.</p>
 
-          <!-- Summary stats -->
-          <div class="stats-grid mb-6" id="summaryStats">
-            <div class="stat-item"><div class="stat-value" id="statMembers">—</div><div class="stat-label">Membres</div></div>
-            <div class="stat-item"><div class="stat-value" id="statPresent">—</div><div class="stat-label">Pr&eacute;sents</div></div>
-            <div class="stat-item"><div class="stat-value" id="statMotions">—</div><div class="stat-label">R&eacute;solutions</div></div>
-            <div class="stat-item"><div class="stat-value" id="statAdopted">—</div><div class="stat-label">Adopt&eacute;es</div></div>
-            <div class="stat-item"><div class="stat-value" id="statRejected">—</div><div class="stat-label">Rejet&eacute;es</div></div>
-            <div class="stat-item"><div class="stat-value" id="statBallots">—</div><div class="stat-label">Bulletins</div></div>
+          <!-- Success alert banner -->
+          <div class="alert alert-success mb-4" id="verifyAlert" hidden>
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+            Tous les votes sont clos. Aucune anomalie d&eacute;tect&eacute;e.
           </div>
 
-          <!-- Results table -->
+          <!-- Results table (5-column wireframe layout) -->
           <div class="card mb-4">
             <div class="card-header">
               <h3 class="card-title">R&eacute;sultats par r&eacute;solution</h3>
@@ -123,45 +119,17 @@
                     <tr>
                       <th>N&deg;</th>
                       <th>R&eacute;solution</th>
-                      <th>D&eacute;cision</th>
-                      <th>Pour</th>
-                      <th>Contre</th>
-                      <th>Abst.</th>
+                      <th>R&eacute;sultat</th>
+                      <th>Pour / Contre / Abst.</th>
                       <th>Majorit&eacute;</th>
                     </tr>
                   </thead>
                   <tbody id="resultsTableBody">
-                    <tr><td colspan="7" class="text-center text-muted p-4">Chargement&hellip;</td></tr>
+                    <tr><td colspan="5" class="text-center text-muted p-4">Chargement&hellip;</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
-          </div>
-
-          <!-- Checklist -->
-          <div class="card mb-4">
-            <div class="card-header"><h3 class="card-title">Check-list de coh&eacute;rence</h3></div>
-            <div class="card-body">
-              <div class="checklist" id="verifyChecklist" aria-busy="true">
-                <div class="skeleton skeleton-text"></div>
-                <div class="skeleton skeleton-text"></div>
-                <div class="skeleton skeleton-text"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Alerts -->
-          <div class="card mb-4" id="alertsCard" hidden>
-            <div class="card-header"><h3 class="card-title">Alertes</h3></div>
-            <div class="card-body" id="alertsList"></div>
-          </div>
-
-          <div class="ps-actions">
-            <span></span>
-            <button class="btn btn-primary" id="btnToStep2" disabled>
-              Suivant : Validation
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
-            </button>
           </div>
         </section>
 
@@ -229,17 +197,6 @@
               </div>
             </div>
           </div>
-
-          <div class="ps-actions">
-            <button class="btn btn-secondary" id="btnBackToStep1">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
-              Retour
-            </button>
-            <button class="btn btn-primary" id="btnToStep3" disabled>
-              Suivant : Proc&egrave;s-verbal
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
-            </button>
-          </div>
         </section>
 
         <!-- ============================================================
@@ -252,80 +209,77 @@
           </h2>
           <p class="text-sm text-secondary mb-4">G&eacute;n&eacute;rez et v&eacute;rifiez le PV avant envoi. Le hash d'int&eacute;grit&eacute; garantit que le document n'a pas &eacute;t&eacute; alt&eacute;r&eacute;.</p>
 
-          <!-- Signataires -->
+          <!-- Signataires — inline readonly inputs 2-per-row -->
           <div class="card mb-4">
             <div class="card-header"><h3 class="card-title">Signataires</h3></div>
             <div class="card-body">
-              <div class="ps-signataires" id="signataires">
-                <div class="ps-signataire-card">
-                  <div class="ps-signataire-role">Pr&eacute;sident(e)</div>
-                  <div class="ps-signataire-name" id="sigPresident">&mdash;</div>
-                  <div class="ps-signataire-status pending" id="sigPresidentStatus">En attente</div>
+              <div class="ps-signataire-row">
+                <div class="form-group">
+                  <label class="form-label" for="sigPresident">Pr&eacute;sident(e)</label>
+                  <input class="form-input" id="sigPresident" readonly value="&mdash;">
                 </div>
-                <div class="ps-signataire-card">
-                  <div class="ps-signataire-role">Secr&eacute;taire</div>
-                  <div class="ps-signataire-name" id="sigSecretary">&mdash;</div>
-                  <div class="ps-signataire-status pending" id="sigSecretaryStatus">En attente</div>
+                <div class="form-group">
+                  <label class="form-label" for="sigSecretary">Secr&eacute;taire</label>
+                  <input class="form-input" id="sigSecretary" readonly value="&mdash;">
                 </div>
-                <div class="ps-signataire-card">
-                  <div class="ps-signataire-role">Scrutateur 1</div>
-                  <div class="ps-signataire-name" id="sigScrutateur1">&mdash;</div>
-                  <div class="ps-signataire-status pending" id="sigScrutateur1Status">En attente</div>
+              </div>
+              <div class="ps-signataire-row">
+                <div class="form-group">
+                  <label class="form-label" for="sigScrutateur1">Scrutateur 1</label>
+                  <input class="form-input" id="sigScrutateur1" readonly value="&mdash;">
                 </div>
-                <div class="ps-signataire-card">
-                  <div class="ps-signataire-role">Scrutateur 2</div>
-                  <div class="ps-signataire-name" id="sigScrutateur2">&mdash;</div>
-                  <div class="ps-signataire-status pending" id="sigScrutateur2Status">En attente</div>
+                <div class="form-group">
+                  <label class="form-label" for="sigScrutateur2">Scrutateur 2</label>
+                  <input class="form-input" id="sigScrutateur2" readonly value="&mdash;">
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Observations / Réserves -->
+          <!-- Observations & Réserves — split into two fields -->
           <div class="card mb-4">
             <div class="card-header"><h3 class="card-title">Observations &amp; R&eacute;serves</h3></div>
             <div class="card-body">
-              <div class="ps-observations">
-                <label class="form-label" for="pvObservations">Observations, r&eacute;serves ou amendements &agrave; inscrire au PV :</label>
-                <textarea class="form-input" id="pvObservations" rows="4" placeholder="Saisir les observations ou r&eacute;serves des copropri&eacute;taires&hellip;"></textarea>
+              <div class="form-group mb-4">
+                <label class="form-label" for="pvObservations">Observations du pr&eacute;sident</label>
+                <textarea class="form-input" id="pvObservations" rows="3" placeholder="Saisir les observations du pr&eacute;sident&hellip;"></textarea>
+              </div>
+              <div class="alert alert-warn mb-3">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+                D&eacute;lai de contestation : le PV doit &ecirc;tre notifi&eacute; dans le d&eacute;lai pr&eacute;vu par vos statuts.
+              </div>
+              <div class="form-group ps-reserves-field">
+                <label class="form-label" for="pvReserves">R&eacute;serves et contestations</label>
+                <textarea class="form-input" id="pvReserves" rows="3" placeholder="Saisir les r&eacute;serves ou contestations des copropri&eacute;taires&hellip;"></textarea>
               </div>
             </div>
           </div>
 
-          <!-- Signature eIDAS -->
+          <!-- Signature eIDAS — chip selector -->
           <div class="card mb-4">
             <div class="card-header"><h3 class="card-title">Signature &eacute;lectronique (eIDAS)</h3></div>
             <div class="card-body">
-              <p class="text-sm text-secondary mb-4">Choisissez le mode de signature pour le proc&egrave;s-verbal :</p>
-              <div class="ps-eidas ps-eidas-modes" id="eidasModes">
-                <label class="ps-eidas-mode selected">
-                  <input type="radio" name="eidasMode" value="simple" checked>
-                  <div class="ps-eidas-mode-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  </div>
-                  <span class="ps-eidas-mode-label">Simple</span>
-                  <span class="ps-eidas-mode-desc">Validation par clic, horodatage serveur</span>
-                </label>
-                <label class="ps-eidas-mode">
-                  <input type="radio" name="eidasMode" value="advanced">
-                  <div class="ps-eidas-mode-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                  </div>
-                  <span class="ps-eidas-mode-label">Avanc&eacute;e</span>
-                  <span class="ps-eidas-mode-desc">Code OTP par email + horodatage certifi&eacute;</span>
-                </label>
-                <label class="ps-eidas-mode">
-                  <input type="radio" name="eidasMode" value="qualified">
-                  <div class="ps-eidas-mode-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  </div>
-                  <span class="ps-eidas-mode-label">Qualifi&eacute;e</span>
-                  <span class="ps-eidas-mode-desc">Prestataire certifi&eacute; (Yousign, DocuSign)</span>
-                </label>
+              <p class="text-sm text-secondary mb-3">Choisissez le mode de signature pour le proc&egrave;s-verbal :</p>
+              <div class="ps-chip-group" id="eidasChips" role="group" aria-label="Mode de signature">
+                <button type="button" class="chip active" data-eidas="advanced">Signature avanc&eacute;e (eIDAS)</button>
+                <button type="button" class="chip" data-eidas="qualified">Signature qualifi&eacute;e (eIDAS+)</button>
+                <button type="button" class="chip" data-eidas="manuscript">Manuscrite (impression)</button>
+              </div>
+              <div class="ps-sign-actions mt-4">
+                <button type="button" class="btn btn-primary btn-sm" id="btnSignPresident">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pen-tool"></use></svg>
+                  Signer &mdash; Pr&eacute;sident
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnSignSecretary">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pen-tool"></use></svg>
+                  Signer &mdash; Secr&eacute;taire
+                </button>
+                <span class="tag tag-accent" id="sigCounter">0/2 signatures</span>
               </div>
             </div>
           </div>
 
+          <!-- PV Preview -->
           <div class="card mb-4">
             <div class="card-header">
               <h3 class="card-title">Pr&eacute;visualisation</h3>
@@ -350,17 +304,6 @@
               <code class="text-xs" id="pvHash">—</code>
             </div>
           </div>
-
-          <div class="ps-actions">
-            <button class="btn btn-secondary" id="btnBackToStep2">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
-              Retour
-            </button>
-            <button class="btn btn-primary" id="btnToStep4">
-              Suivant : Envoi &amp; Archivage
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
-            </button>
-          </div>
         </section>
 
         <!-- ============================================================
@@ -373,78 +316,123 @@
           </h2>
           <p class="text-sm text-secondary mb-4">Envoyez le PV aux participants et archivez la s&eacute;ance.</p>
 
-          <!-- Email send -->
-          <div class="card mb-4">
-            <div class="card-header"><h3 class="card-title">Envoyer le proc&egrave;s-verbal</h3></div>
+          <!-- PV Summary card (prominent, green-bordered) -->
+          <div class="card ps-pv-summary mb-4">
             <div class="card-body">
-              <div class="form-group mb-4">
-                <label class="form-label" for="sendTo">Destinataires</label>
-                <select class="form-input" id="sendTo">
-                  <option value="all">Tous les membres pr&eacute;sents</option>
-                  <option value="all_members">Tous les membres (pr&eacute;sents + absents)</option>
-                  <option value="custom">Adresse personnalis&eacute;e</option>
-                </select>
-              </div>
-              <div class="form-group mb-4" id="customEmailGroup" hidden>
-                <label class="form-label" for="customEmail">Adresse email</label>
-                <input class="form-input" type="email" id="customEmail" placeholder="destinataire@exemple.fr">
-              </div>
-              <div class="flex items-center gap-3">
-                <button class="btn btn-primary" id="btnSendReport">
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
-                  Envoyer le PV
-                </button>
-                <span class="text-sm text-muted" id="recipientCount"></span>
+              <div class="ps-pv-summary-content">
+                <div>
+                  <div class="text-sm text-muted mb-1">Proc&egrave;s-verbal</div>
+                  <div class="font-semibold text-lg" id="pvSummaryTitle">—</div>
+                  <div class="text-sm text-secondary mt-1">
+                    <span id="pvSummaryResolutions">—</span> r&eacute;solutions &bull;
+                    <span id="pvSummaryRate">—</span> adopt&eacute;es
+                  </div>
+                </div>
+                <a class="btn btn-success btn-sm" id="pvSummaryDownload" href="#" target="_blank">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                  T&eacute;l&eacute;charger le PV (PDF)
+                </a>
               </div>
             </div>
           </div>
 
-          <!-- Exports -->
-          <div class="card mb-4">
-            <div class="card-header"><h3 class="card-title">Exports compl&eacute;mentaires</h3></div>
-            <div class="card-body">
-              <div class="ps-exports-grid">
-                <a class="btn btn-secondary btn-sm" id="exportPvPdf" href="#" target="_blank">
+          <!-- 2-column exports + archivage layout -->
+          <div class="ps-exports-layout mb-4">
+            <!-- Left: Exports list -->
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Exports compl&eacute;mentaires</h3></div>
+              <div class="card-body">
+                <div class="ps-export-item">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
-                  PV PDF
-                </a>
-                <a class="btn btn-secondary btn-sm" id="exportEmargement" href="#" target="_blank">
+                  <span class="flex-1">PV PDF</span>
+                  <a class="btn btn-secondary btn-sm" id="exportPvPdf" href="#" target="_blank">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                  </a>
+                </div>
+                <div class="ps-export-item">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard"></use></svg>
-                  &Eacute;margement
-                </a>
-                <a class="btn btn-secondary btn-sm" id="exportCorrespondance" href="#">
+                  <span class="flex-1">&Eacute;margement</span>
+                  <a class="btn btn-secondary btn-sm" id="exportEmargement" href="#" target="_blank">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                  </a>
+                </div>
+                <div class="ps-export-item">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
-                  Correspondance
-                </a>
-                <a class="btn btn-secondary btn-sm" id="exportAttendanceCsv" href="#">
+                  <span class="flex-1">Correspondance</span>
+                  <a class="btn btn-secondary btn-sm" id="exportCorrespondance" href="#">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                  </a>
+                </div>
+                <div class="ps-export-item">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-                  Pr&eacute;sences CSV
-                </a>
-                <a class="btn btn-secondary btn-sm" id="exportVotesCsv" href="#">
+                  <span class="flex-1">Pr&eacute;sences CSV</span>
+                  <a class="btn btn-secondary btn-sm" id="exportAttendanceCsv" href="#">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                  </a>
+                </div>
+                <div class="ps-export-item">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
-                  Votes CSV
-                </a>
-                <a class="btn btn-secondary btn-sm" id="exportResultsCsv" href="#">
+                  <span class="flex-1">Votes CSV</span>
+                  <a class="btn btn-secondary btn-sm" id="exportVotesCsv" href="#">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                  </a>
+                </div>
+                <div class="ps-export-item">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart"></use></svg>
-                  R&eacute;sultats CSV
-                </a>
-                <a class="btn btn-secondary btn-sm" id="exportAuditCsv" href="#">
+                  <span class="flex-1">R&eacute;sultats CSV</span>
+                  <a class="btn btn-secondary btn-sm" id="exportResultsCsv" href="#">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                  </a>
+                </div>
+                <div class="ps-export-item">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg>
-                  Audit CSV
-                </a>
+                  <span class="flex-1">Audit CSV</span>
+                  <a class="btn btn-secondary btn-sm" id="exportAuditCsv" href="#">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Archive action -->
-          <div class="card mb-4 card-danger" id="archiveCard">
-            <div class="card-header"><h3 class="card-title">Archivage d&eacute;finitif</h3></div>
-            <div class="card-body">
-              <p class="text-sm mb-4">L'archivage verrouille d&eacute;finitivement la s&eacute;ance. Les donn&eacute;es restent consultables mais ne peuvent plus &ecirc;tre modifi&eacute;es.</p>
-              <button class="btn btn-danger" id="btnArchive">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg>
-                Archiver la s&eacute;ance
-              </button>
+            <!-- Right: Email send + Archive -->
+            <div class="flex flex-col gap-4">
+              <!-- Email send -->
+              <div class="card">
+                <div class="card-header"><h3 class="card-title">Envoyer le proc&egrave;s-verbal</h3></div>
+                <div class="card-body">
+                  <div class="form-group mb-4">
+                    <label class="form-label" for="sendTo">Destinataires</label>
+                    <select class="form-input" id="sendTo">
+                      <option value="all">Tous les membres pr&eacute;sents</option>
+                      <option value="all_members">Tous les membres (pr&eacute;sents + absents)</option>
+                      <option value="custom">Adresse personnalis&eacute;e</option>
+                    </select>
+                  </div>
+                  <div class="form-group mb-4" id="customEmailGroup" hidden>
+                    <label class="form-label" for="customEmail">Adresse email</label>
+                    <input class="form-input" type="email" id="customEmail" placeholder="destinataire@exemple.fr">
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button class="btn btn-primary" id="btnSendReport">
+                      <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg>
+                      Envoyer le PV
+                    </button>
+                    <span class="text-sm text-muted" id="recipientCount"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Archive action -->
+              <div class="card card-danger" id="archiveCard">
+                <div class="card-header"><h3 class="card-title">Archivage d&eacute;finitif</h3></div>
+                <div class="card-body">
+                  <p class="text-sm mb-4">L'archivage verrouille d&eacute;finitivement la s&eacute;ance. Les donn&eacute;es restent consultables mais ne peuvent plus &ecirc;tre modifi&eacute;es.</p>
+                  <button class="btn btn-danger" id="btnArchive">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg>
+                    Archiver la s&eacute;ance
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -457,21 +445,29 @@
             </div>
             <a href="/archives.htmx.html" class="btn btn-primary">Voir les archives</a>
           </div>
+        </section>
 
-          <div class="ps-actions">
-            <button class="btn btn-secondary" id="btnBackToStep3">
+        <!-- Shared footer nav bar (replaces per-panel ps-actions) -->
+        <div class="ps-footer-nav" id="psFooterNav">
+          <span class="ps-footer-nav-counter" id="psStepCounter">Etape 1 / 4</span>
+          <div class="ps-footer-nav-buttons">
+            <button class="btn btn-secondary" id="btnPrecedent" hidden>
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
-              Retour
+              Pr&eacute;c&eacute;dent
+            </button>
+            <button class="btn btn-primary" id="btnSuivant" disabled>
+              Suivant
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
             </button>
           </div>
-        </section>
+        </div>
 
       </div>
     </main>
     <footer class="app-footer" role="contentinfo">
       <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
         <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         </span>
         AG-VOTE
       </a>
