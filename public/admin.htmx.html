@@ -709,6 +709,11 @@
                       Double authentification obligatoire
                     </label>
                   </div>
+                  <div class="form-group">
+                    <label class="form-label" for="settSessionTimeout">Dur&eacute;e de session (minutes)</label>
+                    <input class="form-input" type="number" id="settSessionTimeout" value="30" min="5" max="480" step="5">
+                    <div class="text-xs text-muted mt-1">D&eacute;connexion automatique apr&egrave;s inactivit&eacute; (5&ndash;480 min)</div>
+                  </div>
                 </div>
                 <div class="mt-4">
                   <button class="btn btn-primary" id="btnSaveSecuritySettings">Enregistrer</button>
@@ -818,6 +823,45 @@
                 </div>
               </div>
             </div>
+            <!-- Notification preferences -->
+            <div class="card mt-4" id="notifPrefsCard">
+              <div class="card-header">
+                <h3 class="card-title">Pr&eacute;f&eacute;rences de notification</h3>
+                <p class="card-description">Choisissez quels &eacute;v&eacute;nements d&eacute;clenchent un email automatique</p>
+              </div>
+              <div class="card-body">
+                <div class="notif-prefs">
+                  <label class="notif-pref-row">
+                    <div>
+                      <div class="font-semibold">Convocation</div>
+                      <div class="text-xs text-muted">Email envoy&eacute; lors de la cr&eacute;ation d'une convocation</div>
+                    </div>
+                    <input type="checkbox" id="notifConvocation" checked>
+                  </label>
+                  <label class="notif-pref-row">
+                    <div>
+                      <div class="font-semibold">Rappel</div>
+                      <div class="text-xs text-muted">Rappel automatique 48h avant la s&eacute;ance</div>
+                    </div>
+                    <input type="checkbox" id="notifReminder" checked>
+                  </label>
+                  <label class="notif-pref-row">
+                    <div>
+                      <div class="font-semibold">R&eacute;sultats</div>
+                      <div class="text-xs text-muted">Notification des r&eacute;sultats de vote aux participants</div>
+                    </div>
+                    <input type="checkbox" id="notifResults" checked>
+                  </label>
+                  <label class="notif-pref-row">
+                    <div>
+                      <div class="font-semibold">Proc&egrave;s-verbal</div>
+                      <div class="text-xs text-muted">Envoi du PV apr&egrave;s validation de la s&eacute;ance</div>
+                    </div>
+                    <input type="checkbox" id="notifPV" checked>
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- ─── Général ─── -->
@@ -906,6 +950,29 @@
 
           <!-- ─── Accessibilité ─── -->
           <div class="settings-panel" id="stab-accessibility" hidden>
+            <div class="card mb-4">
+              <div class="card-header">
+                <h3 class="card-title">Confort de lecture</h3>
+                <p class="card-description">Adaptez l'affichage &agrave; vos besoins</p>
+              </div>
+              <div class="card-body">
+                <div class="form-group mb-4">
+                  <label class="form-label">Taille du texte</label>
+                  <div class="text-size-selector" id="textSizeSelector">
+                    <button class="text-size-btn active" data-size="normal" title="Taille normale">A</button>
+                    <button class="text-size-btn" data-size="large" title="Taille grande">A+</button>
+                    <button class="text-size-btn" data-size="xlarge" title="Taille tr&egrave;s grande">A++</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label form-label-toggle">
+                    <input type="checkbox" id="settHighContrast">
+                    Contraste &eacute;lev&eacute;
+                  </label>
+                  <div class="text-xs text-muted">Augmente les contrastes de couleur pour une meilleure lisibilit&eacute;</div>
+                </div>
+              </div>
+            </div>
             <div class="card mb-4">
               <div class="card-header">
                 <h3 class="card-title">D&eacute;claration d'accessibilit&eacute;</h3>
