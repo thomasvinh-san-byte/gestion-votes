@@ -142,9 +142,10 @@ Plans:
   2. Post-session provides document download (PV), e-signature request, and send-to-all functionality
   3. Archives page displays searchable archive cards (title, date, type, resolution summary, attendance) with pagination (5 per page) and detail view on click
   4. Audit page offers filter by event type, table/timeline view toggle, search/sort, table rows with date/time/user/action/resource/status/details, and an event detail modal
-**Plans**: TBD
+**Plans:** 2 plans
 Plans:
-- (to be planned)
+- [ ] 11-01-PLAN.md — Post-session stepper wireframe alignment + archives inline cleanup and component adoption
+- [ ] 11-02-PLAN.md — Audit log page creation (HTML/CSS/JS) + sidebar nav update + admin page link
 
 ### Phase 12: Analytics & User Management
 **Goal**: Administrators can view voting statistics with charts and manage users with role assignments
@@ -186,7 +187,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 9. Operator Console | 3/3 | Complete   | 2026-03-13 |
 | 10. Live Session Views | 2/2 | Complete   | 2026-03-13 |
 | 10.1 Milestone Gap Closure | 1/1 | Complete   | 2026-03-15 |
-| 11. Post-Session & Records | 0/TBD | Not started | - |
+| 11. Post-Session & Records | 0/2 | Not started | - |
 | 12. Analytics & User Management | 0/TBD | Not started | - |
 | 13. Settings & Help | 0/TBD | Not started | - |
 
