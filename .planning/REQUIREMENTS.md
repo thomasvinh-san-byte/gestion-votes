@@ -17,12 +17,12 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Layout & Navigation
 
-- [x] **NAV-01**: Sidebar with 58px rail (icons only), 252px expanded on hover (overlay, no layout shift), pinnable
-- [x] **NAV-02**: Sidebar organized in 5 sections: Préparation, Séance en direct, Après la séance, Contrôle, Système
-- [x] **NAV-03**: Header bar (56px) with logo, global search (Cmd+K overlay), notification panel, theme toggle
-- [x] **NAV-04**: Mobile bottom navigation with 5 primary tabs (Dashboard, Sessions, Fiche, Opérateur, Paramètres)
-- [x] **NAV-05**: Footer with logo, help link, accessibility link
-- [x] **NAV-06**: Skip-to-content link and ARIA navigation landmarks
+- [ ] **NAV-01**: Sidebar with 58px rail (icons only), 252px expanded on hover (overlay, no layout shift), pinnable
+- [ ] **NAV-02**: Sidebar organized in 5 sections: Préparation, Séance en direct, Après la séance, Contrôle, Système
+- [ ] **NAV-03**: Header bar (56px) with logo, global search (Cmd+K overlay), notification panel, theme toggle
+- [ ] **NAV-04**: Mobile bottom navigation with 5 primary tabs (Dashboard, Sessions, Fiche, Opérateur, Paramètres)
+- [ ] **NAV-05**: Footer with logo, help link, accessibility link
+- [ ] **NAV-06**: Skip-to-content link and ARIA navigation landmarks
 
 ### Dashboard
 
@@ -45,7 +45,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 - [x] **WIZ-02**: Step 1 — Infos générales: title, type (select), date, time, location, address
 - [x] **WIZ-03**: Step 2 — Membres: CSV import, manual entry table, lot assignment, vote weight
 - [x] **WIZ-04**: Step 3 — Ordre du jour: resolution entries, voting rule per resolution, secret ballot toggle
-- [x] **WIZ-05**: Step 4 — Récapitulatif: review all info, create button, download PDF option
+- [ ] **WIZ-05**: Step 4 — Récapitulatif: review all info, create button, download PDF option
 
 ### Session Hub
 
@@ -57,7 +57,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Operator
 
-- [x] **OPR-01**: Header bar with live dot, session title, timer (HH:MM:SS), room display button, close session button
+- [ ] **OPR-01**: Header bar with live dot, session title, timer (HH:MM:SS), room display button, close session button
 - [x] **OPR-02**: KPI strip: Présents (x/y), Quorum (% + check), Ont voté (x/y), Résolution (x/y), tags
 - [x] **OPR-03**: Progress track with 5 horizontal segments (voted/voting/pending color-coded)
 - [x] **OPR-04**: Resolution card with live dot, title, tags (majorité, clé, secret), 3 sub-tabs
@@ -124,7 +124,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 - [x] **COMP-01**: Modal system (center dialog with header/body/footer, overlay backdrop)
 - [x] **COMP-02**: Confirmation dialogs (danger/warn/info variants with icon)
-- [x] **COMP-03**: Toast notification system (success/warn/error/info, auto-dismiss)
+- [ ] **COMP-03**: Toast notification system (success/warn/error/info, auto-dismiss)
 - [x] **COMP-04**: Empty state component (icon + title + subtitle + CTA)
 - [x] **COMP-05**: Tag/badge system (danger, success, warn, accent, purple variants)
 - [x] **COMP-06**: Progress bars and mini bar charts (vote distribution)
@@ -161,19 +161,19 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | DS-05 | Phase 4 | Complete |
 | COMP-01 | Phase 5 | Complete |
 | COMP-02 | Phase 5 | Complete |
-| COMP-03 | Phase 5 | Complete |
+| COMP-03 | Phase 10.1 | Pending |
 | COMP-04 | Phase 5 | Complete |
 | COMP-05 | Phase 5 | Complete |
 | COMP-06 | Phase 5 | Complete |
 | COMP-07 | Phase 5 | Complete |
 | COMP-08 | Phase 5 | Complete |
 | COMP-09 | Phase 5 | Complete |
-| NAV-01 | Phase 6 | Complete |
-| NAV-02 | Phase 6 | Complete |
-| NAV-03 | Phase 6 | Complete |
-| NAV-04 | Phase 6 | Complete |
-| NAV-05 | Phase 6 | Complete |
-| NAV-06 | Phase 6 | Complete |
+| NAV-01 | Phase 10.2 | Pending |
+| NAV-02 | Phase 10.2 | Pending |
+| NAV-03 | Phase 10.2 | Pending |
+| NAV-04 | Phase 10.2 | Pending |
+| NAV-05 | Phase 10.2 | Pending |
+| NAV-06 | Phase 10.2 | Pending |
 | DASH-01 | Phase 7 | Complete |
 | DASH-02 | Phase 7 | Complete |
 | DASH-03 | Phase 7 | Complete |
@@ -187,13 +187,13 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | WIZ-02 | Phase 8 | Complete |
 | WIZ-03 | Phase 8 | Complete |
 | WIZ-04 | Phase 8 | Complete |
-| WIZ-05 | Phase 8 | Complete |
+| WIZ-05 | Phase 10.1 | Pending |
 | HUB-01 | Phase 8 | Complete |
 | HUB-02 | Phase 8 | Complete |
 | HUB-03 | Phase 8 | Complete |
 | HUB-04 | Phase 8 | Complete |
 | HUB-05 | Phase 8 | Complete |
-| OPR-01 | Phase 9 | Complete |
+| OPR-01 | Phase 10.1 | Pending |
 | OPR-02 | Phase 9 | Complete |
 | OPR-03 | Phase 9 | Complete |
 | OPR-04 | Phase 9 | Complete |
@@ -236,4 +236,4 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-03-12*
-*Last updated: 2026-03-12 after roadmap creation*
+*Last updated: 2026-03-15 after milestone audit gap closure planning*
