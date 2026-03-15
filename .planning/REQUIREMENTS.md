@@ -86,8 +86,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Audit
 
-- [ ] **AUD-01**: Filter by event type, view toggle (table/timeline), search/sort
-- [ ] **AUD-02**: Table view with date/time, user action, resource, status, details button
+- [x] **AUD-01**: Filter by event type, view toggle (table/timeline), search/sort
+- [x] **AUD-02**: Table view with date/time, user action, resource, status, details button
 - [ ] **AUD-03**: Event detail modal
 
 ### Statistics
@@ -213,8 +213,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | POST-03 | Phase 11 | Pending |
 | ARCH-01 | Phase 11 | Pending |
 | ARCH-02 | Phase 11 | Pending |
-| AUD-01 | Phase 11 | Pending |
-| AUD-02 | Phase 11 | Pending |
+| AUD-01 | Phase 11 | Complete |
+| AUD-02 | Phase 11 | Complete |
 | AUD-03 | Phase 11 | Pending |
 | STAT-01 | Phase 12 | Pending |
 | STAT-02 | Phase 12 | Pending |
