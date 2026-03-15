@@ -81,14 +81,14 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Archives
 
-- [ ] **ARCH-01**: Search bar with archive cards showing title, date, type, resolution summary, attendance
-- [ ] **ARCH-02**: Pagination (5 per page) and detail view on click
+- [x] **ARCH-01**: Search bar with archive cards showing title, date, type, resolution summary, attendance
+- [x] **ARCH-02**: Pagination (5 per page) and detail view on click
 
 ### Audit
 
 - [x] **AUD-01**: Filter by event type, view toggle (table/timeline), search/sort
 - [x] **AUD-02**: Table view with date/time, user action, resource, status, details button
-- [ ] **AUD-03**: Event detail modal
+- [x] **AUD-03**: Event detail modal
 
 ### Statistics
 
@@ -211,11 +211,11 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | POST-01 | Phase 11 | Complete |
 | POST-02 | Phase 11 | Complete |
 | POST-03 | Phase 11 | Complete |
-| ARCH-01 | Phase 11 | Pending |
-| ARCH-02 | Phase 11 | Pending |
+| ARCH-01 | Phase 11 | Complete |
+| ARCH-02 | Phase 11 | Complete |
 | AUD-01 | Phase 11 | Complete |
 | AUD-02 | Phase 11 | Complete |
-| AUD-03 | Phase 11 | Pending |
+| AUD-03 | Phase 11 | Complete |
 | STAT-01 | Phase 12 | Pending |
 | STAT-02 | Phase 12 | Pending |
 | STAT-03 | Phase 12 | Pending |
