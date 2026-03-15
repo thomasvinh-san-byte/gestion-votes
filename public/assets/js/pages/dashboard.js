@@ -74,24 +74,34 @@
 
     api('/api/v1/dashboard')
       .then(function (data) {
-        // KPIs
+        if (!data || !data.ok) { showFallback(); return; }
+        var d = data.data; // unwrap envelope
+        var meetings = Array.isArray(d.meetings) ? d.meetings : [];
+
+        // KPIs — computed from meetings array
+        var now = new Date();
+        var upcoming = meetings.filter(function(m) {
+          return m.status === 'draft' || m.status === 'planned' || (m.status !== 'live' && m.status !== 'paused' && m.status !== 'ended' && m.status !== 'archived' && m.scheduled_at && new Date(m.scheduled_at) > now);
+        });
+        var live = meetings.filter(function(m) { return m.status === 'live' || m.status === 'paused'; });
+
         var el;
         el = document.getElementById('kpiSeances');
-        if (el) el.textContent = data.upcoming_count || 0;
+        if (el) el.textContent = upcoming.length;
         el = document.getElementById('kpiEnCours');
-        if (el) el.textContent = data.live_count || 0;
+        if (el) el.textContent = live.length;
         el = document.getElementById('kpiConvoc');
-        if (el) el.textContent = data.pending_invitations || 0;
+        if (el) el.textContent = 0; // convocation data not in dashboard API — show 0
         el = document.getElementById('kpiPV');
-        if (el) el.textContent = data.pending_pv || 0;
+        if (el) el.textContent = meetings.filter(function(m) { return m.status === 'ended'; }).length;
 
-        // Urgent action
-        if (data.urgent_action) {
-          var ua = data.urgent_action;
+        // Urgent action — show if there's a live meeting
+        var liveMeeting = live.length > 0 ? live[0] : null;
+        if (liveMeeting) {
           var uTitle = document.getElementById('urgentTitle');
           var uSub = document.getElementById('urgentSub');
-          if (uTitle) uTitle.textContent = ua.title || 'Action requise';
-          if (uSub) uSub.textContent = ua.subtitle || '';
+          if (uTitle) uTitle.textContent = 'S\u00e9ance en cours';
+          if (uSub) uSub.textContent = liveMeeting.title || '';
         } else {
           var urgentCard = document.getElementById('actionUrgente');
           if (urgentCard) urgentCard.hidden = true;
@@ -99,23 +109,15 @@
 
         // Prochaines s\u00e9ances
         var prochaines = document.getElementById('prochaines');
-        if (prochaines && data.upcoming_meetings) {
+        if (prochaines && upcoming.length > 0) {
           var html = '';
-          data.upcoming_meetings.forEach(function (s, i) {
-            html += renderSeanceRow(s);
-          });
-          prochaines.innerHTML = html || '<div class="session-row empty-state"><span class="session-row-meta">Aucune s\u00e9ance \u00e0 venir</span></div>';
+          upcoming.slice(0, 5).forEach(function(s) { html += renderSeanceRow(s); });
+          prochaines.innerHTML = html;
+        } else if (prochaines) {
+          prochaines.innerHTML = '<div class="session-row empty-state"><span class="session-row-meta">Aucune s\u00e9ance \u00e0 venir</span></div>';
         }
 
-        // T\u00e2ches
-        var taches = document.getElementById('taches');
-        if (taches && data.tasks) {
-          var tHtml = '';
-          data.tasks.forEach(function (t, i) {
-            tHtml += renderTaskRow(t);
-          });
-          taches.innerHTML = tHtml || '<div class="task-row empty-state"><span class="task-row-sub">Aucune t\u00e2che</span></div>';
-        }
+        // T\u00e2ches — not in dashboard API, leave existing placeholder content
       })
       .catch(function () {
         showFallback();

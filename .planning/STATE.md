@@ -11,6 +11,14 @@ progress:
   completed_phases: 8
   total_plans: 23
   completed_plans: 23
+stopped_at: Completed 14-wizard-hub-dashboard-api Plan 01 (SUMMARY created)
+last_updated: "2026-03-13T14:58:56.214Z"
+last_activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
+progress:
+  total_phases: 12
+  completed_phases: 8
+  total_plans: 22
+  completed_plans: 22
   percent: 100
 ---
 
@@ -75,6 +83,8 @@ Progress: [##########] 100%
 | Phase 15-analytics-users-settings-help P01 | 3 | 4 tasks | 2 files |
 | Phase 15-analytics-users-settings-help PP02 | 10 | 4 tasks | 3 files |
 | Phase 15-analytics-users-settings-help P03 | 10 | 5 tasks | 4 files |
+| Phase 14-wizard-hub-dashboard-api P01 | 5 | 2 tasks | 4 files |
+| Phase 14-wizard-hub-dashboard-api P02 | 5 | 2 tasks | 2 files |
 
 ## Milestone History
 
@@ -163,6 +173,11 @@ Recent decisions affecting current work:
 - [Phase 15-analytics-users-settings-help]: theme-init.js receives inline IIFE for text size and high contrast applied before first paint on every page
 - [Phase 15-analytics-users-settings-help]: High contrast toggle uses data-high-contrast attribute on html element for CSS variable overrides
 - [Phase 15-analytics-users-settings-help]: Text size persisted as symbolic names (normal/large/xlarge) in localStorage, mapped to CSS classes at runtime
+- [Phase 14-wizard-hub-dashboard-api P01]: api('/api/v1/meetings', payload) without explicit 'POST' arg — api() infers POST when data != null
+- [Phase 14-wizard-hub-dashboard-api P01]: Shared.showToast swaps argument order: caller passes (message, type), bridge forwards to AgToast.show(type, message)
+- [Phase 14-wizard-hub-dashboard-api P01]: ag-toast.js loaded with type='module' because it uses ES module export syntax
+- [Phase 14-wizard-hub-dashboard-api]: hub.js: Use /api/v1/wizard_status?meeting_id=X (not /api/v1/meetings.php?id=X) as single-meeting endpoint
+- [Phase 14-wizard-hub-dashboard-api]: dashboard.js: Compute KPI values from meetings array by filtering on status — avoids depending on non-existent upstream_count/live_count fields
 
 ### Pending Todos
 
@@ -174,10 +189,12 @@ None yet.
 
 ## Open Issues
 
-- wizard.js TODO: meeting creation API not yet wired (intentional)
+None — wizard.js meeting creation API wired in Phase 14 Plan 01.
 
 ## Session Continuity
 
 Last session: 2026-03-15T16:01:45.415Z
 Stopped at: Completed 15-analytics-users-settings-help-03-PLAN.md
+Last session: 2026-03-13T15:00:00.000Z
+Stopped at: Completed 14-wizard-hub-dashboard-api Plan 01 (SUMMARY created)
 Resume file: None
