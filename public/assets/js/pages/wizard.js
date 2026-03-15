@@ -700,8 +700,11 @@
           ' Cr\u00e9ation\u2026';
 
         var payload = buildPayload();
-        api('POST', '/api/v1/meetings', payload)
+        api('/api/v1/meetings', payload)
           .then(function(res) {
+            if (!res.body || !res.body.ok) {
+              throw new Error(res.body && res.body.error || 'creation_failed');
+            }
             clearDraft();
             try {
               sessionStorage.setItem('ag-vote-toast', JSON.stringify({
@@ -709,7 +712,7 @@
                 type: 'success'
               }));
             } catch (e) {}
-            window.location.href = '/hub.htmx.html?id=' + (res.id || res._id || '');
+            window.location.href = '/hub.htmx.html?id=' + ((res.body && res.body.data && res.body.data.meeting_id) || '');
           })
           .catch(function() {
             btnCreate.disabled = false;
