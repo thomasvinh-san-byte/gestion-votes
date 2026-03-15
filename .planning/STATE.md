@@ -3,6 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
+stopped_at: Completed 15-analytics-users-settings-help-03-PLAN.md
+last_updated: "2026-03-15T16:12:28.557Z"
+last_activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
+progress:
+  total_phases: 10
+  completed_phases: 8
+  total_plans: 23
+  completed_plans: 23
 stopped_at: Completed 14-wizard-hub-dashboard-api Plan 01 (SUMMARY created)
 last_updated: "2026-03-13T14:58:56.214Z"
 last_activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
@@ -68,6 +76,13 @@ Progress: [##########] 100%
 | Phase 09 P03 | 5min | 2 tasks | 3 files |
 | Phase 10-live-session-views P01 | 2min | 2 tasks | 3 files |
 | Phase 10-live-session-views P02 | 5min | 2 tasks | 4 files |
+| Phase 11-post-session-records P02 | 8 | 2 tasks | 2 files |
+| Phase 11-post-session-records P01 | 6 | 2 tasks | 3 files |
+| Phase 11-post-session-records P03 | 5 | 2 tasks | 2 files |
+| Phase 15-analytics-users-settings-help P04 | 1 | 3 tasks | 1 files |
+| Phase 15-analytics-users-settings-help P01 | 3 | 4 tasks | 2 files |
+| Phase 15-analytics-users-settings-help PP02 | 10 | 4 tasks | 3 files |
+| Phase 15-analytics-users-settings-help P03 | 10 | 5 tasks | 4 files |
 | Phase 14-wizard-hub-dashboard-api P01 | 5 | 2 tasks | 4 files |
 | Phase 14-wizard-hub-dashboard-api P02 | 5 | 2 tasks | 2 files |
 
@@ -144,6 +159,20 @@ Recent decisions affecting current work:
 - [Phase 10-live-session-views]: Footer utility classes added to public.css since public page only loads design-system.css + public.css (not operator.css)
 - [Phase Phase 10-live-session-views]: apiPost returns response.json() directly (not {body, status}), result.ok is the correct check for attendances_upsert response
 - [Phase Phase 10-live-session-views]: _isAbsent guard added to all setVoteButtonsEnabled enable-paths to enforce legal absent-voter restriction
+- [Phase 11-post-session-records]: audit.htmx.html follows archives.htmx.html app shell pattern (same script chain, drawer, footer)
+- [Phase 11-post-session-records]: Severity dots use 4 semantic classes (info/success/danger/warning) shared between table .audit-severity-dot and timeline .audit-timeline-dot
+- [Phase 11-post-session-records]: Shared ps-footer-nav replaces all four per-panel ps-actions blocks
+- [Phase 11-post-session-records]: eIDAS chips use existing .chip/.chip.active pattern from design system
+- [Phase 11-post-session-records]: audit.js uses IIFE + var keyword per project conventions (hub.js reference pattern)
+- [Phase 11-post-session-records]: archives.js pagination added at perPage=5 with filteredArchives state variable for pagination rerenders after filter changes
+- [Phase 15-analytics-users-settings-help]: ROADMAP.md Phase 12 and 13 marked complete with 4/4 plans and 2026-03-15 completion date
+- [Phase 15-analytics-users-settings-help]: Trend arrow classes (.trend-up/.trend-down/.trend-stable) use ::before content injection for arrow characters
+- [Phase 15-analytics-users-settings-help]: Print CSS forces display:block on all .tab-content so PDF shows all sections regardless of active tab
+- [Phase 15-analytics-users-settings-help]: renderUsersTable replaces div.user-row list with proper <tr> rows — same btn-edit-user delegated handler reused
+- [Phase 15-analytics-users-settings-help]: getAvatarColor uses name hash modulo 8-color palette for deterministic consistent avatar colors
+- [Phase 15-analytics-users-settings-help]: theme-init.js receives inline IIFE for text size and high contrast applied before first paint on every page
+- [Phase 15-analytics-users-settings-help]: High contrast toggle uses data-high-contrast attribute on html element for CSS variable overrides
+- [Phase 15-analytics-users-settings-help]: Text size persisted as symbolic names (normal/large/xlarge) in localStorage, mapped to CSS classes at runtime
 - [Phase 14-wizard-hub-dashboard-api P01]: api('/api/v1/meetings', payload) without explicit 'POST' arg — api() infers POST when data != null
 - [Phase 14-wizard-hub-dashboard-api P01]: Shared.showToast swaps argument order: caller passes (message, type), bridge forwards to AgToast.show(type, message)
 - [Phase 14-wizard-hub-dashboard-api P01]: ag-toast.js loaded with type='module' because it uses ES module export syntax
@@ -164,6 +193,8 @@ None — wizard.js meeting creation API wired in Phase 14 Plan 01.
 
 ## Session Continuity
 
+Last session: 2026-03-15T16:01:45.415Z
+Stopped at: Completed 15-analytics-users-settings-help-03-PLAN.md
 Last session: 2026-03-13T15:00:00.000Z
 Stopped at: Completed 14-wizard-hub-dashboard-api Plan 01 (SUMMARY created)
 Resume file: None

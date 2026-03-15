@@ -297,10 +297,30 @@
           <!-- Users list -->
           <div class="card">
             <div class="card-body p-0">
-              <div class="users-list" id="usersTableBody" aria-busy="true" aria-label="Liste des utilisateurs">
-                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+              <table class="users-table users-table-proper" id="usersTable">
+                <thead>
+                  <tr>
+                    <th scope="col" class="table-col-avatar"></th>
+                    <th scope="col">Nom</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Rôle</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Dernière connexion</th>
+                    <th scope="col" class="table-col-actions-sm">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody" aria-busy="true">
+                  <tr><td colspan="7"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Pagination -->
+            <div class="card-footer users-pagination" id="usersPagination">
+              <span class="text-sm text-muted" id="usersPaginationInfo">— utilisateurs</span>
+              <div class="pagination-controls">
+                <button class="btn btn-ghost btn-xs" id="usersPrevPage" disabled>Précédent</button>
+                <span class="pagination-pages" id="usersPaginationPages"></span>
+                <button class="btn btn-ghost btn-xs" id="usersNextPage">Suivant</button>
               </div>
             </div>
           </div>
@@ -562,6 +582,30 @@
                 <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
               </div>
             </div>
+            <div class="card mt-4">
+              <div class="card-header">
+                <h3 class="card-title">Contr&ocirc;les de validation</h3>
+                <p class="card-description">R&egrave;gles suppl&eacute;mentaires applicables aux votes</p>
+              </div>
+              <div class="card-body">
+                <div class="settings-form-grid">
+                  <div class="form-group">
+                    <label class="form-label form-label-toggle">
+                      <input type="checkbox" id="settDoubleAuthRules">
+                      Double authentification obligatoire
+                    </label>
+                    <div class="text-xs text-muted">Exiger une v&eacute;rification en deux &eacute;tapes pour chaque vote</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label form-label-toggle">
+                      <input type="checkbox" id="settDoubleApproval">
+                      Double approbation
+                    </label>
+                    <div class="text-xs text-muted">Exiger la validation d'un second assesseur pour proclamer les r&eacute;sultats</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- ─── Clés de répartition ─── -->
@@ -689,6 +733,11 @@
                       Double authentification obligatoire
                     </label>
                   </div>
+                  <div class="form-group">
+                    <label class="form-label" for="settSessionTimeout">Dur&eacute;e de session (minutes)</label>
+                    <input class="form-input" type="number" id="settSessionTimeout" value="30" min="5" max="480" step="5">
+                    <div class="text-xs text-muted mt-1">D&eacute;connexion automatique apr&egrave;s inactivit&eacute; (5&ndash;480 min)</div>
+                  </div>
                 </div>
                 <div class="mt-4">
                   <button class="btn btn-primary" id="btnSaveSecuritySettings">Enregistrer</button>
@@ -798,6 +847,45 @@
                 </div>
               </div>
             </div>
+            <!-- Notification preferences -->
+            <div class="card mt-4" id="notifPrefsCard">
+              <div class="card-header">
+                <h3 class="card-title">Pr&eacute;f&eacute;rences de notification</h3>
+                <p class="card-description">Choisissez quels &eacute;v&eacute;nements d&eacute;clenchent un email automatique</p>
+              </div>
+              <div class="card-body">
+                <div class="notif-prefs">
+                  <label class="notif-pref-row">
+                    <div>
+                      <div class="font-semibold">Convocation</div>
+                      <div class="text-xs text-muted">Email envoy&eacute; lors de la cr&eacute;ation d'une convocation</div>
+                    </div>
+                    <input type="checkbox" id="notifConvocation" checked>
+                  </label>
+                  <label class="notif-pref-row">
+                    <div>
+                      <div class="font-semibold">Rappel</div>
+                      <div class="text-xs text-muted">Rappel automatique 48h avant la s&eacute;ance</div>
+                    </div>
+                    <input type="checkbox" id="notifReminder" checked>
+                  </label>
+                  <label class="notif-pref-row">
+                    <div>
+                      <div class="font-semibold">R&eacute;sultats</div>
+                      <div class="text-xs text-muted">Notification des r&eacute;sultats de vote aux participants</div>
+                    </div>
+                    <input type="checkbox" id="notifResults" checked>
+                  </label>
+                  <label class="notif-pref-row">
+                    <div>
+                      <div class="font-semibold">Proc&egrave;s-verbal</div>
+                      <div class="text-xs text-muted">Envoi du PV apr&egrave;s validation de la s&eacute;ance</div>
+                    </div>
+                    <input type="checkbox" id="notifPV" checked>
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- ─── Général ─── -->
@@ -886,6 +974,29 @@
 
           <!-- ─── Accessibilité ─── -->
           <div class="settings-panel" id="stab-accessibility" hidden>
+            <div class="card mb-4">
+              <div class="card-header">
+                <h3 class="card-title">Confort de lecture</h3>
+                <p class="card-description">Adaptez l'affichage &agrave; vos besoins</p>
+              </div>
+              <div class="card-body">
+                <div class="form-group mb-4">
+                  <label class="form-label">Taille du texte</label>
+                  <div class="text-size-selector" id="textSizeSelector">
+                    <button class="text-size-btn active" data-size="normal" title="Taille normale">A</button>
+                    <button class="text-size-btn" data-size="large" title="Taille grande">A+</button>
+                    <button class="text-size-btn" data-size="xlarge" title="Taille tr&egrave;s grande">A++</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label form-label-toggle">
+                    <input type="checkbox" id="settHighContrast">
+                    Contraste &eacute;lev&eacute;
+                  </label>
+                  <div class="text-xs text-muted">Augmente les contrastes de couleur pour une meilleure lisibilit&eacute;</div>
+                </div>
+              </div>
+            </div>
             <div class="card mb-4">
               <div class="card-header">
                 <h3 class="card-title">D&eacute;claration d'accessibilit&eacute;</h3>
