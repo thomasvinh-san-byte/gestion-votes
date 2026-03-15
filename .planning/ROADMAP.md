@@ -13,11 +13,12 @@
 
 - [x] **Phase 4: Design Tokens & Theme** - Align color, typography, shadow, and elevation tokens with wireframe; implement dark/light theme switching (completed 2026-03-12)
 - [ ] **Phase 5: Shared Components** - Build reusable component library (modals, toasts, dialogs, tags, popovers, progress bars, empty states, guided tours, session banner)
-- [ ] **Phase 6: Layout & Navigation** - Implement sidebar rail/expand, header with search and notifications, mobile bottom nav, footer, ARIA landmarks
+- [x] **Phase 6: Layout & Navigation** - Implement sidebar rail/expand, header with search and notifications, mobile bottom nav, footer, ARIA landmarks (completed 2026-03-12)
 - [ ] **Phase 7: Dashboard & Sessions** - Redesign dashboard (KPIs, urgent actions, shortcuts) and sessions page (list/calendar, filters, empty states)
 - [x] **Phase 8: Session Wizard & Hub** - Build 4-step create session wizard and session hub (status bar, checklist, KPIs, documents) (completed 2026-03-13)
 - [x] **Phase 9: Operator Console** - Redesign operator page with live KPI strip, progress track, resolution tabs, attendance, agenda sidebar, quorum modal (completed 2026-03-13)
 - [x] **Phase 10: Live Session Views** - Room display (full-screen, dark) and voter tablet/mobile view (touch-optimized, large buttons) (completed 2026-03-13)
+- [x] **Phase 10.1: Milestone Gap Closure** (INSERTED) - Close all gaps from v1.1 milestone audit: integration bug fixes + verification documentation (completed 2026-03-15)
 - [ ] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views
 - [ ] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination)
 - [ ] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers)
@@ -66,11 +67,11 @@ Plans:
   3. Header bar (56px) displays the logo, a global search triggered by Cmd+K, a notification panel, and a theme toggle
   4. On mobile viewports, a bottom navigation bar with 5 tabs (Dashboard, Sessions, Fiche, Operateur, Parametres) replaces the sidebar
   5. A skip-to-content link is present and ARIA landmark roles are applied to nav, main, header, and footer regions
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 06-01-PLAN.md — Sidebar structure alignment (5 sections, nav-badge CSS, mobile-bnav CSS)
-- [ ] 06-02-PLAN.md — Header logo, mobile 5-tab bottom nav, footer on all pages
-- [ ] 06-03-PLAN.md — ARIA landmark audit and visual verification checkpoint
+- [x] 06-01-PLAN.md — Sidebar structure alignment (5 sections, nav-badge CSS, mobile-bnav CSS)
+- [x] 06-02-PLAN.md — Header logo, mobile 5-tab bottom nav, footer on all pages
+- [x] 06-03-PLAN.md — ARIA landmark audit and visual verification checkpoint
 
 ### Phase 7: Dashboard & Sessions
 **Goal**: Users see an actionable dashboard with KPIs and shortcuts, and can browse/search/filter all sessions in list or calendar view
@@ -179,11 +180,12 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 |-------|----------------|--------|-----------|
 | 4. Design Tokens & Theme | 2/2 | Complete    | 2026-03-12 |
 | 5. Shared Components | 3/4 | In Progress|  |
-| 6. Layout & Navigation | 1/3 | In Progress|  |
+| 6. Layout & Navigation | 3/3 | Complete   | 2026-03-12 |
 | 7. Dashboard & Sessions | 0/3 | Not started | - |
 | 8. Session Wizard & Hub | 3/3 | Complete   | 2026-03-13 |
 | 9. Operator Console | 3/3 | Complete   | 2026-03-13 |
 | 10. Live Session Views | 2/2 | Complete   | 2026-03-13 |
+| 10.1 Milestone Gap Closure | 1/1 | Complete   | 2026-03-15 |
 | 11. Post-Session & Records | 0/TBD | Not started | - |
 | 12. Analytics & User Management | 0/TBD | Not started | - |
 | 13. Settings & Help | 0/TBD | Not started | - |

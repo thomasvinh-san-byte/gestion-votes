@@ -19,6 +19,7 @@ decisions:
   - "nav-badge uses margin-left:auto (flex flow) for visible state, not position:absolute, for correct layout in expanded sidebar"
   - "nav-badge visibility driven by [data-count] attribute selector — no JS needed to show/hide, only data-count value changes"
   - "Collapsed rail badge is 8px dot (no number visible) positioned absolute on icon — number count hidden at rail width"
+requirements_completed: [NAV-01, NAV-02]
 metrics:
   duration: 72s
   completed: 2026-03-12

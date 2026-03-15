@@ -3,6 +3,7 @@ phase: 10-live-session-views
 plan: "02"
 subsystem: voter-interface
 tags: [css, javascript, design-tokens, presence-toggle, accessibility, aria]
+requirements_completed: [VOTE-01, VOTE-02, VOTE-03]
 dependency_graph:
   requires: [10-01]
   provides: [presence-toggle-js, tokenized-vote-css, aria-audit]

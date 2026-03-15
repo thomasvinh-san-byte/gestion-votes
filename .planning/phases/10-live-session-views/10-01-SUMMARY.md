@@ -3,6 +3,7 @@ phase: 10-live-session-views
 plan: "01"
 subsystem: public-display
 tags: [css, javascript, bar-chart, design-tokens, horizontal-layout]
+requirements_completed: [DISP-01, DISP-02]
 dependency_graph:
   requires: []
   provides: [horizontal-bar-chart, tokenized-public-css, js-width-animation]
