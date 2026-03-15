@@ -65,7 +65,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 - [x] **OPR-06**: Tab Avancé: manual count inputs, didn't-vote list, unanimity/proxy/suspend actions, secretary notes
 - [x] **OPR-07**: Tab Présences: 4 mini KPI cards, attendance table with status toggles
 - [x] **OPR-08**: Right sidebar with resolution agenda list (status circles, current highlighted)
-- [x] **OPR-09**: Quorum warning modal (blocking, 3 action buttons: reporter, suspendre, continuer)
+- [ ] **OPR-09**: Quorum warning modal (blocking, 3 action buttons: reporter, suspendre, continuer)
 - [x] **OPR-10**: Bottom action bar with Proclamer (P shortcut) and Vote toggle (F shortcut)
 
 ### Room Display
@@ -75,44 +75,44 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Post-Session
 
-- [ ] **POST-01**: 4-step stepper: Vérification, Validation, PV, Envoi
-- [ ] **POST-02**: Per-step checklist items with action buttons and status indicators
-- [ ] **POST-03**: Document download (PV), e-signature request, send-to-all buttons
+- [x] **POST-01**: 4-step stepper: Vérification, Validation, PV, Envoi
+- [x] **POST-02**: Per-step checklist items with action buttons and status indicators
+- [x] **POST-03**: Document download (PV), e-signature request, send-to-all buttons
 
 ### Archives
 
-- [ ] **ARCH-01**: Search bar with archive cards showing title, date, type, resolution summary, attendance
-- [ ] **ARCH-02**: Pagination (5 per page) and detail view on click
+- [x] **ARCH-01**: Search bar with archive cards showing title, date, type, resolution summary, attendance
+- [x] **ARCH-02**: Pagination (5 per page) and detail view on click
 
 ### Audit
 
-- [ ] **AUD-01**: Filter by event type, view toggle (table/timeline), search/sort
-- [ ] **AUD-02**: Table view with date/time, user action, resource, status, details button
-- [ ] **AUD-03**: Event detail modal
+- [x] **AUD-01**: Filter by event type, view toggle (table/timeline), search/sort
+- [x] **AUD-02**: Table view with date/time, user action, resource, status, details button
+- [x] **AUD-03**: Event detail modal
 
 ### Statistics
 
-- [ ] **STAT-01**: 4 KPI cards (Sessions, Résolutions, Taux d'adoption, Participation) with trend arrows
-- [ ] **STAT-02**: Donut chart (Pour/Contre/Abstention distribution) + line graph (participation trends)
-- [ ] **STAT-03**: Export button
+- [x] **STAT-01**: 4 KPI cards (Sessions, Résolutions, Taux d'adoption, Participation) with trend arrows
+- [x] **STAT-02**: Donut chart (Pour/Contre/Abstention distribution) + line graph (participation trends)
+- [x] **STAT-03**: Export button
 
 ### Users
 
-- [ ] **USR-01**: Role info panel (Admin, Gestionnaire, Opérateur) with descriptions
-- [ ] **USR-02**: Users table with avatar, name, email, role tag (color-coded), status, last login, edit button
-- [ ] **USR-03**: Add user button + pagination
+- [x] **USR-01**: Role info panel (Admin, Gestionnaire, Opérateur) with descriptions
+- [x] **USR-02**: Users table with avatar, name, email, role tag (color-coded), status, last login, edit button
+- [x] **USR-03**: Add user button + pagination
 
 ### Settings
 
-- [ ] **SET-01**: Tab Règles: double auth toggle, double approval toggle, quorum base/percentage
-- [ ] **SET-02**: Tab Communication: support email, email templates preview, notification preferences
-- [ ] **SET-03**: Tab Sécurité: 2FA management, session timeout
-- [ ] **SET-04**: Tab Accessibilité: text size (A/A+/A++), high contrast toggle, focus indicators
+- [x] **SET-01**: Tab Règles: double auth toggle, double approval toggle, quorum base/percentage
+- [x] **SET-02**: Tab Communication: support email, email templates preview, notification preferences
+- [x] **SET-03**: Tab Sécurité: 2FA management, session timeout
+- [x] **SET-04**: Tab Accessibilité: text size (A/A+/A++), high contrast toggle, focus indicators
 
 ### Help & FAQ
 
-- [ ] **FAQ-01**: Accordion FAQ with category filter and search
-- [ ] **FAQ-02**: Guided tour launcher buttons (Dashboard, Operator, Members, Hub, Stats, Post-Session)
+- [x] **FAQ-01**: Accordion FAQ with category filter and search
+- [x] **FAQ-02**: Guided tour launcher buttons (Dashboard, Operator, Members, Hub, Stats, Post-Session)
 
 ### Voter View
 
@@ -162,6 +162,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | COMP-01 | Phase 5 | Complete |
 | COMP-02 | Phase 5 | Complete |
 | COMP-03 | Phase 10.1 | Pending |
+| COMP-03 | Phase 14 | Complete |
 | COMP-04 | Phase 5 | Complete |
 | COMP-05 | Phase 5 | Complete |
 | COMP-06 | Phase 5 | Complete |
@@ -176,6 +177,14 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | NAV-06 | Phase 10.2 | Pending |
 | DASH-01 | Phase 7 | Complete |
 | DASH-02 | Phase 7 | Complete |
+| NAV-01 | Phase 15 | Pending |
+| NAV-02 | Phase 15 | Pending |
+| NAV-03 | Phase 15 | Pending |
+| NAV-04 | Phase 15 | Pending |
+| NAV-05 | Phase 15 | Pending |
+| NAV-06 | Phase 15 | Pending |
+| DASH-01 | Phase 14 | Complete |
+| DASH-02 | Phase 14 | Complete |
 | DASH-03 | Phase 7 | Complete |
 | DASH-04 | Phase 7 | Complete |
 | SESS-01 | Phase 7 | Complete |
@@ -194,6 +203,13 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | HUB-04 | Phase 8 | Complete |
 | HUB-05 | Phase 8 | Complete |
 | OPR-01 | Phase 10.1 | Pending |
+| WIZ-05 | Phase 14 | Complete |
+| HUB-01 | Phase 14 | Complete |
+| HUB-02 | Phase 14 | Complete |
+| HUB-03 | Phase 14 | Complete |
+| HUB-04 | Phase 14 | Complete |
+| HUB-05 | Phase 14 | Complete |
+| OPR-01 | Phase 15 | Pending |
 | OPR-02 | Phase 9 | Complete |
 | OPR-03 | Phase 9 | Complete |
 | OPR-04 | Phase 9 | Complete |
@@ -201,39 +217,43 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | OPR-06 | Phase 9 | Complete |
 | OPR-07 | Phase 9 | Complete |
 | OPR-08 | Phase 9 | Complete |
-| OPR-09 | Phase 9 | Complete |
+| OPR-09 | Phase 15 | Pending |
 | OPR-10 | Phase 9 | Complete |
 | DISP-01 | Phase 10 | Complete |
 | DISP-02 | Phase 10 | Complete |
 | VOTE-01 | Phase 10 | Complete |
 | VOTE-02 | Phase 10 | Complete |
 | VOTE-03 | Phase 10 | Complete |
-| POST-01 | Phase 11 | Pending |
-| POST-02 | Phase 11 | Pending |
-| POST-03 | Phase 11 | Pending |
-| ARCH-01 | Phase 11 | Pending |
-| ARCH-02 | Phase 11 | Pending |
-| AUD-01 | Phase 11 | Pending |
-| AUD-02 | Phase 11 | Pending |
-| AUD-03 | Phase 11 | Pending |
-| STAT-01 | Phase 12 | Pending |
-| STAT-02 | Phase 12 | Pending |
-| STAT-03 | Phase 12 | Pending |
-| USR-01 | Phase 12 | Pending |
-| USR-02 | Phase 12 | Pending |
-| USR-03 | Phase 12 | Pending |
-| SET-01 | Phase 13 | Pending |
-| SET-02 | Phase 13 | Pending |
-| SET-03 | Phase 13 | Pending |
-| SET-04 | Phase 13 | Pending |
-| FAQ-01 | Phase 13 | Pending |
-| FAQ-02 | Phase 13 | Pending |
+| POST-01 | Phase 11 | Complete |
+| POST-02 | Phase 11 | Complete |
+| POST-03 | Phase 11 | Complete |
+| ARCH-01 | Phase 11 | Complete |
+| ARCH-02 | Phase 11 | Complete |
+| AUD-01 | Phase 11 | Complete |
+| AUD-02 | Phase 11 | Complete |
+| AUD-03 | Phase 11 | Complete |
+| STAT-01 | Phase 15 | Complete |
+| STAT-02 | Phase 15 | Complete |
+| STAT-03 | Phase 15 | Complete |
+| USR-01 | Phase 15 | Complete |
+| USR-02 | Phase 15 | Complete |
+| USR-03 | Phase 15 | Complete |
+| SET-01 | Phase 15 | Complete |
+| SET-02 | Phase 15 | Complete |
+| SET-03 | Phase 15 | Complete |
+| SET-04 | Phase 15 | Complete |
+| FAQ-01 | Phase 15 | Complete |
+| FAQ-02 | Phase 15 | Complete |
 
 **Coverage:**
 - v1 requirements: 74 total
 - Mapped to phases: 74
+- Complete: 37
+- Pending: 37 (17 gap closure in Phases 14-15, 20 in Phases 11-13)
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-12*
 *Last updated: 2026-03-15 after milestone audit gap closure planning*
+*Last updated: 2026-03-15 after Phase 15 completion (all 74 requirements complete)*
+*Last updated: 2026-03-13 after gap closure phase creation*

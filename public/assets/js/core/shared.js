@@ -525,7 +525,14 @@
     validateAll: validateAll,
     withRetry: withRetry,
     skeleton: skeleton,
-    clearSkeleton: clearSkeleton
+    clearSkeleton: clearSkeleton,
+    showToast: function(message, type) {
+      if (window.AgToast && typeof AgToast.show === 'function') {
+        AgToast.show(type || 'info', message);
+      } else {
+        console.warn('ag-toast not loaded, toast skipped:', type, message);
+      }
+    }
   };
 
 })();

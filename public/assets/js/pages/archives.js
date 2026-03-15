@@ -5,9 +5,19 @@
   const archivesList = document.getElementById('archivesList');
   const searchInput = document.getElementById('searchInput');
   const yearFilter = document.getElementById('yearFilter');
-  let allArchives = [];
-  let currentView = 'cards';
-  let currentYear = '';
+  var allArchives = [];
+  var filteredArchives = [];
+  var currentView = 'cards';
+  var currentYear = '';
+  var currentPage = 1;
+  var perPage = 5;
+
+  // Meeting type labels
+  var TYPE_LABELS = {
+    ag_ordinaire: 'AG Ordinaire',
+    ag_extraordinaire: 'AG Extraordinaire',
+    conseil: 'Conseil d\'administration'
+  };
 
   // Format date
   function fmtDate(s) {
@@ -25,8 +35,9 @@
     }
   }
 
-  // Render archives
+  // Render archives (paginated)
   function render(items) {
+    var paginationEl = document.getElementById('archivesPagination');
     if (!items || items.length === 0) {
       var query = searchInput.value.trim();
       if (query) {
@@ -45,81 +56,129 @@
           actionHtml: '<a href="/meetings.htmx.html" class="btn btn-primary btn-sm" style="margin-top:12px;">Voir les séances</a>'
         });
       }
+      if (paginationEl) paginationEl.innerHTML = '';
       return;
     }
 
+    // Slice for current page
+    var totalPages = Math.max(1, Math.ceil(items.length / perPage));
+    if (currentPage > totalPages) currentPage = totalPages;
+    var start = (currentPage - 1) * perPage;
+    var pageItems = items.slice(start, start + perPage);
+
     if (currentView === 'list') {
-      renderListView(items);
+      renderListView(pageItems);
     } else {
-      renderCardView(items);
+      renderCardView(pageItems);
     }
+
+    // Render pagination
+    renderPaginationControls(items.length, totalPages, paginationEl);
+  }
+
+  // Render pagination controls
+  function renderPaginationControls(total, totalPages, paginationEl) {
+    if (!paginationEl) return;
+    if (totalPages <= 1) {
+      paginationEl.innerHTML = '';
+      return;
+    }
+
+    var html = '';
+    html += '<button class="btn btn-sm btn-ghost" data-page="' + (currentPage - 1) + '"' +
+            (currentPage <= 1 ? ' disabled' : '') + '>&#8249; Préc.</button>';
+    for (var i = 1; i <= totalPages; i++) {
+      var active = i === currentPage ? ' btn-primary' : ' btn-ghost';
+      html += '<button class="btn btn-sm' + active + '" data-page="' + i + '">' + i + '</button>';
+    }
+    html += '<button class="btn btn-sm btn-ghost" data-page="' + (currentPage + 1) + '"' +
+            (currentPage >= totalPages ? ' disabled' : '') + '>Suiv. &#8250;</button>';
+
+    paginationEl.innerHTML = html;
+
+    var btns = paginationEl.querySelectorAll('button[data-page]');
+    btns.forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        if (e.target.disabled) return;
+        var page = parseInt(e.target.dataset.page);
+        if (!isNaN(page) && page >= 1 && page <= totalPages) {
+          currentPage = page;
+          render(filteredArchives);
+        }
+      });
+    });
   }
 
   // Card view rendering
   function renderCardView(items) {
-    archivesList.innerHTML = items.map(m => {
-      const id = m.id;
-      const title = escapeHtml(m.title || id);
-      const president = escapeHtml(m.president_name || '—');
-      const archived = fmtDate(m.archived_at || m.validated_at);
-      const hasReport = !!m.has_report;
-      const sha = m.report_sha256 ? m.report_sha256.substring(0, 12) + '...' : '—';
-      const motionsCount = m.motions_count || m.total_motions || '—';
-      const ballotsCount = m.ballots_count || m.total_ballots || '—';
+    archivesList.innerHTML = items.map(function(m) {
+      var id = m.id;
+      var title = escapeHtml(m.title || id);
+      var president = escapeHtml(m.president_name || '—');
+      var archived = fmtDate(m.archived_at || m.validated_at);
+      var hasReport = !!m.has_report;
+      var sha = m.report_sha256 ? m.report_sha256.substring(0, 12) + '...' : '—';
+      var motionsCount = m.motions_count || m.total_motions || '—';
+      var ballotsCount = m.ballots_count || m.total_ballots || '—';
+      var meetingType = escapeHtml(TYPE_LABELS[m.meeting_type] || m.meeting_type || '—');
+      var resolutionSummary = escapeHtml(m.resolution_summary || (motionsCount !== '—' ? motionsCount + ' résolution(s)' : '—'));
 
-      const pvUrl = `/api/v1/meeting_report.php?meeting_id=${encodeURIComponent(id)}`;
-      const auditUrl = `/api/v1/audit_export.php?meeting_id=${encodeURIComponent(id)}`;
+      var pvUrl = '/api/v1/meeting_report.php?meeting_id=' + encodeURIComponent(id);
+      var auditUrl = '/api/v1/audit_export.php?meeting_id=' + encodeURIComponent(id);
 
-      return `
-          <div class="archive-card-enhanced">
-            <div class="archive-card-header">
-              <div>
-                <div class="font-semibold text-lg">${title}</div>
-                <div class="text-sm text-muted mt-1">
-                  <span>${icon('gavel', 'icon-sm icon-muted')} ${president}</span>
-                  <span class="mx-2">•</span>
-                  <span>${icon('calendar', 'icon-sm icon-muted')} ${archived}</span>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                ${hasReport
-    ? `<span class="archive-badge has-pv">${icon('check-circle', 'icon-sm icon-success')} PV</span>`
-    : `<span class="archive-badge no-pv">${icon('clock', 'icon-sm')} PV en attente</span>`}
-                <span class="badge badge-success">Archivée</span>
-              </div>
-            </div>
-            <div class="archive-card-body">
-              <div class="archive-info-grid">
-                <div class="archive-info-item">
-                  <div class="archive-info-value">${motionsCount}</div>
-                  <div class="archive-info-label">Résolutions</div>
-                </div>
-                <div class="archive-info-item">
-                  <div class="archive-info-value">${ballotsCount}</div>
-                  <div class="archive-info-label">Bulletins</div>
-                </div>
-                <div class="archive-info-item">
-                  <div class="archive-info-value">${m.present_count || '—'}</div>
-                  <div class="archive-info-label">Présents</div>
-                </div>
-                <div class="archive-info-item">
-                  <div class="archive-info-value">${m.proxy_count || '0'}</div>
-                  <div class="archive-info-label">Procurations</div>
-                </div>
-              </div>
-            </div>
-            <div class="archive-card-footer">
-              <div class="text-xs text-muted">
-                ${hasReport ? `SHA: <code>${escapeHtml(sha)}</code>` : 'Intégrité non vérifiée'}
-              </div>
-              <div class="flex gap-2">
-                ${hasReport ? `<a class="btn btn-primary btn-sm" href="${pvUrl}" target="_blank">${icon('file-text', 'icon-sm icon-text')}PV</a>` : ''}
-                <a class="btn btn-secondary btn-sm" href="${auditUrl}" target="_blank">${icon('shield-check', 'icon-sm icon-text')}Audit</a>
-                <button class="btn btn-ghost btn-sm btn-view-details" data-id="${escapeHtml(id)}">Détails</button>
-              </div>
-            </div>
-          </div>
-        `;
+      return '<div class="archive-card-enhanced">' +
+          '<div class="archive-card-header">' +
+            '<div>' +
+              '<div class="font-semibold text-lg">' + title + '</div>' +
+              '<div class="text-sm text-muted mt-1">' +
+                '<span>' + icon('gavel', 'icon-sm icon-muted') + ' ' + president + '</span>' +
+                '<span class="mx-2">•</span>' +
+                '<span>' + icon('calendar', 'icon-sm icon-muted') + ' ' + archived + '</span>' +
+                '<span class="mx-2">•</span>' +
+                '<span class="tag tag-ghost">' + meetingType + '</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex items-center gap-2">' +
+              (hasReport
+                ? '<span class="archive-badge has-pv">' + icon('check-circle', 'icon-sm icon-success') + ' PV</span>'
+                : '<span class="archive-badge no-pv">' + icon('clock', 'icon-sm') + ' PV en attente</span>') +
+              '<span class="badge badge-success">Archivée</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="archive-card-body">' +
+            '<div class="archive-info-grid">' +
+              '<div class="archive-info-item">' +
+                '<div class="archive-info-value">' + escapeHtml(String(motionsCount)) + '</div>' +
+                '<div class="archive-info-label">Résolutions</div>' +
+              '</div>' +
+              '<div class="archive-info-item">' +
+                '<div class="archive-info-value">' + escapeHtml(String(ballotsCount)) + '</div>' +
+                '<div class="archive-info-label">Bulletins</div>' +
+              '</div>' +
+              '<div class="archive-info-item">' +
+                '<div class="archive-info-value">' + escapeHtml(String(m.present_count || '—')) + '</div>' +
+                '<div class="archive-info-label">Présents</div>' +
+              '</div>' +
+              '<div class="archive-info-item">' +
+                '<div class="archive-info-value">' + escapeHtml(String(m.proxy_count || '0')) + '</div>' +
+                '<div class="archive-info-label">Procurations</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="text-sm text-muted mt-2">' +
+              icon('clipboard-list', 'icon-sm icon-muted') + ' ' + resolutionSummary +
+            '</div>' +
+          '</div>' +
+          '<div class="archive-card-footer">' +
+            '<div class="text-xs text-muted">' +
+              (hasReport ? 'SHA: <code>' + escapeHtml(sha) + '</code>' : 'Intégrité non vérifiée') +
+            '</div>' +
+            '<div class="flex gap-2">' +
+              (hasReport ? '<a class="btn btn-primary btn-sm" href="' + pvUrl + '" target="_blank">' + icon('file-text', 'icon-sm icon-text') + 'PV</a>' : '') +
+              '<a class="btn btn-secondary btn-sm" href="' + auditUrl + '" target="_blank">' + icon('shield-check', 'icon-sm icon-text') + 'Audit</a>' +
+              '<button class="btn btn-ghost btn-sm btn-view-details" data-id="' + escapeHtml(id) + '">Détails</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
     }).join('');
   }
 
@@ -297,33 +356,35 @@
 
   // Apply all filters
   function applyFilters() {
-    const query = searchInput.value.toLowerCase().trim();
-    let filtered = allArchives;
+    var query = searchInput.value.toLowerCase().trim();
+    var filtered = allArchives;
 
     // Type filter
     if (currentType) {
-      filtered = filtered.filter(a =>
-        (a.meeting_type || '').toLowerCase() === currentType.toLowerCase()
-      );
+      filtered = filtered.filter(function(a) {
+        return (a.meeting_type || '').toLowerCase() === currentType.toLowerCase();
+      });
     }
 
     // Year filter
     if (currentYear) {
-      filtered = filtered.filter(a => {
-        const date = new Date(a.archived_at || a.validated_at);
+      filtered = filtered.filter(function(a) {
+        var date = new Date(a.archived_at || a.validated_at);
         return date.getFullYear() === parseInt(currentYear);
       });
     }
 
     // Search filter
     if (query) {
-      filtered = filtered.filter(a =>
-        (a.title || '').toLowerCase().includes(query) ||
-          (a.president_name || '').toLowerCase().includes(query)
-      );
+      filtered = filtered.filter(function(a) {
+        return (a.title || '').toLowerCase().indexOf(query) !== -1 ||
+               (a.president_name || '').toLowerCase().indexOf(query) !== -1;
+      });
     }
 
-    render(filtered);
+    filteredArchives = filtered;
+    currentPage = 1;
+    render(filteredArchives);
   }
 
   // Type filter tabs
