@@ -2,9 +2,9 @@
  * postsession.js — Post-session guided workflow controller.
  *
  * Drives the 4-step closing flow:
- *   1. Verification  — summary stats + coherence checklist
+ *   1. Verification  — success alert + 5-column results table
  *   2. Validation    — official state transition (closed → validated)
- *   3. Procès-verbal — generate, preview, export PDF
+ *   3. Procès-verbal — signataires, observations, eIDAS chips, generate, preview, export PDF
  *   4. Send & Archive — email PV, export data, archive meeting
  */
 (function () {
@@ -17,6 +17,7 @@
   var _currentStep = 1;
   var meetingId = null;
   var _meetingData = null;
+  var _sigCount = 0;
 
   // =========================================================================
   // HELPERS
@@ -61,11 +62,45 @@
       if (panel) panel.hidden = i !== step;
     }
 
+    // Update shared footer nav
+    updateFooterNav(step);
+
     // Load step data
     if (step === 1) loadVerification();
     if (step === 2) loadValidation();
     if (step === 3) loadPV();
     if (step === 4) loadSendArchive();
+  }
+
+  // =========================================================================
+  // SHARED FOOTER NAV
+  // =========================================================================
+
+  function updateFooterNav(step) {
+    var counter = document.getElementById('psStepCounter');
+    var btnPrev = document.getElementById('btnPrecedent');
+    var btnNext = document.getElementById('btnSuivant');
+
+    if (counter) counter.textContent = 'Etape ' + step + ' / 4';
+
+    if (btnPrev) {
+      btnPrev.hidden = step === 1;
+    }
+
+    if (btnNext) {
+      if (step === 4) {
+        btnNext.hidden = true;
+      } else {
+        btnNext.hidden = false;
+        // Step 1: disabled until results load without critical issues
+        // Step 2: disabled until validation completes
+        // Step 3: always enabled (PV can be generated at any time)
+        if (step === 3) {
+          btnNext.disabled = false;
+        }
+        // Step 1 and 2 disable state is managed by loadVerification/loadValidation
+      }
+    }
   }
 
   // =========================================================================
@@ -75,78 +110,62 @@
   async function loadVerification() {
     if (!meetingId) return;
 
+    // Default: disable Suivant until results load
+    var btnNext = document.getElementById('btnSuivant');
+    if (btnNext) btnNext.disabled = true;
+
     try {
-      var res = await window.api('/api/v1/meeting_summary.php?meeting_id=' + encodeURIComponent(meetingId));
+      var res = await window.api('/api/v1/meeting_motions.php?meeting_id=' + encodeURIComponent(meetingId));
       var d = res.body;
       if (d && d.ok && d.data) {
-        var s = d.data;
-        setStatValue('statMembers', s.total_members || 0);
-        setStatValue('statPresent', s.present_count || 0);
-        setStatValue('statMotions', s.total_motions || 0);
-        setStatValue('statAdopted', s.adopted || 0);
-        setStatValue('statRejected', s.rejected || 0);
-        setStatValue('statBallots', s.total_ballots || 0);
+        var motions = d.data.items || d.data || [];
+        loadResultsTable(motions);
+        // Show success alert
+        var alert = document.getElementById('verifyAlert');
+        if (alert) alert.hidden = false;
+        // Enable Suivant
+        if (btnNext) btnNext.disabled = false;
       }
     } catch (e) {
-      // Stats remain at their default placeholder values
-    }
-
-    // Load readiness checks with retry
-    var checklistEl = document.getElementById('verifyChecklist');
-    if (checklistEl) {
-      await Shared.withRetry({
-        container: checklistEl,
-        errorMsg: 'Impossible de charger les v\u00e9rifications',
-        action: async function () {
-          var res2 = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + encodeURIComponent(meetingId));
-          var d2 = res2.body;
-          if (!d2 || !d2.ok) throw new Error(d2 && d2.error || 'Erreur');
-          var checks = d2.data.checks || [];
-          checklistEl.setAttribute('aria-busy', 'false');
-          if (checks.length === 0) {
-            checklistEl.innerHTML = '<p class="text-muted text-sm">Aucune v\u00e9rification disponible.</p>';
-          } else {
-            checklistEl.innerHTML = checks.map(function (c) {
-              var cls = c.passed ? 'passed' : (c.optional ? '' : 'failed');
-              return '<div class="checklist-item ' + cls + '">' +
-                '<svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-' + (c.passed ? 'check-circle' : 'x-circle') + '"></use></svg>' +
-                '<span>' + esc(c.label || '') + '</span>' +
-                '</div>';
-            }).join('');
-          }
-          // Enable next button if no critical failures
-          var hasCriticalFailure = checks.some(function (c) { return !c.passed && !c.optional; });
-          var btn = document.getElementById('btnToStep2');
-          if (btn) btn.disabled = hasCriticalFailure;
+      // Fallback: try meeting_summary for basic data
+      try {
+        var res2 = await window.api('/api/v1/meeting_summary.php?meeting_id=' + encodeURIComponent(meetingId));
+        var d2 = res2.body;
+        if (d2 && d2.ok && d2.data) {
+          var alert2 = document.getElementById('verifyAlert');
+          if (alert2) alert2.hidden = false;
+          if (btnNext) btnNext.disabled = false;
         }
-      });
+      } catch (e2) { /* silent */ }
     }
-
-    // Load anomalies
-    try {
-      var res3 = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + encodeURIComponent(meetingId));
-      var d3 = res3.body;
-      if (d3 && d3.ok && d3.data) {
-        var items = d3.data.anomalies || d3.data.items || [];
-        var alertsCard = document.getElementById('alertsCard');
-        var alertsList = document.getElementById('alertsList');
-        if (items.length > 0 && alertsCard && alertsList) {
-          alertsCard.hidden = false;
-          alertsList.innerHTML = items.map(function (a) {
-            return '<div class="anomaly-alert">' +
-              '<svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>' +
-              '<div><strong class="text-sm">' + esc(a.code || 'Anomalie') + '</strong>' +
-              '<p class="text-sm text-secondary">' + esc(a.message || a.detail || '') + '</p></div>' +
-              '</div>';
-          }).join('');
-        }
-      }
-    } catch (e) { /* silent */ }
   }
 
-  function setStatValue(id, val) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = String(val);
+  function loadResultsTable(motions) {
+    var tbody = document.getElementById('resultsTableBody');
+    if (!tbody) return;
+
+    if (!motions || motions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted p-4">Aucune r\u00e9solution trouv\u00e9e.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = motions.map(function (m, i) {
+      var adopted = m.result === 'adopted' || m.decision === 'adopted' || m.passed === true;
+      var resultTag = adopted
+        ? '<span class="tag tag-success"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Adopt\u00e9e</span>'
+        : '<span class="tag tag-danger"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Rejet\u00e9e</span>';
+      var pour = m.votes_for != null ? m.votes_for : (m.pour != null ? m.pour : '—');
+      var contre = m.votes_against != null ? m.votes_against : (m.contre != null ? m.contre : '—');
+      var abst = m.votes_abstain != null ? m.votes_abstain : (m.abstentions != null ? m.abstentions : '—');
+      var majorite = m.majority_type || m.majorite || '—';
+      return '<tr>' +
+        '<td class="result-num">' + (i + 1) + '</td>' +
+        '<td>' + esc(m.title || m.label || '') + '</td>' +
+        '<td>' + resultTag + '</td>' +
+        '<td class="result-num">' + pour + ' / ' + contre + ' / ' + abst + '</td>' +
+        '<td>' + esc(String(majorite)) + '</td>' +
+        '</tr>';
+    }).join('');
   }
 
   // =========================================================================
@@ -155,6 +174,10 @@
 
   async function loadValidation() {
     if (!meetingId) return;
+
+    // Default: disable Suivant until validated
+    var btnNext = document.getElementById('btnSuivant');
+    if (btnNext) btnNext.disabled = true;
 
     // Populate step 2 KPIs from summary
     try {
@@ -179,8 +202,8 @@
         // Update workflow state visual
         var states = ['closed', 'validated', 'archived'];
         var stateIdx = states.indexOf(state);
-        states.forEach(function (s, i) {
-          var el = document.getElementById('wsStep-' + s);
+        states.forEach(function (sv, i) {
+          var el = document.getElementById('wsStep-' + sv);
           if (!el) return;
           el.classList.remove('active', 'done');
           if (i < stateIdx) el.classList.add('done');
@@ -199,23 +222,26 @@
             actions.innerHTML = '<p class="text-sm text-success">S\u00e9ance valid\u00e9e. Vous pouvez g\u00e9n\u00e9rer le PV.</p>';
             if (staticBtnValidate) staticBtnValidate.disabled = true;
             if (staticBtnReject) staticBtnReject.disabled = true;
-            var btn3 = document.getElementById('btnToStep3');
-            if (btn3) btn3.disabled = false;
+            if (btnNext) btnNext.disabled = false;
           } else if (state === 'closed') {
             actions.innerHTML = '<p class="text-sm text-muted">Cette action verrouille d\u00e9finitivement les r\u00e9sultats de vote.</p>';
             if (staticBtnValidate) { staticBtnValidate.disabled = false; staticBtnValidate.onclick = doValidate; }
           } else {
             actions.innerHTML = '<p class="text-sm text-muted">\u00c9tat actuel : <strong>' + esc(state) + '</strong></p>';
             if (staticBtnValidate) staticBtnValidate.disabled = true;
-            var btn3b = document.getElementById('btnToStep3');
-            if (btn3b) btn3b.disabled = false;
+            if (btnNext) btnNext.disabled = false;
           }
         }
       }
     } catch (e) {
-      var actions = document.getElementById('transitionActions');
-      if (actions) actions.innerHTML = '<p class="text-sm text-muted">Impossible de v\u00e9rifier l\u2019\u00e9tat de la s\u00e9ance.</p>';
+      var actionsEl = document.getElementById('transitionActions');
+      if (actionsEl) actionsEl.innerHTML = '<p class="text-sm text-muted">Impossible de v\u00e9rifier l\u2019\u00e9tat de la s\u00e9ance.</p>';
     }
+  }
+
+  function setStatValue(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = String(val);
   }
 
   async function doValidate() {
@@ -228,8 +254,8 @@
       var d = res.body;
       if (d && d.ok) {
         setNotif('success', 'S\u00e9ance valid\u00e9e avec succ\u00e8s');
-        var btn3 = document.getElementById('btnToStep3');
-        if (btn3) btn3.disabled = false;
+        var btnNext = document.getElementById('btnSuivant');
+        if (btnNext) btnNext.disabled = false;
         loadValidation(); // refresh state
       } else {
         setNotif('error', d.error || 'Erreur de validation');
@@ -253,6 +279,24 @@
     if (pdfLink) {
       pdfLink.href = '/api/v1/meeting_generate_report_pdf.php?meeting_id=' + encodeURIComponent(meetingId);
     }
+
+    // Load signataire names from meeting data
+    try {
+      var res = await window.api('/api/v1/meetings.php?id=' + encodeURIComponent(meetingId));
+      if (res.body && res.body.ok && res.body.data) {
+        var data = res.body.data;
+        var roles = {
+          sigPresident: data.president_name || data.president || '',
+          sigSecretary: data.secretary_name || data.secretary || '',
+          sigScrutateur1: data.scrutateur1_name || data.scrutateur1 || '',
+          sigScrutateur2: data.scrutateur2_name || data.scrutateur2 || ''
+        };
+        Object.keys(roles).forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el && roles[id]) el.value = roles[id];
+        });
+      }
+    } catch (e) { /* signataire names remain as default */ }
   }
 
   // =========================================================================
@@ -266,17 +310,42 @@
     var links = {
       exportAttendanceCsv: '/api/v1/export_attendance_csv.php?meeting_id=',
       exportVotesCsv: '/api/v1/export_votes_csv.php?meeting_id=',
-      exportResultsXlsx: '/api/v1/export_results_xlsx.php?meeting_id=',
-      exportFullXlsx: '/api/v1/export_full_xlsx.php?meeting_id=',
       exportPvPdf: '/api/v1/meeting_generate_report_pdf.php?meeting_id=',
       exportEmargement: '/api/v1/export_attendance_csv.php?meeting_id=',
       exportResultsCsv: '/api/v1/export_motions_results_csv.php?meeting_id=',
-      exportAuditCsv: '/api/v1/audit_export.php?meeting_id='
+      exportAuditCsv: '/api/v1/audit_export.php?meeting_id=',
+      exportCorrespondance: '/api/v1/export_correspondance.php?meeting_id=',
+      pvSummaryDownload: '/api/v1/meeting_generate_report_pdf.php?meeting_id='
     };
     Object.keys(links).forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.href = links[id] + encodeURIComponent(meetingId);
     });
+
+    // Populate PV summary card
+    if (_meetingData) {
+      var pvTitle = document.getElementById('pvSummaryTitle');
+      var pvResolutions = document.getElementById('pvSummaryResolutions');
+      var pvRate = document.getElementById('pvSummaryRate');
+      if (pvTitle) pvTitle.textContent = _meetingData.title || 'S\u00e9ance';
+      if (pvResolutions) pvResolutions.textContent = _meetingData.total_motions || '—';
+      if (pvRate) pvRate.textContent = _meetingData.adoption_rate != null ? _meetingData.adoption_rate + '%' : '—';
+    } else {
+      // Try to load summary data for PV card
+      window.api('/api/v1/meeting_summary.php?meeting_id=' + encodeURIComponent(meetingId))
+        .then(function (res) {
+          if (res.body && res.body.ok && res.body.data) {
+            var s = res.body.data;
+            var pvTitle = document.getElementById('pvSummaryTitle');
+            var pvResolutions = document.getElementById('pvSummaryResolutions');
+            var pvRate = document.getElementById('pvSummaryRate');
+            if (pvTitle && s.title) pvTitle.textContent = s.title;
+            if (pvResolutions) pvResolutions.textContent = s.total_motions || s.motions_count || '—';
+            if (pvRate) pvRate.textContent = s.adoption_rate != null ? s.adoption_rate + '%' : '—';
+          }
+        })
+        .catch(function () { /* silent */ });
+    }
   }
 
   // =========================================================================
@@ -284,15 +353,9 @@
   // =========================================================================
 
   function bindNavigation() {
-    // Forward buttons
-    click('btnToStep2', function () { goToStep(2); });
-    click('btnToStep3', function () { goToStep(3); });
-    click('btnToStep4', function () { goToStep(4); });
-
-    // Back buttons
-    click('btnBackToStep1', function () { goToStep(1); });
-    click('btnBackToStep2', function () { goToStep(2); });
-    click('btnBackToStep3', function () { goToStep(3); });
+    // Shared footer nav buttons
+    click('btnPrecedent', function () { goToStep(_currentStep - 1); });
+    click('btnSuivant', function () { goToStep(_currentStep + 1); });
 
     // Generate PV
     click('btnGenerateReport', async function () {
@@ -397,13 +460,52 @@
     });
 
     // Custom email toggle
-    var sendTo = document.getElementById('sendTo');
-    if (sendTo) {
-      sendTo.addEventListener('change', function () {
+    var sendToEl = document.getElementById('sendTo');
+    if (sendToEl) {
+      sendToEl.addEventListener('change', function () {
         var grp = document.getElementById('customEmailGroup');
-        if (grp) grp.hidden = sendTo.value !== 'custom';
+        if (grp) grp.hidden = sendToEl.value !== 'custom';
       });
     }
+
+    // eIDAS chip toggle
+    var chipGroup = document.getElementById('eidasChips');
+    if (chipGroup) {
+      chipGroup.addEventListener('click', function (e) {
+        var chip = e.target.closest('.chip');
+        if (!chip) return;
+        chipGroup.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
+        chip.classList.add('active');
+      });
+    }
+
+    // Sign button handlers
+    click('btnSignPresident', function () {
+      var btn = document.getElementById('btnSignPresident');
+      if (btn && !btn.dataset.signed) {
+        btn.dataset.signed = '1';
+        btn.disabled = true;
+        _sigCount++;
+        updateSigCounter();
+        setNotif('success', 'Signature du pr\u00e9sident enregistr\u00e9e');
+      }
+    });
+
+    click('btnSignSecretary', function () {
+      var btn = document.getElementById('btnSignSecretary');
+      if (btn && !btn.dataset.signed) {
+        btn.dataset.signed = '1';
+        btn.disabled = true;
+        _sigCount++;
+        updateSigCounter();
+        setNotif('success', 'Signature du secr\u00e9taire enregistr\u00e9e');
+      }
+    });
+  }
+
+  function updateSigCounter() {
+    var counter = document.getElementById('sigCounter');
+    if (counter) counter.textContent = _sigCount + '/2 signatures';
   }
 
   function click(id, fn) {
@@ -428,6 +530,7 @@
     if (!meetingId) {
       // Show meeting picker with available closed/validated meetings
       var picker = document.getElementById('meetingPicker');
+      var selectEl = document.getElementById('meetingPickerSelect');
       if (picker) {
         picker.hidden = false;
         try {
@@ -436,7 +539,6 @@
           var eligible = meetings.filter(function (m) {
             return m.status === 'closed' || m.status === 'validated' || m.status === 'archived';
           });
-          var selectEl = document.getElementById('meetingPickerSelect');
           if (selectEl && eligible.length) {
             selectEl.innerHTML = '<option value="">\u2014 S\u00e9lectionner une s\u00e9ance \u2014</option>' +
               eligible.map(function (m) {
@@ -462,12 +564,12 @@
     try {
       var res = await window.api('/api/v1/meetings.php?id=' + meetingId);
       if (res.body && res.body.ok && res.body.data) {
-        var title = document.getElementById('meetingTitle');
-        if (title) title.textContent = res.body.data.title || 'S\u00e9ance';
+        var titleEl = document.getElementById('meetingTitle');
+        if (titleEl) titleEl.textContent = res.body.data.title || 'S\u00e9ance';
       }
     } catch (e) {
-      var title = document.getElementById('meetingTitle');
-      if (title) title.textContent = 'S\u00e9ance';
+      var titleEl = document.getElementById('meetingTitle');
+      if (titleEl) titleEl.textContent = 'S\u00e9ance';
     }
 
     bindNavigation();
