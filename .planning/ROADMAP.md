@@ -19,8 +19,8 @@
 - [x] **Phase 9: Operator Console** - Redesign operator page with live KPI strip, progress track, resolution tabs, attendance, agenda sidebar, quorum modal (completed 2026-03-13)
 - [x] **Phase 10: Live Session Views** - Room display (full-screen, dark) and voter tablet/mobile view (touch-optimized, large buttons) (completed 2026-03-13)
 - [x] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views (completed 2026-03-15)
-- [ ] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination)
-- [ ] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers)
+- [x] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination) (completed 2026-03-15)
+- [x] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers) (completed 2026-03-15)
 
 ## Phase Details
 
@@ -187,8 +187,8 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 9. Operator Console | 3/3 | Complete   | 2026-03-13 |
 | 10. Live Session Views | 2/2 | Complete   | 2026-03-13 |
 | 11. Post-Session & Records | 3/3 | Complete    | 2026-03-15 |
-| 12. Analytics & User Management | 0/TBD | Not started | - |
-| 13. Settings & Help | 0/TBD | Not started | - |
+| 12. Analytics & User Management | 4/4 | Complete    | 2026-03-15 |
+| 13. Settings & Help | 4/4 | Complete    | 2026-03-15 |
 
 ---
 
