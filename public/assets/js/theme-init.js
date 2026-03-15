@@ -1,1 +1,2 @@
 !function(){var t=localStorage.getItem('ag-vote-theme');if(!t&&matchMedia('(prefers-color-scheme:dark)').matches)t='dark';if(t)document.documentElement.setAttribute('data-theme',t);}();
+(function(){var s=localStorage.getItem('ag-vote-text-size');if(s==='large')document.documentElement.classList.add('text-size-large');else if(s==='xlarge')document.documentElement.classList.add('text-size-xlarge');if(localStorage.getItem('ag-vote-high-contrast')==='true')document.documentElement.setAttribute('data-high-contrast','true');})();
