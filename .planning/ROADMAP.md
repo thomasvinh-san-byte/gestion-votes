@@ -9,7 +9,7 @@
 
 **Phase Numbering:**
 - Integer phases (4-13): Planned v2.0 milestone work
-- Decimal phases (e.g., 5.1): Urgent insertions if needed (marked with INSERTED)
+- Decimal phases (e.g., 10.1, 10.2): Gap closure or urgent insertions (marked with INSERTED)
 
 - [x] **Phase 4: Design Tokens & Theme** - Align color, typography, shadow, and elevation tokens with wireframe; implement dark/light theme switching (completed 2026-03-12)
 - [ ] **Phase 5: Shared Components** - Build reusable component library (modals, toasts, dialogs, tags, popovers, progress bars, empty states, guided tours, session banner)
@@ -137,6 +137,35 @@ Plans:
 - [ ] 10-01-PLAN.md — Room display: inline styles cleanup, horizontal bar refactor, public.css tokenization, public.js bar direction fix
 - [ ] 10-02-PLAN.md — Voter view: inline styles cleanup, vote.css tokenization, present/absent toggle, ARIA audit on both pages
 
+### Phase 10.1: Cross-Phase Integration Fixes (INSERTED — Gap Closure)
+**Goal**: Fix 3 critical integration bugs discovered by milestone audit: wizard session creation, toast wiring, and operator exec timer lifecycle
+**Depends on**: Phases 5, 8, 9 (fixes wiring between these phases)
+**Requirements**: WIZ-05, COMP-03, OPR-01
+**Gap Closure**: Closes gaps from v2.0-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. Wizard "Creer" button successfully POSTs to /api/v1/meetings and redirects to hub with a valid session ID
+  2. Toast notifications appear on wizard (error) and hub (success redirect) pages using ag-toast component
+  3. Operator execution header timer ticks HH:MM:SS when entering exec mode and stops when leaving
+  4. Tech debt items resolved: standalone #fff in .btn-extend, wrong --radius-lg fallback in ag-confirm.js, dead DOM ID references in operator-exec.js
+**Plans**: TBD
+Plans:
+- (to be planned)
+
+### Phase 10.2: Layout & Navigation Verification (INSERTED — Gap Closure)
+**Goal**: Verify Phase 6 implementation against all 6 NAV requirements, fix any actual code gaps for NAV-01/NAV-02 (orphaned), and produce the missing 06-VERIFICATION.md
+**Depends on**: Phase 6 (verifies its output)
+**Requirements**: NAV-01, NAV-02, NAV-03, NAV-04, NAV-05, NAV-06
+**Gap Closure**: Closes gaps from v2.0-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. Sidebar shows 58px icon rail, expands to 252px on hover as overlay, and can be pinned open (NAV-01)
+  2. Sidebar navigation organized into 5 labeled sections matching wireframe (NAV-02)
+  3. Header bar, mobile bottom nav, footer, and ARIA landmarks all verified in code (NAV-03 to NAV-06)
+  4. Cross-phase wiring confirmed: sidebar/header/footer present on all downstream pages (7-10)
+  5. 06-VERIFICATION.md created with full requirements coverage table
+**Plans**: TBD
+Plans:
+- (to be planned)
+
 ### Phase 11: Post-Session & Records
 **Goal**: Users complete post-session workflow (verify, validate, generate PV, send), browse archived sessions, and review audit logs
 **Depends on**: Phase 5, Phase 6
@@ -210,6 +239,8 @@ Plans:
 ## Progress
 
 **Execution Order:**
+Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 10.1 -> 10.2 -> 11 -> 12 -> 13
+Gap closure phases (10.1, 10.2) run before new feature phases.
 Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15
 (Phases 14-15 are gap closure phases from milestone audit. Phase 14 should execute before 15.)
 
@@ -222,6 +253,8 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 8. Session Wizard & Hub | 3/3 | Complete   | 2026-03-13 |
 | 9. Operator Console | 3/3 | Complete   | 2026-03-13 |
 | 10. Live Session Views | 2/2 | Complete   | 2026-03-13 |
+| 10.1. Integration Fixes | 0/TBD | Not started | - |
+| 10.2. Layout Verification | 0/TBD | Not started | - |
 | 11. Post-Session & Records | 3/3 | Complete    | 2026-03-15 |
 | 12. Analytics & User Management | 4/4 | Complete    | 2026-03-15 |
 | 13. Settings & Help | 4/4 | Complete    | 2026-03-15 |

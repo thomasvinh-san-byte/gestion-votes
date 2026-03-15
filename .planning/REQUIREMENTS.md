@@ -45,7 +45,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 - [x] **WIZ-02**: Step 1 — Infos générales: title, type (select), date, time, location, address
 - [x] **WIZ-03**: Step 2 — Membres: CSV import, manual entry table, lot assignment, vote weight
 - [x] **WIZ-04**: Step 3 — Ordre du jour: resolution entries, voting rule per resolution, secret ballot toggle
-- [x] **WIZ-05**: Step 4 — Récapitulatif: review all info, create button, download PDF option
+- [ ] **WIZ-05**: Step 4 — Récapitulatif: review all info, create button, download PDF option
 
 ### Session Hub
 
@@ -124,7 +124,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 - [x] **COMP-01**: Modal system (center dialog with header/body/footer, overlay backdrop)
 - [x] **COMP-02**: Confirmation dialogs (danger/warn/info variants with icon)
-- [x] **COMP-03**: Toast notification system (success/warn/error/info, auto-dismiss)
+- [ ] **COMP-03**: Toast notification system (success/warn/error/info, auto-dismiss)
 - [x] **COMP-04**: Empty state component (icon + title + subtitle + CTA)
 - [x] **COMP-05**: Tag/badge system (danger, success, warn, accent, purple variants)
 - [x] **COMP-06**: Progress bars and mini bar charts (vote distribution)
@@ -161,6 +161,7 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | DS-05 | Phase 4 | Complete |
 | COMP-01 | Phase 5 | Complete |
 | COMP-02 | Phase 5 | Complete |
+| COMP-03 | Phase 10.1 | Pending |
 | COMP-03 | Phase 14 | Complete |
 | COMP-04 | Phase 5 | Complete |
 | COMP-05 | Phase 5 | Complete |
@@ -168,6 +169,14 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | COMP-07 | Phase 5 | Complete |
 | COMP-08 | Phase 5 | Complete |
 | COMP-09 | Phase 5 | Complete |
+| NAV-01 | Phase 10.2 | Pending |
+| NAV-02 | Phase 10.2 | Pending |
+| NAV-03 | Phase 10.2 | Pending |
+| NAV-04 | Phase 10.2 | Pending |
+| NAV-05 | Phase 10.2 | Pending |
+| NAV-06 | Phase 10.2 | Pending |
+| DASH-01 | Phase 7 | Complete |
+| DASH-02 | Phase 7 | Complete |
 | NAV-01 | Phase 15 | Pending |
 | NAV-02 | Phase 15 | Pending |
 | NAV-03 | Phase 15 | Pending |
@@ -187,6 +196,13 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | WIZ-02 | Phase 8 | Complete |
 | WIZ-03 | Phase 8 | Complete |
 | WIZ-04 | Phase 8 | Complete |
+| WIZ-05 | Phase 10.1 | Pending |
+| HUB-01 | Phase 8 | Complete |
+| HUB-02 | Phase 8 | Complete |
+| HUB-03 | Phase 8 | Complete |
+| HUB-04 | Phase 8 | Complete |
+| HUB-05 | Phase 8 | Complete |
+| OPR-01 | Phase 10.1 | Pending |
 | WIZ-05 | Phase 14 | Complete |
 | HUB-01 | Phase 14 | Complete |
 | HUB-02 | Phase 14 | Complete |
@@ -238,5 +254,6 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-03-12*
+*Last updated: 2026-03-15 after milestone audit gap closure planning*
 *Last updated: 2026-03-15 after Phase 15 completion (all 74 requirements complete)*
 *Last updated: 2026-03-13 after gap closure phase creation*
