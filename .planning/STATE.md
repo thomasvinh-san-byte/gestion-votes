@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: verified
-stopped_at: Phase 10 verified — 12/12 must-haves passed
-last_updated: "2026-03-13T14:00:00.000Z"
-last_activity: 2026-03-13 -- Phase 10 verified, all gaps closed (VOTE-03 timer, VOTE-01 bottom nav, DISP-01 dark bg)
+status: verifying
+stopped_at: Completed 11-postsession-records 11-01-PLAN.md
+last_updated: "2026-03-16T04:52:13.807Z"
+last_activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
 progress:
   total_phases: 10
-  completed_phases: 10
-  total_plans: 20
-  completed_plans: 20
+  completed_phases: 8
+  total_plans: 22
+  completed_plans: 22
   percent: 100
 ---
 
@@ -68,6 +68,8 @@ Progress: [##########] 100%
 | Phase 09 P03 | 5min | 2 tasks | 3 files |
 | Phase 10-live-session-views P01 | 2min | 2 tasks | 3 files |
 | Phase 10-live-session-views P02 | 5min | 2 tasks | 4 files |
+| Phase 11-postsession-records P02 | 4 | 2 tasks | 6 files |
+| Phase 11-postsession-records P01 | 15 | 2 tasks | 3 files |
 
 ## Milestone History
 
@@ -142,6 +144,11 @@ Recent decisions affecting current work:
 - [Phase 10-live-session-views]: Footer utility classes added to public.css since public page only loads design-system.css + public.css (not operator.css)
 - [Phase Phase 10-live-session-views]: apiPost returns response.json() directly (not {body, status}), result.ok is the correct check for attendances_upsert response
 - [Phase Phase 10-live-session-views]: _isAbsent guard added to all setVoteButtonsEnabled enable-paths to enforce legal absent-voter restriction
+- [Phase 11-postsession-records]: audit.js uses var throughout to match codebase convention (no const/let)
+- [Phase 11-postsession-records]: loadAdminAuditLog() in admin.js replaced with no-op stub so refreshAll() works without errors after DOM elements removed
+- [Phase 11-postsession-records]: Sidebar Journal d'audit uses icon-file-text to distinguish from trust Audit page (icon-shield-check)
+- [Phase 11-postsession-records]: cursor: pointer added to .ps-step.done for clickable completed steps per wireframe
+- [Phase 11-postsession-records]: Archives modal initial state uses hidden attribute; Shared.show/hide JS compatible since inline style takes CSS precedence over hidden
 
 ### Pending Todos
 
@@ -157,6 +164,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T14:00:00.000Z
-Stopped at: Phase 10 verified — all v2.0 phases complete
+Last session: 2026-03-16T04:52:13.805Z
+Stopped at: Completed 11-postsession-records 11-01-PLAN.md
 Resume file: None
