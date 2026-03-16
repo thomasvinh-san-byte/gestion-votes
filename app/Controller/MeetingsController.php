@@ -372,48 +372,171 @@ final class MeetingsController extends AbstractController {
 
         $data = api_request('POST');
 
-        $v = ValidationSchemas::meeting()->validate($data);
-        $v->failIfInvalid();
+        // Field mapping: wizard sends different field names than the internal schema.
+        // Map wizard fields BEFORE any validation — do NOT run ValidationSchemas::meeting()
+        // on the raw wizard payload because field names differ (type vs meeting_type, etc.).
+        $title = trim((string) ($data['title'] ?? ''));
+        if (mb_strlen($title) < 3) {
+            api_fail('missing_title', 422, ['detail' => 'Le titre est obligatoire (3 caractères minimum).']);
+        }
 
-        $title = $v->get('title');
-        $description = $v->get('description');
-        $scheduledAt = $v->get('scheduled_at');
-        $location = $v->get('location');
-        $meetingType = $v->get('meeting_type', 'ag_ordinaire');
+        $meetingType = trim((string) ($data['type'] ?? 'ag_ordinaire')) ?: 'ag_ordinaire';
+        $validMeetingTypes = ['ag_ordinaire', 'ag_extraordinaire', 'conseil', 'bureau', 'autre'];
+        if (!in_array($meetingType, $validMeetingTypes, true)) {
+            $meetingType = 'ag_ordinaire';
+        }
 
+        $description = trim((string) ($data['description'] ?? '')) ?: null;
+        $location = trim((string) ($data['place'] ?? '')) ?: null;
+
+        $dateStr = trim((string) ($data['date'] ?? ''));
+        $timeStr = trim((string) ($data['time'] ?? ''));
+        $scheduledAt = null;
+        if ($dateStr !== '') {
+            $scheduledAt = $dateStr . ' ' . ($timeStr !== '' ? $timeStr : '00:00') . ':00';
+        }
+
+        $quorumPolicyId = trim((string) ($data['quorum'] ?? '')) ?: null;
+        $votePolicyId = trim((string) ($data['defaultMaj'] ?? '')) ?: null;
+
+        /** @var array<int, array<string, mixed>> $members */
+        $members = is_array($data['members'] ?? null) ? $data['members'] : [];
+        /** @var array<int, array<string, mixed>> $resolutions */
+        $resolutions = is_array($data['resolutions'] ?? null) ? $data['resolutions'] : [];
+
+        $tenantId = api_current_tenant_id();
         $repo = $this->repo()->meeting();
-        $id = $repo->generateUuid();
-        $repo->create(
-            $id,
-            api_current_tenant_id(),
-            $title,
-            $description ?: null,
-            $scheduledAt ?: null,
-            $location ?: null,
-            $meetingType,
-        );
-
+        $memberRepo = $this->repo()->member();
+        $attendanceRepo = $this->repo()->attendance();
+        $motionRepo = $this->repo()->motion();
         $policyRepo = $this->repo()->policy();
-        $votePolicies = $policyRepo->listVotePolicies(api_current_tenant_id());
-        $quorumPolicies = $policyRepo->listQuorumPolicies(api_current_tenant_id());
-        $defaults = [];
-        if (!empty($votePolicies)) {
-            $defaults['vote_policy_id'] = $votePolicies[0]['id'];
-        }
-        if (!empty($quorumPolicies)) {
-            $defaults['quorum_policy_id'] = $quorumPolicies[0]['id'];
-        }
-        if ($defaults) {
-            $repo->updateFields($id, api_current_tenant_id(), $defaults);
-        }
 
-        audit_log('meeting_created', 'meeting', $id, [
+        $result = api_transaction(function () use (
+            $repo, $memberRepo, $attendanceRepo, $motionRepo, $policyRepo,
+            $title, $description, $scheduledAt, $location, $meetingType,
+            $quorumPolicyId, $votePolicyId, $members, $resolutions, $tenantId,
+        ): array {
+            // Generate meeting UUID inside transaction
+            $meetingId = $repo->generateUuid();
+
+            // Create the meeting record
+            $repo->create(
+                $meetingId,
+                $tenantId,
+                $title,
+                $description,
+                $scheduledAt,
+                $location,
+                $meetingType,
+            );
+
+            // Apply policy defaults: use wizard-provided UUIDs if valid, else fall back to first policy
+            $defaults = [];
+            if ($votePolicyId !== null && api_is_uuid($votePolicyId)) {
+                $defaults['vote_policy_id'] = $votePolicyId;
+            } else {
+                $votePolicies = $policyRepo->listVotePolicies($tenantId);
+                if (!empty($votePolicies)) {
+                    $defaults['vote_policy_id'] = $votePolicies[0]['id'];
+                }
+            }
+            if ($quorumPolicyId !== null && api_is_uuid($quorumPolicyId)) {
+                $defaults['quorum_policy_id'] = $quorumPolicyId;
+            } else {
+                $quorumPolicies = $policyRepo->listQuorumPolicies($tenantId);
+                if (!empty($quorumPolicies)) {
+                    $defaults['quorum_policy_id'] = $quorumPolicies[0]['id'];
+                }
+            }
+            if ($defaults) {
+                $repo->updateFields($meetingId, $tenantId, $defaults);
+            }
+
+            // Process members: validate, upsert by email, link via attendance
+            $membersCreated = 0;
+            $membersLinked = 0;
+
+            foreach ($members as $index => $member) {
+                $nom = trim((string) ($member['nom'] ?? ''));
+                $email = trim((string) ($member['email'] ?? ''));
+                $voteWeight = (float) ($member['voix'] ?? 1);
+
+                // Validate nom
+                if ($nom === '') {
+                    api_fail('invalid_member', 422, [
+                        'error' => true,
+                        'details' => [['index' => $index, 'field' => 'nom', 'message' => 'Le nom est obligatoire.']],
+                    ]);
+                }
+
+                // Validate email
+                if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+                    api_fail('invalid_member', 422, [
+                        'error' => true,
+                        'details' => [['index' => $index, 'field' => 'email', 'message' => 'Email invalide.']],
+                    ]);
+                }
+
+                // Upsert by email: reuse existing member or create new one
+                $existing = $memberRepo->findByEmail($tenantId, $email);
+                if ($existing !== null) {
+                    $memberId = (string) $existing['id'];
+                    $membersLinked++;
+                } else {
+                    $memberId = $memberRepo->generateUuid();
+                    $memberRepo->create($memberId, $tenantId, $nom, $email, $voteWeight, true);
+                    $membersCreated++;
+                }
+
+                // Link member to meeting via attendance
+                $attendanceRepo->upsertMode($meetingId, $memberId, 'present', $tenantId);
+            }
+
+            // Process resolutions: validate and create motions
+            $motionsCreated = 0;
+
+            foreach ($resolutions as $index => $resolution) {
+                $resTitle = trim((string) ($resolution['title'] ?? ''));
+
+                // Validate resolution title
+                if ($resTitle === '') {
+                    api_fail('invalid_resolution', 422, [
+                        'error' => true,
+                        'details' => [['index' => $index, 'field' => 'title', 'message' => 'Le titre de la résolution est obligatoire.']],
+                    ]);
+                }
+
+                $motionId = $motionRepo->generateUuid();
+                $resDescription = trim((string) ($resolution['description'] ?? ''));
+                $motionRepo->create(
+                    $motionId,
+                    $tenantId,
+                    $meetingId,
+                    null,   // agendaId
+                    $resTitle,
+                    $resDescription,
+                    false,  // secret
+                    null,   // votePolicyId
+                    null,   // quorumPolicyId
+                );
+                $motionsCreated++;
+            }
+
+            return [
+                'meeting_id' => $meetingId,
+                'title' => $title,
+                'members_created' => $membersCreated,
+                'members_linked' => $membersLinked,
+                'motions_created' => $motionsCreated,
+            ];
+        });
+
+        audit_log('meeting_created', 'meeting', (string) $result['meeting_id'], [
             'title' => $title,
             'scheduled_at' => $scheduledAt,
             'location' => $location,
         ]);
 
-        $result = ['meeting_id' => $id, 'title' => $title];
         IdempotencyGuard::store($result);
         api_ok($result, 201);
     }
