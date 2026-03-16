@@ -110,16 +110,409 @@
   // USERS — Lightweight count summary only
   // Full user management moved to /users.htmx.html
   // ═══════════════════════════════════════════════════════
+  var _users = [];
+  var _allUsers = [];
+
+  // --- Avatar helpers ---
+  function getInitials(name) {
+    var parts = (name || '').trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return (name || '?').substring(0, 2).toUpperCase();
+  }
+
+  function getAvatarColor(name) {
+    var colors = ['#1650E0','#059669','#D97706','#DC2626','#7C3AED','#0891B2','#BE185D','#4F46E5'];
+    var hash = 0;
+    var str = name || '';
+    for (var i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  }
+
+  // --- Date formatting ---
+  function formatLastLogin(dateStr) {
+    if (!dateStr) return '<span class="text-muted">Jamais</span>';
+    var d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  // --- Pagination state ---
+  var USERS_PER_PAGE = 10;
+  var _usersCurrentPage = 1;
+
   async function loadUsers() {
     try {
       var r = await api('/api/v1/admin_users.php');
       if (r.body && r.body.ok && r.body.data) {
-        var count = (r.body.data.items || []).length;
-        var el = document.getElementById('adminUsersCount');
-        if (el) el.textContent = count + ' utilisateur' + (count !== 1 ? 's' : '');
+        _allUsers = r.body.data.items || [];
+        _usersCurrentPage = 1;
+        filterAndRenderUsers();
       }
-    } catch (e) { /* silent - summary only */ }
+    } catch (e) {
+      setNotif('error', 'Erreur chargement utilisateurs');
+      var c = document.getElementById('usersTableBody');
+      if (c) c.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-muted">Erreur de chargement</td></tr>';
+    }
   }
+
+  function filterAndRenderUsers() {
+    const searchInput = document.getElementById('searchUser');
+    const search = searchInput ? searchInput.value.trim() : '';
+
+    if (search && window.Utils && Utils.fuzzyFilter) {
+      // Use fuzzy search for better matching
+      _users = Utils.fuzzyFilter(_allUsers, search, ['name', 'email']);
+    } else if (search) {
+      // Fallback to simple includes
+      const searchLower = search.toLowerCase();
+      _users = _allUsers.filter(function(u) {
+        return (u.name || '').toLowerCase().includes(searchLower) ||
+               (u.email || '').toLowerCase().includes(searchLower);
+      });
+    } else {
+      _users = _allUsers;
+    }
+
+    const countEl = document.getElementById('usersCount');
+    if (countEl) {
+      countEl.textContent = _users.length + ' utilisateur' + (_users.length !== 1 ? 's' : '');
+    }
+
+    _usersCurrentPage = 1;
+    renderUsersTable(_users, _usersCurrentPage);
+  }
+
+  // Search input handler
+  var searchUserInput = document.getElementById('searchUser');
+  if (searchUserInput) {
+    searchUserInput.addEventListener('input', filterAndRenderUsers);
+  }
+
+  function renderUsersTable(users, page) {
+    var container = document.getElementById('usersTableBody');
+    if (!container) return;
+    if (!users.length) {
+      container.innerHTML = '<tr><td colspan="7">' + Shared.emptyState({ icon: 'members', title: 'Aucun utilisateur trouvé', description: 'Créez un compte depuis le formulaire ci-dessus.' }) + '</td></tr>';
+      updateUsersPagination(0, 0, 0);
+      return;
+    }
+
+    var currentPage = page || 1;
+    var totalPages = Math.ceil(users.length / USERS_PER_PAGE);
+    currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+    _usersCurrentPage = currentPage;
+
+    var start = (currentPage - 1) * USERS_PER_PAGE;
+    var end = Math.min(start + USERS_PER_PAGE, users.length);
+    var pageUsers = users.slice(start, end);
+
+    // Role tag variants: admin=accent, operator=success, auditor=purple, viewer=(default)
+    var roleTagVariant = { admin: 'accent', operator: 'success', auditor: 'purple', viewer: '' };
+
+    container.innerHTML = pageUsers.map(function(u) {
+      var initials = getInitials(u.name || '');
+      var avatarColor = getAvatarColor(u.name || '');
+      var roleLabel = escapeHtml(roleLabelsSystem[u.role] || u.role);
+      var variant = roleTagVariant[u.role] || '';
+      var roleTagClass = variant ? 'tag tag-' + variant : 'tag';
+      var statusClass = u.is_active ? 'user-status-active' : 'user-status-inactive';
+      var statusLabel = u.is_active ? 'Actif' : 'Inactif';
+      return '<tr data-user-id="' + escapeHtml(u.id) + '">' +
+        '<td><div class="user-avatar-initials" style="background:' + avatarColor + '">' + escapeHtml(initials) + '</div></td>' +
+        '<td class="font-semibold">' + escapeHtml(u.name || '') + '</td>' +
+        '<td class="text-sm text-muted">' + escapeHtml(u.email || '') + '</td>' +
+        '<td><span class="' + roleTagClass + '">' + roleLabel + '</span></td>' +
+        '<td><span class="' + statusClass + '">' + statusLabel + '</span></td>' +
+        '<td class="text-sm text-muted">' + formatLastLogin(u.last_login) + '</td>' +
+        '<td><button class="btn btn-ghost btn-xs btn-edit-user" data-id="' + escapeHtml(u.id) + '">Modifier</button></td>' +
+      '</tr>';
+    }).join('');
+
+    updateUsersPagination(currentPage, totalPages, users.length, start, end);
+  }
+
+  function updateUsersPagination(currentPage, totalPages, total, start, end) {
+    var infoEl = document.getElementById('usersPaginationInfo');
+    var pagesEl = document.getElementById('usersPaginationPages');
+    var prevBtn = document.getElementById('usersPrevPage');
+    var nextBtn = document.getElementById('usersNextPage');
+
+    if (!infoEl || !pagesEl || !prevBtn || !nextBtn) return;
+
+    if (!total) {
+      infoEl.textContent = '— utilisateurs';
+      pagesEl.innerHTML = '';
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      return;
+    }
+
+    infoEl.textContent = (start + 1) + '\u2013' + end + ' sur ' + total + ' utilisateur' + (total !== 1 ? 's' : '');
+
+    // Generate page number buttons
+    var pages = '';
+    for (var i = 1; i <= totalPages; i++) {
+      var activeClass = i === currentPage ? ' active' : '';
+      pages += '<button class="pagination-page' + activeClass + '" data-page="' + i + '">' + i + '</button>';
+    }
+    pagesEl.innerHTML = pages;
+
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPages;
+  }
+
+  // Pagination button handlers
+  var usersPrevBtn = document.getElementById('usersPrevPage');
+  var usersNextBtn = document.getElementById('usersNextPage');
+  var usersPagesEl = document.getElementById('usersPaginationPages');
+
+  if (usersPrevBtn) {
+    usersPrevBtn.addEventListener('click', function() {
+      if (_usersCurrentPage > 1) {
+        renderUsersTable(_users, _usersCurrentPage - 1);
+      }
+    });
+  }
+
+  if (usersNextBtn) {
+    usersNextBtn.addEventListener('click', function() {
+      var totalPages = Math.ceil(_users.length / USERS_PER_PAGE);
+      if (_usersCurrentPage < totalPages) {
+        renderUsersTable(_users, _usersCurrentPage + 1);
+      }
+    });
+  }
+
+  if (usersPagesEl) {
+    usersPagesEl.addEventListener('click', function(e) {
+      var btn = e.target.closest('.pagination-page');
+      if (btn) {
+        renderUsersTable(_users, parseInt(btn.dataset.page, 10));
+      }
+    });
+  }
+
+  document.getElementById('filterRole').addEventListener('change', loadUsers);
+
+  // P7-3: Password strength indicator
+  var newPasswordInput = document.getElementById('newPassword');
+  if (newPasswordInput) {
+    newPasswordInput.addEventListener('input', function() {
+      var pw = this.value;
+      var strengthEl = document.getElementById('passwordStrength');
+      var fillEl = document.getElementById('passwordStrengthFill');
+      var textEl = document.getElementById('passwordStrengthText');
+      if (!strengthEl || !fillEl || !textEl) return;
+
+      if (!pw) { strengthEl.hidden = true; return; }
+      strengthEl.hidden = false;
+
+      var score = 0;
+      if (pw.length >= 8) score++;
+      if (pw.length >= 12) score++;
+      if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+      if (/\d/.test(pw)) score++;
+      if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+      var levels = [
+        { cls: 'weak', text: 'Faible', color: 'var(--color-danger)' },
+        { cls: 'fair', text: 'Moyen', color: 'var(--color-warning)' },
+        { cls: 'good', text: 'Bon', color: 'var(--color-primary)' },
+        { cls: 'strong', text: 'Fort', color: 'var(--color-success)' }
+      ];
+      var level = score <= 1 ? 0 : score <= 2 ? 1 : score <= 3 ? 2 : 3;
+      fillEl.className = 'password-strength-fill ' + levels[level].cls;
+      textEl.textContent = levels[level].text;
+      textEl.style.color = levels[level].color;
+    });
+  }
+
+  // Inline validation on create user form
+  Shared.liveValidate(document.getElementById('newName'), [
+    { test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }
+  ]);
+  Shared.liveValidate(document.getElementById('newEmail'), [
+    { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
+    { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
+  ]);
+  Shared.liveValidate(document.getElementById('newPassword'), [
+    { test: function(v) { return v.length >= 8; }, msg: 'Minimum 8 caract\u00e8res' }
+  ]);
+
+  // Create user
+  document.getElementById('btnCreateUser').addEventListener('click', async function() {
+    const btn = this;
+    var valid = Shared.validateAll([
+      { input: document.getElementById('newName'), rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
+      { input: document.getElementById('newEmail'), rules: [
+        { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
+        { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
+      ]},
+      { input: document.getElementById('newPassword'), rules: [{ test: function(v) { return v.length >= 8; }, msg: 'Minimum 8 caract\u00e8res' }] }
+    ]);
+    if (!valid) return;
+    const name = document.getElementById('newName').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
+    const role = document.getElementById('newRole').value;
+    const password = document.getElementById('newPassword').value;
+    Shared.btnLoading(btn, true);
+    try {
+      const r = await api('/api/v1/admin_users.php', {action:'create', name:name, email:email, role:role, password:password});
+      if (r.body && r.body.ok) {
+        setNotif('success', 'Utilisateur cr\u00e9\u00e9');
+        document.getElementById('newName').value = '';
+        document.getElementById('newEmail').value = '';
+        document.getElementById('newPassword').value = '';
+        Shared.fieldClear(document.getElementById('newName'));
+        Shared.fieldClear(document.getElementById('newEmail'));
+        Shared.fieldClear(document.getElementById('newPassword'));
+        var strengthEl = document.getElementById('passwordStrength');
+        if (strengthEl) strengthEl.hidden = true;
+        loadUsers();
+      } else {
+        setNotif('error', getApiError(r.body));
+      }
+    } catch (e) { setNotif('error', e.message); }
+    finally { Shared.btnLoading(btn, false); }
+  });
+
+  // Delegated clicks on users table
+  document.getElementById('usersTableBody').addEventListener('click', async function(e) {
+    let btn;
+
+    // Toggle active
+    btn = e.target.closest('.btn-toggle-user');
+    if (btn) {
+      const active = btn.dataset.active === '1' ? 0 : 1;
+      const label = active ? 'activer' : 'désactiver';
+      const toggleBtn = btn;
+      Shared.openModal({
+        title: (active ? 'Activer' : 'Désactiver') + ' l\'utilisateur',
+        body: '<p>Voulez-vous ' + label + ' cet utilisateur ?</p>',
+        confirmText: active ? 'Activer' : 'Désactiver',
+        onConfirm: async function() {
+          Shared.btnLoading(toggleBtn, true);
+          try {
+            var { body } = await api('/api/v1/admin_users.php', {action:'toggle', user_id:toggleBtn.dataset.id, is_active:active});
+            if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
+            loadUsers();
+          } catch(err) { setNotif('error', err.message); }
+          finally { Shared.btnLoading(toggleBtn, false); }
+        }
+      });
+      return;
+    }
+
+    // Set password
+    btn = e.target.closest('.btn-password-user');
+    if (btn) {
+      const userId = btn.dataset.id;
+      const userName = btn.dataset.name || '';
+      Shared.openModal({
+        title: 'Définir le mot de passe — ' + userName,
+        body:
+          '<div class="form-group mb-4">' +
+            '<label class="form-label">Nouveau mot de passe</label>' +
+            '<input class="form-input" type="password" id="setPassword" placeholder="Min. 8 caractères" autocomplete="new-password">' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Confirmer le mot de passe</label>' +
+            '<input class="form-input" type="password" id="confirmPassword" placeholder="Confirmer le mot de passe" autocomplete="new-password">' +
+          '</div>',
+        confirmText: 'Enregistrer',
+        onConfirm: async function(modal) {
+          const pw = modal.querySelector('#setPassword').value;
+          const confirm = modal.querySelector('#confirmPassword').value;
+          if (!pw || pw.length < 8) { Shared.fieldError(modal.querySelector('#setPassword'), 'Minimum 8 caractères'); return false; }
+          if (pw !== confirm) { Shared.fieldError(modal.querySelector('#confirmPassword'), 'Les mots de passe ne correspondent pas'); return false; }
+          try {
+            var r = await api('/api/v1/admin_users.php', {action:'set_password', user_id:userId, password:pw});
+            if (r.body && r.body.ok) { setNotif('success', 'Mot de passe défini'); loadUsers(); }
+            else { setNotif('error', getApiError(r.body)); return false; }
+          } catch(err) { setNotif('error', err.message); return false; }
+        }
+      });
+      return;
+    }
+
+    // Delete user
+    btn = e.target.closest('.btn-delete-user');
+    if (btn) {
+      const userName = btn.dataset.name || 'cet utilisateur';
+      const delBtn = btn;
+      Shared.openModal({
+        title: 'Supprimer l\'utilisateur',
+        body: '<div class="alert alert-danger mb-3"><strong>Action irréversible</strong></div>' +
+          '<p>Supprimer définitivement <strong>' + escapeHtml(userName) + '</strong> ?</p>',
+        confirmText: 'Supprimer',
+        confirmClass: 'btn btn-danger',
+        onConfirm: async function() {
+          Shared.btnLoading(delBtn, true);
+          try {
+            var r = await api('/api/v1/admin_users.php', {action:'delete', user_id:delBtn.dataset.id});
+            if (r.body && r.body.ok) {
+              setNotif('success', 'Utilisateur supprimé');
+              loadUsers();
+            } else {
+              setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
+            }
+          } catch(err) { setNotif('error', err.message); }
+          finally { Shared.btnLoading(delBtn, false); }
+        }
+      });
+      return;
+    }
+
+    // Edit user (modal dialog)
+    btn = e.target.closest('.btn-edit-user');
+    if (btn) {
+      const user = _users.find(function(u) { return u.id === btn.dataset.id; });
+      if (!user) return;
+
+      const roleOptions = Object.keys(roleLabelsSystem).map(function(k) {
+        const sel = k === user.role ? ' selected' : '';
+        return '<option value="' + k + '"' + sel + '>' + escapeHtml(roleLabelsSystem[k]) + '</option>';
+      }).join('');
+
+      Shared.openModal({
+        title: 'Modifier l\'utilisateur',
+        body:
+          '<div class="form-group mb-4">' +
+            '<label class="form-label">Nom</label>' +
+            '<input class="form-input" type="text" id="editName" value="' + escapeHtml(user.name || '') + '">' +
+          '</div>' +
+          '<div class="form-group mb-4">' +
+            '<label class="form-label">E-mail</label>' +
+            '<input class="form-input" type="email" id="editEmail" value="' + escapeHtml(user.email || '') + '">' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Rôle système</label>' +
+            '<select class="form-input" id="editRole">' + roleOptions + '</select>' +
+          '</div>',
+        confirmText: 'Enregistrer',
+        onConfirm: async function(modal) {
+          var editNameEl = modal.querySelector('#editName');
+          var editEmailEl = modal.querySelector('#editEmail');
+          var valid = Shared.validateAll([
+            { input: editNameEl, rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
+            { input: editEmailEl, rules: [
+              { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
+              { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
+            ]}
+          ]);
+          if (!valid) return false;
+          const newName = editNameEl.value.trim();
+          const newEmail = editEmailEl.value.trim();
+          const newRole = modal.querySelector('#editRole').value;
+          try {
+            var r = await api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole});
+            if (r.body && r.body.ok) { setNotif('success', 'Utilisateur mis à jour'); loadUsers(); }
+            else { setNotif('error', getApiError(r.body)); return false; }
+          } catch(err) { setNotif('error', err.message); return false; }
+        }
+      });
+      return;
+    }
+  });
 
   // ═══════════════════════════════════════════════════════
   // MEETING ROLES
@@ -948,4 +1341,46 @@
 
   // Initial load
   refreshAll();
+})();
+
+// ═══════════════════════════════════════════════════════
+// ACCESSIBILITY: TEXT SIZE & HIGH CONTRAST (localStorage)
+// ═══════════════════════════════════════════════════════
+
+// Text size selector
+(function initTextSize() {
+  var saved = localStorage.getItem('ag-vote-text-size') || 'normal';
+  applyTextSize(saved);
+
+  var selector = document.getElementById('textSizeSelector');
+  if (!selector) return;
+  selector.querySelectorAll('.text-size-btn').forEach(function(btn) {
+    if (btn.dataset.size === saved) btn.classList.add('active');
+    else btn.classList.remove('active');
+    btn.addEventListener('click', function() {
+      selector.querySelectorAll('.text-size-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      applyTextSize(btn.dataset.size);
+      localStorage.setItem('ag-vote-text-size', btn.dataset.size);
+    });
+  });
+})();
+
+function applyTextSize(size) {
+  document.documentElement.classList.remove('text-size-large', 'text-size-xlarge');
+  if (size === 'large') document.documentElement.classList.add('text-size-large');
+  else if (size === 'xlarge') document.documentElement.classList.add('text-size-xlarge');
+}
+
+// High contrast toggle
+(function initHighContrast() {
+  var saved = localStorage.getItem('ag-vote-high-contrast') === 'true';
+  document.documentElement.setAttribute('data-high-contrast', saved);
+  var toggle = document.getElementById('settHighContrast');
+  if (!toggle) return;
+  toggle.checked = saved;
+  toggle.addEventListener('change', function() {
+    document.documentElement.setAttribute('data-high-contrast', toggle.checked);
+    localStorage.setItem('ag-vote-high-contrast', toggle.checked);
+  });
 })();

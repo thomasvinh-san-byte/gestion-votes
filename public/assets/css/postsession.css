@@ -28,82 +28,47 @@
   margin: 0 auto;
 }
 
-/* ─── Stepper ─── */
+/* ─── Segmented bar stepper (wireframe pattern) ─── */
 .ps-stepper {
   display: flex;
-  align-items: center;
-  gap: 0;
+  gap: 4px;
   margin-bottom: var(--space-8);
-  padding: var(--space-4) 0;
 }
 
-.ps-step {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-
-.ps-step-number {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: var(--text-sm);
-  font-weight: var(--font-bold);
+.ps-seg {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm, 6px);
   background: var(--color-bg-subtle);
   color: var(--color-text-muted);
-  border: 2px solid var(--color-border);
-  transition: all var(--duration-normal);
+  font-weight: 600;
+  font-size: 15px;
+  text-align: center;
+  cursor: default;
+  transition: background 0.2s, color 0.2s;
+  user-select: none;
 }
 
-.ps-step-label {
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-muted);
-  transition: color var(--duration-normal);
-}
-
-.ps-step-connector {
-  flex: 1;
-  height: 2px;
-  background: var(--color-border);
-  margin: 0 var(--space-2);
-  min-width: 20px;
-  transition: background var(--duration-normal);
+.ps-seg-num {
+  font-weight: 800;
 }
 
 /* Active step */
-.ps-step.active .ps-step-number {
-  background: var(--persona-postsession);
-  color: var(--color-text-inverse);
-  border-color: var(--persona-postsession);
+.ps-seg.active {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 800;
 }
 
-.ps-step.active .ps-step-label {
-  color: var(--persona-postsession-text);
-  font-weight: var(--font-semibold);
-}
-
-/* Done step */
-.ps-step.done {
+/* Done step — clickable */
+.ps-seg.done {
+  background: var(--color-success);
+  color: #fff;
   cursor: pointer;
 }
 
-.ps-step.done .ps-step-number {
-  background: var(--color-success);
-  color: var(--color-text-inverse);
-  border-color: var(--color-success);
-}
-
-.ps-step.done .ps-step-label {
-  color: var(--color-success-text);
-}
-
-.ps-step-connector.done {
-  background: var(--color-success);
+.ps-seg.done:hover {
+  filter: brightness(1.08);
 }
 
 /* ─── Panels ─── */
@@ -121,21 +86,50 @@
   color: var(--persona-postsession-text);
 }
 
-/* ─── Panel actions (navigation buttons) ─── */
-.ps-actions {
+/* ─── Shared footer nav (replaces per-panel ps-actions) ─── */
+.ps-footer-nav {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-top: var(--space-6);
-  padding-top: var(--space-4);
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
   border-top: 1px solid var(--color-border);
+  margin-top: var(--space-6);
 }
 
-/* ─── Exports grid ─── */
-.ps-exports-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+.ps-footer-nav-counter {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-muted);
+}
+
+.ps-footer-nav-buttons {
+  display: flex;
   gap: var(--space-3);
+  align-items: center;
+}
+
+/* ─── Exports layout — 2-column ─── */
+.ps-exports-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+}
+
+/* ─── Export item row ─── */
+.ps-export-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ps-export-item:last-child {
+  border-bottom: none;
 }
 
 /* ─── Completion banner ─── */
@@ -275,46 +269,18 @@
   padding: var(--space-4) 0;
 }
 
-/* ─── Signataires section ─── */
-.ps-signataires {
+/* ─── Signataires — inline 2-per-row layout ─── */
+.ps-signataire-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
   margin-bottom: var(--space-4);
 }
 
-.ps-signataire-card {
-  padding: var(--space-3);
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  text-align: center;
-}
-
-.ps-signataire-role {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--color-text-muted);
-  margin-bottom: var(--space-1);
-}
-
-.ps-signataire-name {
-  font-weight: var(--font-semibold);
-  font-size: var(--text-sm);
-}
-
-.ps-signataire-status {
-  font-size: var(--text-xs);
-  margin-top: var(--space-1);
-}
-
-.ps-signataire-status.signed {
-  color: var(--color-success);
-}
-
-.ps-signataire-status.pending {
-  color: var(--color-warning);
+/* ─── Reserves field — warn left border ─── */
+.ps-reserves-field {
+  border-left: 3px solid var(--color-warning);
+  padding-left: var(--space-3);
 }
 
 /* Observations textarea */
@@ -328,56 +294,31 @@
   resize: vertical;
 }
 
-/* ─── eIDAS signature modes ─── */
-.ps-eidas {
-  margin-bottom: var(--space-4);
+/* ─── eIDAS chip selector ─── */
+.ps-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.ps-eidas-modes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+/* ─── Sign actions row ─── */
+.ps-sign-actions {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
+  align-items: center;
 }
 
-.ps-eidas-mode {
-  padding: var(--space-4);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius);
-  text-align: center;
-  cursor: pointer;
-  transition: border-color var(--duration-normal), background var(--duration-normal);
-  background: var(--color-surface);
+/* ─── PV Summary card (Step 4) ─── */
+.ps-pv-summary {
+  border: 2px solid var(--color-success);
 }
 
-.ps-eidas-mode:hover {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
-}
-
-.ps-eidas-mode.selected {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
-}
-
-.ps-eidas-mode input[type="radio"] {
-  display: none;
-}
-
-.ps-eidas-mode-icon {
-  font-size: 1.5rem;
-  margin-bottom: var(--space-2);
-}
-
-.ps-eidas-mode-label {
-  font-weight: var(--font-semibold);
-  font-size: var(--text-sm);
-  display: block;
-  margin-bottom: var(--space-1);
-}
-
-.ps-eidas-mode-desc {
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
+.ps-pv-summary-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
 }
 
 /* ─── Fade animation ─── */
@@ -390,24 +331,15 @@
 @media (max-width: 768px) {
   .ps-stepper {
     flex-wrap: wrap;
-    gap: var(--space-2);
   }
 
-  .ps-step-connector {
-    display: none;
+  .ps-seg {
+    flex: 1 1 calc(50% - 2px);
+    font-size: 13px;
+    padding: 10px 8px;
   }
 
-  .ps-step {
-    flex: 1;
-    min-width: calc(50% - var(--space-2));
-    justify-content: center;
-  }
-
-  .ps-step-label {
-    font-size: var(--text-xs);
-  }
-
-  .ps-exports-grid {
+  .ps-exports-layout {
     grid-template-columns: 1fr;
   }
 
@@ -420,12 +352,13 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .ps-eidas-modes {
+  .ps-signataire-row {
     grid-template-columns: 1fr;
   }
 
-  .ps-signataires {
-    grid-template-columns: 1fr;
+  .ps-pv-summary-content {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .ps-results-table th:nth-child(n+4),

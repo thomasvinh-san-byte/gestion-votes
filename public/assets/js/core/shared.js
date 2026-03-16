@@ -542,7 +542,13 @@
     withRetry: withRetry,
     skeleton: skeleton,
     clearSkeleton: clearSkeleton,
-    showToast: showToast
+    showToast: function(message, type) {
+      if (window.AgToast && typeof AgToast.show === 'function') {
+        AgToast.show(type || 'info', message);
+      } else {
+        console.warn('ag-toast not loaded, toast skipped:', type, message);
+      }
+    }
   };
 
 })();

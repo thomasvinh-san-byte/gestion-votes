@@ -334,6 +334,14 @@
   }
 
   function mapApiDataToSession(data) {
+    // Normalize wizard_status field names to hub conventions
+    var normalized = Object.assign({}, data);
+    if (data.meeting_title && !data.title) normalized.title = data.meeting_title;
+    if (data.meeting_status && !data.status) normalized.status = data.meeting_status;
+    if (typeof data.members_count === 'number' && !data.member_count) normalized.member_count = data.members_count;
+    if (typeof data.motions_total === 'number' && !data.resolution_count) normalized.resolution_count = data.motions_total;
+    data = normalized;
+
     var memberCount = 0;
     if (Array.isArray(data.members)) {
       memberCount = data.members.length;
@@ -390,7 +398,7 @@
 
     if (sessionId) {
       try {
-        var res = await window.api('/api/v1/meetings.php?id=' + encodeURIComponent(sessionId));
+        var res = await window.api('/api/v1/wizard_status?meeting_id=' + encodeURIComponent(sessionId));
         if (res && res.body && res.body.ok && res.body.data) {
           var data = res.body.data;
           var sessionData = mapApiDataToSession(data);

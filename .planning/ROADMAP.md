@@ -3,13 +3,13 @@
 ## Milestones
 
 - v1.1 through v1.5 - Phases 1-3 (shipped)
-- v2.0 UI Redesign (Acte Officiel) - Phases 4-14 (in progress)
+- v2.0 UI Redesign (Acte Officiel) - Phases 4-15 (in progress)
 
 ## Phases
 
 **Phase Numbering:**
 - Integer phases (4-13): Planned v2.0 milestone work
-- Decimal phases (e.g., 5.1): Urgent insertions if needed (marked with INSERTED)
+- Decimal phases (e.g., 10.1, 10.2): Gap closure or urgent insertions (marked with INSERTED)
 
 - [x] **Phase 4: Design Tokens & Theme** - Align color, typography, shadow, and elevation tokens with wireframe; implement dark/light theme switching (completed 2026-03-12)
 - [ ] **Phase 5: Shared Components** - Build reusable component library (modals, toasts, dialogs, tags, popovers, progress bars, empty states, guided tours, session banner)
@@ -18,11 +18,14 @@
 - [x] **Phase 8: Session Wizard & Hub** - Build 4-step create session wizard and session hub (status bar, checklist, KPIs, documents) (completed 2026-03-13)
 - [x] **Phase 9: Operator Console** - Redesign operator page with live KPI strip, progress track, resolution tabs, attendance, agenda sidebar, quorum modal (completed 2026-03-13)
 - [x] **Phase 10: Live Session Views** - Room display (full-screen, dark) and voter tablet/mobile view (touch-optimized, large buttons) (completed 2026-03-13)
-- [x] **Phase 10.1: Milestone Gap Closure** (INSERTED) - Close all gaps from v1.1 milestone audit: integration bug fixes + verification documentation (completed 2026-03-15)
-- [x] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views (completed 2026-03-16)
-- [x] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination) (completed 2026-03-16)
-- [x] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers) (completed 2026-03-16)
-- [x] **Phase 14: Integration Bug Fixes** - Fix sidebar/mobile nav settings link, fix users.htmx.html script path (audit gap closure) (completed 2026-03-16)
+- [x] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views (completed 2026-03-15)
+- [x] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination) (completed 2026-03-15)
+- [x] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers) (completed 2026-03-15)
+- [ ] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views
+- [ ] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination)
+- [ ] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers)
+- [x] **Phase 14: Wire Wizard/Hub/Dashboard API Integration** - Fix broken E2E flows: api() argument order, response parsing, single-meeting endpoints, toast wiring, dashboard API shape (Gap Closure) (completed 2026-03-13)
+- [ ] **Phase 15: Operator Console Wiring & Verification Gaps** - Fix operator API endpoint, timer element ID, quorum reset, Phase 6 verification, tech debt cleanup (Gap Closure)
 
 ## Phase Details
 
@@ -134,6 +137,35 @@ Plans:
 - [ ] 10-01-PLAN.md — Room display: inline styles cleanup, horizontal bar refactor, public.css tokenization, public.js bar direction fix
 - [ ] 10-02-PLAN.md — Voter view: inline styles cleanup, vote.css tokenization, present/absent toggle, ARIA audit on both pages
 
+### Phase 10.1: Cross-Phase Integration Fixes (INSERTED — Gap Closure)
+**Goal**: Fix 3 critical integration bugs discovered by milestone audit: wizard session creation, toast wiring, and operator exec timer lifecycle
+**Depends on**: Phases 5, 8, 9 (fixes wiring between these phases)
+**Requirements**: WIZ-05, COMP-03, OPR-01
+**Gap Closure**: Closes gaps from v2.0-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. Wizard "Creer" button successfully POSTs to /api/v1/meetings and redirects to hub with a valid session ID
+  2. Toast notifications appear on wizard (error) and hub (success redirect) pages using ag-toast component
+  3. Operator execution header timer ticks HH:MM:SS when entering exec mode and stops when leaving
+  4. Tech debt items resolved: standalone #fff in .btn-extend, wrong --radius-lg fallback in ag-confirm.js, dead DOM ID references in operator-exec.js
+**Plans**: TBD
+Plans:
+- (to be planned)
+
+### Phase 10.2: Layout & Navigation Verification (INSERTED — Gap Closure)
+**Goal**: Verify Phase 6 implementation against all 6 NAV requirements, fix any actual code gaps for NAV-01/NAV-02 (orphaned), and produce the missing 06-VERIFICATION.md
+**Depends on**: Phase 6 (verifies its output)
+**Requirements**: NAV-01, NAV-02, NAV-03, NAV-04, NAV-05, NAV-06
+**Gap Closure**: Closes gaps from v2.0-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. Sidebar shows 58px icon rail, expands to 252px on hover as overlay, and can be pinned open (NAV-01)
+  2. Sidebar navigation organized into 5 labeled sections matching wireframe (NAV-02)
+  3. Header bar, mobile bottom nav, footer, and ARIA landmarks all verified in code (NAV-03 to NAV-06)
+  4. Cross-phase wiring confirmed: sidebar/header/footer present on all downstream pages (7-10)
+  5. 06-VERIFICATION.md created with full requirements coverage table
+**Plans**: TBD
+Plans:
+- (to be planned)
+
 ### Phase 11: Post-Session & Records
 **Goal**: Users complete post-session workflow (verify, validate, generate PV, send), browse archived sessions, and review audit logs
 **Depends on**: Phase 5, Phase 6
@@ -145,8 +177,9 @@ Plans:
   4. Audit page offers filter by event type, table/timeline view toggle, search/sort, table rows with date/time/user/action/resource/status/details, and an event detail modal
 **Plans:** 3/3 plans complete
 Plans:
-- [ ] 11-01-PLAN.md — Post-session stepper wireframe alignment + archives inline cleanup and component adoption
-- [ ] 11-02-PLAN.md — Audit log page creation (HTML/CSS/JS) + sidebar nav update + admin page link
+- [ ] 11-01-PLAN.md — Post-session HTML/CSS/JS rework: shared footer nav, simplified Step 1, wireframe Step 3 (chips, inline inputs, sign buttons), 2-col Step 4
+- [ ] 11-02-PLAN.md — Audit page HTML + CSS: app shell, KPIs, filter pills, table/timeline views, event detail modal
+- [ ] 11-03-PLAN.md — Audit page JS (demo data, filtering, pagination, modal) + archives verification
 
 ### Phase 12: Analytics & User Management
 **Goal**: Administrators can view voting statistics with charts and manage users with role assignments
@@ -198,11 +231,44 @@ Plans:
 - [ ] 15-01-PLAN.md — Add 4 missing Lucide SVG icons + fix notification query parameter
 - [ ] 15-02-PLAN.md — Remove type="module" from 16 inline script tags
 
+### Phase 14: Wire Wizard/Hub/Dashboard API Integration
+**Goal**: The wizard creates sessions end-to-end, the hub displays real session data, and the dashboard shows live KPIs from the API
+**Depends on**: Phase 8, Phase 7
+**Requirements**: WIZ-05, HUB-01, HUB-02, HUB-03, HUB-04, HUB-05, COMP-03, DASH-01, DASH-02
+**Gap Closure:** Closes gaps from audit (severity 1-3)
+**Success Criteria** (what must be TRUE):
+  1. Wizard "Créer la séance" button calls api() with correct argument order and session creation succeeds
+  2. After creation, wizard redirects to hub with correct meeting ID from API response
+  3. Hub loads single-meeting data from correct API endpoint (not the list endpoint) and renders real session title, KPIs, checklist
+  4. Toast notifications work on wizard and hub pages (ag-toast loaded, Shared.showToast wired)
+  5. Dashboard KPIs map correctly to the actual /api/v1/dashboard response shape
+**Plans**: 2 plans
+Plans:
+- [x] 14-01-PLAN.md — Wizard api() fix, response parsing, toast wiring on wizard/hub pages
+- [x] 14-02-PLAN.md — Hub wizard_status endpoint, dashboard KPI response mapping
+
+### Phase 15: Operator Console Wiring & Verification Gaps
+**Goal**: The operator console loads correct meeting data, timer runs, quorum warning resets per meeting, and all administrative verification gaps are closed
+**Depends on**: Phase 9, Phase 6
+**Requirements**: OPR-01, OPR-09, NAV-01, NAV-02, NAV-03, NAV-04, NAV-05, NAV-06
+**Gap Closure:** Closes gaps from audit (severity 2-3 + administrative)
+**Success Criteria** (what must be TRUE):
+  1. Operator console calls correct single-meeting API endpoint and renders real meeting title/status
+  2. Execution timer targets correct element ID (opExecTimer) and starts counting on exec mode entry
+  3. O.quorumWarningShown resets when switching meetings so quorum warning fires per-meeting
+  4. Phase 6 VERIFICATION.md exists confirming NAV-01 through NAV-06
+  5. Tech debt fixed: standalone #fff → CSS var, wrong radius fallback, SUMMARY frontmatter gaps
+**Plans**: TBD
+Plans:
+- (to be planned)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
-(Phases 7, 8, 9, 11, 12, 13 all depend on 5+6 and could parallelize, but sequential is safer for solo workflow.)
+Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 10.1 -> 10.2 -> 11 -> 12 -> 13
+Gap closure phases (10.1, 10.2) run before new feature phases.
+Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15
+(Phases 14-15 are gap closure phases from milestone audit. Phase 14 should execute before 15.)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -213,11 +279,16 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 8. Session Wizard & Hub | 3/3 | Complete   | 2026-03-13 |
 | 9. Operator Console | 3/3 | Complete   | 2026-03-13 |
 | 10. Live Session Views | 2/2 | Complete   | 2026-03-13 |
-| 10.1 Milestone Gap Closure | 1/1 | Complete   | 2026-03-15 |
-| 11. Post-Session & Records | 3/3 | Complete    | 2026-03-16 |
-| 12. Analytics & User Management | 2/2 | Complete    | 2026-03-16 |
-| 13. Settings & Help | 2/2 | Complete    | 2026-03-16 |
-| 14. Integration Bug Fixes | 0/1 | Complete    | 2026-03-16 |
+| 10.1. Integration Fixes | 0/TBD | Not started | - |
+| 10.2. Layout Verification | 0/TBD | Not started | - |
+| 11. Post-Session & Records | 3/3 | Complete    | 2026-03-15 |
+| 12. Analytics & User Management | 4/4 | Complete    | 2026-03-15 |
+| 13. Settings & Help | 4/4 | Complete    | 2026-03-15 |
+| 11. Post-Session & Records | 0/TBD | Not started | - |
+| 12. Analytics & User Management | 0/TBD | Not started | - |
+| 13. Settings & Help | 0/TBD | Not started | - |
+| 14. Wire Wizard/Hub/Dashboard API | 2/2 | Complete    | 2026-03-13 |
+| 15. Operator Wiring & Verification | 0/TBD | Not started | - |
 
 ---
 
