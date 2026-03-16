@@ -165,6 +165,11 @@ Recent decisions affecting current work:
 - [Phase 13-settings-help]: Settings page uses 4 wireframe-aligned tabs (Regles, Communication, Securite, Accessibilite) replacing 6 sub-tabs; auto-save with 500ms debounce for text, immediate for toggles; accessibility controls use dual storage (localStorage + API)
 - [Phase 14-integration-fixes]: sidebar.html Parametres nav-item: data-page changed from parametres to settings to match settings.htmx.html page identifier for active-state highlighting
 
+### Roadmap Evolution
+
+- Phase 14 added: Integration Bug Fixes (audit gap closure)
+- Phase 15 added: Tech Debt Cleanup (except APIs — cosmetic/wiring fixes from v2.0 audit)
+
 ### Pending Todos
 
 None yet.

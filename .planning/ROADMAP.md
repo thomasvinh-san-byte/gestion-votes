@@ -208,6 +208,16 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 13. Settings & Help | 2/2 | Complete    | 2026-03-16 |
 | 14. Integration Bug Fixes | 0/1 | Complete    | 2026-03-16 |
 
+### Phase 15: Tech Debt Cleanup
+
+**Goal:** Fix non-API tech debt from v2.0 audit: missing SVG icons, CSS token fallbacks, script type attribute, orphaned loads, query parameter mismatch
+**Requirements**: None (tech debt, no new requirements)
+**Depends on:** Phase 14
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 15 to break down)
+
 ---
 
 <details>
