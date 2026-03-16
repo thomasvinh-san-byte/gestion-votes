@@ -52,6 +52,13 @@ const MeetingContext = (function() {
     _propagateToLinks(_meetingId);
 
     _initialized = true;
+
+    // Fire change event if a meeting_id was found on init
+    // so SSE listeners and data loaders can react to the initial meeting_id
+    if (_meetingId) {
+      _notifyListeners(null, _meetingId);
+    }
+
     return _meetingId;
   }
 
