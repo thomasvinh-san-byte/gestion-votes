@@ -13,7 +13,7 @@
 
 - [x] **Phase 4: Design Tokens & Theme** - Align color, typography, shadow, and elevation tokens with wireframe; implement dark/light theme switching (completed 2026-03-12)
 - [ ] **Phase 5: Shared Components** - Build reusable component library (modals, toasts, dialogs, tags, popovers, progress bars, empty states, guided tours, session banner)
-- [ ] **Phase 6: Layout & Navigation** - Implement sidebar rail/expand, header with search and notifications, mobile bottom nav, footer, ARIA landmarks
+- [x] **Phase 6: Layout & Navigation** - Implement sidebar rail/expand, header with search and notifications, mobile bottom nav, footer, ARIA landmarks (completed 2026-03-12)
 - [ ] **Phase 7: Dashboard & Sessions** - Redesign dashboard (KPIs, urgent actions, shortcuts) and sessions page (list/calendar, filters, empty states)
 - [x] **Phase 8: Session Wizard & Hub** - Build 4-step create session wizard and session hub (status bar, checklist, KPIs, documents) (completed 2026-03-13)
 - [x] **Phase 9: Operator Console** - Redesign operator page with live KPI strip, progress track, resolution tabs, attendance, agenda sidebar, quorum modal (completed 2026-03-13)
@@ -71,11 +71,11 @@ Plans:
   3. Header bar (56px) displays the logo, a global search triggered by Cmd+K, a notification panel, and a theme toggle
   4. On mobile viewports, a bottom navigation bar with 5 tabs (Dashboard, Sessions, Fiche, Operateur, Parametres) replaces the sidebar
   5. A skip-to-content link is present and ARIA landmark roles are applied to nav, main, header, and footer regions
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 06-01-PLAN.md — Sidebar structure alignment (5 sections, nav-badge CSS, mobile-bnav CSS)
-- [ ] 06-02-PLAN.md — Header logo, mobile 5-tab bottom nav, footer on all pages
-- [ ] 06-03-PLAN.md — ARIA landmark audit and visual verification checkpoint
+- [x] 06-01-PLAN.md — Sidebar structure alignment (5 sections, nav-badge CSS, mobile-bnav CSS)
+- [x] 06-02-PLAN.md — Header logo, mobile 5-tab bottom nav, footer on all pages
+- [x] 06-03-PLAN.md — ARIA landmark audit and visual verification checkpoint
 
 ### Phase 7: Dashboard & Sessions
 **Goal**: Users see an actionable dashboard with KPIs and shortcuts, and can browse/search/filter all sessions in list or calendar view
@@ -188,10 +188,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Statistics page displays 4 KPI cards (Sessions, Resolutions, Taux d'adoption, Participation) with trend arrows
   2. Statistics page shows a donut chart for vote distribution (Pour/Contre/Abstention) and a line graph for participation trends, with an export button
-  3. Users page shows a role info panel describing Admin/Gestionnaire/Operateur roles, a users table with avatar/name/email/role tag/status/last login/edit, and add user + pagination controls
-**Plans**: TBD
+  3. Users page shows a role info panel describing Admin/Operateur/Auditeur/Observateur roles, a users table with avatar/name/email/role tag/status/last login/edit, and add user + pagination controls
+**Plans:** 2/2 plans complete
 Plans:
-- (to be planned)
+- [ ] 12-01-PLAN.md — Statistics page wireframe alignment: 4 KPI cards with year-over-year trend arrows, donut/line chart fixes, CSV export
+- [ ] 12-02-PLAN.md — Users page extraction from admin: users.htmx.html + users.css + users.js, sidebar update, admin cleanup
 
 ### Phase 13: Settings & Help
 **Goal**: Administrators can configure application rules, communication, security, and accessibility settings, and users can access FAQ and guided tours
@@ -201,9 +202,34 @@ Plans:
   1. Settings page has 4 tabs: Regles (double auth/approval toggles, quorum settings), Communication (support email, email templates, notification prefs), Securite (2FA, session timeout), Accessibilite (text size A/A+/A++, high contrast, focus indicators)
   2. Help page shows an accordion FAQ with category filter and search
   3. Help page provides guided tour launcher buttons for Dashboard, Operator, Members, Hub, Stats, and Post-Session workflows
-**Plans**: TBD
+**Plans:** 2/2 plans complete
 Plans:
-- (to be planned)
+- [ ] 13-01-PLAN.md — Settings page extraction from admin: 4-tab restructure (Regles, Communication, Securite, Accessibilite), auto-save with toast, admin cleanup, footer links update
+- [ ] 13-02-PLAN.md — Help page: FAQ expansion to 3-5 items per category, Dashboard + Hub tour launcher cards (9 total)
+
+### Phase 14: Integration Bug Fixes
+**Goal**: All navigation links correctly route to their target pages and all script paths resolve — closing the 2 integration gaps found in the v2.0 milestone audit
+**Depends on**: Phase 6, Phase 12, Phase 13
+**Requirements**: SET-01, SET-02, SET-03, SET-04, NAV-02, NAV-04, USR-01, USR-02, USR-03
+**Gap Closure:** Closes gaps from v2.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Clicking "Parametres" in the sidebar navigates to `/settings.htmx.html` (not admin.htmx.html)
+  2. Clicking "Parametres" in the mobile bottom nav navigates to `/settings.htmx.html`
+  3. The settings page sidebar item shows active highlighting when on `/settings.htmx.html`
+  4. `users.htmx.html` loads `meeting-context.js` successfully (correct script path)
+Plans:
+- [ ] 14-01-PLAN.md — Fix sidebar, mobile nav, and users.htmx.html script path
+
+### Phase 15: Tech Debt Cleanup
+
+**Goal:** Fix non-API tech debt from v2.0 audit: missing SVG icons, script type attribute cleanup, query parameter mismatch
+**Requirements**: None (tech debt, no new requirements)
+**Depends on:** Phase 14
+**Plans:** 2 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Add 4 missing Lucide SVG icons + fix notification query parameter
+- [ ] 15-02-PLAN.md — Remove type="module" from 16 inline script tags
 
 ### Phase 14: Wire Wizard/Hub/Dashboard API Integration
 **Goal**: The wizard creates sessions end-to-end, the hub displays real session data, and the dashboard shows live KPIs from the API
@@ -248,7 +274,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 |-------|----------------|--------|-----------|
 | 4. Design Tokens & Theme | 2/2 | Complete    | 2026-03-12 |
 | 5. Shared Components | 3/4 | In Progress|  |
-| 6. Layout & Navigation | 1/3 | In Progress|  |
+| 6. Layout & Navigation | 3/3 | Complete   | 2026-03-12 |
 | 7. Dashboard & Sessions | 0/3 | Not started | - |
 | 8. Session Wizard & Hub | 3/3 | Complete   | 2026-03-13 |
 | 9. Operator Console | 3/3 | Complete   | 2026-03-13 |

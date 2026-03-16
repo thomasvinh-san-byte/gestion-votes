@@ -107,7 +107,8 @@
   });
 
   // ═══════════════════════════════════════════════════════
-  // USERS
+  // USERS — Lightweight count summary only
+  // Full user management moved to /users.htmx.html
   // ═══════════════════════════════════════════════════════
   var _users = [];
   var _allUsers = [];
@@ -140,9 +141,7 @@
 
   async function loadUsers() {
     try {
-      const filter = document.getElementById('filterRole').value;
-      const url = '/api/v1/admin_users.php' + (filter ? '?role=' + filter : '');
-      const r = await api(url);
+      var r = await api('/api/v1/admin_users.php');
       if (r.body && r.body.ok && r.body.data) {
         _allUsers = r.body.data.items || [];
         _usersCurrentPage = 1;
@@ -519,6 +518,7 @@
   // MEETING ROLES
   // ═══════════════════════════════════════════════════════
   let _meetings = [];
+  let _allUsers = []; // populated by loadMeetingSelects for bulk role assignment
 
   /**
    * Check if element is an ag-searchable-select component.
@@ -564,6 +564,7 @@
       const r2 = await api('/api/v1/admin_users.php');
       if (r2.body && r2.body.ok && r2.body.data) {
         const users = r2.body.data.items || [];
+        _allUsers = users; // kept for bulk role assignment
         const userSel = document.getElementById('mrUser');
 
         if (isSearchableSelect(userSel)) {
@@ -781,203 +782,6 @@
         document.querySelectorAll('.bulk-user-cb').forEach(function(cb) { cb.checked = false; });
       });
     }, 60);
-  });
-
-  // ═══════════════════════════════════════════════════════
-  // POLICIES — QUORUM
-  // ═══════════════════════════════════════════════════════
-  let _quorumPolicies = [];
-
-  async function loadQuorumPolicies() {
-    try {
-      const r = await api('/api/v1/admin_quorum_policies.php');
-      if (r.body && r.body.ok && r.body.data && Array.isArray(r.body.data.items)) {
-        _quorumPolicies = r.body.data.items;
-        renderQuorumList(_quorumPolicies);
-      }
-    } catch(e) {
-      setNotif('error', 'Erreur chargement politiques de quorum');
-      var c = document.getElementById('quorumList');
-      if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
-    }
-  }
-
-  function renderQuorumList(items) {
-    const el = document.getElementById('quorumList');
-    if (!items.length) {
-      el.innerHTML = Shared.emptyState({ icon: 'generic', title: 'Aucune politique de quorum', description: 'Créez une politique depuis le formulaire ci-dessus.' });
-      return;
-    }
-    el.innerHTML = items.map(function(p) {
-      return '<div class="policy-card">' +
-        '<div class="policy-info">' +
-          '<div class="policy-name">' + escapeHtml(p.name) + '</div>' +
-          '<div class="policy-details">' +
-            escapeHtml(p.description || '') +
-            (p.mode ? ' | mode : ' + escapeHtml(p.mode) : '') +
-            ' | seuil : ' + Math.round((p.threshold||0)*100) + '%' +
-            (p.include_proxies ? ' | procurations' : '') +
-            (p.count_remote ? ' | distants' : '') +
-          '</div>' +
-        '</div>' +
-        '<div class="policy-actions">' +
-          '<button class="btn btn-ghost btn-xs btn-edit-quorum" data-id="' + escapeHtml(p.id) + '">Modifier</button>' +
-          '<button class="btn btn-ghost btn-xs btn-danger-text btn-delete-quorum" data-id="' + escapeHtml(p.id) + '" data-name="' + escapeHtml(p.name) + '">Supprimer</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
-  }
-
-  function openQuorumModal(policy) {
-    const isEdit = !!policy;
-    const p = policy || {};
-
-    const modeOptions = ['single','evolving','double'].map(function(m) {
-      const sel = m === (p.mode || 'single') ? ' selected' : '';
-      const labels = { single: 'Simple', evolving: 'Évolutif', double: 'Double convocation' };
-      return '<option value="' + m + '"' + sel + '>' + (labels[m] || m) + '</option>';
-    }).join('');
-
-    const denOptions = ['eligible_members','eligible_weight'].map(function(d) {
-      const sel = d === (p.denominator || 'eligible_members') ? ' selected' : '';
-      const labels = { eligible_members: 'Membres éligibles', eligible_weight: 'Poids éligible' };
-      return '<option value="' + d + '"' + sel + '>' + (labels[d] || d) + '</option>';
-    }).join('');
-
-    const den2Options = ['eligible_members','eligible_weight'].map(function(d) {
-      const sel = d === (p.denominator2 || 'eligible_members') ? ' selected' : '';
-      const labels = { eligible_members: 'Membres éligibles', eligible_weight: 'Poids éligible' };
-      return '<option value="' + d + '"' + sel + '>' + (labels[d] || d) + '</option>';
-    }).join('');
-
-    var showCall2 = (p.mode === 'double' || p.mode === 'evolving') ? '' : ' hidden';
-
-    Shared.openModal({
-      title: isEdit ? 'Modifier la politique de quorum' : 'Nouvelle politique de quorum',
-      body:
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Nom</label>' +
-          '<input class="form-input" type="text" id="qpName" value="' + escapeHtml(p.name || '') + '">' +
-        '</div>' +
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Description</label>' +
-          '<input class="form-input" type="text" id="qpDesc" value="' + escapeHtml(p.description || '') + '">' +
-        '</div>' +
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Mode</label>' +
-          '<select class="form-input" id="qpMode">' + modeOptions + '</select>' +
-        '</div>' +
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Dénominateur</label>' +
-          '<select class="form-input" id="qpDen">' + denOptions + '</select>' +
-        '</div>' +
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Seuil (0 à 1)</label>' +
-          '<input class="form-input" type="number" id="qpThreshold" min="0" max="1" step="0.01" value="' + (p.threshold != null ? p.threshold : '0.5') + '">' +
-        '</div>' +
-        '<div id="qpCall2Section"' + showCall2 + '>' +
-          '<hr style="border-color:var(--color-border);margin:0.75rem 0;">' +
-          '<div class="text-sm font-semibold mb-2" style="color:var(--color-text-secondary)">2e convocation / 2e tour</div>' +
-          '<div class="form-group mb-3">' +
-            '<label class="form-label">Seuil de convocation 2 (0 à 1)</label>' +
-            '<input class="form-input" type="number" id="qpThresholdCall2" min="0" max="1" step="0.01" value="' + (p.threshold_call2 != null ? p.threshold_call2 : '') + '" placeholder="Optionnel">' +
-          '</div>' +
-          '<div class="form-group mb-3">' +
-            '<label class="form-label">Dénominateur 2e tour</label>' +
-            '<select class="form-input" id="qpDen2">' + den2Options + '</select>' +
-          '</div>' +
-          '<div class="form-group mb-3">' +
-            '<label class="form-label">Seuil 2e tour (0 à 1)</label>' +
-            '<input class="form-input" type="number" id="qpThreshold2" min="0" max="1" step="0.01" value="' + (p.threshold2 != null ? p.threshold2 : '') + '" placeholder="Optionnel">' +
-          '</div>' +
-        '</div>' +
-        '<div class="flex gap-4 mb-3">' +
-          '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpProxies"' + (p.include_proxies ? ' checked' : '') + '> Inclure les procurations</label>' +
-          '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="qpRemote"' + (p.count_remote ? ' checked' : '') + '> Compter les distants</label>' +
-        '</div>',
-      confirmText: isEdit ? 'Enregistrer' : 'Créer',
-      onConfirm: async function(modal) {
-        const name = modal.querySelector('#qpName').value.trim();
-        if (!name) { setNotif('error', 'Nom requis'); return false; }
-        var thresholdVal = parseFloat(modal.querySelector('#qpThreshold').value);
-        if (isNaN(thresholdVal) || thresholdVal < 0 || thresholdVal > 1) {
-          setNotif('error', 'Le seuil doit être compris entre 0 et 1'); return false;
-        }
-        var mode = modal.querySelector('#qpMode').value;
-        const payload = {
-          name: name,
-          description: modal.querySelector('#qpDesc').value.trim(),
-          mode: mode,
-          denominator: modal.querySelector('#qpDen').value,
-          threshold: thresholdVal,
-          include_proxies: modal.querySelector('#qpProxies').checked ? 1 : 0,
-          count_remote: modal.querySelector('#qpRemote').checked ? 1 : 0
-        };
-        // Include call-2 parameters for double/evolving modes
-        if (mode === 'double' || mode === 'evolving') {
-          var tc2 = modal.querySelector('#qpThresholdCall2').value;
-          var t2 = modal.querySelector('#qpThreshold2').value;
-          if (tc2 !== '') payload.threshold_call2 = parseFloat(tc2);
-          payload.denominator2 = modal.querySelector('#qpDen2').value;
-          if (t2 !== '') payload.threshold2 = parseFloat(t2);
-        }
-        if (isEdit) payload.id = p.id;
-        try {
-          var r = await api('/api/v1/admin_quorum_policies.php', payload);
-          if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadQuorumPolicies(); }
-          else { setNotif('error', getApiError(r.body)); return false; }
-        } catch(err) { setNotif('error', err.message); return false; }
-      }
-    });
-
-    // Toggle call-2 section visibility based on mode selection
-    setTimeout(function() {
-      var modeSelect = document.getElementById('qpMode');
-      var call2Section = document.getElementById('qpCall2Section');
-      if (modeSelect && call2Section) {
-        modeSelect.addEventListener('change', function() {
-          call2Section.hidden = (this.value === 'single');
-        });
-      }
-    }, 60);
-  }
-
-  document.getElementById('btnAddQuorum').addEventListener('click', function() { openQuorumModal(null); });
-
-  document.getElementById('quorumList').addEventListener('click', async function(e) {
-    // Edit
-    var btn = e.target.closest('.btn-edit-quorum');
-    if (btn) {
-      const policy = _quorumPolicies.find(function(p) { return p.id === btn.dataset.id; });
-      if (policy) openQuorumModal(policy);
-      return;
-    }
-    // Delete
-    btn = e.target.closest('.btn-delete-quorum');
-    if (btn) {
-      const name = btn.dataset.name || 'cette politique';
-      const delBtn = btn;
-      Shared.openModal({
-        title: 'Supprimer la politique de quorum',
-        body: '<div class="alert alert-danger mb-3"><strong>Action irréversible</strong></div>' +
-          '<p>Supprimer la politique « <strong>' + escapeHtml(name) + '</strong> » ?</p>',
-        confirmText: 'Supprimer',
-        confirmClass: 'btn btn-danger',
-        onConfirm: async function() {
-          Shared.btnLoading(delBtn, true);
-          try {
-            var r = await api('/api/v1/admin_quorum_policies.php', {action:'delete', id:delBtn.dataset.id});
-            if (r.body && r.body.ok) {
-              setNotif('success', 'Politique supprimée');
-              loadQuorumPolicies();
-            } else {
-              setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
-            }
-          } catch(err) { setNotif('error', err.message); }
-          finally { Shared.btnLoading(delBtn, false); }
-        }
-      });
-    }
   });
 
   // ═══════════════════════════════════════════════════════
@@ -1488,72 +1292,14 @@
   });
 
   // ═══════════════════════════════════════════════════════
-  // P7-2: ADMIN AUDIT LOG
+  // P7-2: ADMIN AUDIT LOG — moved to /audit.htmx.html
+  // DOM elements removed; function is a no-op to avoid errors
+  // when called from refreshAll().
   // ═══════════════════════════════════════════════════════
-  let _auditOffset = 0;
-  const _auditLimit = 50;
-
-  async function loadAdminAuditLog() {
-    var list = document.getElementById('adminAuditList');
-    var actionFilter = document.getElementById('adminAuditAction').value;
-    var searchQuery = document.getElementById('adminAuditSearch').value.trim();
-
-    try {
-      var url = '/api/v1/admin_audit_log.php?limit=' + _auditLimit + '&offset=' + _auditOffset;
-      if (actionFilter) url += '&action=' + encodeURIComponent(actionFilter);
-      if (searchQuery) url += '&q=' + encodeURIComponent(searchQuery);
-
-      var r = await api(url);
-      if (r.body && r.body.ok && r.body.data) {
-        var d = r.body.data;
-
-        // Populate action filter dropdown (first load)
-        var actionSelect = document.getElementById('adminAuditAction');
-        if (actionSelect.options.length <= 1 && d.action_types) {
-          d.action_types.forEach(function(t) {
-            var opt = document.createElement('option');
-            opt.value = t.value;
-            opt.textContent = t.label;
-            actionSelect.appendChild(opt);
-          });
-        }
-
-        if (!d.items || d.items.length === 0) {
-          list.innerHTML = '<div class="text-center p-4 text-muted">Aucun événement admin</div>';
-        } else {
-          list.innerHTML = d.items.map(function(e) {
-            var ts = new Date(e.timestamp).toLocaleString('fr-FR');
-            var detail = e.detail ? ' — <span class="text-muted">' + escapeHtml(e.detail) + '</span>' : '';
-            var ip = e.ip_address ? '<span class="text-xs text-muted">' + escapeHtml(e.ip_address) + '</span>' : '';
-            return '<div class="system-stat" style="padding:0.6rem 1rem;">' +
-              '<div style="flex:1;">' +
-                '<span class="text-sm font-medium">' + escapeHtml(e.action_label) + '</span>' + detail +
-                '<div class="text-xs text-muted" style="margin-top:2px;">' + ts + ' · ' + escapeHtml(e.actor_role || '') + ' ' + ip + '</div>' +
-              '</div>' +
-            '</div>';
-          }).join('');
-        }
-
-        // Pagination
-        var pagination = document.getElementById('adminAuditPagination');
-        if (d.total > 0) {
-          pagination.style.display = 'flex';
-          document.getElementById('adminAuditCount').textContent = (d.offset + 1) + '-' + Math.min(d.offset + d.items.length, d.total) + ' sur ' + d.total;
-          document.getElementById('adminAuditPrev').disabled = d.offset === 0;
-          document.getElementById('adminAuditNext').disabled = (d.offset + _auditLimit) >= d.total;
-        } else {
-          pagination.style.display = 'none';
-        }
-      }
-    } catch(e) {
-      list.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
-    }
+  function loadAdminAuditLog() {
+    // Audit log has been extracted to the dedicated /audit.htmx.html page.
+    // This stub is kept so refreshAll() callers do not throw errors.
   }
-
-  document.getElementById('adminAuditAction').addEventListener('change', function() { _auditOffset = 0; loadAdminAuditLog(); });
-  document.getElementById('adminAuditSearch').addEventListener('input', Utils.debounce(function() { _auditOffset = 0; loadAdminAuditLog(); }, 300));
-  document.getElementById('adminAuditPrev').addEventListener('click', function() { _auditOffset = Math.max(0, _auditOffset - _auditLimit); loadAdminAuditLog(); });
-  document.getElementById('adminAuditNext').addEventListener('click', function() { _auditOffset += _auditLimit; loadAdminAuditLog(); });
 
   // ═══════════════════════════════════════════════════════
   // REFRESH ALL
@@ -1561,7 +1307,7 @@
   function refreshAll() {
     loadUsers();
     loadMeetingSelects().then(loadMeetingRoles);
-    loadQuorumPolicies();
+    // loadQuorumPolicies() extracted to settings.js (Phase 13-01)
     loadVotePolicies();
     loadRoles();
     loadStates();

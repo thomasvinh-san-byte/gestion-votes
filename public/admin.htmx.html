@@ -18,7 +18,7 @@
 </head>
 <body>
   <!-- Skip links -->
-  <a href="#panel-users" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
   <a href="#main-nav" class="skip-link">Aller à la navigation</a>
 
   <div class="app-shell">
@@ -190,19 +190,30 @@
 
         <hr class="mb-6" style="border-color: var(--color-border);">
 
+        <!-- Compact users summary (replaces users tab) -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Utilisateurs</div>
+                <div class="text-sm text-muted" id="adminUsersCount">-- utilisateurs</div>
+              </div>
+              <a href="/users.htmx.html" class="btn btn-secondary btn-sm">Gerer les utilisateurs</a>
+            </div>
+          </div>
+        </div>
+
         <!-- Tabs -->
         <div class="admin-tabs" role="tablist" aria-label="Sections d'administration">
-          <button class="admin-tab active" data-tab="users" role="tab" aria-selected="true" aria-controls="panel-users" id="tab-users">Utilisateurs</button>
-          <button class="admin-tab" data-tab="meeting-roles" role="tab" aria-selected="false" aria-controls="panel-meeting-roles" id="tab-meeting-roles">Rôles de séance</button>
+          <button class="admin-tab active" data-tab="meeting-roles" role="tab" aria-selected="true" aria-controls="panel-meeting-roles" id="tab-meeting-roles">R&ocirc;les de s&eacute;ance</button>
           <button class="admin-tab" data-tab="policies" role="tab" aria-selected="false" aria-controls="panel-policies" id="tab-policies">Politiques</button>
           <button class="admin-tab" data-tab="roles" role="tab" aria-selected="false" aria-controls="panel-roles" id="tab-roles">Permissions</button>
           <button class="admin-tab" data-tab="states" role="tab" aria-selected="false" aria-controls="panel-states" id="tab-states">Machine &agrave; &eacute;tats</button>
-          <button class="admin-tab" data-tab="settings" role="tab" aria-selected="false" aria-controls="panel-settings" id="tab-settings">Param&egrave;tres</button>
           <button class="admin-tab" data-tab="system" role="tab" aria-selected="false" aria-controls="panel-system" id="tab-system">Syst&egrave;me</button>
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 1 : UTILISATEURS                      -->
+        <!-- TAB 1 : RÔLES DE SÉANCE                   -->
         <!-- ═══════════════════════════════════════════ -->
         <div class="admin-panel active" id="panel-users" role="tabpanel" aria-labelledby="tab-users">
           <!-- Roles explanation panel -->
@@ -513,8 +524,10 @@
           </div>
         </div>
 
+        <!-- Settings panel extracted to /settings.htmx.html (Phase 13-01) -->
+
         <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 6 : PARAMÈTRES                        -->
+        <!-- TAB 6 : SYSTÈME                           -->
         <!-- ═══════════════════════════════════════════ -->
         <div class="admin-panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings">
           <div class="alert alert-warning mb-4" style="display:flex;align-items:center;gap:0.5rem">
@@ -1129,33 +1142,18 @@
             </div>
           </div>
 
-          <!-- Journal d'audit admin (P7-2) -->
+          <!-- Journal d'audit admin (P7-2) — lien vers page dedie -->
           <div class="card mb-4">
             <div class="card-header">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="card-title">Journal des actions admin</h3>
-                  <p class="card-description">Historique des créations, modifications et suppressions d'utilisateurs, rôles et politiques</p>
-                </div>
-                <div class="flex gap-2 items-center">
-                  <select class="form-input form-input-sm audit-filter" id="adminAuditAction" aria-label="Filtrer par type d'action">
-                    <option value="">Toutes les actions</option>
-                  </select>
-                  <input class="form-input form-input-sm audit-search" type="search" id="adminAuditSearch" placeholder="Rechercher..." aria-label="Rechercher dans le journal">
-                </div>
-              </div>
+              <h3 class="card-title">Journal des actions admin</h3>
+              <p class="card-description">Historique des créations, modifications et suppressions d'utilisateurs, rôles et politiques</p>
             </div>
-            <div class="card-body p-0">
-              <div id="adminAuditList" class="audit-log-scroll">
-                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-              </div>
-              <div class="flex items-center justify-between p-3 border-top" id="adminAuditPagination" style="display:none;">
-                <span class="text-sm text-muted" id="adminAuditCount"></span>
-                <div class="flex gap-2">
-                  <button class="btn btn-ghost btn-xs" id="adminAuditPrev" disabled>Précédent</button>
-                  <button class="btn btn-ghost btn-xs" id="adminAuditNext">Suivant</button>
-                </div>
-              </div>
+            <div class="card-body">
+              <p class="text-sm text-muted mb-4">Le journal complet des événements système est disponible sur la page dédiée, avec filtres par type, recherche, vue chronologique et export CSV.</p>
+              <a href="/audit.htmx.html" class="btn btn-secondary">
+                Voir le journal complet
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg>
+              </a>
             </div>
           </div>
 
@@ -1189,7 +1187,7 @@
       <span class="text-muted">v3.19</span>
       <span style="flex:1"></span>
       <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
-      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
+      <a href="/settings.htmx.html#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
     </footer>
   </div>
 

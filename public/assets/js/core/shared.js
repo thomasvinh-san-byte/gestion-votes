@@ -501,6 +501,22 @@
   }
 
   // =========================================================================
+  // TOAST HELPER
+  // =========================================================================
+
+  /**
+   * Show a toast notification via the ag-toast web component.
+   * @param {string} message - Message to display
+   * @param {string} [type='info'] - Toast type (success|error|warning|info)
+   * @param {number} [duration] - Optional auto-dismiss duration in ms
+   */
+  function showToast(message, type, duration) {
+    if (typeof AgToast !== 'undefined' && AgToast.show) {
+      AgToast.show(type || 'info', message, duration);
+    }
+  }
+
+  // =========================================================================
   // EXPORTS
   // =========================================================================
 

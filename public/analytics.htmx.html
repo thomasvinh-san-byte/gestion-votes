@@ -47,6 +47,10 @@
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-file-text"></use></svg>
           PDF
         </button>
+        <button class="btn btn-secondary btn-sm" id="btnExportCsv" title="Exporter en CSV" aria-label="Exporter les donn&eacute;es en CSV">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+          CSV
+        </button>
         <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
           <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
           Tour
@@ -76,15 +80,7 @@
             <div class="overview-card-label">S&eacute;ances</div>
             <div class="overview-card-value primary" id="kpiMeetings">&mdash;</div>
             <div class="overview-card-trend" id="kpiMeetingsTrend">
-              <span class="trend-arrow">&mdash;</span>
-              <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
-            </div>
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-label">Participation moy.</div>
-            <div class="overview-card-value success" id="kpiParticipation">&mdash;</div>
-            <div class="overview-card-trend" id="kpiParticipationTrend">
-              <span class="trend-arrow">&mdash;</span>
+              <span class="trend-arrow"></span>
               <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
             </div>
           </div>
@@ -92,7 +88,7 @@
             <div class="overview-card-label">R&eacute;solutions vot&eacute;es</div>
             <div class="overview-card-value" id="kpiResolutions">&mdash;</div>
             <div class="overview-card-trend" id="kpiResolutionsTrend">
-              <span class="trend-arrow">&mdash;</span>
+              <span class="trend-arrow"></span>
               <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
             </div>
           </div>
@@ -100,7 +96,15 @@
             <div class="overview-card-label">Taux d'adoption</div>
             <div class="overview-card-value success" id="kpiAdoptionRate">&mdash;</div>
             <div class="overview-card-trend" id="kpiAdoptionTrend">
-              <span class="trend-arrow">&mdash;</span>
+              <span class="trend-arrow"></span>
+              <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-card-label">Participation</div>
+            <div class="overview-card-value success" id="kpiParticipation">&mdash;</div>
+            <div class="overview-card-trend" id="kpiParticipationTrend">
+              <span class="trend-arrow"></span>
               <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
             </div>
           </div>
@@ -189,7 +193,7 @@
                     id="donutAgainst"/>
                   <!-- Abstention segment -->
                   <circle class="donut-segment donut-abstain" cx="60" cy="60" r="50" fill="none"
-                    stroke="var(--color-warning)" stroke-width="16"
+                    stroke="var(--color-text-muted)" stroke-width="16"
                     stroke-dasharray="0 314" stroke-dashoffset="78.5"
                     id="donutAbstain"/>
                 </svg>
@@ -201,7 +205,7 @@
               <div class="donut-legend">
                 <div class="donut-legend-item"><span class="donut-legend-dot" style="background:var(--color-success)"></span> Pour <strong id="donutForPct">&mdash;</strong></div>
                 <div class="donut-legend-item"><span class="donut-legend-dot" style="background:var(--color-danger)"></span> Contre <strong id="donutAgainstPct">&mdash;</strong></div>
-                <div class="donut-legend-item"><span class="donut-legend-dot" style="background:var(--color-warning)"></span> Abstention <strong id="donutAbstainPct">&mdash;</strong></div>
+                <div class="donut-legend-item"><span class="donut-legend-dot" style="background:var(--color-text-muted)"></span> Abstention <strong id="donutAbstainPct">&mdash;</strong></div>
               </div>
             </div>
           </div>
@@ -327,7 +331,7 @@
       <span class="text-muted">v3.19</span>
       <span style="flex:1"></span>
       <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
-      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
+      <a href="/settings.htmx.html#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
     </footer>
   </div>
 

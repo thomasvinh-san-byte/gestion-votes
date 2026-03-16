@@ -394,18 +394,32 @@
       document.querySelectorAll('.filter-tab[data-type]').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       currentType = tab.dataset.type || '';
+      currentPage = 1;
       applyFilters();
     });
   });
 
   // Search filter
-  searchInput.addEventListener('input', applyFilters);
+  searchInput.addEventListener('input', function() {
+    currentPage = 1;
+    applyFilters();
+  });
 
   // Year filter
   yearFilter.addEventListener('change', () => {
     currentYear = yearFilter.value;
+    currentPage = 1;
     applyFilters();
   });
+
+  // Pagination
+  var archivesPager = document.getElementById('archivesPager');
+  if (archivesPager) {
+    archivesPager.addEventListener('ag-page-change', function(e) {
+      currentPage = e.detail.page;
+      applyFilters();
+    });
+  }
 
   // View toggle
   document.querySelectorAll('.view-toggle-btn').forEach(btn => {

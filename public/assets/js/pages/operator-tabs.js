@@ -387,6 +387,7 @@ window.OpS = { fn: {} };
 
     currentMeetingId = meetingId;
     _hasAutoNavigated = false; // Reset for new meeting
+    OpS.quorumWarningShown = false; // Reset so quorum modal can fire for new meeting
     updateURLParam('meeting_id', meetingId);
 
     try {
@@ -2104,7 +2105,7 @@ window.OpS = { fn: {} };
     } else {
       Shared.hide(tabsNav);
       refreshExecView();
-      startSessionTimer();
+      if (OpS.fn.startExecTimer) OpS.fn.startExecTimer();
     }
 
     updatePrimaryButton();
