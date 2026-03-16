@@ -170,7 +170,7 @@ Plans:
 | 16. Data Foundation | v3.0 | 2/2 | Complete | 2026-03-16 |
 | 17. Demo Data Removal | 2/2 | Complete    | 2026-03-16 | - |
 | 18. SSE Infrastructure | 1/1 | Complete    | 2026-03-16 | - |
-| 19. Operator Console Wiring | 1/1 | Complete   | 2026-03-16 | - |
+| 19. Operator Console Wiring | 1/1 | Complete    | 2026-03-16 | - |
 | 20. Live Vote Flow | v3.0 | 0/TBD | Not started | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |
