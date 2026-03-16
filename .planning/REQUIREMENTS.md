@@ -29,10 +29,10 @@ Requirements for v3.0 release. Each maps to roadmap phases.
 
 ### Console Opérateur
 
-- [ ] **OPR-01**: La console opérateur charge les données réelles de la session via meeting_id propagé par MeetingContext
-- [ ] **OPR-02**: L'onglet présence charge les données d'inscription depuis l'API
-- [ ] **OPR-03**: L'onglet motions charge les résolutions depuis l'API
-- [ ] **OPR-04**: La connexion SSE se déclenche sur MeetingContext:change (pas au chargement de page)
+- [x] **OPR-01**: La console opérateur charge les données réelles de la session via meeting_id propagé par MeetingContext
+- [x] **OPR-02**: L'onglet présence charge les données d'inscription depuis l'API
+- [x] **OPR-03**: L'onglet motions charge les résolutions depuis l'API
+- [x] **OPR-04**: La connexion SSE se déclenche sur MeetingContext:change (pas au chargement de page)
 
 ### Vote en Direct
 
@@ -104,10 +104,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SSE-02 | Phase 18 | Complete |
 | SSE-03 | Phase 18 | Complete |
 | SSE-04 | Phase 18 | Complete |
-| OPR-01 | Phase 19 | Pending |
-| OPR-02 | Phase 19 | Pending |
-| OPR-03 | Phase 19 | Pending |
-| OPR-04 | Phase 19 | Pending |
+| OPR-01 | Phase 19 | Complete |
+| OPR-02 | Phase 19 | Complete |
+| OPR-03 | Phase 19 | Complete |
+| OPR-04 | Phase 19 | Complete |
 | VOT-01 | Phase 20 | Pending |
 | VOT-02 | Phase 20 | Pending |
 | VOT-03 | Phase 20 | Pending |
