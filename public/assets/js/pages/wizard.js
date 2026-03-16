@@ -703,24 +703,35 @@
         api('/api/v1/meetings', payload)
           .then(function(res) {
             if (!res.body || !res.body.ok) {
-              throw new Error(res.body && res.body.error || 'creation_failed');
+              var err = new Error(res.body && res.body.error || 'creation_failed');
+              if (res.body && res.body.details) err.details = res.body.details;
+              throw err;
             }
             clearDraft();
+            var d = res.body.data || {};
+            var totalMembers = (d.members_created || 0) + (d.members_linked || 0);
+            var motions = d.motions_created || 0;
+            var msg = 'S\u00e9ance cr\u00e9\u00e9e\u202f\u2022\u202f' + totalMembers + ' membre' + (totalMembers > 1 ? 's' : '') +
+              '\u202f\u2022\u202f' + motions + ' r\u00e9solution' + (motions > 1 ? 's' : '');
             try {
               sessionStorage.setItem('ag-vote-toast', JSON.stringify({
-                msg: 'S\u00e9ance cr\u00e9\u00e9e avec succ\u00e8s',
+                msg: msg,
                 type: 'success'
               }));
             } catch (e) {}
-            window.location.href = '/hub.htmx.html?id=' + ((res.body && res.body.data && res.body.data.meeting_id) || '');
+            window.location.href = '/hub.htmx.html?id=' + (d.meeting_id || '');
           })
-          .catch(function() {
+          .catch(function(err) {
             btnCreate.disabled = false;
             btnCreate.innerHTML =
               '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>' +
               ' Cr\u00e9er la s\u00e9ance';
+            var msg = 'Erreur lors de la cr\u00e9ation. Veuillez r\u00e9essayer.';
+            if (err && err.details && err.details[0] && err.details[0].message) {
+              msg = err.details[0].message;
+            }
             if (window.Shared && Shared.showToast) {
-              Shared.showToast('Erreur lors de la cr\u00e9ation. Veuillez r\u00e9essayer.', 'error');
+              Shared.showToast(msg, 'error');
             }
           });
       });
