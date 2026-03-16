@@ -111,8 +111,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Help & FAQ
 
-- [ ] **FAQ-01**: Accordion FAQ with category filter and search
-- [ ] **FAQ-02**: Guided tour launcher buttons (Dashboard, Operator, Members, Hub, Stats, Post-Session)
+- [x] **FAQ-01**: Accordion FAQ with category filter and search
+- [x] **FAQ-02**: Guided tour launcher buttons (Dashboard, Operator, Members, Hub, Stats, Post-Session)
 
 ### Voter View
 
@@ -226,8 +226,8 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | SET-02 | Phase 13 | Pending |
 | SET-03 | Phase 13 | Pending |
 | SET-04 | Phase 13 | Pending |
-| FAQ-01 | Phase 13 | Pending |
-| FAQ-02 | Phase 13 | Pending |
+| FAQ-01 | Phase 13 | Complete |
+| FAQ-02 | Phase 13 | Complete |
 
 **Coverage:**
 - v1 requirements: 74 total
