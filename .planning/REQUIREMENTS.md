@@ -17,8 +17,8 @@ Requirements for v3.0 release. Each maps to roadmap phases.
 
 - [ ] **HUB-01**: Le hub charge l'état réel de la session via l'API wizard_status (zéro donnée démo)
 - [ ] **HUB-02**: Le hub affiche un état d'erreur explicite quand le backend est indisponible
-- [ ] **HUB-03**: Le dashboard affiche les compteurs de sessions réels depuis la base de données
-- [ ] **HUB-04**: Le dashboard affiche un état d'erreur explicite au lieu du fallback démo
+- [x] **HUB-03**: Le dashboard affiche les compteurs de sessions réels depuis la base de données
+- [x] **HUB-04**: Le dashboard affiche un état d'erreur explicite au lieu du fallback démo
 
 ### SSE Temps Réel
 
@@ -98,8 +98,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WIZ-03 | Phase 16 | Complete |
 | HUB-01 | Phase 16 | Pending |
 | HUB-02 | Phase 16 | Pending |
-| HUB-03 | Phase 17 | Pending |
-| HUB-04 | Phase 17 | Pending |
+| HUB-03 | Phase 17 | Complete |
+| HUB-04 | Phase 17 | Complete |
 | SSE-01 | Phase 18 | Pending |
 | SSE-02 | Phase 18 | Pending |
 | SSE-03 | Phase 18 | Pending |
