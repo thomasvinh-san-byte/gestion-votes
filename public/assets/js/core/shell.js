@@ -690,7 +690,7 @@
     { name: 'Audit', sub: 'Intégrité et traçabilité', href: '/trust.htmx.html', icon: 'shield-check' },
     { name: 'Statistiques', sub: 'Tableaux de bord', href: '/analytics.htmx.html', icon: 'bar-chart' },
     { name: 'Utilisateurs', sub: 'Gestion des comptes', href: '/users.htmx.html', icon: 'users' },
-    { name: 'Configuration', sub: 'Paramètres système', href: '/admin.htmx.html', icon: 'settings' },
+    { name: 'Paramètres', sub: 'Configuration', href: '/settings.htmx.html', icon: 'settings' },
     { name: 'Guide & FAQ', sub: 'Aide et documentation', href: '/help.htmx.html', icon: 'info' },
   ];
 
