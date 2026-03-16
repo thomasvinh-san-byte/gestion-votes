@@ -1,0 +1,174 @@
+<!doctype html>
+<!-- GO-LIVE-STATUS: ready — Gestion des utilisateurs (wireframe PageUtilisateurs). -->
+<html lang="fr" data-page-role="admin">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Utilisateurs — AG-VOTE">
+  <title>Utilisateurs — AG-VOTE</title>
+  <script src="/assets/js/theme-init.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/users.css">
+</head>
+<body>
+  <!-- Skip links -->
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
+
+  <div class="app-shell">
+    <!-- Sidebar (loaded from shared partial) -->
+    <aside class="app-sidebar" data-include-sidebar data-page="users"></aside>
+
+    <!-- Header -->
+    <header class="app-header" role="banner">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold"><svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Utilisateurs</h1>
+          <p class="text-sm text-secondary">Gestion des comptes et des r&ocirc;les</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 users-header-actions">
+        <button class="btn btn-secondary btn-sm" id="btnRefresh">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
+        </button>
+        <button class="btn btn-primary btn-sm" id="btnAddUser">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus-circle"></use></svg> Ajouter un utilisateur
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main" id="main-content" role="main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- Role info panel (USR-01) -->
+        <div class="card mb-4 roles-explainer">
+          <div class="card-body">
+            <div class="roles-explainer-grid">
+              <div class="role-explain">
+                <span class="tag tag-accent">Admin</span>
+                <span class="text-xs text-muted">Acc&egrave;s complet au syst&egrave;me</span>
+              </div>
+              <div class="role-explain">
+                <span class="tag tag-success">Op&eacute;rateur</span>
+                <span class="text-xs text-muted">Gestion des s&eacute;ances et votes</span>
+              </div>
+              <div class="role-explain">
+                <span class="tag tag-purple">Auditeur</span>
+                <span class="text-xs text-muted">Consultation audit et contr&ocirc;le</span>
+              </div>
+              <div class="role-explain">
+                <span class="tag">Observateur</span>
+                <span class="text-xs text-muted">Acc&egrave;s en lecture seule</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter / search bar -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="flex items-center gap-4 flex-wrap">
+              <div class="form-group form-group-search">
+                <label class="form-label" for="searchUser">Rechercher</label>
+                <input class="form-input" type="search" id="searchUser" placeholder="Nom ou email...">
+              </div>
+              <div class="form-group form-group-filter">
+                <label class="form-label" for="filterRole">Filtrer par r&ocirc;le</label>
+                <select class="form-input" id="filterRole">
+                  <option value="">Tous</option>
+                  <option value="admin">Admin</option>
+                  <option value="operator">Op&eacute;rateur</option>
+                  <option value="auditor">Auditeur</option>
+                  <option value="viewer">Observateur</option>
+                </select>
+              </div>
+              <div class="text-sm text-muted users-count" id="usersCount">— utilisateurs</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users table container (USR-02) -->
+        <div class="card mb-4">
+          <div class="card-body p-0">
+            <div class="users-list" id="usersTableBody" aria-busy="true" aria-label="Liste des utilisateurs">
+              <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+              <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+              <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination (USR-03) -->
+        <ag-pagination id="usersPagination" page-size="10"></ag-pagination>
+
+      </div>
+    </main>
+
+    <footer class="app-footer" role="contentinfo">
+      <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
+        <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        </span>
+        AG-VOTE
+      </a>
+      <span class="text-muted">v3.19</span>
+      <span style="flex:1"></span>
+      <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
+      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilit&eacute;</a>
+    </footer>
+  </div>
+
+  <!-- Add/Edit User Modal -->
+  <ag-modal id="userModal" title="Ajouter un utilisateur">
+    <div slot="body">
+      <input type="hidden" id="modalUserId">
+      <div class="form-group mb-4">
+        <label class="form-label" for="modalUserName">Nom *</label>
+        <input class="form-input" type="text" id="modalUserName" placeholder="Jean Dupont" required maxlength="255" autocomplete="name">
+      </div>
+      <div class="form-group mb-4">
+        <label class="form-label" for="modalUserEmail">E-mail *</label>
+        <input class="form-input" type="email" id="modalUserEmail" placeholder="jean@example.com" required maxlength="320" autocomplete="email">
+      </div>
+      <div class="form-group mb-4" id="modalPasswordGroup">
+        <label class="form-label" for="modalUserPassword">Mot de passe *</label>
+        <input class="form-input" type="password" id="modalUserPassword" placeholder="Min. 8 caract&egrave;res" autocomplete="new-password" minlength="8">
+        <div class="password-strength" id="passwordStrength" hidden>
+          <div class="password-strength-bar"><div class="password-strength-fill" id="passwordStrengthFill"></div></div>
+          <span class="password-strength-text" id="passwordStrengthText">&mdash;</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="modalUserRole">R&ocirc;le syst&egrave;me</label>
+        <select class="form-input" id="modalUserRole">
+          <option value="viewer">Observateur</option>
+          <option value="operator">Op&eacute;rateur</option>
+          <option value="auditor">Auditeur</option>
+          <option value="admin">Administrateur</option>
+        </select>
+      </div>
+    </div>
+    <div slot="footer">
+      <button class="btn btn-ghost" id="btnCancelUser" type="button">Annuler</button>
+      <button class="btn btn-primary" id="btnSaveUser" type="button">Enregistrer</button>
+    </div>
+  </ag-modal>
+
+  <!-- Scripts -->
+  <script type="module" src="/assets/js/components/index.js"></script>
+  <script src="/assets/js/core/utils.js"></script>
+  <script src="/assets/js/core/shared.js"></script>
+  <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/pages/meeting-context.js"></script>
+  <script src="/assets/js/pages/users.js"></script>
+</body>
+</html>
