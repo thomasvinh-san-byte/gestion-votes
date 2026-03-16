@@ -527,7 +527,8 @@ window.OpS = { fn: {} };
       loadEmergencyProcedures(),
       loadSpeechQueue(),
       loadProxies(),
-      loadInvitationStats()
+      loadInvitationStats(),
+      loadQuorumStatus()
     ]);
 
     // Log any failures but continue
