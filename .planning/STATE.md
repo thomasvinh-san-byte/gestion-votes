@@ -3,22 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 15-analytics-users-settings-help-03-PLAN.md
-last_updated: "2026-03-15T16:12:28.557Z"
+stopped_at: Completed 15-tech-debt-cleanup-01-PLAN.md
+last_updated: "2026-03-16T10:29:58.163Z"
 last_activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
 progress:
-  total_phases: 10
-  completed_phases: 8
-  total_plans: 23
-  completed_plans: 23
-stopped_at: Completed 14-wizard-hub-dashboard-api Plan 01 (SUMMARY created)
-last_updated: "2026-03-13T14:58:56.214Z"
-last_activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
-progress:
-  total_phases: 12
-  completed_phases: 8
-  total_plans: 22
-  completed_plans: 22
+  total_phases: 18
+  completed_phases: 14
+  total_plans: 39
+  completed_plans: 39
   percent: 100
 ---
 
@@ -76,6 +68,7 @@ Progress: [##########] 100%
 | Phase 09 P03 | 5min | 2 tasks | 3 files |
 | Phase 10-live-session-views P01 | 2min | 2 tasks | 3 files |
 | Phase 10-live-session-views P02 | 5min | 2 tasks | 4 files |
+<<<<<<< HEAD
 | Phase 11-post-session-records P02 | 8 | 2 tasks | 2 files |
 | Phase 11-post-session-records P01 | 6 | 2 tasks | 3 files |
 | Phase 11-post-session-records P03 | 5 | 2 tasks | 2 files |
@@ -85,6 +78,17 @@ Progress: [##########] 100%
 | Phase 15-analytics-users-settings-help P03 | 10 | 5 tasks | 4 files |
 | Phase 14-wizard-hub-dashboard-api P01 | 5 | 2 tasks | 4 files |
 | Phase 14-wizard-hub-dashboard-api P02 | 5 | 2 tasks | 2 files |
+=======
+| Phase 11-postsession-records P02 | 4 | 2 tasks | 6 files |
+| Phase 11-postsession-records P01 | 15 | 2 tasks | 3 files |
+| Phase 11-postsession-records P03 | 1 | 1 tasks | 2 files |
+| Phase 12-analytics-user-management P01 | 5 | 2 tasks | 2 files |
+| Phase 12-analytics-user-management P02 | 9 | 2 tasks | 7 files |
+| Phase 13-settings-help P02 | 5 | 2 tasks | 1 files |
+| Phase 13-settings-help P01 | 25 | 2 tasks | 26 files |
+| Phase 14-integration-fixes P01 | 5 | 1 tasks | 3 files |
+| Phase 15-tech-debt-cleanup P01 | 3 | 2 tasks | 2 files |
+>>>>>>> a81a59a (docs(15-01): add execution summary and update state)
 
 ## Milestone History
 
@@ -178,6 +182,8 @@ Recent decisions affecting current work:
 - [Phase 14-wizard-hub-dashboard-api P01]: ag-toast.js loaded with type='module' because it uses ES module export syntax
 - [Phase 14-wizard-hub-dashboard-api]: hub.js: Use /api/v1/wizard_status?meeting_id=X (not /api/v1/meetings.php?id=X) as single-meeting endpoint
 - [Phase 14-wizard-hub-dashboard-api]: dashboard.js: Compute KPI values from meetings array by filtering on status — avoids depending on non-existent upstream_count/live_count fields
+- [Phase 15-tech-debt-cleanup]: icon-pause uses rect elements (two vertical bars, stroke style) not polygon fill — consistent with existing Lucide stroke pattern
+- [Phase 15-tech-debt-cleanup]: ?tab=notifications removed from notification Voir tout link — admin.js never reads tab param, removal simpler than adding dead URL-parsing code
 
 ### Pending Todos
 
@@ -193,8 +199,8 @@ None — wizard.js meeting creation API wired in Phase 14 Plan 01.
 
 ## Session Continuity
 
-Last session: 2026-03-15T16:01:45.415Z
-Stopped at: Completed 15-analytics-users-settings-help-03-PLAN.md
+Last session: 2026-03-16T10:29:58.160Z
+Stopped at: Completed 15-tech-debt-cleanup-01-PLAN.md
 Last session: 2026-03-13T15:00:00.000Z
 Stopped at: Completed 14-wizard-hub-dashboard-api Plan 01 (SUMMARY created)
 Resume file: None
