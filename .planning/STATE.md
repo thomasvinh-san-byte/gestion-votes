@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: idle
-stopped_at: v2.0 milestone shipped
+milestone: v3.0
+milestone_name: Session Lifecycle
+status: defining_requirements
+stopped_at: Milestone v3.0 started
 last_updated: "2026-03-16"
-last_activity: 2026-03-16 -- v2.0 UI Redesign milestone shipped
+last_activity: 2026-03-16 -- Milestone v3.0 Session Lifecycle started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -21,12 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Planning next milestone
+**Current focus:** v3.0 Session Lifecycle — full-stack wiring
 
 ## Current Position
 
-No active milestone. v2.0 UI Redesign shipped 2026-03-16.
-Next step: `/gsd:new-milestone`
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
 Last activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
 
 Progress: [##########] 100%

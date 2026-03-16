@@ -38,6 +38,19 @@ AG-VOTE is a **brownfield project** with a mature feature set:
 
 **Shipped v2.0 UI Redesign** (2026-03-16): Complete visual overhaul across all pages — design tokens, navigation, dashboard, sessions, wizard, hub, operator console, room display, voter view, post-session, archives, audit, statistics, users, settings, help/FAQ.
 
+## Current Milestone: v3.0 Session Lifecycle
+
+**Goal:** Wire the full session lifecycle end-to-end with real backend data, SSE real-time updates, and zero placeholders — transforming the v2.0 UI shell into a working product.
+
+**Target features:**
+- Session creation wizard → real API POST → redirect to hub with persisted session
+- Hub loads real session data, checklist reflects actual state
+- Operator console receives live vote data via SSE, KPIs update in real-time
+- Room display and voter view connected to live session state
+- Vote results persisted, PV generation functional
+- Dashboard shows real session counts and statuses from DB
+- All demo/fallback data removed — errors shown when backend unavailable
+
 ## Requirements
 
 ### Validated
@@ -51,15 +64,20 @@ AG-VOTE is a **brownfield project** with a mature feature set:
 
 ### Active
 
-(No active requirements — next milestone not yet planned)
+- [ ] Full-stack session lifecycle: create → members → votes → results → PV
+- [ ] Backend API completeness: all endpoints exist and return real data
+- [ ] Frontend-backend wiring: zero demo data, zero silent fallbacks
+- [ ] Real-time voting: SSE for live vote updates, operator KPIs auto-refresh
+- [ ] Data persistence: all state survives page reload
 
 ### Out of Scope
 
 - Framework migration (React, Vue, Laravel, Symfony) — vanilla stack is the identity
-- New functional features (new voting modes, new report types)
+- New voting modes or report types — functional parity first
 - Mobile native app — PWA approach maintained
 - Multi-database support — PostgreSQL only
-- Electronic signature upload/validation (deferred to v2.1)
+- Electronic signature upload/validation (deferred to later)
+- Non-session pages (statistics, audit, help, settings) — session core first
 
 ## Context
 
@@ -91,4 +109,4 @@ Known technical debt:
 | Web Components for shared UI | ag-modal, ag-toast, ag-confirm, ag-popover, ag-searchable-select | ✓ Good — reusable across pages |
 
 ---
-*Last updated: 2026-03-16 after v2.0 milestone shipped*
+*Last updated: 2026-03-16 after v3.0 milestone started*
