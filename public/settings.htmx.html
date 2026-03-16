@@ -1,0 +1,692 @@
+<!doctype html>
+<!-- GO-LIVE-STATUS: ready — Param&egrave;tres application (wireframe PageParam&egrave;tres). 4 onglets: R&egrave;gles, Communication, S&eacute;curit&eacute;, Accessibilit&eacute;. Auto-save avec toast. -->
+<html lang="fr" data-page-role="admin">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Param&egrave;tres &mdash; AG-VOTE">
+  <title>Param&egrave;tres &mdash; AG-VOTE</title>
+  <script src="/assets/js/theme-init.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/settings.css">
+</head>
+<body>
+  <!-- Skip links -->
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
+
+  <div class="app-shell">
+    <aside class="app-sidebar" data-include-sidebar data-page="settings"></aside>
+
+    <!-- Header -->
+    <header class="app-header" role="banner">
+      <div class="flex items-center gap-4">
+        <div>
+          <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <span class="bc-item bc-current" aria-current="page">Param&egrave;tres</span>
+          </nav>
+          <h1 class="page-title">
+            <span class="bar"></span>
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Param&egrave;tres
+          </h1>
+          <p class="page-sub">Configuration de l'application</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main" id="main-content" role="main">
+      <div class="container">
+
+        <!-- Tab navigation -->
+        <div class="settings-tabs" role="tablist" aria-label="Onglets param&egrave;tres">
+          <button class="settings-tab active" data-stab="regles" role="tab" aria-selected="true" aria-controls="stab-regles" id="tab-regles">R&egrave;gles</button>
+          <button class="settings-tab" data-stab="communication" role="tab" aria-selected="false" aria-controls="stab-communication" id="tab-communication">Communication</button>
+          <button class="settings-tab" data-stab="securite" role="tab" aria-selected="false" aria-controls="stab-securite" id="tab-securite">S&eacute;curit&eacute;</button>
+          <button class="settings-tab" data-stab="accessibilite" role="tab" aria-selected="false" aria-controls="stab-accessibilite" id="tab-accessibilite">Accessibilit&eacute;</button>
+        </div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- TAB 1 : RÈGLES (SET-01)                   -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="settings-panel" id="stab-regles" role="tabpanel" aria-labelledby="tab-regles">
+
+          <!-- Section 1 : Sécurité du vote -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">S&eacute;curit&eacute; du vote</h3>
+              <p class="card-description">Options de s&eacute;curit&eacute; appliqu&eacute;es lors des votes</p>
+            </div>
+            <div class="card-body">
+              <div class="settings-toggle-row">
+                <label class="form-label form-label-toggle">
+                  <input type="checkbox" id="settDoubleAuth">
+                  Double authentification obligatoire
+                </label>
+                <p class="text-sm text-muted">Exige une v&eacute;rification en deux &eacute;tapes pour tous les votes. Renforce la s&eacute;curit&eacute; au d&eacute;triment de la fluidit&eacute;.</p>
+              </div>
+              <div class="settings-toggle-row mt-3">
+                <label class="form-label form-label-toggle">
+                  <input type="checkbox" id="settDoubleApproval">
+                  Double approbation requise
+                </label>
+                <p class="text-sm text-muted">N&eacute;cessite une confirmation explicite avant validation d'un vote. R&eacute;duit les erreurs de manipulation.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2 : Quorum -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">Quorum</h3>
+              <p class="card-description">Param&egrave;tres de calcul du quorum par d&eacute;faut</p>
+            </div>
+            <div class="card-body">
+              <div class="settings-form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="settQuorumBase">Base de calcul</label>
+                  <select class="form-input" id="settQuorumBase">
+                    <option value="persons">Par personnes</option>
+                    <option value="tantiemes">Par tanti&egrave;mes</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="settQuorumThreshold">Seuil (%)</label>
+                  <input class="form-input" type="number" id="settQuorumThreshold" value="33" min="0" max="100">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3 : Types de majorité -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">Types de majorit&eacute;</h3>
+              <p class="card-description">Art. 24, 25, 26, 26-1 et passerelle 25-1</p>
+            </div>
+            <div class="card-body">
+              <div class="settings-majority-grid" id="majorityTypes">
+                <div class="settings-majority-card">
+                  <div class="settings-majority-article">Art. 24</div>
+                  <div class="settings-majority-title">Majorit&eacute; simple</div>
+                  <div class="settings-majority-desc">Majorit&eacute; des voix exprim&eacute;es des pr&eacute;sents et repr&eacute;sent&eacute;s</div>
+                </div>
+                <div class="settings-majority-card">
+                  <div class="settings-majority-article">Art. 25</div>
+                  <div class="settings-majority-title">Majorit&eacute; absolue</div>
+                  <div class="settings-majority-desc">Majorit&eacute; des voix de tous les copropri&eacute;taires</div>
+                </div>
+                <div class="settings-majority-card">
+                  <div class="settings-majority-article">Art. 25-1</div>
+                  <div class="settings-majority-title">Passerelle</div>
+                  <div class="settings-majority-desc">Si 1/3 atteint &agrave; l'art. 25, revote &agrave; l'art. 24</div>
+                </div>
+                <div class="settings-majority-card">
+                  <div class="settings-majority-article">Art. 26</div>
+                  <div class="settings-majority-title">Double majorit&eacute;</div>
+                  <div class="settings-majority-desc">2/3 des voix de tous les copropri&eacute;taires</div>
+                </div>
+                <div class="settings-majority-card">
+                  <div class="settings-majority-article">Art. 26-1</div>
+                  <div class="settings-majority-title">Unanimit&eacute;</div>
+                  <div class="settings-majority-desc">Tous les copropri&eacute;taires doivent voter pour</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4 : Clés de répartition -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="card-title">Cl&eacute;s de r&eacute;partition</h3>
+                  <p class="card-description">D&eacute;finit la pond&eacute;ration des voix par lot</p>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btnAddKey">Ajouter une cl&eacute;</button>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <table class="users-table" id="distributionKeysTable">
+                <thead>
+                  <tr>
+                    <th>Cl&eacute;</th>
+                    <th>Lots</th>
+                    <th>Base</th>
+                    <th>Total tanti&egrave;mes</th>
+                    <th>D&eacute;faut</th>
+                    <th class="table-col-actions-sm">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="distributionKeysBody">
+                  <tr>
+                    <td>G&eacute;n&eacute;ral</td>
+                    <td>120</td>
+                    <td>Tanti&egrave;mes</td>
+                    <td>10 000</td>
+                    <td><span class="badge badge-success">Oui</span></td>
+                    <td><button class="btn btn-ghost btn-xs btn-edit-key">Modifier</button></td>
+                  </tr>
+                  <tr>
+                    <td>Ascenseur</td>
+                    <td>85</td>
+                    <td>Tanti&egrave;mes</td>
+                    <td>7 200</td>
+                    <td><span class="badge">Non</span></td>
+                    <td><button class="btn btn-ghost btn-xs btn-edit-key">Modifier</button></td>
+                  </tr>
+                  <tr>
+                    <td>Chauffage</td>
+                    <td>120</td>
+                    <td>Tanti&egrave;mes</td>
+                    <td>10 000</td>
+                    <td><span class="badge">Non</span></td>
+                    <td><button class="btn btn-ghost btn-xs btn-edit-key">Modifier</button></td>
+                  </tr>
+                  <tr>
+                    <td>Parking</td>
+                    <td>32</td>
+                    <td>Tanti&egrave;mes</td>
+                    <td>3 200</td>
+                    <td><span class="badge">Non</span></td>
+                    <td><button class="btn btn-ghost btn-xs btn-edit-key">Modifier</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Section 5 : Politiques de quorum -->
+          <div class="card">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="card-title">Politiques de quorum</h3>
+                  <p class="card-description">Seuils de pr&eacute;sence requis pour la validit&eacute; des votes</p>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btnAddQuorumPolicy">Cr&eacute;er une politique</button>
+              </div>
+            </div>
+            <div class="card-body" id="settingsQuorumList">
+              <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- TAB 2 : COMMUNICATION (SET-02)            -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="settings-panel" id="stab-communication" role="tabpanel" aria-labelledby="tab-communication" hidden>
+
+          <!-- Card : Contact & support -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">Contact &amp; support</h3>
+              <p class="card-description">Informations de contact et fuseau horaire</p>
+            </div>
+            <div class="card-body">
+              <div class="settings-form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="settSupportEmail">Email support</label>
+                  <input class="form-input" type="email" id="settSupportEmail" placeholder="support@syndic.fr">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="settTimezone">Fuseau horaire</label>
+                  <select class="form-input" id="settTimezone">
+                    <option value="Europe/Paris" selected>Europe/Paris (UTC+1)</option>
+                    <option value="Europe/Brussels">Europe/Brussels (UTC+1)</option>
+                    <option value="Europe/Zurich">Europe/Zurich (UTC+1)</option>
+                    <option value="America/Guadeloupe">Am&eacute;rique/Guadeloupe (UTC-4)</option>
+                    <option value="Indian/Reunion">Oc&eacute;an Indien/R&eacute;union (UTC+4)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card : SMTP -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">SMTP</h3>
+              <p class="card-description">Configuration du serveur d'envoi d'emails</p>
+            </div>
+            <div class="card-body">
+              <div class="settings-form-grid">
+                <div class="form-group">
+                  <label class="form-label">Serveur SMTP</label>
+                  <input class="form-input" type="text" id="settSmtpHost" placeholder="smtp.exemple.fr">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Port</label>
+                  <input class="form-input" type="number" id="settSmtpPort" value="587">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Utilisateur</label>
+                  <input class="form-input" type="text" id="settSmtpUser" placeholder="noreply@syndic.fr">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Mot de passe</label>
+                  <input class="form-input" type="password" id="settSmtpPass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+                </div>
+              </div>
+              <div class="mt-3">
+                <button class="btn btn-secondary btn-sm" id="btnTestSmtp">Tester la connexion</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card : Templates email -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="card-title">Templates email</h3>
+                  <p class="card-description">5 mod&egrave;les personnalisables avec variables dynamiques</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="btnResetEmailTemplates" title="R&eacute;initialise tous les templates avec le contenu par d&eacute;faut">
+                  <svg class="icon icon-text" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                  Cr&eacute;er par d&eacute;faut
+                </button>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="settings-template-list" id="emailTemplateList">
+                <div class="settings-template-item active">
+                  <div class="settings-template-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  </div>
+                  <div class="settings-template-info">
+                    <div class="settings-template-name">Convocation</div>
+                    <div class="settings-template-desc">Envoi initial de la convocation &agrave; l'assembl&eacute;e</div>
+                  </div>
+                  <button class="btn btn-ghost btn-xs btn-edit-template" type="button" data-template="convocation">&Eacute;diter</button>
+                </div>
+                <div class="settings-template-item">
+                  <div class="settings-template-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  </div>
+                  <div class="settings-template-info">
+                    <div class="settings-template-name">Rappel</div>
+                    <div class="settings-template-desc">Rappel avant la date de l'assembl&eacute;e</div>
+                  </div>
+                  <button class="btn btn-ghost btn-xs btn-edit-template" type="button" data-template="rappel">&Eacute;diter</button>
+                </div>
+                <div class="settings-template-item">
+                  <div class="settings-template-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                  </div>
+                  <div class="settings-template-info">
+                    <div class="settings-template-name">R&eacute;sultats</div>
+                    <div class="settings-template-desc">Communication des r&eacute;sultats de vote</div>
+                  </div>
+                  <button class="btn btn-ghost btn-xs btn-edit-template" type="button" data-template="resultats">&Eacute;diter</button>
+                </div>
+                <div class="settings-template-item">
+                  <div class="settings-template-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  </div>
+                  <div class="settings-template-info">
+                    <div class="settings-template-name">Proc&egrave;s-verbal</div>
+                    <div class="settings-template-desc">Envoi du PV apr&egrave;s validation</div>
+                  </div>
+                  <button class="btn btn-ghost btn-xs btn-edit-template" type="button" data-template="pv">&Eacute;diter</button>
+                </div>
+                <div class="settings-template-item">
+                  <div class="settings-template-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  </div>
+                  <div class="settings-template-info">
+                    <div class="settings-template-name">Mise en demeure</div>
+                    <div class="settings-template-desc">Relance pour copropri&eacute;taires en retard de paiement</div>
+                  </div>
+                  <button class="btn btn-ghost btn-xs btn-edit-template" type="button" data-template="mise-en-demeure">&Eacute;diter</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template editor (shown when editing) -->
+          <div class="card mb-4" id="templateEditor" hidden>
+            <div class="card-header">
+              <h3 class="card-title" id="templateEditorTitle">&Eacute;diter le template</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group mb-3">
+                <label class="form-label">Objet</label>
+                <input class="form-input" type="text" id="templateSubject" placeholder="Objet de l'email...">
+              </div>
+              <div class="form-group mb-3">
+                <label class="form-label">Corps</label>
+                <textarea class="form-input" id="templateBody" rows="10" placeholder="Contenu HTML du template..."></textarea>
+              </div>
+              <div class="form-group mb-3">
+                <label class="form-label">Variables disponibles</label>
+                <div class="flex flex-wrap gap-1">
+                  <code class="text-xs">&#123;&#123;nom&#125;&#125;</code>
+                  <code class="text-xs">&#123;&#123;date&#125;&#125;</code>
+                  <code class="text-xs">&#123;&#123;heure&#125;&#125;</code>
+                  <code class="text-xs">&#123;&#123;lieu&#125;&#125;</code>
+                  <code class="text-xs">&#123;&#123;syndic&#125;&#125;</code>
+                  <code class="text-xs">&#123;&#123;lien_vote&#125;&#125;</code>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-primary" id="btnSaveTemplate">Enregistrer</button>
+                <button class="btn btn-secondary" id="btnCancelTemplate">Annuler</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card : Préférences de notification -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Pr&eacute;f&eacute;rences de notification</h3>
+              <p class="card-description">Canaux de notification activ&eacute;s pour ce tenant</p>
+            </div>
+            <div class="card-body">
+              <div class="settings-toggle-row">
+                <label class="form-label form-label-toggle">
+                  <input type="checkbox" id="settNotifEmail" checked>
+                  Notifications par email
+                </label>
+                <p class="text-sm text-muted">Envoie les notifications et convocations par email aux membres.</p>
+              </div>
+              <div class="settings-toggle-row mt-3">
+                <label class="form-label form-label-toggle">
+                  <input type="checkbox" id="settNotifPush">
+                  Notifications push
+                </label>
+                <p class="text-sm text-muted">Envoie des notifications push aux navigateurs qui ont donn&eacute; leur accord.</p>
+              </div>
+              <div class="settings-toggle-row mt-3">
+                <label class="form-label form-label-toggle">
+                  <input type="checkbox" id="settNotifWeekly">
+                  R&eacute;sum&eacute; hebdomadaire
+                </label>
+                <p class="text-sm text-muted">Envoie un r&eacute;sum&eacute; hebdomadaire des activit&eacute;s aux administrateurs.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- TAB 3 : SÉCURITÉ (SET-03)                 -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="settings-panel" id="stab-securite" role="tabpanel" aria-labelledby="tab-securite" hidden>
+
+          <!-- Card : Niveau CNIL -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">Niveau de protection CNIL</h3>
+              <p class="card-description">Choisissez le niveau de protection des donn&eacute;es personnelles</p>
+            </div>
+            <div class="card-body">
+              <div class="settings-cnil-levels">
+                <label class="settings-level-card selected">
+                  <input type="radio" name="cnilLevel" value="1" id="cnilLevel1" checked>
+                  <span class="settings-level-num">1</span>
+                  <span class="settings-level-title">Standard</span>
+                  <span class="settings-level-desc">S&eacute;paration identit&eacute;/bulletin, chiffrement AES-256</span>
+                </label>
+                <label class="settings-level-card">
+                  <input type="radio" name="cnilLevel" value="2" id="cnilLevel2">
+                  <span class="settings-level-num">2</span>
+                  <span class="settings-level-title">Renforc&eacute;</span>
+                  <span class="settings-level-desc">Niveau 1 + double authentification + horodatage certifi&eacute;</span>
+                </label>
+                <label class="settings-level-card">
+                  <input type="radio" name="cnilLevel" value="3" id="cnilLevel3">
+                  <span class="settings-level-num">3</span>
+                  <span class="settings-level-title">Maximum</span>
+                  <span class="settings-level-desc">Niveau 2 + urne scell&eacute;e + preuve &agrave; divulgation nulle</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card : Authentification à deux facteurs -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">Authentification &agrave; deux facteurs</h3>
+            </div>
+            <div class="card-body">
+              <div class="settings-toggle-row">
+                <label class="form-label form-label-toggle">
+                  <input type="checkbox" id="sett2FA">
+                  Activer 2FA pour tous les utilisateurs
+                </label>
+                <p class="text-sm text-muted">Force la double authentification pour tous les comptes du tenant. Les utilisateurs devront configurer leur application d'authentification.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card : Session -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">Session</h3>
+            </div>
+            <div class="card-body">
+              <div class="settings-form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="settSessionTimeout">D&eacute;lai d'expiration (minutes)</label>
+                  <input class="form-input" type="number" id="settSessionTimeout" value="30" min="5" max="480">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card : Paramètres de sécurité -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Param&egrave;tres de s&eacute;curit&eacute;</h3>
+            </div>
+            <div class="card-body">
+              <div class="settings-form-grid">
+                <div class="form-group">
+                  <label class="form-label">Plafond procurations</label>
+                  <input class="form-input" type="number" id="settMaxProxies" value="3" min="1" max="10">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">D&eacute;lai contestation (jours)</label>
+                  <input class="form-input" type="number" id="settContestDelay" value="60" min="1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">2e convocation (jours apr&egrave;s 1re)</label>
+                  <input class="form-input" type="number" id="settSecondConv" value="7" min="1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Dur&eacute;e lien de vote (heures)</label>
+                  <input class="form-input" type="number" id="settVoteLinkDuration" value="48" min="1">
+                </div>
+              </div>
+              <div class="settings-form-grid mt-3">
+                <div class="form-group">
+                  <label class="form-label form-label-toggle">
+                    <input type="checkbox" id="settSeparation" checked>
+                    S&eacute;paration identit&eacute;/bulletin
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label class="form-label form-label-toggle">
+                    <input type="checkbox" id="settDoubleVote">
+                    Bloquer double vote
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- TAB 4 : ACCESSIBILITÉ (SET-04)            -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="settings-panel" id="stab-accessibilite" role="tabpanel" aria-labelledby="tab-accessibilite" hidden>
+
+          <!-- Card : Taille du texte -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">Taille du texte</h3>
+              <p class="card-description">D&eacute;finit la taille de police par d&eacute;faut pour le tenant</p>
+            </div>
+            <div class="card-body">
+              <div class="settings-text-size-grid">
+                <label class="settings-text-size-card">
+                  <input type="radio" name="settTextSize" id="settTextSizeNormal" value="normal" checked>
+                  <span class="settings-text-size-label">A</span>
+                  <span class="settings-text-size-desc">Standard</span>
+                </label>
+                <label class="settings-text-size-card">
+                  <input type="radio" name="settTextSize" id="settTextSizeLarge" value="large">
+                  <span class="settings-text-size-label" style="font-size:1.15em;">A+</span>
+                  <span class="settings-text-size-desc">Grand</span>
+                </label>
+                <label class="settings-text-size-card">
+                  <input type="radio" name="settTextSize" id="settTextSizeXLarge" value="xlarge">
+                  <span class="settings-text-size-label" style="font-size:1.3em;">A++</span>
+                  <span class="settings-text-size-desc">Tr&egrave;s grand</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card : Contraste élevé -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">Contraste &eacute;lev&eacute;</h3>
+            </div>
+            <div class="card-body">
+              <div class="settings-toggle-row">
+                <label class="form-label form-label-toggle">
+                  <input type="checkbox" id="settHighContrast">
+                  Activer le mode contraste &eacute;lev&eacute;
+                </label>
+                <p class="text-sm text-muted">Augmente le contraste des couleurs pour am&eacute;liorer la lisibilit&eacute; pour les utilisateurs malvoyants.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card : Indicateurs de focus -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">Indicateurs de focus</h3>
+            </div>
+            <div class="card-body">
+              <div class="settings-toggle-row">
+                <label class="form-label form-label-toggle">
+                  <input type="checkbox" id="settFocusIndicators" checked>
+                  Afficher les indicateurs de focus visibles
+                </label>
+                <p class="text-sm text-muted">Affiche des contours de focus bien visibles lors de la navigation au clavier. Recommand&eacute; pour l'accessibilit&eacute; RGAA.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card : Déclaration d'accessibilité -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">D&eacute;claration d'accessibilit&eacute;</h3>
+              <p class="card-description">Conformit&eacute; RGAA 4.1 / WCAG 2.2 niveau AA</p>
+            </div>
+            <div class="card-body">
+              <div class="settings-a11y-score">
+                <div class="settings-a11y-ring">
+                  <svg viewBox="0 0 120 120" width="120" height="120">
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-border)" stroke-width="10"/>
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-success)" stroke-width="10"
+                      stroke-dasharray="305 314" stroke-dashoffset="-78.5"
+                      transform="rotate(-90 60 60)"/>
+                  </svg>
+                  <span class="settings-a11y-pct">97%</span>
+                </div>
+                <div>
+                  <div class="font-semibold text-success">Partiellement conforme</div>
+                  <div class="text-sm text-muted mt-1">97 crit&egrave;res sur 100 valid&eacute;s</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card : Audits réalisés -->
+          <div class="card mb-4">
+            <div class="card-header"><h3 class="card-title">Audits r&eacute;alis&eacute;s</h3></div>
+            <div class="card-body p-0">
+              <table class="users-table">
+                <thead>
+                  <tr><th>Date</th><th>R&eacute;f&eacute;rentiel</th><th>Score</th><th>Auditeur</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>15/01/2026</td>
+                    <td>RGAA 4.1</td>
+                    <td><span class="badge badge-success">97%</span></td>
+                    <td>Audit interne</td>
+                  </tr>
+                  <tr>
+                    <td>10/06/2025</td>
+                    <td>WCAG 2.2 AA</td>
+                    <td><span class="badge badge-success">95%</span></td>
+                    <td>Prestataire externe</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Card : Non-conformités -->
+          <div class="card">
+            <div class="card-header"><h3 class="card-title">Non-conformit&eacute;s r&eacute;siduelles</h3></div>
+            <div class="card-body">
+              <div class="settings-nc-list">
+                <div class="settings-nc-item">
+                  <span class="badge badge-warning">Mineure</span>
+                  <span class="text-sm">Contraste insuffisant sur les placeholders des champs de saisie (ratio 3.8:1 au lieu de 4.5:1)</span>
+                </div>
+                <div class="settings-nc-item">
+                  <span class="badge badge-warning">Mineure</span>
+                  <span class="text-sm">Graphiques Chart.js : alternatives textuelles manquantes (donn&eacute;es accessibles via tableau masqu&eacute;)</span>
+                </div>
+                <div class="settings-nc-item">
+                  <span class="badge badge-warning">Mineure</span>
+                  <span class="text-sm">Focus visible insuffisant sur certains boutons d'ic&ocirc;ne dans le header en th&egrave;me sombre</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="app-footer" role="contentinfo">
+      <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
+        <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        </span>
+        AG-VOTE
+      </a>
+      <span class="text-muted">v3.19</span>
+      <span style="flex:1"></span>
+      <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
+      <a href="/settings.htmx.html#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilit&eacute;</a>
+    </footer>
+  </div>
+
+  <script src="/assets/js/components/index.js"></script>
+  <script src="/assets/js/core/utils.js"></script>
+  <script src="/assets/js/core/shared.js"></script>
+  <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/services/meeting-context.js"></script>
+  <script src="/assets/js/pages/settings.js"></script>
+</body>
+</html>
