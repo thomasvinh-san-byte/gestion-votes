@@ -144,8 +144,9 @@ class EventBroadcaster {
     }
 
     /**
-     * Publish event to per-meeting SSE list for real-time streaming.
-     * SSE clients poll these lists via /api/v1/events.php.
+     * Publish event to per-consumer SSE queues for real-time streaming.
+     * Fans out to all registered consumers for the meeting so operator,
+     * voters, and projection screens all receive every event.
      * Falls back to file-based queue when Redis is unavailable.
      */
     private static function publishToSse(array $event): void {
@@ -157,13 +158,24 @@ class EventBroadcaster {
         if (self::useRedis()) {
             try {
                 $redis = RedisProvider::connection();
-                $sseKey = 'sse:events:' . $meetingId;
                 $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
-                $redis->rPush($sseKey, json_encode($event));
-                // Auto-expire after 60s to prevent memory leaks for inactive meetings
-                $redis->expire($sseKey, 60);
-                // Trim to keep max 100 events per meeting
-                $redis->lTrim($sseKey, -100, -1);
+
+                // Read all registered consumers for this meeting
+                $consumers = $redis->sMembers("sse:consumers:{$meetingId}");
+
+                if (!empty($consumers)) {
+                    $encoded = json_encode($event);
+                    // Pipeline RPUSH + EXPIRE + LTRIM to each consumer's personal queue
+                    $pipe = $redis->multi(\Redis::PIPELINE);
+                    foreach ($consumers as $consumerId) {
+                        $queueKey = "sse:queue:{$meetingId}:{$consumerId}";
+                        $pipe->rPush($queueKey, $encoded);
+                        $pipe->expire($queueKey, 60);
+                        $pipe->lTrim($queueKey, -100, -1);
+                    }
+                    $pipe->exec();
+                }
+
                 $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_JSON);
                 return;
             } catch (Throwable $e) {
