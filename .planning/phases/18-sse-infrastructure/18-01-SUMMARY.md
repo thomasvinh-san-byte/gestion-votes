@@ -110,6 +110,15 @@ None - no external service configuration required.
 - Nginx and PHP-FPM configured for long-lived SSE connections
 - Ready for Phase 19 (operator console) which consumes SSE events from operator-realtime.js
 
+## Self-Check: PASSED
+
+All files verified present. All task commits verified in git log:
+- `6d8accb` - Task 1: multi-consumer fan-out in EventBroadcaster
+- `cbd6777` - Task 2: consumer registration + personal queue in events.php
+- `ae5d62e` - Task 3: nginx SSE location block
+- `255ff58` - Task 4: php-fpm SSE sizing docs
+- `35783db` - Metadata commit (SUMMARY.md, STATE.md, ROADMAP.md, REQUIREMENTS.md)
+
 ---
 *Phase: 18-sse-infrastructure*
 *Completed: 2026-03-16*
