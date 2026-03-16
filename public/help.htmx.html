@@ -176,6 +176,26 @@
                 Non. AG-Vote fonctionne en réseau local fermé. L'application est auto-hébergée et ne dépend d'aucun service externe. Seul l'envoi d'invitations par email nécessite une connexion SMTP.
               </div>
             </div>
+
+            <div class="faq-item" data-search="acces navigateur url">
+              <div class="faq-question">
+                <span>Comment acc&eacute;der &agrave; l'application ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Ouvrez un navigateur compatible (Chrome, Firefox, Safari, Edge) et saisissez l'URL locale fournie par votre administrateur (ex. : <code>http://192.168.1.10</code>). Aucune installation n'est n&eacute;cessaire&nbsp;: l'application fonctionne directement dans le navigateur.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="donnees securite chiffrement">
+              <div class="faq-question">
+                <span>Les donn&eacute;es sont-elles s&eacute;curis&eacute;es ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Oui. Les donn&eacute;es sensibles sont chiffr&eacute;es (AES-256) et stock&eacute;es dans une base PostgreSQL h&eacute;berg&eacute;e localement &mdash; aucune donn&eacute;e ne transite vers un service cloud. Le journal d'audit &agrave; cha&icirc;nage SHA256 est infalsifiable.
+              </div>
+            </div>
           </div>
 
           <!-- Operator -->
@@ -234,6 +254,16 @@
                   <li><strong>Par poids</strong> : somme des poids (tantièmes) des présents >= seuil</li>
                 </ul>
                 Chaque résolution peut avoir sa propre politique de quorum.
+              </div>
+            </div>
+
+            <div class="faq-item" data-search="procuration mandataire deleguer">
+              <div class="faq-question">
+                <span>Comment g&eacute;rer les procurations pendant une s&eacute;ance ?</span>
+                <svg class="icon faq-chevron"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+              </div>
+              <div class="faq-answer">
+                Dans l'onglet <strong>Pr&eacute;sences</strong> de la console op&eacute;rateur, cliquez sur <strong>Ajouter procuration</strong>. S&eacute;lectionnez le mandataire (celui qui vote) et le mandant (celui qui d&eacute;l&egrave;gue). Le plafond de procurations par mandataire est configurable dans Param&egrave;tres.
               </div>
             </div>
           </div>
