@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 15-tech-debt-cleanup-01-PLAN.md
-last_updated: "2026-03-16T10:29:58.163Z"
+stopped_at: Completed 15-02-PLAN.md
+last_updated: "2026-03-16T10:32:59.581Z"
 last_activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
 progress:
   total_phases: 18
-  completed_phases: 14
+  completed_phases: 15
   total_plans: 39
-  completed_plans: 39
+  completed_plans: 40
   percent: 100
 ---
 
@@ -78,6 +78,7 @@ Progress: [##########] 100%
 | Phase 14-wizard-hub-dashboard-api P01 | 5 | 2 tasks | 4 files |
 | Phase 14-wizard-hub-dashboard-api P02 | 5 | 2 tasks | 2 files |
 | Phase 15-tech-debt-cleanup P01 | 3 | 2 tasks | 2 files |
+| Phase 15-tech-debt-cleanup P02 | 2 | 2 tasks | 0 files |
 
 ## Milestone History
 
@@ -173,6 +174,7 @@ Recent decisions affecting current work:
 - [Phase 14-wizard-hub-dashboard-api]: dashboard.js: Compute KPI values from meetings array by filtering on status — avoids depending on non-existent upstream_count/live_count fields
 - [Phase 15-tech-debt-cleanup]: icon-pause uses rect elements (two vertical bars, stroke style) not polygon fill — consistent with existing Lucide stroke pattern
 - [Phase 15-tech-debt-cleanup]: ?tab=notifications removed from notification Voir tout link — admin.js never reads tab param, removal simpler than adding dead URL-parsing code
+- [Phase 15-tech-debt-cleanup]: type=module on external component scripts is correct and must be preserved — these files use ES import syntax; inline scripts never had type=module
 
 ### Pending Todos
 
@@ -188,8 +190,8 @@ None — wizard.js meeting creation API wired in Phase 14 Plan 01.
 
 ## Session Continuity
 
-Last session: 2026-03-16T10:29:58.160Z
-Stopped at: Completed 15-tech-debt-cleanup-01-PLAN.md
+Last session: 2026-03-16T10:32:59.578Z
+Stopped at: Completed 15-02-PLAN.md
 Last session: 2026-03-13T15:00:00.000Z
 Stopped at: Completed 14-wizard-hub-dashboard-api Plan 01 (SUMMARY created)
 Resume file: None
