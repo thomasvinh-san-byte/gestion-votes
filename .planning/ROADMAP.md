@@ -10,7 +10,7 @@
 
 ### v3.0 Session Lifecycle (Active)
 
-- [ ] **Phase 16: Data Foundation** — Wizard creates real session data; hub loads real state
+- [x] **Phase 16: Data Foundation** — Wizard creates real session data; hub loads real state (completed 2026-03-16)
 - [ ] **Phase 17: Demo Data Removal** — Dashboard and audit show real data; all demo fallbacks removed
 - [ ] **Phase 18: SSE Infrastructure** — Multi-consumer safe SSE; nginx and PHP-FPM configured for long-lived connections
 - [ ] **Phase 19: Operator Console Wiring** — Operator loads real meeting; attendance and motions tabs driven by API
@@ -76,7 +76,7 @@
   2. Members selected in wizard step 2 are visible as registered participants when the hub attendance checklist is opened
   3. Resolutions entered in wizard step 3 appear as motions on the hub checklist
   4. When the backend is unreachable, the hub displays an explicit error state instead of demo data or a blank screen
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 16-01-PLAN.md — Extend createMeeting() with atomic member + motion persistence
 - [ ] 16-02-PLAN.md — Wire wizard redirect with counts and hub real data + error handling
@@ -162,7 +162,7 @@ Plans:
 | 13. Settings & Help | v2.0 | 2/2 | Complete | 2026-03-15 |
 | 14. Integration + API Wiring | v2.0 | 3/3 | Complete | 2026-03-13 |
 | 15. Operator Wiring + Tech Debt | v2.0 | 6/6 | Complete | 2026-03-16 |
-| 16. Data Foundation | 1/2 | In Progress|  | - |
+| 16. Data Foundation | 2/2 | Complete   | 2026-03-16 | - |
 | 17. Demo Data Removal | v3.0 | 0/TBD | Not started | - |
 | 18. SSE Infrastructure | v3.0 | 0/TBD | Not started | - |
 | 19. Operator Console Wiring | v3.0 | 0/TBD | Not started | - |
