@@ -98,9 +98,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Users
 
-- [ ] **USR-01**: Role info panel (Admin, Opérateur, Auditeur, Observateur) with descriptions
-- [ ] **USR-02**: Users table with avatar, name, email, role tag (color-coded), status, last login, edit button
-- [ ] **USR-03**: Add user button + pagination
+- [x] **USR-01**: Role info panel (Admin, Opérateur, Auditeur, Observateur) with descriptions
+- [x] **USR-02**: Users table with avatar, name, email, role tag (color-coded), status, last login, edit button
+- [x] **USR-03**: Add user button + pagination
 
 ### Settings
 
@@ -219,9 +219,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | STAT-01 | Phase 12 | Complete |
 | STAT-02 | Phase 12 | Complete |
 | STAT-03 | Phase 12 | Complete |
-| USR-01 | Phase 12 | Pending |
-| USR-02 | Phase 12 | Pending |
-| USR-03 | Phase 12 | Pending |
+| USR-01 | Phase 12 | Complete |
+| USR-02 | Phase 12 | Complete |
+| USR-03 | Phase 12 | Complete |
 | SET-01 | Phase 13 | Pending |
 | SET-02 | Phase 13 | Pending |
 | SET-03 | Phase 13 | Pending |

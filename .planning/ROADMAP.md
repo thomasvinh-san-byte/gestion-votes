@@ -20,7 +20,7 @@
 - [x] **Phase 10: Live Session Views** - Room display (full-screen, dark) and voter tablet/mobile view (touch-optimized, large buttons) (completed 2026-03-13)
 - [x] **Phase 10.1: Milestone Gap Closure** (INSERTED) - Close all gaps from v1.1 milestone audit: integration bug fixes + verification documentation (completed 2026-03-15)
 - [x] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views (completed 2026-03-16)
-- [ ] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination)
+- [x] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination) (completed 2026-03-16)
 - [ ] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers)
 
 ## Phase Details
@@ -155,7 +155,7 @@ Plans:
   1. Statistics page displays 4 KPI cards (Sessions, Resolutions, Taux d'adoption, Participation) with trend arrows
   2. Statistics page shows a donut chart for vote distribution (Pour/Contre/Abstention) and a line graph for participation trends, with an export button
   3. Users page shows a role info panel describing Admin/Operateur/Auditeur/Observateur roles, a users table with avatar/name/email/role tag/status/last login/edit, and add user + pagination controls
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 12-01-PLAN.md — Statistics page wireframe alignment: 4 KPI cards with year-over-year trend arrows, donut/line chart fixes, CSV export
 - [ ] 12-02-PLAN.md — Users page extraction from admin: users.htmx.html + users.css + users.js, sidebar update, admin cleanup
@@ -189,7 +189,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 10. Live Session Views | 2/2 | Complete   | 2026-03-13 |
 | 10.1 Milestone Gap Closure | 1/1 | Complete   | 2026-03-15 |
 | 11. Post-Session & Records | 3/3 | Complete    | 2026-03-16 |
-| 12. Analytics & User Management | 1/2 | In Progress|  |
+| 12. Analytics & User Management | 2/2 | Complete   | 2026-03-16 |
 | 13. Settings & Help | 0/TBD | Not started | - |
 
 ---
