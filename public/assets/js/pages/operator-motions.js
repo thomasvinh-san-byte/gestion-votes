@@ -16,13 +16,22 @@
   // =========================================================================
 
   async function loadResolutions() {
+    var snapshotMeetingId = O.currentMeetingId;
     try {
       const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`);
+      if (O.currentMeetingId !== snapshotMeetingId) return; // stale — discard
       O.motionsCache = body?.data?.items || [];
       O.currentOpenMotion = O.motionsCache.find(m => m.opened_at && !m.closed_at) || null;
+      if (O.motionsCache.length === 0) {
+        O.fn.showTabEmpty('ordre-du-jour', 'Aucune r\u00e9solution');
+        document.getElementById('tabCountResolutions').textContent = 0;
+        return;
+      }
       renderResolutions();
       document.getElementById('tabCountResolutions').textContent = O.motionsCache.length;
     } catch (err) {
+      if (O.currentMeetingId !== snapshotMeetingId) return; // stale — discard
+      O.fn.showTabError('ordre-du-jour', 'Erreur chargement r\u00e9solutions.', 'loadResolutions');
       setNotif('error', 'Erreur chargement résolutions');
     }
   }
