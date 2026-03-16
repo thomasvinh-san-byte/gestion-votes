@@ -22,10 +22,10 @@ Requirements for v3.0 release. Each maps to roadmap phases.
 
 ### SSE Temps Réel
 
-- [ ] **SSE-01**: Le endpoint events.php supporte plusieurs consommateurs simultanés sans perte d'événements
-- [ ] **SSE-02**: nginx dispose d'un location block dédié pour events.php avec fastcgi_buffering off
-- [ ] **SSE-03**: La configuration PHP-FPM documente le dimensionnement pour les connexions SSE longue durée
-- [ ] **SSE-04**: Le décompte des votes opérateur se met à jour en temps réel via SSE après chaque bulletin
+- [x] **SSE-01**: Le endpoint events.php supporte plusieurs consommateurs simultanés sans perte d'événements
+- [x] **SSE-02**: nginx dispose d'un location block dédié pour events.php avec fastcgi_buffering off
+- [x] **SSE-03**: La configuration PHP-FPM documente le dimensionnement pour les connexions SSE longue durée
+- [x] **SSE-04**: Le décompte des votes opérateur se met à jour en temps réel via SSE après chaque bulletin
 
 ### Console Opérateur
 
@@ -100,10 +100,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HUB-02 | Phase 16 | Pending |
 | HUB-03 | Phase 17 | Complete |
 | HUB-04 | Phase 17 | Complete |
-| SSE-01 | Phase 18 | Pending |
-| SSE-02 | Phase 18 | Pending |
-| SSE-03 | Phase 18 | Pending |
-| SSE-04 | Phase 18 | Pending |
+| SSE-01 | Phase 18 | Complete |
+| SSE-02 | Phase 18 | Complete |
+| SSE-03 | Phase 18 | Complete |
+| SSE-04 | Phase 18 | Complete |
 | OPR-01 | Phase 19 | Pending |
 | OPR-02 | Phase 19 | Pending |
 | OPR-03 | Phase 19 | Pending |

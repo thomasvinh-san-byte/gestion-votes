@@ -12,7 +12,7 @@
 
 - [x] **Phase 16: Data Foundation** — Wizard creates real session data; hub loads real state (completed 2026-03-16)
 - [x] **Phase 17: Demo Data Removal** — Dashboard and audit show real data; all demo fallbacks removed (completed 2026-03-16)
-- [ ] **Phase 18: SSE Infrastructure** — Multi-consumer safe SSE; nginx and PHP-FPM configured for long-lived connections
+- [x] **Phase 18: SSE Infrastructure** — Multi-consumer safe SSE; nginx and PHP-FPM configured for long-lived connections (completed 2026-03-16)
 - [ ] **Phase 19: Operator Console Wiring** — Operator loads real meeting; attendance and motions tabs driven by API
 - [ ] **Phase 20: Live Vote Flow** — End-to-end vote cycle; operator tally updates in real-time via SSE
 - [ ] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived
@@ -167,7 +167,7 @@ Plans:
 | 15. Operator Wiring + Tech Debt | v2.0 | 6/6 | Complete | 2026-03-16 |
 | 16. Data Foundation | v3.0 | 2/2 | Complete | 2026-03-16 |
 | 17. Demo Data Removal | 2/2 | Complete    | 2026-03-16 | - |
-| 18. SSE Infrastructure | v3.0 | 0/TBD | Not started | - |
+| 18. SSE Infrastructure | 1/1 | Complete   | 2026-03-16 | - |
 | 19. Operator Console Wiring | v3.0 | 0/TBD | Not started | - |
 | 20. Live Vote Flow | v3.0 | 0/TBD | Not started | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |

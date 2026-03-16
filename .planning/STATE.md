@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: executing
-stopped_at: Completed 17-02-PLAN.md
-last_updated: "2026-03-16T15:07:01.903Z"
+stopped_at: Completed 18-01-PLAN.md
+last_updated: "2026-03-16T17:33:19.306Z"
 last_activity: 2026-03-16 — Plan 16-01 complete (atomic createMeeting with members + motions)
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
   percent: 7
 ---
 
@@ -49,6 +49,7 @@ Progress: [█░░░░░░░░░] 7%
 | Phase 16-data-foundation P01 | 25 | 1 tasks | 2 files |
 | Phase 17-demo-data-removal P01 | 5 | 1 tasks | 1 files |
 | Phase 17-demo-data-removal P02 | 3min | 1 tasks | 1 files |
+| Phase 18-sse-infrastructure P01 | 15min | 4 tasks | 4 files |
 
 ### Decisions
 
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - [Phase 17-demo-data-removal]: Tasks panel shows Shared.emptyState() on every successful API load since no task data exists in the dashboard API
 - [Phase 17-demo-data-removal]: audit.js: use promise-based tryLoad(attempt) instead of async/await to maintain ES5-compatible style
 - [Phase 17-demo-data-removal]: audit.js: reset KPI values to dash on error to avoid showing stale counts from previous load
+- [Phase 18-sse-infrastructure]: Per-consumer Redis lists for SSE fan-out: publishToSse reads sse:consumers SET, pipelines RPUSH to each consumer's personal queue
+- [Phase 18-sse-infrastructure]: SSE endpoint exempt from nginx rate limiting — EventSource auto-reconnects every 30s; rate limiting causes 503 storms on reconnect blips
+- [Phase 18-sse-infrastructure]: Consumer ID = session_id() with md5(REMOTE_ADDR:PID) fallback; file fallback stays single-consumer (Redis required for multi-consumer)
 
 ### Pending Todos
 
@@ -78,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T15:00:58.429Z
-Stopped at: Completed 17-02-PLAN.md
+Last session: 2026-03-16T17:33:19.304Z
+Stopped at: Completed 18-01-PLAN.md
 Resume file: None
