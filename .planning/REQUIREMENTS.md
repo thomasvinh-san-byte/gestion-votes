@@ -75,14 +75,14 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Post-Session
 
-- [ ] **POST-01**: 4-step stepper: Vérification, Validation, PV, Envoi
-- [ ] **POST-02**: Per-step checklist items with action buttons and status indicators
-- [ ] **POST-03**: Document download (PV), e-signature request, send-to-all buttons
+- [x] **POST-01**: 4-step stepper: Vérification, Validation, PV, Envoi
+- [x] **POST-02**: Per-step checklist items with action buttons and status indicators
+- [x] **POST-03**: Document download (PV), e-signature request, send-to-all buttons
 
 ### Archives
 
-- [ ] **ARCH-01**: Search bar with archive cards showing title, date, type, resolution summary, attendance
-- [ ] **ARCH-02**: Pagination (5 per page) and detail view on click
+- [x] **ARCH-01**: Search bar with archive cards showing title, date, type, resolution summary, attendance
+- [x] **ARCH-02**: Pagination (5 per page) and detail view on click
 
 ### Audit
 
@@ -208,11 +208,11 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | VOTE-01 | Phase 10 | Complete |
 | VOTE-02 | Phase 10 | Complete |
 | VOTE-03 | Phase 10 | Complete |
-| POST-01 | Phase 11 | Pending |
-| POST-02 | Phase 11 | Pending |
-| POST-03 | Phase 11 | Pending |
-| ARCH-01 | Phase 11 | Pending |
-| ARCH-02 | Phase 11 | Pending |
+| POST-01 | Phase 11 | Complete |
+| POST-02 | Phase 11 | Complete |
+| POST-03 | Phase 11 | Complete |
+| ARCH-01 | Phase 11 | Complete |
+| ARCH-02 | Phase 11 | Complete |
 | AUD-01 | Phase 11 | Complete |
 | AUD-02 | Phase 11 | Complete |
 | AUD-03 | Phase 11 | Complete |
