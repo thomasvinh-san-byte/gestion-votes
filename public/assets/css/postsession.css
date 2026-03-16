@@ -88,6 +88,10 @@
 }
 
 /* Done step */
+.ps-step.done {
+  cursor: pointer;
+}
+
 .ps-step.done .ps-step-number {
   background: var(--color-success);
   color: var(--color-text-inverse);
