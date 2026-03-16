@@ -6,7 +6,6 @@ namespace AgVote\Controller;
 
 use AgVote\Core\BallotSource;
 use AgVote\Core\Security\IdempotencyGuard;
-use AgVote\Core\Validation\Schemas\ValidationSchemas;
 use AgVote\Service\MeetingReportService;
 use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
