@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: executing
-stopped_at: Phase 16 executing — Plan 01 complete, Plan 02 in progress
-last_updated: "2026-03-16"
-last_activity: 2026-03-16 -- Phase 16 Plan 01 complete (atomic createMeeting with members + motions)
+stopped_at: Completed 16-data-foundation-16-01-PLAN.md
+last_updated: "2026-03-16T14:00:44.601Z"
+last_activity: 2026-03-16 — Plan 16-01 complete (atomic createMeeting with members + motions)
 progress:
   total_phases: 7
   completed_phases: 0
@@ -46,6 +46,7 @@ Progress: [█░░░░░░░░░] 7%
 | - | - | - | - |
 
 ## Accumulated Context
+| Phase 16-data-foundation P01 | 25 | 1 tasks | 2 files |
 
 ### Decisions
 
@@ -57,6 +58,9 @@ Recent decisions affecting current work:
 - v3.0: Phase 18 (SSE) has a research-phase flag — multi-consumer strategy (per-role keys vs. Redis Pub/Sub) must be resolved before committing to implementation
 - v3.0: CLN-03 (audit.js demo removal) mapped to Phase 17 with other demo removals; CLN-01/CLN-02 are final-sweep items in Phase 22
 - v3.0: export_correspondance link removal is part of Phase 21 (PST-04), not a separate phase
+- [Phase 16-data-foundation]: Do NOT run ValidationSchemas::meeting() on wizard payload — field names mismatch. Use manual mapping instead.
+- [Phase 16-data-foundation]: api_transaction() wraps all meeting + member + motion inserts atomically; audit_log() stays outside to avoid non-critical failure causing rollback.
+- [Phase 16-data-foundation]: Member upsert uses findByEmail() (case-insensitive) as canonical deduplication key; voix defaults to 1.0 if absent.
 
 ### Pending Todos
 
@@ -68,6 +72,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16
-Stopped at: Roadmap written — ROADMAP.md, STATE.md, REQUIREMENTS.md traceability updated
+Last session: 2026-03-16T14:00:44.599Z
+Stopped at: Completed 16-data-foundation-16-01-PLAN.md
 Resume file: None

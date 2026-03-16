@@ -9,9 +9,9 @@ Requirements for v3.0 release. Each maps to roadmap phases.
 
 ### Création de session
 
-- [ ] **WIZ-01**: Le wizard crée une session en DB avec titre, type, lieu, date en une seule requête API
-- [ ] **WIZ-02**: Les membres sélectionnés à l'étape 2 du wizard sont persistés en transaction atomique avec la session
-- [ ] **WIZ-03**: Les résolutions saisies à l'étape 3 du wizard sont persistées en transaction atomique avec la session
+- [x] **WIZ-01**: Le wizard crée une session en DB avec titre, type, lieu, date en une seule requête API
+- [x] **WIZ-02**: Les membres sélectionnés à l'étape 2 du wizard sont persistés en transaction atomique avec la session
+- [x] **WIZ-03**: Les résolutions saisies à l'étape 3 du wizard sont persistées en transaction atomique avec la session
 
 ### Hub & Dashboard
 
@@ -93,9 +93,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WIZ-01 | Phase 16 | Pending |
-| WIZ-02 | Phase 16 | Pending |
-| WIZ-03 | Phase 16 | Pending |
+| WIZ-01 | Phase 16 | Complete |
+| WIZ-02 | Phase 16 | Complete |
+| WIZ-03 | Phase 16 | Complete |
 | HUB-01 | Phase 16 | Pending |
 | HUB-02 | Phase 16 | Pending |
 | HUB-03 | Phase 17 | Pending |
