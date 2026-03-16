@@ -3,7 +3,7 @@
 ## Milestones
 
 - v1.1 through v1.5 - Phases 1-3 (shipped)
-- v2.0 UI Redesign (Acte Officiel) - Phases 4-13 (in progress)
+- v2.0 UI Redesign (Acte Officiel) - Phases 4-14 (in progress)
 
 ## Phases
 
@@ -22,6 +22,7 @@
 - [x] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views (completed 2026-03-16)
 - [x] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination) (completed 2026-03-16)
 - [x] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers) (completed 2026-03-16)
+- [ ] **Phase 14: Integration Bug Fixes** - Fix sidebar/mobile nav settings link, fix users.htmx.html script path (audit gap closure)
 
 ## Phase Details
 
@@ -173,6 +174,19 @@ Plans:
 - [ ] 13-01-PLAN.md — Settings page extraction from admin: 4-tab restructure (Regles, Communication, Securite, Accessibilite), auto-save with toast, admin cleanup, footer links update
 - [ ] 13-02-PLAN.md — Help page: FAQ expansion to 3-5 items per category, Dashboard + Hub tour launcher cards (9 total)
 
+### Phase 14: Integration Bug Fixes
+**Goal**: All navigation links correctly route to their target pages and all script paths resolve — closing the 2 integration gaps found in the v2.0 milestone audit
+**Depends on**: Phase 6, Phase 12, Phase 13
+**Requirements**: SET-01, SET-02, SET-03, SET-04, NAV-02, NAV-04, USR-01, USR-02, USR-03
+**Gap Closure:** Closes gaps from v2.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Clicking "Paramètres" in the sidebar navigates to `/settings.htmx.html` (not admin.htmx.html)
+  2. Clicking "Paramètres" in the mobile bottom nav navigates to `/settings.htmx.html`
+  3. The settings page sidebar item shows active highlighting when on `/settings.htmx.html`
+  4. `users.htmx.html` loads `meeting-context.js` successfully (correct script path)
+Plans:
+- [ ] 14-01-PLAN.md — Fix sidebar, mobile nav, and users.htmx.html script path
+
 ## Progress
 
 **Execution Order:**
@@ -192,6 +206,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 11. Post-Session & Records | 3/3 | Complete    | 2026-03-16 |
 | 12. Analytics & User Management | 2/2 | Complete    | 2026-03-16 |
 | 13. Settings & Help | 2/2 | Complete    | 2026-03-16 |
+| 14. Integration Bug Fixes | 0/1 | Not started | - |
 
 ---
 
