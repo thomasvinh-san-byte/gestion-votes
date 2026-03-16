@@ -93,38 +93,38 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WIZ-01 | — | Pending |
-| WIZ-02 | — | Pending |
-| WIZ-03 | — | Pending |
-| HUB-01 | — | Pending |
-| HUB-02 | — | Pending |
-| HUB-03 | — | Pending |
-| HUB-04 | — | Pending |
-| SSE-01 | — | Pending |
-| SSE-02 | — | Pending |
-| SSE-03 | — | Pending |
-| SSE-04 | — | Pending |
-| OPR-01 | — | Pending |
-| OPR-02 | — | Pending |
-| OPR-03 | — | Pending |
-| OPR-04 | — | Pending |
-| VOT-01 | — | Pending |
-| VOT-02 | — | Pending |
-| VOT-03 | — | Pending |
-| VOT-04 | — | Pending |
-| PST-01 | — | Pending |
-| PST-02 | — | Pending |
-| PST-03 | — | Pending |
-| PST-04 | — | Pending |
-| CLN-01 | — | Pending |
-| CLN-02 | — | Pending |
-| CLN-03 | — | Pending |
+| WIZ-01 | Phase 16 | Pending |
+| WIZ-02 | Phase 16 | Pending |
+| WIZ-03 | Phase 16 | Pending |
+| HUB-01 | Phase 16 | Pending |
+| HUB-02 | Phase 16 | Pending |
+| HUB-03 | Phase 17 | Pending |
+| HUB-04 | Phase 17 | Pending |
+| SSE-01 | Phase 18 | Pending |
+| SSE-02 | Phase 18 | Pending |
+| SSE-03 | Phase 18 | Pending |
+| SSE-04 | Phase 18 | Pending |
+| OPR-01 | Phase 19 | Pending |
+| OPR-02 | Phase 19 | Pending |
+| OPR-03 | Phase 19 | Pending |
+| OPR-04 | Phase 19 | Pending |
+| VOT-01 | Phase 20 | Pending |
+| VOT-02 | Phase 20 | Pending |
+| VOT-03 | Phase 20 | Pending |
+| VOT-04 | Phase 20 | Pending |
+| PST-01 | Phase 21 | Pending |
+| PST-02 | Phase 21 | Pending |
+| PST-03 | Phase 21 | Pending |
+| PST-04 | Phase 21 | Pending |
+| CLN-01 | Phase 22 | Pending |
+| CLN-02 | Phase 22 | Pending |
+| CLN-03 | Phase 17 | Pending |
 
 **Coverage:**
 - v3.0 requirements: 26 total
-- Mapped to phases: 0
-- Unmapped: 26 ⚠️
+- Mapped to phases: 26
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 after roadmap creation — all 26 requirements mapped*
