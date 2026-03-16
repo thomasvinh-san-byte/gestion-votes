@@ -155,7 +155,7 @@ Plans:
   1. Statistics page displays 4 KPI cards (Sessions, Resolutions, Taux d'adoption, Participation) with trend arrows
   2. Statistics page shows a donut chart for vote distribution (Pour/Contre/Abstention) and a line graph for participation trends, with an export button
   3. Users page shows a role info panel describing Admin/Operateur/Auditeur/Observateur roles, a users table with avatar/name/email/role tag/status/last login/edit, and add user + pagination controls
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 12-01-PLAN.md — Statistics page wireframe alignment: 4 KPI cards with year-over-year trend arrows, donut/line chart fixes, CSV export
 - [ ] 12-02-PLAN.md — Users page extraction from admin: users.htmx.html + users.css + users.js, sidebar update, admin cleanup
@@ -189,7 +189,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 10. Live Session Views | 2/2 | Complete   | 2026-03-13 |
 | 10.1 Milestone Gap Closure | 1/1 | Complete   | 2026-03-15 |
 | 11. Post-Session & Records | 3/3 | Complete    | 2026-03-16 |
-| 12. Analytics & User Management | 0/2 | Not started | - |
+| 12. Analytics & User Management | 1/2 | In Progress|  |
 | 13. Settings & Help | 0/TBD | Not started | - |
 
 ---

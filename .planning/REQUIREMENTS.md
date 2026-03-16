@@ -92,9 +92,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Statistics
 
-- [ ] **STAT-01**: 4 KPI cards (Sessions, Résolutions, Taux d'adoption, Participation) with trend arrows
-- [ ] **STAT-02**: Donut chart (Pour/Contre/Abstention distribution) + line graph (participation trends)
-- [ ] **STAT-03**: Export button
+- [x] **STAT-01**: 4 KPI cards (Sessions, Résolutions, Taux d'adoption, Participation) with trend arrows
+- [x] **STAT-02**: Donut chart (Pour/Contre/Abstention distribution) + line graph (participation trends)
+- [x] **STAT-03**: Export button
 
 ### Users
 
@@ -216,9 +216,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | AUD-01 | Phase 11 | Complete |
 | AUD-02 | Phase 11 | Complete |
 | AUD-03 | Phase 11 | Complete |
-| STAT-01 | Phase 12 | Pending |
-| STAT-02 | Phase 12 | Pending |
-| STAT-03 | Phase 12 | Pending |
+| STAT-01 | Phase 12 | Complete |
+| STAT-02 | Phase 12 | Complete |
+| STAT-03 | Phase 12 | Complete |
 | USR-01 | Phase 12 | Pending |
 | USR-02 | Phase 12 | Pending |
 | USR-03 | Phase 12 | Pending |
