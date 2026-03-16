@@ -162,7 +162,7 @@ Plans:
 | 13. Settings & Help | v2.0 | 2/2 | Complete | 2026-03-15 |
 | 14. Integration + API Wiring | v2.0 | 3/3 | Complete | 2026-03-13 |
 | 15. Operator Wiring + Tech Debt | v2.0 | 6/6 | Complete | 2026-03-16 |
-| 16. Data Foundation | 2/2 | Complete   | 2026-03-16 | - |
+| 16. Data Foundation | 2/2 | Complete    | 2026-03-16 | - |
 | 17. Demo Data Removal | v3.0 | 0/TBD | Not started | - |
 | 18. SSE Infrastructure | v3.0 | 0/TBD | Not started | - |
 | 19. Operator Console Wiring | v3.0 | 0/TBD | Not started | - |
