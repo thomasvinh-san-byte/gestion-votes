@@ -1401,72 +1401,14 @@
   });
 
   // ═══════════════════════════════════════════════════════
-  // P7-2: ADMIN AUDIT LOG
+  // P7-2: ADMIN AUDIT LOG — moved to /audit.htmx.html
+  // DOM elements removed; function is a no-op to avoid errors
+  // when called from refreshAll().
   // ═══════════════════════════════════════════════════════
-  let _auditOffset = 0;
-  const _auditLimit = 50;
-
-  async function loadAdminAuditLog() {
-    var list = document.getElementById('adminAuditList');
-    var actionFilter = document.getElementById('adminAuditAction').value;
-    var searchQuery = document.getElementById('adminAuditSearch').value.trim();
-
-    try {
-      var url = '/api/v1/admin_audit_log.php?limit=' + _auditLimit + '&offset=' + _auditOffset;
-      if (actionFilter) url += '&action=' + encodeURIComponent(actionFilter);
-      if (searchQuery) url += '&q=' + encodeURIComponent(searchQuery);
-
-      var r = await api(url);
-      if (r.body && r.body.ok && r.body.data) {
-        var d = r.body.data;
-
-        // Populate action filter dropdown (first load)
-        var actionSelect = document.getElementById('adminAuditAction');
-        if (actionSelect.options.length <= 1 && d.action_types) {
-          d.action_types.forEach(function(t) {
-            var opt = document.createElement('option');
-            opt.value = t.value;
-            opt.textContent = t.label;
-            actionSelect.appendChild(opt);
-          });
-        }
-
-        if (!d.items || d.items.length === 0) {
-          list.innerHTML = '<div class="text-center p-4 text-muted">Aucun événement admin</div>';
-        } else {
-          list.innerHTML = d.items.map(function(e) {
-            var ts = new Date(e.timestamp).toLocaleString('fr-FR');
-            var detail = e.detail ? ' — <span class="text-muted">' + escapeHtml(e.detail) + '</span>' : '';
-            var ip = e.ip_address ? '<span class="text-xs text-muted">' + escapeHtml(e.ip_address) + '</span>' : '';
-            return '<div class="system-stat" style="padding:0.6rem 1rem;">' +
-              '<div style="flex:1;">' +
-                '<span class="text-sm font-medium">' + escapeHtml(e.action_label) + '</span>' + detail +
-                '<div class="text-xs text-muted" style="margin-top:2px;">' + ts + ' · ' + escapeHtml(e.actor_role || '') + ' ' + ip + '</div>' +
-              '</div>' +
-            '</div>';
-          }).join('');
-        }
-
-        // Pagination
-        var pagination = document.getElementById('adminAuditPagination');
-        if (d.total > 0) {
-          pagination.style.display = 'flex';
-          document.getElementById('adminAuditCount').textContent = (d.offset + 1) + '-' + Math.min(d.offset + d.items.length, d.total) + ' sur ' + d.total;
-          document.getElementById('adminAuditPrev').disabled = d.offset === 0;
-          document.getElementById('adminAuditNext').disabled = (d.offset + _auditLimit) >= d.total;
-        } else {
-          pagination.style.display = 'none';
-        }
-      }
-    } catch(e) {
-      list.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
-    }
+  function loadAdminAuditLog() {
+    // Audit log has been extracted to the dedicated /audit.htmx.html page.
+    // This stub is kept so refreshAll() callers do not throw errors.
   }
-
-  document.getElementById('adminAuditAction').addEventListener('change', function() { _auditOffset = 0; loadAdminAuditLog(); });
-  document.getElementById('adminAuditSearch').addEventListener('input', Utils.debounce(function() { _auditOffset = 0; loadAdminAuditLog(); }, 300));
-  document.getElementById('adminAuditPrev').addEventListener('click', function() { _auditOffset = Math.max(0, _auditOffset - _auditLimit); loadAdminAuditLog(); });
-  document.getElementById('adminAuditNext').addEventListener('click', function() { _auditOffset += _auditLimit; loadAdminAuditLog(); });
 
   // ═══════════════════════════════════════════════════════
   // REFRESH ALL
