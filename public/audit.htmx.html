@@ -1,0 +1,196 @@
+<!doctype html>
+<!-- GO-LIVE-STATUS: ready — Journal d'audit (wireframe PageAudit). -->
+<html lang="fr" data-page-role="viewer">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Journal d'audit - AG-VOTE">
+  <title>Journal d'audit — AG-VOTE</title>
+  <script src="/assets/js/theme-init.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/audit.css">
+</head>
+<body>
+  <!-- Skip links -->
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-nav" class="skip-link">Aller à la navigation</a>
+
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="app-sidebar" data-include-sidebar data-page="audit"></aside>
+
+    <!-- Header -->
+    <header class="app-header" role="banner">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-xl font-bold"><svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-shield-check"></use></svg> Journal d'audit</h1>
+          <p class="text-sm text-secondary">Historique des evenements systeme</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-secondary" id="btnRefresh">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" id="btnExportCsv" title="Exporter en CSV" aria-label="Exporter en CSV">
+          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main" id="main-content" role="main">
+      <div class="container">
+        <!-- Notification area -->
+        <div id="notif_box" class="hidden mb-4"></div>
+
+        <!-- Filter bar (AUD-01) -->
+        <div class="audit-filters mb-4">
+          <div class="audit-filter-pills" role="group" aria-label="Filtrer par type d'evenement">
+            <button class="filter-pill filter-pill--active" data-filter="all">Tous</button>
+            <button class="filter-pill" data-filter="votes">Votes</button>
+            <button class="filter-pill" data-filter="presences">Presences</button>
+            <button class="filter-pill" data-filter="security">Securite</button>
+            <button class="filter-pill" data-filter="system">Systeme</button>
+          </div>
+          <div class="audit-filter-controls">
+            <input type="search" id="auditSearch" class="form-input" placeholder="Rechercher..." aria-label="Rechercher dans le journal">
+            <select id="auditSort" class="form-input" aria-label="Trier par">
+              <option value="desc">Plus recent</option>
+              <option value="asc">Plus ancien</option>
+            </select>
+            <div class="view-toggle" role="group" aria-label="Choisir la vue">
+              <button class="view-toggle-btn view-toggle-btn--active" data-view="table" title="Vue tableau" aria-label="Vue tableau" aria-pressed="true">
+                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg>
+              </button>
+              <button class="view-toggle-btn" data-view="timeline" title="Vue chronologie" aria-label="Vue chronologie" aria-pressed="false">
+                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table View (AUD-02) -->
+        <div id="auditTableView">
+          <div class="card">
+            <div class="card-body p-0">
+              <div class="audit-table-wrapper">
+                <table class="audit-table">
+                  <thead>
+                    <tr>
+                      <th class="audit-checkbox-col"><input type="checkbox" id="auditSelectAll" aria-label="Selectionner tout"></th>
+                      <th>Date / Heure</th>
+                      <th>Utilisateur</th>
+                      <th>Action</th>
+                      <th>Ressource</th>
+                      <th>Statut</th>
+                      <th>Details</th>
+                    </tr>
+                  </thead>
+                  <tbody id="auditTableBody">
+                    <tr>
+                      <td colspan="7" class="text-center p-6">
+                        <div class="spinner"></div>
+                        <div class="mt-2 text-muted">Chargement...</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="audit-pagination-row">
+                <ag-pagination id="auditPagination" page-size="20"></ag-pagination>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline View (AUD-02) -->
+        <div id="auditTimelineView" hidden>
+          <div class="audit-timeline" id="auditTimelineBody">
+            <div class="text-center p-6">
+              <div class="spinner"></div>
+              <div class="mt-2 text-muted">Chargement...</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="app-footer" role="contentinfo">
+      <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
+        <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        </span>
+        AG-VOTE
+      </a>
+      <span class="text-muted">v3.19</span>
+      <span style="flex:1"></span>
+      <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
+      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
+    </footer>
+  </div>
+
+  <!-- Event Detail Modal (AUD-03) -->
+  <ag-modal id="auditDetailModal" title="Detail de l'evenement">
+    <div slot="body">
+      <dl class="audit-detail-list" id="auditDetailContent">
+        <div class="audit-detail-row">
+          <dt>Date</dt>
+          <dd id="detailDate">—</dd>
+        </div>
+        <div class="audit-detail-row">
+          <dt>Utilisateur</dt>
+          <dd id="detailUser">—</dd>
+        </div>
+        <div class="audit-detail-row">
+          <dt>Action</dt>
+          <dd id="detailAction">—</dd>
+        </div>
+        <div class="audit-detail-row">
+          <dt>Ressource</dt>
+          <dd id="detailResource">—</dd>
+        </div>
+        <div class="audit-detail-row">
+          <dt>Statut</dt>
+          <dd id="detailStatus">—</dd>
+        </div>
+        <div class="audit-detail-row">
+          <dt>Adresse IP</dt>
+          <dd id="detailIp">—</dd>
+        </div>
+      </dl>
+
+      <div class="audit-fingerprint mt-4">
+        <div class="audit-fingerprint-header">
+          <span class="text-sm font-semibold">Empreinte SHA-256</span>
+          <div class="flex gap-2">
+            <button class="btn btn-ghost btn-xs" id="btnCopyHash" title="Copier l'empreinte">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-copy"></use></svg> Copier
+            </button>
+            <button class="btn btn-ghost btn-xs" id="btnVerifyHash" title="Verifier l'integrite">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield-check"></use></svg> Verifier
+            </button>
+          </div>
+        </div>
+        <code class="audit-hash" id="detailHash">—</code>
+      </div>
+    </div>
+    <div slot="footer">
+      <button class="btn btn-ghost" id="btnCloseDetail">Fermer</button>
+    </div>
+  </ag-modal>
+
+  <!-- Scripts -->
+  <script src="/assets/js/core/utils.js"></script>
+  <script type="module" src="/assets/js/components/index.js"></script>
+  <script src="/assets/js/core/shared.js"></script>
+  <script src="/assets/js/core/shell.js"></script>
+  <script src="/assets/js/pages/audit.js"></script>
+</body>
+</html>
