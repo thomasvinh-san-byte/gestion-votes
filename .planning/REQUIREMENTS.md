@@ -104,10 +104,10 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Settings
 
-- [ ] **SET-01**: Tab Règles: double auth toggle, double approval toggle, quorum base/percentage
-- [ ] **SET-02**: Tab Communication: support email, email templates preview, notification preferences
-- [ ] **SET-03**: Tab Sécurité: 2FA management, session timeout
-- [ ] **SET-04**: Tab Accessibilité: text size (A/A+/A++), high contrast toggle, focus indicators
+- [x] **SET-01**: Tab Règles: double auth toggle, double approval toggle, quorum base/percentage
+- [x] **SET-02**: Tab Communication: support email, email templates preview, notification preferences
+- [x] **SET-03**: Tab Sécurité: 2FA management, session timeout
+- [x] **SET-04**: Tab Accessibilité: text size (A/A+/A++), high contrast toggle, focus indicators
 
 ### Help & FAQ
 
@@ -222,10 +222,10 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | USR-01 | Phase 12 | Complete |
 | USR-02 | Phase 12 | Complete |
 | USR-03 | Phase 12 | Complete |
-| SET-01 | Phase 13 | Pending |
-| SET-02 | Phase 13 | Pending |
-| SET-03 | Phase 13 | Pending |
-| SET-04 | Phase 13 | Pending |
+| SET-01 | Phase 13 | Complete |
+| SET-02 | Phase 13 | Complete |
+| SET-03 | Phase 13 | Complete |
+| SET-04 | Phase 13 | Complete |
 | FAQ-01 | Phase 13 | Complete |
 | FAQ-02 | Phase 13 | Complete |
 

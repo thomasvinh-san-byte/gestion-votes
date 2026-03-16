@@ -21,7 +21,7 @@
 - [x] **Phase 10.1: Milestone Gap Closure** (INSERTED) - Close all gaps from v1.1 milestone audit: integration bug fixes + verification documentation (completed 2026-03-15)
 - [x] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views (completed 2026-03-16)
 - [x] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination) (completed 2026-03-16)
-- [ ] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers)
+- [x] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers) (completed 2026-03-16)
 
 ## Phase Details
 
@@ -168,7 +168,7 @@ Plans:
   1. Settings page has 4 tabs: Regles (double auth/approval toggles, quorum settings), Communication (support email, email templates, notification prefs), Securite (2FA, session timeout), Accessibilite (text size A/A+/A++, high contrast, focus indicators)
   2. Help page shows an accordion FAQ with category filter and search
   3. Help page provides guided tour launcher buttons for Dashboard, Operator, Members, Hub, Stats, and Post-Session workflows
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 13-01-PLAN.md — Settings page extraction from admin: 4-tab restructure (Regles, Communication, Securite, Accessibilite), auto-save with toast, admin cleanup, footer links update
 - [ ] 13-02-PLAN.md — Help page: FAQ expansion to 3-5 items per category, Dashboard + Hub tour launcher cards (9 total)
@@ -191,7 +191,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 10.1 Milestone Gap Closure | 1/1 | Complete   | 2026-03-15 |
 | 11. Post-Session & Records | 3/3 | Complete    | 2026-03-16 |
 | 12. Analytics & User Management | 2/2 | Complete    | 2026-03-16 |
-| 13. Settings & Help | 1/2 | In Progress|  |
+| 13. Settings & Help | 2/2 | Complete   | 2026-03-16 |
 
 ---
 
