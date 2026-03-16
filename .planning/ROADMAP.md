@@ -167,7 +167,7 @@ Plans:
 | 15. Operator Wiring + Tech Debt | v2.0 | 6/6 | Complete | 2026-03-16 |
 | 16. Data Foundation | v3.0 | 2/2 | Complete | 2026-03-16 |
 | 17. Demo Data Removal | 2/2 | Complete    | 2026-03-16 | - |
-| 18. SSE Infrastructure | 1/1 | Complete   | 2026-03-16 | - |
+| 18. SSE Infrastructure | 1/1 | Complete    | 2026-03-16 | - |
 | 19. Operator Console Wiring | v3.0 | 0/TBD | Not started | - |
 | 20. Live Vote Flow | v3.0 | 0/TBD | Not started | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
