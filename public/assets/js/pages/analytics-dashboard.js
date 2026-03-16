@@ -1,11 +1,11 @@
 (function() {
   'use strict';
 
-  let currentPeriod = 'year';
-  let charts = {};
+  var currentPeriod = 'year';
+  var charts = {};
 
   // Chart.js default options
-  const chartDefaults = {
+  var chartDefaults = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -33,21 +33,21 @@
       info:    cssVar('--color-info', '#3b82f6'),
     };
   }
-  let COLORS = getCOLORS();
+  var COLORS = getCOLORS();
   // Refresh colors and rebuild charts when theme changes
-  var _themeMO = new MutationObserver(() => {
+  var _themeMO = new MutationObserver(function() {
     COLORS = getCOLORS();
     loadAllData();
   });
   _themeMO.observe(
     document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }
   );
-  window.addEventListener('pagehide', () => _themeMO.disconnect(), { once: true });
+  window.addEventListener('pagehide', function() { _themeMO.disconnect(); }, { once: true });
 
   // Period buttons
-  document.querySelectorAll('.period-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.period-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.period-btn').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       currentPeriod = btn.dataset.period;
       loadAllData();
@@ -55,33 +55,33 @@
   });
 
   // Tabs
-  document.querySelectorAll('.analytics-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.analytics-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.analytics-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.analytics-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
       tab.classList.add('active');
-      document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
     });
   });
 
   // Year filter
-  let currentYear = '';
-  const yearFilterEl = document.getElementById('yearFilter');
+  var currentYear = '';
+  var yearFilterEl = document.getElementById('yearFilter');
   if (yearFilterEl) {
     currentYear = yearFilterEl.value || '';
-    yearFilterEl.addEventListener('change', () => {
+    yearFilterEl.addEventListener('change', function() {
       currentYear = yearFilterEl.value;
       loadAllData();
     });
   }
 
   // PDF export
-  document.getElementById('btnExportPdf')?.addEventListener('click', () => {
-    window.print();
-  });
+  var _btnPdf = document.getElementById('btnExportPdf');
+  if (_btnPdf) _btnPdf.addEventListener('click', function() { window.print(); });
 
   // Refresh button
-  document.getElementById('refreshBtn')?.addEventListener('click', loadAllData);
+  var _btnRefresh = document.getElementById('refreshBtn');
+  if (_btnRefresh) _btnRefresh.addEventListener('click', loadAllData);
 
   // =========================================================================
   // DATA LOADING
@@ -104,209 +104,266 @@
     document.querySelectorAll('.chart-container').forEach(function(c) { c.classList.add('loaded'); });
   }
 
-  // Helper: build trend indicator HTML
-  function trendHtml(trend) {
-    if (trend > 0) {
-      return `<span class="overview-card-trend up">\u25b2 ${Math.abs(trend)}%</span>`;
-    } else if (trend < 0) {
-      return `<span class="overview-card-trend down">\u25bc ${Math.abs(trend)}%</span>`;
+  // Helper: update a trend DOM element by ID
+  // trendValue: positive = up, negative = down, 0 = stable
+  // When year filter is "all", hide the trend element entirely
+  function updateTrend(elementId, trendValue) {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+    var isAllYears = (currentYear === 'all' || currentYear === '');
+    if (isAllYears) {
+      el.hidden = true;
+      return;
     }
-    return '<span class="overview-card-trend">\u2014 stable</span>';
+    el.hidden = false;
+    var arrowEl = el.querySelector('.trend-arrow');
+    // Remove existing direction classes
+    el.classList.remove('up', 'down');
+    if (trendValue > 0) {
+      el.classList.add('up');
+      if (arrowEl) arrowEl.textContent = '\u25b2 ' + Math.abs(trendValue) + '%';
+    } else if (trendValue < 0) {
+      el.classList.add('down');
+      if (arrowEl) arrowEl.textContent = '\u25bc ' + Math.abs(trendValue) + '%';
+    } else {
+      if (arrowEl) arrowEl.textContent = '\u2014 stable';
+    }
   }
 
   async function loadOverview() {
-    const container = document.getElementById('overviewCards');
+    var container = document.getElementById('overviewCards');
     try {
-      const { body } = await api(`/api/v1/analytics.php?type=overview&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
-      const data = body?.data;
+      var result = await api('/api/v1/analytics.php?type=overview&period=' + encodeURIComponent(currentPeriod) + (currentYear ? '&year=' + encodeURIComponent(currentYear) : ''));
+      var data = result.body && result.body.data;
       if (!data) throw new Error('Donn\u00e9es non disponibles');
 
-      const totals = data.totals || {};
-      const avgRate = Math.round(parseFloat(data.avg_participation_rate) || 0);
-      const decisions = data.motion_decisions || {};
+      var totals = data.totals || {};
+      var avgRate = Math.round(parseFloat(data.avg_participation_rate) || 0);
+      var decisions = data.motion_decisions || {};
 
-      const adopted = parseInt(decisions.adopted || 0);
-      const rejected = parseInt(decisions.rejected || 0);
-      const total = adopted + rejected;
-      const adoptionRate = total > 0 ? Math.round(adopted / total * 100) : 0;
+      var adopted = parseInt(decisions.adopted || 0);
+      var rejected = parseInt(decisions.rejected || 0);
+      var total = adopted + rejected;
+      var adoptionRate = total > 0 ? Math.round(adopted / total * 100) : 0;
 
-      // Trends compared to previous period (from API or default to 0)
-      const trends = data.trends || {};
-      const meetingsTrend = trends.meetings || 0;
-      const membersTrend = trends.members || 0;
-      const motionsTrend = trends.motions || 0;
-      const ballotsTrend = trends.ballots || 0;
-      const participationTrend = trends.participation || 0;
-      const adoptionTrend = trends.adoption || 0;
+      // Trends compared to previous year (from API or default to 0)
+      var trends = data.trends || {};
+      var meetingsTrend = trends.meetings || 0;
+      var motionsTrend = trends.motions || 0;
+      var participationTrend = trends.participation || 0;
+      var adoptionTrend = trends.adoption || 0;
 
-      container.innerHTML = `
-          <div class="overview-card">
-            <div class="overview-card-label">S\u00e9ances totales</div>
-            <div class="overview-card-value primary">${totals.meetings || 0}</div>
-            ${trendHtml(meetingsTrend)}
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-label">Membres</div>
-            <div class="overview-card-value">${totals.members || 0}</div>
-            ${trendHtml(membersTrend)}
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-label">R\u00e9solutions</div>
-            <div class="overview-card-value">${totals.motions || 0}</div>
-            ${trendHtml(motionsTrend)}
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-label">Votes enregistr\u00e9s</div>
-            <div class="overview-card-value">${totals.ballots || 0}</div>
-            ${trendHtml(ballotsTrend)}
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-label">Participation moyenne</div>
-            <div class="overview-card-value success">${avgRate}%</div>
-            ${trendHtml(participationTrend)}
-            <div class="progress-bar mt-2">
-              <div class="progress-bar-fill success" style="width:${avgRate}%"></div>
-            </div>
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-label">Taux d'adoption</div>
-            <div class="overview-card-value ${adoptionRate >= 50 ? 'success' : 'warning'}">${adoptionRate}%</div>
-            ${trendHtml(adoptionTrend)}
-            <div class="overview-card-sub">${adopted} adopt\u00e9es / ${rejected} rejet\u00e9es</div>
-          </div>
-        `;
+      // Update KPI values by ID (static card structure preserved in HTML)
+      var kpiMeetings = document.getElementById('kpiMeetings');
+      if (kpiMeetings) kpiMeetings.textContent = totals.meetings || 0;
+
+      var kpiResolutions = document.getElementById('kpiResolutions');
+      if (kpiResolutions) kpiResolutions.textContent = totals.motions || 0;
+
+      var kpiAdoptionRate = document.getElementById('kpiAdoptionRate');
+      if (kpiAdoptionRate) kpiAdoptionRate.textContent = adoptionRate + '%';
+
+      var kpiParticipation = document.getElementById('kpiParticipation');
+      if (kpiParticipation) kpiParticipation.textContent = avgRate + '%';
+
+      // Update trend arrows (hidden when year = all)
+      updateTrend('kpiMeetingsTrend', meetingsTrend);
+      updateTrend('kpiResolutionsTrend', motionsTrend);
+      updateTrend('kpiAdoptionTrend', adoptionTrend);
+      updateTrend('kpiParticipationTrend', participationTrend);
+
     } catch (err) {
-      container.innerHTML = `<div class="error-message">Erreur: ${escapeHtml(err.message)}</div>`;
+      if (container) container.innerHTML = '<div class="error-message">Erreur: ' + escapeHtml(err.message) + '</div>';
     }
   }
 
   async function loadParticipation() {
     try {
-      const { body } = await api(`/api/v1/analytics.php?type=participation&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
-      const data = body?.data;
+      var result = await api('/api/v1/analytics.php?type=participation&period=' + encodeURIComponent(currentPeriod) + (currentYear ? '&year=' + encodeURIComponent(currentYear) : ''));
+      var data = result.body && result.body.data;
       if (!data) throw new Error('Donn\u00e9es non disponibles');
 
-      const meetings = data.meetings || [];
-      const labels = meetings.map(m => m.title?.substring(0, 15) || 'S\u00e9ance');
-      const rates = meetings.map(m => parseFloat(m.rate) || 0);
-      const _presents = meetings.map(m => parseInt(m.present) || 0);
-      const _proxies = meetings.map(m => parseInt(m.proxy) || 0);
+      var meetings = data.meetings || [];
+
+      // Aggregate participation rates by month (12-point line chart per wireframe)
+      var monthLabels = ['Jan', 'F\u00e9v', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Ao\u00fb', 'Sep', 'Oct', 'Nov', 'D\u00e9c'];
+      var monthRateSum = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      var monthRateCount = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      meetings.forEach(function(m) {
+        var d = m.date ? new Date(m.date) : null;
+        if (d && !isNaN(d.getTime())) {
+          var idx = d.getMonth(); // 0-based
+          monthRateSum[idx] += parseFloat(m.rate) || 0;
+          monthRateCount[idx] += 1;
+        }
+      });
+      var monthlyRates = monthRateSum.map(function(sum, i) {
+        return monthRateCount[i] > 0 ? Math.round(sum / monthRateCount[i]) : null;
+      });
 
       // Destroy existing chart
       if (charts.participation) charts.participation.destroy();
 
-      const ctx = document.getElementById('participationChart')?.getContext('2d');
+      var ctx = document.getElementById('participationChart');
       if (ctx) {
-        charts.participation = new Chart(ctx, {
+        charts.participation = new Chart(ctx.getContext('2d'), {
           type: 'line',
           data: {
-            labels,
+            labels: monthLabels,
             datasets: [{
               label: 'Taux (%)',
-              data: rates,
+              data: monthlyRates,
               borderColor: COLORS.primary,
-              backgroundColor: COLORS.primary + '20',
+              backgroundColor: COLORS.primary + '33',
               fill: true,
               tension: 0.3,
+              spanGaps: true,
             }]
           },
-          options: {
-            ...chartDefaults,
+          options: Object.assign({}, chartDefaults, {
             scales: {
               y: {
                 beginAtZero: true,
                 max: 100,
-                ticks: { callback: v => v + '%' }
+                ticks: { callback: function(v) { return v + '%'; } }
               }
             }
-          }
+          })
         });
       }
 
       // Sessions by month (bar chart)
       if (charts.sessionsByMonth) charts.sessionsByMonth.destroy();
-      const ctxMonth = document.getElementById('sessionsByMonthChart')?.getContext('2d');
+      var ctxMonth = document.getElementById('sessionsByMonthChart');
       if (ctxMonth) {
-        const monthCounts = {};
-        meetings.forEach(m => {
-          const d = m.date ? new Date(m.date) : null;
-          if (d) {
-            const key = d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
-            monthCounts[key] = (monthCounts[key] || 0) + 1;
+        var monthCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        meetings.forEach(function(m) {
+          var d = m.date ? new Date(m.date) : null;
+          if (d && !isNaN(d.getTime())) {
+            monthCounts[d.getMonth()] += 1;
           }
         });
-        charts.sessionsByMonth = new Chart(ctxMonth, {
+        charts.sessionsByMonth = new Chart(ctxMonth.getContext('2d'), {
           type: 'bar',
           data: {
-            labels: Object.keys(monthCounts),
+            labels: monthLabels,
             datasets: [{
               label: 'S\u00e9ances',
-              data: Object.values(monthCounts),
+              data: monthCounts,
               backgroundColor: COLORS.primary,
             }]
           },
-          options: { ...chartDefaults, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+          options: Object.assign({}, chartDefaults, { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } })
         });
       }
 
       // Table
-      const tableContainer = document.getElementById('participationTable');
+      var tableContainer = document.getElementById('participationTable');
       if (meetings.length === 0) {
         tableContainer.innerHTML = '<p class="text-muted text-center p-4">Aucune donn\u00e9e disponible</p>';
       } else {
-        tableContainer.innerHTML = `
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th scope="col">S\u00e9ance</th>
-                  <th scope="col">Pr\u00e9sents</th>
-                  <th scope="col">Procurations</th>
-                  <th scope="col">Taux</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${meetings.slice(-10).reverse().map(m => {
-    const rate = parseFloat(m.rate) || 0;
-    return `
-                  <tr>
-                    <td>${escapeHtml(m.title?.substring(0, 30) || 'S\u00e9ance')}</td>
-                    <td>${parseInt(m.present) || 0} / ${parseInt(m.eligible) || 0}</td>
-                    <td>${parseInt(m.proxy) || 0}</td>
-                    <td>
-                      <div class="table-progress-cell">
-                        <div class="progress-bar table-progress-bar">
-                          <div class="progress-bar-fill ${rate >= 50 ? 'success' : 'warning'}" style="width:${Math.round(rate)}%"></div>
-                        </div>
-                        <span>${Math.round(rate)}%</span>
-                      </div>
-                    </td>
-                  </tr>`;
-  }).join('')}
-              </tbody>
-            </table>
-          `;
+        var tableRows = meetings.slice(-10).reverse().map(function(m) {
+          var rate = parseFloat(m.rate) || 0;
+          return '<tr>' +
+            '<td>' + escapeHtml((m.title || 'S\u00e9ance').substring(0, 30)) + '</td>' +
+            '<td>' + (parseInt(m.present) || 0) + ' / ' + (parseInt(m.eligible) || 0) + '</td>' +
+            '<td>' + (parseInt(m.proxy) || 0) + '</td>' +
+            '<td><div class="table-progress-cell">' +
+              '<div class="progress-bar table-progress-bar">' +
+                '<div class="progress-bar-fill ' + (rate >= 50 ? 'success' : 'warning') + '" style="width:' + Math.round(rate) + '%"></div>' +
+              '</div>' +
+              '<span>' + Math.round(rate) + '%</span>' +
+            '</div></td>' +
+            '</tr>';
+        }).join('');
+        tableContainer.innerHTML = '<table class="data-table">' +
+          '<thead><tr>' +
+            '<th scope="col">S\u00e9ance</th>' +
+            '<th scope="col">Pr\u00e9sents</th>' +
+            '<th scope="col">Procurations</th>' +
+            '<th scope="col">Taux</th>' +
+          '</tr></thead>' +
+          '<tbody>' + tableRows + '</tbody>' +
+          '</table>';
       }
     } catch (err) {
       var pChart = document.getElementById('participationChart');
       if (pChart) pChart.parentElement.innerHTML = chartErrorHtml('Erreur de chargement des participations');
-      document.getElementById('participationTable').innerHTML = '<div class="text-center text-muted text-sm" style="padding:1.5rem;">Aucune donn\u00e9e de participation disponible.</div>';
+      var ptable = document.getElementById('participationTable');
+      if (ptable) ptable.innerHTML = '<div class="text-center text-muted text-sm" style="padding:1.5rem;">Aucune donn\u00e9e de participation disponible.</div>';
     }
   }
 
   async function loadMotions() {
     try {
-      const { body } = await api(`/api/v1/analytics.php?type=motions&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
-      const data = body?.data;
+      var result = await api('/api/v1/analytics.php?type=motions&period=' + encodeURIComponent(currentPeriod) + (currentYear ? '&year=' + encodeURIComponent(currentYear) : ''));
+      var data = result.body && result.body.data;
       if (!data) throw new Error('Donn\u00e9es non disponibles');
 
-      const summary = data.summary || {};
-      const byMeeting = data.by_meeting || [];
+      var summary = data.summary || {};
+      var byMeeting = data.by_meeting || [];
 
-      // Pie chart
+      // Animate the SVG donut segments for Pour/Contre/Abstention
+      var totalVotes = (parseInt(summary.pour) || 0) + (parseInt(summary.contre) || 0) + (parseInt(summary.abstention) || 0);
+      var circumference = 314; // 2 * PI * 50 (r=50)
+      if (totalVotes > 0) {
+        var pourPct = (parseInt(summary.pour) || 0) / totalVotes;
+        var contrePct = (parseInt(summary.contre) || 0) / totalVotes;
+        var abstentionPct = (parseInt(summary.abstention) || 0) / totalVotes;
+
+        var pourLen = pourPct * circumference;
+        var contreLen = contrePct * circumference;
+        var abstentionLen = abstentionPct * circumference;
+
+        var donutFor = document.getElementById('donutFor');
+        var donutAgainst = document.getElementById('donutAgainst');
+        var donutAbstain = document.getElementById('donutAbstain');
+
+        if (donutFor) donutFor.setAttribute('stroke-dasharray', pourLen.toFixed(1) + ' ' + (circumference - pourLen).toFixed(1));
+        if (donutAgainst) {
+          donutAgainst.setAttribute('stroke-dasharray', contreLen.toFixed(1) + ' ' + (circumference - contreLen).toFixed(1));
+          donutAgainst.setAttribute('stroke-dashoffset', (78.5 - pourLen).toFixed(1));
+        }
+        if (donutAbstain) {
+          donutAbstain.setAttribute('stroke-dasharray', abstentionLen.toFixed(1) + ' ' + (circumference - abstentionLen).toFixed(1));
+          donutAbstain.setAttribute('stroke-dashoffset', (78.5 - pourLen - contreLen).toFixed(1));
+        }
+
+        var donutTotal = document.getElementById('donutTotal');
+        if (donutTotal) donutTotal.textContent = totalVotes;
+
+        var donutForPct = document.getElementById('donutForPct');
+        if (donutForPct) donutForPct.textContent = Math.round(pourPct * 100) + '%';
+        var donutAgainstPct = document.getElementById('donutAgainstPct');
+        if (donutAgainstPct) donutAgainstPct.textContent = Math.round(contrePct * 100) + '%';
+        var donutAbstainPct = document.getElementById('donutAbstainPct');
+        if (donutAbstainPct) donutAbstainPct.textContent = Math.round(abstentionPct * 100) + '%';
+      } else if (summary.adopted !== undefined || summary.rejected !== undefined) {
+        // Fallback: use adopted/rejected data from summary if pour/contre/abstention not available
+        var adoptedCount = parseInt(summary.adopted) || 0;
+        var rejectedCount = parseInt(summary.rejected) || 0;
+        var pendingCount = (parseInt(summary.total) || 0) - adoptedCount - rejectedCount;
+        var fallbackTotal = adoptedCount + rejectedCount + Math.max(0, pendingCount);
+        if (fallbackTotal > 0) {
+          var aLen = (adoptedCount / fallbackTotal) * circumference;
+          var rLen = (rejectedCount / fallbackTotal) * circumference;
+          var donutFor2 = document.getElementById('donutFor');
+          var donutAgainst2 = document.getElementById('donutAgainst');
+          if (donutFor2) donutFor2.setAttribute('stroke-dasharray', aLen.toFixed(1) + ' ' + (circumference - aLen).toFixed(1));
+          if (donutAgainst2) {
+            donutAgainst2.setAttribute('stroke-dasharray', rLen.toFixed(1) + ' ' + (circumference - rLen).toFixed(1));
+            donutAgainst2.setAttribute('stroke-dashoffset', (78.5 - aLen).toFixed(1));
+          }
+          var donutTotal2 = document.getElementById('donutTotal');
+          if (donutTotal2) donutTotal2.textContent = fallbackTotal;
+        }
+      }
+
+      // Motions chart (doughnut via Chart.js)
       if (charts.motions) charts.motions.destroy();
-      const ctx1 = document.getElementById('motionsChart')?.getContext('2d');
-      if (ctx1) {
-        charts.motions = new Chart(ctx1, {
+      var ctx1El = document.getElementById('motionsChart');
+      if (ctx1El) {
+        charts.motions = new Chart(ctx1El.getContext('2d'), {
           type: 'doughnut',
           data: {
             labels: ['Adopt\u00e9es', 'Rejet\u00e9es', 'En attente'],
@@ -314,7 +371,7 @@
               data: [
                 summary.adopted || 0,
                 summary.rejected || 0,
-                (summary.total || 0) - (summary.adopted || 0) - (summary.rejected || 0)
+                Math.max(0, (summary.total || 0) - (summary.adopted || 0) - (summary.rejected || 0))
               ],
               backgroundColor: [COLORS.success, COLORS.danger, COLORS.muted],
             }]
@@ -325,12 +382,12 @@
 
       // Majority breakdown chart
       if (charts.majority) charts.majority.destroy();
-      const ctxMaj = document.getElementById('majorityChart')?.getContext('2d');
-      if (ctxMaj) {
-        const majLabels = Object.keys(summary.by_majority || {});
-        const majValues = Object.values(summary.by_majority || {});
+      var ctxMajEl = document.getElementById('majorityChart');
+      if (ctxMajEl) {
+        var majLabels = Object.keys(summary.by_majority || {});
+        var majValues = Object.values(summary.by_majority || {});
         if (majLabels.length > 0) {
-          charts.majority = new Chart(ctxMaj, {
+          charts.majority = new Chart(ctxMajEl.getContext('2d'), {
             type: 'doughnut',
             data: {
               labels: majLabels,
@@ -346,32 +403,31 @@
 
       // Trend chart
       if (charts.motionsTrend) charts.motionsTrend.destroy();
-      const ctx2 = document.getElementById('motionsTrendChart')?.getContext('2d');
-      if (ctx2 && byMeeting.length > 0) {
-        charts.motionsTrend = new Chart(ctx2, {
+      var ctx2El = document.getElementById('motionsTrendChart');
+      if (ctx2El && byMeeting.length > 0) {
+        charts.motionsTrend = new Chart(ctx2El.getContext('2d'), {
           type: 'bar',
           data: {
-            labels: byMeeting.map(m => m.meeting_title?.substring(0, 12) || ''),
+            labels: byMeeting.map(function(m) { return (m.meeting_title || '').substring(0, 12); }),
             datasets: [
               {
                 label: 'Adopt\u00e9es',
-                data: byMeeting.map(m => parseInt(m.adopted) || 0),
+                data: byMeeting.map(function(m) { return parseInt(m.adopted) || 0; }),
                 backgroundColor: COLORS.success,
               },
               {
                 label: 'Rejet\u00e9es',
-                data: byMeeting.map(m => parseInt(m.rejected) || 0),
+                data: byMeeting.map(function(m) { return parseInt(m.rejected) || 0; }),
                 backgroundColor: COLORS.danger,
               }
             ]
           },
-          options: {
-            ...chartDefaults,
+          options: Object.assign({}, chartDefaults, {
             scales: {
               x: { stacked: true },
               y: { stacked: true, beginAtZero: true }
             }
-          }
+          })
         });
       }
     } catch (err) {
@@ -384,16 +440,16 @@
 
   async function loadVoteDuration() {
     try {
-      const { body } = await api(`/api/v1/analytics.php?type=vote_duration&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
-      const data = body?.data;
+      var result = await api('/api/v1/analytics.php?type=vote_duration&period=' + encodeURIComponent(currentPeriod) + (currentYear ? '&year=' + encodeURIComponent(currentYear) : ''));
+      var data = result.body && result.body.data;
       if (!data) throw new Error('Donn\u00e9es non disponibles');
 
-      const distribution = data.distribution || {};
+      var distribution = data.distribution || {};
 
       if (charts.duration) charts.duration.destroy();
-      const ctx = document.getElementById('durationChart')?.getContext('2d');
-      if (ctx) {
-        charts.duration = new Chart(ctx, {
+      var dCtxEl = document.getElementById('durationChart');
+      if (dCtxEl) {
+        charts.duration = new Chart(dCtxEl.getContext('2d'), {
           type: 'bar',
           data: {
             labels: Object.keys(distribution),
@@ -403,34 +459,32 @@
               backgroundColor: COLORS.info,
             }]
           },
-          options: {
-            ...chartDefaults,
-            plugins: {
-              ...chartDefaults.plugins,
+          options: Object.assign({}, chartDefaults, {
+            plugins: Object.assign({}, chartDefaults.plugins, {
               title: {
                 display: true,
-                text: `Dur\u00e9e moyenne: ${data.avg_formatted || 'N/A'}`
+                text: 'Dur\u00e9e moyenne: ' + (data.avg_formatted || 'N/A')
               }
-            }
-          }
+            })
+          })
         });
       }
       // Average duration by type
-      const byType = data.by_type || {};
+      var byType = data.by_type || {};
       if (charts.avgDuration) charts.avgDuration.destroy();
-      const ctxAvg = document.getElementById('avgDurationChart')?.getContext('2d');
-      if (ctxAvg && Object.keys(byType).length > 0) {
-        charts.avgDuration = new Chart(ctxAvg, {
+      var avgCtxEl = document.getElementById('avgDurationChart');
+      if (avgCtxEl && Object.keys(byType).length > 0) {
+        charts.avgDuration = new Chart(avgCtxEl.getContext('2d'), {
           type: 'bar',
           data: {
             labels: Object.keys(byType),
             datasets: [{
               label: 'Dur\u00e9e moyenne (s)',
-              data: Object.values(byType).map(v => parseFloat(v) || 0),
+              data: Object.values(byType).map(function(v) { return parseFloat(v) || 0; }),
               backgroundColor: COLORS.warning,
             }]
           },
-          options: { ...chartDefaults, indexAxis: 'y', scales: { x: { beginAtZero: true } } }
+          options: Object.assign({}, chartDefaults, { indexAxis: 'y', scales: { x: { beginAtZero: true } } })
         });
       }
     } catch (err) {
@@ -441,16 +495,16 @@
 
   async function loadVoteTiming() {
     try {
-      const { body } = await api(`/api/v1/analytics.php?type=vote_timing&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
-      const data = body?.data;
+      var result = await api('/api/v1/analytics.php?type=vote_timing&period=' + encodeURIComponent(currentPeriod) + (currentYear ? '&year=' + encodeURIComponent(currentYear) : ''));
+      var data = result.body && result.body.data;
       if (!data) throw new Error('Donn\u00e9es non disponibles');
 
-      const distribution = data.distribution || {};
+      var distribution = data.distribution || {};
 
       if (charts.responseTime) charts.responseTime.destroy();
-      const ctx = document.getElementById('responseTimeChart')?.getContext('2d');
-      if (ctx) {
-        charts.responseTime = new Chart(ctx, {
+      var rtCtxEl = document.getElementById('responseTimeChart');
+      if (rtCtxEl) {
+        charts.responseTime = new Chart(rtCtxEl.getContext('2d'), {
           type: 'bar',
           data: {
             labels: Object.keys(distribution),
@@ -460,16 +514,14 @@
               backgroundColor: COLORS.primary,
             }]
           },
-          options: {
-            ...chartDefaults,
-            plugins: {
-              ...chartDefaults.plugins,
+          options: Object.assign({}, chartDefaults, {
+            plugins: Object.assign({}, chartDefaults.plugins, {
               title: {
                 display: true,
-                text: `Temps moyen: ${data.avg_formatted || 'N/A'}`
+                text: 'Temps moyen: ' + (data.avg_formatted || 'N/A')
               }
-            }
-          }
+            })
+          })
         });
       }
     } catch (err) {
@@ -479,107 +531,159 @@
   }
 
   async function loadAnomalies() {
-    const overviewContainer = document.getElementById('anomaliesOverview');
-    const meetingsContainer = document.getElementById('anomaliesMeetings');
+    var overviewContainer = document.getElementById('anomaliesOverview');
+    var meetingsContainer = document.getElementById('anomaliesMeetings');
 
     try {
-      const { body } = await api(`/api/v1/analytics.php?type=anomalies&period=${encodeURIComponent(currentPeriod)}${currentYear ? '&year=' + encodeURIComponent(currentYear) : ''}`);
-      const data = body?.data;
+      var result = await api('/api/v1/analytics.php?type=anomalies&period=' + encodeURIComponent(currentPeriod) + (currentYear ? '&year=' + encodeURIComponent(currentYear) : ''));
+      var data = result.body && result.body.data;
       if (!data) throw new Error('Donn\u00e9es non disponibles');
 
-      const indicators = data.indicators || {};
-      const meetings = data.flagged_meetings || [];
+      var indicators = data.indicators || {};
+      var meetings = data.flagged_meetings || [];
+
+      // Helper for anomaly item HTML
+      function anomalyItem(isIssue, cls, iconName, iconCls, label, value) {
+        return '<div class="anomaly-item ' + (isIssue ? cls : 'ok') + '">' +
+          '<div class="anomaly-icon">' + icon(isIssue ? iconName : 'check-circle', isIssue ? iconCls : 'icon-md icon-success') + '</div>' +
+          '<div class="anomaly-content">' +
+            '<div class="anomaly-label">' + label + '</div>' +
+            '<div class="anomaly-value">' + value + '</div>' +
+          '</div></div>';
+      }
 
       // Indicateurs de qualit\u00e9 (agr\u00e9g\u00e9s, sans identification)
-      overviewContainer.innerHTML = `
-          <div class="anomaly-indicators">
-            <div class="anomaly-item ${indicators.low_participation_count > 0 ? 'warning' : 'ok'}">
-              <div class="anomaly-icon">${indicators.low_participation_count > 0 ? icon('alert-triangle', 'icon-md icon-warning') : icon('check-circle', 'icon-md icon-success')}</div>
-              <div class="anomaly-content">
-                <div class="anomaly-label">Participation faible (&lt;50%)</div>
-                <div class="anomaly-value">${indicators.low_participation_count || 0} s\u00e9ance(s)</div>
-              </div>
-            </div>
-            <div class="anomaly-item ${indicators.quorum_issues_count > 0 ? 'warning' : 'ok'}">
-              <div class="anomaly-icon">${indicators.quorum_issues_count > 0 ? icon('alert-triangle', 'icon-md icon-warning') : icon('check-circle', 'icon-md icon-success')}</div>
-              <div class="anomaly-content">
-                <div class="anomaly-label">Probl\u00e8mes de quorum</div>
-                <div class="anomaly-value">${indicators.quorum_issues_count || 0} s\u00e9ance(s)</div>
-              </div>
-            </div>
-            <div class="anomaly-item ${indicators.incomplete_votes_count > 0 ? 'info' : 'ok'}">
-              <div class="anomaly-icon">${indicators.incomplete_votes_count > 0 ? icon('info', 'icon-md icon-info') : icon('check-circle', 'icon-md icon-success')}</div>
-              <div class="anomaly-content">
-                <div class="anomaly-label">R\u00e9solutions sans d\u00e9cision</div>
-                <div class="anomaly-value">${indicators.incomplete_votes_count || 0} r\u00e9solution(s)</div>
-              </div>
-            </div>
-            <div class="anomaly-item ${indicators.high_proxy_concentration > 0 ? 'warning' : 'ok'}">
-              <div class="anomaly-icon">${indicators.high_proxy_concentration > 0 ? icon('alert-triangle', 'icon-md icon-warning') : icon('check-circle', 'icon-md icon-success')}</div>
-              <div class="anomaly-content">
-                <div class="anomaly-label">Concentration procurations (&gt;3/membre)</div>
-                <div class="anomaly-value">${indicators.high_proxy_concentration || 0} cas</div>
-              </div>
-            </div>
-            <div class="anomaly-item ${indicators.abstention_rate > 20 ? 'info' : 'ok'}">
-              <div class="anomaly-icon">${indicators.abstention_rate > 20 ? icon('info', 'icon-md icon-info') : icon('check-circle', 'icon-md icon-success')}</div>
-              <div class="anomaly-content">
-                <div class="anomaly-label">Taux d'abstention moyen</div>
-                <div class="anomaly-value">${indicators.abstention_rate || 0}%</div>
-              </div>
-            </div>
-            <div class="anomaly-item ${indicators.very_short_votes_count > 0 ? 'info' : 'ok'}">
-              <div class="anomaly-icon">${indicators.very_short_votes_count > 0 ? icon('info', 'icon-md icon-info') : icon('check-circle', 'icon-md icon-success')}</div>
-              <div class="anomaly-content">
-                <div class="anomaly-label">Votes tr\u00e8s courts (&lt;30s)</div>
-                <div class="anomaly-value">${indicators.very_short_votes_count || 0} vote(s)</div>
-              </div>
-            </div>
-          </div>
-        `;
+      overviewContainer.innerHTML = '<div class="anomaly-indicators">' +
+        anomalyItem(indicators.low_participation_count > 0, 'warning', 'alert-triangle', 'icon-md icon-warning',
+          'Participation faible (&lt;50%)', (indicators.low_participation_count || 0) + ' s\u00e9ance(s)') +
+        anomalyItem(indicators.quorum_issues_count > 0, 'warning', 'alert-triangle', 'icon-md icon-warning',
+          'Probl\u00e8mes de quorum', (indicators.quorum_issues_count || 0) + ' s\u00e9ance(s)') +
+        anomalyItem(indicators.incomplete_votes_count > 0, 'info', 'info', 'icon-md icon-info',
+          'R\u00e9solutions sans d\u00e9cision', (indicators.incomplete_votes_count || 0) + ' r\u00e9solution(s)') +
+        anomalyItem(indicators.high_proxy_concentration > 0, 'warning', 'alert-triangle', 'icon-md icon-warning',
+          'Concentration procurations (&gt;3/membre)', (indicators.high_proxy_concentration || 0) + ' cas') +
+        anomalyItem(indicators.abstention_rate > 20, 'info', 'info', 'icon-md icon-info',
+          "Taux d'abstention moyen", (indicators.abstention_rate || 0) + '%') +
+        anomalyItem(indicators.very_short_votes_count > 0, 'info', 'info', 'icon-md icon-info',
+          'Votes tr\u00e8s courts (&lt;30s)', (indicators.very_short_votes_count || 0) + ' vote(s)') +
+        '</div>';
 
       // S\u00e9ances \u00e0 v\u00e9rifier
       if (meetings.length === 0) {
         meetingsContainer.innerHTML = '<p class="text-muted text-center p-4">Aucune anomalie d\u00e9tect\u00e9e</p>';
       } else {
-        meetingsContainer.innerHTML = `
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th scope="col">S\u00e9ance</th>
-                  <th scope="col">Date</th>
-                  <th scope="col">Participation</th>
-                  <th scope="col">Anomalies</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${meetings.slice(0, 10).map(m => `
-                  <tr>
-                    <td>${escapeHtml(m.title?.substring(0, 25) || 'S\u00e9ance')}</td>
-                    <td>${m.date ? new Date(m.date).toLocaleDateString('fr-FR') : '-'}</td>
-                    <td>${Math.round(parseFloat(m.participation_rate) || 0)}%</td>
-                    <td>
-                      ${m.flags?.map(f => `<span class="badge badge-warning anomaly-flag">${escapeHtml(f)}</span>`).join('') || '-'}
-                    </td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          `;
+        var anomalyRows = meetings.slice(0, 10).map(function(m) {
+          var flags = (m.flags || []).map(function(f) {
+            return '<span class="badge badge-warning anomaly-flag">' + escapeHtml(f) + '</span>';
+          }).join('') || '-';
+          return '<tr>' +
+            '<td>' + escapeHtml((m.title || 'S\u00e9ance').substring(0, 25)) + '</td>' +
+            '<td>' + (m.date ? new Date(m.date).toLocaleDateString('fr-FR') : '-') + '</td>' +
+            '<td>' + Math.round(parseFloat(m.participation_rate) || 0) + '%</td>' +
+            '<td>' + flags + '</td>' +
+            '</tr>';
+        }).join('');
+        meetingsContainer.innerHTML = '<table class="data-table">' +
+          '<thead><tr>' +
+            '<th scope="col">S\u00e9ance</th>' +
+            '<th scope="col">Date</th>' +
+            '<th scope="col">Participation</th>' +
+            '<th scope="col">Anomalies</th>' +
+          '</tr></thead>' +
+          '<tbody>' + anomalyRows + '</tbody>' +
+          '</table>';
       }
     } catch (err) {
-      overviewContainer.innerHTML = `<div class="error-message">Erreur: ${escapeHtml(err.message)}</div>`;
-      meetingsContainer.innerHTML = '';
+      if (overviewContainer) overviewContainer.innerHTML = '<div class="error-message">Erreur: ' + escapeHtml(err.message) + '</div>';
+      if (meetingsContainer) meetingsContainer.innerHTML = '';
     }
   }
 
+  // =========================================================================
+  // CSV EXPORT
+  // =========================================================================
+
+  // Escape a CSV field value (wrap in quotes if contains comma, quote, or newline)
+  function csvField(val) {
+    var s = val == null ? '' : String(val);
+    if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  }
+
+  var _btnExportCsv = document.getElementById('btnExportCsv');
+  if (_btnExportCsv) {
+    _btnExportCsv.addEventListener('click', async function() {
+      try {
+        _btnExportCsv.disabled = true;
+        // Fetch overview data (sessions list)
+        var result = await api('/api/v1/analytics.php?type=participation&period=all' + (currentYear && currentYear !== 'all' ? '&year=' + encodeURIComponent(currentYear) : ''));
+        var data = result.body && result.body.data;
+        var meetings = (data && data.meetings) || [];
+
+        // Also fetch motions data for resolution counts
+        var motionsResult = await api('/api/v1/analytics.php?type=motions&period=all' + (currentYear && currentYear !== 'all' ? '&year=' + encodeURIComponent(currentYear) : ''));
+        var motionsData = motionsResult.body && motionsResult.body.data;
+        var byMeeting = (motionsData && motionsData.by_meeting) || [];
+        // Build lookup by meeting id/title
+        var motionsByTitle = {};
+        byMeeting.forEach(function(m) {
+          motionsByTitle[m.meeting_title || m.meeting_id] = m;
+        });
+
+        // CSV header row
+        var headers = ['Date', 'Type', 'Titre', 'Participants', 'Quorum %', 'R\u00e9solutions', 'Taux adoption', 'Pour', 'Contre', 'Abstention', 'Statut'];
+        var rows = [headers.map(csvField).join(',')];
+
+        meetings.forEach(function(m) {
+          var motionInfo = motionsByTitle[m.title] || motionsByTitle[m.id] || {};
+          var row = [
+            m.date || '',
+            m.type || '',
+            m.title || '',
+            m.present != null ? m.present : '',
+            m.quorum_rate != null ? m.quorum_rate : (m.rate != null ? m.rate : ''),
+            motionInfo.total != null ? motionInfo.total : (m.motions_count != null ? m.motions_count : ''),
+            motionInfo.adoption_rate != null ? motionInfo.adoption_rate : '',
+            motionInfo.pour != null ? motionInfo.pour : (m.pour != null ? m.pour : ''),
+            motionInfo.contre != null ? motionInfo.contre : (m.contre != null ? m.contre : ''),
+            motionInfo.abstention != null ? motionInfo.abstention : (m.abstention != null ? m.abstention : ''),
+            m.status || ''
+          ];
+          rows.push(row.map(csvField).join(','));
+        });
+
+        var csvContent = '\uFEFF' + rows.join('\r\n'); // BOM for Excel UTF-8
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        var yearSuffix = (currentYear && currentYear !== 'all') ? currentYear : 'toutes';
+        link.download = 'ag-vote-statistiques-' + yearSuffix + '.csv';
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error('CSV export failed:', err);
+      } finally {
+        _btnExportCsv.disabled = false;
+      }
+    });
+  }
+
+  // =========================================================================
+  // CHART EXPORT BUTTONS (PNG)
+  // =========================================================================
+
   // Chart export buttons
-  document.querySelectorAll('.chart-export-btn').forEach(btn => {
+  document.querySelectorAll('.chart-export-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      const chartId = this.dataset.chartId;
-      const canvas = document.getElementById(chartId);
+      var chartId = this.dataset.chartId;
+      var canvas = document.getElementById(chartId);
       if (canvas) {
-        const link = document.createElement('a');
+        var link = document.createElement('a');
         link.download = chartId + '.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
