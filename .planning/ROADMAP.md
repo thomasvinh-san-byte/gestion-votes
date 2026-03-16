@@ -116,7 +116,9 @@ Plans:
   2. The attendance tab shows the registered participants for the meeting loaded from the API, with quorum calculation reflecting the actual count
   3. The motions tab lists the resolutions for the meeting loaded from the API, in the correct order
   4. The SSE connection is established only after MeetingContext emits a change event with a valid meeting_id, not on bare page load
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 19-01-PLAN.md — MeetingContext integration, SSE lifecycle wiring, loading/empty/error states for attendance and motions tabs
 
 ### Phase 20: Live Vote Flow
 **Goal**: The full vote cycle works end-to-end — operator opens a motion, voters cast ballots, results are calculated, and the operator sees the tally update in real-time
@@ -168,7 +170,7 @@ Plans:
 | 16. Data Foundation | v3.0 | 2/2 | Complete | 2026-03-16 |
 | 17. Demo Data Removal | 2/2 | Complete    | 2026-03-16 | - |
 | 18. SSE Infrastructure | 1/1 | Complete    | 2026-03-16 | - |
-| 19. Operator Console Wiring | v3.0 | 0/TBD | Not started | - |
+| 19. Operator Console Wiring | v3.0 | 1/1 | Planning | - |
 | 20. Live Vote Flow | v3.0 | 0/TBD | Not started | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |
