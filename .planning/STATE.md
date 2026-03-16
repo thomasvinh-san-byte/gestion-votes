@@ -68,7 +68,6 @@ Progress: [##########] 100%
 | Phase 09 P03 | 5min | 2 tasks | 3 files |
 | Phase 10-live-session-views P01 | 2min | 2 tasks | 3 files |
 | Phase 10-live-session-views P02 | 5min | 2 tasks | 4 files |
-<<<<<<< HEAD
 | Phase 11-post-session-records P02 | 8 | 2 tasks | 2 files |
 | Phase 11-post-session-records P01 | 6 | 2 tasks | 3 files |
 | Phase 11-post-session-records P03 | 5 | 2 tasks | 2 files |
@@ -78,17 +77,7 @@ Progress: [##########] 100%
 | Phase 15-analytics-users-settings-help P03 | 10 | 5 tasks | 4 files |
 | Phase 14-wizard-hub-dashboard-api P01 | 5 | 2 tasks | 4 files |
 | Phase 14-wizard-hub-dashboard-api P02 | 5 | 2 tasks | 2 files |
-=======
-| Phase 11-postsession-records P02 | 4 | 2 tasks | 6 files |
-| Phase 11-postsession-records P01 | 15 | 2 tasks | 3 files |
-| Phase 11-postsession-records P03 | 1 | 1 tasks | 2 files |
-| Phase 12-analytics-user-management P01 | 5 | 2 tasks | 2 files |
-| Phase 12-analytics-user-management P02 | 9 | 2 tasks | 7 files |
-| Phase 13-settings-help P02 | 5 | 2 tasks | 1 files |
-| Phase 13-settings-help P01 | 25 | 2 tasks | 26 files |
-| Phase 14-integration-fixes P01 | 5 | 1 tasks | 3 files |
 | Phase 15-tech-debt-cleanup P01 | 3 | 2 tasks | 2 files |
->>>>>>> a81a59a (docs(15-01): add execution summary and update state)
 
 ## Milestone History
 
