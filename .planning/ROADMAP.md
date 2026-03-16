@@ -22,7 +22,7 @@
 - [x] **Phase 11: Post-Session & Records** - Post-session stepper, archives with search/pagination, audit log with table/timeline views (completed 2026-03-16)
 - [x] **Phase 12: Analytics & User Management** - Statistics page (KPIs, charts, export) and users management page (role panel, table, pagination) (completed 2026-03-16)
 - [x] **Phase 13: Settings & Help** - Settings tabs (rules, communication, security, accessibility) and help/FAQ page (accordion, guided tour launchers) (completed 2026-03-16)
-- [ ] **Phase 14: Integration Bug Fixes** - Fix sidebar/mobile nav settings link, fix users.htmx.html script path (audit gap closure)
+- [x] **Phase 14: Integration Bug Fixes** - Fix sidebar/mobile nav settings link, fix users.htmx.html script path (audit gap closure) (completed 2026-03-16)
 
 ## Phase Details
 
@@ -206,7 +206,7 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 ->
 | 11. Post-Session & Records | 3/3 | Complete    | 2026-03-16 |
 | 12. Analytics & User Management | 2/2 | Complete    | 2026-03-16 |
 | 13. Settings & Help | 2/2 | Complete    | 2026-03-16 |
-| 14. Integration Bug Fixes | 0/1 | Not started | - |
+| 14. Integration Bug Fixes | 0/1 | Complete    | 2026-03-16 |
 
 ---
 

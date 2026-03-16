@@ -18,9 +18,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 ### Layout & Navigation
 
 - [x] **NAV-01**: Sidebar with 58px rail (icons only), 252px expanded on hover (overlay, no layout shift), pinnable
-- [ ] **NAV-02**: Sidebar organized in 5 sections: Préparation, Séance en direct, Après la séance, Contrôle, Système
+- [x] **NAV-02**: Sidebar organized in 5 sections: Préparation, Séance en direct, Après la séance, Contrôle, Système
 - [x] **NAV-03**: Header bar (56px) with logo, global search (Cmd+K overlay), notification panel, theme toggle
-- [ ] **NAV-04**: Mobile bottom navigation with 5 primary tabs (Dashboard, Sessions, Fiche, Opérateur, Paramètres)
+- [x] **NAV-04**: Mobile bottom navigation with 5 primary tabs (Dashboard, Sessions, Fiche, Opérateur, Paramètres)
 - [x] **NAV-05**: Footer with logo, help link, accessibility link
 - [x] **NAV-06**: Skip-to-content link and ARIA navigation landmarks
 
@@ -104,10 +104,10 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 
 ### Settings
 
-- [ ] **SET-01**: Tab Règles: double auth toggle, double approval toggle, quorum base/percentage
-- [ ] **SET-02**: Tab Communication: support email, email templates preview, notification preferences
-- [ ] **SET-03**: Tab Sécurité: 2FA management, session timeout
-- [ ] **SET-04**: Tab Accessibilité: text size (A/A+/A++), high contrast toggle, focus indicators
+- [x] **SET-01**: Tab Règles: double auth toggle, double approval toggle, quorum base/percentage
+- [x] **SET-02**: Tab Communication: support email, email templates preview, notification preferences
+- [x] **SET-03**: Tab Sécurité: 2FA management, session timeout
+- [x] **SET-04**: Tab Accessibilité: text size (A/A+/A++), high contrast toggle, focus indicators
 
 ### Help & FAQ
 
@@ -169,9 +169,9 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | COMP-08 | Phase 5 | Complete |
 | COMP-09 | Phase 5 | Complete |
 | NAV-01 | Phase 6 | Complete |
-| NAV-02 | Phase 14 | Pending |
+| NAV-02 | Phase 14 | Complete |
 | NAV-03 | Phase 6 | Complete |
-| NAV-04 | Phase 14 | Pending |
+| NAV-04 | Phase 14 | Complete |
 | NAV-05 | Phase 6 | Complete |
 | NAV-06 | Phase 6 | Complete |
 | DASH-01 | Phase 7 | Complete |
@@ -219,13 +219,13 @@ Requirements for v2.0 release. Each maps to roadmap phases.
 | STAT-01 | Phase 12 | Complete |
 | STAT-02 | Phase 12 | Complete |
 | STAT-03 | Phase 12 | Complete |
-| USR-01 | Phase 14 | Pending |
-| USR-02 | Phase 14 | Pending |
-| USR-03 | Phase 14 | Pending |
-| SET-01 | Phase 14 | Pending |
-| SET-02 | Phase 14 | Pending |
-| SET-03 | Phase 14 | Pending |
-| SET-04 | Phase 14 | Pending |
+| USR-01 | Phase 14 | Complete |
+| USR-02 | Phase 14 | Complete |
+| USR-03 | Phase 14 | Complete |
+| SET-01 | Phase 14 | Complete |
+| SET-02 | Phase 14 | Complete |
+| SET-03 | Phase 14 | Complete |
+| SET-04 | Phase 14 | Complete |
 | FAQ-01 | Phase 13 | Complete |
 | FAQ-02 | Phase 13 | Complete |
 
