@@ -52,7 +52,7 @@ Requirements for v3.0 release. Each maps to roadmap phases.
 
 - [ ] **CLN-01**: Zéro constante DEMO_ dans le codebase
 - [ ] **CLN-02**: Chaque appel API dispose d'états loading, error et empty
-- [ ] **CLN-03**: Le fallback démo audit.js (DEMO_EVENTS) est supprimé et remplacé par un état d'erreur
+- [x] **CLN-03**: Le fallback démo audit.js (DEMO_EVENTS) est supprimé et remplacé par un état d'erreur
 
 ## v3.x+ Requirements
 
@@ -118,7 +118,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PST-04 | Phase 21 | Pending |
 | CLN-01 | Phase 22 | Pending |
 | CLN-02 | Phase 22 | Pending |
-| CLN-03 | Phase 17 | Pending |
+| CLN-03 | Phase 17 | Complete |
 
 **Coverage:**
 - v3.0 requirements: 26 total

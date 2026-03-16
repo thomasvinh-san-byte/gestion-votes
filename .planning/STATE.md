@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: executing
-stopped_at: Completed 17-01-PLAN.md (dashboard demo data removal)
-last_updated: "2026-03-16T14:58:02.892Z"
+stopped_at: Completed 17-02-PLAN.md
+last_updated: "2026-03-16T15:00:58.431Z"
 last_activity: 2026-03-16 — Plan 16-01 complete (atomic createMeeting with members + motions)
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 7
 ---
 
@@ -48,6 +48,7 @@ Progress: [█░░░░░░░░░] 7%
 ## Accumulated Context
 | Phase 16-data-foundation P01 | 25 | 1 tasks | 2 files |
 | Phase 17-demo-data-removal P01 | 5 | 1 tasks | 1 files |
+| Phase 17-demo-data-removal P02 | 3min | 1 tasks | 1 files |
 
 ### Decisions
 
@@ -64,6 +65,8 @@ Recent decisions affecting current work:
 - [Phase 16-data-foundation]: Member upsert uses findByEmail() (case-insensitive) as canonical deduplication key; voix defaults to 1.0 if absent.
 - [Phase 17-demo-data-removal]: Use 'hub-error dashboard-error' CSS class for error banner so existing .hub-error CSS applies without duplication
 - [Phase 17-demo-data-removal]: Tasks panel shows Shared.emptyState() on every successful API load since no task data exists in the dashboard API
+- [Phase 17-demo-data-removal]: audit.js: use promise-based tryLoad(attempt) instead of async/await to maintain ES5-compatible style
+- [Phase 17-demo-data-removal]: audit.js: reset KPI values to dash on error to avoid showing stale counts from previous load
 
 ### Pending Todos
 
@@ -75,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T14:58:02.889Z
-Stopped at: Completed 17-01-PLAN.md (dashboard demo data removal)
+Last session: 2026-03-16T15:00:58.429Z
+Stopped at: Completed 17-02-PLAN.md
 Resume file: None

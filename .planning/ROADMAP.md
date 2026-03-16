@@ -11,7 +11,7 @@
 ### v3.0 Session Lifecycle (Active)
 
 - [x] **Phase 16: Data Foundation** — Wizard creates real session data; hub loads real state (completed 2026-03-16)
-- [ ] **Phase 17: Demo Data Removal** — Dashboard and audit show real data; all demo fallbacks removed
+- [x] **Phase 17: Demo Data Removal** — Dashboard and audit show real data; all demo fallbacks removed (completed 2026-03-16)
 - [ ] **Phase 18: SSE Infrastructure** — Multi-consumer safe SSE; nginx and PHP-FPM configured for long-lived connections
 - [ ] **Phase 19: Operator Console Wiring** — Operator loads real meeting; attendance and motions tabs driven by API
 - [ ] **Phase 20: Live Vote Flow** — End-to-end vote cycle; operator tally updates in real-time via SSE
@@ -90,7 +90,7 @@ Plans:
   2. When no sessions exist, the dashboard shows an empty state rather than demo cards
   3. When the backend is unreachable, the dashboard shows an explicit error state instead of fake session data
   4. The audit page shows real audit events from the database; the DEMO_EVENTS fallback is gone and an error state is shown when the backend is unreachable
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 17-01-PLAN.md — Replace dashboard demo fallback with error/empty states
 - [ ] 17-02-PLAN.md — Remove DEMO_EVENTS from audit.js, fix API integration
@@ -166,7 +166,7 @@ Plans:
 | 14. Integration + API Wiring | v2.0 | 3/3 | Complete | 2026-03-13 |
 | 15. Operator Wiring + Tech Debt | v2.0 | 6/6 | Complete | 2026-03-16 |
 | 16. Data Foundation | v3.0 | 2/2 | Complete | 2026-03-16 |
-| 17. Demo Data Removal | 1/2 | In Progress|  | - |
+| 17. Demo Data Removal | 2/2 | Complete   | 2026-03-16 | - |
 | 18. SSE Infrastructure | v3.0 | 0/TBD | Not started | - |
 | 19. Operator Console Wiring | v3.0 | 0/TBD | Not started | - |
 | 20. Live Vote Flow | v3.0 | 0/TBD | Not started | - |
