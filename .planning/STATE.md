@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: milestone
 status: verifying
 stopped_at: Phase 14 context gathered
-last_updated: "2026-03-16T08:50:51.328Z"
+last_updated: "2026-03-16T08:59:01.430Z"
 last_activity: 2026-03-13 -- Phase 10 verified, 12/12 must-haves passed
 progress:
   total_phases: 11
-  completed_phases: 10
-  total_plans: 27
-  completed_plans: 27
+  completed_phases: 11
+  total_plans: 28
+  completed_plans: 28
   percent: 100
 ---
 
@@ -75,6 +75,7 @@ Progress: [##########] 100%
 | Phase 12-analytics-user-management P02 | 9 | 2 tasks | 7 files |
 | Phase 13-settings-help P02 | 5 | 2 tasks | 1 files |
 | Phase 13-settings-help P01 | 25 | 2 tasks | 26 files |
+| Phase 14-integration-fixes P01 | 5 | 1 tasks | 3 files |
 
 ## Milestone History
 
@@ -162,6 +163,7 @@ Recent decisions affecting current work:
 - [Phase 12-analytics-user-management]: users.js uses var throughout and IIFE pattern; admin.js _allUsers moved to Meeting Roles scope for bulk role assignment; sidebar adds Administration link for admin.htmx.html; user avatars use role-colored CSS classes
 - [Phase 13-settings-help]: Hub tour card inserted between Seances and Membres in tour grid (final order: Dashboard, Seances, Hub, Membres, Operateur, Vote, Post-seance, Audit, Administration)
 - [Phase 13-settings-help]: Settings page uses 4 wireframe-aligned tabs (Regles, Communication, Securite, Accessibilite) replacing 6 sub-tabs; auto-save with 500ms debounce for text, immediate for toggles; accessibility controls use dual storage (localStorage + API)
+- [Phase 14-integration-fixes]: sidebar.html Parametres nav-item: data-page changed from parametres to settings to match settings.htmx.html page identifier for active-state highlighting
 
 ### Pending Todos
 
