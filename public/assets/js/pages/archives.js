@@ -8,6 +8,8 @@
   let allArchives = [];
   let currentView = 'cards';
   let currentYear = '';
+  var PAGE_SIZE = 5;
+  var currentPage = 1;
 
   // Format date
   function fmtDate(s) {
@@ -23,6 +25,17 @@
     } catch (e) {
       return s;
     }
+  }
+
+  // Meeting type label helper
+  function typeLabel(meetingType) {
+    var labels = {
+      'ag_ordinaire': 'AG Ord.',
+      'ag_extraordinaire': 'AG Extra.',
+      'conseil': 'Conseil'
+    };
+    var key = (meetingType || '').toLowerCase();
+    return labels[key] || (meetingType ? meetingType.charAt(0).toUpperCase() + meetingType.slice(1) : '');
   }
 
   // Render archives
@@ -48,10 +61,21 @@
       return;
     }
 
+    // Update pagination component
+    var pager = document.getElementById('archivesPager');
+    if (pager) {
+      pager.setAttribute('total', String(items.length));
+      pager.setAttribute('page', String(currentPage));
+    }
+
+    // Slice to current page
+    var start = (currentPage - 1) * PAGE_SIZE;
+    var pageItems = items.slice(start, start + PAGE_SIZE);
+
     if (currentView === 'list') {
-      renderListView(items);
+      renderListView(pageItems);
     } else {
-      renderCardView(items);
+      renderCardView(pageItems);
     }
   }
 
@@ -85,6 +109,7 @@
                 ${hasReport
     ? `<span class="archive-badge has-pv">${icon('check-circle', 'icon-sm icon-success')} PV</span>`
     : `<span class="archive-badge no-pv">${icon('clock', 'icon-sm')} PV en attente</span>`}
+                ${m.meeting_type ? '<span class="badge badge-accent">' + escapeHtml(typeLabel(m.meeting_type)) + '</span>' : ''}
                 <span class="badge badge-success">Archivée</span>
               </div>
             </div>
@@ -333,18 +358,32 @@
       document.querySelectorAll('.filter-tab[data-type]').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       currentType = tab.dataset.type || '';
+      currentPage = 1;
       applyFilters();
     });
   });
 
   // Search filter
-  searchInput.addEventListener('input', applyFilters);
+  searchInput.addEventListener('input', function() {
+    currentPage = 1;
+    applyFilters();
+  });
 
   // Year filter
   yearFilter.addEventListener('change', () => {
     currentYear = yearFilter.value;
+    currentPage = 1;
     applyFilters();
   });
+
+  // Pagination
+  var archivesPager = document.getElementById('archivesPager');
+  if (archivesPager) {
+    archivesPager.addEventListener('ag-page-change', function(e) {
+      currentPage = e.detail.page;
+      applyFilters();
+    });
+  }
 
   // View toggle
   document.querySelectorAll('.view-toggle-btn').forEach(btn => {
