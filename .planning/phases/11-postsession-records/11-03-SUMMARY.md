@@ -100,3 +100,11 @@ None - no external service configuration required.
 ---
 *Phase: 11-postsession-records*
 *Completed: 2026-03-16*
+
+## Self-Check: PASSED
+
+- FOUND: public/archives.htmx.html
+- FOUND: public/assets/js/pages/archives.js
+- FOUND: .planning/phases/11-postsession-records/11-03-SUMMARY.md
+- FOUND: commit 90a5fec (feat: pagination + type badge)
+- FOUND: commit 97c0812 (docs: SUMMARY + STATE + ROADMAP)
