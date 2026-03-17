@@ -1142,6 +1142,68 @@ class OperatorControllerTest extends TestCase
     }
 
     // =========================================================================
+    // OPEN VOTE: FROZEN-TO-LIVE BROADCAST
+    // =========================================================================
+
+    public function testOpenVoteBroadcastsMeetingStatusChangedOnFrozenTransition(): void
+    {
+        // Verify that the controller source calls EventBroadcaster::meetingStatusChanged
+        // after the implicit frozen->live transition inside openVote().
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
+
+        $this->assertStringContainsString(
+            'EventBroadcaster::meetingStatusChanged',
+            $source,
+            'openVote() must call EventBroadcaster::meetingStatusChanged after implicit frozen->live transition',
+        );
+    }
+
+    public function testOpenVotePassesPreviousStatusToMeetingStatusChanged(): void
+    {
+        // The broadcast must pass 'live' as newStatus and the captured previousStatus.
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
+
+        // newStatus must be 'live'
+        $this->assertStringContainsString(
+            "'live'",
+            $source,
+            'meetingStatusChanged() must use live as newStatus',
+        );
+
+        // The call must pass previousStatus (captured before the update)
+        $this->assertStringContainsString(
+            '$previousStatus',
+            $source,
+            'openVote() must capture and pass $previousStatus to meetingStatusChanged()',
+        );
+    }
+
+    public function testOpenVoteCapturePreviousStatusBeforeUpdate(): void
+    {
+        // previousStatus must be captured inside the transaction before updateFields
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
+
+        $this->assertStringContainsString(
+            '$previousStatus = $status',
+            $source,
+            'openVote() must capture $previousStatus = $status before calling updateFields',
+        );
+    }
+
+    public function testOpenVoteMeetingStatusChangedOnlyWhenNotLive(): void
+    {
+        // Broadcast should only fire when the meeting was NOT already live
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
+
+        // The conditional must guard the broadcast
+        $this->assertMatchesRegularExpression(
+            '/if\s*\(\s*\$previousStatus\s*!==\s*[\'"]live[\'"]\s*\)/',
+            $source,
+            'meetingStatusChanged() broadcast must be guarded by if ($previousStatus !== \'live\')',
+        );
+    }
+
+    // =========================================================================
     // ELIGIBLE MEMBER ID EXTRACTION
     // =========================================================================
 

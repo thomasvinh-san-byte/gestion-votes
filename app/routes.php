@@ -275,6 +275,7 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/motions_open", MotionsController::class, 'open', $op);
     $router->mapAny("{$prefix}/motions_close", MotionsController::class, 'close', ['role' => ['operator', 'president', 'admin']]);
     $router->mapAny("{$prefix}/degraded_tally", MotionsController::class, 'degradedTally', $op);
+    $router->mapAny("{$prefix}/motions_override_decision", MotionsController::class, 'overrideDecision', ['role' => ['operator', 'president', 'admin']]);
     // ── Notifications ──
     $router->map('GET', "{$prefix}/notifications", NotificationsController::class, 'list', $view);
     $router->map('PUT', "{$prefix}/notifications_read", NotificationsController::class, 'markRead', $view);

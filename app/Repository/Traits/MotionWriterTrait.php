@@ -160,6 +160,13 @@ trait MotionWriterTrait {
         );
     }
 
+    public function overrideDecision(string $motionId, string $decision, string $justification, string $tenantId): void {
+        $this->execute(
+            'UPDATE motions SET decision = :d, decision_reason = :r, decided_at = NOW() WHERE id = :id AND tenant_id = :tid AND closed_at IS NOT NULL',
+            [':d' => $decision, ':r' => $justification, ':id' => $motionId, ':tid' => $tenantId],
+        );
+    }
+
     public function ensureOfficialColumns(): void {
         try {
             $this->execute(
