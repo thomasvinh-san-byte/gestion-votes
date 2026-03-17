@@ -1014,23 +1014,23 @@
   gap: var(--space-5, 1.25rem);
 }
 
-/* Major sections get generous vertical breathing room */
+/* Major sections: compacted to 14px for zero-scroll at 1080px (wireframe v3.19.2) */
 .app-main > .kpi-grid.dashboard-grid,
 .app-main > .grid-2.dashboard-grid,
-.app-main > .grid-3 {
-  margin-bottom: var(--space-6, 1.5rem);
+.app-main > .grid-3.dashboard-shortcuts {
+  margin-bottom: 14px;
 }
 
 .dashboard-grid {
-  margin-bottom: var(--space-5, 1.25rem);
+  margin-bottom: 14px;
 }
 
 .dashboard-panel {
-  padding: 20px;
+  padding: 14px;
 }
 
 .dashboard-panel .flex-between {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .dashboard-panel .card-title {
@@ -1059,6 +1059,11 @@
    DASHBOARD — KPI Cards
    ============================================================================= */
 
+/* Compact KPI card padding for zero-scroll at 1080px (wireframe v3.19.2) */
+.kpi-grid.dashboard-grid .kpi-card {
+  padding: 12px 10px;
+}
+
 /* KPI values are the focal point */
 .kpi-card .kpi-value {
   font-size: var(--text-3xl, 1.875rem);
@@ -1077,11 +1082,11 @@
    ============================================================================= */
 
 .shortcut-card {
-  padding: 20px 18px;
+  padding: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   text-decoration: none;
   flex-wrap: nowrap;
   transition: transform var(--duration-fast, 100ms), box-shadow var(--duration-fast, 100ms);
