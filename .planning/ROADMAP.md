@@ -162,6 +162,13 @@ Plans:
 - [ ] 20.2-03-PLAN.md — Modals: backdrop blur, bouncy animation + Toasts: bottom-right, exit animation + Interactive rows
 - [ ] 20.2-04-PLAN.md — New components (scroll-top, tooltip, confirm dialog, theme toggle, kbd hints) + scrollbar + print
 
+### Phase 20.3: Page Layout Wireframe Alignment (INSERTED)
+
+**Goal:** Reprendre le layout de chaque page pour correspondre à la composition du wireframe v3.19.2 — densité, placement des sections, espacement entre cartes/blocs — afin que les pages principales tiennent sur un écran sans scroll inutile. Les éléments ajoutés après le wireframe sont conservés mais intégrés dans la grille wireframe.
+**Requirements**: N/A (inserted phase — layout density alignment with wireframe, no formal requirement IDs)
+**Depends on:** Phase 20.2
+**Plans:** TBD
+
 ### Phase 21: Post-Session & PV
 **Goal**: The post-session stepper completes all four steps and produces a valid PV PDF with the meeting archived
 **Depends on**: Phase 20 (votes must have been cast and results must exist for verification step to show real data)
@@ -205,5 +212,6 @@ Plans:
 | 20. Live Vote Flow | v3.0 | 2/2 | Complete | 2026-03-17 |
 | 20.1. Refonte UI | v3.0 | 4/4 | Complete | 2026-03-17 |
 | 20.2. Deep UI Wireframe Alignment | 4/4 | Complete    | 2026-03-17 | - |
+| 20.3. Page Layout Wireframe Alignment | v3.0 | 0/TBD | Not started | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |
