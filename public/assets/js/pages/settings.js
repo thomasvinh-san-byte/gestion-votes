@@ -17,7 +17,7 @@
   var _currentTab = 'regles';
 
   function initTabs() {
-    var tabs = document.querySelectorAll('.settings-tab');
+    var tabs = document.querySelectorAll('.settings-sidenav-item');
     var panels = document.querySelectorAll('.settings-panel');
 
     tabs.forEach(function(tab) {
@@ -37,7 +37,7 @@
   }
 
   function switchTab(tabId) {
-    var tabs = document.querySelectorAll('.settings-tab');
+    var tabs = document.querySelectorAll('.settings-sidenav-item');
     var panels = document.querySelectorAll('.settings-panel');
 
     tabs.forEach(function(t) {

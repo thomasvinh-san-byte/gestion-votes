@@ -48,15 +48,17 @@
 
     <!-- Main Content -->
     <main class="app-main" id="main-content" role="main">
-      <div class="container">
+      <div class="settings-layout">
 
-        <!-- Tab navigation -->
-        <div class="settings-tabs" role="tablist" aria-label="Onglets param&egrave;tres">
-          <button class="settings-tab active" data-stab="regles" role="tab" aria-selected="true" aria-controls="stab-regles" id="tab-regles">R&egrave;gles</button>
-          <button class="settings-tab" data-stab="communication" role="tab" aria-selected="false" aria-controls="stab-communication" id="tab-communication">Communication</button>
-          <button class="settings-tab" data-stab="securite" role="tab" aria-selected="false" aria-controls="stab-securite" id="tab-securite">S&eacute;curit&eacute;</button>
-          <button class="settings-tab" data-stab="accessibilite" role="tab" aria-selected="false" aria-controls="stab-accessibilite" id="tab-accessibilite">Accessibilit&eacute;</button>
-        </div>
+        <!-- Sidebar nav -->
+        <nav class="settings-sidenav" role="tablist" aria-label="Onglets param&egrave;tres">
+          <button class="settings-sidenav-item active" data-stab="regles" role="tab" aria-selected="true" aria-controls="stab-regles" id="tab-regles">R&egrave;gles</button>
+          <button class="settings-sidenav-item" data-stab="communication" role="tab" aria-selected="false" aria-controls="stab-communication" id="tab-communication">Communication</button>
+          <button class="settings-sidenav-item" data-stab="securite" role="tab" aria-selected="false" aria-controls="stab-securite" id="tab-securite">S&eacute;curit&eacute;</button>
+          <button class="settings-sidenav-item" data-stab="accessibilite" role="tab" aria-selected="false" aria-controls="stab-accessibilite" id="tab-accessibilite">Accessibilit&eacute;</button>
+        </nav>
+
+        <div class="settings-content">
 
         <!-- ═══════════════════════════════════════════ -->
         <!-- TAB 1 : RÈGLES (SET-01)                   -->
@@ -670,7 +672,8 @@
 
         </div>
 
-      </div>
+        </div><!-- /.settings-content -->
+      </div><!-- /.settings-layout -->
     </main>
 
     <footer class="app-footer" role="contentinfo">
