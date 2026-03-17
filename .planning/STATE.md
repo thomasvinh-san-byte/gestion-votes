@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: completed
-stopped_at: Completed 20.3-02-PLAN.md
-last_updated: "2026-03-17T11:48:23.506Z"
-last_activity: 2026-03-17 — Plan 20-02 complete (test suite green, human-verify deferred)
+stopped_at: Completed 20.3-03-PLAN.md
+last_updated: "2026-03-17T12:08:00.000Z"
+last_activity: 2026-03-17 — Plan 20.3-03 complete (dashboard zero-scroll, hub density, table compaction)
 progress:
   total_phases: 10
   completed_phases: 7
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 
 ## Current Position
 
-Phase: 20 of 22 (live-vote-flow) -- COMPLETE
-Plan: 20-02 (complete, human-verify deferred)
-Status: Phase 20 complete — ready for Phase 21
-Last activity: 2026-03-17 — Plan 20-02 complete (test suite green, human-verify deferred)
+Phase: 20.3 of 22 (page-layout-wireframe-alignment)
+Plan: 20.3-03 (complete)
+Status: Phase 20.3 plan 03 complete — ready for next plan
+Last activity: 2026-03-17 — Plan 20.3-03 complete (dashboard zero-scroll, hub density, table compaction)
 
 Progress: [██████████] 100% (v3.0 phases 16-20 complete)
 
@@ -101,6 +101,8 @@ Recent decisions affecting current work:
 - [Phase 20.2-deep-ui-wireframe-alignment]: ag-toast.js web component has its own inline positioning (top:20px); CSS .toast-container class is design-system contract only; web component is separate concern
 - [Phase 20.2-deep-ui-wireframe-alignment]: @keyframes pageIn found in design-system.css (not pages.css) — updated in-place to translateY(4px)/0.18s
 - [Phase 20.2-deep-ui-wireframe-alignment]: New component CSS is CSS-only definitions — HTML usage deferred until features need them; global 5px scrollbar allows .sidebar-scroll 3px override via specificity cascade
+- [Phase 20.3-page-layout]: .kpi-grid.dashboard-grid .kpi-card scoped override (not global) to avoid breaking other kpi-card usages
+- [Phase 20.3-page-layout]: Option B scoped selectors for table density — .audit-table and .table cover all data tables without HTML changes; members/users use card-based layouts not tables
 - [Phase 20.3-page-layout-wireframe-alignment]: Settings sidebar HTML/JS already implemented before plan ran; task became CSS verification + responsive breakpoint addition
 - [Phase 20.3-page-layout-wireframe-alignment]: Wizard .wiz-step uses margin-top:auto on .step-nav (flex column) over sticky/fixed to avoid visual gap on short steps
 
