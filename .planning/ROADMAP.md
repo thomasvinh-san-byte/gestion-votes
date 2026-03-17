@@ -16,6 +16,7 @@
 - [x] **Phase 19: Operator Console Wiring** — Operator loads real meeting; attendance and motions tabs driven by API (completed 2026-03-16)
 - [x] **Phase 20: Live Vote Flow** — End-to-end vote cycle; operator tally updates in real-time via SSE (completed 2026-03-17, human-verify deferred)
 - [x] **Phase 20.1: Refonte UI** — Wireframe alignment, reduced cognitive load, FOUC fix (INSERTED) (completed 2026-03-17)
+- [ ] **Phase 20.2: Deep UI Wireframe Alignment** — Align all component CSS with wireframe v3.19.2 specs (INSERTED)
 - [ ] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived
 - [ ] **Phase 22: Final Audit** — Zero DEMO_ constants; every API call has loading/error/empty states
 
@@ -148,6 +149,16 @@ Plans:
 - [ ] 20.1-03-PLAN.md — Dashboard lanceur d'actions + operateur modales simplifiees
 - [ ] 20.1-04-PLAN.md — FOUC fix sur les 17 pages restantes + verification humaine
 
+### Phase 20.2: Deep UI Wireframe Alignment (INSERTED)
+
+**Goal:** Align all component CSS (buttons, cards, forms, tables, tags, modals, toasts, tooltips) with wireframe v3.19.2 specifications. Add missing components (scroll-to-top, confirm dialog, tooltip system, theme toggle switch). Fix button gradients, card hover lifts, form field borders, table striping, and all 25 gap categories from the wireframe comparison.
+**Requirements**: N/A (inserted phase — CSS alignment with wireframe, no formal requirement IDs)
+**Depends on:** Phase 20.1
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 20.2 to break down)
+
 ### Phase 21: Post-Session & PV
 **Goal**: The post-session stepper completes all four steps and produces a valid PV PDF with the meeting archived
 **Depends on**: Phase 20 (votes must have been cast and results must exist for verification step to show real data)
@@ -189,6 +200,7 @@ Plans:
 | 18. SSE Infrastructure | v3.0 | 1/1 | Complete | 2026-03-16 |
 | 19. Operator Console Wiring | v3.0 | 1/1 | Complete | 2026-03-16 |
 | 20. Live Vote Flow | v3.0 | 2/2 | Complete | 2026-03-17 |
-| 20.1. Refonte UI | 4/4 | Complete   | 2026-03-17 | - |
+| 20.1. Refonte UI | v3.0 | 4/4 | Complete | 2026-03-17 |
+| 20.2. Deep UI Wireframe Alignment | v3.0 | 0/TBD | Not started | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |

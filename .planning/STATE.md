@@ -92,6 +92,7 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - Phase 20.1 inserted after Phase 20: Refonte UI alignement wireframe et reduction charge mentale (URGENT)
+- Phase 20.2 inserted after Phase 20.1: Deep UI Wireframe Alignment — all component CSS aligned with wireframe v3.19.2
 
 ### Pending Todos
 
