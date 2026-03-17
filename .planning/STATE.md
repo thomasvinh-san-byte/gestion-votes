@@ -81,6 +81,10 @@ Recent decisions affecting current work:
 - [Phase 20-live-vote-flow]: frozen->live broadcast placed OUTSIDE transaction (after commit) to avoid broadcasting events that might get rolled back
 - [Phase 20-live-vote-flow]: overrideDecision verdict override uses inline sub-form in proclamation modal (not a second modal)
 
+### Roadmap Evolution
+
+- Phase 20.1 inserted after Phase 20: Refonte UI alignement wireframe et reduction charge mentale (URGENT)
+
 ### Pending Todos
 
 None yet.

@@ -134,6 +134,16 @@ Plans:
 - [x] 20-01-PLAN.md — Backend broadcast fix, verdict override endpoint, operator frozen-to-live modal, hide breakdown during open vote, projection participation-only display
 - [x] 20-02-PLAN.md — Unit tests for new backend behavior + human verification of complete vote cycle (human-verify deferred)
 
+### Phase 20.1: Refonte UI alignement wireframe et reduction charge mentale (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 20
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 20.1 to break down)
+
 ### Phase 21: Post-Session & PV
 **Goal**: The post-session stepper completes all four steps and produces a valid PV PDF with the meeting archived
 **Depends on**: Phase 20 (votes must have been cast and results must exist for verification step to show real data)
