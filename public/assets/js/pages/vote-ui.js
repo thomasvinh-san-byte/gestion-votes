@@ -20,6 +20,7 @@
   const confirmChoice = document.getElementById('confirmChoice');
   const btnCancel = document.getElementById('btnCancel');
   const btnConfirm = document.getElementById('btnConfirm');
+  const btnConfirmInline = document.getElementById('btnConfirmInline');
   let pendingVote = null;
   let hasVoted = false;
   let _isSubmitting = false; // Guard against double-submission
@@ -31,6 +32,32 @@
     'abstain': { label: 'ABSTENTION', color: 'var(--color-text-muted)' },
     'blanc': { label: 'BLANC', color: 'var(--color-neutral)' }
   };
+
+  // Inline confirm button: color map per choice
+  const choiceStyles = {
+    'for':     { bg: 'linear-gradient(135deg, #16a34a, #15803d)', label: 'Confirmer : Pour' },
+    'against': { bg: 'linear-gradient(135deg, #dc2626, #b91c1c)', label: 'Confirmer : Contre' },
+    'abstain': { bg: 'linear-gradient(135deg, #64748b, #475569)', label: 'Confirmer : Abstention' },
+    'blanc':   { bg: 'linear-gradient(135deg, #94a3b8, #64748b)', label: 'Confirmer : Blanc' }
+  };
+
+  // Show inline confirm button for a given choice
+  function showInlineConfirm(choice) {
+    if (!btnConfirmInline) return;
+    var style = choiceStyles[choice] || choiceStyles['for'];
+    btnConfirmInline.style.background = style.bg;
+    btnConfirmInline.textContent = style.label;
+    btnConfirmInline.hidden = false;
+    btnConfirmInline.classList.add('visible');
+    btnConfirmInline.focus();
+  }
+
+  // Hide inline confirm button
+  function hideInlineConfirm() {
+    if (!btnConfirmInline) return;
+    btnConfirmInline.hidden = true;
+    btnConfirmInline.classList.remove('visible');
+  }
 
   // Populate confirmation context
   function fillConfirmContext(choice) {
@@ -80,7 +107,7 @@
   let _triggerBtn = null;
   let _overlayMotionId = null;
 
-  // Vote button click -> show confirmation
+  // Vote button click -> show inline confirmation (overlay kept as fallback, never shown)
   voteButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       if (btn.disabled) return;
@@ -88,9 +115,8 @@
       pendingVote = btn.dataset.choice;
       _overlayMotionId = document.getElementById('motionTitle')?.dataset?.motionId || null;
       fillConfirmContext(pendingVote);
-      confirmOverlay.classList.add('show');
-      confirmOverlay.setAttribute('aria-hidden', 'false');
-      btnConfirm.focus();
+      // Show inline confirm button (wireframe pattern) — do NOT show overlay
+      showInlineConfirm(pendingVote);
     });
   });
 
@@ -100,8 +126,9 @@
   const motionTitleObserver = new MutationObserver(() => {
     const currentId = motionTitleEl?.dataset?.motionId || null;
 
-    // Close confirmation overlay if motion changed while voting
-    if (confirmOverlay.classList.contains('show') && _overlayMotionId && currentId !== _overlayMotionId) {
+    // Close confirmation (inline button or overlay fallback) if motion changed while voting
+    var inlineVisible = btnConfirmInline && btnConfirmInline.classList.contains('visible');
+    if ((inlineVisible || confirmOverlay.classList.contains('show')) && _overlayMotionId && currentId !== _overlayMotionId) {
       closeConfirm();
       setNotif('error', 'La r\u00e9solution a chang\u00e9 pendant votre vote. Veuillez revoter.');
       _overlayMotionId = null;
@@ -133,6 +160,7 @@
   function closeConfirm() {
     confirmOverlay.classList.remove('show');
     confirmOverlay.setAttribute('aria-hidden', 'true');
+    hideInlineConfirm();
     pendingVote = null;
     _isSubmitting = false;
     btnConfirm.disabled = false;
@@ -168,8 +196,8 @@
     if (e.key === 'Escape' && confirmOverlay.classList.contains('show')) closeConfirm();
   });
 
-  // Confirm vote
-  btnConfirm.addEventListener('click', async () => {
+  // Shared confirm logic — called from both btnConfirm (overlay fallback) and btnConfirmInline
+  async function doConfirm() {
     if (!pendingVote || _isSubmitting) return;
 
     const currentTitle = document.getElementById('motionTitle')?.textContent || null;
@@ -183,6 +211,10 @@
     btnConfirm.disabled = true;
     btnCancel.disabled = true;
     btnConfirm.innerHTML = '<span class="spinner spinner-sm"></span> Envoi...';
+    if (btnConfirmInline) {
+      btnConfirmInline.disabled = true;
+      btnConfirmInline.textContent = 'Envoi\u2026';
+    }
 
     const votingChoice = pendingVote;
 
@@ -237,6 +269,13 @@
       btnConfirm.disabled = false;
       btnCancel.disabled = false;
       btnConfirm.innerHTML = 'R\u00e9essayer';
+      if (btnConfirmInline) {
+        btnConfirmInline.disabled = false;
+        // Restore label from choiceStyles if pendingVote still set
+        if (pendingVote && choiceStyles[pendingVote]) {
+          btnConfirmInline.textContent = choiceStyles[pendingVote].label;
+        }
+      }
       return;
     } finally {
       _isSubmitting = false;
@@ -244,9 +283,18 @@
         btnConfirm.disabled = false;
         btnCancel.disabled = false;
         btnConfirm.innerHTML = 'Confirmer';
+        if (btnConfirmInline) btnConfirmInline.disabled = false;
       }
     }
-  });
+  }
+
+  // Overlay confirm button (fallback — overlay never shown in normal flow)
+  btnConfirm.addEventListener('click', () => doConfirm());
+
+  // Inline confirm button (primary path — wireframe pattern)
+  if (btnConfirmInline) {
+    btnConfirmInline.addEventListener('click', () => doConfirm());
+  }
 
   // Connection status
   function updateConnectionStatus(online) {
@@ -497,6 +545,33 @@
   }, 3000);
   setTimeout(pollCurrentSpeaker, 1500);
 
+  // -----------------------------------------------------------------------
+  // RESOLUTION COUNTER — mirror motionProgressText into header
+  // vote.js keeps #motionProgressText in sync. We observe it and mirror
+  // the value to #voteResolutionCounter in the minimal header.
+  // -----------------------------------------------------------------------
+  (function setupResolutionCounter() {
+    const counterEl = document.getElementById('voteResolutionCounter');
+    const progressTextEl = document.getElementById('motionProgressText');
+    if (!counterEl || !progressTextEl) return;
+
+    function syncCounter() {
+      var text = progressTextEl.textContent || '';
+      if (text && text !== '\u2014') {
+        counterEl.textContent = 'R\u00e9solution ' + text;
+      } else {
+        counterEl.textContent = '\u2014';
+      }
+    }
+
+    // Initial sync
+    syncCounter();
+
+    // Observe changes made by vote.js
+    var observer = new MutationObserver(syncCounter);
+    observer.observe(progressTextEl, { childList: true, characterData: true, subtree: true });
+  })();
+
   // P4-8: Restore last receipt from sessionStorage on load
   try {
     const memberId = document.getElementById('memberSelect')?.value || 'anonymous';
@@ -513,6 +588,7 @@
   // P4-2: Keyboard shortcuts 1/2/3/4 -> vote buttons
   document.addEventListener('keydown', (e) => {
     if (confirmOverlay.classList.contains('show')) return;
+    if (btnConfirmInline && btnConfirmInline.classList.contains('visible')) return;
     const tag = (e.target.tagName || '').toLowerCase();
     if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
     const keyMap = { '1': 'btnFor', '2': 'btnAgainst', '3': 'btnAbstain', '4': 'btnBlanc' };
@@ -567,7 +643,7 @@
 
   // Reset state when meeting changes
   document.addEventListener('vote:meeting-changed', () => {
-    if (confirmOverlay.classList.contains('show')) closeConfirm();
+    if (confirmOverlay.classList.contains('show') || (btnConfirmInline && btnConfirmInline.classList.contains('visible'))) closeConfirm();
     hasVoted = false;
     voteButtons.forEach(b => b.disabled = false);
     handRaised = false;
