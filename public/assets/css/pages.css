@@ -987,19 +987,37 @@
 }
 
 /* =============================================================================
+   DASHBOARD — Page subtitle reduced weight
+   ============================================================================= */
+
+/* .page-sub on dashboard: minimal weight, secondary info only */
+.app-main ~ * .page-sub,
+.app-header .page-sub {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* =============================================================================
    DASHBOARD — Grid & Panel Layout
    ============================================================================= */
 
+/* Major sections get generous vertical breathing room */
+.app-main > .kpi-grid.dashboard-grid,
+.app-main > .grid-2.dashboard-grid,
+.app-main > .grid-3 {
+  margin-bottom: var(--space-6, 1.5rem);
+}
+
 .dashboard-grid {
-  margin-bottom: 14px;
+  margin-bottom: var(--space-5, 1.25rem);
 }
 
 .dashboard-panel {
-  padding: 16px;
+  padding: 20px;
 }
 
 .dashboard-panel .flex-between {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .dashboard-panel .card-title {
@@ -1025,23 +1043,46 @@
 }
 
 /* =============================================================================
-   DASHBOARD — Shortcut Cards
+   DASHBOARD — KPI Cards
+   ============================================================================= */
+
+/* KPI values are the focal point */
+.kpi-card .kpi-value {
+  font-size: var(--text-3xl, 1.875rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.kpi-card .kpi-label {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+/* =============================================================================
+   DASHBOARD — Shortcut Cards (prominent action launcher)
    ============================================================================= */
 
 .shortcut-card {
-  padding: 14px;
+  padding: 20px 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   text-decoration: none;
   flex-wrap: nowrap;
+  transition: transform var(--duration-fast, 100ms), box-shadow var(--duration-fast, 100ms);
+}
+
+.shortcut-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.1));
 }
 
 .shortcut-card-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1067,12 +1108,13 @@
 .shortcut-card-title {
   font-weight: 700;
   color: var(--color-text);
-  font-size: 14px;
+  font-size: var(--text-base, 1rem);
 }
 
 .shortcut-card-sub {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--text-sm, 0.875rem);
+  margin-top: 2px;
 }
 
 /* =============================================================================
