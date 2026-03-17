@@ -17,6 +17,7 @@
 - [x] **Phase 20: Live Vote Flow** — End-to-end vote cycle; operator tally updates in real-time via SSE (completed 2026-03-17, human-verify deferred)
 - [x] **Phase 20.1: Refonte UI** — Wireframe alignment, reduced cognitive load, FOUC fix (INSERTED) (completed 2026-03-17)
 - [x] **Phase 20.2: Deep UI Wireframe Alignment** — Align all component CSS with wireframe v3.19.2 specs (INSERTED) (completed 2026-03-17)
+- [ ] **Phase 20.3: Page Layout Wireframe Alignment** — Page layouts aligned with wireframe density and composition (INSERTED)
 - [ ] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived
 - [ ] **Phase 22: Final Audit** — Zero DEMO_ constants; every API call has loading/error/empty states
 
@@ -167,7 +168,13 @@ Plans:
 **Goal:** Reprendre le layout de chaque page pour correspondre à la composition du wireframe v3.19.2 — densité, placement des sections, espacement entre cartes/blocs — afin que les pages principales tiennent sur un écran sans scroll inutile. Les éléments ajoutés après le wireframe sont conservés mais intégrés dans la grille wireframe.
 **Requirements**: N/A (inserted phase — layout density alignment with wireframe, no formal requirement IDs)
 **Depends on:** Phase 20.2
-**Plans:** TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 20.3-01-PLAN.md — Operator split panel layout (tabs to 2-column with 200px sidebar)
+- [ ] 20.3-02-PLAN.md — Settings sidebar nav + wizard pinned footer nav
+- [ ] 20.3-03-PLAN.md — Dashboard zero-scroll density + hub compact + table row 8px padding
+- [ ] 20.3-04-PLAN.md — Remaining pages density pass + human verification
 
 ### Phase 21: Post-Session & PV
 **Goal**: The post-session stepper completes all four steps and produces a valid PV PDF with the meeting archived
@@ -211,7 +218,7 @@ Plans:
 | 19. Operator Console Wiring | v3.0 | 1/1 | Complete | 2026-03-16 |
 | 20. Live Vote Flow | v3.0 | 2/2 | Complete | 2026-03-17 |
 | 20.1. Refonte UI | v3.0 | 4/4 | Complete | 2026-03-17 |
-| 20.2. Deep UI Wireframe Alignment | 4/4 | Complete    | 2026-03-17 | - |
-| 20.3. Page Layout Wireframe Alignment | v3.0 | 0/TBD | Not started | - |
+| 20.2. Deep UI Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-17 |
+| 20.3. Page Layout Wireframe Alignment | v3.0 | 0/4 | Not started | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |
