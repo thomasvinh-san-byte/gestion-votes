@@ -129,7 +129,7 @@ Plans:
   2. A voter submits a ballot and receives a confirmation; the ballot is recorded in the database and cannot be submitted a second time
   3. An operator closes a motion and the vote counts are calculated and displayed in the operator console
   4. The full meeting state machine transitions — draft → scheduled → frozen → live → closed → validated — execute without errors and each transition is reflected in the hub checklist status
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 20-01-PLAN.md — Backend broadcast fix, verdict override endpoint, operator frozen-to-live modal, hide breakdown during open vote, projection participation-only display
 - [ ] 20-02-PLAN.md — Unit tests for new backend behavior + human verification of complete vote cycle
@@ -174,6 +174,6 @@ Plans:
 | 17. Demo Data Removal | 2/2 | Complete    | 2026-03-16 | - |
 | 18. SSE Infrastructure | 1/1 | Complete    | 2026-03-16 | - |
 | 19. Operator Console Wiring | 1/1 | Complete    | 2026-03-16 | - |
-| 20. Live Vote Flow | v3.0 | 0/2 | Planning complete | - |
+| 20. Live Vote Flow | 1/2 | In Progress|  | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |

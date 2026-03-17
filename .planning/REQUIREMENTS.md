@@ -36,10 +36,10 @@ Requirements for v3.0 release. Each maps to roadmap phases.
 
 ### Vote en Direct
 
-- [ ] **VOT-01**: L'opérateur peut ouvrir une motion et les votants voient la motion active
-- [ ] **VOT-02**: Le votant peut soumettre un bulletin et reçoit une confirmation
-- [ ] **VOT-03**: L'opérateur peut fermer une motion et les résultats sont calculés
-- [ ] **VOT-04**: Les transitions d'état machine (draft→scheduled→frozen→live→closed→validated) fonctionnent de bout en bout
+- [x] **VOT-01**: L'opérateur peut ouvrir une motion et les votants voient la motion active
+- [x] **VOT-02**: Le votant peut soumettre un bulletin et reçoit une confirmation
+- [x] **VOT-03**: L'opérateur peut fermer une motion et les résultats sont calculés
+- [x] **VOT-04**: Les transitions d'état machine (draft→scheduled→frozen→live→closed→validated) fonctionnent de bout en bout
 
 ### Post-Session & PV
 
@@ -108,10 +108,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPR-02 | Phase 19 | Complete |
 | OPR-03 | Phase 19 | Complete |
 | OPR-04 | Phase 19 | Complete |
-| VOT-01 | Phase 20 | Pending |
-| VOT-02 | Phase 20 | Pending |
-| VOT-03 | Phase 20 | Pending |
-| VOT-04 | Phase 20 | Pending |
+| VOT-01 | Phase 20 | Complete |
+| VOT-02 | Phase 20 | Complete |
+| VOT-03 | Phase 20 | Complete |
+| VOT-04 | Phase 20 | Complete |
 | PST-01 | Phase 21 | Pending |
 | PST-02 | Phase 21 | Pending |
 | PST-03 | Phase 21 | Pending |

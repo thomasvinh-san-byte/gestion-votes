@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: executing
-stopped_at: Completed 19-01-PLAN.md
-last_updated: "2026-03-16T19:06:20.214Z"
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-03-17T06:23:22.911Z"
 last_activity: 2026-03-16 — Plan 16-01 complete (atomic createMeeting with members + motions)
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
   percent: 7
 ---
 
@@ -51,6 +51,7 @@ Progress: [█░░░░░░░░░] 7%
 | Phase 17-demo-data-removal P02 | 3min | 1 tasks | 1 files |
 | Phase 18-sse-infrastructure P01 | 15min | 4 tasks | 4 files |
 | Phase 19-operator-console-wiring P01 | 25 | 2 tasks | 6 files |
+| Phase 20-live-vote-flow P01 | 30 | 2 tasks | 9 files |
 
 ### Decisions
 
@@ -75,6 +76,9 @@ Recent decisions affecting current work:
 - [Phase 19-operator-console-wiring]: SSE lifecycle is 100% driven by MeetingContext:change event — never called directly from loadMeetingContext
 - [Phase 19-operator-console-wiring]: Dropdown change handler sets MeetingContext.set(), not loadMeetingContext(), to prevent double-load
 - [Phase 19-operator-console-wiring]: Stale response guard pattern: snapshot meeting_id before async fetch, discard response if meeting switched
+- [Phase 20-live-vote-flow]: loadResults(id, false) for active phase covers both secret and non-secret votes — during active vote never reveal breakdown regardless of secrecy
+- [Phase 20-live-vote-flow]: frozen->live broadcast placed OUTSIDE transaction (after commit) to avoid broadcasting events that might get rolled back
+- [Phase 20-live-vote-flow]: overrideDecision verdict override uses inline sub-form in proclamation modal (not a second modal)
 
 ### Pending Todos
 
@@ -86,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T18:56:52.223Z
-Stopped at: Completed 19-01-PLAN.md
+Last session: 2026-03-17T06:23:22.909Z
+Stopped at: Completed 20-01-PLAN.md
 Resume file: None
