@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: completed
-stopped_at: Completed 20.1-04-PLAN.md (awaiting human-verify checkpoint Task 2)
-last_updated: "2026-03-17T08:11:36.828Z"
+stopped_at: Completed 20.2-04-PLAN.md
+last_updated: "2026-03-17T10:51:24.674Z"
 last_activity: 2026-03-17 — Plan 20-02 complete (test suite green, human-verify deferred)
 progress:
-  total_phases: 8
-  completed_phases: 6
-  total_plans: 12
-  completed_plans: 12
+  total_phases: 9
+  completed_phases: 7
+  total_plans: 16
+  completed_plans: 16
   percent: 100
 ---
 
@@ -56,6 +56,10 @@ Progress: [██████████] 100% (v3.0 phases 16-20 complete)
 | Phase 20.1 P02 | 15min | 1 tasks | 2 files |
 | Phase 20.1-refonte-ui-alignement-wireframe-et-reduction-charge-mentale P01 | 3min | 2 tasks | 3 files |
 | Phase 20.1-refonte-ui P04 | 5min | 1 tasks | 10 files |
+| Phase 20.2-deep-ui-wireframe-alignment P01 | 5min | 2 tasks | 1 files |
+| Phase 20.2-deep-ui-wireframe-alignment P02 | 10min | 3 tasks | 1 files |
+| Phase 20.2-deep-ui-wireframe-alignment P03 | 10min | 2 tasks | 1 files |
+| Phase 20.2-deep-ui-wireframe-alignment P04 | 5min | 2 tasks | 1 files |
 
 ### Decisions
 
@@ -88,10 +92,19 @@ Recent decisions affecting current work:
 - [Phase 20.1-refonte-ui]: Quorum bar moved from main to header with projection-quorum modifier (max-width 600px, 0.4vh vertical padding)
 - [Phase 20.1-refonte-ui-alignement-wireframe-et-reduction-charge-mentale]: Confirmation overlay HTML kept as unreachable fallback — inline btnConfirmInline is primary UX path; doConfirm() shared by both
 - [Phase 20.1-refonte-ui-alignement-wireframe-et-reduction-charge-mentale]: Resolution counter synced via MutationObserver on #motionProgressText (vote.js-owned) to #voteResolutionCounter — zero coupling, no vote.js modification
+- [Phase 20.2-deep-ui-wireframe-alignment]: Ghost/link/secondary buttons excluded from gradient-lift pattern — intentionally flat per wireframe v3.19.2
+- [Phase 20.2-deep-ui-wireframe-alignment]: .card:hover shadow-only elevation; .card-clickable:hover adds translateY(-2px) lift — interactive cards feel responsive, non-interactive cards stay subtle
+- [Phase 20.2-deep-ui-wireframe-alignment]: tr:hover td selector (not tr:hover) used for table hover so it overrides per-td striped nth-child background
+- [Phase 20.2-deep-ui-wireframe-alignment]: color-mix() with 30% saturation chosen for semantic tag borders to avoid new CSS custom properties
+- [Phase 20.2-deep-ui-wireframe-alignment]: Toast container uses column-reverse so newest toasts appear at bottom, natural bottom-right notification pattern
+- [Phase 20.2-deep-ui-wireframe-alignment]: ag-toast.js web component has its own inline positioning (top:20px); CSS .toast-container class is design-system contract only; web component is separate concern
+- [Phase 20.2-deep-ui-wireframe-alignment]: @keyframes pageIn found in design-system.css (not pages.css) — updated in-place to translateY(4px)/0.18s
+- [Phase 20.2-deep-ui-wireframe-alignment]: New component CSS is CSS-only definitions — HTML usage deferred until features need them; global 5px scrollbar allows .sidebar-scroll 3px override via specificity cascade
 
 ### Roadmap Evolution
 
 - Phase 20.1 inserted after Phase 20: Refonte UI alignement wireframe et reduction charge mentale (URGENT)
+- Phase 20.2 inserted after Phase 20.1: Deep UI Wireframe Alignment — all component CSS aligned with wireframe v3.19.2
 
 ### Pending Todos
 
@@ -103,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T08:11:36.825Z
-Stopped at: Completed 20.1-04-PLAN.md (awaiting human-verify checkpoint Task 2)
+Last session: 2026-03-17T10:42:57.682Z
+Stopped at: Completed 20.2-04-PLAN.md
 Resume file: None
