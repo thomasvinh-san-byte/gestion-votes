@@ -1246,6 +1246,21 @@
 }
 
 /* =============================================================================
+   DATA TABLE DENSITY — 8px vertical padding
+   Applies to audit, archives and any page using .table or .data-table.
+   Keeps horizontal padding at 12px minimum to prevent overflow (RESEARCH.md pitfall 4).
+   ============================================================================= */
+
+.audit-table td,
+.audit-table th,
+.table td,
+.table th,
+.data-table td,
+.data-table th {
+  padding: 8px 12px;
+}
+
+/* =============================================================================
    RESPONSIVE ADJUSTMENTS
    ============================================================================= */
 
