@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
+  padding: 10px 14px;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
@@ -50,7 +50,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
    ============================================================================= */
 
 .analytics-content {
-  padding: 1.5rem;
+  padding: 14px;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -135,15 +135,15 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .overview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 0.75rem;
+  margin-bottom: 14px;
 }
 
 .overview-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 1.25rem;
+  padding: 14px;
 }
 
 .overview-card-label {
@@ -236,8 +236,8 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 14px;
 }
 
 @media (max-width: 768px) {
@@ -255,7 +255,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 .chart-card-header {
-  padding: 1rem 1.25rem;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
@@ -269,7 +269,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 .chart-card-body {
-  padding: 1.25rem;
+  padding: 14px;
 }
 
 .chart-export-btn {
@@ -571,14 +571,14 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .donut-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 14px;
 }
 
 .donut-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 14px;
   text-align: center;
   max-width: 360px;
   width: 100%;

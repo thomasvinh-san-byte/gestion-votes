@@ -1261,6 +1261,40 @@
 }
 
 /* =============================================================================
+   PAGE-HEADER COMPACTION — wireframe v3.19.2 density (14px spacing)
+   Applied globally to all pages using .page-header or .app-header patterns.
+   ============================================================================= */
+
+.page-header {
+  margin-bottom: 14px;
+}
+
+.page-header h1,
+.page-header .page-title {
+  margin-bottom: 0;
+}
+
+/* Card body density: 14-16px padding across all pages */
+.card-body {
+  padding: 14px;
+}
+
+.card-header {
+  padding: 10px 14px;
+}
+
+/* Section gaps: compact for 1080px fit */
+.section-header {
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+}
+
+/* Tab toolbar: reduce bottom margin */
+.tab-toolbar {
+  margin-bottom: 14px;
+}
+
+/* =============================================================================
    RESPONSIVE ADJUSTMENTS
    ============================================================================= */
 
