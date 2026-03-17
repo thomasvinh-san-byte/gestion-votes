@@ -1001,6 +1001,19 @@
    DASHBOARD — Grid & Panel Layout
    ============================================================================= */
 
+/* Layout definitions for dashboard grids (not in global design-system) */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5, 1.25rem);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5, 1.25rem);
+}
+
 /* Major sections get generous vertical breathing room */
 .app-main > .kpi-grid.dashboard-grid,
 .app-main > .grid-2.dashboard-grid,
@@ -1204,6 +1217,27 @@
 .session-row.empty-state,
 .task-row.empty-state {
   justify-content: center;
+}
+
+/* =============================================================================
+   DASHBOARD — Responsive Grids
+   ============================================================================= */
+
+/* Shortcut cards stack to single column on mobile */
+@media (max-width: 640px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  /* KPI grid: 2x2 on small screens */
+  .kpi-grid.dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Panels stack on mobile */
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* =============================================================================
