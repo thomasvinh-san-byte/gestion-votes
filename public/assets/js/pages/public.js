@@ -165,8 +165,8 @@ async function loadResults(motionId, reveal) {
     var quorum = d.quorum || {};
     var decision = d.decision || {};
 
-    // Secret vote - only show participation
-    if (isSecret && !reveal) {
+    // During active vote (reveal=false), show only participation regardless of secret status
+    if (!reveal) {
       show('chart_container', false);
       show('decision_section', false);
       show('secret_block', true);
@@ -391,7 +391,7 @@ async function refresh() {
         currentMotionId = s.motion.id;
       }
 
-      await loadResults(s.motion.id, !s.motion.secret);
+      await loadResults(s.motion.id, false);
 
     } else if (s.phase === 'closed' && s.motion?.id) {
       // Final result
@@ -424,11 +424,14 @@ async function refresh() {
       resetBars();
 
     } else {
-      // Waiting
+      // Between votes — show meeting info + agenda position per locked decision
       badge.className = 'status-badge idle';
-      badge.textContent = 'en seance';
-      motion.textContent = 'En attente';
-      sub.textContent = '';
+      badge.textContent = 'en séance';
+      // Show meeting title (already set above at line 344)
+      motion.textContent = s.meeting_title || 'En attente';
+      // Show agenda position if motionCounterText KPI is available
+      var mcText = document.getElementById('motionCounterText');
+      sub.textContent = mcText ? mcText.textContent : '';
       show('waiting_state', true);
       show('chart_container', false);
       show('decision_section', false);

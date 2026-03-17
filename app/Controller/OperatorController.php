@@ -6,6 +6,7 @@ namespace AgVote\Controller;
 
 use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
+use AgVote\WebSocket\EventBroadcaster;
 use Throwable;
 
 /**
@@ -240,6 +241,7 @@ final class OperatorController extends AbstractController {
             }
 
             $status = (string) ($meeting['status'] ?? '');
+            $previousStatus = $status;
             if ($status !== 'live') {
                 $meetingRepo->updateFields($meetingId, api_current_tenant_id(), ['status' => 'live']);
             }
@@ -315,8 +317,13 @@ final class OperatorController extends AbstractController {
                 }
             }
 
-            return ['inserted' => $inserted, 'tokensOut' => $tokensOut];
+            return ['inserted' => $inserted, 'tokensOut' => $tokensOut, 'previousStatus' => $previousStatus];
         });
+
+        $previousStatus = (string) ($txResult['previousStatus'] ?? 'live');
+        if ($previousStatus !== 'live') {
+            EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), 'live', $previousStatus);
+        }
 
         audit_log('vote_tokens_generated', 'motion', $motionId, [
             'meeting_id' => $meetingId,

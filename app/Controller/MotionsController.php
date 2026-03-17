@@ -669,4 +669,52 @@ final class MotionsController extends AbstractController {
             'manual_abstain' => $abstain,
         ]);
     }
+
+    public function overrideDecision(): void {
+        $input = api_request('POST');
+
+        $motionId = trim((string) ($input['motion_id'] ?? ''));
+        if ($motionId === '') {
+            api_fail('missing_motion_id', 422);
+        }
+
+        $decision = trim((string) ($input['decision'] ?? ''));
+        if (!in_array($decision, ['adopted', 'rejected'], true)) {
+            api_fail('invalid_decision', 422, ['detail' => 'La décision doit être adopted ou rejected.']);
+        }
+
+        $justification = trim((string) ($input['justification'] ?? ''));
+        if ($justification === '') {
+            api_fail('missing_justification', 422, ['detail' => 'Une justification est obligatoire pour modifier la décision.']);
+        }
+
+        $tenantId = api_current_tenant_id();
+        $row = $this->repo()->motion()->findWithMeetingTenant($motionId, $tenantId);
+        if (!$row) {
+            api_fail('motion_not_found', 404);
+        }
+
+        $meetingId = (string) $row['meeting_id'];
+
+        if (empty($row['closed_at'])) {
+            api_fail('motion_not_closed', 409, ['detail' => 'La résolution doit être clôturée avant de modifier la décision.']);
+        }
+
+        api_transaction(function () use ($motionId, $decision, $justification, $tenantId) {
+            $this->repo()->motion()->overrideDecision($motionId, $decision, $justification, $tenantId);
+        });
+
+        audit_log('decision_override', 'motion', $motionId, [
+            'decision' => $decision,
+            'justification' => $justification,
+            'meeting_id' => $meetingId,
+        ]);
+
+        EventBroadcaster::motionClosed($meetingId, $motionId, [
+            'title' => (string) ($row['motion_title'] ?? ''),
+            'decision' => $decision,
+        ]);
+
+        api_ok(['decision' => $decision]);
+    }
 }

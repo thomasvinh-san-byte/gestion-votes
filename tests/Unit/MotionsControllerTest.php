@@ -1558,4 +1558,222 @@ class MotionsControllerTest extends TestCase
         $this->assertEquals('', trim(''));
         $this->assertEquals('', trim((string) null));
     }
+
+    // =========================================================================
+    // overrideDecision: METHOD EXISTS
+    // =========================================================================
+
+    public function testOverrideDecisionMethodExists(): void
+    {
+        $ref = new \ReflectionClass(MotionsController::class);
+        $this->assertTrue(
+            $ref->hasMethod('overrideDecision'),
+            'MotionsController should have an overrideDecision() method',
+        );
+    }
+
+    public function testOverrideDecisionMethodIsPublic(): void
+    {
+        $ref = new \ReflectionClass(MotionsController::class);
+        $this->assertTrue(
+            $ref->getMethod('overrideDecision')->isPublic(),
+            'MotionsController::overrideDecision() should be public',
+        );
+    }
+
+    // =========================================================================
+    // overrideDecision: INPUT VALIDATION
+    // =========================================================================
+
+    public function testOverrideDecisionRejectsGetMethod(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        $result = $this->callControllerMethod('overrideDecision');
+
+        $this->assertEquals(405, $result['status']);
+        $this->assertEquals('method_not_allowed', $result['body']['error']);
+    }
+
+    public function testOverrideDecisionRequiresMotionId(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setJsonBody([
+            'decision' => 'adopted',
+            'justification' => 'President tie-break',
+        ]);
+
+        $result = $this->callControllerMethod('overrideDecision');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('missing_motion_id', $result['body']['error']);
+    }
+
+    public function testOverrideDecisionRejectsEmptyMotionId(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setJsonBody([
+            'motion_id' => '',
+            'decision' => 'adopted',
+            'justification' => 'President tie-break',
+        ]);
+
+        $result = $this->callControllerMethod('overrideDecision');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('missing_motion_id', $result['body']['error']);
+    }
+
+    public function testOverrideDecisionWithMissingJustificationReturns422(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setJsonBody([
+            'motion_id' => '12345678-1234-1234-1234-123456789abc',
+            'decision' => 'adopted',
+            'justification' => '',
+        ]);
+
+        $result = $this->callControllerMethod('overrideDecision');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('missing_justification', $result['body']['error']);
+    }
+
+    public function testOverrideDecisionWithWhitespaceJustificationReturns422(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setJsonBody([
+            'motion_id' => '12345678-1234-1234-1234-123456789abc',
+            'decision' => 'adopted',
+            'justification' => '   ',
+        ]);
+
+        $result = $this->callControllerMethod('overrideDecision');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('missing_justification', $result['body']['error']);
+    }
+
+    public function testOverrideDecisionWithInvalidDecisionReturns422(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setJsonBody([
+            'motion_id' => '12345678-1234-1234-1234-123456789abc',
+            'decision' => 'invalid',
+            'justification' => 'Some reason',
+        ]);
+
+        $result = $this->callControllerMethod('overrideDecision');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('invalid_decision', $result['body']['error']);
+    }
+
+    public function testOverrideDecisionRejectsNullDecision(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setJsonBody([
+            'motion_id' => '12345678-1234-1234-1234-123456789abc',
+            'decision' => '',
+            'justification' => 'Some reason',
+        ]);
+
+        $result = $this->callControllerMethod('overrideDecision');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('invalid_decision', $result['body']['error']);
+    }
+
+    public function testOverrideDecisionAcceptsAdopted(): void
+    {
+        // Verify the controller accepts 'adopted' — validation passes (no 422),
+        // then fails at DB level (no DB available in unit tests).
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setJsonBody([
+            'motion_id' => '12345678-1234-1234-1234-123456789abc',
+            'decision' => 'adopted',
+            'justification' => 'President tie-break',
+        ]);
+
+        $result = $this->callControllerMethod('overrideDecision');
+
+        // Passes all input validation — not a 422 validation error
+        $this->assertNotEquals(422, $result['status'], 'adopted should pass validation');
+        $this->assertNotEquals('invalid_decision', $result['body']['error'] ?? '');
+        $this->assertNotEquals('missing_justification', $result['body']['error'] ?? '');
+        $this->assertNotEquals('missing_motion_id', $result['body']['error'] ?? '');
+    }
+
+    public function testOverrideDecisionAcceptsRejected(): void
+    {
+        // Verify the controller accepts 'rejected' — validation passes (no 422),
+        // then fails at DB level (no DB available in unit tests).
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setJsonBody([
+            'motion_id' => '12345678-1234-1234-1234-123456789abc',
+            'decision' => 'rejected',
+            'justification' => 'Quorum not met',
+        ]);
+
+        $result = $this->callControllerMethod('overrideDecision');
+
+        // Passes all input validation — not a 422 validation error
+        $this->assertNotEquals(422, $result['status'], 'rejected should pass validation');
+        $this->assertNotEquals('invalid_decision', $result['body']['error'] ?? '');
+        $this->assertNotEquals('missing_justification', $result['body']['error'] ?? '');
+        $this->assertNotEquals('missing_motion_id', $result['body']['error'] ?? '');
+    }
+
+    // =========================================================================
+    // overrideDecision: SOURCE CODE CHECKS
+    // =========================================================================
+
+    public function testOverrideDecisionCallsOverrideDecisionOnRepo(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+
+        $this->assertStringContainsString(
+            '->overrideDecision(',
+            $source,
+            'overrideDecision() must call the repository overrideDecision() method',
+        );
+    }
+
+    public function testOverrideDecisionBroadcastsMotionClosed(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+
+        $this->assertStringContainsString(
+            'EventBroadcaster::motionClosed(',
+            $source,
+            'overrideDecision() must broadcast EventBroadcaster::motionClosed() to update clients',
+        );
+    }
+
+    public function testOverrideDecisionLogsAuditTrail(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+
+        $this->assertStringContainsString(
+            "'decision_override'",
+            $source,
+            'overrideDecision() must log audit_log with decision_override action',
+        );
+    }
+
+    public function testOverrideDecisionRouteExists(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/routes.php');
+
+        $this->assertStringContainsString(
+            'motions_override_decision',
+            $source,
+            'routes.php must register the motions_override_decision route',
+        );
+        $this->assertStringContainsString(
+            "'overrideDecision'",
+            $source,
+            'routes.php must map motions_override_decision to overrideDecision()',
+        );
+    }
 }

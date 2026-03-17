@@ -1,7 +1,7 @@
-/* GO-LIVE-STATUS: ready — Audit et Conformité JS. Demo data, table/timeline views, filter, pagination, modal, CSV export. */
+/* GO-LIVE-STATUS: ready — Audit et Conformité JS. Real API data, table/timeline views, filter, pagination, modal, CSV export. */
 /**
  * audit.js — Audit page module for AG-VOTE.
- * Loads audit events with demo fallback, renders table and timeline views,
+ * Loads audit events from API with error handling, renders table and timeline views,
  * handles filter pills, search, sort, pagination, checkbox selection, and event detail modal.
  * Must be loaded AFTER utils.js, shared.js and shell.js.
  */
@@ -12,260 +12,6 @@
   function esc(s) {
     return Utils.escapeHtml(s);
   }
-
-  /* ── Demo data ── */
-  var DEMO_EVENTS = [
-    {
-      id: 'evt-001',
-      timestamp: '2026-03-15T09:00:12Z',
-      category: 'votes',
-      severity: 'success',
-      event: 'Vote enregistré — Résolution 1 : Approbation des comptes',
-      user: 'Marie Dupont',
-      hash: 'a3f8c2d1e4b5f9072c6d3a0e1b4f7c8d9e2a5b6c3f0d1e4a7b8c5d2e9f0a3b4',
-      description: 'Marie Dupont a voté POUR la résolution 1 (Approbation des comptes annuels 2025). Vote enregistré avec succès, horodatage certifié.'
-    },
-    {
-      id: 'evt-002',
-      timestamp: '2026-03-15T09:02:34Z',
-      category: 'votes',
-      severity: 'success',
-      event: 'Vote enregistré — Résolution 1 : Approbation des comptes',
-      user: 'Paul Martin',
-      hash: 'b4e9d3a2f7c8b0e1d5c6a3b2f9e4d7c0a1b8f5e2d3c7a4b1e8f5d0c3a6b9e2f7',
-      description: 'Paul Martin a voté CONTRE la résolution 1 (Approbation des comptes annuels 2025). Vote enregistré avec succès.'
-    },
-    {
-      id: 'evt-003',
-      timestamp: '2026-03-15T09:05:00Z',
-      category: 'presences',
-      severity: 'info',
-      event: 'Présence confirmée — Jean Leblanc',
-      user: 'Jean Leblanc',
-      hash: 'c5f0e4b3a8d7c2f1e6d5b4a3c8f7e0d1b2a9f6e3d4c0b5a2e9d6c1a8b3f2e7d4',
-      description: 'Jean Leblanc a été enregistré comme présent à la séance du 15 mars 2026. Procuration vérifiée : aucune.'
-    },
-    {
-      id: 'evt-004',
-      timestamp: '2026-03-15T09:07:22Z',
-      category: 'presences',
-      severity: 'info',
-      event: 'Procuration enregistrée — Sophie Blanc donne procuration à Pierre Duval',
-      user: 'Sophie Blanc',
-      hash: 'd6a1f5c4b9e8d3f2a7e6c5b0d9f8e1c2b3a0f7d4c1b8e5a2f9c6d3b0a7e4f1c8',
-      description: 'Sophie Blanc a remis procuration à Pierre Duval pour la séance du 15 mars 2026. Procuration vérifiée et enregistrée par l\'opérateur.'
-    },
-    {
-      id: 'evt-005',
-      timestamp: '2026-03-15T09:10:45Z',
-      category: 'securite',
-      severity: 'warning',
-      event: 'Tentative de connexion échouée — 3 essais consécutifs',
-      user: 'admin@agvote.fr',
-      hash: 'e7b2a6d5c0f9e4b3a8d7c2f1e6d5b4a9c8f7e0d3b2a1f8e5d2c9b6a3f0e7d4c1',
-      description: 'Trois tentatives de connexion consécutives ont échoué pour le compte admin@agvote.fr depuis l\'adresse IP 192.168.1.50. Compte temporairement verrouillé.'
-    },
-    {
-      id: 'evt-006',
-      timestamp: '2026-03-15T09:12:00Z',
-      category: 'securite',
-      severity: 'danger',
-      event: 'Accès non autorisé détecté — tentative de modification de résultats',
-      user: 'inconnu',
-      hash: 'f8c3b7a6e1d0f5c4b9e8d3f2a7e6c5b0d9f8e1c2b3a0f7d4c1b8e5a2f9c6d3b0',
-      description: 'Une tentative de modification des résultats de vote a été détectée et bloquée. L\'accès non autorisé provenait d\'une adresse IP externe. Alerte de sécurité émise.'
-    },
-    {
-      id: 'evt-007',
-      timestamp: '2026-03-15T09:15:30Z',
-      category: 'systeme',
-      severity: 'info',
-      event: 'Séance créée — AG Ordinaire 2026',
-      user: 'admin@agvote.fr',
-      hash: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2',
-      description: 'Création de la séance AG Ordinaire 2026 par l\'administrateur. Ordre du jour : 5 résolutions. Quorum requis : 30%.'
-    },
-    {
-      id: 'evt-008',
-      timestamp: '2026-03-15T09:18:00Z',
-      category: 'votes',
-      severity: 'success',
-      event: 'Vote enregistré — Résolution 2 : Renouvellement du bureau',
-      user: 'Claire Fontaine',
-      hash: 'b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3',
-      description: 'Claire Fontaine a voté POUR la résolution 2 (Renouvellement du bureau). Vote enregistré avec succès, signatures numériques validées.'
-    },
-    {
-      id: 'evt-009',
-      timestamp: '2026-03-15T09:20:15Z',
-      category: 'votes',
-      severity: 'info',
-      event: 'Vote enregistré — Résolution 2 : Renouvellement du bureau',
-      user: 'Henri Moreau',
-      hash: 'c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4',
-      description: 'Henri Moreau a voté ABSTENTION pour la résolution 2 (Renouvellement du bureau). Vote valide, abstention enregistrée.'
-    },
-    {
-      id: 'evt-010',
-      timestamp: '2026-03-15T09:22:45Z',
-      category: 'systeme',
-      severity: 'success',
-      event: 'Quorum atteint — 45/120 membres présents (37.5%)',
-      user: 'Système',
-      hash: 'd4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5',
-      description: 'Le quorum requis (30%) a été atteint avec 45 membres présents sur 120 inscrits (37.5%). La séance peut maintenant commencer officiellement.'
-    },
-    {
-      id: 'evt-011',
-      timestamp: '2026-03-15T09:25:00Z',
-      category: 'presences',
-      severity: 'info',
-      event: 'Présence confirmée — Isabelle Rousseau',
-      user: 'Isabelle Rousseau',
-      hash: 'e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6',
-      description: 'Isabelle Rousseau a été enregistrée comme présente. Identité vérifiée par l\'opérateur. Aucune procuration.'
-    },
-    {
-      id: 'evt-012',
-      timestamp: '2026-03-15T09:28:30Z',
-      category: 'votes',
-      severity: 'danger',
-      event: 'Vote rejeté — Résolution 3 : Budget prévisionnel',
-      user: 'Système',
-      hash: 'f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7',
-      description: 'La résolution 3 (Approbation du budget prévisionnel 2026) a été rejetée par vote. Pour: 18, Contre: 22, Abstentions: 5. Majorité simple non atteinte.'
-    },
-    {
-      id: 'evt-013',
-      timestamp: '2026-03-15T09:30:00Z',
-      category: 'systeme',
-      severity: 'info',
-      event: 'Configuration mise à jour — Durée de vote modifiée à 10 minutes',
-      user: 'admin@agvote.fr',
-      hash: 'a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8',
-      description: 'L\'administrateur a modifié la durée maximale de vote de 5 à 10 minutes par résolution. Modification tracée et sauvegardée.'
-    },
-    {
-      id: 'evt-014',
-      timestamp: '2026-03-15T09:32:00Z',
-      category: 'securite',
-      severity: 'info',
-      event: 'Connexion réussie — admin@agvote.fr',
-      user: 'admin@agvote.fr',
-      hash: 'b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9',
-      description: 'Connexion réussie à l\'interface d\'administration depuis 192.168.1.10. Session authentifiée avec succès.'
-    },
-    {
-      id: 'evt-015',
-      timestamp: '2026-03-15T09:35:00Z',
-      category: 'votes',
-      severity: 'success',
-      event: 'Vote enregistré — Résolution 4 : Approbation des statuts modifiés',
-      user: 'Pierre Duval',
-      hash: 'c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0',
-      description: 'Pierre Duval a voté POUR la résolution 4 (Approbation des statuts modifiés). Il vote également pour sa mandante Sophie Blanc (procuration valide).'
-    },
-    {
-      id: 'evt-016',
-      timestamp: '2026-03-15T09:37:15Z',
-      category: 'presences',
-      severity: 'warning',
-      event: 'Départ anticipé enregistré — Robert Petit',
-      user: 'Robert Petit',
-      hash: 'd0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1',
-      description: 'Robert Petit a quitté la séance avant la fin. Son départ a été enregistré à 09h37. Il ne pourra plus voter pour les résolutions restantes.'
-    },
-    {
-      id: 'evt-017',
-      timestamp: '2026-03-15T09:40:00Z',
-      category: 'systeme',
-      severity: 'success',
-      event: 'Sauvegarde automatique — Données séance exportées',
-      user: 'Système',
-      hash: 'e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2',
-      description: 'Sauvegarde automatique des données de séance effectuée avec succès. Snapshot chiffré stocké dans le registre sécurisé. Hash d\'intégrité calculé.'
-    },
-    {
-      id: 'evt-018',
-      timestamp: '2026-03-15T09:42:30Z',
-      category: 'votes',
-      severity: 'success',
-      event: 'Vote enregistré — Résolution 5 : Election du président',
-      user: 'Lucie Bernard',
-      hash: 'f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3',
-      description: 'Lucie Bernard a voté POUR la résolution 5 (Élection du président pour 2026-2028). Candidat élu : Jean-Claude Renard avec 31 voix pour.'
-    },
-    {
-      id: 'evt-019',
-      timestamp: '2026-03-15T09:45:00Z',
-      category: 'securite',
-      severity: 'info',
-      event: 'Vérification d\'intégrité — Tous les hachages validés',
-      user: 'Système',
-      hash: 'a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4',
-      description: 'Vérification automatique d\'intégrité effectuée. Tous les hachages SHA-256 des événements enregistrés ont été validés. Aucune altération détectée.'
-    },
-    {
-      id: 'evt-020',
-      timestamp: '2026-03-15T09:48:00Z',
-      category: 'systeme',
-      severity: 'info',
-      event: 'Session de vote ouverte — Résolution 3 (deuxième délibération)',
-      user: 'admin@agvote.fr',
-      hash: 'b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5',
-      description: 'Ouverture de la deuxième délibération pour la résolution 3 (Budget prévisionnel). Conformément aux statuts, une seconde délibération est possible en cas de rejet.'
-    },
-    {
-      id: 'evt-021',
-      timestamp: '2026-03-15T09:50:30Z',
-      category: 'votes',
-      severity: 'success',
-      event: 'Vote enregistré — Résolution 3 (2e délibération)',
-      user: 'Marie Dupont',
-      hash: 'c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6',
-      description: 'Marie Dupont a voté POUR lors de la deuxième délibération de la résolution 3 (Budget prévisionnel 2026). Changement de position enregistré.'
-    },
-    {
-      id: 'evt-022',
-      timestamp: '2026-03-15T09:53:00Z',
-      category: 'presences',
-      severity: 'info',
-      event: 'Présence confirmée — Nathalie Girard (arrivée tardive)',
-      user: 'Nathalie Girard',
-      hash: 'd6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7',
-      description: 'Nathalie Girard a été enregistrée comme présente avec arrivée tardive. Elle pourra participer aux votes des résolutions suivantes.'
-    },
-    {
-      id: 'evt-023',
-      timestamp: '2026-03-15T09:55:15Z',
-      category: 'securite',
-      severity: 'warning',
-      event: 'Activité suspecte — Téléchargement massif des données membres',
-      user: 'user@example.com',
-      hash: 'e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8',
-      description: 'Un téléchargement inhabituel des données membres a été détecté depuis le compte user@example.com. L\'action a été journalisée et notifiée à l\'administrateur.'
-    },
-    {
-      id: 'evt-024',
-      timestamp: '2026-03-15T10:00:00Z',
-      category: 'systeme',
-      severity: 'success',
-      event: 'Séance clôturée — PV généré et signé',
-      user: 'admin@agvote.fr',
-      hash: 'f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9',
-      description: 'La séance AG Ordinaire 2026 a été officiellement clôturée. Le procès-verbal a été généré, signé électroniquement et archivé. Hash d\'intégrité final calculé.'
-    },
-    {
-      id: 'evt-025',
-      timestamp: '2026-03-15T10:02:45Z',
-      category: 'systeme',
-      severity: 'info',
-      event: 'Archive créée — Séance AG Ordinaire 2026',
-      user: 'Système',
-      hash: 'a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0',
-      description: 'La séance AG Ordinaire 2026 a été archivée avec succès. Toutes les données (votes, présences, résolutions, PV) sont conservées de manière immuable.'
-    }
-  ];
 
   /* ── Category label map ── */
   var CATEGORY_LABELS = {
@@ -647,22 +393,96 @@
     }
   }
 
-  /* ── Data loading ── */
-  async function loadData() {
-    try {
-      var res = await window.api('/api/v1/audit.php');
-      if (res && res.body && (res.body.data || res.body.items)) {
-        _allEvents = res.body.data || res.body.items || [];
-      } else {
-        throw new Error('No data');
-      }
-    } catch (e) {
-      console.warn('[audit.js] API unavailable, using demo data:', e.message || e);
-      _allEvents = DEMO_EVENTS;
+  /* ── Error state ── */
+  function showAuditError() {
+    if (window.Shared && Shared.showToast) {
+      Shared.showToast("Impossible de charger les événements d'audit.", 'error');
     }
 
-    populateKPIs();
-    applyFilters();
+    // Reset KPI values to dash to avoid showing stale data
+    var kpiIntegrity = document.getElementById('kpiIntegrity');
+    var kpiEvents = document.getElementById('kpiEvents');
+    var kpiAnomalies = document.getElementById('kpiAnomalies');
+    var kpiLastSession = document.getElementById('kpiLastSession');
+    if (kpiIntegrity) kpiIntegrity.textContent = '—';
+    if (kpiEvents) kpiEvents.textContent = '—';
+    if (kpiAnomalies) kpiAnomalies.textContent = '—';
+    if (kpiLastSession) kpiLastSession.textContent = '—';
+
+    var errorContent =
+      Shared.emptyState({ icon: 'generic', title: 'Erreur de chargement', description: 'Impossible de contacter le serveur.' }) +
+      '<div style="text-align:center;margin-top:12px;">' +
+        '<button class="btn btn-primary" id="auditRetryBtn">Réessayer</button>' +
+      '</div>';
+
+    if (_tableBody) {
+      _tableBody.innerHTML = '<tr><td colspan="6">' + errorContent + '</td></tr>';
+    }
+    if (_timeline) {
+      _timeline.innerHTML = errorContent;
+    }
+
+    var retryBtn = document.getElementById('auditRetryBtn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', function() { loadData(); });
+    }
+  }
+
+  /* ── Data loading ── */
+  function loadData() {
+    var params = new URLSearchParams(window.location.search);
+    var meetingId = params.get('meeting_id');
+
+    if (!meetingId) {
+      _allEvents = [];
+      var guidanceContent = '<tr><td colspan="6">' + Shared.emptyState({
+        icon: 'generic',
+        title: 'Sélectionnez une séance',
+        description: "Ouvrez une séance depuis le tableau de bord pour afficher son journal d'audit."
+      }) + '</td></tr>';
+      if (_tableBody) _tableBody.innerHTML = guidanceContent;
+      if (_timeline) _timeline.innerHTML = Shared.emptyState({
+        icon: 'generic',
+        title: 'Sélectionnez une séance',
+        description: "Ouvrez une séance depuis le tableau de bord pour afficher son journal d'audit."
+      });
+      return;
+    }
+
+    function tryLoad(attempt) {
+      window.api('/api/v1/audit_log.php?meeting_id=' + encodeURIComponent(meetingId))
+        .then(function(res) {
+          if (res && res.body && res.body.data && res.body.data.items) {
+            var items = res.body.data.items;
+            _allEvents = items.map(function(item) {
+              return {
+                id: item.id,
+                timestamp: item.created_at || item.timestamp,
+                category: item.category || 'system',
+                severity: item.severity || 'info',
+                event: item.action_label || item.event || '',
+                user: item.actor || item.user || '',
+                hash: item.hash || '',
+                description: item.description || item.action_label || ''
+              };
+            });
+          } else {
+            throw new Error('No data');
+          }
+          populateKPIs();
+          applyFilters();
+        })
+        .catch(function(e) {
+          if (attempt < 2) {
+            setTimeout(function() { tryLoad(attempt + 1); }, 2000);
+          } else {
+            console.warn('[audit.js] API unavailable:', e.message || e);
+            showAuditError();
+          }
+        });
+    }
+
+    tryLoad(1);
   }
 
   /* ── Init event handlers ── */

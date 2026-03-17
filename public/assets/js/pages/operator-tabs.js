@@ -367,12 +367,7 @@ window.OpS = { fn: {} };
           meetingSelect.appendChild(opt);
         });
 
-        // Pre-select from URL
-        const urlMeetingId = new URLSearchParams(window.location.search).get('meeting_id');
-        if (urlMeetingId) {
-          meetingSelect.value = urlMeetingId;
-          loadMeetingContext(urlMeetingId);
-        }
+        // Pre-selection from URL is now handled by MeetingContext.onChange + init fallback
       }
     } catch (err) {
       setNotif('error', 'Erreur chargement: ' + err.message);
@@ -390,6 +385,21 @@ window.OpS = { fn: {} };
     OpS.quorumWarningShown = false; // Reset so quorum modal can fire for new meeting
     updateURLParam('meeting_id', meetingId);
 
+    // Clear all caches immediately — per user decision: "clean break"
+    attendanceCache = [];
+    motionsCache = [];
+    proxiesCache = [];
+    membersCache = [];
+    currentOpenMotion = null;
+    currentMode = 'setup'; // Reset to setup mode per user decision
+
+    // Reset KPI strip to placeholder dashes — per user decision
+    resetKpiStrip();
+
+    // Show loading state in tabs — per user decision (French, tab-specific)
+    showTabLoading('participants', 'Chargement des participants\u2026');
+    showTabLoading('ordre-du-jour', 'Chargement des r\u00e9solutions\u2026');
+
     try {
       const { body } = await api(`/api/v1/meetings.php?id=${encodeURIComponent(meetingId)}`);
       if (body?.ok && body?.data) {
@@ -399,8 +409,7 @@ window.OpS = { fn: {} };
         updateHeader(body.data);
         updateLiveTabs();
         await loadAllData();
-        // Reconnect SSE for the new meeting (handled by operator-realtime.js)
-        if (OpS.fn.connectSSE) OpS.fn.connectSSE();
+        // SSE reconnect is handled by operator-realtime.js via MeetingContext:change event
       }
     } catch (err) {
       setNotif('error', 'Impossible de charger la séance. Vérifiez votre connexion et réessayez.');
@@ -518,7 +527,8 @@ window.OpS = { fn: {} };
       loadEmergencyProcedures(),
       loadSpeechQueue(),
       loadProxies(),
-      loadInvitationStats()
+      loadInvitationStats(),
+      loadQuorumStatus()
     ]);
 
     // Log any failures but continue
@@ -2564,6 +2574,49 @@ window.OpS = { fn: {} };
   }
 
   // =========================================================================
+  // HELPER FUNCTIONS — KPI reset, tab loading/empty/error states
+  // =========================================================================
+
+  // Reset KPI strip to placeholder dashes
+  function resetKpiStrip() {
+    ['opKpiPresent', 'opKpiQuorum', 'opKpiVoted', 'opKpiResolution'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = '\u2014';
+    });
+  }
+
+  // Show loading message in a tab content area
+  function showTabLoading(tabId, message) {
+    var container = document.getElementById('tab-' + tabId);
+    if (!container) return;
+    var grid = container.querySelector('.attendance-grid, #resolutionsList, [data-content]');
+    if (grid) {
+      grid.innerHTML = '<div class="text-center p-4 text-muted">' + message + '</div>';
+    }
+  }
+
+  // Show empty state in a tab content area
+  function showTabEmpty(tabId, message) {
+    var container = document.getElementById('tab-' + tabId);
+    if (!container) return;
+    var grid = container.querySelector('.attendance-grid, #resolutionsList, [data-content]');
+    if (grid) {
+      grid.innerHTML = '<div class="text-center p-4 text-muted">' + message + '</div>';
+    }
+  }
+
+  // Show error with retry in a tab content area
+  function showTabError(tabId, message, retryFnName) {
+    var container = document.getElementById('tab-' + tabId);
+    if (!container) return;
+    var grid = container.querySelector('.attendance-grid, #resolutionsList, [data-content]');
+    if (grid) {
+      grid.innerHTML = '<div class="hub-error">' + message +
+        ' <button class="btn btn-sm btn-outline" onclick="OpS.fn.' + retryFnName + '()">R\u00e9essayer</button></div>';
+    }
+  }
+
+  // =========================================================================
   // EXECUTION VIEW — delegated to operator-exec.js
   // =========================================================================
 
@@ -2576,7 +2629,10 @@ window.OpS = { fn: {} };
   // INIT
   // =========================================================================
 
-  meetingSelect.addEventListener('change', () => loadMeetingContext(meetingSelect.value));
+  meetingSelect.addEventListener('change', function() {
+    MeetingContext.set(meetingSelect.value || null);
+    // MeetingContext.onChange listener will call loadMeetingContext
+  });
 
   // Presence search
   document.getElementById('presenceSearch')?.addEventListener('input', Utils.debounce(renderAttendance, 250));
@@ -3145,10 +3201,31 @@ window.OpS = { fn: {} };
   _ops.fn.loadQuorumStatus         = loadQuorumStatus;
   _ops.fn.loadDashboard            = loadDashboard;
   _ops.fn.loadDevices              = loadDevices;
+  _ops.fn.resetKpiStrip            = resetKpiStrip;
+  _ops.fn.showTabLoading           = showTabLoading;
+  _ops.fn.showTabEmpty             = showTabEmpty;
+  _ops.fn.showTabError             = showTabError;
 
   initTabs();
   startClock();
   loadMeetings();
+
+  // Wire MeetingContext changes to data loading
+  MeetingContext.onChange(function(_oldId, newId) {
+    // Sync dropdown if it doesn't already reflect newId
+    if (meetingSelect && meetingSelect.value !== (newId || '')) {
+      meetingSelect.value = newId || '';
+    }
+    loadMeetingContext(newId);
+  });
+
+  // Handle race: if MeetingContext already has a meeting_id on page load
+  // (init fired before this onChange listener was registered), load it now
+  var _initMeetingId = MeetingContext.get();
+  if (_initMeetingId && !currentMeetingId) {
+    if (meetingSelect) meetingSelect.value = _initMeetingId;
+    loadMeetingContext(_initMeetingId);
+  }
 
   // ==========================================================================
   // Real-time updates — delegated to operator-realtime.js

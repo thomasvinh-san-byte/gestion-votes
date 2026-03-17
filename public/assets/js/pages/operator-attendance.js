@@ -13,11 +13,19 @@
   // =========================================================================
 
   async function loadAttendance() {
+    var snapshotMeetingId = O.currentMeetingId;
     try {
       const { body } = await api(`/api/v1/attendances.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`);
+      if (O.currentMeetingId !== snapshotMeetingId) return; // stale — discard
       O.attendanceCache = body?.data?.items || [];
+      if (O.attendanceCache.length === 0) {
+        O.fn.showTabEmpty('participants', 'Aucun participant enregistr\u00e9');
+        return;
+      }
       renderAttendance();
     } catch (err) {
+      if (O.currentMeetingId !== snapshotMeetingId) return; // stale — discard
+      O.fn.showTabError('participants', 'Erreur chargement participants.', 'loadAttendance');
       setNotif('error', 'Erreur chargement présences');
     }
   }

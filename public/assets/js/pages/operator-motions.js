@@ -16,13 +16,22 @@
   // =========================================================================
 
   async function loadResolutions() {
+    var snapshotMeetingId = O.currentMeetingId;
     try {
       const { body } = await api(`/api/v1/motions_for_meeting.php?meeting_id=${encodeURIComponent(O.currentMeetingId)}`);
+      if (O.currentMeetingId !== snapshotMeetingId) return; // stale — discard
       O.motionsCache = body?.data?.items || [];
       O.currentOpenMotion = O.motionsCache.find(m => m.opened_at && !m.closed_at) || null;
+      if (O.motionsCache.length === 0) {
+        O.fn.showTabEmpty('ordre-du-jour', 'Aucune r\u00e9solution');
+        document.getElementById('tabCountResolutions').textContent = 0;
+        return;
+      }
       renderResolutions();
       document.getElementById('tabCountResolutions').textContent = O.motionsCache.length;
     } catch (err) {
+      if (O.currentMeetingId !== snapshotMeetingId) return; // stale — discard
+      O.fn.showTabError('ordre-du-jour', 'Erreur chargement r\u00e9solutions.', 'loadResolutions');
       setNotif('error', 'Erreur chargement résolutions');
     }
   }
@@ -733,18 +742,26 @@
     const motion = O.motionsCache.find(m => String(m.id) === String(motionId));
     const motionTitle = motion ? escapeHtml(motion.title || '—') : 'cette résolution';
 
+    const isFrozen = O.currentMeetingStatus !== 'live';
+    const modalTitle = isFrozen ? 'Démarrer la séance et ouvrir le vote' : 'Confirmer l\'ouverture du vote';
+    const modalBody = isFrozen
+      ? `<p style="margin:0 0 0.5rem;">Résolution : <strong>${motionTitle}</strong></p>`
+        + `<p style="margin:0 0 1.5rem;color:var(--color-text-muted);font-size:0.875rem;">Cela démarrera la séance. Continuer ?</p>`
+      : `<p style="margin:0 0 0.5rem;">Résolution : <strong>${motionTitle}</strong></p>`
+        + `<p style="margin:0 0 1.5rem;color:var(--color-text-muted);font-size:0.875rem;">Le vote sera immédiatement accessible à tous les votants. Un seul vote peut être ouvert à la fois.</p>`;
+    const confirmLabel = isFrozen ? (icon('play', 'icon-sm icon-text') + ' Démarrer et ouvrir') : (icon('play', 'icon-sm icon-text') + ' Ouvrir le vote');
+
     const confirmed = await new Promise(resolve => {
       const modal = O.createModal({
         id: 'openVoteConfirmModal',
-        title: 'Confirmer l\'ouverture du vote',
+        title: modalTitle,
         onDismiss: () => resolve(false),
         content: `
-          <h3 id="openVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('alert-triangle', 'icon-sm icon-text')} Ouvrir le vote ?</h3>
-          <p style="margin:0 0 0.5rem;">Résolution : <strong>${motionTitle}</strong></p>
-          <p style="margin:0 0 1.5rem;color:var(--color-text-muted);font-size:0.875rem;">Le vote sera immédiatement accessible à tous les votants. Un seul vote peut être ouvert à la fois.</p>
+          <h3 id="openVoteConfirmModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('alert-triangle', 'icon-sm icon-text')} ${isFrozen ? 'Démarrer la séance ?' : 'Ouvrir le vote ?'}</h3>
+          ${modalBody}
           <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
             <button class="btn btn-secondary" data-action="cancel">Annuler</button>
-            <button class="btn btn-primary" data-action="confirm">${icon('play', 'icon-sm icon-text')} Ouvrir le vote</button>
+            <button class="btn btn-primary" data-action="confirm">${confirmLabel}</button>
           </div>
         `
       });
@@ -893,10 +910,10 @@
             <div style="text-align:center;padding:1rem 0;">
               <i data-lucide="${resultIcon}" style="width:64px;height:64px;color:${resultColor};margin-bottom:1rem;"></i>
               <h2 id="proclamationModal-title" style="font-size:1.5rem;margin:0 0 0.5rem;">${escapeHtml(closedMotion.title)}</h2>
-              <p style="font-size:2rem;font-weight:700;color:${resultColor};margin:0.5rem 0;" aria-live="assertive">
+              <p id="proclamDecisionText" style="font-size:2rem;font-weight:700;color:${resultColor};margin:0.5rem 0;" aria-live="assertive">
                 ${resultText}
               </p>
-              ${reason ? `<p style="color:var(--color-text-secondary);font-size:0.95rem;margin:0 0 1rem;">${escapeHtml(reason)}</p>` : ''}
+              ${reason ? `<p id="proclamReasonText" style="color:var(--color-text-secondary);font-size:0.95rem;margin:0 0 1rem;">${escapeHtml(reason)}</p>` : ''}
               <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:1.1rem;">
                 <span><strong style="color:var(--color-success)">${cFor}</strong> Pour</span>
                 <span><strong style="color:var(--color-danger)">${cAgainst}</strong> Contre</span>
@@ -904,6 +921,28 @@
                 ${rNsp > 0 ? `<span><strong style="color:var(--color-text-muted)">${cNsp}</strong> NSP</span>` : ''}
               </div>
               <p style="color:var(--color-text-muted);font-size:0.9rem;">${cTotal} vote${cTotal !== '1' ? 's' : ''} exprimé${cTotal !== '1' ? 's' : ''}</p>
+              <div style="margin-top:1rem;border-top:1px solid var(--color-border);padding-top:1rem;">
+                <button class="btn btn-secondary btn-sm" data-action="override-decision">
+                  ${icon('edit-2', 'icon-sm icon-text')} Modifier la décision
+                </button>
+              </div>
+              <div id="overrideDecisionForm" style="display:none;margin-top:1rem;text-align:left;border-top:1px solid var(--color-border);padding-top:1rem;">
+                <p style="margin:0 0 0.75rem;font-size:0.9rem;font-weight:600;">Modifier la décision officielle</p>
+                <div style="display:flex;gap:1rem;margin-bottom:0.75rem;">
+                  <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+                    <input type="radio" name="overrideChoice" value="adopted" ${decision !== 'rejected' ? '' : 'checked'}> Adoptée
+                  </label>
+                  <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+                    <input type="radio" name="overrideChoice" value="rejected" ${decision === 'rejected' ? '' : 'checked'}> Rejetée
+                  </label>
+                </div>
+                <textarea id="overrideJustification" rows="2" placeholder="Justification (obligatoire)" style="width:100%;padding:0.4rem;margin-bottom:0.75rem;border:1px solid var(--color-border);border-radius:4px;resize:vertical;"></textarea>
+                <div style="display:flex;gap:0.5rem;justify-content:flex-end;">
+                  <button class="btn btn-secondary btn-sm" data-action="override-cancel">Annuler</button>
+                  <button class="btn btn-warning btn-sm" data-action="override-confirm">${icon('check', 'icon-sm icon-text')} Confirmer</button>
+                </div>
+                <p id="overrideError" style="color:var(--color-danger);font-size:0.85rem;margin-top:0.5rem;display:none;"></p>
+              </div>
               <button class="btn btn-primary" data-action="close-proclamation" style="margin-top:1rem;">Fermer</button>
             </div>
           `
@@ -911,6 +950,54 @@
 
         if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [proclamModal] });
         proclamModal.querySelector('[data-action="close-proclamation"]').addEventListener('click', () => O.closeModal(proclamModal));
+
+        // Verdict override button
+        proclamModal.querySelector('[data-action="override-decision"]').addEventListener('click', function() {
+          const form = proclamModal.querySelector('#overrideDecisionForm');
+          if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        });
+        proclamModal.querySelector('[data-action="override-cancel"]').addEventListener('click', function() {
+          const form = proclamModal.querySelector('#overrideDecisionForm');
+          if (form) form.style.display = 'none';
+        });
+        proclamModal.querySelector('[data-action="override-confirm"]').addEventListener('click', async function() {
+          const selectedRadio = proclamModal.querySelector('input[name="overrideChoice"]:checked');
+          const justEl = proclamModal.querySelector('#overrideJustification');
+          const errEl = proclamModal.querySelector('#overrideError');
+          const newDecision = selectedRadio ? selectedRadio.value : '';
+          const justification = justEl ? justEl.value.trim() : '';
+
+          if (!justification || justification.length < 3) {
+            if (errEl) { errEl.textContent = 'Justification obligatoire (min. 3 caractères).'; errEl.style.display = ''; }
+            return;
+          }
+          if (errEl) errEl.style.display = 'none';
+
+          const btn = proclamModal.querySelector('[data-action="override-confirm"]');
+          if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-sm"></span>'; }
+
+          try {
+            const overrideResult = await api('/api/v1/motions_override_decision.php', { motion_id: motionId, decision: newDecision, justification });
+            if (!overrideResult.body?.ok) {
+              const msg = getApiError(overrideResult.body, 'Erreur modification décision');
+              if (errEl) { errEl.textContent = msg; errEl.style.display = ''; }
+            } else {
+              // Update display with new decision
+              const form = proclamModal.querySelector('#overrideDecisionForm');
+              if (form) form.style.display = 'none';
+              const newLabels = { adopted: 'ADOPTÉE', rejected: 'REJETÉE' };
+              const newColor = newDecision === 'adopted' ? 'var(--color-success)' : 'var(--color-danger)';
+              const decEl = proclamModal.querySelector('#proclamDecisionText');
+              if (decEl) { decEl.textContent = newLabels[newDecision] || newDecision.toUpperCase(); decEl.style.color = newColor; }
+              setNotif('success', 'Décision modifiée');
+              await loadResolutions();
+            }
+          } catch (e) {
+            if (errEl) { errEl.textContent = e.message; errEl.style.display = ''; }
+          } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = icon('check', 'icon-sm icon-text') + ' Confirmer'; }
+          }
+        });
       }
     } catch (err) {
       setNotif('error', err.message);

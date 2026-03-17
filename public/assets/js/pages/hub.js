@@ -296,30 +296,7 @@
     });
   }
 
-  /* ── Load data (API with demo fallback) ─────────── */
-
-  var DEMO_SESSION = {
-    title: 'AG Ordinaire',
-    date: '2026-02-18',
-    memberCount: 67,
-    resolutionCount: 8,
-    convocationsSent: true,
-    documentCount: 3,
-    kpiParticipants: '67',
-    kpiVoix: '8\u202f500 voix',
-    kpiResolutions: '8',
-    kpiResoDetail: '3 art.24, 3 art.25, 2 art.26',
-    kpiQuorum: '34',
-    kpiQuorumDetail: '4\u202f251 voix min.',
-    kpiConvoc: '55/67',
-    kpiConvocDetail: '12 en attente'
-  };
-
-  var DEMO_FILES = [
-    { name: 'Convocation_AG_2026.pdf', size: '245 Ko', url: '#' },
-    { name: 'Comptes_2025.pdf', size: '1.2 Mo', url: '#' },
-    { name: 'Devis_ravalement.pdf', size: '890 Ko', url: '#' }
-  ];
+  /* ── Load data (real API, no demo fallback) ──────── */
 
   function applySessionToDOM(sessionData) {
     var titleEl = document.getElementById('hubTitle');
@@ -327,14 +304,13 @@
     var placeEl = document.getElementById('hubPlace');
     var participantsEl = document.getElementById('hubParticipants');
 
-    if (titleEl) titleEl.textContent = sessionData.title || 'AG Ordinaire';
-    if (dateEl) dateEl.textContent = sessionData.dateDisplay || 'Mercredi 18 f\u00e9vrier 2026 \u00e0 18 h 30';
-    if (placeEl) placeEl.textContent = sessionData.place || 'Salle des f\u00eates, 12 rue des Mimosas';
-    if (participantsEl) participantsEl.textContent = (sessionData.memberCount || 67) + ' participants';
+    if (titleEl) titleEl.textContent = sessionData.title || '';
+    if (dateEl) dateEl.textContent = sessionData.dateDisplay || '';
+    if (placeEl) placeEl.textContent = sessionData.place || '';
+    if (participantsEl) participantsEl.textContent = (sessionData.memberCount || 0) + ' participants';
   }
 
   function mapApiDataToSession(data) {
-    // Normalize wizard_status field names to hub conventions
     var normalized = Object.assign({}, data);
     if (data.meeting_title && !data.title) normalized.title = data.meeting_title;
     if (data.meeting_status && !data.status) normalized.status = data.meeting_status;
@@ -392,11 +368,43 @@
     };
   }
 
+  function showHubError() {
+    if (window.Shared && Shared.showToast) {
+      Shared.showToast('Impossible de charger la s\u00e9ance.', 'error');
+    }
+    var content = document.getElementById('hubContent') || document.querySelector('.hub-main');
+    if (content) {
+      var banner = document.createElement('div');
+      banner.className = 'hub-error';
+      banner.innerHTML =
+        '<p style="margin:0 0 12px;">Impossible de charger les donn\u00e9es de la s\u00e9ance.</p>' +
+        '<button class="btn btn-primary" id="hubRetryBtn">R\u00e9essayer</button>';
+      content.prepend(banner);
+      var retryBtn = document.getElementById('hubRetryBtn');
+      if (retryBtn) {
+        retryBtn.addEventListener('click', function () {
+          banner.remove();
+          loadData();
+        });
+      }
+    }
+  }
+
   async function loadData() {
     var params = new URLSearchParams(window.location.search);
     var sessionId = params.get('id');
 
-    if (sessionId) {
+    if (!sessionId) {
+      sessionStorage.setItem('ag-vote-toast', JSON.stringify({
+        msg: 'Identifiant de s\u00e9ance manquant', type: 'error'
+      }));
+      window.location.href = '/dashboard.htmx.html';
+      return;
+    }
+
+    var attempt = 0;
+    async function tryLoad() {
+      attempt++;
       try {
         var res = await window.api('/api/v1/wizard_status?meeting_id=' + encodeURIComponent(sessionId));
         if (res && res.body && res.body.ok && res.body.data) {
@@ -405,29 +413,27 @@
           applySessionToDOM(sessionData);
           renderKpis(sessionData);
           renderChecklist(sessionData);
-
-          var files = Array.isArray(data.documents) ? data.documents : DEMO_FILES;
+          var files = Array.isArray(data.documents) ? data.documents : [];
           renderDocuments(files);
           return;
         }
+        if (res && res.body && res.body.error === 'meeting_not_found') {
+          sessionStorage.setItem('ag-vote-toast', JSON.stringify({
+            msg: 'S\u00e9ance introuvable', type: 'error'
+          }));
+          window.location.href = '/dashboard.htmx.html';
+          return;
+        }
+        throw new Error('invalid_response');
       } catch (e) {
-        console.warn('Hub loadData: API call failed, falling back to demo data.', e);
+        if (attempt === 1) {
+          setTimeout(tryLoad, 2000);
+        } else {
+          showHubError();
+        }
       }
-      console.warn('Hub loadData: API response invalid or session not found, falling back to demo data.');
-    } else {
-      console.warn('Hub loadData: No session ID in URL, using demo data.');
     }
-
-    // Fallback: demo data
-    applySessionToDOM({
-      title: DEMO_SESSION.title,
-      dateDisplay: 'Mercredi 18 f\u00e9vrier 2026 \u00e0 18 h 30',
-      place: 'Salle des f\u00eates, 12 rue des Mimosas',
-      memberCount: DEMO_SESSION.memberCount
-    });
-    renderKpis(DEMO_SESSION);
-    renderChecklist(DEMO_SESSION);
-    renderDocuments(DEMO_FILES);
+    await tryLoad();
   }
 
   /* ── Toast pickup from wizard redirect (WIZ-05 / HUB) ── */

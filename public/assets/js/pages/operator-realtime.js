@@ -204,6 +204,7 @@
   window.addEventListener('beforeunload', function() {
     if (pollTimer) clearTimeout(pollTimer);
     if (newVoteDebounceTimer) clearTimeout(newVoteDebounceTimer);
+    if (_sseDebounceTimer) clearTimeout(_sseDebounceTimer);
     if (sseStream) sseStream.close();
   });
 
@@ -211,8 +212,28 @@
   O.fn.connectSSE   = connectSSE;
   O.fn.schedulePoll = schedulePoll;
 
-  // Start SSE + polling
-  connectSSE();
+  // SSE lifecycle driven by MeetingContext — per user decision:
+  // debounced reconnect (300ms), close on meeting cleared
+  var _sseDebounceTimer = null;
+
+  window.addEventListener(MeetingContext.EVENT_NAME, function(e) {
+    var newId = e.detail ? e.detail.newId : null;
+    if (_sseDebounceTimer) clearTimeout(_sseDebounceTimer);
+
+    if (!newId) {
+      // Meeting cleared — disconnect SSE and stop polling
+      if (sseStream) { sseStream.close(); sseStream = null; sseConnected = false; }
+      if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+      return;
+    }
+
+    _sseDebounceTimer = setTimeout(function() {
+      _sseDebounceTimer = null;
+      connectSSE();
+    }, 300);
+  });
+
+  // Start polling (SSE connects via MeetingContext:change event)
   schedulePoll(POLL_SLOW);
 
 })();

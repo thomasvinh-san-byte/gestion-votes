@@ -31,36 +31,25 @@ A **self-hosted, open-source** alternative to commercial voting platforms for or
 AG-VOTE is a **brownfield project** with a mature feature set:
 - 38 PHP controllers, 30+ repositories, 18 services
 - 20 custom Web Components, 29 page JS modules
-- Full design system with dark/light theme support
-- PHPUnit test suite (20+ test files)
-- Recently completed UX/UI audit with P1/P2/P3 fixes applied
+- Full design system with 64 CSS tokens, dark/light theme switching
+- 119 HTML/CSS/JS frontend files, 59,330 LOC
+- PHPUnit test suite (20+ test files), E2E suite (21 specs, ~230+ tests)
+- All 16 pages aligned with wireframe v3.19.2 "Acte Officiel"
 
-## Current Milestone: v2.0 UI Redesign
+**Shipped v2.0 UI Redesign** (2026-03-16): Complete visual overhaul across all pages — design tokens, navigation, dashboard, sessions, wizard, hub, operator console, room display, voter view, post-session, archives, audit, statistics, users, settings, help/FAQ.
 
-**Goal:** Align all pages and components with the AG-Vote v3.19.2 "Acte Officiel" wireframe design system — upgrading design tokens, layout structure, navigation, components, and page content across the entire application.
+## Current Milestone: v3.0 Session Lifecycle
+
+**Goal:** Wire the full session lifecycle end-to-end with real backend data, SSE real-time updates, and zero placeholders — transforming the v2.0 UI shell into a working product.
 
 **Target features:**
-- Design system overhaul (tokens, colors, typography, shadows, borders, spacing)
-- Sidebar navigation redesign (58px rail / 252px expanded, 5 sections, hover/pin behavior)
-- Header with glassmorphism, global search (Cmd+K), notifications panel
-- Dashboard redesign (KPI cards, urgent actions, upcoming sessions, task list)
-- Sessions page (list/calendar view toggle, filters, sort, empty states)
-- Create Session wizard (4-step accordion with stepper)
-- Session Hub (status bar, checklist, KPI cards, documents)
-- Operator page redesign (live KPI strip, progress track, resolution tabs, right sidebar agenda)
-- Room Display (full-screen, dark background, vote visualization)
-- Post-Session workflow (4-step stepper: verification, validation, PV, send)
-- Archives page refinement
-- Audit page (table/timeline toggle, event detail modal)
-- Statistics page (KPI cards, donut chart, line graph)
-- Users management page
-- Settings page (tabs: rules, communication, security, accessibility)
-- Help & FAQ page (accordion, category filter, tour launchers)
-- Voter tablet/mobile view (touch-optimized, bottom nav)
-- Dark/light theme with complete token set
-- Guided tours system
-- Toast notification system
-- Modal and confirmation dialog system
+- Session creation wizard → real API POST → redirect to hub with persisted session
+- Hub loads real session data, checklist reflects actual state
+- Operator console receives live vote data via SSE, KPIs update in real-time
+- Room display and voter view connected to live session state
+- Vote results persisted, PV generation functional
+- Dashboard shows real session counts and statuses from DB
+- All demo/fallback data removed — errors shown when backend unavailable
 
 ## Requirements
 
@@ -71,40 +60,53 @@ AG-VOTE is a **brownfield project** with a mature feature set:
 - v1.3: Unused var cleanup (142→0), innerHTML security, CI lint gate
 - v1.4: 100% controller tests, Permissions-Policy header, dead code audit
 - v1.5: E2E coverage expansion (21 specs, ~230+ tests), version 1.5.0
+- v2.0: Design system alignment (64 tokens, dark/light), navigation & layout (sidebar rail/expand, header, mobile nav, footer, ARIA), dashboard & sessions (KPIs, list/calendar, filters), wizard & hub (4-step accordion, status tracking), operator console (live KPIs, resolution tabs, quorum modal), room display & voter view (full-screen dark, touch-optimized), post-session & records (stepper, archives, audit log), statistics & users (charts, export, role panel, pagination), settings & help (4 tabs, FAQ, guided tours), component library (modal, toast, confirm, popover, progress, tour, banner)
 
 ### Active
 
-- [ ] Design system alignment with wireframe v3.19.2
-- [ ] All 16 pages match wireframe specifications
-- [ ] Navigation and layout match wireframe structure
-- [ ] Component library matches wireframe components
-- [ ] Dark/light theme tokens match wireframe
+- [ ] Full-stack session lifecycle: create → members → votes → results → PV
+- [ ] Backend API completeness: all endpoints exist and return real data
+- [ ] Frontend-backend wiring: zero demo data, zero silent fallbacks
+- [ ] Real-time voting: SSE for live vote updates, operator KPIs auto-refresh
+- [ ] Data persistence: all state survives page reload
 
 ### Out of Scope
 
 - Framework migration (React, Vue, Laravel, Symfony) — vanilla stack is the identity
-- New functional features (new voting modes, new report types) — this is visual only
+- New voting modes or report types — functional parity first
 - Mobile native app — PWA approach maintained
 - Multi-database support — PostgreSQL only
+- Electronic signature upload/validation (deferred to later)
+- Non-session pages (statistics, audit, help, settings) — session core first
 
 ## Context
 
-The wireframe files (`ag_vote_wireframe.html`, `docs/wireframe/ag_vote_v3_19_2.html`) on the main branch define the target UI. The codebase already uses the same fonts and has a design system — this milestone aligns the existing implementation with the comprehensive wireframe specification.
+The wireframe files (`ag_vote_wireframe.html`, `docs/wireframe/ag_vote_v3_19_2.html`) on the main branch defined the target UI for v2.0. All 16 pages now match the wireframe v3.19.2 specification. The codebase uses Bricolage Grotesque (body), Fraunces (display), JetBrains Mono (data) typography.
+
+Known technical debt:
+- Phases 10.1 and 10.2 (gap closure) were planned but superseded by Phases 14-15
+- Some duplicate phase directories exist from re-planning (11-post-session-records vs 11-postsession-records)
+- Phase 5 plan 04 was a verification-only plan, not a feature plan
 
 ## Constraints
 
 - **Tech stack**: No-framework PHP + vanilla JS + Web Components — no change
-- **Design reference**: Wireframe v3.19.2 "Acte Officiel" is the source of truth
-- **Backward compatibility**: Existing functionality must be preserved
-- **Accessibility**: WCAG AA compliance maintained (already partially implemented)
+- **Design reference**: Wireframe v3.19.2 "Acte Officiel" was the source of truth for v2.0
+- **Backward compatibility**: Existing functionality preserved
+- **Accessibility**: WCAG AA compliance maintained (skip links, ARIA landmarks, focus indicators)
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| v2.0 major version | Visual overhaul warrants major bump | — Pending |
-| Wireframe as design spec | Comprehensive HTML wireframe defines all UI targets | — Pending |
-| Align, don't rewrite | Upgrade existing code to match wireframe, not start from scratch | — Pending |
+| v2.0 major version | Visual overhaul warrants major bump | ✓ Good — clear scope boundary |
+| Wireframe as design spec | Comprehensive HTML wireframe defines all UI targets | ✓ Good — unambiguous reference |
+| Align, don't rewrite | Upgrade existing code to match wireframe, not start from scratch | ✓ Good — preserved all backend functionality |
+| Phase numbering from v1.5 | Continue at Phase 4 (not restart at 1) | ✓ Good — clear history |
+| Gap closure phases 14-15 | Address integration bugs found by milestone audit | ✓ Good — caught real API wiring issues |
+| IIFE + var pattern | Keep existing JS conventions, no ES modules for page scripts | ✓ Good — consistent with vanilla stack identity |
+| One CSS per page | Each page gets dedicated CSS file (wizard.css, hub.css, etc.) | ✓ Good — clean separation |
+| Web Components for shared UI | ag-modal, ag-toast, ag-confirm, ag-popover, ag-searchable-select | ✓ Good — reusable across pages |
 
 ---
-*Last updated: 2026-03-12 after milestone v2.0 started*
+*Last updated: 2026-03-16 after v3.0 milestone started*

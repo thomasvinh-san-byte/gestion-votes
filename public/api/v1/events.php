@@ -53,6 +53,14 @@ if (!EventBroadcaster::isPushEnabled()) {
     exit;
 }
 
+// Derive a stable consumer ID for this SSE connection.
+// session_id() is preferred (already started above during auth); fall back to
+// a deterministic hash when session is unavailable (e.g. APP_AUTH_ENABLED=0).
+$consumerId = session_id();
+if ($consumerId === '' || $consumerId === false) {
+    $consumerId = md5(($_SERVER['REMOTE_ADDR'] ?? '') . ':' . getmypid());
+}
+
 $meetingId = $_GET['meeting_id'] ?? '';
 if ($meetingId === '' || !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $meetingId)) {
     http_response_code(400);
@@ -87,6 +95,19 @@ $fallbackKey = 'ws:event_queue'; // Original queue key for fallback
 // Send initial connection event
 sendEvent('connected', ['meeting_id' => $meetingId, 'server_time' => date('c')]);
 
+// Register this consumer in the meeting's consumer SET so the publisher
+// can fan out events to its personal queue.
+if (RedisProvider::isAvailable()) {
+    try {
+        $redis = RedisProvider::connection();
+        $redis->sAdd("sse:consumers:{$meetingId}", $consumerId);
+        // Consumer set TTL: 2× event loop duration as a safety net for ungraceful exits
+        $redis->expire("sse:consumers:{$meetingId}", 120);
+    } catch (Throwable $e) {
+        // Graceful degradation — file fallback still works without registration
+    }
+}
+
 $startTime = time();
 $maxDuration = 30; // seconds
 $lastEventId = 0;
@@ -100,7 +121,7 @@ while ((time() - $startTime) < $maxDuration) {
         break;
     }
 
-    $events = pollEvents($meetingId);
+    $events = pollEvents($meetingId, $consumerId);
 
     foreach ($events as $event) {
         $lastEventId++;
@@ -123,6 +144,17 @@ while ((time() - $startTime) < $maxDuration) {
     sleep(1);
 }
 
+// Deregister consumer on graceful exit (TTL is the safety net for ungraceful exits)
+if (RedisProvider::isAvailable()) {
+    try {
+        $redis = RedisProvider::connection();
+        $redis->sRem("sse:consumers:{$meetingId}", $consumerId);
+        $redis->del("sse:queue:{$meetingId}:{$consumerId}");
+    } catch (Throwable $e) {
+        // Ignore — TTL will clean up stale entries
+    }
+}
+
 // Close gracefully
 sendEvent('reconnect', ['reason' => 'timeout', 'retry' => 1000]);
 
@@ -142,23 +174,28 @@ function sendEvent(string $type, array $data, string $id = ''): void {
 }
 
 /**
- * Poll for events targeting this meeting.
+ * Poll for events from this consumer's personal queue.
  *
- * Uses Redis per-meeting SSE list when available,
- * falls back to file-based queue (EventBroadcaster) otherwise.
+ * Uses per-consumer Redis list (safe LRANGE+DEL — single reader per queue).
+ * Falls back to file-based queue (EventBroadcaster) otherwise.
  */
-function pollEvents(string $meetingId): array {
+function pollEvents(string $meetingId, string $consumerId): array {
     // Try Redis first
     if (RedisProvider::isAvailable()) {
         try {
             $redis = RedisProvider::connection();
-            $sseKey = "sse:events:{$meetingId}";
+            $queueKey = "sse:queue:{$meetingId}:{$consumerId}";
+            $consumerSetKey = "sse:consumers:{$meetingId}";
 
             $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
 
+            // LRANGE+DEL is safe: only this consumer reads from its own queue
             $pipe = $redis->multi(Redis::PIPELINE);
-            $pipe->lRange($sseKey, 0, -1);
-            $pipe->del($sseKey);
+            $pipe->lRange($queueKey, 0, -1);
+            $pipe->del($queueKey);
+            // Refresh TTLs to keep the consumer alive across reconnects
+            $pipe->expire($queueKey, 60);
+            $pipe->expire($consumerSetKey, 120);
             $results = $pipe->exec();
 
             $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
@@ -181,6 +218,6 @@ function pollEvents(string $meetingId): array {
         }
     }
 
-    // File-based fallback (works without Redis — ideal for demo / Render)
+    // File-based fallback (works without Redis — single-consumer only)
     return EventBroadcaster::dequeueSseFile($meetingId);
 }

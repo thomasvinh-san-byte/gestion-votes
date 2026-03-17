@@ -541,4 +541,32 @@
     <line x1="8" x2="14" y1="11" y2="11"/>
   </symbol>
 
+  <!-- Tech Debt Cleanup -->
+
+  <!-- help-circle (tooltip/help indicators) -->
+  <symbol id="icon-help-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+    <line x1="12" x2="12.01" y1="17" y2="17"/>
+  </symbol>
+
+  <!-- pause (session/vote pause state) -->
+  <symbol id="icon-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="4" width="4" height="16" rx="1"/>
+    <rect x="14" y="4" width="4" height="16" rx="1"/>
+  </symbol>
+
+  <!-- smartphone (mobile device indicator) -->
+  <symbol id="icon-smartphone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="14" height="20" x="5" y="2" rx="2"/>
+    <line x1="12" x2="12.01" y1="18" y2="18"/>
+  </symbol>
+
+  <!-- plus-circle (add action button) -->
+  <symbol id="icon-plus-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M8 12h8"/>
+    <path d="M12 8v8"/>
+  </symbol>
+
 </svg>

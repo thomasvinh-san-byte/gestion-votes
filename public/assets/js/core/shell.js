@@ -601,7 +601,7 @@
     notifPanel.style.display = 'none';
     notifPanel.innerHTML = '<div style="padding:12px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--color-border-subtle,#e8e7e2);">Notifications</div>' +
       '<div class="notif-list"></div>' +
-      '<a href="/admin.htmx.html?tab=notifications" class="notif-footer" style="display:block;padding:10px 16px;text-align:center;font-size:12px;font-weight:600;color:var(--color-primary);border-top:1px solid var(--color-border-subtle,#e8e7e2);text-decoration:none;">Voir tout</a>';
+      '<a href="/admin.htmx.html" class="notif-footer" style="display:block;padding:10px 16px;text-align:center;font-size:12px;font-weight:600;color:var(--color-primary);border-top:1px solid var(--color-border-subtle,#e8e7e2);text-decoration:none;">Voir tout</a>';
     bell.style.position = 'relative';
     bell.appendChild(notifPanel);
 
