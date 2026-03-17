@@ -415,6 +415,25 @@ table {
   --shadow-focus: 0 0 0 2px var(--color-surface), 0 0 0 4px rgba(61, 126, 248, 0.55);
 }
 
+/* ── Global Scrollbar ── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-light);
+}
+
 /* =============================================================================
    3. TYPOGRAPHY
    ============================================================================= */
@@ -3150,8 +3169,17 @@ textarea:focus-visible,
   .tour-trigger-btn,
   .meeting-bar,
   .tabs-nav,
-  .bottom-nav {
+  .bottom-nav,
+  .search-overlay,
+  .search-trigger,
+  .scroll-top,
+  .theme-toggle,
+  .mobile-bottom-nav {
     display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
   }
 
   .card,
@@ -3218,6 +3246,11 @@ textarea:focus-visible,
     break-inside: avoid;
     page-break-inside: avoid;
   }
+}
+
+/* ── Print Utility ── */
+.print-only {
+  display: none;
 }
 
 /* =============================================================================
