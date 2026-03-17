@@ -154,10 +154,13 @@ Plans:
 **Goal:** Align all component CSS (buttons, cards, forms, tables, tags, modals, toasts, tooltips) with wireframe v3.19.2 specifications. Add missing components (scroll-to-top, confirm dialog, tooltip system, theme toggle switch). Fix button gradients, card hover lifts, form field borders, table striping, and all 25 gap categories from the wireframe comparison.
 **Requirements**: N/A (inserted phase — CSS alignment with wireframe, no formal requirement IDs)
 **Depends on:** Phase 20.1
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 20.2 to break down)
+- [ ] 20.2-01-PLAN.md — Buttons: gradient, shadow, hover lift, active press + Cards: transition, hover, title uppercase
+- [ ] 20.2-02-PLAN.md — Forms: 1px border, surface-raised, uppercase labels + Tables: striped, sticky headers + Tags: 5px radius
+- [ ] 20.2-03-PLAN.md — Modals: backdrop blur, bouncy animation + Toasts: bottom-right, exit animation + Interactive rows
+- [ ] 20.2-04-PLAN.md — New components (scroll-top, tooltip, confirm dialog, theme toggle, kbd hints) + scrollbar + print
 
 ### Phase 21: Post-Session & PV
 **Goal**: The post-session stepper completes all four steps and produces a valid PV PDF with the meeting archived
@@ -201,6 +204,6 @@ Plans:
 | 19. Operator Console Wiring | v3.0 | 1/1 | Complete | 2026-03-16 |
 | 20. Live Vote Flow | v3.0 | 2/2 | Complete | 2026-03-17 |
 | 20.1. Refonte UI | v3.0 | 4/4 | Complete | 2026-03-17 |
-| 20.2. Deep UI Wireframe Alignment | v3.0 | 0/TBD | Not started | - |
+| 20.2. Deep UI Wireframe Alignment | v3.0 | 0/4 | Not started | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |
