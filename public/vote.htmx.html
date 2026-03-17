@@ -5,6 +5,11 @@
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
+  <style id="critical-tokens">
+    :root { --color-bg: #EDECE6; --color-surface: #FAFAF7; --color-text: #151510; }
+    [data-theme="dark"] { --color-bg: #0B0D10; --color-surface: #141820; --color-text: #ECF0FA; }
+    html, body { background: var(--color-bg); }
+  </style>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -35,8 +40,7 @@
     <!-- Page header -->
     <header class="page-header" role="banner">
       <div>
-        <h1 class="page-header-title">Vote</h1>
-        <div class="page-header-subtitle" id="voteSubtitle">Interface de vote s&eacute;curis&eacute;e</div>
+        <span class="vote-resolution-counter" id="voteResolutionCounter">--</span>
       </div>
       <div class="page-header-actions" id="headerActions">
         <span class="vote-timer" id="voteTimer" hidden>
@@ -46,7 +50,6 @@
         <button class="vote-zoom-toggle" id="btnZoom" title="Zoom texte" aria-label="Agrandir le texte" aria-pressed="false">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-zoom-in"></use></svg>
         </button>
-        <button class="btn btn-secondary btn-sm" id="btnRefresh" aria-label="Actualiser les donn&eacute;es">Actualiser</button>
       </div>
     </header>
 
@@ -189,6 +192,9 @@
               <span class="vote-btn-hint">Confirmation requise</span>
             </button>
           </div>
+          <button class="vote-confirm-inline" id="btnConfirmInline" hidden
+            aria-live="polite" aria-label="Confirmer le vote selectionne">
+          </button>
           <div class="vote-hint" id="voteHint" role="status" aria-live="polite">
             <span class="text-muted text-sm">Sélectionnez une séance et un votant ci-dessus pour pouvoir voter.</span>
           </div>
