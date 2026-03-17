@@ -154,7 +154,7 @@ Plans:
 **Goal:** Align all component CSS (buttons, cards, forms, tables, tags, modals, toasts, tooltips) with wireframe v3.19.2 specifications. Add missing components (scroll-to-top, confirm dialog, tooltip system, theme toggle switch). Fix button gradients, card hover lifts, form field borders, table striping, and all 25 gap categories from the wireframe comparison.
 **Requirements**: N/A (inserted phase — CSS alignment with wireframe, no formal requirement IDs)
 **Depends on:** Phase 20.1
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 - [ ] 20.2-01-PLAN.md — Buttons: gradient, shadow, hover lift, active press + Cards: transition, hover, title uppercase
@@ -204,6 +204,6 @@ Plans:
 | 19. Operator Console Wiring | v3.0 | 1/1 | Complete | 2026-03-16 |
 | 20. Live Vote Flow | v3.0 | 2/2 | Complete | 2026-03-17 |
 | 20.1. Refonte UI | v3.0 | 4/4 | Complete | 2026-03-17 |
-| 20.2. Deep UI Wireframe Alignment | 1/4 | In Progress|  | - |
+| 20.2. Deep UI Wireframe Alignment | 2/4 | In Progress|  | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |
