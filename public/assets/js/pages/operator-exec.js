@@ -576,6 +576,11 @@
       if (pAgainst) pAgainst.textContent = pctAgainst + '%';
       if (pAbstain) pAbstain.textContent = pctAbstain + '%';
 
+      // Hide breakdown during open vote (locked decision: only show total count)
+      var hideBreakdown = O.currentOpenMotion && !O.currentOpenMotion.closed_at;
+      [forEl, againstEl, abstainEl].forEach(function(el) { if (el && el.parentElement) el.parentElement.hidden = !!hideBreakdown; });
+      [barFor, barAgainst, barAbstain].forEach(function(el) { if (el && el.parentElement) el.parentElement.hidden = !!hideBreakdown; });
+
       // Resolution title in the card header
       var resTitle = document.getElementById('opResTitle');
       if (resTitle) resTitle.textContent = O.currentOpenMotion.title;
