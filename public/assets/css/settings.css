@@ -363,6 +363,24 @@
     padding: 0.375rem 0.625rem;
     font-size: var(--text-xs);
   }
+  .settings-layout {
+    flex-direction: column;
+    gap: 0;
+  }
+  .settings-sidenav {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  .settings-sidenav-item {
+    flex: 1;
+    min-width: 80px;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 0;
+  }
   .settings-cnil-levels {
     grid-template-columns: 1fr;
   }
