@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: completed
-stopped_at: Completed 20.3-03-PLAN.md
-last_updated: "2026-03-17T12:08:00.000Z"
+stopped_at: Completed 20.3-01-PLAN.md
+last_updated: "2026-03-17T11:49:41.116Z"
 last_activity: 2026-03-17 — Plan 20.3-03 complete (dashboard zero-scroll, hub density, table compaction)
 progress:
   total_phases: 10
   completed_phases: 7
   total_plans: 20
-  completed_plans: 18
+  completed_plans: 19
   percent: 100
 ---
 
@@ -61,6 +61,7 @@ Progress: [██████████] 100% (v3.0 phases 16-20 complete)
 | Phase 20.2-deep-ui-wireframe-alignment P03 | 10min | 2 tasks | 1 files |
 | Phase 20.2-deep-ui-wireframe-alignment P04 | 5min | 2 tasks | 1 files |
 | Phase 20.3-page-layout-wireframe-alignment P02 | 3min | 2 tasks | 3 files |
+| Phase 20.3-page-layout-wireframe-alignment P01 | 3 | 2 tasks | 3 files |
 
 ### Decisions
 
@@ -105,6 +106,8 @@ Recent decisions affecting current work:
 - [Phase 20.3-page-layout]: Option B scoped selectors for table density — .audit-table and .table cover all data tables without HTML changes; members/users use card-based layouts not tables
 - [Phase 20.3-page-layout-wireframe-alignment]: Settings sidebar HTML/JS already implemented before plan ran; task became CSS verification + responsive breakpoint addition
 - [Phase 20.3-page-layout-wireframe-alignment]: Wizard .wiz-step uses margin-top:auto on .step-nav (flex column) over sticky/fixed to avoid visual gap on short steps
+- [Phase 20.3-page-layout-wireframe-alignment]: Additive class approach: added operator-split/left/right as extra classes on existing .op-split/.op-panel/.op-sidebar — preserves all JS IDs, zero refactor risk
+- [Phase 20.3-page-layout-wireframe-alignment]: Flex column chain for zero-scroll: app-main (flex col, overflow:hidden) > view-exec (flex:1, flex col) > operator-split (flex:1, min-height:0) > panels
 
 ### Roadmap Evolution
 
@@ -121,6 +124,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T11:48:23.504Z
-Stopped at: Completed 20.3-02-PLAN.md
+Last session: 2026-03-17T11:49:41.113Z
+Stopped at: Completed 20.3-01-PLAN.md
 Resume file: None

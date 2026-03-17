@@ -168,7 +168,7 @@ Plans:
 **Goal:** Reprendre le layout de chaque page pour correspondre à la composition du wireframe v3.19.2 — densité, placement des sections, espacement entre cartes/blocs — afin que les pages principales tiennent sur un écran sans scroll inutile. Les éléments ajoutés après le wireframe sont conservés mais intégrés dans la grille wireframe.
 **Requirements**: N/A (inserted phase — layout density alignment with wireframe, no formal requirement IDs)
 **Depends on:** Phase 20.2
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 - [ ] 20.3-01-PLAN.md — Operator split panel layout (tabs to 2-column with 200px sidebar)
@@ -219,6 +219,6 @@ Plans:
 | 20. Live Vote Flow | v3.0 | 2/2 | Complete | 2026-03-17 |
 | 20.1. Refonte UI | v3.0 | 4/4 | Complete | 2026-03-17 |
 | 20.2. Deep UI Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-17 |
-| 20.3. Page Layout Wireframe Alignment | 2/4 | In Progress|  | - |
+| 20.3. Page Layout Wireframe Alignment | 3/4 | In Progress|  | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |
