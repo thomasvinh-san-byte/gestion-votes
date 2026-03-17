@@ -1,5 +1,5 @@
         <!-- KPI strip (compact, monospace values, uppercase labels) -->
-        <div class="op-kpi-strip" id="opKpiStrip">
+        <div class="op-kpi-strip operator-kpi-strip" id="opKpiStrip">
           <div class="op-kpi-item">
             <span class="op-kpi-label">PRESENTS</span>
             <span class="op-kpi-value" id="opKpiPresent">0<span class="op-kpi-total">/0</span></span>
@@ -38,12 +38,12 @@
         </div>
 
         <!-- Resolution progress bar (segmented) -->
-        <div class="op-resolution-progress" id="opResolutionProgress" hidden aria-label="Progression des r&eacute;solutions">
+        <div class="op-resolution-progress operator-progress-track" id="opResolutionProgress" hidden aria-label="Progression des r&eacute;solutions">
           <!-- Segments filled dynamically by JS -->
         </div>
 
         <!-- Guidance bar contextuelle -->
-        <div class="op-guidance" id="opGuidance" hidden>
+        <div class="op-guidance operator-guidance" id="opGuidance" hidden>
           <div class="op-guidance-icon">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
           </div>
@@ -70,8 +70,8 @@
         </div>
 
         <!-- 2-panel split: resolution card + agenda sidebar -->
-        <div class="op-split">
-          <div class="op-panel">
+        <div class="op-split operator-split">
+          <div class="op-panel operator-left">
             <!-- Resolution card with live dot, title, tags, sub-tabs -->
             <div class="op-resolution-card" id="opResolutionCard">
               <div class="op-resolution-header">
@@ -224,7 +224,7 @@
           </div><!-- /op-panel -->
 
           <!-- Right sidebar: agenda list with status circles -->
-          <aside class="op-sidebar" id="opSidebar">
+          <aside class="op-sidebar operator-right" id="opSidebar">
             <div class="op-sidebar-header">
               <h3>Ordre du jour</h3>
             </div>
