@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: completed
-stopped_at: Completed 20.1-02-PLAN.md
-last_updated: "2026-03-17T08:03:56.416Z"
+stopped_at: Completed 20.1-01-PLAN.md
+last_updated: "2026-03-17T08:05:43.784Z"
 last_activity: 2026-03-17 — Plan 20-02 complete (test suite green, human-verify deferred)
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 11
   percent: 100
 ---
 
@@ -54,6 +54,7 @@ Progress: [██████████] 100% (v3.0 phases 16-20 complete)
 | Phase 20-live-vote-flow P01 | 30 | 2 tasks | 9 files |
 | Phase 20-live-vote-flow P02 | 5min | 1 tasks (1 deferred) | 0 files |
 | Phase 20.1 P02 | 15min | 1 tasks | 2 files |
+| Phase 20.1-refonte-ui-alignement-wireframe-et-reduction-charge-mentale P01 | 3min | 2 tasks | 3 files |
 
 ### Decisions
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 20.1-refonte-ui]: FOUC fix: inline critical-tokens style block before theme-init.js — ensures tokens resolve before scripts execute
 - [Phase 20.1-refonte-ui]: meeting_title promoted to h1.projection-title with Fraunces clamp(32px,3.6vw,56px) — ID preserved for JS compatibility
 - [Phase 20.1-refonte-ui]: Quorum bar moved from main to header with projection-quorum modifier (max-width 600px, 0.4vh vertical padding)
+- [Phase 20.1-refonte-ui-alignement-wireframe-et-reduction-charge-mentale]: Confirmation overlay HTML kept as unreachable fallback — inline btnConfirmInline is primary UX path; doConfirm() shared by both
+- [Phase 20.1-refonte-ui-alignement-wireframe-et-reduction-charge-mentale]: Resolution counter synced via MutationObserver on #motionProgressText (vote.js-owned) to #voteResolutionCounter — zero coupling, no vote.js modification
 
 ### Roadmap Evolution
 
@@ -99,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T08:03:52.167Z
-Stopped at: Completed 20.1-02-PLAN.md
+Last session: 2026-03-17T08:05:43.781Z
+Stopped at: Completed 20.1-01-PLAN.md
 Resume file: None
