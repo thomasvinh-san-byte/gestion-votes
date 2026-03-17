@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: completed
-stopped_at: Completed 20.2-02-PLAN.md
-last_updated: "2026-03-17T10:32:31.423Z"
+stopped_at: Completed 20.2-03-PLAN.md
+last_updated: "2026-03-17T10:38:04.101Z"
 last_activity: 2026-03-17 — Plan 20-02 complete (test suite green, human-verify deferred)
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 100
 ---
 
@@ -58,6 +58,7 @@ Progress: [██████████] 100% (v3.0 phases 16-20 complete)
 | Phase 20.1-refonte-ui P04 | 5min | 1 tasks | 10 files |
 | Phase 20.2-deep-ui-wireframe-alignment P01 | 5min | 2 tasks | 1 files |
 | Phase 20.2-deep-ui-wireframe-alignment P02 | 10min | 3 tasks | 1 files |
+| Phase 20.2-deep-ui-wireframe-alignment P03 | 10min | 2 tasks | 1 files |
 
 ### Decisions
 
@@ -94,6 +95,9 @@ Recent decisions affecting current work:
 - [Phase 20.2-deep-ui-wireframe-alignment]: .card:hover shadow-only elevation; .card-clickable:hover adds translateY(-2px) lift — interactive cards feel responsive, non-interactive cards stay subtle
 - [Phase 20.2-deep-ui-wireframe-alignment]: tr:hover td selector (not tr:hover) used for table hover so it overrides per-td striped nth-child background
 - [Phase 20.2-deep-ui-wireframe-alignment]: color-mix() with 30% saturation chosen for semantic tag borders to avoid new CSS custom properties
+- [Phase 20.2-deep-ui-wireframe-alignment]: Toast container uses column-reverse so newest toasts appear at bottom, natural bottom-right notification pattern
+- [Phase 20.2-deep-ui-wireframe-alignment]: ag-toast.js web component has its own inline positioning (top:20px); CSS .toast-container class is design-system contract only; web component is separate concern
+- [Phase 20.2-deep-ui-wireframe-alignment]: @keyframes pageIn found in design-system.css (not pages.css) — updated in-place to translateY(4px)/0.18s
 
 ### Roadmap Evolution
 
@@ -110,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T10:32:26.058Z
-Stopped at: Completed 20.2-02-PLAN.md
+Last session: 2026-03-17T10:38:04.099Z
+Stopped at: Completed 20.2-03-PLAN.md
 Resume file: None
