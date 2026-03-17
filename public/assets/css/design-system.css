@@ -3287,15 +3287,16 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 /* ── Tags (light DOM) ── */
 .tag {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 10px; border-radius: var(--radius-full);
+  padding: 3px 10px; border-radius: 5px;
   font-size: 12px; font-weight: 700; white-space: nowrap;
   background: var(--tag-bg, #e8e7e2); color: var(--tag-text, #6b6b6b);
+  border: 1px solid transparent;
 }
-.tag-accent { background: var(--color-primary-subtle); color: var(--color-primary); }
-.tag-danger { background: var(--color-danger-subtle); color: var(--color-danger); }
-.tag-success { background: var(--color-success-subtle); color: var(--color-success); }
-.tag-warn { background: var(--color-warning-subtle); color: var(--color-warning); }
-.tag-purple { background: var(--color-purple-subtle, #f0e8f8); color: var(--color-purple, #7c3aed); }
+.tag-accent { background: var(--color-primary-subtle); color: var(--color-primary); border-color: color-mix(in srgb, var(--color-primary) 30%, transparent); }
+.tag-danger { background: var(--color-danger-subtle); color: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger) 30%, transparent); }
+.tag-success { background: var(--color-success-subtle); color: var(--color-success); border-color: color-mix(in srgb, var(--color-success) 30%, transparent); }
+.tag-warn { background: var(--color-warning-subtle); color: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning) 30%, transparent); }
+.tag-purple { background: var(--color-purple-subtle, #f0e8f8); color: var(--color-purple, #7c3aed); border-color: color-mix(in srgb, var(--color-purple, #7c3aed) 30%, transparent); }
 
 /* ── Chips ── */
 .chip {
