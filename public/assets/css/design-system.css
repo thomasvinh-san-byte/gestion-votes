@@ -4344,6 +4344,187 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   gap: var(--space-3);
 }
 
+/* =============================================================================
+   WIREFRAME v3.19.2 — NEW COMPONENTS
+   ============================================================================= */
+
+/* ── Scroll-to-Top Button ── */
+.scroll-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity .2s ease, visibility .2s ease, transform .2s ease, background .15s ease, color .15s ease;
+  z-index: var(--z-sticky);
+}
+
+.scroll-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.scroll-top:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+/* ── Pure CSS Tooltip System ── */
+.tip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.tip-body {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 5px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s ease;
+  z-index: var(--z-tooltip, 9000);
+}
+
+.tip-body::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--color-text);
+}
+
+.tip-wrap:hover .tip-body {
+  opacity: 1;
+}
+
+/* ── Confirm Dialog ── */
+.confirm-dialog {
+  text-align: center;
+  padding: var(--space-6) var(--space-5);
+}
+
+.confirm-dialog-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-4);
+  font-size: 24px;
+}
+
+.confirm-dialog-icon--danger {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+
+.confirm-dialog-icon--warn {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+}
+
+.confirm-dialog-icon--success {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.confirm-dialog-title {
+  font-family: var(--font-display, 'Fraunces', serif);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+
+.confirm-dialog-msg {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-5);
+  line-height: 1.5;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+/* ── Theme Toggle Switch ── */
+.theme-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--color-border);
+  border: none;
+  cursor: pointer;
+  transition: background .2s ease;
+  padding: 0;
+}
+
+.theme-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  transition: transform .2s ease;
+}
+
+.theme-toggle[aria-pressed="true"],
+.theme-toggle.active {
+  background: var(--color-primary);
+}
+
+.theme-toggle[aria-pressed="true"]::after,
+.theme-toggle.active::after {
+  transform: translateX(20px);
+}
+
+/* ── Operator Keyboard Hints ── */
+.op-kbd {
+  display: inline-block;
+  font-family: var(--font-mono, 'SF Mono', 'Consolas', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  line-height: 1;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
 /* Phase 10 components — print */
 @media print {
   .tour-overlay,
