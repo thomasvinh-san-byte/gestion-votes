@@ -1736,11 +1736,11 @@ body:has(.drawer-backdrop.open) {
 /* ─── Toast / Notifications ─── */
 .toast-container {
   position: fixed;
-  top: var(--space-4);
+  bottom: var(--space-4);
   right: var(--space-4);
   z-index: var(--z-toast);
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: var(--space-2);
   pointer-events: none;
 }
@@ -1772,6 +1772,55 @@ body:has(.drawer-backdrop.open) {
 
 .toast-info {
   border-left: 4px solid var(--color-info);
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.toast-msg {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: color .15s ease, background .15s ease;
+}
+
+.toast-close:hover {
+  color: var(--color-text);
+  background: var(--color-bg-subtle);
+}
+
+@keyframes toastOut {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.toast-exit {
+  animation: toastOut .25s ease forwards;
 }
 
 /* =============================================================================
@@ -3282,8 +3331,21 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   transform: translateY(-1px);
 }
 .irow:active { transform: translateY(0); }
+.irow:hover .irow-title {
+  color: var(--color-primary);
+}
+.irow:hover .irow-arrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
 .irow-title { font-weight: 600; font-size: 14px; color: var(--color-text-dark); }
-.irow-arrow { margin-left: auto; color: var(--color-text-muted); flex-shrink: 0; }
+.irow-arrow {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  opacity: .3;
+  transition: opacity .15s ease, transform .15s ease;
+}
 
 /* ── Tags (light DOM) ── */
 .tag {
@@ -3615,8 +3677,8 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 .word-break { word-break: break-word; overflow-wrap: break-word; }
 
 /* ── Page Animation ── */
-.page-anim { animation: pageIn .25s ease; }
-@keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.page-anim { animation: pageIn .18s ease; }
+@keyframes pageIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
 /* NOTE: .skip-link and :focus-visible are defined in the Accessibility section (~line 2201/2229). */
