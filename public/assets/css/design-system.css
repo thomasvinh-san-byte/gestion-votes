@@ -1514,20 +1514,32 @@ h4, .h4 {
   color: var(--color-text-secondary);
   background: var(--color-bg-subtle);
   border-bottom: 1px solid var(--color-border);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .table td {
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border-subtle);
   vertical-align: middle;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.table tbody tr:hover {
-  background: var(--color-bg-subtle);
+.table tbody tr:nth-child(even) td {
+  background: rgba(21,21,16,.022);
+}
+
+.table tbody tr:hover td {
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
 }
 
 /* ─── Navigation (generic .nav container) ─── */
