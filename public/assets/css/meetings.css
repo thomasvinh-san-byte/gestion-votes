@@ -44,7 +44,7 @@
 
 .filter-pill.active {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-text-inverse);
   border-color: var(--color-primary);
 }
 
@@ -117,7 +117,7 @@
 
 .view-toggle-btn.active {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 /* =============================================================================
