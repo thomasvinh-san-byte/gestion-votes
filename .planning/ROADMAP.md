@@ -91,7 +91,7 @@ Plans:
   3. Every locked button displays a tooltip explaining why it is disabled (e.g., "Disponible apres ajout des resolutions")
   4. Each session card on the dashboard shows exactly one next-action CTA reflecting its current lifecycle state (draft / live / closed)
   5. Technical terms (majorite absolue, quorum, scrutin secret) have (?) click popovers with clear definitions
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 Plans:
 - [ ] 26-01-PLAN.md — ag-empty-state Web Component + empty state migration (meetings, archives, settings, members, users)
 - [ ] 26-02-PLAN.md — Dashboard status-aware session cards with lifecycle CTAs
@@ -141,7 +141,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 25. PDF Infrastructure Foundation | 3/3 | Complete    | 2026-03-18 |
-| 26. Guided UX Components | 0/3 | Planned | - |
+| 26. Guided UX Components | 2/3 | In Progress|  |
 | 27. Copropriete Transformation | 0/? | Not started | - |
 | 28. Wizard & Session Hub UX Overhaul | 0/? | Not started | - |
 | 29. Operator Console, Voter View & Visual Polish | 0/? | Not started | - |
