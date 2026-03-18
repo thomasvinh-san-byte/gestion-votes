@@ -27,6 +27,76 @@
   var _deltaFadeTimer = null;
 
   // =========================================================================
+  // KPI ANIMATION HELPERS (VIS-05)
+  // Uses Anime.js (loaded via CDN with defer) for count-up animation.
+  // Graceful fallback: if anime not yet loaded, sets value directly.
+  // =========================================================================
+
+  /**
+   * Animate an integer KPI value using count-up (for elements with child spans).
+   * Updates el.firstChild (text node) so child spans are preserved.
+   * @param {string} elementId  - DOM id of the KPI element
+   * @param {number} newValue   - Target integer value
+   */
+  function animateKpiValue(elementId, newValue) {
+    var el = document.getElementById(elementId);
+    if (!el || typeof anime === 'undefined') {
+      if (el && el.firstChild && el.firstChild.nodeType === Node.TEXT_NODE) {
+        el.firstChild.nodeValue = newValue;
+      }
+      return;
+    }
+    var currentValue = parseInt(el.firstChild && el.firstChild.nodeType === Node.TEXT_NODE
+      ? el.firstChild.nodeValue : el.textContent) || 0;
+    var targetValue = parseInt(newValue) || 0;
+    if (currentValue === targetValue) return;
+
+    var obj = { val: currentValue };
+    anime({
+      targets: obj,
+      val: targetValue,
+      duration: 600,
+      easing: 'easeOutQuad',
+      round: 1,
+      update: function() {
+        if (el.firstChild && el.firstChild.nodeType === Node.TEXT_NODE) {
+          el.firstChild.nodeValue = obj.val;
+        } else {
+          el.textContent = obj.val;
+        }
+      }
+    });
+  }
+
+  /**
+   * Animate a percentage KPI value using count-up (for pure textContent elements).
+   * @param {string} elementId  - DOM id of the KPI element
+   * @param {number} newPct     - Target percentage integer (no % sign)
+   */
+  function animateKpiPct(elementId, newPct) {
+    var el = document.getElementById(elementId);
+    if (!el || typeof anime === 'undefined') {
+      if (el) el.textContent = newPct + '%';
+      return;
+    }
+    var currentValue = parseInt(el.textContent) || 0;
+    var targetValue = parseInt(newPct) || 0;
+    if (currentValue === targetValue) return;
+
+    var obj = { val: currentValue };
+    anime({
+      targets: obj,
+      val: targetValue,
+      duration: 600,
+      easing: 'easeOutQuad',
+      round: 1,
+      update: function() {
+        el.textContent = obj.val + '%';
+      }
+    });
+  }
+
+  // =========================================================================
   // QUORUM WARNING MODAL (OPR-09)
   // =========================================================================
 
@@ -358,28 +428,44 @@
 
     // ---------- New KPI strip (Plan 01 IDs) ----------
 
-    // PRESENTS: x/y
+    // PRESENTS: x/y — animate leading number, update total span statically
     var kpiPresent = document.getElementById('opKpiPresent');
-    if (kpiPresent) kpiPresent.innerHTML = stats.present + '<span class="op-kpi-total">/' + stats.totalMembers + '</span>';
+    if (kpiPresent) {
+      var totalSpanP = kpiPresent.querySelector('.op-kpi-total');
+      if (!totalSpanP) {
+        // First render: set full HTML including child span
+        kpiPresent.innerHTML = stats.present + '<span class="op-kpi-total">/' + stats.totalMembers + '</span>';
+      } else {
+        // Subsequent renders: animate leading number, update total span
+        totalSpanP.textContent = '/' + stats.totalMembers;
+        animateKpiValue('opKpiPresent', stats.present);
+      }
+    }
 
-    // QUORUM: percentage + check icon
+    // QUORUM: percentage + check icon — animate percentage
     var kpiQuorum = document.getElementById('opKpiQuorum');
     var kpiQuorumCheck = document.getElementById('opKpiQuorumCheck');
     if (kpiQuorum) {
       var qPct = stats.totalMembers > 0 ? Math.round((stats.currentVoters / stats.totalMembers) * 100) : 0;
-      kpiQuorum.textContent = qPct + '%';
+      animateKpiPct('opKpiQuorum', qPct);
     }
     if (kpiQuorumCheck) {
       kpiQuorumCheck.hidden = stats.currentVoters < stats.required;
     }
 
-    // ONT VOTE: voted/eligible for current motion
+    // ONT VOTE: voted/eligible for current motion — animate leading number
     var kpiVoted = document.getElementById('opKpiVoted');
     if (kpiVoted) {
       if (O.currentOpenMotion) {
         var totalBallots = Object.keys(O.ballotsCache).length;
         var eligible = stats.present + stats.proxyActive;
-        kpiVoted.innerHTML = totalBallots + '<span class="op-kpi-total">/' + eligible + '</span>';
+        var totalSpanV = kpiVoted.querySelector('.op-kpi-total');
+        if (!totalSpanV) {
+          kpiVoted.innerHTML = totalBallots + '<span class="op-kpi-total">/' + eligible + '</span>';
+        } else {
+          totalSpanV.textContent = '/' + eligible;
+          animateKpiValue('opKpiVoted', totalBallots);
+        }
 
         // Delta badge: show +N when vote count increases
         var delta = totalBallots - _prevVoteTotal;
@@ -399,11 +485,17 @@
       }
     }
 
-    // RESOLUTION: closed/total
+    // RESOLUTION: closed/total — animate leading number
     var kpiResolution = document.getElementById('opKpiResolution');
     if (kpiResolution) {
       var closed = O.motionsCache.filter(function(m) { return m.closed_at; }).length;
-      kpiResolution.innerHTML = closed + '<span class="op-kpi-total">/' + O.motionsCache.length + '</span>';
+      var totalSpanR = kpiResolution.querySelector('.op-kpi-total');
+      if (!totalSpanR) {
+        kpiResolution.innerHTML = closed + '<span class="op-kpi-total">/' + O.motionsCache.length + '</span>';
+      } else {
+        totalSpanR.textContent = '/' + O.motionsCache.length;
+        animateKpiValue('opKpiResolution', closed);
+      }
     }
 
     // ---------- Legacy participation (backward compat) ----------
