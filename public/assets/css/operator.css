@@ -3068,7 +3068,7 @@
   width: var(--bar-pct, 0%);
   background: var(--color-success);
   border-radius: 3px;
-  transition: width .4s ease;
+  transition: width .2s ease;
 }
 
 .hub-check-item {
@@ -3435,7 +3435,7 @@
   height: 100%;
   width: var(--bar-pct, 0%);
   border-radius: 12px;
-  transition: width .6s cubic-bezier(.23, 1, .32, 1);
+  transition: width .2s ease;
   min-width: 2px;
 }
 

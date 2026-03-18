@@ -304,12 +304,19 @@ window.OpS = { fn: {} };
       if (!confirmed) return;
     }
 
-    tabButtons.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tab === tabId);
-    });
-    tabContents.forEach(content => {
-      content.classList.toggle('active', content.id === `tab-${tabId}`);
-    });
+    var doSwitch = function() {
+      tabButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabId);
+      });
+      tabContents.forEach(content => {
+        content.classList.toggle('active', content.id === `tab-${tabId}`);
+      });
+    };
+    if (document.startViewTransition) {
+      document.startViewTransition(doSwitch);
+    } else {
+      doSwitch();
+    }
 
     // Reload data when switching to certain tabs
     if (currentMeetingId) {
