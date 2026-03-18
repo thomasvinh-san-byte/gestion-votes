@@ -34,10 +34,10 @@
 - [x] **PDF-03**: Secure serve endpoint — validates auth + tenant + meeting membership, serves with correct security headers (X-Content-Type-Options, Cache-Control)
 - [x] **PDF-04**: AGVOTE_UPLOAD_DIR env var replacing hardcoded /tmp/ag-vote path in all upload controllers
 - [x] **PDF-05**: Docker volume mount for persistent PDF storage
-- [ ] **PDF-06**: FilePond drag-and-drop upload in wizard step 3 (PDF only, 10MB max)
-- [ ] **PDF-07**: ag-pdf-viewer Web Component with inline mode (desktop) and bottom-sheet mode (mobile)
+- [x] **PDF-06**: FilePond drag-and-drop upload in wizard step 3 (PDF only, 10MB max)
+- [x] **PDF-07**: ag-pdf-viewer Web Component with inline mode (desktop) and bottom-sheet mode (mobile)
 - [ ] **PDF-08**: PDF viewer wired to wizard (upload + preview), hub (doc status + preview), voter view (consultation bottom sheet)
-- [ ] **PDF-09**: PDF.js v5.5.207+ self-hosted, pinned above CVE-2024-4367 threshold (>= 4.2.67)
+- [x] **PDF-09**: PDF.js v5.5.207+ self-hosted, pinned above CVE-2024-4367 threshold (>= 4.2.67)
 - [ ] **PDF-10**: Voter PDF consultation is read-only (no download link) in bottom-sheet overlay
 
 ### Copropriété Transformation (CPR)
