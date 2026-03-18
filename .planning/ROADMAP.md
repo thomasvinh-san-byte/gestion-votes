@@ -4,7 +4,7 @@
 
 - ✅ **v1.1 through v1.5** — Phases 1-3 (shipped)
 - ✅ **v2.0 UI Redesign (Acte Officiel)** — Phases 4-15 (shipped 2026-03-16)
-- 🚧 **v3.0 Session Lifecycle** — Phases 16-22 (active)
+- 🚧 **v3.0 Session Lifecycle** — Phases 16-23 (active)
 
 ## Phases
 
@@ -21,6 +21,7 @@
 - [x] **Phase 20.4: Design System Enforcement** — Systematic design reconstruction: audit each page against wireframe, clean contradictory CSS, rebuild pages to unified design language, fix JS bugs (INSERTED) (completed 2026-03-18)
 - [x] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived (completed 2026-03-18)
 - [x] **Phase 22: Final Audit** — Zero SEED_ constants; every API call has loading/error/empty states (completed 2026-03-18)
+- [ ] **Phase 23: Integration Wiring Fixes** — Fix hub→operator meeting_id propagation and frozen→live vote transition (gap closure)
 
 <details>
 <summary>✅ v2.0 UI Redesign (Phases 4-15) — SHIPPED 2026-03-16</summary>
@@ -226,6 +227,17 @@ Plans:
 
 
 
+### Phase 23: Integration Wiring Fixes
+**Goal**: Fix 2 cross-phase integration breaks found by milestone audit: (1) hub action buttons propagate meeting_id to operator page, (2) frozen→live meeting transition fires when operator opens first vote via operator_open_vote.php
+**Depends on**: Phase 22 (audit identified these gaps)
+**Requirements**: HUB-01, VOT-01, VOT-04
+**Gap Closure**: Closes gaps from v3.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Clicking an action button on the hub page navigates to the operator console with the meeting pre-selected (meeting_id in URL or sessionStorage)
+  2. Opening the first vote on a frozen meeting transitions the meeting status to live AND broadcasts meetingStatusChanged via SSE
+  3. The PHP shim file public/api/v1/operator_open_vote.php exists and routes to OperatorController::openVote
+**Plans**: TBD
+
 ### Future Milestones (Backlog)
 
 **v4.0+ Feature Ideas:**
@@ -258,4 +270,5 @@ Plans:
 | 20.3. Page Layout Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-18 |
 | 20.4. Design System Enforcement | v3.0 | 12/12 | Complete | 2026-03-18 |
 | 21. Post-Session & PV | v3.0 | 1/1 | Complete | 2026-03-18 |
-| 22. Final Audit | 2/2 | Complete    | 2026-03-18 | - |
+| 22. Final Audit | v3.0 | 2/2 | Complete | 2026-03-18 |
+| 23. Integration Wiring Fixes | v3.0 | 0/TBD | Not started | - |
