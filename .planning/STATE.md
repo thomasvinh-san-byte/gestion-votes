@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
-stopped_at: Completed 29-06-PLAN.md
-last_updated: "2026-03-18T18:27:03.890Z"
+stopped_at: Completed 29-07-PLAN.md (FINAL plan, v4.0 milestone complete)
+last_updated: "2026-03-18T18:38:15.753Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 20
 ---
 
@@ -58,6 +58,7 @@ Progress: [==        ] 20% (1/5 phases, 3/3 plans in phase 25)
 | Phase 29-operator-console-voter-view-visual-polish P04 | 2 | 2 tasks | 3 files |
 | Phase 29-operator-console-voter-view-visual-polish P05 | 4 | 2 tasks | 3 files |
 | Phase 29-operator-console-voter-view-visual-polish P06 | 18 | 2 tasks | 7 files |
+| Phase 29-operator-console-voter-view-visual-polish P07 | 9 | 1 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,8 @@ v4.0-specific decisions pending (to be logged as phases complete):
 - [Phase 29-05]: [29-05]: Anime.js loaded with defer in operator.htmx.html — graceful fallback in animateKpiValue/animateKpiPct checks typeof anime before each call
 - [Phase 29-06]: var(--color-text-inverse) replaces #fff on all colored backgrounds — dark mode safe pattern established
 - [Phase 29-06]: Bar fill transitions capped at var(--duration-normal) 200ms — progress/participation bars across all pages consistent
+- [Phase 29]: [29-07]: CSS --bar-pct variable drives bar fill width; JS uses setProperty() not direct style.width assignment
+- [Phase 29]: [29-07]: .logo--compact scoped to postsession.css; actionsEl.hidden replaces style.display for speech actions visibility
 
 ### Pending Todos
 
@@ -132,7 +135,7 @@ v4.0-specific decisions pending (to be logged as phases complete):
 
 ## Session Continuity
 
-Last session: 2026-03-18T18:27:03.886Z
-Stopped at: Completed 29-06-PLAN.md
+Last session: 2026-03-18T18:38:15.750Z
+Stopped at: Completed 29-07-PLAN.md (FINAL plan, v4.0 milestone complete)
 Resume file: None
 Next action: Execute Phase 25 Plan 03 (hub/operator/voter page integrations for PDF viewer)

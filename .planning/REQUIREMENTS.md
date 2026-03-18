@@ -82,7 +82,7 @@
 - [x] **VIS-05**: Anime.js count-up animations for KPI numbers on dashboard and operator console
 - [x] **VIS-06**: PC-first layout validation — 1024px+ default; mobile voter screen verified at 375px
 - [x] **VIS-07**: Dark mode parity — every new token has a dark variant in the same commit
-- [ ] **VIS-08**: Measurable done criteria enforced: transitions ≤ 200ms, CLS = 0, focus rings 3:1 contrast, zero inline style=""
+- [x] **VIS-08**: Measurable done criteria enforced: transitions ≤ 200ms, CLS = 0, focus rings 3:1 contrast, zero inline style=""
 
 ## v5+ Requirements (Deferred)
 
