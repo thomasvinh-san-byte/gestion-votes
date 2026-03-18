@@ -325,6 +325,16 @@ final class OperatorController extends AbstractController {
             EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), 'live', $previousStatus);
         }
 
+        $motionRow = $motionRepo->findByIdForTenant($motionId, api_current_tenant_id());
+        try {
+            EventBroadcaster::motionOpened($meetingId, $motionId, [
+                'title' => (string) ($motionRow['title'] ?? ''),
+                'secret' => !empty($motionRow['secret']),
+            ]);
+        } catch (\Throwable) {
+            // Non-critical: SSE broadcast failure does not affect the response
+        }
+
         audit_log('vote_tokens_generated', 'motion', $motionId, [
             'meeting_id' => $meetingId,
             'inserted' => $txResult['inserted'],
