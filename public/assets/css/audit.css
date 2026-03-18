@@ -57,7 +57,12 @@
 /* Column widths */
 .audit-col-check {
   width: 40px;
-  text-align: center !important;
+}
+
+/* Scoped selector overrides the general text-align:left rule without !important */
+.audit-table .audit-col-check,
+.audit-table td.audit-col-check {
+  text-align: center;
 }
 
 .audit-col-num {
