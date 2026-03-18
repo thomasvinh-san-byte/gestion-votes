@@ -117,12 +117,23 @@
   /* ── Standalone preparation checklist (HUB-04) ─── */
 
   var CHECKLIST_ITEMS = [
-    { key: 'title',        label: 'Titre d\u00e9fini',           autoCheck: function (d) { return !!d.title; } },
-    { key: 'date',         label: 'Date fix\u00e9e',              autoCheck: function (d) { return !!d.date; } },
-    { key: 'members',      label: 'Membres ajout\u00e9s',         autoCheck: function (d) { return d.memberCount > 0; } },
-    { key: 'resolutions',  label: 'R\u00e9solutions cr\u00e9\u00e9es',  autoCheck: function (d) { return d.resolutionCount > 0; } },
-    { key: 'convocations', label: 'Convocations envoy\u00e9es',   autoCheck: function (d) { return d.convocationsSent; } },
-    { key: 'documents',    label: 'Documents attach\u00e9s',      autoCheck: function (d) { return d.documentCount > 0; } }
+    { key: 'title',        label: 'Titre d\u00e9fini',           autoCheck: function (d) { return !!d.title; }, blockedReason: null },
+    { key: 'date',         label: 'Date fix\u00e9e',              autoCheck: function (d) { return !!d.date; }, blockedReason: null },
+    { key: 'members',      label: 'Membres ajout\u00e9s',         autoCheck: function (d) { return d.memberCount > 0; }, blockedReason: null },
+    { key: 'resolutions',  label: 'R\u00e9solutions cr\u00e9\u00e9es',  autoCheck: function (d) { return d.resolutionCount > 0; }, blockedReason: null },
+    { key: 'convocations', label: 'Convocations envoy\u00e9es',   autoCheck: function (d) { return d.convocationsSent; },
+      blockedReason: function(d) {
+        if (!d.memberCount) return 'Disponible apr\u00e8s ajout des membres';
+        if (!d.resolutionCount) return 'Disponible apr\u00e8s ajout des r\u00e9solutions';
+        return null;
+      }
+    },
+    { key: 'documents',    label: 'Documents attach\u00e9s',      autoCheck: function (d) { return d.documentCount > 0; },
+      blockedReason: function(d) {
+        if (!d.resolutionCount) return 'Disponible apr\u00e8s ajout des r\u00e9solutions';
+        return null;
+      }
+    }
   ];
 
   function renderChecklist(sessionData) {
@@ -139,7 +150,12 @@
       itemsHtml += '<div class="hub-check-item' + (checked ? ' done' : '') + '">' +
         '<div class="hub-check-icon">' + (checked ? svgIcon('check', 12, '#fff') : '') + '</div>' +
         '<span class="hub-check-label">' + escapeHtml(item.label) + '</span>' +
-        (!checked ? '<span class="hub-check-todo">\u00c0 faire</span>' : '') +
+        (function() {
+          if (checked) return '';
+          var reason = item.blockedReason ? item.blockedReason(sessionData) : null;
+          if (reason) return '<span class="hub-check-blocked">' + escapeHtml(reason) + '</span>';
+          return '<span class="hub-check-todo">\u00c0 faire</span>';
+        })() +
       '</div>';
     });
 
@@ -271,6 +287,86 @@
       '</div>';
     });
     docs.innerHTML = html;
+  }
+
+  /* ── Quorum progress bar (WIZ-07) ───────────────── */
+
+  function renderQuorumBar(sessionData) {
+    var section = document.getElementById('hubQuorumSection');
+    var bar = document.getElementById('hubQuorumBar');
+    if (!bar || !section) return;
+    var total = sessionData.memberCount || 0;
+    var required = sessionData.quorumRequired || 0;
+    var current = sessionData.presentCount || 0;
+    if (total === 0) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    bar.setAttribute('current', String(current));
+    bar.setAttribute('required', String(required));
+    bar.setAttribute('total', String(total));
+    if (required && total) {
+      var pct = Math.round(required / total * 100);
+      bar.setAttribute('label',
+        'Pr\u00e9sents\u202f: ' + current + '/' + total +
+        ' \u2014 Seuil\u202f: ' + pct + '%\u202f=\u202f' + required + ' membres'
+      );
+    }
+  }
+
+  /* ── Motions list with doc badges (WIZ-08) ─────── */
+
+  function renderMotionsList(motions, meetingId) {
+    var section = document.getElementById('hubMotionsSection');
+    var list = document.getElementById('hubMotionsList');
+    if (!list || !section) return;
+    if (!motions || !motions.length) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    var html = '';
+    motions.forEach(function(m, i) {
+      html += '<div class="hub-motion-item">' +
+        '<span class="hub-motion-num">' + (i + 1) + '</span>' +
+        '<span class="hub-motion-title">' + escapeHtml(m.title || m.name || '') + '</span>' +
+        '<span class="doc-badge doc-badge--empty" data-motion-doc-badge data-motion-id="' + escapeHtml(String(m.id || '')) + '">Aucun document</span>' +
+      '</div>';
+    });
+    list.innerHTML = html;
+    loadDocBadges(motions, meetingId);
+  }
+
+  /* ── Convocation send button (WIZ-06) ───────────── */
+
+  function setupConvocationBtn(sessionData, sessionId) {
+    var section = document.getElementById('hubConvocationSection');
+    var btn = document.getElementById('btnSendConvocations');
+    if (!btn || !section) return;
+    if (sessionData.convocationsSent || !sessionData.memberCount) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = '';
+    btn.addEventListener('click', function() {
+      if (!window.AgConfirm) return;
+      window.AgConfirm.ask({
+        title: 'Envoyer les convocations',
+        message: 'Envoyer les convocations \u00e0 ' + sessionData.memberCount + ' membres\u202f?',
+        confirmLabel: 'Envoyer',
+        variant: 'info'
+      }).then(function(ok) {
+        if (!ok) return;
+        btn.disabled = true;
+        btn.textContent = 'Envoi en cours\u2026';
+        window.api('/api/v1/meetings/' + encodeURIComponent(sessionId) + '/convocations', {}, 'POST')
+          .then(function() {
+            if (window.AgToast) window.AgToast.show('Convocations envoy\u00e9es', 'success');
+            section.style.display = 'none';
+            loadData();
+          })
+          .catch(function() {
+            btn.disabled = false;
+            btn.textContent = 'Envoyer les convocations';
+            if (window.AgToast) window.AgToast.show('Erreur lors de l\u2019envoi des convocations', 'error');
+          });
+      });
+    });
   }
 
   /* ── Resolution document badges (per-motion) ─────── */
@@ -413,6 +509,9 @@
       resolutionCount: resolutionCount,
       convocationsSent: convocationsSent,
       documentCount: documentCount,
+      quorumRequired: data.quorum_required || (data.quorum_policy ? Math.ceil(memberCount * 0.5) + 1 : 0),
+      presentCount: data.present_count || 0,
+      motions: Array.isArray(data.resolutions) ? data.resolutions : (Array.isArray(data.motions) ? data.motions : []),
       kpiParticipants: String(memberCount || '-'),
       kpiVoix: data.kpi_voix || (memberCount ? memberCount + ' voix' : '-'),
       kpiResolutions: String(resolutionCount || '-'),
@@ -471,6 +570,11 @@
           renderChecklist(sessionData);
           var files = Array.isArray(data.documents) ? data.documents : [];
           renderDocuments(files);
+          renderQuorumBar(sessionData);
+          var motions = sessionData.motions || [];
+          var meetingId = sessionId;
+          renderMotionsList(motions, meetingId);
+          setupConvocationBtn(sessionData, sessionId);
           // HUB-01: Propagate meeting_id to operator-bound and postsession action buttons
           HUB_STEPS.forEach(function(s) {
             if (s.dest && (s.dest.indexOf('/operator.htmx.html') === 0 || s.dest.indexOf('/postsession.htmx.html') === 0)) {
