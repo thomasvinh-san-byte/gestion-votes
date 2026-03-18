@@ -150,6 +150,29 @@
             <div class="skeleton skeleton-text skeleton-w-70"></div>
           </div>
 
+          <!-- Quorum progress bar (WIZ-07) -->
+          <div class="hub-quorum-section" id="hubQuorumSection" style="display:none;">
+            <ag-quorum-bar id="hubQuorumBar" current="0" required="0" total="0"></ag-quorum-bar>
+          </div>
+
+          <!-- Motions list with document badges (WIZ-08) -->
+          <div class="hub-motions-section" id="hubMotionsSection" style="display:none;">
+            <div class="hub-motions-header">
+              <span class="hub-motions-title">R&eacute;solutions</span>
+            </div>
+            <div id="hubMotionsList">
+              <!-- Populated by JS renderMotionsList() -->
+            </div>
+          </div>
+
+          <!-- Convocation send (WIZ-06) -->
+          <div class="hub-convocation-section" id="hubConvocationSection" style="display:none;">
+            <button class="btn btn-primary" type="button" id="btnSendConvocations">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+              Envoyer les convocations
+            </button>
+          </div>
+
           <!-- Details toggle -->
           <button class="hub-details-toggle" id="hubDetailsToggle" aria-expanded="false" aria-controls="hub-details-body">
             <span>
@@ -247,5 +270,7 @@
   <script src="/assets/js/pages/hub.js"></script>
   <script type="module" src="/assets/js/components/ag-toast.js"></script>
   <script type="module" src="/assets/js/components/ag-popover.js"></script>
+  <script type="module" src="/assets/js/components/ag-quorum-bar.js"></script>
+  <script type="module" src="/assets/js/components/ag-confirm.js"></script>
 </body>
 </html>
