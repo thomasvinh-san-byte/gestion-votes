@@ -15,6 +15,10 @@
  * 10. Print
  */
 
+@layer base, components, v4;
+
+@layer base {
+
 /* =============================================================================
    1. RESET & BASE
    ============================================================================= */
@@ -304,6 +308,17 @@ table {
   --persona-admin-subtle: #f1f5f9;
   --persona-admin-text: #0f172a;
 
+  /* VIS-04: color-mix derived tokens */
+  --color-primary-tint-10: color-mix(in srgb, var(--color-primary) 10%, white);
+  --color-primary-tint-5: color-mix(in srgb, var(--color-primary) 5%, white);
+  --color-success-tint-10: color-mix(in srgb, var(--color-success) 10%, white);
+  --color-success-tint-5: color-mix(in srgb, var(--color-success) 5%, white);
+  --color-danger-tint-10: color-mix(in srgb, var(--color-danger) 10%, white);
+  --color-danger-tint-5: color-mix(in srgb, var(--color-danger) 5%, white);
+  --color-warning-tint-10: color-mix(in srgb, var(--color-warning) 10%, white);
+  --color-warning-tint-5: color-mix(in srgb, var(--color-warning) 5%, white);
+  --color-primary-shade-10: color-mix(in srgb, var(--color-primary) 90%, black);
+  --color-surface-elevated: color-mix(in srgb, var(--color-surface) 97%, var(--color-primary));
 }
 
 /* ─── Dark Theme « Acte Officiel » ─── */
@@ -412,7 +427,18 @@ table {
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.28), 0 2px 4px rgba(0, 0, 0, 0.18);
   --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.36), 0 2px 6px rgba(0, 0, 0, 0.22);
-  --shadow-focus: 0 0 0 2px var(--color-surface), 0 0 0 4px rgba(61, 126, 248, 0.55);
+
+  /* VIS-07: dark mode color-mix parity */
+  --color-primary-tint-10: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  --color-primary-tint-5: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  --color-success-tint-10: color-mix(in srgb, var(--color-success) 10%, var(--color-surface));
+  --color-success-tint-5: color-mix(in srgb, var(--color-success) 5%, var(--color-surface));
+  --color-danger-tint-10: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+  --color-danger-tint-5: color-mix(in srgb, var(--color-danger) 5%, var(--color-surface));
+  --color-warning-tint-10: color-mix(in srgb, var(--color-warning) 10%, var(--color-surface));
+  --color-warning-tint-5: color-mix(in srgb, var(--color-warning) 5%, var(--color-surface));
+  --color-primary-shade-10: color-mix(in srgb, var(--color-primary) 90%, var(--color-surface));
+  --color-surface-elevated: color-mix(in srgb, var(--color-surface) 95%, var(--color-primary));
 }
 
 /* ── Global Scrollbar ── */
@@ -1073,6 +1099,11 @@ h4, .h4 {
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+
+} /* end @layer base */
+
+@layer components {
 
 /* =============================================================================
    5. COMPONENTS
@@ -4664,4 +4695,10 @@ ag-pdf-viewer[mode="panel"] {
   .onboarding-banner {
     display: none !important;
   }
+}
+
+} /* end @layer components */
+
+@layer v4 {
+  /* Phase 29: Operator Console, Voter View & Visual Polish additions */
 }
