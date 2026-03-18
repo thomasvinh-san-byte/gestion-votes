@@ -9,12 +9,12 @@
 
 - [x] **GUX-01**: Status-aware session cards on dashboard — each card shows the ONE next action for its current lifecycle state
 - [x] **GUX-02**: Contextual empty states on every container (heading + description + secondary action) replacing blank tables/lists
-- [ ] **GUX-03**: Disabled button explanations — tooltip or inline note explaining WHY a button is locked
-- [ ] **GUX-04**: ag-guide Web Component wrapping Driver.js — step tours on wizard, postsession, and members pages
-- [ ] **GUX-05**: ag-hint Web Component — persistent dismissible inline callout for contextual help on any element
+- [x] **GUX-03**: Disabled button explanations — tooltip or inline note explaining WHY a button is locked
+- [x] **GUX-04**: ag-guide Web Component wrapping Driver.js — step tours on wizard, postsession, and members pages
+- [x] **GUX-05**: ag-hint Web Component — persistent dismissible inline callout for contextual help on any element
 - [x] **GUX-06**: ag-empty-state Web Component — slot-based, replaces emptyState() helper across all pages
-- [ ] **GUX-07**: Inline contextual help — field descriptions under labels, (?) tooltip popovers for technical terms (majorité absolue, etc.)
-- [ ] **GUX-08**: localStorage dismissal for all guided elements (tours, hints) so they don't repeat
+- [x] **GUX-07**: Inline contextual help — field descriptions under labels, (?) tooltip popovers for technical terms (majorité absolue, etc.)
+- [x] **GUX-08**: localStorage dismissal for all guided elements (tours, hints) so they don't repeat
 
 ### Wizard & Hub (WIZ)
 

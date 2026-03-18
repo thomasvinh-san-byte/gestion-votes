@@ -56,7 +56,7 @@
 ### v4.0 Clarity & Flow (Phases 25-29) — ACTIVE
 
 - [x] **Phase 25: PDF Infrastructure Foundation** — Secure upload, serve endpoint, storage env var, PDF.js, FilePond, ag-pdf-viewer
-- [ ] **Phase 26: Guided UX Components** — ag-empty-state, help panels (no Driver.js), status-aware dashboard cards, disabled-button explanations, term popovers
+- [x] **Phase 26: Guided UX Components** — ag-empty-state, help panels (no Driver.js), status-aware dashboard cards, disabled-button explanations, term popovers (completed 2026-03-18)
 - [ ] **Phase 27: Copropriete Transformation** — Vocabulary cleanup, lot field removal, openKeyModal removal, weighted-vote regression test
 - [ ] **Phase 28: Wizard & Session Hub UX Overhaul** — Named-step wizard, autosave, review card, template picker, hub checklist, quorum bar
 - [ ] **Phase 29: Operator Console, Voter View & Visual Polish** — Console layout, voter ballot card, result cards, CSS @layer, animations, PC-first validation
@@ -91,7 +91,7 @@ Plans:
   3. Every locked button displays a tooltip explaining why it is disabled (e.g., "Disponible apres ajout des resolutions")
   4. Each session card on the dashboard shows exactly one next-action CTA reflecting its current lifecycle state (draft / live / closed)
   5. Technical terms (majorite absolue, quorum, scrutin secret) have (?) click popovers with clear definitions
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 26-01-PLAN.md — ag-empty-state Web Component + empty state migration (meetings, archives, settings, members, users)
 - [ ] 26-02-PLAN.md — Dashboard status-aware session cards with lifecycle CTAs
@@ -141,7 +141,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 25. PDF Infrastructure Foundation | 3/3 | Complete    | 2026-03-18 |
-| 26. Guided UX Components | 2/3 | In Progress|  |
+| 26. Guided UX Components | 3/3 | Complete   | 2026-03-18 |
 | 27. Copropriete Transformation | 0/? | Not started | - |
 | 28. Wizard & Session Hub UX Overhaul | 0/? | Not started | - |
 | 29. Operator Console, Voter View & Visual Polish | 0/? | Not started | - |
