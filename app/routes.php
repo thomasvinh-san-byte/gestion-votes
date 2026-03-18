@@ -43,6 +43,7 @@ use AgVote\Controller\ExportTemplatesController;
 use AgVote\Controller\ImportController;
 use AgVote\Controller\InvitationsController;
 use AgVote\Controller\MeetingAttachmentController;
+use AgVote\Controller\ResolutionDocumentController;
 use AgVote\Controller\MeetingReportsController;
 use AgVote\Controller\MeetingsController;
 use AgVote\Controller\MeetingWorkflowController;
@@ -227,6 +228,17 @@ return function (Router $router): void {
         'POST' => [MeetingAttachmentController::class, 'upload',         $op],
         'DELETE' => [MeetingAttachmentController::class, 'delete',         $op],
     ]);
+
+    // ── Resolution documents ──
+    $router->mapMulti("{$prefix}/resolution_documents", [
+        'GET'    => [ResolutionDocumentController::class, 'listForMotion', $op],
+        'POST'   => [ResolutionDocumentController::class, 'upload',        $op],
+        'DELETE' => [ResolutionDocumentController::class, 'delete',        $op],
+    ]);
+    $router->map('GET', "{$prefix}/resolution_document_serve",
+        ResolutionDocumentController::class, 'serve',
+        ['role' => 'public', 'rate_limit' => ['doc_serve', 120, 60]]
+    );
 
     // ── Meeting workflow ──
     $trOpPresAdm = ['role' => ['operator', 'president', 'admin']];
