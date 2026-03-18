@@ -1,130 +1,133 @@
-# Requirements: AG-VOTE v3.0 — Session Lifecycle
+# Requirements: AG-VOTE v4.0 "Clarity & Flow"
 
-**Defined:** 2026-03-16
-**Core Value:** Full-stack session lifecycle wiring — zero demo data, real API, SSE real-time
+**Defined:** 2026-03-18
+**Core Value:** Self-explanatory voting platform — zero training, visually impressive, legally compliant
 
-## v3.0 Requirements
+## v4.0 Requirements
 
-Requirements for v3.0 release. Each maps to roadmap phases.
+### Guided UX (GUX)
 
-### Création de session
+- [ ] **GUX-01**: Status-aware session cards on dashboard — each card shows the ONE next action for its current lifecycle state
+- [ ] **GUX-02**: Contextual empty states on every container (heading + description + secondary action) replacing blank tables/lists
+- [ ] **GUX-03**: Disabled button explanations — tooltip or inline note explaining WHY a button is locked
+- [ ] **GUX-04**: ag-guide Web Component wrapping Driver.js — step tours on wizard, postsession, and members pages
+- [ ] **GUX-05**: ag-hint Web Component — persistent dismissible inline callout for contextual help on any element
+- [ ] **GUX-06**: ag-empty-state Web Component — slot-based, replaces emptyState() helper across all pages
+- [ ] **GUX-07**: Inline contextual help — field descriptions under labels, (?) tooltip popovers for technical terms (majorité absolue, etc.)
+- [ ] **GUX-08**: localStorage dismissal for all guided elements (tours, hints) so they don't repeat
 
-- [x] **WIZ-01**: Le wizard crée une session en DB avec titre, type, lieu, date en une seule requête API
-- [x] **WIZ-02**: Les membres sélectionnés à l'étape 2 du wizard sont persistés en transaction atomique avec la session
-- [x] **WIZ-03**: Les résolutions saisies à l'étape 3 du wizard sont persistées en transaction atomique avec la session
+### Wizard & Hub (WIZ)
 
-### Hub & Dashboard
+- [ ] **WIZ-01**: Named-step wizard with horizontal stepper (Informations → Membres → Résolutions → Révision)
+- [ ] **WIZ-02**: Autosave on field blur for all wizard steps; back navigation preserves data
+- [ ] **WIZ-03**: Step 4 full review card before commit with "Modifier" link per section
+- [ ] **WIZ-04**: Motion template picker in wizard step 3 (3 hardcoded templates: Approbation de comptes, Élection au conseil, Modification de règlement)
+- [ ] **WIZ-05**: Progressive disclosure — "Paramètres de vote avancés" toggle in wizard step 2 reveals voting power fields
+- [ ] **WIZ-06**: Session hub pre-meeting checklist with blocked-reason display ("Disponible après: résolutions ajoutées")
+- [ ] **WIZ-07**: Quorum progress bar with animated fill, threshold tick marker, amber→green transition
+- [ ] **WIZ-08**: Hub document status indicators per motion ("Document joint ✓" / "Aucun document")
 
-- [x] **HUB-01**: Le hub charge l'état réel de la session via l'API wizard_status (zéro donnée démo)
-- [x] **HUB-02**: Le hub affiche un état d'erreur explicite quand le backend est indisponible
-- [x] **HUB-03**: Le dashboard affiche les compteurs de sessions réels depuis la base de données
-- [x] **HUB-04**: Le dashboard affiche un état d'erreur explicite au lieu du fallback démo
+### PDF Résolutions (PDF)
 
-### SSE Temps Réel
+- [ ] **PDF-01**: resolution_documents DB table and migration (tenant_id, meeting_id, motion_id, stored_name, mime_type, file_size, uploaded_by)
+- [ ] **PDF-02**: ResolutionDocumentController with upload, list, delete, and authenticated serve endpoint
+- [ ] **PDF-03**: Secure serve endpoint — validates auth + tenant + meeting membership, serves with correct security headers (X-Content-Type-Options, Cache-Control)
+- [ ] **PDF-04**: AGVOTE_UPLOAD_DIR env var replacing hardcoded /tmp/ag-vote path in all upload controllers
+- [ ] **PDF-05**: Docker volume mount for persistent PDF storage
+- [ ] **PDF-06**: FilePond drag-and-drop upload in wizard step 3 (PDF only, 10MB max)
+- [ ] **PDF-07**: ag-pdf-viewer Web Component with inline mode (desktop) and bottom-sheet mode (mobile)
+- [ ] **PDF-08**: PDF viewer wired to wizard (upload + preview), hub (doc status + preview), voter view (consultation bottom sheet)
+- [ ] **PDF-09**: PDF.js v5.5.207+ self-hosted, pinned above CVE-2024-4367 threshold (>= 4.2.67)
+- [ ] **PDF-10**: Voter PDF consultation is read-only (no download link) in bottom-sheet overlay
 
-- [x] **SSE-01**: Le endpoint events.php supporte plusieurs consommateurs simultanés sans perte d'événements
-- [x] **SSE-02**: nginx dispose d'un location block dédié pour events.php avec fastcgi_buffering off
-- [x] **SSE-03**: La configuration PHP-FPM documente le dimensionnement pour les connexions SSE longue durée
-- [x] **SSE-04**: Le décompte des votes opérateur se met à jour en temps réel via SSE après chaque bulletin
+### Copropriété Transformation (CPR)
 
-### Console Opérateur
+- [ ] **CPR-01**: UI label rename — remove "copropriété", "tantièmes", "lot" vocabulary from all user-facing strings
+- [ ] **CPR-02**: Remove lot field from wizard member input form (dead code — not in DB schema)
+- [ ] **CPR-03**: Remove openKeyModal / "Clé de répartition" stub from settings.js (no API endpoint backs it)
+- [ ] **CPR-04**: Preserve voting_power column, BallotsService weight calculations, and tantième CSV import alias unchanged
+- [ ] **CPR-05**: PHPUnit regression test for weighted vote tally correctness (before and after transformation)
 
-- [x] **OPR-01**: La console opérateur charge les données réelles de la session via meeting_id propagé par MeetingContext
-- [x] **OPR-02**: L'onglet présence charge les données d'inscription depuis l'API
-- [x] **OPR-03**: L'onglet motions charge les résolutions depuis l'API
-- [x] **OPR-04**: La connexion SSE se déclenche sur MeetingContext:change (pas au chargement de page)
+### Operator Console (OPC)
 
-### Vote en Direct
+- [ ] **OPC-01**: Operator console layout — status bar (session name + quorum + SSE indicator), left panel (attendance + résolutions), main panel (active vote)
+- [ ] **OPC-02**: Live SSE connectivity indicator — "● En direct" (green pulse) / "⚠ Reconnexion..." (amber) / "✕ Hors ligne" (red) with colour + icon + label
+- [ ] **OPC-03**: Live vote count with delta indicators ("+3 votes in last 30s" alongside absolute count)
+- [ ] **OPC-04**: Contextual post-vote guidance — "Vote clôturé — Ouvrez le prochain vote ou clôturez la séance"
+- [ ] **OPC-05**: End-of-agenda guidance — "Toutes les résolutions ont été traitées — Clôturer la séance"
 
-- [x] **VOT-01**: L'opérateur peut ouvrir une motion et les votants voient la motion active
-- [x] **VOT-02**: Le votant peut soumettre un bulletin et reçoit une confirmation
-- [x] **VOT-03**: L'opérateur peut fermer une motion et les résultats sont calculés
-- [x] **VOT-04**: Les transitions d'état machine (draft→scheduled→frozen→live→closed→validated) fonctionnent de bout en bout
+### Voter View (VOT)
 
-### Post-Session & PV
+- [ ] **VOT-01**: Full-screen single-focus ballot card — all navigation and chrome hidden when a vote is open
+- [ ] **VOT-02**: Vote option buttons full-width, minimum 72px height, 8px spacing between options
+- [ ] **VOT-03**: Optimistic vote feedback under 50ms — instant selection visual, background server submission, rollback on error
+- [ ] **VOT-04**: Waiting state — "En attente d'un vote" single line, no other content when no vote is open
+- [ ] **VOT-05**: Confirmation state — "Vote enregistré ✓" for 3 seconds after vote closes
+- [ ] **VOT-06**: PDF consultation via ag-pdf-viewer bottom sheet (slide-up panel, stays in voting context)
 
-- [x] **PST-01**: L'étape 1 du stepper post-session affiche les résultats vérifiés (fix endpoint motions_for_meeting)
-- [x] **PST-02**: L'étape 2 déclenche la consolidation puis la transition closed→validated
-- [x] **PST-03**: L'étape 3 génère le PV en PDF via Dompdf
-- [x] **PST-04**: L'étape 4 permet l'archivage de la session (lien export_correspondance supprimé)
+### Results & Post-Session (RES)
 
-### Nettoyage
+- [ ] **RES-01**: Trustworthy result cards — absolute numbers + percentages + threshold required + ADOPTÉ/REJETÉ verdict as largest element
+- [ ] **RES-02**: Bar charts for vote breakdown (POUR/CONTRE/ABSTENTION) on result cards
+- [ ] **RES-03**: Post-session stepper with completion checkmarks (Résultats → Validation → PV → Archivage)
+- [ ] **RES-04**: Collapsible motion result cards (default: headline only, expand for full tally)
+- [ ] **RES-05**: "X votes exprimés · Y membres présents" context footer on every result card
 
-- [x] **CLN-01**: Zero constante SEED_ dans le codebase
-- [x] **CLN-02**: Chaque appel API dispose d'états loading, error et empty
-- [x] **CLN-03**: Le fallback démo audit.js (SEED_EVENTS) est supprimé et remplacé par un état d'erreur
+### Visual Polish (VIS)
 
-## v3.x+ Requirements
+- [ ] **VIS-01**: CSS @layer declaration (base, components, v4) in design-system.css — new styles cannot regress existing pages
+- [ ] **VIS-02**: View Transitions API for wizard step transitions, tab switching, modal open/close (progressive enhancement)
+- [ ] **VIS-03**: @starting-style entry animations for modals, toasts, and new components
+- [ ] **VIS-04**: color-mix() derived tokens for all new component color variations
+- [ ] **VIS-05**: Anime.js count-up animations for KPI numbers on dashboard and operator console
+- [ ] **VIS-06**: PC-first layout validation — 1024px+ default; mobile voter screen verified at 375px
+- [ ] **VIS-07**: Dark mode parity — every new token has a dark variant in the same commit
+- [ ] **VIS-08**: Measurable done criteria enforced: transitions ≤ 200ms, CLS = 0, focus rings 3:1 contrast, zero inline style=""
 
-Deferred to future release. Tracked but not in current roadmap.
+## v5+ Requirements (Deferred)
 
-### SSE Avancé
+### Future Features
 
-- **SSE-05**: Fallback SSE fichier testé en charge sans Redis
-- **SSE-06**: Vote pondéré dans l'affichage des résultats du tally
-
-### Console Opérateur Avancé
-
-- **OPR-05**: Vote papier / saisie manuelle par l'opérateur
-- **OPR-06**: Gestion proxy/procurations depuis la console opérateur
-- **OPR-07**: invitations_stats.php complétude et suppression placeholder
-
-### Post-Session Avancé
-
-- **PST-05**: Trigger consolidation explicite dans l'UI post-session
-- **PST-06**: eIDAS stockage signataires en base de données
+- **FUT-01**: AI-assisted PV minutes generation
+- **FUT-02**: ClamAV virus scanning of uploaded PDFs
+- **FUT-03**: Motion templates stored per-tenant in database (v4.0 ships hardcoded)
+- **FUT-04**: Multi-page cross-session guided tours
+- **FUT-05**: Electronic signature upload/validation
+- **FUT-06**: Votes pour collectivités territoriales (syndicats, communes, départements)
+- **FUT-07**: Suivi budget & documents PDF pour votants
 
 ## Out of Scope
 
-Explicitly excluded. Documented to prevent scope creep.
-
 | Feature | Reason |
 |---------|--------|
-| Signature électronique upload/validation | Complexité élevée, différé v4+ |
-| export_correspondance endpoint | N'existe pas côté backend — lien supprimé dans v3.0 |
-| Nouvelles librairies / changement de framework | Stack vanilla PHP+JS est l'identité du projet |
-| Pages non-session (stats, audit, help, settings) | UI complète depuis v2.0, hors périmètre session lifecycle |
-| Mobile native app | Approche PWA maintenue |
-| Nouveaux modes de vote / types de rapport | Parité fonctionnelle d'abord |
+| Framework migration (React/Vue/Laravel) | Vanilla stack is the identity |
+| Word clouds or fun result formats | Undermine legal gravity of AG |
+| Voter results visible during open vote | Breaks secret ballot principle |
+| Help modal / tour overlay interrupting workflow | Inline contextual help is the correct pattern |
+| "Are you sure?" modal chains | Reserve modals for destructive actions only |
+| Forcing account creation to vote | Token-based voter auth is correct |
+| Mobile optimization for admin/operator | PC-first; mobile only for voter view |
+| WebSocket migration | SSE with reconnect is the correct pattern |
+| Custom PDF.js toolbar | Native browser viewer sufficient for v4.0 |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WIZ-01 | Phase 16 | Complete |
-| WIZ-02 | Phase 16 | Complete |
-| WIZ-03 | Phase 16 | Complete |
-| HUB-01 | Phase 23 | Complete |
-| HUB-02 | Phase 16 | Complete |
-| HUB-03 | Phase 17 | Complete |
-| HUB-04 | Phase 17 | Complete |
-| SSE-01 | Phase 18 | Complete |
-| SSE-02 | Phase 18 | Complete |
-| SSE-03 | Phase 18 | Complete |
-| SSE-04 | Phase 18 | Complete |
-| OPR-01 | Phase 19 | Complete |
-| OPR-02 | Phase 19 | Complete |
-| OPR-03 | Phase 19 | Complete |
-| OPR-04 | Phase 19 | Complete |
-| VOT-01 | Phase 23 | Complete |
-| VOT-02 | Phase 20 | Complete |
-| VOT-03 | Phase 20 | Complete |
-| VOT-04 | Phase 23 | Complete |
-| PST-01 | Phase 21 | Complete |
-| PST-02 | Phase 21 | Complete |
-| PST-03 | Phase 21 | Complete |
-| PST-04 | Phase 21 | Complete |
-| CLN-01 | Phase 22 | Complete |
-| CLN-02 | Phase 22 | Complete |
-| CLN-03 | Phase 17 | Complete |
+| PDF-01 through PDF-10 | Phase 25 | Pending |
+| GUX-01 through GUX-08 | Phase 26 | Pending |
+| CPR-01 through CPR-05 | Phase 27 | Pending |
+| WIZ-01 through WIZ-08 | Phase 28 | Pending |
+| OPC-01 through OPC-05 | Phase 29 | Pending |
+| VOT-01 through VOT-06 | Phase 29 | Pending |
+| RES-01 through RES-05 | Phase 29 | Pending |
+| VIS-01 through VIS-08 | Phase 29 | Pending |
 
 **Coverage:**
-- v3.0 requirements: 26 total
-- Mapped to phases: 26
+- v4.0 requirements: 55 total (GUX:8, WIZ:8, PDF:10, CPR:5, OPC:5, VOT:6, RES:5, VIS:8)
+- Mapped to phases: 55
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after roadmap creation — all 26 requirements mapped*
+*Requirements defined: 2026-03-18*
+*Last updated: 2026-03-18 — roadmap created, coverage count corrected to 55*

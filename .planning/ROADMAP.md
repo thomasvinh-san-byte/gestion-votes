@@ -5,6 +5,7 @@
 - ✅ **v1.1 through v1.5** — Phases 1-3 (shipped)
 - ✅ **v2.0 UI Redesign (Acte Officiel)** — Phases 4-15 (shipped 2026-03-16)
 - ✅ **v3.0 Session Lifecycle** — Phases 16-24 (shipped 2026-03-18)
+- 🔄 **v4.0 Clarity & Flow** — Phases 25-29 (active)
 
 ## Phases
 
@@ -52,10 +53,100 @@
 
 </details>
 
+### v4.0 Clarity & Flow (Phases 25-29) — ACTIVE
+
+- [ ] **Phase 25: PDF Infrastructure Foundation** — Secure upload, serve endpoint, storage env var, PDF.js, FilePond, ag-pdf-viewer
+- [ ] **Phase 26: Guided UX Components** — ag-guide (Driver.js), ag-hint, ag-empty-state, status-aware cards, disabled-button explanations
+- [ ] **Phase 27: Copropriété Transformation** — Vocabulary cleanup, lot field removal, openKeyModal removal, weighted-vote regression test
+- [ ] **Phase 28: Wizard & Session Hub UX Overhaul** — Named-step wizard, autosave, review card, template picker, hub checklist, quorum bar
+- [ ] **Phase 29: Operator Console, Voter View & Visual Polish** — Console layout, voter ballot card, result cards, CSS @layer, animations, PC-first validation
+
+---
+
+## Phase Details
+
+### Phase 25: PDF Infrastructure Foundation
+**Goal**: PDF documents can be securely uploaded, stored, served, and previewed — all two P0 security blockers resolved before any viewer UI is built
+**Depends on**: Nothing (first v4.0 phase)
+**Requirements**: PDF-01, PDF-02, PDF-03, PDF-04, PDF-05, PDF-06, PDF-07, PDF-08, PDF-09, PDF-10
+**Success Criteria** (what must be TRUE):
+  1. A PDF attached to a resolution in the wizard step 3 survives a server restart and is retrievable after deployment (persistent volume mount, not /tmp)
+  2. A logged-in voter can view a resolution's PDF in the voter view via ag-pdf-viewer bottom sheet; an unauthenticated request to the serve endpoint returns 401
+  3. PDF.js version is >= 4.2.67 (CVE-2024-4367 closed); isEvalSupported: false is set; serve endpoint sends X-Content-Type-Options: nosniff and Cache-Control: private, no-store
+  4. The wizard step 3 FilePond upload enforces PDF-only and 10 MB max with inline error messages before submission
+  5. Hub shows "Document joint" / "Aucun document" status per motion; clicking the indicator opens the inline ag-pdf-viewer
+**Plans**: TBD
+
+### Phase 26: Guided UX Components
+**Goal**: Users are guided through unfamiliar flows without reading a manual — tours wire the existing stub buttons, empty states replace all blank containers, and every disabled action explains itself
+**Depends on**: Phase 25 (ag-pdf-viewer available for consistent component patterns)
+**Requirements**: GUX-01, GUX-02, GUX-03, GUX-04, GUX-05, GUX-06, GUX-07, GUX-08
+**Success Criteria** (what must be TRUE):
+  1. Clicking the existing tour button on wizard, postsession, and members pages launches a Driver.js step tour; clicking it again or having dismissed it in localStorage does not re-launch
+  2. Every list or table that can be empty shows a heading + description + secondary action (via ag-empty-state) instead of a blank container
+  3. Every locked button displays a tooltip or inline note explaining why it is disabled (e.g., "Disponible après: résolutions ajoutées")
+  4. Each session card on the dashboard shows exactly one next-action CTA reflecting its current lifecycle state (draft / live / closed)
+  5. An ag-hint callout on a technical term (e.g., "majorité absolue") is dismissible and the dismissal persists across page reloads
+**Plans**: TBD
+
+### Phase 27: Copropriété Transformation
+**Goal**: The application uses generic AG vocabulary throughout the UI — no copropriété-specific language visible to users — while all weighted-vote calculations remain functionally identical
+**Depends on**: Nothing (fully independent; can run parallel with Phase 26)
+**Requirements**: CPR-01, CPR-02, CPR-03, CPR-04, CPR-05
+**Success Criteria** (what must be TRUE):
+  1. A search across all user-facing strings finds zero occurrences of "copropriété", "tantièmes", "lot", "millièmes", "clé de répartition" in rendered HTML
+  2. The lot field is absent from the wizard member input form; submitting a member without a lot field produces no error and no DB change
+  3. The "Clé de répartition" option is absent from the settings page; no broken stub JS runs when settings loads
+  4. A PHPUnit test asserts that a session with two members having voting_power 3 and 1 tallies POUR:3, CONTRE:1 (not 1:1) — and this test passes both before and after the vocabulary changes
+**Plans**: TBD
+
+### Phase 28: Wizard & Session Hub UX Overhaul
+**Goal**: Operators can create a complete session and prepare a meeting entirely within the application without any confusion — the wizard guides step-by-step, nothing is lost on back-navigation, and the hub shows exactly what remains before going live
+**Depends on**: Phase 26 (ag-guide, ag-hint, ag-empty-state available), Phase 25 (PDF attachment in wizard)
+**Requirements**: WIZ-01, WIZ-02, WIZ-03, WIZ-04, WIZ-05, WIZ-06, WIZ-07, WIZ-08
+**Success Criteria** (what must be TRUE):
+  1. The wizard shows a named horizontal stepper (Informations → Membres → Résolutions → Révision); navigating backward with the browser back button returns to the previous step with all entered data intact
+  2. Step 4 displays a full review card of all session data with a "Modifier" link that jumps back to the relevant section; submitting from step 4 creates the session atomically
+  3. Step 3 offers a motion template picker with 3 hardcoded templates; selecting one pre-fills the motion title and description fields
+  4. Step 2's advanced voting settings are hidden behind a toggle ("Paramètres de vote avancés") and only appear when the toggle is activated
+  5. The session hub pre-meeting checklist shows which items are blocked and why ("Disponible après: résolutions ajoutées") with a quorum progress bar that animates from amber to green once quorum is reached
+  6. Each motion in the hub displays "Document joint ✓" or "Aucun document" as its document status
+**Plans**: TBD
+
+### Phase 29: Operator Console, Voter View & Visual Polish
+**Goal**: The live session experience is flawless under pressure — operators see real-time status at a glance, voters cast ballots in one tap with instant feedback, results are unambiguous, and every page meets measurable visual quality criteria
+**Depends on**: Phase 26 (guided UX components), Phase 25 (PDF viewer for voter bottom sheet), Phase 28 (wizard/hub complete)
+**Requirements**: OPC-01, OPC-02, OPC-03, OPC-04, OPC-05, VOT-01, VOT-02, VOT-03, VOT-04, VOT-05, VOT-06, RES-01, RES-02, RES-03, RES-04, RES-05, VIS-01, VIS-02, VIS-03, VIS-04, VIS-05, VIS-06, VIS-07, VIS-08
+**Success Criteria** (what must be TRUE):
+  1. The operator console status bar shows SSE connectivity state with colour + icon + label (never colour alone); the live vote count displays a delta indicator ("+N votes in last 30s") alongside the absolute count
+  2. When a vote is open, the voter screen hides all navigation and chrome, shows only the ballot card with full-width options (min 72px height); tapping an option registers a visual selection within 50ms and submits in the background with rollback on error
+  3. A result card shows absolute numbers, percentages, the required threshold, and the ADOPTÉ/REJETÉ verdict as the largest element; a bar chart breaks down POUR/CONTRE/ABSTENTION; the card is collapsible with only the headline visible by default
+  4. The post-session stepper (Résultats → Validation → PV → Archivage) shows a checkmark on each completed step
+  5. The design system CSS has a @layer declaration (base, components, v4); all new component color variations use color-mix() derived tokens; every new token has a dark variant committed in the same change
+  6. All pages pass measurable done criteria: transitions ≤ 200ms, CLS = 0 (Lighthouse), focus rings ≥ 3:1 contrast (axe-core), zero inline style="" in production HTML; voter screen verified at 375px
+**Plans**: TBD
+
+---
+
+## Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 25. PDF Infrastructure Foundation | 0/? | Not started | - |
+| 26. Guided UX Components | 0/? | Not started | - |
+| 27. Copropriété Transformation | 0/? | Not started | - |
+| 28. Wizard & Session Hub UX Overhaul | 0/? | Not started | - |
+| 29. Operator Console, Voter View & Visual Polish | 0/? | Not started | - |
+
+---
+
 ### Future Milestones (Backlog)
 
-**v4.0+ Feature Ideas:**
-- **Suivi budget & documents PDF pour votants** — Budget tracking with PDF document distribution to voters
-- **Votes pour collectivités territoriales** — Voting mode for syndicats, communes, conseils de communes, départements — assemblées générales oui, mais pas copropriété (pas de tantièmes/millièmes)
-- **Retrait copropriété** — Remove all copropriete-related code from the codebase
-- **PDFs résolutions** — Attach PDF documents to resolutions with voter consultation access
+**v5.0+ Feature Ideas:**
+- **AI-assisted PV generation** — AI-assisted minutes generation for post-session PV
+- **ClamAV PDF scanning** — Virus scanning for uploaded resolution documents
+- **Per-tenant motion templates** — Move hardcoded templates to per-tenant DB storage
+- **Multi-page cross-session tours** — Guided tours spanning multiple pages with persistent state
+- **Electronic signature upload/validation** — Deferred; significant new capability
+- **Votes pour collectivités territoriales** — Voting mode for syndicats, communes, conseils de communes, départements
+- **Suivi budget & documents PDF pour votants** — Budget tracking with PDF document distribution
