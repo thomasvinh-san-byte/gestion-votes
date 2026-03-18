@@ -67,11 +67,11 @@
 
 ### Results & Post-Session (RES)
 
-- [ ] **RES-01**: Trustworthy result cards — absolute numbers + percentages + threshold required + ADOPTÉ/REJETÉ verdict as largest element
-- [ ] **RES-02**: Bar charts for vote breakdown (POUR/CONTRE/ABSTENTION) on result cards
-- [ ] **RES-03**: Post-session stepper with completion checkmarks (Résultats → Validation → PV → Archivage)
-- [ ] **RES-04**: Collapsible motion result cards (default: headline only, expand for full tally)
-- [ ] **RES-05**: "X votes exprimés · Y membres présents" context footer on every result card
+- [x] **RES-01**: Trustworthy result cards — absolute numbers + percentages + threshold required + ADOPTÉ/REJETÉ verdict as largest element
+- [x] **RES-02**: Bar charts for vote breakdown (POUR/CONTRE/ABSTENTION) on result cards
+- [x] **RES-03**: Post-session stepper with completion checkmarks (Résultats → Validation → PV → Archivage)
+- [x] **RES-04**: Collapsible motion result cards (default: headline only, expand for full tally)
+- [x] **RES-05**: "X votes exprimés · Y membres présents" context footer on every result card
 
 ### Visual Polish (VIS)
 
