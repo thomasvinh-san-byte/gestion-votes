@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
-stopped_at: Completed 27-copropriete-transformation-27-02-PLAN.md
-last_updated: "2026-03-18T15:33:39.592Z"
+stopped_at: Phase 28 context gathered
+last_updated: "2026-03-18T15:56:32.610Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
@@ -103,7 +103,7 @@ v4.0-specific decisions pending (to be logged as phases complete):
 
 ## Session Continuity
 
-Last session: 2026-03-18T15:29:31.839Z
-Stopped at: Completed 27-copropriete-transformation-27-02-PLAN.md
-Resume file: None
+Last session: 2026-03-18T15:56:32.597Z
+Stopped at: Phase 28 context gathered
+Resume file: .planning/phases/28-wizard-session-hub-ux-overhaul/28-CONTEXT.md
 Next action: Execute Phase 25 Plan 03 (hub/operator/voter page integrations for PDF viewer)
