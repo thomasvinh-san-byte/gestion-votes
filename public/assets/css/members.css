@@ -272,10 +272,16 @@
   gap: 0.875rem;
   transition: background var(--duration-fast);
   cursor: pointer;
+  /* Override app.css .member-card: separator pattern, not individual cards */
+  border: none;
+  border-radius: 0;
 }
 
 .member-card:hover {
   background: var(--color-bg-subtle);
+  /* Override app.css .member-card:hover border/shadow */
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .member-card.is-active {
