@@ -410,12 +410,6 @@
   color: var(--color-text);
 }
 
-.member-lot {
-  color: var(--color-text-muted);
-  font-size: 12px;
-  min-width: 60px;
-}
-
 .member-votes {
   font-weight: 700;
   color: var(--color-primary);

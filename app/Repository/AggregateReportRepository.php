@@ -96,7 +96,7 @@ class AggregateReportRepository extends AbstractRepository {
     }
 
     /**
-     * Rapport pouvoir de vote: evolution des tantiemes.
+     * Rapport pouvoir de vote: evolution des poids de vote.
      */
     public function getVotingPowerReport(
         string $tenantId,

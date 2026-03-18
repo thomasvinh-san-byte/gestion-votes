@@ -680,7 +680,7 @@
 
   const SEARCH_IDX = [
     { name: 'Séances', sub: 'Gestion des assemblées', href: '/meetings.htmx.html', icon: 'clipboard-list' },
-    { name: 'Membres', sub: 'Annuaire des copropriétaires', href: '/members.htmx.html', icon: 'users' },
+    { name: 'Membres', sub: 'Annuaire des membres', href: '/members.htmx.html', icon: 'users' },
     { name: 'Fiche séance', sub: 'Préparer et piloter', href: '/operator.htmx.html', icon: 'file-text' },
     { name: 'Voter', sub: 'Participer au vote', href: '/vote.htmx.html', icon: 'vote' },
     { name: 'Projection', sub: 'Écran salle', href: '/public.htmx.html', icon: 'monitor' },

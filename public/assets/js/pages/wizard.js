@@ -298,7 +298,6 @@
     members.forEach(function(m, i) {
       html += '<div class="member-row">' +
         '<span class="member-name">' + escapeHtml(m.name || m.nom || '') + '</span>' +
-        '<span class="member-lot">' + escapeHtml(m.lot || '') + '</span>' +
         '<span class="member-votes">' + escapeHtml(String(m.voix || 1)) + ' voix</span>' +
         '<span class="member-actions">' +
           '<button class="btn btn-sm" type="button" onclick="(function(){window._wizRemoveMember(' + i + ');})()" aria-label="Supprimer">' +
@@ -339,9 +338,8 @@
         return {
           nom:   (r[0] || '').trim(),
           name:  (r[0] || '').trim(),
-          lot:   r[1] ? r[1].trim() : '',
-          email: r[2] ? r[2].trim() : '',
-          voix:  r[3] ? parseInt(r[3].trim(), 10) || 1 : 1
+          email: r[1] ? r[1].trim() : '',
+          voix:  r[2] ? parseInt(r[2].trim(), 10) || 1 : 1
         };
       });
       members = members.concat(imported);
@@ -387,9 +385,8 @@
       btnManual.addEventListener('click', function() {
         var name = window.prompt('Nom du participant :');
         if (!name || !name.trim()) return;
-        var lot  = window.prompt('Num\u00e9ro de lot (optionnel) :') || '';
         var voix = parseInt(window.prompt('Poids de vote (d\u00e9faut : 1) :') || '1', 10) || 1;
-        members.push({ nom: name.trim(), name: name.trim(), lot: lot.trim(), voix: voix });
+        members.push({ nom: name.trim(), name: name.trim(), voix: voix });
         renderMembersList();
         saveDraft();
       });

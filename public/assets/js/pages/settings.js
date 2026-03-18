@@ -381,62 +381,6 @@
   }
 
   // ═══════════════════════════════════════════════════════
-  // DISTRIBUTION KEYS
-  // ═══════════════════════════════════════════════════════
-  function initDistributionKeys() {
-    var btnAdd = document.getElementById('btnAddKey');
-    if (btnAdd) {
-      btnAdd.addEventListener('click', function() {
-        openKeyModal(null);
-      });
-    }
-
-    var keysTable = document.getElementById('distributionKeysBody');
-    if (keysTable) {
-      keysTable.addEventListener('click', function(e) {
-        var btn = e.target.closest('.btn-edit-key');
-        if (btn) {
-          var row = btn.closest('tr');
-          var keyName = row ? row.cells[0].textContent.trim() : '';
-          openKeyModal({ name: keyName });
-        }
-      });
-    }
-  }
-
-  function openKeyModal(key) {
-    var isEdit = !!key && !!key.name;
-    Shared.openModal({
-      title: isEdit ? 'Modifier la cl\u00e9 de r\u00e9partition' : 'Nouvelle cl\u00e9 de r\u00e9partition',
-      body:
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Nom de la cl\u00e9</label>' +
-          '<input class="form-input" type="text" id="keyName" value="' + escapeHtml(isEdit ? key.name : '') + '">' +
-        '</div>' +
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Base</label>' +
-          '<select class="form-input" id="keyBase">' +
-            '<option value="tantiemes">Tanti\u00e8mes</option>' +
-            '<option value="lots">Lots</option>' +
-          '</select>' +
-        '</div>' +
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Total tanti\u00e8mes</label>' +
-          '<input class="form-input" type="number" id="keyTotal" min="1" placeholder="10000">' +
-        '</div>' +
-        '<div class="form-group mb-3">' +
-          '<label class="flex items-center gap-2 text-sm"><input type="checkbox" id="keyDefault"> Cl\u00e9 par d\u00e9faut</label>' +
-        '</div>',
-      confirmText: isEdit ? 'Enregistrer' : 'Ajouter',
-      onConfirm: function(modal) {
-        var name = modal.querySelector('#keyName').value.trim();
-        if (!name) { AgToast.show('Nom requis', 'error'); return false; }
-        AgToast.show(isEdit ? 'Cl\u00e9 mise \u00e0 jour' : 'Cl\u00e9 ajout\u00e9e', 'success');
-      }
-    });
-  }
-
-  // ═══════════════════════════════════════════════════════
   // EMAIL TEMPLATES
   // ═══════════════════════════════════════════════════════
   var _currentTemplate = null;
@@ -617,7 +561,6 @@
   initTabs();
   initAutoSave();
   initQuorumPolicies();
-  initDistributionKeys();
   initEmailTemplates();
   initSmtpTest();
   initAccessibilityControls();

@@ -545,7 +545,6 @@
           <!-- Settings sub-tabs -->
           <div class="settings-tabs" role="tablist" aria-label="Onglets param&egrave;tres">
             <button class="settings-tab active" data-stab="vote-rules" role="tab" aria-selected="true">R&egrave;gles de vote</button>
-            <button class="settings-tab" data-stab="distribution-keys" role="tab">Cl&eacute;s de r&eacute;partition</button>
             <button class="settings-tab" data-stab="security" role="tab">S&eacute;curit&eacute;</button>
             <button class="settings-tab" data-stab="mail" role="tab">Courrier</button>
             <button class="settings-tab" data-stab="general" role="tab">G&eacute;n&eacute;ral</button>
@@ -569,7 +568,7 @@
                   <div class="settings-majority-card">
                     <div class="settings-majority-article">Art. 25</div>
                     <div class="settings-majority-title">Majorit&eacute; absolue</div>
-                    <div class="settings-majority-desc">Majorit&eacute; des voix de tous les copropri&eacute;taires</div>
+                    <div class="settings-majority-desc">Majorit&eacute; des voix de tous les membres</div>
                   </div>
                   <div class="settings-majority-card">
                     <div class="settings-majority-article">Art. 25-1</div>
@@ -579,12 +578,12 @@
                   <div class="settings-majority-card">
                     <div class="settings-majority-article">Art. 26</div>
                     <div class="settings-majority-title">Double majorit&eacute;</div>
-                    <div class="settings-majority-desc">2/3 des voix de tous les copropri&eacute;taires</div>
+                    <div class="settings-majority-desc">2/3 des voix de tous les membres</div>
                   </div>
                   <div class="settings-majority-card">
                     <div class="settings-majority-article">Art. 26-1</div>
                     <div class="settings-majority-title">Unanimit&eacute;</div>
-                    <div class="settings-majority-desc">Tous les copropri&eacute;taires doivent voter pour</div>
+                    <div class="settings-majority-desc">Tous les membres doivent voter pour</div>
                   </div>
                 </div>
               </div>
@@ -622,66 +621,6 @@
                     <div class="text-xs text-muted">Exiger la validation d'un second assesseur pour proclamer les r&eacute;sultats</div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ─── Clés de répartition ─── -->
-          <div class="settings-panel" id="stab-distribution-keys" hidden>
-            <div class="card">
-              <div class="card-header">
-                <div class="flex items-center justify-between">
-                  <div><h3 class="card-title">Cl&eacute;s de r&eacute;partition</h3><p class="card-description">D&eacute;finit la pond&eacute;ration des voix par lot</p></div>
-                  <button class="btn btn-primary btn-sm" id="btnAddKey">Ajouter une cl&eacute;</button>
-                </div>
-              </div>
-              <div class="card-body p-0">
-                <table class="users-table" id="distributionKeysTable">
-                  <thead>
-                    <tr>
-                      <th>Cl&eacute;</th>
-                      <th>Lots</th>
-                      <th>Base</th>
-                      <th>Total tanti&egrave;mes</th>
-                      <th>D&eacute;faut</th>
-                      <th class="table-col-actions-sm">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="distributionKeysBody">
-                    <tr>
-                      <td>G&eacute;n&eacute;ral</td>
-                      <td>120</td>
-                      <td>Tanti&egrave;mes</td>
-                      <td>10 000</td>
-                      <td><span class="badge badge-success">Oui</span></td>
-                      <td><button class="btn btn-ghost btn-xs">Modifier</button></td>
-                    </tr>
-                    <tr>
-                      <td>Ascenseur</td>
-                      <td>85</td>
-                      <td>Tanti&egrave;mes</td>
-                      <td>7 200</td>
-                      <td><span class="badge">Non</span></td>
-                      <td><button class="btn btn-ghost btn-xs">Modifier</button></td>
-                    </tr>
-                    <tr>
-                      <td>Chauffage</td>
-                      <td>120</td>
-                      <td>Tanti&egrave;mes</td>
-                      <td>10 000</td>
-                      <td><span class="badge">Non</span></td>
-                      <td><button class="btn btn-ghost btn-xs">Modifier</button></td>
-                    </tr>
-                    <tr>
-                      <td>Parking</td>
-                      <td>32</td>
-                      <td>Tanti&egrave;mes</td>
-                      <td>3 200</td>
-                      <td><span class="badge">Non</span></td>
-                      <td><button class="btn btn-ghost btn-xs">Modifier</button></td>
-                    </tr>
-                  </tbody>
-                </table>
               </div>
             </div>
           </div>
@@ -827,7 +766,7 @@
                     </div>
                     <div class="settings-template-info">
                       <div class="settings-template-name">Mise en demeure</div>
-                      <div class="settings-template-desc">Relance pour copropri&eacute;taires en retard de paiement</div>
+                      <div class="settings-template-desc">Relance pour membres en retard de paiement</div>
                     </div>
                     <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
                   </div>
