@@ -20,7 +20,7 @@
 - [x] **Phase 20.3: Page Layout Wireframe Alignment** — Page layouts aligned with wireframe density and composition (INSERTED) (completed 2026-03-18, design issues deferred to 20.4)
 - [x] **Phase 20.4: Design System Enforcement** — Systematic design reconstruction: audit each page against wireframe, clean contradictory CSS, rebuild pages to unified design language, fix JS bugs (INSERTED) (completed 2026-03-18)
 - [x] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived (completed 2026-03-18)
-- [x] **Phase 22: Final Audit** — Zero DEMO_ constants; every API call has loading/error/empty states (completed 2026-03-18)
+- [ ] **Phase 22: Final Audit** — Zero DEMO_ constants; every API call has loading/error/empty states
 
 <details>
 <summary>✅ v2.0 UI Redesign (Phases 4-15) — SHIPPED 2026-03-16</summary>
@@ -218,9 +218,13 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. A codebase search for DEMO_ returns zero results outside of test fixtures and comments
   2. Every page that makes an API call displays a loading indicator while the request is in flight, a meaningful error message when the request fails, and an appropriate empty state when the response contains no data
-**Plans:** 1/1 plans complete
+**Plans:** 2 plans
 Plans:
-- [x] 22-01-PLAN.md — Verify zero DEMO_ constants, add loading/error/empty states to 6 pages
+- [ ] 22-01-PLAN.md — Total DEMO_ eradication (config, scripts, docs, planning files)
+- [ ] 22-02-PLAN.md — Loading/error/empty states audit and fixes
+
+
+
 
 ### Future Milestones (Backlog)
 
@@ -254,4 +258,4 @@ Plans:
 | 20.3. Page Layout Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-18 |
 | 20.4. Design System Enforcement | v3.0 | 12/12 | Complete | 2026-03-18 |
 | 21. Post-Session & PV | v3.0 | 1/1 | Complete | 2026-03-18 |
-| 22. Final Audit | v3.0 | 1/1 | Complete | 2026-03-18 |
+| 22. Final Audit | v3.0 | 0/2 | Planning | - |
