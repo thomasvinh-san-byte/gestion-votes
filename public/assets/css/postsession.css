@@ -321,6 +321,186 @@
   gap: var(--space-4);
 }
 
+/* ─── RES-04: Collapsible result cards ─── */
+.result-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.result-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--color-surface);
+  overflow: hidden;
+  transition: box-shadow 200ms;
+}
+
+.result-card[open] {
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,.1));
+}
+
+.result-card-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.result-card-summary::-webkit-details-marker { display: none; }
+.result-card-summary::marker { display: none; content: ''; }
+
+.result-card-num {
+  font-weight: var(--font-semibold, 600);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.result-card-title {
+  flex: 1;
+  font-weight: var(--font-medium, 500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── RES-01: Verdict display ─── */
+.result-card-verdict {
+  font-weight: var(--font-bold, 700);
+  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md, 8px);
+  white-space: nowrap;
+}
+
+.result-adopted {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.result-rejected {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+}
+
+.result-card-verdict-large {
+  font-size: var(--text-2xl, 1.5rem);
+  font-weight: var(--font-bold, 700);
+  text-align: center;
+  padding: var(--space-4);
+}
+
+/* ─── Result card body ─── */
+.result-card-body {
+  padding: 0 var(--space-4) var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.result-card-numbers {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-3) 0;
+  font-size: var(--text-sm);
+  font-family: var(--font-mono, monospace);
+}
+
+.result-card-threshold {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ─── RES-02: CSS-only bar charts ─── */
+.result-bar-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+}
+
+.result-bar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.result-bar-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold, 600);
+  width: 90px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.result-bar-track {
+  flex: 1;
+  height: 12px;
+  background: var(--color-bg-subtle, var(--color-bg));
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.result-bar-fill {
+  height: 100%;
+  width: var(--bar-pct, 0%);
+  border-radius: var(--radius-full);
+  transition: width 400ms ease-out;
+}
+
+.result-bar-pour    { background: var(--color-success); }
+.result-bar-against { background: var(--color-danger); }
+.result-bar-abstain { background: var(--color-text-secondary); }
+
+.result-bar-pct {
+  font-size: var(--text-xs);
+  font-family: var(--font-mono, monospace);
+  white-space: nowrap;
+  min-width: 70px;
+}
+
+/* ─── RES-05: Result card footer ─── */
+.result-card-footer {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+}
+
+/* ─── RES-03: Enhanced stepper checkmarks ─── */
+.ps-seg.step-complete {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.ps-seg.step-complete:hover {
+  filter: brightness(1.08);
+}
+
+.step-complete-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: rgba(255,255,255,0.25);
+  border-radius: var(--radius-full);
+  vertical-align: middle;
+  margin-right: var(--space-1);
+}
+
+.step-complete-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
 /* ─── Fade animation ─── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
