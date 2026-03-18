@@ -56,14 +56,14 @@
 /* Active step */
 .ps-seg.active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
   font-weight: 800;
 }
 
 /* Done step — clickable */
 .ps-seg.done {
   background: var(--color-success);
-  color: #fff;
+  color: var(--color-text-inverse);
   cursor: pointer;
 }
 
@@ -451,7 +451,7 @@
   height: 100%;
   width: var(--bar-pct, 0%);
   border-radius: var(--radius-full);
-  transition: width 400ms ease-out;
+  transition: width 200ms ease-out;
 }
 
 .result-bar-pour    { background: var(--color-success); }
@@ -477,7 +477,7 @@
 /* ─── RES-03: Enhanced stepper checkmarks ─── */
 .ps-seg.step-complete {
   background: var(--color-success);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 .ps-seg.step-complete:hover {

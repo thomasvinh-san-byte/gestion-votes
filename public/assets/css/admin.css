@@ -377,7 +377,7 @@
   justify-content: center;
   font-weight: 600;
   font-size: 0.8125rem;
-  color: #fff;
+  color: var(--color-text-inverse);
   flex-shrink: 0;
 }
 
@@ -408,7 +408,7 @@
 }
 .pagination-page.active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 /* =============================================================================
@@ -496,7 +496,7 @@
 .password-strength-fill {
   height: 100%;
   border-radius: 2px;
-  transition: width var(--duration-slow), background-color var(--duration-slow);
+  transition: width var(--duration-normal), background-color var(--duration-normal);
   width: 0;
 }
 
@@ -966,7 +966,7 @@
   color: var(--color-text-dark);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
 }
 .text-size-btn:first-child { font-size: 0.875rem; }
 .text-size-btn:nth-child(2) { font-size: 1.125rem; }

@@ -272,7 +272,7 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  transition: border-color var(--duration-slow), background-color var(--duration-slow), box-shadow var(--duration-slow);
+  transition: border-color var(--duration-normal), background-color var(--duration-normal), box-shadow var(--duration-normal);
 }
 
 /* --- State: main levee (waiting) --- */
@@ -862,7 +862,7 @@
   height: 100%;
   background: var(--color-primary);
   border-radius: 3px;
-  transition: width var(--duration-slow) var(--ease-default);
+  transition: width var(--duration-normal) var(--ease-default);
 }
 
 .vote-participation-text {
@@ -1327,7 +1327,7 @@
   min-height: 56px;
   border-radius: 14px;
   border: none;
-  color: #fff;
+  color: var(--color-text-inverse);
   font-size: 1.0625rem;
   font-weight: 800;
   cursor: pointer;
