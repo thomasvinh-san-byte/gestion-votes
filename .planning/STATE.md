@@ -4,7 +4,7 @@ milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
 stopped_at: Completed 28-03 Tasks 1-2; awaiting checkpoint Task 3 (human-verify)
-last_updated: "2026-03-18T16:57:23.806Z"
+last_updated: "2026-03-18T17:26:04.087Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
