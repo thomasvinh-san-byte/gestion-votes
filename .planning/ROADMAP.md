@@ -55,7 +55,7 @@
 
 ### v4.0 Clarity & Flow (Phases 25-29) — ACTIVE
 
-- [ ] **Phase 25: PDF Infrastructure Foundation** — Secure upload, serve endpoint, storage env var, PDF.js, FilePond, ag-pdf-viewer
+- [x] **Phase 25: PDF Infrastructure Foundation** — Secure upload, serve endpoint, storage env var, PDF.js, FilePond, ag-pdf-viewer
 - [ ] **Phase 26: Guided UX Components** — ag-guide (Driver.js), ag-hint, ag-empty-state, status-aware cards, disabled-button explanations
 - [ ] **Phase 27: Copropriete Transformation** — Vocabulary cleanup, lot field removal, openKeyModal removal, weighted-vote regression test
 - [ ] **Phase 28: Wizard & Session Hub UX Overhaul** — Named-step wizard, autosave, review card, template picker, hub checklist, quorum bar
@@ -77,9 +77,9 @@
   5. Hub shows "Document joint" / "Aucun document" status per motion; clicking the indicator opens the inline ag-pdf-viewer
 **Plans:** 2/3 plans executed
 Plans:
-- [ ] 25-01-PLAN.md — Backend foundation: DB migration, controller, repository, serve endpoint, storage env var, Docker volume
-- [ ] 25-02-PLAN.md — Frontend components: ag-pdf-viewer Web Component, FilePond upload in wizard step 3
-- [ ] 25-03-PLAN.md — Page wiring: hub badges, operator upload, voter bottom sheet, SSE events
+- [x] 25-01-PLAN.md — Backend foundation: DB migration, controller, repository, serve endpoint, storage env var, Docker volume
+- [x] 25-02-PLAN.md — Frontend components: ag-pdf-viewer Web Component, FilePond upload in wizard step 3
+- [x] 25-03-PLAN.md — Page wiring: hub badges, operator upload, voter bottom sheet, SSE events
 
 ### Phase 26: Guided UX Components
 **Goal**: Users are guided through unfamiliar flows without reading a manual — tours wire the existing stub buttons, empty states replace all blank containers, and every disabled action explains itself
@@ -136,7 +136,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 25. PDF Infrastructure Foundation | 2/3 | In Progress|  |
+| 25. PDF Infrastructure Foundation | 3/3 | Complete |  |
 | 26. Guided UX Components | 0/? | Not started | - |
 | 27. Copropriete Transformation | 0/? | Not started | - |
 | 28. Wizard & Session Hub UX Overhaul | 0/? | Not started | - |

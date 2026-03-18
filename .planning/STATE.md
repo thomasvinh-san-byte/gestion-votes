@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
 status: In progress
-stopped_at: Completed 25-pdf-infrastructure-foundation 25-02-PLAN.md
-last_updated: "2026-03-18T12:00:00.000Z"
-last_activity: 2026-03-18 — Phase 25 Plan 02 complete (ag-pdf-viewer + FilePond wizard integration)
+stopped_at: Completed 25-pdf-infrastructure-foundation 25-03-PLAN.md
+last_updated: "2026-03-18T12:40:00.000Z"
+last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 10
+  completed_plans: 3
+  percent: 20
 ---
 
 # AG-VOTE — Project State
@@ -25,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 
 ## Current Position
 
-Phase: 25 (in progress)
-Plan: 02 complete — 03 next
+Phase: 25 (complete)
+Plan: 03 complete — Phase 25 done
 Status: In progress
-Last activity: 2026-03-18 — Phase 25 Plan 02 complete (ag-pdf-viewer + FilePond wizard integration)
+Last activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 
 ```
-Progress: [=         ] 10% (0/5 phases, 2/3 plans in phase 25)
+Progress: [==        ] 20% (1/5 phases, 3/3 plans in phase 25)
 ```
 
 ## Performance Metrics
@@ -71,20 +71,23 @@ v4.0-specific decisions pending (to be logged as phases complete):
 - [Phase 25-02]: ag-pdf-viewer uses CSS :host([mode][open]) attribute selectors for transitions — no JS class toggling needed
 - [Phase 25-02]: Download button hidden by attribute absence (allow-download), not CSS — voter mode omits attribute entirely (PDF-10)
 - [Phase 25-02]: FilePond revert disabled — deletions handled via custom doc card + AgConfirm.ask dialog
+- [Phase 25-03]: Voter document consultation uses ag-pdf-viewer mode=sheet — read-only, no download (PDF-10)
+- [Phase 25-03]: Hub badge click opens ag-pdf-viewer mode=panel with allow-download (operator/admin context)
+- [Phase 25-03]: Operator upload uses native FormData + fetch (no FilePond CDN dependency in live session console)
+- [Phase 25-03]: SSE document.added/removed handled inline in vote.js onEvent without full refresh() — lower latency
 
 ### Pending Todos
 
-- Plan Phase 25 (PDF Infrastructure Foundation) — run `/gsd:plan-phase 25`
 - Phase 27 can run in parallel with Phase 26 if bandwidth allows
+- Phase 25 complete — next: Phase 26 (guided tour) or Phase 27 (post-session PV)
 
 ### Blockers/Concerns
 
-- PDF.js CVE-2024-4367: must pin >= 4.2.67 and set isEvalSupported: false in Phase 25 — cannot ship viewer without this
 - Scope creep risk under "top 1% UI" language — measurable done criteria defined in VIS-08 and Phase 29 success criteria
 
 ## Session Continuity
 
-Last session: 2026-03-18T12:00:00.000Z
-Stopped at: Completed 25-pdf-infrastructure-foundation 25-02-PLAN.md
+Last session: 2026-03-18T12:40:00.000Z
+Stopped at: Completed 25-pdf-infrastructure-foundation 25-03-PLAN.md
 Resume file: None
 Next action: Execute Phase 25 Plan 03 (hub/operator/voter page integrations for PDF viewer)

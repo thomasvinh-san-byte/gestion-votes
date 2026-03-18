@@ -36,9 +36,9 @@
 - [x] **PDF-05**: Docker volume mount for persistent PDF storage
 - [x] **PDF-06**: FilePond drag-and-drop upload in wizard step 3 (PDF only, 10MB max)
 - [x] **PDF-07**: ag-pdf-viewer Web Component with inline mode (desktop) and bottom-sheet mode (mobile)
-- [ ] **PDF-08**: PDF viewer wired to wizard (upload + preview), hub (doc status + preview), voter view (consultation bottom sheet)
+- [x] **PDF-08**: PDF viewer wired to wizard (upload + preview), hub (doc status + preview), voter view (consultation bottom sheet)
 - [x] **PDF-09**: PDF.js v5.5.207+ self-hosted, pinned above CVE-2024-4367 threshold (>= 4.2.67)
-- [ ] **PDF-10**: Voter PDF consultation is read-only (no download link) in bottom-sheet overlay
+- [x] **PDF-10**: Voter PDF consultation is read-only (no download link) in bottom-sheet overlay
 
 ### Copropriété Transformation (CPR)
 
@@ -114,7 +114,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PDF-01 through PDF-10 | Phase 25 | Pending |
+| PDF-01 through PDF-10 | Phase 25 | Complete |
 | GUX-01 through GUX-08 | Phase 26 | Pending |
 | CPR-01 through CPR-05 | Phase 27 | Pending |
 | WIZ-01 through WIZ-08 | Phase 28 | Pending |
