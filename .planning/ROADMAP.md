@@ -4,7 +4,7 @@
 
 - ✅ **v1.1 through v1.5** — Phases 1-3 (shipped)
 - ✅ **v2.0 UI Redesign (Acte Officiel)** — Phases 4-15 (shipped 2026-03-16)
-- 🚧 **v3.0 Session Lifecycle** — Phases 16-23 (active)
+- 🚧 **v3.0 Session Lifecycle** — Phases 16-24 (active)
 
 ## Phases
 
@@ -22,6 +22,7 @@
 - [x] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived (completed 2026-03-18)
 - [x] **Phase 22: Final Audit** — Zero SEED_ constants; every API call has loading/error/empty states (completed 2026-03-18)
 - [x] **Phase 23: Integration Wiring Fixes** — Fix hub→operator meeting_id propagation and frozen→live vote transition (gap closure) (completed 2026-03-18)
+- [ ] **Phase 24: Final Wiring Polish** — Fire motionOpened SSE on frozen→live path; propagate meeting_id to postsession URL (gap closure)
 
 <details>
 <summary>✅ v2.0 UI Redesign (Phases 4-15) — SHIPPED 2026-03-16</summary>
@@ -242,6 +243,16 @@ Plans:
 Plans:
 - [ ] 23-01-PLAN.md — Hub meeting_id propagation + frozen-to-live endpoint branching
 
+### Phase 24: Final Wiring Polish
+**Goal**: Close remaining integration latency and UX gaps: (1) fire motionOpened SSE when opening the first vote on a frozen meeting so voters get instant push, (2) propagate meeting_id to postsession URL from hub so post-session page auto-selects the meeting
+**Depends on**: Phase 23 (builds on the frozen→live fix and hub meeting_id propagation)
+**Requirements**: VOT-01, PST-01
+**Gap Closure**: Closes latency and UX gaps from v3.0 re-audit
+**Success Criteria** (what must be TRUE):
+  1. When the operator opens the first vote on a frozen meeting, voters connected via SSE receive the motionOpened event immediately (not via 3s polling fallback)
+  2. Clicking the postsession action button on the hub page navigates to the postsession page with meeting_id in the URL, auto-selecting the meeting
+**Plans**: TBD
+
 ### Future Milestones (Backlog)
 
 **v4.0+ Feature Ideas:**
@@ -275,4 +286,5 @@ Plans:
 | 20.4. Design System Enforcement | v3.0 | 12/12 | Complete | 2026-03-18 |
 | 21. Post-Session & PV | v3.0 | 1/1 | Complete | 2026-03-18 |
 | 22. Final Audit | v3.0 | 2/2 | Complete | 2026-03-18 |
-| 23. Integration Wiring Fixes | 1/1 | Complete    | 2026-03-18 | - |
+| 23. Integration Wiring Fixes | v3.0 | 1/1 | Complete | 2026-03-18 |
+| 24. Final Wiring Polish | v3.0 | 0/TBD | Not started | - |
