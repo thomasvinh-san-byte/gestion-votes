@@ -157,26 +157,38 @@ final class ResolutionDocumentController extends AbstractController {
             api_fail('missing_id', 400);
         }
 
-        // Auth check: accept both session auth and vote token
-        // For session users: api_current_tenant_id() works
-        // For vote token holders: check if the request has a valid session or token
-        $tenantId = api_current_tenant_id();
+        // Dual auth: session users (operator/admin) OR vote token holders (voters)
+        $userId = api_current_user_id();
+
+        if ($userId !== null) {
+            // Session-authenticated user (operator/admin) — use their tenant
+            $tenantId = api_current_tenant_id();
+        } else {
+            // No session — require a vote token via ?token= query param
+            $rawToken = api_query('token');
+            if ($rawToken === '') {
+                api_fail('authentication_required', 401);
+            }
+
+            // Hash and look up the token (findByHash, not consume — voter may have already voted)
+            $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
+            $tokenRow = $this->repo()->voteToken()->findByHash($tokenHash);
+            if ($tokenRow === null) {
+                api_fail('invalid_token', 401);
+            }
+
+            $tenantId = $tokenRow['tenant_id'];
+            $tokenMeetingId = $tokenRow['meeting_id'];
+        }
 
         $doc = $this->repo()->resolutionDocument()->findById($id, $tenantId);
         if (!$doc) {
             api_fail('not_found', 404);
         }
 
-        // Meeting membership check:
-        // Session-based users (operator/admin) — tenant match is sufficient
-        // Vote token users — verify meeting_id matches their token's meeting
-        $userId = api_current_user_id();
-        if ($userId === null) {
-            // Voter token path: verify meeting_id matches the voter's session meeting
-            $sessionMeetingId = $_SESSION['meeting_id'] ?? null;
-            if ($sessionMeetingId === null || $sessionMeetingId !== $doc['meeting_id']) {
-                api_fail('access_denied', 403);
-            }
+        // For vote token users: verify the document belongs to the token's meeting
+        if ($userId === null && isset($tokenMeetingId) && $tokenMeetingId !== $doc['meeting_id']) {
+            api_fail('access_denied', 403);
         }
 
         $path = AG_UPLOAD_DIR . '/resolutions/' . $doc['motion_id'] . '/' . $doc['stored_name'];

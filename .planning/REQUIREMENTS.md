@@ -37,7 +37,7 @@
 - [x] **PDF-06**: FilePond drag-and-drop upload in wizard step 3 (PDF only, 10MB max)
 - [x] **PDF-07**: ag-pdf-viewer Web Component with inline mode (desktop) and bottom-sheet mode (mobile)
 - [x] **PDF-08**: PDF viewer wired to wizard (upload + preview), hub (doc status + preview), voter view (consultation bottom sheet)
-- [x] **PDF-09**: PDF.js v5.5.207+ self-hosted, pinned above CVE-2024-4367 threshold (>= 4.2.67)
+- [x] **PDF-09**: PDF viewer uses native browser iframe (CVE-2024-4367 does not apply); PDF.js deferred to v5+ if programmatic API needed
 - [x] **PDF-10**: Voter PDF consultation is read-only (no download link) in bottom-sheet overlay
 
 ### Copropriété Transformation (CPR)

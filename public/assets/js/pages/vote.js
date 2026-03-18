@@ -871,7 +871,13 @@
       // Voter is read-only (PDF-10) — download is intentionally not permitted
       document.body.appendChild(viewer);
     }
-    viewer.setAttribute('src', '/api/v1/resolution_document_serve?id=' + encodeURIComponent(docId));
+    // Build serve URL — append vote token if present (vote.php?token=xxx standalone mode)
+    var serveUrl = '/api/v1/resolution_document_serve?id=' + encodeURIComponent(docId);
+    var urlToken = new URLSearchParams(window.location.search).get('token');
+    if (urlToken) {
+      serveUrl += '&token=' + encodeURIComponent(urlToken);
+    }
+    viewer.setAttribute('src', serveUrl);
     viewer.setAttribute('filename', docName || 'document.pdf');
     if (typeof viewer.open === 'function') viewer.open();
   }
