@@ -110,7 +110,9 @@ Plans:
   2. The nginx configuration includes a dedicated location block for events.php with fastcgi_buffering disabled, so SSE events are pushed to the browser without batch delay
   3. PHP-FPM pool sizing for long-lived SSE connections is documented in the deploy configuration with a concrete max_children recommendation
   4. After a voter casts a ballot, the operator console tally count updates within 3 seconds via SSE without a manual page refresh
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 23-01-PLAN.md — Hub meeting_id propagation + frozen-to-live endpoint branching
 
 ### Phase 19: Operator Console Wiring
 **Goal**: The operator console loads real meeting data and all tabs are driven by live API responses
@@ -236,7 +238,9 @@ Plans:
   1. Clicking an action button on the hub page navigates to the operator console with the meeting pre-selected (meeting_id in URL or sessionStorage)
   2. Opening the first vote on a frozen meeting transitions the meeting status to live AND broadcasts meetingStatusChanged via SSE
   3. The PHP shim file public/api/v1/operator_open_vote.php exists and routes to OperatorController::openVote
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 23-01-PLAN.md — Hub meeting_id propagation + frozen-to-live endpoint branching
 
 ### Future Milestones (Backlog)
 
@@ -271,4 +275,4 @@ Plans:
 | 20.4. Design System Enforcement | v3.0 | 12/12 | Complete | 2026-03-18 |
 | 21. Post-Session & PV | v3.0 | 1/1 | Complete | 2026-03-18 |
 | 22. Final Audit | v3.0 | 2/2 | Complete | 2026-03-18 |
-| 23. Integration Wiring Fixes | v3.0 | 0/TBD | Not started | - |
+| 23. Integration Wiring Fixes | v3.0 | 0/1 | In progress | - |
