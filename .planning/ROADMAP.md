@@ -17,8 +17,9 @@
 - [x] **Phase 20: Live Vote Flow** — End-to-end vote cycle; operator tally updates in real-time via SSE (completed 2026-03-17, human-verify deferred)
 - [x] **Phase 20.1: Refonte UI** — Wireframe alignment, reduced cognitive load, FOUC fix (INSERTED) (completed 2026-03-17)
 - [x] **Phase 20.2: Deep UI Wireframe Alignment** — Align all component CSS with wireframe v3.19.2 specs (INSERTED) (completed 2026-03-17)
-- [ ] **Phase 20.3: Page Layout Wireframe Alignment** — Page layouts aligned with wireframe density and composition (INSERTED)
-- [ ] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived
+- [x] **Phase 20.3: Page Layout Wireframe Alignment** — Page layouts aligned with wireframe density and composition (INSERTED) (completed 2026-03-18, design issues deferred to 20.4)
+- [x] **Phase 20.4: Design System Enforcement** — Systematic design reconstruction: audit each page against wireframe, clean contradictory CSS, rebuild pages to unified design language, fix JS bugs (INSERTED) (completed 2026-03-18)
+- [x] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived (completed 2026-03-18)
 - [ ] **Phase 22: Final Audit** — Zero DEMO_ constants; every API call has loading/error/empty states
 
 <details>
@@ -176,6 +177,27 @@ Plans:
 - [ ] 20.3-03-PLAN.md — Dashboard zero-scroll density + hub compact + table row 8px padding
 - [ ] 20.3-04-PLAN.md — Remaining pages density pass + human verification
 
+### Phase 20.4: Design System Enforcement (INSERTED)
+
+**Goal:** Every page matches the wireframe's design language: consistent spacing, color hierarchy, typography, and component usage. JS bugs fixed along the way. All 21 pages verified at 1920x1080.
+**Requirements**: N/A (inserted design quality phase — no formal requirement IDs)
+**Depends on:** Phase 20.3
+**Plans:** 12/12 plans complete
+
+Plans:
+- [ ] 20.4-01-PLAN.md — CSS contradiction cleanup (pages.css duplicates, grid gaps, wizard re-definitions)
+- [ ] 20.4-02-PLAN.md — Dashboard reconstruction (PageDashboard wireframe alignment)
+- [ ] 20.4-03-PLAN.md — Meetings reconstruction (PageSeances wireframe alignment)
+- [ ] 20.4-04-PLAN.md — Wizard reconstruction + import button bug fix (PageWizard)
+- [ ] 20.4-05-PLAN.md — Operator console reconstruction (PageOperator wireframe alignment)
+- [ ] 20.4-06-PLAN.md — Vote + public/projection pages (PageVotant + PageEcran)
+- [ ] 20.4-07-PLAN.md — Hub reconstruction (PageHub wireframe alignment)
+- [ ] 20.4-08-PLAN.md — Post-session + settings pages (PagePostSession + PageParametres)
+- [ ] 20.4-09-PLAN.md — Secondary batch 1: admin, members, analytics, archives
+- [ ] 20.4-10-PLAN.md — Secondary batch 2: report, validate, audit, trust
+- [ ] 20.4-11-PLAN.md — Secondary batch 3: users, help, docs, email-templates
+- [ ] 20.4-12-PLAN.md — Human verification of all 21 pages at 1920x1080
+
 ### Phase 21: Post-Session & PV
 **Goal**: The post-session stepper completes all four steps and produces a valid PV PDF with the meeting archived
 **Depends on**: Phase 20 (votes must have been cast and results must exist for verification step to show real data)
@@ -185,7 +207,9 @@ Plans:
   2. Post-session step 2 triggers consolidation of official results and transitions the meeting from closed to validated; the hub checklist reflects the validated state
   3. Post-session step 3 generates a downloadable PV PDF via Dompdf containing the meeting details and vote results
   4. Post-session step 4 completes the archive action with no broken links; the export_correspondance link is absent from the UI
-**Plans**: TBD
+**Plans:** 1/1 plans complete
+Plans:
+- [x] 21-01-PLAN.md — Wire all 4 steps to correct endpoints, install Dompdf, remove dead correspondance link
 
 ### Phase 22: Final Audit
 **Goal**: The codebase contains zero demo constants and every API call site has correct loading, error, and empty states — the full lifecycle can be run end-to-end without encountering any placeholder data
@@ -195,6 +219,12 @@ Plans:
   1. A codebase search for DEMO_ returns zero results outside of test fixtures and comments
   2. Every page that makes an API call displays a loading indicator while the request is in flight, a meaningful error message when the request fails, and an appropriate empty state when the response contains no data
 **Plans**: TBD
+
+### Future Milestones (Backlog)
+
+**v4.0+ Feature Ideas:**
+- **Suivi budget & documents PDF pour votants** — Budget tracking with PDF document distribution to voters
+- **Votes pour collectivités territoriales** — Voting mode for syndicats, communes, conseils de communes, départements — assemblées générales oui, mais pas copropriété (pas de tantièmes/millièmes)
 
 ## Progress
 
@@ -219,6 +249,7 @@ Plans:
 | 20. Live Vote Flow | v3.0 | 2/2 | Complete | 2026-03-17 |
 | 20.1. Refonte UI | v3.0 | 4/4 | Complete | 2026-03-17 |
 | 20.2. Deep UI Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-17 |
-| 20.3. Page Layout Wireframe Alignment | 3/4 | In Progress|  | - |
-| 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
+| 20.3. Page Layout Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-18 |
+| 20.4. Design System Enforcement | v3.0 | 12/12 | Complete | 2026-03-18 |
+| 21. Post-Session & PV | v3.0 | 1/1 | Complete | 2026-03-18 |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |

@@ -9,7 +9,14 @@
    ============================================================================= */
 
 .app-main.email-templates-main {
-  padding: 1.5rem;
+  padding: 16px 22px;
+  padding-left: calc(var(--sidebar-rail) + 22px);
+}
+
+@media (max-width: 768px) {
+  .app-main.email-templates-main {
+    padding-left: 16px;
+  }
 }
 
 /* =============================================================================

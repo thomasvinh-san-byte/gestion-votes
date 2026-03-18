@@ -365,7 +365,7 @@
 
 .audit-table th,
 .audit-table td {
-  padding: 0.625rem 0.75rem;
+  padding: 8px 12px;
   text-align: left;
   border-bottom: 1px solid var(--color-border);
 }
@@ -386,7 +386,7 @@
   transition: background var(--duration-fast);
 }
 
-.audit-table tbody tr:hover {
+.audit-table tbody tr:hover td {
   background: var(--color-bg-subtle);
 }
 

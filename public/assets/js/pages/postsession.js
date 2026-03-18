@@ -115,7 +115,7 @@
     if (btnNext) btnNext.disabled = true;
 
     try {
-      var res = await window.api('/api/v1/meeting_motions.php?meeting_id=' + encodeURIComponent(meetingId));
+      var res = await window.api('/api/v1/motions_for_meeting.php?meeting_id=' + encodeURIComponent(meetingId));
       var d = res.body;
       if (d && d.ok && d.data) {
         var motions = d.data.items || d.data || [];
@@ -250,6 +250,13 @@
     Shared.btnLoading(btn, true);
 
     try {
+      // Consolidate official results before transitioning
+      var consRes = await window.api('/api/v1/meeting_consolidate.php', { meeting_id: meetingId });
+      if (!consRes.body || !consRes.body.ok) {
+        setNotif('error', consRes.body.error || 'Erreur de consolidation');
+        return;
+      }
+
       var res = await window.api('/api/v1/meeting_transition.php', { meeting_id: meetingId, to_status: 'validated' });
       var d = res.body;
       if (d && d.ok) {
@@ -314,7 +321,6 @@
       exportEmargement: '/api/v1/export_attendance_csv.php?meeting_id=',
       exportResultsCsv: '/api/v1/export_motions_results_csv.php?meeting_id=',
       exportAuditCsv: '/api/v1/audit_export.php?meeting_id=',
-      exportCorrespondance: '/api/v1/export_correspondance.php?meeting_id=',
       pvSummaryDownload: '/api/v1/meeting_generate_report_pdf.php?meeting_id='
     };
     Object.keys(links).forEach(function (id) {
@@ -429,7 +435,7 @@
           var btn = document.getElementById('btnArchive');
           Shared.btnLoading(btn, true);
           try {
-            var res = await window.api('/api/v1/meetings_archive.php', { meeting_id: meetingId });
+            var res = await window.api('/api/v1/meeting_transition.php', { meeting_id: meetingId, to_status: 'archived' });
             var d = res.body;
             if (d && d.ok) {
               setNotif('success', 'S\u00e9ance archiv\u00e9e');

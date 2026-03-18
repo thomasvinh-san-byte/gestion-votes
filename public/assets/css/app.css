@@ -67,7 +67,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  margin-bottom: 14px; /* wireframe v3.19.2 density — single canonical definition */
 }
 
 /* page-title & page-sub are now in design-system.css (wireframe shell) */

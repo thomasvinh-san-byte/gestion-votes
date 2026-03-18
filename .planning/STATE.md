@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
-status: completed
-stopped_at: Completed 20.3-01-PLAN.md
-last_updated: "2026-03-17T11:49:41.116Z"
-last_activity: 2026-03-17 — Plan 20.3-03 complete (dashboard zero-scroll, hub density, table compaction)
+status: executing
+stopped_at: Phase 21 complete
+last_updated: "2026-03-18T13:00:00.000Z"
+last_activity: 2026-03-18 — Phase 21 complete (post-session wiring — 4 endpoint fixes, Dompdf installed)
 progress:
-  total_phases: 10
-  completed_phases: 7
-  total_plans: 20
-  completed_plans: 19
-  percent: 100
+  total_phases: 11
+  completed_phases: 10
+  total_plans: 33
+  completed_plans: 33
+  percent: 98
 ---
 
 # AG-VOTE — Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 
 ## Current Position
 
-Phase: 20.3 of 22 (page-layout-wireframe-alignment)
-Plan: 20.3-03 (complete)
-Status: Phase 20.3 plan 03 complete — ready for next plan
-Last activity: 2026-03-17 — Plan 20.3-03 complete (dashboard zero-scroll, hub density, table compaction)
+Phase: 21 of 22 (post-session-pv) — COMPLETE
+Plan: 1 of 1 complete
+Status: Phase 21 complete — post-session stepper wired to correct endpoints
+Last activity: 2026-03-18 — Phase 21 complete (4 endpoint fixes, Dompdf installed)
 
-Progress: [██████████] 100% (v3.0 phases 16-20 complete)
+Progress: [█████████▉] 97% (32/32 plans complete)
 
 ## Performance Metrics
 
@@ -62,6 +62,17 @@ Progress: [██████████] 100% (v3.0 phases 16-20 complete)
 | Phase 20.2-deep-ui-wireframe-alignment P04 | 5min | 2 tasks | 1 files |
 | Phase 20.3-page-layout-wireframe-alignment P02 | 3min | 2 tasks | 3 files |
 | Phase 20.3-page-layout-wireframe-alignment P01 | 3 | 2 tasks | 3 files |
+| Phase 20.4 P01 | 3min | 2 tasks | 2 files |
+| Phase 20.4 P04 | 2min | 1 tasks | 1 files |
+| Phase 20.4 P02 | 2min | 1 tasks | 2 files |
+| Phase 20.4 P03 | 4min | 1 tasks | 2 files |
+| Phase 20.4 P06 | 2min | 2 tasks | 0 files |
+| Phase 20.4 P05 | 4min | 1 tasks | 1 files |
+| Phase 20.4 P08 | 1min | 2 tasks | 1 files |
+| Phase 20.4 P07 | 2min | 1 tasks | 1 files |
+| Phase 20.4 P10 | 2min | 1 tasks | 2 files |
+| Phase 20.4 P11 | 3min | 1 tasks | 1 files |
+| Phase 20.4 P09 | 5min | 2 tasks | 3 files |
 
 ### Decisions
 
@@ -108,6 +119,19 @@ Recent decisions affecting current work:
 - [Phase 20.3-page-layout-wireframe-alignment]: Wizard .wiz-step uses margin-top:auto on .step-nav (flex column) over sticky/fixed to avoid visual gap on short steps
 - [Phase 20.3-page-layout-wireframe-alignment]: Additive class approach: added operator-split/left/right as extra classes on existing .op-split/.op-panel/.op-sidebar — preserves all JS IDs, zero refactor risk
 - [Phase 20.3-page-layout-wireframe-alignment]: Flex column chain for zero-scroll: app-main (flex col, overflow:hidden) > view-exec (flex:1, flex col) > operator-split (flex:1, min-height:0) > panels
+- [Phase 20.4]: Task 1 duplicate CSS removals already resolved in prior phases 20.1-20.3 — verified clean, no changes needed
+- [Phase 20.4]: wizard.css .grid-2 removed entirely — pages.css provides identical global definition; .field-label/.field-input/.flex-between kept (no design-system.css equivalent)
+- [Phase 20.4]: No CSS changes needed for wizard wireframe alignment -- layout already correct after Plan 01 cleanup
+- [Phase 20.4]: KPI grid forced to repeat(4,1fr) via .kpi-grid.dashboard-grid scoped selector; panel padding 16px, shortcut icon 40x40 per wireframe
+- [Phase 20.4]: meetings-main uses default .app-main padding (16px 22px) -- no page-specific override needed; filter pills gap 6px and font-size 14px per wireframe
+- [Phase 20.4]: Vote and public pages already fully aligned with wireframe v3.19.2 -- no CSS changes needed after prior phases
+- [Phase 20.4]: Higher-specificity selectors replace !important for responsive border resets in operator.css
+- [Phase 20.4]: Action bar uses flex-shrink:0 instead of position:sticky for overflow:hidden flex column compatibility
+- [Phase 20.4]: Post-session and settings pages already fully aligned (LOW severity) -- only stepper margin-bottom 14px->18px needed
+- [Phase 20.4]: Hub font sizes aligned to wireframe 14px baseline; checklist density 5px padding per wireframe
+- [Phase 20.4]: audit.css !important replaced with scoped .audit-table .audit-col-check selector; trust.css table padding aligned to 8px 12px; tr:hover td pattern enforced
+- [Phase 20.4]: Email-templates padding aligned to standard 16px 22px with sidebar-rail offset instead of flat 1.5rem
+- [Phase 20.4]: Members .member-card: explicit border:none and border-radius:0 to override app.css individual-card styling; separator-line pattern preserved
 
 ### Roadmap Evolution
 
@@ -124,6 +148,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T11:49:41.113Z
-Stopped at: Completed 20.3-01-PLAN.md
+Last session: 2026-03-18T12:00:00.000Z
+Stopped at: Phase 20.4 complete
 Resume file: None

@@ -13,10 +13,7 @@
   padding: 1.5rem;
 }
 
-.app-main.meetings-main {
-  padding: 0;
-  padding-left: calc(var(--sidebar-rail) + 22px);
-}
+/* meetings-main: use default .app-main padding (16px 22px) from design-system.css */
 
 /* =============================================================================
    CALENDAR VIEW
@@ -173,12 +170,12 @@
    TAB TOOLBAR
    ============================================================================= */
 
+/* consolidated — margin-bottom set in compaction block near line 1284 (14px wireframe density) */
 .tab-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
@@ -504,10 +501,10 @@
   box-shadow: var(--shadow-xs);
 }
 
+/* inherited from .card-clickable — translateY(-2px) already in design-system.css */
 .meeting-card:hover {
   border-color: var(--color-primary);
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .meeting-card-header {
@@ -913,11 +910,11 @@
    SECTION HEADER
    ============================================================================= */
 
+/* consolidated — see .section-header block near line 1277 (14px wireframe density) */
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--color-border);
   flex-wrap: wrap;
@@ -1005,28 +1002,29 @@
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-5, 1.25rem);
+  gap: 10px; /* wireframe v3.19.2 density */
 }
 
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-5, 1.25rem);
+  gap: 10px; /* wireframe v3.19.2 density */
+}
+
+/* KPI grid: forced 4 columns + 10px gap (wireframe grid-4 pattern) */
+.kpi-grid.dashboard-grid {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
 }
 
 /* Major sections: compacted to 14px for zero-scroll at 1080px (wireframe v3.19.2) */
-.app-main > .kpi-grid.dashboard-grid,
-.app-main > .grid-2.dashboard-grid,
-.app-main > .grid-3.dashboard-shortcuts {
-  margin-bottom: 14px;
-}
-
 .dashboard-grid {
   margin-bottom: 14px;
 }
 
+/* Dashboard panels: wireframe inline style={{padding:16}} */
 .dashboard-panel {
-  padding: 14px;
+  padding: 16px;
 }
 
 .dashboard-panel .flex-between {
@@ -1061,7 +1059,7 @@
 
 /* Compact KPI card padding for zero-scroll at 1080px (wireframe v3.19.2) */
 .kpi-grid.dashboard-grid .kpi-card {
-  padding: 12px 10px;
+  padding: 12px 8px;
 }
 
 /* KPI values are the focal point */
@@ -1098,9 +1096,9 @@
 }
 
 .shortcut-card-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1264,9 +1262,7 @@
    PAGE-HEADER COMPACTION — wireframe v3.19.2 density (14px spacing)
    ============================================================================= */
 
-.page-header {
-  margin-bottom: 14px;
-}
+/* consolidated — page-header margin-bottom defined in app.css (single canonical place) */
 
 .page-header h1,
 .page-header .page-title {
@@ -1289,9 +1285,7 @@
    ============================================================================= */
 
 @media (max-width: 768px) {
-  .app-main.meetings-main {
-    padding-left: 0;
-  }
+  /* meetings-main responsive handled in meetings.css */
 
   .settings-grid {
     grid-template-columns: 1fr;

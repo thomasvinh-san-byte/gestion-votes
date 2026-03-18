@@ -147,7 +147,7 @@
 }
 
 .hub-stepper-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 1.2px;
   text-transform: uppercase;
@@ -422,7 +422,7 @@
 }
 
 .hub-checklist-title {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
 }
 
@@ -433,7 +433,7 @@
 }
 
 .hub-checklist-bar {
-  height: 4px;
+  height: 8px;
   background: var(--color-border);
   border-radius: var(--radius-sm, 4px);
   overflow: hidden;
@@ -451,7 +451,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 0;
+  padding: 5px 0;
   border-bottom: 1px solid var(--color-border-subtle);
   font-size: var(--text-sm, 0.875rem);
   transition: background .15s ease;
@@ -525,7 +525,7 @@
 }
 
 .hub-documents-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--color-text);
   display: flex;
@@ -548,7 +548,7 @@
 .hub-doc-link {
   color: var(--color-primary);
   text-decoration: none;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   flex: 1;
 }
@@ -558,7 +558,7 @@
 }
 
 .hub-doc-size {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--color-text-muted);
 }
 
@@ -630,13 +630,13 @@
 }
 
 .hub-kpi-card-label {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--color-text);
 }
 
 .hub-kpi-card-detail {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 
@@ -649,7 +649,7 @@
 }
 
 .hub-warn-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--color-warning);
   display: flex;
@@ -659,7 +659,7 @@
 }
 
 .hub-warn-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-muted);
   margin-bottom: 10px;
 }
