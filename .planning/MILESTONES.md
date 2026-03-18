@@ -1,5 +1,14 @@
 # Milestones
 
+## v3.0 Session Lifecycle (Shipped: 2026-03-18)
+
+**Phases completed:** 13 phases, 37 plans, 4 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v2.0 UI Redesign (Shipped: 2026-03-16)
 
 **Scope:** Align all pages and components with AG-Vote v3.19.2 "Acte Officiel" wireframe

@@ -24,32 +24,22 @@ A **self-hosted, open-source** alternative to commercial voting platforms for or
 - **No-framework PHP + vanilla JS** — minimal dependencies, maximum control
 - **Docker-first** deployment — single container with nginx + php-fpm
 - **PWA-ready** — service worker, offline capability
-- **Real-time** — SSE (Server-Sent Events) for live voting updates
+- **Real-time** — SSE (Server-Sent Events) for live voting updates with Redis fan-out
 
 ## Current State
 
-AG-VOTE is a **brownfield project** with a mature feature set:
+AG-VOTE is a **brownfield project** with a fully wired session lifecycle:
 - 38 PHP controllers, 30+ repositories, 18 services
 - 20 custom Web Components, 29 page JS modules
 - Full design system with 64 CSS tokens, dark/light theme switching
-- 119 HTML/CSS/JS frontend files, 59,330 LOC
+- ~80,000 LOC (27k JS, 30k PHP, 24k CSS)
 - PHPUnit test suite (20+ test files), E2E suite (21 specs, ~230+ tests)
-- All 16 pages aligned with wireframe v3.19.2 "Acte Officiel"
+- All pages aligned with wireframe v3.19.2 "Acte Officiel"
+- Dompdf ^3.1 installed for PV PDF generation
+
+**Shipped v3.0 Session Lifecycle** (2026-03-18): Full session lifecycle wired end-to-end — wizard creates real sessions with atomic member+motion persistence, SSE multi-consumer infrastructure with Redis fan-out, live vote flow (operator opens/closes motions, voters cast ballots via SSE), post-session stepper (verified results, consolidation, PV PDF, archival), zero demo constants, every API call has loading/error/empty states.
 
 **Shipped v2.0 UI Redesign** (2026-03-16): Complete visual overhaul across all pages — design tokens, navigation, dashboard, sessions, wizard, hub, operator console, room display, voter view, post-session, archives, audit, statistics, users, settings, help/FAQ.
-
-## Current Milestone: v3.0 Session Lifecycle
-
-**Goal:** Wire the full session lifecycle end-to-end with real backend data, SSE real-time updates, and zero placeholders — transforming the v2.0 UI shell into a working product.
-
-**Target features:**
-- Session creation wizard → real API POST → redirect to hub with persisted session
-- Hub loads real session data, checklist reflects actual state
-- Operator console receives live vote data via SSE, KPIs update in real-time
-- Room display and voter view connected to live session state
-- Vote results persisted, PV generation functional
-- Dashboard shows real session counts and statuses from DB
-- All demo/fallback data removed — errors shown when backend unavailable
 
 ## Requirements
 
@@ -60,15 +50,12 @@ AG-VOTE is a **brownfield project** with a mature feature set:
 - v1.3: Unused var cleanup (142→0), innerHTML security, CI lint gate
 - v1.4: 100% controller tests, Permissions-Policy header, dead code audit
 - v1.5: E2E coverage expansion (21 specs, ~230+ tests), version 1.5.0
-- v2.0: Design system alignment (64 tokens, dark/light), navigation & layout (sidebar rail/expand, header, mobile nav, footer, ARIA), dashboard & sessions (KPIs, list/calendar, filters), wizard & hub (4-step accordion, status tracking), operator console (live KPIs, resolution tabs, quorum modal), room display & voter view (full-screen dark, touch-optimized), post-session & records (stepper, archives, audit log), statistics & users (charts, export, role panel, pagination), settings & help (4 tabs, FAQ, guided tours), component library (modal, toast, confirm, popover, progress, tour, banner)
+- v2.0: Design system alignment (64 tokens, dark/light), navigation & layout, dashboard & sessions, wizard & hub, operator console, room display & voter view, post-session & records, statistics & users, settings & help, component library
+- v3.0: Session creation wizard (atomic persistence), hub/dashboard real data, SSE multi-consumer infrastructure, operator console API wiring, live vote flow (open/cast/close/tally via SSE), post-session stepper (results/consolidation/PV PDF/archival), zero demo constants, loading/error/empty states on all pages, hub→operator meeting_id propagation, frozen→live transition with motionOpened SSE
 
 ### Active
 
-- [ ] Full-stack session lifecycle: create → members → votes → results → PV
-- [ ] Backend API completeness: all endpoints exist and return real data
-- [ ] Frontend-backend wiring: zero demo data, zero silent fallbacks
-- [ ] Real-time voting: SSE for live vote updates, operator KPIs auto-refresh
-- [ ] Data persistence: all state survives page reload
+(No active requirements — next milestone not started)
 
 ### Out of Scope
 
@@ -77,21 +64,27 @@ AG-VOTE is a **brownfield project** with a mature feature set:
 - Mobile native app — PWA approach maintained
 - Multi-database support — PostgreSQL only
 - Electronic signature upload/validation (deferred to later)
-- Non-session pages (statistics, audit, help, settings) — session core first
+- Copropriété management — explicitly excluded (pas de tantièmes/millièmes)
 
 ## Context
 
-The wireframe files (`ag_vote_wireframe.html`, `docs/wireframe/ag_vote_v3_19_2.html`) on the main branch defined the target UI for v2.0. All 16 pages now match the wireframe v3.19.2 specification. The codebase uses Bricolage Grotesque (body), Fraunces (display), JetBrains Mono (data) typography.
+The wireframe files (`ag_vote_wireframe.html`, `docs/wireframe/ag_vote_v3_19_2.html`) on the main branch defined the target UI for v2.0. All pages match the wireframe v3.19.2 specification. The codebase uses Bricolage Grotesque (body), Fraunces (display), JetBrains Mono (data) typography.
 
 Known technical debt:
-- Phases 10.1 and 10.2 (gap closure) were planned but superseded by Phases 14-15
-- Some duplicate phase directories exist from re-planning (11-post-session-records vs 11-postsession-records)
-- Phase 5 plan 04 was a verification-only plan, not a feature plan
+- admin.js KPI load failure catch is silent (non-blocking, admin-only page)
+- PST-01-04 verified manually + by integration checker (no E2E specs for postsession stepper)
+- Phase 20.4 VERIFICATION.md has human_needed visual items pending review
+
+Deferred ideas from v3.0:
+- Retrait copropriété — remove all copropriete-related code from codebase
+- PDFs résolutions — attach PDF documents to resolutions, with voter consultation access
+- Suivi budget & documents PDF pour votants
+- Votes pour collectivités territoriales (syndicats, communes, départements)
 
 ## Constraints
 
 - **Tech stack**: No-framework PHP + vanilla JS + Web Components — no change
-- **Design reference**: Wireframe v3.19.2 "Acte Officiel" was the source of truth for v2.0
+- **Design reference**: Wireframe v3.19.2 "Acte Officiel" remains the visual source of truth
 - **Backward compatibility**: Existing functionality preserved
 - **Accessibility**: WCAG AA compliance maintained (skip links, ARIA landmarks, focus indicators)
 
@@ -107,6 +100,10 @@ Known technical debt:
 | IIFE + var pattern | Keep existing JS conventions, no ES modules for page scripts | ✓ Good — consistent with vanilla stack identity |
 | One CSS per page | Each page gets dedicated CSS file (wizard.css, hub.css, etc.) | ✓ Good — clean separation |
 | Web Components for shared UI | ag-modal, ag-toast, ag-confirm, ag-popover, ag-searchable-select | ✓ Good — reusable across pages |
+| Redis SSE fan-out | Per-consumer Redis lists for multi-consumer SSE delivery | ✓ Good — scales without Redis Pub/Sub blocking |
+| LOAD_SEED_DATA rename | LOAD_DEMO_DATA renamed for production clarity | ✓ Good — zero demo references in codebase |
+| Frozen→live via operator_open_vote | Atomic status transition + SSE broadcast when opening first vote | ✓ Good — clean state machine path |
+| Gap closure phases 23-24 | Address integration wiring gaps found by milestone audit | ✓ Good — caught hub→operator handoff and frozen→live SSE gaps |
 
 ---
-*Last updated: 2026-03-16 after v3.0 milestone started*
+*Last updated: 2026-03-18 after v3.0 milestone shipped*
