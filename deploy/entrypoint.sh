@@ -25,8 +25,8 @@ if [ "$APP_ENV" = "production" ] || [ "$APP_ENV" = "prod" ]; then
     echo "        Générer avec: php -r \"echo bin2hex(random_bytes(32));\""
     FAIL=1
   fi
-  if [ "$LOAD_DEMO_DATA" = "1" ]; then
-    echo "[FATAL] LOAD_DEMO_DATA=1 interdit en production."
+  if [ "$LOAD_SEED_DATA" = "1" ]; then
+    echo "[FATAL] LOAD_SEED_DATA=1 interdit en production."
     FAIL=1
   fi
   if [ "$FAIL" = "1" ]; then
@@ -90,8 +90,8 @@ if [ "$TABLE_COUNT" -lt 5 ]; then
   echo "Base vide, application du schema..."
   pg -f /var/www/database/schema-master.sql
 
-  if [ "${LOAD_DEMO_DATA:-1}" = "1" ]; then
-    echo "Chargement des donnees de demo..."
+  if [ "${LOAD_SEED_DATA:-1}" = "1" ]; then
+    echo "Chargement des donnees de seed..."
     pg -f /var/www/database/seeds/01_minimal.sql
     pg -f /var/www/database/seeds/02_test_users.sql
     pg -f /var/www/database/seeds/03_demo.sql

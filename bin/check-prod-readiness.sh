@@ -91,10 +91,10 @@ else
     fail "RATE_LIMIT_ENABLED=$RATE_LIMIT_ENABLED (doit être 1 en prod)"
 fi
 
-if [ "$LOAD_DEMO_DATA" = "0" ] || [ -z "$LOAD_DEMO_DATA" ]; then
-    ok "LOAD_DEMO_DATA=0 (pas de données de test)"
+if [ "$LOAD_SEED_DATA" = "0" ] || [ -z "$LOAD_SEED_DATA" ]; then
+    ok "LOAD_SEED_DATA=0 (pas de donnees de test)"
 else
-    fail "LOAD_DEMO_DATA=$LOAD_DEMO_DATA (doit être 0 en prod !)"
+    fail "LOAD_SEED_DATA=$LOAD_SEED_DATA (doit etre 0 en prod !)"
 fi
 
 echo ""

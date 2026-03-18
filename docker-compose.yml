@@ -42,8 +42,8 @@ services:
       REDIS_PASSWORD: "${REDIS_PASSWORD:-agvote-redis-dev}"
       # --- CORS ---
       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080}"
-      # --- Demo data ---
-      LOAD_DEMO_DATA: "${LOAD_DEMO_DATA:-1}"
+      # --- Seed data ---
+      LOAD_SEED_DATA: "${LOAD_SEED_DATA:-1}"
     volumes:
       - app-storage:/tmp/ag-vote    # logs, cache PDF, fonts
     depends_on:

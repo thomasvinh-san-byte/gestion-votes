@@ -58,8 +58,8 @@ services:
       - key: RATE_LIMIT_ENABLED
         value: "1"
 
-      # --- Pas de données de démo ---
-      - key: LOAD_DEMO_DATA
+      # --- Pas de donnees de seed ---
+      - key: LOAD_SEED_DATA
         value: "0"
 
       # --- À configurer manuellement dans le dashboard Render ---

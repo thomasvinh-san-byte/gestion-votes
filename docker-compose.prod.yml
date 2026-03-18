@@ -25,7 +25,7 @@ services:
       APP_AUTH_ENABLED: "1"
       CSRF_ENABLED: "1"
       RATE_LIMIT_ENABLED: "1"
-      LOAD_DEMO_DATA: "0"
+      LOAD_SEED_DATA: "0"
       DB_DSN: "pgsql:host=db;port=5432;dbname=${DB_DATABASE:-vote_app};sslmode=prefer"
       DB_HOST: db
       DB_PORT: 5432

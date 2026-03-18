@@ -42,7 +42,7 @@ services:
         fromDatabase:
           name: ag-vote-db
           property: password
-      - key: LOAD_DEMO_DATA
+      - key: LOAD_SEED_DATA
         value: "1"
       - key: APP_ENV
         value: demo
