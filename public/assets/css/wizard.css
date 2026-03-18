@@ -4,7 +4,26 @@
  * Styles for the 4-step session creation wizard including stepper progress bar,
  * step panels, form layout, resolution list, member list, upload zone, and recap.
  * All values use Phase 4 design-system tokens (never wireframe legacy tokens).
+ *
+ * Design language: Notion-like — generous spacing, strong typography, subtle shadows.
+ * All selectors scoped under .wiz-*, .step-nav, .reso-*, .member-*, .review-*, .wf-step.
+ * NEVER redefines global classes (.btn, .card) — those live in design-system.css.
  */
+
+/* =============================================================================
+   STEP FADE ANIMATION
+   ============================================================================= */
+
+@keyframes wizFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 
 /* =============================================================================
    STEPPER PROGRESS BAR
@@ -17,8 +36,10 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+  padding: 4px;
+  gap: 4px;
 }
 
 .wiz-step-item {
@@ -26,23 +47,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 11px 14px;
-  border-right: 1px solid var(--color-border);
-  font-size: 12px;
+  padding: 12px 16px;
+  font-size: 0.8125rem;  /* 13px */
   font-weight: 600;
   color: var(--color-text-muted);
-  transition: background .2s;
-  position: relative;
   cursor: pointer;
-}
-
-.wiz-step-item:last-child {
-  border-right: none;
+  border-radius: var(--radius);
+  transition: background 0.15s ease;
+  position: relative;
 }
 
 .wiz-step-item.done {
   color: var(--color-success);
-  background: color-mix(in srgb, var(--color-success) 5%, transparent);
+  background: color-mix(in srgb, var(--color-success) 6%, transparent);
 }
 
 .wiz-step-item.active {
@@ -55,22 +72,23 @@
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 8px;
+  right: 8px;
   height: 3px;
   background: var(--color-primary);
+  border-radius: 2px;
 }
 
 /* Step number circle */
 .wiz-snum {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--color-bg-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 0.6875rem;  /* 11px */
   font-weight: 800;
   flex-shrink: 0;
 }
@@ -86,18 +104,42 @@
 }
 
 /* =============================================================================
+   STEP CARD AND BODY
+   ============================================================================= */
+
+.wiz-step {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+  animation: wizFadeIn 150ms ease-out;
+}
+
+/* Scrollable body inside step card */
+.wiz-step-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 2rem 2.5rem;
+}
+
+/* =============================================================================
    STEP PANEL HEADER
    ============================================================================= */
 
 .wf-step {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 1.375rem;  /* 22px */
   color: var(--color-text);
-  padding: 0 0 14px 0;
-  margin-bottom: 14px;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
@@ -105,21 +147,21 @@
   background: var(--color-success);
   color: #fff;
   padding: 10px 14px;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  margin: -1.5rem -1.5rem 1rem -1.5rem;
+  border-radius: var(--radius) var(--radius) 0 0;
+  margin: -2rem -2.5rem 1rem -2.5rem;
 }
 
 .wf-step-num {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: var(--color-bg-subtle);
+  background: var(--color-primary-subtle);
   color: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 14px;
+  font-size: 0.8125rem;  /* 13px */
   flex-shrink: 0;
 }
 
@@ -129,11 +171,11 @@
 
 .step-nav {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   justify-content: flex-end;
-  margin-top: auto;       /* push to bottom in flex column card */
   flex-shrink: 0;
-  padding-top: 14px;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
   border-top: 1px solid var(--color-border-subtle);
 }
 
@@ -152,61 +194,63 @@
    ============================================================================= */
 
 .wiz-section {
-  margin-bottom: 14px;
+  margin-bottom: 1.5rem;
 }
 
 .wiz-section-title {
-  font-size: 12px;
+  font-size: 0.6875rem;  /* 11px */
   font-weight: 800;
-  color: var(--color-text);
-  margin-bottom: 8px;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.08em;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .wiz-required-note {
-  margin-bottom: 12px;
-  font-size: 13px;
+  margin-bottom: 1rem;
+  font-size: 0.8125rem;  /* 13px */
   color: var(--color-text-muted);
 }
 
-.field-label {
+/* Scoped field label — override default only inside wizard step body */
+.wiz-step-body .field-label {
   display: block;
-  font-size: 12px;
+  font-size: 0.75rem;  /* 12px */
   font-weight: 700;
   color: var(--color-text-muted);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
 }
 
-.field-input {
+/* Scoped field input — richer padding inside wizard step body */
+.wiz-step-body .field-input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px 14px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   background: var(--color-surface);
   color: var(--color-text);
-  font-size: 14px;
+  font-size: 0.9375rem;  /* 15px */
   transition: border-color .15s ease;
 }
 
-.field-input:focus {
+.wiz-step-body .field-input:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-subtle);
 }
 
-.field-input.field-error {
+.wiz-step-body .field-input.field-error {
   border-color: var(--color-danger);
   background: var(--color-danger-subtle);
 }
 
 .field-error-msg {
-  font-size: 12px;
+  font-size: 0.75rem;  /* 12px */
   color: var(--color-danger);
   margin-top: 4px;
   display: none;
@@ -216,14 +260,12 @@
   display: block;
 }
 
-/* Grid layouts — .grid-2 defined globally in pages.css (10px wireframe gap) */
+/* Grid layouts */
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px; /* wireframe v3.19.2 density */
+  gap: 10px;
 }
-
-/* .grid-2 removed — uses global definition from pages.css */
 
 .flex-between {
   display: flex;
@@ -232,7 +274,10 @@
   gap: 8px;
 }
 
-/* Time input row */
+/* =============================================================================
+   TIME INPUT
+   ============================================================================= */
+
 .time-input-wrap {
   display: flex;
   align-items: center;
@@ -249,7 +294,7 @@
   font-family: var(--font-mono);
   font-weight: 700;
   letter-spacing: 1px;
-  padding: 8px 6px;
+  padding: 10px 8px;
 }
 
 .time-input-hh {
@@ -279,15 +324,188 @@
 }
 
 /* =============================================================================
+   VOTING POWER TOGGLE
+   ============================================================================= */
+
+.wiz-toggle-row {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: 1rem;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;  /* 14px */
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 2.5rem;
+  height: 1.375rem;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--color-border);
+  border-radius: 0.75rem;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toggle-label input[type="checkbox"]::after {
+  content: '';
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: white;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s ease;
+}
+
+.toggle-label input[type="checkbox"]:checked {
+  background: var(--color-primary);
+}
+
+.toggle-label input[type="checkbox"]:checked::after {
+  transform: translateX(1.125rem);
+}
+
+/* =============================================================================
+   MEMBER INLINE ADD FORM
+   ============================================================================= */
+
+.wiz-member-add-form {
+  padding: 1rem;
+  background: var(--color-bg-subtle);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.member-votes-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* =============================================================================
+   MEMBER LIST
+   ============================================================================= */
+
+.members-action-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.member-row:last-child {
+  border-bottom: none;
+}
+
+.member-name {
+  flex: 1;
+  font-size: 0.875rem;  /* 14px */
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.member-votes {
+  font-size: 0.8125rem;  /* 13px */
+  color: var(--color-text-muted);
+  font-weight: 600;
+  min-width: 60px;
+  text-align: right;
+}
+
+.member-actions {
+  flex-shrink: 0;
+}
+
+.members-total-row {
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.members-total-label {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.members-total-votes {
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+/* =============================================================================
+   MOTION TEMPLATE BUTTONS
+   ============================================================================= */
+
+.wiz-templates-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 1rem 0;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.wiz-templates-label {
+  font-size: 0.75rem;  /* 12px */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.wiz-template-btn {
+  padding: 5px 12px;
+  font-size: 0.8125rem;  /* 13px */
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.wiz-template-btn:hover {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* =============================================================================
    ADD RESOLUTION FORM PANEL
    ============================================================================= */
 
 .reso-add-panel {
-  padding: 14px;
-  border: 1.5px dashed var(--color-primary);
-  border-radius: var(--radius-sm);
-  background: var(--color-primary-subtle);
-  margin-bottom: 14px;
+  background: var(--color-bg-subtle);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-border-subtle);
 }
 
 .reso-add-title {
@@ -314,7 +532,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 0;
+  padding: 1rem 0;
   border-bottom: 1px solid var(--color-border-subtle);
   cursor: grab;
 }
@@ -355,6 +573,7 @@
   font-size: 11px;
   font-weight: 800;
   flex-shrink: 0;
+  font-family: var(--font-mono);
 }
 
 .reso-body {
@@ -363,8 +582,8 @@
 }
 
 .reso-title {
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 0.9375rem;  /* 15px */
   color: var(--color-text);
   margin-bottom: 2px;
 }
@@ -388,38 +607,129 @@
 }
 
 /* =============================================================================
-   MEMBER LIST
+   REVIEW CARD (Step 4 — sectioned recap)
    ============================================================================= */
 
-.member-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
+.review-section {
+  padding: 1.25rem 0;
   border-bottom: 1px solid var(--color-border-subtle);
-  font-size: 13px;
 }
 
-.member-row:last-child {
+.review-section:last-child {
   border-bottom: none;
 }
 
-.member-name {
-  flex: 1;
-  font-weight: 600;
-  color: var(--color-text);
+.review-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.625rem;
 }
 
-.member-votes {
-  font-weight: 700;
+.review-section-title {
+  font-size: 0.6875rem;  /* 11px */
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.review-modifier {
+  font-size: 0.75rem;  /* 12px */
+  font-weight: 600;
   color: var(--color-primary);
-  font-size: 12px;
-  min-width: 50px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.review-modifier:hover {
+  background: var(--color-primary-subtle);
+}
+
+.review-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.review-label {
+  font-size: 0.8125rem;  /* 13px */
+  color: var(--color-text-muted);
+}
+
+.review-value {
+  font-size: 0.8125rem;  /* 13px */
+  font-weight: 600;
+  color: var(--color-text);
   text-align: right;
 }
 
-.member-actions {
-  flex-shrink: 0;
+.review-row-block {
+  padding: 6px 0;
+}
+
+.review-warning {
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  border-left: 3px solid var(--color-warning);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.8125rem;
+  color: var(--color-warning);
+  margin-top: 8px;
+}
+
+.review-empty {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.review-reso-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.review-reso-list li {
+  font-size: 0.8125rem;
+  padding: 4px 0;
+  color: var(--color-text);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+/* =============================================================================
+   SECRET VOTE CHIPS ROW
+   ============================================================================= */
+
+.chips-row {
+  display: flex;
+  gap: 4px;
+}
+
+.chip {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-text-muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.chip.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
 }
 
 /* =============================================================================
@@ -428,10 +738,10 @@
 
 .upload-zone {
   background: var(--color-bg-subtle);
-  border-radius: var(--radius-sm);
-  padding: 16px;
+  border-radius: 10px;
+  padding: 2rem;
   text-align: center;
-  border: 1.5px dashed var(--color-border);
+  border: 2px dashed var(--color-border);
   margin-bottom: 12px;
   transition: border-color .2s, background .2s;
 }
@@ -449,42 +759,16 @@
 }
 
 /* =============================================================================
-   MEMBERS ACTION ROW
-   ============================================================================= */
-
-.members-action-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.members-total-row {
-  padding: 10px 0;
-  border-top: 1px solid var(--color-border-subtle);
-  margin-top: 8px;
-}
-
-.members-total-label {
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.members-total-votes {
-  font-weight: 800;
-  color: var(--color-primary);
-}
-
-/* =============================================================================
    CONTEXT PANEL (tip/guide)
    ============================================================================= */
 
 .ctx-panel {
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   padding: 10px 12px;
   font-size: 13px;
   color: var(--color-text-muted);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .ctx-panel h4 {
@@ -513,45 +797,9 @@
   margin-bottom: 0;
 }
 
-/* =============================================================================
-   RECAP SECTION (Step 4)
-   ============================================================================= */
-
-.recap-section {
-  margin-bottom: 16px;
-}
-
-.recap-heading {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--color-text-muted);
-  margin-bottom: 8px;
-}
-
-.recap-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.recap-row:last-child {
-  border-bottom: none;
-}
-
-.recap-label {
-  color: var(--color-text-muted);
-  font-size: 13px;
-}
-
-.recap-value {
-  font-weight: 700;
-  color: var(--color-text);
-  font-size: 13px;
-  text-align: right;
+/* Alert inside wizard step */
+.wiz-step .alert {
+  border-radius: 8px;
 }
 
 /* =============================================================================
@@ -601,36 +849,18 @@
 }
 
 /* =============================================================================
-   STEP CARD — flex column so step-nav pins at bottom
-   ============================================================================= */
-
-.wiz-step {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-/* Scrollable body inside step card */
-.wiz-step-body {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-/* =============================================================================
-   SECRET VOTE CHIPS ROW
-   ============================================================================= */
-
-.chips-row {
-  display: flex;
-  gap: 4px;
-}
-
-/* =============================================================================
    RESPONSIVE
    ============================================================================= */
 
 @media (max-width: 768px) {
+  .wiz-step-body {
+    padding: 1.25rem 1rem;
+  }
+
+  .wf-step-success {
+    margin: -1.25rem -1rem 1rem -1rem;
+  }
+
   .grid-4 {
     grid-template-columns: 1fr;
   }
@@ -664,7 +894,7 @@
 
 @media (max-width: 480px) {
   .wf-step {
-    font-size: 13px;
+    font-size: 1.125rem;
   }
 
   .reso-add-panel {
