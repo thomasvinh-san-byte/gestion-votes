@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
-stopped_at: Phase 28 context gathered
-last_updated: "2026-03-18T15:56:32.610Z"
+stopped_at: Completed 28-wizard-session-hub-ux-overhaul 28-02-PLAN.md
+last_updated: "2026-03-18T16:48:23.686Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 11
+  completed_plans: 9
   percent: 20
 ---
 
@@ -49,6 +49,7 @@ Progress: [==        ] 20% (1/5 phases, 3/3 plans in phase 25)
 | Phase 26-guided-ux-components P03 | 4 | 2 tasks | 9 files |
 | Phase 27-copropriete-transformation P01 | 5 | 2 tasks | 10 files |
 | Phase 27-copropriete-transformation P02 | 15 | 2 tasks | 11 files |
+| Phase 28-wizard-session-hub-ux-overhaul P02 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ v4.0-specific decisions pending (to be logged as phases complete):
 - [Phase 27-copropriete-transformation]: Copropriete transformation is vocabulary-only: voting_power, BallotsService, tantieme CSV alias all preserved — value='tantiemes' in select options unchanged
 - [Phase 27-copropriete-transformation]: Root ag_vote_wireframe.html is stale copy — vocabulary cleaned to match docs/wireframe; future: remove or symlink
 - [Phase 27-copropriete-transformation]: Phase 27 vocabulary transformation complete: zero copropri matches outside ImportService.php CSV aliases and LOT- seed data
+- [Phase 28-wizard-session-hub-ux-overhaul]: [Phase 28-02]: ag-quorum-bar wired via setAttribute on current/required/total/label attributes — reactively re-renders on change; quorumRequired defaults to Math.ceil(memberCount*0.5)+1 from quorum_policy presence
+- [Phase 28-wizard-session-hub-ux-overhaul]: [Phase 28-02]: hubConvocationSection hidden when convocationsSent=true OR memberCount=0; motions array from data.resolutions first, data.motions fallback
 
 ### Pending Todos
 
@@ -103,7 +106,7 @@ v4.0-specific decisions pending (to be logged as phases complete):
 
 ## Session Continuity
 
-Last session: 2026-03-18T15:56:32.597Z
-Stopped at: Phase 28 context gathered
-Resume file: .planning/phases/28-wizard-session-hub-ux-overhaul/28-CONTEXT.md
+Last session: 2026-03-18T16:48:23.680Z
+Stopped at: Completed 28-wizard-session-hub-ux-overhaul 28-02-PLAN.md
+Resume file: None
 Next action: Execute Phase 25 Plan 03 (hub/operator/voter page integrations for PDF viewer)
