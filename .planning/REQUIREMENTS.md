@@ -29,11 +29,11 @@
 
 ### PDF Résolutions (PDF)
 
-- [ ] **PDF-01**: resolution_documents DB table and migration (tenant_id, meeting_id, motion_id, stored_name, mime_type, file_size, uploaded_by)
-- [ ] **PDF-02**: ResolutionDocumentController with upload, list, delete, and authenticated serve endpoint
-- [ ] **PDF-03**: Secure serve endpoint — validates auth + tenant + meeting membership, serves with correct security headers (X-Content-Type-Options, Cache-Control)
-- [ ] **PDF-04**: AGVOTE_UPLOAD_DIR env var replacing hardcoded /tmp/ag-vote path in all upload controllers
-- [ ] **PDF-05**: Docker volume mount for persistent PDF storage
+- [x] **PDF-01**: resolution_documents DB table and migration (tenant_id, meeting_id, motion_id, stored_name, mime_type, file_size, uploaded_by)
+- [x] **PDF-02**: ResolutionDocumentController with upload, list, delete, and authenticated serve endpoint
+- [x] **PDF-03**: Secure serve endpoint — validates auth + tenant + meeting membership, serves with correct security headers (X-Content-Type-Options, Cache-Control)
+- [x] **PDF-04**: AGVOTE_UPLOAD_DIR env var replacing hardcoded /tmp/ag-vote path in all upload controllers
+- [x] **PDF-05**: Docker volume mount for persistent PDF storage
 - [ ] **PDF-06**: FilePond drag-and-drop upload in wizard step 3 (PDF only, 10MB max)
 - [ ] **PDF-07**: ag-pdf-viewer Web Component with inline mode (desktop) and bottom-sheet mode (mobile)
 - [ ] **PDF-08**: PDF viewer wired to wizard (upload + preview), hub (doc status + preview), voter view (consultation bottom sheet)

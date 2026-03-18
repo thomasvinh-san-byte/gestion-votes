@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
 status: Roadmap defined
-stopped_at: Phase 25 context gathered
-last_updated: "2026-03-18T10:57:04.013Z"
+stopped_at: Completed 25-pdf-infrastructure-foundation 25-01-PLAN.md
+last_updated: "2026-03-18T11:28:54.460Z"
 last_activity: 2026-03-18 — Roadmap v4.0 phases 25-29 created
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -42,6 +42,7 @@ Progress: [          ] 0% (0/5 phases)
 | Requirements mapped | 55/55 |
 | Plans created | 0 |
 | Plans completed | 0 |
+| Phase 25-pdf-infrastructure-foundation P01 | 5 | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,9 @@ v4.0-specific decisions pending (to be logged as phases complete):
 - PDF.js prebuilt viewer via native iframe (defer custom toolbar to v5+)
 - Driver.js v1.4.0 (MIT) chosen over Shepherd.js (AGPL) and Intro.js (AGPL)
 - Copropriété transformation is vocabulary-only: voting_power, BallotsService, tantième CSV alias all preserved
+- [Phase 25-01]: AG_UPLOAD_DIR defaults to /var/agvote/uploads (persistent Docker volume), not /tmp — closes P0 ephemeral storage blocker
+- [Phase 25-01]: resolution_document serve route uses 'role'=>'public' with explicit auth inside controller — allows vote token holders to access PDFs
+- [Phase 25-01]: meeting_id redundant on resolution_documents (avoids JOIN on tenant access-control check) — matches meeting_attachments pattern
 
 ### Pending Todos
 
@@ -76,7 +80,7 @@ v4.0-specific decisions pending (to be logged as phases complete):
 
 ## Session Continuity
 
-Last session: 2026-03-18T10:57:04.011Z
-Stopped at: Phase 25 context gathered
-Resume file: .planning/phases/25-pdf-infrastructure-foundation/25-CONTEXT.md
+Last session: 2026-03-18T11:28:54.457Z
+Stopped at: Completed 25-pdf-infrastructure-foundation 25-01-PLAN.md
+Resume file: None
 Next action: `/gsd:plan-phase 25`
