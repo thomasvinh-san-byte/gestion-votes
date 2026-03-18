@@ -83,7 +83,7 @@ class WorkflowValidationTest extends TestCase {
 
         $validInput = [
             'title' => 'Assemblée Générale 2026',
-            'description' => 'AG annuelle des copropriétaires',
+            'description' => 'AG annuelle des membres',
             'location' => 'Salle des fêtes',
             'scheduled_at' => '2026-03-15 14:00:00',
         ];
