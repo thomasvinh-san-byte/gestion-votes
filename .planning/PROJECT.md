@@ -59,7 +59,16 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-(No active requirements — next milestone not started)
+**Current Milestone: v4.1 "Design Excellence"**
+
+**Goal:** Achieve top 1% visual quality across every page — complete HTML+CSS+JS refonte with research-driven layout, composition, typography, spacing, and visual hierarchy. Light-first design inspired by the best governance/voting platforms.
+
+**Target:**
+- Full visual refonte of every page (HTML + CSS + JS restructuring)
+- Coherent design language applied uniformly — no more per-page inconsistencies
+- Research-driven layouts from top governance/assembly/SaaS apps
+- Light-first design, dark mode parity maintained
+- Every page must look professionally designed, not AI-generated
 
 ### Out of Scope
 
@@ -114,4 +123,4 @@ Deferred ideas from v3.0:
 | PC-first approach | Optimize for 1024px+, mobile only for voter screen | — Pending |
 
 ---
-*Last updated: 2026-03-18 after v4.0 milestone shipped*
+*Last updated: 2026-03-18 after v4.1 milestone started*
