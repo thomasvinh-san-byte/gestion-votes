@@ -28,6 +28,7 @@
  *   - <ag-tz-picker>        : Timezone selector
  *   - <ag-stepper>          : Horizontal stepper
  *   - <ag-confirm>          : Promise-based confirm dialog
+ *   - <ag-pdf-viewer>       : PDF viewer with inline, sheet, panel modes
  */
 
 // Import all components (each file registers its own custom element)
@@ -53,6 +54,7 @@ import './ag-time-input.js';
 import './ag-tz-picker.js';
 import './ag-stepper.js';
 import './ag-confirm.js';
+import './ag-pdf-viewer.js';
 
 // Export for programmatic use
 export { default as AgKpi } from './ag-kpi.js';
@@ -75,6 +77,7 @@ export { default as AgTimeInput } from './ag-time-input.js';
 export { default as AgTzPicker } from './ag-tz-picker.js';
 export { default as AgStepper } from './ag-stepper.js';
 export { default as AgConfirm } from './ag-confirm.js';
+export { default as AgPdfViewer } from './ag-pdf-viewer.js';
 
 // Log registration in development
 if (window.AG_DEBUG) {
@@ -82,6 +85,6 @@ if (window.AG_DEBUG) {
     'ag-kpi', 'ag-badge', 'ag-spinner', 'ag-toast', 'ag-quorum-bar', 'ag-vote-button',
     'ag-popover', 'ag-searchable-select', 'ag-modal', 'ag-pagination', 'ag-breadcrumb',
     'ag-scroll-top', 'ag-page-header', 'ag-donut', 'ag-mini-bar', 'ag-tooltip',
-    'ag-time-input', 'ag-tz-picker', 'ag-stepper', 'ag-confirm'
+    'ag-time-input', 'ag-tz-picker', 'ag-stepper', 'ag-confirm', 'ag-pdf-viewer'
   ]);
 }
