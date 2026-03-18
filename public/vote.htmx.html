@@ -36,7 +36,7 @@
     </div>
   </noscript>
 
-  <div class="vote-app" id="voteApp">
+  <div class="vote-app" id="voteApp" data-vote-state="waiting">
     <!-- Page header -->
     <header class="page-header" role="banner">
       <div>
@@ -96,11 +96,21 @@
 
     <!-- Main content -->
     <main class="vote-main" id="main-content" role="main">
+      <!-- Waiting state (shown when no vote is open) -->
+      <div class="vote-waiting-state" id="voteWaitingState">
+        <p class="vote-waiting-text">En attente d'un vote</p>
+      </div>
+
+      <!-- Confirmed state (shown for 3s after vote registered) -->
+      <div class="vote-confirmed-state" id="voteConfirmedState" hidden>
+        <p class="vote-confirmed-text">Vote enregistr&#233; &#x2713;</p>
+      </div>
+
       <!-- Loading indicator (replaced by vote.js on data load) -->
       <div id="voteLoadingState" class="text-center p-6" aria-busy="true">
-        <div class="skeleton skeleton-text skeleton-w-60" style="margin:0 auto 0.5rem"></div>
-        <div class="skeleton skeleton-text skeleton-w-80" style="margin:0 auto 0.5rem"></div>
-        <div class="skeleton skeleton-text skeleton-w-40" style="margin:0 auto"></div>
+        <div class="skeleton skeleton-text skeleton-w-60 vote-skeleton-row"></div>
+        <div class="skeleton skeleton-text skeleton-w-80 vote-skeleton-row"></div>
+        <div class="skeleton skeleton-text skeleton-w-40 vote-skeleton-center"></div>
       </div>
       <!-- Speech panel -->
       <section class="speech-panel" id="speechBox" aria-label="Demande de parole">
@@ -168,11 +178,6 @@
           </button>
         </div>
       </section>
-      <style>
-        #btnConsultDocument { margin-top: 8px; font-size: 13px; }
-        .motion-card-footer { padding: 0 1rem 0.75rem; }
-      </style>
-
       <!-- Vote section -->
       <div class="vote-section" id="vote-buttons">
         <div class="vote-section-header">
@@ -182,6 +187,7 @@
           </div>
         </div>
         <div class="vote-section-body">
+          <p class="vote-irreversible-notice" id="voteIrreversibleNotice">Votre vote sera d&#233;finitif et irr&#233;versible.</p>
           <div class="vote-buttons" role="group" aria-label="Choix de vote">
             <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled aria-pressed="false" aria-describedby="motionTitle">
               <span class="vote-btn-kbd" aria-hidden="true">1</span>

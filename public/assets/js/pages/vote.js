@@ -932,6 +932,7 @@
       updateVoteParticipation(null);
       updateVoteTimer(null);
       setVoteButtonsEnabled(false);
+      setVoteAppState('waiting');
       return;
     }
 
@@ -953,6 +954,7 @@
         updateVoteParticipation(null);
         updateVoteTimer(null);
         setVoteButtonsEnabled(false);
+        setVoteAppState('waiting');
         return;
       }
       var _prevMotionId = _currentMotionId;
@@ -966,6 +968,7 @@
       updateVoteParticipation(d);
       updateVoteTimer(m);
       setVoteButtonsEnabled(!!memberId && !_isAbsent);
+      setVoteAppState('voting');
     } catch(e){
       updateMotionCard(null);
       updateMotionProgress(null, null);
@@ -974,6 +977,7 @@
       const title = $('#motionTitle');
       if (title) title.textContent = 'Erreur: ' + (e?.message || String(e));
       setVoteButtonsEnabled(false);
+      setVoteAppState('waiting');
     }
   }
 
@@ -1175,22 +1179,14 @@
     // Wire document consultation button (PDF-08 / PDF-10)
     wireConsultDocBtn();
 
-    // Only bind direct cast if no confirmation overlay (vote.htmx.html has its own overlay calling submitVote)
-    if (!document.getElementById('confirmationOverlay')) {
-      document.querySelectorAll('[data-choice]').forEach(btn=>{
-        btn.addEventListener('click', async ()=>{
-          const allBtns = document.querySelectorAll('[data-choice]');
-          allBtns.forEach(b => b.disabled = true);
-          try {
-            await cast(btn.dataset.choice);
-          } catch(e) {
-            notify('error', e?.message || String(e));
-          } finally {
-            allBtns.forEach(b => b.disabled = false);
-          }
-        });
+    // Wire vote buttons to optimistic flow (VOT-02, VOT-03, VOT-05)
+    // This replaces the confirmation overlay flow — buttons use castVoteOptimistic directly.
+    // The #confirmationOverlay HTML is kept in DOM as accessibility fallback but hidden by default.
+    document.querySelectorAll('[data-choice]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        castVoteOptimistic(btn.dataset.choice);
       });
-    }
+    });
 
     // Handle invitation token BEFORE loading meetings
     // This resolves meeting_id + member_id from the token so loadMeetings can auto-select
@@ -1291,6 +1287,85 @@
       });
     }
   }
+
+  // ── Vote app state management (VOT-01 to VOT-05) ───────────────────
+
+  /**
+   * Set the data-vote-state attribute on #voteApp.
+   * States: 'waiting' | 'voting' | 'confirmed'
+   * CSS selectors use this attribute for full-screen mode and visibility rules.
+   * @param {string} state
+   */
+  function setVoteAppState(state) {
+    var app = document.getElementById('voteApp');
+    if (app) app.dataset.voteState = state;
+  }
+
+  /**
+   * Show confirmed state for 3 seconds then return to waiting.
+   */
+  function showConfirmationState() {
+    setVoteAppState('confirmed');
+    setTimeout(function() { setVoteAppState('waiting'); }, 3000);
+  }
+
+  /**
+   * Show an inline error message via ag-toast or fallback notify.
+   * @param {string} msg
+   */
+  function showInlineError(msg) {
+    if (window.AgToast) {
+      window.AgToast.error(msg);
+    } else {
+      notify('error', msg);
+    }
+  }
+
+  /**
+   * Apply visual selection state to a vote button and disable all buttons.
+   * Provides instant (<50ms) visual feedback before server response.
+   * @param {string} choice - 'for' | 'against' | 'abstain' | 'blanc'
+   */
+  function setVoteSelected(choice) {
+    document.querySelectorAll('.vote-btn').forEach(function(btn) {
+      btn.classList.toggle('vote-btn-selected', btn.dataset.choice === choice);
+      btn.disabled = true;
+    });
+  }
+
+  /**
+   * Roll back optimistic selection — remove visual state and re-enable buttons.
+   * Called on server error.
+   * @param {string} choice - Vote choice to roll back (unused but kept for symmetry)
+   */
+  function rollbackVote(choice) {
+    document.querySelectorAll('.vote-btn').forEach(function(btn) {
+      btn.classList.remove('vote-btn-selected');
+      btn.disabled = false;
+    });
+  }
+
+  /**
+   * Cast a vote with optimistic UI — instant visual feedback, background POST,
+   * rollback on server error. Replaces confirmation overlay flow per VOT-03.
+   * @param {string} choice - 'for' | 'against' | 'abstain' | 'blanc'
+   */
+  function castVoteOptimistic(choice) {
+    // 1. Instant visual feedback (<50ms — synchronous DOM update)
+    setVoteSelected(choice);
+
+    // 2. Background server submission
+    cast(choice)
+      .then(function() {
+        showConfirmationState();
+      })
+      .catch(function(e) {
+        rollbackVote(choice);
+        showInlineError((e && e.message) ? e.message : 'Vote non enregistre -- reessayez');
+      });
+  }
+
+  // ── End vote app state management ──────────────────────────────────
 
   // Expose cast as global submitVote for vote.htmx.html confirmation overlay
   window.submitVote = cast;
