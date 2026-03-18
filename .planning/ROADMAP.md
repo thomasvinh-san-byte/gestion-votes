@@ -122,7 +122,11 @@ Plans:
   4. Step 2's advanced voting settings are hidden behind a toggle ("Parametres de vote avances") and only appear when the toggle is activated
   5. The session hub pre-meeting checklist shows which items are blocked and why ("Disponible apres: resolutions ajoutees") with a quorum progress bar that animates from amber to green once quorum is reached
   6. Each motion in the hub displays "Document joint" or "Aucun document" as its document status
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 28-01-PLAN.md — Wizard functional overhaul: named stepper, optional steps, review card, templates, progressive disclosure
+- [ ] 28-02-PLAN.md — Hub enhancements: checklist blocked reasons, quorum bar, motions doc badges, convocation flow
+- [ ] 28-03-PLAN.md — CSS rewrite: Notion-like aesthetic for wizard.css and hub.css + visual checkpoint
 
 ### Phase 29: Operator Console, Voter View & Visual Polish
 **Goal**: The live session experience is flawless under pressure — operators see real-time status at a glance, voters cast ballots in one tap with instant feedback, results are unambiguous, and every page meets measurable visual quality criteria
@@ -146,7 +150,7 @@ Plans:
 | 25. PDF Infrastructure Foundation | 3/3 | Complete    | 2026-03-18 |
 | 26. Guided UX Components | 3/3 | Complete    | 2026-03-18 |
 | 27. Copropriete Transformation | 2/2 | Complete    | 2026-03-18 |
-| 28. Wizard & Session Hub UX Overhaul | 0/? | Not started | - |
+| 28. Wizard & Session Hub UX Overhaul | 0/3 | Planned | - |
 | 29. Operator Console, Voter View & Visual Polish | 0/? | Not started | - |
 
 ---
