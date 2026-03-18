@@ -3,6 +3,7 @@
    All hub-specific classes for hub.htmx.html
    Migrated from operator.css (Phase 6.2) + new status bar, standalone
    checklist, documents panel, and additional layout classes (Phase 8.2)
+   v4.0 Notion-like aesthetic rewrite (Phase 28-03)
    ============================================================================= */
 
 /* ─── App.css / design-system already loaded via app.css ─── */
@@ -16,11 +17,13 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 10px 14px;
-  background: linear-gradient(135deg, var(--color-bg-subtle) 0%, var(--color-surface) 100%);
+  padding: 1.25rem 1.5rem;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg, 12px);
-  margin-bottom: 14px;
+  border-top: 3px solid var(--persona-operateur, var(--color-primary));
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
 }
 
 .hub-identity-icon {
@@ -54,7 +57,8 @@
 
 /* hub-identity-date is the existing id="hubTitle" class used in the page */
 .hub-identity-date {
-  font-size: 1rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-text);
 }
@@ -62,7 +66,7 @@
 .hub-identity-meta {
   display: flex;
   gap: 0.75rem;
-  font-size: var(--text-xs, 0.75rem);
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   margin-top: 0.25rem;
   flex-wrap: wrap;
@@ -82,14 +86,14 @@
 }
 
 /* =============================================================================
-   HORIZONTAL STATUS BAR (HUB-01)
+   HORIZONTAL STATUS BAR
    ============================================================================= */
 
 .hub-status-bar {
   display: flex;
-  gap: 3px;
-  margin-bottom: 14px;
-  border-radius: var(--radius-sm, 4px);
+  gap: 4px;
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -97,14 +101,14 @@
   flex: 1;
   height: 6px;
   border-radius: 0;
-  transition: all .3s ease;
+  transition: all 0.3s ease;
   position: relative;
   cursor: default;
 }
 
 .hub-bar-segment.active {
   height: 10px;
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm);
 }
 
 .hub-bar-label {
@@ -123,7 +127,7 @@
     background: var(--color-surface-raised, var(--color-surface));
     color: var(--color-text);
     padding: 3px 8px;
-    border-radius: var(--radius-sm, 4px);
+    border-radius: var(--radius-sm);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-sm);
     z-index: 10;
@@ -136,20 +140,20 @@
 
 .hub-layout-body {
   display: flex;
-  gap: 24px;
+  gap: 2rem;
   align-items: flex-start;
   flex-wrap: wrap;
 }
 
 .hub-stepper-col {
-  width: 220px;
+  width: 240px;
   flex-shrink: 0;
 }
 
 .hub-stepper-label {
-  font-size: 13px;
+  font-size: 0.6875rem;  /* 11px */
   font-weight: 800;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-muted);
   padding-left: 8px;
@@ -169,11 +173,12 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg, 12px);
+  border-radius: 12px;
   margin-bottom: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
 }
 
 /* hub-step-row is the existing button variant used in hub.js renderStepper */
@@ -190,7 +195,7 @@
   text-align: left;
   color: inherit;
   transition: background .15s ease;
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm);
 }
 
 .hub-step-row:hover {
@@ -236,8 +241,8 @@
 }
 
 .hub-step-num {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 2px solid var(--color-border);
   background: var(--color-surface);
@@ -262,12 +267,12 @@
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--color-text-inverse);
-  box-shadow: 0 0 0 4px var(--color-primary-glow, rgba(22,80,224,.18));
+  box-shadow: 0 0 0 4px var(--color-primary-glow, rgba(22, 80, 224, .18));
 }
 
 .hub-step-dot {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 2px solid var(--color-border);
   background: var(--color-surface);
@@ -292,7 +297,7 @@
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--color-text-inverse);
-  box-shadow: 0 0 0 4px var(--color-primary-glow, rgba(22,80,224,.18));
+  box-shadow: 0 0 0 4px var(--color-primary-glow, rgba(22, 80, 224, .18));
 }
 
 .hub-step-content {
@@ -325,7 +330,7 @@
 }
 
 .hub-step-desc {
-  font-size: var(--text-xs, 0.75rem);
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   margin-top: 0.125rem;
 }
@@ -338,18 +343,19 @@
 }
 
 /* =============================================================================
-   ACTION CARD (HUB-02)
+   ACTION CARD
    ============================================================================= */
 
 .hub-action {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 14px;
-  background: linear-gradient(135deg, var(--color-primary-subtle) 0%, var(--color-surface) 100%);
-  border: 2px solid var(--color-primary);
-  border-radius: var(--radius-lg, 12px);
-  margin-bottom: 14px;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
 }
 
 .hub-action-header {
@@ -362,7 +368,7 @@
 .hub-action-icon {
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius);
   background: var(--color-primary);
   color: var(--color-text-inverse);
   display: flex;
@@ -377,13 +383,14 @@
 }
 
 .hub-action-title {
-  font-size: 0.95rem;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
   font-weight: 700;
 }
 
 .hub-action-desc {
-  font-size: var(--text-sm, 0.875rem);
-  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
   margin-top: 0.125rem;
 }
 
@@ -403,15 +410,16 @@
 }
 
 /* =============================================================================
-   STANDALONE PREPARATION CHECKLIST (HUB-04)
+   PREPARATION CHECKLIST
    ============================================================================= */
 
 .hub-checklist {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg, 12px);
-  padding: 14px;
-  margin-bottom: 14px;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
 }
 
 .hub-checklist-header {
@@ -435,7 +443,7 @@
 .hub-checklist-bar {
   height: 8px;
   background: var(--color-border);
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   margin-bottom: 10px;
 }
@@ -443,17 +451,17 @@
 .hub-checklist-bar-fill {
   height: 100%;
   background: var(--color-success);
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm);
   transition: width .3s ease;
 }
 
 .hub-check-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
-  padding: 5px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--color-border-subtle);
-  font-size: var(--text-sm, 0.875rem);
+  font-size: 0.875rem;
   transition: background .15s ease;
 }
 
@@ -481,6 +489,7 @@
   flex-shrink: 0;
   font-size: 0.65rem;
   color: transparent;
+  margin-top: 1px;
 }
 
 .hub-check-item.done .hub-check-icon {
@@ -505,16 +514,117 @@
   font-style: italic;
 }
 
+/* NEW: blocked reason — muted italic amber text shown below checklist label */
+.hub-check-blocked {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-warning);
+  font-style: italic;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
 /* =============================================================================
-   DOCUMENTS PANEL (HUB-05)
+   QUORUM SECTION
+   ============================================================================= */
+
+.hub-quorum-section {
+  margin-bottom: 1.25rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.hub-quorum-section ag-quorum-bar {
+  display: block;
+}
+
+/* =============================================================================
+   MOTIONS LIST
+   ============================================================================= */
+
+.hub-motions-section {
+  margin-bottom: 1.25rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.hub-motions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.hub-motions-title {
+  font-size: 0.6875rem;  /* 11px */
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.hub-motion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.hub-motion-item:last-child {
+  border-bottom: none;
+}
+
+.hub-motion-num {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 28px;
+}
+
+.hub-motion-title {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =============================================================================
+   CONVOCATION SECTION
+   ============================================================================= */
+
+.hub-convocation-section {
+  margin-bottom: 1.25rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+/* =============================================================================
+   DOCUMENTS PANEL
    ============================================================================= */
 
 .hub-documents {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg, 12px);
+  border-radius: 10px;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
 }
 
 .hub-documents-header {
@@ -562,25 +672,8 @@
   color: var(--color-text-muted);
 }
 
-/* KPI value color variants (static per KPI card) */
-.hub-kpi-value-num.color-primary { color: var(--color-primary); }
-.hub-kpi-value-num.color-success { color: var(--color-success); }
-.hub-kpi-value-num.color-warning { color: var(--color-warning); }
-.hub-kpi-value-num.color-danger  { color: var(--color-danger); }
-
-/* KPI grid spacing */
-.hub-kpi-grid {
-  margin-bottom: 14px;
-}
-
-/* Footer link subtle */
-.hub-footer-link {
-  text-decoration: none;
-  color: var(--color-text-muted);
-}
-
 /* =============================================================================
-   DETAILS TOGGLE / SECONDARY CONVOCATION
+   DETAILS TOGGLE
    ============================================================================= */
 
 .hub-details-toggle {
@@ -588,10 +681,10 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 10px 14px;
+  padding: 0.75rem 1rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
+  border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
@@ -614,15 +707,31 @@
   padding-top: 14px;
 }
 
-/* KPI cards in hub details */
+/* =============================================================================
+   KPI GRID
+   ============================================================================= */
+
+.hub-kpi-grid {
+  margin-bottom: 14px;
+}
+
+/* KPI value color variants */
+.hub-kpi-value-num.color-primary { color: var(--color-primary); }
+.hub-kpi-value-num.color-success { color: var(--color-success); }
+.hub-kpi-value-num.color-warning { color: var(--color-warning); }
+.hub-kpi-value-num.color-danger  { color: var(--color-danger); }
+
 .hub-kpi-card {
-  padding: 14px;
+  padding: 1rem;
+  border-radius: 10px;
   text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
 .hub-kpi-value-num {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 20px;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
   font-weight: 700;
   margin: 2px 0;
   letter-spacing: -0.5px;
@@ -640,12 +749,52 @@
   color: var(--color-text-muted);
 }
 
-/* Secondary convocation warning card */
+/* =============================================================================
+   KPIs ROW (inline metrics)
+   ============================================================================= */
+
+.hub-kpis {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hub-kpi {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+  padding: 0.75rem;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius);
+}
+
+.hub-kpi-value {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text-dark, var(--color-text));
+}
+
+.hub-kpi-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+/* =============================================================================
+   WARN CARD
+   ============================================================================= */
+
 .hub-warn-card {
-  border: 2px dashed var(--color-warning);
-  background: var(--color-warning-subtle);
-  padding: 14px;
-  border-radius: var(--radius-lg, 12px);
+  padding: 1.25rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-warning) 6%, transparent);
+  border: 1px solid var(--color-warning-border);
+  margin-bottom: 1rem;
 }
 
 .hub-warn-title {
@@ -665,15 +814,29 @@
 }
 
 /* =============================================================================
-   ACCORDION (operator.css copy — shared pattern)
+   ERROR STATE
+   ============================================================================= */
+
+.hub-error {
+  padding: 1.5rem;
+  border-radius: 10px;
+  background: var(--color-danger-subtle);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger);
+  text-align: center;
+}
+
+/* =============================================================================
+   ACCORDION
    ============================================================================= */
 
 .hub-accordion {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg, 12px);
+  border-radius: 12px;
   margin-bottom: 1.25rem;
   overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
 }
 
 .hub-accordion-item {
@@ -729,42 +892,7 @@
 }
 
 /* =============================================================================
-   KPIs ROW (operator.css copy — shared pattern)
-   ============================================================================= */
-
-.hub-kpis {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.hub-kpi {
-  flex: 1;
-  min-width: 100px;
-  text-align: center;
-  padding: 0.75rem;
-  background: var(--color-bg-subtle);
-  border-radius: var(--radius-md, 8px);
-}
-
-.hub-kpi-value {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.hub-kpi-label {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  margin-top: 0.25rem;
-}
-
-/* =============================================================================
-   HUB LAYOUT (operator.css copy — shared pattern)
+   HUB LAYOUT (sidebar + main)
    ============================================================================= */
 
 .hub-layout {
@@ -785,8 +913,13 @@
 }
 
 /* =============================================================================
-   FOOTER SMALL ELEMENTS
+   FOOTER
    ============================================================================= */
+
+.hub-footer-link {
+  text-decoration: none;
+  color: var(--color-text-muted);
+}
 
 .hub-footer-logo {
   font-size: 12px;
@@ -802,6 +935,16 @@
 
 .hub-spacer {
   flex: 1;
+}
+
+/* Statuses */
+.hub-status-live {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.hub-status-draft {
+  color: var(--color-text-muted);
 }
 
 /* =============================================================================
@@ -835,63 +978,38 @@
 }
 
 @media (max-width: 768px) {
+  .hub-layout-body {
+    flex-direction: column;
+  }
+
+  .hub-stepper-col {
+    width: 100%;
+  }
+
   .hub-identity {
     flex-direction: column;
     text-align: center;
     gap: 0.75rem;
   }
+
   .hub-identity-meta {
     justify-content: center;
   }
+
   .hub-identity-actions {
     justify-content: center;
   }
+
   .hub-action {
     flex-direction: column;
     text-align: center;
   }
+
   .hub-kpis {
     gap: 0.5rem;
   }
+
   .hub-kpi {
     min-width: 80px;
   }
-}
-
-/* =============================================================================
-   VISUAL HIERARCHY — Hub color accents (wireframe v3.19.2)
-   ============================================================================= */
-
-/* Hub identity card: persona accent top border */
-.hub-identity {
-  border-top: 3px solid var(--persona-operateur, var(--color-primary));
-}
-
-/* Hub KPI items: colored values */
-.hub-kpi-value {
-  color: var(--color-text-dark, var(--color-text));
-}
-
-/* Hub checklist items: colored check icons */
-.hub-checklist-item.done .hub-checklist-icon {
-  color: var(--color-success);
-}
-
-.hub-checklist-item.pending .hub-checklist-icon {
-  color: var(--color-warning);
-}
-
-/* Hub action buttons: accent colored icons */
-.hub-action .icon {
-  color: var(--color-primary);
-}
-
-/* Hub status bar: colored status text */
-.hub-status-live {
-  color: var(--color-success);
-  font-weight: 700;
-}
-
-.hub-status-draft {
-  color: var(--color-text-muted);
 }
