@@ -1,4 +1,4 @@
-# Phase 22: Final Audit - Context
+# Phase 22: Audit - Context
 
 **Gathered:** 2026-03-18
 **Status:** Ready for planning
@@ -6,7 +6,9 @@
 <domain>
 ## Phase Boundary
 
-Verify the codebase contains zero demo constants and every API call site has correct loading, error, and empty states. The full lifecycle can be run end-to-end without encountering any placeholder data. Two-plan structure: Plan 1 for DEMO_ eradication, Plan 2 for loading/error/empty audit and fixes.
+Intermediate audit — NOT the final phase of the project. Verify the codebase contains zero demo constants and every API call site has correct loading, error, and empty states. The session lifecycle can be run end-to-end without encountering any placeholder data. Two-plan structure: Plan 1 for DEMO_ eradication, Plan 2 for loading/error/empty audit and fixes.
+
+Note: Additional phases will follow (retrait copropriété, PDFs résolutions, etc.). This audit closes out the v3.0 CLN requirements, not the project.
 
 Requirements: CLN-01 (zero DEMO_ constants), CLN-02 (every API call has loading/error/empty states).
 
