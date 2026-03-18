@@ -135,7 +135,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .overview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
+  gap: 10px;
   margin-bottom: 14px;
 }
 
@@ -236,7 +236,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1rem;
+  gap: 10px;
   margin-bottom: 14px;
 }
 
@@ -323,7 +323,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 .data-table th,
 .data-table td {
-  padding: 0.75rem 1rem;
+  padding: 8px 12px;
   text-align: left;
   border-bottom: 1px solid var(--color-border);
 }
