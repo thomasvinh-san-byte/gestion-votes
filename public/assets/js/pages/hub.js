@@ -416,9 +416,9 @@
           renderChecklist(sessionData);
           var files = Array.isArray(data.documents) ? data.documents : [];
           renderDocuments(files);
-          // HUB-01: Propagate meeting_id to operator-bound action buttons
+          // HUB-01: Propagate meeting_id to operator-bound and postsession action buttons
           HUB_STEPS.forEach(function(s) {
-            if (s.dest && s.dest.indexOf('/operator.htmx.html') === 0) {
+            if (s.dest && (s.dest.indexOf('/operator.htmx.html') === 0 || s.dest.indexOf('/postsession.htmx.html') === 0)) {
               var u = new URL(s.dest, window.location.origin);
               u.searchParams.set('meeting_id', sessionId);
               s.dest = u.pathname + u.search;
