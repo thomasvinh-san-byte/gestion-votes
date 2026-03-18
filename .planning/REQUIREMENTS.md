@@ -15,7 +15,7 @@ Requirements for v3.0 release. Each maps to roadmap phases.
 
 ### Hub & Dashboard
 
-- [ ] **HUB-01**: Le hub charge l'état réel de la session via l'API wizard_status (zéro donnée démo)
+- [x] **HUB-01**: Le hub charge l'état réel de la session via l'API wizard_status (zéro donnée démo)
 - [x] **HUB-02**: Le hub affiche un état d'erreur explicite quand le backend est indisponible
 - [x] **HUB-03**: Le dashboard affiche les compteurs de sessions réels depuis la base de données
 - [x] **HUB-04**: Le dashboard affiche un état d'erreur explicite au lieu du fallback démo
@@ -36,10 +36,10 @@ Requirements for v3.0 release. Each maps to roadmap phases.
 
 ### Vote en Direct
 
-- [ ] **VOT-01**: L'opérateur peut ouvrir une motion et les votants voient la motion active
+- [x] **VOT-01**: L'opérateur peut ouvrir une motion et les votants voient la motion active
 - [x] **VOT-02**: Le votant peut soumettre un bulletin et reçoit une confirmation
 - [x] **VOT-03**: L'opérateur peut fermer une motion et les résultats sont calculés
-- [ ] **VOT-04**: Les transitions d'état machine (draft→scheduled→frozen→live→closed→validated) fonctionnent de bout en bout
+- [x] **VOT-04**: Les transitions d'état machine (draft→scheduled→frozen→live→closed→validated) fonctionnent de bout en bout
 
 ### Post-Session & PV
 
@@ -96,7 +96,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WIZ-01 | Phase 16 | Complete |
 | WIZ-02 | Phase 16 | Complete |
 | WIZ-03 | Phase 16 | Complete |
-| HUB-01 | Phase 23 | Pending |
+| HUB-01 | Phase 23 | Complete |
 | HUB-02 | Phase 16 | Complete |
 | HUB-03 | Phase 17 | Complete |
 | HUB-04 | Phase 17 | Complete |
@@ -108,10 +108,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPR-02 | Phase 19 | Complete |
 | OPR-03 | Phase 19 | Complete |
 | OPR-04 | Phase 19 | Complete |
-| VOT-01 | Phase 23 | Pending |
+| VOT-01 | Phase 23 | Complete |
 | VOT-02 | Phase 20 | Complete |
 | VOT-03 | Phase 20 | Complete |
-| VOT-04 | Phase 23 | Pending |
+| VOT-04 | Phase 23 | Complete |
 | PST-01 | Phase 21 | Pending |
 | PST-02 | Phase 21 | Pending |
 | PST-03 | Phase 21 | Pending |

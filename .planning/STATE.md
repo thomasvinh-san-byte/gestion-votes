@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: completed
-stopped_at: "Completed 22-final-audit-01: seed constant eradication"
-last_updated: "2026-03-18T07:46:57.744Z"
+stopped_at: "Completed 23-integration-wiring-fixes-01: integration wiring fixes"
+last_updated: "2026-03-18T09:03:29.600Z"
 last_activity: 2026-03-18 — Phase 22 Plan 02 complete (CLN-02 loading/error/empty audit and fixes)
 progress:
-  total_phases: 11
-  completed_phases: 11
-  total_plans: 35
-  completed_plans: 35
+  total_phases: 12
+  completed_phases: 12
+  total_plans: 36
+  completed_plans: 36
   percent: 100
 ---
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100% (35/35 plans complete)
 | Phase 20.4 P11 | 3min | 1 tasks | 1 files |
 | Phase 20.4 P09 | 5min | 2 tasks | 3 files |
 | Phase 22-final-audit P01 | 4min | 2 tasks | 43 files |
+| Phase 23-integration-wiring-fixes P01 | 8min | 2 tasks | 2 files |
 
 ### Decisions
 
@@ -139,6 +140,9 @@ Recent decisions affecting current work:
 - [Phase 22-final-audit P02]: CLN-02 fully closed — all 30+ page JS files audited, 0 genuine gaps remaining
 - [Phase 22-final-audit]: Planning files cleaned with no historical exception — all seed-prefixed constant patterns renamed in historical summaries and plans (22-01)
 - [Phase 22-final-audit]: LOAD_SEED_DATA kept (renamed from predecessor, not removed) — concept valid, only naming convention updated (22-01)
+- [Phase 23-integration-wiring-fixes]: HUB-01: Use URL.searchParams.set (not append) so meeting_id is idempotent on retry
+- [Phase 23-integration-wiring-fixes]: VOT-01/VOT-04: isFrozen endpoint branch at api() call site; both endpoints return {ok:true} so shared error handling works
+- [Phase 23-integration-wiring-fixes]: O.currentMeetingStatus='live' set synchronously after frozen-to-live success — SSE meetingStatusChanged arrives async, too late for exec mode switch check
 
 ### Roadmap Evolution
 
@@ -155,6 +159,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T07:41:51.593Z
-Stopped at: Completed 22-final-audit-01: seed constant eradication
+Last session: 2026-03-18T09:03:29.597Z
+Stopped at: Completed 23-integration-wiring-fixes-01: integration wiring fixes
 Resume file: None
