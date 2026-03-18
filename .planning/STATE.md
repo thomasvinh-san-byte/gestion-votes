@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
-stopped_at: Completed 29-01-PLAN.md
-last_updated: "2026-03-18T18:06:18.062Z"
+stopped_at: Completed 29-02-PLAN.md
+last_updated: "2026-03-18T18:12:36.790Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 18
-  completed_plans: 12
+  completed_plans: 14
   percent: 20
 ---
 
@@ -53,6 +53,8 @@ Progress: [==        ] 20% (1/5 phases, 3/3 plans in phase 25)
 | Phase 28-wizard-session-hub-ux-overhaul P01 | 5 | 2 tasks | 2 files |
 | Phase 28-wizard-session-hub-ux-overhaul P03 | 3 | 2 tasks | 2 files |
 | Phase 29-operator-console-voter-view-visual-polish P01 | 2 | 1 tasks | 1 files |
+| Phase 29-operator-console-voter-view-visual-polish P03 | 3 | 2 tasks | 3 files |
+| Phase 29-operator-console-voter-view-visual-polish P02 | 8 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -105,6 +107,10 @@ v4.0-specific decisions pending (to be logged as phases complete):
 - [Phase 28-wizard-session-hub-ux-overhaul]: [Phase 28-03]: wizFadeIn 150ms translateY(4px) animation on .wiz-step — satisfies WIZ-05 step transition requirement
 - [Phase 29-01]: CSS @layer cascade: base (sections 1-4) < components (sections 5-10) < v4 (new Phase 29 additions) < unlayered page CSS — zero regression, page CSS wins automatically
 - [Phase 29-01]: color-mix() tints use white in light mode, var(--color-surface) in dark mode — correct dark rendering; 10 token families added to :root and [data-theme=dark] in same commit
+- [Phase 29-operator-console-voter-view-visual-polish]: [Phase 29-03]: castVoteOptimistic() replaces confirmation overlay flow — buttons wire directly to optimistic pattern; #confirmationOverlay HTML kept in DOM as accessibility fallback
+- [Phase 29-operator-console-voter-view-visual-polish]: [Phase 29-03]: data-vote-state attribute selector pattern for CSS-driven state visibility — waiting/voting/confirmed states driven by setVoteAppState() via refresh() and castVoteOptimistic()
+- [Phase 29-02]: setSseIndicator 'reconnecting' fires on onDisconnect; 'offline' fires after 5s timeout if still disconnected — avoids flicker on brief drops
+- [Phase 29-02]: Guidance panels go in operator-exec.html partial (exec view), not main HTML — consistent with the exec view architecture
 
 ### Pending Todos
 
@@ -117,7 +123,7 @@ v4.0-specific decisions pending (to be logged as phases complete):
 
 ## Session Continuity
 
-Last session: 2026-03-18T18:06:18.059Z
-Stopped at: Completed 29-01-PLAN.md
+Last session: 2026-03-18T18:12:36.787Z
+Stopped at: Completed 29-02-PLAN.md
 Resume file: None
 Next action: Execute Phase 25 Plan 03 (hub/operator/voter page integrations for PDF viewer)
