@@ -177,6 +177,27 @@ Plans:
 - [ ] 20.3-03-PLAN.md — Dashboard zero-scroll density + hub compact + table row 8px padding
 - [ ] 20.3-04-PLAN.md — Remaining pages density pass + human verification
 
+### Phase 20.4: Design System Enforcement (INSERTED)
+
+**Goal:** Every page matches the wireframe's design language: consistent spacing, color hierarchy, typography, and component usage. JS bugs fixed along the way. All 21 pages verified at 1920x1080.
+**Requirements**: N/A (inserted design quality phase — no formal requirement IDs)
+**Depends on:** Phase 20.3
+**Plans:** 12 plans
+
+Plans:
+- [ ] 20.4-01-PLAN.md — CSS contradiction cleanup (pages.css duplicates, grid gaps, wizard re-definitions)
+- [ ] 20.4-02-PLAN.md — Dashboard reconstruction (PageDashboard wireframe alignment)
+- [ ] 20.4-03-PLAN.md — Meetings reconstruction (PageSeances wireframe alignment)
+- [ ] 20.4-04-PLAN.md — Wizard reconstruction + import button bug fix (PageWizard)
+- [ ] 20.4-05-PLAN.md — Operator console reconstruction (PageOperator wireframe alignment)
+- [ ] 20.4-06-PLAN.md — Vote + public/projection pages (PageVotant + PageEcran)
+- [ ] 20.4-07-PLAN.md — Hub reconstruction (PageHub wireframe alignment)
+- [ ] 20.4-08-PLAN.md — Post-session + settings pages (PagePostSession + PageParametres)
+- [ ] 20.4-09-PLAN.md — Secondary batch 1: admin, members, analytics, archives
+- [ ] 20.4-10-PLAN.md — Secondary batch 2: report, validate, audit, trust
+- [ ] 20.4-11-PLAN.md — Secondary batch 3: users, help, docs, email-templates
+- [ ] 20.4-12-PLAN.md — Human verification of all 21 pages at 1920x1080
+
 ### Phase 21: Post-Session & PV
 **Goal**: The post-session stepper completes all four steps and produces a valid PV PDF with the meeting archived
 **Depends on**: Phase 20 (votes must have been cast and results must exist for verification step to show real data)
@@ -220,6 +241,7 @@ Plans:
 | 20. Live Vote Flow | v3.0 | 2/2 | Complete | 2026-03-17 |
 | 20.1. Refonte UI | v3.0 | 4/4 | Complete | 2026-03-17 |
 | 20.2. Deep UI Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-17 |
-| 20.3. Page Layout Wireframe Alignment | 3/4 | In Progress|  | - |
+| 20.3. Page Layout Wireframe Alignment | v3.0 | 3/4 | In Progress | - |
+| 20.4. Design System Enforcement | v3.0 | 0/12 | In Progress | - |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |
