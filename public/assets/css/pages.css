@@ -13,10 +13,7 @@
   padding: 1.5rem;
 }
 
-.app-main.meetings-main {
-  padding: 0;
-  padding-left: calc(var(--sidebar-rail) + 22px);
-}
+/* meetings-main: use default .app-main padding (16px 22px) from design-system.css */
 
 /* =============================================================================
    CALENDAR VIEW
@@ -1014,19 +1011,20 @@
   gap: 10px; /* wireframe v3.19.2 density */
 }
 
-/* Major sections: compacted to 14px for zero-scroll at 1080px (wireframe v3.19.2) */
-.app-main > .kpi-grid.dashboard-grid,
-.app-main > .grid-2.dashboard-grid,
-.app-main > .grid-3.dashboard-shortcuts {
-  margin-bottom: 14px;
+/* KPI grid: forced 4 columns + 10px gap (wireframe grid-4 pattern) */
+.kpi-grid.dashboard-grid {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
 }
 
+/* Major sections: compacted to 14px for zero-scroll at 1080px (wireframe v3.19.2) */
 .dashboard-grid {
   margin-bottom: 14px;
 }
 
+/* Dashboard panels: wireframe inline style={{padding:16}} */
 .dashboard-panel {
-  padding: 14px;
+  padding: 16px;
 }
 
 .dashboard-panel .flex-between {
@@ -1061,7 +1059,7 @@
 
 /* Compact KPI card padding for zero-scroll at 1080px (wireframe v3.19.2) */
 .kpi-grid.dashboard-grid .kpi-card {
-  padding: 12px 10px;
+  padding: 12px 8px;
 }
 
 /* KPI values are the focal point */
@@ -1098,9 +1096,9 @@
 }
 
 .shortcut-card-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1287,9 +1285,7 @@
    ============================================================================= */
 
 @media (max-width: 768px) {
-  .app-main.meetings-main {
-    padding-left: 0;
-  }
+  /* meetings-main responsive handled in meetings.css */
 
   .settings-grid {
     grid-template-columns: 1fr;

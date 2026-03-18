@@ -9,13 +9,8 @@
    PAGE CONTENT
    ============================================================================= */
 
-.page-content {
-  padding: 0 1.5rem 1.5rem;
-}
-
-.meetings-main {
-  padding: 1.5rem 0 0;
-}
+/* meetings-main uses default .app-main padding (16px 22px) from design-system.css.
+   No padding override needed — avoids conflicting .app-main rules. */
 
 /* =============================================================================
    FILTER PILLS
@@ -23,9 +18,8 @@
 
 .filter-pills {
   display: flex;
-  gap: 8px;
-  padding: 0 1.5rem;
-  margin-bottom: 1rem;
+  gap: 6px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
@@ -35,7 +29,7 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: background var(--duration-fast, 100ms);
@@ -198,7 +192,7 @@
 }
 
 .session-title {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
   color: var(--color-text);
   overflow: hidden;
@@ -207,7 +201,7 @@
 }
 
 .session-meta {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--color-text-muted);
   display: flex;
   gap: 12px;
