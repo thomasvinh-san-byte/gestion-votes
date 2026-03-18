@@ -2033,6 +2033,7 @@ body:has(.drawer-backdrop.open) {
 
 .progress-bar {
   height: 100%;
+  width: var(--bar-pct, 0%);
   background: var(--color-primary);
   border-radius: var(--radius-full);
   transition: width var(--duration-slow) var(--ease-out);
@@ -3947,6 +3948,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 
 .tour-progress-bar {
   height: 100%;
+  width: var(--bar-pct, 12.5%);
   background: var(--color-primary);
   border-radius: 2px;
   transition: width var(--duration-normal) var(--ease-default);

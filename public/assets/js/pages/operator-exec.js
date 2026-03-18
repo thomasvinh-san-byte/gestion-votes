@@ -505,10 +505,11 @@
       var el = stats.present + stats.proxyActive;
       var pct = el > 0 ? Math.round((tb / el) * 100) : 0;
       partEl.textContent = pct + '%';
-      partEl.style.color = pct >= 75 ? 'var(--color-success)' : pct >= 50 ? 'var(--color-warning)' : 'var(--color-text-muted)';
+      partEl.classList.remove('text-success', 'text-warning', 'text-muted');
+      partEl.classList.add(pct >= 75 ? 'text-success' : pct >= 50 ? 'text-warning' : 'text-muted');
     } else if (partEl) {
       partEl.textContent = '\u2014';
-      partEl.style.color = '';
+      partEl.classList.remove('text-success', 'text-warning', 'text-muted');
     }
 
     // ---------- Legacy motions progress (backward compat) ----------
@@ -528,10 +529,10 @@
         var tb2 = Object.keys(O.ballotsCache).length;
         var el2 = stats.present + stats.proxyActive;
         var p2 = el2 > 0 ? Math.round((tb2 / el2) * 100) : 0;
-        barFill.style.width = p2 + '%';
+        barFill.style.setProperty('--bar-pct', p2 + '%');
         barPct.textContent = p2 + '%';
       } else {
-        barFill.style.width = '0%';
+        barFill.style.setProperty('--bar-pct', '0%');
         barPct.textContent = '\u2014';
       }
     }
@@ -678,9 +679,9 @@
       var barFor = document.getElementById('opBarFor');
       var barAgainst = document.getElementById('opBarAgainst');
       var barAbstain = document.getElementById('opBarAbstain');
-      if (barFor) barFor.style.width = pctFor + '%';
-      if (barAgainst) barAgainst.style.width = pctAgainst + '%';
-      if (barAbstain) barAbstain.style.width = pctAbstain + '%';
+      if (barFor) barFor.style.setProperty('--bar-pct', pctFor + '%');
+      if (barAgainst) barAgainst.style.setProperty('--bar-pct', pctAgainst + '%');
+      if (barAbstain) barAbstain.style.setProperty('--bar-pct', pctAbstain + '%');
 
       var pFor = document.getElementById('opPctFor');
       var pAgainst = document.getElementById('opPctAgainst');
@@ -804,7 +805,7 @@
     }
 
     if (actionsEl) {
-      actionsEl.style.display = O.currentSpeakerCache ? '' : 'none';
+      actionsEl.hidden = !O.currentSpeakerCache;
     }
 
     if (queueList) {

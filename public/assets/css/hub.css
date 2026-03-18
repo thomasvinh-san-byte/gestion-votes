@@ -516,6 +516,7 @@
 
 .hub-checklist-bar-fill {
   height: 100%;
+  width: var(--bar-pct, 0%);
   background: linear-gradient(90deg, var(--color-success), var(--color-success-hover));
   border-radius: var(--radius-full);
   transition: width .4s ease;

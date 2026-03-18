@@ -546,3 +546,16 @@
     display: none;
   }
 }
+
+/* ─── Compact footer logo (postsession page footer) ─── */
+.app-footer .logo--compact {
+  font-size: 12px;
+  gap: 6px;
+}
+
+.app-footer .logo--compact .logo-mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  font-size: 8px;
+}

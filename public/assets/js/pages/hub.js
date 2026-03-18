@@ -167,7 +167,7 @@
         '<span class="hub-checklist-progress-text">' + done + ' / ' + CHECKLIST_ITEMS.length + '</span>' +
       '</div>' +
       '<div class="hub-checklist-bar">' +
-        '<div class="hub-checklist-bar-fill" style="width:' + pct + '%"></div>' +
+        '<div class="hub-checklist-bar-fill" style="--bar-pct:' + pct + '%"></div>' +
       '</div>' +
       itemsHtml;
   }

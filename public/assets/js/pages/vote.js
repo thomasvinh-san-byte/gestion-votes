@@ -819,11 +819,11 @@
     }
 
     if (pct !== null && data?.motion) {
-      fill.style.width = Math.min(pct, 100) + '%';
+      fill.style.setProperty('--bar-pct', Math.min(pct, 100) + '%');
       text.textContent = pct + '% ont voté';
       Shared.show(container);
     } else {
-      fill.style.width = '0%';
+      fill.style.setProperty('--bar-pct', '0%');
       text.textContent = '0% ont voté';
       Shared.hide(container);
     }

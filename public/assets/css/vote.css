@@ -860,6 +860,7 @@
 
 .vote-participation-fill {
   height: 100%;
+  width: var(--bar-pct, 0%);
   background: var(--color-primary);
   border-radius: 3px;
   transition: width var(--duration-normal) var(--ease-default);
