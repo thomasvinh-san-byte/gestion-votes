@@ -222,7 +222,7 @@ Plans:
 
 **v4.0+ Feature Ideas:**
 - **Suivi budget & documents PDF pour votants** — Budget tracking with PDF document distribution to voters
-- **Votes pour collectivités territoriales** — Voting mode for syndicats, communes, conseils de communes, départements (no tantièmes/ownership shares — flat voting, not assembly-style weighted votes)
+- **Votes pour collectivités territoriales** — Voting mode for syndicats, communes, conseils de communes, départements — assemblées générales oui, mais pas copropriété (pas de tantièmes/millièmes)
 
 ## Progress
 
