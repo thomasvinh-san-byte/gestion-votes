@@ -35,7 +35,7 @@ Le wireframe est la **seule référence**. Toute page, composant, interaction, f
 
 ### 2.1 Domaine
 
-Application de **vote électronique pour assemblées générales de copropriété**, conforme à la législation française.
+Application de **vote électronique pour assemblées générales**, conforme à la législation française.
 
 ### 2.2 Cadre juridique
 
@@ -55,9 +55,9 @@ Le wireframe référence explicitement ces textes. L'application **doit** les im
 | Régime | Règle de calcul | Cas d'usage |
 |--------|----------------|-------------|
 | **Majorité simple (art. 24)** | >50% des voix des présents et représentés | Approbation comptes, budget prévisionnel |
-| **Majorité absolue (art. 25)** | >50% des voix de tous les copropriétaires | Élection syndic, travaux importants |
-| **Double majorité (art. 26)** | ≥2/3 des voix de tous les copropriétaires | Modification règlement, vente parties communes |
-| **Unanimité (art. 26-1)** | 100% des voix de tous les copropriétaires | Aliénation parties communes, changement destination |
+| **Majorité absolue (art. 25)** | >50% des voix de tous les membres | Élection syndic, travaux importants |
+| **Double majorité (art. 26)** | ≥2/3 des voix de tous les membres | Modification règlement, vente parties communes |
+| **Unanimité (art. 26-1)** | 100% des voix de tous les membres | Aliénation parties communes, changement destination |
 | **Passerelle art. 25-1** | Si art. 25 échoue mais ≥1/3 des voix → 2nd vote en art. 24 | Renvoi automatique proposé par l'opérateur |
 
 ### 2.4 Quorum
@@ -583,7 +583,7 @@ Pour chaque page, vérifier :
 |-------|--------------------------|----------------------|
 | Authentification | Simulée (`onLogin` sans formulaire réel) | Implémenter email + mot de passe + JWT |
 | Mots de passe | Aucun champ visible | Ajouter reset password, politique complexité |
-| Multi-copropriétés | Une seule entité visible | V1 mono-copropriété, préparer multi |
+| Multi-organisations | Une seule entité visible | V1 mono-organisation, préparer multi |
 | Drag & drop résolutions | Absent du wireframe | Non implémenté en V1 (réordonner via boutons ↑↓) |
 | Hors-ligne | Absent du wireframe | Non implémenté en V1 |
 | Notifications push | Polling simulé dans le wireframe | WebSocket en production |

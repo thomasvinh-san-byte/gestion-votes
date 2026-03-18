@@ -1,4 +1,4 @@
--- Dataset PONDÉRÉ : Copro 100 membres avec tantièmes
+-- Dataset PONDÉRÉ : 100 membres avec poids de vote
 -- Requires: tenant 'aaaaaaaa-1111-2222-3333-444444444444' (see database/seeds/01_minimal.sql)
 -- Script idempotent : nettoie et recree les donnees a chaque execution.
 -- Note: les poids sont aleatoires, donc ils changent a chaque execution.

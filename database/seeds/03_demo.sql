@@ -139,7 +139,7 @@ VALUES
   ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555008','present',55.0000,now() - interval '15 minutes',now(),now()),
   ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555009','present',45.0000,now() - interval '12 minutes',now(),now()),
   ('aaaaaaaa-1111-2222-3333-444444444444','44444444-4444-4444-4444-444444444001','55555555-5555-5555-5555-555555555010','present',85.0000,now() - interval '10 minutes',now(),now())
-  -- LOT-011 (Thomas) et LOT-012 (Lambert) sont absents
+  -- Thomas et Lambert sont absents
 ON CONFLICT (tenant_id, meeting_id, member_id) DO UPDATE
 SET mode = EXCLUDED.mode, effective_power = EXCLUDED.effective_power, updated_at = now();
 
@@ -235,7 +235,7 @@ INSERT INTO motions (
   'aaaaaaaa-1111-2222-3333-444444444444',
   '44444444-4444-4444-4444-444444444001',
   'Changement de syndic',
-  'Vote sur la resolution de changement de syndic de copropriete.',
+  'Vote sur la resolution de changement de syndic.',
   false, 4,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité absolue' LIMIT 1),
   now(), now()
@@ -251,7 +251,7 @@ INSERT INTO motions (
   'aaaaaaaa-1111-2222-3333-444444444444',
   '44444444-4444-4444-4444-444444444001',
   'Questions diverses',
-  'Discussion et vote sur les questions diverses soulevees par les coproprietaires.',
+  'Discussion et vote sur les questions diverses soulevees par les membres.',
   false, 5,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple' LIMIT 1),
   now(), now()

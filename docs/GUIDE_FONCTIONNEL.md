@@ -235,7 +235,7 @@ Aperçu votant (tablette)
 - **Confirmation biométrique** : empreinte / Face ID sur mobile pour le vote secret
 - **Récapitulatif post-vote** : "Vous avez voté Pour la résolution 3" (seulement si vote public)
 - **Indicateur de progression** : "Résolution 3/7 — 4 restantes"
-- **Mode gros caractères** : bouton pour augmenter la taille de police (assemblées de copropriétaires âgés)
+- **Mode gros caractères** : bouton pour augmenter la taille de police (assemblées de membres âgés)
 - **Animations de transition** : entre les résolutions, pour guider visuellement
 - **Aide contextuelle** : tooltip expliquant chaque politique de vote
 

@@ -101,7 +101,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = NOW();
 
 -- ============================================================================
--- 10 Membres votants (poids varies : total = 1000 tantiemes)
+-- 10 Membres votants (poids varies : total = 1000 poids de vote)
 -- ============================================================================
 INSERT INTO members (id, tenant_id, external_ref, full_name, email, voting_power, role, is_active, created_at, updated_at)
 VALUES
@@ -220,7 +220,7 @@ COMMIT;
 -- Lieu       : Salle du Conseil — Siege social
 -- Presidente : Mme Dupont
 --
--- 10 MEMBRES (total 1000 tantiemes) :
+-- 10 MEMBRES (total 1000 poids de vote) :
 -- +------+---------------+--------+-------------------------------------------+
 -- | Ref  | Nom           | Poids  | UUID                                      |
 -- +------+---------------+--------+-------------------------------------------+

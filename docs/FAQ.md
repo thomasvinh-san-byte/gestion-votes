@@ -3,7 +3,7 @@
 ## Général
 
 ### Qu'est-ce qu'AG-Vote ?
-AG-Vote est une application web de gestion de séances de vote formelles (assemblées générales, conseils syndicaux, réunions de copropriété). Elle couvre le cycle complet : préparation, conduite en direct, vote électronique, calcul des résultats, validation et génération des livrables (PV, exports CSV).
+AG-Vote est une application web de gestion de séances de vote formelles (assemblées générales, conseils syndicaux, réunions d'organisation). Elle couvre le cycle complet : préparation, conduite en direct, vote électronique, calcul des résultats, validation et génération des livrables (PV, exports CSV).
 
 ### Quelles sont les technologies utilisées ?
 - **Backend** : PHP 8.4+, sans framework
