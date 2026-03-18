@@ -1614,3 +1614,188 @@
   border-color: var(--color-success);
   background: var(--color-success-subtle);
 }
+
+/* =============================================================================
+   VIS-08: Inline styles moved to CSS (previously inline in vote.htmx.html)
+   ============================================================================= */
+
+#btnConsultDocument {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.motion-card-footer {
+  padding: 0 1rem 0.75rem;
+}
+
+/* Loading skeleton centering helpers */
+.vote-skeleton-row {
+  margin: 0 auto 0.5rem;
+}
+
+.vote-skeleton-center {
+  margin: 0 auto;
+}
+
+/* =============================================================================
+   VOT-01: Full-screen single-focus ballot — hide chrome when vote is open
+   ============================================================================= */
+
+[data-vote-state="voting"] .page-header,
+[data-vote-state="voting"] .vote-identity-banner,
+[data-vote-state="voting"] .context-bar,
+[data-vote-state="voting"] .vote-progress-dots,
+[data-vote-state="voting"] .vote-bottom-nav,
+[data-vote-state="voting"] .vote-footer,
+[data-vote-state="voting"] .speech-panel,
+[data-vote-state="voting"] .current-speaker-banner {
+  display: none !important;
+}
+
+[data-vote-state="voting"] .vote-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-6, 1.5rem);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* =============================================================================
+   VOT-02: Full-width vote buttons — minimum 72px height, 8px spacing
+   ============================================================================= */
+
+/* Override grid layout in voting state for full-width stacked buttons */
+[data-vote-state="voting"] .vote-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 560px;
+}
+
+[data-vote-state="voting"] .vote-btn {
+  width: 100%;
+  min-height: 72px;
+  font-size: var(--text-lg, 1.125rem);
+  font-weight: var(--font-semibold, 600);
+  border-radius: var(--radius-lg, 12px);
+  transition: background 150ms, transform 50ms, box-shadow 150ms;
+}
+
+[data-vote-state="voting"] .vote-btn:active {
+  transform: scale(0.98);
+}
+
+/* Selected button ring (applied by JS after tap) */
+.vote-btn-selected {
+  box-shadow: 0 0 0 3px var(--color-primary) !important;
+}
+
+/* =============================================================================
+   VOT-03: Irreversibility notice (inline, replaces confirmation dialog)
+   ============================================================================= */
+
+.vote-irreversible-notice {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-secondary, var(--color-text-muted));
+  text-align: center;
+  margin-bottom: var(--space-3, 0.75rem);
+  font-style: italic;
+}
+
+/* Hide notice outside voting state */
+[data-vote-state="waiting"] .vote-irreversible-notice,
+[data-vote-state="confirmed"] .vote-irreversible-notice {
+  display: none;
+}
+
+/* =============================================================================
+   VOT-04: Waiting state — show only "En attente d'un vote"
+   ============================================================================= */
+
+.vote-waiting-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  min-height: 60dvh;
+}
+
+.vote-waiting-text {
+  font-size: var(--text-lg, 1.125rem);
+  color: var(--color-text-secondary, var(--color-text-muted));
+  text-align: center;
+}
+
+/* Hide waiting state when not in waiting mode */
+[data-vote-state="voting"] .vote-waiting-state,
+[data-vote-state="confirmed"] .vote-waiting-state {
+  display: none;
+}
+
+/* Hide ballot content when in waiting mode */
+[data-vote-state="waiting"] .vote-section,
+[data-vote-state="waiting"] .motion-card,
+[data-vote-state="waiting"] .speech-panel,
+[data-vote-state="waiting"] .current-speaker-banner {
+  display: none;
+}
+
+/* =============================================================================
+   VOT-05: Confirmation state — "Vote enregistré" for 3 seconds
+   ============================================================================= */
+
+.vote-confirmed-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  min-height: 60dvh;
+}
+
+.vote-confirmed-text {
+  font-size: var(--text-xl, 1.25rem);
+  font-weight: var(--font-semibold, 600);
+  color: var(--color-success);
+  text-align: center;
+}
+
+/* Hide confirmed state when not in confirmed mode */
+[data-vote-state="waiting"] .vote-confirmed-state,
+[data-vote-state="voting"] .vote-confirmed-state {
+  display: none;
+}
+
+/* Hide ballot content when in confirmed mode */
+[data-vote-state="confirmed"] .vote-section,
+[data-vote-state="confirmed"] .motion-card {
+  display: none;
+}
+
+/* =============================================================================
+   Inline error message (shown on vote failure)
+   ============================================================================= */
+
+.vote-inline-error {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-danger);
+  text-align: center;
+  margin-top: var(--space-2, 0.5rem);
+  animation: deltaFadeIn 200ms ease-out;
+}
+
+/* =============================================================================
+   Mobile verification at 375px (VIS-06)
+   ============================================================================= */
+
+@media (max-width: 480px) {
+  [data-vote-state="voting"] .vote-main {
+    padding: var(--space-4, 1rem);
+  }
+
+  [data-vote-state="voting"] .vote-btn {
+    font-size: var(--text-base, 1rem);
+    min-height: 64px;
+  }
+}
