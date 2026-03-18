@@ -18,14 +18,14 @@
 
 ### Wizard & Hub (WIZ)
 
-- [ ] **WIZ-01**: Named-step wizard with horizontal stepper (Informations → Membres → Résolutions → Révision)
-- [ ] **WIZ-02**: Autosave on field blur for all wizard steps; back navigation preserves data
-- [ ] **WIZ-03**: Step 4 full review card before commit with "Modifier" link per section
-- [ ] **WIZ-04**: Motion template picker in wizard step 3 (3 hardcoded templates: Approbation de comptes, Élection au conseil, Modification de règlement)
-- [ ] **WIZ-05**: Progressive disclosure — "Paramètres de vote avancés" toggle in wizard step 2 reveals voting power fields
-- [ ] **WIZ-06**: Session hub pre-meeting checklist with blocked-reason display ("Disponible après: résolutions ajoutées")
-- [ ] **WIZ-07**: Quorum progress bar with animated fill, threshold tick marker, amber→green transition
-- [ ] **WIZ-08**: Hub document status indicators per motion ("Document joint ✓" / "Aucun document")
+- [x] **WIZ-01**: Named-step wizard with horizontal stepper (Informations → Membres → Résolutions → Révision)
+- [x] **WIZ-02**: Autosave on field blur for all wizard steps; back navigation preserves data
+- [x] **WIZ-03**: Step 4 full review card before commit with "Modifier" link per section
+- [x] **WIZ-04**: Motion template picker in wizard step 3 (3 hardcoded templates: Approbation de comptes, Élection au conseil, Modification de règlement)
+- [x] **WIZ-05**: Progressive disclosure — "Paramètres de vote avancés" toggle in wizard step 2 reveals voting power fields
+- [x] **WIZ-06**: Session hub pre-meeting checklist with blocked-reason display ("Disponible après: résolutions ajoutées")
+- [x] **WIZ-07**: Quorum progress bar with animated fill, threshold tick marker, amber→green transition
+- [x] **WIZ-08**: Hub document status indicators per motion ("Document joint ✓" / "Aucun document")
 
 ### PDF Résolutions (PDF)
 
