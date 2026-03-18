@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: completed
-stopped_at: Completed 20.2-04-PLAN.md
-last_updated: "2026-03-17T10:51:24.674Z"
-last_activity: 2026-03-17 — Plan 20-02 complete (test suite green, human-verify deferred)
+stopped_at: Completed 20.3-01-PLAN.md
+last_updated: "2026-03-17T11:49:41.116Z"
+last_activity: 2026-03-17 — Plan 20.3-03 complete (dashboard zero-scroll, hub density, table compaction)
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 7
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 20
+  completed_plans: 19
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 
 ## Current Position
 
-Phase: 20 of 22 (live-vote-flow) -- COMPLETE
-Plan: 20-02 (complete, human-verify deferred)
-Status: Phase 20 complete — ready for Phase 21
-Last activity: 2026-03-17 — Plan 20-02 complete (test suite green, human-verify deferred)
+Phase: 20.3 of 22 (page-layout-wireframe-alignment)
+Plan: 20.3-03 (complete)
+Status: Phase 20.3 plan 03 complete — ready for next plan
+Last activity: 2026-03-17 — Plan 20.3-03 complete (dashboard zero-scroll, hub density, table compaction)
 
 Progress: [██████████] 100% (v3.0 phases 16-20 complete)
 
@@ -60,6 +60,8 @@ Progress: [██████████] 100% (v3.0 phases 16-20 complete)
 | Phase 20.2-deep-ui-wireframe-alignment P02 | 10min | 3 tasks | 1 files |
 | Phase 20.2-deep-ui-wireframe-alignment P03 | 10min | 2 tasks | 1 files |
 | Phase 20.2-deep-ui-wireframe-alignment P04 | 5min | 2 tasks | 1 files |
+| Phase 20.3-page-layout-wireframe-alignment P02 | 3min | 2 tasks | 3 files |
+| Phase 20.3-page-layout-wireframe-alignment P01 | 3 | 2 tasks | 3 files |
 
 ### Decisions
 
@@ -100,6 +102,12 @@ Recent decisions affecting current work:
 - [Phase 20.2-deep-ui-wireframe-alignment]: ag-toast.js web component has its own inline positioning (top:20px); CSS .toast-container class is design-system contract only; web component is separate concern
 - [Phase 20.2-deep-ui-wireframe-alignment]: @keyframes pageIn found in design-system.css (not pages.css) — updated in-place to translateY(4px)/0.18s
 - [Phase 20.2-deep-ui-wireframe-alignment]: New component CSS is CSS-only definitions — HTML usage deferred until features need them; global 5px scrollbar allows .sidebar-scroll 3px override via specificity cascade
+- [Phase 20.3-page-layout]: .kpi-grid.dashboard-grid .kpi-card scoped override (not global) to avoid breaking other kpi-card usages
+- [Phase 20.3-page-layout]: Option B scoped selectors for table density — .audit-table and .table cover all data tables without HTML changes; members/users use card-based layouts not tables
+- [Phase 20.3-page-layout-wireframe-alignment]: Settings sidebar HTML/JS already implemented before plan ran; task became CSS verification + responsive breakpoint addition
+- [Phase 20.3-page-layout-wireframe-alignment]: Wizard .wiz-step uses margin-top:auto on .step-nav (flex column) over sticky/fixed to avoid visual gap on short steps
+- [Phase 20.3-page-layout-wireframe-alignment]: Additive class approach: added operator-split/left/right as extra classes on existing .op-split/.op-panel/.op-sidebar — preserves all JS IDs, zero refactor risk
+- [Phase 20.3-page-layout-wireframe-alignment]: Flex column chain for zero-scroll: app-main (flex col, overflow:hidden) > view-exec (flex:1, flex col) > operator-split (flex:1, min-height:0) > panels
 
 ### Roadmap Evolution
 
@@ -116,6 +124,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T10:42:57.682Z
-Stopped at: Completed 20.2-04-PLAN.md
+Last session: 2026-03-17T11:49:41.113Z
+Stopped at: Completed 20.3-01-PLAN.md
 Resume file: None

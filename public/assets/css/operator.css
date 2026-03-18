@@ -438,6 +438,11 @@
 
 .view-exec {
   padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .exec-grid {
@@ -2273,6 +2278,9 @@
   padding: 0;
   padding-left: calc(var(--sidebar-rail) + 22px);
   background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* =============================================================================
@@ -4154,6 +4162,88 @@
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
+}
+
+/* =============================================================================
+   WIREFRAME-ALIGNED SPLIT PANEL CLASSES (Phase 20.3)
+   Zero page-level scroll — internal panels scroll independently.
+   ============================================================================= */
+
+/* Exec view: flex column container fills available space */
+.operator-exec-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Split container — fills remaining space after pinned strips */
+.operator-split {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Left panel (resolution card + sub-tabs) */
+.operator-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Right sidebar (ordre du jour — 200px fixed width) */
+.operator-right {
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* KPI strip pinned — does not scroll with content */
+.operator-kpi-strip {
+  flex-shrink: 0;
+}
+
+/* Progress track pinned — does not scroll with content */
+.operator-progress-track {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+/* Guidance bar at bottom of exec view */
+.operator-guidance {
+  flex-shrink: 0;
+  margin-top: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Override sidebar max-height with proper flex fill */
+.operator-right.op-sidebar {
+  max-height: none;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Scrollable body inside left panel */
+.operator-left .op-resolution-card {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 /* Tab content: generous spacing for clarity */

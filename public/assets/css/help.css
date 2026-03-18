@@ -11,7 +11,7 @@
 .help-header {
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
-  padding: 1.5rem;
+  padding: 10px 14px;
 }
 
 .help-header h1 {
@@ -33,7 +33,7 @@
 .help-content {
   max-width: 900px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: 14px;
 }
 
 /* Help page main content — keep sidebar offset */
@@ -93,7 +93,7 @@
    ============================================================================= */
 
 .faq-section {
-  margin-bottom: 2rem;
+  margin-bottom: 14px;
 }
 
 .faq-section-title {
@@ -180,7 +180,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 14px;
 }
 
 .quick-link {
@@ -228,8 +228,8 @@
 .doc-links {
   background: var(--color-bg-subtle);
   border-radius: 8px;
-  padding: 1.25rem;
-  margin-top: 2rem;
+  padding: 14px;
+  margin-top: 14px;
 }
 
 .doc-links h3 {
@@ -292,7 +292,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0.75rem;
-  margin-bottom: 2rem;
+  margin-bottom: 14px;
 }
 
 .tour-card {
@@ -396,8 +396,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-top: 2rem;
-  padding: 1.25rem 1.5rem;
+  margin-top: 14px;
+  padding: 14px;
   background: var(--color-primary-subtle);
   border: 1px solid var(--color-primary);
   border-radius: var(--radius-lg, 12px);

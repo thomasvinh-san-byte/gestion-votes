@@ -80,6 +80,7 @@
 
       <!-- Step 1: Infos générales -->
       <div class="card wiz-step" id="step0" data-tour="wizard-step1">
+        <div class="wiz-step-body">
         <div class="wf-step">
           <div class="wf-step-num">1</div>
           Informations g&eacute;n&eacute;rales
@@ -172,6 +173,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
           <strong>Date limite d'envoi des convocations</strong> &mdash; calcul&eacute;e automatiquement (21 jours avant &mdash; art. 9 d&eacute;cret du 17 mars 1967)
         </div>
+        </div><!-- /.wiz-step-body -->
 
         <div class="step-nav">
           <a class="btn" href="/dashboard.htmx.html">
@@ -186,6 +188,7 @@
 
       <!-- Step 2: Participants -->
       <div class="card wiz-step" id="step1" style="display:none;">
+        <div class="wiz-step-body">
         <div class="wf-step">
           <div class="wf-step-num">2</div>
           Participants
@@ -231,6 +234,7 @@
         </div>
 
         <div id="errStep1Members" class="field-error-msg">Veuillez ajouter au moins un participant avant de continuer.</div>
+        </div><!-- /.wiz-step-body -->
 
         <div class="step-nav">
           <button class="btn" type="button" id="btnPrev1">
@@ -245,6 +249,7 @@
 
       <!-- Step 3: Résolutions (ordre du jour) -->
       <div class="card wiz-step" id="step2" style="display:none;">
+        <div class="wiz-step-body">
         <div class="wf-step">
           <div class="wf-step-num">3</div>
           R&eacute;solutions (ordre du jour)
@@ -313,6 +318,7 @@
         </div>
 
         <div id="errStep2Reso" class="field-error-msg">Veuillez ajouter au moins une r&eacute;solution avant de continuer.</div>
+        </div><!-- /.wiz-step-body -->
 
         <div class="step-nav">
           <button class="btn" type="button" id="btnPrev2">
@@ -327,6 +333,7 @@
 
       <!-- Step 4: Récapitulatif -->
       <div class="card wiz-step" id="step3" style="display:none;">
+        <div class="wiz-step-body">
         <div class="wf-step">
           <div class="wf-step-num">4</div>
           V&eacute;rification et cr&eacute;ation
@@ -353,6 +360,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
           La cr&eacute;ation ne lance pas le vote. Vous pourrez lancer la s&eacute;ance depuis l'espace op&eacute;rateur.
         </div>
+        </div><!-- /.wiz-step-body -->
 
         <div class="step-nav">
           <button class="btn" type="button" id="btnPrev3">
