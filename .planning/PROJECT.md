@@ -55,7 +55,16 @@ AG-VOTE is a **brownfield project** with a fully wired session lifecycle:
 
 ### Active
 
-(No active requirements — next milestone not started)
+**Current Milestone: v4.0 "Clarity & Flow"**
+
+**Goal:** Transform AG-VOTE into a self-explanatory, visually impressive application where users never need external help to run a complete assembly — from session creation to archival.
+
+**Target features:**
+- Guided UX overhaul — progressive disclosure, smart defaults, contextual hints, step-by-step flows across all screens
+- PC-first design approach (1024px+, adaptive) — mobile only for voter screen (in-room voting on phone)
+- PDF résolutions — attach documents during creation and before meeting, inline viewer for voters
+- Copropriété transformation — convert tantièmes/millièmes logic into useful AG-standard features
+- Top 1% UI/UX — research-driven redesign from scratch, no wireframe constraint
 
 ### Out of Scope
 
@@ -64,7 +73,7 @@ AG-VOTE is a **brownfield project** with a fully wired session lifecycle:
 - Mobile native app — PWA approach maintained
 - Multi-database support — PostgreSQL only
 - Electronic signature upload/validation (deferred to later)
-- Copropriété management — explicitly excluded (pas de tantièmes/millièmes)
+- Copropriété as separate module — tantièmes/millièmes logic to be transformed for AG-standard use, not maintained as copro-specific
 
 ## Context
 
@@ -84,7 +93,7 @@ Deferred ideas from v3.0:
 ## Constraints
 
 - **Tech stack**: No-framework PHP + vanilla JS + Web Components — no change
-- **Design reference**: Wireframe v3.19.2 "Acte Officiel" remains the visual source of truth
+- **Design reference**: v4.0 designs from scratch (wireframe v3.19.2 retired as reference)
 - **Backward compatibility**: Existing functionality preserved
 - **Accessibility**: WCAG AA compliance maintained (skip links, ARIA landmarks, focus indicators)
 
@@ -105,5 +114,9 @@ Deferred ideas from v3.0:
 | Frozen→live via operator_open_vote | Atomic status transition + SSE broadcast when opening first vote | ✓ Good — clean state machine path |
 | Gap closure phases 23-24 | Address integration wiring gaps found by milestone audit | ✓ Good — caught hub→operator handoff and frozen→live SSE gaps |
 
+| v4.0 major version | Complete UX/UI overhaul + new features (PDF, copro transform) | — Pending |
+| Design from scratch | Retire wireframe v3.19.2, research-driven design for top 1% UX | — Pending |
+| PC-first approach | Optimize for 1024px+, mobile only for voter screen | — Pending |
+
 ---
-*Last updated: 2026-03-18 after v3.0 milestone shipped*
+*Last updated: 2026-03-18 after v4.0 milestone started*
