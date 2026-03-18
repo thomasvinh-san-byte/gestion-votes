@@ -4701,4 +4701,75 @@ ag-pdf-viewer[mode="panel"] {
 
 @layer v4 {
   /* Phase 29: Operator Console, Voter View & Visual Polish additions */
+
+  /* ==========================================================================
+     VIS-03: @starting-style entry animations (Baseline 2024 — progressive enhancement)
+     Supported: Chrome 117+, Firefox 129+, Safari 17.5+
+     All transition durations <= 200ms (user constraint: "transitions sobres")
+     ========================================================================== */
+
+  /* Modals: fade + slide up on entry */
+  ag-modal,
+  .modal,
+  dialog {
+    transition: opacity 200ms ease-out, transform 200ms ease-out;
+  }
+
+  @starting-style {
+    ag-modal[open],
+    .modal.is-open,
+    dialog[open] {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  /* Toasts: fade + slide in from right on entry */
+  ag-toast .toast-item {
+    transition: opacity 200ms ease-out, transform 200ms ease-out;
+  }
+
+  @starting-style {
+    ag-toast .toast-item {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+  }
+
+  /* Result cards: body fades in on open */
+  .result-card[open] .result-card-body {
+    transition: opacity 200ms ease-out;
+  }
+
+  @starting-style {
+    .result-card[open] .result-card-body {
+      opacity: 0;
+    }
+  }
+
+  /* Guidance panels: fade + slide up when revealed */
+  .op-post-vote-guidance:not([hidden]),
+  .op-end-of-agenda:not([hidden]) {
+    transition: opacity 200ms ease-out, transform 200ms ease-out;
+  }
+
+  @starting-style {
+    .op-post-vote-guidance:not([hidden]),
+    .op-end-of-agenda:not([hidden]) {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  /* ==========================================================================
+     VIS-02: View Transitions API — tab panel and wizard step transitions
+     Note: The document.startViewTransition() call is wired in operator-tabs.js
+     in the switchTab() function (see that file, lines 291+).
+     Supported: Chrome 111+, Firefox 130+ (with flag), Safari 18+
+     ========================================================================== */
+
+  @supports (view-transition-name: test) {
+    .op-tab-panel { view-transition-name: op-panel; }
+    .wiz-step-body { view-transition-name: wiz-step; }
+  }
 }
