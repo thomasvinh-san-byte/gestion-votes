@@ -22,7 +22,7 @@
 - [x] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived (completed 2026-03-18)
 - [x] **Phase 22: Final Audit** — Zero SEED_ constants; every API call has loading/error/empty states (completed 2026-03-18)
 - [x] **Phase 23: Integration Wiring Fixes** — Fix hub→operator meeting_id propagation and frozen→live vote transition (gap closure) (completed 2026-03-18)
-- [ ] **Phase 24: Final Wiring Polish** — Fire motionOpened SSE on frozen→live path; propagate meeting_id to postsession URL (gap closure)
+- [x] **Phase 24: Final Wiring Polish** — Fire motionOpened SSE on frozen→live path; propagate meeting_id to postsession URL (gap closure) (completed 2026-03-18)
 
 <details>
 <summary>✅ v2.0 UI Redesign (Phases 4-15) — SHIPPED 2026-03-16</summary>
@@ -289,4 +289,4 @@ Plans:
 | 21. Post-Session & PV | v3.0 | 1/1 | Complete | 2026-03-18 |
 | 22. Final Audit | v3.0 | 2/2 | Complete | 2026-03-18 |
 | 23. Integration Wiring Fixes | v3.0 | 1/1 | Complete | 2026-03-18 |
-| 24. Final Wiring Polish | v3.0 | 0/1 | Planning | - |
+| 24. Final Wiring Polish | 1/1 | Complete   | 2026-03-18 | - |

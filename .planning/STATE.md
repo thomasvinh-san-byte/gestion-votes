@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Session Lifecycle
 status: completed
-stopped_at: "Completed 23-integration-wiring-fixes-01: integration wiring fixes"
-last_updated: "2026-03-18T09:07:11.701Z"
+stopped_at: "Completed 24-final-wiring-polish-01: final wiring polish"
+last_updated: "2026-03-18T09:33:14.760Z"
 last_activity: 2026-03-18 — Phase 22 Plan 02 complete (CLN-02 loading/error/empty audit and fixes)
 progress:
-  total_phases: 12
-  completed_phases: 12
-  total_plans: 36
-  completed_plans: 36
+  total_phases: 13
+  completed_phases: 13
+  total_plans: 37
+  completed_plans: 37
   percent: 100
 ---
 
@@ -75,6 +75,7 @@ Progress: [██████████] 100% (35/35 plans complete)
 | Phase 20.4 P09 | 5min | 2 tasks | 3 files |
 | Phase 22-final-audit P01 | 4min | 2 tasks | 43 files |
 | Phase 23-integration-wiring-fixes P01 | 8min | 2 tasks | 2 files |
+| Phase 24-final-wiring-polish P01 | 5min | 2 tasks | 2 files |
 
 ### Decisions
 
@@ -143,6 +144,8 @@ Recent decisions affecting current work:
 - [Phase 23-integration-wiring-fixes]: HUB-01: Use URL.searchParams.set (not append) so meeting_id is idempotent on retry
 - [Phase 23-integration-wiring-fixes]: VOT-01/VOT-04: isFrozen endpoint branch at api() call site; both endpoints return {ok:true} so shared error handling works
 - [Phase 23-integration-wiring-fixes]: O.currentMeetingStatus='live' set synchronously after frozen-to-live success — SSE meetingStatusChanged arrives async, too late for exec mode switch check
+- [Phase 24-final-wiring-polish]: motionOpened fired unconditionally in OperatorController::openVote — matches MotionsController::open pattern; motion data fetched fresh from DB post-transaction
+- [Phase 24-final-wiring-polish]: HUB-01 extended: hub.js meeting_id propagation now covers /postsession.htmx.html in addition to /operator.htmx.html
 
 ### Roadmap Evolution
 
@@ -159,6 +162,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T09:03:29.597Z
-Stopped at: Completed 23-integration-wiring-fixes-01: integration wiring fixes
+Last session: 2026-03-18T09:33:14.757Z
+Stopped at: Completed 24-final-wiring-polish-01: final wiring polish
 Resume file: None
