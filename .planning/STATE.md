@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
-stopped_at: Completed 27-copropriete-transformation-27-01-PLAN.md
-last_updated: "2026-03-18T15:19:49.094Z"
+stopped_at: Completed 27-copropriete-transformation-27-02-PLAN.md
+last_updated: "2026-03-18T15:29:31.845Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 20
 ---
 
@@ -48,6 +48,7 @@ Progress: [==        ] 20% (1/5 phases, 3/3 plans in phase 25)
 | Phase 26-guided-ux-components P02 | 3 | 2 tasks | 3 files |
 | Phase 26-guided-ux-components P03 | 4 | 2 tasks | 9 files |
 | Phase 27-copropriete-transformation P01 | 5 | 2 tasks | 10 files |
+| Phase 27-copropriete-transformation P02 | 15 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,8 @@ v4.0-specific decisions pending (to be logged as phases complete):
 - [Phase 26-guided-ux-components]: ag-tooltip text cleared to empty string via closest('ag-tooltip') when button enables — no stale tooltip on active buttons
 - [Phase 27-copropriete-transformation]: VoteEngine uses >= threshold; tie test uses threshold 0.501 to model strict majority correctly
 - [Phase 27-copropriete-transformation]: Copropriete transformation is vocabulary-only: voting_power, BallotsService, tantieme CSV alias all preserved — value='tantiemes' in select options unchanged
+- [Phase 27-copropriete-transformation]: Root ag_vote_wireframe.html is stale copy — vocabulary cleaned to match docs/wireframe; future: remove or symlink
+- [Phase 27-copropriete-transformation]: Phase 27 vocabulary transformation complete: zero copropri matches outside ImportService.php CSV aliases and LOT- seed data
 
 ### Pending Todos
 
@@ -100,7 +103,7 @@ v4.0-specific decisions pending (to be logged as phases complete):
 
 ## Session Continuity
 
-Last session: 2026-03-18T15:19:49.089Z
-Stopped at: Completed 27-copropriete-transformation-27-01-PLAN.md
+Last session: 2026-03-18T15:29:31.839Z
+Stopped at: Completed 27-copropriete-transformation-27-02-PLAN.md
 Resume file: None
 Next action: Execute Phase 25 Plan 03 (hub/operator/voter page integrations for PDF viewer)
