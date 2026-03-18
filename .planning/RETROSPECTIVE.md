@@ -51,6 +51,53 @@
 
 ---
 
+## Milestone: v3.0 — Session Lifecycle
+
+**Shipped:** 2026-03-18
+**Phases:** 13 (9 core + 4 UI polish + 2 gap closure) | **Plans:** 37 | **Requirements:** 26/26
+
+### What Was Built
+- Wizard creates real sessions with atomic member+motion persistence in PostgreSQL transactions
+- Multi-consumer SSE infrastructure with Redis fan-out, per-consumer queues, nginx buffering-off
+- Live vote flow: operator opens/closes motions, voters cast ballots, real-time tally via SSE
+- Post-session 4-step stepper: verified results, consolidation, PV PDF generation via Dompdf, archival
+- Total DEMO_ eradication: renamed LOAD_DEMO_DATA to LOAD_SEED_DATA across all config/scripts/docs
+- Every API call site has loading/error/empty states (ag-spinner + error+retry + Shared.emptyState)
+- Hub→operator meeting_id propagation and frozen→live SSE transition wiring
+
+### What Worked
+- **Integration checker agent** — Caught 2 real cross-phase wiring bugs (hub→operator meeting_id, frozen→live SSE) that phase-level verification missed. Precise file/line references made fixes trivial.
+- **Milestone re-audit cycle** — First audit found gaps, Phase 23 fixed them, re-audit confirmed fixes + found 1 new latency issue, Phase 24 fixed that. Iterative auditing converges on zero gaps.
+- **Tiny gap closure phases** — Phases 23 and 24 were 1-plan, 2-task phases that completed in minutes. Small, focused phases are more effective than bundling fixes into a large remediation phase.
+- **Code-level verification by integration checker** — PST-01-04 were confirmed correct by the integration checker without needing E2E tests. Reduced verification overhead for wiring-fix phases.
+
+### What Was Inefficient
+- **4 phases without VERIFICATION.md** — Phases 20, 20.1, 20.3, 21 never got VERIFICATION.md during execute-phase. The verifier should have been spawned for every phase, not just some.
+- **REQUIREMENTS.md tracker drift** — HUB-01/HUB-02 were verified correct in Phase 16 VERIFICATION.md but the tracker still showed "Pending". PST-01-04 same issue. Manual tracker sync is unreliable.
+- **UI polish phases (20.1-20.4) consumed 24/37 plans** — 65% of plans were CSS/visual alignment. Future UI milestones should consider fewer, larger plans per wireframe page group.
+- **motionOpened SSE gap introduced by Phase 23** — The frozen→live fix called operator_open_vote.php which didn't fire motionOpened SSE. Should have been caught during Phase 23 planning, not by re-audit.
+
+### Patterns Established
+- **tryLoad(attempt) pattern** for retry logic (ES5-compatible, promise-based, with setTimeout fallback)
+- **Shared.emptyState()** as universal empty state renderer
+- **MeetingContext.set()/get()** as cross-page meeting_id propagation via sessionStorage + URL params
+- **Per-consumer Redis lists** for SSE fan-out (`sse:consumers:{meetingId}` SET + per-consumer RPUSH)
+- **Stale response guard** — snapshot meeting_id before async fetch, discard if meeting switched
+
+### Key Lessons
+1. **Spawn verifier for every phase** — Skipping verification for "simple" phases creates audit gaps. The 30-second cost of verification is negligible vs the re-audit overhead.
+2. **Integration checker should run mid-milestone** — Catching the hub→operator handoff gap at Phase 20 (not Phase 22) would have saved 2 gap-closure phases.
+3. **Audit-fix-reaudit converges fast** — The iterative cycle (audit → gap phase → re-audit) closed all gaps in 2 iterations. Don't fear re-auditing.
+4. **Requirements tracker needs automation** — Manual checkbox sync drifts. Consider a script that cross-references VERIFICATION.md statuses with REQUIREMENTS.md checkboxes.
+
+### Cost Observations
+- Model mix: ~15% opus (orchestration, planning), ~80% sonnet (execution, verification, research), ~5% haiku
+- 56 feat commits across 2 days (2026-03-16 to 2026-03-18)
+- Notable: Phase 20.4 had 12 plans (1 per page CSS audit) — highest plan count per phase
+- Gap closure phases (23, 24) completed in ~5 minutes each — fast turnaround on precise fixes
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -59,6 +106,7 @@
 |-----------|--------|-------|------------|
 | v1.1-v1.5 | 1-3 | ~15 | Sequential execution, manual verification |
 | v2.0 | 4-15 | 37 | Wave-based parallel execution, automated verification, milestone audit |
+| v3.0 | 16-24 | 37 | Integration checker, iterative audit-fix-reaudit, tiny gap closure phases |
 
 ### Cumulative Quality
 
@@ -66,9 +114,12 @@
 |-----------|-------------|----------|-------------------|
 | v1.5 | ~20 | 100% | 0 |
 | v2.0 | 54 | 100% | 3 (Phase 14, 15x2) |
+| v3.0 | 26 | 100% | 2 (Phase 23, 24) |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. Milestone audits catch real integration bugs that phase-level verification misses
+1. Milestone audits catch real integration bugs that phase-level verification misses (v2.0: api() arg order; v3.0: hub→operator handoff, frozen→live SSE)
 2. Parallel plan execution within waves dramatically reduces wall-clock time
 3. A single wireframe/spec as source of truth eliminates design ambiguity
+4. Iterative audit-fix-reaudit converges fast — 2 iterations closed all v3.0 gaps
+5. Tiny gap closure phases (1-2 tasks) are more effective than bundled remediation
