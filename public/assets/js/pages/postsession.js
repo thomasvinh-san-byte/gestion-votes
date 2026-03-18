@@ -45,8 +45,8 @@
       el.classList.remove('active', 'done');
       el.removeAttribute('aria-current');
       if (s < step) {
-        el.classList.add('done');
-        el.innerHTML = CHECK_SVG + ' ' + STEP_LABELS[s];
+        el.classList.add('done', 'step-complete');
+        el.innerHTML = '<span class="step-complete-icon">' + CHECK_SVG + '</span> ' + STEP_LABELS[s];
       } else if (s === step) {
         el.classList.add('active');
         el.setAttribute('aria-current', 'step');
@@ -120,6 +120,7 @@
       if (d && d.ok && d.data) {
         var motions = d.data.items || d.data || [];
         loadResultsTable(motions);
+        renderResultCards(motions, document.getElementById('resultCardsContainer'));
         // Show success alert
         var alert = document.getElementById('verifyAlert');
         if (alert) alert.hidden = false;
@@ -168,6 +169,59 @@
         '<td>' + esc(String(majorite)) + '</td>' +
         '</tr>';
     }).join('');
+  }
+
+  // RES-04: Collapsible result cards with bar charts
+  function renderResultCards(motions, container) {
+    if (!container) return;
+    if (!motions || motions.length === 0) {
+      container.innerHTML = '<p class="text-center text-muted p-4">Aucune r\u00e9solution trouv\u00e9e.</p>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < motions.length; i++) {
+      var m = motions[i];
+      // Field name mapping: support both API variants (votes_for/pour, votes_against/contre, votes_abstain/abstentions)
+      var pour = parseInt(m.votes_for != null ? m.votes_for : (m.pour != null ? m.pour : 0), 10);
+      var contre = parseInt(m.votes_against != null ? m.votes_against : (m.contre != null ? m.contre : 0), 10);
+      var abstention = parseInt(m.votes_abstain != null ? m.votes_abstain : (m.abstentions != null ? m.abstentions : (m.abstention != null ? m.abstention : 0)), 10);
+      var total = pour + contre + abstention;
+      var pctPour = total > 0 ? Math.round(pour / total * 100) : 0;
+      var pctContre = total > 0 ? Math.round(contre / total * 100) : 0;
+      var pctAbstention = total > 0 ? Math.round(abstention / total * 100) : 0;
+      var threshold = m.threshold || m.majority_threshold || 50;
+      var adopted = m.result === 'adopted' || m.decision === 'adopted' || m.passed === true || m.status === 'adopted' || m.adopted === true || (total > 0 && pctPour > threshold);
+      var verdictClass = adopted ? 'result-adopted' : 'result-rejected';
+      var verdictText = adopted ? 'ADOPT\u00c9' : 'REJET\u00c9';
+      var verdictIcon = adopted ? '\u2713' : '\u2717';
+      var membersPresent = m.members_present != null ? m.members_present : (m.present_count != null ? m.present_count : '\u2014');
+      var num = i + 1;
+      var titleText = esc(m.title || m.label || m.motion_title || '');
+
+      html += '<details class="result-card">'
+        + '<summary class="result-card-summary">'
+        +   '<span class="result-card-num">R\u00e9solution ' + num + '</span>'
+        +   '<span class="result-card-title">' + titleText + '</span>'
+        +   '<span class="result-card-verdict ' + verdictClass + '">' + verdictIcon + ' ' + verdictText + '</span>'
+        + '</summary>'
+        + '<div class="result-card-body">'
+        +   '<div class="result-card-verdict-large ' + verdictClass + '">' + verdictIcon + ' ' + verdictText + '</div>'
+        +   '<div class="result-card-numbers">'
+        +     '<span>POUR : ' + pour + ' (' + pctPour + '%)</span>'
+        +     '<span>CONTRE : ' + contre + ' (' + pctContre + '%)</span>'
+        +     '<span>ABSTENTION : ' + abstention + ' (' + pctAbstention + '%)</span>'
+        +   '</div>'
+        +   '<div class="result-bar-group">'
+        +     '<div class="result-bar-row"><span class="result-bar-label">POUR</span><div class="result-bar-track"><div class="result-bar-fill result-bar-pour" style="--bar-pct:' + pctPour + '%"></div></div><span class="result-bar-pct">' + pour + ' (' + pctPour + '%)</span></div>'
+        +     '<div class="result-bar-row"><span class="result-bar-label">CONTRE</span><div class="result-bar-track"><div class="result-bar-fill result-bar-against" style="--bar-pct:' + pctContre + '%"></div></div><span class="result-bar-pct">' + contre + ' (' + pctContre + '%)</span></div>'
+        +     '<div class="result-bar-row"><span class="result-bar-label">ABSTENTION</span><div class="result-bar-track"><div class="result-bar-fill result-bar-abstain" style="--bar-pct:' + pctAbstention + '%"></div></div><span class="result-bar-pct">' + abstention + ' (' + pctAbstention + '%)</span></div>'
+        +   '</div>'
+        +   '<div class="result-card-threshold">Seuil requis\u00a0: ' + threshold + '%</div>'
+        +   '<div class="result-card-footer">' + total + ' votes exprim\u00e9s \u00b7 ' + membersPresent + ' membres pr\u00e9sents</div>'
+        + '</div>'
+        + '</details>';
+    }
+    container.innerHTML = html;
   }
 
   // =========================================================================

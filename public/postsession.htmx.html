@@ -122,8 +122,11 @@
             Tous les votes sont clos. Aucune anomalie d&eacute;tect&eacute;e.
           </div>
 
-          <!-- Results table (5-column wireframe layout) -->
-          <div class="card mb-4">
+          <!-- Result cards (collapsible, primary display) -->
+          <div id="resultCardsContainer" class="result-cards-container mb-4"></div>
+
+          <!-- Results table (5-column wireframe layout — hidden, kept for backward compat) -->
+          <div class="card mb-4" hidden>
             <div class="card-header">
               <h3 class="card-title">R&eacute;sultats par r&eacute;solution</h3>
             </div>
