@@ -18,7 +18,7 @@
 - [x] **Phase 20.1: Refonte UI** — Wireframe alignment, reduced cognitive load, FOUC fix (INSERTED) (completed 2026-03-17)
 - [x] **Phase 20.2: Deep UI Wireframe Alignment** — Align all component CSS with wireframe v3.19.2 specs (INSERTED) (completed 2026-03-17)
 - [x] **Phase 20.3: Page Layout Wireframe Alignment** — Page layouts aligned with wireframe density and composition (INSERTED) (completed 2026-03-18, design issues deferred to 20.4)
-- [ ] **Phase 20.4: Design System Enforcement** — Systematic design reconstruction: audit each page against wireframe, clean contradictory CSS, rebuild pages to unified design language, fix JS bugs (INSERTED)
+- [x] **Phase 20.4: Design System Enforcement** — Systematic design reconstruction: audit each page against wireframe, clean contradictory CSS, rebuild pages to unified design language, fix JS bugs (INSERTED) (completed 2026-03-18)
 - [ ] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived
 - [ ] **Phase 22: Final Audit** — Zero DEMO_ constants; every API call has loading/error/empty states
 
@@ -182,7 +182,7 @@ Plans:
 **Goal:** Every page matches the wireframe's design language: consistent spacing, color hierarchy, typography, and component usage. JS bugs fixed along the way. All 21 pages verified at 1920x1080.
 **Requirements**: N/A (inserted design quality phase — no formal requirement IDs)
 **Depends on:** Phase 20.3
-**Plans:** 11/12 plans executed
+**Plans:** 12/12 plans complete
 
 Plans:
 - [ ] 20.4-01-PLAN.md — CSS contradiction cleanup (pages.css duplicates, grid gaps, wizard re-definitions)
@@ -218,6 +218,12 @@ Plans:
   2. Every page that makes an API call displays a loading indicator while the request is in flight, a meaningful error message when the request fails, and an appropriate empty state when the response contains no data
 **Plans**: TBD
 
+### Future Milestones (Backlog)
+
+**v4.0+ Feature Ideas:**
+- **Suivi budget & documents PDF pour votants** — Budget tracking with PDF document distribution to voters
+- **Votes pour collectivités territoriales** — Voting mode for syndicats, communes, conseils de communes, départements (no tantièmes/ownership shares — flat voting, not assembly-style weighted votes)
+
 ## Progress
 
 | Phase | Milestone | Plans | Status | Completed |
@@ -241,7 +247,7 @@ Plans:
 | 20. Live Vote Flow | v3.0 | 2/2 | Complete | 2026-03-17 |
 | 20.1. Refonte UI | v3.0 | 4/4 | Complete | 2026-03-17 |
 | 20.2. Deep UI Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-17 |
-| 20.3. Page Layout Wireframe Alignment | v3.0 | 3/4 | In Progress | - |
-| 20.4. Design System Enforcement | 11/12 | In Progress|  | - |
+| 20.3. Page Layout Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-18 |
+| 20.4. Design System Enforcement | v3.0 | 12/12 | Complete | 2026-03-18 |
 | 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |
